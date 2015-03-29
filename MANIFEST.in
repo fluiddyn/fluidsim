@@ -1,0 +1,8 @@
+include *.txt
+include *.rst
+recursive-include doc *.rst
+recursive-include fluidsim *.h
+recursive-include fluidsim *.pyx
+recursive-include fluidsim *.pxd
+recursive-include fluidsim *.c
+recursive-include include *.h

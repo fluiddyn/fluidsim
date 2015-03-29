@@ -1,0 +1,11 @@
+How to
+======
+
+How to upload to PyPI — the Python Package Index
+------------------------------------------------
+
+First, run the tests::
+  python -m unittest discover
+
+With a correct $HOME/.pypirc, run::
+  python setup.py sdist upload
