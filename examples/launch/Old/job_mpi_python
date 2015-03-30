@@ -1,0 +1,43 @@
+#!/bin/bash
+
+PYTHONCOMMAND="$@"
+
+if [ -z "$PYTHONCOMMAND" ];
+then
+    echo "This script takes at least one argument (the name of the python script)"
+    exit 0
+fi
+
+processes_per_node=`cat /proc/cpuinfo | grep processor | wc -l`
+
+if [ -n "$SP_PROCS" ];
+then
+        total_processes=`expr $processes_per_node \* $SP_PROCS`
+else
+        total_processes=$processes_per_node
+fi
+
+if [[ "$HOSTNAME" = "pierre-KTH" ]];
+then
+        total_processes=2
+elif [[ "$HOSTNAME" = "pelvoux" ]];
+then
+        total_processes=4
+fi
+
+while [ $# -gt 0 ]; do
+case "$1" in
+    -np) shift ; total_processes=$1;;
+    *) shift
+esac
+done
+
+echo "run mpirun with $total_processes processes"
+
+if [ -n "$SP_HOSTFILE" ];
+then
+    source ~/.profile
+    mpirun -np $total_processes -machinefile $SP_HOSTFILE -x PYTHONPATH -x SOLVEQ2D_RESULTS -x SOLVEQ2D_SCRATCH python -u $PYTHONCOMMAND
+else
+    mpirun -np $total_processes python -u $PYTHONCOMMAND
+fi

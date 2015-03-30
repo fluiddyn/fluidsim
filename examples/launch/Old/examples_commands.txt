@@ -1,0 +1,17 @@
+
+cd ${SOLVEQ2D_PATH}/scripts/simuls/
+
+spattach -i -p2
+./job_mpi_python simul_profile.py
+
+esubmit -n2 -t15 ./job_mpi_python simul_profile.py
+spq -u $USER
+
+esubmit -n1 -t15 ./job_serial_python modif_resol_all_dir.py
+
+
+
+
+
+
+

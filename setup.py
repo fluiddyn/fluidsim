@@ -88,6 +88,9 @@ try:
 except subprocess.CalledProcessError:
     FFTW3MPI = False
 
+FFTW3MPI = True
+print('FFTW3MPI', FFTW3MPI)
+    
 if FFTW3MPI:
     libraries.append('fftw3_mpi')
 

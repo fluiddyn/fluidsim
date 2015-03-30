@@ -155,8 +155,9 @@ class Simul(SimulBasePseudoSpectral):
         Nw_fft = oper.fft2(mamp_zchi)
 
         if self.params.FORCING:
+            # this is WRONG
             forcing_fft = self.forcing.get_forcing()
-            forcing_w_fft = forcing_fft...
+            forcing_w_fft = forcing_fft
             Nw_fft += forcing_w_fft
 
         oper.dealiasing(Nw_fft)

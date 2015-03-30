@@ -1,7 +1,6 @@
 
-0.0.8a
+0.0.1a
 ------
 
-- The fluiddyn package now only contains base files for the FluidDyn
-  project. Other packages (fluidsim, fluidlab, ...) provide other
-  files.
+- Split the package fluiddyn between one base package and specialized
+  packages.
