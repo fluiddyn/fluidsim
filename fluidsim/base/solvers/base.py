@@ -20,7 +20,7 @@ import numpy as np
 
 from fluidsim.operators.setofvariables import SetOfVariables
 
-from fluidsim.base.params import Parameters
+from fluidsim.base.params import Parameters, create_params
 
 from fluidsim.base.solvers.info_base import (
     InfoSolverBase, create_info_simul)
@@ -50,6 +50,7 @@ class SimulBase(object):
         Information about the particular solver.
 
     """
+    InfoSolver = InfoSolverBase
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -62,25 +63,30 @@ class SimulBase(object):
                    'nu_2': 0.}
         params.set_attribs(attribs)
 
-    def __init__(self, params, info_solver=None):
+    @classmethod
+    def create_default_params(cls):
+        cls.info_solver = cls.InfoSolver()
+        cls.info_solver.complete_with_classes()
+        return create_params(cls.info_solver)
+
+    def __init__(self, params):
         # np.seterr(invalid='raise')
         # np.seterr(over='raise')
         np.seterr(all='warn')
         np.seterr(under='ignore')
 
-        if info_solver is None:
-            info_solver = InfoSolverBase()
-            info_solver.complete_with_classes()
-        elif not isinstance(info_solver, InfoSolverBase):
-            raise ValueError('info_solver must be an InfoSolverBase object.')
-        dico_classes = info_solver.import_classes()
+        if not hasattr(self, 'info_solver'):
+            self.info_solver = self.InfoSolver()
+            self.info_solver.complete_with_classes()
+
+        dico_classes = self.info_solver.import_classes()
 
         if not isinstance(params, Parameters):
             raise TypeError('params should be a Parameters instance.')
 
         # params.check_and_modify()
         self.params = params
-        self.info = create_info_simul(info_solver, params)
+        self.info = create_info_simul(self.info_solver, params)
 
         # initialization operators and grid
         Operators = dico_classes['Operators']
@@ -99,7 +105,7 @@ class SimulBase(object):
 
         # initialisation object variables
         State = dico_classes['State']
-        self.state = State(self, info_solver)
+        self.state = State(self, self.info_solver)
 
         # initialisation time stepping
         TimeStepping = dico_classes['TimeStepping']
@@ -137,38 +143,6 @@ Simul = SimulBase
 
 if __name__ == "__main__":
 
-    import fluiddyn as fld
-
-    info_solver = InfoSolverBase()
-    info_solver.complete_with_classes()
-
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
-
-    nh = 16
-    Lh = 2*np.pi
-    params.oper.nx = nh
-    params.oper.ny = nh
-    params.oper.Lx = Lh
-    params.oper.Ly = Lh
-
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-
-    params.time_stepping.t_end = 5.
-
-    params.init_fields.type_flow_init = 'NOISE'
-
-    params.output.periods_plot.phys_fields = 0.
-
-    params.output.periods_print.print_stdout = 0.25
-    params.output.periods_save.phys_fields = 2.
-
-    sim = Simul(params)
-
-    sim.output.phys_fields.plot()
-    sim.time_stepping.start()
-    sim.output.phys_fields.plot()
-
-    fld.show()

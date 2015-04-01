@@ -20,38 +20,31 @@ from fluidsim.solvers.sw1l.solver import Simul as SimulSW1l
 
 class InfoSolverSW1lModified(InfoSolverSW1l):
     """Information about the solver SW1l."""
-    def __init__(self, **kargs):
-        super(InfoSolverSW1lModified, self).__init__(**kargs)
+    def _init_root(self, **kargs):
+        super(InfoSolverSW1lModified, self)._init_root()
 
-        if 'tag' in kargs and kargs['tag'] == 'solver':
+        sw1l = 'fluidsim.solvers.sw1l'
 
-            sw1l = 'fluidsim.solvers.sw1l'
+        self.module_name = sw1l+'.modified.solver'
+        self.class_name = 'Simul'
+        self.short_name = 'SW1lmodif'
 
-            self.module_name = sw1l+'.modified.solver'
-            self.class_name = 'Simul'
-            self.short_name = 'SW1lmodif'
+        classes = self.classes
 
-            classes = self.classes
+        classes.State.module_name = sw1l+'.modified.state'
+        classes.State.class_name = 'StateSW1lModified'
 
-            classes.State.module_name = sw1l+'.modified.state'
-            classes.State.class_name = 'StateSW1lModified'
+        classes.InitFields.module_name = sw1l+'.modified.init_fields'
+        classes.InitFields.class_name = 'InitFieldsSW1lModified'
 
-            classes.InitFields.module_name = sw1l+'.modified.init_fields'
-            classes.InitFields.class_name = 'InitFieldsSW1lModified'
-
-            classes.Output.module_name = sw1l+'.modified.output'
-            classes.Output.class_name = 'OutputSW1lModified'
-
-
-info_solver = InfoSolverSW1lModified(tag='solver')
-info_solver.complete_with_classes()
+        classes.Output.module_name = sw1l+'.modified.output'
+        classes.Output.class_name = 'OutputSW1lModified'
 
 
 class Simul(SimulSW1l):
     """A solver of the shallow-water 1 layer equations (SW1l)"""
 
-    def __init__(self, params, info_solver=info_solver):
-        super(Simul, self).__init__(params, info_solver)
+    InfoSolver = InfoSolverSW1lModified
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -129,22 +122,11 @@ class Simul(SimulSW1l):
         return tendencies_fft
 
 
-
-
-
-
-
-
-
-
-
-
-if __name__=="__main__":
-
+if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 
@@ -162,7 +144,6 @@ if __name__=="__main__":
 
     params.init_fields.type_flow_init = 'NOISE'
 
-
     params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 1.
@@ -176,11 +157,10 @@ if __name__=="__main__":
 
     params.output.phys_fields.field_to_plot = 'div'
 
-    params.output.spectra.has_to_plot = False
-    params.output.spatial_means.has_to_plot = False
-    params.output.spect_energy_budg.has_to_plot = False
-    params.output.increments.has_to_plot = False
-    params.output.pdf.has_to_plot = False
+    # params.output.spectra.HAS_TO_PLOT_SAVED = True
+    # params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+    # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
+    # params.output.increments.HAS_TO_PLOT_SAVED = True
 
     sim = Simul(params)
 

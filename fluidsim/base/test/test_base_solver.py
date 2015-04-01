@@ -1,12 +1,12 @@
 
+
 import unittest
 
 import numpy as np
 
 import fluiddyn as fld
 
-from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, info_solver_ps)
+from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
 from fluiddyn.io import stdout_redirected
 
@@ -15,7 +15,7 @@ class TestBaseSolver(unittest.TestCase):
     def test_simul(self):
         """Should be able to run a base experiment."""
 
-    params = fld.simul.create_params(info_solver_ps)
+    params = SimulBasePseudoSpectral.create_default_params()
 
     params.short_name_type_run = 'test'
 

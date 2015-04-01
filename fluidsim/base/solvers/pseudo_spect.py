@@ -52,11 +52,9 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
                      'class_name': 'OperatorsPseudoSpectral2D'})
 
 
-info_solver_ps = InfoSolverPseudoSpectral()
-info_solver_ps.complete_with_classes()
-
-
 class SimulBasePseudoSpectral(SimulBase):
+
+    InfoSolver = InfoSolverPseudoSpectral
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -67,9 +65,6 @@ class SimulBasePseudoSpectral(SimulBase):
                    'nu_4': 0.,
                    'nu_m4': 0.}
         params.set_attribs(attribs)
-
-    def __init__(self, params, info_solver=info_solver_ps):
-        super(SimulBasePseudoSpectral, self).__init__(params, info_solver)
 
     def compute_freq_diss(self):
         if self.params.nu_2 > 0:
@@ -108,7 +103,7 @@ if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver_ps)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 

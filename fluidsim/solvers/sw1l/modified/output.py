@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from fluidsim.solvers.sw1l.output.output_base import OutputBaseSW1l
+from fluidsim.solvers.sw1l.output import OutputBaseSW1l
 
 
 class OutputSW1lModified(OutputBaseSW1l):

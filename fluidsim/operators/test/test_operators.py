@@ -3,18 +3,16 @@ import unittest
 import numpy as np
 import sys
 
-import fluiddyn as fld
-
 from fluiddyn.io import stdout_redirected
 
-from fluidsim.base.solvers.pseudo_spect import info_solver_ps
+from fluidsim.base.solvers.pseudo_spect import Simul
 
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
 
 
 def create_oper(type_fft='FFTWCY'):
 
-    params = fld.simul.create_params(info_solver_ps)
+    params = Simul.create_default_params()
 
     nh = 8
     params.oper.nx = nh

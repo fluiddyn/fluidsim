@@ -19,23 +19,22 @@ import os
 from fluiddyn.util.containerxml import ContainerXML
 from fluiddyn.util.util import import_class
 
+from fluidsim.base.solvers.info_base import InfoSolverBase
+
 
 class Parameters(ContainerXML):
     """Contain the parameters."""
     pass
-
-from fluidsim.base.solvers.info_base import InfoSolverBase
 
 
 def create_params(input_info_solver):
     """Create a Parameters instance from an InfoSolverBase instance."""
     if isinstance(input_info_solver, InfoSolverBase):
         info_solver = input_info_solver
-    elif hasattr(input_info_solver, 'info_solver'):
-        info_solver = input_info_solver.info_solver
+    elif hasattr(input_info_solver, 'Simul'):
+        info_solver = input_info_solver.Simul.create_default_params()
     else:
-        raise ValueError('input_info_solver is not related '
-                         'to a InfoSolver instance.')
+        raise ValueError('Can not create params from input input_info_solver.')
 
     params = Parameters(tag='params')
     dict_classes = info_solver.import_classes()

@@ -23,35 +23,28 @@ from fluiddyn.util import mpi
 
 class InfoSolverSW1lWaves(InfoSolverSW1lExactLin):
     """Information about the solver SW1l."""
-    def __init__(self, **kargs):
-        super(InfoSolverSW1lWaves, self).__init__(**kargs)
+    def _init_root(self):
+        super(InfoSolverSW1lWaves, self)._init_root()
 
-        if 'tag' in kargs and kargs['tag'] == 'solver':
+        sw1l = 'fluidsim.solvers.sw1l'
 
-            sw1l = 'fluidsim.solvers.sw1l'
+        self.module_name = sw1l+'.onlywaves.solver'
+        self.short_name = 'SW1lwaves'
 
-            self.module_name = sw1l+'.onlywaves.solver'
-            self.short_name = 'SW1lwaves'
+        classes = self.classes
 
-            classes = self.classes
+        classes.State.module_name = sw1l+'.onlywaves.state'
+        classes.State.class_name = 'StateSW1lWaves'
 
-            classes.State.module_name = sw1l+'.onlywaves.state'
-            classes.State.class_name = 'StateSW1lWaves'
+        classes.InitFields.class_name = 'InitFieldsSW1lWaves'
 
-            classes.InitFields.class_name = 'InitFieldsSW1lWaves'
-
-            classes.Forcing.class_name = 'ForcingSW1lWaves'
-
-
-info_solver = InfoSolverSW1lWaves(tag='solver')
-info_solver.complete_with_classes()
+        classes.Forcing.class_name = 'ForcingSW1lWaves'
 
 
 class Simul(SimulSW1lExactLin):
     """A solver of the shallow-water 1 layer equations (SW1l)"""
 
-    def __init__(self, params, info_solver=info_solver):
-        super(Simul, self).__init__(params, info_solver)
+    InfoSolver = InfoSolverSW1lWaves
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -185,7 +178,7 @@ if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 

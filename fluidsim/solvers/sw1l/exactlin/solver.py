@@ -24,36 +24,28 @@ from fluiddyn.util import mpi
 
 class InfoSolverSW1lExactLin(InfoSolverSW1l):
     """Information about the solver SW1l."""
-    def __init__(self, **kargs):
-        super(InfoSolverSW1lExactLin, self).__init__(**kargs)
+    def _init_root(self):
+        super(InfoSolverSW1lExactLin, self)._init_root()
 
-        if 'tag' in kargs and kargs['tag'] == 'solver':
+        sw1l = 'fluidsim.solvers.sw1l'
 
-            sw1l = 'fluidsim.solvers.sw1l'
+        self.module_name = sw1l+'.exactlin.solver'
+        self.class_name = 'Simul'
+        self.short_name = 'SW1lexlin'
 
-            self.module_name = sw1l+'.exactlin.solver'
-            self.class_name = 'Simul'
-            self.short_name = 'SW1lexlin'
+        classes = self.classes
 
-            classes = self.classes
+        classes.State.module_name = sw1l+'.exactlin.state'
+        classes.State.class_name = 'StateSW1lExactLin'
 
-            classes.State.module_name = sw1l+'.exactlin.state'
-            classes.State.class_name = 'StateSW1lExactLin'
+        classes.InitFields.class_name = 'InitFieldsSW1lExLin'
 
-            classes.InitFields.class_name = 'InitFieldsSW1lExLin'
-
-            classes.Forcing.class_name = 'ForcingSW1lExactLin'
-
-
-info_solver = InfoSolverSW1lExactLin(tag='solver')
-info_solver.complete_with_classes()
+        classes.Forcing.class_name = 'ForcingSW1lExactLin'
 
 
 class Simul(SimulSW1l):
     """A solver of the shallow-water 1 layer equations (SW1l)"""
-
-    def __init__(self, params, info_solver=info_solver):
-        super(Simul, self).__init__(params, info_solver)
+    InfoSolver = InfoSolverSW1lExactLin
 
     # def tendencies_nonlin(self, state_fft=None):
     #     oper = self.oper
@@ -163,8 +155,8 @@ class Simul(SimulSW1l):
         a_fft = ap_fft + am_fft
         div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
 
-        eta_fft = (oper.etafft_from_qfft(q_fft)
-                   + oper.etafft_from_afft(a_fft))
+        eta_fft = (oper.etafft_from_qfft(q_fft) +
+                   oper.etafft_from_afft(a_fft))
 
         dx_c2eta_fft, dy_c2eta_fft = oper.gradfft_from_fft(
             self.params.c2*eta_fft)
@@ -203,9 +195,9 @@ class Simul(SimulSW1l):
         Fx = oper.ifft2(Fx_fft)
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
-        A = (Feta*(ux**2+uy**2)/2
-             + (1+eta)*(ux*Fx+uy*Fy)
-             + self.params.c2*eta*Feta)
+        A = (Feta*(ux**2+uy**2)/2 +
+             (1+eta)*(ux*Fx+uy*Fy) +
+             self.params.c2*eta*Feta)
         A_fft = oper.fft2(A)
         if mpi.rank == 0:
             print('should be zero =', A_fft[0, 0])
@@ -215,7 +207,7 @@ if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 

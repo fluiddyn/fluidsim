@@ -17,29 +17,29 @@ from fluidsim.operators.setofvariables import SetOfVariables
 from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 
 
-info_solver = InfoSolverFiniteDiff()
+class InfoSolverAD1D(InfoSolverFiniteDiff):
+    def _init_root(self):
 
-package = 'fluidsim.solvers.ad1d'
-info_solver.module_name = package + '.solver'
-info_solver.class_name = 'Simul'
-info_solver.short_name = 'AD1D'
+        super(InfoSolverAD1D, self)._init_root()
 
-classes = info_solver.classes
+        package = 'fluidsim.solvers.ad1d'
+        self.module_name = package + '.solver'
+        self.class_name = 'Simul'
+        self.short_name = 'AD1D'
 
-classes.State.module_name = package + '.state'
-classes.State.class_name = 'StateAD1D'
+        classes = self.classes
 
-classes.InitFields.module_name = package + '.init_fields'
-classes.InitFields.class_name = 'InitFieldsAD1D'
+        classes.State.module_name = package + '.state'
+        classes.State.class_name = 'StateAD1D'
 
-classes.Output.module_name = package + '.output'
-classes.Output.class_name = 'Output'
+        classes.InitFields.module_name = package + '.init_fields'
+        classes.InitFields.class_name = 'InitFieldsAD1D'
 
-# classes.Forcing.module_name = package + '.forcing'
-# classes.Forcing.class_name = 'ForcingAD1D'
+        classes.Output.module_name = package + '.output'
+        classes.Output.class_name = 'Output'
 
-
-info_solver.complete_with_classes()
+        # classes.Forcing.module_name = package + '.forcing'
+        # classes.Forcing.class_name = 'ForcingAD1D'
 
 
 class Simul(SimulBase):
@@ -59,6 +59,7 @@ class Simul(SimulBase):
     constant velocity.
 
     """
+    InfoSolver = InfoSolverAD1D
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -67,10 +68,6 @@ class Simul(SimulBase):
         SimulBase._complete_params_with_default(params)
         attribs = {'U': 1.}
         params.set_attribs(attribs)
-
-    def __init__(self, params):
-        # the common initialization with the AD1D info_solver:
-        super(Simul, self).__init__(params, info_solver)
 
     def tendencies_nonlin(self, state_phys=None):
         """Compute the "nonlinear" tendencies."""
@@ -86,15 +83,15 @@ class Simul(SimulBase):
     def linear_operator(self):
         """Compute the linear operator as a matrix."""
 
-        return (- self.params.U*self.oper.sparse_px
-                + self.params.nu_2*(self.oper.sparse_pxx))
+        return (self.params.nu_2*(self.oper.sparse_pxx) -
+                self.params.U*self.oper.sparse_px)
 
 
 if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.U = 1.
 

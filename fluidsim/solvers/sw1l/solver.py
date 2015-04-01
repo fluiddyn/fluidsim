@@ -12,38 +12,34 @@ from fluiddyn.util import mpi
 
 class InfoSolverSW1l(InfoSolverPseudoSpectral):
     """Information about the solver SW1l."""
-    def __init__(self, **kargs):
-        super(InfoSolverSW1l, self).__init__(**kargs)
+    def _init_root(self):
+        super(InfoSolverSW1l, self)._init_root()
 
-        if 'tag' in kargs and kargs['tag'] == 'solver':
+        package = 'fluidsim.solvers.sw1l'
 
-            package = 'fluidsim.solvers.sw1l'
+        self.module_name = package + '.solver'
+        self.class_name = 'Simul'
+        self.short_name = 'SW1l'
 
-            self.module_name = package + '.solver'
-            self.class_name = 'Simul'
-            self.short_name = 'SW1l'
+        classes = self.classes
 
-            classes = self.classes
+        classes.State.module_name = package + '.state'
+        classes.State.class_name = 'StateSW1l'
 
-            classes.State.module_name = package + '.state'
-            classes.State.class_name = 'StateSW1l'
+        classes.InitFields.module_name = package + '.init_fields'
+        classes.InitFields.class_name = 'InitFieldsSW1l'
 
-            classes.InitFields.module_name = package + '.init_fields'
-            classes.InitFields.class_name = 'InitFieldsSW1l'
+        classes.Output.module_name = package + '.output'
+        classes.Output.class_name = 'OutputSW1l'
 
-            classes.Output.module_name = package + '.output'
-            classes.Output.class_name = 'OutputSW1l'
-
-            classes.Forcing.module_name = package + '.forcing'
-            classes.Forcing.class_name = 'ForcingSW1l'
-
-
-info_solver = InfoSolverSW1l(tag='solver')
-info_solver.complete_with_classes()
+        classes.Forcing.module_name = package + '.forcing'
+        classes.Forcing.class_name = 'ForcingSW1l'
 
 
 class Simul(SimulBasePseudoSpectral):
     """A solver of the shallow-water 1 layer equations (SW1l)"""
+
+    InfoSolver = InfoSolverSW1l
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -56,12 +52,11 @@ class Simul(SimulBasePseudoSpectral):
                    'kd2': 0}
         params.set_attribs(attribs)
 
-    def __init__(self, params, info_solver=info_solver):
+    def __init__(self, params):
         # Parameter(s) specific to this solver
         params.kd2 = params.f**2/params.c2
 
-        # first, the common initialisations
-        super(Simul, self).__init__(params, info_solver)
+        super(Simul, self).__init__(params)
 
         if mpi.rank == 0:
             self.output.print_stdout(
@@ -126,7 +121,7 @@ if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 

@@ -13,35 +13,36 @@ from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
 
-info_solver = InfoSolverPseudoSpectral()
+class InfoSolverNS2D(InfoSolverPseudoSpectral):
+    def _init_root(self):
 
-package = 'fluidsim.solvers.ns2d'
-info_solver.module_name = package + '.solver'
-info_solver.class_name = 'Simul'
-info_solver.short_name = 'NS2D'
+        super(InfoSolverNS2D, self)._init_root()
 
-classes = info_solver.classes
+        package = 'fluidsim.solvers.ns2d'
+        self.module_name = package + '.solver'
+        self.class_name = 'Simul'
+        self.short_name = 'NS2D'
 
-classes.State.module_name = package + '.state'
-classes.State.class_name = 'StateNS2D'
+        classes = self.classes
 
-classes.InitFields.module_name = package + '.init_fields'
-classes.InitFields.class_name = 'InitFieldsNS2D'
+        classes.State.module_name = package + '.state'
+        classes.State.class_name = 'StateNS2D'
 
-classes.Output.module_name = package + '.output'
-classes.Output.class_name = 'Output'
+        classes.InitFields.module_name = package + '.init_fields'
+        classes.InitFields.class_name = 'InitFieldsNS2D'
 
-classes.Forcing.module_name = package + '.forcing'
-classes.Forcing.class_name = 'ForcingNS2D'
+        classes.Output.module_name = package + '.output'
+        classes.Output.class_name = 'Output'
 
-
-info_solver.complete_with_classes()
+        classes.Forcing.module_name = package + '.forcing'
+        classes.Forcing.class_name = 'ForcingNS2D'
 
 
 class Simul(SimulBasePseudoSpectral):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
 
     """
+    InfoSolver = InfoSolverNS2D
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -50,10 +51,6 @@ class Simul(SimulBasePseudoSpectral):
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
         params.set_attribs(attribs)
-
-    def __init__(self, params):
-        # the common initialization with the NS2D info_solver:
-        super(Simul, self).__init__(params, info_solver)
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -106,7 +103,7 @@ if __name__ == "__main__":
 
     import fluiddyn as fld
 
-    params = fld.simul.create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 
