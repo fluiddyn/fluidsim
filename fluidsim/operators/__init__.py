@@ -1,5 +1,5 @@
-"""Numerical operators (:mod:`fluidsim.operators`)
-========================================================
+"""Numerical operators
+======================
 
 .. currentmodule:: fluidsim.operators
 

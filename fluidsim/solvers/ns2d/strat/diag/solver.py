@@ -1,5 +1,5 @@
-"""Stratified NS2D solver (:mod:`fluidsim.solvers.ns2d.strat.solver`)
-===========================================================================
+"""Stratified NS2D solver (:mod:`fluidsim.solvers.ns2d.strat.diag.solver`)
+==========================================================================
 
 .. autoclass:: Simul
    :members:
@@ -40,8 +40,6 @@ info_solver.complete_with_classes()
 
 class Simul(SimulBasePseudoSpectral):
     r"""Pseudo-spectral solver strat. 2D incompressible Navier-Stokes equations.
-
-    
 
 
     """

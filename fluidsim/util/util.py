@@ -1,5 +1,5 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util`)
-=======================================================================
+=================================================================
 
 """
 
@@ -268,7 +268,7 @@ class SetOfDirResults(object):
             name_run = _os.path.split(path_dir)[1]
 
             if not _os.path.exists(path_file):
-                print('No file param_simul.h5 in dir\n'+path_dir+
+                print('No file param_simul.h5 in dir\n' + path_dir +
                       'This directory is skipped...')
                 self.nb_dirs -= 1
             else:
@@ -353,7 +353,6 @@ class SetOfDirResults(object):
 
         return kdirs_corresp
 
-
     def filter_old(self, solver=None, c2=None, f=None,
                    FORCING=None, nh=None):
         """Return a filtered SetOfDirResults."""
@@ -361,7 +360,6 @@ class SetOfDirResults(object):
                                      FORCING=FORCING, nh=nh)
         paths = [self.dico_paths[dir_i] for dir_i in dirs]
         return SetOfDirResults(paths)
-
 
     def filter(self, **kwargs):
         """Return a filtered SetOfDirResults from conditions.

@@ -1,5 +1,5 @@
-"""Base functionalities for the solvers (:mod:`fluidsim.base`)
-====================================================================
+"""Base classes for writing solvers
+===================================
 
 .. currentmodule:: fluidsim.base
 

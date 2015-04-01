@@ -1,4 +1,5 @@
-"""Particular solvers (:mod:`fluidsim.solvers`)
+"""Particular solvers
+=====================
 
 .. currentmodule:: fluidsim.solvers
 

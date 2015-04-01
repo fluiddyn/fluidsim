@@ -38,8 +38,8 @@ Installation with Pip should also work::
 Run the tests
 -------------
 
-You can run some unit tests by running ``python -m unittest discover``
-from the root directory of FluidDyn or from any of the "test"
-directories.
+You can run some unit tests by running ``make tests`` from the root
+directory or ``python -m unittest discover`` from the root directory
+or from any of the "test" directories.
 
 

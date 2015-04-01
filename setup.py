@@ -180,7 +180,7 @@ setup(name='fluidsim',
           'Programming Language :: Cython',
           'Programming Language :: C',
       ],
-      packages=find_packages(exclude=['doc', 'script']),
+      packages=find_packages(exclude=['doc', 'examples']),
       install_requires=['fluiddyn', 'h5py', 'pyfftw'],
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
