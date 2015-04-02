@@ -130,8 +130,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         else:
             raise NotImplementedError('dtype of freq_lin:' + repr(dtype))
 
-        print('self.sim.state.state_fft.ndim', self.sim.state.state_fft.ndim)
-
         name_function = (
             '_time_step_' + params_ts.type_time_scheme +
             '_state_ndim{}_freqlin_ndim{}_'.format(

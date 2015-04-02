@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 0.5
+    params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5

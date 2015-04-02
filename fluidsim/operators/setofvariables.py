@@ -23,6 +23,7 @@ class SetOfVariables(np.ndarray):
                 info = like.info
                 keys = like.keys
                 shape = like.shape
+                dtype = like.dtype
             elif keys is None or shape_variable is None:
                 raise ValueError(
                     'If like is not provided, keys and '
@@ -89,10 +90,9 @@ class SetOfVariables(np.ndarray):
         return np.asarray(self[indice])
 
     def initialize(self, value=0):
-        print(self.dtype)
         self[:] = value
-        print(self.dtype)
-        
+
+
 if __name__ == '__main__':
 
     # shape_var = (2, 2)

@@ -1060,11 +1060,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     def dealiasing(self, *arguments):
         for ii in range(len(arguments)):
             thing = arguments[ii]
-            if isinstance(thing, np.ndarray):
-                dealiasing_variable(thing, self.where_dealiased,
-                                    self.nK0_loc, self.nK1_loc)
-            elif isinstance(thing, SetOfVariables):
+            if isinstance(thing, SetOfVariables):
                 dealiasing_setofvar(thing, self.where_dealiased,
+                                    self.nK0_loc, self.nK1_loc)
+            elif isinstance(thing, np.ndarray):
+                dealiasing_variable(thing, self.where_dealiased,
                                     self.nK0_loc, self.nK1_loc)
 
     def dealiasing_setofvar(self, sov):
