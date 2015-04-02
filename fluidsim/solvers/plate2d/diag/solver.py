@@ -160,8 +160,8 @@ class Simul(SimulBasePseudoSpectral):
         oper.dealiasing(Nw_fft)
 
         tendencies_fft = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
 
         tendencies_fft['ap_fft'] = -Nw_fft
         tendencies_fft['am_fft'] = Nw_fft
@@ -178,8 +178,8 @@ class Simul(SimulBasePseudoSpectral):
     def compute_freq_diss(self):
         """Compute the dissipation frequencies with dissipation only for w."""
         f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
-        f_d = np.zeros_like(self.state.state_fft.data, dtype=np.float64)
-        f_d_hypo = np.zeros_like(self.state.state_fft.data,
+        f_d = np.zeros_like(self.state.state_fft, dtype=np.float64)
+        f_d_hypo = np.zeros_like(self.state.state_fft,
                                  dtype=np.float64)
         f_d[0] = f_d_w
         f_d_hypo[0] = f_d_hypo_w

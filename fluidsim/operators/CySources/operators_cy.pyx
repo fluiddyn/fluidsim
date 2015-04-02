@@ -1061,10 +1061,15 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         for ii in range(len(arguments)):
             thing = arguments[ii]
             if isinstance(thing, np.ndarray):
-                loopKdealiasing(thing, self.where_dealiased,
-                                self.nK0_loc, self.nK1_loc)
+                dealiasing_variable(thing, self.where_dealiased,
+                                    self.nK0_loc, self.nK1_loc)
             elif isinstance(thing, SetOfVariables):
-                thing.dealiasing(self.where_dealiased)
+                dealiasing_setofvar(thing, self.where_dealiased,
+                                    self.nK0_loc, self.nK1_loc)
+
+    def dealiasing_setofvar(self, sov):
+        dealiasing_setofvar(sov, self.where_dealiased,
+                            self.nK0_loc, self.nK1_loc)
 
     # def sum_wavenumbers_old(self, field_fft):
     #     S_allkx = np.sum(field_fft)
@@ -1596,11 +1601,26 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef np.ndarray loopKdealiasing(np.ndarray[DTYPEc_t, ndim=2] ff_fft,
-                                np.ndarray[DTYPEb_t, ndim=2] where_dealiased,
-                                int nK0loc, int nK1loc):
+cdef np.ndarray dealiasing_variable(np.ndarray[DTYPEc_t, ndim=2] ff_fft,
+                                    np.ndarray[DTYPEb_t, ndim=2] where,
+                                    int nK0loc, int nK1loc):
     cdef np.uint32_t iKO, iK1
     for iK0 in range(nK0loc):
         for iK1 in range(nK1loc):
-            if where_dealiased[iK0, iK1]:
+            if where[iK0, iK1]:
                 ff_fft[iK0, iK1] = 0.
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef np.ndarray dealiasing_setofvar(np.ndarray[DTYPEc_t, ndim=3] setofvar_fft,
+                                    np.ndarray[DTYPEb_t, ndim=2] where,
+                                    Py_ssize_t n0, Py_ssize_t n1):
+    cdef Py_ssize_t ik, nk, i0, i1
+    nk = setofvar_fft.shape[0]
+
+    for i0 in xrange(n0):
+        for i1 in xrange(n1):
+            if where[i0, i1]:
+                for ik in xrange(nk):
+                    setofvar_fft[ik, i0, i1] = 0.

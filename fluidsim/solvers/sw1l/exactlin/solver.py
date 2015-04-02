@@ -119,8 +119,8 @@ class Simul(SimulSW1l):
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
         tendencies_fft = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
         tendencies_fft['q_fft'] = Nq_fft
         tendencies_fft['ap_fft'] = Np_fft
         tendencies_fft['am_fft'] = Nm_fft

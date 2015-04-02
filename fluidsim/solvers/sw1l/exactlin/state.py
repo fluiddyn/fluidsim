@@ -185,7 +185,7 @@ class StateSW1lExactLin(StateSW1l):
 
         rot_fft = q_fft + self.params.f*eta_fft
 
-        state_phys = SetOfVariables(like_this_sov=self.state_phys)
+        state_phys = SetOfVariables(like=self.state_phys)
         state_phys['ux'] = ifft2(ux_fft)
         state_phys['uy'] = ifft2(uy_fft)
         state_phys['eta'] = ifft2(eta_fft)

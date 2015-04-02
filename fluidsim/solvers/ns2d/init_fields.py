@@ -6,7 +6,6 @@ from fluiddyn.util import mpi
 from fluidsim.base.init_fields import InitFieldsBase
 
 
-
 class InitFieldsNS2D(InitFieldsBase):
     """Init the fields for the solver NS2D."""
 
@@ -40,6 +39,6 @@ class InitFieldsNS2D(InitFieldsBase):
 
         if 'Fourier_to_phys' in tasks_complete_init:
             sim.oper.dealiasing(rot_fft)
-            sim.state.state_fft['rot_fft'] = rot_fft
+            sim.state.state_fft.set_var('rot_fft', rot_fft)
 
             sim.state.statephys_from_statefft()

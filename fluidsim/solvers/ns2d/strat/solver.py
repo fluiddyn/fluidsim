@@ -58,11 +58,11 @@ class Simul(SimulBasePseudoSpectral):
         ifft2 = oper.ifft2
 
         if state_fft is None:
-            rot_fft = self.state.state_fft['rot_fft']
-            ux = self.state.state_phys['ux']
-            uy = self.state.state_phys['uy']
+            rot_fft = self.state.state_fft.get_var('rot_fft')
+            ux = self.state.state_phys.get_var('ux')
+            uy = self.state.state_phys.get_var('uy')
         else:
-            rot_fft = state_fft['rot_fft']
+            rot_fft = state_fft.get_var('rot_fft')
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = ifft2(ux_fft)
             uy = ifft2(uy_fft)
@@ -86,10 +86,10 @@ class Simul(SimulBasePseudoSpectral):
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
         tendencies_fft = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
 
-        tendencies_fft['rot_fft'] = Frot_fft
+        tendencies_fft.set_var('rot_fft', Frot_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()

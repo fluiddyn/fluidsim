@@ -40,14 +40,14 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
 
         self.L = sim.linear_operator()
         self.set_of_vars_temp = SetOfVariables(
-            like_this_sov=sim.state.state_phys)
+            like=sim.state.state_phys)
 
     def one_time_step_computation(self):
         """One time step"""
         self._time_step_RK()
         self.t += self.deltat
         self.it += 1
-        if np.isnan(np.min(self.sim.state.state_phys.data)):
+        if np.isnan(np.min(self.sim.state.state_phys)):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
 
@@ -103,7 +103,7 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
         """
         dt = self.deltat
         sim = self.sim
-        identity = sparse.identity(sim.state.state_phys.data.size)
+        identity = sparse.identity(sim.state.state_phys.size)
 
         # it seems that there is a bug with the proper RK2 method
         # (it "goes too fast")

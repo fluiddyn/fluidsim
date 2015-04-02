@@ -130,10 +130,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         else:
             raise NotImplementedError('dtype of freq_lin:' + repr(dtype))
 
+        print('self.sim.state.state_fft.ndim', self.sim.state.state_fft.ndim)
+
         name_function = (
             '_time_step_' + params_ts.type_time_scheme +
             '_state_ndim{}_freqlin_ndim{}_'.format(
-                self.sim.state.state_fft.data.ndim, self.freq_lin.ndim) +
+                self.sim.state.state_fft.ndim, self.freq_lin.ndim) +
             str_type)
 
         if not hasattr(self, name_function):
@@ -143,7 +145,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         exec('self._time_step_RK = self.' + name_function,
              globals(), locals())
-
 
     @cython.embedsignature(True)
     @cython.boundscheck(False)
@@ -173,9 +174,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         tendencies_nonlin = self.sim.tendencies_nonlin
         state_fft = self.sim.state.state_fft
 
-        nk = state_fft.data.shape[0]
-        n0 = state_fft.data.shape[1]
-        n1 = state_fft.data.shape[2]
+        nk = state_fft.shape[0]
+        n0 = state_fft.shape[1]
+        n1 = state_fft.shape[2]
 
         exact, exact2 = self.exact_linear_coefs.get_updated_coefs()
 
@@ -187,14 +188,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #     self.state_fft + dt/2*tendencies_fft_1)*exact2
         # # or this (slightly faster...)
 
-        datas = state_fft.data
-        datat = tendencies_fft_1.data
+        datas = state_fft
+        datat = tendencies_fft_1
 
-        state_fft_temp = SetOfVariables(like_this_sov=state_fft)
-        datatemp = state_fft_temp.data
+        state_fft_temp = SetOfVariables(like=state_fft)
+        datatemp = state_fft_temp
 
-        state_fft_np12_approx1 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx1.data
+        state_fft_np12_approx1 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx1
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -216,10 +217,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                           + dt/2*tendencies_fft_2)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_2.data
+        datat = tendencies_fft_2
 
-        state_fft_np12_approx2 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx2.data
+        state_fft_np12_approx2 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx2
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -241,10 +242,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                         + dt*exact2*tendencies_fft_3)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_3.data
+        datat = tendencies_fft_3
 
-        state_fft_np1_approx = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np1_approx.data
+        state_fft_np1_approx = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np1_approx
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -264,7 +265,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         # self.state_fft = state_fft_temp + dt/6*tendencies_fft_4
         # # or this (slightly faster... may be not...)
 
-        datat = tendencies_fft_4.data
+        datat = tendencies_fft_4
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -294,7 +295,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         tendencies_nonlin = self.sim.tendencies_nonlin
 
         state_fft = self.sim.state.state_fft
-        datas = state_fft.data
+        datas = state_fft
         nk = datas.shape[0]
         n0 = datas.shape[1]
         n1 = datas.shape[2]
@@ -309,13 +310,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                           + dt/2*tendencies_fft_1)*exact2
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_1.data
+        datat = tendencies_fft_1
 
-        state_fft_temp = SetOfVariables(like_this_sov=state_fft)
-        datatemp = state_fft_temp.data
+        state_fft_temp = SetOfVariables(like=state_fft)
+        datatemp = state_fft_temp
 
-        state_fft_np12_approx1 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx1.data
+        state_fft_np12_approx1 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx1
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -337,10 +338,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                           + dt/2*tendencies_fft_2)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_2.data
+        datat = tendencies_fft_2
 
-        state_fft_np12_approx2 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx2.data
+        state_fft_np12_approx2 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx2
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -362,10 +363,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                         + dt*exact2*tendencies_fft_3)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_3.data
+        datat = tendencies_fft_3
 
-        state_fft_np1_approx = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np1_approx.data
+        state_fft_np1_approx = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np1_approx
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -385,7 +386,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         # self.state_fft = state_fft_temp + dt/6*tendencies_fft_4
         # # or this (slightly faster... may be not...)
 
-        datat = tendencies_fft_4.data
+        datat = tendencies_fft_4
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -420,7 +421,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         tendencies_nonlin = self.sim.tendencies_nonlin
 
         state_fft = self.sim.state.state_fft
-        datas = state_fft.data
+        datas = state_fft
         nk = datas.shape[0]
         n0 = datas.shape[1]
         n1 = datas.shape[2]
@@ -435,13 +436,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                           + dt/2*tendencies_fft_1)*exact2
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_1.data
+        datat = tendencies_fft_1
 
-        state_fft_temp = SetOfVariables(like_this_sov=state_fft)
-        datatemp = state_fft_temp.data
+        state_fft_temp = SetOfVariables(like=state_fft)
+        datatemp = state_fft_temp
 
-        state_fft_np12_approx1 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx1.data
+        state_fft_np12_approx1 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx1
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -463,10 +464,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                           + dt/2*tendencies_fft_2)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_2.data
+        datat = tendencies_fft_2
 
-        state_fft_np12_approx2 = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np12_approx2.data
+        state_fft_np12_approx2 = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np12_approx2
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -488,10 +489,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         #                         + dt*exact2*tendencies_fft_3)
         # # or this (slightly faster...)
 
-        datat = tendencies_fft_3.data
+        datat = tendencies_fft_3
 
-        state_fft_np1_approx = SetOfVariables(like_this_sov=state_fft)
-        datatemp2 = state_fft_np1_approx.data
+        state_fft_np1_approx = SetOfVariables(like=state_fft)
+        datatemp2 = state_fft_np1_approx
 
         for ik in xrange(nk):
             for i0 in xrange(n0):
@@ -511,7 +512,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
         # self.state_fft = state_fft_temp + dt/6*tendencies_fft_4
         # # or this (slightly faster... may be not...)
 
-        datat = tendencies_fft_4.data
+        datat = tendencies_fft_4
 
         for ik in xrange(nk):
             for i0 in xrange(n0):

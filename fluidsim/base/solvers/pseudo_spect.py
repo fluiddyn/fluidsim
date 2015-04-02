@@ -91,8 +91,8 @@ class SimulBasePseudoSpectral(SimulBase):
     def tendencies_nonlin(self, variables=None):
         """Return a null SetOfVariables object."""
         tendencies = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
         tendencies.initialize(value=0.)
         return tendencies
 
