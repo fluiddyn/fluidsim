@@ -125,7 +125,7 @@ html_theme = 'sphinxdoc'
 #html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = 'FluidDyn '+release
+html_short_title = 'FluidSim '+release
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -202,8 +202,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'fluidlab.tex', u'fluidlab Documentation',
-   u'Pierre Augier', 'manual'),
+    ('index', 'fluidsim.tex', u'fluidsim Documentation',
+     u'Pierre Augier', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -232,7 +232,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'FluidDyn', u'FluidDyn Documentation',
+    ('index', 'FluidSim', u'FluidSim Documentation',
      [u'Pierre Augier'], 1)
 ]
 

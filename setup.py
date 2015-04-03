@@ -83,14 +83,13 @@ else:
     libraries.append('fftw3')
 
 try:
-    subprocess.check_call('ldconfig -p | grep libfftws3_mpi', shell=True)
+    subprocess.check_call('/sbin/ldconfig -p | grep libfftw3_mpi', shell=True)
     FFTW3MPI = True
 except subprocess.CalledProcessError:
     FFTW3MPI = False
 
-FFTW3MPI = True
 print('FFTW3MPI', FFTW3MPI)
-    
+
 if FFTW3MPI:
     libraries.append('fftw3_mpi')
 
@@ -118,17 +117,17 @@ ext_operators = Extension(
     sources=[path_sources+'/operators_cy.pyx'])
 
 
-path_sources = 'fluidsim/operators/CySources'
-include_dirs = [path_sources, np.get_include()]
-if MPI4PY:
-    include_dirs.extend(include_dirs_mpi)
-ext_sov = Extension(
-    'fluidsim.operators.setofvariables',
-    include_dirs=include_dirs,
-    libraries=libraries,
-    library_dirs=[],
-    cython_compile_time_env={'MPI4PY': MPI4PY},
-    sources=[path_sources+'/setofvariables_cy.pyx'])
+# path_sources = 'fluidsim/operators/CySources'
+# include_dirs = [path_sources, np.get_include()]
+# if MPI4PY:
+#     include_dirs.extend(include_dirs_mpi)
+# ext_sov = Extension(
+#     'fluidsim.operators.setofvariables',
+#     include_dirs=include_dirs,
+#     libraries=libraries,
+#     library_dirs=[],
+#     cython_compile_time_env={'MPI4PY': MPI4PY},
+#     sources=[path_sources+'/setofvariables_cy.pyx'])
 
 
 path_sources = 'fluidsim/base/time_stepping'
@@ -143,7 +142,7 @@ ext_cyfunc = Extension(
 
 ext_modules.extend([
     ext_operators,
-    ext_sov,
+    # ext_sov,
     ext_cyfunc])
 
 

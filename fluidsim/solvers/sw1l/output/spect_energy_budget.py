@@ -24,9 +24,9 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
 
         # print_memory_usage('start function compute seb')
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
-        eta = self.sim.state.state_phys['eta']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
+        eta = self.sim.state.state_phys.get_var('eta')
         h = 1.+eta
 
         Jx = h*ux
@@ -70,7 +70,6 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
 
         # print_memory_usage('before starting computing fluxes')
 
-
         # compute flux of Charney PE
         Fq_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, q_fft)
         transferCPE_fft = inner_prod(q_fft, Fq_fft)
@@ -84,8 +83,6 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
 # np.sum(transfer2D_CPE),
 # np.sum(abs(transfer2D_CPE)))
 # )
-
-
 
         px_h_fft, py_h_fft = oper.gradfft_from_fft(eta_fft)
         px_h = oper.ifft2(px_h_fft)
@@ -384,13 +381,8 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
             'transfer2D_Eudeu': transfer2D_Eudeu,
             'convP2D': convP2D,
             'convK2D': convK2D,
-            'transfer2D_CPE': transfer2D_CPE,
-}
+            'transfer2D_CPE': transfer2D_CPE,}
         return dico_results
-
-
-
-
 
     def _online_plot(self, dico_results):
 
@@ -416,9 +408,6 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE+khE[1], CCK, 'y--')
 
         self.axe_b.plot(khE+khE[1], PiCPE, 'g')
-
-
-
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
@@ -463,9 +452,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 tmin_plot, tmax_plot, delta_t,
 imin_plot, imax_plot, delta_i_plot)
         print(to_print)
-
-
-
 
         x_left_axe = 0.12
         z_bottom_axe = 0.36
@@ -646,19 +632,14 @@ imin_plot, imax_plot, delta_i_plot)
 class SpectralEnergyBudgetMSW1l(SpectralEnergyBudgetSW1l):
     """Save and plot spectra."""
 
-
-
-
     def compute(self):
         """compute spectral energy budget the one time."""
         oper = self.sim.oper
 
-        # ux = self.sim.state.state_phys['ux']
-        # uy = self.sim.state.state_phys['uy']
-
-        ux_fft = self.sim.state.state_fft['ux_fft']
-        uy_fft = self.sim.state.state_fft['uy_fft']
-        eta_fft = self.sim.state.state_fft['eta_fft']
+        state_fft = self.sim.state.state_fft
+        ux_fft = state_fft.get_var('ux_fft')
+        uy_fft = state_fft.get_var('uy_fft')
+        eta_fft = state_fft.get_var('eta_fft')
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)

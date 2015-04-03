@@ -111,11 +111,11 @@ class PhysFieldsBase(SpecificOutput):
             group_state_phys = f.create_group("state_phys")
             group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
             group_state_phys.attrs['name_type_variables'] = (
-                state_phys.name_type_variables)
+                state_phys.info)
             group_state_phys.attrs['time'] = time
 
         for k in state_phys.keys:
-            field_loc = state_phys[k]
+            field_loc = state_phys.get_var(k)
             if mpi.nb_proc > 1:
                 field_seq = self.oper.gather_Xspace(field_loc)
             else:

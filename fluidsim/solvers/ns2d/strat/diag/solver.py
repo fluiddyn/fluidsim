@@ -1,5 +1,5 @@
-"""Stratified NS2D solver (:mod:`fluidsim.solvers.ns2d.strat.diag.solver`)
-==========================================================================
+"""NS2D solver (:mod:`fluidsim.solvers.ns2d.solver`)
+=========================================================
 
 .. autoclass:: Simul
    :members:
@@ -7,7 +7,7 @@
 
 """
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
@@ -39,8 +39,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
 
 
 class Simul(SimulBasePseudoSpectral):
-    r"""Pseudo-spectral solver strat. 2D incompressible Navier-Stokes equations.
-
+    """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
 
     """
     InfoSolver = InfoSolverNS2D
@@ -50,7 +49,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'N': 1.}
+        attribs = {'beta': 0.}
         params.set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
@@ -59,29 +58,26 @@ class Simul(SimulBasePseudoSpectral):
         ifft2 = oper.ifft2
 
         if state_fft is None:
-            rot_fft = self.state.state_fft['rot_fft']
-            b_fft = self.state.state_fft['b_fft']
-            ux = self.state.state_phys['ux']
-            uz = self.state.state_phys['uz']
+            rot_fft = self.state.state_fft.get_var('rot_fft')
+            ux = self.state.state_phys.get_var('ux')
+            uy = self.state.state_phys.get_var('uy')
         else:
-            rot_fft = state_fft['rot_fft']
-            b_fft = state_fft['b_fft']
-            ux_fft, uz_fft = oper.vecfft_from_rotfft(rot_fft)
+            rot_fft = state_fft.get_var('rot_fft')
+            ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = ifft2(ux_fft)
-            uz = ifft2(uz_fft)
+            uy = ifft2(uy_fft)
 
-        px_rot_fft, pz_rot_fft = oper.gradfft_from_fft(rot_fft)
+        px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
         px_rot = ifft2(px_rot_fft)
-        pz_rot = ifft2(pz_rot_fft)
+        py_rot = ifft2(py_rot_fft)
 
-        px_b_fft = oper.pxffft_ftt(b_fft)
+        if self.params.beta == 0:
+            Frot = -ux*px_rot - uy*py_rot
+        else:
+            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
 
-        Frot = - ux*px_rot - uz*pz_rot
-
-        Frot_fft = fft2(Frot) + px_b_fft
+        Frot_fft = fft2(Frot)
         oper.dealiasing(Frot_fft)
-
-        Fb_fft = self.params.N2*uz_fft
 
         # T_rot = np.real(Frot_fft.conj()*rot_fft
         #                + Frot_fft*rot_fft.conj())/2.
@@ -90,11 +86,10 @@ class Simul(SimulBasePseudoSpectral):
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
         tendencies_fft = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
 
-        tendencies_fft['rot_fft'] = Frot_fft
-        tendencies_fft['b_fft'] = Fb_fft
+        tendencies_fft.set_var('rot_fft', Frot_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()

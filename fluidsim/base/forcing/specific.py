@@ -36,7 +36,7 @@ from copy import deepcopy
 
 from fluiddyn.util import mpi
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class SpecificForcing(object):
@@ -59,8 +59,8 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self.ifft2 = sim.oper.ifft2
 
         self.forcing_fft = SetOfVariables(
-            like_this_sov=sim.state.state_fft,
-            name_type_variables='forcing_fft', value=0.)
+            like=sim.state.state_fft,
+            info='forcing_fft', value=0.)
         self.forcing_fft.initialize(value=0.)
 
         self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
@@ -116,15 +116,15 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
         self.forcingc_fft = SetOfVariables(
             keys=self.forcing_fft.keys,
-            shape1var=self.shapeK_loc_coarse,
+            shape_variable=self.shapeK_loc_coarse,
             dtype=np.complex128,
-            name_type_variables='forcingc_fft',
+            info='forcingc_fft',
             value=0.)
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
-        a_fft = self.sim.state.state_fft[self.key_forced]
+        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
                                                   self.shapeK_loc_coarse)
 
@@ -133,7 +133,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                               dtype=np.complex128)
         else:
             Fa_fft = self.forcingc_raw_each_time()
-            self.forcingc_fft[self.key_forced] = Fa_fft
+            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
 
         self.put_forcingc_in_forcing()
 
@@ -141,10 +141,10 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         """Copy data from forcingc_fft into forcing_fft."""
         nKyc = self.shapeK_loc_coarse[0]
         nKxc = self.shapeK_loc_coarse[1]
-        nb_keys = self.forcing_fft.nb_variables
+        nb_keys = self.forcing_fft.nvar
 
-        ar3Df = self.forcing_fft.data
-        ar3Dfc = self.forcingc_fft.data
+        ar3Df = self.forcing_fft
+        ar3Dfc = self.forcingc_fft
 
         if mpi.nb_proc > 1:
             nKy = self.oper.shapeK_seq[0]
@@ -191,8 +191,8 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
     def verify_injection_rate(self):
         """Verify injection rate."""
-        Fa_fft = self.forcing_fft[self.key_forced]
-        a_fft = self.sim.state.state_fft[self.key_forced]
+        Fa_fft = self.forcing_fft.get_var(self.key_forced)
+        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
 
         PZ_forcing1 = abs(Fa_fft)**2/2*self.sim.time_stepping.deltat
         PZ_forcing2 = np.real(
@@ -210,7 +210,7 @@ class Proportional(SpecificForcingPseudoSpectral):
 
     def compute(self):
         """Compute a forcing proportional to the flow."""
-        a_fft = self.sim.state.state_fft[self.key_forced]
+        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
                                                   self.shapeK_loc_coarse)
 
@@ -219,7 +219,7 @@ class Proportional(SpecificForcingPseudoSpectral):
                               dtype=np.complex128)
         else:
             Fa_fft = self.normalize_forcingc(a_fft)
-            self.forcingc_fft[self.key_forced] = Fa_fft
+            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
 
         self.put_forcingc_in_forcing()
 
@@ -276,7 +276,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
-        a_fft = self.sim.state.state_fft[self.key_forced]
+        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
                                                   self.shapeK_loc_coarse)
 
@@ -286,7 +286,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         else:
             Fa_fft = self.forcingc_raw_each_time()
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
-            self.forcingc_fft[self.key_forced] = Fa_fft
+            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
 
         self.put_forcingc_in_forcing()
 

@@ -13,10 +13,10 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         """compute the spectral energy budget at one time."""
         oper = self.sim.oper
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
 
-        rot_fft = self.sim.state.state_fft['rot_fft']
+        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
 
         px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)

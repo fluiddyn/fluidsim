@@ -25,8 +25,8 @@ class InitFieldsAD1D(InitFieldsBase):
 
     def init_fields_gaussian(self):
         s = np.exp(-(10*(self.oper.xs-self.oper.Lx/2))**2)
-        self.sim.state.state_phys.data[0] = s
+        self.sim.state.state_phys[0] = s
 
     def init_fields_cos(self):
         s = np.cos(2*np.pi*self.oper.xs/self.oper.Lx)
-        self.sim.state.state_phys.data[0] = s
+        self.sim.state.state_phys[0] = s

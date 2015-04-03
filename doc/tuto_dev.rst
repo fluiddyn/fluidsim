@@ -6,11 +6,11 @@ methods, the possible initialization methods and the treatments
 performed on the raw data produced.
 
 Moreover, a solver can be decomposed in different parts that do
-different tasks. In FluidDyn, this principle is followed as much as
+different tasks. In FluidSim, this principle is followed as much as
 possible and a solver is organized in few big parts using Python
 classes. Thus, a solver is defined by the classes used to performed to
 different tasks. We here present the classes used for the simulations
-in FluidDyn.
+in FluidSim.
 
 The main class representing a simulation: Simul
 -----------------------------------------------
@@ -32,7 +32,7 @@ The Simul class is the main class from which the solvers are
 organized. In particular, the other big parts of a solver are
 attributes of the object Simul. The class takes care of importing the
 module where the other main classes are defined and it instantiates
-them. This class has also the important functions that implement the
+them. This class also owns the important functions that implement the
 equations and that are used by the other main classes (as
 tendencies_nonlin, compute_freq_diss, compute_freq_complex,
 operator_linear...).
@@ -90,3 +90,7 @@ Other very important classes: ContainerXML, Parameters, InfoSolver
 - Parameters
 
 - InfoSolver
+
+  Every Simul class has to have an attribute InfoSolver, which is a
+  InfoSolver class, i.e.\ a child of ContainerXML. This class is used
+  to describe all other classes that are used for the solver.

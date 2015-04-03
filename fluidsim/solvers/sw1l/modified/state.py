@@ -44,9 +44,9 @@ class StateSW1lModified(StatePseudoSpectral):
             return self.vars_computed[key]
 
         if key == 'ux_fft':
-            result = self.oper.fft2(self.state_phys['ux'])
+            result = self.oper.fft2(self.state_phys.get_var('ux'))
         elif key == 'uy_fft':
-            result = self.oper.fft2(self.state_phys['ux'])
+            result = self.oper.fft2(self.state_phys.get_var('ux'))
         elif key == 'rot_fft':
             ux_fft = self.compute('ux_fft')
             uy_fft = self.compute('uy_fft')
@@ -63,17 +63,17 @@ class StateSW1lModified(StatePseudoSpectral):
             result = self.oper.ifft2(div_fft)
         elif key == 'q':
             rot = self.compute('rot')
-            eta = self.sim.vars.state_phys['eta']
+            eta = self.sim.state.state_phys.get_var('eta')
             result = rot-self.f*eta
         else:
-            to_print = 'Do not know how to compute "'+key+'".'
+            to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
                     print(to_print
                           +'\nreturn an array of zeros.')
-                    
+
                 result = self.oper.constant_arrayX(value=0.)
 
         if SAVE_IN_DICT:
@@ -81,8 +81,3 @@ class StateSW1lModified(StatePseudoSpectral):
             self.it_computed[key] = it
 
         return result
-
-
-
-
-

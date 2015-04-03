@@ -42,8 +42,8 @@ class InitFieldsPlate2D(InitFieldsBase):
         if 'Fourier_to_phys' in tasks_complete_init:
             sim.oper.dealiasing(w_fft)
             sim.oper.dealiasing(z_fft)
-            sim.state.state_fft['w_fft'] = w_fft
-            sim.state.state_fft['z_fft'] = z_fft
+            sim.state.state_fft.set_var('w_fft', w_fft)
+            sim.state.state_fft.set_var('z_fft', z_fft)
 
             sim.state.statephys_from_statefft()
 

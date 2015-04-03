@@ -34,10 +34,10 @@ class StateAD1D(StateBase):
             return self.vars_computed[key]
 
         if key == 'dx_s':
-            result = self.oper.grad(self.state_phys['s'])
+            result = self.oper.grad(self.state_phys.get_var('s'))
 
         else:
-            to_print = 'Do not know how to compute "'+key+'".'
+            to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
             else:

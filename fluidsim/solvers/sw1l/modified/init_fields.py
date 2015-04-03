@@ -25,15 +25,11 @@ class InitFieldsSW1lModified(InitFieldsSW1l):
         eta = ifft2(eta_fft)
 
         state_fft = sim.state.state_fft
-        state_fft['ux_fft'] = ux_fft
-        state_fft['uy_fft'] = uy_fft
-        state_fft['eta_fft'] = eta_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
 
         state_phys = sim.state.state_phys
-        state_phys['ux'] = ux
-        state_phys['uy'] = uy
-        state_phys['eta'] = eta
-
-
-
-
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)

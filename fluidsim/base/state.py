@@ -17,7 +17,7 @@ Provides:
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class StateBase(object):
@@ -44,10 +44,9 @@ class StateBase(object):
         self.keys_computable = info_solver.classes.State.keys_computable
 
         self.state_phys = SetOfVariables(keys=self.keys_state_phys,
-                                         shape1var=self.oper.shapeX_loc,
+                                         shape_variable=self.oper.shapeX_loc,
                                          dtype=np.float64,
-                                         name_type_variables='state_phys'
-                                         )
+                                         info='state_phys')
         self.vars_computed = {}
         self.it_computed = {}
 
@@ -59,7 +58,7 @@ class StateBase(object):
 
     def __call__(self, key):
         if key in self.keys_state_phys:
-            return self.state_phys[key]
+            return self.state_phys.get_var(key)
         else:
             it = self.sim.time_stepping.it
             if (key in self.vars_computed and it == self.it_computed[key]):
@@ -72,9 +71,9 @@ class StateBase(object):
 
     def __setitem__(self, key, value):
         if key in self.keys_state_phys:
-            self.state_phys[key] = value
+            self.state_phys.set_var(key, value)
         else:
-            raise ValueError('key "'+key+'" is not known')
+            raise ValueError('key "' + key + '" is not known')
 
     def can_this_key_be_obtained(self, key):
         return (key in self.keys_state_phys or
@@ -106,16 +105,16 @@ class StatePseudoSpectral(StateBase):
 
         self.keys_state_fft = info_solver.classes.State['keys_state_fft']
         self.state_fft = SetOfVariables(keys=self.keys_state_fft,
-                                        shape1var=self.oper.shapeK_loc,
+                                        shape_variable=self.oper.shapeK_loc,
                                         dtype=np.complex128,
-                                        name_type_variables='state_fft')
+                                        info='state_fft')
 
     def __call__(self, key):
         """Return the variable corresponding to the given key."""
         if key in self.keys_state_fft:
-            return self.state_fft[key]
+            return self.state_fft.get_var(key)
         elif key in self.keys_state_phys:
-            return self.state_phys[key]
+            return self.state_phys.get_var(key)
         else:
             it = self.sim.time_stepping.it
             if (key in self.vars_computed and it == self.it_computed[key]):
@@ -128,21 +127,21 @@ class StatePseudoSpectral(StateBase):
 
     def __setitem__(self, key, value):
         if key in self.keys_state_fft:
-            self.state_fft[key] = value
+            self.state_fft.set_var(key, value)
         elif key in self.keys_state_phys:
-            self.state_phys[key] = value
+            self.state_phys.set_var(key, value)
         else:
             raise ValueError('key "'+key+'" is not known')
 
     def statefft_from_statephys(self):
         fft2 = self.oper.fft2
-        for ik in xrange(self.state_fft.nb_variables):
-            self.state_fft.data[ik][:] = fft2(self.state_phys.data[ik])
+        for ik in xrange(self.state_fft.nvar):
+            self.state_fft[ik][:] = fft2(self.state_phys[ik])
 
     def statephys_from_statefft(self):
         ifft2 = self.oper.ifft2
-        for ik in xrange(self.state_fft.nb_variables):
-            self.state_phys.data[ik] = ifft2(self.state_fft.data[ik])
+        for ik in xrange(self.state_fft.nvar):
+            self.state_phys[ik] = ifft2(self.state_fft[ik])
 
     def return_statephys_from_statefft(self, state_fft=None):
         """Return the state in physical space."""
@@ -150,9 +149,9 @@ class StatePseudoSpectral(StateBase):
         if state_fft is None:
             state_fft = self.state_fft
 
-        state_phys = SetOfVariables(like_this_sov=self.state_phys)
-        for ik in xrange(self.state_fft.nb_variables):
-            state_phys.data[ik] = ifft2(state_fft.data[ik])
+        state_phys = SetOfVariables(like=self.state_phys)
+        for ik in xrange(self.state_fft.nvar):
+            state_phys[ik] = ifft2(state_fft[ik])
         return state_phys
 
     def can_this_key_be_obtained(self, key):

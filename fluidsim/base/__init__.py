@@ -10,6 +10,7 @@ Provides:
 
    solvers
    params
+   setofvariables
    state
    init_fields
    time_stepping

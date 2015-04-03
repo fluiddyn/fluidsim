@@ -18,7 +18,7 @@ from copy import deepcopy
 
 from fluiddyn.util import mpi
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class InitFieldsBase(object):
@@ -61,8 +61,8 @@ class InitFieldsBase(object):
 
         if type_flow_init == 'NOISE':
             rot_fft, ux_fft, uy_fft = self.init_fields_noise()
-            sim.state.state_fft['ux_fft'] = ux_fft
-            sim.state.state_fft['uy_fft'] = uy_fft
+            sim.state.state_fft.set_var('ux_fft', ux_fft)
+            sim.state.state_fft.set_var('uy_fft', uy_fft)
             sim.state.statephys_from_statefft()
 
         if type_flow_init == 'LOAD_FILE':
@@ -326,7 +326,7 @@ class InitFieldsBase(object):
         else:
             # modify resolution
             # state_fft = SetOfVariables('state_fft')
-            state_fft = SetOfVariables(like_this_sov=self.sim.state.state_fft)
+            state_fft = SetOfVariables(like=self.sim.state.state_fft)
             keys_state_fft = sim_in.info.solver.classes.State['keys_state_fft']
             for k in keys_state_fft:
                 field_fft_seq_in = sim_in.state.state_fft[k]

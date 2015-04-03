@@ -81,7 +81,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _compute_freq_complex(self):
         state_fft = self.sim.state.state_fft
-        freq_complex = np.empty_like(state_fft.data)
+        freq_complex = np.empty_like(state_fft)
         for ik, key in enumerate(state_fft.keys):
             freq_complex[ik] = self.sim.compute_freq_complex(key)
         return freq_complex
@@ -96,7 +96,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         self.sim.state.statephys_from_statefft()
         self.t += self.deltat
         self.it += 1
-        if np.isnan(np.min(self.sim.state.state_fft.data[0])):
+        if np.isnan(np.min(self.sim.state.state_fft[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
 

@@ -49,11 +49,11 @@ class ProbaDensityFunc(SpecificOutput):
 
     def compute(self):
         """compute the values at one time."""
-        eta = self.sim.state.state_phys['eta']
+        eta = self.sim.state.state_phys.get_var('eta')
         pdf_eta, bin_edges_eta = self.oper.pdf_normalized(eta)
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
 
         uxm = ux.mean()
         uym = uy.mean()

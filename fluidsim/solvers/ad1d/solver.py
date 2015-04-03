@@ -13,7 +13,7 @@ Provides:
 """
 
 from fluidsim.base.solvers.base import SimulBase
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 
 
@@ -72,8 +72,8 @@ class Simul(SimulBase):
     def tendencies_nonlin(self, state_phys=None):
         """Compute the "nonlinear" tendencies."""
         tendencies = SetOfVariables(
-            like_this_sov=self.state.state_phys,
-            name_type_variables='tendencies', value=0.)
+            like=self.state.state_phys,
+            info='tendencies', value=0.)
 
         if self.params.FORCING:
             tendencies += self.forcing.tendencies
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
 
-    print 'x of s_max: ', sim.oper.xs[sim.state.state_phys.data.argmax()]
+    print 'x of s_max: ', sim.oper.xs[sim.state.state_phys.argmax()]
 
     sim.output.phys_fields.plot()
 

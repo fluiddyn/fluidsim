@@ -17,7 +17,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
@@ -140,11 +140,10 @@ class Simul(SimulBasePseudoSpectral):
         oper = self.oper
 
         if state_fft is None:
-            w_fft = self.state.state_fft['w_fft']
-            z_fft = self.state.state_fft['z_fft']
-        else:
-            w_fft = state_fft['w_fft']
-            z_fft = state_fft['z_fft']
+            state_fft = self.state.state_fft
+
+        # w_fft = state_fft.get_var('w_fft')
+        z_fft = state_fft.get_var('z_fft')
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
         chi_fft = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
@@ -160,11 +159,11 @@ class Simul(SimulBasePseudoSpectral):
         oper.dealiasing(Nw_fft)
 
         tendencies_fft = SetOfVariables(
-            like_this_sov=self.state.state_fft,
-            name_type_variables='tendencies_nonlin')
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
 
-        tendencies_fft['ap_fft'] = -Nw_fft
-        tendencies_fft['am_fft'] = Nw_fft
+        tendencies_fft.set_var('ap_fft', -Nw_fft)
+        tendencies_fft.set_var('am_fft', Nw_fft)
 
         tendencies_fft /= -2j*self._tilde_Omega
 
@@ -178,8 +177,8 @@ class Simul(SimulBasePseudoSpectral):
     def compute_freq_diss(self):
         """Compute the dissipation frequencies with dissipation only for w."""
         f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
-        f_d = np.zeros_like(self.state.state_fft.data, dtype=np.float64)
-        f_d_hypo = np.zeros_like(self.state.state_fft.data,
+        f_d = np.zeros_like(self.state.state_fft, dtype=np.float64)
+        f_d_hypo = np.zeros_like(self.state.state_fft,
                                  dtype=np.float64)
         f_d[0] = f_d_w
         f_d_hypo[0] = f_d_hypo_w

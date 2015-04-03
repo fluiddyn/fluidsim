@@ -1,9 +1,9 @@
-"""Variable container (:mod:`fluidsim.operators.setofvariables`)
+"""Variable container (:mod:`fluidsim.base.setofvariables`)
 ======================================================================
 
 This module is written in cython and provides:
 
-.. currentmodule:: fluidsim.operators.setofvariables
+.. currentmodule:: fluidsim.base.setofvariables
 
 Provides:
 
@@ -78,23 +78,23 @@ class SetOfVariables(object):
 
     def __init__(self,
                  keys=None, shape1var=None,
-                 dtype=None, name_type_variables=None,
-                 like_this_sov=None, value=None):
-        if like_this_sov is not None:
-            keys = like_this_sov.keys
-            self.nb_variables = like_this_sov.data.shape[0]
-            shape1var = like_this_sov.data.shape[1:]
+                 dtype=None, info=None,
+                 like=None, value=None):
+        if like is not None:
+            keys = like.keys
+            self.nb_variables = like.data.shape[0]
+            shape1var = like.data.shape[1:]
             if dtype is None:
-                dtype = like_this_sov.data.dtype
-            if name_type_variables is None:
-                name_type_variables = like_this_sov.name_type_variables
+                dtype = like.data.dtype
+            if info is None:
+                info = like.info
         else:
             if dtype is None:
                 dtype = np.float64
             keys.sort()
             self.nb_variables = len(keys)
 
-        self.name_type_variables = name_type_variables
+        self.info = info
         self.keys = keys
         shape = [self.nb_variables]
         shape.extend(shape1var)
@@ -128,11 +128,11 @@ class SetOfVariables(object):
     def __add__(self, other):
         if isinstance(other, self.__class__):
             dtype_new = max_dtype(self.data, other.data)
-            obj_result = self.__class__(like_this_sov=other, dtype=dtype_new)
+            obj_result = self.__class__(like=other, dtype=dtype_new)
             obj_result.data = self.data + other.data
         elif isinstance(other, (int, float, complex)):
             dtype_new = max_dtype(self.data, other)
-            obj_result = self.__class__(like_this_sov=self, dtype=dtype_new)
+            obj_result = self.__class__(like=self, dtype=dtype_new)
             obj_result.data = self.data + other
         return obj_result
     __radd__ = __add__
@@ -142,7 +142,7 @@ class SetOfVariables(object):
             dtype_new = max_dtype(self.data, other.data)
             if dtype_new != self.data.dtype:
                 obj_result = self.__class__(
-                    like_this_sov=self, dtype=dtype_new)
+                    like=self, dtype=dtype_new)
             else:
                 obj_result = self
             obj_result.data += other.data
@@ -150,7 +150,7 @@ class SetOfVariables(object):
             dtype_new = max_dtype(self.data, other)
             if dtype_new != self.data.dtype:
                 obj_result = self.__class__(
-                    like_this_sov=self, dtype=dtype_new)
+                    like=self, dtype=dtype_new)
             else:
                 obj_result = self
             obj_result.data += other.data
@@ -159,18 +159,18 @@ class SetOfVariables(object):
     def __sub__(self, other):
         if isinstance(other, self.__class__):
             dtype_new = max_dtype(self.data, other.data)
-            obj_result = self.__class__(like_this_sov=other, dtype=dtype_new)
+            obj_result = self.__class__(like=other, dtype=dtype_new)
             obj_result.data = self.data - other.data
         elif isinstance(other, (int, float, complex)):
             dtype_new = max_dtype(self.data, other)
-            obj_result = self.__class__(like_this_sov=self, dtype=dtype_new)
+            obj_result = self.__class__(like=self, dtype=dtype_new)
             obj_result.data = self.data - other
         return obj_result
 
     def __mul__(self, other):
         if isinstance(other, (int, float, np.ndarray)):
             dtype_new = max_dtype(self.data, other)
-            obj_result = self.__class__(like_this_sov=self, dtype=dtype_new)
+            obj_result = self.__class__(like=self, dtype=dtype_new)
             obj_result.data = other*self.data
         return obj_result
     __rmul__ = __mul__
@@ -178,7 +178,7 @@ class SetOfVariables(object):
     def __div__(self, other):
         if isinstance(other, (int, float, np.ndarray)):
             dtype_new = max_dtype(self.data, other)
-            obj_result = self.__class__(like_this_sov=self, dtype=dtype_new)
+            obj_result = self.__class__(like=self, dtype=dtype_new)
             obj_result.data = self.data/other
         return obj_result
 

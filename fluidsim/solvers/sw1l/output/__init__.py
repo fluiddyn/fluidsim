@@ -86,7 +86,7 @@ class OutputBaseSW1l(OutputBasePseudoSpectral):
     def compute_PV_fft(self):
         """Compute Ertel and Charney (QG) potential vorticity."""
         rot = self.sim.state('rot')
-        eta = self.sim.state.state_phys['eta']
+        eta = self.sim.state.state_phys.get_var('eta')
         ErtelPV_fft = self.fft2((self.sim.params.f+rot)/(1.+eta))
         rot_fft = self.sim.state('rot_fft')
         eta_fft = self.sim.state('eta_fft')
