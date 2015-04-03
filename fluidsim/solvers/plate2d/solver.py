@@ -28,7 +28,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
@@ -151,11 +151,10 @@ class Simul(SimulBasePseudoSpectral):
         oper = self.oper
 
         if state_fft is None:
-            w_fft = self.state.state_fft['w_fft']
-            z_fft = self.state.state_fft['z_fft']
-        else:
-            w_fft = state_fft['w_fft']
-            z_fft = state_fft['z_fft']
+            state_fft = self.state.state_fft
+
+        w_fft = state_fft.get_var('w_fft')
+        z_fft = state_fft.get_var('z_fft')
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
         chi_fft = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
@@ -171,8 +170,8 @@ class Simul(SimulBasePseudoSpectral):
             like=self.state.state_fft,
             info='tendencies_nonlin')
 
-        tendencies_fft['w_fft'] = F_fft
-        tendencies_fft['z_fft'] = w_fft
+        tendencies_fft.set_var('w_fft', F_fft)
+        tendencies_fft.set_var('z_fft', w_fft)
 
         # ratio = self.test_tendencies_nonlin(
         #     tendencies_fft, w_fft, z_fft, chi_fft)
@@ -231,12 +230,12 @@ class Simul(SimulBasePseudoSpectral):
 
         if tendencies_fft is None:
             tendencies_fft = self.tendencies_nonlin()
-            w_fft = self.state.state_fft['w_fft']
-            z_fft = self.state.state_fft['z_fft']
+            w_fft = self.state.state_fft.get_var('w_fft')
+            z_fft = self.state.state_fft.get_var('z_fft')
             chi_fft = self.state.compute('chi_fft')
 
-        F_w_fft = tendencies_fft['w_fft']
-        F_z_fft = tendencies_fft['z_fft']
+        F_w_fft = tendencies_fft.get_var('w_fft')
+        F_z_fft = tendencies_fft.get_var('z_fft')
 
         K4 = self.oper.K4
 

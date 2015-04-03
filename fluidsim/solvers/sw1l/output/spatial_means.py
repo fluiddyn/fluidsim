@@ -50,13 +50,13 @@ class SpatialMeansMSW1l(SpatialMeansBase):
         self.treat_conversion()
 
         # Compute and save skewness and kurtosis.
-        eta = self.sim.state.state_phys['eta']
+        eta = self.sim.state.state_phys.get_var('eta')
         meaneta2 = 2./self.c2*energyA
         skew_eta = np.mean(eta**3)/meaneta2**(3./2)
         kurt_eta = np.mean(eta**4)/meaneta2**(2)
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
         ux_fft = self.sim.oper.fft2(ux)
         uy_fft = self.sim.oper.fft2(uy)
         rot_fft = self.sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -168,14 +168,14 @@ class SpatialMeansMSW1l(SpatialMeansBase):
     def treat_forcing(self):
         """Save forcing injection rates."""
         state_fft = self.sim.state.state_fft
-        ux_fft = state_fft['ux_fft']
-        uy_fft = state_fft['uy_fft']
-        eta_fft = state_fft['eta_fft']
+        ux_fft = state_fft.get_var('ux_fft')
+        uy_fft = state_fft.get_var('uy_fft')
+        eta_fft = state_fft.get_var('eta_fft')
 
         forcing_fft = self.sim.forcing.get_forcing()
-        Fx_fft = forcing_fft['ux_fft']
-        Fy_fft = forcing_fft['uy_fft']
-        Feta_fft = forcing_fft['eta_fft']
+        Fx_fft = forcing_fft.get_var('ux_fft')
+        Fy_fft = forcing_fft.get_var('uy_fft')
+        Feta_fft = forcing_fft.get_var('eta_fft')
 
         deltat = self.sim.time_stepping.deltat
 
@@ -583,8 +583,8 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
     def compute_epsK(self, f_d, f_d_hypo,
                      energyK_fft, dico_eps):
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
 
         EKquad = 0.5*(ux**2 + uy**2)
         EKquad_fft = self.sim.oper.fft2(EKquad)
@@ -592,8 +592,7 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
         eta_fft = self.sim.state('eta_fft')
 
         epsKsuppl = self.sum_wavenumbers(
-            f_d*inner_prod(EKquad_fft, eta_fft)
-            )
+            f_d*inner_prod(EKquad_fft, eta_fft))
 
         epsKsuppl_hypo = self.sum_wavenumbers(
             f_d_hypo*inner_prod(EKquad_fft, eta_fft)
@@ -658,11 +657,11 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
         Fy = self.sim.oper.ifft2(Fy_fft)
         Feta = self.sim.oper.ifft2(Feta_fft)
 
-        eta = self.sim.state.state_phys['eta']
+        eta = self.sim.state.state_phys.get_var('eta')
         h = eta + 1.
 
-        ux = self.sim.state.state_phys['ux']
-        uy = self.sim.state.state_phys['uy']
+        ux = self.sim.state.state_phys.get_var('ux')
+        uy = self.sim.state.state_phys.get_var('uy')
 
         FetaFx_fft = self.sim.oper.fft2(Feta*Fx)
         FetaFy_fft = self.sim.oper.fft2(Feta*Fy)

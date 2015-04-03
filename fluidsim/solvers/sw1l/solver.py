@@ -3,7 +3,7 @@
 
 """
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
@@ -72,13 +72,16 @@ class Simul(SimulBasePseudoSpectral):
         else:
             state_phys = self.state.return_statephys_from_statefft(state_fft)
 
-        ux = state_phys['ux']
-        uy = state_phys['uy']
-        eta = state_phys['eta']
-        rot = state_phys['rot']
-        rot_abs = rot + self.params.f
+        ux = state_phys.get_var('ux')
+        uy = state_phys.get_var('uy')
+        eta = state_phys.get_var('eta')
+        rot = state_phys.get_var('rot')
+        if self.params.f != 0:
+            rot_abs = rot + self.params.f
+        else:
+            rot_abs = rot
 
-        F1x = +rot_abs*uy
+        F1x = rot_abs*uy
         F1y = -rot_abs*ux
         gradx_fft, grady_fft = oper.gradfft_from_fft(
             fft2(self.params.c2*eta + (ux**2+uy**2)/2))
@@ -88,9 +91,9 @@ class Simul(SimulBasePseudoSpectral):
 
         Feta_fft = -oper.divfft_from_vecfft(fft2((eta+1)*ux),
                                             fft2((eta+1)*uy))
-        oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
 
         # # for verification conservation energy
+        # oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
         # Fx   = oper.ifft2(Fx_fft)
         # Fy   = oper.ifft2(Fy_fft)
         # Feta = oper.ifft2(Feta_fft)
@@ -103,11 +106,12 @@ class Simul(SimulBasePseudoSpectral):
 
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
-            info='tendencies_nonlin'
-            )
-        tendencies_fft['ux_fft'] = Fx_fft
-        tendencies_fft['uy_fft'] = Fy_fft
-        tendencies_fft['eta_fft'] = Feta_fft
+            info='tendencies_nonlin')
+        tendencies_fft.set_var('ux_fft', Fx_fft)
+        tendencies_fft.set_var('uy_fft', Fy_fft)
+        tendencies_fft.set_var('eta_fft', Feta_fft)
+
+        oper.dealiasing(tendencies_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()

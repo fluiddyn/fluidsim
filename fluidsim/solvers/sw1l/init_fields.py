@@ -52,9 +52,9 @@ class InitFieldsSW1l(InitFieldsBase):
     def fill_state_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         sim = self.sim
         state_fft = sim.state.state_fft
-        state_fft['ux_fft'] = ux_fft
-        state_fft['uy_fft'] = uy_fft
-        state_fft['eta_fft'] = eta_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
 
         sim.oper.dealiasing(state_fft)
         sim.state.statephys_from_statefft()
@@ -77,15 +77,15 @@ class InitFieldsSW1l(InitFieldsBase):
         eta = ifft2(eta_fft)
 
         state_fft = sim.state.state_fft
-        state_fft['ux_fft'] = ux_fft
-        state_fft['uy_fft'] = uy_fft
-        state_fft['eta_fft'] = eta_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
 
         state_phys = sim.state.state_phys
-        state_phys['rot'] = rot
-        state_phys['ux'] = ux
-        state_phys['uy'] = uy
-        state_phys['eta'] = eta
+        state_phys.set_var('rot', rot)
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)
 
     def etafft_no_div(self, ux, uy, rot):
         K2_not0 = self.oper.K2_not0
@@ -122,9 +122,9 @@ class InitFieldsSW1lExLin(InitFieldsSW1l):
         # am_fft[0,8] = 1.
 
         state_fft = sim.state.state_fft
-        state_fft['q_fft'] = q_fft
-        state_fft['ap_fft'] = ap_fft
-        state_fft['am_fft'] = am_fft
+        state_fft.set_var('q_fft', q_fft)
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
 
         sim.oper.dealiasing(state_fft)
         sim.state.statephys_from_statefft()
@@ -150,15 +150,15 @@ class InitFieldsSW1lExLin(InitFieldsSW1l):
          ) = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
         state_fft = sim.state.state_fft
-        state_fft['q_fft'] = q_fft
-        state_fft['ap_fft'] = ap_fft
-        state_fft['am_fft'] = am_fft
+        state_fft.set_var('q_fft', q_fft)
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
 
         state_phys = sim.state.state_phys
-        state_phys['rot'] = rot
-        state_phys['ux'] = ux
-        state_phys['uy'] = uy
-        state_phys['eta'] = eta
+        state_phys.set_var('rot', rot)
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)
 
 
 class InitFieldsSW1lWaves(InitFieldsSW1l):
@@ -177,8 +177,8 @@ class InitFieldsSW1lWaves(InitFieldsSW1l):
         # am_fft[0,8] = 1.
 
         state_fft = sim.state.state_fft
-        state_fft['ap_fft'] = ap_fft
-        state_fft['am_fft'] = am_fft
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
 
         sim.oper.dealiasing(state_fft)
         sim.state.statephys_from_statefft()
@@ -204,10 +204,10 @@ class InitFieldsSW1lWaves(InitFieldsSW1l):
          ) = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
         state_fft = sim.state.state_fft
-        state_fft['ap_fft'] = ap_fft
-        state_fft['am_fft'] = am_fft
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
 
         state_phys = sim.state.state_phys
-        state_phys['ux'] = ux
-        state_phys['uy'] = uy
-        state_phys['eta'] = eta
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)

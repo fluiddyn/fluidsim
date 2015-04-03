@@ -4,7 +4,7 @@ The module :mod:`stateSW1l` supplies the class :class:`StateSW1l`.
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.state import StatePseudoSpectral
 
 from fluiddyn.util import mpi
@@ -37,13 +37,13 @@ class StateSW1l(StatePseudoSpectral):
             return self.vars_computed[key]
 
         if key == 'Jx':
-            ux = self.state_phys['ux']
-            eta = self.state_phys['eta']
+            ux = self.state_phys.get_var('ux')
+            eta = self.state_phys.get_var('eta')
             h = 1 + eta
             result = h*ux
         elif key == 'Jy':
-            uy = self.state_phys['uy']
-            eta = self.state_phys['eta']
+            uy = self.state_phys.get_var('uy')
+            eta = self.state_phys.get_var('eta')
             h = 1 + eta
             result = h*uy
         elif key == 'Jx_fft':
@@ -53,28 +53,28 @@ class StateSW1l(StatePseudoSpectral):
             Jy = self.compute('Jy')
             result = self.oper.fft2(Jy)
         elif key == 'rot_fft':
-            ux_fft = self.state_fft['ux_fft']
-            uy_fft = self.state_fft['uy_fft']
+            ux_fft = self.state_fft.get_var('ux_fft')
+            uy_fft = self.state_fft.get_var('uy_fft')
             result = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         elif key == 'div_fft':
-            ux_fft = self.state_fft['ux_fft']
-            uy_fft = self.state_fft['uy_fft']
+            ux_fft = self.state_fft.get_var('ux_fft')
+            uy_fft = self.state_fft.get_var('uy_fft')
             result = self.oper.divfft_from_vecfft(ux_fft, uy_fft)
         elif key == 'div':
             div_fft = self.compute('div_fft')
             result = self.oper.ifft2(div_fft)
         elif key == 'q':
-            rot = self.state_phys['rot']
-            eta = self.state_phys['eta']
+            rot = self.state_phys.get_var('rot')
+            eta = self.state_phys.get_var('eta')
             result = rot-self.param.f*eta
         elif key == 'h':
-            eta = self.state_phys['eta']
+            eta = self.state_phys.get_var('eta')
             result = 1 + eta
 
         elif key == 'Floc':
             h = self.compute('h')
-            ux = self.state_phys['ux']
-            uy = self.state_phys['uy']
+            ux = self.state_phys.get_var('ux')
+            uy = self.state_phys.get_var('uy')
             result = np.sqrt((ux**2 + uy**2)/(self.sim.param.c2*h))
 
         else:
@@ -85,7 +85,7 @@ class StateSW1l(StatePseudoSpectral):
                 if mpi.rank == 0:
                     print(to_print
                           +'\nreturn an array of zeros.')
-                    
+
                 result = self.oper.constant_arrayX(value=0.)
 
         if SAVE_IN_DICT:
@@ -99,40 +99,39 @@ class StateSW1l(StatePseudoSpectral):
 
     def statefft_from_statephys(self):
         """Compute the state in Fourier space."""
-        ux = self.state_phys['ux']
-        uy = self.state_phys['uy']
-        eta = self.state_phys['eta']
-        self.state_fft['ux_fft'] = self.oper.fft2(ux)
-        self.state_fft['uy_fft'] = self.oper.fft2(uy)
-        self.state_fft['eta_fft'] = self.oper.fft2(eta)
+        ux = self.state_phys.get_var('ux')
+        uy = self.state_phys.get_var('uy')
+        eta = self.state_phys.get_var('eta')
+        self.state_fft.set_var('ux_fft', self.oper.fft2(ux))
+        self.state_fft.set_var('uy_fft', self.oper.fft2(uy))
+        self.state_fft.set_var('eta_fft', self.oper.fft2(eta))
 
     def statephys_from_statefft(self):
         """Compute the state in physical space."""
         ifft2 = self.oper.ifft2
-        ux_fft = self.state_fft['ux_fft']
-        uy_fft = self.state_fft['uy_fft']
-        eta_fft = self.state_fft['eta_fft']
-        self.state_phys['ux'] = ifft2(ux_fft)
-        self.state_phys['uy'] = ifft2(uy_fft)
-        self.state_phys['eta'] = ifft2(eta_fft)
+        ux_fft = self.state_fft.get_var('ux_fft')
+        uy_fft = self.state_fft.get_var('uy_fft')
+        eta_fft = self.state_fft.get_var('eta_fft')
+        self.state_phys.set_var('ux', ifft2(ux_fft))
+        self.state_phys.set_var('uy', ifft2(uy_fft))
+        self.state_phys.set_var('eta', ifft2(eta_fft))
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        self.state_phys['rot'] = ifft2(rot_fft)
+        self.state_phys.set_var('rot', ifft2(rot_fft))
 
     def return_statephys_from_statefft(self, state_fft=None):
         """Return the state in physical space."""
         ifft2 = self.oper.ifft2
         if state_fft is None:
             state_fft = self.state_fft
-        ux_fft = state_fft['ux_fft']
-        uy_fft = state_fft['uy_fft']
-        eta_fft = state_fft['eta_fft']
+        ux_fft = state_fft.get_var('ux_fft')
+        uy_fft = state_fft.get_var('uy_fft')
+        eta_fft = state_fft.get_var('eta_fft')
         state_phys = SetOfVariables(like=self.state_phys)
-        state_phys['ux'] = ifft2(ux_fft)
-        state_phys['uy'] = ifft2(uy_fft)
-        state_phys['eta'] = ifft2(eta_fft)
+        state_phys.set_var('ux', ifft2(ux_fft))
+        state_phys.set_var('uy', ifft2(uy_fft))
+        state_phys.set_var('eta', ifft2(eta_fft))
 
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        state_phys['rot'] = ifft2(rot_fft)
+        state_phys.set_var('rot', ifft2(rot_fft))
 
         return state_phys
-

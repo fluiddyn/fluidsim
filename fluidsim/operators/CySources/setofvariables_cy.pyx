@@ -1,9 +1,9 @@
-"""Variable container (:mod:`fluidsim.operators.setofvariables`)
+"""Variable container (:mod:`fluidsim.base.setofvariables`)
 ======================================================================
 
 This module is written in cython and provides:
 
-.. currentmodule:: fluidsim.operators.setofvariables
+.. currentmodule:: fluidsim.base.setofvariables
 
 Provides:
 

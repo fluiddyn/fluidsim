@@ -17,7 +17,7 @@ Provides:
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class StateBase(object):
@@ -58,7 +58,7 @@ class StateBase(object):
 
     def __call__(self, key):
         if key in self.keys_state_phys:
-            return self.state_phys[key]
+            return self.state_phys.get_var(key)
         else:
             it = self.sim.time_stepping.it
             if (key in self.vars_computed and it == self.it_computed[key]):
@@ -71,9 +71,9 @@ class StateBase(object):
 
     def __setitem__(self, key, value):
         if key in self.keys_state_phys:
-            self.state_phys[key] = value
+            self.state_phys.set_var(key, value)
         else:
-            raise ValueError('key "'+key+'" is not known')
+            raise ValueError('key "' + key + '" is not known')
 
     def can_this_key_be_obtained(self, key):
         return (key in self.keys_state_phys or

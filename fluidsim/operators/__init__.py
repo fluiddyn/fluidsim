@@ -9,10 +9,9 @@ Provides
    :toctree:
 
    operators
-   setofvariables
    fft
 
-.. todo:: Make a nice hierarchy of Operators classes.
+.. todo:: Make a nice hierarchy of Operators classes (?)
 
    - Operators
    - OperatorsPseudoSpectral1D

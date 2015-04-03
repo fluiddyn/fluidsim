@@ -28,7 +28,7 @@ import cython
 
 from libc.math cimport exp
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from pseudo_spect import ExactLinearCoefs as ExactLinearCoefsPurePython
 from pseudo_spect import TimeSteppingPseudoSpectral as \

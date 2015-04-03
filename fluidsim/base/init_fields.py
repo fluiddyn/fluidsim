@@ -18,7 +18,7 @@ from copy import deepcopy
 
 from fluiddyn.util import mpi
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class InitFieldsBase(object):

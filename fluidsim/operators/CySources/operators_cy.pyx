@@ -55,7 +55,7 @@ import cython
 
 from libc.math cimport exp
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.operators.fft import easypyfft
 

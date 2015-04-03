@@ -19,7 +19,7 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.base import SimulBase, InfoSolverBase
 

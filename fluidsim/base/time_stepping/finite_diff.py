@@ -17,7 +17,7 @@ from scipy.sparse.linalg import spsolve
 
 from copy import deepcopy
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from .base import TimeSteppingBase
 
@@ -39,8 +39,6 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
         self._init_time_scheme()
 
         self.L = sim.linear_operator()
-        self.set_of_vars_temp = SetOfVariables(
-            like=sim.state.state_phys)
 
     def one_time_step_computation(self):
         """One time step"""
@@ -133,12 +131,14 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
             self.invert_to_get_solution(A_A1dt, rhs_A1dt))
 
     def right_hand_side(self, S, N, dt):
-        return (S.data.ravel()
-                + dt/2*self.L.dot(S.data.flat)
-                + dt*N.data.ravel())
+        return (S.ravel()
+                + dt/2*self.L.dot(S.flat)
+                + dt*N.ravel())
 
     def invert_to_get_solution(self, A, b):
         """Solve the linear system :math:`Ax = b`."""
-        self.set_of_vars_temp.data = spsolve(A, b).reshape(
-            self.set_of_vars_temp.data.shape)
-        return self.set_of_vars_temp
+        state_phys = self.sim.state.state_phys
+        arr = spsolve(A, b).reshape(state_phys.shape)
+        return SetOfVariables(input_array=arr,
+                              keys=state_phys.keys,
+                              info=state_phys.info)

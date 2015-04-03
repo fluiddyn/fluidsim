@@ -13,7 +13,7 @@ Provides:
 """
 
 from fluidsim.base.solvers.base import SimulBase
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 
 

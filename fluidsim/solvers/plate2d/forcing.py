@@ -67,7 +67,7 @@ class TimeCorrelatedRandomPseudoSpectralGauss(TCRandomPS):
     # def compute_forcing_2nd_degree_eq(self):
     #     """compute a forcing normalize with a 2nd degree eq."""
 
-    #     w_fft = self.sim.state.state_fft['w_fft']
+    #     w_fft = self.sim.state.state_fft.get_var('w_fft')
     #     vmax = self.sim.params.forcing.vmax
     #     n0 = w_fft.shape[0]
     #     n1 = w_fft.shape[1]
@@ -86,8 +86,6 @@ class TimeCorrelatedRandomPseudoSpectralGauss(TCRandomPS):
     #             # exp(-(sqrt(I.^2+J.^2)-kfor-1).^2/(2*sk^2))
     #             # .*exp(2*pi*1i*rand(size(I)));
     #     forcingW_fft = self.oper.nx_loc**2 * vmax / np.sum(zf) * zf
-    #     self.forcingc_fft['w_fft'] = forcingW_fft
+    #     self.forcingc_fft.set_var('w_fft', forcingW_fft)
 
     #     self.put_forcingc_in_forcing()
-
-

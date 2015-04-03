@@ -36,7 +36,7 @@ from copy import deepcopy
 
 from fluiddyn.util import mpi
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 class SpecificForcing(object):

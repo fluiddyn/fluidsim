@@ -12,7 +12,7 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.sw1l.solver import InfoSolverSW1l
 from fluidsim.solvers.sw1l.solver import Simul as SimulSW1l
@@ -57,13 +57,13 @@ class Simul(SimulSW1l):
         else:
             state_phys = self.state.return_statephys_from_statefft(state_fft)
 
-        ux = state_phys['ux']
-        uy = state_phys['uy']
-        # eta = state_phys['eta']
+        ux = state_phys.get_var('ux')
+        uy = state_phys.get_var('uy')
+        # eta = state_phys.get_var('eta')
 
-        ux_fft = state_fft['ux_fft']
-        uy_fft = state_fft['uy_fft']
-        eta_fft = state_fft['eta_fft']
+        ux_fft = state_fft.get_var('ux_fft')
+        uy_fft = state_fft.get_var('uy_fft')
+        eta_fft = state_fft.get_var('eta_fft')
 
         # compute Fx_fft and Fy_fft
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -97,9 +97,8 @@ class Simul(SimulSW1l):
         div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
         Feta_fft = -fft2(ux_rot*dxeta + uy_rot*dyeta) - div_fft
 
-        oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
-
         # # for verification conservation energy
+        # oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
         # T_ux = (ux_fft.conj()*Fx_fft).real
         # T_uy = (uy_fft.conj()*Fy_fft).real
         # T_eta = (eta_fft.conj()*Feta_fft).real
@@ -112,9 +111,11 @@ class Simul(SimulSW1l):
             like=self.state.state_fft,
             info='tendencies_nonlin')
 
-        tendencies_fft['ux_fft'] = Fx_fft
-        tendencies_fft['uy_fft'] = Fy_fft
-        tendencies_fft['eta_fft'] = Feta_fft
+        tendencies_fft.set_var('ux_fft', Fx_fft)
+        tendencies_fft.set_var('uy_fft', Fy_fft)
+        tendencies_fft.set_var('eta_fft', Feta_fft)
+
+        oper.dealiasing(tendencies_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()

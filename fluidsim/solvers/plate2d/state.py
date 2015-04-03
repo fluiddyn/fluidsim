@@ -34,19 +34,19 @@ class StatePlate2D(StatePseudoSpectral):
             return self.vars_computed[key]
 
         if key == 'w_fft':
-            result = oper.fft2(self.state_phys['w'])
+            result = oper.fft2(self.state_phys.get_var('w'))
         elif key == 'z_fft':
-            result = oper.fft2(self.state_phys['z'])
+            result = oper.fft2(self.state_phys.get_var('z'))
         elif key == 'chi_fft':
-            mamp_zz = oper.monge_ampere_from_fft(
-                self.state_fft['z_fft'], self.state_fft['z_fft'])
+            z_fft = self.state_fft.get_var('z_fft')
+            mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
             result = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
         elif key == 'chi':
             chi_fft = self.compute('chi_fft')
             result = oper.ifft2(chi_fft)
         elif key == 'Nw_fft':
             mamp_zchi = oper.monge_ampere_from_fft(
-                self.state_fft['z_fft'], self.compute('chi_fft'))
+                self.state_fft.get_var('z_fft'), self.compute('chi_fft'))
             result = oper.fft2(mamp_zchi)
         elif key == 'lapz_fft':
             z_fft = self.compute('z_fft')
@@ -69,7 +69,7 @@ class StatePlate2D(StatePseudoSpectral):
         return result
 
     def statephys_from_statefft(self):
-        w_fft = self.state_fft['w_fft']
-        z_fft = self.state_fft['z_fft']
-        self.state_phys['w'] = self.oper.ifft2(w_fft)
-        self.state_phys['z'] = self.oper.ifft2(z_fft)
+        w_fft = self.state_fft.get_var('w_fft')
+        z_fft = self.state_fft.get_var('z_fft')
+        self.state_phys.set_var('w', self.oper.ifft2(w_fft))
+        self.state_phys.set_var('z', self.oper.ifft2(z_fft))

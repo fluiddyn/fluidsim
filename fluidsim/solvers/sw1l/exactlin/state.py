@@ -12,7 +12,7 @@ Provides:
 
 """
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.sw1l.state import StateSW1l
 
@@ -25,7 +25,6 @@ class StateSW1lExactLin(StateSW1l):
     to the state and handles the access to other fields for the solver
     SW1l.
     """
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ContainerXML info_solver.
@@ -39,8 +38,6 @@ class StateSW1lExactLin(StateSW1l):
             'keys_phys_needed': ['ux', 'uy', 'eta'],
             'keys_linear_eigenmodes': ['q_fft', 'a_fft', 'd_fft']})
 
-
-
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
 
@@ -48,35 +45,27 @@ class StateSW1lExactLin(StateSW1l):
             return self.vars_computed[key]
 
         if key == 'div_fft':
-            ap_fft = self.state_fft['ap_fft']
-            am_fft = self.state_fft['am_fft']
+            ap_fft = self.state_fft.get_var('ap_fft')
+            am_fft = self.state_fft.get_var('am_fft')
             d_fft = self.oper.divfft_from_apamfft(ap_fft, am_fft)
             result = d_fft
 
         elif key == 'a_fft':
-            ap_fft = self.state_fft['ap_fft']
-            am_fft = self.state_fft['am_fft']
+            ap_fft = self.state_fft.get_var('ap_fft')
+            am_fft = self.state_fft.get_var('am_fft')
             result = ap_fft + am_fft
 
         elif key == 'rot_fft':
-            q_fft = self.state_fft['q_fft']
+            q_fft = self.state_fft.get_var('q_fft')
             a_fft = self.compute('a_fft')
-            result = (self.oper.rotfft_from_qfft(q_fft)
-                      + self.oper.rotfft_from_afft(a_fft)
-                      )
+            result = (self.oper.rotfft_from_qfft(q_fft) +
+                      self.oper.rotfft_from_afft(a_fft))
 
         elif key == 'eta_fft':
-            q_fft = self.state_fft['q_fft']
+            q_fft = self.state_fft.get_var('q_fft')
             a_fft = self.compute('a_fft')
-            result = (self.oper.etafft_from_qfft(q_fft)
-                      + self.oper.etafft_from_afft(a_fft)
-                      )
-
-
-
-
-
-
+            result = (self.oper.etafft_from_qfft(q_fft) +
+                      self.oper.etafft_from_afft(a_fft))
 
         elif key == 'ux_fft':
             rot_fft = self.compute('rot_fft')
@@ -85,14 +74,14 @@ class StateSW1lExactLin(StateSW1l):
             udx_fft, udy_fft = self.oper.vecfft_from_divfft(div_fft)
             ux_fft = urx_fft + udx_fft
             if mpi.rank == 0:
-                ap_fft = self.state_fft['ap_fft']
+                ap_fft = self.state_fft.get_var('ap_fft')
                 ux_fft[0, 0] = ap_fft[0, 0]
             result = ux_fft
             if SAVE_IN_DICT:
                 key2 = 'uy_fft'
                 uy_fft = ury_fft + udy_fft
                 if mpi.rank == 0:
-                    am_fft = self.state_fft['am_fft']
+                    am_fft = self.state_fft.get_var('am_fft')
                     uy_fft[0, 0] = am_fft[0, 0]
 
                 self.vars_computed[key2] = uy_fft
@@ -105,14 +94,14 @@ class StateSW1lExactLin(StateSW1l):
             udx_fft, udy_fft = self.oper.vecfft_from_divfft(div_fft)
             uy_fft = ury_fft + udy_fft
             if mpi.rank == 0:
-                am_fft = self.state_fft['am_fft']
+                am_fft = self.state_fft.get_var('am_fft')
                 uy_fft[0, 0] = am_fft[0, 0]
             result = uy_fft
             if SAVE_IN_DICT:
                 key2 = 'ux_fft'
                 ux_fft = urx_fft + udx_fft
                 if mpi.rank == 0:
-                    ap_fft = self.state_fft['ap_fft']
+                    ap_fft = self.state_fft.get_var('ap_fft')
                     ux_fft[0, 0] = ap_fft[0, 0]
                 self.vars_computed[key2] = ux_fft
                 self.it_computed[key2] = it
@@ -129,15 +118,11 @@ class StateSW1lExactLin(StateSW1l):
 
         return result
 
-
-
-
-
     def statefft_from_statephys(self):
         """Compute the state in Fourier space."""
-        ux = self.state_phys['ux']
-        uy = self.state_phys['uy']
-        eta = self.state_phys['eta']
+        ux = self.state_phys.get_var('ux')
+        uy = self.state_phys.get_var('uy')
+        eta = self.state_phys.get_var('eta')
 
         eta_fft = self.oper.fft2(eta)
         ux_fft = self.oper.fft2(ux)
@@ -146,29 +131,26 @@ class StateSW1lExactLin(StateSW1l):
         (q_fft, ap_fft, am_fft
          ) = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
-        self.state_fft['q_fft'] = q_fft
-        self.state_fft['ap_fft'] = ap_fft
-        self.state_fft['am_fft'] = am_fft
-
-
+        self.state_fft.set_var('q_fft', q_fft)
+        self.state_fft.set_var('ap_fft', ap_fft)
+        self.state_fft.set_var('am_fft', am_fft)
 
     def statephys_from_statefft(self):
         """Compute the state in physical space."""
         ifft2 = self.oper.ifft2
-        q_fft = self.state_fft['q_fft']
-        ap_fft = self.state_fft['ap_fft']
-        am_fft = self.state_fft['am_fft']
+        q_fft = self.state_fft.get_var('q_fft')
+        ap_fft = self.state_fft.get_var('ap_fft')
+        am_fft = self.state_fft.get_var('am_fft')
 
         (ux_fft, uy_fft, eta_fft
          ) = self.oper.uxuyetafft_from_qapamfft(q_fft, ap_fft, am_fft)
 
         rot_fft = q_fft + self.params.f*eta_fft
 
-        self.state_phys['ux'] = ifft2(ux_fft)
-        self.state_phys['uy'] = ifft2(uy_fft)
-        self.state_phys['eta'] = ifft2(eta_fft)
-        self.state_phys['rot'] = ifft2(rot_fft)
-
+        self.state_phys.set_var('ux', ifft2(ux_fft))
+        self.state_phys.set_var('uy', ifft2(uy_fft))
+        self.state_phys.set_var('eta', ifft2(eta_fft))
+        self.state_phys.set_var('rot', ifft2(rot_fft))
 
     def return_statephys_from_statefft(self, state_fft=None):
         """Return the state in physical space."""
@@ -176,9 +158,9 @@ class StateSW1lExactLin(StateSW1l):
         if state_fft is None:
             state_fft = self.state_fft
 
-        q_fft = state_fft['q_fft']
-        ap_fft = state_fft['ap_fft']
-        am_fft = state_fft['am_fft']
+        q_fft = state_fft.get_var('q_fft')
+        ap_fft = state_fft.get_var('ap_fft')
+        am_fft = state_fft.get_var('am_fft')
 
         (ux_fft, uy_fft, eta_fft
          ) = self.oper.uxuyetafft_from_qapamfft(q_fft, ap_fft, am_fft)
@@ -186,8 +168,8 @@ class StateSW1lExactLin(StateSW1l):
         rot_fft = q_fft + self.params.f*eta_fft
 
         state_phys = SetOfVariables(like=self.state_phys)
-        state_phys['ux'] = ifft2(ux_fft)
-        state_phys['uy'] = ifft2(uy_fft)
-        state_phys['eta'] = ifft2(eta_fft)
-        state_phys['rot'] = ifft2(rot_fft)
+        state_phys.set_var('ux', ifft2(ux_fft))
+        state_phys.set_var('uy', ifft2(uy_fft))
+        state_phys.set_var('eta', ifft2(eta_fft))
+        state_phys.set_var('rot', ifft2(rot_fft))
         return state_phys

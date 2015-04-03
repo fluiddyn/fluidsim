@@ -11,7 +11,7 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.sw1l.exactlin.solver import InfoSolverSW1lExactLin
 from fluidsim.solvers.sw1l.exactlin.solver import \
@@ -56,9 +56,9 @@ class Simul(SimulSW1lExactLin):
         else:
             state_phys = self.state.return_statephys_from_statefft(state_fft)
 
-        ux = state_phys['ux']
-        uy = state_phys['uy']
-        eta = state_phys['eta']
+        ux = state_phys.get_var('ux')
+        uy = state_phys.get_var('uy')
+        eta = state_phys.get_var('eta')
 
         # compute the nonlinear terms for ux, uy and eta
         gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
@@ -95,8 +95,8 @@ class Simul(SimulSW1lExactLin):
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
             info='tendencies_nonlin')
-        tendencies_fft['ap_fft'] = Np_fft
-        tendencies_fft['am_fft'] = Nm_fft
+        tendencies_fft.set_var('ap_fft', Np_fft)
+        tendencies_fft.set_var('am_fft', Nm_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
@@ -117,13 +117,13 @@ class Simul(SimulSW1lExactLin):
         # for verification conservation energy
         # compute the linear terms
         oper = self.oper
-        ux = state_phys['ux']
-        uy = state_phys['uy']
-        eta = state_phys['eta']
+        ux = state_phys.get_var('ux')
+        uy = state_phys.get_var('uy')
+        eta = state_phys.get_var('eta')
 
         # q_fft = self.oper.constant_arrayK(value=0)
-        ap_fft = state_fft['ap_fft']
-        am_fft = state_fft['am_fft']
+        ap_fft = state_fft.get_var('ap_fft')
+        am_fft = state_fft.get_var('am_fft')
         a_fft = ap_fft + am_fft
         div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
 

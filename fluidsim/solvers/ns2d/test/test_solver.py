@@ -42,7 +42,7 @@ class TestSolverNS2D(unittest.TestCase):
         rot_fft = sim.state('rot_fft')
 
         tend = sim.tendencies_nonlin(state_fft=sim.state.state_fft)
-        Frot_fft = tend['rot_fft']
+        Frot_fft = tend.get_var('rot_fft')
 
         T_rot = np.real(Frot_fft.conj()*rot_fft)
 

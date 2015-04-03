@@ -70,8 +70,8 @@ class Output(OutputBasePseudoSpectral):
         params.output.phys_fields.field_to_plot = 'z'
 
     def compute_energies_fft(self):
-        w_fft = self.sim.state.state_fft['w_fft']
-        z_fft = self.sim.state.state_fft['z_fft']
+        w_fft = self.sim.state.state_fft.get_var('w_fft')
+        z_fft = self.sim.state.state_fft.get_var('z_fft')
         chi_fft = self.sim.state.compute('chi_fft')
         Ee_fft = np.abs(
             0.25*self.sim.oper.laplacian2_fft(np.abs(chi_fft)**2+0j))

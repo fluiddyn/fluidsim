@@ -18,7 +18,7 @@ Provides:
 import numpy as np
 
 
-from fluidsim.operators.setofvariables import SetOfVariables
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.params import Parameters, create_params
 
