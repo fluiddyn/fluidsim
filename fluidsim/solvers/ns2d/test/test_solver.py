@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 
 import fluiddyn as fld
-
+import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
@@ -27,9 +27,6 @@ class TestSolverNS2D(unittest.TestCase):
         params.oper.coef_dealiasing = 2./3
         params.nu_8 = 2.
 
-        params.oper.type_fft = 'FFTWPY'
-        # params.oper.type_fft = 'FFTWCY'
-
         params.time_stepping.t_end = 0.5
 
         params.init_fields.type_flow_init = 'NOISE'
@@ -49,7 +46,7 @@ class TestSolverNS2D(unittest.TestCase):
         ratio = (sim.oper.sum_wavenumbers(T_rot) /
                  sim.oper.sum_wavenumbers(abs(T_rot)))
 
-        self.assertGreater(1e-16, ratio)
+        self.assertGreater(1e-15, ratio)
 
         # print ('sum(T_rot) = {0:9.4e} ; '
         #        'sum(abs(T_rot)) = {1:9.4e}').format(
@@ -57,7 +54,8 @@ class TestSolverNS2D(unittest.TestCase):
         #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
         # clean by removing the directory
-        shutil.rmtree(sim.output.path_run)
+        if mpi.rank == 0:
+            shutil.rmtree(sim.output.path_run)
 
 
 if __name__ == '__main__':

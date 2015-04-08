@@ -24,11 +24,14 @@ Provides classes for performing fft in 1, 2, and 3 dimensions:
 
 from __future__ import division, print_function
 
+import os
 import numpy as np
-
 import scipy.fftpack as fftp
 
-nthreads = 4
+if 'OMP_NUM_THREADS' in os.environ:
+    nthreads = int(os.environ['OMP_NUM_THREADS'])
+else:
+    nthreads = 1
 
 
 class fftp2D:

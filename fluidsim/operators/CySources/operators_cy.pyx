@@ -21,7 +21,7 @@ This module is written in Cython and provides the classes:
 
 """
 
-# DEF MPI4PY = 0
+# # DEF MPI4PY = 0
 
 import sys
 
@@ -201,7 +201,6 @@ cdef class GridPseudoSpectral2D(Operators):
             self.TRANSPOSED = False
 
         else:
-
             if nx/2+1 < self.nb_proc:
                 raise ValueError('condition nx/2+1 >= nb_proc not fulfill')
 
@@ -212,7 +211,7 @@ cdef class GridPseudoSpectral2D(Operators):
             if not hasattr(op_fft2d, 'shapeX_loc'):
                 raise ValueError(
                     'The fft operator does not have "shapeX_loc", '
-                    'which seems to indicate that it can not run with mpi.')    
+                    'which seems to indicate that it can not run with mpi.')
             self.shapeK_gat = op_fft2d.shapeK_gat
             self.shapeX_loc = op_fft2d.shapeX_loc
             self.shapeK_loc = op_fft2d.shapeK_loc
@@ -400,7 +399,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         list_type_fft = ['FFTWCY', 'FFTWCCY', 'FFTWPY', 'FFTPACK']
         if type_fft not in list_type_fft:
-            raise ValueError('type_fft should be in '+repr(list_type_fft))
+            raise ValueError('type_fft should be in ' + repr(list_type_fft))
 
         if type_fft == 'FFTWCCY' and nb_proc == 1:
             type_fft = 'FFTWCY'
@@ -408,14 +407,21 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         try:
             if type_fft == 'FFTWCY':
                 import fluidsim.operators.fft.fftw2dmpicy as fftw2Dmpi
-            elif type_fft == 'FFTWCCY':
+        except ImportError as err:
+            print('ImportError for fftw2Dmpicy')
+            type_fft = 'FFTWCCY'
+
+        try:
+            if type_fft == 'FFTWCCY':
                 import fluidsim.operators.fft.fftw2dmpiccy as fftw2Dmpi
         except ImportError as err:
-            print('ImportError for fftw2Dmpicy and fftw2Dmpiccy')
-            type_fft = 'FFTWPY'
+            print('ImportError for fftw2Dmpiccy')
             if nb_proc > 1 and SEQUENCIAL is None:
                 raise ValueError(
-                    'if nb_proc>1, we need to use one of this library')
+                    'if nb_proc>1, we need one of the libraries '
+                    'fftw2Dmpicy or fftw2Dmpiccy')
+            type_fft = 'FFTWPY'
+
         if type_fft == 'FFTWPY':
             try:
                 import pyfftw

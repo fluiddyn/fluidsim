@@ -15,7 +15,7 @@ import cProfile
 import fluiddyn as fld
 
 solver = fld.simul.import_module_solver_from_key(key_solver)
-params = fld.simul.create_params(solver)
+params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'profile'
 
@@ -29,7 +29,7 @@ params.oper.Ly = Lh
 params.oper.coef_dealiasing = 2./3
 
 params.FORCING = False
-params.forcing.type_forcing = 'noWAVES'
+#params.forcing.type_forcing = 'noWAVES'
 params.forcing.nkmax_forcing = 5
 params.forcing.nkmin_forcing = 4
 params.forcing.forcing_rate = 1.

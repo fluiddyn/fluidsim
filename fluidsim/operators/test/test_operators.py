@@ -4,9 +4,9 @@ import numpy as np
 import sys
 
 from fluiddyn.io import stdout_redirected
+import fluiddyn.util.mpi as mpi
 
 from fluidsim.base.solvers.pseudo_spect import Simul
-
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
 
 
@@ -33,6 +33,7 @@ def create_oper(type_fft='FFTWCY'):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Will fail on Windows")
 class TestOperators(unittest.TestCase):
+    @unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')
     def test_create(self):
         """Should be able to ..."""
         oper = create_oper('FFTWCY')
@@ -58,8 +59,7 @@ class TestOperators(unittest.TestCase):
 
         self.assertTrue(np.allclose(px_rot_fft, px_rot2_fft))
 
-        # fld.ipydebug()
-
+    @unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')
     def test_tendency(self):
 
         oper = create_oper('FFTWCY')
