@@ -255,8 +255,8 @@ cdef class GridPseudoSpectral2D(Operators):
         self.ky_loc = self.deltaky * np.arange(self.iKyloc_start,
                                                self.iKyloc_start+self.nky_loc)
         self.ky_loc[self.ky_loc > self.kymax] = (
-            self.ky_loc[self.ky_loc > self.kymax]
-            - 2*self.kymax)
+            self.ky_loc[self.ky_loc > self.kymax] -
+            2*self.kymax)
 
         if not self.TRANSPOSED:
             [self.KX, self.KY] = np.meshgrid(self.kx_loc, self.ky_loc)
@@ -272,8 +272,8 @@ cdef class GridPseudoSpectral2D(Operators):
         self.K8 = self.K4**2
         self.KK = np.sqrt(self.K2)
 
-        self.kmax = np.sqrt((self.deltakx*self.nx_seq)**2
-                            + (self.deltaky*self.ny_seq)**2)/2
+        self.kmax = np.sqrt((self.deltakx*self.nx_seq)**2 +
+                            (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
         ikx_seq = np.round(kx_approx/self.deltakh)
@@ -290,8 +290,8 @@ cdef class GridPseudoSpectral2D(Operators):
             else:
                 rank_k = 0
                 while (rank_k < self.nb_proc-1 and
-                       (not (self.iKxloc_start_rank[rank_k] <= ikx_seq
-                             and ikx_seq < self.iKxloc_start_rank[rank_k+1]))):
+                       (not (self.iKxloc_start_rank[rank_k] <= ikx_seq and
+                             ikx_seq < self.iKxloc_start_rank[rank_k+1]))):
                     rank_k += 1
 
             ikx_loc = ikx_seq - self.iKxloc_start_rank[rank_k]
@@ -388,11 +388,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         coef_dealiasing = params.oper.coef_dealiasing
         TRANSPOSED = params.oper.TRANSPOSED_OK
 
-        if rank == 0:
-            to_print = 'Init. operator'
-            if goal_to_print is not None:
-                to_print += ' ('+goal_to_print+')'
-            print(to_print)
+        # if rank == 0:
+        #     to_print = 'Init. operator'
+        #     if goal_to_print is not None:
+        #         to_print += ' ('+goal_to_print+')'
+        #     print(to_print)
 
         if params is not None:
             self.params = params
@@ -408,14 +408,21 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             if type_fft == 'FFTWCY':
                 import fluidsim.operators.fft.fftw2dmpicy as fftw2Dmpi
         except ImportError as err:
-            print('ImportError for fftw2Dmpicy')
-            type_fft = 'FFTWCCY'
+            if nb_proc == 1:
+                type_fft = 'FFTWPY'
+            else:
+                type_fft = 'FFTWCCY'
 
         try:
             if type_fft == 'FFTWCCY':
+                # We need to do this check because after the first
+                # import, the import statement doesn't raise the
+                # ImportError correctly (is it normal?)
+                if nb_proc == 1:
+                    raise ImportError(
+                        'fftw2Dmpiccy only works if MPI.COMM_WORLD.size > 1.')
                 import fluidsim.operators.fft.fftw2dmpiccy as fftw2Dmpi
-        except ImportError as err:
-            print('ImportError for fftw2Dmpiccy')
+        except ImportError:
             if nb_proc > 1 and SEQUENCIAL is None:
                 raise ValueError(
                     'if nb_proc>1, we need one of the libraries '
@@ -426,13 +433,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             try:
                 import pyfftw
             except ImportError as err:
-                print('ImportError for fftw3, we use fftpack (very slow)')
                 type_fft = 'FFTPACK'
 
         self.type_fft = type_fft
-
+        
         # Initialization of the fft transforms
-        if not (type_fft == 'FFTWPY' or type_fft == 'FFTPACK'):
+        if type_fft not in ['FFTWPY', 'FFTPACK']:
             if not TRANSPOSED and type_fft == 'FFTWCCY':
                 raise ValueError('FFTWCCY does not suport the '
                                  '(inefficient!) option TRANSPOSED=False')
@@ -535,6 +541,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         else:
             str_Ly = '{:.3f}'.format(self.Ly).rstrip('0')
         return (
+            'type fft: ' + self.type_fft + '\n' +
             'nx = {0:6d} ; ny = {1:6d}\n'.format(self.nx_seq, self.ny_seq) +
             'Lx = ' + str_Lx + ' ; Ly = ' + str_Ly + '\n')
 
