@@ -51,19 +51,13 @@ class TestFFT2Dmpi(unittest.TestCase):
         ny = 64
         op = fftw2dmpicy.FFT2Dmpi(nx, ny, TRANSPOSED=False)
 
-        func_fft = (np.random.random(op.shapeK_loc)
-                    + 1.j*np.random.random(op.shapeK_loc))
+        func_fft = (np.random.random(op.shapeK_loc) +
+                    1.j*np.random.random(op.shapeK_loc))
 
         func = op.ifft2d(func_fft)
         func_fft = op.fft2d(func)
 
         self.compute_and_check(func_fft, op)
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
