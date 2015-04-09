@@ -295,9 +295,9 @@ class InitFieldsBase(object):
                     field_loc = self.oper.scatter_Xspace(field_seq)
                 else:
                     field_loc = field_seq
-                state_phys[k] = field_loc
+                state_phys.set_var(k, field_loc)
             else:
-                state_phys[k] = self.oper.constant_arrayX(value=0.)
+                state_phys.set_var(k, self.oper.constant_arrayX(value=0.))
 
         if mpi.rank == 0:
             t_file = group_state_phys.attrs['time']

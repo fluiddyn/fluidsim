@@ -32,9 +32,10 @@ class InitFieldsPlate2D(InitFieldsBase):
             self.get_state_from_file(self.params.init_fields.path_file)
             tasks_complete_init = []
         elif type_flow_init == 'CONSTANT':
-            #   rot_fft = sim.oper.constant_arrayK(value=0.)
-            #    if mpi.rank == 0:
-            #       rot_fft[1, 0] = 1.
+            z_fft = sim.oper.constant_arrayK(value=0.)
+            w_fft = sim.oper.constant_arrayK(value=0.)
+            if mpi.rank == 0:
+                z_fft[1, 0] = 1.
             tasks_complete_init = ['Fourier_to_phys']
         else:
             raise ValueError('bad value of params.type_flow_init')

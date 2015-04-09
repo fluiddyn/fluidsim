@@ -274,7 +274,7 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 192
+    nh = 192/4
     Lh = 2*np.pi
     params.oper.nx = nh
     params.oper.ny = nh
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 2*np.pi/kmax**2
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 2.0
+    params.time_stepping.t_end = 50.0
     params.time_stepping.it_end = 1
 
     # params.init_fields.type_flow_init = 'HARMONIC'
@@ -302,20 +302,20 @@ if __name__ == "__main__":
     #     '2pix2pi_256x256_2015-03-04_22-36-37/state_phys_t=000.100.hd5')
 
     params.FORCING = True
-    params.forcing.forcing_rate = 100.
+    params.forcing.forcing_rate = 1000.
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4
 
     params.output.periods_print.print_stdout = 0.5
 
-    params.output.periods_save.phys_fields = 0.0
-    params.output.periods_save.spectra = 0.5
+    params.output.periods_save.phys_fields = 5.
+    params.output.periods_save.spectra = 1.
     # params.output.periods_save.spect_energy_budg = 0.5
     # params.output.periods_save.increments = 0.5
 
-    params.output.ONLINE_PLOT_OK = True
+    params.output.ONLINE_PLOT_OK = False
     params.output.period_show_plot = 0.5
-    params.output.periods_plot.phys_fields = 0.5
+    params.output.periods_plot.phys_fields = 5.
 
     params.output.phys_fields.field_to_plot = 'z'
 
