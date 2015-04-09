@@ -121,7 +121,7 @@ cdef class GridPseudoSpectral2D(Operators):
     cdef public int idimx, idimy, idimkx, idimky
 
     # these names without loc or seq correspond to local quantities
-    cdef public np.ndarray XX, YY, RR, KX, KY, KK, K2, K4, K8
+    cdef public np.ndarray XX, YY, RR, KX, KY, KK, K2, K4, K8, KX2, KY2
     cdef public np.ndarray kx_loc, ky_loc
     cdef public np.ndarray x_seq, y_seq
 
@@ -267,7 +267,9 @@ cdef class GridPseudoSpectral2D(Operators):
             self.dim_kx = 0
             self.dim_ky = 1
 
-        self.K2 = self.KX**2 + self.KY**2
+        self.KX2 = self.KX**2
+        self.KY2 = self.KY**2
+        self.K2 = self.KX2 + self.KY2
         self.K4 = self.K2**2
         self.K8 = self.K4**2
         self.KK = np.sqrt(self.K2)
@@ -1523,18 +1525,23 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                     f_fft[iKy, iKxc] = fc_fft[iKyc, iKxc]
         return f_fft
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def monge_ampere_from_fft(
             self, DTYPEc_t[:, :] a_fft, DTYPEc_t[:, :] b_fft):
         cdef Py_ssize_t i0, n0, i1, n1
         cdef DTYPEc_t[:, :] pxx_afft, pyy_afft, pxy_afft
         cdef DTYPEc_t[:, :] pxx_bfft, pyy_bfft, pxy_bfft
         cdef DTYPEf_t[:, :] mamp
-        cdef DTYPEf_t[:, :] KX, KY, pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
+        cdef DTYPEf_t[:, :] KX, KY, KX2, KY2
+        cdef DTYPEf_t[:, :] pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
 
         n0 = a_fft.shape[0]
         n1 = a_fft.shape[1]
         KX = self.KX
         KY = self.KY
+        KX2 = self.KX2
+        KY2 = self.KY2
 
         pxx_afft = np.empty([n0, n1], dtype=DTYPEc)
         pyy_afft = np.empty([n0, n1], dtype=DTYPEc)
@@ -1545,11 +1552,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]**2
-                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY[i0, i1]**2
+                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX2[i0, i1]
+                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY2[i0, i1]
                 pxy_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]**2
-                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY[i0, i1]**2
+                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX2[i0, i1]
+                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY2[i0, i1]
                 pxy_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
         pxx_a = self.ifft2(pxx_afft)
         pyy_a = self.ifft2(pyy_afft)

@@ -274,7 +274,7 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 192/2
+    nh = 192
     Lh = 2*np.pi
     params.oper.nx = nh
     params.oper.ny = nh
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 2*np.pi/kmax**2
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 50.0
+    params.time_stepping.t_end = 2.0
     params.time_stepping.it_end = 1
 
     # params.init_fields.type_flow_init = 'HARMONIC'
@@ -313,9 +313,9 @@ if __name__ == "__main__":
     # params.output.periods_save.spect_energy_budg = 0.5
     # params.output.periods_save.increments = 0.5
 
-    params.output.ONLINE_PLOT_OK = False
+    params.output.ONLINE_PLOT_OK = True
     params.output.period_show_plot = 0.5
-    params.output.periods_plot.phys_fields = 0.0
+    params.output.periods_plot.phys_fields = 0.5
 
     params.output.phys_fields.field_to_plot = 'z'
 

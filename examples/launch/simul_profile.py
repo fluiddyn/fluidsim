@@ -47,10 +47,10 @@ except KeyError:
 params.time_stepping.deltat0 = 1.e-4
 params.time_stepping.USE_CFL = False
 
-params.time_stepping.it_end = 50
+params.time_stepping.it_end = 100
 params.time_stepping.USE_T_END = False
 
-params.oper.type_fft = 'FFTWPY'
+# params.oper.type_fft = 'FFTWCY'
 
 # params.init_fields.type_flow_init = 'DIPOLE'
 
