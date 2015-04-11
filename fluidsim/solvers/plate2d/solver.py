@@ -312,6 +312,7 @@ if __name__ == "__main__":
     params.output.periods_save.spectra = 1.
     # params.output.periods_save.spect_energy_budg = 0.5
     # params.output.periods_save.increments = 0.5
+    # params.output.periods_save.correl_freq = 0.9*params.time_stepping.deltat0
 
     params.output.ONLINE_PLOT_OK = False
     params.output.period_show_plot = 0.5

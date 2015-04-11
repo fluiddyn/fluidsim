@@ -55,10 +55,10 @@ class Output(OutputBasePseudoSpectral):
             attribs={'module_name': package + '.spatial_means',
                      'class_name': 'SpatialMeansPlate2D'})
 
-        # classes.set_child(
-        #     'spatial_means',
-        #     attribs={'module_name': package + '.correlations_freq',
-        #              'class_name': 'CorrelationsFreq'})
+        classes.set_child(
+            'correl_freq',
+            attribs={'module_name': package + '.correlations_freq',
+                     'class_name': 'CorrelationsFreq'})
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

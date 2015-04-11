@@ -26,6 +26,7 @@ from __future__ import division, print_function
 
 import os
 import numpy as np
+from copy import copy
 import scipy.fftpack as fftp
 
 if 'OMP_NUM_THREADS' in os.environ:
@@ -221,27 +222,36 @@ class FFTW1D:
 
 class FFTW1DReal2Complex:
     """ A class to use fftw 1D """
-    def __init__(self, n):
+    def __init__(self, arg, axis=-1):
         try:
             import pyfftw
         except ImportError as err:
             raise ImportError("ImportError. Instead fftpack?", err)
 
+        if isinstance(arg, int):
+            n = arg
+            shapeX = [n]
+            shapeK = [n//2+1]
+        else:
+            n = arg[axis]
+            shapeX = arg
+            shapeK = copy(arg)
+            shapeK[axis] = n//2+1
+
         if n % 2 != 0:
             raise ValueError('n should be even')
-        shapeX = [n]
-        shapeK = [n//2+1]
+
         self.shapeX = shapeX
         self.shapeK = shapeK
         self.arrayX = pyfftw.n_byte_align_empty(shapeX, 16, 'float64')
         self.arrayK = pyfftw.n_byte_align_empty(shapeK, 16, 'complex128')
         self.fftplan = pyfftw.FFTW(input_array=self.arrayX,
                                    output_array=self.arrayK,
-                                   axes=(-1,),
+                                   axes=(axis,),
                                    direction='FFTW_FORWARD', threads=nthreads)
         self.ifftplan = pyfftw.FFTW(input_array=self.arrayK,
                                     output_array=self.arrayX,
-                                    axes=(-1,),
+                                    axes=(axis,),
                                     direction='FFTW_BACKWARD',
                                     threads=nthreads)
 
