@@ -13,7 +13,6 @@ Provides:
 
 .. todo::
 
-   - Compile without fftw-mpi,
    - bench performances,
    - output:
      * spectra,
@@ -68,20 +67,20 @@ class Simul(SimulBasePseudoSpectral):
 
     This class is dedicated to solve with a pseudo-spectral method the
     Föppl-von Kármán equations which describe the dynamics of a rigid
-    plate.  Using the non-dimensional variables displacement :math:`Z`
-    and out of plane velocity :math:`W`:
+    plate.  Using the non-dimensional variables displacement :math:`z`
+    and out of plane velocity :math:`w`:
 
     .. math::
-       \p_t Z = W,
+       \p_t z = w,
 
     .. math::
-       \p_t W = - \Delta^2 Z + N_W(Z) + F f_W - \nu_\alpha (-\Delta)^\alpha W.
+       \p_t w = - \Delta^2 z + N_w(z) + F f_w - \nu_\alpha (-\Delta)^\alpha w.
 
     where :math:`\Delta = \p_{xx} + \p_{yy}` is the Laplacian. The
     first term of the two equations corresponds to the linear part.
-    :math:`F f_W` and :math:`\nu_\alpha \Delta^\alpha W` are the
+    :math:`F f_w` and :math:`\nu_\alpha \Delta^\alpha w` are the
     forcing and the dissipation terms, respectively. The nonlinear
-    term is equal to :math:`N_W(Z) = \{ Z, \chi \}`, where :math:`\{
+    term is equal to :math:`N_w(z) = \{ z, \chi \}`, where :math:`\{
     \cdot, \cdot \}` is the Monge-Ampère operator
 
     .. math::
@@ -90,33 +89,33 @@ class Simul(SimulBasePseudoSpectral):
 
     and
 
-    .. math:: \Delta^2 \chi = -\{ Z, Z \}.
+    .. math:: \Delta^2 \chi = -\{ z, z \}.
 
     Taking the Fourier transform, we get:
 
     .. math::
-       \p_t \hat Z = \hat W,
+       \p_t \hat z = \hat w,
 
     .. math::
-       \p_t \hat W = - k^4 \hat Z + \widehat{N_W(Z)} + F \hat f_W
-       - \nu_\alpha k^{2\alpha} \hat W,
+       \p_t \hat w = - k^4 \hat z + \widehat{N_w(z)} + F \hat f_w
+       - \nu_\alpha k^{2\alpha} \hat w,
 
     where :math:`k^2 = |\mathbf{k}|^2`. For this simple solver, we
-    will use the variables :math:`Z` and :math:`W` and only the
+    will use the variables :math:`z` and :math:`w` and only the
     dissipative term will be solve exactly.  Thus, all the other terms
     are included in the :func:`tendencies_nonlin` function.
 
     **Energetics**: The total energy can be decomposed in the kinetic energy
 
     .. math::
-       E_K = \frac{1}{2} \langle W^2 \rangle
-       = \frac{1}{2} \sum_\mathbf{k} |\hat W|^2,
+       E_K = \frac{1}{2} \langle w^2 \rangle
+       = \frac{1}{2} \sum_\mathbf{k} |\hat w|^2,
 
     the flexion energy
 
     .. math::
-       E_L = \frac{1}{2} \langle (\Delta Z)^2 \rangle
-       = \frac{1}{2} \sum_\mathbf{k} k^4|\hat Z|^2,
+       E_L = \frac{1}{2} \langle (\Delta z)^2 \rangle
+       = \frac{1}{2} \sum_\mathbf{k} k^4|\hat z|^2,
 
     and the non-quadratic extension energy
 
@@ -127,12 +126,12 @@ class Simul(SimulBasePseudoSpectral):
     The energy injected into the system by the forcing is
 
     .. math::
-       P = F \langle f W \rangle,
+       P = F \langle f w \rangle,
 
     and the dissipation is
 
     .. math::
-       D = \nu_\alpha \langle W (-\Delta)^\alpha W \rangle.
+       D = \nu_\alpha \langle w (-\Delta)^\alpha w \rangle.
 
     """
 
@@ -202,20 +201,20 @@ class Simul(SimulBasePseudoSpectral):
 
         .. math::
 
-           \p_t Z = F_Z
+           \p_t z = F_z
 
-           \p_t W = F_W
+           \p_t w = F_w
 
         We have:
 
         .. math::
 
-           \p_t E_K(\mathbf{k}) = \mathcal{R} ( \hat F_W \hat W ^* )
+           \p_t E_K(\mathbf{k}) = \mathcal{R} ( \hat F_w \hat w ^* )
 
-           \p_t E_L(\mathbf{k}) = k^4 \mathcal{R} ( \hat F_Z \hat Z ^* )
+           \p_t E_L(\mathbf{k}) = k^4 \mathcal{R} ( \hat F_z \hat z ^* )
 
            \p_t E_{NQ}(\mathbf{k}) =
-           - \mathcal{R} ( \widehat{\{ F_Z, Z\}} \hat \chi ^* )
+           - \mathcal{R} ( \widehat{\{ F_z, z\}} \hat \chi ^* )
 
         Since the total energy is conserved, we should have
 
