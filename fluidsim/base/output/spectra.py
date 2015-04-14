@@ -127,7 +127,7 @@ class Spectra(SpecificOutput):
         tmin = times[imin_plot]
         tmax = times[imax_plot]
 
-        print('compute mean of 2D spectra\n'
+        print('compute mean of 2D spectra\n' +
               ('tmin = {0:8.6g} ; tmax = {1:8.6g}'
                'imin = {2:8d} ; imax = {3:8d}').format(
                   tmin, tmax, imin_plot, imax_plot))
@@ -163,7 +163,7 @@ class Spectra(SpecificOutput):
         tmin = times[imin_plot]
         tmax = times[imax_plot]
 
-        print('compute mean of 1D spectra'
+        print('compute mean of 1D spectra' +
               ('tmin = {0:8.6g} ; tmax = {1:8.6g}\n'
                'imin = {2:8d} ; imax = {3:8d}\n').format(
                    tmin, tmax, imin_plot, imax_plot))

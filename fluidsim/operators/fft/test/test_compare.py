@@ -7,6 +7,7 @@ import sys
 
 import numpy as np
 
+import fluiddyn.util.mpi as mpi
 from fluidsim.operators.fft import easypyfft
 try:
     from fluidsim.operators.fft import fftw2dmpicy
@@ -14,7 +15,7 @@ try:
 except ImportError:
     FFTWMPI = False
 
-
+@unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')
 @unittest.skipIf(not FFTWMPI, 'fftw2dmpicy fails to be imported.')
 @unittest.skipIf(sys.platform.startswith("win"), "Will fail on Windows")
 class TestFFT2Dmpi(unittest.TestCase):

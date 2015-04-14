@@ -4,7 +4,7 @@ import shutil
 # import numpy as np
 
 import fluiddyn as fld
-
+import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
@@ -46,7 +46,8 @@ class TestSolverPLATE2D(unittest.TestCase):
 
         self.assertGreater(1e-15, ratio)
 
-        shutil.rmtree(sim.output.path_run)
+        if mpi.rank == 0:
+            shutil.rmtree(sim.output.path_run)
 
 
 if __name__ == '__main__':

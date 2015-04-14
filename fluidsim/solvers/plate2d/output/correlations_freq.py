@@ -12,13 +12,13 @@ Provides:
 
 """
 import h5py
-
 import os
 import numpy as np
 
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
+from fluidsim.operators.fft.easypyfft import FFTW1DReal2Complex
 
 
 class CorrelationsFreq(SpecificOutput):
@@ -26,69 +26,99 @@ class CorrelationsFreq(SpecificOutput):
 
     """
 
-    _tag = 'correl'
+    _tag = 'correl_freq'
 
     @staticmethod
     def _complete_params_with_default(params):
-        tag = 'correl'
+        tag = 'correl_freq'
 
         params.output.periods_save.set_attrib(tag, 0)
         params.output.set_child(tag,
                                 attribs={
                                     'HAS_TO_PLOT_SAVED': False,
-                                    'nb_times': 1000})
+                                    'nb_times_compute': 100,
+                                    'coef_decimate': 10,
+                                    'key_quantity': 'w'})
 
     def __init__(self, output):
         params = output.sim.params
 
-        self.nb_times = params.output.correl.nb_times
-        self.nb_omegas = self.nb_times/4
+        self.nb_times_compute = params.output.correl_freq.nb_times_compute
+        self.coef_decimate = params.output.correl_freq.coef_decimate
+        self.key_quantity = params.output.correl_freq.key_quantity
+        self.periods_fill = params.output.periods_save.correl_freq
+
+        n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
+        n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
+        shape_spatio_temp = [n0*n1, self.nb_times_compute]
+        self.oper_fft1 = FFTW1DReal2Complex(shape_spatio_temp)
+        self.nb_omegas = self.oper_fft1.shapeK[-1]
+
+        self.spatio_temp = np.empty(shape_spatio_temp)
+        self.nb_times_in_spatio_temp = 0
 
         super(CorrelationsFreq, self).__init__(
             output,
-            period_save=params.output.periods_save.correl,
-            has_to_plot_saved=params.output.correl.HAS_TO_PLOT_SAVED)
+            period_save=params.output.periods_save.correl_freq,
+            has_to_plot_saved=params.output.correl_freq.HAS_TO_PLOT_SAVED)
+
+        if os.path.exists(self.path_file4):
+            with h5py.File(self.path_file, 'r') as f:
+                if self.sim.time_stepping.deltat != f.attrs['deltat']:
+                    raise ValueError()
 
     def init_path_files(self):
         path_run = self.output.path_run
-        self.path_file = path_run + '/correlations_freq.h5'
+        # self.path_file = path_run + '/spectra_temporal.h5'
+        self.path_file4 = path_run + '/correl4_freq.h5'
 
     def init_files(self, dico_arrays_1time=None):
-        correlations = self.compute()
+        # we can not do anything when this function is called.
+        pass
+
+    def init_files2(self, dcorrel4):
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
-                dico_arrays_1time = {'kxE': self.sim.oper.kxE,
-                                     'kyE': self.sim.oper.kyE}
+                time_tot = (
+                    self.sim.time_stepping.deltat * self.nb_times_compute *
+                    self.period_fill)
+                omegas = 2*np.pi/time_tot * np.arange(self.nb_omegas)
+                dico_arrays_1time = {
+                    'omegas': omegas,
+                    'deltat': self.sim.time_stepping.deltat,
+                    'nb_times_compute': self.nb_times_compute,
+                    'period_fill': self.period_fill}
                 self.create_file_from_dico_arrays(
-                    self.path_file, correlations, dico_arrays_1time)
+                    self.path_file, scorrel4, dico_arrays_1time)
                 self.nb_saved_times = 1
-            else:
-                with h5py.File(self.path_file, 'r') as f:
-                    dset_times = f['times']
-                    self.nb_saved_times = dset_times.shape[0]+1
-                # save the spectra in the file spectra1D.h5
-                self.add_dico_arrays_to_file(self.path_file1D,
-                                             correlations)
 
         self.t_last_save = self.sim.time_stepping.t
 
     def online_save(self):
         """Save the values at one time. """
-        tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_save >= self.period_save):
-            self.t_last_save = tsim
-            correlations = self.compute()
-            if mpi.rank == 0:
-                # save the spectra in the file correlation_freq.h5
-                self.add_dico_arrays_to_file(self.path_file,
-                                             correlations)
-                self.nb_saved_times += 1
-                # if self.has_to_plot:
-                #     self._online_plot(dico_spectra1D, dico_spectra2D)
+        itsim = self.sim.time_stepping.t/self.sim.time_stepping.deltat
+        if (itsim-self.it_last_run >= self.period_save):
+            self.it_last_run = itsim
+            field = self.sim.state.state_phys.get_var(self.key_quantity)
+            field = field[::self.coef_decimate, ::self.coef_decimate]
+            self.spatio_temp[:, self.nb_times_in_spatio_temp] = (
+                field.reshape([field.size]))
+            self.nb_times_in_spatio_temp += 1
+            if self.nb_times_in_spatio_temp == self.nb_times_compute:
+                self.nb_times_in_spatio_temp = 0
+                self.t_last_save = tsim
+                correlations = self.compute()
+                if mpi.rank == 0:
+                    # save the spectra in the file correlation_freq.h5
+                    self.add_dico_arrays_to_file(self.path_file4,
+                                                 correlations)
+                    self.nb_saved_times += 1
+                    # if self.has_to_plot:
+                    #     self._online_plot(dico_spectra1D, dico_spectra2D)
 
-                #     if (tsim-self.t_last_show >= self.period_show):
-                #         self.t_last_show = tsim
-                #         self.axe.get_figure().canvas.draw()
+                    #     if (tsim-self.t_last_show >= self.period_show):
+                    #         self.t_last_show = tsim
+                    #         self.axe.get_figure().canvas.draw()
 
     def compute(self):
         """compute the values at one time."""
@@ -108,44 +138,10 @@ class CorrelationsFreq(SpecificOutput):
     def _online_plot(self):
         pass
 
-    # def load2D_mean(self, tmin=None, tmax=None):
-    #     f = h5py.File(self.path_file2D, 'r')
-    #     dset_times = f['times']
-    #     times = dset_times[...]
-    #     nt = len(times)
-
-    #     kh = f['khE'][...]
-
-    #     if tmin is None:
-    #         imin_plot = 0
-    #     else:
-    #         imin_plot = np.argmin(abs(times-tmin))
-
-    #     if tmax is None:
-    #         imax_plot = nt-1
-    #     else:
-    #         imax_plot = np.argmin(abs(times-tmax))
-
-    #     tmin = times[imin_plot]
-    #     tmax = times[imax_plot]
-
-    #     print('compute mean of 2D spectra\n'
-    #           ('tmin = {0:8.6g} ; tmax = {1:8.6g}'
-    #            'imin = {2:8d} ; imax = {3:8d}').format(
-    #               tmin, tmax, imin_plot, imax_plot))
-
-    #     dico_results = {'kh': kh}
-    #     for key in f.keys():
-    #         if key.startswith('spectr'):
-    #             dset_key = f[key]
-    #             spect = dset_key[imin_plot:imax_plot+1].mean(0)
-    #             dico_results[key] = spect
-    #     return dico_results
-
     def plot(self):
         pass
 
-    def _compute_correl4(self, w):
+    def _compute_correl4(self, q_fftt):
         r"""Compute the correlations 4.
 
         .. math::
@@ -168,10 +164,10 @@ class CorrelationsFreq(SpecificOutput):
 
         """
 
-        nt, ny, nx = w.shape
+        # nt, ny, nx = w.shape
 
-        w_fftt = self.oper_fft1.fft(w).reshape([nt, nx*ny])
-        w_fftt_conj = w_fftt.conj()
+        # q_fftt = self.oper_fft1.fft(w).reshape([nt, nx*ny])
+        q_fftt_conj = q_fftt.conj()
 
         nb_omegas = self.nb_omegas
 
@@ -184,15 +180,15 @@ class CorrelationsFreq(SpecificOutput):
             for io3 in range(nb_omegas):
                 # we use the symmetry omega_3 <--> omega_4
                 for io4 in range(0, io3+1):
-                    tmp = (w_fftt[io1, :] *
-                           w_fftt_conj[io3, :] *
-                           w_fftt_conj[io4, :])
+                    tmp = (q_fftt[io1, :] *
+                           q_fftt_conj[io3, :] *
+                           q_fftt_conj[io4, :])
                     io2 = io3 + io4 - io1
                     if io2 < 0:
                         io2 = abs(io2)
-                        corr4[i1, io3, io4] = np.mean(tmp*w_fftt_conj[io2, :])
+                        corr4[i1, io3, io4] = np.mean(tmp*q_fftt_conj[io2, :])
                     else:
-                        corr4[i1, io3, io4] = np.mean(tmp*w_fftt[io3, :])
+                        corr4[i1, io3, io4] = np.mean(tmp*q_fftt[io3, :])
                 # symmetry omega_3 <--> omega_4:
                 corr4[i1, io4, io3] = corr4[i1, io3, io4]
 

@@ -33,9 +33,9 @@ class StateNS2D(StatePseudoSpectral):
             return self.vars_computed[key]
 
         if key == 'ux_fft':
-            result = self.oper.fft2(self.state_phys.get_variable('ux'))
+            result = self.oper.fft2(self.state_phys.get_var('ux'))
         elif key == 'uy_fft':
-            result = self.oper.fft2(self.state_phys.get_variable('uy'))
+            result = self.oper.fft2(self.state_phys.get_var('uy'))
         elif key == 'rot_fft':
             ux_fft = self.compute('ux_fft')
             uy_fft = self.compute('uy_fft')
@@ -71,12 +71,12 @@ class StateNS2D(StatePseudoSpectral):
         return result
 
     def statephys_from_statefft(self):
-        rot_fft = self.state_fft.get_variable('rot_fft')
-        self.state_phys.set_variable('rot', self.oper.ifft2(rot_fft))
+        rot_fft = self.state_fft.get_var('rot_fft')
+        self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        self.state_phys.set_variable('ux', self.oper.ifft2(ux_fft))
-        self.state_phys.set_variable('uy', self.oper.ifft2(uy_fft))
+        self.state_phys.set_var('ux', self.oper.ifft2(ux_fft))
+        self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
 
     def statefft_from_statephys(self):
-        rot = self.state_phys.get_variable('rot')
+        rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))

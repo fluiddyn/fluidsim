@@ -510,13 +510,13 @@ cdef class FFT2Dmpi(object):
 
     def compute_energy_from_Fourier(self, ff_fft):
         if self.nb_proc > 1:
-            raise ValueError('not yet implemented for mpi')
+            raise NotImplementedError('Not yet implemented for mpi')
         return (np.sum(abs(ff_fft[:, 0])**2 + abs(ff_fft[:, -1])**2)
                 + 2*np.sum(abs(ff_fft[:, 1:-1])**2))/2
 
     def compute_energy_from_spatial(self, ff):
         if self.nb_proc > 1:
-            raise ValueError('not yet implemented for mpi')
+            raise NotImplementedError('Not yet implemented for mpi')
 
         return np.mean(abs(ff)**2)/2
 

@@ -14,5 +14,6 @@ Provides:
    init_fields
    forcing
    diag
+   dimensional
 
 """

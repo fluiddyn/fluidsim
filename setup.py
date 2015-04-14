@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 from setuptools import setup, find_packages
 
 try:
@@ -42,12 +44,13 @@ try:
 except ImportError:
     MPI4PY = False
     include_dirs_mpi = []
+    print('ImportError of mpi4py: no mpi extensions will be built.')
 else:
     MPI4PY = True
     os.environ["CC"] = 'mpicc'
     include_dirs_mpi = [
         mpi4py.get_include(),
-        here+'/include']
+        here + '/include']
 
 
 if MPI4PY:
@@ -87,8 +90,7 @@ try:
     FFTW3MPI = True
 except subprocess.CalledProcessError:
     FFTW3MPI = False
-
-print('FFTW3MPI', FFTW3MPI)
+    print("The library libfftw3_mpi doesn't seem available.")
 
 if FFTW3MPI:
     libraries.append('fftw3_mpi')
@@ -101,6 +103,7 @@ if FFTW3MPI:
         cython_compile_time_env={'MPI4PY': MPI4PY},
         sources=[path_sources+'/fftw2dmpicy.pyx'])
     ext_modules.append(ext_fftw2dmpicy)
+
 
 path_sources = 'fluidsim/operators/CySources'
 include_dirs = [path_sources, np.get_include()]
@@ -117,19 +120,6 @@ ext_operators = Extension(
     sources=[path_sources+'/operators_cy.pyx'])
 
 
-# path_sources = 'fluidsim/operators/CySources'
-# include_dirs = [path_sources, np.get_include()]
-# if MPI4PY:
-#     include_dirs.extend(include_dirs_mpi)
-# ext_sov = Extension(
-#     'fluidsim.operators.setofvariables',
-#     include_dirs=include_dirs,
-#     libraries=libraries,
-#     library_dirs=[],
-#     cython_compile_time_env={'MPI4PY': MPI4PY},
-#     sources=[path_sources+'/setofvariables_cy.pyx'])
-
-
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
     'fluidsim.base.time_stepping.pseudo_spect_cy',
@@ -144,6 +134,9 @@ ext_modules.extend([
     ext_operators,
     # ext_sov,
     ext_cyfunc])
+
+print('The following extensions are going to be built if necessary:\n' +
+      ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
 setup(name='fluidsim',

@@ -15,13 +15,16 @@ implemented.
 FluidSim provides object-oriented libraries to develop quite simple
 solvers (mainly using pseudo-spectral methods) by writing mainly
 Python code. The result should be quite efficient compared to a pure
-Fortran or C++ code (to be better quantify). An advantage is that to run
-simulations and analyze the results, the users communicate with the
-machine through Python (possibly interactively), which is nowadays
-among the best languages to do this.  Moreover, it should be much
-simpler than with pure Fortran or C++ codes to add any complicate
-analysis. For example, writing a solver for adjoin equations should
-really be a matter of hours.
+Fortran or C++ code since most of the time-consuming tasks are
+performed by quite optimized compiled functions (to be better
+quantified).
+
+An advantage is that to run simulations and analyze the results, the
+users communicate (possibly interactively) with the machine through
+Python, which is nowadays among the best languages to do these tasks.
+Moreover, it should be much simpler than with pure Fortran or C++
+codes to add any complicate analysis. For example, it should be very
+simple and quick to write a solver for adjoin equations.
 
 At this stage, just few solvers have been written, but at least
 FluidSim can solve these equations:

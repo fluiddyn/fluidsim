@@ -37,4 +37,4 @@ dist*
 
 scripts\Experiments\path_working_exp.txt
 
-scripts/Simul/Launch/Profile.prof
+*/Profile.prof

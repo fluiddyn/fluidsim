@@ -3,7 +3,7 @@ import unittest
 import shutil
 
 import fluiddyn as fld
-
+import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
@@ -41,7 +41,8 @@ def run_mini_simul(key_solver):
         sim.time_stepping.start()
 
     # clean by removing the directory
-    shutil.rmtree(sim.output.path_run)
+    if mpi.rank == 0:
+        shutil.rmtree(sim.output.path_run)
 
 
 class TestSolvers(unittest.TestCase):

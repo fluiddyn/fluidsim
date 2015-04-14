@@ -14,7 +14,7 @@ import numpy as np
 import fluiddyn as fld
 
 solver = fld.simul.import_module_solver_from_key(key_solver)
-params = fld.simul.create_params(solver)
+params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'conservE'
 

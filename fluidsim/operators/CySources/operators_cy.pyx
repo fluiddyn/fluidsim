@@ -21,7 +21,7 @@ This module is written in Cython and provides the classes:
 
 """
 
-# DEF MPI4PY = 0
+# # DEF MPI4PY = 0
 
 import sys
 
@@ -121,7 +121,7 @@ cdef class GridPseudoSpectral2D(Operators):
     cdef public int idimx, idimy, idimkx, idimky
 
     # these names without loc or seq correspond to local quantities
-    cdef public np.ndarray XX, YY, RR, KX, KY, KK, K2, K4, K8
+    cdef public np.ndarray XX, YY, RR, KX, KY, KK, K2, K4, K8, KX2, KY2
     cdef public np.ndarray kx_loc, ky_loc
     cdef public np.ndarray x_seq, y_seq
 
@@ -201,7 +201,6 @@ cdef class GridPseudoSpectral2D(Operators):
             self.TRANSPOSED = False
 
         else:
-
             if nx/2+1 < self.nb_proc:
                 raise ValueError('condition nx/2+1 >= nb_proc not fulfill')
 
@@ -212,7 +211,7 @@ cdef class GridPseudoSpectral2D(Operators):
             if not hasattr(op_fft2d, 'shapeX_loc'):
                 raise ValueError(
                     'The fft operator does not have "shapeX_loc", '
-                    'which seems to indicate that it can not run with mpi.')    
+                    'which seems to indicate that it can not run with mpi.')
             self.shapeK_gat = op_fft2d.shapeK_gat
             self.shapeX_loc = op_fft2d.shapeX_loc
             self.shapeK_loc = op_fft2d.shapeK_loc
@@ -256,8 +255,8 @@ cdef class GridPseudoSpectral2D(Operators):
         self.ky_loc = self.deltaky * np.arange(self.iKyloc_start,
                                                self.iKyloc_start+self.nky_loc)
         self.ky_loc[self.ky_loc > self.kymax] = (
-            self.ky_loc[self.ky_loc > self.kymax]
-            - 2*self.kymax)
+            self.ky_loc[self.ky_loc > self.kymax] -
+            2*self.kymax)
 
         if not self.TRANSPOSED:
             [self.KX, self.KY] = np.meshgrid(self.kx_loc, self.ky_loc)
@@ -268,13 +267,15 @@ cdef class GridPseudoSpectral2D(Operators):
             self.dim_kx = 0
             self.dim_ky = 1
 
-        self.K2 = self.KX**2 + self.KY**2
+        self.KX2 = self.KX**2
+        self.KY2 = self.KY**2
+        self.K2 = self.KX2 + self.KY2
         self.K4 = self.K2**2
         self.K8 = self.K4**2
         self.KK = np.sqrt(self.K2)
 
-        self.kmax = np.sqrt((self.deltakx*self.nx_seq)**2
-                            + (self.deltaky*self.ny_seq)**2)/2
+        self.kmax = np.sqrt((self.deltakx*self.nx_seq)**2 +
+                            (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
         ikx_seq = np.round(kx_approx/self.deltakh)
@@ -291,8 +292,8 @@ cdef class GridPseudoSpectral2D(Operators):
             else:
                 rank_k = 0
                 while (rank_k < self.nb_proc-1 and
-                       (not (self.iKxloc_start_rank[rank_k] <= ikx_seq
-                             and ikx_seq < self.iKxloc_start_rank[rank_k+1]))):
+                       (not (self.iKxloc_start_rank[rank_k] <= ikx_seq and
+                             ikx_seq < self.iKxloc_start_rank[rank_k+1]))):
                     rank_k += 1
 
             ikx_loc = ikx_seq - self.iKxloc_start_rank[rank_k]
@@ -389,18 +390,18 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         coef_dealiasing = params.oper.coef_dealiasing
         TRANSPOSED = params.oper.TRANSPOSED_OK
 
-        if rank == 0:
-            to_print = 'Init. operator'
-            if goal_to_print is not None:
-                to_print += ' ('+goal_to_print+')'
-            print(to_print)
+        # if rank == 0:
+        #     to_print = 'Init. operator'
+        #     if goal_to_print is not None:
+        #         to_print += ' ('+goal_to_print+')'
+        #     print(to_print)
 
         if params is not None:
             self.params = params
 
         list_type_fft = ['FFTWCY', 'FFTWCCY', 'FFTWPY', 'FFTPACK']
         if type_fft not in list_type_fft:
-            raise ValueError('type_fft should be in '+repr(list_type_fft))
+            raise ValueError('type_fft should be in ' + repr(list_type_fft))
 
         if type_fft == 'FFTWCCY' and nb_proc == 1:
             type_fft = 'FFTWCY'
@@ -408,25 +409,38 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         try:
             if type_fft == 'FFTWCY':
                 import fluidsim.operators.fft.fftw2dmpicy as fftw2Dmpi
-            elif type_fft == 'FFTWCCY':
-                import fluidsim.operators.fft.fftw2dmpiccy as fftw2Dmpi
         except ImportError as err:
-            print('ImportError for fftw2Dmpicy and fftw2Dmpiccy')
-            type_fft = 'FFTWPY'
+            if nb_proc == 1:
+                type_fft = 'FFTWPY'
+            else:
+                type_fft = 'FFTWCCY'
+
+        try:
+            if type_fft == 'FFTWCCY':
+                # We need to do this check because after the first
+                # import, the import statement doesn't raise the
+                # ImportError correctly (is it normal?)
+                if nb_proc == 1:
+                    raise ImportError(
+                        'fftw2Dmpiccy only works if MPI.COMM_WORLD.size > 1.')
+                import fluidsim.operators.fft.fftw2dmpiccy as fftw2Dmpi
+        except ImportError:
             if nb_proc > 1 and SEQUENCIAL is None:
                 raise ValueError(
-                    'if nb_proc>1, we need to use one of this library')
+                    'if nb_proc>1, we need one of the libraries '
+                    'fftw2Dmpicy or fftw2Dmpiccy')
+            type_fft = 'FFTWPY'
+
         if type_fft == 'FFTWPY':
             try:
                 import pyfftw
             except ImportError as err:
-                print('ImportError for fftw3, we use fftpack (very slow)')
                 type_fft = 'FFTPACK'
 
         self.type_fft = type_fft
-
+        
         # Initialization of the fft transforms
-        if not (type_fft == 'FFTWPY' or type_fft == 'FFTPACK'):
+        if type_fft not in ['FFTWPY', 'FFTPACK']:
             if not TRANSPOSED and type_fft == 'FFTWCCY':
                 raise ValueError('FFTWCCY does not suport the '
                                  '(inefficient!) option TRANSPOSED=False')
@@ -529,6 +543,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         else:
             str_Ly = '{:.3f}'.format(self.Ly).rstrip('0')
         return (
+            'type fft: ' + self.type_fft + '\n' +
             'nx = {0:6d} ; ny = {1:6d}\n'.format(self.nx_seq, self.ny_seq) +
             'Lx = ' + str_Lx + ' ; Ly = ' + str_Ly + '\n')
 
@@ -1510,18 +1525,23 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                     f_fft[iKy, iKxc] = fc_fft[iKyc, iKxc]
         return f_fft
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def monge_ampere_from_fft(
             self, DTYPEc_t[:, :] a_fft, DTYPEc_t[:, :] b_fft):
         cdef Py_ssize_t i0, n0, i1, n1
         cdef DTYPEc_t[:, :] pxx_afft, pyy_afft, pxy_afft
         cdef DTYPEc_t[:, :] pxx_bfft, pyy_bfft, pxy_bfft
         cdef DTYPEf_t[:, :] mamp
-        cdef DTYPEf_t[:, :] KX, KY, pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
+        cdef DTYPEf_t[:, :] KX, KY, KX2, KY2
+        cdef DTYPEf_t[:, :] pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
 
         n0 = a_fft.shape[0]
         n1 = a_fft.shape[1]
         KX = self.KX
         KY = self.KY
+        KX2 = self.KX2
+        KY2 = self.KY2
 
         pxx_afft = np.empty([n0, n1], dtype=DTYPEc)
         pyy_afft = np.empty([n0, n1], dtype=DTYPEc)
@@ -1532,11 +1552,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]**2
-                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY[i0, i1]**2
+                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX2[i0, i1]
+                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY2[i0, i1]
                 pxy_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]**2
-                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY[i0, i1]**2
+                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX2[i0, i1]
+                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY2[i0, i1]
                 pxy_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
         pxx_a = self.ifft2(pxx_afft)
         pyy_a = self.ifft2(pyy_afft)

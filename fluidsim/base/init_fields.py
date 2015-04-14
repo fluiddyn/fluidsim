@@ -73,7 +73,7 @@ class InitFieldsBase(object):
             sim.state.state_phys.initialize(value=1.)
 
     def init_fields_1dipole(self):
-        rot = self.vorticity_shape()
+        rot = self.vorticity_shape_1dipole()
         rot_fft = self.oper.fft2(rot)
 
         self.oper.dealiasing(rot_fft)
@@ -81,25 +81,25 @@ class InitFieldsBase(object):
 
         return rot_fft, ux_fft, uy_fft
 
-    def vorticity_shape(self):
+    def vorticity_shape_1dipole(self):
         xs = self.oper.Lx/2
         ys = self.oper.Ly/2
         theta = np.pi/2.3
         b = 2.5
         omega = np.zeros(self.oper.shapeX_loc)
 
+        def wz_2LO(XX, YY, b):
+            return (2*np.exp(-(XX**2 + (YY-b/2)**2)) -
+                    2*np.exp(-(XX**2 + (YY+b/2)**2)))
+
         for ip in range(-1, 2):
             for jp in range(-1, 2):
-                XX_s = (np.cos(theta)*(self.oper.XX-xs-ip*self.oper.Lx)
-                        + np.sin(theta)*(self.oper.YY-ys-jp*self.oper.Ly))
-                YY_s = (np.cos(theta)*(self.oper.YY-ys-jp*self.oper.Ly)
-                        - np.sin(theta)*(self.oper.XX-xs-ip*self.oper.Lx))
-                omega = omega + self.wz_2LO(XX_s, YY_s, b)
+                XX_s = (np.cos(theta)*(self.oper.XX-xs-ip*self.oper.Lx) +
+                        np.sin(theta)*(self.oper.YY-ys-jp*self.oper.Ly))
+                YY_s = (np.cos(theta)*(self.oper.YY-ys-jp*self.oper.Ly) -
+                        np.sin(theta)*(self.oper.XX-xs-ip*self.oper.Lx))
+                omega = omega + wz_2LO(XX_s, YY_s, b)
         return omega
-
-    def wz_2LO(self, XX, YY, b):
-        return (- 2*np.exp(-(XX**2 + (YY+b/2)**2))
-                + 2*np.exp(-(XX**2 + (YY-b/2)**2)))
 
     def init_fields_jet(self):
         rot = self.vorticity_jet()
@@ -115,16 +115,13 @@ class InitFieldsBase(object):
         a = 0.5
         b = Ly/2
         omega0 = 2.
-        # epsilon = 2.
         omega = omega0*(
-            + np.exp(-((self.oper.YY - Ly/2 + b/2)/a)**2)
-            - np.exp(-((self.oper.YY - Ly/2 - b/2)/a)**2)
-            + np.exp(-((self.oper.YY - Ly/2 + b/2 + Ly)/a)**2)
-            - np.exp(-((self.oper.YY - Ly/2 - b/2 + Ly)/a)**2)
-            + np.exp(-((self.oper.YY - Ly/2 + b/2 - Ly)/a)**2)
-            - np.exp(-((self.oper.YY - Ly/2 - b/2 - Ly)/a)**2)
-            # + epsilon*np.random.random([self.oper.ny_loc, self.oper.nx_loc])
-        )
+            np.exp(-((self.oper.YY - Ly/2 + b/2)/a)**2) -
+            np.exp(-((self.oper.YY - Ly/2 - b/2)/a)**2) +
+            np.exp(-((self.oper.YY - Ly/2 + b/2 + Ly)/a)**2) -
+            np.exp(-((self.oper.YY - Ly/2 - b/2 + Ly)/a)**2) +
+            np.exp(-((self.oper.YY - Ly/2 + b/2 - Ly)/a)**2) -
+            np.exp(-((self.oper.YY - Ly/2 - b/2 - Ly)/a)**2))
         return omega
 
     def init_fields_noise(self):
@@ -132,15 +129,17 @@ class InitFieldsBase(object):
             lambda0 = self.params.lambda_noise
         except AttributeError:
             lambda0 = self.oper.Lx/4
-        H_smooth = lambda x, delta: (1. + np.tanh(2*np.pi*x/delta))/2
+
+        def H_smooth(x, delta):
+            return (1. + np.tanh(2*np.pi*x/delta))/2
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
 
-        ux_fft = (np.random.random(self.oper.shapeK)
-                  + 1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
-        uy_fft = (np.random.random(self.oper.shapeK)
-                  + 1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
+        ux_fft = (np.random.random(self.oper.shapeK) +
+                  1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
+        uy_fft = (np.random.random(self.oper.shapeK) +
+                  1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
 
         if mpi.rank == 0:
             ux_fft[0, 0] = 0.
@@ -295,9 +294,9 @@ class InitFieldsBase(object):
                     field_loc = self.oper.scatter_Xspace(field_seq)
                 else:
                     field_loc = field_seq
-                state_phys[k] = field_loc
+                state_phys.set_var(k, field_loc)
             else:
-                state_phys[k] = self.oper.constant_arrayX(value=0.)
+                state_phys.set_var(k, self.oper.constant_arrayX(value=0.))
 
         if mpi.rank == 0:
             t_file = group_state_phys.attrs['time']
@@ -320,8 +319,8 @@ class InitFieldsBase(object):
 
         self.sim.time_stepping.t = sim_in.time_stepping.t
 
-        if (self.params.oper.nx == sim_in.params.oper.nx
-                and self.params.oper.ny == sim_in.params.oper.ny):
+        if (self.params.oper.nx == sim_in.params.oper.nx and
+                self.params.oper.ny == sim_in.params.oper.ny):
             state_fft = deepcopy(sim_in.state.state_fft)
         else:
             # modify resolution

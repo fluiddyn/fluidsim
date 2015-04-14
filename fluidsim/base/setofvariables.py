@@ -1,3 +1,15 @@
+"""Variable container (:mod:`fluidsim.base.setofvariables`)
+===========================================================
+
+.. currentmodule:: fluidsim.base.setofvariables
+
+Provides:
+
+.. autoclass:: SetOfVariables
+   :members:
+   :private-members:
+
+"""
 
 from __future__ import print_function
 
@@ -5,6 +17,34 @@ import numpy as np
 
 
 class SetOfVariables(np.ndarray):
+    """np.ndarray containing the variables.
+
+    Parameters
+    ----------
+
+    input_array : :class:`numpy.ndarray`, optional
+        Input array, default to None.
+
+    keys : Iterable, optional
+        Keys corresponding to the variables, default to None.
+
+    shape_variable : Iterable, optional
+        Shape of an array containing one variable, default to None.
+
+    like : :class:`SetOfVariables`, optional
+        Model for creating the new :class:`SetOfVariables`, default to None.
+
+    value : Number, optional
+        For initialization of the new :class:`SetOfVariables`, default to None.
+
+    info : :class:`str`, optional
+        Description, default to None.
+
+    dtype : :class:`numpy.dtype`, optional
+        see :class:`numpy.ndarray` help.
+
+    """
+
 
     def __new__(cls, input_array=None, keys=None, shape_variable=None,
                 like=None, value=None, info=None, dtype=None, **kargs):
@@ -61,28 +101,16 @@ class SetOfVariables(np.ndarray):
 
         # print(type(self), type(obj))
 
-    def set_variable(self, arg, value):
-        if isinstance(arg, int):
-            indice = arg
-        else:
-            indice = self.keys.index(arg)
-        self[indice] = value
-
     def set_var(self, arg, value):
+        """Set a variable."""
         if isinstance(arg, int):
             indice = arg
         else:
             indice = self.keys.index(arg)
         self[indice] = value
-
-    def get_variable(self, arg):
-        if isinstance(arg, int):
-            indice = arg
-        else:
-            indice = self.keys.index(arg)
-        return np.asarray(self[indice])
 
     def get_var(self, arg):
+        """Get a variable as a np.array."""
         if isinstance(arg, int):
             indice = arg
         else:
@@ -90,6 +118,7 @@ class SetOfVariables(np.ndarray):
         return np.asarray(self[indice])
 
     def initialize(self, value=0):
+        """Initialize as a constant array."""
         self[:] = value
 
 
@@ -112,7 +141,7 @@ if __name__ == '__main__':
 
     # print(type(a*c))
     # print(type(2*c))
-    # print(type(c.get_variable('a')))
+    # print(type(c.get_var('a')))
 
     sov = SetOfVariables(keys=['rot_fft'],
                          shape_variable=(33, 18),

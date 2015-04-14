@@ -105,7 +105,7 @@ def load_sim_for_plot(path_dir=None):
     params.ONLY_COARSE_OPER = True
     params.FORCING = False
     params.NEW_DIR_RESULTS = False
-    params.SAVE = False
+    params.output.HAS_TO_SAVE = False
     sim = solver.Simul(params)
     return sim
 
@@ -132,7 +132,7 @@ def load_state_phys_file(name_dir=None, t_approx=None):
 
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
-    params.SAVE = False
+    params.output.HAS_TO_SAVE = False
     params.init_fields.type_flow_init = 'LOAD_FILE'
     params.init_fields.path_file = path_file
     sim = solver.Simul(params)

@@ -4,10 +4,21 @@ import numpy as np
 import sys
 
 from fluiddyn.io import stdout_redirected
+import fluiddyn.util.mpi as mpi
 
 from fluidsim.base.solvers.pseudo_spect import Simul
-
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+
+try:
+    from fluidsim.operators.fft import fftw2dmpicy
+    FFTWMPI = True
+    type_fft = 'FFTWCY'
+except ImportError:
+    FFTWMPI = False
+    if mpi.nb_proc == 1:
+        type_fft = 'FFTWPY'
+    else:
+        type_fft = 'FFTWCCY'
 
 
 def create_oper(type_fft='FFTWCY'):
@@ -33,6 +44,8 @@ def create_oper(type_fft='FFTWCY'):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Will fail on Windows")
 class TestOperators(unittest.TestCase):
+    @unittest.skipIf(not FFTWMPI, 'fftw2dmpicy fails to be imported.')
+    @unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')
     def test_create(self):
         """Should be able to ..."""
         oper = create_oper('FFTWCY')
@@ -58,8 +71,8 @@ class TestOperators(unittest.TestCase):
 
         self.assertTrue(np.allclose(px_rot_fft, px_rot2_fft))
 
-        # fld.ipydebug()
-
+    @unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')
+    @unittest.skipIf(not FFTWMPI, 'fftw2dmpicy fails to be imported.')
     def test_tendency(self):
 
         oper = create_oper('FFTWCY')
@@ -129,7 +142,7 @@ class TestOperators(unittest.TestCase):
         self.assertGreater(1e-15, ratio)
 
     def test_laplacian2(self):
-        oper = create_oper('FFTWCY')
+        oper = create_oper(type_fft)
         ff = oper.random_arrayX()
         ff_fft = oper.fft2(ff)
         ff_fft[0, 0] = 0.
@@ -140,7 +153,7 @@ class TestOperators(unittest.TestCase):
         self.assertTrue(np.allclose(ff_fft, ff_fft_back))
 
     def test_monge_ampere(self):
-        oper = create_oper('FFTWCY')
+        oper = create_oper(type_fft)
         a = oper.random_arrayX()
         a_fft = oper.fft2(a)
         a_fft[0, 0] = 0.
