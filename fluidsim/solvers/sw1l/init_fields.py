@@ -11,7 +11,7 @@ from fluidsim.base.init_fields import InitFieldsBase
 class InitFieldsSW1l(InitFieldsBase):
     """Init the fields for the solver SW1l."""
 
-    implemented_flows = ['NOISE', 'CONSTANT', 'LOAD_FILE',
+    implemented_flows = ['noise', 'CONSTANT', 'LOAD_FILE',
                          'DIPOLE', 'JET', 'WAVE']
 
     def __call__(self):
@@ -22,32 +22,32 @@ class InitFieldsSW1l(InitFieldsBase):
         sim.time_stepping.it = 0
         oper = sim.oper
 
-        type_flow_init = self.get_and_check_type_flow_init()
+        type = self.get_and_check_type()
 
-        if type_flow_init == 'DIPOLE':
+        if type == 'DIPOLE':
             rot_fft, ux_fft, uy_fft = self.init_fields_1dipole()
             self.fill_state_from_uxuyfft(ux_fft, uy_fft)
-        elif type_flow_init == 'JET':
+        elif type == 'JET':
             rot_fft, ux_fft, uy_fft = self.init_fields_jet()
             self.fill_state_from_uxuyfft(ux_fft, uy_fft)
-        elif type_flow_init == 'NOISE':
+        elif type == 'noise':
             rot_fft, ux_fft, uy_fft = self.init_fields_noise()
             self.fill_state_from_uxuyfft(ux_fft, uy_fft)
-        elif type_flow_init == 'LOAD_FILE':
+        elif type == 'LOAD_FILE':
             path_file = sim.params.init_fields.path_file
             if not os.path.exists(path_file):
                 raise ValueError('file \"{0}\" not found'.format(path_file))
             self.get_state_from_file(path_file)
-        elif type_flow_init == 'CONSTANT':
+        elif type == 'CONSTANT':
             ux_fft = oper.constant_arrayK(value=1.)
             uy_fft = oper.constant_arrayK(value=0.)
             self.fill_state_from_uxuyfft(ux_fft, uy_fft)
-        elif type_flow_init == 'WAVE':
+        elif type == 'WAVE':
             eta_fft, ux_fft, uy_fft = \
                 self.init_fields_wave()
             self.fill_state_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
         else:
-            raise ValueError('bad value of params.init_fields.type_flow_init')
+            raise ValueError('bad value of params.init_fields.type')
 
     def fill_state_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         sim = self.sim

@@ -45,10 +45,7 @@ class OutputBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
-
-        This is a static method!
-        """
+        """Complete the ContainerXML info_solver."""
         info_solver.classes.Output.set_child('classes')
         classes = info_solver.classes.Output.classes
 
@@ -180,7 +177,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 '\nsolver ' + self.name_solver + specifications +
                 self.sim.oper.produce_long_str_describing_oper() +
                 'path_run =\n' + self.path_run + '\n' +
-                'type_flow_init = ' + sim.params.init_fields.type_flow_init)
+                'init_fields.type: ' + sim.params.init_fields.type)
 
         if mpi.rank == 0 and self.has_to_save and sim.params.NEW_DIR_RESULTS:
             # save info on the run

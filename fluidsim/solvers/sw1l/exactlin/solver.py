@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     params.time_stepping.t_end = 2.
 
-    params.init_fields.type_flow_init = 'NOISE'
+    params.init_fields.type = 'noise'
 
     params.output.periods_print.print_stdout = 0.25
 

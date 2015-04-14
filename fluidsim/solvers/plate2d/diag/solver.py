@@ -286,8 +286,8 @@ if __name__ == "__main__":
     params.time_stepping.t_end = 50.0
     params.time_stepping.it_end = 1
 
-    # params.init_fields.type_flow_init = 'HARMONIC'
-    params.init_fields.type_flow_init = 'NOISE'
+    # params.init_fields.type = 'HARMONIC'
+    params.init_fields.type = 'noise'
     params.init_fields.max_velo_noise = 0.001
     # params.init_fields.path_file = (
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='

@@ -101,7 +101,7 @@ def load_sim_for_plot(path_dir=None):
     params = load_params_simul(path_dir=path_dir)
 
     params.path_run = path_dir
-    params.init_fields.type_flow_init = 'CONSTANT'
+    params.init_fields.type = 'constant'
     params.ONLY_COARSE_OPER = True
     params.FORCING = False
     params.NEW_DIR_RESULTS = False
@@ -133,7 +133,7 @@ def load_state_phys_file(name_dir=None, t_approx=None):
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
-    params.init_fields.type_flow_init = 'LOAD_FILE'
+    params.init_fields.type = 'LOAD_FILE'
     params.init_fields.path_file = path_file
     sim = solver.Simul(params)
     return sim
@@ -160,11 +160,6 @@ def modif_resolution_from_dir(name_dir=None,
 
     path_dir = pathdir_from_namedir(name_dir)
 
-    if mpi.nb_proc > 1:
-        raise ValueError('Do NOT use this script with MPI !\n'
-                         'The MPI version of get_state_from_obj_simul()\n'
-                         'is not implemented.')
-
     solver = _import_solver_from_path(path_dir)
 
     sim = load_state_phys_file(name_dir, t_approx)
@@ -172,10 +167,10 @@ def modif_resolution_from_dir(name_dir=None,
     params2 = _deepcopy(sim.params)
     params2.oper.nx = sim.params.oper.nx*coef_modif_resol
     params2.oper.ny = sim.params.oper.ny*coef_modif_resol
-    params2.init_fields.type_flow_init = 'CONSTANT'
+    params2.init_fields.type = 'from_simul'
 
     sim2 = solver.Simul(params2)
-    sim2.init_fields.get_state_from_obj_simul(sim)
+    sim2.init_fields.get_state_from_simul(sim)
 
     print(sim2.params.path_run)
 

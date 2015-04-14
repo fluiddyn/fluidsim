@@ -33,7 +33,8 @@ def run_mini_simul(key_solver):
 
     params.time_stepping.t_end = 0.5
 
-    params.init_fields.type_flow_init = 'DIPOLE'
+    params.init_fields.type = 'dipole'
+
     params.output.HAS_TO_SAVE = False
 
     with stdout_redirected():

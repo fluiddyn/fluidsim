@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     params.time_stepping.t_end = 1.
 
-    params.init_fields.type_flow_init = 'NOISE'
+    params.init_fields.type = 'dipole'
 
     params.FORCING = True
     params.forcing.type = 'Random'
@@ -149,8 +149,8 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
 
     fld.show()

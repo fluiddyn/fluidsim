@@ -14,31 +14,31 @@ from fluidsim.base.init_fields import InitFieldsBase
 class InitFieldsPlate2D(InitFieldsBase):
     """Init the fields for the solver PLATE2D."""
 
-    implemented_flows = ['NOISE', 'CONSTANT', 'LOAD_FILE', 'HARMONIC']
+    implemented_flows = ['noise', 'CONSTANT', 'LOAD_FILE', 'HARMONIC']
 
     def __call__(self):
         """Init the state (in physical and Fourier space) and time"""
         sim = self.sim
 
-        type_flow_init = self.get_and_check_type_flow_init()
+        type = self.get_and_check_type()
 
-        if type_flow_init == 'HARMONIC':
+        if type == 'HARMONIC':
             w_fft, z_fft = self.init_fields_harmonic()
             tasks_complete_init = ['Fourier_to_phys']
-        elif type_flow_init == 'NOISE':
+        elif type == 'noise':
             w_fft, z_fft = self.init_fields_noise()
             tasks_complete_init = ['Fourier_to_phys']
-        elif type_flow_init == 'LOAD_FILE':
+        elif type == 'LOAD_FILE':
             self.get_state_from_file(self.params.init_fields.path_file)
             tasks_complete_init = []
-        elif type_flow_init == 'CONSTANT':
+        elif type == 'CONSTANT':
             z_fft = sim.oper.constant_arrayK(value=0.)
             w_fft = sim.oper.constant_arrayK(value=0.)
             if mpi.rank == 0:
                 z_fft[1, 0] = 1.
             tasks_complete_init = ['Fourier_to_phys']
         else:
-            raise ValueError('bad value of params.type_flow_init')
+            raise ValueError('bad value of params.type')
 
         if 'Fourier_to_phys' in tasks_complete_init:
             sim.oper.dealiasing(w_fft)

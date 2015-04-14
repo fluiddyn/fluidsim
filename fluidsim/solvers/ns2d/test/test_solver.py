@@ -29,7 +29,7 @@ class TestSolverNS2D(unittest.TestCase):
 
         params.time_stepping.t_end = 0.5
 
-        params.init_fields.type_flow_init = 'NOISE'
+        params.init_fields.type = 'noise'
         params.output.HAS_TO_SAVE = False
         params.FORCING = False
 
