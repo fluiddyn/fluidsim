@@ -117,8 +117,8 @@ class OutputBase(object):
                         raise ValueError(
                             'Strange, no info_simul.h5 in self.path_run')
 
-                    if (params.oper.nx != params_dir.oper.nx
-                            or params.oper.ny != params_dir.oper.ny):
+                    if (params.oper.nx != params_dir.oper.nx or
+                            params.oper.ny != params_dir.oper.ny):
                         params.NEW_DIR_RESULTS = True
                         print("""
 Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
@@ -170,13 +170,12 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if mpi.rank == 0:
             # print info on the run
-            specifications = (', '+sim.params.time_stepping.type_time_scheme +
-                              # ', '+self.oper.type_fft +
-                              ' and ')
+            specifications = (
+                ', ' + sim.params.time_stepping.type_time_scheme + ' and ')
             if mpi.nb_proc == 1:
-                specifications = specifications+'sequenciel,\n'
+                specifications += 'sequenciel,\n'
             else:
-                specifications += 'parallel ({0} proc.)\n'.format(mpi.nb_proc)
+                specifications += 'parallel ({} proc.)\n'.format(mpi.nb_proc)
             self.print_stdout(
                 '\nsolver ' + self.name_solver + specifications +
                 self.sim.oper.produce_long_str_describing_oper() +
