@@ -295,7 +295,7 @@ if __name__ == "__main__":
 
     # params.init_fields.type = 'HARMONIC'
     params.init_fields.type = 'noise'
-    params.init_fields.max_velo_noise = 0.001
+    params.init_fields.noise.velo_max = 0.001
     # params.init_fields.path_file = (
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='
     #     '2pix2pi_256x256_2015-03-04_22-36-37/state_phys_t=000.100.hd5')

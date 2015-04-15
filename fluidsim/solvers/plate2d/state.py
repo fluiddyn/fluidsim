@@ -73,3 +73,9 @@ class StatePlate2D(StatePseudoSpectral):
         z_fft = self.state_fft.get_var('z_fft')
         self.state_phys.set_var('w', self.oper.ifft2(w_fft))
         self.state_phys.set_var('z', self.oper.ifft2(z_fft))
+
+    def init_state_from_wz_fft(self, w_fft, z_fft):
+        self.sim.oper.dealiasing(w_fft, z_fft)
+        self.state_fft.set_var('w_fft', w_fft)
+        self.state_fft.set_var('z_fft', z_fft)
+        self.statephys_from_statefft()

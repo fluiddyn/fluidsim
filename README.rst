@@ -46,6 +46,7 @@ Tests
 From the root directory::
 
   make tests
+  make tests_mpi
 
 Or, from the root directory or from any of the "test" directories::
 
