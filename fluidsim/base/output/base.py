@@ -199,13 +199,25 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if mpi.rank == 0:
             plt.ion()
-            self.print_stdout('Initialization outputs:')
+
+        if self.sim.state.is_initialized:
+            self.init_with_initialized_state()
+
+    def init_with_initialized_state(self):
+
+        if (hasattr(self, 'has_been_initialized_with_state') and
+                self.has_been_initialized_with_state):
+            return
+        else:
+            self.has_been_initialized_with_state = True
+
+        self.print_stdout('Initialization outputs:')
 
         self.print_stdout.complete_init_with_state()
 
-        dico_classes = sim.info.solver.classes.Output.import_classes()
+        dico_classes = self.sim.info.solver.classes.Output.import_classes()
 
-        # This class has already been instantiated.
+        # The class PrintStdOut has already been instantiated.
         dico_classes.pop('PrintStdOut')
 
         for Class in dico_classes.values():

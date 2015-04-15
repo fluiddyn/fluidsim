@@ -50,6 +50,8 @@ class StateBase(object):
         self.vars_computed = {}
         self.it_computed = {}
 
+        self.is_initialized = False
+
     def compute(self, key):
         pass
 

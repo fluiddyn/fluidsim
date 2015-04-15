@@ -85,7 +85,12 @@ class TimeSteppingBase(object):
         If *self.USE_T_END* is true, run till ``t >= t_end``,
         otherwise run *self.it_end* time steps.
         """
-        print_stdout = self.sim.output.print_stdout
+        output = self.sim.output
+        if (not hasattr(output, 'has_been_initialized_with_state') or
+                not output.has_been_initialized_with_state):
+            output.init_with_initialized_state()
+
+        print_stdout = output.print_stdout
         print_stdout(
             '*************************************\n' +
             'Beginning of the computation')

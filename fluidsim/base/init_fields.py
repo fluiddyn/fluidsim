@@ -80,6 +80,7 @@ class InitFieldsBase(object):
         self._specific_init_fields = Class(sim)
 
     def __call__(self):
+        self.sim.state.is_initialized = True
         self._specific_init_fields()
 
 
@@ -275,6 +276,7 @@ class InitFieldsManual(SpecificInitFields):
     tag = 'manual'
 
     def __call__(self):
+        self.sim.state.is_initialized = False
         self.sim.output.print_stdout(
             'Manual initialization of the fields in selected. '
             'Do not forget to initialize them.')
