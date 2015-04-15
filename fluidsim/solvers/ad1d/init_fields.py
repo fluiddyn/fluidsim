@@ -3,30 +3,43 @@
 
 import numpy as np
 
-from fluidsim.base.init_fields import InitFieldsBase
+from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
+
+
+class InitFieldsCos(SpecificInitFields):
+    tag = 'cos'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        super(InitFieldsCos, cls)._complete_params_with_default(params)
+        # params.init_fields.set_child(cls.tag, attribs={})
+
+    def __call__(self):
+        oper = self.sim.oper
+        s = np.cos(2*np.pi * oper.xs / oper.Lx)
+        self.sim.state.state_phys[0] = s
+
+
+class InitFieldsGaussian(SpecificInitFields):
+    tag = 'gaussian'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        super(InitFieldsGaussian, cls)._complete_params_with_default(params)
+        # params.init_fields.set_child(cls.tag, attribs={})
+
+    def __call__(self):
+        oper = self.sim.oper
+        s = np.exp(-(10*(oper.xs - oper.Lx/2))**2)
+        self.sim.state.state_phys[0] = s
 
 
 class InitFieldsAD1D(InitFieldsBase):
     """Init the fields for the solver AD1D."""
 
-    implemented_flows = ['GAUSSIAN', 'COS']
+    @staticmethod
+    def _complete_info_solver(info_solver):
+        """Complete the ContainerXML info_solver."""
 
-    def __call__(self):
-        """Init the state (in physical and Fourier space) and time"""
-
-        type = self.get_and_check_type()
-
-        if type == 'GAUSSIAN':
-            self.init_fields_gaussian()
-        elif type == 'COS':
-            self.init_fields_cos()
-        else:
-            raise ValueError('bad value of params.type')
-
-    def init_fields_gaussian(self):
-        s = np.exp(-(10*(self.oper.xs-self.oper.Lx/2))**2)
-        self.sim.state.state_phys[0] = s
-
-    def init_fields_cos(self):
-        s = np.cos(2*np.pi*self.oper.xs/self.oper.Lx)
-        self.sim.state.state_phys[0] = s
+        InitFieldsBase._complete_info_solver(
+            info_solver, classes=[InitFieldsCos, InitFieldsGaussian])

@@ -139,7 +139,9 @@ if __name__ == "__main__":
     delta_x = params.oper.Lx/params.oper.nx
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 1.
+    # params.time_stepping.USE_CFL = False
+    # params.time_stepping.deltat0 = 0.01
 
     params.init_fields.type = 'noise'
 
@@ -157,12 +159,12 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = 'eta'
 
     sim = Simul(params)
 
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot(key_field='eta')
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot(key_field='eta')
 
     fld.show()

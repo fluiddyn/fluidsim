@@ -18,33 +18,26 @@ from __future__ import print_function
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
-from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
+from fluidsim.solvers.plate2d.solver import InfoSolverPlate2D
 
 
-class InfoSolverPlate2DDiag(InfoSolverPseudoSpectral):
+class InfoSolverPlate2DDiag(InfoSolverPlate2D):
     def _init_root(self):
 
         super(InfoSolverPlate2DDiag, self)._init_root()
 
-        package = 'fluidsim.solvers.plate2d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
         self.short_name = 'plate2d.diag'
+
+        package = 'fluidsim.solvers.' + self.short_name
 
         classes = self.classes
 
         classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StatePlate2D'
-
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsPlate2D'
-
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.State.class_name = 'StatePlate2DDiag'
 
         classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingPlate2D'
+        classes.Forcing.class_name = 'ForcingPlate2DDiag'
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -170,7 +163,6 @@ class Simul(SimulBasePseudoSpectral):
         # ratio = self.test_tendencies_nonlin(
         #     tendencies_fft, w_fft, z_fft, chi_fft)
         # print('ratio:', ratio)
-
 
         return tendencies_fft
 

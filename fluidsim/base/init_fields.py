@@ -24,7 +24,7 @@ class InitFieldsBase(object):
     """Initialization of the fields (base class)."""
 
     @staticmethod
-    def _complete_info_solver(info_solver):
+    def _complete_info_solver(info_solver, classes=None):
         """Complete the ContainerXML info_solver.
 
         This is a static method!
@@ -33,8 +33,11 @@ class InitFieldsBase(object):
 
         classesXML = info_solver.classes.InitFields.classes
 
-        classes = [InitFieldsFromFile, InitFieldsFromSimul,
-                   InitFieldsManual, InitFieldsConstant]
+        if classes is None:
+            classes = []
+
+        classes.extend([InitFieldsFromFile, InitFieldsFromSimul,
+                        InitFieldsManual, InitFieldsConstant])
 
         for cls in classes:
             classesXML.set_child(
@@ -104,6 +107,9 @@ class InitFieldsFromFile(SpecificInitFields):
         params.init_fields.set_child(cls.tag, attribs={'path': ''})
 
     def __call__(self):
+
+        # Warning: this function is for 2d pseudo-spectral solver!
+        # We have to write something more general.
 
         params = self.sim.params
 
@@ -206,6 +212,10 @@ class InitFieldsFromSimul(SpecificInitFields):
         self.sim.init_fields.get_state_from_simul = self._get_state_from_simul
 
     def _get_state_from_simul(self, sim_in):
+
+        # Warning: this function is for 2d pseudo-spectral solver!
+        # We have to write something more general.
+        # It should be done directly in the operators.
 
         if mpi.nb_proc > 1:
             raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'

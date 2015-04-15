@@ -11,10 +11,9 @@ from fluiddyn.util import mpi
 
 
 class StateSW1L(StatePseudoSpectral):
-    """
-    The class :class:`StateSW1L` contains the variables corresponding
-    to the state and handles the access to other fields for the solver
-    SW1L.
+    """Contains the variables corresponding to the state and handles the
+    access to other fields for the solver SW1L.
+
     """
 
     @staticmethod
@@ -131,6 +130,15 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
+    def init_from_etafft(self, eta_fft):
+        state_fft = self.state_fft
+        state_fft.set_var('ux_fft', np.zeros_like(eta_fft))
+        state_fft.set_var('uy_fft', np.zeros_like(eta_fft))
+        state_fft.set_var('eta_fft', eta_fft)
+
+        self.oper.dealiasing(state_fft)
+        self.statephys_from_statefft()
+
     def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         state_fft = self.state_fft
         state_fft.set_var('ux_fft', ux_fft)
@@ -148,7 +156,6 @@ class StateSW1L(StatePseudoSpectral):
         self.init_from_uxuyfft(ux_fft, uy_fft)
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
-        sim = self.sim
         oper = self.oper
         ifft2 = oper.ifft2
 
@@ -164,12 +171,12 @@ class StateSW1L(StatePseudoSpectral):
         eta_fft = self._etafft_no_div(ux, uy, rot)
         eta = ifft2(eta_fft)
 
-        state_fft = sim.state.state_fft
+        state_fft = self.state_fft
         state_fft.set_var('ux_fft', ux_fft)
         state_fft.set_var('uy_fft', uy_fft)
         state_fft.set_var('eta_fft', eta_fft)
 
-        state_phys = sim.state.state_phys
+        state_phys = self.state_phys
         state_phys.set_var('rot', rot)
         state_phys.set_var('ux', ux)
         state_phys.set_var('uy', uy)

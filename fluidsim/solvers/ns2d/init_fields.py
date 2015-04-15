@@ -9,7 +9,6 @@ from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 
 class InitFieldsNoise(SpecificInitFields):
-
     tag = 'noise'
 
     @classmethod
@@ -142,14 +141,6 @@ class InitFieldsNS2D(InitFieldsBase):
     def _complete_info_solver(info_solver):
         """Complete the ContainerXML info_solver."""
 
-        InitFieldsBase._complete_info_solver(info_solver)
-
-        classesXML = info_solver.classes.InitFields.classes
-
-        classes = [InitFieldsNoise, InitFieldsJet, InitFieldsDipole]
-
-        for cls in classes:
-            classesXML.set_child(
-                cls.tag,
-                attribs={'module_name': cls.__module__,
-                         'class_name': cls.__name__})
+        InitFieldsBase._complete_info_solver(
+            info_solver, classes=[
+                InitFieldsNoise, InitFieldsJet, InitFieldsDipole])

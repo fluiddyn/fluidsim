@@ -34,9 +34,6 @@ class InfoSolverSW1LModified(InfoSolverSW1L):
         classes.State.module_name = sw1l+'.modified.state'
         classes.State.class_name = 'StateSW1LModified'
 
-        classes.InitFields.module_name = sw1l+'.modified.init_fields'
-        classes.InitFields.class_name = 'InitFieldsSW1LModified'
-
         classes.Output.module_name = sw1l+'.modified.output'
         classes.Output.class_name = 'OutputSW1LModified'
 
