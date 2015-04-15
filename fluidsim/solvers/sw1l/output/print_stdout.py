@@ -9,7 +9,7 @@ from fluidsim.base.output.print_stdout import PrintStdOutBase
 from fluiddyn.util import mpi
 
 
-class PrintStdOutSW1l(PrintStdOutBase):
+class PrintStdOutSW1L(PrintStdOutBase):
     """A :class:`PrintStdOutBase` object is used to print in both the
     stdout and the stdout.txt file, and also to print simple info on
     the current state of the simulation."""

@@ -81,7 +81,7 @@ class StateNS2D(StatePseudoSpectral):
         rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
 
-    def init_state_from_rot_fft(self, rot_fft):
+    def init_from_rotfft(self, rot_fft):
         self.sim.oper.dealiasing(rot_fft)
         self.state_fft.set_var('rot_fft', rot_fft)
         self.statephys_from_statefft()

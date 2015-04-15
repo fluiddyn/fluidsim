@@ -1,4 +1,4 @@
-"""Modified SW1l equations
+"""Modified SW1L equations
 ==========================
 
 (:mod:`fluidsim.solvers.sw1l.modified.solver`)
@@ -14,37 +14,37 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.solvers.sw1l.solver import InfoSolverSW1l
-from fluidsim.solvers.sw1l.solver import Simul as SimulSW1l
+from fluidsim.solvers.sw1l.solver import InfoSolverSW1L
+from fluidsim.solvers.sw1l.solver import Simul as SimulSW1L
 
 
-class InfoSolverSW1lModified(InfoSolverSW1l):
-    """Information about the solver SW1l."""
+class InfoSolverSW1LModified(InfoSolverSW1L):
+    """Information about the solver SW1L."""
     def _init_root(self, **kargs):
-        super(InfoSolverSW1lModified, self)._init_root()
+        super(InfoSolverSW1LModified, self)._init_root()
 
         sw1l = 'fluidsim.solvers.sw1l'
 
         self.module_name = sw1l+'.modified.solver'
         self.class_name = 'Simul'
-        self.short_name = 'SW1lmodif'
+        self.short_name = 'SW1Lmodif'
 
         classes = self.classes
 
         classes.State.module_name = sw1l+'.modified.state'
-        classes.State.class_name = 'StateSW1lModified'
+        classes.State.class_name = 'StateSW1LModified'
 
         classes.InitFields.module_name = sw1l+'.modified.init_fields'
-        classes.InitFields.class_name = 'InitFieldsSW1lModified'
+        classes.InitFields.class_name = 'InitFieldsSW1LModified'
 
         classes.Output.module_name = sw1l+'.modified.output'
-        classes.Output.class_name = 'OutputSW1lModified'
+        classes.Output.class_name = 'OutputSW1LModified'
 
 
-class Simul(SimulSW1l):
-    """A solver of the shallow-water 1 layer equations (SW1l)"""
+class Simul(SimulSW1L):
+    """A solver of the shallow-water 1 layer equations (SW1L)"""
 
-    InfoSolver = InfoSolverSW1lModified
+    InfoSolver = InfoSolverSW1LModified
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper

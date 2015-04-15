@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from fluidsim.solvers.sw1l.output import OutputBaseSW1l
+from fluidsim.solvers.sw1l.output import OutputBaseSW1L
 
 
-class OutputSW1lModified(OutputBaseSW1l):
-    """subclass :class:`OutputSW1l`"""
+class OutputSW1LModified(OutputBaseSW1L):
+    """subclass :class:`OutputSW1L`"""
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -14,12 +14,12 @@ class OutputSW1lModified(OutputBaseSW1l):
 
         This is a static method!
         """
-        OutputBaseSW1l._complete_info_solver(info_solver)
+        OutputBaseSW1L._complete_info_solver(info_solver)
 
         classes = info_solver.classes.Output.classes
 
-        classes.SpatialMeans.class_name = 'SpatialMeansMSW1l'
-        classes.SpectralEnergyBudget.class_name = 'SpectralEnergyBudgetMSW1l'
+        classes.SpatialMeans.class_name = 'SpatialMeansMSW1L'
+        classes.SpectralEnergyBudget.class_name = 'SpectralEnergyBudgetMSW1L'
 
     def compute_energies_fft(self):
         ux_fft = self.sim.state.state_fft.get_var('ux_fft')

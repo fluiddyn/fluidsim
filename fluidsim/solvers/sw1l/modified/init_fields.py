@@ -1,9 +1,9 @@
 
 
-from fluidsim.solvers.sw1l.init_fields import InitFieldsSW1l
+from fluidsim.solvers.sw1l.init_fields import InitFieldsSW1L
 
 
-class InitFieldsSW1lModified(InitFieldsSW1l):
+class InitFieldsSW1LModified(InitFieldsSW1L):
     """Init """
 
 

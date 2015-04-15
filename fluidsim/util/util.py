@@ -54,7 +54,7 @@ def import_module_solver_from_key(key=None):
     ----------
 
     key : str
-        The short name of a solver. Can be 'NS2D', 'SW1l' or 'MSW1l'.
+        The short name of a solver. Can be 'NS2D', 'SW1L' or 'MSW1L'.
 
     """
     return import_module(module_solver_from_key(key))

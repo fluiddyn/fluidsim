@@ -1,5 +1,5 @@
 """
-The module :mod:`stateSW1l` supplies the class :class:`StateSW1l`.
+The module :mod:`stateSW1L` supplies the class :class:`StateSW1L`.
 """
 
 import numpy as np
@@ -10,11 +10,11 @@ from fluidsim.base.state import StatePseudoSpectral
 from fluiddyn.util import mpi
 
 
-class StateSW1l(StatePseudoSpectral):
+class StateSW1L(StatePseudoSpectral):
     """
-    The class :class:`StateSW1l` contains the variables corresponding
+    The class :class:`StateSW1L` contains the variables corresponding
     to the state and handles the access to other fields for the solver
-    SW1l.
+    SW1L.
     """
 
     @staticmethod
@@ -29,7 +29,6 @@ class StateSW1l(StatePseudoSpectral):
             'keys_computable': [],
             'keys_phys_needed': ['ux', 'uy', 'eta'],
             'keys_linear_eigenmodes': ['q_fft', 'a_fft', 'd_fft']})
-
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
@@ -83,8 +82,7 @@ class StateSW1l(StatePseudoSpectral):
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
-                    print(to_print
-                          +'\nreturn an array of zeros.')
+                    print(to_print + '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 
@@ -93,9 +91,6 @@ class StateSW1l(StatePseudoSpectral):
             self.it_computed[key] = it
 
         return result
-
-
-
 
     def statefft_from_statephys(self):
         """Compute the state in Fourier space."""
@@ -135,3 +130,65 @@ class StateSW1l(StatePseudoSpectral):
         state_phys.set_var('rot', ifft2(rot_fft))
 
         return state_phys
+
+    def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
+        state_fft = self.state_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
+
+        self.oper.dealiasing(state_fft)
+        self.statephys_from_statefft()
+
+    def init_from_rotuxuyfft(self, rot, ux_fft, uy_fft):
+        self.init_from_uxuyfft(ux_fft, uy_fft)
+
+    def init_from_rotfft(self, rot_fft):
+        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        self.init_from_uxuyfft(ux_fft, uy_fft)
+
+    def init_from_uxuyfft(self, ux_fft, uy_fft):
+        sim = self.sim
+        oper = self.oper
+        ifft2 = oper.ifft2
+
+        oper.projection_perp(ux_fft, uy_fft)
+        oper.dealiasing(ux_fft, uy_fft)
+
+        ux = ifft2(ux_fft)
+        uy = ifft2(uy_fft)
+
+        rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        rot = ifft2(rot_fft)
+
+        eta_fft = self._etafft_no_div(ux, uy, rot)
+        eta = ifft2(eta_fft)
+
+        state_fft = sim.state.state_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
+
+        state_phys = sim.state.state_phys
+        state_phys.set_var('rot', rot)
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)
+
+    def _etafft_no_div(self, ux, uy, rot):
+        K2_not0 = self.oper.K2_not0
+        rot_abs = rot + self.params.f
+
+        tempx_fft = - self.oper.fft2(rot_abs*uy)
+        tempy_fft = self.oper.fft2(rot_abs*ux)
+
+        uu2_fft = self.oper.fft2(ux**2 + uy**2)
+
+        eta_fft = (1.j * self.oper.KX*tempx_fft/K2_not0 +
+                   1.j*self.oper.KY*tempy_fft/K2_not0 -
+                   uu2_fft/2)/self.params.c2
+        if mpi.rank == 0:
+            eta_fft[0, 0] = 0.
+        self.oper.dealiasing(eta_fft)
+
+        return eta_fft

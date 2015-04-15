@@ -5,7 +5,7 @@ import numpy as np
 from fluidsim.base.output.spectra import Spectra
 
 
-class SpectraSW1l(Spectra):
+class SpectraSW1L(Spectra):
     """Save and plot spectra."""
 
 
@@ -14,7 +14,7 @@ class SpectraSW1l(Spectra):
         self.c2 = params.c2
         self.f = params.f
 
-        super(SpectraSW1l, self).__init__(output)
+        super(SpectraSW1L, self).__init__(output)
 
 
 
@@ -330,7 +330,7 @@ imin_plot, imax_plot, delta_i_plot)
 
 
 
-        if self.sim.info.solver.short_name.startswith('SW1l'):
+        if self.sim.info.solver.short_name.startswith('SW1L'):
             dset_spectrumEdlin = f['spectrum2D_Edlin']
             Edlin = dset_spectrumEdlin[imin_plot:imax_plot+1].mean(0)
             ax1.plot(kh, Edlin*coef_norm, 'y:', linewidth=1)

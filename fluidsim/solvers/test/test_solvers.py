@@ -52,16 +52,16 @@ class TestSolvers(unittest.TestCase):
         run_mini_simul('NS2D')
 
     def test_sw1l(self):
-        """Should be able to run a SW1l simul."""
-        run_mini_simul('SW1l')
+        """Should be able to run a SW1L simul."""
+        run_mini_simul('SW1L')
 
     def test_sw1l_onlywaves(self):
-        """Should be able to run a SW1l.onlywaves simul."""
-        run_mini_simul('SW1l.onlywaves')
+        """Should be able to run a SW1L.onlywaves simul."""
+        run_mini_simul('SW1L.onlywaves')
 
     def test_sw1l_exactlin(self):
-        """Should be able to run a SW1l.exactlin simul."""
-        run_mini_simul('SW1l.exactlin')
+        """Should be able to run a SW1L.exactlin simul."""
+        run_mini_simul('SW1L.exactlin')
 
 
 if __name__ == '__main__':

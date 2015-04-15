@@ -14,16 +14,16 @@ class InitFieldsNoise(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
+        super(InitFieldsNoise, cls)._complete_params_with_default(params)
         params.init_fields.set_child(cls.tag, attribs={
             'velo_max': 1.,
             'length': 0})
 
     def __call__(self):
-        rot_fft = self.compute_rot_fft()
-        self.sim.state.init_state_from_rot_fft(rot_fft)
+        rot_fft, ux_fft, uy_fft = self.compute_rotuxuy_fft()
+        self.sim.state.init_from_rotfft(rot_fft)
 
-    def compute_rot_fft(self):
+    def compute_rotuxuy_fft(self):
 
         params = self.sim.params
         oper = self.sim.oper
@@ -66,29 +66,7 @@ class InitFieldsNoise(SpecificInitFields):
         uy_fft = oper.fft2(uy)
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        return rot_fft
-
-    # def init_fields_noise_rot(self, lambda0):
-    #     oper = self.sim.oper
-    #     H_smooth = lambda x, delta: (1. + np.tanh(2*np.pi*x/delta))/2
-    #     rot_fft = (np.random.random([self.nky, self.nkx])
-    #                + 1j*np.random.random([self.nky, self.nkx]) - 0.5 - 0.5j)
-    #     k0 = 2*np.pi/lambda0
-    #     delta_k0 = 1*k0
-    #     rot_fft = rot_fft*H_smooth(k0-self.KK, delta_k0)
-    #     oper.dealiasing(rot_fft)
-    #     ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-    #     ux = oper.ifft2(ux_fft)
-    #     uy = oper.ifft2(uy_fft)
-    #     velo_max = np.sqrt(ux**2+uy**2).max()
-    #     if mpi.nb_proc > 1:
-    #         velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-    #     ux = ux/velo_max
-    #     uy = uy/velo_max
-    #     ux_fft = oper.fft2(ux)
-    #     uy_fft = oper.fft2(uy)
-
-    #     return rot_fft, ux_fft, uy_fft
+        return rot_fft, ux_fft, uy_fft
 
 
 class InitFieldsJet(SpecificInitFields):
@@ -96,7 +74,7 @@ class InitFieldsJet(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
+        super(InitFieldsJet, cls)._complete_params_with_default(params)
         # params.init_fields.set_child(cls.tag, attribs={})
 
     def __call__(self):
@@ -104,7 +82,7 @@ class InitFieldsJet(SpecificInitFields):
         rot = self.vorticity_jet()
         rot_fft = oper.fft2(rot)
         rot_fft[oper.KK == 0] = 0.
-        self.sim.state.init_state_from_rot_fft(rot_fft)
+        self.sim.state.init_from_rotfft(rot_fft)
 
     def vorticity_jet(self):
         oper = self.sim.oper
@@ -127,13 +105,13 @@ class InitFieldsDipole(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
+        super(InitFieldsDipole, cls)._complete_params_with_default(params)
         # params.init_fields.set_child(cls.tag, attribs={})
 
     def __call__(self):
         rot = self.vorticity_shape_1dipole()
         rot_fft = self.sim.oper.fft2(rot)
-        self.sim.state.init_state_from_rot_fft(rot_fft)
+        self.sim.state.init_from_rotfft(rot_fft)
 
     def vorticity_shape_1dipole(self):
         oper = self.sim.oper

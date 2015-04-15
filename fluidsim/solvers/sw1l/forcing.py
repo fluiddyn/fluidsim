@@ -13,7 +13,7 @@ from fluidsim.base.forcing.specific import \
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS
 
 
-class ForcingSW1l(ForcingBasePseudoSpectral):
+class ForcingSW1L(ForcingBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -290,7 +290,7 @@ class OldStuff(object):
         Fa_fft[:] = alpha*Fa_fft
 
 
-class ForcingSW1lExactLin(ForcingSW1l):
+class ForcingSW1LExactLin(ForcingSW1L):
 
     def verify_injection_rate_from_state(self):
         """Verify injection rate."""
@@ -368,7 +368,7 @@ class ForcingSW1lExactLin(ForcingSW1l):
         return a_fft, eta_fft
 
 
-class ForcingSW1lWaves(ForcingSW1l):
+class ForcingSW1LWaves(ForcingSW1L):
 
     def qfftcoarse_from_setvarfft(self, set_var_fft=None):
         raise ValueError('This solver does not solve for q.')

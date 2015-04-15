@@ -6,7 +6,7 @@
 
 Provides:
 
-.. autoclass:: StateSW1lModified
+.. autoclass:: StateSW1LModified
    :members:
    :private-members:
 
@@ -17,11 +17,11 @@ from fluidsim.base.state import StatePseudoSpectral
 from fluiddyn.util import mpi
 
 
-class StateSW1lModified(StatePseudoSpectral):
+class StateSW1LModified(StatePseudoSpectral):
     """
-    The class :class:`StateMSW1l` contains the variables corresponding
+    The class :class:`StateMSW1L` contains the variables corresponding
     to the state and handles the access to other fields for the solver
-    MSW1l.
+    MSW1L.
     """
     @staticmethod
     def _complete_info_solver(info_solver):

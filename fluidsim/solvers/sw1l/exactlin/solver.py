@@ -1,4 +1,4 @@
-"""SW1l equations solving exactly the linear terms
+"""SW1L equations solving exactly the linear terms
 ==================================================
 
 (:mod:`fluidsim.solvers.sw1l.exactlin.solver`)
@@ -15,38 +15,35 @@ import numpy as np
 from fluidsim.base.setofvariables import SetOfVariables
 
 
-from fluidsim.solvers.sw1l.solver import InfoSolverSW1l
-from fluidsim.solvers.sw1l.solver import Simul as SimulSW1l
+from fluidsim.solvers.sw1l.solver import InfoSolverSW1L
+from fluidsim.solvers.sw1l.solver import Simul as SimulSW1L
 
 
 from fluiddyn.util import mpi
 
 
-class InfoSolverSW1lExactLin(InfoSolverSW1l):
-    """Information about the solver SW1l."""
+class InfoSolverSW1LExactLin(InfoSolverSW1L):
+    """Information about the solver SW1L."""
     def _init_root(self):
-        super(InfoSolverSW1lExactLin, self)._init_root()
+        super(InfoSolverSW1LExactLin, self)._init_root()
 
         sw1l = 'fluidsim.solvers.sw1l'
 
-        self.module_name = sw1l+'.exactlin.solver'
+        self.module_name = sw1l + '.exactlin.solver'
         self.class_name = 'Simul'
-        self.short_name = 'SW1lexlin'
+        self.short_name = 'SW1Lexlin'
 
         classes = self.classes
 
-        classes.State.module_name = sw1l+'.exactlin.state'
-        classes.State.class_name = 'StateSW1lExactLin'
+        classes.State.module_name = sw1l + '.exactlin.state'
+        classes.State.class_name = 'StateSW1LExactLin'
 
-        classes.InitFields.class_name = 'InitFieldsSW1lExLin'
-
-        classes.Forcing.class_name = 'ForcingSW1lExactLin'
+        classes.Forcing.class_name = 'ForcingSW1LExactLin'
 
 
-class Simul(SimulSW1l):
-    """A solver of the shallow-water 1 layer equations (SW1l)"""
-    InfoSolver = InfoSolverSW1lExactLin
-
+class Simul(SimulSW1L):
+    """A solver of the shallow-water 1 layer equations (SW1L)"""
+    InfoSolver = InfoSolverSW1LExactLin
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
