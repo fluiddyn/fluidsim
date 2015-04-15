@@ -111,7 +111,7 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = True
     # params.time_stepping.deltat0 = 0.1
 
-    params.init_fields.type_flow_init = 'GAUSSIAN'
+    params.init_fields.type = 'gaussian'
 
     params.output.periods_print.print_stdout = 0.25
 

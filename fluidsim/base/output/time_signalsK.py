@@ -464,7 +464,7 @@ class TimeSignalsK(SpecificOutput):
 
 
 if __name__ == '__main__':
-    path_dir = '/scratch/augier/Results_for_article_SW1l/Waves_standing_256x256/SE2D_SW1lexlin_forcing_L=50.x50._256x256_c2=900_f=0_2013-06-04_12-49-26'
+    path_dir = '/scratch/augier/Results_for_article_SW1L/Waves_standing_256x256/SE2D_SW1Lexlin_forcing_L=50.x50._256x256_c2=900_f=0_2013-06-04_12-49-26'
 
     from solveq2d import solveq2d
 

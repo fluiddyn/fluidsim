@@ -7,7 +7,7 @@ from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv, inner_prod)
 
 
-class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
+class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetBase):
     """Save and plot spectra."""
 
     def __init__(self, output):
@@ -16,7 +16,7 @@ class SpectralEnergyBudgetSW1l(SpectralEnergyBudgetBase):
         self.c2 = params.c2
         self.f = params.f
 
-        super(SpectralEnergyBudgetSW1l, self).__init__(output)
+        super(SpectralEnergyBudgetSW1L, self).__init__(output)
 
     def compute(self):
         """compute spectral energy budget the one time."""
@@ -629,7 +629,7 @@ imin_plot, imax_plot, delta_i_plot)
 
 
 
-class SpectralEnergyBudgetMSW1l(SpectralEnergyBudgetSW1l):
+class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1L):
     """Save and plot spectra."""
 
     def compute(self):

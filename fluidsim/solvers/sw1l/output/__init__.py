@@ -5,7 +5,7 @@ import numpy as np
 from fluidsim.base.output import OutputBasePseudoSpectral
 
 
-class OutputBaseSW1l(OutputBasePseudoSpectral):
+class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -21,7 +21,7 @@ class OutputBaseSW1l(OutputBasePseudoSpectral):
         classes.set_child(
             'PrintStdOut',
             attribs={'module_name': package + '.print_stdout',
-                     'class_name': 'PrintStdOutSW1l'})
+                     'class_name': 'PrintStdOutSW1L'})
 
         classes.set_child(
             'PhysFields',
@@ -31,21 +31,21 @@ class OutputBaseSW1l(OutputBasePseudoSpectral):
         classes.set_child(
             'Spectra',
             attribs={'module_name': package + '.spectra',
-                     'class_name': 'SpectraSW1l'})
+                     'class_name': 'SpectraSW1L'})
 
         classes.set_child(
             'SpatialMeans',
             attribs={'module_name': package + '.spatial_means',
-                     'class_name': 'SpatialMeansSW1l'})
+                     'class_name': 'SpatialMeansSW1L'})
 
         attribs = {
             'module_name': package + '.spect_energy_budget',
-            'class_name': 'SpectralEnergyBudgetSW1l'}
+            'class_name': 'SpectralEnergyBudgetSW1L'}
         classes.set_child('SpectralEnergyBudget', attribs=attribs)
 
         attribs = {
             'module_name': 'fluidsim.base.output.increments',
-            'class_name': 'IncrementsSW1l'}
+            'class_name': 'IncrementsSW1L'}
         classes.set_child('Increments', attribs=attribs)
 
         attribs = {
@@ -149,7 +149,7 @@ class OutputBaseSW1l(OutputBasePseudoSpectral):
         return energy_glin_fft, energy_dlin_fft, energy_alin_fft
 
 
-class OutputSW1l(OutputBaseSW1l):
+class OutputSW1L(OutputBaseSW1L):
 
     def compute_energies_fft(self):
         state = self.sim.state

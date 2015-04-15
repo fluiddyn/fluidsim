@@ -6,7 +6,7 @@
 
 Provides:
 
-.. autoclass:: StateSW1lModified
+.. autoclass:: StateSW1LModified
    :members:
    :private-members:
 
@@ -17,11 +17,10 @@ from fluidsim.base.state import StatePseudoSpectral
 from fluiddyn.util import mpi
 
 
-class StateSW1lModified(StatePseudoSpectral):
-    """
-    The class :class:`StateMSW1l` contains the variables corresponding
-    to the state and handles the access to other fields for the solver
-    MSW1l.
+class StateSW1LModified(StatePseudoSpectral):
+    """Contains the variables corresponding to the state and handles the
+    access to other fields for the solver MSW1L.
+
     """
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -35,7 +34,6 @@ class StateSW1lModified(StatePseudoSpectral):
             'keys_computable': [],
             'keys_phys_needed': ['ux', 'uy', 'eta'],
             'keys_linear_eigenmodes': ['q_fft', 'a_fft', 'd_fft']})
-
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
@@ -71,8 +69,7 @@ class StateSW1lModified(StatePseudoSpectral):
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
-                    print(to_print
-                          +'\nreturn an array of zeros.')
+                    print(to_print + '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 
@@ -81,3 +78,30 @@ class StateSW1lModified(StatePseudoSpectral):
             self.it_computed[key] = it
 
         return result
+
+    def init_from_uxuyfft(self, ux_fft, uy_fft):
+
+        oper = self.oper
+        ifft2 = oper.ifft2
+
+        oper.projection_perp(ux_fft, uy_fft)
+        oper.dealiasing(ux_fft, uy_fft)
+
+        ux = ifft2(ux_fft)
+        uy = ifft2(uy_fft)
+
+        rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        rot = ifft2(rot_fft)
+
+        eta_fft = self._etafft_no_div(ux, uy, rot)
+        eta = ifft2(eta_fft)
+
+        state_fft = self.state_fft
+        state_fft.set_var('ux_fft', ux_fft)
+        state_fft.set_var('uy_fft', uy_fft)
+        state_fft.set_var('eta_fft', eta_fft)
+
+        state_phys = self.state_phys
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)

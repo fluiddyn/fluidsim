@@ -494,13 +494,13 @@ class Increments(SpecificOutput):
 
 
 
-class IncrementsSW1l(Increments):
+class IncrementsSW1L(Increments):
     """A :class:`Increments` object handles the saving of pdf of
     increments.
     """
 
     def __init__(self, output):
-        super(IncrementsSW1l, self).__init__(output)
+        super(IncrementsSW1L, self).__init__(output)
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -509,12 +509,12 @@ class IncrementsSW1l(Increments):
 
     def _online_plot(self, dico_results, key='eta'):
         """online plot on pdf"""
-        super(IncrementsSW1l, self)._online_plot(dico_results, key=key)
+        super(IncrementsSW1L, self)._online_plot(dico_results, key=key)
 
 
 
     def compute(self):
-        dico_results = super(IncrementsSW1l, self).compute()
+        dico_results = super(IncrementsSW1L, self).compute()
 
         ux = self.sim.state('ux')
         uy = self.sim.state('uy')
@@ -883,7 +883,7 @@ if __name__=="__main__":
 
     str_resol = repr(resol)
     str_to_find_path = (
-        '/scratch/augier/Results_SW1lw'
+        '/scratch/augier/Results_SW1Lw'
         '/Pure_standing_waves_'+
         str_resol+'*/SE2D*c='+repr(c))+'_*'
     print(str_to_find_path)

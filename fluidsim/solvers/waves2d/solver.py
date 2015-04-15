@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     params.time_stepping.t_end = 1.
 
-    params.init_fields.type_flow_init = 'NOISE'
+    params.init_fields.type = 'noise'
 
     params.FORCING = True
     params.forcing.type = 'Random'

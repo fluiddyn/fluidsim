@@ -1,4 +1,4 @@
-"""SW1l equations solving exactly the linear terms
+"""SW1L equations solving exactly the linear terms
 ==================================================
 
 (:mod:`fluidsim.solvers.sw1l.onlywaves.solver`)
@@ -13,38 +13,36 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.solvers.sw1l.exactlin.solver import InfoSolverSW1lExactLin
+from fluidsim.solvers.sw1l.exactlin.solver import InfoSolverSW1LExactLin
 from fluidsim.solvers.sw1l.exactlin.solver import \
-    Simul as SimulSW1lExactLin
+    Simul as SimulSW1LExactLin
 
 
 from fluiddyn.util import mpi
 
 
-class InfoSolverSW1lWaves(InfoSolverSW1lExactLin):
-    """Information about the solver SW1l."""
+class InfoSolverSW1LWaves(InfoSolverSW1LExactLin):
+    """Information about the solver SW1L."""
     def _init_root(self):
-        super(InfoSolverSW1lWaves, self)._init_root()
+        super(InfoSolverSW1LWaves, self)._init_root()
 
         sw1l = 'fluidsim.solvers.sw1l'
 
-        self.module_name = sw1l+'.onlywaves.solver'
-        self.short_name = 'SW1lwaves'
+        self.module_name = sw1l + '.onlywaves.solver'
+        self.short_name = 'SW1Lwaves'
 
         classes = self.classes
 
-        classes.State.module_name = sw1l+'.onlywaves.state'
-        classes.State.class_name = 'StateSW1lWaves'
+        classes.State.module_name = sw1l + '.onlywaves.state'
+        classes.State.class_name = 'StateSW1LWaves'
 
-        classes.InitFields.class_name = 'InitFieldsSW1lWaves'
-
-        classes.Forcing.class_name = 'ForcingSW1lWaves'
+        classes.Forcing.class_name = 'ForcingSW1LWaves'
 
 
-class Simul(SimulSW1lExactLin):
-    """A solver of the shallow-water 1 layer equations (SW1l)"""
+class Simul(SimulSW1LExactLin):
+    """A solver of the shallow-water 1 layer equations (SW1L)"""
 
-    InfoSolver = InfoSolverSW1lWaves
+    InfoSolver = InfoSolverSW1LWaves
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -194,7 +192,7 @@ if __name__ == "__main__":
 
     params.time_stepping.t_end = 2.
 
-    params.init_fields.type_flow_init = 'NOISE'
+    params.init_fields.type = 'noise'
 
     params.output.periods_print.print_stdout = 0.25
 
@@ -211,8 +209,8 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
 
     fld.show()

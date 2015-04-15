@@ -1,4 +1,4 @@
-"""State class for the SW1l.onlywaves solver
+"""State class for the SW1L.onlywaves solver
 (:mod:`fluidsim.solvers.sw1l.onlywaves.state`)
 ====================================================
 
@@ -6,7 +6,7 @@
 
 Provides:
 
-.. autoclass:: StateSW1lWaves
+.. autoclass:: StateSW1LWaves
    :members:
    :private-members:
 
@@ -14,16 +14,16 @@ Provides:
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.solvers.sw1l.state import StateSW1l
+from fluidsim.solvers.sw1l.state import StateSW1L
 
 from fluiddyn.util import mpi
 
 
-class StateSW1lWaves(StateSW1l):
+class StateSW1LWaves(StateSW1L):
     """
-    The class :class:`StateSW1lwaves` contains the variables corresponding
+    The class :class:`StateSW1Lwaves` contains the variables corresponding
     to the state and handles the access to other fields for the solver
-    SW1l.
+    SW1L.
     """
 
     @staticmethod
@@ -62,7 +62,6 @@ class StateSW1lWaves(StateSW1l):
         elif key == 'eta_fft':
             a_fft = self.compute('a_fft')
             result = self.oper.etafft_from_afft(a_fft)
-
 
         elif key == 'ux_fft':
             rot_fft = self.compute('rot_fft')
@@ -111,7 +110,7 @@ class StateSW1lWaves(StateSW1l):
             result = self.oper.constant_arrayX(value=0)
 
         else:
-            result = super(StateSW1lWaves, self).compute(
+            result = super(StateSW1LWaves, self).compute(
                 key, SAVE_IN_DICT=SAVE_IN_DICT,
                 RAISE_ERROR=RAISE_ERROR)
             SAVE_IN_DICT = False
@@ -130,7 +129,6 @@ class StateSW1lWaves(StateSW1l):
             self.it_computed[key] = it
 
         return result
-
 
     def statefft_from_statephys(self):
         """Compute the state in Fourier space."""
@@ -182,3 +180,44 @@ class StateSW1lWaves(StateSW1l):
         state_phys.set_var('eta', ifft2(eta_fft))
 
         return state_phys
+
+    def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
+
+        (q_fft, ap_fft, am_fft) = self.oper.qapamfft_from_uxuyetafft(
+            ux_fft, uy_fft, eta_fft)
+
+        state_fft = self.state_fft
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
+
+        self.oper.dealiasing(state_fft)
+        self.state.statephys_from_statefft()
+
+    def init_from_uxuyfft(self, ux_fft, uy_fft):
+
+        oper = self.oper
+        ifft2 = oper.ifft2
+
+        oper.projection_perp(ux_fft, uy_fft)
+        oper.dealiasing(ux_fft, uy_fft)
+
+        ux = ifft2(ux_fft)
+        uy = ifft2(uy_fft)
+
+        rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        rot = ifft2(rot_fft)
+
+        eta_fft = self._etafft_no_div(ux, uy, rot)
+        eta = ifft2(eta_fft)
+
+        (q_fft, ap_fft, am_fft
+         ) = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
+        state_fft = self.state_fft
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
+
+        state_phys = self.state_phys
+        state_phys.set_var('ux', ux)
+        state_phys.set_var('uy', uy)
+        state_phys.set_var('eta', eta)

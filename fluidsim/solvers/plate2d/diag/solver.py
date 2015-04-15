@@ -18,33 +18,26 @@ from __future__ import print_function
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
-from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
+from fluidsim.solvers.plate2d.solver import InfoSolverPlate2D
 
 
-class InfoSolverPlate2DDiag(InfoSolverPseudoSpectral):
+class InfoSolverPlate2DDiag(InfoSolverPlate2D):
     def _init_root(self):
 
         super(InfoSolverPlate2DDiag, self)._init_root()
 
-        package = 'fluidsim.solvers.plate2d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
         self.short_name = 'plate2d.diag'
+
+        package = 'fluidsim.solvers.' + self.short_name
 
         classes = self.classes
 
         classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StatePlate2D'
-
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsPlate2D'
-
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.State.class_name = 'StatePlate2DDiag'
 
         classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingPlate2D'
+        classes.Forcing.class_name = 'ForcingPlate2DDiag'
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -171,7 +164,6 @@ class Simul(SimulBasePseudoSpectral):
         #     tendencies_fft, w_fft, z_fft, chi_fft)
         # print('ratio:', ratio)
 
-
         return tendencies_fft
 
     def compute_freq_diss(self):
@@ -286,8 +278,8 @@ if __name__ == "__main__":
     params.time_stepping.t_end = 50.0
     params.time_stepping.it_end = 1
 
-    # params.init_fields.type_flow_init = 'HARMONIC'
-    params.init_fields.type_flow_init = 'NOISE'
+    # params.init_fields.type = 'HARMONIC'
+    params.init_fields.type = 'noise'
     params.init_fields.max_velo_noise = 0.001
     # params.init_fields.path_file = (
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='

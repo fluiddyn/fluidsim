@@ -33,7 +33,8 @@ def run_mini_simul(key_solver):
 
     params.time_stepping.t_end = 0.5
 
-    params.init_fields.type_flow_init = 'DIPOLE'
+    params.init_fields.type = 'dipole'
+
     params.output.HAS_TO_SAVE = False
 
     with stdout_redirected():
@@ -47,20 +48,20 @@ def run_mini_simul(key_solver):
 
 class TestSolvers(unittest.TestCase):
     def test_ns2d(self):
-        """Should be able to run a base experiment."""
+        """Should be able to run a NS2D simul."""
         run_mini_simul('NS2D')
 
     def test_sw1l(self):
-        """Should be able to run a base experiment."""
-        run_mini_simul('SW1l')
+        """Should be able to run a SW1L simul."""
+        run_mini_simul('SW1L')
 
     def test_sw1l_onlywaves(self):
-        """Should be able to run a base experiment."""
-        run_mini_simul('SW1l.onlywaves')
+        """Should be able to run a SW1L.onlywaves simul."""
+        run_mini_simul('SW1L.onlywaves')
 
     def test_sw1l_exactlin(self):
-        """Should be able to run a base experiment."""
-        run_mini_simul('SW1l.exactlin')
+        """Should be able to run a SW1L.exactlin simul."""
+        run_mini_simul('SW1L.exactlin')
 
 
 if __name__ == '__main__':

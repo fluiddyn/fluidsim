@@ -11,7 +11,6 @@ Provides:
 
 """
 
-import numpy as np
 import h5py
 
 from copy import deepcopy
@@ -22,207 +21,100 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 class InitFieldsBase(object):
-    """A :class:`InitFieldsBase` object provides functions for
-    initialisation of 2D fields."""
+    """Initialization of the fields (base class)."""
 
     @staticmethod
-    def _complete_params_with_default(params):
+    def _complete_info_solver(info_solver, classes=None):
+        """Complete the ContainerXML info_solver.
+
+        This is a static method!
+        """
+        info_solver.classes.InitFields.set_child('classes')
+
+        classesXML = info_solver.classes.InitFields.classes
+
+        if classes is None:
+            classes = []
+
+        classes.extend([InitFieldsFromFile, InitFieldsFromSimul,
+                        InitFieldsManual, InitFieldsConstant])
+
+        for cls in classes:
+            classesXML.set_child(
+                cls.tag,
+                attribs={'module_name': cls.__module__,
+                         'class_name': cls.__name__})
+
+    @staticmethod
+    def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        attribs = {'type_flow_init': 'NOISE',
-                   'lambda_noise': 1.,
-                   'max_velo_noise': 1.,
-                   # in case type_flow_init == 'LOAD_FILE'
-                   'path_file': ''}
-        params.set_child('init_fields', attribs=attribs)
+        params.set_child('init_fields', attribs={
+            'type': 'constant',
+            'available_types': []})
 
-    implemented_flows = ['NOISE', 'CONSTANT', 'LOAD_FILE']
+        dict_classes = info_solver.classes.InitFields.import_classes()
+        for Class in dict_classes.values():
+            if hasattr(Class, '_complete_params_with_default'):
+                try:
+                    Class._complete_params_with_default(params)
+                except TypeError:
+                    Class._complete_params_with_default(params, info_solver)
 
-    def __init__(self, sim=None, oper=None, params=None):
+    def __init__(self, sim):
 
-        if sim is not None:
-            self.sim = sim
-            params = sim.params
-            oper = sim.oper
+        self.sim = sim
+        params = sim.params
+        oper = sim.oper
 
         self.params = params
         self.oper = oper
 
-    def get_and_check_type_flow_init(self):
-        type_flow_init = self.params.init_fields.type_flow_init
-        if type_flow_init not in self.implemented_flows:
-            raise ValueError(type_flow_init + ' is not an implemented flows.')
-        return type_flow_init
+        type_init = params.init_fields.type
+        if type_init not in params.init_fields.available_types:
+            raise ValueError(type_init +
+                             ' is not an available flow initialization.')
+
+        dict_classes = sim.info.solver.classes.InitFields.import_classes()
+        Class = dict_classes[type_init]
+        self._specific_init_fields = Class(sim)
 
     def __call__(self):
-        sim = self.sim
+        self._specific_init_fields()
 
-        type_flow_init = self.get_and_check_type_flow_init()
 
-        if type_flow_init == 'NOISE':
-            rot_fft, ux_fft, uy_fft = self.init_fields_noise()
-            sim.state.state_fft.set_var('ux_fft', ux_fft)
-            sim.state.state_fft.set_var('uy_fft', uy_fft)
-            sim.state.statephys_from_statefft()
+class SpecificInitFields(object):
+    tag = 'specific'
 
-        if type_flow_init == 'LOAD_FILE':
-            self.get_state_from_file(self.params.init_fields.path_file)
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        # to avoid a "bug" with ContainerXML
+        atypes = params.init_fields.available_types
+        atypes.append(cls.tag)
+        params.init_fields.available_types = atypes
 
-        elif type_flow_init == 'CONSTANT':
-            sim.state.state_fft.initialize(value=1.)
-            sim.state.state_phys.initialize(value=1.)
+    def __init__(self, sim):
+        self.sim = sim
 
-    def init_fields_1dipole(self):
-        rot = self.vorticity_shape_1dipole()
-        rot_fft = self.oper.fft2(rot)
 
-        self.oper.dealiasing(rot_fft)
-        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+class InitFieldsFromFile(SpecificInitFields):
 
-        return rot_fft, ux_fft, uy_fft
+    tag = 'from_file'
 
-    def vorticity_shape_1dipole(self):
-        xs = self.oper.Lx/2
-        ys = self.oper.Ly/2
-        theta = np.pi/2.3
-        b = 2.5
-        omega = np.zeros(self.oper.shapeX_loc)
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        super(cls, cls)._complete_params_with_default(params)
+        params.init_fields.set_child(cls.tag, attribs={'path': ''})
 
-        def wz_2LO(XX, YY, b):
-            return (2*np.exp(-(XX**2 + (YY-b/2)**2)) -
-                    2*np.exp(-(XX**2 + (YY+b/2)**2)))
+    def __call__(self):
 
-        for ip in range(-1, 2):
-            for jp in range(-1, 2):
-                XX_s = (np.cos(theta)*(self.oper.XX-xs-ip*self.oper.Lx) +
-                        np.sin(theta)*(self.oper.YY-ys-jp*self.oper.Ly))
-                YY_s = (np.cos(theta)*(self.oper.YY-ys-jp*self.oper.Ly) -
-                        np.sin(theta)*(self.oper.XX-xs-ip*self.oper.Lx))
-                omega = omega + wz_2LO(XX_s, YY_s, b)
-        return omega
+        # Warning: this function is for 2d pseudo-spectral solver!
+        # We have to write something more general.
 
-    def init_fields_jet(self):
-        rot = self.vorticity_jet()
-        rot_fft = self.oper.fft2(rot)
-        rot_fft[self.oper.KK == 0] = 0.
-        self.oper.dealiasing(rot_fft)
-        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        return rot_fft, ux_fft, uy_fft
+        params = self.sim.params
 
-    def vorticity_jet(self):
-        Ly = self.oper.Ly
-        a = 0.5
-        b = Ly/2
-        omega0 = 2.
-        omega = omega0*(
-            np.exp(-((self.oper.YY - Ly/2 + b/2)/a)**2) -
-            np.exp(-((self.oper.YY - Ly/2 - b/2)/a)**2) +
-            np.exp(-((self.oper.YY - Ly/2 + b/2 + Ly)/a)**2) -
-            np.exp(-((self.oper.YY - Ly/2 - b/2 + Ly)/a)**2) +
-            np.exp(-((self.oper.YY - Ly/2 + b/2 - Ly)/a)**2) -
-            np.exp(-((self.oper.YY - Ly/2 - b/2 - Ly)/a)**2))
-        return omega
+        path_file = params.init_fields.from_file.path
 
-    def init_fields_noise(self):
-        try:
-            lambda0 = self.params.lambda_noise
-        except AttributeError:
-            lambda0 = self.oper.Lx/4
-
-        def H_smooth(x, delta):
-            return (1. + np.tanh(2*np.pi*x/delta))/2
-
-        # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42)  # this does not work for MPI...
-
-        ux_fft = (np.random.random(self.oper.shapeK) +
-                  1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
-        uy_fft = (np.random.random(self.oper.shapeK) +
-                  1j*np.random.random(self.oper.shapeK) - 0.5 - 0.5j)
-
-        if mpi.rank == 0:
-            ux_fft[0, 0] = 0.
-            uy_fft[0, 0] = 0.
-
-        self.oper.projection_perp(ux_fft, uy_fft)
-        self.oper.dealiasing(ux_fft, uy_fft)
-
-        k0 = 2*np.pi/lambda0
-        delta_k0 = 1.*k0
-        ux_fft = ux_fft*H_smooth(k0-self.oper.KK, delta_k0)
-        uy_fft = uy_fft*H_smooth(k0-self.oper.KK, delta_k0)
-
-        ux = self.oper.ifft2(ux_fft)
-        uy = self.oper.ifft2(uy_fft)
-        velo_max = np.sqrt(ux**2+uy**2).max()
-        if mpi.nb_proc > 1:
-            velo_max = self.oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-        ux = self.params.init_fields.max_velo_noise*ux/velo_max
-        uy = self.params.init_fields.max_velo_noise*uy/velo_max
-        ux_fft = self.oper.fft2(ux)
-        uy_fft = self.oper.fft2(uy)
-
-        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        return rot_fft, ux_fft, uy_fft
-
-    def init_fields_noise_rot(self, lambda0):
-        H_smooth = lambda x, delta: (1. + np.tanh(2*np.pi*x/delta))/2
-        rot_fft = (np.random.random([self.nky, self.nkx])
-                   + 1j*np.random.random([self.nky, self.nkx]) - 0.5 - 0.5j)
-        k0 = 2*np.pi/lambda0
-        delta_k0 = 1*k0
-        rot_fft = rot_fft*H_smooth(k0-self.KK, delta_k0)
-        self.oper.dealiasing(rot_fft)
-        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        ux = self.oper.ifft2(ux_fft)
-        uy = self.oper.ifft2(uy_fft)
-        velo_max = np.sqrt(ux**2+uy**2).max()
-        if mpi.nb_proc > 1:
-            velo_max = self.oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-        ux = ux/velo_max
-        uy = uy/velo_max
-        ux_fft = self.oper.fft2(ux)
-        uy_fft = self.oper.fft2(uy)
-
-        return rot_fft, ux_fft, uy_fft
-
-    def init_fields_wave(self):
-        ikx = self.sim.params.ikx
-        eta0 = self.sim.params.eta0
-
-        # BE CARREFUL, THIS WON'T WORK WITH MPI !!!
-        if mpi.rank == 0:
-            print 'init_fields_wave(ikx = {0:4d}, eta0 = {1:7.2e})'.format(
-                ikx, eta0)
-            print 'kx[ikx] = {0:8.2f}'.format(self.oper.kxE[ikx])
-
-        if mpi.nb_proc > 1:
-            raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'
-                             '  DO NOT USE THIS METHOD WITH MPI '
-                             '(or rewrite it :-)')
-
-        eta_fft = self.oper.constant_arrayK(value=0.)
-        ux_fft = self.oper.constant_arrayK(value=0.)
-        uy_fft = self.oper.constant_arrayK(value=0.)
-
-        eta_fft[0, self.sim.params.ikx] = 0.1*eta0
-        # eta_fft[ikx, 0] = 0.1j*eta0
-
-        self.oper.project_fft_on_realX(eta_fft)
-
-#        ux_fft[0,ikx] = 1.j*eta0
-#        uy_fft[0,ikx] = 1.j*eta0
-
-        div_fft = self.oper.constant_arrayK(value=0.)
-        div_fft[ikx, 0] = eta0
-        div_fft[0, ikx] = eta0
-        self.oper.project_fft_on_realX(div_fft)
-        ux_fft, uy_fft = self.oper.vecfft_from_divfft(div_fft)
-
-        return eta_fft, ux_fft, uy_fft
-
-    def get_state_from_file(self, path_file):
         if mpi.rank == 0:
             try:
                 f = h5py.File(path_file, 'r')
@@ -254,22 +146,22 @@ class InitFieldsBase(object):
                 Lx_file = Lx_file.item()
                 Ly_file = Ly_file.item()
 
-            if self.params.oper.nx != nx_file:
+            if params.oper.nx != nx_file:
                 raise ValueError(
                     'this is not a correct state for this simulation\n'
                     'self.nx != params_file.nx')
 
-            if self.params.oper.ny != ny_file:
+            if params.oper.ny != ny_file:
                 raise ValueError(
                     'this is not a correct state for this simulation\n'
                     'self.ny != params_file.ny')
 
-            if self.params.oper.Lx != Lx_file:
+            if params.oper.Lx != Lx_file:
                 raise ValueError(
                     'this is not a correct state for this simulation\n'
                     'self.params.oper.Lx != params_file.Lx')
 
-            if self.params.oper.Ly != Ly_file:
+            if params.oper.Ly != Ly_file:
                 raise ValueError(
                     'this is not a correct state for this simulation\n'
                     'self.params.oper.Ly != params_file.Ly')
@@ -311,7 +203,19 @@ class InitFieldsBase(object):
         self.sim.state.statephys_from_statefft()
         self.sim.time_stepping.t = t_file
 
-    def get_state_from_obj_simul(self, sim_in):
+
+class InitFieldsFromSimul(SpecificInitFields):
+
+    tag = 'from_simul'
+
+    def __call__(self):
+        self.sim.init_fields.get_state_from_simul = self._get_state_from_simul
+
+    def _get_state_from_simul(self, sim_in):
+
+        # Warning: this function is for 2d pseudo-spectral solver!
+        # We have to write something more general.
+        # It should be done directly in the operators.
 
         if mpi.nb_proc > 1:
             raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'
@@ -364,3 +268,65 @@ class InitFieldsBase(object):
                         self.oper.constant_arrayK(value=0.)
 
         self.sim.state.statephys_from_statefft()
+
+
+class InitFieldsManual(SpecificInitFields):
+
+    tag = 'manual'
+
+    def __call__(self):
+        self.sim.output.print_stdout(
+            'Manual initialization of the fields in selected. '
+            'Do not forget to initialize them.')
+
+
+class InitFieldsConstant(SpecificInitFields):
+
+    tag = 'constant'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        super(cls, cls)._complete_params_with_default(params)
+        params.init_fields.set_child(cls.tag, attribs={'value': 1.})
+
+    def __call__(self):
+        value = self.sim.params.init_fields.constant.value
+        self.sim.state.state_phys.initialize(value)
+        self.sim.state.statefft_from_statephys()
+
+
+#     def init_fields_wave(self):
+#         ikx = self.sim.params.ikx
+#         eta0 = self.sim.params.eta0
+
+#         # BE CARREFUL, THIS WON'T WORK WITH MPI !!!
+#         if mpi.rank == 0:
+#             print 'init_fields_wave(ikx = {0:4d}, eta0 = {1:7.2e})'.format(
+#                 ikx, eta0)
+#             print 'kx[ikx] = {0:8.2f}'.format(self.oper.kxE[ikx])
+
+#         if mpi.nb_proc > 1:
+#             raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'
+#                              '  DO NOT USE THIS METHOD WITH MPI '
+#                              '(or rewrite it :-)')
+
+#         eta_fft = self.oper.constant_arrayK(value=0.)
+#         ux_fft = self.oper.constant_arrayK(value=0.)
+#         uy_fft = self.oper.constant_arrayK(value=0.)
+
+#         eta_fft[0, self.sim.params.ikx] = 0.1*eta0
+#         # eta_fft[ikx, 0] = 0.1j*eta0
+
+#         self.oper.project_fft_on_realX(eta_fft)
+
+# #        ux_fft[0,ikx] = 1.j*eta0
+# #        uy_fft[0,ikx] = 1.j*eta0
+
+#         div_fft = self.oper.constant_arrayK(value=0.)
+#         div_fft[ikx, 0] = eta0
+#         div_fft[0, ikx] = eta0
+#         self.oper.project_fft_on_realX(div_fft)
+#         ux_fft, uy_fft = self.oper.vecfft_from_divfft(div_fft)
+
+#         return eta_fft, ux_fft, uy_fft
+

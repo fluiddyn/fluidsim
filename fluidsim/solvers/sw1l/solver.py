@@ -10,36 +10,36 @@ from fluidsim.base.solvers.pseudo_spect import (
 from fluiddyn.util import mpi
 
 
-class InfoSolverSW1l(InfoSolverPseudoSpectral):
-    """Information about the solver SW1l."""
+class InfoSolverSW1L(InfoSolverPseudoSpectral):
+    """Information about the solver SW1L."""
     def _init_root(self):
-        super(InfoSolverSW1l, self)._init_root()
+        super(InfoSolverSW1L, self)._init_root()
 
         package = 'fluidsim.solvers.sw1l'
 
         self.module_name = package + '.solver'
         self.class_name = 'Simul'
-        self.short_name = 'SW1l'
+        self.short_name = 'SW1L'
 
         classes = self.classes
 
         classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateSW1l'
+        classes.State.class_name = 'StateSW1L'
 
         classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsSW1l'
+        classes.InitFields.class_name = 'InitFieldsSW1L'
 
         classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'OutputSW1l'
+        classes.Output.class_name = 'OutputSW1L'
 
         classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingSW1l'
+        classes.Forcing.class_name = 'ForcingSW1L'
 
 
 class Simul(SimulBasePseudoSpectral):
-    """A solver of the shallow-water 1 layer equations (SW1l)"""
+    """A solver of the shallow-water 1 layer equations (SW1L)"""
 
-    InfoSolver = InfoSolverSW1l
+    InfoSolver = InfoSolverSW1L
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -139,9 +139,11 @@ if __name__ == "__main__":
     delta_x = params.oper.Lx/params.oper.nx
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 1.
+    # params.time_stepping.USE_CFL = False
+    # params.time_stepping.deltat0 = 0.01
 
-    params.init_fields.type_flow_init = 'NOISE'
+    params.init_fields.type = 'noise'
 
     params.FORCING = False
     params.forcing.type = 'Random'
@@ -157,12 +159,12 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = 'eta'
 
     sim = Simul(params)
 
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot(key_field='eta')
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot(key_field='eta')
 
     fld.show()

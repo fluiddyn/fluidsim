@@ -7,7 +7,7 @@ from fluidsim.base.output.spatial_means import (
     SpatialMeansBase, inner_prod)
 
 
-class SpatialMeansMSW1l(SpatialMeansBase):
+class SpatialMeansMSW1L(SpatialMeansBase):
     """A :class:`SpatialMean` object handles the saving of ."""
 
     def __init__(self, output):
@@ -16,7 +16,7 @@ class SpatialMeansMSW1l(SpatialMeansBase):
         self.c2 = params.c2
         self.f = params.f
 
-        super(SpatialMeansMSW1l, self).__init__(output)
+        super(SpatialMeansMSW1L, self).__init__(output)
 
     def save_one_time(self):
         tsim = self.sim.time_stepping.t
@@ -554,7 +554,7 @@ class SpatialMeansMSW1l(SpatialMeansBase):
 
 
 
-class SpatialMeansSW1l(SpatialMeansMSW1l):
+class SpatialMeansSW1L(SpatialMeansMSW1L):
     """A :class:`SpatialMean` object handles the saving of ."""
 
     def treat_dissipation_rates(self, energyK_fft, energyA_fft,
@@ -564,7 +564,7 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
         f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
 
         dico_eps = super(
-            SpatialMeansSW1l, self
+            SpatialMeansSW1L, self
         ).compute_dissipation_rates(
             f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft)
 
@@ -572,7 +572,7 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
         (epsKsuppl, epsKsuppl_hypo
          ) = self.compute_epsK(f_d, f_d_hypo, energyK_fft, dico_eps)
 
-        super(SpatialMeansSW1l, self).save_dissipation_rates(dico_eps)
+        super(SpatialMeansSW1L, self).save_dissipation_rates(dico_eps)
 
         if mpi.rank == 0:
             to_print =  (
@@ -607,7 +607,7 @@ class SpatialMeansSW1l(SpatialMeansMSW1l):
 
     def load(self):
 
-        dico_results = super(SpatialMeansSW1l, self).load()
+        dico_results = super(SpatialMeansSW1L, self).load()
 
         file_means = open(self.path_file)
         lines = file_means.readlines()
