@@ -60,13 +60,14 @@ class SpatialMeansPlate2D(SpatialMeansBase):
     def save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
-
-        energy_fft = self.output.compute_energy_fft()
-        energy = self.sum_wavenumbers(energy_fft)
-
-        f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
-        epsK = self.sum_wavenumbers(f_d*2*energy_fft)
-        epsK_hypo = self.sum_wavenumbers(f_d_hypo*2*energy_fft)
+        Ek_fft, El_fft, Ee_fft = self.output.compute_energies_fft()
+        energy_k = self.sum_wavenumbers(Ek_fft)
+        energy_l = self.sum_wavenumbers(El_fft)
+        energy_e = self.sum_wavenumbers(Ee_fft)
+        energy = energy_k + energy_l + energy_e
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
+        epsK = self.sum_wavenumbers(f_d[0]*2*Ek_fft)
+        epsK_hypo = self.sum_wavenumbers(f_d_hypo[0]*2*Ek_fft)
 
         if self.sim.params.FORCING:
             deltat = self.sim.time_stepping.deltat
@@ -100,10 +101,13 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             self.file.write(
                 '####\ntime = {0:7.3f}\n'.format(tsim))
             to_print = (
-                'E    = {0:11.6e} \n'
-                'epsK = {1:11.6e} ; epsK_hypo = {2:11.6e} ; '
-                'epsK_tot = {3:11.6e} \n').format(
-                    energy, epsK, epsK_hypo, epsK+epsK_hypo)
+                'E    = {:11.6e} ; E_k    = {:11.6e} ; '
+                'E_l    = {:11.6e} ; E_e    = {:11.6e} \n'
+                'epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; '
+                'epsK_tot = {:11.6e} \n').format(
+                    energy, energy_k, energy_l, energy_e,
+                    epsK, epsK_hypo, epsK+epsK_hypo)
+
             self.file.write(to_print)
 
             if self.sim.params.FORCING:
@@ -117,8 +121,11 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             self.file.flush()
             os.fsync(self.file.fileno())
 
-        if self.sim.params.output.spatial_means.has_to_plot and mpi.rank == 0:
+        if self.has_to_plot and mpi.rank == 0:
 
+            self.axe_a.plot(tsim, energy_k, 'g.')
+            self.axe_a.plot(tsim, energy_l, 'b.')
+            self.axe_a.plot(tsim, energy_e, 'r.')
             self.axe_a.plot(tsim, energy, 'k.')
 
             self.axe_b.plot(tsim, epsK_tot, 'k.')
@@ -160,7 +167,9 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         t = np.empty(nt)
         E = np.empty(nt)
-        Z = np.empty(nt)
+        E_k = np.empty(nt)
+        E_l = np.empty(nt)
+        E_e = np.empty(nt)
         PK1 = np.empty(nt)
         PK2 = np.empty(nt)
         PK_tot = np.empty(nt)
@@ -179,7 +188,9 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             line = lines_E[il]
             words = line.split()
             E[il] = float(words[2])
-            Z[il] = float(words[6])
+            E_k[il] = float(words[6])
+            E_l[il] = float(words[10])
+            E_e[il] = float(words[14])
 
             if self.sim.params.FORCING:
                 line = lines_PK[il]
@@ -202,7 +213,9 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         dico_results['t'] = t
         dico_results['E'] = E
-        dico_results['Z'] = Z
+        dico_results['E_k'] = E_k
+        dico_results['E_l'] = E_l
+        dico_results['E_e'] = E_e
 
         dico_results['PK1'] = PK1
         dico_results['PK2'] = PK2
@@ -223,7 +236,9 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         t = dico_results['t']
         E = dico_results['E']
-        Z = dico_results['Z']
+        E_k = dico_results['E_k']
+        E_l = dico_results['E_l']
+        E_e = dico_results['E_e']
 
         PK_tot = dico_results['PK_tot']
 
@@ -240,17 +255,12 @@ class SpatialMeansPlate2D(SpatialMeansBase):
                     width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
-        ax1.set_ylabel('E(t)')
+        ax1.set_ylabel('Energies')
         ax1.hold(True)
+        ax1.plot(t, E_k, 'g', linewidth=2)
+        ax1.plot(t, E_l, 'b', linewidth=2)
+        ax1.plot(t, E_e, 'r', linewidth=2)
         ax1.plot(t, E, 'k', linewidth=2)
-
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('Z(t)')
-        ax2.hold(True)
-        ax2.plot(t, Z, 'k', linewidth=2)
 
         z_bottom_axe = 0.55
         size_axe[1] = z_bottom_axe

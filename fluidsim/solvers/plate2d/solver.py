@@ -290,7 +290,7 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 2*np.pi/kmax**2
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 50.0
+    params.time_stepping.t_end = 1.0
     params.time_stepping.it_end = 1
 
     # params.init_fields.type = 'HARMONIC'
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='
     #     '2pix2pi_256x256_2015-03-04_22-36-37/state_phys_t=000.100.hd5')
 
-    params.FORCING = True
+    params.FORCING = False
     params.forcing.forcing_rate = 1000.
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4
@@ -313,18 +313,21 @@ if __name__ == "__main__":
     # params.output.periods_save.increments = 0.5
     # params.output.periods_save.correl_freq = 0.9*params.time_stepping.deltat0
 
-    params.output.ONLINE_PLOT_OK = False
+    params.output.ONLINE_PLOT_OK = True
     params.output.period_show_plot = 0.5
-    params.output.periods_plot.phys_fields = 5.
+    params.output.periods_plot.phys_fields = 0.
 
     params.output.phys_fields.field_to_plot = 'z'
 
-    params.output.spectra.HAS_TO_PLOT_SAVED = True
+    params.output.spectra.HAS_TO_PLOT_SAVED = False
+
+    params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+    params.output.periods_save.spatial_means = 0.0005
 
     sim = Simul(params)
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    sim.output.phys_fields.plot()
+#    sim.output.phys_fields.plot()
 
     fld.show()
