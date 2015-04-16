@@ -70,6 +70,14 @@ class Converter(object):
         """Compute the adimensional deformation."""
         return z*self.tilde_Z
 
+    def compute_w_adim(self, w):
+        """Compute the dimensional deformation."""
+        return self.tilde_T/self.tilde_Z*w
+
+    def compute_w_dim(self, w):
+        """Compute the adimensional deformation."""
+        return self.tilde_Z/self.tilde_T*w
+
     def compute_nu4_adim(self, nu4):
         """Compute the dimensional hyper-viscosity."""
         return nu4/self.tilde_nu4
