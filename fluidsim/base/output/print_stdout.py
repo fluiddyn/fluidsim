@@ -2,9 +2,9 @@
 from __future__ import print_function
 
 import os
-# import numpy as np
+import numpy as np
 
-# from time import time
+from time import time
 
 from fluiddyn.util import mpi
 
@@ -56,7 +56,6 @@ class PrintStdOutBase(object):
 
         self.energy_temp = self.energy0+0.
         self.t_last_print_info = -self.period_print
-        self.t_real_word_last = 0.
 
         self.print_stdout = self.__call__
 
@@ -73,12 +72,42 @@ class PrintStdOutBase(object):
         """Print simple info on the current state of the simulation"""
         tsim = self.sim.time_stepping.t
         if (tsim-self.t_last_print_info >= self.period_print):
+            self._print_info()
             self.t_last_print_info = tsim
-            self.print_stdout(
-                'it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n'.format(
-                    self.sim.time_stepping.it,
-                    self.sim.time_stepping.t,
-                    self.sim.time_stepping.deltat))
+
+    def _print_info(self):
+        self.print_stdout(self._make_str_info())
+
+    def _make_str_info(self):
+        return 'it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n'.format(
+            self.sim.time_stepping.it,
+            self.sim.time_stepping.t,
+            self.sim.time_stepping.deltat)
+
+    def _evaluate_duration_left(self):
+        t_real_word = time()
+        try:
+            duration_real_word = t_real_word - self.t_real_word_last
+        except AttributeError:
+            self.t_real_word_last = t_real_word
+            return
+
+        self.t_real_word_last = t_real_word
+        tsim = self.sim.time_stepping.t
+        duration_simul_time = tsim - self.t_last_print_info
+
+        if duration_simul_time == 0:
+            return
+
+        if self.params.time_stepping.USE_T_END:
+            remaining_simul_time = self.params.time_stepping.t_end - tsim
+        else:
+            remaining_simul_time = (
+                (self.params.time_stepping.it_end -
+                 self.sim.time_stepping.it) * self.sim.time_stepping.deltat)
+
+        return (remaining_simul_time / duration_simul_time *
+                duration_real_word)
 
     def close(self):
         try:

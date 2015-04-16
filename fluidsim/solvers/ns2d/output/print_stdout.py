@@ -1,7 +1,6 @@
 
 from __future__ import print_function, division
 
-from time import time
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -15,44 +14,23 @@ class PrintStdOutNS2D(PrintStdOutBase):
 
     """
 
-    def online_print(self):
-        tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_print_info <= self.period_print):
-            return
-
-        tsim = self.sim.time_stepping.t
-        itsim = self.sim.time_stepping.it
-        deltatsim = self.sim.time_stepping.deltat
+    def _make_str_info(self):
+        to_print = super(PrintStdOutNS2D, self)._make_str_info()
 
         energy = self.output.compute_energy()
         if mpi.rank == 0:
-            t_real_word = time()
-            if self.t_real_word_last == 0.:
-                duration_left = 0
-            else:
-                if self.params.time_stepping.USE_T_END:
-                    duration_left = int(np.round(
-                        (self.params.time_stepping.t_end - tsim)
-                        * (t_real_word-self.t_real_word_last)
-                        / (tsim - self.t_last_print_info)
-                    ))
-                else:
-                    duration_left = int(np.round(
-                        (self.params.time_stepping.it_end - itsim)
-                        * (t_real_word-self.t_real_word_last)
-                    ))
-            to_print = (
-                'it = {0:6d} ; t      = {1:9.3f} ; deltat       = {2:10.5g}\n'+
-                '              energy = {3:9.3e} ; Delta energy = {4:+9.3e}\n'+
-                '              estimated remaining duration = {5:6d} s')
-            to_print = to_print.format(
-                itsim, tsim, deltatsim,
-                energy, energy-self.energy_temp,
-                duration_left)
-            self.print_stdout(to_print)
-            self.t_real_word_last = t_real_word
+            to_print += (
+                '              energy = {:9.3e} ; Delta energy = {:+9.3e}\n'
+                ''.format(energy, energy-self.energy_temp))
+
+            duration_left = self._evaluate_duration_left()
+            if duration_left is not None:
+                to_print += (
+                    '              estimated remaining duration = {:9.3g} s'
+                    ''.format(duration_left))
+
         self.energy_temp = energy
-        self.t_last_print_info = tsim
+        return to_print
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}

@@ -1,7 +1,6 @@
 
 from __future__ import print_function, division
 
-from time import time
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -14,46 +13,27 @@ class PrintStdOutSW1L(PrintStdOutBase):
     stdout and the stdout.txt file, and also to print simple info on
     the current state of the simulation."""
 
-    def online_print(self):
-        tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_print_info <= self.period_print):
-            return
-
-        itsim = self.sim.time_stepping.it
-        deltatsim = self.sim.time_stepping.deltat
+    def _make_str_info(self):
+        to_print = super(PrintStdOutSW1L, self)._make_str_info()
 
         energyK, energyA = self.output.compute_energiesKA()
         energy = energyK + energyA
-        if mpi.rank==0:
-            t_real_word = time()
-            if self.t_real_word_last == 0.:
-                duration_left = 0
-            else:
-                if self.params.time_stepping.USE_T_END:
-                    duration_left = int(np.round(
-                        (self.params.time_stepping.t_end - tsim)
-                        *(t_real_word-self.t_real_word_last)
-                        /(tsim - self.t_last_print_info)
-                    ))
-                else:
-                    duration_left = int(np.round(
-                        (self.params.time_stepping.it_end - itsim)
-                        *(t_real_word-self.t_real_word_last)
-                    ))
-            to_print = (
-                'it = {0:6d} ; t       = {1:9.3f} ; deltat       = {2:10.3g}\n'
-                '              energy  = {3:8.3e} ; Delta energy = {4:8.3e}\n'
-                '              energyK = {5:8.3e} ; energyA      = {6:8.3e}\n'
-                '              estimated remaining duration = {7:6d} s')
-            to_print = to_print.format(
-                itsim, tsim, deltatsim,
-                energy, energy-self.energy_temp,
-                energyK, energyA,
-                duration_left)
-            self.print_stdout(to_print)
-            self.t_real_word_last = t_real_word
+
+        energy = self.output.compute_energy()
+        if mpi.rank == 0:
+            to_print += (
+                '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
+                '              energyK = {:9.3e} ; energyA      = {:9.3e}\n'
+                ''.format(energy, energy-self.energy_temp, energyK, energyA))
+
+            duration_left = self._evaluate_duration_left()
+            if duration_left is not None:
+                to_print += (
+                    '              estimated remaining duration = {:9.3g} s'
+                    ''.format(duration_left))
+
         self.energy_temp = energy
-        self.t_last_print_info = tsim
+        return to_print
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
@@ -64,14 +44,14 @@ class PrintStdOutSW1L(PrintStdOutBase):
         lines_E = []
         lines_E_KA = []
         for il, line in enumerate(lines):
-            if line[0:4]=='it =':
+            if line[0:4] == 'it =':
                 lines_t.append(line)
-            if line[0:23]=='              energy  =':
+            if line[0:23] == '              energy  =':
                 lines_E.append(line)
-            if line[0:23]=='              energyK =':
+            if line[0:23] == '              energyK =':
                 lines_E_KA.append(line)
         nt = len(lines_t)
-        if nt > 1: 
+        if nt > 1:
             nt -= 1
 
         it = np.zeros(nt, dtype=np.int)
@@ -110,11 +90,9 @@ class PrintStdOutSW1L(PrintStdOutBase):
         dico_results['E_A'] = E_A
         return dico_results
 
-
     def plot(self):
         dico_results = self.load()
 
-        it = dico_results['it']
         t = dico_results['t']
         deltat = dico_results['deltat']
         E = dico_results['E']
@@ -131,7 +109,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
         ax1.set_ylabel('deltat(t)')
-        title = ('info stdout, solver '+self.output.name_solver+
+        title = ('info stdout, solver '+self.output.name_solver +
                  ', nh = {0:5d}'.format(self.nx))
 
         try:
@@ -142,7 +120,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
 
         ax1.set_title(title)
         ax1.hold(True)
-        ax1.plot(t, deltat, 'k', linewidth=2 )
+        ax1.plot(t, deltat, 'k', linewidth=2)
 
         z_bottom_axe = 0.08
         size_axe = [x_left_axe, z_bottom_axe,
@@ -151,7 +129,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
         ax2.set_xlabel('t')
         ax2.set_ylabel('E(t), deltaE(t)')
         ax2.hold(True)
-        ax2.plot(t, E, 'k', linewidth=2 )
-        ax2.plot(t, E_K, 'r', linewidth=2 )
-        ax2.plot(t, E_A, 'b', linewidth=2 )
-        ax2.plot(t, deltaE, 'k--', linewidth=2 )
+        ax2.plot(t, E, 'k', linewidth=2)
+        ax2.plot(t, E_K, 'r', linewidth=2)
+        ax2.plot(t, E_A, 'b', linewidth=2)
+        ax2.plot(t, deltaE, 'k--', linewidth=2)
