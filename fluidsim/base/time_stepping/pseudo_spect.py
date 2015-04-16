@@ -56,11 +56,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     """
     def __init__(self, sim):
-        self.params = sim.params
-        self.sim = sim
-
-        self.it = 0
-        self.t = 0
+        super(TimeSteppingPseudoSpectral, self).__init__(sim)
 
         self._init_freq_lin()
         self._init_compute_time_step()
@@ -94,8 +90,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         self._time_step_RK()
         self.sim.oper.dealiasing(self.sim.state.state_fft)
         self.sim.state.statephys_from_statefft()
-        self.t += self.deltat
-        self.it += 1
         if np.isnan(np.min(self.sim.state.state_fft[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))

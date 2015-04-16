@@ -449,3 +449,7 @@ class SpecificOutput(object):
                 dset_k = f[k]
                 dset_k.resize((nb_saved_times+1, v.size))
                 dset_k[nb_saved_times] = v
+
+    def _has_to_online_save(self):
+        return (self.sim.time_stepping.t - self.t_last_save >=
+                self.period_save - 1e-14)

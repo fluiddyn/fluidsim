@@ -33,6 +33,13 @@ class TimeSteppingBase(object):
                    'deltat0': 0.2}
         params.set_child('time_stepping', attribs=attribs)
 
+    def __init__(self, sim):
+        self.params = sim.params
+        self.sim = sim
+
+        self.it = 0
+        self.t = 0
+
     def _init_compute_time_step(self):
 
         params_ts = self.params.time_stepping
@@ -119,6 +126,8 @@ class TimeSteppingBase(object):
             self.sim.forcing.compute()
         self.sim.output.one_time_step()
         self.one_time_step_computation()
+        self.t += self.deltat
+        self.it += 1
 
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""

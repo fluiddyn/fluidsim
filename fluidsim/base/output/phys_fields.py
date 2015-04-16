@@ -30,7 +30,8 @@ class PhysFieldsBase(SpecificOutput):
     def _complete_params_with_default(params):
         tag = 'phys_fields'
         params.output.set_child(tag,
-                                attribs={'field_to_plot': 'ux'})
+                                attribs={'field_to_plot': 'ux',
+                                         'file_with_it': False})
 
         params.output.periods_save.set_attrib(tag, 0)
         params.output.periods_plot.set_attrib(tag, 0)
@@ -49,7 +50,6 @@ class PhysFieldsBase(SpecificOutput):
             return
 
         self.t_last_save = self.sim.time_stepping.t
-
         self.t_last_plot = self.sim.time_stepping.t
 
     def init_files(self, dico_arrays_1time=None):
@@ -61,7 +61,7 @@ class PhysFieldsBase(SpecificOutput):
     def online_save(self):
         """Online save."""
         tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_save >= self.period_save):
+        if self._has_to_online_save():
             self.t_last_save = tsim
             self.save()
 
@@ -89,10 +89,19 @@ class PhysFieldsBase(SpecificOutput):
             os.mkdir(path_run)
 
         if mpi.rank == 0:
-            name_save = \
-                'state_phys_t={0:7.3f}.hd5'.format(time).replace(' ', '0')
-            path_file = path_run+'/'+name_save
-            to_print = 'save state_phys in file '+name_save
+            if (self.period_save < 0.001 or
+                    self.params.output.phys_fields.file_with_it):
+                name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
+                    time, self.sim.time_stepping.it)
+            else:
+                name_save = 'state_phys_t={:07.3f}.hd5'.format(time)
+
+            path_file = os.path.join(path_run, name_save)
+            if os.path.exists(path_file):
+                name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
+                    time, self.sim.time_stepping.it)
+                path_file = os.path.join(path_run, name_save)
+            to_print = 'save state_phys in file ' + name_save
             self.output.print_stdout(to_print)
 
             f = h5py.File(path_file, 'w')
