@@ -29,8 +29,8 @@ class SpectralEnergyBudgetBase(SpecificOutput):
     def _complete_params_with_default(params):
         tag = 'spect_energy_budg'
 
-        params.output.periods_save.set_attrib(tag, 0)
-        params.output.set_child(tag,
+        params.output.periods_save._set_attrib(tag, 0)
+        params.output._set_child(tag,
                                 attribs={'HAS_TO_PLOT_SAVED': False})
 
     def __init__(self, output):

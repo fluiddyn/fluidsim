@@ -20,7 +20,7 @@ class StateNS2D(StatePseudoSpectral):
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['rot_fft'],
             'keys_state_phys': ['ux', 'uy', 'rot'],
             'keys_computable': [],

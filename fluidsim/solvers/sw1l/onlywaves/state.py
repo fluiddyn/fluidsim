@@ -32,7 +32,7 @@ class StateSW1LWaves(StateSW1L):
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['ap_fft', 'am_fft'],
             'keys_state_phys': ['ux', 'uy', 'eta'],
             'keys_computable': [],

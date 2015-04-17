@@ -81,8 +81,8 @@ def load_info_solver(path_dir=None):
 #     info_solver = load_info_solver(path_dir=path_dir)
 #     params = load_params_simul(path_dir=path_dir)
 #     info = ContainerXML(tag='info_simul')
-#     info.set_as_child(info_solver)
-#     info.set_as_child(params)
+#     info._set_as_child(info_solver)
+#     info._set_as_child(params)
 #     return info
 
 

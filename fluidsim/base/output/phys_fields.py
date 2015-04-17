@@ -29,12 +29,12 @@ class PhysFieldsBase(SpecificOutput):
     @staticmethod
     def _complete_params_with_default(params):
         tag = 'phys_fields'
-        params.output.set_child(tag,
+        params.output._set_child(tag,
                                 attribs={'field_to_plot': 'ux',
                                          'file_with_it': False})
 
-        params.output.periods_save.set_attrib(tag, 0)
-        params.output.periods_plot.set_attrib(tag, 0)
+        params.output.periods_save._set_attrib(tag, 0)
+        params.output.periods_plot._set_attrib(tag, 0)
 
     def __init__(self, output):
         params = output.sim.params
@@ -111,7 +111,7 @@ class PhysFieldsBase(SpecificOutput):
             if particular_attr is not None:
                 f.attrs['particular_attr'] = particular_attr
 
-            self.sim.info.xml_to_hdf5(hdf5_parent=f)
+            self.sim.info._save_as_hdf5(hdf5_parent=f)
             gp_info = f['info_simul']
             gf_params = gp_info['params']
             gf_params.attrs['SAVE'] = True

@@ -20,12 +20,12 @@ class Output(OutputBasePseudoSpectral):
         classes.PrintStdOut.module_name = base_name_mod + '.print_stdout'
         classes.PrintStdOut.class_name = 'PrintStdOutNS2D'
 
-        classes.set_child(
+        classes._set_child(
             'Spectra',
             attribs={'module_name': base_name_mod + '.spectra',
                      'class_name': 'SpectraNS2D'})
 
-        classes.set_child(
+        classes._set_child(
             'spatial_means',
             attribs={'module_name': base_name_mod + '.spatial_means',
                      'class_name': 'SpatialMeansNS2D'})
@@ -33,12 +33,12 @@ class Output(OutputBasePseudoSpectral):
         attribs = {
             'module_name': base_name_mod + '.spect_energy_budget',
             'class_name': 'SpectralEnergyBudgetNS2D'}
-        classes.set_child('spect_energy_budg', attribs=attribs)
+        classes._set_child('spect_energy_budg', attribs=attribs)
 
         attribs = {
             'module_name': 'fluidsim.base.output.increments',
             'class_name': 'Increments'}
-        classes.set_child('increments', attribs=attribs)
+        classes._set_child('increments', attribs=attribs)
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

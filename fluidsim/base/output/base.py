@@ -46,15 +46,15 @@ class OutputBase(object):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ContainerXML info_solver."""
-        info_solver.classes.Output.set_child('classes')
+        info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
-        classes.set_child(
+        classes._set_child(
             'PrintStdOut',
             attribs={'module_name': 'fluidsim.base.output.print_stdout',
                      'class_name': 'PrintStdOutBase'})
 
-        classes.set_child(
+        classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
                      'class_name': 'PhysFieldsBase'})
@@ -66,11 +66,11 @@ class OutputBase(object):
         attribs = {'period_refresh_plots': 1,
                    'ONLINE_PLOT_OK': True,
                    'HAS_TO_SAVE': True}
-        params.set_child('output', attribs=attribs)
+        params._set_child('output', attribs=attribs)
 
-        params.output.set_child('periods_save')
-        params.output.set_child('periods_print')
-        params.output.set_child('periods_plot')
+        params.output._set_child('periods_save')
+        params.output._set_child('periods_print')
+        params.output._set_child('periods_plot')
 
         dict_classes = info_solver.classes.Output.import_classes()
         for Class in dict_classes.values():
@@ -145,11 +145,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.print_stdout = PrintStdOut(self)
 
         if not self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot.xml_attrib.keys():
+            for k in self.params.periods_plot._attribs.keys():
                 self.params.periods_plot[k] = 0.
 
         if not self.has_to_save:
-            for k in self.params.periods_save.xml_attrib.keys():
+            for k in self.params.periods_save._attribs.keys():
                 self.params.periods_save[k] = 0.
 
     def create_list_for_name_run(self):
@@ -181,7 +181,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if mpi.rank == 0 and self.has_to_save and sim.params.NEW_DIR_RESULTS:
             # save info on the run
-            self.sim.info.solver.xml_save(
+            self.sim.info.solver._save_as_xml(
                 path_file=self.path_run+'/info_solver.xml',
                 comment=(
                     'This file has been created by'
@@ -189,7 +189,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     '.\n\nIt should not be modified '
                     '(except for adding xml comments).'))
 
-            self.sim.params.xml_save(
+            self.sim.params._save_as_xml(
                 path_file=self.path_run+'/params_simul.xml',
                 comment=(
                     'This file has been created by'
@@ -235,19 +235,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def one_time_step(self):
 
-        for k in self.params.periods_print.xml_attrib.keys():
+        for k in self.params.periods_print._attribs.keys():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
                 self.__dict__[k].online_print()
 
         if self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot.xml_attrib.keys():
+            for k in self.params.periods_plot._attribs.keys():
                 period = self.params.periods_plot.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_plot()
 
         if self.has_to_save:
-            for k in self.params.periods_save.xml_attrib.keys():
+            for k in self.params.periods_save._attribs.keys():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_save()
@@ -278,7 +278,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0 and self.has_to_save:
             self.print_stdout.close()
 
-            for k in self.params.periods_save.xml_attrib.keys():
+            for k in self.params.periods_save._attribs.keys():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     if hasattr(self.__dict__[k], 'close_file'):
@@ -412,7 +412,7 @@ class SpecificOutput(object):
                 f.attrs['name_solver'] = self.output.name_solver
                 f.attrs['name_run'] = self.output.name_run
 
-                self.sim.info.xml_to_hdf5(hdf5_parent=f)
+                self.sim.info._save_as_hdf5(hdf5_parent=f)
 
                 times = np.array([self.sim.time_stepping.t])
                 f.create_dataset(

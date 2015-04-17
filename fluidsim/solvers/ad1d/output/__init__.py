@@ -13,17 +13,17 @@ class Output(OutputBase):
 
         This is a static method!
         """
-        info_solver.classes.Output.set_child('classes')
+        info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
         base_name_mod = 'fluidsim.solvers.ad1d.output'
 
-        classes.set_child(
+        classes._set_child(
             'PrintStdOut',
             attribs={'module_name': base_name_mod+'.print_stdout',
                      'class_name': 'PrintStdOutAD1D'})
 
-        classes.set_child(
+        classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
                      'class_name': 'PhysFieldsBase1D'})

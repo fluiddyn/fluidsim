@@ -104,7 +104,7 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'c2': 1., 'f': 0}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def __init__(self, params):
         super(Simul, self).__init__(params, info_solver)

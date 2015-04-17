@@ -24,7 +24,7 @@ class InitFieldsWave(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsWave, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={
+        params.init_fields._set_child(cls.tag, attribs={
             'eta_max': 1.,
             'ikx': 2})
 

@@ -21,13 +21,13 @@ class ForcingBase(object):
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         """Complete the ContainerXML info_solver."""
-        info_solver.classes.Forcing.set_child('classes')
+        info_solver.classes.Forcing._set_child('classes')
 
         if classes is not None:
             classesXML = info_solver.classes.Forcing.classes
 
             for cls in classes:
-                classesXML.set_child(
+                classesXML._set_child(
                     cls.tag,
                     attribs={'module_name': cls.__module__,
                              'class_name': cls.__name__})
@@ -36,7 +36,7 @@ class ForcingBase(object):
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        params.set_child(
+        params._set_child(
             'forcing',
             attribs={'type': '',
                      'available_types': [],
@@ -75,7 +75,7 @@ class ForcingBasePseudoSpectral(ForcingBase):
         """
         ForcingBase._complete_params_with_default(params, info_solver)
 
-        params.forcing.set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
+        params.forcing._set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
 
     def compute(self):
         self._forcing.compute()

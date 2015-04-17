@@ -61,7 +61,7 @@ class SimulBase(object):
                    'FORCING': False,
                    # Physical parameters:
                    'nu_2': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     @classmethod
     def create_default_params(cls):

@@ -29,7 +29,7 @@ class StateBase(object):
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs(
+        info_solver.classes.State._set_attribs(
             {'keys_state_phys': ['ux', 'uy'],
              'keys_computable': [],
              'keys_phys_needed': ['ux', 'uy']})
@@ -98,7 +98,7 @@ class StatePseudoSpectral(StateBase):
 
         StateBase._complete_info_solver(info_solver)
 
-        info_solver.classes.State.set_attribs(
+        info_solver.classes.State._set_attribs(
             {'keys_state_fft': ['ux_fft', 'uy_fft']})
 
     def __init__(self, sim, info_solver):

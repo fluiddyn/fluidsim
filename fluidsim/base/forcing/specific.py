@@ -279,7 +279,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         super(NormalizedForcing, cls)._complete_params_with_default(params)
-        params.forcing.set_child(
+        params.forcing._set_child(
             cls.tag,
             {'type_normalize': '2nd_degree_eq'})
 

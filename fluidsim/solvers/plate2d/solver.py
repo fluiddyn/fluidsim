@@ -143,7 +143,7 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
         """Compute the "nonlinear" tendencies."""

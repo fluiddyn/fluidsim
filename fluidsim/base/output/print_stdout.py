@@ -18,7 +18,7 @@ class PrintStdOutBase(object):
 
     @staticmethod
     def _complete_params_with_default(params):
-        params.output.periods_print.set_attrib('print_stdout', 1.)
+        params.output.periods_print._set_attrib('print_stdout', 1.)
 
     def __init__(self, output):
         sim = output.sim

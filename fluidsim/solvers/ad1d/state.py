@@ -20,7 +20,7 @@ class StateAD1D(StateBase):
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_phys': ['s'],
             'keys_computable': [],
             'keys_phys_needed': ['s'],

@@ -50,7 +50,7 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'f': 0,
                    'c2': 20,
                    'kd2': 0}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def __init__(self, params):
         # Parameter(s) specific to this solver

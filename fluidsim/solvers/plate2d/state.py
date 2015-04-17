@@ -19,7 +19,7 @@ class StatePlate2D(StatePseudoSpectral):
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['w_fft', 'z_fft'],
             'keys_state_phys': ['w', 'z'],
             'keys_computable': [],

@@ -8,8 +8,8 @@ from fluiddyn.util.util import import_class
 def create_info_simul(info_solver, params):
     """Create a ContainerXML instance gathering info_solver and params."""
     info = ContainerXML(tag='info_simul')
-    info.set_as_child(info_solver)
-    info.set_as_child(params)
+    info._set_as_child(info_solver)
+    info._set_as_child(params)
     return info
 
 
@@ -33,23 +33,23 @@ class InfoSolverBase(ContainerXML):
 
     def _init_root(self):
 
-        self.set_attribs({'module_name': 'fluidsim.base.solvers.base',
-                          'class_name': 'SimulBase',
-                          'short_name': 'Base'})
+        self._set_attribs({'module_name': 'fluidsim.base.solvers.base',
+                           'class_name': 'SimulBase',
+                           'short_name': 'Base'})
 
-        self.set_child('classes')
+        self._set_child('classes')
 
-        self.classes.set_child(
+        self.classes._set_child(
             'InitFields',
             attribs={'module_name': 'fluidsim.base.init_fields',
                      'class_name': 'InitFieldsBase'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Forcing',
             attribs={'module_name': 'fluidsim.base.forcing',
                      'class_name': 'ForcingBase'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Output',
             attribs={'module_name': 'fluidsim.base.output.base',
                      'class_name': 'OutputBase'})
@@ -78,5 +78,3 @@ class InfoSolverBase(ContainerXML):
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_info_solver'):
                 Class._complete_info_solver(self)
-
-
