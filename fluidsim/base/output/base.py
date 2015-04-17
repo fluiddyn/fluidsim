@@ -63,7 +63,7 @@ class OutputBase(object):
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        attribs = {'period_show_plot': 1,
+        attribs = {'period_refresh_plots': 1,
                    'ONLINE_PLOT_OK': True,
                    'HAS_TO_SAVE': True}
         params.set_child('output', attribs=attribs)
@@ -349,7 +349,7 @@ class SpecificOutput(object):
             else:
                 self.has_to_plot = False
 
-        self.period_show = params.output.period_show_plot
+        self.period_show = params.output.period_refresh_plots
         self.t_last_show = 0.
 
         if name_file is not None:

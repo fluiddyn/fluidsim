@@ -316,7 +316,7 @@ if __name__ == "__main__":
     # params.output.periods_save.correl_freq = 0.9*params.time_stepping.deltat0
 
     params.output.ONLINE_PLOT_OK = True
-    params.output.period_show_plot = 0.1
+    params.output.period_refresh_plots = 0.1
     params.output.periods_plot.phys_fields = 0.
 
     params.output.phys_fields.field_to_plot = 'z'
