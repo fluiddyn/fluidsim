@@ -123,6 +123,9 @@ class CorrelationsFreq(SpecificOutput):
     def compute(self):
         """compute the values at one time."""
         if mpi.rank == 0:
+            state_fft = self.sim.state.state_fft
+            w_fft = state_fft.get_var('w_fft')
+            #w = self
             dico_results = {}
             return dico_results
 
@@ -131,8 +134,8 @@ class CorrelationsFreq(SpecificOutput):
         self.axe = axe
         axe.set_xlabel('?')
         axe.set_ylabel('?')
-        axe.set_title('Correlation, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
+        #axe.set_title('Correlation, solver '+self.output.name_solver +
+        #              ', nh = {0:5d}'.format(self.nx))
         axe.hold(True)
 
     def _online_plot(self):
@@ -164,9 +167,9 @@ class CorrelationsFreq(SpecificOutput):
 
         """
 
-        # nt, ny, nx = w.shape
+        #nt, ny, nx = w.shape
 
-        # q_fftt = self.oper_fft1.fft(w).reshape([nt, nx*ny])
+        #q_fftt = self.oper_fft1.fft(w).reshape([nt, nx*ny])
         q_fftt_conj = q_fftt.conj()
 
         nb_omegas = self.nb_omegas

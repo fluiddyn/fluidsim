@@ -74,11 +74,11 @@ class Simul(SimulBasePseudoSpectral):
        \p_t z = w,
 
     .. math::
-       \p_t w = - \Delta^2 z + N_w(z) + F f_w - \nu_\alpha (-\Delta)^\alpha w.
+       \p_t w = - \Delta^2 z + N_w(z) + f_w - \nu_\alpha (-\Delta)^\alpha w.
 
     where :math:`\Delta = \p_{xx} + \p_{yy}` is the Laplacian. The
     first term of the two equations corresponds to the linear part.
-    :math:`F f_w` and :math:`\nu_\alpha \Delta^\alpha w` are the
+    :math:`f_w` and :math:`\nu_\alpha \Delta^\alpha w` are the
     forcing and the dissipation terms, respectively. The nonlinear
     term is equal to :math:`N_w(z) = \{ z, \chi \}`, where :math:`\{
     \cdot, \cdot \}` is the Monge-Ampère operator
@@ -97,7 +97,7 @@ class Simul(SimulBasePseudoSpectral):
        \p_t \hat z = \hat w,
 
     .. math::
-       \p_t \hat w = - k^4 \hat z + \widehat{N_w(z)} + F \hat f_w
+       \p_t \hat w = - k^4 \hat z + \widehat{N_w(z)} + \hat f_w
        - \nu_\alpha k^{2\alpha} \hat w,
 
     where :math:`k^2 = |\mathbf{k}|^2`. For this simple solver, we
@@ -126,7 +126,7 @@ class Simul(SimulBasePseudoSpectral):
     The energy injected into the system by the forcing is
 
     .. math::
-       P = F \langle f w \rangle,
+       P = \langle f_w w \rangle,
 
     and the dissipation is
 
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     kmax = np.sqrt(2)*np.pi/delta_x
 
     params.time_stepping.USE_CFL = False
-    params.time_stepping.deltat0 = 2*np.pi/kmax**2
+    params.time_stepping.deltat0 = 2*np.pi/kmax**2/2
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 1.0
     params.time_stepping.it_end = 1
@@ -323,6 +323,8 @@ if __name__ == "__main__":
 
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True
     params.output.periods_save.spatial_means = 0.0005
+
+    params.output.correl_freq.HAS_TO_PLOT_SAVED = False
 
     sim = Simul(params)
 
