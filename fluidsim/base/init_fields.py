@@ -54,6 +54,7 @@ class InitFieldsBase(object):
             'available_types': []})
 
         dict_classes = info_solver.classes.InitFields.import_classes()
+
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_params_with_default'):
                 try:
@@ -104,7 +105,7 @@ class InitFieldsFromFile(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
+        super(InitFieldsFromFile, cls)._complete_params_with_default(params)
         params.init_fields.set_child(cls.tag, attribs={'path': ''})
 
     def __call__(self):
@@ -288,7 +289,7 @@ class InitFieldsConstant(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
+        super(InitFieldsConstant, cls)._complete_params_with_default(params)
         params.init_fields.set_child(cls.tag, attribs={'value': 1.})
 
     def __call__(self):

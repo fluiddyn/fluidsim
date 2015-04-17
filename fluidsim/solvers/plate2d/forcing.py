@@ -4,10 +4,6 @@ Plate2d forcing (:mod:`fluidsim.solvers.plate2d.forcing`)
 
 """
 
-# import numpy as np
-
-# from fluiddyn.util import mpi
-
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
 from fluidsim.base.forcing.specific import \
@@ -25,42 +21,30 @@ class ForcingPlate2D(ForcingBasePseudoSpectral):
 
         This is a static method!
         """
-        ForcingBasePseudoSpectral._complete_info_solver(info_solver)
-        classes = info_solver.classes.Forcing.classes
-
-        package = 'fluidsim.solvers.plate2d.forcing'
-
-        classes.set_child(
-            'Random',
-            attribs={'module_name': package,
-                     'class_name': 'Random'})
-
-        classes.set_child(
-            'Proportional',
-            attribs={'module_name': package,
-                     'class_name': 'Proportional'})
+        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral]
+        ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
-class Random(TCRandomPS):
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
-        TCRandomPS._complete_params_with_default(params)
+class TCRandomPSW(TCRandomPS):
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the *params* container."""
+        super(TCRandomPSW, cls)._complete_params_with_default(params)
         params.forcing.key_forced = 'w_fft'
 
 
 class Proportional(ProportionalBase):
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the *params* container."""
+        super(Proportional, cls)._complete_params_with_default(params)
         params.forcing.key_forced = 'w_fft'
 
 
-class TimeCorrelatedRandomPseudoSpectralGauss(TCRandomPS):
+class TimeCorrelatedRandomPseudoSpectral(TCRandomPSW):
     def compute_forcingc_raw(self):
-        Fw_fft = super(TCRandomPS, self).compute_forcingc_raw()
+        Fw_fft = super(TimeCorrelatedRandomPseudoSpectral,
+                       self).compute_forcingc_raw()
 
         return Fw_fft
 

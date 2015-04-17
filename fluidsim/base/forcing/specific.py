@@ -40,6 +40,14 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 class SpecificForcing(object):
+    tag = 'specific'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        # to avoid a "bug" with ContainerXML
+        atypes = params.forcing.available_types
+        atypes.append(cls.tag)
+        params.forcing.available_types = atypes
 
     def __init__(self, params, sim):
 
@@ -49,6 +57,7 @@ class SpecificForcing(object):
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
+    tag = 'pseudo_spectral'
 
     def __init__(self, params, sim):
 
@@ -207,6 +216,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
 
 class Proportional(SpecificForcingPseudoSpectral):
+    tag = 'proportional'
 
     def compute(self):
         """Compute a forcing proportional to the flow."""
@@ -262,13 +272,13 @@ class Proportional(SpecificForcingPseudoSpectral):
 
 
 class NormalizedForcing(SpecificForcingPseudoSpectral):
-
     tag = 'normalized_forcing'
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
+        super(NormalizedForcing, cls)._complete_params_with_default(params)
         params.forcing.set_child(
             cls.tag,
             {'type_normalize': '2nd_degree_eq'})
@@ -401,7 +411,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
 
 class RamdomSimplePseudoSpectral(NormalizedForcing):
-
     tag = 'random'
 
     def compute_forcingc_raw(self):
