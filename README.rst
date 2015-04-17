@@ -1,5 +1,5 @@
 ========
-FluidSim
+FluidPy
 ========
 
 *Framework for studying fluid dynamics by numerical simulation.*
