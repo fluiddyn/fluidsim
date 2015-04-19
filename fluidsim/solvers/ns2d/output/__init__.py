@@ -9,7 +9,7 @@ class Output(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
 
         OutputBasePseudoSpectral._complete_info_solver(info_solver)
 

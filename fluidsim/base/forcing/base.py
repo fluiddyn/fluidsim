@@ -20,7 +20,7 @@ class ForcingBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
         info_solver.classes.Forcing._set_child('classes')
 
         if classes is not None:

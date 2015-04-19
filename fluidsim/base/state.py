@@ -25,7 +25,7 @@ class StateBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
@@ -91,7 +91,7 @@ class StatePseudoSpectral(StateBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
@@ -105,7 +105,7 @@ class StatePseudoSpectral(StateBase):
 
         super(StatePseudoSpectral, self).__init__(sim, info_solver)
 
-        self.keys_state_fft = info_solver.classes.State['keys_state_fft']
+        self.keys_state_fft = info_solver.classes.State.keys_state_fft
         self.state_fft = SetOfVariables(keys=self.keys_state_fft,
                                         shape_variable=self.oper.shapeK_loc,
                                         dtype=np.complex128,

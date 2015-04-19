@@ -10,6 +10,6 @@ class ForcingNS2D(ForcingBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
         classes = [Proportional, TimeCorrelatedRandomPseudoSpectral]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)

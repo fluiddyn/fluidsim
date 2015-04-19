@@ -45,7 +45,7 @@ class OutputBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
         info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
@@ -86,7 +86,7 @@ class OutputBase(object):
         self.params = params.output
 
         self.has_to_save = self.params.HAS_TO_SAVE
-        self.name_solver = sim.info.solver['short_name']
+        self.name_solver = sim.info.solver.short_name
 
         # initialisation name_run and path_run
         list_for_name_run = self.create_list_for_name_run()
@@ -135,7 +135,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     FLUIDDYN_PATH_SIM, self.sim.name_run)
 
             if mpi.rank == 0:
-                params._set_attr_xml('path_run', self.path_run)
+                params._set_attrib('path_run', self.path_run)
                 if not os.path.exists(self.path_run):
                     os.makedirs(self.path_run)
 
@@ -145,11 +145,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.print_stdout = PrintStdOut(self)
 
         if not self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs.keys():
+            for k in self.params.periods_plot._attribs:
                 self.params.periods_plot[k] = 0.
 
         if not self.has_to_save:
-            for k in self.params.periods_save._attribs.keys():
+            for k in self.params.periods_save._attribs:
                 self.params.periods_save[k] = 0.
 
     def create_list_for_name_run(self):
@@ -235,19 +235,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def one_time_step(self):
 
-        for k in self.params.periods_print._attribs.keys():
+        for k in self.params.periods_print._attribs:
             period = self.params.periods_print.__dict__[k]
             if period != 0:
                 self.__dict__[k].online_print()
 
         if self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs.keys():
+            for k in self.params.periods_plot._attribs:
                 period = self.params.periods_plot.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_plot()
 
         if self.has_to_save:
-            for k in self.params.periods_save._attribs.keys():
+            for k in self.params.periods_save._attribs:
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_save()
@@ -278,7 +278,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0 and self.has_to_save:
             self.print_stdout.close()
 
-            for k in self.params.periods_save._attribs.keys():
+            for k in self.params.periods_save._attribs:
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     if hasattr(self.__dict__[k], 'close_file'):

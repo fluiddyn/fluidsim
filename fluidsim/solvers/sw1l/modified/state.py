@@ -24,7 +24,7 @@ class StateSW1LModified(StatePseudoSpectral):
     """
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """

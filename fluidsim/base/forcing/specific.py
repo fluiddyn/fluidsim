@@ -44,10 +44,7 @@ class SpecificForcing(object):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        # to avoid a "bug" with ContainerXML
-        atypes = params.forcing.available_types
-        atypes.append(cls.tag)
-        params.forcing.available_types = atypes
+        params.forcing.available_types.append(cls.tag)
 
     def __init__(self, params, sim):
 

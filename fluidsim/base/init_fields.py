@@ -25,7 +25,7 @@ class InitFieldsBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
@@ -90,10 +90,7 @@ class SpecificInitFields(object):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        # to avoid a "bug" with ContainerXML
-        atypes = params.init_fields.available_types
-        atypes.append(cls.tag)
-        params.init_fields.available_types = atypes
+        params.init_fields.available_types.append(cls.tag)
 
     def __init__(self, sim):
         self.sim = sim
