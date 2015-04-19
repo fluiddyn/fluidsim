@@ -173,7 +173,7 @@ setup(name='fluidsim',
           'Programming Language :: C',
       ],
       packages=find_packages(exclude=['doc', 'examples']),
-      install_requires=['fluiddyn >= 0.0.8a1', 'h5py', 'pyfftw'],
+      install_requires=['fluiddyn >= 0.0.9a0', 'h5py', 'pyfftw'],
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),
