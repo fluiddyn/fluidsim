@@ -29,8 +29,8 @@ class StateAD1D(StateBase):
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
-        if (key in self.vars_computed
-                and it == self.it_computed[key]):
+        if (key in self.vars_computed and
+                it == self.it_computed[key]):
             return self.vars_computed[key]
 
         if key == 'dx_s':
@@ -42,8 +42,7 @@ class StateAD1D(StateBase):
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
-                    print(to_print
-                          + '\nreturn an array of zeros.')
+                    print(to_print + '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 

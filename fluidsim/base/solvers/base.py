@@ -105,7 +105,7 @@ class SimulBase(object):
 
         # initialisation object variables
         State = dico_classes['State']
-        self.state = State(self, self.info_solver)
+        self.state = State(self)
 
         # initialisation time stepping
         TimeStepping = dico_classes['TimeStepping']
@@ -123,7 +123,7 @@ class SimulBase(object):
         # initialisation forcing
         if params.FORCING:
             Forcing = dico_classes['Forcing']
-            self.forcing = Forcing(params, self)
+            self.forcing = Forcing(self)
             self.forcing.compute()
 
         # complete the initialisation of the object output

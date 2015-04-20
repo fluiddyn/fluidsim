@@ -47,8 +47,8 @@ class ForcingBase(object):
             if hasattr(Class, '_complete_params_with_default'):
                 Class._complete_params_with_default(params)
 
-    def __init__(self, params, sim):
-        self.type_forcing = params.forcing.type
+    def __init__(self, sim):
+        self.type_forcing = sim.params.forcing.type
 
         dict_classes = sim.info.solver.classes.Forcing.import_classes()
 
@@ -58,7 +58,7 @@ class ForcingBase(object):
 
         ClassForcing = dict_classes[self.type_forcing]
 
-        self._forcing = ClassForcing(params, sim)
+        self._forcing = ClassForcing(sim)
 
     def compute(self):
         self._forcing.compute()

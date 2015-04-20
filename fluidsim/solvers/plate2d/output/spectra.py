@@ -58,10 +58,10 @@ class SpectraPlate2D(Spectra):
             self.axe.loglog(khE, spectrum2D_EK*coef_norm, 'b--')
             self.axe.loglog(khE, spectrum2D_EL*coef_norm, 'r--')
             self.axe.loglog(khE, spectrum2D_EE*coef_norm, 'y--')
-            lin_inf, lin_sup = self.axe.get_ylim()
-            if lin_inf < 10e-6:
-                lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            # lin_inf, lin_sup = self.axe.get_ylim()
+            # if lin_inf < 10e-6:
+            #     lin_inf = 10e-6
+            # self.axe.set_ylim([lin_inf, lin_sup])
         else:
             print('you need to implement the ploting '
                   'of the spectra for this case')

@@ -78,11 +78,14 @@ class SimulBasePseudoSpectral(SimulBase):
         if self.params.nu_8 > 0.:
             f_d += self.params.nu_8*self.oper.K8
 
-        if self.params.nu_m4 > 0.:
+        if self.params.nu_m4 != 0.:
             f_d_hypo = self.params.nu_m4/self.oper.K2_not0**2
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
+
+            f_d_hypo[self.oper.KK <= 20] = 0.
+
         else:
             f_d_hypo = np.zeros_like(f_d)
 

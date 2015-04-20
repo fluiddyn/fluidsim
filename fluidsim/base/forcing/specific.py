@@ -46,28 +46,28 @@ class SpecificForcing(object):
     def _complete_params_with_default(cls, params):
         params.forcing.available_types.append(cls.tag)
 
-    def __init__(self, params, sim):
+    def __init__(self, sim):
 
         self.sim = sim
         self.oper = sim.oper
-        self.params = params
+        self.params = sim.params
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
     tag = 'pseudo_spectral'
 
-    def __init__(self, params, sim):
+    def __init__(self, sim):
 
-        super(SpecificForcingPseudoSpectral, self).__init__(params, sim)
+        super(SpecificForcingPseudoSpectral, self).__init__(sim)
+
+        params = sim.params
 
         self.sum_wavenumbers = sim.oper.sum_wavenumbers
         self.fft2 = sim.oper.fft2
         self.ifft2 = sim.oper.ifft2
 
         self.forcing_fft = SetOfVariables(
-            like=sim.state.state_fft,
-            info='forcing_fft', value=0.)
-        self.forcing_fft.initialize(value=0.)
+            like=sim.state.state_fft, info='forcing_fft', value=0.)
 
         self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
         self.kmin_forcing = self.oper.deltakx*params.forcing.nkmin_forcing
@@ -102,6 +102,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
+            self.fstate_coarse = sim.state.__class__(
+                sim, oper=self.oper_coarse)
+
         else:
             self.shapeK_loc_coarse = None
 
@@ -120,12 +123,14 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         #     # self.compute = self.compute_forcing_proportional
         #     self.compute = self.compute_forcing_2nd_degree_eq
 
-        self.forcingc_fft = SetOfVariables(
-            keys=self.forcing_fft.keys,
-            shape_variable=self.shapeK_loc_coarse,
-            dtype=np.complex128,
-            info='forcingc_fft',
-            value=0.)
+        # # we actually don't need this variable for all processes...
+        # if mpi.rank == 0:
+        #     self.forcingc_fft = SetOfVariables(
+        #         keys=self.forcing_fft.keys,
+        #         shape_variable=self.shapeK_loc_coarse,
+        #         dtype=np.complex128,
+        #         info='forcingc_fft',
+        #         value=0.)
 
     def compute(self):
         """compute the forcing from a coarse forcing."""
@@ -134,12 +139,10 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
                                                   self.shapeK_loc_coarse)
 
-        if mpi.rank > 0:
-            Fa_fft = np.empty(self.shapeK_loc_coarse,
-                              dtype=np.complex128)
-        else:
+        if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time()
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            # self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -150,22 +153,31 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         nb_keys = self.forcing_fft.nvar
 
         ar3Df = self.forcing_fft
-        ar3Dfc = self.forcingc_fft
+        if mpi.rank == 0:
+            # ar3Dfc = self.forcingc_fft
+            ar3Dfc = self.fstate_coarse.state_fft
 
         if mpi.nb_proc > 1:
             nKy = self.oper.shapeK_seq[0]
 
             for ikey in xrange(nb_keys):
-                fck_fft = ar3Dfc[ikey].transpose()
+                if mpi.rank == 0:
+                    fck_fft = ar3Dfc[ikey].transpose()
 
                 for iKxc in xrange(nKxc):
                     kx = self.oper.deltakx*iKxc
                     rank_iKx, iKxloc, iKyloc = (
                         self.oper.where_is_wavenumber(kx, 0.))
-                    fc1D = fck_fft[iKxc]
+
+                    if mpi.rank == 0:
+                        fc1D = fck_fft[iKxc]
+
                     if rank_iKx != 0:
                         # message fc1D
-                        fc1D = np.ascontiguousarray(fc1D)
+                        if mpi.rank == rank_iKx:
+                            fc1D = np.empty([nKyc], dtype=np.complex128)
+                        if mpi.rank == 0 or mpi.rank == rank_iKx:
+                            fc1D = np.ascontiguousarray(fc1D)
                         if mpi.rank == 0:
                             mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
                                           dest=rank_iKx, tag=iKxc)
@@ -226,7 +238,8 @@ class Proportional(SpecificForcingPseudoSpectral):
                               dtype=np.complex128)
         else:
             Fa_fft = self.normalize_forcingc(a_fft)
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            # self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -293,7 +306,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         else:
             Fa_fft = self.forcingc_raw_each_time()
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            # self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -439,9 +453,9 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
 
 class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
 
-    def __init__(self, params, sim):
+    def __init__(self, sim):
 
-        super(TimeCorrelatedRandomPseudoSpectral, self).__init__(params, sim)
+        super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
 
         if mpi.rank == 0:
             self.F0 = self.compute_forcingc_raw()

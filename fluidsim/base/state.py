@@ -16,6 +16,7 @@ Provides:
 """
 
 import numpy as np
+from copy import copy
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -34,14 +35,17 @@ class StateBase(object):
              'keys_computable': [],
              'keys_phys_needed': ['ux', 'uy']})
 
-    def __init__(self, sim, info_solver):
+    def __init__(self, sim, oper=None):
         self.sim = sim
         self.params = sim.params
-        self.oper = sim.oper
+        if oper is None:
+            self.oper = sim.oper
+        else:
+            self.oper = oper
 
         # creation of the SetOfVariables state_fft and state_phys
-        self.keys_state_phys = info_solver.classes.State.keys_state_phys
-        self.keys_computable = info_solver.classes.State.keys_computable
+        self.keys_state_phys = sim.info.solver.classes.State.keys_state_phys
+        self.keys_computable = sim.info.solver.classes.State.keys_computable
 
         self.state_phys = SetOfVariables(keys=self.keys_state_phys,
                                          shape_variable=self.oper.shapeX_loc,
@@ -101,11 +105,11 @@ class StatePseudoSpectral(StateBase):
         info_solver.classes.State._set_attribs(
             {'keys_state_fft': ['ux_fft', 'uy_fft']})
 
-    def __init__(self, sim, info_solver):
+    def __init__(self, sim, oper=None):
 
-        super(StatePseudoSpectral, self).__init__(sim, info_solver)
+        super(StatePseudoSpectral, self).__init__(sim, oper)
 
-        self.keys_state_fft = info_solver.classes.State.keys_state_fft
+        self.keys_state_fft = sim.info.solver.classes.State.keys_state_fft
         self.state_fft = SetOfVariables(keys=self.keys_state_fft,
                                         shape_variable=self.oper.shapeK_loc,
                                         dtype=np.complex128,
@@ -160,3 +164,19 @@ class StatePseudoSpectral(StateBase):
         return (key in self.keys_state_phys or
                 key in self.keys_computable or
                 key in self.keys_state_fft)
+
+    def init_fft_from(self, args):
+
+        if len(args) > 1:
+            raise ValueError(
+                'Do not know how to initialize with keys "{}".'.format(
+                    repr(args.keys())))
+        keys_state_fft = copy(self.keys_state_fft)
+
+        key, value = args.popitem()
+        if key not in keys_state_fft:
+            raise ValueError(
+                'Do not know how to initialize with key "{}".'.format(key))
+
+        self.state_fft *= 0
+        self.state_fft.set_var(key, value)
