@@ -290,8 +290,8 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 2*np.pi/kmax**2/2
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 1.0
-    params.time_stepping.it_end = 1
+    params.time_stepping.t_end = 30.0
+    params.time_stepping.it_end = 30
 
     # params.init_fields.type = 'HARMONIC'
     params.init_fields.type = 'noise'
@@ -311,7 +311,7 @@ if __name__ == "__main__":
     params.output.periods_save.spectra = 1.
     # params.output.periods_save.spect_energy_budg = 0.5
     # params.output.periods_save.increments = 0.5
-    # params.output.periods_save.correl_freq = 0.9*params.time_stepping.deltat0
+#   params.output.periods_save.correl_freq = 0.9*params.time_stepping.deltat0
 
     params.output.ONLINE_PLOT_OK = True
     params.output.period_show_plot = 0.5
@@ -319,12 +319,18 @@ if __name__ == "__main__":
 
     params.output.phys_fields.field_to_plot = 'z'
 
-    params.output.spectra.HAS_TO_PLOT_SAVED = False
+    params.output.spectra.HAS_TO_PLOT_SAVED = True
 
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True
     params.output.periods_save.spatial_means = 0.0005
 
-    params.output.correl_freq.HAS_TO_PLOT_SAVED = False
+    params.output.correl_freq.HAS_TO_PLOT_SAVED = True
+    params.output.periods_save.correl_freq = 10
+    nb_times_compute = 200
+    params.output.correl_freq.nb_times_compute = nb_times_compute
+    params.output.correl_freq.coef_decimate = 1
+    params.output.correl_freq.iomegas1 = np.linspace(
+        1, nb_times_compute/2-1, 6).astype(int)
 
     sim = Simul(params)
 
