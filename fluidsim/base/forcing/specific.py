@@ -128,7 +128,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             value=0.)
 
     def compute(self):
-        """compute a forcing normalize with a 2nd degree eq."""
+        """compute the forcing from a coarse forcing."""
 
         a_fft = self.sim.state.state_fft.get_var(self.key_forced)
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
@@ -284,8 +284,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         """compute a forcing normalize with a 2nd degree eq."""
 
         a_fft = self.sim.state.state_fft.get_var(self.key_forced)
-        a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
-                                                  self.shapeK_loc_coarse)
+        a_fft = self.oper.coarse_seq_from_fft_loc(
+            a_fft, self.shapeK_loc_coarse)
 
         if mpi.rank > 0:
             Fa_fft = np.empty(self.shapeK_loc_coarse,
@@ -302,7 +302,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
     def normalize_forcingc(self, fvc_fft, vc_fft):
 
-        type_normalize = self.params.forcing.__dict__[self.tag].type_normalize
+        type_normalize = self.params.forcing[self.tag].type_normalize
 
         if type_normalize == '2nd_degree_eq':
             return self.normalize_forcingc_2nd_degree_eq(fvc_fft, vc_fft)
@@ -315,10 +315,17 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def normalize_forcingc_part_k(self, fvc_fft, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
 
-        varc : ndarray
-            a variable at the coarse resolution.
-
         To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
+
         """
         oper_c = self.oper_coarse
 
@@ -326,7 +333,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         # fvc_fft[self.COND_NO_F] = 0.
 
         P_forcing2 = np.real(
-            + fvc_fft.conj()*vc_fft +
+            fvc_fft.conj()*vc_fft +
             fvc_fft*vc_fft.conj())/2.
         P_forcing2 = oper_c.sum_wavenumbers(P_forcing2)
 
@@ -373,10 +380,16 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def normalize_forcingc_2nd_degree_eq(self, fvc_fft, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
 
-        varc : ndarray
-            a variable at the coarse resolution.
-
         To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
         """
         oper_c = self.oper_coarse
 

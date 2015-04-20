@@ -4,6 +4,10 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 
 """
 
+import numpy as np
+
+from fluiddyn.util import mpi
+
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
 from fluidsim.base.forcing.specific import \
@@ -135,7 +139,7 @@ class OldStuff(object):
         P_Z_forcing2 = np.real(Fq_fft.conj()*q_fft)
         P_Z_forcing1 = oper.sum_wavenumbers(P_Z_forcing1)
         P_Z_forcing2 = oper.sum_wavenumbers(P_Z_forcing2)
-        if mpi.rank==0:
+        if mpi.rank == 0:
             print 'P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
                 P_Z_forcing1+P_Z_forcing2,
                 P_Z_forcing2)
