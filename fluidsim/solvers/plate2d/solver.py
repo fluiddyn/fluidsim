@@ -284,14 +284,14 @@ if __name__ == "__main__":
 
     delta_x = Lh/nh
     params.nu_8 = 2.*10e3*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_m4 = -1.5e7
+    # params.nu_m4 = -1.5e7
 
     kmax = np.sqrt(2)*np.pi/delta_x
 
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 2*np.pi/kmax**2/2
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 0.5
     params.time_stepping.it_end = 1
 
     # params.init_fields.type = 'HARMONIC'
@@ -322,10 +322,17 @@ if __name__ == "__main__":
 
     params.output.phys_fields.field_to_plot = 'z'
 
-    params.output.spectra.HAS_TO_PLOT_SAVED = True
+    params.output.spectra.HAS_TO_PLOT_SAVED = False
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+    params.output.periods_save.spatial_means = 0.0005
 
-    params.output.correl_freq.HAS_TO_PLOT_SAVED = False
+    params.output.correl_freq.HAS_TO_PLOT_SAVED = True
+    params.output.periods_save.correl_freq = 10
+    nb_times_compute = 200
+    params.output.correl_freq.nb_times_compute = nb_times_compute
+    params.output.correl_freq.coef_decimate = 1
+    params.output.correl_freq.iomegas1 = np.linspace(
+        1, nb_times_compute/2-1, 6).astype(int)
 
     sim = Simul(params)
 
