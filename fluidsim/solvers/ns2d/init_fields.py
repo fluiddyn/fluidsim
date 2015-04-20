@@ -14,7 +14,7 @@ class InitFieldsNoise(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={
+        params.init_fields._set_child(cls.tag, attribs={
             'velo_max': 1.,
             'length': 0})
 
@@ -74,7 +74,7 @@ class InitFieldsJet(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsJet, cls)._complete_params_with_default(params)
-        # params.init_fields.set_child(cls.tag, attribs={})
+        # params.init_fields._set_child(cls.tag, attribs={})
 
     def __call__(self):
         oper = self.sim.oper
@@ -105,7 +105,7 @@ class InitFieldsDipole(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsDipole, cls)._complete_params_with_default(params)
-        # params.init_fields.set_child(cls.tag, attribs={})
+        # params.init_fields._set_child(cls.tag, attribs={})
 
     def __call__(self):
         rot = self.vorticity_shape_1dipole()
@@ -139,7 +139,7 @@ class InitFieldsNS2D(InitFieldsBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
 
         InitFieldsBase._complete_info_solver(
             info_solver, classes=[

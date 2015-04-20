@@ -32,28 +32,28 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
     .. math::
 
-       \p_t E_W = - C_{W\rightarrow Z} - C_{W\rightarrow \chi} + P_W - D_W,
+       \p_t E_w = - C_{w\rightarrow z} - C_{w\rightarrow \chi} + P_w - D_w,
 
-       \p_t E_Z = + C_{W\rightarrow Z},
+       \p_t E_z = + C_{w\rightarrow z},
 
-       \p_t E_\chi = + C_{W\rightarrow \chi},
+       \p_t E_\chi = + C_{w\rightarrow \chi},
 
     where
 
     .. math::
 
-       C_{W\rightarrow Z} = \sum_{\mathbf{k}} k^4\mathcal{R}(\hat W \hat Z^*),
+       C_{w\rightarrow z} = \sum_{\mathbf{k}} k^4\mathcal{R}(\hat w \hat z^*),
 
-       C_{W\rightarrow \chi} = -\sum_{\mathbf{k}}
-       \mathcal{R}( \widehat{\{ W, Z\}} \hat \chi ^* ),
+       C_{w\rightarrow \chi} = -\sum_{\mathbf{k}}
+       \mathcal{R}( \widehat{\{ w, z\}} \hat \chi ^* ),
 
-       P_W = \sum_{\mathbf{k}} \mathcal{R}( \hat F_W \hat W^* )
+       P_w = \sum_{\mathbf{k}} \mathcal{R}( \hat f_w \hat w^* )
 
     and
 
     .. math::
 
-       D_W = 2 \nu_\alpha \sum_{\mathbf{k}} k^{2\alpha} E_K(k).
+       D_w = 2 \nu_\alpha \sum_{\mathbf{k}} k^{2\alpha} E_w(k).
 
 """
 
@@ -67,6 +67,10 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         epsK = self.sum_wavenumbers(f_d[0]*2*Ek_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo[0]*2*Ek_fft)
+
+        # assert that z is not dissipated
+        assert not (f_d[1].any() and f_d_hypo[1].any())
+
         if self.sim.params.FORCING:
             deltat = self.sim.time_stepping.deltat
             state_fft = self.sim.state.state_fft
@@ -241,8 +245,8 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         z_bottom_axe = 0.55
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('epsK_tot(t), epsK_tot_est(t)')
+        ax1.set_xlabel('$t$')
+        ax1.set_ylabel(r'$\varepsilon_{tot}$, $P_{tot}$, $\partial_t E$')
         ax1.hold(True)
         ax1.plot(t, epsK, 'r', linewidth=2)
         ax1.plot(t, epsK_hypo, 'g', linewidth=2)

@@ -18,11 +18,11 @@ class StateSW1L(StatePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['ux_fft', 'uy_fft', 'eta_fft'],
             'keys_state_phys': ['ux', 'uy', 'eta', 'rot'],
             'keys_computable': [],

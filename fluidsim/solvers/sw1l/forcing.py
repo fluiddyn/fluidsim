@@ -1,4 +1,8 @@
+"""
+SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
+===================================================
 
+"""
 
 import numpy as np
 
@@ -17,48 +21,36 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        ForcingBasePseudoSpectral._complete_info_solver(info_solver)
-        classes = info_solver.classes.Forcing.classes
-
-        package = 'fluidsim.solvers.plate2d.forcing'
-
-        classes.set_child(
-            'Random',
-            attribs={'module_name': package,
-                     'class_name': 'Random'})
-
-        classes.set_child(
-            'Proportional',
-            attribs={'module_name': package,
-                     'class_name': 'Proportional'})
+        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral]
+        ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
-class Random(TCRandomPS):
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
-        TCRandomPS._complete_params_with_default(params)
+class TCRandomPSW(TCRandomPS):
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the *params* container."""
+        super(TCRandomPSW, cls)._complete_params_with_default(params)
         params.forcing.key_forced = 'q_fft'
 
 
 class Proportional(ProportionalBase):
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the *params* container."""
+        super(Proportional, cls)._complete_params_with_default(params)
         params.forcing.key_forced = 'q_fft'
 
 
-class TimeCorrelatedRandomPseudoSpectralGauss(TCRandomPS):
+class TimeCorrelatedRandomPseudoSpectral(TCRandomPSW):
     def compute_forcingc_raw(self):
-        Fq_fft = super(TCRandomPS, self).compute_forcingc_raw()
+        Fw_fft = super(TimeCorrelatedRandomPseudoSpectral,
+                       self).compute_forcingc_raw()
 
-        return Fq_fft
+        return Fw_fft
 
     # def compute_forcing_proportional(self):
     #     """Compute a forcing proportional to the flow."""
@@ -147,7 +139,7 @@ class OldStuff(object):
         P_Z_forcing2 = np.real(Fq_fft.conj()*q_fft)
         P_Z_forcing1 = oper.sum_wavenumbers(P_Z_forcing1)
         P_Z_forcing2 = oper.sum_wavenumbers(P_Z_forcing2)
-        if mpi.rank==0:
+        if mpi.rank == 0:
             print 'P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
                 P_Z_forcing1+P_Z_forcing2,
                 P_Z_forcing2)

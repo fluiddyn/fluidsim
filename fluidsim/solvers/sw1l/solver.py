@@ -50,7 +50,7 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'f': 0,
                    'c2': 20,
                    'kd2': 0}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def __init__(self, params):
         # Parameter(s) specific to this solver
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     params.init_fields.type = 'noise'
 
     params.FORCING = False
-    params.forcing.type = 'Random'
+    params.forcing.type = 'random'
 
     params.output.periods_print.print_stdout = 0.25
 

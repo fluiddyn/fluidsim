@@ -25,10 +25,10 @@ class TimeSignalsK(SpecificOutput):
     def _complete_params_with_default(params):
         tag = 'time_signals_fft'
 
-        params.output.periods_save.set_attrib(tag, 0)
-        params.output.periods_plot.set_attrib(tag, 0)
+        params.output.periods_save._set_attrib(tag, 0)
+        params.output.periods_plot._set_attrib(tag, 0)
 
-        params.output.set_child(tag,
+        params.output._set_child(tag,
                                 attribs={'nb_shells_time_sigK': 4,
                                          'nb_k_per_shell_time_sigK': 4})
 

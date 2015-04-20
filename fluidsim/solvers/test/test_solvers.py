@@ -28,7 +28,7 @@ def run_mini_simul(key_solver):
     try:
         params.f = 1.
         params.c2 = 200.
-    except KeyError:
+    except AttributeError:
         pass
 
     params.time_stepping.t_end = 0.5

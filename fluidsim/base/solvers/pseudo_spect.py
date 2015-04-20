@@ -35,18 +35,18 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.class_name = 'SimulBasePseudoSpectral'
         self.short_name = 'BasePS'
 
-        self.classes.set_child(
+        self.classes._set_child(
             'State',
             attribs={'module_name': 'fluidsim.base.state',
                      'class_name': 'StatePseudoSpectral'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'TimeStepping',
             attribs={'module_name':
                      'fluidsim.base.time_stepping.pseudo_spect_cy',
                      'class_name': 'TimeSteppingPseudoSpectral'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Operators',
             attribs={'module_name': 'fluidsim.operators.operators',
                      'class_name': 'OperatorsPseudoSpectral2D'})
@@ -64,7 +64,7 @@ class SimulBasePseudoSpectral(SimulBase):
         attribs = {'nu_8': 0.,
                    'nu_4': 0.,
                    'nu_m4': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def compute_freq_diss(self):
         if self.params.nu_2 > 0:

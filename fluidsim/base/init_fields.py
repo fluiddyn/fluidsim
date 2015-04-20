@@ -25,11 +25,11 @@ class InitFieldsBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.InitFields.set_child('classes')
+        info_solver.classes.InitFields._set_child('classes')
 
         classesXML = info_solver.classes.InitFields.classes
 
@@ -40,7 +40,7 @@ class InitFieldsBase(object):
                         InitFieldsManual, InitFieldsConstant])
 
         for cls in classes:
-            classesXML.set_child(
+            classesXML._set_child(
                 cls.tag,
                 attribs={'module_name': cls.__module__,
                          'class_name': cls.__name__})
@@ -49,11 +49,12 @@ class InitFieldsBase(object):
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        params.set_child('init_fields', attribs={
+        params._set_child('init_fields', attribs={
             'type': 'constant',
             'available_types': []})
 
         dict_classes = info_solver.classes.InitFields.import_classes()
+
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_params_with_default'):
                 try:
@@ -89,10 +90,7 @@ class SpecificInitFields(object):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        # to avoid a "bug" with ContainerXML
-        atypes = params.init_fields.available_types
-        atypes.append(cls.tag)
-        params.init_fields.available_types = atypes
+        params.init_fields.available_types.append(cls.tag)
 
     def __init__(self, sim):
         self.sim = sim
@@ -104,8 +102,8 @@ class InitFieldsFromFile(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={'path': ''})
+        super(InitFieldsFromFile, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={'path': ''})
 
     def __call__(self):
 
@@ -288,8 +286,8 @@ class InitFieldsConstant(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={'value': 1.})
+        super(InitFieldsConstant, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={'value': 1.})
 
     def __call__(self):
         value = self.sim.params.init_fields.constant.value

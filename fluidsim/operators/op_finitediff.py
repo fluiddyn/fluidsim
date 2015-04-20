@@ -25,7 +25,7 @@ class OperatorFiniteDiff1DPeriodic(object):
         """This static method is used to complete the *params* container.
         """
         attribs = {'nx': 48, 'Lx': 8.}
-        params.set_child('oper', attribs=attribs)
+        params._set_child('oper', attribs=attribs)
 
     def __init__(self, params=None):
 
@@ -100,7 +100,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
                    'ny': 48,
                    'Lx': 8,
                    'Ly': 8}
-        params.set_child('oper', attribs=attribs)
+        params._set_child('oper', attribs=attribs)
 
     def __init__(self, params=None):
 

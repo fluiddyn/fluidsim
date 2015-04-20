@@ -12,7 +12,7 @@ class InitFieldsCos(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsCos, cls)._complete_params_with_default(params)
-        # params.init_fields.set_child(cls.tag, attribs={})
+        # params.init_fields._set_child(cls.tag, attribs={})
 
     def __call__(self):
         oper = self.sim.oper
@@ -26,7 +26,7 @@ class InitFieldsGaussian(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsGaussian, cls)._complete_params_with_default(params)
-        # params.init_fields.set_child(cls.tag, attribs={})
+        # params.init_fields._set_child(cls.tag, attribs={})
 
     def __call__(self):
         oper = self.sim.oper
@@ -39,7 +39,7 @@ class InitFieldsAD1D(InitFieldsBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
 
         InitFieldsBase._complete_info_solver(
             info_solver, classes=[InitFieldsCos, InitFieldsGaussian])

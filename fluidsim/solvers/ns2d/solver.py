@@ -50,7 +50,7 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     params.init_fields.type = 'dipole'
 
     params.FORCING = True
-    params.forcing.type = 'Random'
+    params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
 
@@ -149,8 +149,8 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    sim.output.phys_fields.plot()
+    # sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    sim.output.phys_fields.plot()
+    # sim.output.phys_fields.plot()
 
     fld.show()

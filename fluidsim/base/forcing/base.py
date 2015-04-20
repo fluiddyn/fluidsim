@@ -19,30 +19,33 @@ Provides:
 class ForcingBase(object):
 
     @staticmethod
-    def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+    def _complete_info_solver(info_solver, classes=None):
+        """Complete the ParamContainer info_solver."""
+        info_solver.classes.Forcing._set_child('classes')
 
-        This is a static method!
-        """
-        info_solver.classes.Forcing.set_child('classes')
+        if classes is not None:
+            classesXML = info_solver.classes.Forcing.classes
+
+            for cls in classes:
+                classesXML._set_child(
+                    cls.tag,
+                    attribs={'module_name': cls.__module__,
+                             'class_name': cls.__name__})
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        params.set_child(
+        params._set_child(
             'forcing',
-            attribs={'type': 'Random',
-                     'available_types': ['Random', 'Proportional'],
+            attribs={'type': '',
+                     'available_types': [],
                      'forcing_rate': 1,
                      'key_forced': 'rot_fft'})
         dict_classes = info_solver.classes.Forcing.import_classes()
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_params_with_default'):
-                try:
-                    Class._complete_params_with_default(params)
-                except TypeError:
-                    Class._complete_params_with_default(params, info_solver)
+                Class._complete_params_with_default(params)
 
     def __init__(self, params, sim):
         self.type_forcing = params.forcing.type
@@ -50,7 +53,7 @@ class ForcingBase(object):
         dict_classes = sim.info.solver.classes.Forcing.import_classes()
 
         if self.type_forcing not in dict_classes:
-            raise ValueError('Bad value for parameter forcing.type :' +
+            raise ValueError('Wrong value for params.forcing.type: ' +
                              self.type_forcing)
 
         ClassForcing = dict_classes[self.type_forcing]
@@ -72,7 +75,7 @@ class ForcingBasePseudoSpectral(ForcingBase):
         """
         ForcingBase._complete_params_with_default(params, info_solver)
 
-        params.forcing.set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
+        params.forcing._set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
 
     def compute(self):
         self._forcing.compute()

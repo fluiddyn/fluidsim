@@ -67,7 +67,7 @@ class Simul(SimulBase):
         """
         SimulBase._complete_params_with_default(params)
         attribs = {'U': 1.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_phys=None):
         """Compute the "nonlinear" tendencies."""

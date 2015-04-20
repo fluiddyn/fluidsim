@@ -1,15 +1,15 @@
 
 from copy import deepcopy
 
-from fluiddyn.util.containerxml import ContainerXML
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.util import import_class
 
 
 def create_info_simul(info_solver, params):
-    """Create a ContainerXML instance gathering info_solver and params."""
-    info = ContainerXML(tag='info_simul')
-    info.set_as_child(info_solver)
-    info.set_as_child(params)
+    """Create a ParamContainer instance gathering info_solver and params."""
+    info = ParamContainer(tag='info_simul')
+    info._set_as_child(info_solver)
+    info._set_as_child(params)
     return info
 
 
@@ -19,7 +19,7 @@ def _merged_element(el1, el2):
     return result
 
 
-class InfoSolverBase(ContainerXML):
+class InfoSolverBase(ParamContainer):
     """Contain the information on a solver."""
     def __init__(self, **kargs):
 
@@ -33,43 +33,44 @@ class InfoSolverBase(ContainerXML):
 
     def _init_root(self):
 
-        self.set_attribs({'module_name': 'fluidsim.base.solvers.base',
-                          'class_name': 'SimulBase',
-                          'short_name': 'Base'})
+        self._set_attribs({'module_name': 'fluidsim.base.solvers.base',
+                           'class_name': 'SimulBase',
+                           'short_name': 'Base'})
 
-        self.set_child('classes')
+        self._set_child('classes')
 
-        self.classes.set_child(
+        self.classes._set_child(
             'InitFields',
             attribs={'module_name': 'fluidsim.base.init_fields',
                      'class_name': 'InitFieldsBase'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Forcing',
             attribs={'module_name': 'fluidsim.base.forcing',
                      'class_name': 'ForcingBase'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Output',
             attribs={'module_name': 'fluidsim.base.output.base',
                      'class_name': 'OutputBase'})
 
     def import_classes(self):
         """Import the classes and return a dictionary."""
-        classes = self._elemxml.findall('classes')
         dict_classes = {}
-        if len(classes) == 0:
+        tags = self.classes._tag_children
+        if len(tags) == 0:
             return dict_classes
-        classes = reduce(_merged_element, classes)
-        for c in classes.getchildren():
+
+        for tag in tags:
+            cls = self.classes.__dict__[tag]
             try:
-                module_name = c.attrib['module_name']
-                class_name = c.attrib['class_name']
-            except KeyError:
+                module_name = cls.module_name
+                class_name = cls.class_name
+            except AttributeError:
                 pass
             else:
                 Class = import_class(module_name, class_name)
-                dict_classes[c.tag] = Class
+                dict_classes[cls._tag] = Class
 
         return dict_classes
 
@@ -78,5 +79,3 @@ class InfoSolverBase(ContainerXML):
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_info_solver'):
                 Class._complete_info_solver(self)
-
-

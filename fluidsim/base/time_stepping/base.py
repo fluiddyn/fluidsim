@@ -31,7 +31,7 @@ class TimeSteppingBase(object):
                    'USE_CFL': True,
                    'type_time_scheme': 'RK4',
                    'deltat0': 0.2}
-        params.set_child('time_stepping', attribs=attribs)
+        params._set_child('time_stepping', attribs=attribs)
 
     def __init__(self, sim):
         self.params = sim.params

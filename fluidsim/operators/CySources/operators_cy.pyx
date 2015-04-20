@@ -370,7 +370,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                    'ny': 48,
                    'Lx': 8,
                    'Ly': 8}
-        params.set_child('oper', attribs=attribs)
+        params._set_child('oper', attribs=attribs)
 
     def __init__(self,
                  SEQUENCIAL=None,

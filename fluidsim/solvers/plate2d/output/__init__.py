@@ -26,36 +26,36 @@ class Output(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.Output.set_child('classes')
+        info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
         package = 'fluidsim.solvers.plate2d.output'
 
-        classes.set_child(
+        classes._set_child(
             'PrintStdOut',
             attribs={'module_name': package + '.print_stdout',
                      'class_name': 'PrintStdOutPlate2D'})
 
-        classes.set_child(
+        classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
                      'class_name': 'PhysFieldsBase'})
 
-        classes.set_child(
+        classes._set_child(
             'Spectra',
             attribs={'module_name': package + '.spectra',
                      'class_name': 'SpectraPlate2D'})
 
-        classes.set_child(
+        classes._set_child(
             'spatial_means',
             attribs={'module_name': package + '.spatial_means',
                      'class_name': 'SpatialMeansPlate2D'})
 
-        classes.set_child(
+        classes._set_child(
             'correl_freq',
             attribs={'module_name': package + '.correlations_freq',
                      'class_name': 'CorrelationsFreq'})
