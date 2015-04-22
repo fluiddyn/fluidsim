@@ -60,10 +60,16 @@ class SpatialMeansPlate2D(SpatialMeansBase):
     def save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
-        Ek_fft, El_fft, Ee_fft = self.output.compute_energies_fft()
+        (Ek_fft, El_fft, Ee_fft, conversion_k_to_l_fft,
+         conversion_l_to_e_fft) = self.output.compute_energies_conversion_fft()
+
         energy_k = self.sum_wavenumbers(Ek_fft)
         energy_l = self.sum_wavenumbers(El_fft)
         energy_e = self.sum_wavenumbers(Ee_fft)
+
+        conversion_k_to_l = self.sum_wavenumbers(conversion_k_to_l_fft)
+        conversion_l_to_e = self.sum_wavenumbers(conversion_l_to_e_fft)
+
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         epsK = self.sum_wavenumbers(f_d[0]*2*Ek_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo[0]*2*Ek_fft)
@@ -75,7 +81,13 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             deltat = self.sim.time_stepping.deltat
             state_fft = self.sim.state.state_fft
             w_fft = state_fft.get_var('w_fft')
-            Fw_fft = self.sim.forcing.get_forcing().get_var('w_fft')
+
+            forcing_fft = self.sim.forcing.get_forcing()
+            Fw_fft = forcing_fft.get_var('w_fft')
+
+            # assert that z in not forced
+            Fz_fft = forcing_fft.get_var('z_fft')
+            assert abs(Fz_fft).max() == 0.
 
             P1_fft = np.real(w_fft.conj()*Fw_fft)
             P2_fft = (abs(Fw_fft)**2)*deltat/2
@@ -84,17 +96,19 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         if mpi.rank == 0:
             energy = energy_k + energy_l + energy_e
-            epsK_tot = epsK+epsK_hypo
+            epsK_tot = epsK + epsK_hypo
 
             self.file.write(
                 '####\ntime = {0:17.13f}\n'.format(tsim))
             to_print = (
                 'E    = {:31.26e} ; E_k    = {:11.6e} ; '
-                'E_l    = {:11.6e} ; E_e    = {:11.6e} \n'
+                'E_l    = {:11.6e} ; E_e    = {:11.6e}\n'
                 'epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; '
-                'epsK_tot = {:11.6e} \n').format(
+                'epsK_tot = {:11.6e}\n'
+                'conv_k_to_l = {:11.6e} : conv_l_to_e = {:11.6e}\n').format(
                     energy, energy_k, energy_l, energy_e,
-                    epsK, epsK_hypo, epsK+epsK_hypo)
+                    epsK, epsK_hypo, epsK+epsK_hypo,
+                    conversion_k_to_l, conversion_l_to_e)
 
             self.file.write(to_print)
 
@@ -109,12 +123,14 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         if self.has_to_plot and mpi.rank == 0:
 
-            self.axe_a.plot(tsim, energy_k, 'g.')
-            self.axe_a.plot(tsim, energy_l, 'b.')
-            self.axe_a.plot(tsim, energy_e, 'r.')
             self.axe_a.plot(tsim, energy, 'k.')
+            self.axe_a.plot(tsim, energy_k, 'r.')
+            self.axe_a.plot(tsim, energy_l, 'b.')
+            self.axe_a.plot(tsim, energy_e, 'y.')
 
             self.axe_b.plot(tsim, epsK_tot, 'k.')
+            self.axe_b.plot(tsim, conversion_k_to_l, 'c.')
+            self.axe_b.plot(tsim, conversion_l_to_e, 'g.')
             if self.sim.params.FORCING:
                 self.axe_b.plot(tsim, P1+P2, 'm.')
 
@@ -237,10 +253,10 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.set_xlabel('t')
         ax1.set_ylabel('Energies')
         ax1.hold(True)
-        ax1.plot(t, E_k, 'g', linewidth=2)
-        ax1.plot(t, E_l, 'b', linewidth=2)
-        ax1.plot(t, E_e, 'r', linewidth=2)
         ax1.plot(t, E, 'k', linewidth=2)
+        ax1.plot(t, E_k, 'r', linewidth=2)
+        ax1.plot(t, E_l, 'b', linewidth=2)
+        ax1.plot(t, E_e, 'y', linewidth=2)
 
         z_bottom_axe = 0.55
         size_axe[1] = z_bottom_axe
@@ -248,13 +264,13 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.set_xlabel('$t$')
         ax1.set_ylabel(r'$\varepsilon_{tot}$, $P_{tot}$, $\partial_t E$')
         ax1.hold(True)
-        ax1.plot(t, epsK, 'r', linewidth=2)
-        ax1.plot(t, epsK_hypo, 'g', linewidth=2)
+        ax1.plot(t, epsK, 'k--', linewidth=2)
+        ax1.plot(t, epsK_hypo, 'k:', linewidth=2)
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
         ax1.plot(t, dtE, 'b', linewidth=2)
         if self.sim.params.FORCING:
             P_tot = dico_results['P_tot']
-            ax1.plot(t, P_tot, 'c', linewidth=2)
-            ax1.plot(t, dtE+epsK_tot-P_tot, 'y', linewidth=2)
+            ax1.plot(t, P_tot, 'm', linewidth=2)
+            ax1.plot(t, dtE+epsK_tot-P_tot, 'g', linewidth=2)
         else:
-            ax1.plot(t, dtE+epsK_tot, 'y', linewidth=2)
+            ax1.plot(t, dtE+epsK_tot, 'g', linewidth=2)

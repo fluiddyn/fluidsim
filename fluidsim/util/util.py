@@ -133,8 +133,8 @@ def load_state_phys_file(name_dir=None, t_approx=None):
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
-    params.init_fields.type = 'LOAD_FILE'
-    params.init_fields.path_file = path_file
+    params.init_fields.type = 'from_file'
+    params.init_fields.from_file.path = path_file
     sim = solver.Simul(params)
     return sim
 

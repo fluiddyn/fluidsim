@@ -69,14 +69,34 @@ class Output(OutputBasePseudoSpectral):
 
         params.output.phys_fields.field_to_plot = 'z'
 
+    def compute_energies_conversion_fft(self):
+        w_fft = self.sim.state.compute('w_fft')
+        z_fft = self.sim.state.compute('z_fft')
+        chi_fft = self.sim.state.compute('chi_fft')
+        K4 = self.sim.oper.K4
+
+        Ek_fft = 0.5*np.abs(w_fft)**2
+        El_fft = np.abs(0.5*K4*np.abs(z_fft)**2)
+        Ee_fft = np.abs(
+            0.25*self.sim.oper.laplacian2_fft(np.abs(chi_fft)**2+0j))
+
+        conversion_k_to_l_fft = np.real(K4*w_fft*z_fft.conj())
+
+        mamp_wz = self.sim.oper.monge_ampere_from_fft(w_fft, z_fft)
+        conversion_l_to_e_fft = -np.real(
+            self.sim.oper.fft2(mamp_wz)*chi_fft.conj())
+
+        return (Ek_fft, El_fft, Ee_fft,
+                conversion_k_to_l_fft, conversion_l_to_e_fft)
+
     def compute_energies_fft(self):
         w_fft = self.sim.state.state_fft.get_var('w_fft')
         z_fft = self.sim.state.state_fft.get_var('z_fft')
         chi_fft = self.sim.state.compute('chi_fft')
+        Ek_fft = 0.5*np.abs(w_fft)**2
+        El_fft = np.abs(0.5*self.sim.oper.laplacian2_fft(np.abs(z_fft)**2+0j))
         Ee_fft = np.abs(
             0.25*self.sim.oper.laplacian2_fft(np.abs(chi_fft)**2+0j))
-        El_fft = np.abs(0.5*self.sim.oper.laplacian2_fft(np.abs(z_fft)**2+0j))
-        Ek_fft = 0.5*np.abs(w_fft)**2
         return Ek_fft, El_fft, Ee_fft
 
     def compute_energy_fft(self):

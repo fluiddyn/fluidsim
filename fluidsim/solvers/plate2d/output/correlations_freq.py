@@ -11,7 +11,6 @@ Provides:
    :private-members:
 
 """
-import h5py
 import os
 import numpy as np
 
@@ -34,7 +33,7 @@ class CorrelationsFreq(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag,
-                                attribs={
+                                 attribs={
                                     'HAS_TO_PLOT_SAVED': False,
                                     'nb_times_compute': 100,
                                     'coef_decimate': 10,
@@ -144,8 +143,8 @@ class CorrelationsFreq(SpecificOutput):
         axe.set_xlabel('?')
         axe.set_ylabel('?')
         axe.plot(corr4[0, :, :], 'k.')
-        #axe.set_title('Correlation, solver '+self.output.name_solver +
-        #              ', nh = {0:5d}'.format(self.nx))
+        # axe.set_title('Correlation, solver '+self.output.name_solver +
+        #               ', nh = {0:5d}'.format(self.nx))
         axe.hold(True)
         fig, ax = self.output.figure_axe(numfig=2333)
         pc = ax.pcolormesh(corr4[0, :, :])
@@ -181,11 +180,11 @@ class CorrelationsFreq(SpecificOutput):
         :math:`C_4(\omega_1, \omega_3, \omega_4)`.
 
         """
-        
+
         q_fftt_conj = q_fftt.conj()
 
         nb_omegas = self.nb_omegas
-        
+
         corr4 = np.empty([len(self.iomegas1), nb_omegas, nb_omegas])
         for i1, io1 in enumerate(self.iomegas1):
             # this loop could be parallelized (OMP)

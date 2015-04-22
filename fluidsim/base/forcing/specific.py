@@ -453,6 +453,15 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
 
 class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
 
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(TimeCorrelatedRandomPseudoSpectral,
+              cls)._complete_params_with_default(params)
+        params.forcing[cls.tag]._set_attrib(
+            'time_correlation', 'based_on_forcing_rate')
+
     def __init__(self, sim):
 
         super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
@@ -460,7 +469,12 @@ class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
         if mpi.rank == 0:
             self.F0 = self.compute_forcingc_raw()
             self.F1 = self.compute_forcingc_raw()
-            self.period_change_F0F1 = self.forcing_rate**(-1./3)
+
+            time_correlation = self.params.forcing[self.tag].time_correlation
+            if time_correlation == 'based_on_forcing_rate':
+                self.period_change_F0F1 = self.forcing_rate**(-1./3)
+            else:
+                self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
 
     def forcingc_raw_each_time(self):

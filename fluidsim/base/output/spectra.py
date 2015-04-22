@@ -12,7 +12,6 @@ from .base import SpecificOutput
 class Spectra(SpecificOutput):
     """Used for the saving of spectra.
 
-
     """
 
     _tag = 'spectra'
@@ -23,7 +22,7 @@ class Spectra(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag,
-                                attribs={'HAS_TO_PLOT_SAVED': False})
+                                 attribs={'HAS_TO_PLOT_SAVED': False})
 
     def __init__(self, output):
         params = output.sim.params
@@ -106,7 +105,7 @@ class Spectra(SpecificOutput):
     def _online_plot(self):
         pass
 
-    def load2D_mean(self, tmin=None, tmax=None):
+    def load2d_mean(self, tmin=None, tmax=None):
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
         times = dset_times[...]
@@ -140,7 +139,7 @@ class Spectra(SpecificOutput):
                 dico_results[key] = spect
         return dico_results
 
-    def load1D_mean(self, tmin=None, tmax=None):
+    def load1d_mean(self, tmin=None, tmax=None):
         f = h5py.File(self.path_file1D, 'r')
         dset_times = f['times']
         times = dset_times[...]
@@ -176,8 +175,8 @@ class Spectra(SpecificOutput):
                 dico_results[key] = spect
         return dico_results
 
-    def plot1D(self):
+    def plot1d(self):
         pass
 
-    def plot2D(self):
+    def plot2d(self):
         pass

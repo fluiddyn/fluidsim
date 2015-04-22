@@ -403,7 +403,7 @@ class SpecificOutput(object):
                         self.fig.canvas.draw()
 
     def create_file_from_dico_arrays_old(self, path_file,
-                                     dico_arrays, dico_arrays_1time):
+                                         dico_arrays, dico_arrays_1time):
         if os.path.exists(path_file):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
@@ -438,7 +438,7 @@ class SpecificOutput(object):
 
                 self.sim.info._save_as_hdf5(hdf5_parent=f)
 
-                times = np.array([self.sim.time_stepping.t])
+                times = np.array([self.sim.time_stepping.t], dtype=np.float64)
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
@@ -446,12 +446,10 @@ class SpecificOutput(object):
                     f.create_dataset(k, data=v)
 
                 for k, v in dico_matrix.iteritems():
-                    #dset_k = np.zeros((1,) + v.shape, v.dtype)
-                    #dset_k[0] = v
-                    dset_k = v.copy()
-                    dset_k.resize((1,) + v.shape)
+                    arr = np.array(v)
+                    arr.resize((1,) + v.shape)
                     f.create_dataset(
-                        k, data=dset_k, maxshape=((None,) + v.shape))
+                        k, data=arr, maxshape=((None,) + v.shape))
 
     def add_dico_arrays_to_file_old(self, path_file, dico_arrays):
         if not os.path.exists(path_file):
