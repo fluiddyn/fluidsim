@@ -54,10 +54,24 @@ def import_module_solver_from_key(key=None):
     ----------
 
     key : str
-        The short name of a solver. Can be 'NS2D', 'SW1L' or 'MSW1L'.
+        The short name of a solver.
 
     """
     return import_module(module_solver_from_key(key))
+
+
+def import_simul_class_from_key(key):
+    """Import and reload a simul class.
+
+    Parameters
+    ----------
+
+    key : str
+        The short name of a solver.
+
+    """
+    solver = import_module(module_solver_from_key(key))
+    return solver.Simul
 
 
 def pathdir_from_namedir(name_dir=None):

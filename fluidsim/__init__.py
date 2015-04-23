@@ -30,6 +30,7 @@ from fluiddyn.io import FLUIDDYN_PATH_SIM as path_dir_results
 
 from fluidsim.util.util import (
     import_module_solver_from_key,
+    import_simul_class_from_key,
     load_sim_for_plot, load_state_phys_file,
     modif_resolution_from_dir, modif_resolution_all_dir)
 
