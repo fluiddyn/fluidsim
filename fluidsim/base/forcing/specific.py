@@ -459,8 +459,8 @@ class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
         """
         super(TimeCorrelatedRandomPseudoSpectral,
               cls)._complete_params_with_default(params)
-        params.forcing[cls.tag]._set_attrib(
-            'time_correlation', 'based_on_forcing_rate')
+        params.forcing._set_attrib(cls.tag, 
+            {'time_correlation': 'based_on_forcing_rate'})
 
     def __init__(self, sim):
 
