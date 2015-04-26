@@ -49,8 +49,8 @@ def create_params(input_info_solver):
             except TypeError:
                 try:
                     Class._complete_params_with_default(params, info_solver)
-                except TypeError:
-                    print('TypeError for ', Class)
+                except TypeError as e:
+                    e.args += ('for class: ' + repr(Class),)
                     raise
     return params
 

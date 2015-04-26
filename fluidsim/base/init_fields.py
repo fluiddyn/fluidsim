@@ -60,7 +60,12 @@ class InitFieldsBase(object):
                 try:
                     Class._complete_params_with_default(params)
                 except TypeError:
-                    Class._complete_params_with_default(params, info_solver)
+                    try:
+                        Class._complete_params_with_default(
+                            params, info_solver)
+                    except TypeError as e:
+                        e.args += ('for class: ' + repr(Class),)
+                        raise
 
     def __init__(self, sim):
 
