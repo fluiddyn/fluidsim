@@ -18,6 +18,7 @@ from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.fft.easypyfft import FFTW1DReal2Complex
+from fluidsim.operators.miscellaneous import compute_correl4
 
 
 class CorrelationsFreq(SpecificOutput):
@@ -60,8 +61,11 @@ class CorrelationsFreq(SpecificOutput):
 
         if mpi.nb_proc > 1:
             nb_xs = mpi.comm.reduce(nb_xs, op=mpi.MPI.SUM, root=0)
-        if mpi.rank == 0:
-            self.nb_xs_seq = nb_xs
+
+        if mpi.rank > 0:
+            nb_xs = 0
+
+        self.nb_xs_seq = nb_xs
 
         self.spatio_temp = np.empty(shape_spatio_temp)
         self.nb_times_in_spatio_temp = 0
@@ -115,8 +119,16 @@ class CorrelationsFreq(SpecificOutput):
                 self.nb_times_in_spatio_temp = 0
                 self.t_last_save = self.sim.time_stepping.t
                 spatio_fft = self.oper_fft1.fft(self.spatio_temp)
-                correlations = self._compute_correl4(spatio_fft)
+
+                corr4 = compute_correl4(
+                    spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
+                # corr4 = self._compute_correl4(spatio_fft)
+
+
+                corr2 = self._compute_correl2(spatio_fft)
+
                 if mpi.rank == 0:
+                    correlations = {'corr4': corr4, 'corr2': corr2}
                     if not os.path.exists(self.path_file4):
                         self.init_files2(correlations)
                     else:
@@ -204,9 +216,10 @@ class CorrelationsFreq(SpecificOutput):
                     if io2 < 0:
                         io2 = -io2
                         corr4[i1, io3, io4] = np.sum(
-                            abs(tmp*q_fftt_conj[:, io2]))
+                            np.absolute(tmp*q_fftt_conj[:, io2]))
                     else:
-                        corr4[i1, io3, io4] = np.sum(abs(tmp*q_fftt[:, io3]))
+                        corr4[i1, io3, io4] = np.sum(
+                            np.absolute(tmp*q_fftt[:, io2]))
                 # symmetry omega_3 <--> omega_4:
                     corr4[i1, io4, io3] = corr4[i1, io3, io4]
 
@@ -216,7 +229,7 @@ class CorrelationsFreq(SpecificOutput):
 
         if mpi.rank == 0:
             corr4 /= self.nb_xs_seq
-            return {'corr4': corr4}
+            return corr4
 
     def _compute_correl2(self, q_fftt):
         r"""Compute the correlations 2.
@@ -240,4 +253,4 @@ class CorrelationsFreq(SpecificOutput):
 
         if mpi.rank == 0:
             corr2 /= self.nb_xs_seq
-            return {'corr2': corr2}
+            return corr2
