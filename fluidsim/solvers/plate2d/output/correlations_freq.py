@@ -34,11 +34,11 @@ class CorrelationsFreq(SpecificOutput):
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag,
                                  attribs={
-                                    'HAS_TO_PLOT_SAVED': False,
-                                    'nb_times_compute': 100,
-                                    'coef_decimate': 10,
-                                    'key_quantity': 'w',
-                                    'iomegas1': [1]})
+                                     'HAS_TO_PLOT_SAVED': False,
+                                     'nb_times_compute': 100,
+                                     'coef_decimate': 10,
+                                     'key_quantity': 'w',
+                                     'iomegas1': [1]})
 
     def __init__(self, output):
         params = output.sim.params
@@ -53,9 +53,15 @@ class CorrelationsFreq(SpecificOutput):
 
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
         n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
-        shape_spatio_temp = [n0*n1, self.nb_times_compute]
+        nb_xs = n0 * n1
+        shape_spatio_temp = [nb_xs, self.nb_times_compute]
         self.oper_fft1 = FFTW1DReal2Complex(shape_spatio_temp)
         self.nb_omegas = self.oper_fft1.shapeK[-1]
+
+        if mpi.nb_proc > 1:
+            nb_xs = mpi.comm.reduce(nb_xs, op=mpi.MPI.SUM, root=0)
+        if mpi.rank == 0:
+            self.nb_xs_seq = nb_xs
 
         self.spatio_temp = np.empty(shape_spatio_temp)
         self.nb_times_in_spatio_temp = 0
@@ -164,10 +170,10 @@ class CorrelationsFreq(SpecificOutput):
         .. math::
            C_4(\omega_1, \omega_2, \omega_3, \omega_4) =
            \langle
-           \tilde w(\omega_1, \mathbf{x}) +
-           \tilde w(\omega_2, \mathbf{x}) +
-           \tilde w(\omega_3, \mathbf{x})^* +
-           \tilde w(\omega_4, \mathbf{x})^* +
+           \tilde w(\omega_1, \mathbf{x})
+           \tilde w(\omega_2, \mathbf{x})
+           \tilde w(\omega_3, \mathbf{x})^*
+           \tilde w(\omega_4, \mathbf{x})^*
            \rangle_\mathbf{x},
 
         where
@@ -190,21 +196,48 @@ class CorrelationsFreq(SpecificOutput):
             # this loop could be parallelized (OMP)
             for io3 in range(nb_omegas):
                 # we use the symmetry omega_3 <--> omega_4
-                for io4 in range(0, io3+1):
+                for io4 in range(io3+1):
                     tmp = (q_fftt[:, io1] *
                            q_fftt_conj[:, io3] *
                            q_fftt_conj[:, io4])
                     io2 = io3 + io4 - io1
-                    if (io2 < 0):
-                        io2 = abs(io2)
-                        corr4[i1, io3, io4] = np.mean(
-                                    abs(tmp*q_fftt_conj[:, io2]))
+                    if io2 < 0:
+                        io2 = -io2
+                        corr4[i1, io3, io4] = np.sum(
+                            abs(tmp*q_fftt_conj[:, io2]))
                     else:
-                        corr4[i1, io3, io4] = np.mean(abs(tmp*q_fftt[:, io3]))
+                        corr4[i1, io3, io4] = np.sum(abs(tmp*q_fftt[:, io3]))
                 # symmetry omega_3 <--> omega_4:
                     corr4[i1, io4, io3] = corr4[i1, io3, io4]
 
-        # if mpi.nb_proc > 1:
-        #     # reduce for mean:
-        #     mpi.comm.
-        return {'corr4': corr4}
+        if mpi.nb_proc > 1:
+            # reduce SUM for mean:
+            corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
+
+        if mpi.rank == 0:
+            corr4 /= self.nb_xs_seq
+            return {'corr4': corr4}
+
+    def _compute_correl2(self, q_fftt):
+        r"""Compute the correlations 2.
+
+        .. math::
+           C_2(\omega_1, \omega_2) =
+           \langle
+           \tilde w(\omega_1, \mathbf{x})
+           \tilde w(\omega_2, \mathbf{x})^*
+           \rangle_\mathbf{x},
+
+        where :math:`\omega_1 = \omega_2`. Thus, this function
+        produces an array :math:`C_2(\omega)`.
+
+        """
+        corr2 = np.sum(abs(q_fftt*q_fftt.conj()))
+
+        if mpi.nb_proc > 1:
+            # reduce SUM for mean:
+            corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
+
+        if mpi.rank == 0:
+            corr2 /= self.nb_xs_seq
+            return {'corr2': corr2}
