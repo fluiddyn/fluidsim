@@ -178,5 +178,5 @@ class StatePseudoSpectral(StateBase):
             raise ValueError(
                 'Do not know how to initialize with key "{}".'.format(key))
 
-        self.state_fft *= 0
+        self.state_fft[:] = 0.
         self.state_fft.set_var(key, value)

@@ -175,7 +175,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             specifications = (
                 ', ' + sim.params.time_stepping.type_time_scheme + ' and ')
             if mpi.nb_proc == 1:
-                specifications += 'sequenciel,\n'
+                specifications += 'sequential,\n'
             else:
                 specifications += 'parallel ({} proc.)\n'.format(mpi.nb_proc)
             self.print_stdout(

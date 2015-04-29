@@ -124,7 +124,6 @@ class CorrelationsFreq(SpecificOutput):
                     spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
                 # corr4 = self._compute_correl4(spatio_fft)
 
-
                 corr2 = self._compute_correl2(spatio_fft)
 
                 if mpi.rank == 0:

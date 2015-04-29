@@ -87,7 +87,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = OperatorsPseudoSpectral2D(
-                SEQUENCIAL=True,
+                SEQUENTIAL=True,
                 params=params_coarse,
                 goal_to_print='coarse resolution for forcing')
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
