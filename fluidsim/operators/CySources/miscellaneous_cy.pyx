@@ -93,6 +93,14 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                             q_fftt_conj[ix, io3] *
                             q_fftt_conj[ix, io4] *
                             q_fftt_conj[ix, io2])
+                elif io2 >= nb_omegas:
+                    io2 = 2*nb_omegas-1-io2
+                    for ix in range(nx):
+                        corr4[i1, io3, io4] += cabs(
+                            q_fftt[ix, io1] *
+                            q_fftt_conj[ix, io3] *
+                            q_fftt_conj[ix, io4] *
+                            q_fftt_conj[ix, io2])
                 else:
                     for ix in range(nx):
                         corr4[i1, io3, io4] += cabs(

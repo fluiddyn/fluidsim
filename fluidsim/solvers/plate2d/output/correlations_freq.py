@@ -37,7 +37,7 @@ class CorrelationsFreq(SpecificOutput):
         params.output._set_child(tag,
                                  attribs={
                                      'HAS_TO_PLOT_SAVED': False,
-				     'it_start': 10,
+                                     'it_start': 10,
                                      'nb_times_compute': 100,
                                      'coef_decimate': 10,
                                      'key_quantity': 'w',
@@ -51,8 +51,6 @@ class CorrelationsFreq(SpecificOutput):
         self.key_quantity = params.output.correl_freq.key_quantity
         self.periods_fill = params.output.periods_save.correl_freq
         self.iomegas1 = params.output.correl_freq.iomegas1
-        """self.it_last_run = (output.sim.time_stepping.t /
-                            output.sim.time_stepping.deltat)"""
         self.it_last_run = params.output.correl_freq.it_start
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
         n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
@@ -154,42 +152,72 @@ class CorrelationsFreq(SpecificOutput):
                             self.add_dico_arrays_to_file(self.path_file4,
                                                          correlations)
                         if self.has_to_plot:
-                            self._online_plot(correlations)                    #     if (tsim-self.t_last_show >= self.period_show):
+                            self._online_plot(correlations)
+                    #     if (tsim-self.t_last_show >= self.period_show):
                     #         self.t_last_show = tsim
                     #         self.axe.get_figure().canvas.draw()
 
     def init_online_plot(self):
         fig, axe = self.output.figure_axe(numfig=4100000)
         self.axe = axe
-        axe.set_xlabel('?')
-        axe.set_ylabel('?')
+        axe.set_xlabel('Frequency')
+        axe.set_ylabel('Correlations')
         axe.set_title('Correlation, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.params.oper.nx))
         axe.hold(True)
 
     def _online_plot(self, dico_results):
+        nb_omegas = self.nb_omegas
+        duration = self.nb_times_compute*self.sim.time_stepping.deltat
+        delta_frequency = 1./duration
 
         corr4 = dico_results['corr4']
+        corr2 = dico_results['corr2']
+        corr = np.empty(corr4.shape)
+        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency),
+                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency)]
+        for i1, io1 in enumerate(self.iomegas1):
+            for io3 in range(nb_omegas):
+                for io4 in range(io3+1):
+                    io2 = io3 + io4 - io1
+                    if io2 < 0:
+                        io2 = -io2
+                    elif io2 >= nb_omegas:
+                        io2 = 2*nb_omegas-1-io2
+                    corr[i1, io3, io4] = corr4[i1, io3, io4]/np.sqrt(
+                        corr2[io1, io1] * corr2[io3, io3] * corr2[io4, io4] *
+                        corr2[io2, io2])
+                    corr[i1, io4, io3] = corr[i1, io3, io4]
 
         fig, axe = self.output.figure_axe(numfig=4100000)
         self.axe = axe
-        axe.set_xlabel('?')
-        axe.set_ylabel('?')
-        axe.plot(corr4[0, :, :], 'k.')
+        axe.set_xlabel('Frequency')
+        axe.set_xlabel('Correlation')
+        axe.plot(corr2[:, :], 'k.')
         # axe.set_title('Correlation, solver '+self.output.name_solver +
         #               ', nh = {0:5d}'.format(self.nx))
         axe.hold(True)
         fig, ax = self.output.figure_axe(numfig=2333)
-        pc = ax.pcolormesh(corr4[0, :, :])
+        self.ax = ax
+        ax.set_xlabel('Frequency')
+        ax.set_ylabel('Frequency')
+        pc = ax.pcolormesh(fx, fy, corr[4, :, :])
         fig.colorbar(pc)
-        ax.axis([0, self.nb_omegas, 0, self.nb_omegas])
+        ax.axis([0, delta_frequency*self.nb_times_compute/2,
+                 0, delta_frequency*self.nb_times_compute/2])
+        ax.hold(True)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
-        pc1 = ax1.pcolormesh(corr4[1, :, :])
+        self.ax1 = ax1
+        ax1.set_xlabel('Frequency')
+        ax1.set_ylabel('Frequency')
+        pc1 = ax1.pcolormesh(fx, fy, corr[3, :, :])
         fig1.colorbar(pc1)
-        ax1.axis([0, self.nb_omegas, 0, self.nb_omegas])
-#    def plot(self):
-#       pass
+        ax1.axis([0, delta_frequency*self.nb_times_compute/2,
+                 0, delta_frequency*self.nb_times_compute/2])
+        ax1.hold(True)
 
     def _compute_correl4(self, q_fftt):
         r"""Compute the correlations 4.
@@ -209,6 +237,7 @@ class CorrelationsFreq(SpecificOutput):
            \omega_2 = \omega_3 + \omega_4 - \omega_1
 
         and :math:`\omega_1 > 0`, :math:`\omega_3 > 0` and
+
         :math:`\omega_4 > 0`. Thus, this function produces an array
         :math:`C_4(\omega_1, \omega_3, \omega_4)`.
 
@@ -230,6 +259,10 @@ class CorrelationsFreq(SpecificOutput):
                     io2 = io3 + io4 - io1
                     if io2 < 0:
                         io2 = -io2
+                        corr4[i1, io3, io4] = np.sum(
+                            np.absolute(tmp*q_fftt_conj[:, io2]))
+                    elif io2 >= nb_omegas:
+                        io2 = 2*nb_omegas-1-io2
                         corr4[i1, io3, io4] = np.sum(
                             np.absolute(tmp*q_fftt_conj[:, io2]))
                     else:
@@ -266,13 +299,12 @@ class CorrelationsFreq(SpecificOutput):
         corr2 = np.empty([nb_omegas, nb_omegas])
 
         q_fftt_conj = q_fftt.conj()
-
         for io3 in range(nb_omegas):
             for io4 in range(io3+1):
                 tmp = (q_fftt[:, io3] *
                        q_fftt_conj[:, io4])
                 corr2[io3, io4] = np.sum(np.absolute(tmp))
-		corr2[io4, io3] = corr2[io3, io4]
+                corr2[io4, io3] = corr2[io3, io4]
 
         if mpi.nb_proc > 1:
             # reduce SUM for mean:
