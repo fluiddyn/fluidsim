@@ -13,6 +13,7 @@ Provides:
 """
 import os
 import numpy as np
+import h5py
 
 from fluiddyn.util import mpi
 
@@ -36,6 +37,7 @@ class CorrelationsFreq(SpecificOutput):
         params.output._set_child(tag,
                                  attribs={
                                      'HAS_TO_PLOT_SAVED': False,
+				     'it_start': 10,
                                      'nb_times_compute': 100,
                                      'coef_decimate': 10,
                                      'key_quantity': 'w',
@@ -49,9 +51,9 @@ class CorrelationsFreq(SpecificOutput):
         self.key_quantity = params.output.correl_freq.key_quantity
         self.periods_fill = params.output.periods_save.correl_freq
         self.iomegas1 = params.output.correl_freq.iomegas1
-        self.it_last_run = (output.sim.time_stepping.t /
-                            output.sim.time_stepping.deltat)
-
+        """self.it_last_run = (output.sim.time_stepping.t /
+                            output.sim.time_stepping.deltat)"""
+        self.it_last_run = params.output.correl_freq.it_start
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
         n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
         nb_xs = n0 * n1
@@ -74,6 +76,20 @@ class CorrelationsFreq(SpecificOutput):
             output,
             period_save=params.output.periods_save.correl_freq,
             has_to_plot_saved=params.output.correl_freq.HAS_TO_PLOT_SAVED)
+        if os.path.exists(self.path_file4):
+            with h5py.File(self.path_file4, 'r') as f:
+                link_corr4 = f['corr4']
+                link_corr2 = f['corr2']
+                link_nb_means = f['nb_means']
+                self.corr4 = link_corr4[-1]
+                self.corr2 = link_corr2[-1]
+                self.nb_means_times = link_nb_means[-1]
+        else:
+            self.corr4 = np.zeros([len(self.iomegas1),
+                                   self.nb_omegas, self.nb_omegas])
+            self.corr2 = np.zeros([self.nb_omegas, self.nb_omegas])
+            self.nb_means_times = 0
+
 #        if os.path.exists(self.path_file4):
 #            with h5py.File(self.path_file4, 'r') as f:
 #                if self.sim.time_stepping.deltat != f.attrs['deltat']:
@@ -88,7 +104,7 @@ class CorrelationsFreq(SpecificOutput):
         # we can not do anything when this function is called.
         pass
 
-    def init_files2(self, correl4):
+    def init_files2(self, correlations):
         time_tot = (
             self.sim.time_stepping.deltat * self.nb_times_compute *
             self.periods_fill)
@@ -99,8 +115,7 @@ class CorrelationsFreq(SpecificOutput):
             'nb_times_compute': self.nb_times_compute,
             'periods_fill': self.periods_fill}
         self.create_file_from_dico_arrays(
-            self.path_file4, correl4, dico_arrays_1time)
-        self.nb_saved_times = 1
+            self.path_file4, correlations, dico_arrays_1time)
 
         self.t_last_save = self.sim.time_stepping.t
 
@@ -119,26 +134,27 @@ class CorrelationsFreq(SpecificOutput):
                 self.nb_times_in_spatio_temp = 0
                 self.t_last_save = self.sim.time_stepping.t
                 spatio_fft = self.oper_fft1.fft(self.spatio_temp)
-
-                corr4 = compute_correl4(
-                    spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
-                # corr4 = self._compute_correl4(spatio_fft)
-
-                corr2 = self._compute_correl2(spatio_fft)
-
-                if mpi.rank == 0:
-                    correlations = {'corr4': corr4, 'corr2': corr2}
-                    if not os.path.exists(self.path_file4):
-                        self.init_files2(correlations)
-                    else:
-                        # save the spectra in the file correlation_freq.h5
-                        self.add_dico_arrays_to_file(self.path_file4,
-                                                     correlations)
-                        self.nb_saved_times += 1
-                    if self.has_to_plot:
-                        self._online_plot(correlations)
-
-                    #     if (tsim-self.t_last_show >= self.period_show):
+                self.corr4 = (1./(self.nb_means_times+1))*(
+                    self.nb_means_times*self.corr4 + compute_correl4(
+                        spatio_fft, self.iomegas1, self.nb_omegas,
+                        self.nb_xs_seq))
+                self.corr2 = (1./(self.nb_means_times+1))*(
+                    self.nb_means_times*self.corr2 + self._compute_correl2(
+                        spatio_fft))
+                self.nb_means_times += 1
+                if np.mod(self.nb_means_times, 2) == 0:
+                    if mpi.rank == 0:
+                        correlations = {'corr4': self.corr4,
+                                        'corr2': self.corr2,
+                                        'nb_means': self.nb_means_times}
+                        if not os.path.exists(self.path_file4):
+                            self.init_files2(correlations)
+                        else:
+                            # save the spectra in the file correlation_freq.h5
+                            self.add_dico_arrays_to_file(self.path_file4,
+                                                         correlations)
+                        if self.has_to_plot:
+                            self._online_plot(correlations)                    #     if (tsim-self.t_last_show >= self.period_show):
                     #         self.t_last_show = tsim
                     #         self.axe.get_figure().canvas.draw()
 
@@ -244,7 +260,19 @@ class CorrelationsFreq(SpecificOutput):
         produces an array :math:`C_2(\omega)`.
 
         """
-        corr2 = np.sum(abs(q_fftt*q_fftt.conj()))
+
+        nb_omegas = self.nb_omegas
+
+        corr2 = np.empty([nb_omegas, nb_omegas])
+
+        q_fftt_conj = q_fftt.conj()
+
+        for io3 in range(nb_omegas):
+            for io4 in range(io3+1):
+                tmp = (q_fftt[:, io3] *
+                       q_fftt_conj[:, io4])
+                corr2[io3, io4] = np.sum(np.absolute(tmp))
+		corr2[io4, io3] = corr2[io3, io4]
 
         if mpi.nb_proc > 1:
             # reduce SUM for mean:

@@ -452,9 +452,14 @@ class SpecificOutput(object):
 
                 for k, v in dico_matrix.iteritems():
                     arr = np.array(v)
-                    arr.resize((1,) + v.shape)
-                    f.create_dataset(
-                        k, data=arr, maxshape=((None,) + v.shape))
+                    if isinstance(v, int) or isinstance(v, float):
+			arr.resize((1,))
+                        f.create_dataset(
+                            k, data=arr, maxshape=(None,))
+		    else:
+		        arr.resize((1,) + v.shape)
+                        f.create_dataset(
+                            k, data=arr, maxshape=((None,) + v.shape))
 
     def add_dico_arrays_to_file_old(self, path_file, dico_arrays):
         if not os.path.exists(path_file):
@@ -480,9 +485,14 @@ class SpecificOutput(object):
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
                 for k, v in dico_matrix.iteritems():
-                    dset_k = f[k]
-                    dset_k.resize((nb_saved_times+1,) + v.shape)
-                    dset_k[nb_saved_times] = v
+                    if isinstance(v, int) or isinstance(v, float):
+                        dset_k = np.array(f[k])
+                        dset_k.resize(nb_saved_times+1,)
+                        dset_k[nb_saved_times] = np.array(v)
+                    else:
+                        dset_k = f[k]
+                        dset_k.resize((nb_saved_times+1,) + v.shape)
+                        dset_k[nb_saved_times] = v
 
     def add_dico_arrays_to_open_file(self, f, dico_arrays, nb_saved_times):
         if mpi.rank == 0:
