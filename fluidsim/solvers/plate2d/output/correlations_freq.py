@@ -19,7 +19,7 @@ from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.fft.easypyfft import FFTW1DReal2Complex
-from fluidsim.operators.miscellaneous import compute_correl4
+from fluidsim.operators.miscellaneous import compute_correl4, compute_correl2
 
 
 class CorrelationsFreq(SpecificOutput):
@@ -132,16 +132,18 @@ class CorrelationsFreq(SpecificOutput):
                 self.nb_times_in_spatio_temp = 0
                 self.t_last_save = self.sim.time_stepping.t
                 spatio_fft = self.oper_fft1.fft(self.spatio_temp)
-                self.corr4 = (1./(self.nb_means_times+1))*(
-                    self.nb_means_times*self.corr4 + compute_correl4(
-                        spatio_fft, self.iomegas1, self.nb_omegas,
-                        self.nb_xs_seq))
-                self.corr2 = (1./(self.nb_means_times+1))*(
-                    self.nb_means_times*self.corr2 + self._compute_correl2(
-                        spatio_fft))
-                self.nb_means_times += 1
-                if np.mod(self.nb_means_times, 2) == 0:
-                    if mpi.rank == 0:
+                new_corr4 = compute_correl4(
+                    spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
+                new_corr2 = compute_correl2(
+                    spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
+
+                if mpi.rank == 0:
+                    self.corr4 = (1./(self.nb_means_times+1))*(
+                        self.nb_means_times*self.corr4 + new_corr4)
+                    self.corr2 = (1./(self.nb_means_times+1))*(
+                        self.nb_means_times*self.corr2 + new_corr2)
+                    self.nb_means_times += 1
+                    if np.mod(self.nb_means_times, 2) == 0:
                         correlations = {'corr4': self.corr4,
                                         'corr2': self.corr2,
                                         'nb_means': self.nb_means_times}

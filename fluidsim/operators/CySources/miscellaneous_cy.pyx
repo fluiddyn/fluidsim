@@ -33,8 +33,10 @@ IF MPI4PY:
     # solve an incompatibility between openmpi and mpi4py versions
     cdef extern from 'mpi-compat.h': pass
 
-from libc.math cimport abs as cabs
-    
+
+cdef extern from "complex.h":
+    double cabs(double complex) nogil
+
 # we define python and c types for physical and Fourier spaces
 DTYPEb = np.uint8
 ctypedef np.uint8_t DTYPEb_t
@@ -72,14 +74,17 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
     :math:`C_4(\omega_1, \omega_3, \omega_4)`.
 
     """
-    cdef int i1, io1, io2, io3, io4, ix
+    cdef DTYPEi_t i1, io1, io2, io3, io4, ix
     cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
     cdef np.ndarray[DTYPEf_t, ndim=3] corr4
 
     cdef int nx = q_fftt.shape[0]
+    cdef int n0 = iomegas1.shape[0]
 
     corr4 = np.zeros([len(iomegas1), nb_omegas, nb_omegas])
-    for i1, io1 in enumerate(iomegas1):
+
+    for i1 in range(n0):
+        io1 = iomegas1[i1]
         # this loop could be parallelized (OMP)
         for io3 in range(nb_omegas):
             # we use the symmetry omega_3 <--> omega_4
@@ -108,7 +113,7 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                             q_fftt_conj[ix, io3] *
                             q_fftt_conj[ix, io4] *
                             q_fftt[ix, io2])
-            # symmetry omega_3 <--> omega_4:
+                # symmetry omega_3 <--> omega_4:
                 corr4[i1, io4, io3] = corr4[i1, io3, io4]
 
     if nb_proc > 1:
@@ -118,3 +123,42 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
     if rank == 0:
         corr4 /= nb_xs_seq
         return corr4
+
+
+def compute_correl2(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
+                    np.ndarray[DTYPEi_t, ndim=1] iomegas1,
+                    int nb_omegas, int nb_xs_seq):
+    r"""Compute the correlations 2.
+
+    .. math::
+       C_2(\omega_1, \omega_2) =
+       \langle
+       \tilde w(\omega_1, \mathbf{x})
+       \tilde w(\omega_2, \mathbf{x})^*
+       \rangle_\mathbf{x},
+
+    where :math:`\omega_1 = \omega_2`. Thus, this function
+    produces an array :math:`C_2(\omega)`.
+
+    """
+    cdef DTYPEi_t io3, io4, ix
+    cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
+    cdef np.ndarray[DTYPEf_t, ndim=2] corr2
+    cdef int nx = q_fftt.shape[0]
+
+    corr2 = np.zeros([nb_omegas, nb_omegas])
+
+    for io3 in range(nb_omegas):
+        for io4 in range(io3+1):
+            for ix in range(nx):
+                corr2[io3, io4] += cabs(
+                    q_fftt[ix, io3] * q_fftt_conj[ix, io4])
+            corr2[io4, io3] = corr2[io3, io4]
+
+    if nb_proc > 1:
+        # reduce SUM for mean:
+        corr2 = comm.reduce(corr2, op=MPI.SUM, root=0)
+
+    if rank == 0:
+        corr2 /= nb_xs_seq
+        return corr2
