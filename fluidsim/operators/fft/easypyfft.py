@@ -235,7 +235,7 @@ class FFTW1DReal2Complex:
         else:
             n = arg[axis]
             shapeX = arg
-            shapeK = copy(arg)
+            shapeK = list(copy(arg))
             shapeK[axis] = n//2+1
 
         if n % 2 != 0:

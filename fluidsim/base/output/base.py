@@ -453,11 +453,11 @@ class SpecificOutput(object):
                 for k, v in dico_matrix.iteritems():
                     arr = np.array(v)
                     if isinstance(v, int) or isinstance(v, float):
-			arr.resize((1,))
+                        arr.resize((1,))
                         f.create_dataset(
                             k, data=arr, maxshape=(None,))
-		    else:
-		        arr.resize((1,) + v.shape)
+                    else:
+                        arr.resize((1,) + v.shape)
                         f.create_dataset(
                             k, data=arr, maxshape=((None,) + v.shape))
 
