@@ -151,7 +151,10 @@ class CorrelationsFreq(SpecificOutput):
                     self.corr2 = (1./(self.nb_means_times+1))*(
                         self.nb_means_times*self.corr2 + new_corr2)
                     self.nb_means_times += 1
-                    if np.mod(self.nb_means_times, 2) == 0:
+
+                    if (self.nb_means_times % 128 == 0 or
+                            (np.log(self.nb_means_times)/np.log(2)) % 1 == 0):
+
                         correlations = {'corr4': self.corr4,
                                         'corr2': self.corr2,
                                         'nb_means': self.nb_means_times}
