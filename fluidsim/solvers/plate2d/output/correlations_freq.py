@@ -50,7 +50,7 @@ class CorrelationsFreq(SpecificOutput):
         self.coef_decimate = params.output.correl_freq.coef_decimate
         self.key_quantity = params.output.correl_freq.key_quantity
         self.periods_fill = params.output.periods_save.correl_freq
-        self.iomegas1 = params.output.correl_freq.iomegas1
+        self.iomegas1 = np.array(params.output.correl_freq.iomegas1)
         self.it_last_run = params.output.correl_freq.it_start
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
         n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
@@ -58,6 +58,14 @@ class CorrelationsFreq(SpecificOutput):
         shape_spatio_temp = [nb_xs, self.nb_times_compute]
         self.oper_fft1 = FFTW1DReal2Complex(shape_spatio_temp)
         self.nb_omegas = self.oper_fft1.shapeK[-1]
+        duration = self.nb_times_compute*self.sim.time_stepping.deltat
+
+        dt = self.periods_fill*self.sim.time_stepping.deltat
+        delta_frequency = 1./duration
+        frequency_max = delta_frequency*self.iomegas1.max()
+
+        if (0.5/dt) <= frequency_max:
+            raise ValueError('freq_max > fe/2')
 
         if mpi.nb_proc > 1:
             nb_xs = mpi.comm.reduce(nb_xs, op=mpi.MPI.SUM, root=0)
@@ -221,6 +229,56 @@ class CorrelationsFreq(SpecificOutput):
                  0, delta_frequency*self.nb_times_compute/2])
         ax1.hold(True)
 
+    def plot_corr4(self):
+        import matplotlib.pyplot as plt
+
+        plt.close('all')
+
+        f = h5py.File(self.path_file4, 'r')
+        corr4_full = f['corr4']
+        corr2_full = f['corr2']
+        corr4 = corr4_full[-1]
+        corr2 = corr2_full[-1]
+
+        size_io = self.iomegas1.shape[0]
+        nb_omegas = self.nb_omegas
+        duration = self.nb_times_compute*self.sim.time_stepping.deltat
+        delta_frequency = 1./duration
+        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency),
+                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency)]
+
+        corr = np.empty(corr4.shape)
+
+        for i1, io1 in enumerate(self.iomegas1):
+            for io3 in range(nb_omegas):
+                for io4 in range(io3+1):
+                    io2 = io3 + io4 - io1
+                    if io2 < 0:
+                        io2 = -io2
+                    elif io2 >= nb_omegas:
+                        io2 = 2*nb_omegas-1-io2
+                    corr[i1, io3, io4] = corr4[i1, io3, io4]/np.sqrt(
+                        corr2[io1, io1] * corr2[io3, io3] * corr2[io4, io4] *
+                        corr2[io2, io2])
+                    corr[i1, io4, io3] = corr[i1, io3, io4]
+
+        plt.figure(num=21)
+        for i1, io1 in enumerate(self.iomegas1):
+            plt.subplot(int(np.sqrt(size_io)), int(round(size_io /
+                        float(int(np.sqrt(size_io)))+0.5)), i1+1)
+            plt.xlabel('Frequency')
+            plt.ylabel('Frequency')
+            plt.pcolormesh(fx, fy, corr[i1, :, :],
+                           vmin=corr.min(), vmax=corr.max())
+            plt.colorbar()
+            plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
+            
+        plt.figure(num=22)
+        plt.pcolormesh(fx, fy, corr2[:, :], vmin=corr2.min(), vmax=10*corr2.min())
+        plt.colorbar()
+        plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
     def _compute_correl4(self, q_fftt):
         r"""Compute the correlations 4.
 
@@ -289,12 +347,11 @@ class CorrelationsFreq(SpecificOutput):
            \langle
            \tilde w(\omega_1, \mathbf{x})
            \tilde w(\omega_2, \mathbf{x})^*
-           \rangle_\mathbf{x},
-
-        where :math:`\omega_1 = \omega_2`. Thus, this function
-        produces an array :math:`C_2(\omega)`.
+           \rangle_\mathbf{x}.
 
         """
+#        where :math:`\omega_1 = \omega_2`. Thus, this function
+#        produces an array :math:`C_2(\omega)`.
 
         nb_omegas = self.nb_omegas
 
