@@ -232,6 +232,7 @@ class CorrelationsFreq(SpecificOutput):
         ax1.hold(True)
 
     def plot_corr4(self):
+        import matplotlib.pyplot as plt
 
         plt.close('all')
 
@@ -277,6 +278,20 @@ class CorrelationsFreq(SpecificOutput):
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
+    def plot_corr2(self):
+        import matplotlib.pyplot as plt
+
+        plt.close('all')
+
+        f = h5py.File(self.path_file4, 'r')
+        corr2_full = f['corr2']
+        corr2 = corr2_full[-1]
+        duration = self.nb_times_compute*self.sim.time_stepping.deltat
+        delta_frequency = 1./duration
+        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency),
+                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
+                                delta_frequency)]
         plt.figure(num=22)
         plt.pcolormesh(fx, fy, corr2[:, :], vmin=corr2.min(),
                        vmax=10*corr2.min())
