@@ -21,7 +21,7 @@ This module is written in Cython and provides the classes:
 
 """
 
-# # DEF MPI4PY = 0
+# DEF MPI4PY = 0
 
 import sys
 
