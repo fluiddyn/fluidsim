@@ -13,12 +13,6 @@ Provides:
 
 .. todo::
 
-   - bench performances,
-   - output:
-     * spectra,
-     * spatial means (energy, dissipation, forcing),
-     * correlations frequencies,
-   - forcing,
    - solver solving exactly the linear terms.
 
 """

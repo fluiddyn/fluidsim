@@ -195,16 +195,16 @@ class SpectraPlate2D(Spectra):
                 EE[EE < 10e-16] = 0.
                 Etot = EK + EL + EE
 
-                print(Etot)
+                # print(Etot)
 
-                ax1.plot(kh, Etot*coef_norm, 'k', linewidth=2)
+                ax1.plot(kh, Etot*coef_norm, 'k--', linewidth=2)
                 ax1.plot(kh, EK*coef_norm, 'r--', linewidth=1)
                 ax1.plot(kh, EL*coef_norm, 'b--', linewidth=1)
-                ax1.plot(kh, EE*coef_norm, 'y', linewidth=1)
+                ax1.plot(kh, EE*coef_norm, 'y--', linewidth=1)
 
         EK = dset_spectrum_EK[imin_plot:imax_plot+1].mean(0)
         EK[EK < 10e-16] = 0.
         ax1.plot(kh, EK*coef_norm, 'r-', linewidth=2)
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh, kh**(-3)*coef_norm, 'k:', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
