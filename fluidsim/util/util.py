@@ -94,17 +94,17 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
     """
-    list_path_files = _glob.glob(path_dir+'/state_phys_t=*')
-    nb_files = len(list_path_files)
+    path_files = _glob.glob(path_dir+'/state_phys_t=*')
+    nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
         raise ValueError('No state file in the dir\n'+path_dir)
     times = _np.empty([nb_files])
-    for ii in xrange(nb_files):
-        times[ii] = float(list_path_files[ii][-11:-4])
+    for ii, path in enumerate(path_files):
+        times[ii] = float(path.split('_t=')[1][:7])
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times-t_approx).argmin()
-    name_file = list_path_files[i_file][-24:]
+    name_file = _os.path.split(path_files[i_file])[-1]
     return name_file
 
 
@@ -130,7 +130,7 @@ def _import_solver_from_path(path_dir):
     return solver
 
 
-def load_state_phys_file(name_dir=None, t_approx=None):
+def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True):
     """Create a simulation from a file."""
 
     path_dir = pathdir_from_namedir(name_dir)
@@ -146,7 +146,8 @@ def load_state_phys_file(name_dir=None, t_approx=None):
 
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
-    params.output.HAS_TO_SAVE = False
+    if modif_save_params:
+        params.output.HAS_TO_SAVE = False
     params.init_fields.type = 'from_file'
     params.init_fields.from_file.path = path_file
     sim = solver.Simul(params)
