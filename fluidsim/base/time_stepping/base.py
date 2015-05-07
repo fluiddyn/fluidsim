@@ -12,6 +12,7 @@ Provides:
 """
 
 from time import time
+from signal import signal
 
 from fluiddyn.util import mpi
 
@@ -39,6 +40,14 @@ class TimeSteppingBase(object):
 
         self.it = 0
         self.t = 0
+
+        self._has_to_stop = False
+
+        def handler_signals(signal_number, stack):
+            print('signal {} received.'.format(signal_number))
+            self._has_to_stop = True
+
+        signal(12, handler_signals)
 
     def _init_compute_time_step(self):
 
@@ -108,13 +117,15 @@ class TimeSteppingBase(object):
             print_stdout(
                 '    compute until t = {0:10.6g}'.format(
                     self.params.time_stepping.t_end))
-            while self.t < self.params.time_stepping.t_end:
+            while (self.t < self.params.time_stepping.t_end and
+                   not self._has_to_stop):
                 self.one_time_step()
         else:
             print_stdout(
                 '    compute until it = {0:8d}'.format(
                     self.params.time_stepping.it_end))
-            while self.it < self.params.time_stepping.it_end:
+            while (self.it < self.params.time_stepping.it_end and
+                   not self._has_to_stop):
                 self.one_time_step()
         total_time_simul = time() - time_begining_simul
         self.sim.output.end_of_simul(total_time_simul)
