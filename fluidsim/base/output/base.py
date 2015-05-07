@@ -65,7 +65,8 @@ class OutputBase(object):
         """
         attribs = {'period_refresh_plots': 1,
                    'ONLINE_PLOT_OK': True,
-                   'HAS_TO_SAVE': True}
+                   'HAS_TO_SAVE': True,
+                   'sub_directory': ''}
         params._set_child('output', attribs=attribs)
 
         params.output._set_child('periods_save')
@@ -133,11 +134,15 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if params.NEW_DIR_RESULTS:
 
             if FLUIDDYN_PATH_SCRATCH is not None:
-                self.path_run = os.path.join(
-                    FLUIDDYN_PATH_SCRATCH, self.sim.name_run)
+                path_base = FLUIDDYN_PATH_SCRATCH
             else:
-                self.path_run = os.path.join(
-                    FLUIDDYN_PATH_SIM, self.sim.name_run)
+                path_base = FLUIDDYN_PATH_SIM
+
+            if len(params.output.sub_directory) > 0:
+                path_base = os.path.join(
+                    path_base, params.output.sub_directory)
+
+            self.path_run = os.path.join(path_base, self.sim.name_run)
 
             if mpi.rank == 0:
                 params._set_attrib('path_run', self.path_run)

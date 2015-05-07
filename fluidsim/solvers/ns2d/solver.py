@@ -128,6 +128,8 @@ if __name__ == "__main__":
     # 'Proportional'
     # params.forcing.type_normalize
 
+    params.output.sub_directory = 'tests'
+
     # params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 1.
