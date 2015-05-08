@@ -30,8 +30,8 @@ class PhysFieldsBase(SpecificOutput):
     def _complete_params_with_default(params):
         tag = 'phys_fields'
         params.output._set_child(tag,
-                                attribs={'field_to_plot': 'ux',
-                                         'file_with_it': False})
+                                 attribs={'field_to_plot': 'ux',
+                                          'file_with_it': False})
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output.periods_plot._set_attrib(tag, 0)
@@ -74,14 +74,13 @@ class PhysFieldsBase(SpecificOutput):
             self.plot(numfig=itsim,
                       key_field=self.params.output.phys_fields.field_to_plot)
 
-    def save(self, state_phys=None, params=None, time=None,
-             particular_attr=None):
+    def save(self, state_phys=None, params=None, particular_attr=None):
         if state_phys is None:
             state_phys = self.sim.state.state_phys
         if params is None:
             params = self.params
-        if time is None:
-            time = self.sim.time_stepping.t
+
+        time = self.sim.time_stepping.t
 
         path_run = self.output.path_run
 
@@ -121,7 +120,9 @@ class PhysFieldsBase(SpecificOutput):
             group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
             group_state_phys.attrs['name_type_variables'] = (
                 state_phys.info)
+
             group_state_phys.attrs['time'] = time
+            group_state_phys.attrs['it'] = self.sim.time_stepping.it
 
         for k in state_phys.keys:
             field_loc = state_phys.get_var(k)

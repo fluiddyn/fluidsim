@@ -195,17 +195,21 @@ class InitFieldsFromFile(SpecificInitFields):
                 state_phys.set_var(k, self.oper.constant_arrayX(value=0.))
 
         if mpi.rank == 0:
-            t_file = group_state_phys.attrs['time']
+            time = group_state_phys.attrs['time']
+            it = group_state_phys.attrs['it']
             f.close()
         else:
-            t_file = 0.
+            time = 0.
+            it = 0
 
         if mpi.nb_proc > 1:
-            t_file = mpi.comm.bcast(t_file)
+            time = mpi.comm.bcast(time)
+            it = mpi.comm.bcast(it)
 
         self.sim.state.statefft_from_statephys()
         self.sim.state.statephys_from_statefft()
-        self.sim.time_stepping.t = t_file
+        self.sim.time_stepping.t = time
+        self.sim.time_stepping.it = it
 
 
 class InitFieldsFromSimul(SpecificInitFields):
