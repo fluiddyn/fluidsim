@@ -184,19 +184,24 @@ class InitFieldsFromFile(SpecificInitFields):
                 if mpi.rank == 0:
                     field_seq = group_state_phys[k][...]
                 else:
-                    field_seq = self.oper.constant_arrayX()
+                    field_seq = self.sim.oper.constant_arrayX()
 
                 if mpi.nb_proc > 1:
-                    field_loc = self.oper.scatter_Xspace(field_seq)
+                    field_loc = self.sim.oper.scatter_Xspace(field_seq)
                 else:
                     field_loc = field_seq
                 state_phys.set_var(k, field_loc)
             else:
-                state_phys.set_var(k, self.oper.constant_arrayX(value=0.))
+                state_phys.set_var(k, self.sim.oper.constant_arrayX(value=0.))
 
         if mpi.rank == 0:
             time = group_state_phys.attrs['time']
-            it = group_state_phys.attrs['it']
+
+            try:
+                it = group_state_phys.attrs['it']
+            except KeyError:
+                # compatibility with older versions
+                it = 0
             f.close()
         else:
             time = 0.
