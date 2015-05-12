@@ -223,7 +223,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         return dico_results
 
-    def plot(self):
+    def plot(self, with_dtE=False):
         dico_results = self.load()
 
         t = dico_results['t']
@@ -236,17 +236,18 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         epsK_hypo = dico_results['epsK_hypo']
         epsK_tot = dico_results['epsK_tot']
 
-        nt = len(t)
-        dtE = np.empty(nt)
-        for il in xrange(nt-2):
-            dtE[il+1] = (E[il+2]-E[il])/(t[il+2]-t[il])
-        dtE[0] = (E[1]-E[0])/(t[1]-t[0])
-        dtE[nt-1] = (E[nt-1]-E[nt-2])/(t[nt-1]-t[nt-2])
+        if with_dtE:
+            nt = len(t)
+            dtE = np.empty(nt)
+            for il in xrange(nt-2):
+                dtE[il+1] = (E[il+2]-E[il])/(t[il+2]-t[il])
+            dtE[0] = (E[1]-E[0])/(t[1]-t[0])
+            dtE[nt-1] = (E[nt-1]-E[nt-2])/(t[nt-1]-t[nt-2])
 
         width_axe = 0.85
-        height_axe = 0.4
+        height_axe = 0.8
         x_left_axe = 0.12
-        z_bottom_axe = 0.55
+        z_bottom_axe = 0.15
 
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
@@ -259,7 +260,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.plot(t, E_l, 'b', linewidth=2)
         ax1.plot(t, E_e, 'y', linewidth=2)
 
-        z_bottom_axe = 0.55
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('$t$')
@@ -268,10 +268,16 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.plot(t, epsK, 'k--', linewidth=2)
         ax1.plot(t, epsK_hypo, 'k:', linewidth=2)
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
-        ax1.plot(t, dtE, 'b', linewidth=2)
+
         if self.sim.params.FORCING:
             P_tot = dico_results['P_tot']
             ax1.plot(t, P_tot, 'm', linewidth=2)
-            ax1.plot(t, dtE+epsK_tot-P_tot, 'g', linewidth=2)
-        else:
-            ax1.plot(t, dtE+epsK_tot, 'g', linewidth=2)
+
+        if with_dtE:
+            ax1.plot(t, dtE, 'b', linewidth=2)
+
+            should_be_zeros = dtE+epsK_tot
+            if self.sim.params.FORCING:
+                should_be_zeros -= P_tot
+
+            ax1.plot(t, should_be_zeros, 'g', linewidth=2)
