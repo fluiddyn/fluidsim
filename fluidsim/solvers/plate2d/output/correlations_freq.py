@@ -260,6 +260,7 @@ class CorrelationsFreq(SpecificOutput):
                     norm[i1, io3, io4] = np.sqrt(
                                             corr2[io1, io1] * corr2[io3, io3] *
                                             corr2[io4, io4] * corr2[io2, io2])
+                    norm[i1, io4, io3] = norm[i1, io3, io4]
 
                     tmp1[io3, io4] = corr2[io4, io2].conj() * corr2[io1, io3]
                     tmp2[io3, io4] = corr2[io1, io4] * corr2[io3, io2].conj()
@@ -291,44 +292,47 @@ class CorrelationsFreq(SpecificOutput):
                           slice(0, delta_frequency*(self.nb_times_compute/2+1),
                                 delta_frequency)]
 
-        plt.close('all')
-        plt.figure(num=21)
+        fig21 = plt.figure(num=21)
+        fig21.clf()
         nb_subplot_vert = int(np.sqrt(nb_omegas1))
         nb_subplot_horiz = int(round(nb_omegas1/nb_subplot_vert))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
             plt.ylabel('Frequency')
-            plt.pcolormesh(fx, fy, corr_norm[i1, :, :],
-                           vmin=corr_norm.min(), vmax=corr_norm.max())
+            plt.pcolormesh(fx, fy, np.log10(abs(corr_norm[i1, :, :])),
+                           vmin=np.log10(abs(corr_norm.min())),
+                           vmax=np.log10(abs(corr_norm.max())))
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
-        plt.figure(num=121)
+        fig121 = plt.figure(num=121)
+        fig121.clf()
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
             plt.ylabel('Frequency')
-            plt.pcolormesh(fx, fy, cum_norm[i1, :, :],
-                           vmin=cum_norm.min(), vmax=cum_norm.max())
+            plt.pcolormesh(fx, fy, np.log10(abs(cum_norm[i1, :, :])),
+                           vmin=np.log10(abs(cum_norm.min())),
+                           vmax=np.log10(abs(cum_norm.max())))
             plt.colorbar()
 
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
-        plt.figure(num=221)
+        fig221 = plt.figure(num=221)
+        fig221.clf()
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
             plt.ylabel('Frequency')
-            plt.pcolormesh(fx, fy, norm[i1, :, :],
-                           vmin=norm.min(), vmax=norm.max())
+            plt.pcolormesh(fx, fy, np.log10(abs(norm[i1, :, :])),
+                           vmin=np.log10(abs(norm.min())),
+                           vmax=np.log10(abs(norm.max())))
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
     def plot_corr2(self):
 
-        plt.close('all')
-
-        f = h5py.File(self.path_file4, 'r')
+        f = h5py.File(self.path_file, 'r')
         corr2_full = f['corr2']
         corr2 = corr2_full[-1]
         duration = self.nb_times_compute*self.sim.time_stepping.deltat
@@ -337,9 +341,11 @@ class CorrelationsFreq(SpecificOutput):
                                 delta_frequency),
                           slice(0, delta_frequency*(self.nb_times_compute/2+1),
                                 delta_frequency)]
-        plt.figure(num=22)
-        plt.pcolormesh(fx, fy, corr2[:, :], vmin=corr2.min(),
-                       vmax=10*corr2.min())
+        log10corr2 = np.log10(abs(corr2))
+        fig = plt.figure(num=22)
+        fig.clf()
+        plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
+                       vmax=log10corr2.max())
         plt.colorbar()
         plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
