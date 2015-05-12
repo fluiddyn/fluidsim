@@ -117,7 +117,6 @@ def load_sim_for_plot(path_dir=None):
     params.path_run = path_dir
     params.init_fields.type = 'constant'
     params.ONLY_COARSE_OPER = True
-    params.FORCING = False
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
     sim = solver.Simul(params)
