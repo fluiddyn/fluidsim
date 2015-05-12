@@ -1529,12 +1529,13 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     @cython.wraparound(False)
     def monge_ampere_from_fft(
             self, DTYPEc_t[:, :] a_fft, DTYPEc_t[:, :] b_fft):
-        cdef Py_ssize_t i0, n0, i1, n1
-        cdef DTYPEc_t[:, :] pxx_afft, pyy_afft, pxy_afft
-        cdef DTYPEc_t[:, :] pxx_bfft, pyy_bfft, pxy_bfft
-        cdef DTYPEf_t[:, :] mamp
-        cdef DTYPEf_t[:, :] KX, KY, KX2, KY2
-        cdef DTYPEf_t[:, :] pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
+        cdef:
+            Py_ssize_t i0, n0, i1, n1
+            DTYPEc_t[:, :] mpxx_afft, mpyy_afft, mpxy_afft
+            DTYPEc_t[:, :] mpxx_bfft, mpyy_bfft, mpxy_bfft
+            DTYPEf_t[:, :] mamp
+            DTYPEf_t[:, :] KX, KY, KX2, KY2
+            DTYPEf_t[:, :] mpxx_a, mpyy_a, mpxy_a, mpxx_b, mpyy_b, mpxy_b
 
         n0 = a_fft.shape[0]
         n1 = a_fft.shape[1]
@@ -1543,36 +1544,36 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         KX2 = self.KX2
         KY2 = self.KY2
 
-        pxx_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pyy_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pxy_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pxx_bfft = np.empty([n0, n1], dtype=DTYPEc)
-        pyy_bfft = np.empty([n0, n1], dtype=DTYPEc)
-        pxy_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxx_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpyy_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxy_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxx_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpyy_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxy_bfft = np.empty([n0, n1], dtype=DTYPEc)
 
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX2[i0, i1]
-                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY2[i0, i1]
-                pxy_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX2[i0, i1]
-                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY2[i0, i1]
-                pxy_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-        pxx_a = self.ifft2(pxx_afft)
-        pyy_a = self.ifft2(pyy_afft)
-        pxy_a = self.ifft2(pxy_afft)
-        pxx_b = self.ifft2(pxx_bfft)
-        pyy_b = self.ifft2(pyy_bfft)
-        pxy_b = self.ifft2(pxy_bfft)
+                mpxx_afft[i0, i1] = a_fft[i0, i1] * KX2[i0, i1]
+                mpyy_afft[i0, i1] = a_fft[i0, i1] * KY2[i0, i1]
+                mpxy_afft[i0, i1] = a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
+                mpxx_bfft[i0, i1] = b_fft[i0, i1] * KX2[i0, i1]
+                mpyy_bfft[i0, i1] = b_fft[i0, i1] * KY2[i0, i1]
+                mpxy_bfft[i0, i1] = b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
+        mpxx_a = self.ifft2(mpxx_afft)
+        mpyy_a = self.ifft2(mpyy_afft)
+        mpxy_a = self.ifft2(mpxy_afft)
+        mpxx_b = self.ifft2(mpxx_bfft)
+        mpyy_b = self.ifft2(mpyy_bfft)
+        mpxy_b = self.ifft2(mpxy_bfft)
 
-        mamp = np.empty_like(pxx_a)
+        mamp = np.empty_like(mpxx_a)
         n0 = mamp.shape[0]
         n1 = mamp.shape[1]
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                mamp[i0, i1] = (pxx_a[i0, i1] * pyy_b[i0, i1] +
-                                pyy_a[i0, i1] * pxx_b[i0, i1] -
-                                2 * pxy_a[i0, i1] * pxy_b[i0, i1])
+                mamp[i0, i1] = (mpxx_a[i0, i1] * mpyy_b[i0, i1] +
+                                mpyy_a[i0, i1] * mpxx_b[i0, i1] -
+                                2 * mpxy_a[i0, i1] * mpxy_b[i0, i1])
         return np.array(mamp)
 
     def monge_ampere_from_fft_python(self, a_fft, b_fft):

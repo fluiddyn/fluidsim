@@ -27,7 +27,7 @@ import datetime
 import os
 import shutil
 import numpy as np
-
+import numbers
 
 import fluiddyn
 
@@ -456,12 +456,13 @@ class SpecificOutput(object):
                     f.create_dataset(k, data=v)
 
                 for k, v in dico_matrix.iteritems():
-                    arr = np.array(v)
-                    if isinstance(v, int) or isinstance(v, float):
+                    if isinstance(v, numbers.Number):
+                        arr = np.array([v], dtype=v.__class__)
                         arr.resize((1,))
                         f.create_dataset(
                             k, data=arr, maxshape=(None,))
                     else:
+                        arr = np.array(v)
                         arr.resize((1,) + v.shape)
                         f.create_dataset(
                             k, data=arr, maxshape=((None,) + v.shape))
@@ -490,10 +491,10 @@ class SpecificOutput(object):
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
                 for k, v in dico_matrix.iteritems():
-                    if isinstance(v, int) or isinstance(v, float):
-                        dset_k = np.array(f[k])
-                        dset_k.resize(nb_saved_times+1,)
-                        dset_k[nb_saved_times] = np.array(v)
+                    if isinstance(v, numbers.Number):
+                        dset_k = f[k]
+                        dset_k.resize((nb_saved_times+1,))
+                        dset_k[nb_saved_times] = v
                     else:
                         dset_k = f[k]
                         dset_k.resize((nb_saved_times+1,) + v.shape)
