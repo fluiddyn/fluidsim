@@ -258,8 +258,8 @@ class CorrelationsFreq(SpecificOutput):
                         io2 = 2*nb_omegas-1-io2
 
                     norm[i1, io3, io4] = np.sqrt(
-                                            corr2[io1, io1] * corr2[io3, io3] *
-                                            corr2[io4, io4] * corr2[io2, io2])
+                        corr2[io1, io1] * corr2[io3, io3] *
+                        corr2[io4, io4] * corr2[io2, io2])
                     norm[i1, io4, io3] = norm[i1, io3, io4]
 
                     tmp1[io3, io4] = corr2[io4, io2].conj() * corr2[io1, io3]
@@ -267,11 +267,11 @@ class CorrelationsFreq(SpecificOutput):
 
                     cum_norm[i1, io3, io4] = (
                         corr4[i1, io3, io4] - tmp1[io3, io4] - tmp2[io3, io4]
-                                              )/norm[i1, io3, io4]
+                    )/norm[i1, io3, io4]
                     cum_norm[i1, io4, io3] = cum_norm[i1, io3, io4]
 
                     corr_norm[i1, io3, io4] = (
-                                    corr4[i1, io3, io4]/norm[i1, io3, io4])
+                        corr4[i1, io3, io4]/norm[i1, io3, io4])
                     corr_norm[i1, io4, io3] = corr_norm[i1, io3, io4]
         return norm, corr_norm, cum_norm
 
@@ -292,8 +292,9 @@ class CorrelationsFreq(SpecificOutput):
                           slice(0, delta_frequency*(self.nb_times_compute/2+1),
                                 delta_frequency)]
 
-        fig21 = plt.figure(num=21)
-        fig21.clf()
+        fig = plt.figure(num=21)
+        fig.clf()
+        fig.suptitle('log10(abs(corr_norm))')
         nb_subplot_vert = int(np.sqrt(nb_omegas1))
         nb_subplot_horiz = int(round(nb_omegas1/nb_subplot_vert))
         for i1, io1 in enumerate(self.iomegas1):
@@ -306,8 +307,9 @@ class CorrelationsFreq(SpecificOutput):
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
-        fig121 = plt.figure(num=121)
-        fig121.clf()
+        fig = plt.figure(num=121)
+        fig.clf()
+        fig.suptitle('log10(abs(cum_norm))')
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
@@ -318,8 +320,9 @@ class CorrelationsFreq(SpecificOutput):
             plt.colorbar()
 
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
-        fig221 = plt.figure(num=221)
-        fig221.clf()
+        fig = plt.figure(num=221)
+        fig.clf()
+        fig.suptitle('log10(abs(norm))')
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
@@ -344,6 +347,10 @@ class CorrelationsFreq(SpecificOutput):
         log10corr2 = np.log10(abs(corr2))
         fig = plt.figure(num=22)
         fig.clf()
+        ax = plt.gca()
+        ax.set_title('log10(abs(corr2))')
+        plt.xlabel('Frequency')
+        plt.ylabel('Frequency')
         plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
                        vmax=log10corr2.max())
         plt.colorbar()
@@ -420,8 +427,6 @@ class CorrelationsFreq(SpecificOutput):
            \rangle_\mathbf{x}.
 
         """
-#        where :math:`\omega_1 = \omega_2`. Thus, this function
-#        produces an array :math:`C_2(\omega)`.
 
         nb_omegas = self.nb_omegas
 
@@ -442,3 +447,41 @@ class CorrelationsFreq(SpecificOutput):
         if mpi.rank == 0:
             corr2 /= self.nb_xs_seq
             return corr2
+
+    def _norm_pick_corr4(self, corr4):
+        delta_io = 4
+        io3 = io4 = 2*self.iomegas1[0]
+        if corr4.ndim == 3:
+            return np.absolute(np.mean(
+                corr4[0,
+                      io3-delta_io:io3+delta_io+1,
+                      io4-delta_io:io4+delta_io+1]))
+        elif corr4.ndim == 4:
+            coor4_mini = corr4[:, 0,
+                               io3-delta_io:io3+delta_io+1,
+                               io4-delta_io:io4+delta_io+1]
+            return np.absolute(coor4_mini.mean(1).mean(1))
+
+    def _compute_dnormpickC4_over_dnbmean(self, ):
+        with h5py.File(self.path_file, 'r') as f:
+            dset_corr4 = f['corr4']
+            dset_nb_means = f['nb_means']
+            corr4 = dset_corr4[:]
+            nb_means = dset_nb_means[:]
+
+        fcorr4 = self._norm_pick_corr4(corr4)
+
+        print('fcorr4:', fcorr4)
+        print('nb_means:', nb_means)
+
+        return nb_means, np.diff(fcorr4) / np.diff(nb_means) / fcorr4[1:]
+
+    def plot_convergence(self):
+
+        nb_means, dnormpickC4 = self._compute_dnormpickC4_over_dnbmean()
+
+        fig = plt.figure()
+        fig.suptitle('normalized "convergence"')
+        ax = plt.gca()
+        ax.loglog(nb_means[1:], dnormpickC4, 'x-')
+        ax.set_xlabel('number of averages')

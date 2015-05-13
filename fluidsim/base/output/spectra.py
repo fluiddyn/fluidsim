@@ -26,7 +26,7 @@ class Spectra(SpecificOutput):
 
     def __init__(self, output):
         params = output.sim.params
-        self.nx = params.oper.nx
+        self.nx = int(params.oper.nx)
 
         self.spectrum2D_from_fft = output.sim.oper.spectrum2D_from_fft
         self.spectra1D_from_fft = output.sim.oper.spectra1D_from_fft
