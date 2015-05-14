@@ -49,17 +49,18 @@ class CorrelationsFreq(SpecificOutput):
 
     def __init__(self, output):
         params = output.sim.params
+        pcorrel_freq = params.output.correl_freq
         super(CorrelationsFreq, self).__init__(
             output,
             period_save=params.output.periods_save.correl_freq,
-            has_to_plot_saved=params.output.correl_freq.HAS_TO_PLOT_SAVED)
+            has_to_plot_saved=pcorrel_freq.HAS_TO_PLOT_SAVED)
 
-        self.nb_times_compute = params.output.correl_freq.nb_times_compute
-        self.coef_decimate = params.output.correl_freq.coef_decimate
-        self.key_quantity = params.output.correl_freq.key_quantity
+        self.nb_times_compute = pcorrel_freq.nb_times_compute
+        self.coef_decimate = pcorrel_freq.coef_decimate
+        self.key_quantity = pcorrel_freq.key_quantity
         self.periods_fill = params.output.periods_save.correl_freq
-        self.iomegas1 = np.array(params.output.correl_freq.iomegas1)
-        self.it_last_run = params.output.correl_freq.it_start
+        self.iomegas1 = np.array(pcorrel_freq.iomegas1)
+        self.it_last_run = pcorrel_freq.it_start
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
         n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
         nb_xs = n0 * n1
@@ -67,6 +68,7 @@ class CorrelationsFreq(SpecificOutput):
         self.spatio_temp = np.empty([nb_xs, self.nb_times_compute])
         self.oper_fft1 = FFTW1DReal2Complex(self.spatio_temp.shape)
         self.nb_omegas = self.oper_fft1.shapeK[-1]
+        self.hamming = np.hamming(self.nb_times_compute)
 
         if mpi.nb_proc > 1:
             nb_xs = mpi.comm.reduce(nb_xs, op=mpi.MPI.SUM, root=0)
@@ -138,7 +140,7 @@ class CorrelationsFreq(SpecificOutput):
             if self.nb_times_in_spatio_temp == self.nb_times_compute:
                 self.nb_times_in_spatio_temp = 0
                 self.t_last_save = self.sim.time_stepping.t
-                spatio_fft = self.oper_fft1.fft(self.spatio_temp)
+                spatio_fft = self.oper_fft1.fft(self.hamming*self.spatio_temp)
                 new_corr4 = compute_correl4(
                     spatio_fft, self.iomegas1, self.nb_omegas, self.nb_xs_seq)
                 new_corr2 = compute_correl2(
@@ -151,8 +153,9 @@ class CorrelationsFreq(SpecificOutput):
                         self.nb_means_times*self.corr2 + new_corr2)
                     self.nb_means_times += 1
 
-                    if (self.nb_means_times % 128 == 0 or
-                            (np.log(self.nb_means_times)/np.log(2)) % 1 == 0):
+                    if ((self.nb_means_times % 128 == 0 or
+                         np.log(self.nb_means_times)/np.log(2) % 1 == 0) and
+                            self.nb_means_times != 1):
 
                         correlations = {'corr4': self.corr4,
                                         'corr2': self.corr2,
@@ -275,7 +278,7 @@ class CorrelationsFreq(SpecificOutput):
                     corr_norm[i1, io4, io3] = corr_norm[i1, io3, io4]
         return norm, corr_norm, cum_norm
 
-    def plot_corr(self):
+    def plot_corr4(self):
 
         nb_omegas1 = self.iomegas1.shape[0]
         nb_omegas = self.nb_omegas
@@ -294,7 +297,8 @@ class CorrelationsFreq(SpecificOutput):
 
         fig = plt.figure(num=21)
         fig.clf()
-        fig.suptitle('log10(abs(corr_norm))')
+        fig.suptitle('log10(abs(corr_norm)); nb_means: ' +
+                     str(self.nb_means_times))
         nb_subplot_vert = int(np.sqrt(nb_omegas1))
         nb_subplot_horiz = int(round(nb_omegas1/nb_subplot_vert))
         for i1, io1 in enumerate(self.iomegas1):
@@ -309,7 +313,8 @@ class CorrelationsFreq(SpecificOutput):
 
         fig = plt.figure(num=121)
         fig.clf()
-        fig.suptitle('log10(abs(cum_norm))')
+        fig.suptitle('log10(abs(cum_norm)); nb_means: ' +
+                     str(self.nb_means_times))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
@@ -322,7 +327,8 @@ class CorrelationsFreq(SpecificOutput):
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
         fig = plt.figure(num=221)
         fig.clf()
-        fig.suptitle('log10(abs(norm))')
+        fig.suptitle('log10(abs(norm)); nb_means: ' +
+                     str(self.nb_means_times))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Frequency')
@@ -348,7 +354,8 @@ class CorrelationsFreq(SpecificOutput):
         fig = plt.figure(num=22)
         fig.clf()
         ax = plt.gca()
-        ax.set_title('log10(abs(corr2))')
+        ax.set_title('log10(abs(corr2)); nb_means: ' +
+                     str(self.nb_means_times))
         plt.xlabel('Frequency')
         plt.ylabel('Frequency')
         plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
