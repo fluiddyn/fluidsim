@@ -34,8 +34,8 @@ IF MPI4PY:
     cdef extern from 'mpi-compat.h': pass
 
 
-cdef extern from "complex.h":
-    double cabs(double complex) nogil
+cdef extern from "complex.h": pass
+    # double cabs(double complex) nogil
 
 # we define python and c types for physical and Fourier spaces
 DTYPEb = np.uint8
