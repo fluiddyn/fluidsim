@@ -76,12 +76,12 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
     """
     cdef DTYPEi_t i1, io1, io2, io3, io4, ix
     cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
-    cdef np.ndarray[DTYPEf_t, ndim=3] corr4
+    cdef np.ndarray[DTYPEc_t, ndim=3] corr4
 
     cdef int nx = q_fftt.shape[0]
     cdef int n0 = iomegas1.shape[0]
 
-    corr4 = np.zeros([len(iomegas1), nb_omegas, nb_omegas])
+    corr4 = np.zeros([len(iomegas1), nb_omegas, nb_omegas], dtype=DTYPEc)
 
     for i1 in range(n0):
         io1 = iomegas1[i1]
@@ -93,7 +93,8 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                 if io2 < 0:
                     io2 = -io2
                     for ix in range(nx):
-                        corr4[i1, io3, io4] += cabs(
+                        #corr4[i1, io3, io4] += cabs(
+                        corr4[i1, io3, io4] += (
                             q_fftt[ix, io1] *
                             q_fftt_conj[ix, io3] *
                             q_fftt_conj[ix, io4] *
@@ -101,14 +102,16 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                 elif io2 >= nb_omegas:
                     io2 = 2*nb_omegas-1-io2
                     for ix in range(nx):
-                        corr4[i1, io3, io4] += cabs(
+                        #corr4[i1, io3, io4] += cabs(
+                        corr4[i1, io3, io4] += (
                             q_fftt[ix, io1] *
                             q_fftt_conj[ix, io3] *
                             q_fftt_conj[ix, io4] *
                             q_fftt_conj[ix, io2])
                 else:
                     for ix in range(nx):
-                        corr4[i1, io3, io4] += cabs(
+                        #corr4[i1, io3, io4] += cabs(
+                        corr4[i1, io3, io4] += (
                             q_fftt[ix, io1] *
                             q_fftt_conj[ix, io3] *
                             q_fftt_conj[ix, io4] *
@@ -143,15 +146,16 @@ def compute_correl2(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
     """
     cdef DTYPEi_t io3, io4, ix
     cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
-    cdef np.ndarray[DTYPEf_t, ndim=2] corr2
+    cdef np.ndarray[DTYPEc_t, ndim=2] corr2
     cdef int nx = q_fftt.shape[0]
 
-    corr2 = np.zeros([nb_omegas, nb_omegas])
+    corr2 = np.zeros([nb_omegas, nb_omegas], dtype=DTYPEc)
 
     for io3 in range(nb_omegas):
         for io4 in range(io3+1):
             for ix in range(nx):
-                corr2[io3, io4] += cabs(
+                #corr2[io3, io4] += cabs(
+                corr2[io3, io4] += (
                     q_fftt[ix, io3] * q_fftt_conj[ix, io4])
             corr2[io4, io3] = corr2[io3, io4]
 
