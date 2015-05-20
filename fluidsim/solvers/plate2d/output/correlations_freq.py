@@ -12,7 +12,7 @@ Provides:
 
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 import os
 import numpy as np
@@ -58,7 +58,6 @@ class CorrelationsFreq(SpecificOutput):
         self.nb_times_compute = pcorrel_freq.nb_times_compute
         self.coef_decimate = pcorrel_freq.coef_decimate
         self.key_quantity = pcorrel_freq.key_quantity
-        self.periods_fill = params.output.periods_save.correl_freq
         self.iomegas1 = np.array(pcorrel_freq.iomegas1)
         self.it_last_run = pcorrel_freq.it_start
         n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
@@ -90,23 +89,34 @@ class CorrelationsFreq(SpecificOutput):
                 if self.sim.time_stepping.deltat != f['deltat'][...]:
                     raise ValueError()
         else:
+            self.periods_fill = params.output.periods_save.correl_freq
             self.corr4 = np.zeros([len(self.iomegas1),
                                    self.nb_omegas, self.nb_omegas],
-                                   dtype=np.complex128)
+                                  dtype=np.complex128)
             self.corr2 = np.zeros([self.nb_omegas, self.nb_omegas],
-                                   dtype=np.complex128)
+                                  dtype=np.complex128)
             self.nb_means_times = 0
 
         if self.periods_fill > 0:
-            duration = self.nb_times_compute*output.sim.time_stepping.deltat
-            dt = self.periods_fill*output.sim.time_stepping.deltat
-            frequency_max = self.iomegas1.max()/duration
-            if (0.5/dt) <= frequency_max:
-                raise ValueError('freq_max > fe/2')
+            dt_output = self.periods_fill * output.sim.time_stepping.deltat
+            duration = self.nb_times_compute * dt_output
+            delta_omega = 2*np.pi/duration
+            self.omegas = delta_omega * np.arange(self.nb_omegas)
+
+            self.omega_Nyquist = np.pi/dt_output
+
+            omega1_max = self.iomegas1.max() * delta_omega
+            if self.omega_Nyquist <= omega1_max:
+                raise ValueError('omega_1 max is larger than omega_Nyquist.')
+
+            self.omega_dealiasing = (
+                self.params.oper.coef_dealiasing * self.sim.oper.kmax)**2
+
+            if self.omega_dealiasing > self.omega_Nyquist:
+                print('Warning: omega_dealiasing > omega_Nyquist')
 
     def init_path_files(self):
         path_run = self.output.path_run
-        # self.path_file = path_run + '/spectra_temporal.h5'
         self.path_file = path_run + '/correl4_freq.h5'
 
     def init_files(self, dico_arrays_1time=None):
@@ -185,16 +195,11 @@ class CorrelationsFreq(SpecificOutput):
 
     def _online_plot(self, dico_results):
         nb_omegas = self.nb_omegas
-        duration = self.nb_times_compute*self.sim.time_stepping.deltat
-        delta_frequency = 1./duration
 
         corr4 = dico_results['corr4']
         corr2 = dico_results['corr2']
         corr = np.empty(corr4.shape)
-        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency),
-                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency)]
+        fy, fx = np.meshgrid(self.omegas, self.omegas)
         for i1, io1 in enumerate(self.iomegas1):
             for io3 in range(nb_omegas):
                 for io4 in range(io3+1):
@@ -222,8 +227,6 @@ class CorrelationsFreq(SpecificOutput):
         ax.set_ylabel('Frequency')
         pc = ax.pcolormesh(fx, fy, abs(corr[4, :, :]))
         fig.colorbar(pc)
-        ax.axis([0, delta_frequency*self.nb_times_compute/2,
-                 0, delta_frequency*self.nb_times_compute/2])
         ax.hold(True)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
@@ -232,8 +235,6 @@ class CorrelationsFreq(SpecificOutput):
         ax1.set_ylabel('Frequency')
         pc1 = ax1.pcolormesh(fx, fy, corr[3, :, :])
         fig1.colorbar(pc1)
-        ax1.axis([0, delta_frequency*self.nb_times_compute/2,
-                 0, delta_frequency*self.nb_times_compute/2])
         ax1.hold(True)
 
     def compute_conv(self):
@@ -249,8 +250,8 @@ class CorrelationsFreq(SpecificOutput):
                 for i1, io1 in enumerate(self.iomegas1):
                     if (2*io1+ws < self.nb_omegas) & (2*io1-ws > io1):
                         f_conv[nb, i1] = np.abs(np.mean(
-                          corr4_nb[i1, 2*io1-ws:2*io1+ws+1,
-                                   2*io1-ws:2*io1+ws+1]))
+                            corr4_nb[i1, 2*io1-ws:2*io1+ws+1,
+                                     2*io1-ws:2*io1+ws+1]))
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('nb_means')
         # ax1.set_ylabel('convergence')
@@ -262,19 +263,17 @@ class CorrelationsFreq(SpecificOutput):
             f_conv[:, i1] = f_conv[:, i1]/f_conv[0, i1]
             ax1.plot(means, f_conv[:, i1], linewidth=1)
 
-    def compute_corr_norm(self):
-
-            # plt.close('all')
+    def compute_corr4_norm(self):
 
         with h5py.File(self.path_file, 'r') as f:
-            corr4_full = f['corr4']
-            corr2_full = f['corr2']
-            corr4 = corr4_full[-1]
-            corr2 = corr2_full[-1]
+            corr4_in_file = f['corr4']
+            corr2_in_file = f['corr2']
+            corr4 = corr4_in_file[-1]
+            corr2 = corr2_in_file[-1]
 
         nb_omegas = self.nb_omegas
 
-        corr_norm = np.empty(corr4.shape)
+        corr_norm = np.empty_like(corr4)
         cum_norm = np.empty(corr4.shape)
         norm = np.empty(corr4.shape)
         tmp1 = np.empty((nb_omegas, nb_omegas), dtype=np.complex128)
@@ -284,13 +283,27 @@ class CorrelationsFreq(SpecificOutput):
                 for io4 in range(io3+1):
                     io2 = io3 + io4 - io1
                     if io2 < 0:
+                        norm[i1, io3, io4] = 1
+                        norm[i1, io4, io3] = 1
+                        cum_norm[i1, io3, io4] = 1
+                        corr_norm[i1, io3, io4] = 1
+                        cum_norm[i1, io4, io3] = 1
+                        corr_norm[i1, io4, io3] = 1
+                        continue
                         io2 = -io2
                     elif io2 >= nb_omegas:
+                        norm[i1, io3, io4] = 1
+                        norm[i1, io4, io3] = 1
+                        cum_norm[i1, io3, io4] = 1
+                        corr_norm[i1, io3, io4] = 1
+                        cum_norm[i1, io4, io3] = 1
+                        corr_norm[i1, io4, io3] = 1
+                        continue
                         io2 = 2*nb_omegas-1-io2
 
                     norm[i1, io3, io4] = np.sqrt(abs(
-                                            corr2[io1, io1] * corr2[io3, io3] *
-                                            corr2[io4, io4] * corr2[io2, io2]))
+                        corr2[io1, io1] * corr2[io3, io3] *
+                        corr2[io4, io4] * corr2[io2, io2]))
                     norm[i1, io4, io3] = norm[i1, io3, io4]
 
                     tmp1[io3, io4] = corr2[io4, io2].conj() * corr2[io1, io3]
@@ -298,13 +311,174 @@ class CorrelationsFreq(SpecificOutput):
 
                     cum_norm[i1, io3, io4] = abs(
                         corr4[i1, io3, io4] - tmp1[io3, io4] - tmp2[io3, io4]
-                                              )/norm[i1, io3, io4]
+                    )/norm[i1, io3, io4]
                     cum_norm[i1, io4, io3] = cum_norm[i1, io3, io4]
 
                     corr_norm[i1, io3, io4] = abs(
-                                    corr4[i1, io3, io4]/norm[i1, io3, io4])
+                        corr4[i1, io3, io4]/norm[i1, io3, io4])
                     corr_norm[i1, io4, io3] = corr_norm[i1, io3, io4]
+
         return norm, corr_norm, cum_norm
+
+    def _compute_correl4(self, q_fftt):
+        r"""Compute the correlations 4.
+
+        .. math::
+           C_4(\omega_1, \omega_2, \omega_3, \omega_4) =
+           \langle
+           \tilde w(\omega_1, \mathbf{x})
+           \tilde w(\omega_2, \mathbf{x})
+           \tilde w(\omega_3, \mathbf{x})^*
+           \tilde w(\omega_4, \mathbf{x})^*
+           \rangle_\mathbf{x},
+
+        where
+
+        .. math::
+           \omega_2 = \omega_3 + \omega_4 - \omega_1
+
+        and :math:`\omega_1 > 0`, :math:`\omega_3 > 0` and
+
+        :math:`\omega_4 > 0`. Thus, this function produces an array
+        :math:`C_4(\omega_1, \omega_3, \omega_4)`.
+
+        """
+
+        q_fftt_conj = q_fftt.conj()
+        nb_omegas = self.nb_omegas
+
+        corr4 = np.empty([len(self.iomegas1), nb_omegas, nb_omegas])
+        for i1, io1 in enumerate(self.iomegas1):
+            # this loop could be parallelized (OMP)
+            for io3 in range(nb_omegas):
+                # we use the symmetry omega_3 <--> omega_4
+                for io4 in range(io3+1):
+                    tmp = (q_fftt[:, io1] *
+                           q_fftt_conj[:, io3] *
+                           q_fftt_conj[:, io4])
+                    io2 = io3 + io4 - io1
+                    if io2 < 0:
+                        io2 = -io2
+                        corr4[i1, io3, io4] = np.sum(
+                            tmp*q_fftt_conj[:, io2])
+                    elif io2 >= nb_omegas:
+                        io2 = 2*nb_omegas-1-io2
+                        corr4[i1, io3, io4] = np.sum(
+                            tmp*q_fftt_conj[:, io2])
+                    else:
+                        corr4[i1, io3, io4] = np.sum(
+                            tmp*q_fftt[:, io2])
+                    # symmetry omega_3 <--> omega_4:
+                    corr4[i1, io4, io3] = corr4[i1, io3, io4]
+
+        if mpi.nb_proc > 1:
+            # reduce SUM for mean:
+            corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
+
+        if mpi.rank == 0:
+            corr4 /= self.nb_xs_seq
+            return corr4
+
+    def _compute_correl2(self, q_fftt):
+        r"""Compute the correlations 2.
+
+        .. math::
+           C_2(\omega_1, \omega_2) =
+           \langle
+           \tilde w(\omega_1, \mathbf{x})
+           \tilde w(\omega_2, \mathbf{x})^*
+           \rangle_\mathbf{x}.
+
+        """
+        nb_omegas = self.nb_omegas
+        corr2 = np.empty([nb_omegas, nb_omegas])
+
+        q_fftt_conj = q_fftt.conj()
+        for io3 in range(nb_omegas):
+            for io4 in range(io3+1):
+                corr2[io3, io4] = np.sum(q_fftt[:, io3] *
+                                         q_fftt_conj[:, io4])
+                corr2[io4, io3] = corr2[io3, io4].conj()
+
+        if mpi.nb_proc > 1:
+            # reduce SUM for mean:
+            corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
+
+        if mpi.rank == 0:
+            corr2 /= self.nb_xs_seq
+            return corr2
+
+    def _norm_pick_corr4(self, corr4):
+        delta_io = 4
+        io3 = io4 = 2*self.iomegas1[0]
+        if corr4.ndim == 3:
+            return np.absolute(np.mean(
+                corr4[0,
+                      io3-delta_io:io3+delta_io+1,
+                      io4-delta_io:io4+delta_io+1]))
+        elif corr4.ndim == 4:
+            coor4_mini = corr4[:, 0,
+                               io3-delta_io:io3+delta_io+1,
+                               io4-delta_io:io4+delta_io+1]
+            return np.absolute(coor4_mini.mean(1).mean(1))
+
+    def _compute_dnormpickC4_over_dnbmean(self, ):
+        with h5py.File(self.path_file, 'r') as f:
+            dset_corr4 = f['corr4']
+            dset_nb_means = f['nb_means']
+            corr4 = dset_corr4[:]
+            nb_means = dset_nb_means[:]
+
+        fcorr4 = self._norm_pick_corr4(corr4)
+
+        print('fcorr4:', fcorr4)
+        print('nb_means:', nb_means)
+
+        return (nb_means,
+                np.absolute(np.diff(fcorr4) / np.diff(nb_means) *
+                            nb_means[1:] / fcorr4[1:]))
+
+    def plot_convergence(self):
+
+        nb_means, dnormpickC4 = self._compute_dnormpickC4_over_dnbmean()
+
+        fig = plt.figure()
+        fig.suptitle('normalized "convergence"')
+        ax = plt.gca()
+        ax.loglog(nb_means[1:], dnormpickC4, 'x-')
+        ax.set_xlabel('number of averages')
+
+        return nb_means, dnormpickC4
+
+    def plot_corr2(self):
+
+        with h5py.File(self.path_file, 'r') as f:
+            corr2_in_file = f['corr2']
+            corr2 = corr2_in_file[-1]
+
+        corr2_norm = np.empty((self.nb_omegas, self.nb_omegas),
+                              dtype=np.complex128)
+        fy, fx = np.meshgrid(self.omegas, self.omegas)
+
+        for io3 in range(self.nb_omegas):
+            for io4 in range(io3+1):
+                corr2_norm[io3, io4] = corr2[io3, io4]/np.sqrt(
+                    np.absolute(corr2[io3, io3] *
+                                corr2[io4, io4]))
+                corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
+
+        log10corr2 = np.log10(abs(corr2_norm))
+        fig = plt.figure(num=22)
+        fig.clf()
+        ax = plt.gca()
+        ax.set_title('log10(abs(corr2)); nb_means: ' +
+                     str(self.nb_means_times))
+        plt.xlabel('Frequency')
+        plt.ylabel('Frequency')
+        plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
+                       vmax=log10corr2.max())
+        plt.colorbar()
+        plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
     def plot_corr4(self):
 
@@ -314,14 +488,9 @@ class CorrelationsFreq(SpecificOutput):
         corr_norm = np.empty((nb_omegas1, nb_omegas, nb_omegas))
         cum_norm = np.empty(corr_norm.shape)
         norm = np.empty(corr_norm.shape)
-        norm, corr_norm, cum_norm = self.compute_corr_norm()
+        norm, corr_norm, cum_norm = self.compute_corr4_norm()
 
-        duration = self.nb_times_compute*self.sim.time_stepping.deltat
-        delta_frequency = 1./duration
-        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency),
-                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency)]
+        fy, fx = np.meshgrid(self.omegas, self.omegas)
 
         fig = plt.figure(num=21)
         fig.clf()
@@ -366,166 +535,3 @@ class CorrelationsFreq(SpecificOutput):
                            vmax=np.log10(abs(norm.max())))
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
-
-    def plot_corr2(self):
-
-        with h5py.File(self.path_file, 'r') as f:
-            corr2_full = f['corr2']
-            corr2 = corr2_full[-1]
-        duration = self.nb_times_compute*self.sim.time_stepping.deltat
-        delta_frequency = 1./duration
-        corr2_norm = np.empty((self.nb_omegas, self.nb_omegas),
-                              dtype=np.complex128)
-        fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency),
-                          slice(0, delta_frequency*(self.nb_times_compute/2+1),
-                                delta_frequency)]
-        for io3 in range(self.nb_omegas):
-            for io4 in range(io3+1):
-                corr2_norm[io3, io4] = corr2[io3, io4]/np.sqrt(
-                                            abs(corr2[io3, io3] *
-                                                corr2[io4, io4]))
-                corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
-
-        log10corr2 = np.log10(abs(corr2_norm))
-        fig = plt.figure(num=22)
-        fig.clf()
-        ax = plt.gca()
-        ax.set_title('log10(abs(corr2)); nb_means: ' +
-                     str(self.nb_means_times))
-        plt.xlabel('Frequency')
-        plt.ylabel('Frequency')
-        plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
-                       vmax=log10corr2.max())
-        plt.colorbar()
-        plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
-
-    def _compute_correl4(self, q_fftt):
-        r"""Compute the correlations 4.
-
-        .. math::
-           C_4(\omega_1, \omega_2, \omega_3, \omega_4) =
-           \langle
-           \tilde w(\omega_1, \mathbf{x})
-           \tilde w(\omega_2, \mathbf{x})
-           \tilde w(\omega_3, \mathbf{x})^*
-           \tilde w(\omega_4, \mathbf{x})^*
-           \rangle_\mathbf{x},
-
-        where
-
-        .. math::
-           \omega_2 = \omega_3 + \omega_4 - \omega_1
-
-        and :math:`\omega_1 > 0`, :math:`\omega_3 > 0` and
-
-        :math:`\omega_4 > 0`. Thus, this function produces an array
-        :math:`C_4(\omega_1, \omega_3, \omega_4)`.
-
-        """
-
-        q_fftt_conj = q_fftt.conj()
-
-        nb_omegas = self.nb_omegas
-
-        corr4 = np.empty([len(self.iomegas1), nb_omegas, nb_omegas])
-        for i1, io1 in enumerate(self.iomegas1):
-            # this loop could be parallelized (OMP)
-            for io3 in range(nb_omegas):
-                # we use the symmetry omega_3 <--> omega_4
-                for io4 in range(io3+1):
-                    tmp = (q_fftt[:, io1] *
-                           q_fftt_conj[:, io3] *
-                           q_fftt_conj[:, io4])
-                    io2 = io3 + io4 - io1
-                    if io2 < 0:
-                        io2 = -io2
-                        corr4[i1, io3, io4] = np.sum(
-                            np.absolute(tmp*q_fftt_conj[:, io2]))
-                    elif io2 >= nb_omegas:
-                        io2 = 2*nb_omegas-1-io2
-                        corr4[i1, io3, io4] = np.sum(
-                            np.absolute(tmp*q_fftt_conj[:, io2]))
-                    else:
-                        corr4[i1, io3, io4] = np.sum(
-                            np.absolute(tmp*q_fftt[:, io2]))
-                # symmetry omega_3 <--> omega_4:
-                    corr4[i1, io4, io3] = corr4[i1, io3, io4]
-
-        if mpi.nb_proc > 1:
-            # reduce SUM for mean:
-            corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
-
-        if mpi.rank == 0:
-            corr4 /= self.nb_xs_seq
-            return corr4
-
-    def _compute_correl2(self, q_fftt):
-        r"""Compute the correlations 2.
-
-        .. math::
-           C_2(\omega_1, \omega_2) =
-           \langle
-           \tilde w(\omega_1, \mathbf{x})
-           \tilde w(\omega_2, \mathbf{x})^*
-           \rangle_\mathbf{x}.
-
-        """
-
-        nb_omegas = self.nb_omegas
-
-        corr2 = np.empty([nb_omegas, nb_omegas])
-
-        q_fftt_conj = q_fftt.conj()
-        for io3 in range(nb_omegas):
-            for io4 in range(io3+1):
-                tmp = (q_fftt[:, io3] *
-                       q_fftt_conj[:, io4])
-                corr2[io3, io4] = np.sum(np.absolute(tmp))
-                corr2[io4, io3] = corr2[io3, io4]
-
-        if mpi.nb_proc > 1:
-            # reduce SUM for mean:
-            corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
-
-        if mpi.rank == 0:
-            corr2 /= self.nb_xs_seq
-            return corr2
-
-    def _norm_pick_corr4(self, corr4):
-        delta_io = 4
-        io3 = io4 = 2*self.iomegas1[0]
-        if corr4.ndim == 3:
-            return np.absolute(np.mean(
-                corr4[0,
-                      io3-delta_io:io3+delta_io+1,
-                      io4-delta_io:io4+delta_io+1]))
-        elif corr4.ndim == 4:
-            coor4_mini = corr4[:, 0,
-                               io3-delta_io:io3+delta_io+1,
-                               io4-delta_io:io4+delta_io+1]
-            return np.absolute(coor4_mini.mean(1).mean(1))
-
-    def _compute_dnormpickC4_over_dnbmean(self, ):
-        with h5py.File(self.path_file, 'r') as f:
-            dset_corr4 = f['corr4']
-            dset_nb_means = f['nb_means']
-            corr4 = dset_corr4[:]
-            nb_means = dset_nb_means[:]
-
-        fcorr4 = self._norm_pick_corr4(corr4)
-
-        print('fcorr4:', fcorr4)
-        print('nb_means:', nb_means)
-
-        return nb_means, np.diff(fcorr4) / np.diff(nb_means) / fcorr4[1:]
-
-    def plot_convergence(self):
-
-        nb_means, dnormpickC4 = self._compute_dnormpickC4_over_dnbmean()
-
-        fig = plt.figure()
-        fig.suptitle('normalized "convergence"')
-        ax = plt.gca()
-        ax.loglog(nb_means[1:], dnormpickC4, 'x-')
-        ax.set_xlabel('number of averages')
