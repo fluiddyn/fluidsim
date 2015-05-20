@@ -187,7 +187,7 @@ class CorrelationsFreq(SpecificOutput):
     def init_online_plot(self):
         fig, axe = self.output.figure_axe(numfig=4100000)
         self.axe = axe
-        axe.set_xlabel('Frequency')
+        axe.set_xlabel('Omega')
         axe.set_ylabel('Correlations')
         axe.set_title('Correlation, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.params.oper.nx))
@@ -215,7 +215,7 @@ class CorrelationsFreq(SpecificOutput):
 
         fig, axe = self.output.figure_axe(numfig=4100000)
         self.axe = axe
-        axe.set_xlabel('Frequency')
+        axe.set_xlabel('Omega')
         axe.set_xlabel('Correlation')
         axe.plot(corr2[:, :], 'k.')
         # axe.set_title('Correlation, solver '+self.output.name_solver +
@@ -223,16 +223,16 @@ class CorrelationsFreq(SpecificOutput):
         axe.hold(True)
         fig, ax = self.output.figure_axe(numfig=2333)
         self.ax = ax
-        ax.set_xlabel('Frequency')
-        ax.set_ylabel('Frequency')
+        ax.set_xlabel('Omega')
+        ax.set_ylabel('Omega')
         pc = ax.pcolormesh(fx, fy, abs(corr[4, :, :]))
         fig.colorbar(pc)
         ax.hold(True)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
         self.ax1 = ax1
-        ax1.set_xlabel('Frequency')
-        ax1.set_ylabel('Frequency')
+        ax1.set_xlabel('Omega')
+        ax1.set_ylabel('Omega')
         pc1 = ax1.pcolormesh(fx, fy, corr[3, :, :])
         fig1.colorbar(pc1)
         ax1.hold(True)
@@ -459,12 +459,30 @@ class CorrelationsFreq(SpecificOutput):
         ax = plt.gca()
         ax.set_title('log10(abs(corr2)); nb_means: ' +
                      str(self.nb_means_times))
-        plt.xlabel('Frequency')
-        plt.ylabel('Frequency')
+        plt.xlabel('Omega')
+        plt.ylabel('Omega')
         plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
                        vmax=log10corr2.max())
         plt.colorbar()
         plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
+
+    def plot_corr2_1d(self):
+
+        with h5py.File(self.path_file, 'r') as f:
+            corr2_in_file = f['corr2']
+            corr2 = corr2_in_file[-1]
+        corr2_diag = np.empty(self.nb_omegas, dtype=np.complex128)
+        for io3 in range(self.nb_omegas):
+            corr2_diag[io3] = corr2[io3, io3]
+
+        fig = plt.figure(num=18)
+        fig.clf()
+        ax = plt.gca()
+        ax.set_title('abs(corr2_diag); nb_means: ' +
+                     str(self.nb_means_times))
+        plt.xlabel('Omega')
+        plt.ylabel('abs(corr2)')
+        ax.loglog(self.omegas, abs(corr2_diag))
 
     def plot_corr4(self):
 
@@ -486,8 +504,8 @@ class CorrelationsFreq(SpecificOutput):
         nb_subplot_horiz = int(round(nb_omegas1/nb_subplot_vert))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
-            plt.xlabel('Frequency')
-            plt.ylabel('Frequency')
+            plt.xlabel('Omega')
+            plt.ylabel('Omega')
             plt.pcolormesh(fx, fy, np.log10(abs(corr_norm[i1, :, :])),
                            vmin=np.log10(abs(corr_norm.min())),
                            vmax=np.log10(abs(corr_norm.max())))
@@ -500,8 +518,8 @@ class CorrelationsFreq(SpecificOutput):
                      str(self.nb_means_times))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
-            plt.xlabel('Frequency')
-            plt.ylabel('Frequency')
+            plt.xlabel('Omega')
+            plt.ylabel('Omega')
             plt.pcolormesh(fx, fy, np.log10(abs(cum_norm[i1, :, :])),
                            vmin=np.log10(abs(cum_norm.min())),
                            vmax=np.log10(abs(cum_norm.max())))
@@ -514,8 +532,8 @@ class CorrelationsFreq(SpecificOutput):
                      str(self.nb_means_times))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
-            plt.xlabel('Frequency')
-            plt.ylabel('Frequency')
+            plt.xlabel('Omega')
+            plt.ylabel('Omega')
             plt.pcolormesh(fx, fy, np.log10(abs(norm[i1, :, :])),
                            vmin=np.log10(abs(norm.min())),
                            vmax=np.log10(abs(norm.max())))
