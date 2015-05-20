@@ -114,7 +114,7 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                             q_fftt_conj[ix, io4] *
                             q_fftt[ix, io2])
                 # symmetry omega_3 <--> omega_4:
-                corr4[i1, io4, io3] = np.conj(corr4[i1, io3, io4])
+                corr4[i1, io4, io3] = corr4[i1, io3, io4]
 
     if nb_proc > 1:
         # reduce SUM for mean:

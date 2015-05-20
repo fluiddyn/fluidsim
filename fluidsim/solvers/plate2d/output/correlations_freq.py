@@ -283,22 +283,8 @@ class CorrelationsFreq(SpecificOutput):
                 for io4 in range(io3+1):
                     io2 = io3 + io4 - io1
                     if io2 < 0:
-                        norm[i1, io3, io4] = 1
-                        norm[i1, io4, io3] = 1
-                        cum_norm[i1, io3, io4] = 1
-                        corr_norm[i1, io3, io4] = 1
-                        cum_norm[i1, io4, io3] = 1
-                        corr_norm[i1, io4, io3] = 1
-                        continue
                         io2 = -io2
                     elif io2 >= nb_omegas:
-                        norm[i1, io3, io4] = 1
-                        norm[i1, io4, io3] = 1
-                        cum_norm[i1, io3, io4] = 1
-                        corr_norm[i1, io3, io4] = 1
-                        cum_norm[i1, io4, io3] = 1
-                        corr_norm[i1, io4, io3] = 1
-                        continue
                         io2 = 2*nb_omegas-1-io2
 
                     norm[i1, io3, io4] = np.sqrt(abs(
