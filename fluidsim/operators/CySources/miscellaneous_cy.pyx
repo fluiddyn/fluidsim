@@ -75,7 +75,7 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
 
     """
     cdef DTYPEi_t i1, io1, io2, io3, io4, ix
-    cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
+    cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = np.conj(q_fftt)
     cdef np.ndarray[DTYPEc_t, ndim=3] corr4
 
     cdef int nx = q_fftt.shape[0]
@@ -117,7 +117,7 @@ def compute_correl4(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                             q_fftt_conj[ix, io4] *
                             q_fftt[ix, io2])
                 # symmetry omega_3 <--> omega_4:
-                corr4[i1, io4, io3] = corr4[i1, io3, io4]
+                corr4[i1, io4, io3] = np.conj(corr4[i1, io3, io4])
 
     if nb_proc > 1:
         # reduce SUM for mean:
@@ -145,7 +145,7 @@ def compute_correl2(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
 
     """
     cdef DTYPEi_t io3, io4, ix
-    cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = q_fftt.conj()
+    cdef np.ndarray[DTYPEc_t, ndim=2] q_fftt_conj = np.conj(q_fftt)
     cdef np.ndarray[DTYPEc_t, ndim=2] corr2
     cdef int nx = q_fftt.shape[0]
 
@@ -157,7 +157,7 @@ def compute_correl2(np.ndarray[DTYPEc_t, ndim=2] q_fftt,
                 #corr2[io3, io4] += cabs(
                 corr2[io3, io4] += (
                     q_fftt[ix, io3] * q_fftt_conj[ix, io4])
-            corr2[io4, io3] = corr2[io3, io4]
+            corr2[io4, io3] = np.conj(corr2[io3, io4])
 
     if nb_proc > 1:
         # reduce SUM for mean:

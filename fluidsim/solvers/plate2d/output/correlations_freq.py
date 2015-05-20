@@ -369,22 +369,25 @@ class CorrelationsFreq(SpecificOutput):
 
     def plot_corr2(self):
 
-        f = h5py.File(self.path_file, 'r')
-        corr2_full = f['corr2']
-        corr2 = corr2_full[-1]
+        with h5py.File(self.path_file, 'r') as f:
+            corr2_full = f['corr2']
+            corr2 = corr2_full[-1]
         duration = self.nb_times_compute*self.sim.time_stepping.deltat
         delta_frequency = 1./duration
+        corr2_norm = np.empty((self.nb_omegas, self.nb_omegas),
+                              dtype=np.complex128)
         fy, fx = np.mgrid[slice(0, delta_frequency*(self.nb_times_compute/2+1),
                                 delta_frequency),
                           slice(0, delta_frequency*(self.nb_times_compute/2+1),
                                 delta_frequency)]
         for io3 in range(self.nb_omegas):
             for io4 in range(io3+1):
-                corr2[io3, io4] = corr2[io3, io4]/np.sqrt(abs(
-                                            corr2[io3, io3] * corr2[io4, io4]))
-                corr2[io4, io3] = corr2[io3, io4]
+                corr2_norm[io3, io4] = corr2[io3, io4]/np.sqrt(
+                                            abs(corr2[io3, io3] *
+                                                corr2[io4, io4]))
+                corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
 
-        log10corr2 = np.log10(abs(corr2))
+        log10corr2 = np.log10(abs(corr2_norm))
         fig = plt.figure(num=22)
         fig.clf()
         ax = plt.gca()
