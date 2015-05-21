@@ -237,32 +237,6 @@ class CorrelationsFreq(SpecificOutput):
         fig1.colorbar(pc1)
         ax1.hold(True)
 
-    def compute_conv(self):
-        ws = 10
-        with h5py.File(self.path_file, 'r') as f:
-            corr4_full = f['corr4']
-            nb_means = f['nb_means']
-            means = np.empty(corr4_full.shape[0])
-            f_conv = np.empty(corr4_full.shape[0:2])
-            for nb in range(corr4_full.shape[0]):
-                corr4_nb = corr4_full[nb]
-                means[nb] = nb_means[nb]
-                for i1, io1 in enumerate(self.iomegas1):
-                    if (2*io1+ws < self.nb_omegas) & (2*io1-ws > io1):
-                        f_conv[nb, i1] = np.abs(np.mean(
-                            corr4_nb[i1, 2*io1-ws:2*io1+ws+1,
-                                     2*io1-ws:2*io1+ws+1]))
-        fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel('nb_means')
-        # ax1.set_ylabel('convergence')
-        ax1.set_title('Trispectra Convergence')
-        ax1.hold(True)
-        # ax1.set_xscale('log')
-        # ax1.set_yscale('log')
-        for i1, io1 in enumerate(self.iomegas1):
-            f_conv[:, i1] = f_conv[:, i1]/f_conv[0, i1]
-            ax1.plot(means, f_conv[:, i1], linewidth=1)
-
     def compute_corr4_norm(self):
 
         with h5py.File(self.path_file, 'r') as f:
@@ -394,47 +368,57 @@ class CorrelationsFreq(SpecificOutput):
             corr2 /= self.nb_xs_seq
             return corr2
 
-    def _norm_pick_corr4(self, corr4):
-        delta_io = 4
-        io3 = io4 = 2*self.iomegas1[0]
+    def _compute_norm_pick_corr4_from_corr4(self, corr4, i1=0, delta_io=10):
+        io3 = 2*self.iomegas1[i1]
+        io4 = 4*self.iomegas1[i1]
         if corr4.ndim == 3:
-            return np.absolute(np.mean(
-                corr4[0,
+            return np.abs(np.mean(
+                corr4[i1,
                       io3-delta_io:io3+delta_io+1,
                       io4-delta_io:io4+delta_io+1]))
         elif corr4.ndim == 4:
-            coor4_mini = corr4[:, 0,
+            coor4_mini = corr4[:, i1,
                                io3-delta_io:io3+delta_io+1,
                                io4-delta_io:io4+delta_io+1]
-            return np.absolute(coor4_mini.mean(1).mean(1))
+            return np.abs(coor4_mini.mean(1).mean(1))
 
-    def _compute_dnormpickC4_over_dnbmean(self, ):
+    def _compute_norm_pick_corr4(self):
         with h5py.File(self.path_file, 'r') as f:
-            dset_corr4 = f['corr4']
-            dset_nb_means = f['nb_means']
-            corr4 = dset_corr4[:]
-            nb_means = dset_nb_means[:]
+            corr4 = f['corr4'][:]
+            nb_means = f['nb_means'][:]
 
-        fcorr4 = self._norm_pick_corr4(corr4)
+        fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
-        print('fcorr4:', fcorr4)
-        print('nb_means:', nb_means)
+        return nb_means, fcorr4
+
+    def _compute_dnormpickC4_over_dnbmean(self):
+        with h5py.File(self.path_file, 'r') as f:
+            corr4 = f['corr4'][:]
+            nb_means = f['nb_means'][:]
+
+        fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
         return (nb_means,
                 np.absolute(np.diff(fcorr4) / np.diff(nb_means) *
                             nb_means[1:] / fcorr4[1:]))
+
+    def plot_norm_pick_corr4(self):
+        nb_means, fcorr4 = self._compute_norm_pick_corr4()
+        plt.figure()
+        ax = plt.gca()
+        ax.loglog(nb_means, fcorr4, 'x-')
+        ax.set_ylabel('a kind of norm of corr4')
+        ax.set_xlabel('number of averages')
 
     def plot_convergence(self):
 
         nb_means, dnormpickC4 = self._compute_dnormpickC4_over_dnbmean()
 
         fig = plt.figure()
-        fig.suptitle('normalized "convergence"')
+        fig.suptitle('"convergence"')
         ax = plt.gca()
         ax.loglog(nb_means[1:], dnormpickC4, 'x-')
         ax.set_xlabel('number of averages')
-
-        return nb_means, dnormpickC4
 
     def plot_corr2(self):
 
@@ -539,3 +523,30 @@ class CorrelationsFreq(SpecificOutput):
                            vmax=np.log10(abs(norm.max())))
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
+
+    def plot_convergence2(self):
+        ws = 10
+        with h5py.File(self.path_file, 'r') as f:
+            corr4_full = f['corr4']
+            nb_means = f['nb_means']
+            means = np.empty(corr4_full.shape[0])
+            f_conv = np.empty(corr4_full.shape[0:2])
+            for inb in range(corr4_full.shape[0]):
+                corr4_nb = corr4_full[inb]
+                means[inb] = nb_means[inb]
+                for i1, io1 in enumerate(self.iomegas1):
+                    if (2*io1+ws < self.nb_omegas) & (2*io1-ws > io1):
+                        f_conv[inb, i1] = np.abs(np.mean(
+                            corr4_nb[i1, 2*io1-ws:2*io1+ws+1,
+                                     2*io1-ws:2*io1+ws+1]))
+        fig, ax1 = self.output.figure_axe()
+        ax1.set_xlabel('nb_means')
+        # ax1.set_ylabel('convergence')
+        ax1.set_title('Trispectra Convergence')
+        ax1.hold(True)
+        for i1, io1 in enumerate(self.iomegas1):
+            f_conv[:, i1] = f_conv[:, i1]/f_conv[-1, i1]
+            ax1.plot(means, f_conv[:, i1], linewidth=1)
+
+        ax1.set_xscale('log')
+        ax1.set_yscale('log')
