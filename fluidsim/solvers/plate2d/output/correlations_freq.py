@@ -436,22 +436,25 @@ class CorrelationsFreq(SpecificOutput):
 
         return nb_means, dnormpickC4
 
-    def plot_corr2(self):
+    def plot_corr2(self, nonorm=False):
 
         with h5py.File(self.path_file, 'r') as f:
             corr2_in_file = f['corr2']
             corr2 = corr2_in_file[-1]
 
-        corr2_norm = np.empty((self.nb_omegas, self.nb_omegas),
-                              dtype=np.complex128)
         fy, fx = np.meshgrid(self.omegas, self.omegas)
 
-        for io3 in range(self.nb_omegas):
-            for io4 in range(io3+1):
-                corr2_norm[io3, io4] = corr2[io3, io4]/np.sqrt(
-                    np.absolute(corr2[io3, io3] *
-                                corr2[io4, io4]))
-                corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
+        if nonorm:
+            corr2_norm = corr2
+        else:
+            corr2_norm = np.empty((self.nb_omegas, self.nb_omegas),
+                                  dtype=np.complex128)
+            for io3 in range(self.nb_omegas):
+                for io4 in range(io3+1):
+                    corr2_norm[io3, io4] = corr2[io3, io4]/np.sqrt(
+                        np.absolute(corr2[io3, io3] *
+                                    corr2[io4, io4]))
+                    corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
 
         log10corr2 = np.log10(abs(corr2_norm))
         fig = plt.figure(num=22)
@@ -482,7 +485,8 @@ class CorrelationsFreq(SpecificOutput):
                      str(self.nb_means_times))
         plt.xlabel('Omega')
         plt.ylabel('abs(corr2)')
-        ax.loglog(self.omegas, abs(corr2_diag))
+        #ax.loglog(self.omegas, abs(corr2_diag))
+        ax.plot(self.omegas, np.log10(abs(corr2_diag)))
 
     def plot_corr4(self):
 
