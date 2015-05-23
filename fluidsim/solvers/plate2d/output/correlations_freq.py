@@ -237,13 +237,12 @@ class CorrelationsFreq(SpecificOutput):
         fig1.colorbar(pc1)
         ax1.hold(True)
 
-    def compute_corr4_norm(self):
+    def compute_corr4_norm(self, it=-1):
 
         with h5py.File(self.path_file, 'r') as f:
-            corr4_in_file = f['corr4']
-            corr2_in_file = f['corr2']
-            corr4 = corr4_in_file[-1]
-            corr2 = corr2_in_file[-1]
+            corr4 = f['corr4'][it]
+            corr2 = f['corr2'][it]
+            nb_means = f['nb_means'][it]
 
         nb_omegas = self.nb_omegas
 
@@ -278,7 +277,7 @@ class CorrelationsFreq(SpecificOutput):
                         corr4[i1, io3, io4]/norm[i1, io3, io4])
                     corr_norm[i1, io4, io3] = corr_norm[i1, io3, io4]
 
-        return norm, corr_norm, cum_norm
+        return norm, corr_norm, cum_norm, nb_means
 
     def _compute_correl4(self, q_fftt):
         r"""Compute the correlations 4.
@@ -369,24 +368,25 @@ class CorrelationsFreq(SpecificOutput):
             return corr2
 
     def _compute_norm_pick_corr4_from_corr4(self, corr4, i1=0, delta_io=10):
-        io3 = 2*self.iomegas1[i1]
-        io4 = 4*self.iomegas1[i1]
+        io1 = self.iomegas1[i1]
+        io3 = 4*io1
+        io4 = 8*io1
+        delta_io = min(delta_io, io3)
         if corr4.ndim == 3:
             return np.abs(np.mean(
                 corr4[i1,
                       io3-delta_io:io3+delta_io+1,
                       io4-delta_io:io4+delta_io+1]))
         elif corr4.ndim == 4:
-            coor4_mini = corr4[:, i1,
+            corr4_mini = corr4[:, i1,
                                io3-delta_io:io3+delta_io+1,
                                io4-delta_io:io4+delta_io+1]
-            return np.abs(coor4_mini.mean(1).mean(1))
+            return np.abs(corr4_mini.mean(1).mean(1))
 
     def _compute_norm_pick_corr4(self):
         with h5py.File(self.path_file, 'r') as f:
             corr4 = f['corr4'][:]
             nb_means = f['nb_means'][:]
-
         fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
         return nb_means, fcorr4
@@ -420,12 +420,12 @@ class CorrelationsFreq(SpecificOutput):
         ax.loglog(nb_means[1:], dnormpickC4, 'x-')
         ax.set_xlabel('number of averages')
 
-
-    def plot_corr2(self, nonorm=False):
+    def plot_corr2(self, nonorm=False, it=-1):
 
         with h5py.File(self.path_file, 'r') as f:
             corr2_in_file = f['corr2']
-            corr2 = corr2_in_file[-1]
+            corr2 = corr2_in_file[it]
+            nb_means = f['nb_means'][it]
 
         fy, fx = np.meshgrid(self.omegas, self.omegas)
 
@@ -442,11 +442,10 @@ class CorrelationsFreq(SpecificOutput):
                     corr2_norm[io4, io3] = corr2_norm[io3, io4].conj()
 
         log10corr2 = np.log10(abs(corr2_norm))
-        fig = plt.figure(num=22)
-        fig.clf()
+        plt.figure()
         ax = plt.gca()
         ax.set_title('log10(abs(corr2)); nb_means: ' +
-                     str(self.nb_means_times))
+                     str(nb_means))
         plt.xlabel('Omega')
         plt.ylabel('Omega')
         plt.pcolormesh(fx, fy, log10corr2, vmin=log10corr2.min(),
@@ -454,11 +453,12 @@ class CorrelationsFreq(SpecificOutput):
         plt.colorbar()
         plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
-    def plot_corr2_1d(self):
+    def plot_corr2_1d(self, it=-1):
 
         with h5py.File(self.path_file, 'r') as f:
-            corr2_in_file = f['corr2']
-            corr2 = corr2_in_file[-1]
+            corr2 = f['corr2'][it]
+            nb_means = f['nb_means'][it]
+
         corr2_diag = np.empty(self.nb_omegas, dtype=np.complex128)
         for io3 in range(self.nb_omegas):
             corr2_diag[io3] = corr2[io3, io3]
@@ -467,13 +467,13 @@ class CorrelationsFreq(SpecificOutput):
         fig.clf()
         ax = plt.gca()
         ax.set_title('abs(corr2_diag); nb_means: ' +
-                     str(self.nb_means_times))
+                     str(nb_means))
         plt.xlabel('Omega')
         plt.ylabel('abs(corr2)')
         #ax.loglog(self.omegas, abs(corr2_diag))
         ax.plot(self.omegas, np.log10(abs(corr2_diag)))
 
-    def plot_corr4(self):
+    def plot_corr4(self, it=-1):
 
         nb_omegas1 = self.iomegas1.shape[0]
         nb_omegas = self.nb_omegas
@@ -481,14 +481,13 @@ class CorrelationsFreq(SpecificOutput):
         corr_norm = np.empty((nb_omegas1, nb_omegas, nb_omegas))
         cum_norm = np.empty(corr_norm.shape)
         norm = np.empty(corr_norm.shape)
-        norm, corr_norm, cum_norm = self.compute_corr4_norm()
+        norm, corr_norm, cum_norm, nb_means = self.compute_corr4_norm(it)
 
         fy, fx = np.meshgrid(self.omegas, self.omegas)
 
-        fig = plt.figure(num=21)
-        fig.clf()
+        fig = plt.figure()
         fig.suptitle('log10(abs(corr_norm)); nb_means: ' +
-                     str(self.nb_means_times))
+                     str(nb_means))
         nb_subplot_vert = int(np.sqrt(nb_omegas1))
         nb_subplot_horiz = int(round(nb_omegas1/nb_subplot_vert))
         for i1, io1 in enumerate(self.iomegas1):
@@ -501,10 +500,9 @@ class CorrelationsFreq(SpecificOutput):
             plt.colorbar()
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
-        fig = plt.figure(num=121)
-        fig.clf()
+        fig = plt.figure()
         fig.suptitle('log10(abs(cum_norm)); nb_means: ' +
-                     str(self.nb_means_times))
+                     str(nb_means))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Omega')
@@ -515,10 +513,9 @@ class CorrelationsFreq(SpecificOutput):
             plt.colorbar()
 
             plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
-        fig = plt.figure(num=221)
-        fig.clf()
+        fig = plt.figure()
         fig.suptitle('log10(abs(norm)); nb_means: ' +
-                     str(self.nb_means_times))
+                     str(nb_means))
         for i1, io1 in enumerate(self.iomegas1):
             plt.subplot(nb_subplot_vert, nb_subplot_horiz, i1+1)
             plt.xlabel('Omega')
