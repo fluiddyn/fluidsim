@@ -145,8 +145,8 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'noise'
 
-    params.FORCING = False
-    params.forcing.type = 'random'
+    params.FORCING = True
+    params.forcing.type = 'waves'
 
     params.output.periods_print.print_stdout = 0.25
 
