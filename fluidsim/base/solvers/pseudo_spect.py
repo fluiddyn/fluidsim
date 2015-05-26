@@ -52,6 +52,17 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
                      'class_name': 'OperatorsPseudoSpectral2D'})
 
 
+class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
+    """Contain the information on a solver."""
+
+    def _init_root(self):
+
+        super(InfoSolverPseudoSpectral3D, self)._init_root()
+
+        self.Operators.module_name = 'fluidsim.operators.operators3d'
+        self.Operators.class_name = 'OperatorsPseudoSpectral3D'
+
+
 class SimulBasePseudoSpectral(SimulBase):
 
     InfoSolver = InfoSolverPseudoSpectral

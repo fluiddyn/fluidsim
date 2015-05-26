@@ -17,10 +17,10 @@
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3d)
 
 
-class InfoSolverNS3D(InfoSolverPseudoSpectral):
+class InfoSolverNS3D(InfoSolverPseudoSpectral3d):
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()
@@ -100,8 +100,6 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        # attribs = {'beta': 0.}
-        # params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
@@ -155,14 +153,14 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 32
+    n = 16
     Lh = 2*np.pi
-    params.oper.nx = nh
-    params.oper.ny = nh
+    params.oper.nx = n
+    params.oper.ny = n
+    params.oper.nz = n
     params.oper.Lx = Lh
     params.oper.Ly = Lh
-
-    # params.oper.type_fft = 'FFTWPY'
+    params.oper.Lz = Lh
 
     delta_x = params.oper.Lx/params.oper.nx
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
@@ -179,10 +177,9 @@ if __name__ == "__main__":
     # params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 1.
-    params.output.periods_save.spectra = 0.5
+    # params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 0.5
-    params.output.periods_save.increments = 0.5
+    # params.output.periods_save.spect_energy_budg = 0.5
 
     params.output.periods_plot.phys_fields = 0.0
 
@@ -191,7 +188,6 @@ if __name__ == "__main__":
     # params.output.spectra.HAS_TO_PLOT_SAVED = True
     # params.output.spatial_means.HAS_TO_PLOT_SAVED = True
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
-    # params.output.increments.HAS_TO_PLOT_SAVED = True
 
     params.output.phys_fields.field_to_plot = 'rot'
 
