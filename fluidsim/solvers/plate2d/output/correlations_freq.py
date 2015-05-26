@@ -110,7 +110,8 @@ class CorrelationsFreq(SpecificOutput):
                 raise ValueError('omega_1 max is larger than omega_Nyquist.')
 
             self.omega_dealiasing = (
-                self.params.oper.coef_dealiasing * self.sim.oper.kmax)**2
+                self.params.oper.coef_dealiasing * np.pi *
+                self.params.oper.nx / self.params.oper.Lx)**2
 
             if self.omega_dealiasing > self.omega_Nyquist:
                 print('Warning: omega_dealiasing > omega_Nyquist')
