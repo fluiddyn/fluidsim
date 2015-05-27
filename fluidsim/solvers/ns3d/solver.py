@@ -17,10 +17,10 @@
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3d)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D)
 
 
-class InfoSolverNS3D(InfoSolverPseudoSpectral3d):
+class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()
@@ -174,14 +174,14 @@ if __name__ == "__main__":
     # 'Proportional'
     # params.forcing.type_normalize
 
-    # params.output.periods_print.print_stdout = 0.25
+    params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 1.
+    # params.output.periods_save.phys_fields = 1.
     # params.output.periods_save.spectra = 0.5
-    params.output.periods_save.spatial_means = 0.05
+    # params.output.periods_save.spatial_means = 0.05
     # params.output.periods_save.spect_energy_budg = 0.5
 
-    params.output.periods_plot.phys_fields = 0.0
+    # params.output.periods_plot.phys_fields = 0.0
 
     params.output.ONLINE_PLOT_OK = True
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     # params.output.spatial_means.HAS_TO_PLOT_SAVED = True
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    # params.output.phys_fields.field_to_plot = 'rot'
 
     sim = Simul(params)
 

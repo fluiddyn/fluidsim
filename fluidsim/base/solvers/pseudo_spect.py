@@ -59,8 +59,8 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
         super(InfoSolverPseudoSpectral3D, self)._init_root()
 
-        self.Operators.module_name = 'fluidsim.operators.operators3d'
-        self.Operators.class_name = 'OperatorsPseudoSpectral3D'
+        self.classes.Operators.module_name = 'fluidsim.operators.operators3d'
+        self.classes.Operators.class_name = 'OperatorsPseudoSpectral3D'
 
 
 class SimulBasePseudoSpectral(SimulBase):

@@ -8,7 +8,7 @@ from fluidsim.base.state import StatePseudoSpectral
 from fluiddyn.util import mpi
 
 
-class StateNS2D(StatePseudoSpectral):
+class StateNS3D(StatePseudoSpectral):
     """Contains the variables corresponding to the state and handles the
     access to other fields for the solver NS3D.
 

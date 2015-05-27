@@ -373,8 +373,8 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         params._set_child('oper', attribs=attribs)
 
     def __init__(self,
-                 SEQUENTIAL=None,
                  params=None,
+                 SEQUENTIAL=None,
                  goal_to_print=None):
 
         if not params.ONLY_COARSE_OPER:
@@ -438,7 +438,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 type_fft = 'FFTPACK'
 
         self.type_fft = type_fft
-        
+
         # Initialization of the fft transforms
         if type_fft not in ['FFTWPY', 'FFTPACK']:
             if not TRANSPOSED and type_fft == 'FFTWCCY':

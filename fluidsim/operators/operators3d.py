@@ -1,9 +1,20 @@
 
+import sys
+
 import numpy as np
 
 from math import pi
 
 from fluidsim.operators.fft.easypyfft import FFTW3DReal2Complex
+from fluiddyn.util.mpi import nb_proc
+from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+
+
+def _make_str_length(length):
+    if (length/np.pi).is_integer():
+        return repr(int(length/np.pi)) + 'pi'
+    else:
+        return '{:.3f}'.format(length).rstrip('0')
 
 
 class OperatorsPseudoSpectral3D(object):
@@ -15,6 +26,14 @@ class OperatorsPseudoSpectral3D(object):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
+
+        if nb_proc > 1:
+            type_fft = 'FFTWCCY'
+        else:
+            if not sys.platform == 'win32':
+                type_fft = 'FFTWCY'
+            else:
+                type_fft = 'FFTWPY'
 
         attribs = {'type_fft': type_fft,
                    'TRANSPOSED_OK': True,
@@ -31,11 +50,12 @@ class OperatorsPseudoSpectral3D(object):
 
         self.params = params
 
-        nx = self.nx = params.oper.nx
-        ny = self.ny = params.oper.ny
-        nz = self.nz = params.oper.nz
+        nx = self.nx_seq = params.oper.nx
+        ny = self.ny_seq = params.oper.ny
+        nz = self.nz_seq = params.oper.nz
 
         self.shape_phys = (nz, ny, nx)
+        self.shapeX_loc = self.shape_phys
 
         Lx = self.Lx = params.oper.Lx
         Ly = self.Ly = params.oper.Ly
@@ -43,6 +63,10 @@ class OperatorsPseudoSpectral3D(object):
 
         if nx % 2 != 0 or ny % 2 != 0 or nz % 2 != 0:
             raise ValueError('nx, ny and nz have to be even.')
+
+        self._oper2d = OperatorsPseudoSpectral2D(params)
+        self.ifft2d = self._oper2d.ifft2
+        self.fft2d = self._oper2d.fft2
 
         self._op_fft = FFTW3DReal2Complex(nx, ny, nz)
 
@@ -61,7 +85,7 @@ class OperatorsPseudoSpectral3D(object):
         self.nk1 = self.nky
         self.nk2 = self.nkx
 
-        self.shape_fft = (self.nk0, self.nk1, self.nk2)
+        self.shapeK_loc = (self.nk0, self.nk1, self.nk2)
 
         self.deltakx = 2*pi/Lx
         self.deltaky = 2*pi/Ly
@@ -77,8 +101,36 @@ class OperatorsPseudoSpectral3D(object):
         self.Ky = K1
         self.Kx = K2
 
-        self.K_square_nozero = K0**2 + K1**2 + K2**2
+        self.K2 = K0**2 + K1**2 + K2**2
+        self.K8 = self.K2**4
+
+        self.K_square_nozero = self.K2.copy()
         self.K_square_nozero[0, 0, 0] = 1e-14
+
+    def produce_str_describing_oper(self):
+        """Produce a string describing the operator."""
+        str_Lx = _make_str_length(self.Lx)
+        str_Ly = _make_str_length(self.Ly)
+        str_Lz = _make_str_length(self.Lz)
+
+        return ('L=' + str_Lx + 'x' + str_Ly + 'x' + str_Lz +
+                '_{}x{}x{}').format(self.nx_seq, self.ny_seq, self.nz_seq)
+
+    def produce_long_str_describing_oper(self):
+        """Produce a string describing the operator."""
+
+        str_Lx = _make_str_length(self.Lx)
+        str_Ly = _make_str_length(self.Ly)
+        str_Lz = _make_str_length(self.Lz)
+
+        return (
+            'type fft: ' + self.type_fft + '\n' +
+            'nx = {0:6d} ; ny = {1:6d}\n'.format(self.nx_seq, self.ny_seq) +
+            'Lx = ' + str_Lx + ' ; Ly = ' + str_Ly +
+            ' ; Lz = ' + str_Lz + '\n')
+
+    def expand_3dfrom2d(self, arr2d):
+        return arr2d.repeat(self.nz).reshape((self.nz,) + arr2d.shape)
 
     def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
 
@@ -130,14 +182,18 @@ class OperatorsPseudoSpectral3D(object):
         return vgradvx, vgradvy, vgradvz
 
 
+
+
 if __name__ == '__main__':
     n = 4
 
     from fluidsim.base.params import Parameters
-    p = Parameters(tag='params')
+    p = Parameters(tag='params', attribs={'ONLY_COARSE_OPER': False})
     p._set_child(
         'oper', {'nx': n, 'ny': n, 'nz': 2*n,
-                 'Lx': 2*pi, 'Ly': 2*pi, 'Lz': 2*pi})
+                 'Lx': 2*pi, 'Ly': 2*pi, 'Lz': 2*pi, 
+                 'type_fft': 'FFTWPY', 'coef_dealiasing': 0.66,
+                 'TRANSPOSED_OK': True})
 
     oper = OperatorsPseudoSpectral3D(params=p)
 
@@ -145,8 +201,11 @@ if __name__ == '__main__':
 
     field_fft = oper.fft3d(field)
 
-    assert field_fft.shape == oper.shape_fft
+    assert field_fft.shape == oper.shapeK_loc
 
     oper.vgradv_from_v(field, field, field)
 
     oper.project_perpk3d(field_fft, field_fft, field_fft)
+
+    a2d = np.arange(oper.nx*oper.ny).reshape([oper.ny, oper.nx])
+    a3d = oper.expand_3dfrom2d(a2d)

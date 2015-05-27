@@ -45,7 +45,12 @@ class StateBase(object):
 
         # creation of the SetOfVariables state_fft and state_phys
         self.keys_state_phys = sim.info.solver.classes.State.keys_state_phys
-        self.keys_computable = sim.info.solver.classes.State.keys_computable
+
+        try:
+            self.keys_computable = \
+                sim.info.solver.classes.State.keys_computable
+        except AttributeError:
+            self.keys_computable = []
 
         self.state_phys = SetOfVariables(keys=self.keys_state_phys,
                                          shape_variable=self.oper.shapeX_loc,
