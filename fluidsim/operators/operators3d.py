@@ -8,6 +8,7 @@ from math import pi
 from fluidsim.operators.fft.easypyfft import FFTW3DReal2Complex
 from fluiddyn.util.mpi import nb_proc
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 def _make_str_length(length):
@@ -54,6 +55,9 @@ class OperatorsPseudoSpectral3D(object):
         ny = self.ny_seq = params.oper.ny
         nz = self.nz_seq = params.oper.nz
 
+        if nx % 2 != 0 or ny % 2 != 0 or nz % 2 != 0:
+            raise ValueError('nx, ny and nz have to be even.')
+
         self.shape_phys = (nz, ny, nx)
         self.shapeX_loc = self.shape_phys
 
@@ -61,17 +65,20 @@ class OperatorsPseudoSpectral3D(object):
         Ly = self.Ly = params.oper.Ly
         Lz = self.Lz = params.oper.Lz
 
-        if nx % 2 != 0 or ny % 2 != 0 or nz % 2 != 0:
-            raise ValueError('nx, ny and nz have to be even.')
+        self.deltax = Lx/nx
+        self.deltay = Ly/ny
+        self.deltaz = Lz/nz
 
         self._oper2d = OperatorsPseudoSpectral2D(params)
-        self.ifft2d = self._oper2d.ifft2
-        self.fft2d = self._oper2d.fft2
+        self.type_fft = self._oper2d.type_fft
+        self.ifft2 = self.ifft2d = self._oper2d.ifft2
+        self.fft2 = self.fft2d = self._oper2d.fft2
 
         self._op_fft = FFTW3DReal2Complex(nx, ny, nz)
 
         self.ifft3d = self._op_fft.ifft3d
         self.fft3d = self._op_fft.fft3d
+        self.sum_wavenumbers = self._op_fft.sum_wavenumbers
 
         kx_adim_max = nx/2
         ky_adim_max = ny/2
@@ -107,6 +114,14 @@ class OperatorsPseudoSpectral3D(object):
         self.K_square_nozero = self.K2.copy()
         self.K_square_nozero[0, 0, 0] = 1e-14
 
+        self.coef_dealiasing = params.oper.coef_dealiasing
+
+        CONDKX = abs(self.Kx) > self.coef_dealiasing*self.k2.max()
+        CONDKY = abs(self.Ky) > self.coef_dealiasing*self.k1.max()
+        CONDKZ = abs(self.Kz) > self.coef_dealiasing*self.k0.max()
+        where_dealiased = np.logical_or(CONDKX, CONDKY, CONDKZ)
+        self.where_dealiased = np.array(where_dealiased, dtype=np.int8)
+
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
         str_Lx = _make_str_length(self.Lx)
@@ -130,7 +145,7 @@ class OperatorsPseudoSpectral3D(object):
             ' ; Lz = ' + str_Lz + '\n')
 
     def expand_3dfrom2d(self, arr2d):
-        return arr2d.repeat(self.nz).reshape((self.nz,) + arr2d.shape)
+        return arr2d.repeat(self.nz_seq).reshape((self.nz_seq,) + arr2d.shape)
 
     def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
 
@@ -181,7 +196,22 @@ class OperatorsPseudoSpectral3D(object):
 
         return vgradvx, vgradvy, vgradvz
 
+    def dealiasing(self, *arguments):
+        for ii in range(len(arguments)):
+            thing = arguments[ii]
+            if isinstance(thing, SetOfVariables):
+                _dealiasing_setofvar(thing, self.where_dealiased)
+            elif isinstance(thing, np.ndarray):
+                _dealiasing_variable(thing, self.where_dealiased)
 
+
+def _dealiasing_setofvar(sov, where_dealiased):
+    for i in range(sov.shape[0]):
+        sov[i][where_dealiased] = 0.
+
+
+def _dealiasing_variable(ff_fft, where_dealiased):
+    ff_fft[where_dealiased] = 0.
 
 
 if __name__ == '__main__':
@@ -191,7 +221,7 @@ if __name__ == '__main__':
     p = Parameters(tag='params', attribs={'ONLY_COARSE_OPER': False})
     p._set_child(
         'oper', {'nx': n, 'ny': n, 'nz': 2*n,
-                 'Lx': 2*pi, 'Ly': 2*pi, 'Lz': 2*pi, 
+                 'Lx': 2*pi, 'Ly': 2*pi, 'Lz': 2*pi,
                  'type_fft': 'FFTWPY', 'coef_dealiasing': 0.66,
                  'TRANSPOSED_OK': True})
 

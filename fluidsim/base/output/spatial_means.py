@@ -31,14 +31,14 @@ class SpatialMeansBase(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag,
-                                attribs={'HAS_TO_PLOT_SAVED': False})
+                                 attribs={'HAS_TO_PLOT_SAVED': False})
 
     def __init__(self, output):
         params = output.sim.params
         self.nx = params.oper.nx
 
         self.sum_wavenumbers = output.sum_wavenumbers
-        self.vecfft_from_rotfft = output.vecfft_from_rotfft
+        self.vecfft_from_rotfft = output.oper.vecfft_from_rotfft
 
         super(SpatialMeansBase, self).__init__(
             output,

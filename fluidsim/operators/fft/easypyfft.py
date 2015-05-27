@@ -170,6 +170,10 @@ class FFTW3DReal2Complex:
         self.ifftplan(normalise_idft=False)
         return self.arrayX.copy()
 
+    def sum_wavenumbers(self, ff_fft):
+        return (np.sum(ff_fft[:, :, 0] + ff_fft[:, :, -1]) +
+                2*np.sum(ff_fft[:, :, 1:-1]))/2
+
     def compute_energy_from_Fourier(self, ff_fft):
         return (np.sum(abs(ff_fft[:, :, 0])**2 + abs(ff_fft[:, :, -1])**2) +
                 2*np.sum(abs(ff_fft[:, :, 1:-1])**2))/2

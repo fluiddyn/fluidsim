@@ -65,9 +65,14 @@ class TimeSteppingBase(object):
 
         self.deltat = params_ts.deltat0
 
-        has_ux = self.sim.state.can_this_key_be_obtained('ux')
-        has_uy = self.sim.state.can_this_key_be_obtained('uy')
-        has_uz = self.sim.state.can_this_key_be_obtained('uz')
+        can_this_key_be_obtained = self.sim.state.can_this_key_be_obtained
+
+        has_ux = (can_this_key_be_obtained('ux') or
+                  can_this_key_be_obtained('vx'))
+        has_uy = (can_this_key_be_obtained('uy') or
+                  can_this_key_be_obtained('vy'))
+        has_uz = (can_this_key_be_obtained('uz') or
+                  can_this_key_be_obtained('vz'))
 
         if has_ux and has_uy and has_uz:
             self._compute_time_increment_CLF = \
@@ -143,9 +148,9 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""
 
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
-        uz = self.sim.state('uz')
+        ux = self.sim.state('vx')
+        uy = self.sim.state('vy')
+        uz = self.sim.state('vz')
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()

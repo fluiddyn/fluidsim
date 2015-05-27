@@ -2,6 +2,8 @@
 =======================================================================
 """
 
+import numpy as np
+
 
 from fluidsim.base.state import StatePseudoSpectral
 
@@ -73,3 +75,8 @@ class StateNS3D(StatePseudoSpectral):
         self.state_fft.get_var('vx_fft', self.oper.fft3d(vx))
         self.state_fft.get_var('vy_fft', self.oper.fft3d(vy))
         self.state_fft.get_var('vz_fft', self.oper.fft3d(vz))
+
+    def init_from_vxvyfft(self, vx_fft, vy_fft):
+        self.state_fft.set_var('vx_fft', vx_fft)
+        self.state_fft.set_var('vy_fft', vy_fft)
+        self.state_fft.set_var('vz_fft', np.zeros_like(vx_fft))

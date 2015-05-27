@@ -41,6 +41,8 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
         classes.Output.module_name = package + '.output'
         classes.Output.class_name = 'Output'
 
+        del(classes.Forcing)
+        classes._tag_children.remove('Forcing')
         # classes.Forcing.module_name = package + '.forcing'
         # classes.Forcing.class_name = 'ForcingNS3D'
 
@@ -154,23 +156,24 @@ if __name__ == "__main__":
     params.short_name_type_run = 'test'
 
     n = 16
-    Lh = 2*np.pi
+    L = 2*np.pi
     params.oper.nx = n
     params.oper.ny = n
     params.oper.nz = n
-    params.oper.Lx = Lh
-    params.oper.Ly = Lh
-    params.oper.Lz = Lh
+    params.oper.Lx = L
+    params.oper.Ly = L
+    params.oper.Lz = L
 
     delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.nu_8 = 2.*10e-1*delta_x**8
 
     params.time_stepping.t_end = 1.
 
     params.init_fields.type = 'dipole'
 
-    params.FORCING = True
-    params.forcing.type = 'random'
+    params.FORCING = False
+    # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
 

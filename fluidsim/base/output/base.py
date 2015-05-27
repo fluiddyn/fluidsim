@@ -320,11 +320,11 @@ class OutputBasePseudoSpectral(OutputBase):
 
         oper = self.sim.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
-        self.fft2 = oper.fft2
-        self.ifft2 = oper.ifft2
-        # really necessary here?
-        self.vecfft_from_rotfft = oper.vecfft_from_rotfft
-        self.rotfft_from_vecfft = oper.rotfft_from_vecfft
+        # self.fft2 = oper.fft2
+        # self.ifft2 = oper.ifft2
+        # # really necessary here?
+        # self.vecfft_from_rotfft = oper.vecfft_from_rotfft
+        # self.rotfft_from_vecfft = oper.rotfft_from_vecfft
 
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
 
