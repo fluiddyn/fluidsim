@@ -69,6 +69,10 @@ class OperatorsPseudoSpectral3D(object):
         self.deltay = Ly/ny
         self.deltaz = Lz/nz
 
+        self.x_seq = self.deltax*np.arange(nx)
+        self.y_seq = self.deltay*np.arange(ny)
+        self.z_seq = self.deltaz*np.arange(nz)
+
         self._oper2d = OperatorsPseudoSpectral2D(params)
         self.type_fft = self._oper2d.type_fft
         self.ifft2 = self.ifft2d = self._oper2d.ifft2
@@ -145,7 +149,8 @@ class OperatorsPseudoSpectral3D(object):
             ' ; Lz = ' + str_Lz + '\n')
 
     def expand_3dfrom2d(self, arr2d):
-        return arr2d.repeat(self.nz_seq).reshape((self.nz_seq,) + arr2d.shape)
+        return np.array(list(arr2d)*self.nz_seq).reshape(
+            (self.nz_seq,) + arr2d.shape)
 
     def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
 

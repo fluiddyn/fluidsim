@@ -138,7 +138,7 @@ class PhysFieldsBase(SpecificOutput):
 
     def plot(self, numfig=None, field=None, key_field=None,
              QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
-             nb_contours=20, type_plot='contourf'):
+             nb_contours=20, type_plot='contourf', iz=0):
 
         x_left_axe = 0.08
         z_bottom_axe = 0.07
@@ -177,6 +177,9 @@ class PhysFieldsBase(SpecificOutput):
             field = self.oper.gather_Xspace(field_loc)
         else:
             field = field_loc
+
+        if field.ndim == 3:
+            field = field[iz]
 
         if mpi.rank == 0:
             if numfig is None:

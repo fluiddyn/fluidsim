@@ -28,7 +28,9 @@ class StateNS3D(StatePseudoSpectral):
             'keys_state_fft': [k + '_fft' for k in keys_state_phys],
             'keys_state_phys': keys_state_phys,
             'keys_phys_needed': keys_state_phys,
-            'keys_linear_eigenmodes': ['rot_fft']})
+            'keys_computable': [],
+            'keys_linear_eigenmodes': ['rot_fft']
+        })
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
@@ -72,11 +74,16 @@ class StateNS3D(StatePseudoSpectral):
         vy = self.state_phys.get_var('vy')
         vz = self.state_phys.get_var('vz')
 
-        self.state_fft.get_var('vx_fft', self.oper.fft3d(vx))
-        self.state_fft.get_var('vy_fft', self.oper.fft3d(vy))
-        self.state_fft.get_var('vz_fft', self.oper.fft3d(vz))
+        self.state_fft.set_var('vx_fft', self.oper.fft3d(vx))
+        self.state_fft.set_var('vy_fft', self.oper.fft3d(vy))
+        self.state_fft.set_var('vz_fft', self.oper.fft3d(vz))
 
     def init_from_vxvyfft(self, vx_fft, vy_fft):
         self.state_fft.set_var('vx_fft', vx_fft)
         self.state_fft.set_var('vy_fft', vy_fft)
         self.state_fft.set_var('vz_fft', np.zeros_like(vx_fft))
+
+        self.state_phys.set_var('vx', self.oper.ifft3d(vx_fft))
+        self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))
+        vx = self.state_phys.get_var('vx')
+        self.state_phys.set_var('vz', np.zeros_like(vx))
