@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf>
+  <Domain>
+    <Grid Name="my_uniform_grid" GridType="Uniform">
+      <Topology TopologyType="3DCoRectMesh" Dimensions="17 17 17">
+      </Topology>
+      <Geometry GeometryType="Origin_DxDyDz">
+	<DataItem Dimensions="3" NumberType="Float" Format="XML">
+	  0 0 0
+        </DataItem>
+        <DataItem Dimensions="3" NumberType="Float" Format="XML">
+	  0.3927 0.3927 0.3927
+        </DataItem>
+      </Geometry>
+      <Attribute Name="vx" AttributeType="Scalar" Center="Cell">
+	<DataItem Dimensions="16 16 16" NumberType="Float" Format="HDF">
+	  state_phys_t=000.000_it=0.hd5:/state_phys/vx
+	</DataItem>
+      </Attribute>
+      <Attribute Name="vy" AttributeType="Scalar" Center="Cell">
+	<DataItem Dimensions="16 16 16" NumberType="Float" Format="HDF">
+	  state_phys_t=000.000_it=0.hd5:/state_phys/vy
+	</DataItem>
+      </Attribute>
+      <Attribute Name="vz" AttributeType="Scalar" Center="Cell">
+	<DataItem Dimensions="16 16 16" NumberType="Float" Format="HDF">
+	  state_phys_t=000.000_it=0.hd5:/state_phys/vz
+	</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>

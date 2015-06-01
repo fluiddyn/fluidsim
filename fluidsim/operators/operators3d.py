@@ -149,8 +149,13 @@ class OperatorsPseudoSpectral3D(object):
             ' ; Lz = ' + str_Lz + '\n')
 
     def expand_3dfrom2d(self, arr2d):
-        return np.array(list(arr2d)*self.nz_seq).reshape(
-            (self.nz_seq,) + arr2d.shape)
+        if arr2d.dtype == np.complex128:
+            ret = np.zeros((self.nz_seq,) + arr2d.shape, dtype=np.complex128)
+            ret[0] = arr2d
+            return ret
+        else:
+            return np.array(list(arr2d)*self.nz_seq).reshape(
+                (self.nz_seq,) + arr2d.shape)
 
     def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
 
@@ -160,7 +165,9 @@ class OperatorsPseudoSpectral3D(object):
 
         tmp = (Kx * vx_fft + Ky * vy_fft + Kz * vz_fft) / self.K_square_nozero
 
-        return (vx_fft - Kx * tmp, vy_fft - Ky * tmp, vz_fft - Kz * tmp)
+        return (vx_fft - Kx * tmp,
+                vy_fft - Ky * tmp,
+                vz_fft - Kz * tmp)
 
     def vgradv_from_v(self, vx, vy, vz, vx_fft=None, vy_fft=None, vz_fft=None):
 
@@ -212,11 +219,11 @@ class OperatorsPseudoSpectral3D(object):
 
 def _dealiasing_setofvar(sov, where_dealiased):
     for i in range(sov.shape[0]):
-        sov[i][where_dealiased] = 0.
+        sov[i][np.nonzero(where_dealiased)] = 0.
 
 
 def _dealiasing_variable(ff_fft, where_dealiased):
-    ff_fft[where_dealiased] = 0.
+    ff_fft[np.nonzero(where_dealiased)] = 0.
 
 
 if __name__ == '__main__':

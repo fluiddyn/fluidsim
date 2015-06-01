@@ -168,7 +168,9 @@ if __name__ == "__main__":
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.nu_8 = 2.*10e-1*delta_x**8
 
-    params.time_stepping.t_end = 1.
+    params.time_stepping.USE_T_END = True
+    params.time_stepping.t_end = 10.
+    params.time_stepping.it_end = 2
 
     params.init_fields.type = 'dipole'
 
@@ -177,7 +179,7 @@ if __name__ == "__main__":
     # 'Proportional'
     # params.forcing.type_normalize
 
-    params.output.periods_print.print_stdout = 0.25
+    params.output.periods_print.print_stdout = 0.00000000001
 
     # params.output.periods_save.phys_fields = 1.
     # params.output.periods_save.spectra = 0.5
@@ -197,7 +199,7 @@ if __name__ == "__main__":
     sim = Simul(params)
 
     # sim.output.phys_fields.plot()
-    # sim.time_stepping.start()
+    sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
     fld.show()

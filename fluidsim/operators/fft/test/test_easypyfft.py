@@ -135,9 +135,10 @@ class TestFFTW3DReal2Complex(unittest.TestCase):
         func_fft = (np.random.random(op.shapeK)
                     + 1.j*np.random.random(op.shapeK))
         func = op.ifft3d(func_fft)
-        func_fft = op.fft3d(func)
+        func_fft_back = op.fft3d(func)
 
-        self.compute_and_check(func_fft, op)
+        self.compute_and_check(func_fft_back, op)
+
 
 if __name__ == '__main__':
     unittest.main()
