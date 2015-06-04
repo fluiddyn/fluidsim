@@ -15,11 +15,11 @@ class StatePlate2D(StatePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['w_fft', 'z_fft'],
             'keys_state_phys': ['w', 'z'],
             'keys_computable': [],
@@ -57,8 +57,7 @@ class StatePlate2D(StatePseudoSpectral):
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
-                    print(to_print
-                          + '\nreturn an array of zeros.')
+                    print(to_print + '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 

@@ -25,11 +25,11 @@ class InitFieldsBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.InitFields.set_child('classes')
+        info_solver.classes.InitFields._set_child('classes')
 
         classesXML = info_solver.classes.InitFields.classes
 
@@ -40,7 +40,7 @@ class InitFieldsBase(object):
                         InitFieldsManual, InitFieldsConstant])
 
         for cls in classes:
-            classesXML.set_child(
+            classesXML._set_child(
                 cls.tag,
                 attribs={'module_name': cls.__module__,
                          'class_name': cls.__name__})
@@ -49,17 +49,23 @@ class InitFieldsBase(object):
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        params.set_child('init_fields', attribs={
+        params._set_child('init_fields', attribs={
             'type': 'constant',
             'available_types': []})
 
         dict_classes = info_solver.classes.InitFields.import_classes()
+
         for Class in dict_classes.values():
             if hasattr(Class, '_complete_params_with_default'):
                 try:
                     Class._complete_params_with_default(params)
                 except TypeError:
-                    Class._complete_params_with_default(params, info_solver)
+                    try:
+                        Class._complete_params_with_default(
+                            params, info_solver)
+                    except TypeError as e:
+                        e.args += ('for class: ' + repr(Class),)
+                        raise
 
     def __init__(self, sim):
 
@@ -89,10 +95,7 @@ class SpecificInitFields(object):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        # to avoid a "bug" with ContainerXML
-        atypes = params.init_fields.available_types
-        atypes.append(cls.tag)
-        params.init_fields.available_types = atypes
+        params.init_fields.available_types.append(cls.tag)
 
     def __init__(self, sim):
         self.sim = sim
@@ -104,8 +107,8 @@ class InitFieldsFromFile(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={'path': ''})
+        super(InitFieldsFromFile, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={'path': ''})
 
     def __call__(self):
 
@@ -181,28 +184,37 @@ class InitFieldsFromFile(SpecificInitFields):
                 if mpi.rank == 0:
                     field_seq = group_state_phys[k][...]
                 else:
-                    field_seq = self.oper.constant_arrayX()
+                    field_seq = self.sim.oper.constant_arrayX()
 
                 if mpi.nb_proc > 1:
-                    field_loc = self.oper.scatter_Xspace(field_seq)
+                    field_loc = self.sim.oper.scatter_Xspace(field_seq)
                 else:
                     field_loc = field_seq
                 state_phys.set_var(k, field_loc)
             else:
-                state_phys.set_var(k, self.oper.constant_arrayX(value=0.))
+                state_phys.set_var(k, self.sim.oper.constant_arrayX(value=0.))
 
         if mpi.rank == 0:
-            t_file = group_state_phys.attrs['time']
+            time = group_state_phys.attrs['time']
+
+            try:
+                it = group_state_phys.attrs['it']
+            except KeyError:
+                # compatibility with older versions
+                it = 0
             f.close()
         else:
-            t_file = 0.
+            time = 0.
+            it = 0
 
         if mpi.nb_proc > 1:
-            t_file = mpi.comm.bcast(t_file)
+            time = mpi.comm.bcast(time)
+            it = mpi.comm.bcast(it)
 
         self.sim.state.statefft_from_statephys()
         self.sim.state.statephys_from_statefft()
-        self.sim.time_stepping.t = t_file
+        self.sim.time_stepping.t = time
+        self.sim.time_stepping.it = it
 
 
 class InitFieldsFromSimul(SpecificInitFields):
@@ -288,8 +300,8 @@ class InitFieldsConstant(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(cls, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={'value': 1.})
+        super(InitFieldsConstant, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={'value': 1.})
 
     def __call__(self):
         value = self.sim.params.init_fields.constant.value

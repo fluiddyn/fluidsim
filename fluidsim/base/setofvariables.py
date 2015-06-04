@@ -45,7 +45,6 @@ class SetOfVariables(np.ndarray):
 
     """
 
-
     def __new__(cls, input_array=None, keys=None, shape_variable=None,
                 like=None, value=None, info=None, dtype=None, **kargs):
         # print('in __new__')
@@ -112,10 +111,10 @@ class SetOfVariables(np.ndarray):
     def get_var(self, arg):
         """Get a variable as a np.array."""
         if isinstance(arg, int):
-            indice = arg
+            index = arg
         else:
-            indice = self.keys.index(arg)
-        return np.asarray(self[indice])
+            index = self.keys.index(arg)
+        return np.asarray(self[index])
 
     def initialize(self, value=0):
         """Initialize as a constant array."""

@@ -18,11 +18,11 @@ class StateSW1L(StatePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_fft': ['ux_fft', 'uy_fft', 'eta_fft'],
             'keys_state_phys': ['ux', 'uy', 'eta', 'rot'],
             'keys_computable': [],
@@ -64,7 +64,20 @@ class StateSW1L(StatePseudoSpectral):
         elif key == 'q':
             rot = self.state_phys.get_var('rot')
             eta = self.state_phys.get_var('eta')
-            result = rot-self.param.f*eta
+            result = rot-self.params.f*eta
+        elif key == 'q_fft':
+            ux_fft = self.state_fft.get_var('ux_fft')
+            uy_fft = self.state_fft.get_var('uy_fft')
+            eta_fft = self.state_fft.get_var('eta_fft')
+            rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+            result = rot_fft-self.params.f*eta_fft
+
+        elif key == 'a_fft':
+            ux_fft = self.state_fft.get_var('ux_fft')
+            uy_fft = self.state_fft.get_var('uy_fft')
+            eta_fft = self.state_fft.get_var('eta_fft')
+            result = self.oper.afft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
         elif key == 'h':
             eta = self.state_phys.get_var('eta')
             result = 1 + eta
@@ -73,7 +86,7 @@ class StateSW1L(StatePseudoSpectral):
             h = self.compute('h')
             ux = self.state_phys.get_var('ux')
             uy = self.state_phys.get_var('uy')
-            result = np.sqrt((ux**2 + uy**2)/(self.sim.param.c2*h))
+            result = np.sqrt((ux**2 + uy**2)/(self.sim.params.c2*h))
 
         else:
             to_print = 'Do not know how to compute "'+key+'".'
@@ -130,6 +143,14 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
+    def init_fft_from(self, args):
+        if len(args) == 1 and 'q_fft' in args:
+            self.init_from_qfft(args['q_fft'])
+        elif len(args) == 1 and 'a_fft' in args:
+            self.init_from_afft(args['a_fft'])
+        else:
+            super(StateSW1L, self).init_fft_from(args)
+
     def init_from_etafft(self, eta_fft):
         state_fft = self.state_fft
         state_fft.set_var('ux_fft', np.zeros_like(eta_fft))
@@ -154,6 +175,16 @@ class StateSW1L(StatePseudoSpectral):
     def init_from_rotfft(self, rot_fft):
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         self.init_from_uxuyfft(ux_fft, uy_fft)
+
+    def init_from_qfft(self, q_fft):
+        rot_fft = self.oper.rotfft_from_qfft(q_fft)
+        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        eta_fft = self.oper.etafft_from_qfft(q_fft)
+        self.init_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
+    def init_from_afft(self, a_fft):
+        ux_fft, uy_fft, eta_fft = self.oper.uxuyetafft_from_afft(a_fft)
+        self.init_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
         oper = self.oper

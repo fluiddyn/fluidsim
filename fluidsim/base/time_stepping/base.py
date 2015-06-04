@@ -12,6 +12,7 @@ Provides:
 """
 
 from time import time
+from signal import signal
 
 from fluiddyn.util import mpi
 
@@ -31,7 +32,7 @@ class TimeSteppingBase(object):
                    'USE_CFL': True,
                    'type_time_scheme': 'RK4',
                    'deltat0': 0.2}
-        params.set_child('time_stepping', attribs=attribs)
+        params._set_child('time_stepping', attribs=attribs)
 
     def __init__(self, sim):
         self.params = sim.params
@@ -39,6 +40,14 @@ class TimeSteppingBase(object):
 
         self.it = 0
         self.t = 0
+
+        self._has_to_stop = False
+
+        def handler_signals(signal_number, stack):
+            print('signal {} received.'.format(signal_number))
+            self._has_to_stop = True
+
+        signal(12, handler_signals)
 
     def _init_compute_time_step(self):
 
@@ -56,9 +65,14 @@ class TimeSteppingBase(object):
 
         self.deltat = params_ts.deltat0
 
-        has_ux = self.sim.state.can_this_key_be_obtained('ux')
-        has_uy = self.sim.state.can_this_key_be_obtained('uy')
-        has_uz = self.sim.state.can_this_key_be_obtained('uz')
+        can_this_key_be_obtained = self.sim.state.can_this_key_be_obtained
+
+        has_ux = (can_this_key_be_obtained('ux') or
+                  can_this_key_be_obtained('vx'))
+        has_uy = (can_this_key_be_obtained('uy') or
+                  can_this_key_be_obtained('vy'))
+        has_uz = (can_this_key_be_obtained('uz') or
+                  can_this_key_be_obtained('vz'))
 
         if has_ux and has_uy and has_uz:
             self._compute_time_increment_CLF = \
@@ -108,13 +122,15 @@ class TimeSteppingBase(object):
             print_stdout(
                 '    compute until t = {0:10.6g}'.format(
                     self.params.time_stepping.t_end))
-            while self.t < self.params.time_stepping.t_end:
+            while (self.t < self.params.time_stepping.t_end and
+                   not self._has_to_stop):
                 self.one_time_step()
         else:
             print_stdout(
                 '    compute until it = {0:8d}'.format(
                     self.params.time_stepping.it_end))
-            while self.it < self.params.time_stepping.it_end:
+            while (self.it < self.params.time_stepping.it_end and
+                   not self._has_to_stop):
                 self.one_time_step()
         total_time_simul = time() - time_begining_simul
         self.sim.output.end_of_simul(total_time_simul)
@@ -132,9 +148,9 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""
 
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
-        uz = self.sim.state('uz')
+        ux = self.sim.state('vx')
+        uy = self.sim.state('vy')
+        uz = self.sim.state('vz')
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()

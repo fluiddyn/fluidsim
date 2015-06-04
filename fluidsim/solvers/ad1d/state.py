@@ -16,11 +16,11 @@ class StateAD1D(StateBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.State.set_attribs({
+        info_solver.classes.State._set_attribs({
             'keys_state_phys': ['s'],
             'keys_computable': [],
             'keys_phys_needed': ['s'],
@@ -29,8 +29,8 @@ class StateAD1D(StateBase):
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
-        if (key in self.vars_computed
-                and it == self.it_computed[key]):
+        if (key in self.vars_computed and
+                it == self.it_computed[key]):
             return self.vars_computed[key]
 
         if key == 'dx_s':
@@ -42,8 +42,7 @@ class StateAD1D(StateBase):
                 raise ValueError(to_print)
             else:
                 if mpi.rank == 0:
-                    print(to_print
-                          + '\nreturn an array of zeros.')
+                    print(to_print + '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 

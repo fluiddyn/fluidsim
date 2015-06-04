@@ -17,7 +17,7 @@ class InitFieldsNoise(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(cls, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={
+        params.init_fields._set_child(cls.tag, attribs={
             'velo_max': 1.,
             'length': 0})
 
@@ -101,7 +101,7 @@ class InitFieldsPlate2D(InitFieldsBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
 
         InitFieldsBase._complete_info_solver(info_solver)
 
@@ -110,7 +110,7 @@ class InitFieldsPlate2D(InitFieldsBase):
         classes = [InitFieldsNoise, InitFieldsHarmonic]
 
         for cls in classes:
-            classesXML.set_child(
+            classesXML._set_child(
                 cls.tag,
                 attribs={'module_name': cls.__module__,
                          'class_name': cls.__name__})

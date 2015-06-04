@@ -42,7 +42,7 @@ comm = MPI.COMM_WORLD
 
 cdef class FFT2Dmpi(object):
     '''A FFT2Dmpi object is a wrapper to a c library
-doing 2D parallele fft which uses MPI and sequencial functions
+doing 2D parallele fft which uses MPI and sequential functions
 of the fftw library.
 '''
     # number of nodes in the first and second dimensions
@@ -87,7 +87,7 @@ of the fftw library.
         self.N0 = N0
         self.N1 = N1
 
-        # for sequenciel runs (not implemented with this library)
+        # for sequential runs (not implemented with this library)
         # the data in K space is not transposed
         self.shapeX_seq = np.array([N0, N1])
         self.shapeK_seq = np.array([N0, N1/2+1])
@@ -152,7 +152,7 @@ of the fftw library.
             print 'N0 =', self.N0, 'N1 =', self.N1
             print 'nb_proc =', self.nb_proc,
             if self.nb_proc == 1:
-                print '=> sequenciel version'
+                print '=> sequential version'
             else:
                 print '=> parallel version (MPI)'
 

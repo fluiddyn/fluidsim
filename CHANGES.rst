@@ -1,7 +1,11 @@
 
+0.0.2a1
+-------
 
-0.0.2a
-------
+- Use a cleaner parameter container class (fluiddyn 0.0.8a1).
+
+0.0.2a0
+-------
 
 - SetOfVariables inherits from numpy.ndarray.
 

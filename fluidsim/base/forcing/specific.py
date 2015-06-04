@@ -40,28 +40,34 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 class SpecificForcing(object):
+    tag = 'specific'
 
-    def __init__(self, params, sim):
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.forcing.available_types.append(cls.tag)
+
+    def __init__(self, sim):
 
         self.sim = sim
         self.oper = sim.oper
-        self.params = params
+        self.params = sim.params
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
+    tag = 'pseudo_spectral'
 
-    def __init__(self, params, sim):
+    def __init__(self, sim):
 
-        super(SpecificForcingPseudoSpectral, self).__init__(params, sim)
+        super(SpecificForcingPseudoSpectral, self).__init__(sim)
+
+        params = sim.params
 
         self.sum_wavenumbers = sim.oper.sum_wavenumbers
         self.fft2 = sim.oper.fft2
         self.ifft2 = sim.oper.ifft2
 
         self.forcing_fft = SetOfVariables(
-            like=sim.state.state_fft,
-            info='forcing_fft', value=0.)
-        self.forcing_fft.initialize(value=0.)
+            like=sim.state.state_fft, info='forcing_fft', value=0.)
 
         self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
         self.kmin_forcing = self.oper.deltakx*params.forcing.nkmin_forcing
@@ -81,7 +87,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = OperatorsPseudoSpectral2D(
-                SEQUENCIAL=True,
+                SEQUENTIAL=True,
                 params=params_coarse,
                 goal_to_print='coarse resolution for forcing')
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
@@ -96,6 +102,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
+            self.fstate_coarse = sim.state.__class__(
+                sim, oper=self.oper_coarse)
+
         else:
             self.shapeK_loc_coarse = None
 
@@ -109,31 +118,17 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         #         eta_rms_max = 0.1
         #         self.eta_cond = eta_rms_max / np.sqrt(self.nb_forced_modes)
         #         print '    eta_cond =', self.eta_cond
-        # else:
-        #     # self.compute = self.compute_forcing_particular_k
-        #     # self.compute = self.compute_forcing_proportional
-        #     self.compute = self.compute_forcing_2nd_degree_eq
-
-        self.forcingc_fft = SetOfVariables(
-            keys=self.forcing_fft.keys,
-            shape_variable=self.shapeK_loc_coarse,
-            dtype=np.complex128,
-            info='forcingc_fft',
-            value=0.)
 
     def compute(self):
-        """compute a forcing normalize with a 2nd degree eq."""
+        """compute the forcing from a coarse forcing."""
 
         a_fft = self.sim.state.state_fft.get_var(self.key_forced)
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
                                                   self.shapeK_loc_coarse)
 
-        if mpi.rank > 0:
-            Fa_fft = np.empty(self.shapeK_loc_coarse,
-                              dtype=np.complex128)
-        else:
+        if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time()
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -144,22 +139,31 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         nb_keys = self.forcing_fft.nvar
 
         ar3Df = self.forcing_fft
-        ar3Dfc = self.forcingc_fft
+        if mpi.rank == 0:
+            # ar3Dfc = self.forcingc_fft
+            ar3Dfc = self.fstate_coarse.state_fft
 
         if mpi.nb_proc > 1:
             nKy = self.oper.shapeK_seq[0]
 
             for ikey in xrange(nb_keys):
-                fck_fft = ar3Dfc[ikey].transpose()
+                if mpi.rank == 0:
+                    fck_fft = ar3Dfc[ikey].transpose()
 
                 for iKxc in xrange(nKxc):
                     kx = self.oper.deltakx*iKxc
                     rank_iKx, iKxloc, iKyloc = (
                         self.oper.where_is_wavenumber(kx, 0.))
-                    fc1D = fck_fft[iKxc]
+
+                    if mpi.rank == 0:
+                        fc1D = fck_fft[iKxc]
+
                     if rank_iKx != 0:
                         # message fc1D
-                        fc1D = np.ascontiguousarray(fc1D)
+                        if mpi.rank == rank_iKx:
+                            fc1D = np.empty([nKyc], dtype=np.complex128)
+                        if mpi.rank == 0 or mpi.rank == rank_iKx:
+                            fc1D = np.ascontiguousarray(fc1D)
                         if mpi.rank == 0:
                             mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
                                           dest=rank_iKx, tag=iKxc)
@@ -207,24 +211,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
 
 class Proportional(SpecificForcingPseudoSpectral):
-
-    def compute(self):
-        """Compute a forcing proportional to the flow."""
-        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
-        a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
-                                                  self.shapeK_loc_coarse)
-
-        if mpi.rank > 0:
-            Fa_fft = np.empty(self.shapeK_loc_coarse,
-                              dtype=np.complex128)
-        else:
-            Fa_fft = self.normalize_forcingc(a_fft)
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
-
-        self.put_forcingc_in_forcing()
-
-        # # verification
-        # self.verify_injection_rate()
+    tag = 'proportional'
 
     def normalize_forcingc(self, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
@@ -262,31 +249,32 @@ class Proportional(SpecificForcingPseudoSpectral):
 
 
 class NormalizedForcing(SpecificForcingPseudoSpectral):
-
     tag = 'normalized_forcing'
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        params.forcing.set_child(
+        super(NormalizedForcing, cls)._complete_params_with_default(params)
+        params.forcing._set_child(
             cls.tag,
             {'type_normalize': '2nd_degree_eq'})
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
-        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
-        a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
-                                                  self.shapeK_loc_coarse)
+        try:
+            a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+        except ValueError:
+            a_fft = self.sim.state.compute(self.key_forced)
 
-        if mpi.rank > 0:
-            Fa_fft = np.empty(self.shapeK_loc_coarse,
-                              dtype=np.complex128)
-        else:
+        a_fft = self.oper.coarse_seq_from_fft_loc(
+            a_fft, self.shapeK_loc_coarse)
+
+        if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time()
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
-            self.forcingc_fft.set_var(self.key_forced, Fa_fft)
+            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -295,7 +283,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
     def normalize_forcingc(self, fvc_fft, vc_fft):
 
-        type_normalize = self.params.forcing.__dict__[self.tag].type_normalize
+        type_normalize = self.params.forcing[self.tag].type_normalize
 
         if type_normalize == '2nd_degree_eq':
             return self.normalize_forcingc_2nd_degree_eq(fvc_fft, vc_fft)
@@ -308,10 +296,17 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def normalize_forcingc_part_k(self, fvc_fft, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
 
-        varc : ndarray
-            a variable at the coarse resolution.
-
         To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
+
         """
         oper_c = self.oper_coarse
 
@@ -319,7 +314,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         # fvc_fft[self.COND_NO_F] = 0.
 
         P_forcing2 = np.real(
-            + fvc_fft.conj()*vc_fft +
+            fvc_fft.conj()*vc_fft +
             fvc_fft*vc_fft.conj())/2.
         P_forcing2 = oper_c.sum_wavenumbers(P_forcing2)
 
@@ -366,10 +361,16 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def normalize_forcingc_2nd_degree_eq(self, fvc_fft, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
 
-        varc : ndarray
-            a variable at the coarse resolution.
-
         To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
         """
         oper_c = self.oper_coarse
 
@@ -381,10 +382,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             (vc_fft.conj()*fvc_fft).real)
 
         c = -self.forcing_rate
-
-        # print 'max abs vc_fft', np.max(abs(vc_fft))
-        # print 'max abs fvc_fft', np.max(abs(fvc_fft))
-        # print 'in base_forcing:', a, b, c
 
         Delta = b**2 - 4*a*c
         alpha = (np.sqrt(Delta) - b)/(2*a)
@@ -401,7 +398,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
 
 class RamdomSimplePseudoSpectral(NormalizedForcing):
-
     tag = 'random'
 
     def compute_forcingc_raw(self):
@@ -420,14 +416,28 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
 
 class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
 
-    def __init__(self, params, sim):
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(TimeCorrelatedRandomPseudoSpectral,
+              cls)._complete_params_with_default(params)
+        params.forcing[cls.tag]._set_attrib(
+            'time_correlation', 'based_on_forcing_rate')
 
-        super(TimeCorrelatedRandomPseudoSpectral, self).__init__(params, sim)
+    def __init__(self, sim):
+
+        super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
 
         if mpi.rank == 0:
             self.F0 = self.compute_forcingc_raw()
             self.F1 = self.compute_forcingc_raw()
-            self.period_change_F0F1 = self.forcing_rate**(-1./3)
+
+            time_correlation = self.params.forcing[self.tag].time_correlation
+            if time_correlation == 'based_on_forcing_rate':
+                self.period_change_F0F1 = self.forcing_rate**(-1./3)
+            else:
+                self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
 
     def forcingc_raw_each_time(self):

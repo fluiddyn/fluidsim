@@ -29,12 +29,12 @@ class PhysFieldsBase(SpecificOutput):
     @staticmethod
     def _complete_params_with_default(params):
         tag = 'phys_fields'
-        params.output.set_child(tag,
-                                attribs={'field_to_plot': 'ux',
-                                         'file_with_it': False})
+        params.output._set_child(tag,
+                                 attribs={'field_to_plot': 'ux',
+                                          'file_with_it': False})
 
-        params.output.periods_save.set_attrib(tag, 0)
-        params.output.periods_plot.set_attrib(tag, 0)
+        params.output.periods_save._set_attrib(tag, 0)
+        params.output.periods_plot._set_attrib(tag, 0)
 
     def __init__(self, output):
         params = output.sim.params
@@ -74,14 +74,13 @@ class PhysFieldsBase(SpecificOutput):
             self.plot(numfig=itsim,
                       key_field=self.params.output.phys_fields.field_to_plot)
 
-    def save(self, state_phys=None, params=None, time=None,
-             particular_attr=None):
+    def save(self, state_phys=None, params=None, particular_attr=None):
         if state_phys is None:
             state_phys = self.sim.state.state_phys
         if params is None:
             params = self.params
-        if time is None:
-            time = self.sim.time_stepping.t
+
+        time = self.sim.time_stepping.t
 
         path_run = self.output.path_run
 
@@ -111,7 +110,7 @@ class PhysFieldsBase(SpecificOutput):
             if particular_attr is not None:
                 f.attrs['particular_attr'] = particular_attr
 
-            self.sim.info.xml_to_hdf5(hdf5_parent=f)
+            self.sim.info._save_as_hdf5(hdf5_parent=f)
             gp_info = f['info_simul']
             gf_params = gp_info['params']
             gf_params.attrs['SAVE'] = True
@@ -121,7 +120,9 @@ class PhysFieldsBase(SpecificOutput):
             group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
             group_state_phys.attrs['name_type_variables'] = (
                 state_phys.info)
+
             group_state_phys.attrs['time'] = time
+            group_state_phys.attrs['it'] = self.sim.time_stepping.it
 
         for k in state_phys.keys:
             field_loc = state_phys.get_var(k)
@@ -137,7 +138,7 @@ class PhysFieldsBase(SpecificOutput):
 
     def plot(self, numfig=None, field=None, key_field=None,
              QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
-             nb_contours=20, type_plot='contourf'):
+             nb_contours=20, type_plot='contourf', iz=0):
 
         x_left_axe = 0.08
         z_bottom_axe = 0.07
@@ -176,6 +177,9 @@ class PhysFieldsBase(SpecificOutput):
             field = self.oper.gather_Xspace(field_loc)
         else:
             field = field_loc
+
+        if field.ndim == 3:
+            field = field[iz]
 
         if mpi.rank == 0:
             if numfig is None:

@@ -55,18 +55,18 @@ class SpectraPlate2D(Spectra):
             khE = self.oper.khE
             coef_norm = khE**(3.)
             self.axe.loglog(khE, spectrum2D_Etot*coef_norm, 'k', linewidth=2)
-            self.axe.loglog(khE, spectrum2D_EK*coef_norm, 'b--')
-            self.axe.loglog(khE, spectrum2D_EL*coef_norm, 'r--')
+            self.axe.loglog(khE, spectrum2D_EK*coef_norm, 'r--')
+            self.axe.loglog(khE, spectrum2D_EL*coef_norm, 'b--')
             self.axe.loglog(khE, spectrum2D_EE*coef_norm, 'y--')
-            lin_inf, lin_sup = self.axe.get_ylim()
-            if lin_inf < 10e-6:
-                lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            # lin_inf, lin_sup = self.axe.get_ylim()
+            # if lin_inf < 10e-6:
+            #     lin_inf = 10e-6
+            # self.axe.set_ylim([lin_inf, lin_sup])
         else:
             print('you need to implement the ploting '
                   'of the spectra for this case')
 
-    def plot1D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot1d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
 
         f = h5py.File(self.path_file1D, 'r')
@@ -98,7 +98,7 @@ class SpectraPlate2D(Spectra):
         tmax_plot = times[imax_plot]
 
         print(
-            'plot1D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
+            'plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
@@ -123,7 +123,7 @@ class SpectraPlate2D(Spectra):
             for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
                 EK = (dset_spectrum1Dkx_EK[it]+dset_spectrum1Dky_EK[it])
                 EK[EK < 10e-16] = 0.
-                ax1.plot(kh, EK*coef_norm, 'b', linewidth=1)
+                ax1.plot(kh, EK*coef_norm, 'r', linewidth=1)
 
         EK = (dset_spectrum1Dkx_EK[imin_plot:imax_plot+1] +
               dset_spectrum1Dky_EK[imin_plot:imax_plot+1]).mean(0)
@@ -131,13 +131,15 @@ class SpectraPlate2D(Spectra):
         ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k--', linewidth=1)
 
-    def plot2D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
-        # nb_spectra = dset_times.shape[0]
+        nt = dset_times.shape[0]
+        if nt == 0:
+            raise ValueError('No spectra are saved in this file.')
+
         times = dset_times[...]
-        # nt = len(times)
 
         kh = f['khE'][...]
 
@@ -145,20 +147,23 @@ class SpectraPlate2D(Spectra):
         dset_spectrum_EL = f['spectrum2D_EL']
         dset_spectrum_EE = f['spectrum2D_EE']
 
-        delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
-            delta_i_plot = 1
-        delta_t = delta_i_plot*delta_t_save
+        if nt == 1:
+            imin_plot = imax_plot = 0
+        else:
+            delta_t_save = np.mean(times[1:]-times[0:-1])
+            delta_i_plot = int(np.round(delta_t/delta_t_save))
+            if delta_i_plot == 0 and delta_t != 0.:
+                delta_i_plot = 1
+            delta_t = delta_i_plot*delta_t_save
 
-        imin_plot = np.argmin(abs(times-tmin))
-        imax_plot = np.argmin(abs(times-tmax))
+            imin_plot = np.argmin(abs(times-tmin))
+            imax_plot = np.argmin(abs(times-tmax))
 
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
         print(
-            'plot2D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
+            'plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
@@ -190,14 +195,23 @@ class SpectraPlate2D(Spectra):
                 EE[EE < 10e-16] = 0.
                 Etot = EK + EL + EE
 
-                ax1.plot(kh, Etot*coef_norm, 'k', linewidth=2)
-                ax1.plot(kh, EK*coef_norm, 'b--', linewidth=1)
-                ax1.plot(kh, EL*coef_norm, 'r--', linewidth=1)
-                ax1.plot(kh, EE*coef_norm, 'y', linewidth=1)
+                # print(Etot)
+
+                ax1.plot(kh, Etot*coef_norm, 'k--', linewidth=2)
+                ax1.plot(kh, EK*coef_norm, 'r--', linewidth=1)
+                ax1.plot(kh, EL*coef_norm, 'b--', linewidth=1)
+                ax1.plot(kh, EE*coef_norm, 'y--', linewidth=1)
 
         EK = dset_spectrum_EK[imin_plot:imax_plot+1].mean(0)
         EK[EK < 10e-16] = 0.
-        ax1.plot(kh, EK*coef_norm, 'b-', linewidth=2)
+        EL = dset_spectrum_EL[imin_plot:imax_plot+1].mean(0)
+        EL[EK < 10e-16] = 0.
+        EE = dset_spectrum_EE[imin_plot:imax_plot+1].mean(0)
+        EE[EK < 10e-16] = 0.
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh, EK*coef_norm, 'r-', linewidth=2)
+        ax1.plot(kh, EL*coef_norm, 'b-', linewidth=2)
+        ax1.plot(kh, EE*coef_norm, 'y-', linewidth=2)
+
+        ax1.plot(kh, kh**(-3)*coef_norm, 'k:', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)

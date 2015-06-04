@@ -82,15 +82,15 @@ The other classes responsible for the main tasks
   * post-processing
   * plotting
 
-Other very important classes: ContainerXML, Parameters, InfoSolver
-------------------------------------------------------------------
+Other very important classes: ParamContainer, Parameters, InfoSolver
+--------------------------------------------------------------------
 
-- ContainerXML
+- ParamContainer
 
 - Parameters
 
 - InfoSolver
 
   Every Simul class has to have an attribute InfoSolver, which is a
-  InfoSolver class, i.e.\ a child of ContainerXML. This class is used
+  InfoSolver class, i.e.\ a child of ParamContainer. This class is used
   to describe all other classes that are used for the solver.

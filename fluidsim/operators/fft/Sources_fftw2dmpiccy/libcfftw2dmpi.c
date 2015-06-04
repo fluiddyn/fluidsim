@@ -383,7 +383,7 @@ void time_execute(Util_fft uf, double *fieldX, fftw_complex *fieldK, int nb_time
 
     total_usecs = (end_time.tv_sec-start_time.tv_sec) + 
         (end_time.tv_usec-start_time.tv_usec)/1000000.;
-    printf ("%d times forward and backward sequencial FFT: %f s\n", 
+    printf ("%d times forward and backward sequential FFT: %f s\n", 
             nb_time_execute ,total_usecs); 
 }
 

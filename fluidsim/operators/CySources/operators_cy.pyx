@@ -1,6 +1,6 @@
 """
 Numerical operators (:mod:`fluidsim.operators.operators`)
-===============================================================
+=========================================================
 
 .. currentmodule:: fluidsim.operators.operators
 
@@ -21,7 +21,7 @@ This module is written in Cython and provides the classes:
 
 """
 
-# # DEF MPI4PY = 0
+# DEF MPI4PY = 0
 
 import sys
 
@@ -97,11 +97,11 @@ cdef class GridPseudoSpectral2D(Operators):
     op_fft2d : :class:`FFT2Dmpi`
         A instance of the class :class:`OP_FFT2Dmpi`
 
-    SEQUENCIAL : bool
-        If True, the fft is sequencial even though ``nb_proc > 1``
+    SEQUENTIAL : bool
+        If True, the fft is sequential even though ``nb_proc > 1``
 
     """
-    # number of nodes, sequenciel case
+    # number of nodes, sequential case
     cdef public int nx_seq, ny_seq, nkx_seq, nky_seq
     # number of nodes locally stored
     cdef public int nx_loc, ny_loc, nkx_loc, nky_loc
@@ -133,14 +133,14 @@ cdef class GridPseudoSpectral2D(Operators):
     cdef public int nK0_loc, nK1_loc, dim_kx, dim_ky
     cdef public np.ndarray iKxloc_start_rank
 
-    cdef public DTYPEb_t TRANSPOSED, SEQUENCIAL
+    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL
     cdef public DTYPEb_t SAME_SIZE_IN_ALL_PROC
 
     # cdef public object where_is_wavenumber
 
     def __init__(self, int nx, int ny,
                  DTYPEf_t Lx=2*np.pi, DTYPEf_t Ly=2*np.pi,
-                 op_fft2d=None, SEQUENCIAL=None):
+                 op_fft2d=None, SEQUENTIAL=None):
         if ny % 2 != 0 or nx % 2 != 0:
             raise ValueError('conditions n0 and n1 even not fulfill')
 
@@ -175,8 +175,8 @@ cdef class GridPseudoSpectral2D(Operators):
         self.shapeX_seq = np.array([self.ny_seq, self.nx_seq])
         self.shapeK_seq = np.array([self.nky_seq, self.nkx_seq])
 
-        if self.nb_proc == 1 or SEQUENCIAL:
-            self.SEQUENCIAL = True
+        if self.nb_proc == 1 or SEQUENTIAL:
+            self.SEQUENTIAL = True
             self.SAME_SIZE_IN_ALL_PROC = True
             self.shapeX = self.shapeX_seq
             self.shapeK = self.shapeK_seq
@@ -204,7 +204,7 @@ cdef class GridPseudoSpectral2D(Operators):
             if nx/2+1 < self.nb_proc:
                 raise ValueError('condition nx/2+1 >= nb_proc not fulfill')
 
-            self.SEQUENCIAL = False
+            self.SEQUENTIAL = False
             if op_fft2d is None:
                 raise ValueError(
                     'for parallel grid, init() needs a op_fft2d object')
@@ -283,7 +283,7 @@ cdef class GridPseudoSpectral2D(Operators):
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
 
-        if self.SEQUENCIAL:
+        if self.SEQUENTIAL:
             rank_k = 0
             ikx_loc = ikx_seq
         else:
@@ -317,14 +317,14 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
     `type_fft='FFTWCY'` :
     cython wrapper of plans
-    fftw_plan_dft_r2c_2d / fftw_plan_dft_c2r_2d (sequencial case)
+    fftw_plan_dft_r2c_2d / fftw_plan_dft_c2r_2d (sequential case)
     and
     fftw_mpi_plan_dft_r2c_2d / fftw_mpi_plan_dft_c2r_2d
     (parallel case)
 
     `type_fft='FFTWCCY'` :
     cython wrapper of a self-written c libray using
-    sequencial fftw plans and MPI_Type. Seems to be faster than
+    sequential fftw plans and MPI_Type. Seems to be faster than
     the implementation of the mpi FFT by fftw (lib fftw-mpi).
 
     `type_fft='FFTWPY'` :
@@ -370,11 +370,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                    'ny': 48,
                    'Lx': 8,
                    'Ly': 8}
-        params.set_child('oper', attribs=attribs)
+        params._set_child('oper', attribs=attribs)
 
     def __init__(self,
-                 SEQUENCIAL=None,
                  params=None,
+                 SEQUENTIAL=None,
                  goal_to_print=None):
 
         if not params.ONLY_COARSE_OPER:
@@ -425,7 +425,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         'fftw2Dmpiccy only works if MPI.COMM_WORLD.size > 1.')
                 import fluidsim.operators.fft.fftw2dmpiccy as fftw2Dmpi
         except ImportError:
-            if nb_proc > 1 and SEQUENCIAL is None:
+            if nb_proc > 1 and SEQUENTIAL is None:
                 raise ValueError(
                     'if nb_proc>1, we need one of the libraries '
                     'fftw2Dmpicy or fftw2Dmpiccy')
@@ -438,7 +438,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 type_fft = 'FFTPACK'
 
         self.type_fft = type_fft
-        
+
         # Initialization of the fft transforms
         if type_fft not in ['FFTWPY', 'FFTPACK']:
             if not TRANSPOSED and type_fft == 'FFTWCCY':
@@ -448,7 +448,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             if type_fft == 'FFTWCY':
                 op_fft2d = fftw2Dmpi.FFT2Dmpi(ny, nx,
                                               TRANSPOSED=TRANSPOSED,
-                                              SEQUENCIAL=SEQUENCIAL)
+                                              SEQUENTIAL=SEQUENTIAL)
             else:
                 op_fft2d = fftw2Dmpi.FFT2Dmpi(ny, nx)
             if op_fft2d.nb_proc > 1:
@@ -466,11 +466,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         self.ifft2 = op_fft2d.ifft2d
 
         GridPseudoSpectral2D.__init__(self, nx, ny, Lx, Ly,
-                                      op_fft2d=op_fft2d, SEQUENCIAL=SEQUENCIAL)
+                                      op_fft2d=op_fft2d, SEQUENTIAL=SEQUENTIAL)
 
         self.K2_not0 = self.K2.copy()
         self.K4_not0 = self.K4.copy()
-        if rank == 0 or SEQUENCIAL:
+        if rank == 0 or SEQUENTIAL:
             self.K2_not0[0, 0] = 10.e-10
             self.K4_not0[0, 0] = 10.e-10
 
@@ -1103,7 +1103,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     def mean_space(self, field):
 
         mean_field = np.mean(field)
-        if not self.SEQUENCIAL:
+        if not self.SEQUENTIAL:
             mean_field = self.comm.allreduce(mean_field, op=MPI.SUM)
             mean_field /= nb_proc
         return mean_field
@@ -1138,7 +1138,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 sum_A_fft += A0D
 
         # if self.nb_proc>1:
-        if not self.SEQUENCIAL:
+        if not self.SEQUENTIAL:
             sum_A_fft = self.comm.allreduce(sum_A_fft, op=MPI.SUM)
         return sum_A_fft
 
@@ -1529,12 +1529,13 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     @cython.wraparound(False)
     def monge_ampere_from_fft(
             self, DTYPEc_t[:, :] a_fft, DTYPEc_t[:, :] b_fft):
-        cdef Py_ssize_t i0, n0, i1, n1
-        cdef DTYPEc_t[:, :] pxx_afft, pyy_afft, pxy_afft
-        cdef DTYPEc_t[:, :] pxx_bfft, pyy_bfft, pxy_bfft
-        cdef DTYPEf_t[:, :] mamp
-        cdef DTYPEf_t[:, :] KX, KY, KX2, KY2
-        cdef DTYPEf_t[:, :] pxx_a, pyy_a, pxy_a, pxx_b, pyy_b, pxy_b
+        cdef:
+            Py_ssize_t i0, n0, i1, n1
+            DTYPEc_t[:, :] mpxx_afft, mpyy_afft, mpxy_afft
+            DTYPEc_t[:, :] mpxx_bfft, mpyy_bfft, mpxy_bfft
+            DTYPEf_t[:, :] mamp
+            DTYPEf_t[:, :] KX, KY, KX2, KY2
+            DTYPEf_t[:, :] mpxx_a, mpyy_a, mpxy_a, mpxx_b, mpyy_b, mpxy_b
 
         n0 = a_fft.shape[0]
         n1 = a_fft.shape[1]
@@ -1543,36 +1544,36 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         KX2 = self.KX2
         KY2 = self.KY2
 
-        pxx_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pyy_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pxy_afft = np.empty([n0, n1], dtype=DTYPEc)
-        pxx_bfft = np.empty([n0, n1], dtype=DTYPEc)
-        pyy_bfft = np.empty([n0, n1], dtype=DTYPEc)
-        pxy_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxx_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpyy_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxy_afft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxx_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpyy_bfft = np.empty([n0, n1], dtype=DTYPEc)
+        mpxy_bfft = np.empty([n0, n1], dtype=DTYPEc)
 
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                pxx_afft[i0, i1] = - a_fft[i0, i1] * KX2[i0, i1]
-                pyy_afft[i0, i1] = - a_fft[i0, i1] * KY2[i0, i1]
-                pxy_afft[i0, i1] = - a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-                pxx_bfft[i0, i1] = - b_fft[i0, i1] * KX2[i0, i1]
-                pyy_bfft[i0, i1] = - b_fft[i0, i1] * KY2[i0, i1]
-                pxy_bfft[i0, i1] = - b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
-        pxx_a = self.ifft2(pxx_afft)
-        pyy_a = self.ifft2(pyy_afft)
-        pxy_a = self.ifft2(pxy_afft)
-        pxx_b = self.ifft2(pxx_bfft)
-        pyy_b = self.ifft2(pyy_bfft)
-        pxy_b = self.ifft2(pxy_bfft)
+                mpxx_afft[i0, i1] = a_fft[i0, i1] * KX2[i0, i1]
+                mpyy_afft[i0, i1] = a_fft[i0, i1] * KY2[i0, i1]
+                mpxy_afft[i0, i1] = a_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
+                mpxx_bfft[i0, i1] = b_fft[i0, i1] * KX2[i0, i1]
+                mpyy_bfft[i0, i1] = b_fft[i0, i1] * KY2[i0, i1]
+                mpxy_bfft[i0, i1] = b_fft[i0, i1] * KX[i0, i1]*KY[i0, i1]
+        mpxx_a = self.ifft2(mpxx_afft)
+        mpyy_a = self.ifft2(mpyy_afft)
+        mpxy_a = self.ifft2(mpxy_afft)
+        mpxx_b = self.ifft2(mpxx_bfft)
+        mpyy_b = self.ifft2(mpyy_bfft)
+        mpxy_b = self.ifft2(mpxy_bfft)
 
-        mamp = np.empty_like(pxx_a)
+        mamp = np.empty_like(mpxx_a)
         n0 = mamp.shape[0]
         n1 = mamp.shape[1]
         for i0 in xrange(n0):
             for i1 in xrange(n1):
-                mamp[i0, i1] = (pxx_a[i0, i1] * pyy_b[i0, i1] +
-                                pyy_a[i0, i1] * pxx_b[i0, i1] -
-                                2 * pxy_a[i0, i1] * pxy_b[i0, i1])
+                mamp[i0, i1] = (mpxx_a[i0, i1] * mpyy_b[i0, i1] +
+                                mpyy_a[i0, i1] * mpxx_b[i0, i1] -
+                                2 * mpxy_a[i0, i1] * mpxy_b[i0, i1])
         return np.array(mamp)
 
     def monge_ampere_from_fft_python(self, a_fft, b_fft):

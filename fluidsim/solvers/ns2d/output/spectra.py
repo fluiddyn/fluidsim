@@ -35,7 +35,7 @@ class SpectraNS2D(Spectra):
             print('you need to implement the ploting '
                   'of the spectra for this case')
 
-    def plot1D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot1d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
 
         f = h5py.File(self.path_file1D, 'r')
@@ -64,7 +64,7 @@ class SpectraNS2D(Spectra):
         tmax_plot = times[imax_plot]
 
         print(
-            'plot1D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
+            'plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
@@ -96,7 +96,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k--', linewidth=1)
 
-    def plot2D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
@@ -121,7 +121,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         tmax_plot = times[imax_plot]
 
         print(
-            'plot2D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
+            'plot2s(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 

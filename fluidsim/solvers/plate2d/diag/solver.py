@@ -126,7 +126,7 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
         """Compute the "nonlinear" tendencies."""
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     # params.output.periods_save.increments = 0.5
 
     params.output.ONLINE_PLOT_OK = False
-    params.output.period_show_plot = 0.5
+    params.output.period_refresh_plots = 0.5
     params.output.periods_plot.phys_fields = 0.0
 
     params.output.phys_fields.field_to_plot = 'z'

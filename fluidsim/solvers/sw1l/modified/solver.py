@@ -142,6 +142,9 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'noise'
 
+    params.FORCING = True
+    params.forcing.type = 'waves'
+
     params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 1.

@@ -35,21 +35,32 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.class_name = 'SimulBasePseudoSpectral'
         self.short_name = 'BasePS'
 
-        self.classes.set_child(
+        self.classes._set_child(
             'State',
             attribs={'module_name': 'fluidsim.base.state',
                      'class_name': 'StatePseudoSpectral'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'TimeStepping',
             attribs={'module_name':
                      'fluidsim.base.time_stepping.pseudo_spect_cy',
                      'class_name': 'TimeSteppingPseudoSpectral'})
 
-        self.classes.set_child(
+        self.classes._set_child(
             'Operators',
             attribs={'module_name': 'fluidsim.operators.operators',
                      'class_name': 'OperatorsPseudoSpectral2D'})
+
+
+class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
+    """Contain the information on a solver."""
+
+    def _init_root(self):
+
+        super(InfoSolverPseudoSpectral3D, self)._init_root()
+
+        self.classes.Operators.module_name = 'fluidsim.operators.operators3d'
+        self.classes.Operators.class_name = 'OperatorsPseudoSpectral3D'
 
 
 class SimulBasePseudoSpectral(SimulBase):
@@ -64,7 +75,7 @@ class SimulBasePseudoSpectral(SimulBase):
         attribs = {'nu_8': 0.,
                    'nu_4': 0.,
                    'nu_m4': 0.}
-        params.set_attribs(attribs)
+        params._set_attribs(attribs)
 
     def compute_freq_diss(self):
         if self.params.nu_2 > 0:
@@ -78,11 +89,14 @@ class SimulBasePseudoSpectral(SimulBase):
         if self.params.nu_8 > 0.:
             f_d += self.params.nu_8*self.oper.K8
 
-        if self.params.nu_m4 > 0.:
+        if self.params.nu_m4 != 0.:
             f_d_hypo = self.params.nu_m4/self.oper.K2_not0**2
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
+
+            f_d_hypo[self.oper.KK <= 20] = 0.
+
         else:
             f_d_hypo = np.zeros_like(f_d)
 

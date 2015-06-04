@@ -76,12 +76,12 @@ ctypedef np.complex128_t DTYPEc_t
 
 cdef class FFT2Dmpi(object):
     """The FFT2Dmpi class is a cython wrapper for the 2D fast Fourier
-    transform (sequencial and MPI) of the fftw library."""
+    transform (sequential and MPI) of the fftw library."""
     # number of nodes in the first and second dimensions
     cdef int n0, n1
     # flags for fftw
     cdef int flags
-    cdef public DTYPEb_t TRANSPOSED, SEQUENCIAL
+    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL
 
     # coef for normalization
     cdef int coef_norm
@@ -113,17 +113,17 @@ cdef class FFT2Dmpi(object):
     cdef size_t n_alloc_local
 
     def __init__(self, int n0, int n1, flags=['FFTW_MEASURE'],
-                 TRANSPOSED=True, SEQUENCIAL=None):
+                 TRANSPOSED=True, SEQUENTIAL=None):
 
         if TRANSPOSED is None:
             TRANSPOSED = True
 
-        if nb_proc == 1 or SEQUENCIAL:
-            self.SEQUENCIAL = True
-            if SEQUENCIAL and rank == 0 and nb_proc > 1:
-                print('    sequencial version even though self.nb_proc > 1')
+        if nb_proc == 1 or SEQUENTIAL:
+            self.SEQUENTIAL = True
+            if SEQUENTIAL and rank == 0 and nb_proc > 1:
+                print('    sequential version even though self.nb_proc > 1')
         else:
-            self.SEQUENCIAL = False
+            self.SEQUENTIAL = False
 
         # info on MPI
         self.nb_proc = nb_proc
@@ -134,7 +134,7 @@ cdef class FFT2Dmpi(object):
         if n0 % 2 != 0 or n1 % 2 != 0:
             raise ValueError('conditions n0 and n1 even not fulfill')
 
-        if not self.SEQUENCIAL and n0//2 + 1 < nb_proc:
+        if not self.SEQUENTIAL and n0//2 + 1 < nb_proc:
             raise ValueError('condition nx//2+1 >= nb_proc not fulfill')
 
         self.n0 = n0
@@ -145,7 +145,7 @@ cdef class FFT2Dmpi(object):
 
         # print('shapeX_seq:', shapeX_seq, '\nshapeK_seq:', shapeK_seq)
 
-        if self.nb_proc == 1 or SEQUENCIAL:
+        if self.nb_proc == 1 or SEQUENTIAL:
             TRANSPOSED = False
 
         self.TRANSPOSED = TRANSPOSED
@@ -171,7 +171,7 @@ cdef class FFT2Dmpi(object):
 
         # Allocate the carrays and create the plans
         # and create the np arrays pointing to the carrays
-        if self.nb_proc == 1 or SEQUENCIAL:
+        if self.nb_proc == 1 or SEQUENTIAL:
             self.init_seq()
         else:
             self.init_parall()
@@ -379,7 +379,7 @@ cdef class FFT2Dmpi(object):
                   '\nTRANSPOSED =', self.TRANSPOSED,
                   '\nnb_proc =', self.nb_proc)
             if self.nb_proc == 1:
-                print('=> sequenciel version')
+                print('=> sequential version')
             else:
                 print('=> parallel version (MPI)')
 
@@ -529,7 +529,7 @@ cdef class FFT2Dmpi(object):
         cdef np.uint32_t ikyp, ikyn
         cdef DTYPEc_t f_kp_kx0, f_kn_kx0, f_kp_kxM, f_knp_kxM
 
-        if self.nb_proc == 1 or self.SEQUENCIAL:
+        if self.nb_proc == 1 or self.SEQUENTIAL:
             nky_seq = self.shapeK_seq[0]
 
             iky_ky0 = 0

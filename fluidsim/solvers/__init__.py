@@ -9,6 +9,7 @@ Provides:
    :toctree:
 
    ns2d
+   ns3d
    sw1l
    plate2d
    ad1d

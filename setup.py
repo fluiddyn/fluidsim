@@ -119,6 +119,14 @@ ext_operators = Extension(
     cython_compile_time_env={'MPI4PY': MPI4PY},
     sources=[path_sources+'/operators_cy.pyx'])
 
+ext_misc = Extension(
+    'fluidsim.operators.miscellaneous',
+    include_dirs=include_dirs,
+    libraries=libraries,
+    library_dirs=[],
+    cython_compile_time_env={'MPI4PY': MPI4PY},
+    sources=[path_sources+'/miscellaneous_cy.pyx'])
+
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
@@ -132,7 +140,7 @@ ext_cyfunc = Extension(
 
 ext_modules.extend([
     ext_operators,
-    # ext_sov,
+    ext_misc,
     ext_cyfunc])
 
 print('The following extensions are going to be built if necessary:\n' +
@@ -173,7 +181,7 @@ setup(name='fluidsim',
           'Programming Language :: C',
       ],
       packages=find_packages(exclude=['doc', 'examples']),
-      install_requires=['fluiddyn', 'h5py', 'pyfftw'],
+      install_requires=['fluiddyn >= 0.0.9a0', 'h5py', 'pyfftw'],
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),

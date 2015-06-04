@@ -38,8 +38,6 @@ class InfoSolverSW1LExactLin(InfoSolverSW1L):
         classes.State.module_name = sw1l + '.exactlin.state'
         classes.State.class_name = 'StateSW1LExactLin'
 
-        classes.Forcing.class_name = 'ForcingSW1LExactLin'
-
 
 class Simul(SimulSW1L):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
@@ -192,6 +190,9 @@ if __name__ == "__main__":
     params.time_stepping.t_end = 2.
 
     params.init_fields.type = 'noise'
+
+    params.FORCING = True
+    params.forcing.type = 'waves'
 
     params.output.periods_print.print_stdout = 0.25
 

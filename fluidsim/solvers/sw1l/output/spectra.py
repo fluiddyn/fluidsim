@@ -130,7 +130,7 @@ class SpectraSW1L(Spectra):
 
 
 
-    def plot1D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot1d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
 
         f = h5py.File(self.path_file1D, 'r')
@@ -166,7 +166,7 @@ class SpectraSW1L(Spectra):
         tmax_plot = times[imax_plot]
 
         to_print = (
-'plot1D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(tmin, tmax, delta_t)
+'plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(tmin, tmax, delta_t)
 +' coef_compensate={0:.3f})'.format(coef_compensate)
 )
         print(to_print)
@@ -230,7 +230,7 @@ imin_plot, imax_plot, delta_i_plot)
 
 
 
-    def plot2D(self, tmin=0, tmax=1000, delta_t=2,
+    def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
 
         f = h5py.File(self.path_file2D, 'r')
@@ -259,7 +259,7 @@ imin_plot, imax_plot, delta_i_plot)
         tmax_plot = times[imax_plot]
 
         to_print = (
-'plot2D(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(tmin, tmax, delta_t)
+'plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(tmin, tmax, delta_t)
 +' coef_compensate={0:.3f})'.format(coef_compensate)
 )
         print(to_print)

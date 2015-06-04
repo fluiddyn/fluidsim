@@ -24,7 +24,7 @@ class InitFieldsWave(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsWave, cls)._complete_params_with_default(params)
-        params.init_fields.set_child(cls.tag, attribs={
+        params.init_fields._set_child(cls.tag, attribs={
             'eta_max': 1.,
             'ikx': 2})
 
@@ -48,7 +48,7 @@ class InitFieldsSW1L(InitFieldsBase):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver."""
+        """Complete the ParamContainer info_solver."""
 
         InitFieldsBase._complete_info_solver(
             info_solver,

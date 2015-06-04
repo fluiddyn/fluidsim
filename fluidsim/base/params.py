@@ -16,13 +16,13 @@ from __future__ import division, print_function
 
 import os
 
-from fluiddyn.util.containerxml import ContainerXML
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.util import import_class
 
 from fluidsim.base.solvers.info_base import InfoSolverBase
 
 
-class Parameters(ContainerXML):
+class Parameters(ParamContainer):
     """Contain the parameters."""
     pass
 
@@ -49,8 +49,8 @@ def create_params(input_info_solver):
             except TypeError:
                 try:
                     Class._complete_params_with_default(params, info_solver)
-                except TypeError:
-                    print('TypeError for ', Class)
+                except TypeError as e:
+                    e.args += ('for class: ' + repr(Class),)
                     raise
     return params
 
@@ -74,15 +74,15 @@ def load_info_solver(path_dir=None):
 
 
 # def load_info_simul(path_dir=None):
-#     """Load the data and gather them in a ContainerXML instance."""
+#     """Load the data and gather them in a ParamContainer instance."""
 
 #     if path_dir is None:
 #         path_dir = os.getcwd()
 #     info_solver = load_info_solver(path_dir=path_dir)
 #     params = load_params_simul(path_dir=path_dir)
-#     info = ContainerXML(tag='info_simul')
-#     info.set_as_child(info_solver)
-#     info.set_as_child(params)
+#     info = ParamContainer(tag='info_simul')
+#     info._set_as_child(info_solver)
+#     info._set_as_child(params)
 #     return info
 
 

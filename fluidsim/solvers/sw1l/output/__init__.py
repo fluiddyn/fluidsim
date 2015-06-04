@@ -9,31 +9,31 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ContainerXML info_solver.
+        """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        info_solver.classes.Output.set_child('classes')
+        info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
         package = 'fluidsim.solvers.sw1l.output'
 
-        classes.set_child(
+        classes._set_child(
             'PrintStdOut',
             attribs={'module_name': package + '.print_stdout',
                      'class_name': 'PrintStdOutSW1L'})
 
-        classes.set_child(
+        classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
                      'class_name': 'PhysFieldsBase'})
 
-        classes.set_child(
+        classes._set_child(
             'Spectra',
             attribs={'module_name': package + '.spectra',
                      'class_name': 'SpectraSW1L'})
 
-        classes.set_child(
+        classes._set_child(
             'SpatialMeans',
             attribs={'module_name': package + '.spatial_means',
                      'class_name': 'SpatialMeansSW1L'})
@@ -41,22 +41,22 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         attribs = {
             'module_name': package + '.spect_energy_budget',
             'class_name': 'SpectralEnergyBudgetSW1L'}
-        classes.set_child('SpectralEnergyBudget', attribs=attribs)
+        classes._set_child('SpectralEnergyBudget', attribs=attribs)
 
         attribs = {
             'module_name': 'fluidsim.base.output.increments',
             'class_name': 'IncrementsSW1L'}
-        classes.set_child('Increments', attribs=attribs)
+        classes._set_child('Increments', attribs=attribs)
 
         attribs = {
             'module_name': 'fluidsim.base.output.prob_dens_func',
             'class_name': 'ProbaDensityFunc'}
-        classes.set_child('ProbaDensityFunc', attribs=attribs)
+        classes._set_child('ProbaDensityFunc', attribs=attribs)
 
         attribs = {
             'module_name': 'fluidsim.base.output.time_signalsK',
             'class_name': 'TimeSignalsK'}
-        classes.set_child('TimeSignalsK', attribs=attribs)
+        classes._set_child('TimeSignalsK', attribs=attribs)
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

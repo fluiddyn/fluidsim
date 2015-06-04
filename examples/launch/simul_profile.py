@@ -3,16 +3,16 @@
 # run simul_profile.py
 # mpirun -np 8 python simul_profile.py
 
+import pstats
+import cProfile
+
+import fluiddyn as fld
+
 # key_solver = 'NS2D'
 # key_solver = 'SW1l'
 # key_solver = 'SW1l.onlywaves'
 # key_solver = 'SW1l.exactlin'
 key_solver = 'PLATE2D'
-
-import pstats
-import cProfile
-
-import fluiddyn as fld
 
 solver = fld.simul.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
@@ -47,10 +47,10 @@ except KeyError:
 params.time_stepping.deltat0 = 1.e-4
 params.time_stepping.USE_CFL = False
 
-params.time_stepping.it_end = 100
+params.time_stepping.it_end = 1000
 params.time_stepping.USE_T_END = False
 
-# params.oper.type_fft = 'FFTWCY'
+#params.oper.type_fft = 'FFTWCY'
 
 # params.init_fields.type_flow_init = 'DIPOLE'
 
