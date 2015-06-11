@@ -87,7 +87,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         """Compute Ertel and Charney (QG) potential vorticity."""
         rot = self.sim.state('rot')
         eta = self.sim.state.state_phys.get_var('eta')
-        ErtelPV_fft = self.fft2((self.sim.params.f+rot)/(1.+eta))
+        ErtelPV_fft = self.oper.fft2((self.sim.params.f+rot)/(1.+eta))
         rot_fft = self.sim.state('rot_fft')
         eta_fft = self.sim.state('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
@@ -163,9 +163,9 @@ class OutputSW1L(OutputBaseSW1L):
                               Jy_fft.conj()*uy_fft)/2
 
         rot_fft = state('rot_fft')
-        uxr_fft, uyr_fft = self.vecfft_from_rotfft(rot_fft)
-        rotJ_fft = self.rotfft_from_vecfft(Jx_fft, Jy_fft)
-        Jxr_fft, Jyr_fft = self.vecfft_from_rotfft(rotJ_fft)
+        uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        rotJ_fft = self.oper.rotfft_from_vecfft(Jx_fft, Jy_fft)
+        Jxr_fft, Jyr_fft = self.oper.vecfft_from_rotfft(rotJ_fft)
         energyKr_fft = np.real(Jxr_fft.conj()*uxr_fft +
                                Jyr_fft.conj()*uyr_fft)/2
         return energyK_fft, energyA_fft, energyKr_fft

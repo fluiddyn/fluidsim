@@ -113,7 +113,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                                 CharneyPE_fft):
         """Compute and save dissipation rates."""
 
-        f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         dico_eps = self.compute_dissipation_rates(
             f_d, f_d_hypo,
@@ -561,7 +561,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
                                 CharneyPE_fft):
         """Compute and save dissipation rates."""
 
-        f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         dico_eps = super(
             SpatialMeansSW1L, self
@@ -636,7 +636,8 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
 
     def treat_forcing(self):
-        """Save forcing injection rates."""
+        """Save forcing injection rates.
+        ..TODO: alternative for get_FxFyFetafft function - deprecated??"""
         state = self.sim.state
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
