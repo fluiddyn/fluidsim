@@ -5,6 +5,9 @@ syntax: glob
 *~
 *temp
 *.html
+*.swp
+*.swo
+*.out
 
 \#*\#
 

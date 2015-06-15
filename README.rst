@@ -1,6 +1,6 @@
-========
-FluidPy
-========
+===========
+GeoFluidDyn
+===========
 
 *Framework for studying fluid dynamics by numerical simulation.*
 
