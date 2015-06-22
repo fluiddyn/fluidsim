@@ -99,7 +99,7 @@ class Simul(SimulBasePseudoSpectral):
 
 if __name__ == "__main__":
 
-    import numpy as np
+    from math import pi
 
     import fluiddyn as fld
 
@@ -107,16 +107,11 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 32
-    Lh = 2*np.pi
-    params.oper.nx = nh
-    params.oper.ny = nh
-    params.oper.Lx = Lh
-    params.oper.Ly = Lh
+    params.oper.nx = params.oper.ny = nh = 32
+    params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 
-    # params.oper.type_fft = 'FFTWPY'
+    delta_x = Lh / nh
 
-    delta_x = params.oper.Lx/params.oper.nx
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
     params.time_stepping.t_end = 1.
