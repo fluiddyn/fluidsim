@@ -2,6 +2,8 @@ from math import pi
 
 from fluidsim.solvers.ns2d.solver import Simul
 
+import fluiddyn as fld
+
 params = Simul.create_default_params()
 
 params.short_name_type_run = 'test'
@@ -31,6 +33,19 @@ params.output.periods_save.increments = 0.5
 
 params.output.periods_plot.phys_fields = 0.0
 
+params.output.ONLINE_PLOT_OK = True
+
+params.output.spectra.HAS_TO_PLOT_SAVED = True
+params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
+params.output.increments.HAS_TO_PLOT_SAVED = True
+
+params.output.phys_fields.field_to_plot = 'rot'
+
 sim = Simul(params)
 
+sim.output.phys_fields.plot()
 sim.time_stepping.start()
+sim.output.phys_fields.plot()
+
+fld.show()
