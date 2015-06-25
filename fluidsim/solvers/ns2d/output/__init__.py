@@ -1,4 +1,11 @@
+"""Output (:mod:`fluidsim.solvers.ns2d.output`)
+===============================================
 
+.. autoclass:: Output
+   :members:
+   :private-members:
+
+"""
 
 import numpy as np
 
@@ -6,7 +13,7 @@ from fluidsim.base.output import OutputBasePseudoSpectral
 
 
 class Output(OutputBasePseudoSpectral):
-
+    """Output for ns2d solver."""
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""

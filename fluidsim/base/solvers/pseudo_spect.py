@@ -78,6 +78,13 @@ class SimulBasePseudoSpectral(SimulBase):
         params._set_attribs(attribs)
 
     def compute_freq_diss(self):
+        """Compute the dissipation frequency.
+
+        Use the `self.params.nu_...` parameters to compute an array
+        containing the dissipation frequency as a function of the
+        wavenumber.
+
+        """
         if self.params.nu_2 > 0:
             f_d = self.params.nu_2*self.oper.K2
         else:

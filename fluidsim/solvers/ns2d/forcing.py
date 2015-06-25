@@ -1,3 +1,11 @@
+"""Output (:mod:`fluidsim.solvers.ns2d.forcing`)
+================================================
+
+.. autoclass:: ForcingNS2D
+   :members:
+   :private-members:
+
+"""
 
 
 from fluidsim.base.forcing import ForcingBasePseudoSpectral

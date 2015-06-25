@@ -53,6 +53,7 @@ class Simul(SimulBasePseudoSpectral):
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
+        """Compute the nonlinear tendencies."""
         oper = self.oper
         fft2 = oper.fft2
         ifft2 = oper.ifft2

@@ -33,5 +33,5 @@ from fluidsim.util.util import (
     import_simul_class_from_key,
     load_sim_for_plot, load_state_phys_file,
     modif_resolution_from_dir, modif_resolution_all_dir)
-
-from fluidsim.base.params import create_params
+del util
+del base

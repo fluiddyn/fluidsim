@@ -9,5 +9,8 @@ Provides:
    :toctree:
 
    solver
+   state
+   output
+   forcing
 
 """

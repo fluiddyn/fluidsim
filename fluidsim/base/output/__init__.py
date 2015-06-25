@@ -77,21 +77,18 @@ def create_description_xmf_file(path=None):
 
         if ndim == 1:
             geometry_type = 'Origin_Dx'
-            dims_topo = '{}'.format(nx+1)
             dims_data = '{}'.format(nx)
-            origins = '{}'.format(-deltax/2)
+            origins = '0'
             deltaxs = '{}'.format(deltax)
         elif ndim == 2:
             geometry_type = 'Origin_DxDy'
-            dims_topo = '{} {}'.format(ny+1, nx+1)
             dims_data = '{} {}'.format(ny, nx)
-            origins = '{} {}'.format(-deltay/2, -deltax/2)
+            origins = '0 0'
             deltaxs = '{} {}'.format(deltay, deltax)
         elif ndim == 3:
             geometry_type = 'Origin_DxDyDz'
-            dims_topo = '{} {} {}'.format(nz+1, ny+1, nx+1)
             dims_data = '{} {} {}'.format(nz, ny, nx)
-            origins = '{} {} {}'.format(-deltaz/2, -deltay/2, -deltax/2)
+            origins = '0 0 0'
             deltaxs = '{} {} {}'.format(deltaz, deltay, deltax)
 
         txt = """<?xml version="1.0" ?>
@@ -99,22 +96,23 @@ def create_description_xmf_file(path=None):
 <Xdmf>
   <Domain>
     <Grid Name="my_uniform_grid" GridType="Uniform">
-      <Topology TopologyType="{ndim}DCoRectMesh" Dimensions="{dims_topo}">
+      <Time Value="0." />
+      <Topology TopologyType="{ndim}DCoRectMesh" Dimensions="{dims_data}">
       </Topology>
       <Geometry GeometryType="{geometry_type}">
         <DataItem Dimensions="{ndim}" NumberType="Float" Format="XML">
-          {origins}
+        {origins}
         </DataItem>
         <DataItem Dimensions="{ndim}" NumberType="Float" Format="XML">
-          {deltaxs}
+        {deltaxs}
         </DataItem>
       </Geometry>
-""".format(ndim=ndim, geometry_type=geometry_type, dims_topo=dims_topo,
+""".format(ndim=ndim, geometry_type=geometry_type, dims_data=dims_data,
            origins=origins, deltaxs=deltaxs)
 
         for key in keys:
             txt += """
-      <Attribute Name="{key}" AttributeType="Scalar" Center="Cell">
+      <Attribute Name="{key}" AttributeType="Scalar" Center="Node">
         <DataItem Dimensions="{dims_data}" NumberType="Float" Format="HDF">
           {file_name}:/state_phys/{key}
         </DataItem>

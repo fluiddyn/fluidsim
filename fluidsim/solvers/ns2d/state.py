@@ -1,5 +1,10 @@
 """State for the NS2D solver (:mod:`fluidsim.solvers.ns2d.state`)
-=======================================================================
+=================================================================
+
+.. autoclass:: StateNS2D
+   :members:
+   :private-members:
+
 """
 
 
