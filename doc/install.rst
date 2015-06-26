@@ -16,9 +16,6 @@ The first thing to do before installing FluidSim is to installed these
 libraries (in contrast, the Python packages should automatically be
 installed by the installer)!
 
-Optional dependencies
----------------------
-
 - optionally, mpi4py (which depends on a MPI implementation).
 
 
