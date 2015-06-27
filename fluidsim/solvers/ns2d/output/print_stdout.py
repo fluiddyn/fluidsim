@@ -1,3 +1,11 @@
+"""Simple text output (:mod:`fluidsim.solvers.ns2d.output.print_stdout`)
+========================================================================
+
+.. autoclass:: PrintStdOutNS2D
+   :members:
+   :private-members:
+
+"""
 
 from __future__ import print_function, division
 
@@ -9,7 +17,9 @@ from fluiddyn.util import mpi
 
 
 class PrintStdOutNS2D(PrintStdOutBase):
-    """Used to print in both the stdout and the stdout.txt file, and also
+    """Simple text output.
+
+    Used to print in both the stdout and the stdout.txt file, and also
     to print simple info on the current state of the simulation.
 
     """

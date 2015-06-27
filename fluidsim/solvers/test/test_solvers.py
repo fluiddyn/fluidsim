@@ -2,16 +2,16 @@
 import unittest
 import shutil
 
-import fluiddyn as fld
+import fluidsim
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
 def run_mini_simul(key_solver):
 
-    solver = fld.simul.import_module_solver_from_key(key_solver)
+    Simul = fluidsim.import_simul_class_from_key(key_solver)
 
-    params = solver.Simul.create_default_params()
+    params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 
@@ -38,7 +38,7 @@ def run_mini_simul(key_solver):
     params.output.HAS_TO_SAVE = False
 
     with stdout_redirected():
-        sim = solver.Simul(params)
+        sim = Simul(params)
         sim.time_stepping.start()
 
     # clean by removing the directory

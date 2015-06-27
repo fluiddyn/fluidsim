@@ -1,3 +1,12 @@
+"""Energy budget (:mod:`fluidsim.solvers.ns2d.output.spect_energy_budget`)
+==========================================================================
+
+.. autoclass:: SpectralEnergyBudgetNS2D
+   :members:
+   :private-members:
+
+"""
+
 import numpy as np
 import h5py
 
@@ -7,7 +16,7 @@ from fluidsim.base.output.spect_energy_budget import (
 
 
 class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
-    """Save and plot spectra."""
+    """Save and plot energy budget in spectral space."""
 
     def compute(self):
         """compute the spectral energy budget at one time."""

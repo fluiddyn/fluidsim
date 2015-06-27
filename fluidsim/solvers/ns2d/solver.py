@@ -1,5 +1,12 @@
 """NS2D solver (:mod:`fluidsim.solvers.ns2d.solver`)
-=========================================================
+====================================================
+
+This module provides two classes defining the pseudo-spectral solver
+2D incompressible Navier-Stokes equations (ns2d).
+
+.. autoclass:: InfoSolverNS2D
+   :members:
+   :private-members:
 
 .. autoclass:: Simul
    :members:
@@ -14,8 +21,30 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
+    """Contain the information on the solver ns2d."""
     def _init_root(self):
+        """Init. `self` by writting the information on the solver.
 
+        The function `InfoSolverPseudoSpectral._init_root` is
+        called. We keep two classes listed by this function:
+
+        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+
+        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+
+        The other first-level classes for this solver are:
+
+        - :class:`fluidsim.solvers.ns2d.solver.Simul`
+
+        - :class:`fluidsim.solvers.ns2d.state.StateNS2D`
+
+        - :class:`fluidsim.solvers.ns2d.init_fields.InitFieldsNS2D`
+
+        - :class:`fluidsim.solvers.ns2d.output.Output`
+
+        - :class:`fluidsim.solvers.ns2d.forcing.ForcingNS2D`
+
+        """
         super(InfoSolverNS2D, self)._init_root()
 
         package = 'fluidsim.solvers.ns2d'
@@ -46,18 +75,54 @@ class Simul(SimulBasePseudoSpectral):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
-        """Compute the nonlinear tendencies."""
+        r"""Compute the nonlinear tendencies.
+
+        Parameters
+        ----------
+
+        state_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            optional
+
+            Array containing the state, i.e. the vorticity, in Fourier
+            space.  If `state_fft`, the variables vorticity and the
+            velocity are computed from it, otherwise, they are taken
+            from the global state of the simulation, `self.state`.
+
+            These two possibilities are used during the Runge-Kutta
+            time-stepping.
+
+        Returns
+        -------
+
+        tendencies_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            An array containing the tendencies for the vorticity.
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        The 2D Navier-Stockes equation can be written
+
+        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \zeta,
+
+        This function compute the nonlinear term ("tendencies")
+        :math:`\hat N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla}
+        \zeta`.
+
+        """
+        # the operator and the fast Fourier transform
         oper = self.oper
         fft2 = oper.fft2
         ifft2 = oper.ifft2
 
+        # get or compute rot_fft, ux and uy
         if state_fft is None:
             rot_fft = self.state.state_fft.get_var('rot_fft')
             ux = self.state.state_phys.get_var('ux')
@@ -68,6 +133,7 @@ class Simul(SimulBasePseudoSpectral):
             ux = ifft2(ux_fft)
             uy = ifft2(uy_fft)
 
+        # "px" like $\partial_x$
         px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
         px_rot = ifft2(px_rot_fft)
         py_rot = ifft2(py_rot_fft)
@@ -86,10 +152,7 @@ class Simul(SimulBasePseudoSpectral):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
-            info='tendencies_nonlin')
-
+        tendencies_fft = SetOfVariables(like=self.state.state_fft)
         tendencies_fft.set_var('rot_fft', Frot_fft)
 
         if self.params.FORCING:

@@ -1,3 +1,11 @@
+"""Spatial means output (:mod:`fluidsim.solvers.ns2d.output.spatial_means`)
+===========================================================================
+
+.. autoclass:: SpatialMeansNS2D
+   :members:
+   :private-members:
+
+"""
 
 from __future__ import division, print_function
 
@@ -11,7 +19,7 @@ from fluidsim.base.output.spatial_means import SpatialMeansBase
 
 
 class SpatialMeansNS2D(SpatialMeansBase):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """Spatial means output."""
 
     def save_one_time(self):
         tsim = self.sim.time_stepping.t

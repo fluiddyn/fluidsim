@@ -3,7 +3,8 @@
 
 .. currentmodule:: fluidsim.solvers
 
-Provides:
+Base package containing the source code of the particular solvers.  It
+provides the following solver packages:
 
 .. autosummary::
    :toctree:

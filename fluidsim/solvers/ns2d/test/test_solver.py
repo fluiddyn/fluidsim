@@ -3,17 +3,17 @@ import shutil
 
 import numpy as np
 
-import fluiddyn as fld
+
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
+
+from fluidsim.solvers.ns2d.solver import Simul
 
 
 class TestSolverNS2D(unittest.TestCase):
     def test_tendency(self):
 
-        key_solver = 'NS2D'
-        solver = fld.simul.import_module_solver_from_key(key_solver)
-        params = solver.Simul.create_default_params()
+        params = Simul.create_default_params()
 
         params.short_name_type_run = 'test'
 
@@ -34,7 +34,7 @@ class TestSolverNS2D(unittest.TestCase):
         params.FORCING = False
 
         with stdout_redirected():
-            sim = solver.Simul(params)
+            sim = Simul(params)
 
         rot_fft = sim.state('rot_fft')
 

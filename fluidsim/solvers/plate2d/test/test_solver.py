@@ -1,21 +1,18 @@
 import unittest
 import shutil
 
-# import numpy as np
 
-import fluiddyn as fld
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
+
+from fluidsim.solvers.plate2d.solver import Simul
 
 
 class TestSolverPLATE2D(unittest.TestCase):
     # @unittest.expectedFailure
     def test_tendency(self):
 
-        key_solver = 'PLATE2D'
-        solver = fld.simul.import_module_solver_from_key(key_solver)
-
-        params = solver.Simul.create_default_params()
+        params = Simul.create_default_params()
 
         params.short_name_type_run = 'test'
 
@@ -40,7 +37,7 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.output.ONLINE_PLOT_OK = False
 
         with stdout_redirected():
-            sim = solver.Simul(params)
+            sim = Simul(params)
 
         ratio = sim.test_tendencies_nonlin()
 
