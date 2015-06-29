@@ -33,7 +33,7 @@ import fluiddyn
 
 from fluiddyn.util import mpi
 
-from fluiddyn.io import FLUIDDYN_PATH_SIM, FLUIDDYN_PATH_SCRATCH
+from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH
 
 from fluiddyn.util.util import time_as_str, print_memory_usage
 
@@ -136,7 +136,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             if FLUIDDYN_PATH_SCRATCH is not None:
                 path_base = FLUIDDYN_PATH_SCRATCH
             else:
-                path_base = FLUIDDYN_PATH_SIM
+                path_base = FLUIDSIM_PATH
 
             if len(params.output.sub_directory) > 0:
                 path_base = os.path.join(
@@ -294,10 +294,10 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     if hasattr(self.__dict__[k], 'close_file'):
                         self.__dict__[k].close_file()
 
-        if (not self.path_run.startswith(FLUIDDYN_PATH_SIM) and mpi.rank == 0):
-            new_path_run = os.path.join(FLUIDDYN_PATH_SIM, self.sim.name_run)
+        if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
+            new_path_run = os.path.join(FLUIDSIM_PATH, self.sim.name_run)
             print('move result directory in directory:\n'+new_path_run)
-            shutil.move(self.path_run, FLUIDDYN_PATH_SIM)
+            shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
 
     def compute_energy(self):

@@ -26,7 +26,7 @@ The package is organised in four sub-packages:
 
 from fluidsim._version import __version__
 
-from fluiddyn.io import FLUIDDYN_PATH_SIM as path_dir_results
+from fluiddyn.io import FLUIDSIM_PATH as path_dir_results
 
 from fluidsim.util.util import (
     import_module_solver_from_key,
