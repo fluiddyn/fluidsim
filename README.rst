@@ -38,7 +38,7 @@ Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
 
 The development mode is often useful. From the root directory::
 
-  sudo python setup.py develop
+  python setup.py develop
 
 Tests
 -----

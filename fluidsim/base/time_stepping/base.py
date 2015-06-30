@@ -136,6 +136,7 @@ class TimeSteppingBase(object):
         self.sim.output.end_of_simul(total_time_simul)
 
     def one_time_step(self):
+        """Main time stepping function."""
         if self.params.time_stepping.USE_CFL:
             self._compute_time_increment_CLF()
         if self.params.FORCING:
