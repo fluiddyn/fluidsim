@@ -4,7 +4,7 @@ Installation
 FluidSim is part of the FluidDyn project.  Some issues regarding the
 installation of Python packages are discussed in `the main
 documentation of the project
-<https://pythonhosted.org/fluiddyn/install.html>`_.
+<http://fluiddyn.readthedocs.org/en/latest/install.html>`_.
 
 Dependencies
 ------------
