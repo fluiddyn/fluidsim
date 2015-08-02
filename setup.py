@@ -7,7 +7,7 @@ try:
     from Cython.Distutils.extension import Extension
     from Cython.Distutils import build_ext
 except ImportError:
-    from setuptools import Extension, build_ext
+    from setuptools import Extension
     from distutils.command import build_ext
 
 import subprocess
@@ -27,7 +27,10 @@ lines = long_description.splitlines(True)
 long_description = ''.join(lines[8:])
 
 # Get the version from the relevant file
-execfile('fluidsim/_version.py')
+d = {}
+execfile('fluidsim/_version.py', d)
+__version__ = d['__version__']
+
 # Get the development status from the version string
 if 'a' in __version__:
     devstatus = 'Development Status :: 3 - Alpha'
@@ -36,7 +39,18 @@ elif 'b' in __version__:
 else:
     devstatus = 'Development Status :: 5 - Production/Stable'
 
-ext_modules = []
+
+try:
+    libraries = subprocess.check_output('/sbin/ldconfig -p', shell=True)
+except subprocess.CalledProcessError:
+    libraries = []
+
+
+def check_avail_library(library_name):
+    if sys.platform != 'win32':
+        library_name = 'lib' + library_name
+
+    return library_name in libraries
 
 
 try:
@@ -52,8 +66,15 @@ else:
         mpi4py.get_include(),
         here + '/include']
 
+FFTW3 = check_avail_library('fftw3')
+FFTW3MPI = check_avail_library('fftw3_mpi')
 
-if MPI4PY:
+del libraries
+
+
+ext_modules = []
+
+if MPI4PY and FFTW3:
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
     include_dirs = [path_sources, np.get_include()] + include_dirs_mpi
     ext_fftw2dmpiccy = Extension(
@@ -65,44 +86,37 @@ if MPI4PY:
                  path_sources+'/fftw2dmpiccy.pyx'])
     ext_modules.append(ext_fftw2dmpiccy)
 
-
-path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
-include_dirs = [path_sources, np.get_include()]
-libraries = ['m']
-if MPI4PY:
-    include_dirs.extend(include_dirs_mpi)
-    libraries.append('mpi')
-
-library_dirs = []
-if sys.platform == 'win32':
+if FFTW3:
+    path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
+    include_dirs = [path_sources, np.get_include()]
+    libraries = ['m']
     if MPI4PY:
-        raise ValueError(
-            'We have to work on this case with MPI4PY on Windows...')
-    fftw_dir = r'c:\Prog\fftw-3.3.4-dll64'
-    library_dirs.append(fftw_dir)
-    include_dirs.append(fftw_dir)
-    libraries.append('libfftw3-3')
-else:
-    libraries.append('fftw3')
+        include_dirs.extend(include_dirs_mpi)
+        libraries.append('mpi')
 
-try:
-    subprocess.check_call('/sbin/ldconfig -p | grep libfftw3_mpi', shell=True)
-    FFTW3MPI = True
-except subprocess.CalledProcessError:
-    FFTW3MPI = False
-    print("The library libfftw3_mpi doesn't seem available.")
+    library_dirs = []
+    if sys.platform == 'win32':
+        if MPI4PY:
+            raise ValueError(
+                'We have to work on this case with MPI4PY on Windows...')
+        fftw_dir = r'c:\Prog\fftw-3.3.4-dll64'
+        library_dirs.append(fftw_dir)
+        include_dirs.append(fftw_dir)
+        libraries.append('libfftw3-3')
+    else:
+        libraries.append('fftw3')
 
-if FFTW3MPI:
-    libraries.append('fftw3_mpi')
+    if FFTW3MPI:
+        libraries.append('fftw3_mpi')
 
-    ext_fftw2dmpicy = Extension(
-        'fluidsim.operators.fft.fftw2dmpicy',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources+'/fftw2dmpicy.pyx'])
-    ext_modules.append(ext_fftw2dmpicy)
+        ext_fftw2dmpicy = Extension(
+            'fluidsim.operators.fft.fftw2dmpicy',
+            include_dirs=include_dirs,
+            libraries=libraries,
+            library_dirs=library_dirs,
+            cython_compile_time_env={'MPI4PY': MPI4PY},
+            sources=[path_sources+'/fftw2dmpicy.pyx'])
+        ext_modules.append(ext_fftw2dmpicy)
 
 
 path_sources = 'fluidsim/operators/CySources'
@@ -147,6 +161,15 @@ print('The following extensions are going to be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
+install_requires = ['fluiddyn >= 0.0.10a7']
+
+on_rtd = os.environ.get('READTHEDOCS')
+if not on_rtd:
+    install_requires += ['h5py']
+    if FFTW3:
+        install_requires += ['pyfftw']
+
+
 setup(name='fluidsim',
       version=__version__,
       description=('Framework for studying fluid dynamics with simulations.'),
@@ -181,10 +204,9 @@ setup(name='fluidsim',
           'Programming Language :: C',
       ],
       packages=find_packages(exclude=['doc', 'examples']),
-      install_requires=['fluiddyn >= 0.0.9a0', 'h5py', 'pyfftw'],
+      install_requires=install_requires,
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),
-      # scripts=['bin/fluiddyn-stop-pumps'],
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules)

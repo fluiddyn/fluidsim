@@ -14,6 +14,13 @@
 import sys
 import os
 
+# to be able to build the doc without h5py with Read the docs
+on_rtd = os.environ.get('READTHEDOCS')
+if on_rtd:
+    # this package comes from fluiddyn
+    from fluidrtd import mock_modules
+    mock_modules(['h5py'])
+
 import fluidsim
 
 
