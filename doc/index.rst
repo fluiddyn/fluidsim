@@ -43,7 +43,7 @@ User Guide
 
    install
    tutorials
-
+   examples
 
 Modules Reference
 -----------------
@@ -56,18 +56,18 @@ Modules Reference
    fluidsim.solvers
    fluidsim.util
 
-Scripts and examples
---------------------
+Scripts
+-------
 
-FluidSim also comes with scripts and examples. They are organised in
-the following directories:
+FluidSim also comes with scripts. They are organised in the following
+directories:
 
 .. autosummary::
    :toctree: generated/
 
-   examples.launch
-   examples.plot_results
-   examples.util
+   scripts.launch
+   scripts.plot_results
+   scripts.util
 
 More
 ----

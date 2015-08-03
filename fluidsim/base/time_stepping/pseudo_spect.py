@@ -36,18 +36,21 @@ class ExactLinearCoefs(object):
             self.get_updated_coefs = self.get_coefs
 
     def compute(self, dt):
+        """Compute the exact coefficients."""
         f_lin = self.freq_lin
         self.exact = np.exp(-dt*f_lin)
         self.exact2 = np.exp(-dt/2*f_lin)
         self.dt_old = dt
 
     def get_updated_coefs_CLF(self):
+        """Get the exact coefficient updated if needed."""
         dt = self.time_stepping.deltat
         if self.dt_old != dt:
             self.compute(dt)
         return self.exact, self.exact2
 
     def get_coefs(self):
+        """Get the exact coefficients as stored."""
         return self.exact, self.exact2
 
 

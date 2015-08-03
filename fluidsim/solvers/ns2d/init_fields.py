@@ -1,5 +1,19 @@
+"""Initialization of the field (:mod:`fluidsim.solvers.ns2d.init_fields`)
+=========================================================================
 
-"""InitFieldsNS2D"""
+.. autoclass:: InitFieldsNS2D
+   :members:
+
+.. autoclass:: InitFieldsNoise
+   :members:
+
+.. autoclass:: InitFieldsJet
+   :members:
+
+.. autoclass:: InitFieldsDipole
+   :members:
+
+"""
 
 import numpy as np
 
@@ -9,10 +23,12 @@ from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 
 class InitFieldsNoise(SpecificInitFields):
+    """Initialize the state with noise."""
     tag = 'noise'
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        """Complete the `params` container (class method)."""
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={
             'velo_max': 1.,
@@ -69,10 +85,12 @@ class InitFieldsNoise(SpecificInitFields):
 
 
 class InitFieldsJet(SpecificInitFields):
+    """Initialize the state with a jet."""
     tag = 'jet'
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        """Complete the `params` container (class method)."""
         super(InitFieldsJet, cls)._complete_params_with_default(params)
         # params.init_fields._set_child(cls.tag, attribs={})
 
@@ -100,10 +118,12 @@ class InitFieldsJet(SpecificInitFields):
 
 
 class InitFieldsDipole(SpecificInitFields):
+    """Initialize the state with a dipole."""
     tag = 'dipole'
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        """Complete the `params` container (class method)."""
         super(InitFieldsDipole, cls)._complete_params_with_default(params)
         # params.init_fields._set_child(cls.tag, attribs={})
 
@@ -135,12 +155,11 @@ class InitFieldsDipole(SpecificInitFields):
 
 
 class InitFieldsNS2D(InitFieldsBase):
-    """Init the fields for the solver NS2D."""
+    """Initialize the state for the solver NS2D."""
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver."""
-
+        """Complete the `info_solver` container (static method)."""
         InitFieldsBase._complete_info_solver(
             info_solver, classes=[
                 InitFieldsNoise, InitFieldsJet, InitFieldsDipole])

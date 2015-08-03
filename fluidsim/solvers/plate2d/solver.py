@@ -3,9 +3,12 @@
 """Plate2d solver (:mod:`fluidsim.solvers.plate2d.solver`)
 ================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.solver
+This module provides two classes defining the pseudo-spectral solver
+plate2d.
 
-Provides:
+.. autoclass:: InfoSolverPseudoSpectral
+   :members:
+   :private-members:
 
 .. autoclass:: Simul
    :members:
@@ -13,7 +16,7 @@ Provides:
 
 .. todo::
 
-   - solver solving exactly the linear terms.
+   - other solver solving exactly the linear terms.
 
 """
 
@@ -27,7 +30,30 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 
 class InfoSolverPlate2D(InfoSolverPseudoSpectral):
+    """Contain the information on the solver plate2d."""
     def _init_root(self):
+        """Init. `self` by writting the information on the solver.
+
+        The function `InfoSolverPseudoSpectral._init_root` is
+        called. We keep two classes listed by this function:
+
+        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+
+        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+
+        The other first-level classes for this solver are:
+
+        - :class:`fluidsim.solvers.plate2d.solver.Simul`
+
+        - :class:`fluidsim.solvers.plate2d.state.StatePlate2D`
+
+        - :class:`fluidsim.solvers.plate2d.init_fields.InitFieldsPlate2D`
+
+        - :class:`fluidsim.solvers.plate2d.output.Output`
+
+        - :class:`fluidsim.solvers.plate2d.forcing.ForcingPlate2D`
+
+        """
 
         super(InfoSolverPlate2D, self)._init_root()
 
@@ -133,8 +159,7 @@ class Simul(SimulBasePseudoSpectral):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {'beta': 0.}
         params._set_attribs(attribs)

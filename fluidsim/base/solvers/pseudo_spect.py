@@ -1,15 +1,18 @@
 """Base solver (:mod:`fluidsim.base.solvers.pseudo_spect`)
 ================================================================
 
-.. currentmodule:: fluidsim.base.solvers.pseudo_spect
-
-Provides:
+This module provides two base classes that can be used to define
+pseudo-spectral solvers.
 
 .. autoclass:: InfoSolverPseudoSpectral
    :members:
    :private-members:
 
 .. autoclass:: SimulBasePseudoSpectral
+   :members:
+   :private-members:
+
+.. autoclass:: InfoSolverPseudoSpectral3D
    :members:
    :private-members:
 
@@ -25,10 +28,22 @@ from fluidsim.base.solvers.base import SimulBase, InfoSolverBase
 
 
 class InfoSolverPseudoSpectral(InfoSolverBase):
-    """Contain the information on a solver."""
+    """Contain the information on a base pseudo-spectral 2D solver."""
 
     def _init_root(self):
+        """Init. `self` by writting the information on the solver.
 
+        The first-level classes for this base solver are:
+
+        - :class:`fluidsim.base.solvers.pseudo_spect.SimulBasePseudoSpectral`
+
+        - :class:`fluidsim.base.state.StatePseudoSpectral`
+
+        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+
+        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+
+        """
         super(InfoSolverPseudoSpectral, self)._init_root()
 
         self.module_name = 'fluidsim.base.solvers.pseudo_spect'
@@ -53,9 +68,16 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
 
 
 class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
-    """Contain the information on a solver."""
-
+    """Contain the information on a base pseudo-spectral 3D solver."""
     def _init_root(self):
+        """Init. `self` by writting the information on the solver.
+
+        The first-level classes for this base solver are the same as
+        for the 2D pseudo-spectral base solver except the class:
+
+        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+
+        """
 
         super(InfoSolverPseudoSpectral3D, self)._init_root()
 
@@ -64,12 +86,12 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
 
 class SimulBasePseudoSpectral(SimulBase):
-
+    """Pseudo-spectral base solver."""
     InfoSolver = InfoSolverPseudoSpectral
 
     @staticmethod
     def _complete_params_with_default(params):
-        """A static method used to complete the *params* container."""
+        """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
 
         attribs = {'nu_8': 0.,
@@ -78,6 +100,37 @@ class SimulBasePseudoSpectral(SimulBase):
         params._set_attribs(attribs)
 
     def compute_freq_diss(self):
+        r"""Compute the dissipation frequency.
+
+        Use the `self.params.nu_...` parameters to compute an array
+        containing the dissipation frequency as a function of the
+        wavenumber.
+
+        .. |p| mathmacro:: \partial
+
+        The governing equations for a pseudo-spectral solver can be
+        written as
+
+        .. math:: \p_t S = N(S) - \sigma(k) S,
+
+        where :math:`\sigma` is the frequency associated with the
+        linear term.
+
+        In this function, the frequency :math:`\sigma` is split in 2
+        parts: the dissipation at small scales and the dissipation at
+        large scale (hypo-viscosity, `params.nu_m4`).
+
+        Returns
+        -------
+
+        f_d : `numpy.array`
+            The dissipation frequency as a function of the wavenumber
+            (small sclale part).
+
+        f_d_hypo : `numpy.array`
+            The dissipation frequency at large scale (hypo-viscosity)
+
+        """
         if self.params.nu_2 > 0:
             f_d = self.params.nu_2*self.oper.K2
         else:
@@ -103,10 +156,18 @@ class SimulBasePseudoSpectral(SimulBase):
         return f_d, f_d_hypo
 
     def tendencies_nonlin(self, variables=None):
-        """Return a null SetOfVariables object."""
-        tendencies = SetOfVariables(
-            like=self.state.state_fft,
-            info='tendencies_nonlin')
+        r"""Compute the nonlinear tendencies.
+
+        This function has to be overridden in a child class.
+
+        Returns
+        -------
+
+        tendencies_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            An array containing only zeros.
+
+        """
+        tendencies = SetOfVariables(like=self.state.state_fft)
         tendencies.initialize(value=0.)
         return tendencies
 

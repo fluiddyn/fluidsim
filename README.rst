@@ -4,10 +4,10 @@ GeoFluidDyn
 
 *Framework for studying fluid dynamics by numerical simulation.*
 
-`Package Documentation <http://pythonhosted.org/fluidsim>`__
+`Package Documentation <http://fluidsim.readthedocs.org/en/latest/>`__
 
 FluidSim is the numerically oriented package of the `FluidDyn project
-<http://pythonhosted.org/fluiddyn>`__.  The project is still in a
+<http://fluiddyn.readthedocs.org/en/latest/>`__.  The project is still in a
 testing stage so it is still pretty unstable and many of its planned
 features have not yet been implemented.
 
@@ -38,7 +38,7 @@ Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
 
 The development mode is often useful. From the root directory::
 
-  sudo python setup.py develop
+  python setup.py develop
 
 Tests
 -----

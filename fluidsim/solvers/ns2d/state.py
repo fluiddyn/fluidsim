@@ -1,5 +1,10 @@
 """State for the NS2D solver (:mod:`fluidsim.solvers.ns2d.state`)
-=======================================================================
+=================================================================
+
+.. autoclass:: StateNS2D
+   :members:
+   :private-members:
+
 """
 
 
@@ -9,17 +14,16 @@ from fluiddyn.util import mpi
 
 
 class StateNS2D(StatePseudoSpectral):
-    """Contains the variables corresponding to the state and handles the
-    access to other fields for the solver NS2D.
+    """State for the solver ns2d.
+
+    Contains the variables corresponding to the state and handles the
+    access to other fields.
 
     """
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
-
-        This is a static method!
-        """
+        """Complete the `info_solver` container (static method)."""
         info_solver.classes.State._set_attribs({
             'keys_state_fft': ['rot_fft'],
             'keys_state_phys': ['ux', 'uy', 'rot'],
@@ -28,6 +32,7 @@ class StateNS2D(StatePseudoSpectral):
             'keys_linear_eigenmodes': ['rot_fft']})
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
+        """Compute and return a variable"""
         it = self.sim.time_stepping.it
         if (key in self.vars_computed and it == self.it_computed[key]):
             return self.vars_computed[key]
@@ -71,6 +76,7 @@ class StateNS2D(StatePseudoSpectral):
         return result
 
     def statephys_from_statefft(self):
+        """Compute `state_phys` from `statefft`."""
         rot_fft = self.state_fft.get_var('rot_fft')
         self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
@@ -78,10 +84,12 @@ class StateNS2D(StatePseudoSpectral):
         self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
 
     def statefft_from_statephys(self):
+        """Compute `state_fft` from `state_phys`."""
         rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
 
     def init_from_rotfft(self, rot_fft):
+        """Initialize the state from the variable `rot_fft`."""
         self.sim.oper.dealiasing(rot_fft)
         self.state_fft.set_var('rot_fft', rot_fft)
         self.statephys_from_statefft()

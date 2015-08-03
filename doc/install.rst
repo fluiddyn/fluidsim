@@ -4,7 +4,7 @@ Installation
 FluidSim is part of the FluidDyn project.  Some issues regarding the
 installation of Python packages are discussed in `the main
 documentation of the project
-<https://pythonhosted.org/fluiddyn/install.html>`_.
+<http://fluiddyn.readthedocs.org/en/latest/install.html>`_.
 
 Dependencies
 ------------
@@ -15,9 +15,6 @@ Dependencies
 The first thing to do before installing FluidSim is to installed these
 libraries (in contrast, the Python packages should automatically be
 installed by the installer)!
-
-Optional dependencies
----------------------
 
 - optionally, mpi4py (which depends on a MPI implementation).
 

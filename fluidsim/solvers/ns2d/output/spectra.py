@@ -1,3 +1,12 @@
+"""Spectra output (:mod:`fluidsim.solvers.ns2d.output.spectra`)
+===============================================================
+
+.. autoclass:: SpectraNS2D
+   :members:
+   :private-members:
+
+"""
+
 import h5py
 
 import numpy as np

@@ -219,10 +219,12 @@ class PhysFieldsBase(SpecificOutput):
                 pas_vector = 1
 
             if mpi.rank == 0:
+                # copy to avoid a bug
+                vecx_c = vecx[::pas_vector, ::pas_vector].copy()
+                vecy_c = vecy[::pas_vector, ::pas_vector].copy()
                 ax.quiver(XX_seq[::pas_vector, ::pas_vector],
                           YY_seq[::pas_vector, ::pas_vector],
-                          vecx[::pas_vector, ::pas_vector],
-                          vecy[::pas_vector, ::pas_vector])
+                          vecx_c, vecy_c)
 
         if mpi.rank == 0:
             ax.set_xlabel('x')

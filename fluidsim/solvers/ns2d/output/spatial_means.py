@@ -1,3 +1,11 @@
+"""Spatial means output (:mod:`fluidsim.solvers.ns2d.output.spatial_means`)
+===========================================================================
+
+.. autoclass:: SpatialMeansNS2D
+   :members:
+   :private-members:
+
+"""
 
 from __future__ import division, print_function
 
@@ -11,7 +19,7 @@ from fluidsim.base.output.spatial_means import SpatialMeansBase
 
 
 class SpatialMeansNS2D(SpatialMeansBase):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """Spatial means output."""
 
     def save_one_time(self):
         tsim = self.sim.time_stepping.t
@@ -202,9 +210,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
         E = dico_results['E']
         Z = dico_results['Z']
 
-        PK_tot = dico_results['PK_tot']
-        PZ_tot = dico_results['PZ_tot']
-
         epsK = dico_results['epsK']
         epsK_hypo = dico_results['epsK_hypo']
         epsK_tot = dico_results['epsK_tot']
@@ -214,33 +219,31 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ_tot = dico_results['epsZ_tot']
 
         width_axe = 0.85
-        height_axe = 0.4
+        height_axe = 0.39
         x_left_axe = 0.12
         z_bottom_axe = 0.55
 
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('E(t)')
-        ax1.hold(True)
+        fig.suptitle('Energy and enstrophy')
+        ax1.set_ylabel('$E(t)$')
         ax1.plot(t, E, 'k', linewidth=2)
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('Z(t)')
-        ax2.hold(True)
+        ax2.set_ylabel('$Z(t)$')
+        ax2.set_xlabel('$t$')
         ax2.plot(t, Z, 'k', linewidth=2)
 
-        z_bottom_axe = 0.55
+        z_bottom_axe = 0.54
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('P_E(t), epsK(t)')
+        fig.suptitle('Dissipation of energy and enstrophy')
+        ax1.set_ylabel('$\epsilon_K(t)$')
         ax1.hold(True)
-        ax1.plot(t, PK_tot, 'c', linewidth=2)
+
         ax1.plot(t, epsK, 'r', linewidth=2)
         ax1.plot(t, epsK_hypo, 'g', linewidth=2)
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
@@ -248,10 +251,17 @@ class SpatialMeansNS2D(SpatialMeansBase):
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('P_Z(t), epsZ(t)')
+        ax2.set_xlabel('$t$')
+        ax2.set_ylabel('$\epsilon_Z(t)$')
         ax2.hold(True)
-        ax2.plot(t, PZ_tot, 'c', linewidth=2)
         ax2.plot(t, epsZ, 'r', linewidth=2)
         ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
         ax2.plot(t, epsZ_tot, 'k', linewidth=2)
+
+        if self.sim.params.FORCING:
+            PK_tot = dico_results['PK_tot']
+            PZ_tot = dico_results['PZ_tot']
+            ax1.plot(t, PK_tot, 'c', linewidth=2)
+            ax2.plot(t, PZ_tot, 'c', linewidth=2)
+            ax1.set_ylabel('P_E(t), epsK(t)')
+            ax2.set_ylabel('P_Z(t), epsZ(t)')
