@@ -51,7 +51,7 @@ clean:
 cleanall: clean
 	rm -rf generated html.zip
 
-html: $(IPYTHON_NOTEBOOKS_RST)
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -164,6 +164,3 @@ doctest:
 
 zip: html
 	cd _build/html &&  zip -r html.zip * && mv html.zip ../../.
-
-%.rst: %.ipynb
-	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
