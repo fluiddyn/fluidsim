@@ -8,7 +8,7 @@ syntax: glob
 *.swp
 *.swo
 *.out
-
+*.kate-swp
 \#*\#
 
 doc/_build/*

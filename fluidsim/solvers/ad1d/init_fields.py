@@ -1,6 +1,16 @@
+"""Initialization of the field (:mod:`fluidsim.solvers.ad1d.init_fields`)
+=========================================================================
 
-"""InitFieldsNS2D"""
+.. autoclass:: InitFieldsAD1D
+   :members:
 
+.. autoclass:: InitFieldsCos
+   :members:
+
+.. autoclass:: InitFieldsGaussian
+   :members:
+
+"""
 import numpy as np
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields

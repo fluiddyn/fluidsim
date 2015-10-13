@@ -1,6 +1,7 @@
 
 clean_so:
 	find fluidsim -name "*.so" -delete
+	find fluiddyn -name "*.pyc" -delete
 
 tests:
 	python -m unittest discover
@@ -10,3 +11,6 @@ tests_mpi:
 
 develop:
 	python setup.py develop
+
+install:
+	python setup.py install
