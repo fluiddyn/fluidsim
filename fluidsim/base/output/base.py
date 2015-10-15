@@ -45,7 +45,10 @@ class OutputBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver."""
+        """
+        Complete the ParamContainer info_solver.
+        .. TODO: Make PhysFields association more general
+        """
         info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
@@ -57,7 +60,7 @@ class OutputBase(object):
         classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
-                     'class_name': 'PhysFieldsBase'})
+                     'class_name': 'PhysFieldsBase2D'})
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

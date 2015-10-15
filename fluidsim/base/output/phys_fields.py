@@ -19,6 +19,7 @@ import datetime
 
 from fluiddyn.util import mpi
 from .base import SpecificOutput
+from .movies import MoviesBase1D, MoviesBase2D
 
 
 class PhysFieldsBase(SpecificOutput):
@@ -136,28 +137,15 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.rank == 0:
             f.close()
 
-    def plot(self, numfig=None, field=None, key_field=None,
-             QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
-             nb_contours=20, type_plot='contourf', iz=0):
-
-        x_left_axe = 0.08
-        z_bottom_axe = 0.07
-        width_axe = 0.97
-        height_axe = 0.87
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
-
+    def _select_field(self, field=None, key_field=None):
         keys_state_phys = self.sim.info.solver.classes.State['keys_state_phys']
         keys_computable = self.sim.info.solver.classes.State['keys_computable']
-
-        if vecx not in keys_state_phys or vecy not in keys_state_phys:
-            QUIVER = False
 
         if field is None:
             if key_field is None:
                 field_to_plot = self.params.output.phys_fields.field_to_plot
-                if (field_to_plot in keys_state_phys and
-                        field_to_plot in keys_computable):
+                if (field_to_plot in keys_state_phys or
+                    field_to_plot in keys_computable):
                     key_field = field_to_plot
                 else:
                     if 'q' in keys_state_phys:
@@ -166,18 +154,55 @@ class PhysFieldsBase(SpecificOutput):
                         key_field = 'rot'
                     else:
                         key_field = keys_state_phys[0]
-
-            field_loc = self.sim.state(key_field)
+                field_loc = self.sim.state(key_field)
+            else:
+                field_loc = self.sim.state(key_field)
         else:
             key_field = 'given field'
-            if FIELD_LOC:
-                field_loc = field
+            field_loc = field
 
-        if mpi.nb_proc > 1 and FIELD_LOC:
+        if mpi.nb_proc > 1:
             field = self.oper.gather_Xspace(field_loc)
         else:
             field = field_loc
 
+        return field, key_field
+
+
+class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
+    
+    def plot(self, numfig=None, field=None, key_field=None):
+        field, key_field = self._field_to_plot(field, key_field)
+
+        if mpi.rank == 0:
+            if numfig is None:
+                fig, ax = self.output.figure_axe(size_axe=None)
+            else:
+                fig, ax = self.output.figure_axe(numfig=numfig,
+                                                 size_axe=None)
+            xs = self.oper.xs
+
+            ax.plot(xs, field)
+
+
+class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
+
+    def plot(self, numfig=None, field=None, key_field=None,
+             QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
+             nb_contours=20, type_plot='contourf', iz=0):
+
+        field, key_field = self._select_field(field, key_field)
+
+        x_left_axe = 0.08
+        z_bottom_axe = 0.07
+        width_axe = 0.97
+        height_axe = 0.87
+        size_axe = [x_left_axe, z_bottom_axe,
+                    width_axe, height_axe]
+        
+        if vecx not in keys_state_phys or vecy not in keys_state_phys:
+            QUIVER = False
+        
         if field.ndim == 3:
             field = field[iz]
 
@@ -202,29 +227,7 @@ class PhysFieldsBase(SpecificOutput):
                 fig.colorbar(pc)
 
         if QUIVER:
-            if isinstance(vecx, str):
-                vecx_loc = self.sim.state(vecx)
-                if mpi.nb_proc > 1:
-                    vecx = self.oper.gather_Xspace(vecx_loc)
-                else:
-                    vecx = vecx_loc
-            if isinstance(vecy, str):
-                vecy_loc = self.sim.state(vecy)
-                if mpi.nb_proc > 1:
-                    vecy = self.oper.gather_Xspace(vecy_loc)
-                else:
-                    vecy = vecy_loc
-            pas_vector = np.round(self.oper.nx_seq/48)
-            if pas_vector < 1:
-                pas_vector = 1
-
-            if mpi.rank == 0:
-                # copy to avoid a bug
-                vecx_c = vecx[::pas_vector, ::pas_vector].copy()
-                vecy_c = vecy[::pas_vector, ::pas_vector].copy()
-                ax.quiver(XX_seq[::pas_vector, ::pas_vector],
-                          YY_seq[::pas_vector, ::pas_vector],
-                          vecx_c, vecy_c)
+            vmax = self._quiver_plot(ax, vecx, vecy)
 
         if mpi.rank == 0:
             ax.set_xlabel('x')
@@ -236,57 +239,43 @@ class PhysFieldsBase(SpecificOutput):
                      ', nh = {0:d}'.format(self.params.oper.nx))
 
             if QUIVER:
-                title += r', max(|v|) = {0:.3f}'.format(
-                    np.max(np.sqrt(vecx**2+vecy**2)))
+                title += r', max(|v|) = {0:.3f}'.format(vmax)
 
             ax.set_title(title)
 
             fig.canvas.draw()
+            
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy'):
+        """
+        Superimposes a quiver plot of velocity vectors
+        with a given ax object corresponding to
+        a 2D contour plot.
+        """
 
-
-class PhysFieldsBase1D(PhysFieldsBase):
-
-    def plot(self, numfig=None, field=None, key_field=None):
-
-        # x_left_axe = 0.08
-        # z_bottom_axe = 0.07
-        # width_axe = 0.87
-        # height_axe = 0.87
-        # size_axe = [x_left_axe, z_bottom_axe,
-        #             width_axe, height_axe]
-
-        keys_state_phys = self.sim.info.solver.classes.State['keys_state_phys']
-        keys_computable = self.sim.info.solver.classes.State['keys_computable']
-
-        if field is None:
-            if key_field is None:
-                field_to_plot = self.params.output.phys_fields.field_to_plot
-                if (field_to_plot in keys_state_phys and
-                        field_to_plot in keys_computable):
-                    key_field = field_to_plot
-                else:
-                    if 'q' in keys_state_phys:
-                        key_field = 'q'
-                    elif 'rot' in keys_state_phys:
-                        key_field = 'rot'
-                    else:
-                        key_field = keys_state_phys[0]
-
-            field_loc = self.sim.state(key_field)
-        else:
-            key_field = 'given field'
-
-        if mpi.nb_proc > 1:
-            field = self.oper.gather_Xspace(field_loc)
-        else:
-            field = field_loc
-
-        if mpi.rank == 0:
-            if numfig is None:
-                fig, ax = self.output.figure_axe(size_axe=None)
+        if isinstance(vecx, str):
+            vecx_loc = self.sim.state(vecx)
+            if mpi.nb_proc > 1:
+                vecx = self.oper.gather_Xspace(vecx_loc)
             else:
-                fig, ax = self.output.figure_axe(numfig=numfig,
-                                                 size_axe=None)
-            xs = self.oper.xs
+                vecx = vecx_loc
+        if isinstance(vecy, str):
+            vecy_loc = self.sim.state(vecy)
+            if mpi.nb_proc > 1:
+                vecy = self.oper.gather_Xspace(vecy_loc)
+            else:
+                vecy = vecy_loc
+        pas_vector = np.round(self.oper.nx_seq / 48)
+        if pas_vector < 1:
+            pas_vector = 1
 
-            ax.plot(xs, field)
+        [XX_seq, YY_seq] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
+        if mpi.rank == 0:
+            # copy to avoid a bug
+            vecx_c = vecx[::pas_vector, ::pas_vector].copy()
+            vecy_c = vecy[::pas_vector, ::pas_vector].copy()
+            ax.quiver(XX_seq[::pas_vector, ::pas_vector],
+                      YY_seq[::pas_vector, ::pas_vector],
+                      vecx_c, vecy_c)
+
+
+        return np.max(np.sqrt(vecx**2 + vecy**2))
