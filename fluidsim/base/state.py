@@ -171,6 +171,9 @@ class StatePseudoSpectral(StateBase):
                 key in self.keys_state_fft)
 
     def init_fft_from(self, args):
+        """ 
+        .. TODO: use **args and **kwargs
+        """
 
         if len(args) > 1:
             raise ValueError(

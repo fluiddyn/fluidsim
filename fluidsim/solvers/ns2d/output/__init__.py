@@ -38,6 +38,8 @@ class Output(OutputBasePseudoSpectral):
 
         classes.PrintStdOut.module_name = base_name_mod + '.print_stdout'
         classes.PrintStdOut.class_name = 'PrintStdOutNS2D'
+        
+        classes.PhysFields.class_name = 'PhysFieldsBase2D'
 
         classes._set_child(
             'Spectra',

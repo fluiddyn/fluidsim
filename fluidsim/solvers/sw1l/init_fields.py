@@ -88,7 +88,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         params.init_fields._set_child(cls.tag, attribs={
             'omega_max': 1.,
             'n_vort': 8,
-            'sd': None})
+            'sd': 0.})
 
     def __call__(self):
         rot = self.vortex_grid_shape()
@@ -106,8 +106,8 @@ class InitFieldsVortexGrid(SpecificInitFields):
         XX = oper.XX
         YY = oper.YY
         shape = oper.shapeX
-        N_vort = self.params.init_fields.n_vort
-        SD = self.params.init_fields.sd
+        N_vort = self.params.init_fields.vortex_grid.n_vort
+        SD = self.params.init_fields.vortex_grid.sd
 
         if N_vort % 2 != 0:
             raise ValueError("Cannot initialize a net circulation free field." +
@@ -119,11 +119,11 @@ class InitFieldsVortexGrid(SpecificInitFields):
         y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
         sign_list = self._random_plus_minus_list()
 
-        if SD is None:
+        if SD == 0.:
             SD = min(dx_vort, dy_vort) / 2. / 6.
-            self.params.init_fields.sd = SD
+            self.params.init_fields.vortex_grid.sd = SD
 
-        amp = self.params.init_fields.omega_max
+        amp = self.params.init_fields.vortex_grid.omega_max
         if mpi.rank is 0:
             print 'Initializing vortex grid with SD = ', SD, 'amp = ',amp
 

@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from fluiddyn.util import mpi
@@ -50,6 +51,12 @@ class MoviesBase(object):
         self.sim = load_state_phys_file(self.path, t_approx=time)
 
         return self._select_field()
+    
+    def _select_axis(self, xlabel='x', ylabel='y'):
+        """
+        Replace this function to change the default axes set while animating.
+        """
+        pass
     
     def _select_field(self, field=None, key_field=None):
         """
@@ -112,6 +119,8 @@ class MoviesBase1D(MoviesBase):
     def _ani_init(self, numfig, nb_contours, file_dt, xmax, ymax):
         """
         Initializes animated fig. and list of times of save files to load
+        .. FIXME: "Can't open attribute (Can't locate attribute: 'ny')" 
+                   Possible sources of error load_state_phys_file / info_solver
         """
         self._ani_fig, self._ani_ax = plt.subplots()
         self._ani_line, = self._ani_ax.plot([], [])
@@ -120,23 +129,17 @@ class MoviesBase1D(MoviesBase):
         self._set_path()
 
         ax = self._ani_ax
-        ax.set_xlabel('x', fontdict=self.font)
-        ax.set_ylabel('u', fontdict=self.font)
         ax.set_xlim(0, xmax)
         ax.set_ylim(-ymax, ymax)
 
-        t = 0
         tmax = int(self.sim.time_stepping.t)
-        while t <= tmax:
-            self._ani_t.append(t)
-            t += file_dt
+        self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
 
     def _ani_update(self, time):
         """
         Loads contour data and updates figure
         """
-
-        x = self.oper.x_seq
+        x = self._select_axis()
         with stdout_redirected():
             y, key_field = self._ani_get_field(time)
 
@@ -148,6 +151,15 @@ class MoviesBase1D(MoviesBase):
         self._ani_ax.set_title(title)
         
         return self._ani_line
+    
+    def _select_axis(self, xlabel='x', ylabel='u'):
+        try:
+            x = self.oper.xs
+        except AttributeError:
+            x = self.oper.x_seq
+        self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
+        self._ani_ax.set_ylabel(ylabel, fontdict=self.font)
+        return x
 
 
 class MoviesBase2D(MoviesBase):
@@ -173,12 +185,9 @@ class MoviesBase2D(MoviesBase):
             self._ani_fig, self._ani_ax = self.output.figure_axe(numfig=numfig,
                                                                    size_axe=size_axe)
 
-        t = 0
         tmax = int(self.sim.time_stepping.t)
-        while t <= tmax:
-            self._ani_t.append(t)
-            t += file_dt
-
+        self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
+        
     def _ani_update(self, time):
         """
         Loads contour data and updates figure
@@ -186,8 +195,7 @@ class MoviesBase2D(MoviesBase):
         .. TODO: Set contour limits, without which animations can be misleading
         """
 
-        x = self.oper.x_seq
-        y = self.oper.y_seq
+        x, y = self._select_axis()
         with stdout_redirected():
             field, key_field = self._ani_get_field(time)
 
@@ -204,8 +212,15 @@ class MoviesBase2D(MoviesBase):
         try:
             vmax = self._quiver_plot(self._ani_ax)
             title += r', max(|v|) = {0:.3f}'.format(vmax)
-        except:
+        except AttributeError:
             pass
         
         self._ani_ax.set_title(title)
         return contours
+    
+    def _select_axis(self, xlabel='x', ylabel='y'):
+        x = self.oper.x_seq
+        y = self.oper.y_seq
+        self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
+        self._ani_ax.set_ylabel(ylabel, fontdict=self.font)
+        return x, y

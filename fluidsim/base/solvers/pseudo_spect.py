@@ -65,6 +65,12 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
             'Operators',
             attribs={'module_name': 'fluidsim.operators.operators',
                      'class_name': 'OperatorsPseudoSpectral2D'})
+        
+        self.classes._set_child(
+            'Preprocess',
+            attribs={'module_name':
+                     'fluidsim.base.preprocess.pseudo_spect',
+                     'class_name': 'PreprocessPseudoSpectral'})
 
 
 class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):

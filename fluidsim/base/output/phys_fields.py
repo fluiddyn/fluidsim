@@ -192,7 +192,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
              nb_contours=20, type_plot='contourf', iz=0):
 
         field, key_field = self._select_field(field, key_field)
-
+        keys_state_phys = self.sim.state.keys_state_phys
         x_left_axe = 0.08
         z_bottom_axe = 0.07
         width_axe = 0.97

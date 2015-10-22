@@ -60,7 +60,7 @@ class OutputBase(object):
         classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
-                     'class_name': 'PhysFieldsBase2D'})
+                     'class_name': 'PhysFieldsBase'})
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

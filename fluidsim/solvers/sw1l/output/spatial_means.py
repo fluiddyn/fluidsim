@@ -8,7 +8,7 @@ from fluidsim.base.output.spatial_means import (
 
 
 class SpatialMeansMSW1L(SpatialMeansBase):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """A :class:`SpatialMean` object handles the saving of spatial mean quantities viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also handles the computation of forcing and dissipation rates for sw1l.modified solver"""
 
     def __init__(self, output):
 
@@ -521,11 +521,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2.plot(t, epsCPE_hypo, 'g', linewidth=2 )
         ax2.plot(t, epsCPE_tot, 'r', linewidth=2 )
 
-
-
-
-
-
 #         skew_eta = dico_results['skew_eta']
 #         kurt_eta = dico_results['kurt_eta']
 #         skew_rot = dico_results['skew_rot']
@@ -545,17 +540,58 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 #         ax1.plot(t, skew_rot, 'r', linewidth=2)
 #         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
 
+    def plot_rates(self, keys='E'):
+        """
+        Plots the time history of the time derivative of a spatial mean,
+        and also calculates the average of the same.
+        
+        Parameters
+        ----------
+        key : string or a list of strings
+            Refers to the the spatial mean which you want to take time derivative of.
+            Legal value include:
+            For ns2d ['E', 'Z']
+            For sw1l ['E', 'EK', 'EA', 'EKr', 'CPE']
 
+        Examples
+        --------
+        >>> plot_rates()
+        >>> plot_rates('Z')
+        >>> plot_rates(['E', 'Z'])
+        >>> plot_rates(['E', 'EK', 'EA', 'EKr', 'CPE'])
+        """
 
+        dico_results = self.load()
+        t = dico_results['t']
+        dt = np.gradient(t, 1.)
+        
+        fig, axarr = plt.subplots(len(keys), sharex=True)
+        i = 0
+        for k in keys:
+            E = dico_results[k]
+            dE_dt = abs(np.gradient(E, 1.)/dt)
+            dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
+            try:
+                axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
+                axarr[i].set_ylabel(r'$\partial_t$' + keys[i])
+                axarr[i].legend()
+                #axarr[i].text(0.8, 0.9, 'mean = ' + dE_dt_avg, horizontalalignment='center', verticalalignment='center',)
+            except TypeError:
+                axarr.semilogy(t, dE_dt, label=dE_dt_avg)
+                axarr.set_ylabel(keys)
+                axarr.legend()
+            i += 1
 
+        try:
+            axarr[i-1].set_xlabel('t')
+        except TypeError:
+            axarr.set_xlabel('t')
 
-
-
-
+        plt.draw()
 
 
 class SpatialMeansSW1L(SpatialMeansMSW1L):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """A :class:`SpatialMean` object handles the saving of spatial mean quantities viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also handles the computation of forcing and dissipation rates for sw1l solver"""
 
     def treat_dissipation_rates(self, energyK_fft, energyA_fft,
                                 CharneyPE_fft):
@@ -636,15 +672,18 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
 
     def treat_forcing(self):
-        """Save forcing injection rates.
-        ..TODO: alternative for get_FxFyFetafft function - deprecated??"""
+        """
+        Save forcing injection rates.
+        """
         state = self.sim.state
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
-        eta_fft = state('eta_fft')
-
-        Fx_fft, Fy_fft, Feta_fft = \
-            self.sim.forcing.get_FxFyFetafft()
+        eta_fft = state('eta_fft')        
+        
+        forcing = self.sim.forcing
+        Fx_fft = forcing('ux_fft')
+        Fy_fft = forcing('uy_fft')
+        Feta_fft = forcing('eta_fft')
 
         deltat = self.sim.time_stepping.deltat
 
