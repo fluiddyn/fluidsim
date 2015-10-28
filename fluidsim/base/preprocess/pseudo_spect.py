@@ -19,10 +19,10 @@ class PreprocessPseudoSpectral(PreprocessBase):
     
     def __call__(self):
         if self.params.enable:
-            print("Preprocessing...")
             self.normalize_init_fields()
             self.set_viscosity()
             self.set_forcing_rate()
+            self.sim.output.save_info_solver_params_xml(replace=True)
     
     def normalize_init_fields(self):
         """
@@ -45,9 +45,12 @@ class PreprocessPseudoSpectral(PreprocessBase):
             try:
                 self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
-                #self.sim.state.init_fft_from(ux_fft=ux_fft, uy_fft=uy_fft) 
-                self.sim.state.init_fft_from({'ux_fft':ux_fft,
-                                              'uy_fft':uy_fft})
+                rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+                self.sim.state.init_fft_from(ux_fft=ux_fft,
+                                             uy_fft=uy_fft,
+                                             rot_fft=rot_fft) 
+                #self.sim.state.init_fft_from({'ux_fft':ux_fft,
+                #                             'uy_fft':uy_fft})
             
     def set_viscosity(self):
         """

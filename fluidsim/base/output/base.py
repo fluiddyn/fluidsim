@@ -192,29 +192,35 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 'path_run =\n' + self.path_run + '\n' +
                 'init_fields.type: ' + sim.params.init_fields.type)
 
-        if mpi.rank == 0 and self.has_to_save and sim.params.NEW_DIR_RESULTS:
-            # save info on the run
-            self.sim.info.solver._save_as_xml(
-                path_file=self.path_run+'/info_solver.xml',
-                comment=(
-                    'This file has been created by'
-                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
-                    '.\n\nIt should not be modified '
-                    '(except for adding xml comments).'))
-
-            self.sim.params._save_as_xml(
-                path_file=self.path_run+'/params_simul.xml',
-                comment=(
-                    'This file has been created by'
-                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
-                    '.\n\nIt should not be modified '
-                    '(except for adding xml comments).'))
-
+        self.save_info_solver_params_xml()
+        
         if mpi.rank == 0:
             plt.ion()
 
         if self.sim.state.is_initialized:
             self.init_with_initialized_state()
+    
+    def save_info_solver_params_xml(self, replace=False):
+        comment = ('This file has been created by'
+                   ' the Python program FluidDyn ' + fluiddyn.__version__ +
+                   '.\n\nIt should not be modified '
+                   '(except for adding xml comments).')
+        info_solver_xml_path = self.path_run+'/info_solver.xml'
+        params_xml_path = self.path_run+'/params_simul.xml'
+        
+        if mpi.rank == 0 and self.has_to_save and self.sim.params.NEW_DIR_RESULTS:
+            # save info on the run
+            if replace:
+                os.remove(info_solver_xml_path)
+                os.remove(params_xml_path)
+                
+            self.sim.info.solver._save_as_xml(
+                path_file=info_solver_xml_path,
+                comment=comment)
+
+            self.sim.params._save_as_xml(
+                path_file=params_xml_path,
+                comment=comment)        
 
     def init_with_initialized_state(self):
 
@@ -302,7 +308,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             print('move result directory in directory:\n'+new_path_run)
             shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
-
+            
     def compute_energy(self):
         return 0.
 
@@ -330,7 +336,23 @@ class OutputBasePseudoSpectral(OutputBase):
         # self.rotfft_from_vecfft = oper.rotfft_from_vecfft
 
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
-
+        
+    def end_of_simul(self, total_time):
+        super(OutputBasePseudoSpectral, self).end_of_simul(total_time)
+        
+        path = self.path_run
+        if mpi.rank == 0:
+            try:
+                self.spatial_means.path_file = path + '/spatial_means.txt'
+                self.spectra.path_file1D = path + '/spectra1D.h5'
+                self.spectra.path_file2D = path + '/spectra2D.h5'
+                self.spect_energy_budg.path_file = path + '/spectral_energy_budget.h5'
+                self.pdf.path_file =  path + '/pdf.h5'
+                self.increments.path_file =  path + '/increments.h5'
+                self.time_signals_fft.path_file = path + '/time_sigK.h5'
+            except AttributeError:
+                pass
+            
 
 class SpecificOutput(object):
     """Small class for features useful for specific outputs"""

@@ -169,22 +169,23 @@ class StatePseudoSpectral(StateBase):
         return (key in self.keys_state_phys or
                 key in self.keys_computable or
                 key in self.keys_state_fft)
-
-    def init_fft_from(self, args):
-        """ 
-        .. TODO: use **args and **kwargs
+    
+    def init_fft_from(self, **kwargs):
         """
-
-        if len(args) > 1:
-            raise ValueError(
-                'Do not know how to initialize with keys "{}".'.format(
-                    repr(args.keys())))
+        Examples
+        --------
+        kwargs = {'ux_fft': u_fft}
+        init_fft_from(**kwargs)
+        
+        ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qfft(q_fft)
+        init_fft_from(ux_fft=ux_fft, uy_fft=uy_fft, eta_fft=eta_fft)
+        """
         keys_state_fft = copy(self.keys_state_fft)
-
-        key, value = args.popitem()
-        if key not in keys_state_fft:
-            raise ValueError(
-                'Do not know how to initialize with key "{}".'.format(key))
-
         self.state_fft[:] = 0.
-        self.state_fft.set_var(key, value)
+        
+        for key, value in kwargs.iteritems():
+            if key not in keys_state_fft:
+                raise ValueError(
+                    'Do not know how to initialize with key "{}".'.format(key))
+            
+                self.state_fft.set_var(key, value)

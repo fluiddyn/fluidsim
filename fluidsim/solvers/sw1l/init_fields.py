@@ -88,15 +88,16 @@ class InitFieldsVortexGrid(SpecificInitFields):
         params.init_fields._set_child(cls.tag, attribs={
             'omega_max': 1.,
             'n_vort': 8,
-            'sd': 0.})
+            'sd': None})
 
     def __call__(self):
         rot = self.vortex_grid_shape()
         rot_fft = self.sim.oper.fft2(rot)
-        self.sim.init_from_rotfft(rot_fft)
+        self.sim.state.init_from_rotfft(rot_fft)
         
     def vortex_grid_shape(self):
         oper = self.sim.oper
+        params = self.sim.params.init_fields.vortex_grid
 
         def wz_gaussian(XX, YY, sign, Amp=1., sigma=10.):
             return (sign * Amp * np.exp(- (XX**2 + YY**2) / (2 * sigma**2)))
@@ -106,8 +107,8 @@ class InitFieldsVortexGrid(SpecificInitFields):
         XX = oper.XX
         YY = oper.YY
         shape = oper.shapeX
-        N_vort = self.params.init_fields.vortex_grid.n_vort
-        SD = self.params.init_fields.vortex_grid.sd
+        N_vort = params.n_vort
+        SD = params.sd
 
         if N_vort % 2 != 0:
             raise ValueError("Cannot initialize a net circulation free field." +
@@ -119,13 +120,11 @@ class InitFieldsVortexGrid(SpecificInitFields):
         y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
         sign_list = self._random_plus_minus_list()
 
-        if SD == 0.:
+        if SD is None:
             SD = min(dx_vort, dy_vort) / 2. / 6.
-            self.params.init_fields.vortex_grid.sd = SD
+            params.sd = SD
 
-        amp = self.params.init_fields.vortex_grid.omega_max
-        if mpi.rank is 0:
-            print 'Initializing vortex grid with SD = ', SD, 'amp = ',amp
+        amp = params.omega_max
 
         omega = np.zeros(shape)
         for i in xrange(0, N_vort):
@@ -143,7 +142,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         """
         from random import choice, shuffle
         
-        N = self.params.init_fields.n_vort
+        N = self.sim.params.init_fields.vortex_grid.n_vort
         plus_or_minus = (+1., -1.)
         pm = list()
 
