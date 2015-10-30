@@ -24,6 +24,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
     """
 
     _tag = 'spect_energy_budg'
+    _name_file = _tag + '.h5'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -43,7 +44,6 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         HAS_TO_PLOT_SAVED = params.output.spect_energy_budg.HAS_TO_PLOT_SAVED
         super(SpectralEnergyBudgetBase, self).__init__(
             output,
-            name_file='spectral_energy_budget.h5',
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
             dico_arrays_1time={'khE': output.sim.oper.khE})

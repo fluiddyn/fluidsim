@@ -17,6 +17,7 @@ class Increments(SpecificOutput):
     """
 
     _tag = 'increments'
+    _name_file = _tag + '.h5'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -44,8 +45,8 @@ class Increments(SpecificOutput):
 
         self.nbins = 400
 
-        name_file = 'increments.h5'
-        self.path_file = output.path_run+'/'+name_file
+        self.output = output
+        self.init_path_files()
 
         if os.path.exists(self.path_file):
             if mpi.rank == 0:
@@ -65,7 +66,6 @@ class Increments(SpecificOutput):
 
         super(Increments, self).__init__(
             output,
-            name_file=name_file,
             period_save=params.output.periods_save.increments,
             has_to_plot_saved=params.output.increments.HAS_TO_PLOT_SAVED,
             dico_arrays_1time=dico_arrays_1time)
@@ -867,43 +867,3 @@ imin_plot, imax_plot)
 
         ax2.set_ylim([2, 5])
 
-
-
-
-
-
-if __name__=="__main__":
-
-    from solveq2d import solveq2d
-
-    import glob
-
-    c = 20
-    resol = 240*2**2  # 4
-
-    str_resol = repr(resol)
-    str_to_find_path = (
-        '/scratch/augier/Results_SW1Lw'
-        '/Pure_standing_waves_'+
-        str_resol+'*/SE2D*c='+repr(c))+'_*'
-    print(str_to_find_path)
-
-    paths_dir = glob.glob(str_to_find_path)
-
-    sim = solveq2d.create_sim_plot_from_dir(paths_dir[0])
-
-    tmin = sim.output.spatial_means.first_saved_time()
-    tstatio = tmin + 4.
-
-
-    # sim.output.increments.plot(tmin=tmin, tmax=None, delta_t=0.,
-    #                            order=4, yscale='log')
-
-
-    # sim.output.increments.plot_pdf(tmin=tmin, tmax=160.25, key_var='ux',
-    #                                order=4)
-
-    sim.output.increments.plot_Kolmo(tmin=tmin)
-
-
-    solveq2d.show()

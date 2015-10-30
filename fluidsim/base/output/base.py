@@ -296,10 +296,16 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
             new_path_run = os.path.join(FLUIDSIM_PATH, self.sim.name_run)
-            print('move result directory in directory:\n'+new_path_run)
+            print('move result directory in directory:\n' + new_path_run)
             shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
-
+            for spec_output in self.__dict__.values():
+                if isinstance(spec_output, SpecificOutput):
+                    try:
+                        spec_output.init_path_files()
+                    except AttributeError:
+                        pass
+            
     def compute_energy(self):
         return 0.
 
@@ -377,7 +383,8 @@ class SpecificOutput(object):
             self.init_files(dico_arrays_1time)
 
     def init_path_files(self):
-        pass
+        if hasattr(self, '_name_file'):
+            self.path_file = os.path.join(self.output.path_run, self._name_file)
 
     def init_files(self, dico_arrays_1time=None):
         if dico_arrays_1time is None:

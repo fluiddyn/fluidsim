@@ -25,8 +25,13 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: OutputBasePseudoSpectral
+   :members:
+   :private-members:
 
 """
+
+import fluiddyn.output
 
 from .base import OutputBase, OutputBasePseudoSpectral
 
