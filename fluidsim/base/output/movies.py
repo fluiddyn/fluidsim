@@ -7,7 +7,7 @@ from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH,stdout_redirected
 from fluidsim.util.util import pathdir_from_namedir, load_state_phys_file
 
 class MoviesBase(object):
-    
+    """ ..TODO: Clean up unnecessary default function arguments"""
     def _set_path(self):
         """
         Sets path attribute specifying the location of saved files.
@@ -50,7 +50,7 @@ class MoviesBase(object):
         #self.sim.init_fields.get_state_from_simul(sim_temp)
         self.sim = load_state_phys_file(self.path, t_approx=time)
 
-        return self._select_field()
+        return self._select_field(key_field=self._ani_key)
     
     def _select_axis(self, xlabel='x', ylabel='y'):
         """
@@ -70,7 +70,7 @@ class MoviesBase(object):
         raise NotImplementedError('_select_field function declaration missing')
     
         
-    def animate(self, numfig=None, nb_contours=10, frame_dt=300, file_dt=0.1, xmax=None, ymax=None, save_file=None):
+    def animate(self, key_field=None, numfig=None, nb_contours=10, frame_dt=300, file_dt=0.1, xmax=None, ymax=None, save_file=None):
         """
         Load the key field from multiple save files and display as
         an animated plot.
@@ -89,7 +89,7 @@ class MoviesBase(object):
                            'The MPI version of get_state_from_simul()\n'
                              'is not implemented.')
  
-        self._ani_init(numfig, nb_contours, file_dt, xmax, ymax)
+        self._ani_init(key_field, numfig, nb_contours, file_dt, xmax, ymax)
         self._animation = animation.FuncAnimation(self._ani_fig, self._ani_update, self._ani_t,
                                                    interval=frame_dt, blit=False)
 
@@ -116,21 +116,22 @@ class MoviesBase(object):
 
 class MoviesBase1D(MoviesBase):
 
-    def _ani_init(self, numfig, nb_contours, file_dt, xmax, ymax):
+    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax, ymax):
         """
         Initializes animated fig. and list of times of save files to load
         .. FIXME: "Can't open attribute (Can't locate attribute: 'ny')" 
                    Possible sources of error load_state_phys_file / info_solver
         """
-        self._ani_fig, self._ani_ax = plt.subplots()
+        self._ani_key = key_field
+        self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
         self._ani_line, = self._ani_ax.plot([], [])
         self._ani_t = []
         self._set_font()
         self._set_path()
-
+        
         ax = self._ani_ax
         ax.set_xlim(0, xmax)
-        ax.set_ylim(-ymax, ymax)
+        ax.set_ylim(10e-16, ymax)
 
         tmax = int(self.sim.time_stepping.t)
         self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
@@ -139,13 +140,13 @@ class MoviesBase1D(MoviesBase):
         """
         Loads contour data and updates figure
         """
-        x = self._select_axis()
         with stdout_redirected():
             y, key_field = self._ani_get_field(time)
+        x = self._select_axis()
 
         self._ani_line.set_data(x, y)
         title = (key_field +
-                 ', t = {0:.3f}, '.format(self.sim.time_stepping.t) +
+                 ', t = {0:.3f}, '.format(time) +
                  self.output.name_solver +
                  ', nh = {0:d}'.format(self.params.oper.nx))
         self._ani_ax.set_title(title)
@@ -157,6 +158,7 @@ class MoviesBase1D(MoviesBase):
             x = self.oper.xs
         except AttributeError:
             x = self.oper.x_seq
+
         self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
         self._ani_ax.set_ylabel(ylabel, fontdict=self.font)
         return x
@@ -164,10 +166,11 @@ class MoviesBase1D(MoviesBase):
 
 class MoviesBase2D(MoviesBase):
 
-    def _ani_init(self, numfig, nb_contours, file_dt, xmax=None, ymax=None):
+    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax=None, ymax=None):
         """
         Initializes animated fig. and list of times of save files to load
         """
+        self._ani_key = key_field
         self._ani_nbc = nb_contours
         self._ani_t = []
         self._set_font()
@@ -205,7 +208,7 @@ class MoviesBase2D(MoviesBase):
         # self._ani_fig.colorbar(contours)
         self._ani_fig.contours = contours
         title = (key_field +
-                 ', t = {0:.3f}, '.format(self.sim.time_stepping.t) +
+                 ', t = {0:.3f}, '.format(time) +
                  self.output.name_solver +
                  ', nh = {0:d}'.format(self.params.oper.nx))
         

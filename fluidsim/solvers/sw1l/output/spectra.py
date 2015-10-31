@@ -126,10 +126,6 @@ class SpectraSW1L(Spectra):
             print('you need to implement the ploting '
                   'of the spectra for this case')
 
-
-
-
-
     def plot1d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
 
@@ -224,10 +220,6 @@ imin_plot, imax_plot, delta_i_plot)
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k--', linewidth=1)
-
-
-
-
 
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
@@ -349,3 +341,30 @@ imin_plot, imax_plot, delta_i_plot)
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
         ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+
+    def _ani_get_field(self, time):
+        f = h5py.File(self.path_file2D, 'r')
+        dset_times = f['times']
+        times = dset_times[...]
+
+        it = np.argmin(abs(times-time))
+        y = self._select_field(h5file=f, key_field=self._ani_key, it=it)
+        y[abs(y) < 10e-16] = 0
+        
+        return y, self._ani_key
+    
+    def _select_field(self, h5file=None, key_field=None, it=None):
+        if key_field is 'EK' or key_field is None:
+            self._ani_key = 'EK'
+            y = h5file['spectrum2D_EK'][it]
+        elif key_field is 'EA':
+            y = h5file['spectrum2D_EA'][it]
+        elif key_field is 'EKr':
+            y = h5file['spectrum2D_EKr'][it]
+        elif key_field is 'EKd':
+            y = h5file['spectrum2D_EK'][it] - h5file['spectrum2D_EKr'][it]
+        else:
+            raise KeyError('Unknown key ',key_field)
+        
+        return y
+    
