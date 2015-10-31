@@ -24,6 +24,7 @@ class SpatialMeansBase(SpecificOutput):
     """
 
     _tag = 'spatial_means'
+    _name_file = _tag + '.txt'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -47,9 +48,6 @@ class SpatialMeansBase(SpecificOutput):
 
         if self.period_save != 0:
             self.save_one_time()
-
-    def init_path_files(self):
-        self.path_file = self.output.path_run + '/spatial_means.txt'
 
     def init_files(self, dico_arrays_1time=None):
 

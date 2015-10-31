@@ -20,6 +20,7 @@ class TimeSignalsK(SpecificOutput):
     """
 
     _tag = 'time_signals_fft'
+    _name_file = 'time_sigK.h5'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -29,8 +30,8 @@ class TimeSignalsK(SpecificOutput):
         params.output.periods_plot._set_attrib(tag, 0)
 
         params.output._set_child(tag,
-                                attribs={'nb_shells_time_sigK': 4,
-                                         'nb_k_per_shell_time_sigK': 4})
+                                 attribs={'nb_shells_time_sigK': 4,
+                                          'nb_k_per_shell_time_sigK': 4})
 
     def __init__(self, output):
         self.output = output
@@ -163,9 +164,6 @@ class TimeSignalsK(SpecificOutput):
 
         if mpi.nb_proc > 1:
             self.period_save = mpi.comm.bcast(self.period_save)
-
-    def init_path_files(self):
-        self.path_file = self.output.path_run + '/time_sigK.h5'
 
     def init_files(self, dico_arrays_1time=None):
         if (not os.path.exists(self.path_file)):
@@ -467,12 +465,5 @@ class TimeSignalsK(SpecificOutput):
             pass
 
 
-if __name__ == '__main__':
-    path_dir = '/scratch/augier/Results_for_article_SW1L/Waves_standing_256x256/SE2D_SW1Lexlin_forcing_L=50.x50._256x256_c2=900_f=0_2013-06-04_12-49-26'
-
-    from solveq2d import solveq2d
-
-    sim = solveq2d.create_sim_plot_from_dir(path_dir)
-
-    sim.output.time_sigK.plot_spectra()
-    solveq2d.show()
+# if __name__ == '__main__':
+#     pass

@@ -32,6 +32,7 @@ class CorrelationsFreq(SpecificOutput):
     """
 
     _tag = 'correl_freq'
+    _name_file = _tag + '.h5'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -116,10 +117,6 @@ class CorrelationsFreq(SpecificOutput):
             if self.omega_dealiasing > self.omega_Nyquist:
                 print('Warning: omega_dealiasing > omega_Nyquist')
 
-    def init_path_files(self):
-        path_run = self.output.path_run
-        self.path_file = path_run + '/correl4_freq.h5'
-
     def init_files(self, dico_arrays_1time=None):
         # we can not do anything when this function is called.
         pass
@@ -176,7 +173,7 @@ class CorrelationsFreq(SpecificOutput):
                         if not os.path.exists(self.path_file):
                             self.init_files2(correlations)
                         else:
-                            # save the spectra in the file correlation_freq.h5
+                            # save the spectra in the file correl_freq.h5
                             self.add_dico_arrays_to_file(self.path_file,
                                                          correlations)
                         if self.has_to_plot:

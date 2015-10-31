@@ -1,8 +1,8 @@
 .. FluidDyn documentation master file, created by
    sphinx-quickstart on Sun Mar  2 12:15:31 2014.
 
-Welcome to FluidSim's documentation!
-====================================
+FluidSim documentation
+======================
 
 FluidSim is a framework for studying fluid dynamics with numerical
 simulations using Python. It is part of the wider project `FluidDyn

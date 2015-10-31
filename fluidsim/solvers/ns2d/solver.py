@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     from math import pi
 
-    import fluiddyn as fld
+    # import fluiddyn as fld
 
     params = Simul.create_default_params()
 
@@ -214,4 +214,4 @@ if __name__ == "__main__":
     sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
-    fld.show()
+    # fld.show()

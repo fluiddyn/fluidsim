@@ -21,6 +21,9 @@ if on_rtd:
     from fluidrtd import mock_modules
     mock_modules(['h5py'])
 
+from fluidrtd.ipynb_maker import ipynb_to_rst
+ipynb_to_rst()
+
 import fluidsim
 
 
@@ -46,7 +49,6 @@ extensions = [
     'sphinx.ext.viewcode', 'sphinx.ext.autosummary',
     'numpydoc',
     'mathmacro',
-    'IPython.sphinxext.ipython_directive'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

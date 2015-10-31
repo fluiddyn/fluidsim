@@ -3,8 +3,8 @@ syntax: glob
 *.pyd*
 *.pyc
 *~
-*temp
-*.html
+*tmp
+*cy.html
 *.swp
 *.swo
 *.out
@@ -13,7 +13,7 @@ syntax: glob
 
 doc/_build/*
 doc/**generated/*
-doc/html.zip
+doc/**.zip
 doc/ipynb/*_files/*.png
 doc/ipynb/*.rst
 

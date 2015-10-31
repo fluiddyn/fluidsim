@@ -4,10 +4,10 @@ GeoFluidDyn
 
 *Framework for studying fluid dynamics by numerical simulation.*
 
-`Package Documentation <http://fluidsim.readthedocs.org/en/latest/>`__
+`Package Documentation <http://fluidsim.readthedocs.org>`__
 
 FluidSim is the numerically oriented package of the `FluidDyn project
-<http://fluiddyn.readthedocs.org/en/latest/>`__.  The project is still in a
+<http://fluiddyn.readthedocs.org>`__.  The project is still in a
 testing stage so it is still pretty unstable and many of its planned
 features have not yet been implemented.
 

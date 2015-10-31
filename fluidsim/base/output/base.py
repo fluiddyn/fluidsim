@@ -308,6 +308,12 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             print('move result directory in directory:\n'+new_path_run)
             shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
+            for spec_output in self.__dict__.values():
+                if isinstance(spec_output, SpecificOutput):
+                    try:
+                        spec_output.init_path_files()
+                    except AttributeError:
+                        pass
             
     def compute_energy(self):
         return 0.
@@ -336,23 +342,7 @@ class OutputBasePseudoSpectral(OutputBase):
         # self.rotfft_from_vecfft = oper.rotfft_from_vecfft
 
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
-        
-    def end_of_simul(self, total_time):
-        super(OutputBasePseudoSpectral, self).end_of_simul(total_time)
-        
-        path = self.path_run
-        if mpi.rank == 0:
-            try:
-                self.spatial_means.path_file = path + '/spatial_means.txt'
-                self.spectra.path_file1D = path + '/spectra1D.h5'
-                self.spectra.path_file2D = path + '/spectra2D.h5'
-                self.spect_energy_budg.path_file = path + '/spectral_energy_budget.h5'
-                self.pdf.path_file =  path + '/pdf.h5'
-                self.increments.path_file =  path + '/increments.h5'
-                self.time_signals_fft.path_file = path + '/time_sigK.h5'
-            except AttributeError:
-                pass
-            
+
 
 class SpecificOutput(object):
     """Small class for features useful for specific outputs"""
@@ -402,7 +392,8 @@ class SpecificOutput(object):
             self.init_files(dico_arrays_1time)
 
     def init_path_files(self):
-        pass
+        if hasattr(self, '_name_file'):
+            self.path_file = os.path.join(self.output.path_run, self._name_file)
 
     def init_files(self, dico_arrays_1time=None):
         if dico_arrays_1time is None:
