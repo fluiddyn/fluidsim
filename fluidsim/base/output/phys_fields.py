@@ -26,6 +26,7 @@ class PhysFieldsBase(SpecificOutput):
     """Manage the output of physical fields."""
 
     _tag = 'phys_fields'
+    _name_file = None
 
     @staticmethod
     def _complete_params_with_default(params):

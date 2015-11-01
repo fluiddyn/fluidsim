@@ -15,6 +15,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
     """
 
     _tag = 'spectra'
+    _name_file = None
 
     @staticmethod
     def _complete_params_with_default(params):

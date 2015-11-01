@@ -10,6 +10,7 @@ class ProbaDensityFunc(SpecificOutput):
     of pdf of the turbulent kinetic energy.
     """
     _tag = 'pdf'
+    _name_file = _tag + '.h5'
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -17,7 +18,7 @@ class ProbaDensityFunc(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag,
-                                attribs={'HAS_TO_PLOT_SAVED': False})
+                                 attribs={'HAS_TO_PLOT_SAVED': False})
 
     def __init__(self, output):
         params = output.sim.params
@@ -27,7 +28,6 @@ class ProbaDensityFunc(SpecificOutput):
 
         super(ProbaDensityFunc, self).__init__(
             output,
-            name_file='pdf.h5',
             period_save=params.output.periods_save.pdf,
             has_to_plot_saved=params.output.pdf.HAS_TO_PLOT_SAVED)
 
