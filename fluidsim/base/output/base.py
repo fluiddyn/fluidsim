@@ -305,7 +305,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         spec_output.init_path_files()
                     except AttributeError:
                         pass
-            
+
     def compute_energy(self):
         return 0.
 
@@ -338,8 +338,7 @@ class OutputBasePseudoSpectral(OutputBase):
 class SpecificOutput(object):
     """Small class for features useful for specific outputs"""
 
-    def __init__(self, output, name_file=None,
-                 period_save=0, period_plot=0,
+    def __init__(self, output, period_save=0, period_plot=0,
                  has_to_plot_saved=False,
                  dico_arrays_1time=None):
 
