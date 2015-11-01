@@ -10,12 +10,9 @@ from .movies import MoviesBase1D
 
 
 class Spectra(SpecificOutput, MoviesBase1D):
-    """Used for the saving of spectra.
-
-    """
+    """Used for the saving of spectra."""
 
     _tag = 'spectra'
-    _name_file = None
 
     @staticmethod
     def _complete_params_with_default(params):

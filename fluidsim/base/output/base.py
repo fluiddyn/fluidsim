@@ -45,10 +45,7 @@ class OutputBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """
-        Complete the ParamContainer info_solver.
-        .. TODO: Make PhysFields association more general
-        """
+        """Complete the ParamContainer info_solver."""
         info_solver.classes.Output._set_child('classes')
         classes = info_solver.classes.Output.classes
 
@@ -305,7 +302,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
             new_path_run = os.path.join(FLUIDSIM_PATH, self.sim.name_run)
-            print('move result directory in directory:\n'+new_path_run)
+            print('move result directory in directory:\n' + new_path_run)
             shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
             for spec_output in self.__dict__.values():
@@ -376,10 +373,7 @@ class SpecificOutput(object):
         self.period_show = params.output.period_refresh_plots
         self.t_last_show = 0.
 
-        if self._name_file is not None:
-            self.path_file = self.output.path_run + '/' + self._name_file
-        else:
-            self.init_path_files()
+        self.init_path_files()
 
         if self.has_to_plot and mpi.rank == 0:
             self.init_online_plot()
@@ -392,8 +386,8 @@ class SpecificOutput(object):
 
     def init_path_files(self):
         if hasattr(self, '_name_file'):
-            if self._name_file is not None:
-                self.path_file = os.path.join(self.output.path_run, self._name_file)
+            self.path_file = os.path.join(
+                self.output.path_run, self._name_file)
 
     def init_files(self, dico_arrays_1time=None):
         if dico_arrays_1time is None:
