@@ -6,6 +6,9 @@ import numpy as np
 
 import fluiddyn as fld
 
+# to get fld.show
+# import fluiddyn.output
+
 from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
 from fluiddyn.io import stdout_redirected
