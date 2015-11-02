@@ -1,7 +1,7 @@
 
 clean_so:
 	find fluidsim -name "*.so" -delete
-	find fluiddyn -name "*.pyc" -delete
+	find fluidsim -name "*.pyc" -delete
 
 tests:
 	python -m unittest discover
