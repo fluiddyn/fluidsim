@@ -53,20 +53,22 @@ def check_avail_library(library_name):
     return library_name in libraries
 
 def find_library_dirs(args, library_dirs=[], debug=False):
+    """Takes care of non-standard library directories, instead of using LDFLAGS."""
+
     for library_name in args:
         libso = "'lib"+library_name+".so'"
         filter1 = " | grep " + libso 
         filter2 = " | awk -F'=> ' '{print $2}'"
         filter3 = " | awk -F" + libso + " '{print $1}'"
         try:
-            cmd = '/sbin/ldconfig -p' + filter1 + filter2 + filter3
+            cmd = 'readlink -f $(/sbin/ldconfig -p' + filter1 + filter2 + ')' + filter3
             if debug:
                 print(cmd)
 
             proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             dirs = proc.communicate()[0]
             for item in dirs.split('\n'):
-                if item is not '':
+                if item != '':
                     library_dirs.append(item)
 
         except subprocess.CalledProcessError:
@@ -74,9 +76,10 @@ def find_library_dirs(args, library_dirs=[], debug=False):
 
     default_dirs = ['/usr/lib/','/usr/lib32/']
     library_dirs = list(set(library_dirs) - set(default_dirs))
-    print(args,' => ',library_dirs)
-    return library_dirs
+    if debug:
+        print('LDFLAGS for ',args,' => ',library_dirs)
 
+    return library_dirs
 
 try:
     import mpi4py
@@ -96,7 +99,7 @@ FFTW3MPI = check_avail_library('fftw3_mpi')
 include_dirs_fftw = []
 if FFTW3 or FFTW3MPI:
     try:
-        include_dirs_fftw = os.environ['FFTW_INC'] # TODO: Needs to be more general
+        include_dirs_fftw = [os.environ['FFTW_INC']] # TODO: Needs to be more general, CFLAGS?
     except KeyError:
         pass
 
