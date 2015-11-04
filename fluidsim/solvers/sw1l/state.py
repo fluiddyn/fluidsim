@@ -143,13 +143,13 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
-    def init_fft_from(self, args):
-        if len(args) == 1 and 'q_fft' in args:
-            self.init_from_qfft(args['q_fft'])
-        elif len(args) == 1 and 'a_fft' in args:
-            self.init_from_afft(args['a_fft'])
+    def init_statefft_from(self, **kwargs):
+        if len(kwargs) == 1 and 'q_fft' in kwargs:
+            self.init_from_qfft(kwargs['q_fft'])
+        elif len(kwargs) == 1 and 'a_fft' in kwargs:
+            self.init_from_afft(kwargs['a_fft'])
         else:
-            super(StateSW1L, self).init_fft_from(args)
+            super(StateSW1L, self).init_statefft_from(**kwargs)
 
     def init_from_etafft(self, eta_fft):
         state_fft = self.state_fft
