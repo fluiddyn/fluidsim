@@ -14,7 +14,7 @@ This module is written in Cython and provides the classes:
    :members:
    :private-members:
 
-.. autoclass:: OperatorsPseudoSpectral2D
+.. autoclass:....: OperatorsPseudoSpectral2D
    :members:
    :private-members:
 
@@ -342,7 +342,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     cdef public object scatter_Xspace, scatter_Kspace
     cdef public object project_fft_on_realX
     cdef public object params
-    cdef public np.ndarray K2_not0, K4_not0, KX_over_K2, KY_over_K2
+    cdef public np.ndarray KK_not0, K2_not0, K4_not0, KX_over_K2, KY_over_K2
     cdef public np.ndarray Kappa2, Kappa_over_ic, f_over_c2Kappa2
     cdef public np.ndarray where_dealiased
 
@@ -468,9 +468,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         GridPseudoSpectral2D.__init__(self, nx, ny, Lx, Ly,
                                       op_fft2d=op_fft2d, SEQUENTIAL=SEQUENTIAL)
 
+        self.KK_not0 = self.KK.copy()
         self.K2_not0 = self.K2.copy()
         self.K4_not0 = self.K4.copy()
         if rank == 0 or SEQUENTIAL:
+            self.KK_not0[0, 0] = 10.e-10
             self.K2_not0[0, 0] = 10.e-10
             self.K4_not0[0, 0] = 10.e-10
 
@@ -480,9 +482,10 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         try:
             self.Kappa2 = self.K2 + self.params.kd2
 
-            self.Kappa_over_ic = -1.j*np.sqrt(
-                self.Kappa2/self.params.c2
-                )
+            self.Kappa_over_ic = -1.j*(
+                self.params.f / self.params.c2 +
+                np.sqrt(self.Kappa2/self.params.c2)
+                        )
 
             if self.params.f != 0:
                 self.f_over_c2Kappa2 = self.params.f/(
@@ -833,8 +836,8 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         return q_fft, div_fft, ageo_fft
 
     def apamfft_from_adfft(self, a_fft, d_fft):
-        """Return the engein modes ap and am."""
-        Delta_a_fft = self.Kappa_over_ic*d_fft
+        """Return the eigen modes ap and am."""
+        Delta_a_fft = self.Kappa_over_ic * d_fft
         ap_fft = 0.5*(a_fft + Delta_a_fft)
         am_fft = 0.5*(a_fft - Delta_a_fft)
         return ap_fft, am_fft
@@ -842,7 +845,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def divfft_from_apamfft(self, ap_fft, am_fft):
-        """Return div from the engein modes ap and am."""
+        """Return div from the eigen modes ap and am."""
         cdef Py_ssize_t i0, i1, n0, n1
         cdef Py_ssize_t rank = self.rank
         cdef np.ndarray[DTYPEc_t, ndim=2] Kappa_over_ic, Delta_a_fft

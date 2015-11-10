@@ -21,7 +21,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         if self.params.enable:
             self.normalize_init_fields()
             self.set_viscosity()
-            self.set_forcing_rate()
+            if self.sim.params.FORCING:
+                self.set_forcing_rate()
             self.sim.output.save_info_solver_params_xml(replace=True)
     
     def normalize_init_fields(self):
@@ -146,12 +147,10 @@ class PreprocessPseudoSpectral(PreprocessBase):
         k_f = self.oper.deltakx * (self.sim.params.forcing.nkmax_forcing + 
                                    self.sim.params.forcing.nkmin_forcing) / 2 # Forcing wavenumber
         
-        if self.sim.params.FORCING:
-            if forcing_scale == 'enstrophy':                     
-                omega_0 = self.output.compute_enstrophy()
-                self.sim.params.forcing.forcing_rate = (omega_0 / C) ** 1.5 / k_f ** 2
-            else:
-                raise ValueError('Unknown forcing scale: %s'% scale)
+        if forcing_scale == 'enstrophy':                     
+            omega_0 = self.output.compute_enstrophy()
+            self.sim.params.forcing.forcing_rate = (omega_0 / C) ** 1.5 / k_f ** 2
+        else:
+            raise ValueError('Unknown forcing scale: %s'% scale)
 
         self.sim.forcing.__init__(self.sim)
-        # return params

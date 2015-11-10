@@ -1,7 +1,7 @@
 
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 from fluidsim.base.output.spatial_means import (
     SpatialMeansBase, inner_prod)
