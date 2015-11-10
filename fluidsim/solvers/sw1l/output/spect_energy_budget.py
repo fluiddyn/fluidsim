@@ -1279,8 +1279,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         print(to_print)
 
         to_print = ('plot fluxes 2D' +
-                   ', tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}' +
-                   ', imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'.format(
+                   (', tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}' +
+                    ', imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}').format(
                        tmin_plot, tmax_plot, delta_t,
                        imin_plot, imax_plot, delta_i_plot))
         print(to_print)

@@ -10,6 +10,8 @@ syntax: glob
 *.out
 *.kate-swp
 \#*\#
+.spyderworkspace
+.spyderproject
 
 doc/_build/*
 doc/**generated/*

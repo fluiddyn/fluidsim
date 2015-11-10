@@ -20,15 +20,14 @@ class PreprocessPseudoSpectral(PreprocessBase):
     def __call__(self):
         if self.params.enable:
             self.normalize_init_fields()
-            self.set_viscosity()
             if self.sim.params.FORCING:
-                self.set_forcing_rate()
+                pass#self.set_forcing_rate()
+            self.set_viscosity()            
             self.sim.output.save_info_solver_params_xml(replace=True)
     
     def normalize_init_fields(self):
         """
         A non-dimensionalization procedure for the initialized fields.
-        .. TODO: fix init_fft_from function
         """
         state = self.sim.state
         scale = self.params.init_field_scale
@@ -47,11 +46,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-                self.sim.state.init_fft_from(ux_fft=ux_fft,
-                                             uy_fft=uy_fft,
-                                             rot_fft=rot_fft) 
-                #self.sim.state.init_fft_from({'ux_fft':ux_fft,
-                #                             'uy_fft':uy_fft})
+                self.sim.state.init_fft_from(rot_fft=rot_fft) 
             
     def set_viscosity(self):
         """
@@ -82,7 +77,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         
         delta_x = self.oper.deltax
         k_max = np.pi / delta_x * self.sim.params.oper.coef_dealiasing # Smallest resolved scale
-        length_scale = C / k_max # OR 1 / k_d, the dissipative wave number
+        length_scale = C * np.pi / k_max # OR np.pi / k_d, the dissipative wave number
     
         if viscosity_scale == 'enstrophy':                     
             omega_0 = self.output.compute_enstrophy()
