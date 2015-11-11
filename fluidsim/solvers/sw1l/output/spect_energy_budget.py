@@ -1076,7 +1076,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ap_fft = ap_fft * 2 ** 0.5 *c2 / (sigma * KK)
         am_fft = am_fft * 2 ** 0.5 *c2 / (sigma * KK)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
-        if mpi.rank == 0 or oper.SEQUENTIAL:
+        if mpi.rank == 0 or self.oper.SEQUENTIAL:
             bvec_fft[:][0,0] = 0.
         return bvec_fft
     
