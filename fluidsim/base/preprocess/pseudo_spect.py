@@ -46,7 +46,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-                self.sim.state.init_fft_from(rot_fft=rot_fft) 
+                self.sim.state.init_statefft_from(rot_fft=rot_fft) 
             
     def set_viscosity(self):
         """

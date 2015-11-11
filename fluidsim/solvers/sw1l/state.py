@@ -151,8 +151,8 @@ class StateSW1L(StatePseudoSpectral):
             if 'a_fft' in kwargs:
                 self.init_from_afft(kwargs['a_fft'])
         else:
-            super(StateSW1L, self).init_fft_from(**kwargs)
-    
+            super(StateSW1L, self).init_statefft_from(**kwargs)
+
     def init_from_etafft(self, eta_fft):
         state_fft = self.state_fft
         state_fft.set_var('ux_fft', np.zeros_like(eta_fft))

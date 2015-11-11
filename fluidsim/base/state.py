@@ -169,23 +169,34 @@ class StatePseudoSpectral(StateBase):
         return (key in self.keys_state_phys or
                 key in self.keys_computable or
                 key in self.keys_state_fft)
-    
-    def init_fft_from(self, **kwargs):
-        """
+
+    def init_statefft_from(self, **kwargs):
+        """Initialize `state_fft` from arrays.
+
+        Parameters
+        ----------
+
+        **kwargs : {key: array, ...}
+
+          keys and arrays used for the initialization. The other keys
+          are set to zero.
+
         Examples
         --------
-        kwargs = {'ux_fft': u_fft}
-        init_fft_from(**kwargs)
-        
-        ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qfft(q_fft)
-        init_fft_from(ux_fft=ux_fft, uy_fft=uy_fft, eta_fft=eta_fft)
+
+        .. code-block:: python
+
+           kwargs = {'a_fft': Fa_fft}
+           init_statefft_from(**kwargs)
+
+           ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qfft(q_fft)
+           init_statefft_from(ux_fft=ux_fft, uy_fft=uy_fft, eta_fft=eta_fft)
+
         """
-        keys_state_fft = copy(self.keys_state_fft)
         self.state_fft[:] = 0.
-        
+
         for key, value in kwargs.iteritems():
-            if key not in keys_state_fft:
+            if key not in self.keys_state_fft:
                 raise ValueError(
                     'Do not know how to initialize with key "{}".'.format(key))
-            
             self.state_fft.set_var(key, value)
