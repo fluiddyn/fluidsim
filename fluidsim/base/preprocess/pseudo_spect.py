@@ -21,7 +21,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         if self.params.enable:
             self.normalize_init_fields()
             if self.sim.params.FORCING:
-                pass#self.set_forcing_rate()
+                self.set_forcing_rate()
             self.set_viscosity()            
             self.sim.output.save_info_solver_params_xml(replace=True)
     

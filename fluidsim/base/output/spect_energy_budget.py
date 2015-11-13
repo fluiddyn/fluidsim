@@ -82,7 +82,16 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         axe_b.set_xscale('log')
 
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
-        """Compute a non-linear term."""
+        r"""
+        Compute a non-linear term.
+        
+        Notes
+        -----
+        Returns an fft-sized nd-array equivalent to the expression:
+
+        .. math:: \widehat{(\vec{u}.\nabla)f}
+        """
+
         oper = self.oper
         px_f_fft, py_f_fft = oper.gradfft_from_fft(f_fft)
         px_f = oper.ifft2(px_f_fft)

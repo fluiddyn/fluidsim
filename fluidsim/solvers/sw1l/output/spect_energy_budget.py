@@ -1077,7 +1077,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         am_fft = am_fft * 2 ** 0.5 *c2 / (sigma * KK)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.SEQUENTIAL:
-            bvec_fft[:][0,0] = 0.
+            bvec_fft[:,0,0] = 0.
         return bvec_fft
     
     def compute(self):
@@ -1163,14 +1163,18 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         #-----------------------------------------------
         # Non-quadratic K.E. transfer and exchange terms
         #-----------------------------------------------
-        M_udu = (inner_prod(Mx_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,ux_fft)) +
-                 inner_prod(My_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,uy_fft)))
-        u_udM = (inner_prod(ux_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,Mx_fft)) +
-                 inner_prod(uy_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,My_fft)))
+        inner_prod = lambda a_fft, b_fft: a_fft.conj() * b_fft
+        triple_prod_conv = lambda ax_fft, ay_fft, bx_fft, by_fft:(
+                inner_prod(ax_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,bx_fft)) +
+                inner_prod(ay_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,by_fft)))
+
+        M_udu = triple_prod_conv(Mx_fft, My_fft, ux_fft, uy_fft)
+        u_udM = triple_prod_conv(ux_fft, uy_fft, Mx_fft, My_fft)
+               
         divuM = oper.divfft_from_vecfft(ux_fft + Mx_fft, uy_fft + My_fft)
         u_u_divuM = (inner_prod(ux_fft, ux_fft*divuM) +
                      inner_prod(uy_fft, uy_fft*divuM))
-        Tnq_fft = 0.5*(M_udu + u_udM - u_u_divuM)
+        Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divuM)
         del(M_udu, u_udM, divuM, u_u_divuM)
         
         px_eta_fft, py_eta_fft = oper.gradfft_from_fft(eta_fft)
@@ -1185,7 +1189,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         u_dEP = (inner_prod(ux_fft, px_EP_fft) + 
                  inner_prod(uy_fft, py_EP_fft))
         del(px_EP_fft, py_EP_fft)
-        Cnq_fft = -0.5*c2*(M_gradeta + u_dEP)
+        Cnq_fft = -0.5 * c2 * np.real(M_gradeta + u_dEP)
         del(M_gradeta, u_dEP)
         
         #--------------------------------------
