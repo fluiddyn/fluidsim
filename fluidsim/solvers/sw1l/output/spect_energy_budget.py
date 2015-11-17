@@ -1,5 +1,7 @@
+
 import numpy as np
 import h5py
+import unittest
 
 from fluiddyn.util import mpi
 
@@ -919,10 +921,12 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         oper = output.sim.oper
         f = output.sim.params.f
         c2 = output.sim.params.c2
+        c = c2 ** 0.5
         KX = oper.KX
         KY = oper.KY
         KK = oper.KK
-        ck = c2 ** 0.5 * oper.KK_not0
+        K2 = oper.K2
+        ck = c * oper.KK_not0
         if f == 0:
             self.sigma = ck
         else:
@@ -931,18 +935,22 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         self.qmat = np.array([[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
                               [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-                              [ 2. ** 0.5 * ck *f, ck ** 2, ck ** 2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
+                              [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
         if mpi.rank == 0 or oper.SEQUENTIAL:
-            self.qmat[:,:][0,0] = 0.
+            self.qmat[:,:,0,0] = 0.
         super(SpectralEnergyBudgetSW1L, self).__init__(output)
     
     def _normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_fft key specified."""
         row_index =  {'ux_fft':0, 'uy_fft':1, 'eta_fft':2}
         r =  row_index[key]
+        if key == 'eta_fft':
+            c = 1. / self.c2 ** 0.5
+        else:
+            c = 1.
         
         key_modes = np.array([['G','A','a']])
-        normal_mode_vec_fft = np.einsum('i...,i...->i...',self.qmat[r],self.bvec_fft)
+        normal_mode_vec_fft = np.einsum('i...,i...->i...',c * self.qmat[r],self.bvec_fft)
         return key_modes, normal_mode_vec_fft
 
     def _normalmodephys_from_keyphys(self, key):
@@ -1021,6 +1029,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i,j])
                                  for i in xrange(3)]
                                  for j in xrange(3)])
+        for i in xrange(3):
+            for j in xrange(3):
+                self.oper.dealiasing(dyad_mat_fft[i,j])
         del dyad_mat_phys
         return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
         
@@ -1072,9 +1083,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         sigma = self.sigma
         
         q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
-        q_fft = q_fft * c * KK / sigma
-        ap_fft = ap_fft * 2 ** 0.5 *c2 / (sigma * KK)
-        am_fft = am_fft * 2 ** 0.5 *c2 / (sigma * KK)
+        q_fft = -q_fft * c / sigma
+        ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * KK)
+        am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * KK)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.SEQUENTIAL:
             bvec_fft[:,0,0] = 0.
@@ -1399,3 +1410,4 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ax11.plot(khE, Cflux_AG, 'g--', linewidth=2, label=r'$Cflux_{GA}$')
         ax11.plot(khE, Cflux_AA, 'b--', linewidth=2, label=r'$Cflux_{AA}$')
         ax11.legend()
+

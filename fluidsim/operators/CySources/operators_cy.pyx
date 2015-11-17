@@ -482,10 +482,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         try:
             self.Kappa2 = self.K2 + self.params.kd2
 
-            self.Kappa_over_ic = -1.j*(
-                self.params.f / self.params.c2 +
-                np.sqrt(self.Kappa2/self.params.c2)
-                        )
+            self.Kappa_over_ic = -1.j * np.sqrt(self.Kappa2/self.params.c2)
 
             if self.params.f != 0:
                 self.f_over_c2Kappa2 = self.params.f/(

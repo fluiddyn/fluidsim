@@ -6,7 +6,6 @@ import numpy as np
 import fluidsim
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
-from fluidsim.base.output.spect_energy_budget import inner_prod
 
 
 def run_mini_simul(key_solver, HAS_TO_SAVE=False):
@@ -17,7 +16,7 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False):
 
     params.short_name_type_run = 'test'
 
-    nh = 32
+    nh = 64
     params.oper.nx = nh
     params.oper.ny = nh
     Lh = 6.
@@ -55,39 +54,8 @@ def clean_simul(sim):
         shutil.rmtree(sim.output.path_run)
 
 
-class TestOutput(object):
-    def verify_sw1l_spect_energy_budg(self):
-        module = self.sim.output.spect_energy_budg
-        ux_fft = self.sim.state('ux_fft')
-        uy_fft = self.sim.state('uy_fft')
-        eta_fft = self.sim.state('eta_fft')
-        ux = self.sim.state.state_phys.get_var('ux')
-        uy = self.sim.state.state_phys.get_var('uy')
-        dico_results = module.compute()
-        b0_fft = module.bvec_fft[0]
-        bp_fft = module.bvec_fft[1]
-        bm_fft = module.bvec_fft[2]
-        energy_UU = (inner_prod(ux_fft, ux_fft) +
-                     inner_prod(uy_fft, uy_fft) +
-                     inner_prod(eta_fft, eta_fft) * self.sim.params.c2)
-        energy_BB =  (inner_prod(b0_fft, b0_fft) +
-                      inner_prod(bp_fft, bp_fft) +
-                      inner_prod(bm_fft, bm_fft))
-        self.assertTrue(np.allclose(energy_UU, energy_BB, rtol=0.1))
-        
-        Tq_tot_modes = 0.
-        key_modes = ['Tq_GGG','Tq_AGG','Tq_GAAs','Tq_GAAd','Tq_AAA']
-        for k in key_modes:
-            Tq_tot_modes += dico_results[k]
 
-        Tq_tot_exact = -self.sim.oper.spectrum2D_from_fft(
-                         inner_prod(ux_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,ux_fft)) +
-                         inner_prod(uy_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,uy_fft)))
-
-        import ipdb; ipdb.set_trace()  
-        self.assertTrue(np.allclose(Tq_tot_modes, Tq_tot_exact, rtol=0.1))
-
-class TestSolvers(unittest.TestCase, TestOutput):
+class TestSolvers(unittest.TestCase):
     def test_ns2d(self):
         """Should be able to run a NS2D simul."""
         self.sim = run_mini_simul('NS2D')
@@ -96,7 +64,6 @@ class TestSolvers(unittest.TestCase, TestOutput):
     def test_sw1l(self):
         """Should be able to run a SW1L simul."""
         self.sim = run_mini_simul('SW1L', HAS_TO_SAVE=True)
-        self.verify_sw1l_spect_energy_budg()
         clean_simul(self.sim)
 
     def test_sw1l_onlywaves(self):
