@@ -938,19 +938,28 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                               [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
         if mpi.rank == 0 or oper.SEQUENTIAL:
             self.qmat[:,:,0,0] = 0.
+
         super(SpectralEnergyBudgetSW1L, self).__init__(output)
     
     def _normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_fft key specified."""
-        row_index =  {'ux_fft':0, 'uy_fft':1, 'eta_fft':2}
+        row_index =  {'ux_fft':0, 'uy_fft':1, 'eta_fft':2,
+                      'px_ux_fft':0, 'px_uy_fft':1, 'px_eta_fft':2,
+                      'py_ux_fft':0, 'py_uy_fft':1, 'py_eta_fft':2 } 
         r =  row_index[key]
-        if key == 'eta_fft':
-            c = 1. / self.c2 ** 0.5
-        else:
-            c = 1.
         
         key_modes = np.array([['G','A','a']])
-        normal_mode_vec_fft = np.einsum('i...,i...->i...',c * self.qmat[r],self.bvec_fft)
+        normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
+        if 'px' in key:
+            for r in xrange(3):
+                normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
+        elif 'py' in key:
+            for r in xrange(3):
+                normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
+
+        if 'eta' in key:
+            normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
+
         return key_modes, normal_mode_vec_fft
 
     def _normalmodephys_from_keyphys(self, key):
@@ -1113,44 +1122,28 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         iky = 1j*self.oper.KY
         self.bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
         
-        #------------------------------------
-        # Quadratic transfer divergence terms
-        #------------------------------------
-        Tq_keys_div = {'uuu':['ux_fft','ux_fft','ux_fft'],
-                       'uuv':['ux_fft','ux_fft','uy_fft'],
-                       'vvu':['uy_fft','uy_fft','ux_fft'],
-                       'vvv':['uy_fft','uy_fft','uy_fft']}
-        Tq_terms_div = dict.fromkeys(Tq_keys_div)
-        for key in Tq_keys_div.keys():
-            triad_key_modes, Tq_terms_div[key] = self._triad_from_keyfft(*Tq_keys_div[key])
+        Tq_keys = {'uuu':['ux_fft','ux','px_ux'],
+                   'uvu':['ux_fft','uy','py_ux'],
+                   'vuv':['uy_fft','ux','px_uy'],
+                   'vvv':['uy_fft','uy','py_uy'],
+                   'eeu':['eta_fft','eta','ux'],
+                   'eev':['eta_fft','eta','uy']}
+        Tq_terms = dict.fromkeys(Tq_keys)
+        for key in Tq_keys.keys():
+            triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
         
-        #------------------------------------
-        # Quadratic transfer convolution terms
-        #------------------------------------
-        Tq_keys_conv = {'uuu':['ux_fft','ux','ux'],
-                        'uuv':['ux_fft','ux','uy'],
-                        'vvu':['uy_fft','uy','ux'],
-                        'vvv':['uy_fft','uy','uy'],
-                        'eeu':['eta_fft','eta','ux'],
-                        'eev':['eta_fft','eta','uy']}
-        Tq_terms_conv = dict.fromkeys(Tq_keys_conv)
-        for key in Tq_keys_conv.keys():
-            triad_key_modes, Tq_terms_conv[key] = self._triad_from_keyfftphys(*Tq_keys_conv[key])
-        
-        Tq_coeff = {'uuu':ikx, 'uuv':iky,
-                    'vvu':ikx, 'vvv':iky,
+        Tq_coeff = {'uuu':1., 'uvu':1.,
+                    'vuv':1., 'vvv':1.,
                     'eeu':c2*ikx, 'eev':c2*iky}
         # ..TODO replace Tq_coeff, Cq_coeff with divfft_from_vecfft
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
         for i in xrange(n_modes):          # GGG, GGA etc.
             k = triad_key_modes[0][i]
-            for j in Tq_keys_div.keys():   # uuu, uuv etc.
-                Tq_fft[k] += np.real(Tq_coeff[j] * Tq_terms_div[j][i])
-            for j in Tq_keys_conv.keys():
-                Tq_fft[k] -= np.real(Tq_coeff[j] * Tq_terms_conv[j][i])
+            for j in Tq_keys.keys(): # uuu, uuv etc.
+                Tq_fft[k] -= np.real(Tq_coeff[j] * Tq_terms[j][i])
         
-        del(Tq_keys_div, Tq_terms_div, Tq_keys_conv, Tq_terms_conv, Tq_coeff)
+        del(Tq_keys, Tq_terms, Tq_coeff)
         
         #-------------------------
         # Quadratic exchange terms
@@ -1206,8 +1199,15 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         #--------------------------------------
         # Enstrophy transfer terms
         #--------------------------------------
-        Tens_fft = oper.K2*Tq_fft['GGG']
-
+        Tens_fft = oper.K2 * Tq_fft['GGG']
+        
+        dx = self.oper.deltax / self.sim.params.oper.coef_dealiasing
+        nu = (self.sim.params.nu_2 +
+              self.sim.params.nu_4 / dx ** 2 +
+              self.sim.params.nu_8 / dx ** 6 +
+              self.sim.params.nu_m4 * dx ** 6)
+        epsilon =  2. * nu * self.output.compute_enstrophy()     # to normalize with dissipation 
+        energy =  self.output.compute_energy()                   # to normalize with energy
         dico_results = {key: self.spectrum2D_from_fft(value) for (key,value) in 
                         [('Tq_GGG', Tq_fft['GGG']),
                          ('Tq_AGG', Tq_fft['AGG']),
@@ -1221,6 +1221,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                          ('Tnq', Tnq_fft),
                          ('Cnq', Cnq_fft),
                          ('Tens', Tens_fft)]}
+        dico_results.update({'epsilon':epsilon,
+                             'energy':energy})
 
         return dico_results
     
@@ -1330,14 +1332,17 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ax2.hold(True)
         ax2.set_xscale('linear')
         ax2.set_yscale('linear')
+        
 
+        #.. TODO: Normalize with epsilon or forcing_rate
         if delta_t != 0.:
             transferEtot_mean = 0.
             for it in xrange(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.
                 for key in ['GGG','AGG','GAAs','GAAd','AAA']:
-                    transferEtot += f['Tq_' + key][it]
-                    transferEtot_mean += f['Tq_' + key][it]
+                    norm = f['epsilon'][it]
+                    transferEtot += f['Tq_' + key][it] / norm
+                    transferEtot_mean += f['Tq_' + key][it] / norm
                 PiEtot = cumsum_inv(transferEtot)*self.oper.deltakh
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
@@ -1346,11 +1351,12 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         ax1.plot(khE, PiEtot, 'k', linewidth=4, label=r'$\Pi_{tot}$')
         
-        Tq_GGG =f['Tq_GGG'][imin_plot:imax_plot].mean(0)
-        Tq_AGG =f['Tq_AGG'][imin_plot:imax_plot].mean(0)
-        Tq_GAAs =f['Tq_GAAs'][imin_plot:imax_plot].mean(0)
-        Tq_GAAd =f['Tq_GAAd'][imin_plot:imax_plot].mean(0)
-        Tq_AAA =f['Tq_AAA'][imin_plot:imax_plot].mean(0)
+        norm =  f['epsilon'][imin_plot:imax_plot].mean(0)
+        Tq_GGG =f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AGG =f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAs =f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAd =f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AAA =f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
        
         Pi_GGG = cumsum_inv(Tq_GGG)*self.oper.deltakh
         Pi_AGG = cumsum_inv(Tq_AGG)*self.oper.deltakh
@@ -1387,6 +1393,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ax11.set_yscale('linear')
         ax11.axhline()
         
+        #.. TODO: Normalize with energy??
         exchange_GG = f['Cq_GG'][imin_plot:imax_plot].mean(0)
         exchange_AG = (f['Cq_AG'][imin_plot:imax_plot].mean(0) + f['Cq_aG'][imin_plot:imax_plot].mean(0)) 
         exchange_AA = f['Cq_AA'][imin_plot:imax_plot].mean(0)

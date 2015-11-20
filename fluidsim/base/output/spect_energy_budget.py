@@ -89,7 +89,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         -----
         Returns an fft-sized nd-array equivalent to the expression:
 
-        .. math:: \widehat{(\vec{u}.\nabla)f}
+        .. math:: - \widehat{(\vec{u}.\nabla)f}
         """
 
         oper = self.oper

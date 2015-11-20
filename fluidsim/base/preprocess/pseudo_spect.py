@@ -120,9 +120,9 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):
-        """
+        r"""
         Based on
-         - the initial total enstrophy, \Omega_0 
+         - the initial total enstrophy, math:: \Omega_0 
         the forcing rate is set.
 
         Parameters

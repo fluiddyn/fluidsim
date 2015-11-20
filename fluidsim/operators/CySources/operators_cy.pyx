@@ -641,7 +641,6 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         n1 = self.nK1_loc
 
         KX = self.KX
-        KY = self.KY
 
         px_f_fft = np.empty([n0, n1], dtype=np.complex128)
 
@@ -657,6 +656,37 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                     px_f_fft[i0, i1] = 1j * KX[i0, i1]*fc_fft[i0, i1]
 
         return px_f_fft
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def pyffft_from_fft(self, f_fft):
+        """Return the gradient of f_fft in spectral space."""
+        cdef Py_ssize_t i0, i1, n0, n1
+        cdef np.ndarray[DTYPEf_t, ndim=2] KY
+        cdef np.ndarray[DTYPEc_t, ndim=2] py_f_fft
+
+        cdef np.ndarray[DTYPEc_t, ndim=2] fc_fft
+        cdef np.ndarray[DTYPEf_t, ndim=2] ff_fft
+
+        n0 = self.nK0_loc
+        n1 = self.nK1_loc
+
+        KY = self.KY
+
+        py_f_fft = np.empty([n0, n1], dtype=np.complex128)
+
+        if f_fft.dtype == np.float64:
+            ff_fft = f_fft
+            for i0 in xrange(n0):
+                for i1 in xrange(n1):
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*ff_fft[i0, i1]
+        else:
+            fc_fft = f_fft
+            for i0 in xrange(n0):
+                for i1 in xrange(n1):
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*fc_fft[i0, i1]
+
+        return py_f_fft
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

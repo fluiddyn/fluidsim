@@ -7,6 +7,7 @@ sim = run_mini_simul('SW1L', HAS_TO_SAVE=True)
 module = sim.output.spect_energy_budg
 dico_results = module.compute()
 
+
 class TestSpectEnergyBudg(unittest.TestCase):
 
     def test_qmat(self):
@@ -55,19 +56,23 @@ class TestSpectEnergyBudg(unittest.TestCase):
         ux = sim.state.state_phys.get_var('ux')
         uy = sim.state.state_phys.get_var('uy')
         eta = sim.state.state_phys.get_var('eta')
+        py_ux_fft = 1j * sim.oper.KY * ux_fft
 
         key_modes, ux_fft_modes = module._normalmodefft_from_keyfft('ux_fft')
         key_modes, uy_fft_modes = module._normalmodefft_from_keyfft('uy_fft')
         key_modes, eta_fft_modes = module._normalmodefft_from_keyfft('eta_fft')
-        ux_fft2 = uy_fft2 = eta_fft2 = 0. 
+        key_modes, py_ux_fft_modes = module._normalmodefft_from_keyfft('py_ux_fft')
+        ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0. 
         for mode in xrange(3):
             ux_fft2 += ux_fft_modes[mode]
             uy_fft2 += uy_fft_modes[mode]
             eta_fft2 += eta_fft_modes[mode]
-        ux_fft[0,0] = uy_fft[0,0] = eta_fft[0,0] = 0.
+            py_ux_fft2 += py_ux_fft_modes[mode]
+        ux_fft[0,0] = uy_fft[0,0] = eta_fft[0,0] = py_ux_fft[0,0] = 0.
         self.assertTrue(np.allclose(ux_fft2, ux_fft))
         self.assertTrue(np.allclose(uy_fft2, uy_fft))
         self.assertTrue(np.allclose(eta_fft2, eta_fft))
+        self.assertTrue(np.allclose(py_ux_fft2, py_ux_fft))
 
         # Check dyad decomposition
         Cq_tot_modes = 0.
@@ -89,15 +94,32 @@ class TestSpectEnergyBudg(unittest.TestCase):
         
         TKq_exact = (inner_prod(ux_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,ux_fft)) +
                      inner_prod(uy_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,uy_fft)))
-        import ipdb; ipdb.set_trace()  
         etaux_fft = sim.oper.fft2(eta * ux)
         etauy_fft = sim.oper.fft2(eta * uy)
         sim.oper.dealiasing(etaux_fft, etauy_fft)
-        TPq_exact = sim.params.c2 * inner_prod(eta_fft,
+        TPq_exact = - sim.params.c2 * inner_prod(eta_fft,
                                                sim.oper.divfft_from_vecfft(etaux_fft, etauy_fft))
-        Tq_tot_exact = - sim.oper.spectrum2D_from_fft(TKq_exact + TPq_exact)
+        Tq_tot_exact = sim.oper.spectrum2D_from_fft(TKq_exact + TPq_exact)
 
         self.assertTrue(np.allclose(Tq_tot_exact, Tq_tot_modes))
+
+    def test_triad_conservation_laws(self):
+        r"""
+        Tests for certain energy and enstrophy conservation laws.
+
+        .. math:: \Sigma T_{GGG} = 0
+        .. math:: k^{2}\Sigma T_{GGG} = 0
+        """
+
+        Tq_GGG = dico_results['Tq_GGG']
+        Tens = dico_results['Tens']
+        epsilon = dico_results['epsilon']
+
+        energy_GGG = Tq_GGG.sum() / epsilon
+        enstrophy_GGG = Tens.sum() / epsilon
+
+        self.assertAlmostEqual(energy_GGG,0)
+        self.assertAlmostEqual(enstrophy_GGG,0)
 
 
 if __name__ == '__main__':
