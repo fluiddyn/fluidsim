@@ -1,4 +1,8 @@
 
+
+develop:
+	python setup.py develop
+
 clean_so:
 	find fluidsim -name "*.so" -delete
 
@@ -7,6 +11,3 @@ tests:
 
 tests_mpi:
 	mpirun -np 2 python -m unittest discover
-
-develop:
-	python setup.py develop

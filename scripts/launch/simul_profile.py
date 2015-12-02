@@ -6,7 +6,7 @@
 import pstats
 import cProfile
 
-import fluiddyn as fld
+import fluidsim
 
 # key_solver = 'NS2D'
 # key_solver = 'SW1l'
@@ -14,7 +14,7 @@ import fluiddyn as fld
 # key_solver = 'SW1l.exactlin'
 key_solver = 'PLATE2D'
 
-solver = fld.simul.import_module_solver_from_key(key_solver)
+solver = fluidsim.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'profile'
@@ -41,7 +41,7 @@ params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 try:
     params.f = 1.
     params.c2 = 200.
-except KeyError:
+except (KeyError, AttributeError):
     pass
 
 params.time_stepping.deltat0 = 1.e-4

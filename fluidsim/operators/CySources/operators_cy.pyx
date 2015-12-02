@@ -1072,9 +1072,8 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         return ux_fft, uy_fft, eta_fft
 
-    def dealiasing(self, *arguments):
-        for ii in range(len(arguments)):
-            thing = arguments[ii]
+    def dealiasing(self, *args):
+        for thing in args:
             if isinstance(thing, SetOfVariables):
                 dealiasing_setofvar(thing, self.where_dealiased,
                                     self.nK0_loc, self.nK1_loc)

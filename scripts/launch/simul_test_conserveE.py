@@ -11,9 +11,9 @@ key_solver = 'NS2D'
 # key_solver = 'SW1l.modified'
 
 import numpy as np
-import fluiddyn as fld
+import fluidsim
 
-solver = fld.simul.import_module_solver_from_key(key_solver)
+solver = fluidsim.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'conservE'

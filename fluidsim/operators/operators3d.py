@@ -174,9 +174,10 @@ class OperatorsPseudoSpectral3D(object):
         ifft3d = self.ifft3d
 
         if vx_fft is None:
-            vx_fft = self.fft3d(vx)
-            vy_fft = self.fft3d(vy)
-            vz_fft = self.fft3d(vz)
+            fft3d = self.fft3d
+            vx_fft = fft3d(vx)
+            vy_fft = fft3d(vy)
+            vz_fft = fft3d(vz)
 
         Kx = self.Kx
         Ky = self.Ky
@@ -208,9 +209,8 @@ class OperatorsPseudoSpectral3D(object):
 
         return vgradvx, vgradvy, vgradvz
 
-    def dealiasing(self, *arguments):
-        for ii in range(len(arguments)):
-            thing = arguments[ii]
+    def dealiasing(self, *args):
+        for thing in args:
             if isinstance(thing, SetOfVariables):
                 _dealiasing_setofvar(thing, self.where_dealiased)
             elif isinstance(thing, np.ndarray):
