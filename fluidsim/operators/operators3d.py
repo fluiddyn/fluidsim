@@ -1,9 +1,9 @@
 
-import sys
+
+from math import pi
 
 import numpy as np
 
-from math import pi
 
 from fluidsim.operators.fft.easypyfft import FFTW3DReal2Complex
 from fluiddyn.util.mpi import nb_proc
@@ -21,6 +21,21 @@ def _make_str_length(length):
 class OperatorsPseudoSpectral3D(object):
     """Provides fast Fourier transform functions and 3D operators.
 
+
+    Uses fft operators that implement the methods:
+
+    - ifft
+    - fft
+    - get_shapeX_loc
+    - get_shapeX_seq
+    - get_shapeK_loc
+    - get_shapeK_seq
+    - get_orderK_dimX
+    - get_seq_index_firstK
+
+    - get_k_adim_loc
+    - sum_wavenumbers
+
     """
 
     @staticmethod
@@ -29,12 +44,9 @@ class OperatorsPseudoSpectral3D(object):
         """
 
         if nb_proc > 1:
-            type_fft = 'FFTWCCY'
+            type_fft = 'FluidPFFT'
         else:
-            if not sys.platform == 'win32':
-                type_fft = 'FFTWCY'
-            else:
-                type_fft = 'FFTWPY'
+            type_fft = 'FFTWPY'
 
         attribs = {'type_fft': type_fft,
                    'TRANSPOSED_OK': True,
@@ -55,11 +67,19 @@ class OperatorsPseudoSpectral3D(object):
         ny = self.ny_seq = params.oper.ny
         nz = self.nz_seq = params.oper.nz
 
-        if nx % 2 != 0 or ny % 2 != 0 or nz % 2 != 0:
-            raise ValueError('nx, ny and nz have to be even.')
+        self.type_fft = type_fft = params.oper.type_fft
+        if type_fft == 'FFTWPY':
+            op_fft = self._op_fft = FFTW3DReal2Complex(nx, ny, nz)
+        else:
+            raise NotImplementedError
 
-        self.shape_phys = (nz, ny, nx)
-        self.shapeX_loc = self.shape_phys
+        # there is a problem here type_fft
+        self._oper2d = OperatorsPseudoSpectral2D(params)
+        self.ifft2 = self.ifft2d = self._oper2d.ifft2
+        self.fft2 = self.fft2d = self._oper2d.fft2
+
+        self.shapeX_seq = op_fft.get_shapeX_seq()
+        self.shapeX_loc = op_fft.get_shapeX_loc()
 
         Lx = self.Lx = params.oper.Lx
         Ly = self.Ly = params.oper.Ly
@@ -73,39 +93,34 @@ class OperatorsPseudoSpectral3D(object):
         self.y_seq = self.deltay*np.arange(ny)
         self.z_seq = self.deltaz*np.arange(nz)
 
-        self._oper2d = OperatorsPseudoSpectral2D(params)
-        self.type_fft = self._oper2d.type_fft
-        self.ifft2 = self.ifft2d = self._oper2d.ifft2
-        self.fft2 = self.fft2d = self._oper2d.fft2
+        deltakx = 2*pi/Lx
+        deltaky = 2*pi/Ly
+        deltakz = 2*pi/Lz
 
-        self._op_fft = FFTW3DReal2Complex(nx, ny, nz)
+        self.ifft3d = op_fft.ifft
+        self.fft3d = op_fft.fft
+        self.sum_wavenumbers = op_fft.sum_wavenumbers
 
-        self.ifft3d = self._op_fft.ifft3d
-        self.fft3d = self._op_fft.fft3d
-        self.sum_wavenumbers = self._op_fft.sum_wavenumbers
+        self.shapeK_loc = op_fft.get_shapeK_loc()
+        self.nk0, self.nk1, self.nk2 = self.shapeK_loc
 
-        kx_adim_max = nx/2
-        ky_adim_max = ny/2
-        kz_adim_max = nz/2
+        order = op_fft.get_orderK_dimX()
+        if order == (0, 1, 2):
+            self.deltaks = deltakz, deltaky, deltakx
+        elif order == (1, 0, 2):
+            self.deltaks = deltaky, deltakz, deltakx
+        elif order == (2, 1, 0):
+            self.deltaks = deltakx, deltaky, deltakz
+        else:
+            raise NotImplementedError
 
-        self.nkx = kx_adim_max + 1
-        self.nky = ny
-        self.nkz = nz
+        k0_adim_loc, k1_adim_loc, k2_adim_loc = op_fft.get_k_adim_loc()
 
-        self.nk0 = self.nkz
-        self.nk1 = self.nky
-        self.nk2 = self.nkx
+        self.k0 = self.deltaks[0] * k0_adim_loc
+        self.k1 = self.deltaks[1] * k1_adim_loc
+        self.k2 = self.deltaks[2] * k2_adim_loc
 
-        self.shapeK_loc = (self.nk0, self.nk1, self.nk2)
-
-        self.deltakx = 2*pi/Lx
-        self.deltaky = 2*pi/Ly
-        self.deltakz = 2*pi/Lz
-
-        self.k0 = self.deltakz * np.r_[0:kz_adim_max+1, -kz_adim_max+1:0]
-        self.k1 = self.deltakz * np.r_[0:ky_adim_max+1, -ky_adim_max+1:0]
-        self.k2 = self.deltakx * np.arange(self.nk2)
-
+        # oh that's strange!
         K1, K0, K2 = np.meshgrid(self.k1, self.k0, self.k2, copy=False)
 
         self.Kz = K0
@@ -115,8 +130,13 @@ class OperatorsPseudoSpectral3D(object):
         self.K2 = K0**2 + K1**2 + K2**2
         self.K8 = self.K2**4
 
+        self.seq_index_firstK0, self.seq_index_firstK1 = \
+            op_fft.get_seq_index_firstK()
+
         self.K_square_nozero = self.K2.copy()
-        self.K_square_nozero[0, 0, 0] = 1e-14
+
+        if self.seq_index_firstK0 == 0 and self.seq_index_firstK1 == 0:
+            self.K_square_nozero[0, 0, 0] = 1e-14
 
         self.coef_dealiasing = params.oper.coef_dealiasing
 

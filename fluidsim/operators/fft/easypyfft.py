@@ -160,12 +160,12 @@ class FFTW3DReal2Complex:
 
         self.coef_norm = nx*ny*nz
 
-    def fft3d(self, ff):
+    def fft(self, ff):
         self.arrayX[:] = ff
         self.fftplan(normalise_idft=False)
         return self.arrayK/self.coef_norm
 
-    def ifft3d(self, ff_fft):
+    def ifft(self, ff_fft):
         self.arrayK[:] = ff_fft
         self.ifftplan(normalise_idft=False)
         return self.arrayX.copy()
@@ -175,8 +175,36 @@ class FFTW3DReal2Complex:
                 2*np.sum(ff_fft[:, :, 1:-1]))/2
 
     def compute_energy_from_Fourier(self, ff_fft):
-        return (np.sum(abs(ff_fft[:, :, 0])**2 + abs(ff_fft[:, :, -1])**2) +
-                2*np.sum(abs(ff_fft[:, :, 1:-1])**2))/2
+        return self.sum_wavenumbers(abs(ff_fft)**2)
+
+    def get_shapeX_loc(self):
+        return self.shapeX
+
+    def get_shapeX_seq(self):
+        return self.shapeX
+
+    def get_shapeK_loc(self):
+        return self.shapeK
+
+    def get_shapeK_seq(self):
+        return self.shapeK
+
+    def get_k_adim(self):
+        nK0, nK1, nK2 = self.shapeK
+        kz_adim_max = nK0//2
+        ky_adim_max = nK1//2
+        return (np.r_[0:kz_adim_max+1, -kz_adim_max+1:0],
+                np.r_[0:ky_adim_max+1, -ky_adim_max+1:0],
+                np.arange(nK2))
+
+    def get_k_adim_loc(self):
+        return self.get_k_adim()
+
+    def get_orderK_dimX(self):
+        return 0, 1, 2
+
+    def get_seq_index_firstK(self):
+        return 0, 0
 
     def compute_energy_from_spatial(self, ff):
         return np.mean(abs(ff)**2)/2
