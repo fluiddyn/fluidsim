@@ -144,7 +144,6 @@ class StateSW1L(StatePseudoSpectral):
         return state_phys
     
     def init_fft_from(self, **kwargs):
-        """.. TODO: Delete comments if the function works """
         if len(kwargs) == 1:
             if 'q_fft' in kwargs:
                 self.init_from_qfft(kwargs['q_fft'])

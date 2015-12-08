@@ -205,8 +205,8 @@ imin_plot, imax_plot, delta_i_plot)
                 ax1.plot(kh, E_tot*coef_norm, 'k', linewidth=2)
                 ax1.plot(kh, E_K*coef_norm, 'r', linewidth=1)
                 ax1.plot(kh, E_A*coef_norm, 'b', linewidth=1)
-                ax1.plot(kh, E_Kr*coef_norm, 'r--', linewidth=1)
-                ax1.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
+                # ax1.plot(kh, E_Kr*coef_norm, 'r--', linewidth=1)
+                # ax1.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
 
 
         E_K = (dset_spectrum1Dkx_EK[imin_plot:imax_plot+1]

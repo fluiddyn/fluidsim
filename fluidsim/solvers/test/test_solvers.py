@@ -8,7 +8,7 @@ import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
-def run_mini_simul(key_solver, HAS_TO_SAVE=False):
+def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
 
     Simul = fluidsim.import_simul_class_from_key(key_solver)
 
@@ -40,6 +40,10 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False):
         params.output.periods_save.spectra = 0.5
         params.output.periods_save.spect_energy_budg = 0.5
 
+    if FORCING:
+        params.FORCING = True
+        params.forcing.type = 'waves'
+
     params.output.HAS_TO_SAVE = HAS_TO_SAVE
 
     with stdout_redirected():
@@ -63,7 +67,7 @@ class TestSolvers(unittest.TestCase):
 
     def test_sw1l(self):
         """Should be able to run a SW1L simul."""
-        self.sim = run_mini_simul('SW1L', HAS_TO_SAVE=True)
+        self.sim = run_mini_simul('SW1L', HAS_TO_SAVE=True, FORCING=True)
         clean_simul(self.sim)
 
     def test_sw1l_onlywaves(self):

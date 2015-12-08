@@ -628,6 +628,20 @@ imin_plot, imax_plot, delta_i_plot)
 
         f.close()
 
+    def _checksum_stdout(self, debug=False, **kwargs):
+        if debug is True:
+            for key, value in kwargs.items():
+                if mpi.nb_proc > 1:
+                    value_g = mpi.comm.gather(value, root=0)
+                else:
+                    value_g = value
+
+                if mpi.rank == 0:
+                    print(('sum({0}) = {1:9.4e} ; sum(|{0}|) = {2:9.4e}').format(
+                        key,
+                        np.sum(value_g),
+                        np.sum(np.abs(value_g))))
+
 
 class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
     """Save and plot spectra."""
@@ -750,7 +764,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 # )
 
         transfer2D_EK = transfer2D_Errr + transfer2D_Edrd +transfer2D_Edrr_rrd
-
         dico_results = {
             'transfer2D_EK': transfer2D_EK,
             'transfer2D_Errr': transfer2D_Errr,
@@ -760,6 +773,14 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             'transfer2D_EA': transfer2D_EA,
             'convA2D': convA2D,
             'transfer2D_CPE': transfer2D_CPE}
+        self._checksum_stdout(
+            EK_GGG=transfer2D_Errr,
+            EK_GGA=transfer2D_Edrr_rrd+ transfer2D_Erdr,
+            EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
+            EK_AAA=transfer2D_Eddd,
+            EA=transfer2D_EA,
+            Etot=transfer2D_EK + transfer2D_EA,
+            debug=False)
         return dico_results
 
 
@@ -918,10 +939,14 @@ imin_plot, imax_plot, delta_i_plot)
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
     
     def __init__(self, output):
-        oper = output.sim.oper
+        self._init_qmat_sigma(output)
+        super(SpectralEnergyBudgetSW1L, self).__init__(output)
+
+    def _init_qmat_sigma(self, output):
         f = output.sim.params.f
-        c2 = output.sim.params.c2
-        c = c2 ** 0.5
+        c = output.sim.params.c2 ** 0.5
+        
+        oper = output.oper
         KX = oper.KX
         KY = oper.KY
         KK = oper.KK
@@ -933,32 +958,37 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             self.sigma = np.sqrt(f**2 + (ck)**2)
         sigma = self.sigma
         
-        self.qmat = np.array([[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-                              [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-                              [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
+        self.qmat = np.array(
+                [[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
+                 [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
+                 [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
         if mpi.rank == 0 or oper.SEQUENTIAL:
             self.qmat[:,:,0,0] = 0.
-
-        super(SpectralEnergyBudgetSW1L, self).__init__(output)
     
     def _normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_fft key specified."""
-        row_index =  {'ux_fft':0, 'uy_fft':1, 'eta_fft':2,
-                      'px_ux_fft':0, 'px_uy_fft':1, 'px_eta_fft':2,
-                      'py_ux_fft':0, 'py_uy_fft':1, 'py_eta_fft':2 } 
-        r =  row_index[key]
         
-        key_modes = np.array([['G','A','a']])
-        normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
-        if 'px' in key:
-            for r in xrange(3):
-                normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
-        elif 'py' in key:
-            for r in xrange(3):
-                normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
+        if key == 'div_fft':
+            key_modes, normal_mode_vec_fft_x = self._normalmodefft_from_keyfft('px_ux_fft')
+            key_modes, normal_mode_vec_fft_y = self._normalmodefft_from_keyfft('py_uy_fft')
+            normal_mode_vec_fft = normal_mode_vec_fft_x + normal_mode_vec_fft_y
+        else:        
+            key_modes = np.array([['G','A','a']])
+            row_index =  {'ux_fft':0, 'uy_fft':1, 'eta_fft':2,
+                          'px_ux_fft':0, 'px_uy_fft':1, 'px_eta_fft':2,
+                          'py_ux_fft':0, 'py_uy_fft':1, 'py_eta_fft':2 }
+            
+            r =  row_index[key]
+            normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
+            if 'px' in key:
+                for r in xrange(3):
+                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
+            elif 'py' in key:
+                for r in xrange(3):
+                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
-        if 'eta' in key:
-            normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
+            if 'eta' in key:
+                normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
 
         return key_modes, normal_mode_vec_fft
 
@@ -1036,11 +1066,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         del normal_modes
         fft2 =  self.oper.fft2
         dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i,j])
-                                 for i in xrange(3)]
-                                 for j in xrange(3)])
+                                 for j in xrange(3)]
+                                 for i in xrange(3)])
+
         for i in xrange(3):
             for j in xrange(3):
                 self.oper.dealiasing(dyad_mat_fft[i,j])
+        
         del dyad_mat_phys
         return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
         
@@ -1083,8 +1115,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         """
-        .. TODO: Check the statement below
-        Move it to Operators class
+        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity.
         """
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
@@ -1102,10 +1133,11 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
     
     def compute(self):
         """Compute spectral energy budget once for current time."""
+
         oper = self.oper
-        ux_fft = self.sim.state('ux_fft')
-        uy_fft = self.sim.state('uy_fft')
-        eta_fft = self.sim.state('eta_fft')
+        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
+        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
+        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
         c2 = self.params.c2
         
         ux = self.sim.state.state_phys.get_var('ux')
@@ -1116,45 +1148,50 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         My = eta*uy
         Mx_fft = oper.fft2(Mx)
         My_fft = oper.fft2(My)
+        oper.dealiasing(Mx_fft, My_fft)
         del(Mx, My)
         
-        ikx = 1j*self.oper.KX
-        iky = 1j*self.oper.KY
         self.bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
         
-        Tq_keys = {'uuu':['ux_fft','ux','px_ux'],
+        Tq_keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
                    'uvu':['ux_fft','uy','py_ux'],
                    'vuv':['uy_fft','ux','px_uy'],
                    'vvv':['uy_fft','uy','py_uy'],
-                   'eeu':['eta_fft','eta','ux'],
-                   'eev':['eta_fft','eta','uy']}
+                   'eeu':['px_eta_fft','eta','ux'], # Quad. A.P.E. transfer terms
+                   'eev':['py_eta_fft','eta','uy'],
+                   'uud':['ux_fft','ux','div'], # NonQuad. K.E. - Quad K.E. transfer terms
+                   'vvd':['uy_fft','uy','div'],
+                   'dee':['div_fft','eta','eta']}# NonQuad. K.E. - Quad A.P.E. transfer terms
+                   
         Tq_terms = dict.fromkeys(Tq_keys)
         for key in Tq_keys.keys():
             triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
         
-        Tq_coeff = {'uuu':1., 'uvu':1.,
-                    'vuv':1., 'vvv':1.,
-                    'eeu':c2*ikx, 'eev':c2*iky}
-        # ..TODO replace Tq_coeff, Cq_coeff with divfft_from_vecfft
+        Tq_coeff = {'uuu':-1., 'uvu':-1.,
+                    'vuv':-1., 'vvv':-1.,
+                    'eeu':0.5 * c2, 'eev':0.5 * c2,
+                    'uud':-0.5, 'vvd':-0.5,
+                    'dee':0.25 * c2}
+
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
         for i in xrange(n_modes):          # GGG, GGA etc.
             k = triad_key_modes[0][i]
-            for j in Tq_keys.keys(): # uuu, uuv etc.
-                Tq_fft[k] -= np.real(Tq_coeff[j] * Tq_terms[j][i])
+            for j in Tq_keys.keys():       # uuu, uuv etc.
+                Tq_fft[k] += np.real(Tq_coeff[j] * Tq_terms[j][i])
         
         del(Tq_keys, Tq_terms, Tq_coeff)
         
         #-------------------------
         # Quadratic exchange terms
         #-------------------------
-        Cq_keys = {'ue':['ux_fft','eta_fft'],
-                   've':['uy_fft','eta_fft']}
+        Cq_keys = {'ue':['ux_fft','px_eta_fft'],
+                   've':['uy_fft','py_eta_fft']}
         Cq_terms = dict.fromkeys(Cq_keys)
         for key in Cq_keys.keys():
             dyad_key_modes, Cq_terms[key] = self._dyad_from_keyfft(True, *Cq_keys[key])
         
-        Cq_coeff = {'ue':c2*ikx, 've':c2*iky}
+        Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
         n_modes = dyad_key_modes[0].shape[0]
         for i in xrange(n_modes):        # GG, AG, aG, AA
@@ -1163,30 +1200,43 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
                 
         del(Cq_keys, Cq_terms, Cq_coeff)
+        del(self.bvec_fft)
         
         #-----------------------------------------------
         # Non-quadratic K.E. transfer and exchange terms
         #-----------------------------------------------
         inner_prod = lambda a_fft, b_fft: a_fft.conj() * b_fft
+        inner_prod2 = lambda a_fft, b_fft: a_fft * b_fft.conj()
         triple_prod_conv = lambda ax_fft, ay_fft, bx_fft, by_fft:(
                 inner_prod(ax_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,bx_fft)) +
                 inner_prod(ay_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,by_fft)))
+        triple_prod_conv2 = lambda ax_fft, ay_fft, bx_fft, by_fft:(
+                inner_prod2(ax_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,bx_fft)) +
+                inner_prod2(ay_fft, self.fnonlinfft_from_uxuy_funcfft(ux,uy,by_fft)))
 
-        M_udu = triple_prod_conv(Mx_fft, My_fft, ux_fft, uy_fft)
         u_udM = triple_prod_conv(ux_fft, uy_fft, Mx_fft, My_fft)
-               
-        divuM = oper.divfft_from_vecfft(ux_fft + Mx_fft, uy_fft + My_fft)
-        u_u_divuM = (inner_prod(ux_fft, ux_fft*divuM) +
-                     inner_prod(uy_fft, uy_fft*divuM))
-        Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divuM)
-        del(M_udu, u_udM, divuM, u_u_divuM)
+        M_udu = triple_prod_conv2(Mx_fft, My_fft, ux_fft, uy_fft)
+        divM = oper.ifft2(
+                    oper.divfft_from_vecfft(
+                        Mx_fft, My_fft))
+                    
+        ux_divM = oper.fft2(ux * divM)
+        uy_divM = oper.fft2(uy * divM)
+        oper.dealiasing(ux_divM, uy_divM)
+
+        u_u_divM = (inner_prod(ux_fft, ux_divM) +
+                     inner_prod(uy_fft, uy_divM))
+        Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divM)
+        del(M_udu, u_udM, divM, ux_divM, uy_divM, u_u_divM)
         
+        """-----------------------------------------------
         px_eta_fft, py_eta_fft = oper.gradfft_from_fft(eta_fft)
         M_gradeta = (inner_prod(Mx_fft, px_eta_fft) + 
                      inner_prod(My_fft, py_eta_fft))
         del(px_eta_fft, py_eta_fft)
         EP = 0.5*eta*eta
         EP_fft = oper.fft2(EP)
+        oper.dealiasing(EP_fft)
         del(EP)
         px_EP_fft, py_EP_fft = oper.gradfft_from_fft(EP_fft)
         del(EP_fft)
@@ -1195,34 +1245,40 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         del(px_EP_fft, py_EP_fft)
         Cnq_fft = -0.5 * c2 * np.real(M_gradeta + u_dEP)
         del(M_gradeta, u_dEP)
-        
+        """
         #--------------------------------------
         # Enstrophy transfer terms
         #--------------------------------------
         Tens_fft = oper.K2 * Tq_fft['GGG']
         
-        dx = self.oper.deltax / self.sim.params.oper.coef_dealiasing
-        nu = (self.sim.params.nu_2 +
-              self.sim.params.nu_4 / dx ** 2 +
-              self.sim.params.nu_8 / dx ** 6 +
-              self.sim.params.nu_m4 * dx ** 6)
-        epsilon =  2. * nu * self.output.compute_enstrophy()     # to normalize with dissipation 
-        energy =  self.output.compute_energy()                   # to normalize with energy
-        dico_results = {key: self.spectrum2D_from_fft(value) for (key,value) in 
-                        [('Tq_GGG', Tq_fft['GGG']),
-                         ('Tq_AGG', Tq_fft['AGG']),
-                         ('Tq_GAAs', Tq_fft['GAAs']),
-                         ('Tq_GAAd', Tq_fft['GAAd']),
-                         ('Tq_AAA', Tq_fft['AAA']),
-                         ('Cq_GG', Cq_fft['GG']),
-                         ('Cq_AG', Cq_fft['AG']),
-                         ('Cq_aG', Cq_fft['aG']),
-                         ('Cq_AA', Cq_fft['AA']),
-                         ('Tnq', Tnq_fft),
-                         ('Cnq', Cnq_fft),
-                         ('Tens', Tens_fft)]}
-        dico_results.update({'epsilon':epsilon,
-                             'energy':energy})
+        Tq_GGG =  self.spectrum2D_from_fft(Tq_fft['GGG'])
+        Tq_AGG = self.spectrum2D_from_fft(Tq_fft['AGG'])
+        Tq_GAAs =  self.spectrum2D_from_fft(Tq_fft['GAAs'])
+        Tq_GAAd = self.spectrum2D_from_fft(Tq_fft['GAAd'])
+        Tq_AAA =  self.spectrum2D_from_fft(Tq_fft['AAA'])
+        Tnq =  self.spectrum2D_from_fft(Tnq_fft)
+        Tens =  self.spectrum2D_from_fft(Tens_fft)
+        Cq_GG=  self.spectrum2D_from_fft(Cq_fft['GG'])
+        Cq_AG= self.spectrum2D_from_fft(Cq_fft['AG'])
+        Cq_aG = self.spectrum2D_from_fft(Cq_fft['aG'])
+        Cq_AA=  self.spectrum2D_from_fft(Cq_fft['AA'])
+        
+        Tq_TOT = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
+        #self._checksum_stdout(
+        #   GGG=Tq_GGG, GGA=Tq_AGG, AAG=(Tq_GAAs+Tq_GAAd), AAA=Tq_AAA,
+        #   TNQ=Tnq, TOTAL=Tq_TOT, debug=True)
+
+        dico_results = {'Tq_GGG' :Tq_GGG,
+                        'Tq_AGG' :Tq_AGG,
+                        'Tq_GAAs' :Tq_GAAs,
+                        'Tq_GAAd' :Tq_GAAd,
+                        'Tq_AAA' :Tq_AAA,
+                        'Tnq':Tnq,
+                        'Cq_GG': Cq_GG,
+                        'Cq_AG': Cq_AG,
+                        'Cq_aG': Cq_aG,
+                        'Cq_AA': Cq_AA,
+                        'Tens': Tens,}
 
         return dico_results
     
@@ -1238,7 +1294,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         Cq_GG = dico_results['Cq_GG']
         Cq_AG = dico_results['Cq_AG'] + dico_results['Cq_aG']
-        Cq_GG = dico_results['Cq_AA']
+        Cq_AA = dico_results['Cq_AA']
+        Cq_tot = Cq_GG + Cq_AG + Cq_AA
 
         khE = self.oper.khE
         Piens = cumsum_inv(Tens)*self.oper.deltakh  
@@ -1248,24 +1305,33 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Pi_GAAs = cumsum_inv(Tq_GAAs)*self.oper.deltakh
         Pi_GAAd = cumsum_inv(Tq_GAAd)*self.oper.deltakh
         Pi_AAA = cumsum_inv(Tq_AAA)*self.oper.deltakh
+
+        Cflux_tot = cumsum_inv(Cq_tot)*self.oper.deltakh
         Cflux_GG = cumsum_inv(Cq_GG)*self.oper.deltakh
         Cflux_AG = cumsum_inv(Cq_AG)*self.oper.deltakh
         Cflux_AA = cumsum_inv(Cq_AA)*self.oper.deltakh
 
         self.axe_a.plot(khE+khE[1], Pi_tot, 'k', linewidth=2, label=r'$\Pi_{tot}$')
-        self.axe_a.plot(khE+khE[1], Pi_GGG, 'k--', linewidth=1, label=r'$\Pi_{GGG}$')
-        self.axe_a.plot(khE+khE[1], Pi_GGA, 'm--', linewidth=1, label=r'$\Pi_{GGA}$')
+        self.axe_a.plot(khE+khE[1], Pi_GGG, 'g--', linewidth=1, label=r'$\Pi_{GGG}$')
+        # self.axe_a.plot(khE+khE[1], Piens, 'g:', linewidth=1, label=r'$\Pi_{ens}$')
+        self.axe_a.plot(khE+khE[1], Pi_AGG, 'm--', linewidth=1, label=r'$\Pi_{GGA}$')
         self.axe_a.plot(khE+khE[1], Pi_GAAs, 'r:', linewidth=1, label=r'$\Pi_{G\pm\pm}$')
-        self.axe_a.plot(khE+khE[1], Pi_GAAd, 'b--', linewidth=1, label=r'$\Pi_{G\pm\mp}$')
+        self.axe_a.plot(khE+khE[1], Pi_GAAd, 'b:', linewidth=1, label=r'$\Pi_{G\pm\mp}$')
         self.axe_a.plot(khE+khE[1], Pi_AAA, 'y--', linewidth=1, label=r'$\Pi_{AAA}$')
-        self.axe_a.legend()
 
-        self.axe_b.plot(khE+khE[1], Cflux_GG, 'r--', linewidth=1,  label=r'$Cflux_{GG}$')
-        self.axe_b.plot(khE+khE[1], Cflux_AG, 'g--', linewidth=1, label=r'$Cflux_{GA}$')
-        self.axe_b.plot(khE+khE[1], Cflux_AA, 'b--', linewidth=1, label=r'$Cflux_{AA}$')
-        self.axe_b.plot(khE+khE[1], Piens, 'k', linewidth=2)
-        self.axe_b.legend()
-        
+        self.axe_b.plot(khE+khE[1], Cflux_tot, 'k', linewidth=2, label=r'$\Sigma C_{tot}$')
+        self.axe_b.plot(khE+khE[1], Cflux_GG, 'g:', linewidth=1,  label=r'$\Sigma C_{GG}$')
+        self.axe_b.plot(khE+khE[1], Cflux_AG, 'm--', linewidth=1, label=r'$\Sigma C_{GA}$')
+        self.axe_b.plot(khE+khE[1], Cflux_AA, 'y--', linewidth=1, label=r'$\Sigma C_{AA}$')
+
+        if self.nb_saved_times == 2:
+            title = ('Spectral Energy Budget, solver '+self.output.name_solver+
+                ', nh = {0:5d}'.format(self.nx)+
+                ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+            self.axe_a.set_title(title)
+            self.axe_a.legend()
+            self.axe_b.legend()
+            self.axe_b.set_ylabel(r'$\Sigma C(k_h)$')
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
@@ -1273,7 +1339,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         dset_times = f['times']
         dset_khE = f['khE']
-        khE = dset_khE[...]
+        khE = dset_khE[...] + 0.1 # Offset for semilog plots
         
         times = dset_times[...]
         nt = len(times)
@@ -1306,93 +1372,90 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         # Quadratic transfer terms
         #-------------------------
         x_left_axe = 0.12
-        z_bottom_axe = 0.36
+        z_bottom_axe = 0.46
         width_axe = 0.85
-        height_axe = 0.57
+        height_axe = 0.47
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
-        fig2, ax2 = self.output.figure_axe(size_axe=size_axe)
         fig1, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig2, ax2 = self.output.figure_axe(size_axe=size_axe)
         
         ax1.set_xlabel('$k_h$')
-        ax1.set_ylabel('Transfer fluxes, $\Pi$')
-        ax1.axhline()
-        ax2.set_xlabel('$k_h$')
-        ax2.set_ylabel('Transfer terms, T')
-        ax2.axhline()
+        ax1.set_ylabel('Transfer fluxes, $\Pi(k_h)$')
+        
+        z_bottom_axe = 0.07
+        height_axe = 0.27
+        size_axe[1] = z_bottom_axe
+        size_axe[3] = height_axe
+        ax11 = fig1.add_axes(size_axe)
+        ax11.set_xlabel('$k_h$')
+        ax11.set_ylabel('Transfer terms, $T(k_h)$')
         
         title = ('Spectral Energy Budget, solver '+self.output.name_solver+
                 ', nh = {0:5d}'.format(self.nx)+
                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
-        ax1.set_xscale('linear')
-        ax1.set_yscale('linear')
-        ax2.set_title(title)
-        ax2.hold(True)
-        ax2.set_xscale('linear')
-        ax2.set_yscale('linear')
+        ax1.set_xscale('log')
+        ax1.axhline()
+        ax11.set_title(title)
+        ax11.hold(True)
+        ax11.set_xscale('log')
+        ax11.axhline()
         
-
-        #.. TODO: Normalize with epsilon or forcing_rate
+        norm = self.sim.params.forcing.forcing_rate 
         if delta_t != 0.:
-            transferEtot_mean = 0.
             for it in xrange(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.
                 for key in ['GGG','AGG','GAAs','GAAd','AAA']:
-                    norm = f['epsilon'][it]
-                    transferEtot += f['Tq_' + key][it] / norm
-                    transferEtot_mean += f['Tq_' + key][it] / norm
-                PiEtot = cumsum_inv(transferEtot)*self.oper.deltakh
+                    transferEtot += f['Tq_' + key][it]
+                PiEtot = cumsum_inv(transferEtot)*self.oper.deltakh / norm
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
-        transferEtot_mean = transferEtot_mean / int((imax_plot - imin_plot)/delta_i_plot)
-        PiEtot = cumsum_inv(transferEtot_mean)*self.oper.deltakh
-
-        ax1.plot(khE, PiEtot, 'k', linewidth=4, label=r'$\Pi_{tot}$')
-        
-        norm =  f['epsilon'][imin_plot:imax_plot].mean(0)
-        Tq_GGG =f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AGG =f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAs =f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAd =f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AAA =f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GGG = f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AGG = f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAs = f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAd = f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AAA = f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
+        Tnq = f['Tnq'][imin_plot:imax_plot].mean(0) / norm
+        Tens =  f['Tens'][imin_plot:imax_plot].mean(0) / norm
+        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs +Tq_GAAd + Tq_AAA
        
-        Pi_GGG = cumsum_inv(Tq_GGG)*self.oper.deltakh
-        Pi_AGG = cumsum_inv(Tq_AGG)*self.oper.deltakh
-        Pi_GAAs = cumsum_inv(Tq_GAAs)*self.oper.deltakh
-        Pi_GAAd = cumsum_inv(Tq_GAAd)*self.oper.deltakh
-        Pi_AAA = cumsum_inv(Tq_AAA)*self.oper.deltakh
+        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh 
+        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh 
+        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltakh
+        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltakh
+        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
+        Pi_nq = cumsum_inv(Tnq) * self.oper.deltakh
+        Pi_ens = cumsum_inv(Tens) * self.oper.deltakh
+        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs +Pi_GAAd + Pi_AAA
        
-        ax1.plot(khE, Pi_GGG, 'k--', linewidth=2, label=r'$\Pi_{GGG}$')
+        ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
         ax1.plot(khE, Pi_AGG, 'm--', linewidth=2, label=r'$\Pi_{GGA}$')
         ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
-        ax1.plot(khE, Pi_GAAd, 'b--', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
+        ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
         ax1.plot(khE, Pi_AAA, 'y--', linewidth=2, label=r'$\Pi_{AAA}$')
+        ax1.plot(khE, Pi_nq, 'k--', linewidth=2, label=r'$\Pi^{NQ}$')
+        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.legend()
         
-        ax2.plot(khE, Tq_GGG, 'k--', linewidth=2, label=r'$Tq_{GGG}$')
-        ax2.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$Tq_{GGA}$')
-        ax2.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$Tq_{G\pm\pm}$')
-        ax2.plot(khE, Tq_GAAd, 'b--', linewidth=2, label=r'$Tq_{G\pm\mp}$')
-        ax2.plot(khE, Tq_AAA, 'y--', linewidth=2, label=r'$Tq_{AAA}$')
-        ax2.legend()
-        
+        ax11.plot(khE, Tq_GGG, 'g--', linewidth=2, label=r'$T_{GGG}$')
+        ax11.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$T_{GGA}$')
+        ax11.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$T_{G\pm\pm}$')
+        ax11.plot(khE, Tq_GAAd, 'b:', linewidth=2, label=r'$T_{G\pm\mp}$')
+        ax11.plot(khE, Tq_AAA, 'y--', linewidth=2, label=r'$T_{AAA}$')
+        ax11.plot(khE, Tnq, 'k--', linewidth=2, label=r'$T^{NQ}$')
+        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
+        ax11.legend()
         #-------------------------
         # Quadratic exchange terms
         #-------------------------
-        z_bottom_axe = 0.07
-        height_axe = 0.17
-        size_axe[1] = z_bottom_axe
-        size_axe[3] = height_axe
-        ax11 = fig1.add_axes(size_axe)
-        ax11.set_xlabel('$k_h$')
-        ax11.set_ylabel('Exchange fluxes, C')
-        ax11.hold(True)
-        ax11.set_xscale('linear')
-        ax11.set_yscale('linear')
-        ax11.axhline()
-        
+        ax2.set_xlabel(r'$k_h$')
+        ax2.set_ylabel(r'Exchange fluxes, $\Sigma C$')
+        ax2.hold(True)
+        ax2.set_xscale('log')
+        ax2.axhline()
+
         #.. TODO: Normalize with energy??
         exchange_GG = f['Cq_GG'][imin_plot:imax_plot].mean(0)
         exchange_AG = (f['Cq_AG'][imin_plot:imax_plot].mean(0) + f['Cq_aG'][imin_plot:imax_plot].mean(0)) 
@@ -1410,11 +1473,25 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 for key in ['GG','AG','aG','AA']:
                     exchangetot += f['Cq_' + key][it]
                 Cfluxtot = cumsum_inv(exchangetot)*self.oper.deltakh
-                ax11.plot(khE, Cfluxtot, 'k', linewidth=1)
+                ax2.plot(khE, Cfluxtot, 'k', linewidth=1)
         
-        ax11.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$Cflux_{tot}$')
-        ax11.plot(khE, Cflux_GG, 'r--', linewidth=2,  label=r'$Cflux_{GG}$')
-        ax11.plot(khE, Cflux_AG, 'g--', linewidth=2, label=r'$Cflux_{GA}$')
-        ax11.plot(khE, Cflux_AA, 'b--', linewidth=2, label=r'$Cflux_{AA}$')
-        ax11.legend()
+        ax2.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$\Sigma C_{tot}$')
+        ax2.plot(khE, Cflux_GG, 'g:', linewidth=2, label=r'$\Sigma C_{GG}$')
+        ax2.plot(khE, Cflux_AG, 'm--', linewidth=2, label=r'$\Sigma C_{GA}$')
+        ax2.plot(khE, Cflux_AA, 'y--', linewidth=2, label=r'$\Sigma C_{AA}$')
+        ax2.legend()
+
+        ax22 = fig2.add_axes(size_axe)
+        ax22.set_xscale('log')
+        ax22.axhline()
+        ax22.set_xlabel(r'$k_h$')
+        ax22.set_ylabel(r'$\Pi_{ens}(k_h)$')
+        
+        ax22.plot(khE, Pi_ens, 'g', linewidth=3, label=r'$\Pi_{ens}$')
+        ax22.legend()
+        
+        fig1.canvas.draw()
+        fig2.canvas.draw()
+
+        f.close()
 

@@ -149,6 +149,7 @@ def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True):
         params.output.HAS_TO_SAVE = False
     params.init_fields.type = 'from_file'
     params.init_fields.from_file.path = path_file
+    params.preprocess.enable = False
     sim = solver.Simul(params)
     return sim
 

@@ -65,8 +65,8 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.fig, axe_a = self.output.figure_axe(size_axe=size_axe,
                                                  numfig=4000000)
         self.axe_a = axe_a
-        axe_a.set_xlabel('k_h')
-        axe_a.set_ylabel('Pi(k_h) energy')
+        axe_a.set_xlabel(r'$k_h$')
+        axe_a.set_ylabel(r'$\Pi(k_h)$')
         axe_a.set_title('energy flux, solver ' + self.output.name_solver +
                         ', nh = {0:5d}'.format(self.nx))
         axe_a.hold(True)
@@ -76,8 +76,8 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         size_axe[1] = z_bottom_axe
         axe_b = self.fig.add_axes(size_axe)
         self.axe_b = axe_b
-        axe_b.set_xlabel('k_h')
-        axe_b.set_ylabel('Pi(k_h) energy')
+        axe_b.set_xlabel(r'$k_h$')
+        axe_b.set_ylabel(r'$\Pi(k_h)$')
         axe_b.hold(True)
         axe_b.set_xscale('log')
 

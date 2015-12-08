@@ -37,16 +37,22 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 Ek, = self.output.compute_energies()
             except:
                 Ek = self.output.compute_energy()
+
             u0 = np.sqrt(Ek)            # TODO: Why not sqrt(2.*Ek)
             ux_fft = state('ux_fft')
             uy_fft = state('uy_fft')
-            ux_fft = ux_fft / u0
-            uy_fft = uy_fft / u0
+            if u0 != 0.:
+                ux_fft = ux_fft / u0
+                uy_fft = uy_fft / u0
+
             try:
                 self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-                self.sim.state.init_statefft_from(rot_fft=rot_fft) 
+                self.sim.state.init_statefft_from(rot_fft=rot_fft)
+
+        elif scale == 'unity':
+            pass
             
     def set_viscosity(self):
         """
@@ -78,6 +84,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         delta_x = self.oper.deltax
         k_max = np.pi / delta_x * self.sim.params.oper.coef_dealiasing # Smallest resolved scale
         length_scale = C * np.pi / k_max # OR np.pi / k_d, the dissipative wave number
+        # k_f = (self.sim.params.forcing.nkmax_forcing + self.sim.params.forcing.nkmin_forcing) / 2 * sim.oper.deltakh # Forcing scale
+        # length_scale_f = np.pi / k_f
     
         if viscosity_scale == 'enstrophy':                     
             omega_0 = self.output.compute_enstrophy()
@@ -121,7 +129,9 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
     def set_forcing_rate(self):
         r"""
-        Based on
+        Based on C, a non-dimensional ratio of forcing rate to
+        one of the following forcing scales
+         - the initial total energy, math:: E_0
          - the initial total enstrophy, math:: \Omega_0 
         the forcing rate is set.
 
@@ -138,13 +148,17 @@ class PreprocessPseudoSpectral(PreprocessBase):
         
         forcing_scale = params.forcing_scale
         C = params.forcing_const
-        delta_x = self.oper.deltax
-        k_f = self.oper.deltakx * (self.sim.params.forcing.nkmax_forcing + 
+        k_f = self.oper.deltakh * (self.sim.params.forcing.nkmax_forcing + 
                                    self.sim.params.forcing.nkmin_forcing) / 2 # Forcing wavenumber
         
-        if forcing_scale == 'enstrophy':                     
+        if forcing_scale == 'unity':
+            self.sim.params.forcing.forcing_rate = C
+        elif forcing_scale == 'energy':
+            energy_0 = self.output.compute_energy()
+            self.sim.params.forcing.forcing_rate = C * energy_0 ** 1.5 * k_f 
+        elif forcing_scale == 'enstrophy':                     
             omega_0 = self.output.compute_enstrophy()
-            self.sim.params.forcing.forcing_rate = (omega_0 / C) ** 1.5 / k_f ** 2
+            self.sim.params.forcing.forcing_rate = C * omega_0 ** 1.5 / k_f ** 2
         else:
             raise ValueError('Unknown forcing scale: %s'% scale)
 

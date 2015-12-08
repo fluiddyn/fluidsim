@@ -99,9 +99,6 @@ class InitFieldsVortexGrid(SpecificInitFields):
         oper = self.sim.oper
         params = self.sim.params.init_fields.vortex_grid
 
-        def wz_gaussian(XX, YY, sign, Amp=1., sigma=10.):
-            return (sign * Amp * np.exp(- (XX**2 + YY**2) / (2 * sigma**2)))
-        
         Lx = oper.Lx
         Ly = oper.Ly
         XX = oper.XX
@@ -125,14 +122,16 @@ class InitFieldsVortexGrid(SpecificInitFields):
             params.sd = SD
 
         amp = params.omega_max
-
+        wz_gaussian = lambda x, y, sign:(
+                sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD**2)))
+        
         omega = np.zeros(shape)
         for i in xrange(0, N_vort):
             x0 = x_vort[i]
             for j in xrange(0, N_vort):
                 y0 = y_vort[j]
                 sign = sign_list.pop()
-                omega = omega + wz_gaussian(XX - x0, YY - y0, sign, amp, SD)
+                omega = omega + wz_gaussian(XX - x0, YY - y0, sign)
 
         return omega
 
@@ -160,7 +159,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
                 "Mismatch between number of clockwise and anticlockwise vortices in initialisation")
         return pm
     
-        
+       
 class InitFieldsSW1L(InitFieldsBase):
     """Init the fields for the solver SW1L."""
 

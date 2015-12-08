@@ -136,6 +136,8 @@ class SimulBasePseudoSpectral(SimulBase):
         f_d_hypo : `numpy.array`
             The dissipation frequency at large scale (hypo-viscosity)
 
+        .. FIXME: Shouldn't fourth order viscosity be negative?
+
         """
         if self.params.nu_2 > 0:
             f_d = self.params.nu_2*self.oper.K2
