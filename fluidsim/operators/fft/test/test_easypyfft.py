@@ -112,12 +112,12 @@ class TestFFTW3DReal2Complex(unittest.TestCase):
 
         energyK = op.compute_energy_from_Fourier(func_fft)
 
-        func = op.ifft3d(func_fft)
+        func = op.ifft(func_fft)
         energyX = op.compute_energy_from_spatial(func)
 
-        back_fft = op.fft3d(func)
+        back_fft = op.fft(func)
         energyKback = op.compute_energy_from_Fourier(back_fft)
-        back = op.ifft3d(back_fft)
+        back = op.ifft(back_fft)
 
         self.assertTrue(np.allclose(func_fft, back_fft))
         self.assertTrue(np.allclose(func, back))
@@ -134,8 +134,8 @@ class TestFFTW3DReal2Complex(unittest.TestCase):
 
         func_fft = (np.random.random(op.shapeK)
                     + 1.j*np.random.random(op.shapeK))
-        func = op.ifft3d(func_fft)
-        func_fft_back = op.fft3d(func)
+        func = op.ifft(func_fft)
+        func_fft_back = op.fft(func)
 
         self.compute_and_check(func_fft_back, op)
 

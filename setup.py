@@ -62,6 +62,9 @@ except ImportError:
 else:
     MPI4PY = True
     os.environ["CC"] = 'mpicc'
+    # we may also need to define the variable LDSHARED...
+    # see sysconfig.get_config_var('LDSHARED')
+    # os.environ["LDSHARED"] = 'mpicc -shared'
     include_dirs_mpi = [
         mpi4py.get_include(),
         here + '/include']
@@ -80,7 +83,7 @@ if MPI4PY and FFTW3:
     ext_fftw2dmpiccy = Extension(
         'fluidsim.operators.fft.fftw2dmpiccy',
         include_dirs=include_dirs,
-        libraries=['mpi', 'fftw3', 'm'],
+        libraries=['fftw3', 'm'],
         library_dirs=[],
         sources=[path_sources+'/libcfftw2dmpi.c',
                  path_sources+'/fftw2dmpiccy.pyx'])
@@ -92,7 +95,6 @@ if FFTW3:
     libraries = ['m']
     if MPI4PY:
         include_dirs.extend(include_dirs_mpi)
-        libraries.append('mpi')
 
     library_dirs = []
     if sys.platform == 'win32':
@@ -124,7 +126,6 @@ include_dirs = [path_sources, np.get_include()]
 libraries = ['m']
 if MPI4PY:
     include_dirs.extend(include_dirs_mpi)
-    libraries.extend(['mpi'])
 ext_operators = Extension(
     'fluidsim.operators.operators',
     include_dirs=include_dirs,

@@ -6,6 +6,9 @@ develop:
 clean_so:
 	find fluidsim -name "*.so" -delete
 
+clean:
+	rm -rf build
+
 tests:
 	python -m unittest discover
 
