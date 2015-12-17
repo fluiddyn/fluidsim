@@ -12,11 +12,11 @@ except ImportError:
 
 import subprocess
 import numpy as np
-
 import os
-here = os.path.abspath(os.path.dirname(__file__))
-
 import sys
+from config import MPI4PY, FFTW3, FFTW3MPI, dico_ldd, dico_lib, dico_inc
+
+here = os.path.abspath(os.path.dirname(__file__))
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 2):
     raise RuntimeError("Python version 2.7 or >= 3.2 required.")
 
@@ -39,80 +39,13 @@ elif 'b' in __version__:
 else:
     devstatus = 'Development Status :: 5 - Production/Stable'
 
-
-try:
-    libraries = subprocess.check_output('/sbin/ldconfig -p', shell=True)
-except subprocess.CalledProcessError:
-    libraries = []
-
-
-def check_avail_library(library_name):
-    if sys.platform != 'win32':
-        library_name = 'lib' + library_name
-
-    return library_name in libraries
-
-def find_library_dirs(args, library_dirs=[], debug=False):
-    """Takes care of non-standard library directories, instead of using LDFLAGS."""
-
-    for library_name in args:
-        libso = "'lib"+library_name+".so'"
-        filter1 = " | grep " + libso 
-        filter2 = " | awk -F'=> ' '{print $2}'"
-        filter3 = " | awk -F" + libso + " '{print $1}'"
-        try:
-            cmd = 'readlink -f $(/sbin/ldconfig -p' + filter1 + filter2 + ')' + filter3
-            if debug:
-                print(cmd)
-
-            proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            dirs = proc.communicate()[0]
-            for item in dirs.split('\n'):
-                if item != '':
-                    library_dirs.append(item)
-
-        except subprocess.CalledProcessError:
-            print('Cannot extract library directory: '+library_name)
-
-    default_dirs = ['/usr/lib/','/usr/lib32/']
-    library_dirs = list(set(library_dirs) - set(default_dirs))
-    if debug:
-        print('LDFLAGS for ',args,' => ',library_dirs)
-
-    return library_dirs
-
-try:
-    import mpi4py
-except ImportError:
-    MPI4PY = False
-    include_dirs_mpi = []
-    print('ImportError of mpi4py: no mpi extensions will be built.')
-else:
-    MPI4PY = True
-    os.environ["CC"] = 'mpicc'
-    include_dirs_mpi = [
-        mpi4py.get_include(),
-        here + '/include']
-
-FFTW3 = check_avail_library('fftw3')
-FFTW3MPI = check_avail_library('fftw3_mpi')
-include_dirs_fftw = []
-if FFTW3 or FFTW3MPI:
-    try:
-        include_dirs_fftw = [os.environ['FFTW_INC']] # TODO: Needs to be more general, CFLAGS?
-    except KeyError:
-        pass
-
-del libraries
-
-
 ext_modules = []
 
-if MPI4PY and FFTW3:
+if MPI4PY and FFTW3: #..TODO: Redundant? Check.
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
-    include_dirs = [path_sources, np.get_include()] + include_dirs_mpi + include_dirs_fftw
-    libraries = ['mpi', 'fftw3', 'm']
-    library_dirs = find_library_dirs(libraries)
+    include_dirs = [path_sources, np.get_include()] + dico_inc['mpi'] + dico_inc['fftw']
+    libraries = dico_ldd['mpi'] + dico_ldd['fftw'] + ['m']
+    library_dirs = dico_lib['mpi'] + dico_lib['fftw']
 
     ext_fftw2dmpiccy = Extension(
         'fluidsim.operators.fft.fftw2dmpiccy',
@@ -125,29 +58,11 @@ if MPI4PY and FFTW3:
 
 if FFTW3:
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
-    include_dirs = [path_sources, np.get_include()] + include_dirs_fftw
-    libraries = ['m']
-    library_dirs = []
-    if MPI4PY:
-        include_dirs.extend(include_dirs_mpi)
-        libraries.append('mpi')
-        library_dirs = find_library_dirs(libraries, library_dirs)
-
-    if sys.platform == 'win32':
-        if MPI4PY:
-            raise ValueError(
-                'We have to work on this case with MPI4PY on Windows...')
-        fftw_dir = r'c:\Prog\fftw-3.3.4-dll64'
-        library_dirs.append(fftw_dir)
-        include_dirs.append(fftw_dir)
-        libraries.append('libfftw3-3')
-    else:
-        libraries.append('fftw3')
+    include_dirs = [path_sources, np.get_include()] + dico_inc['mpi'] + dico_inc['fftw']
+    libraries = dico_ldd['mpi'] + dico_ldd['fftw'] + ['m']
+    library_dirs = dico_lib['mpi'] + dico_lib['fftw']
 
     if FFTW3MPI:
-        libraries.append('fftw3_mpi')
-        library_dirs = find_library_dirs(libraries, library_dirs)
-
         ext_fftw2dmpicy = Extension(
             'fluidsim.operators.fft.fftw2dmpicy',
             include_dirs=include_dirs,
@@ -157,15 +72,11 @@ if FFTW3:
             sources=[path_sources+'/fftw2dmpicy.pyx'])
         ext_modules.append(ext_fftw2dmpicy)
 
-
 path_sources = 'fluidsim/operators/CySources'
-include_dirs = [path_sources, np.get_include()]
-libraries = ['m']
-if MPI4PY:
-    include_dirs.extend(include_dirs_mpi)
-    libraries.extend(['mpi'])
+include_dirs = [path_sources, np.get_include()] + dico_inc['mpi']
+libraries = dico_ldd['mpi'] + ['m']
+library_dirs = dico_lib['mpi']
 
-library_dirs = find_library_dirs(libraries, library_dirs)
 ext_operators = Extension(
     'fluidsim.operators.operators',
     include_dirs=include_dirs,

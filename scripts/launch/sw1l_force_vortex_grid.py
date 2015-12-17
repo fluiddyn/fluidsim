@@ -7,10 +7,10 @@ from fluidsim.util.util import mpi
 
 params = Simul.create_default_params()
 params.short_name_type_run = 'vortex_grid'
-params.output.sub_directory = 'spect_energy_budg_tests2'
+params.output.sub_directory = 'beskow_tests'
 
 # --------Grid parameters---------
-params.oper.nx = params.oper.ny = nh = 256
+params.oper.nx = params.oper.ny = nh = 512
 params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 delta_x = Lh / nh
 
@@ -18,7 +18,7 @@ delta_x = Lh / nh
 params.f = 0.
 params.c2 = 100
 params.oper.coef_dealiasing = 2./3
-params.time_stepping.t_end = 20.
+params.time_stepping.t_end = 100.
 params.init_fields.type = 'vortex_grid'
 
 # ----- Forcing parameters -----------
@@ -39,7 +39,7 @@ params.output.period_refresh_plots = 0.5
 params.output.periods_plot.phys_fields = 0.0
 #params.output.spatial_means.HAS_TO_PLOT_SAVED = True
 #params.output.spectra.HAS_TO_PLOT_SAVED = True
-params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
+#params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
 
 params.output.periods_save.phys_fields = 1.
 params.output.periods_save.spectra = 0.1
