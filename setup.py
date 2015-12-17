@@ -27,8 +27,8 @@ lines = long_description.splitlines(True)
 long_description = ''.join(lines[8:])
 
 # Get the version from the relevant file
-from runpy import run_path
-d = run_path('fluidsim/_version.py')
+d = {}
+execfile('fluidsim/_version.py', d)
 __version__ = d['__version__']
 
 # Get the development status from the version string
@@ -92,6 +92,9 @@ except ImportError:
 else:
     MPI4PY = True
     os.environ.setdefault('CC', 'mpicc')
+    # we may also need to define the variable LDSHARED...
+    # see sysconfig.get_config_var('LDSHARED')
+    # os.environ["LDSHARED"] = 'mpicc -shared'
     include_dirs_mpi = [
         mpi4py.get_include(),
         here + '/include']

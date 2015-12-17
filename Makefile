@@ -1,3 +1,5 @@
+
+
 develop:
 	python setup.py develop
 
@@ -6,6 +8,9 @@ clean_so:
 
 clean_pyc:
 	find fluidsim -name "*.pyc" -delete
+
+clean:
+	rm -rf build
 
 tests:
 	python -m unittest discover
