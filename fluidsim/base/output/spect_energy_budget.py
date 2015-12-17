@@ -15,7 +15,7 @@ def inner_prod(a_fft, b_fft):
 
 
 class SpectralEnergyBudgetBase(SpecificOutput):
-    """A :class:`Spectra` object handles the saving of .
+    """Handle the saving and plotting of spectral energy budget.
 
     This class uses the particular functions defined by some solvers
     :func:`` and
@@ -65,8 +65,8 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.fig, axe_a = self.output.figure_axe(size_axe=size_axe,
                                                  numfig=4000000)
         self.axe_a = axe_a
-        axe_a.set_xlabel('k_h')
-        axe_a.set_ylabel('Pi(k_h) energy')
+        axe_a.set_xlabel(r'$k_h$')
+        axe_a.set_ylabel(r'$\Pi(k_h)$')
         axe_a.set_title('energy flux, solver ' + self.output.name_solver +
                         ', nh = {0:5d}'.format(self.nx))
         axe_a.hold(True)
@@ -76,13 +76,22 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         size_axe[1] = z_bottom_axe
         axe_b = self.fig.add_axes(size_axe)
         self.axe_b = axe_b
-        axe_b.set_xlabel('k_h')
-        axe_b.set_ylabel('Pi(k_h) energy')
+        axe_b.set_xlabel(r'$k_h$')
+        axe_b.set_ylabel(r'$\Pi(k_h)$')
         axe_b.hold(True)
         axe_b.set_xscale('log')
 
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
-        """Compute a non-linear term."""
+        r"""
+        Compute a non-linear term.
+        
+        Notes
+        -----
+        Returns an fft-sized nd-array equivalent to the expression:
+
+        .. math:: - \widehat{(\vec{u}.\nabla)f}
+        """
+
         oper = self.oper
         px_f_fft, py_f_fft = oper.gradfft_from_fft(f_fft)
         px_f = oper.ifft2(px_f_fft)

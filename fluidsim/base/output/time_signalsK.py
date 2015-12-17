@@ -55,6 +55,10 @@ class TimeSignalsK(SpecificOutput):
             period_plot=params.output.periods_plot.time_signals_fft)
 
     def _init_save(self, sim):
+        """
+        Sets the attribs determining how many wavenumbers are selected from
+        each shell, for which the time series is saved.
+        """
         params = self.params
         self.nb_shells = params.output.time_signals_fft.nb_shells_time_sigK
         self.nb_k_per_shell = \

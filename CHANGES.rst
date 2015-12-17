@@ -1,4 +1,13 @@
 
+0.0.3a0
+-------
+
+Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
+
+- Movies.
+- Preprocessing of parameters.
+- Less bugs.
+
 0.0.2a1
 -------
 

@@ -60,6 +60,11 @@ class ForcingBase(object):
 
         self._forcing = ClassForcing(sim)
 
+    def __call__(self, key):
+        """Return the variable corresponding to the given key."""
+        forcing = self.get_forcing()
+        return forcing.get_var(key)
+
     def compute(self):
         self._forcing.compute()
 
@@ -82,3 +87,4 @@ class ForcingBasePseudoSpectral(ForcingBase):
 
     def get_forcing(self):
         return self._forcing.forcing_fft
+    

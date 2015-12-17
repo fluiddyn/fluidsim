@@ -342,7 +342,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     cdef public object scatter_Xspace, scatter_Kspace
     cdef public object project_fft_on_realX
     cdef public object params
-    cdef public np.ndarray K2_not0, K4_not0, KX_over_K2, KY_over_K2
+    cdef public np.ndarray KK_not0, K2_not0, K4_not0, KX_over_K2, KY_over_K2
     cdef public np.ndarray Kappa2, Kappa_over_ic, f_over_c2Kappa2
     cdef public np.ndarray where_dealiased
 
@@ -468,9 +468,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         GridPseudoSpectral2D.__init__(self, nx, ny, Lx, Ly,
                                       op_fft2d=op_fft2d, SEQUENTIAL=SEQUENTIAL)
 
+        self.KK_not0 = self.KK.copy()
         self.K2_not0 = self.K2.copy()
         self.K4_not0 = self.K4.copy()
         if rank == 0 or SEQUENTIAL:
+            self.KK_not0[0, 0] = 10.e-10
             self.K2_not0[0, 0] = 10.e-10
             self.K4_not0[0, 0] = 10.e-10
 
@@ -480,9 +482,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         try:
             self.Kappa2 = self.K2 + self.params.kd2
 
-            self.Kappa_over_ic = -1.j*np.sqrt(
-                self.Kappa2/self.params.c2
-                )
+            self.Kappa_over_ic = -1.j * np.sqrt(self.Kappa2/self.params.c2)
 
             if self.params.f != 0:
                 self.f_over_c2Kappa2 = self.params.f/(
@@ -641,7 +641,6 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         n1 = self.nK1_loc
 
         KX = self.KX
-        KY = self.KY
 
         px_f_fft = np.empty([n0, n1], dtype=np.complex128)
 
@@ -657,6 +656,37 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                     px_f_fft[i0, i1] = 1j * KX[i0, i1]*fc_fft[i0, i1]
 
         return px_f_fft
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def pyffft_from_fft(self, f_fft):
+        """Return the gradient of f_fft in spectral space."""
+        cdef Py_ssize_t i0, i1, n0, n1
+        cdef np.ndarray[DTYPEf_t, ndim=2] KY
+        cdef np.ndarray[DTYPEc_t, ndim=2] py_f_fft
+
+        cdef np.ndarray[DTYPEc_t, ndim=2] fc_fft
+        cdef np.ndarray[DTYPEf_t, ndim=2] ff_fft
+
+        n0 = self.nK0_loc
+        n1 = self.nK1_loc
+
+        KY = self.KY
+
+        py_f_fft = np.empty([n0, n1], dtype=np.complex128)
+
+        if f_fft.dtype == np.float64:
+            ff_fft = f_fft
+            for i0 in xrange(n0):
+                for i1 in xrange(n1):
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*ff_fft[i0, i1]
+        else:
+            fc_fft = f_fft
+            for i0 in xrange(n0):
+                for i1 in xrange(n1):
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*fc_fft[i0, i1]
+
+        return py_f_fft
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -833,8 +863,8 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         return q_fft, div_fft, ageo_fft
 
     def apamfft_from_adfft(self, a_fft, d_fft):
-        """Return the engein modes ap and am."""
-        Delta_a_fft = self.Kappa_over_ic*d_fft
+        """Return the eigen modes ap and am."""
+        Delta_a_fft = self.Kappa_over_ic * d_fft
         ap_fft = 0.5*(a_fft + Delta_a_fft)
         am_fft = 0.5*(a_fft - Delta_a_fft)
         return ap_fft, am_fft
@@ -842,7 +872,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def divfft_from_apamfft(self, ap_fft, am_fft):
-        """Return div from the engein modes ap and am."""
+        """Return div from the eigen modes ap and am."""
         cdef Py_ssize_t i0, i1, n0, n1
         cdef Py_ssize_t rank = self.rank
         cdef np.ndarray[DTYPEc_t, ndim=2] Kappa_over_ic, Delta_a_fft

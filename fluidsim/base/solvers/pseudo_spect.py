@@ -65,6 +65,12 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
             'Operators',
             attribs={'module_name': 'fluidsim.operators.operators',
                      'class_name': 'OperatorsPseudoSpectral2D'})
+        
+        self.classes._set_child(
+            'Preprocess',
+            attribs={'module_name':
+                     'fluidsim.base.preprocess.pseudo_spect',
+                     'class_name': 'PreprocessPseudoSpectral'})
 
 
 class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
@@ -129,6 +135,8 @@ class SimulBasePseudoSpectral(SimulBase):
 
         f_d_hypo : `numpy.array`
             The dissipation frequency at large scale (hypo-viscosity)
+
+        .. FIXME: Shouldn't fourth order viscosity be negative?
 
         """
         if self.params.nu_2 > 0:

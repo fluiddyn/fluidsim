@@ -26,3 +26,9 @@ class InfoSolverFiniteDiff(InfoSolverBase):
             attribs={'module_name':
                      'fluidsim.operators.op_finitediff',
                      'class_name': 'OperatorFiniteDiff1DPeriodic'})
+        
+        self.classes._set_child(
+            'Preprocess',
+            attribs={'module_name':
+                     'fluidsim.base.preprocess.base',
+                     'class_name': 'PreprocessBase'}) # TODO: When required write a PreprocessFiniteDiff class.

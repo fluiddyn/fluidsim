@@ -308,7 +308,6 @@ class InitFieldsConstant(SpecificInitFields):
         self.sim.state.state_phys.initialize(value)
         self.sim.state.statefft_from_statephys()
 
-
 #     def init_fields_wave(self):
 #         ikx = self.sim.params.ikx
 #         eta0 = self.sim.params.eta0

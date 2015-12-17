@@ -4,9 +4,14 @@ syntax: glob
 *.pyc
 *~
 *tmp
-*cy.html	
-
+*cy.html
+*.swp
+*.swo
+*.out
+*.kate-swp
 \#*\#
+.spyderworkspace
+.spyderproject
 
 doc/_build/*
 doc/**generated/*

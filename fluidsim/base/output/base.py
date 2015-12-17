@@ -189,29 +189,35 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 'path_run =\n' + self.path_run + '\n' +
                 'init_fields.type: ' + sim.params.init_fields.type)
 
-        if mpi.rank == 0 and self.has_to_save and sim.params.NEW_DIR_RESULTS:
-            # save info on the run
-            self.sim.info.solver._save_as_xml(
-                path_file=self.path_run+'/info_solver.xml',
-                comment=(
-                    'This file has been created by'
-                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
-                    '.\n\nIt should not be modified '
-                    '(except for adding xml comments).'))
-
-            self.sim.params._save_as_xml(
-                path_file=self.path_run+'/params_simul.xml',
-                comment=(
-                    'This file has been created by'
-                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
-                    '.\n\nIt should not be modified '
-                    '(except for adding xml comments).'))
-
+        self.save_info_solver_params_xml()
+        
         if mpi.rank == 0:
             plt.ion()
 
         if self.sim.state.is_initialized:
             self.init_with_initialized_state()
+    
+    def save_info_solver_params_xml(self, replace=False):
+        comment = ('This file has been created by'
+                   ' the Python program FluidDyn ' + fluiddyn.__version__ +
+                   '.\n\nIt should not be modified '
+                   '(except for adding xml comments).')
+        info_solver_xml_path = self.path_run + '/info_solver.xml'
+        params_xml_path = self.path_run + '/params_simul.xml'
+        
+        if mpi.rank == 0 and self.has_to_save and self.sim.params.NEW_DIR_RESULTS:
+            # save info on the run
+            if replace:
+                os.remove(info_solver_xml_path)
+                os.remove(params_xml_path)
+                
+            self.sim.info.solver._save_as_xml(
+                path_file=info_solver_xml_path,
+                comment=comment)
+
+            self.sim.params._save_as_xml(
+                path_file=params_xml_path,
+                comment=comment)        
 
     def init_with_initialized_state(self):
 
@@ -295,9 +301,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         self.__dict__[k].close_file()
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
-            new_path_run = os.path.join(FLUIDSIM_PATH, self.sim.name_run)
+            path_base = FLUIDSIM_PATH
+            if len(self.params.sub_directory) > 0:
+                path_base = os.path.join(path_base, self.params.sub_directory)
+            
+            if mpi.rank == 0:
+                if not os.path.exists(path_base):
+                    os.makedirs(path_base)
+            
+            new_path_run = os.path.join(path_base, self.sim.name_run)
+            shutil.move(self.path_run, path_base)
             print('move result directory in directory:\n' + new_path_run)
-            shutil.move(self.path_run, FLUIDSIM_PATH)
             self.path_run = new_path_run
             for spec_output in self.__dict__.values():
                 if isinstance(spec_output, SpecificOutput):

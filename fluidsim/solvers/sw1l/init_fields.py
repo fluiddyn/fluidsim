@@ -1,5 +1,28 @@
+"""Initialisation of the fields (:mod:`fluiddyn.simul.base.init_fields`)
+========================================================================
 
-"""InitFieldsSW1L"""
+.. currentmodule:: fluiddyn.simul.sw1l.init_fields
+
+Provides:
+
+.. autoclass:: InitFieldsNoise
+   :members:
+   :private-members:
+
+.. autoclass:: InitFieldsWave
+   :members:
+   :private-members:
+
+.. autoclass:: InitFieldsVortexGrid
+   :members:
+   :private-members:
+
+.. autoclass:: InitFieldsSW1L
+   :members:
+   :private-members:
+
+"""
+
 
 import numpy as np
 
@@ -43,6 +66,100 @@ class InitFieldsWave(SpecificInitFields):
         self.sim.state.init_from_etafft(eta_fft)
 
 
+class InitFieldsVortexGrid(SpecificInitFields):
+    """
+        Initializes the vorticity field with n_vort^2 Gaussian vortices in a square grid.
+        Vortices are randomly assigned clockwise / anti-clockwise directions;
+        with equal no of vortices for each direction.
+
+        Parameters
+        ----------
+        omega_max : Max vorticity of a single vortex at its center
+        n_vort : No. of vortices along one edge of the square grid, should be       even integer
+        sd : Standard Deviation of the gaussian, optional
+             If not specified, follows six-sigma rule based on half vortex spacing
+
+    """
+    tag = 'vortex_grid'
+    
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        super(InitFieldsVortexGrid, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={
+            'omega_max': 1.,
+            'n_vort': 8,
+            'sd': None})
+
+    def __call__(self):
+        rot = self.vortex_grid_shape()
+        rot_fft = self.sim.oper.fft2(rot)
+        self.sim.state.init_from_rotfft(rot_fft)
+        
+    def vortex_grid_shape(self):
+        oper = self.sim.oper
+        params = self.sim.params.init_fields.vortex_grid
+
+        Lx = oper.Lx
+        Ly = oper.Ly
+        XX = oper.XX
+        YY = oper.YY
+        shape = oper.shapeX
+        N_vort = params.n_vort
+        SD = params.sd
+
+        if N_vort % 2 != 0:
+            raise ValueError("Cannot initialize a net circulation free field." +
+                             "N_vort should be even.")
+
+        dx_vort = Lx / N_vort
+        dy_vort = Ly / N_vort
+        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort / 2.
+        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
+        sign_list = self._random_plus_minus_list()
+
+        if SD is None:
+            SD = min(dx_vort, dy_vort) / 2. / 6.
+            params.sd = SD
+
+        amp = params.omega_max
+        wz_gaussian = lambda x, y, sign:(
+                sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD**2)))
+        
+        omega = np.zeros(shape)
+        for i in xrange(0, N_vort):
+            x0 = x_vort[i]
+            for j in xrange(0, N_vort):
+                y0 = y_vort[j]
+                sign = sign_list.pop()
+                omega = omega + wz_gaussian(XX - x0, YY - y0, sign)
+
+        return omega
+
+    def _random_plus_minus_list(self):
+        """
+        Returns a list with of length n_vort^2, with equal number of pluses and minuses.
+        """
+        from random import choice, shuffle
+        
+        N = self.sim.params.init_fields.vortex_grid.n_vort
+        plus_or_minus = (+1., -1.)
+        pm = list()
+
+        for i in xrange(0, N**2):
+            if i < N / 2:
+                pm.append(choice(plus_or_minus))
+            else:
+                pm.append(-pm[i - N / 2])
+
+        shuffle(pm)
+
+        if pm.count(+1.) != pm.count(-1.):
+            print "Clockwise: ", pm.count(-1.), ", Anti-clockwise: ", pm.count(+1.)
+            raise ValueError(
+                "Mismatch between number of clockwise and anticlockwise vortices in initialisation")
+        return pm
+    
+       
 class InitFieldsSW1L(InitFieldsBase):
     """Init the fields for the solver SW1L."""
 
@@ -53,4 +170,5 @@ class InitFieldsSW1L(InitFieldsBase):
         InitFieldsBase._complete_info_solver(
             info_solver,
             classes=[InitFieldsNoise, InitFieldsJet,
-                     InitFieldsDipole, InitFieldsWave])
+                     InitFieldsDipole, InitFieldsWave,
+                     InitFieldsVortexGrid])

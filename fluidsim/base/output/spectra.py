@@ -5,14 +5,12 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-
 from .base import SpecificOutput
+from .movies import MoviesBase1D
 
 
-class Spectra(SpecificOutput):
-    """Used for the saving of spectra.
-
-    """
+class Spectra(SpecificOutput, MoviesBase1D):
+    """Used for the saving of spectra."""
 
     _tag = 'spectra'
 
@@ -180,3 +178,28 @@ class Spectra(SpecificOutput):
 
     def plot2d(self):
         pass
+    
+    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax, ymax):
+        """.. TODO: Needs more generalization for all _ani functions replaced by inheritance;"""
+        
+        if xmax is None:
+            xmax = self.oper.khE[-1:][0]
+        if ymax is None:
+            ymax = 1.0
+        
+        super(Spectra, self)._ani_init(key_field, numfig, nb_contours, file_dt, xmax, ymax)
+    
+    def _ani_get_field(self, time):
+        raise NotImplementedError('_ani_get_field function declaration missing')
+    
+    def _select_field(self, field=None, key_field=None):
+        raise NotImplementedError('_select_field function declaration missing')
+    
+    def _select_axis(self, xlabel='kh'):
+        # x = self.oper.khE
+        f = h5py.File(self.path_file2D, 'r')
+        x = f['khE'][...]
+        self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
+        self._ani_ax.set_ylabel(self._ani_key, fontdict=self.font)
+        self._ani_ax.set_yscale('log')
+        return x    

@@ -1,14 +1,20 @@
 
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 from fluidsim.base.output.spatial_means import (
     SpatialMeansBase, inner_prod)
 
 
 class SpatialMeansMSW1L(SpatialMeansBase):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """Handle the saving of spatial mean quantities.
+
+       Viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also
+       handles the computation of forcing and dissipation rates for
+       sw1l.modified solver
+
+    """
 
     def __init__(self, output):
 
@@ -113,7 +119,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                                 CharneyPE_fft):
         """Compute and save dissipation rates."""
 
-        f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         dico_eps = self.compute_dissipation_rates(
             f_d, f_d_hypo,
@@ -183,7 +189,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             inner_prod(ux_fft, Fx_fft)
             + inner_prod(uy_fft, Fy_fft)
             )
-        PK2_fft = deltat/2*( abs(Fx_fft)**2 + abs(Fy_fft)**2 )
+        PK2_fft = deltat/2*(abs(Fx_fft)**2 + abs(Fy_fft)**2)
 
         PK1 = self.sum_wavenumbers(PK1_fft)
         PK2 = self.sum_wavenumbers(PK2_fft)
@@ -194,12 +200,11 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         PA1 = self.sum_wavenumbers(PA1_fft)
         PA2 = self.sum_wavenumbers(PA2_fft)
 
-
-        if mpi.rank==0:
+        if mpi.rank == 0:
 
             PK_tot = PK1+PK2
             PA_tot = PA1+PA2
-            to_print =  (
+            to_print = (
 'PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n'
 'PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n'
 ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
@@ -209,8 +214,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         if self.has_to_plot and mpi.rank == 0:
             tsim = self.sim.time_stepping.t
             self.axe_b.plot(tsim, PK_tot+PA_tot, 'c.')
-
-
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
@@ -227,7 +230,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         lines_epsK = []
 
-
         lines_PK = []
         lines_PA = []
         lines_etaskew = []
@@ -235,21 +237,21 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         lines_Conv = []
 
         for il, line in enumerate(lines):
-            if line[0:6]=='time =':
+            if line[0:6] == 'time =':
                 lines_t.append(line)
-            if line[0:8]=='E      =':
+            if line[0:8] == 'E      =':
                 lines_E.append(line)
-            if line[0:8]=='EK     =':
+            if line[0:8] == 'EK     =':
                 lines_EK.append(line)
-            if line[0:8]=='epsK   =':
+            if line[0:8] == 'epsK   =':
                 lines_epsK.append(line)
-            if line[0:8]=='epsA   =':
+            if line[0:8] == 'epsA   =':
                 lines_epsA.append(line)
-            if line[0:8]=='epsCPE =':
+            if line[0:8] == 'epsCPE =':
                 lines_epsCPE.append(line)
-            if line[0:8]=='PK1    =':
+            if line[0:8] == 'PK1    =':
                 lines_PK.append(line)
-            if line[0:8]=='PA1    =':
+            if line[0:8] == 'PA1    =':
                 lines_PA.append(line)
             if line.startswith('eta skew ='):
                 lines_etaskew.append(line)
@@ -259,7 +261,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 lines_Conv.append(line)
 
         nt = len(lines_t)
-        if nt>1: 
+        if nt > 1:
             nt -= 1
 
         t = np.empty(nt)
@@ -278,7 +280,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         epsCPE = np.empty(nt)
         epsCPE_hypo = np.empty(nt)
         epsCPE_tot = np.empty(nt)
-
 
         if len(lines_PK) == len(lines_t):
             PK1 = np.empty(nt)
@@ -367,11 +368,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 c2eta2d[il] = float(words[10])
                 c2eta3d[il] = float(words[14])
 
-
-
-
-
-
         dico_results['t'] = t
         dico_results['E'] = E
         dico_results['CPE'] = CPE
@@ -391,7 +387,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         dico_results['epsCPE'] = epsCPE
         dico_results['epsCPE_hypo'] = epsCPE_hypo
         dico_results['epsCPE_tot'] = epsCPE_tot
-
 
         if len(lines_PK) == len(lines_t):
             dico_results['PK1'] = PK1
@@ -414,8 +409,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             dico_results['c2eta3d'] = c2eta3d
 
         return dico_results
-
-
 
     def plot(self):
         dico_results = self.load()
@@ -460,8 +453,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
         ax1.set_ylabel('$2E(t)/c^2$')
-        title = ('mean energy, solver '+self.output.name_solver+
-                 ', nh = {0:5d}'.format(self.nx)+
+        title = ('mean energy, solver ' + self.output.name_solver +
+                 ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
@@ -480,34 +473,31 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         title = ('mean Charney PE(t)')
         ax2.set_title(title)
         ax2.hold(True)
-        ax2.plot(t, CPE, 'k', linewidth=2 )
-
+        ax2.plot(t, CPE, 'k', linewidth=2)
 
         z_bottom_axe = 0.56
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
         ax1.set_ylabel('$P_E(t)$, $\epsilon(t)$')
-        title = ('forcing and dissipation, solver '+self.output.name_solver+
-', nh = {0:5d}'.format(self.nx)+
-', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
-)
+        title = ('forcing and dissipation, solver ' + self.output.name_solver +
+                 ', nh = {0:5d}'.format(self.nx) +
+                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
         if 'PK_tot' in dico_results:
-            (l_P_tot,) = ax1.plot(t, P_tot, 'c', linewidth=2 )
+            (l_P_tot,) = ax1.plot(t, P_tot, 'c', linewidth=2)
             l_P_tot.set_label('$P_{tot}$')
 
-        (l_epsE,) = ax1.plot(t, epsE, 'k--', linewidth=2 )
-        (l_epsE_hypo,) = ax1.plot(t, epsE_hypo, 'g', linewidth=2 )
-        (l_epsE_tot,) = ax1.plot(t, epsE_tot, 'k', linewidth=2 )
+        (l_epsE,) = ax1.plot(t, epsE, 'k--', linewidth=2)
+        (l_epsE_hypo,) = ax1.plot(t, epsE_hypo, 'g', linewidth=2)
+        (l_epsE_tot,) = ax1.plot(t, epsE_tot, 'k', linewidth=2)
 
         l_epsE.set_label('$\epsilon$')
         l_epsE_hypo.set_label('$\epsilon_{hypo}$')
         l_epsE_tot.set_label('$\epsilon_{tot}$')
 
         ax1.legend(loc=2)
-
 
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
@@ -517,14 +507,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         title = ('dissipation Charney PE')
         ax2.set_title(title)
         ax2.hold(True)
-        ax2.plot(t, epsCPE, 'k--', linewidth=2 )
-        ax2.plot(t, epsCPE_hypo, 'g', linewidth=2 )
-        ax2.plot(t, epsCPE_tot, 'r', linewidth=2 )
-
-
-
-
-
+        ax2.plot(t, epsCPE, 'k--', linewidth=2)
+        ax2.plot(t, epsCPE_hypo, 'g', linewidth=2)
+        ax2.plot(t, epsCPE_tot, 'r', linewidth=2)
 
 #         skew_eta = dico_results['skew_eta']
 #         kurt_eta = dico_results['kurt_eta']
@@ -545,29 +530,77 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 #         ax1.plot(t, skew_rot, 'r', linewidth=2)
 #         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
 
+    def plot_rates(self, keys='E'):
+        """Plots the time history of the time derivative of a spatial mean,
+        and also calculates the average of the same.
 
+        Parameters
+        ----------
+        key : string or a list of strings
 
+            Refers to the the spatial mean which you want to take time
+            derivative of.  Legal value include:
 
+            For ns2d ['E', 'Z']
+            For sw1l ['E', 'EK', 'EA', 'EKr', 'CPE']
 
+        Examples
+        --------
+        >>> plot_rates()
+        >>> plot_rates('Z')
+        >>> plot_rates(['E', 'Z'])
+        >>> plot_rates(['E', 'EK', 'EA', 'EKr', 'CPE'])
 
+        """
 
+        dico_results = self.load()
+        t = dico_results['t']
+        dt = np.gradient(t, 1.)
 
+        fig, axarr = plt.subplots(len(keys), sharex=True)
+        i = 0
+        for k in keys:
+            E = dico_results[k]
+            dE_dt = abs(np.gradient(E, 1.)/dt)
+            dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
+            try:
+                axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
+                axarr[i].set_ylabel(r'$\partial_t$' + keys[i])
+                axarr[i].legend()
+                #axarr[i].text(0.8, 0.9, 'mean = ' + dE_dt_avg, horizontalalignment='center', verticalalignment='center',)
+            except TypeError:
+                axarr.semilogy(t, dE_dt, label=dE_dt_avg)
+                axarr.set_ylabel(keys)
+                axarr.legend()
+            i += 1
+
+        try:
+            axarr[i-1].set_xlabel('t')
+        except TypeError:
+            axarr.set_xlabel('t')
+
+        plt.draw()
 
 
 class SpatialMeansSW1L(SpatialMeansMSW1L):
-    """A :class:`SpatialMean` object handles the saving of ."""
+    """Handle the saving of spatial mean quantities.
+
+
+    Viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also
+    handles the computation of forcing and dissipation rates for sw1l solver.
+
+    """
 
     def treat_dissipation_rates(self, energyK_fft, energyA_fft,
                                 CharneyPE_fft):
         """Compute and save dissipation rates."""
 
-        f_d, f_d_hypo = self.sim.time_stepping.compute_freq_diss()
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         dico_eps = super(
             SpatialMeansSW1L, self
         ).compute_dissipation_rates(
             f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft)
-
 
         (epsKsuppl, epsKsuppl_hypo
          ) = self.compute_epsK(f_d, f_d_hypo, energyK_fft, dico_eps)
@@ -575,9 +608,9 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         super(SpatialMeansSW1L, self).save_dissipation_rates(dico_eps)
 
         if mpi.rank == 0:
-            to_print =  (
-'epsKsup= {0:11.6e} ; epsKshypo  = {1:11.6e} ;\n'
-).format(epsKsuppl,   epsKsuppl_hypo)
+            to_print = (
+                'epsKsup= {0:11.6e} ; epsKshypo  = {1:11.6e} ;\n'
+            ).format(epsKsuppl,   epsKsuppl_hypo)
             self.file.write(to_print)
 
     def compute_epsK(self, f_d, f_d_hypo,
@@ -602,8 +635,6 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         dico_eps['epsK_hypo'] += epsKsuppl_hypo
 
         return epsKsuppl, epsKsuppl_hypo
-
-
 
     def load(self):
 
@@ -634,16 +665,19 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
         return dico_results
 
-
     def treat_forcing(self):
-        """Save forcing injection rates."""
+        """
+        Save forcing injection rates.
+        """
         state = self.sim.state
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
         eta_fft = state('eta_fft')
 
-        Fx_fft, Fy_fft, Feta_fft = \
-            self.sim.forcing.get_FxFyFetafft()
+        forcing = self.sim.forcing
+        Fx_fft = forcing('ux_fft')
+        Fy_fft = forcing('uy_fft')
+        Feta_fft = forcing('eta_fft')
 
         deltat = self.sim.time_stepping.deltat
 
@@ -689,11 +723,11 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         PK1 = self.sum_wavenumbers(PK1_fft)
         PK2 = self.sum_wavenumbers(PK2_fft)
 
-        if mpi.rank==0:
+        if mpi.rank == 0:
 
             PK_tot = PK1+PK2
             PA_tot = PA1+PA2
-            to_print =  (
+            to_print = (
 'PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n'
 'PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n'
 ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
