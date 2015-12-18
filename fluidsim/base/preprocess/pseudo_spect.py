@@ -15,8 +15,10 @@ from .base import PreprocessBase
 
 class PreprocessPseudoSpectral(PreprocessBase):
     _tag = 'pseudo_spectral'
-
+    
     def __call__(self):
+        """Preprocesses if enabled."""
+
         if self.params.enable:
             self.normalize_init_fields()
             if self.sim.params.FORCING:
@@ -27,6 +29,11 @@ class PreprocessPseudoSpectral(PreprocessBase):
     def normalize_init_fields(self):
         """
         A non-dimensionalization procedure for the initialized fields.
+
+        Parameters
+        ----------------
+        init_field_scale : string (use 'energy', 'unity')
+            Set quantity to normalize initialized fields with.
         """
         state = self.sim.state
         scale = self.params.init_field_scale
@@ -37,7 +44,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             except:
                 Ek = self.output.compute_energy()
 
-            u0 = np.sqrt(Ek)            # TODO: Why not sqrt(2.*Ek)
+            u0 = np.sqrt(Ek)
             ux_fft = state('ux_fft')
             uy_fft = state('uy_fft')
             if u0 != 0.:
