@@ -2,9 +2,8 @@
 source /etc/profile
 module load anaconda/py27/2.3
 export CRAY_ROOTFS=DSL
-source ${HOME}/.bash_aliases
-source ${LOCAL_ANACONDA}/bin/activate ${LOCAL_ANACONDA}
-export ANACONDA_HOME=${LOCAL_ANACONDA}
+source $LOCAL_ANACONDA/bin/activate $LOCAL_ANACONDA
+export ANACONDA_HOME=$LOCAL_ANACONDA
 source activate_python
 echo 'PYTHONPATH=',$PYTHONPATH
 which python

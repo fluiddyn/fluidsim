@@ -90,7 +90,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def one_time_step_computation(self):
         """One time step"""
-        # import ipdb; ipdb.set_trace()
+
         self._time_step_RK()
         self.sim.oper.dealiasing(self.sim.state.state_fft)
         self.sim.state.statephys_from_statefft()

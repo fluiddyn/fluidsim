@@ -18,6 +18,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
     _tag = 'pseudo_spectral'
     
     def __call__(self):
+        """Preprocesses if enabled."""
+
         if self.params.enable:
             self.normalize_init_fields()
             if self.sim.params.FORCING:
@@ -28,6 +30,11 @@ class PreprocessPseudoSpectral(PreprocessBase):
     def normalize_init_fields(self):
         """
         A non-dimensionalization procedure for the initialized fields.
+
+        Parameters
+        ----------------
+        init_field_scale : string (use 'energy', 'unity')
+            Set quantity to normalize initialized fields with.
         """
         state = self.sim.state
         scale = self.params.init_field_scale
@@ -38,7 +45,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             except:
                 Ek = self.output.compute_energy()
 
-            u0 = np.sqrt(Ek)            # TODO: Why not sqrt(2.*Ek)
+            u0 = np.sqrt(Ek)
             ux_fft = state('ux_fft')
             uy_fft = state('uy_fft')
             if u0 != 0.:
@@ -57,18 +64,18 @@ class PreprocessPseudoSpectral(PreprocessBase):
     def set_viscosity(self):
         """
         Based on
-         - the initial total enstrophy, \Omega_0, or 
-         - the initial energy
-         - the forcing rate, \epsilon
+         - the initial total enstrophy, :math:`\Omega_0`, or 
+         - the initial energy, or
+         - the forcing rate :math:` = \epsilon`, dissipation rate of K.E.
         the viscosity scale or Reynolds number is set.
 
         Parameters
         ----------
-        params.preprocess.viscosity_type : string
+        viscosity_type : string (use 'laplacian', 'hyper4', 'hyper8', 'hypo')
             Type/Order of viscosity desired
-        params.preprocess.viscosity_scale : string
+        viscosity_scale : string (use 'enstrophy', 'enstrophy_forcing', 'energy_enstrophy', 'forcing')
             Mean quantity to be scaled against
-        params.preprocess.viscosity_const : float
+        viscosity_const : float
             Calibration constant to set dissipative wave number
 
         Note
@@ -84,8 +91,6 @@ class PreprocessPseudoSpectral(PreprocessBase):
         delta_x = self.oper.deltax
         k_max = np.pi / delta_x * self.sim.params.oper.coef_dealiasing # Smallest resolved scale
         length_scale = C * np.pi / k_max # OR np.pi / k_d, the dissipative wave number
-        # k_f = (self.sim.params.forcing.nkmax_forcing + self.sim.params.forcing.nkmin_forcing) / 2 * sim.oper.deltakh # Forcing scale
-        # length_scale_f = np.pi / k_f
     
         if viscosity_scale == 'enstrophy':                     
             omega_0 = self.output.compute_enstrophy()
@@ -131,18 +136,17 @@ class PreprocessPseudoSpectral(PreprocessBase):
         r"""
         Based on C, a non-dimensional ratio of forcing rate to
         one of the following forcing scales
-         - the initial total energy, math:: E_0
-         - the initial total enstrophy, math:: \Omega_0 
+         - the initial total energy, :math:`E_0`
+         - the initial total enstrophy, :math:`\Omega_0`
         the forcing rate is set.
 
         Parameters
         ----------
-        params.preprocess.forcing_const : float
-            Non-dimensional ratio of forcing_scale to forcing_rate
-        params.preprocess.forcing_scale : string
+        forcing_scale : string (use 'unity','energy','enstrophy')
             Mean quantity to be scaled against
+        forcing_const : float
+            Non-dimensional ratio of forcing_scale to forcing_rate
         
-        .. TODO : Trivial error in computing forcing rate
         """
         params = self.params
         
