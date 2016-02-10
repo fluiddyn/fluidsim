@@ -107,6 +107,10 @@ class FFTW2DReal2Complex:
 
         self.coef_norm = nx*ny
 
+        self.get_shapeK_seq = self.get_shapeK_loc = lambda s: shapeK
+        self.get_shapeX_seq = self.get_shapeX_loc = lambda s: shapeX
+
+        
     def fft2d(self, ff):
         self.arrayX[:] = ff
         self.fftplan(normalise_idft=False)
@@ -200,10 +204,10 @@ class FFTW3DReal2Complex:
     def get_k_adim_loc(self):
         return self.get_k_adim()
 
-    def get_orderK_dimX(self):
+    def get_dimX_K(self):
         return 0, 1, 2
 
-    def get_seq_index_firstK(self):
+    def get_seq_indices_first_K(self):
         return 0, 0
 
     def compute_energy_from_spatial(self, ff):
@@ -212,6 +216,40 @@ class FFTW3DReal2Complex:
     def project_fft_on_realX(self, ff_fft):
         return self.fft2d(self.ifft2d(ff_fft))
 
+    def build_invariant_arrayX_from_2d_indices12X(self, o2d, arr2d):
+
+        nX0, nX1, nX2 = self.get_shapeX_seq()
+        nX0loc, nX1loc, nX2loc = self.get_shapeX_loc()
+
+        if (nX1, nX2) != o2d.get_shapeX_seq():
+            raise ValueError('Not the same physical shape...')
+
+        # check that the 2d fft is not with distributed memory...
+        if o2d.get_shapeX_loc() != o2d.get_shapeX_loc():
+            raise ValueError('2d fft is with distributed memory...')
+
+        ind0seq_first, ind1seq_first = self.get_seq_indices_first_K()
+
+        if (nX1loc, nX2loc) == o2d.get_shapeX_loc():
+            arr3d_loc_2dslice = arr2d
+        else:
+            raise NotImplementedError
+
+        arr3d = np.empty([nX0loc, nX1loc, nX2loc])
+        for i0 in range(nX0loc):
+            arr3d[i0] = arr3d_loc_2dslice
+
+        return arr3d
+
+    def build_invariant_arrayK_from_2d_indices12X(self, o2d, arr2d):
+
+        nK0, nK1, nK2 = self.get_shapeK_seq()        
+        ret = np.zeros((nK0,) + tuple(o2d.get_shapeK_seq()),
+                       dtype=np.complex128)
+        
+        ret[0] = arr2d
+        return ret
+    
 
 class FFTW1D:
     """ A class to use fftw 1D """

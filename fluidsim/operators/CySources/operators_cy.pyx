@@ -356,12 +356,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         """This static method is used to complete the *params* container.
         """
         if nb_proc > 1:
-            type_fft = 'FFTWCCY'
+            type_fft = 'fftwccy'
         else:
             if not sys.platform == 'win32':
-                type_fft = 'FFTWCY'
+                type_fft = 'fftwcy'
             else:
-                type_fft = 'FFTWPY'
+                type_fft = 'fftwpy'
 
         attribs = {'type_fft': type_fft,
                    'TRANSPOSED_OK': True,
@@ -386,7 +386,13 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         Lx = params.oper.Lx
         Ly = params.oper.Ly
-        type_fft = str(params.oper.type_fft)
+        try:
+            type_fft = str(params.oper.type_fft2d)
+        except AttributeError:
+            type_fft = str(params.oper.type_fft)
+
+        type_fft = type_fft.lower()
+            
         coef_dealiasing = params.oper.coef_dealiasing
         TRANSPOSED = params.oper.TRANSPOSED_OK
 
@@ -399,24 +405,24 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if params is not None:
             self.params = params
 
-        list_type_fft = ['FFTWCY', 'FFTWCCY', 'FFTWPY', 'FFTPACK']
+        list_type_fft = ['fftwcy', 'fftwccy', 'fftwpy', 'fftpack']
         if type_fft not in list_type_fft:
             raise ValueError('type_fft should be in ' + repr(list_type_fft))
 
-        if type_fft == 'FFTWCCY' and nb_proc == 1:
-            type_fft = 'FFTWCY'
+        if type_fft == 'fftwccy' and nb_proc == 1:
+            type_fft = 'fftwcy'
 
         try:
-            if type_fft == 'FFTWCY':
+            if type_fft == 'fftwcy':
                 import fluidsim.operators.fft.fftw2dmpicy as fftw2Dmpi
         except ImportError as err:
             if nb_proc == 1:
-                type_fft = 'FFTWPY'
+                type_fft = 'fftwpy'
             else:
-                type_fft = 'FFTWCCY'
+                type_fft = 'fftwccy'
 
         try:
-            if type_fft == 'FFTWCCY':
+            if type_fft == 'fftwccy':
                 # We need to do this check because after the first
                 # import, the import statement doesn't raise the
                 # ImportError correctly (is it normal?)
@@ -429,23 +435,23 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 raise ValueError(
                     'if nb_proc>1, we need one of the libraries '
                     'fftw2Dmpicy or fftw2Dmpiccy')
-            type_fft = 'FFTWPY'
+            type_fft = 'fftwpy'
 
-        if type_fft == 'FFTWPY':
+        if type_fft == 'fftwpy':
             try:
                 import pyfftw
             except ImportError as err:
-                type_fft = 'FFTPACK'
+                type_fft = 'fftpack'
 
         self.type_fft = type_fft
 
         # Initialization of the fft transforms
-        if type_fft not in ['FFTWPY', 'FFTPACK']:
-            if not TRANSPOSED and type_fft == 'FFTWCCY':
-                raise ValueError('FFTWCCY does not suport the '
+        if type_fft not in ['fftwpy', 'fftpack']:
+            if not TRANSPOSED and type_fft == 'fftwccy':
+                raise ValueError('fftwccy does not support the '
                                  '(inefficient!) option TRANSPOSED=False')
 
-            if type_fft == 'FFTWCY':
+            if type_fft == 'fftwcy':
                 op_fft2d = fftw2Dmpi.FFT2Dmpi(ny, nx,
                                               TRANSPOSED=TRANSPOSED,
                                               SEQUENTIAL=SEQUENTIAL)
@@ -457,9 +463,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 self.scatter_Xspace = op_fft2d.scatter_Xspace
                 self.scatter_Kspace = op_fft2d.scatter_Kspace
 
-        elif type_fft == 'FFTWPY':
+        elif type_fft == 'fftwpy':
             op_fft2d = easypyfft.FFTW2DReal2Complex(nx, ny)
-        elif type_fft == 'FFTPACK':
+        elif type_fft == 'fftpack':
             op_fft2d = easypyfft.fftp2D(nx, ny)
 
         self.fft2 = op_fft2d.fft2d
@@ -1102,6 +1108,18 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         return ux_fft, uy_fft, eta_fft
 
+    def get_shapeK_loc(self):
+        return self.shapeK_loc
+
+    def get_shapeK_seq(self):
+        return self.shapeK_seq
+
+    def get_shapeX_loc(self):
+        return self.shapeX_loc
+
+    def get_shapeX_seq(self):
+        return self.shapeX_seq
+    
     def dealiasing(self, *args):
         for thing in args:
             if isinstance(thing, SetOfVariables):

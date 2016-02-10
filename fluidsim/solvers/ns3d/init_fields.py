@@ -15,14 +15,15 @@ class InitFieldsDipole(SpecificInitFields):
         # params.init_fields._set_child(cls.tag, attribs={'U': 1.})
 
     def __call__(self):
+        oper = self.sim.oper
         rot2d = self.vorticity_1dipole2d()
-        rot2d_fft = self.sim.oper.fft2d(rot2d)
+        rot2d_fft = oper.fft2d(rot2d)
 
-        vx2d_fft, vy2d_fft = self.sim.oper._oper2d.vecfft_from_rotfft(
+        vx2d_fft, vy2d_fft = oper._oper2d.vecfft_from_rotfft(
             rot2d_fft)
 
-        vx_fft = self.sim.oper.expand_3dfrom2d(vx2d_fft)
-        vy_fft = self.sim.oper.expand_3dfrom2d(vy2d_fft)
+        vx_fft = oper.build_invariant_arrayK_from_2d_indices12X(vx2d_fft)
+        vy_fft = oper.build_invariant_arrayK_from_2d_indices12X(vy2d_fft)
 
         self.sim.state.init_from_vxvyfft(vx_fft, vy_fft)
 

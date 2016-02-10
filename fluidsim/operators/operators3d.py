@@ -4,11 +4,13 @@ from math import pi
 
 import numpy as np
 
+from fluiddyn.util.mpi import nb_proc
 
 from fluidsim.operators.fft.easypyfft import FFTW3DReal2Complex
-from fluiddyn.util.mpi import nb_proc
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
 from fluidsim.base.setofvariables import SetOfVariables
+
+from fluidfft import create_fft_object
 
 
 def _make_str_length(length):
@@ -30,11 +32,12 @@ class OperatorsPseudoSpectral3D(object):
     - get_shapeX_seq
     - get_shapeK_loc
     - get_shapeK_seq
-    - get_orderK_dimX
-    - get_seq_index_firstK
+    - get_dimX_K
+    - get_seq_indices_first_K
 
     - get_k_adim_loc
     - sum_wavenumbers
+    - build_invariant_arrayK_from_2d_indices12X
 
     """
 
@@ -44,11 +47,12 @@ class OperatorsPseudoSpectral3D(object):
         """
 
         if nb_proc > 1:
-            type_fft = 'FluidPFFT'
+            type_fft = 'fluidfft3d.with_fftw3d'
         else:
-            type_fft = 'FFTWPY'
+            type_fft = 'fftwpy'
 
         attribs = {'type_fft': type_fft,
+                   'type_fft2d': 'fftwpy',
                    'TRANSPOSED_OK': True,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
@@ -68,11 +72,15 @@ class OperatorsPseudoSpectral3D(object):
         nz = self.nz_seq = params.oper.nz
 
         self.type_fft = type_fft = params.oper.type_fft
-        if type_fft == 'FFTWPY':
-            op_fft = self._op_fft = FFTW3DReal2Complex(nx, ny, nz)
+        if type_fft == 'fftwpy':
+            op_fft = FFTW3DReal2Complex(nx, ny, nz)
+        elif type_fft.startswith('fluidfft'):
+            op_fft = create_fft_object(type_fft, nx, ny, nz)
         else:
             raise NotImplementedError
 
+        self._op_fft = op_fft
+        
         # there is a problem here type_fft
         self._oper2d = OperatorsPseudoSpectral2D(params)
         self.ifft2 = self.ifft2d = self._oper2d.ifft2
@@ -104,7 +112,7 @@ class OperatorsPseudoSpectral3D(object):
         self.shapeK_loc = op_fft.get_shapeK_loc()
         self.nk0, self.nk1, self.nk2 = self.shapeK_loc
 
-        order = op_fft.get_orderK_dimX()
+        order = op_fft.get_dimX_K()
         if order == (0, 1, 2):
             self.deltaks = deltakz, deltaky, deltakx
         elif order == (1, 0, 2):
@@ -131,7 +139,7 @@ class OperatorsPseudoSpectral3D(object):
         self.K8 = self.K2**4
 
         self.seq_index_firstK0, self.seq_index_firstK1 = \
-            op_fft.get_seq_index_firstK()
+            op_fft.get_seq_indices_first_K()
 
         self.K_square_nozero = self.K2.copy()
 
@@ -168,14 +176,15 @@ class OperatorsPseudoSpectral3D(object):
             'Lx = ' + str_Lx + ' ; Ly = ' + str_Ly +
             ' ; Lz = ' + str_Lz + '\n')
 
-    def expand_3dfrom2d(self, arr2d):
-        if arr2d.dtype == np.complex128:
-            ret = np.zeros((self.nz_seq,) + arr2d.shape, dtype=np.complex128)
-            ret[0] = arr2d
-            return ret
-        else:
-            return np.array(list(arr2d)*self.nz_seq).reshape(
-                (self.nz_seq,) + arr2d.shape)
+    def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
+
+        return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
+            self._oper2d, arr2d)
+        
+    def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
+
+        return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
+            self._oper2d, arr2d)
 
     def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
 
