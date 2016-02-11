@@ -518,8 +518,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         dt/6*datat[ik, i0, i1])
 
     @cython.embedsignature(True)
-    # @cython.boundscheck(False)
-    # @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def _time_step_RK4_state_ndim4_freqlin_ndim3_float(self):
         """Advance in time *sim.state.state_fft* with the Runge-Kutta 4 method.
 

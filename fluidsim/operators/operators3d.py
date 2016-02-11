@@ -180,7 +180,7 @@ class OperatorsPseudoSpectral3D(object):
 
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
             self._oper2d, arr2d)
-        
+
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
 
         return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
@@ -198,7 +198,8 @@ class OperatorsPseudoSpectral3D(object):
                 vy_fft - Ky * tmp,
                 vz_fft - Kz * tmp)
 
-    def vgradv_from_v(self, vx, vy, vz, vx_fft=None, vy_fft=None, vz_fft=None):
+    def vgradv_from_v(self, vx, vy, vz,
+                      vx_fft=None, vy_fft=None, vz_fft=None):
 
         ifft3d = self.ifft3d
 

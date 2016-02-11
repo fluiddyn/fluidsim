@@ -128,6 +128,10 @@ class PhysFieldsBase(SpecificOutput):
         for k in state_phys.keys:
             field_loc = state_phys.get_var(k)
             if mpi.nb_proc > 1:
+                # it would be better to save in parallel
+                # see http://docs.h5py.org/en/latest/mpi.html
+                # our API can look like this:
+                # self.oper.save_in_hdf5(tag=k, field_loc, group_state_phys)
                 field_seq = self.oper.gather_Xspace(field_loc)
             else:
                 field_seq = field_loc

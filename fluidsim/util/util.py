@@ -32,7 +32,7 @@ def module_solver_from_key(key=None):
     """Return the string corresponding to a module solver."""
     key = key.lower()
     keys = [
-        'ns2d', 'sw1l', 'burgers', 'plate2d',
+        'ns2d', 'ns3d', 'sw1l', 'burgers', 'plate2d',
         'sw1l.exactlin', 'sw1l.onlywaves', 'sw1l.modified', 'sw1l.etaj']
 
     if key in keys:
