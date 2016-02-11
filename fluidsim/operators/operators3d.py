@@ -80,9 +80,9 @@ class OperatorsPseudoSpectral3D(object):
             raise NotImplementedError
 
         self._op_fft = op_fft
-        
+
         # there is a problem here type_fft
-        self._oper2d = OperatorsPseudoSpectral2D(params)
+        self._oper2d = OperatorsPseudoSpectral2D(params, SEQUENTIAL=True)
         self.ifft2 = self.ifft2d = self._oper2d.ifft2
         self.fft2 = self.fft2d = self._oper2d.fft2
 

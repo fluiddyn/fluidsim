@@ -163,7 +163,7 @@ if __name__ == "__main__":
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L
-    params.oper.type_fft = 'fluidfft3d.with_cufft'
+    params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
 
     delta_x = params.oper.Lx/params.oper.nx
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8

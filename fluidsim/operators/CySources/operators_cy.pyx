@@ -1109,16 +1109,16 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         return ux_fft, uy_fft, eta_fft
 
     def get_shapeK_loc(self):
-        return self.shapeK_loc
+        return tuple(self.shapeK_loc)
 
     def get_shapeK_seq(self):
-        return self.shapeK_seq
+        return tuple(self.shapeK_seq)
 
     def get_shapeX_loc(self):
-        return self.shapeX_loc
+        return tuple(self.shapeX_loc)
 
     def get_shapeX_seq(self):
-        return self.shapeX_seq
+        return tuple(self.shapeX_seq)
     
     def dealiasing(self, *args):
         for thing in args:
