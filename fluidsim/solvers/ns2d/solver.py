@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     from math import pi
 
-    # import fluiddyn as fld
+    import fluiddyn as fld
 
     params = Simul.create_default_params()
 
@@ -173,12 +173,13 @@ if __name__ == "__main__":
 
     params.oper.nx = params.oper.ny = nh = 32
     params.oper.Lx = params.oper.Ly = Lh = 2 * pi
+    # params.oper.coef_dealiasing = 1.
 
     delta_x = Lh / nh
 
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 10.
 
     params.init_fields.type = 'dipole'
 
@@ -197,7 +198,7 @@ if __name__ == "__main__":
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 0.5
 
-    params.output.periods_plot.phys_fields = 0.0
+    params.output.periods_plot.phys_fields = 2.0
 
     params.output.ONLINE_PLOT_OK = True
 
@@ -214,4 +215,4 @@ if __name__ == "__main__":
     sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
-    # fld.show()
+    fld.show()

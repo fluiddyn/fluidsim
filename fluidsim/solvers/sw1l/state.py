@@ -142,7 +142,7 @@ class StateSW1L(StatePseudoSpectral):
         state_phys.set_var('rot', ifft2(rot_fft))
 
         return state_phys
-    
+
     def init_fft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'q_fft' in kwargs:

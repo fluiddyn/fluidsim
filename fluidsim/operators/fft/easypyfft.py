@@ -110,7 +110,6 @@ class FFTW2DReal2Complex:
         self.get_shapeK_seq = self.get_shapeK_loc = lambda s: shapeK
         self.get_shapeX_seq = self.get_shapeX_loc = lambda s: shapeX
 
-        
     def fft2d(self, ff):
         self.arrayX[:] = ff
         self.fftplan(normalise_idft=False)
