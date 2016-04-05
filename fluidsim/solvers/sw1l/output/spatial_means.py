@@ -58,8 +58,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         # Compute and save skewness and kurtosis.
         eta = self.sim.state.state_phys.get_var('eta')
         meaneta2 = 2./self.c2*energyA
-        skew_eta = np.mean(eta**3)/meaneta2**(3./2)
-        kurt_eta = np.mean(eta**4)/meaneta2**(2)
+        if meaneta2 == 0:
+            skew_eta = 0.
+            kurt_eta = 0.
+        else:
+            skew_eta = np.mean(eta**3)/meaneta2**(3./2)
+            kurt_eta = np.mean(eta**4)/meaneta2**(2)
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -68,8 +72,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         rot_fft = self.sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         rot = self.sim.oper.ifft2(rot_fft)
         meanrot2 = self.sum_wavenumbers(abs(rot_fft)**2)
-        skew_rot = np.mean(rot**3)/meanrot2**(3./2)
-        kurt_rot = np.mean(rot**4)/meanrot2**(2)
+        if meanrot2 == 0:
+            skew_rot = 0.
+            kurt_rot = 0.
+        else:
+            skew_rot = np.mean(rot**3)/meanrot2**(3./2)
+            kurt_rot = np.mean(rot**4)/meanrot2**(2)
 
         if mpi.rank == 0:
             to_print = (
@@ -675,9 +683,22 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         eta_fft = state('eta_fft')
 
         forcing = self.sim.forcing
-        Fx_fft = forcing('ux_fft')
-        Fy_fft = forcing('uy_fft')
-        Feta_fft = forcing('eta_fft')
+        solver = self.sim.info_solver.short_name
+        if solver == 'SW1L' or solver == 'SW1Lmodif':
+            Fx_fft = forcing('ux_fft')
+            Fy_fft = forcing('uy_fft')
+            Feta_fft = forcing('eta_fft')
+        elif solver == 'SW1Lwaves':
+            Fx_fft, Fy_fft, Feta_fft = \
+                    self.sim.oper.uxuyetafft_from_afft(forcing('ap_fft') +
+                                                       forcing('am_fft'))
+        elif solver == 'SW1Lexlin':
+            Fx_fft, Fy_fft, Feta_fft = \
+                    self.sim.oper.uxuyetafft_from_qapamfft(forcing('q_fft'),
+                                                           forcing('ap_fft'),
+                                                           forcing('am_fft'))
+        else:
+            raise NotImplementedError('Not sure how to estimate forcing rate for solver '+solver)
 
         deltat = self.sim.time_stepping.deltat
 

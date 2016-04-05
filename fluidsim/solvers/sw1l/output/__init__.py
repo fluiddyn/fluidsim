@@ -125,8 +125,25 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         enstrophy_fft = self.compute_enstrophy_fft()
         return self.sum_wavenumbers(enstrophy_fft)
 
-    def compute_lin_energies_fft(self):
+    def compute_quad_energies(self):
+        energyK_fft, energyA_fft = self.compute_quad_energies_fft()
+        return (self.sum_wavenumbers(energyK_fft) +
+                self.sum_wavenumbers(energyA_fft))
+
+    def compute_quad_energies_fft(self):
         """Compute quadratic energies."""
+        state = self.sim.state
+        eta_fft = state('eta_fft')
+        energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
+        ux_fft = state('ux_fft')
+        uy_fft = state('uy_fft')
+        energyK_fft = np.real(ux_fft.conj()*ux_fft +
+                              uy_fft.conj()*uy_fft)/2
+
+        return energyK_fft, energyA_fft
+
+    def compute_lin_energies_fft(self):
+        """Compute linearized quadratic energies."""
 
         ux_fft = self.sim.state('ux_fft')
         uy_fft = self.sim.state('uy_fft')

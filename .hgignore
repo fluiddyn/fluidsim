@@ -41,5 +41,6 @@ dist*
 *cy.c
 
 scripts\Experiments\path_working_exp.txt
+scripts/fluidsim-scripts/*
 
 */Profile.prof

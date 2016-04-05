@@ -504,8 +504,8 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        CONDKX = abs(self.KX) > self.coef_dealiasing*self.kxE.max()
-        CONDKY = abs(self.KY) > self.coef_dealiasing*self.kyE.max()
+        CONDKX = abs(self.KX) > self.coef_dealiasing*self.KX.max()
+        CONDKY = abs(self.KY) > self.coef_dealiasing*self.KY.max()
         where_dealiased = np.logical_or(CONDKX, CONDKY)
 
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
@@ -762,24 +762,26 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         return ux_fft, uy_fft, eta_fft
 
     def uxuyetafft_from_afft(self, a_fft, params=None):
-        """Compute ux, uy and eta in Fourier space."""
+        """Compute ux, uy (rotational) and eta in Fourier space."""
         if params is None:
             params = self.params
-        K2 = self.K2
+
         K2_not0 = self.K2_not0
 
         if params.f == 0:
             rot_fft = self.constant_arrayK(value=0)
         else:
             rot_fft = params.f*a_fft/(K2_not0+params.kd2)
+
         if rank == 0:
             rot_fft[0, 0] = 0.
-        ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
+
+        uxr_fft, uyr_fft = self.vecfft_from_rotfft(rot_fft)
 
         eta_fft = a_fft/(K2_not0+params.kd2)
         if rank == 0:
             eta_fft[0, 0] = 0.
-        return ux_fft, uy_fft, eta_fft
+        return uxr_fft, uyr_fft, eta_fft
 
     def rotfft_from_qfft(self, q_fft, params=None):
         """Compute ux, uy and eta in Fourier space."""
@@ -810,9 +812,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                              params=None):
         if params is None:
             params = self.params
-        rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
         a_fft = self.K2*eta_fft
         if params.f != 0:
+            rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
             a_fft += params.f/params.c2*rot_fft
         return a_fft
 

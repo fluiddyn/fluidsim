@@ -6,5 +6,5 @@ parser.add_argument('path',
     help='path to an incomplete simulation directory')
 
 args = parser.parse_args()
-sim = fls.load_state_phys_file(args.path)
+sim = fls.load_state_phys_file(args.path, modif_save_params=False)
 sim.time_stepping.start()

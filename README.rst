@@ -4,7 +4,19 @@ FluidSim
 
 *Framework for studying fluid dynamics by numerical simulation.*
 
-`Package Documentation <http://fluidsim.readthedocs.org>`__
+|release| |docs| |depsy|
+
+.. |release| image:: https://img.shields.io/pypi/v/fluidsim.svg
+   :target: https://pypi.python.org/pypi/fluidsim/
+   :alt: Latest version
+
+.. |docs| image:: https://readthedocs.org/projects/fluidsim/badge/?version=latest
+   :target: http://fluidsim.readthedocs.org
+   :alt: Documentation status
+
+.. |depsy| image:: http://depsy.org/api/package/pypi/fluidsim/badge.svg
+   :target: http://depsy.org/package/python/fluidsim
+   :alt: Package statistics
 
 FluidSim is the numerically oriented package of the `FluidDyn project
 <http://fluiddyn.readthedocs.org>`__.  The project is still in a
@@ -15,7 +27,8 @@ It has first been developed by `Pierre Augier
 <http://www.legi.grenoble-inp.fr/people/Pierre.Augier/>`_ (CNRS
 researcher at `LEGI <http://www.legi.grenoble-inp.fr>`_, Grenoble) at
 KTH (Stockholm) as a numerical code to solve fluid equations in a
-periodic two-dimensional space with pseudo-spectral methods.
+periodic two-dimensional space with pseudo-spectral methods. For a
+complete list of contributors see `AUTHORS <./AUTHORS.rst>`_.
 
 *Key words and ambitions*: fluid dynamics research with Python (2.7 or
 >= 3.3); modular, object-oriented, collaborative, tested and

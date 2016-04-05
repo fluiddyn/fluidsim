@@ -388,13 +388,15 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltakh
         PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltakh
         PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltakh
+        PiEtot = PiEK + PiEA
         CCP = cumsum_inv(convP2D) * self.oper.deltakh
         CCK = cumsum_inv(convK2D) * self.oper.deltakh
 
         self.axe_a.plot(khE + khE[1], PiEK, 'r')
         self.axe_a.plot(khE + khE[1], PiEA, 'b')
-        self.axe_a.plot(khE + khE[1], CCP, 'y')
-        self.axe_a.plot(khE + khE[1], CCK, 'y--')
+        self.axe_a.plot(khE + khE[1], PiEtot, 'k', linewidth=2)
+        # self.axe_a.plot(khE + khE[1], CCP, 'y')
+        # self.axe_a.plot(khE + khE[1], CCK, 'y--')
 
         self.axe_b.plot(khE + khE[1], PiCPE, 'g')
 
@@ -1080,9 +1082,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         """Compute spectral energy budget once for current time."""
 
         oper = self.oper
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state('ux_fft')
+        uy_fft = self.sim.state('uy_fft')
+        eta_fft = self.sim.state('eta_fft')
         c2 = self.params.c2
 
         ux = self.sim.state.state_phys.get_var('ux')
@@ -1373,22 +1375,23 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Pi_ens = cumsum_inv(Tens) * self.oper.deltakh
         Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
 
+        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
         ax1.plot(khE, Pi_AGG, 'm--', linewidth=2, label=r'$\Pi_{GGA}$')
         ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
         ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
         ax1.plot(khE, Pi_AAA, 'y--', linewidth=2, label=r'$\Pi_{AAA}$')
         ax1.plot(khE, Pi_nq, 'k--', linewidth=2, label=r'$\Pi^{NQ}$')
-        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.legend()
+        ax1.axhline(y=self.sim.params.forcing.forcing_rate, color='k', linestyle=':')
 
+        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.plot(khE, Tq_GGG, 'g--', linewidth=2, label=r'$T_{GGG}$')
         ax11.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$T_{GGA}$')
         ax11.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$T_{G\pm\pm}$')
         ax11.plot(khE, Tq_GAAd, 'b:', linewidth=2, label=r'$T_{G\pm\mp}$')
         ax11.plot(khE, Tq_AAA, 'y--', linewidth=2, label=r'$T_{AAA}$')
         ax11.plot(khE, Tnq, 'k--', linewidth=2, label=r'$T^{NQ}$')
-        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.legend()
         # -------------------------
         # Quadratic exchange terms

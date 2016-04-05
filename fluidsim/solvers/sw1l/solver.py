@@ -34,6 +34,9 @@ class InfoSolverSW1L(InfoSolverPseudoSpectral):
 
         classes.Forcing.module_name = package + '.forcing'
         classes.Forcing.class_name = 'ForcingSW1L'
+        
+        classes.TimeStepping.module_name = package + '.time_stepping'
+        classes.TimeStepping.class_name = 'TimeSteppingSW1L'
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -113,7 +116,7 @@ class Simul(SimulBasePseudoSpectral):
 
         oper.dealiasing(tendencies_fft)
 
-        if self.params.FORCING:
+        if self.params.FORCING and self.params.time_stepping.forcing_time_scheme == 'RK':
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
