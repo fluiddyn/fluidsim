@@ -734,9 +734,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             'transfer2D_CPE': transfer2D_CPE}
         self._checksum_stdout(
             EK_GGG=transfer2D_Errr,
-            EK_GGA=transfer2D_Edrr_rrd + transfer2D_Erdr,
-            EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
-            EK_AAA=transfer2D_Eddd,
+            EK_GGA=transfer2D_Edrr_rrd,
+            EK_AAG=transfer2D_Edrd,
             EA=transfer2D_EA,
             Etot=transfer2D_EK + transfer2D_EA,
             debug=False)
