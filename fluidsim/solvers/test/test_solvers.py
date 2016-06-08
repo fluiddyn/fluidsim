@@ -67,7 +67,7 @@ class TestSolvers(unittest.TestCase):
 
     def test_sw1l(self):
         """Should be able to run a SW1L simul."""
-        self.sim = run_mini_simul('SW1L', HAS_TO_SAVE=True, FORCING=True)
+        self.sim = run_mini_simul('SW1L') # , HAS_TO_SAVE=True, FORCING=True)
         clean_simul(self.sim)
 
     def test_sw1l_onlywaves(self):

@@ -1,7 +1,17 @@
+"""Initialization of the field (:mod:`fluidsim.solvers.ns3d.init_fields`)
+=========================================================================
 
-"""InitFieldsNS3D"""
+.. autoclass:: InitFieldsNS3D
+   :members:
+
+.. autoclass:: InitFieldsDipole
+   :members:
+
+"""
 
 import numpy as np
+
+from fluiddyn.util import mpi
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
