@@ -103,55 +103,33 @@ class PhysFieldsBase(SpecificOutput):
         to_print = 'save state_phys in file ' + name_save
         self.output.print_stdout(to_print)
 
-#        if mpi.rank == 0:
         if mpi.nb_proc == 1:
             f = h5py.File(path_file, 'w')
-            f.attrs['date saving'] = str(datetime.datetime.now())
-            f.attrs['name_solver'] = self.output.name_solver
-            f.attrs['name_run'] = self.output.name_run
-            if particular_attr is not None:
-                f.attrs['particular_attr'] = particular_attr
+        else:
+            f = h5py.File(path_file, 'w', driver='mpio', comm=mpi.comm)
 
-            self.sim.info._save_as_hdf5(hdf5_parent=f)
-            gp_info = f['info_simul']
-            gf_params = gp_info['params']
-            gf_params.attrs['SAVE'] = True
-            gf_params.attrs['NEW_DIR_RESULTS'] = True
+        f.attrs['date saving'] = str(datetime.datetime.now())
+        f.attrs['name_solver'] = self.output.name_solver
+        f.attrs['name_run'] = self.output.name_run
+        if particular_attr is not None:
+            f.attrs['particular_attr'] = particular_attr
 
-            group_state_phys = f.create_group("state_phys")
-            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-            group_state_phys.attrs['name_type_variables'] = (
-                state_phys.info)
+        group_state_phys = f.create_group("state_phys")
+        group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
+        group_state_phys.attrs['name_type_variables'] = (state_phys.info)
 
-            group_state_phys.attrs['time'] = time
-            group_state_phys.attrs['it'] = self.sim.time_stepping.it
+        group_state_phys.attrs['time'] = time
+        group_state_phys.attrs['it'] = self.sim.time_stepping.it
+
+        if mpi.nb_proc == 1:
             for k in state_phys.keys:
                 field_seq = state_phys.get_var(k)
                 group_state_phys.create_dataset(k, data=field_seq)
         else:
-            f = h5py.File(path_file, 'w', driver='mpio', comm=mpi.comm)
-            f.attrs['date saving'] = str(datetime.datetime.now())
-            f.attrs['name_solver'] = self.output.name_solver
-            f.attrs['name_run'] = self.output.name_run
-            if particular_attr is not None:
-                f.attrs['particular_attr'] = particular_attr
-
-#            self.sim.info._save_as_hdf5(hdf5_parent=f)
-#            gp_info = f['info_simul']
-#            gf_params = gp_info['params']
-#            gf_params.attrs['SAVE'] = True
-#            gf_params.attrs['NEW_DIR_RESULTS'] = True
-
-            group_state_phys = f.create_group("state_phys")
-            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-            group_state_phys.attrs['name_type_variables'] = (
-                state_phys.info)
-
-            group_state_phys.attrs['time'] = time
-            group_state_phys.attrs['it'] = self.sim.time_stepping.it
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
-                dset = group_state_phys.create_dataset(k, self.oper.shapeX_seq, dtype=field_loc.dtype)
+                dset = group_state_phys.create_dataset(
+                    k, self.oper.shapeX_seq, dtype=field_loc.dtype)
                 f.atomic = False
                 xstart = self.oper.seq_index_firstK0
                 xend = self.oper.seq_index_firstK0+self.oper.shapeX_loc[0]
@@ -159,7 +137,17 @@ class PhysFieldsBase(SpecificOutput):
                 yend = self.oper.seq_index_firstK1+self.oper.shapeX_loc[1]
                 with dset.collective:
                     dset[xstart:xend, ystart:yend, :] = field_loc
-        f.close()
+            f.close()
+            if mpi.rank == 0:
+                f = h5py.File(path_file, 'w')
+
+        if mpi.rank == 0:
+            self.sim.info._save_as_hdf5(hdf5_parent=f)
+            gp_info = f['info_simul']
+            gf_params = gp_info['params']
+            gf_params.attrs['SAVE'] = True
+            gf_params.attrs['NEW_DIR_RESULTS'] = True
+            f.close()
 
     def _select_field(self, field=None, key_field=None):
         keys_state_phys = self.sim.info.solver.classes.State['keys_state_phys']
