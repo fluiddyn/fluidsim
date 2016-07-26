@@ -21,6 +21,8 @@ from fluiddyn.util import mpi
 from .base import SpecificOutput
 from .movies import MoviesBase1D, MoviesBase2D
 
+cfg = h5py.h5.get_config()
+
 
 class PhysFieldsBase(SpecificOutput):
     """Manage the output of physical fields."""
@@ -103,28 +105,33 @@ class PhysFieldsBase(SpecificOutput):
         to_print = 'save state_phys in file ' + name_save
         self.output.print_stdout(to_print)
 
-        if mpi.nb_proc == 1:
-            f = h5py.File(path_file, 'w')
+        if mpi.nb_proc == 1 or not cfg.mpi:
+            if mpi.rank == 0:
+                f = h5py.File(path_file, 'w')
+                group_state_phys = f.create_group("state_phys")
+                group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
+                group_state_phys.attrs['name_type_variables'] = state_phys.info
+                group_state_phys.attrs['time'] = time
+                group_state_phys.attrs['it'] = self.sim.time_stepping.it
         else:
             f = h5py.File(path_file, 'w', driver='mpio', comm=mpi.comm)
+            group_state_phys = f.create_group("state_phys")
+            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
+            group_state_phys.attrs['name_type_variables'] = state_phys.info
 
-        f.attrs['date saving'] = str(datetime.datetime.now())
-        f.attrs['name_solver'] = self.output.name_solver
-        f.attrs['name_run'] = self.output.name_run
-        if particular_attr is not None:
-            f.attrs['particular_attr'] = particular_attr
-
-        group_state_phys = f.create_group("state_phys")
-        group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-        group_state_phys.attrs['name_type_variables'] = (state_phys.info)
-
-        group_state_phys.attrs['time'] = time
-        group_state_phys.attrs['it'] = self.sim.time_stepping.it
+            group_state_phys.attrs['time'] = time
+            group_state_phys.attrs['it'] = self.sim.time_stepping.it
 
         if mpi.nb_proc == 1:
             for k in state_phys.keys:
                 field_seq = state_phys.get_var(k)
                 group_state_phys.create_dataset(k, data=field_seq)
+        elif not cfg.mpi:
+            for k in state_phys.keys:
+                field_loc = state_phys.get_var(k)
+                field_seq = self.oper.gather_Xspace(field_loc)
+                if mpi.rank == 0:
+                    group_state_phys.create_dataset(k, data=field_seq)
         else:
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
@@ -142,6 +149,12 @@ class PhysFieldsBase(SpecificOutput):
                 f = h5py.File(path_file, 'w')
 
         if mpi.rank == 0:
+            f.attrs['date saving'] = str(datetime.datetime.now())
+            f.attrs['name_solver'] = self.output.name_solver
+            f.attrs['name_run'] = self.output.name_run
+            if particular_attr is not None:
+                f.attrs['particular_attr'] = particular_attr
+
             self.sim.info._save_as_hdf5(hdf5_parent=f)
             gp_info = f['info_simul']
             gf_params = gp_info['params']
