@@ -155,6 +155,23 @@ class OperatorsPseudoSpectral3D(object):
         self.where_dealiased = np.array(where_dealiased, dtype=np.int8)
         if nb_proc > 1:
             self.gather_Xspace = op_fft.gather_Xspace
+            self.scatter_Xspace = op_fft.scatter_Xspace
+
+    def constant_arrayX(self, value=None, SHAPE='LOC'):
+        """Return a constant array in real space."""
+        if SHAPE == 'LOC':
+            shapeX = self.shapeX_loc
+        elif SHAPE == 'SEQ':
+            shapeX = self.shapeX_seq
+        else:
+            raise ValueError('SHAPE should be "LOC" of "SEQ"')
+        if value is None:
+            field = np.empty(shapeX)
+        elif value == 0:
+            field = np.zeros(shapeX)
+        else:
+            field = value*np.ones(shapeX)
+        return field
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
