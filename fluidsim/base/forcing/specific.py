@@ -128,7 +128,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
         if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time()
-            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
+            self.fstate_coarse.init_statefft_from({self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -275,7 +275,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             Fa_fft = self.forcingc_raw_each_time()
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
-            self.fstate_coarse.init_fft_from(**kwargs)
+            self.fstate_coarse.init_statefft_from(**kwargs)
 
         self.put_forcingc_in_forcing()
 

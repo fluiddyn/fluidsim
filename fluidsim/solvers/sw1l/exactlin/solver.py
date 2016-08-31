@@ -119,7 +119,7 @@ class Simul(SimulSW1L):
         ap_fft = state_fft.get_var('ap_fft')
         am_fft = state_fft.get_var('am_fft')
         a_fft = ap_fft + am_fft
-        div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
+        div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
 
         eta_fft = (oper.etafft_from_qfft(q_fft) +
                    oper.etafft_from_afft(a_fft))

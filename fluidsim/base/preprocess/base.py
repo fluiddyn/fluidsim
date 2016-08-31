@@ -34,6 +34,7 @@ class PreprocessBase(object):
         """
         attribs = {'enable' : False,
                    'init_field_scale' : 'energy',
+                   'init_field_const': '1.',
                    'viscosity_type' : 'laplacian',
                    'viscosity_scale' : 'enstrophy_forcing',
                    'viscosity_const' : 5.,
@@ -56,4 +57,5 @@ class PreprocessBase(object):
         #dict_classes = sim.info.solver.classes.Preprocess.import_classes()
 
     def __call__(self):
-        pass
+        if self.params.enable:
+            self.output.print_stdout('Preprocessing initial fields, and other parameters.')

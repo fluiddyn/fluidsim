@@ -193,6 +193,17 @@ class StateSW1LWaves(StateSW1L):
         self.oper.dealiasing(state_fft)
         self.statephys_from_statefft()
 
+    def init_from_etafft(self, eta_fft):
+        (q_fft, ap_fft, am_fft
+         ) = self.oper.qapamfft_from_etafft(eta_fft)
+
+        state_fft = self.state_fft
+        state_fft.set_var('ap_fft', ap_fft)
+        state_fft.set_var('am_fft', am_fft)
+
+        self.oper.dealiasing(state_fft)
+        self.statephys_from_statefft()
+
     def init_from_uxuyfft(self, ux_fft, uy_fft):
 
         oper = self.oper

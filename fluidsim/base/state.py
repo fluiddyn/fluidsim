@@ -195,7 +195,7 @@ class StatePseudoSpectral(StateBase):
         """
         self.state_fft[:] = 0.
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key not in self.keys_state_fft:
                 raise ValueError(
                     'Do not know how to initialize with key "{}".'.format(key))

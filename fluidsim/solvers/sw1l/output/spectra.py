@@ -277,18 +277,19 @@ imin_plot, imax_plot, delta_i_plot)
 
         coef_norm = kh**coef_compensate
 
+        machine_zero = 1e-15
         if delta_t != 0.:
             for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
                 EK = dset_spectrumEK[it]
                 EA = dset_spectrumEA[it]
                 EKr = dset_spectrumEKr[it]
 
-                EK[EK<10e-16] = 0.
-                EA[EA<10e-16] = 0.
-                EKr[EKr<10e-16] = 0.
+                EK[EK<10e-16] = machine_zero
+                EA[EA<10e-16] = machine_zero
+                EKr[EKr<10e-16] = machine_zero
 
                 E_tot = EK + EA
-                EKd = EK - EKr
+                EKd = EK - EKr + machine_zero
 
                 ax1.plot(kh, E_tot*coef_norm, 'k', linewidth=1)
                 ax1.plot(kh, EK*coef_norm, 'r', linewidth=1)
@@ -301,12 +302,12 @@ imin_plot, imax_plot, delta_i_plot)
         EKr = dset_spectrumEKr[imin_plot:imax_plot+1].mean(0)
 
 
-        EK[abs(EK)<10e-16] = 0.
-        EA[abs(EA)<10e-16] = 0.
-        EKr[abs(EKr)<10e-16] = 0.
+        EK[abs(EK)<10e-16] = machine_zero
+        EA[abs(EA)<10e-16] = machine_zero
+        EKr[abs(EKr)<10e-16] = machine_zero
 
         E_tot = EK + EA
-        EKd = EK - EKr
+        EKd = EK - EKr + machine_zero
 
 
         ax1.plot(kh, E_tot*coef_norm, 'k', linewidth=4)
@@ -324,23 +325,32 @@ imin_plot, imax_plot, delta_i_plot)
 
         if self.sim.info.solver.short_name.startswith('SW1L'):
             dset_spectrumEdlin = f['spectrum2D_Edlin']
-            Edlin = dset_spectrumEdlin[imin_plot:imax_plot+1].mean(0)
+            Edlin = dset_spectrumEdlin[imin_plot:imax_plot+1].mean(0) + machine_zero
             ax1.plot(kh, Edlin*coef_norm, 'y:', linewidth=1)
 
         if self.params.f != 0:
             dset_spectrumEglin = f['spectrum2D_Eglin']
-            Eglin = dset_spectrumEglin[imin_plot:imax_plot+1].mean(0)
+            Eglin = dset_spectrumEglin[imin_plot:imax_plot+1].mean(0) + machine_zero
             ax1.plot(kh, Eglin*coef_norm, 'c', linewidth=1)
 
             dset_spectrumEalin = f['spectrum2D_Ealin']
-            Ealin = dset_spectrumEalin[imin_plot:imax_plot+1].mean(0)
+            Ealin = dset_spectrumEalin[imin_plot:imax_plot+1].mean(0) + machine_zero
             ax1.plot(kh, Ealin*coef_norm, 'y', linewidth=1)
 
 
 
 
+        ax1.plot(kh, kh**(-2)*coef_norm, 'k-', linewidth=1)
         ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+        ax1.plot(kh, kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+        font = {'family': 'serif',
+                'weight': 'normal',
+                'size': 16
+               }
+        postxt = kh.max()
+        ax1.text(postxt, postxt**(-2 + coef_compensate), r'$k^{-2}$', fontdict=font)
+        ax1.text(postxt, postxt**(-3 + coef_compensate), r'$k^{-3}$', fontdict=font)
+        ax1.text(postxt, postxt**(-5./3 + coef_compensate), r'$k^{-5/3}$', fontdict=font)
 
     def _ani_get_field(self, time):
         f = h5py.File(self.path_file2D, 'r')

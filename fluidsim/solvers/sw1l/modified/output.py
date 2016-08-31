@@ -27,8 +27,8 @@ class OutputSW1LModified(OutputBaseSW1L):
         eta_fft = self.sim.state.state_fft.get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
         energyK_fft = np.abs(ux_fft)**2/2 + np.abs(uy_fft)**2/2
-        rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-        uxr_fft, uyr_fft = self.vecfft_from_rotfft(rot_fft)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
         energyKr_fft = np.abs(uxr_fft)**2/2 + np.abs(uyr_fft)**2/2
         return energyK_fft, energyA_fft, energyKr_fft
 
@@ -44,10 +44,10 @@ class OutputSW1LModified(OutputBaseSW1L):
         # compute Ertel and Charney (QG) potential vorticity
         rot = self.sim.state('rot')
         eta = self.sim.state.state_phys.get_var('eta')
-        ErtelPV_fft = self.fft2((self.sim.params.f+rot)/(1.+eta))
+        ErtelPV_fft = self.oper.fft2((self.sim.params.f+rot)/(1.+eta))
         ux_fft = self.sim.state.state_fft.get_var('ux_fft')
         uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         eta_fft = self.sim.state.state_fft.get_var('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
         return ErtelPV_fft, CharneyPV_fft

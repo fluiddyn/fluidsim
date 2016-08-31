@@ -305,10 +305,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             if len(self.params.sub_directory) > 0:
                 path_base = os.path.join(path_base, self.params.sub_directory)
             
-            if mpi.rank == 0:
-                if not os.path.exists(path_base):
-                    os.makedirs(path_base)
-            
+            if not os.path.exists(path_base):
+                os.makedirs(path_base)
+
             new_path_run = os.path.join(path_base, self.sim.name_run)
             shutil.move(self.path_run, path_base)
             print('move result directory in directory:\n' + new_path_run)

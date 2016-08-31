@@ -504,8 +504,10 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        CONDKX = abs(self.KX) > self.coef_dealiasing*self.kxE.max()
-        CONDKY = abs(self.KY) > self.coef_dealiasing*self.kyE.max()
+        kx_max = self.deltakx * (nx + 1) // 2
+        ky_max = self.deltaky * (ny + 1) // 2
+        CONDKX = abs(self.KX) > self.coef_dealiasing * kx_max
+        CONDKY = abs(self.KY) > self.coef_dealiasing * ky_max
         where_dealiased = np.logical_or(CONDKX, CONDKY)
 
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
