@@ -407,7 +407,7 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
         To be called only with proc 0.
         """
         F_fft = self.oper_coarse.random_arrayK()
-        self.oper_coarse.project_fft_on_realX(F_fft)
+        F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
         F_fft[self.COND_NO_F] = 0.
         return F_fft
 
