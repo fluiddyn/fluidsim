@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from fluidsim.solvers.sw1l.output import OutputBaseSW1L
+from fluidsim.solvers.sw1l.output import OutputSW1L
 
 
-class OutputSW1LWaves(OutputBaseSW1L):
+class OutputSW1LWaves(OutputSW1L):
     """subclass :class:`OutputSW1L`"""
 
     @staticmethod
