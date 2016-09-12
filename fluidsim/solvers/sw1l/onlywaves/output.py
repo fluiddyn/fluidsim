@@ -14,7 +14,7 @@ class OutputSW1LWaves(OutputSW1L):
 
         This is a static method!
         """
-        OutputBaseSW1L._complete_info_solver(info_solver)
+        OutputSW1L._complete_info_solver(info_solver)
 
         classes = info_solver.classes.Output.classes
 
