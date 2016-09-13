@@ -52,7 +52,7 @@ def check_avail_library(library_name):
 
     return library_name in libraries
 
-def find_library_dirs(args, library_dirs=[], debug=False):
+def find_library_dirs(args, library_dirs=[], debug=True):
     """Takes care of non-standard library directories, instead of using LDFLAGS."""
 
     for library_name in args:
@@ -89,7 +89,7 @@ except ImportError:
     print('ImportError of mpi4py: no mpi extensions will be built.')
 else:
     MPI4PY = True
-    os.environ["CC"] = 'mpicc'
+    os.environ.setdefault('mpicc')
     include_dirs_mpi = [
         mpi4py.get_include(),
         here + '/include']
@@ -111,7 +111,7 @@ ext_modules = []
 if MPI4PY and FFTW3:
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
     include_dirs = [path_sources, np.get_include()] + include_dirs_mpi + include_dirs_fftw
-    libraries = ['mpi', 'fftw3', 'm']
+    libraries = ['fftw3', 'm']
     library_dirs = find_library_dirs(libraries)
 
     ext_fftw2dmpiccy = Extension(
@@ -130,7 +130,6 @@ if FFTW3:
     library_dirs = []
     if MPI4PY:
         include_dirs.extend(include_dirs_mpi)
-        libraries.append('mpi')
         library_dirs = find_library_dirs(libraries, library_dirs)
 
     if sys.platform == 'win32':
@@ -163,7 +162,6 @@ include_dirs = [path_sources, np.get_include()]
 libraries = ['m']
 if MPI4PY:
     include_dirs.extend(include_dirs_mpi)
-    libraries.extend(['mpi'])
 
 library_dirs = find_library_dirs(libraries, library_dirs)
 ext_operators = Extension(
