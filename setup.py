@@ -89,7 +89,7 @@ except ImportError:
     print('ImportError of mpi4py: no mpi extensions will be built.')
 else:
     MPI4PY = True
-    os.environ.setdefault('mpicc')
+    os.environ.setdefault('mpicc', 'CC')
     include_dirs_mpi = [
         mpi4py.get_include(),
         here + '/include']
