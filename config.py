@@ -1,5 +1,4 @@
-"""
-Script to configure before Fluidsim setup.
+"""Script to configure before Fluidsim setup.
 Custom paths for MPI and FFTW libraries and shared objects are managed here.
 
 Provides
@@ -7,25 +6,30 @@ Provides
 MPI4PY : bool
     True if mpi4py installed and can be imported
 
-FFTW3 : bool    
+FFTW3 : bool
     True if FFTW3 library is available
 
 FFTW3MPI : bool
     True if FFTW3-MPI library is available
 
-dico_ldd : dict
+dict_ldd : dict
     list of flags to use while building shared objects (*.so)
 
-dico_lib : dict
+dict_lib : dict
     list of paths where necessary libraries can be found (eg: libmpi.so)
 
-dico_inc : dict
-    list of paths to include where necessary header files can be found (eg: mpi-compat.h, fftw3.h)
+dict_inc : dict
+    list of paths to include where necessary header files can be found (eg:
+    mpi-compat.h, fftw3.h)
+
 """
+
+from __future__ import print_function
 
 import os
 import sys
 import subprocess
+
 
 def check_avail_library(library_name):
     try:
@@ -38,23 +42,28 @@ def check_avail_library(library_name):
 
     return library_name in libraries
 
-def find_library_dirs(args, library_dirs=[], debug=True, skip=True):
+
+def find_library_dirs(args, library_dirs=None, debug=True, skip=True):
     """
     Takes care of non-standard library directories, instead of using LDFLAGS.
     Set `skip` as `True` if you do not want to use this.
     """
 
+    if library_dirs is None:
+        library_dirs = []
+
     if skip:
-        print('* Skipping search for additional LDFLAGS: ',args)
+        # print('* Skipping search for additional LDFLAGS: ', args)
         return library_dirs
 
     for library_name in args:
         libso = "'lib"+library_name+".so'"
-        filter1 = " | grep " + libso 
+        filter1 = " | grep " + libso
         filter2 = " | awk -F'=> ' '{print $2}'"
         filter3 = " | awk -F" + libso + " '{print $1}'"
         try:
-            cmd = 'readlink -f $(/sbin/ldconfig -p' + filter1 + filter2 + ')' + filter3
+            cmd = 'readlink -f $(/sbin/ldconfig -p' + \
+                  filter1 + filter2 + ')' + filter3
             if debug:
                 print(cmd)
 
@@ -65,12 +74,12 @@ def find_library_dirs(args, library_dirs=[], debug=True, skip=True):
                     library_dirs.append(item)
 
         except subprocess.CalledProcessError:
-            print('* Cannot extract library directory: '+library_name)
+            print('* Cannot extract library directory: ' + library_name)
 
-    default_dirs = ['/usr/lib/','/usr/lib32/']
+    default_dirs = ['/usr/lib/', '/usr/lib32/']
     library_dirs = list(set(library_dirs) - set(default_dirs))
     if debug:
-        print('LDFLAGS for ',args,' => ',library_dirs)
+        print('LDFLAGS for ', args, ' => ', library_dirs)
 
     return library_dirs
 
@@ -81,49 +90,48 @@ except ImportError:
     print('* ImportError of mpi4py: no mpi extensions will be built.')
 else:
     MPI4PY = True
-    print('* Compiling Cython extensions with the compiler/wrapper: ')
     try:
-        print(os.environ["CC"])
+        cc = os.environ["CC"]
     except KeyError:
-        os.environ["CC"] = 'mpicc'
-        print('mpicc')
+        cc = 'mpicc'
+        os.environ["CC"] = cc
+    print('* Compiling Cython extensions with the compiler/wrapper: ' + cc)
 
 FFTW3 = check_avail_library('fftw3')
 FFTW3MPI = check_avail_library('fftw3_mpi')
 
 # Shared libraries used while compiling shared objects
 keys = ['mpi', 'fftw']
-dico_ldd = dict.fromkeys(keys, [])
-dico_lib = dict.fromkeys(keys, [])
-dico_inc = dict.fromkeys(keys, [])
+dict_ldd = dict.fromkeys(keys, [])
+dict_lib = dict.fromkeys(keys, [])
+dict_inc = dict.fromkeys(keys, [])
 
 if MPI4PY:
-    if os.environ["CC"] not in ('mpicc','cc'):
-        dico_ldd['mpi'] = ['mpi']
+    if os.environ["CC"] not in ('mpicc', 'cc'):
+        dict_ldd['mpi'] = ['mpi']
 
-    dico_lib['mpi'] = find_library_dirs(['mpi'])
+    dict_lib['mpi'] = find_library_dirs(['mpi'])
     here = os.path.abspath(os.path.dirname(__file__))
-    dico_inc['mpi'] = [mpi4py.get_include(), here + '/include']
+    dict_inc['mpi'] = [mpi4py.get_include(), here + '/include']
 
 if FFTW3 or FFTW3MPI:
-    print('* Compiling FFTW extensions with the fftw3.h and libfftw3.so') 
-    dico_ldd['fftw'] = ['fftw3']
+    print('* Compiling FFTW extensions with the fftw3.h and libfftw3.so')
+    dict_ldd['fftw'] = ['fftw3']
     if FFTW3MPI:
-        print('... and also fftw3_mpi.h and libfftw3_mpi.so') 
-        dico_ldd['fftw'].append('fftw3_mpi')
+        print('  ... and also fftw3_mpi.h and libfftw3_mpi.so')
+        dict_ldd['fftw'].append('fftw3_mpi')
 
     try:
-        dico_lib['fftw'].append(os.environ['FFTW_DIR'])
-        dico_inc['fftw'].append(os.environ['FFTW_INC'])
+        dict_lib['fftw'].append(os.environ['FFTW_DIR'])
+        dict_inc['fftw'].append(os.environ['FFTW_INC'])
     except KeyError:
         if sys.platform == 'win32':
             if MPI4PY:
                 raise ValueError(
                     'We have to work on this case with MPI4PY on Windows...')
-            dico_lib['fftw'].append(r'c:\Prog\fftw-3.3.4-dll64')
-            dico_inc['fftw'].append(r'c:\Prog\fftw-3.3.4-dll64')
+            dict_lib['fftw'].append(r'c:\Prog\fftw-3.3.4-dll64')
+            dict_inc['fftw'].append(r'c:\Prog\fftw-3.3.4-dll64')
 
         else:
-            dico_lib['fftw'].extend(find_library_dirs('fftw3'))
-            dico_inc['fftw'] = []
-
+            dict_lib['fftw'].extend(find_library_dirs('fftw3'))
+            dict_inc['fftw'] = []
