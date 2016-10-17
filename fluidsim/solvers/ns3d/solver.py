@@ -163,8 +163,8 @@ if __name__ == "__main__":
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L
-    # params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
-    params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
+    params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+    # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     delta_x = params.oper.Lx/params.oper.nx
