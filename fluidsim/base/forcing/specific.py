@@ -84,7 +84,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse.oper.nx = n
             params_coarse.oper.ny = n
             params_coarse.oper.type_fft = 'FFTWPY'
-            params_coarse.oper.coef_dealiasing = 1.
+            params_coarse.oper.coef_dealiasing = 3.
 
             self.oper_coarse = OperatorsPseudoSpectral2D(
                 SEQUENTIAL=True,
