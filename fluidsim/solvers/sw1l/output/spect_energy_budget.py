@@ -959,7 +959,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         oper.dealiasing(Mx_fft, My_fft)
         del(Mx, My)
         
-        self.bvec_fft = self.norm_mode.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+        self.norm_mode.compute()
         
         Tq_keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
                    'uvu':['ux_fft','uy','py_ux'],
@@ -1008,7 +1008,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
                 
         del(Cq_keys, Cq_terms, Cq_coeff)
-        del(self.bvec_fft)
         
         #-----------------------------------------------
         # Non-quadratic K.E. transfer and exchange terms

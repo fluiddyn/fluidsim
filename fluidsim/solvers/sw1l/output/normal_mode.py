@@ -1,9 +1,29 @@
+"""Normal mode decomposition for SW1L solvers
+(:mod:`fluidsim.solvers.sw1l.output`)
+===================================================
+
+.. currentmodule:: fluidsim.solvers.sw1l.output
+
+Provides:
+
+.. autoclass:: NormalModeBase
+   :members:
+   :private-members:
+
+.. autoclass:: NormalModeDecomposition
+   :members:
+   :private-members:
+
+"""
+
 import numpy as np
 from fluiddyn.util import mpi
 
 
 class NormalModeBase(object):
+
     def __init__(self, output):
+        self.sim = output.sim
         self.params = output.sim.params
         self.oper = output.oper
 
@@ -16,23 +36,61 @@ class NormalModeBase(object):
         else:
             self.sigma = np.sqrt(f**2 + (ck)**2)
 
-    def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
+        self.bvec_fft = None
+        self.it_bvec_fft_computed = -1
+
+    def compute(self):
+        if self.it_bvec_fft_computed != self.sim.time_stepping.it:
+            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
+                q_fft = self.sim.state('q_fft')
+                ap_fft = self.sim.state('ap_fft')
+                am_fft = self.sim.state('am_fft')
+                bvec_fft = self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
+            else:
+                ux_fft = self.sim.state('ux_fft')
+                uy_fft = self.sim.state('uy_fft')
+                eta_fft = self.sim.state('eta_fft')
+                bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
+            self.bvec_fft = bvec_fft
+            self.it_bvec_fft_computed = self.sim.time_stepping.it
+
+        return self.bvec_fft
+
+    def bvecfft_from_qapamfft(self, q_fft, ap_fft, am_fft):
         """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity.
+        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
+        from diagonalized linear modes.
         """
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
         KK = self.oper.KK_not0
         sigma = self.sigma
 
-        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
         q_fft = -q_fft * c / sigma
         ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * KK)
         am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * KK)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.SEQUENTIAL:
             bvec_fft[:, 0, 0] = 0.
+
         return bvec_fft
+
+    def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
+        """
+        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
+        from primitive variables.
+        """
+        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
+        return self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
+
+    def compute_lin_energies_fft(self):
+        """Compute quadratic geostrophic, divergent and ageostrophic energies."""
+        bvec_fft = self.compute()
+        Eq_fft, Eap_fft, Eam_fft = 0.5 * bvec_fft.conj() * bvec_fft
+
+        return Eq_fft, 0.5 * (Eap_fft - Eam_fft), 0.5 * (Eap_fft + Eam_fft)
 
 
 class NormalModeDecomposition(NormalModeBase):
@@ -81,7 +139,7 @@ class NormalModeDecomposition(NormalModeBase):
                     normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
             if 'eta' in key:
-                normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
+                normal_mode_vec_fft = normal_mode_vec_fft / self.params.c2 ** 0.5
 
         return key_modes, normal_mode_vec_fft
 

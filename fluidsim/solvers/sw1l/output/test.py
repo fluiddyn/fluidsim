@@ -4,8 +4,9 @@ from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
 from fluidsim.solvers.test.test_solvers import run_mini_simul, clean_simul
 
 sim = run_mini_simul('SW1L', HAS_TO_SAVE=True)
-module = sim.output.spect_energy_budg
-dico_results = module.compute()
+seb = sim.output.spect_energy_budg
+module = sim.output.spect_energy_budg.norm_mode
+dico_results = seb.compute()
 
 
 class TestSpectEnergyBudg(unittest.TestCase):
@@ -59,10 +60,10 @@ class TestSpectEnergyBudg(unittest.TestCase):
         py_ux_fft = 1j * sim.oper.KY * ux_fft
         module.bvec_fft = module.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
-        key_modes, ux_fft_modes = module._normalmodefft_from_keyfft('ux_fft')
-        key_modes, uy_fft_modes = module._normalmodefft_from_keyfft('uy_fft')
-        key_modes, eta_fft_modes = module._normalmodefft_from_keyfft('eta_fft')
-        key_modes, py_ux_fft_modes = module._normalmodefft_from_keyfft('py_ux_fft')
+        key_modes, ux_fft_modes = module.normalmodefft_from_keyfft('ux_fft')
+        key_modes, uy_fft_modes = module.normalmodefft_from_keyfft('uy_fft')
+        key_modes, eta_fft_modes = module.normalmodefft_from_keyfft('eta_fft')
+        key_modes, py_ux_fft_modes = module.normalmodefft_from_keyfft('py_ux_fft')
         ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0. 
         for mode in xrange(3):
             ux_fft2 += ux_fft_modes[mode]
@@ -93,8 +94,8 @@ class TestSpectEnergyBudg(unittest.TestCase):
         for k in key_modes:
             Tq_tot_modes += dico_results[k]
         
-        TKq_exact = (inner_prod(ux_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,ux_fft)) +
-                     inner_prod(uy_fft, module.fnonlinfft_from_uxuy_funcfft(ux,uy,uy_fft)))
+        TKq_exact = (inner_prod(ux_fft, seb.fnonlinfft_from_uxuy_funcfft(ux,uy,ux_fft)) +
+                     inner_prod(uy_fft, seb.fnonlinfft_from_uxuy_funcfft(ux,uy,uy_fft)))
         
         div = sim.oper.ifft2(sim.oper.divfft_from_vecfft(ux_fft, uy_fft))
         divux_fft = sim.oper.fft2(div * ux)

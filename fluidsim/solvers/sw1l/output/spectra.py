@@ -3,20 +3,21 @@ import h5py
 import numpy as np
 
 from fluidsim.base.output.spectra import Spectra
+from .normal_mode import NormalModeBase
 
 
 class SpectraSW1L(Spectra):
     """Save and plot spectra."""
 
-
     def __init__(self, output):
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
+        # self.compute_lin_energies_fft = output.compute_lin_energies_fft
+        self.norm_mode = NormalModeBase(output)
+        self.compute_lin_energies_fft = self.norm_mode.compute_lin_energies_fft
 
         super(SpectraSW1L, self).__init__(output)
-
-
 
     def init_online_plot(self):
         fig, axe = self.output.figure_axe(numfig=1000000)
@@ -30,7 +31,6 @@ class SpectraSW1L(Spectra):
         axe.set_title(title)
         axe.hold(True)
 
-
     def compute(self):
         """compute the values at one time."""
         # compute 'quantities_fft'
@@ -39,9 +39,7 @@ class SpectraSW1L(Spectra):
         ErtelPE_fft, CharneyPE_fft = self.output.compute_PE_fft()
 
         energy_glin_fft, energy_dlin_fft, energy_alin_fft = \
-            self.output.compute_lin_energies_fft()
-
-
+            self.compute_lin_energies_fft()
 
         # compute the spectra 1D
         spectrum1Dkx_EK, spectrum1Dky_EK = \
@@ -377,4 +375,3 @@ imin_plot, imax_plot, delta_i_plot)
             raise KeyError('Unknown key ',key_field)
         
         return y
-    
