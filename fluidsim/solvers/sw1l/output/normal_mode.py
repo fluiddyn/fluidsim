@@ -85,12 +85,26 @@ class NormalModeBase(object):
 
         return self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
 
-    def compute_lin_energies_fft(self):
+    def compute_qda_energies_fft(self):
         """Compute quadratic geostrophic, divergent and ageostrophic energies."""
         bvec_fft = self.compute()
-        Eq_fft, Eap_fft, Eam_fft = 0.5 * bvec_fft.conj() * bvec_fft
+        q_fft = bvec_fft[0]
+        d_fft = 0.5 * (bvec_fft[1] - bvec_fft[2])
+        a_fft = 0.5 * (bvec_fft[1] + bvec_fft[2])
 
-        return Eq_fft, 0.5 * (Eap_fft - Eam_fft), 0.5 * (Eap_fft + Eam_fft)
+        def energy(var_fft):
+            return 0.5 * np.abs(var_fft) ** 2
+
+        return energy(q_fft), energy(d_fft), energy(a_fft)
+
+    def compute_qapam_energies_fft(self):
+        """Compute quadratic geostrophic, and ageostrophic (+/-) energies."""
+        bvec_fft = self.compute()
+
+        def energy(var_fft):
+            return 0.5 * np.abs(var_fft) ** 2
+
+        return map(energy, bvec_fft)
 
 
 class NormalModeDecomposition(NormalModeBase):

@@ -106,6 +106,9 @@ class StateSW1LWaves(StateSW1L):
             rot_fft = self.compute('rot_fft')
             result = self.oper.ifft2(rot_fft)
 
+        elif key == 'q_fft':
+            result = self.oper.constant_arrayK(value=0)
+
         elif key == 'q':
             result = self.oper.constant_arrayX(value=0)
 
