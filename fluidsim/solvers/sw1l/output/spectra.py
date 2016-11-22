@@ -229,7 +229,8 @@ imin_plot, imax_plot, delta_i_plot)
 
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
-               coef_compensate=3):
+               coef_compensate=0, keys=['Etot', 'EK', 'EA', 'EKr', 'EKd'],
+               colors=['k', 'r', 'b', 'r--', 'r:']):
 
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
@@ -286,22 +287,10 @@ imin_plot, imax_plot, delta_i_plot)
         machine_zero = 1e-15
         if delta_t != 0.:
             for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
-                EK = dset_spectrumEK[it]
-                EA = dset_spectrumEA[it]
-                EKr = dset_spectrumEKr[it]
-
-                EK[EK<10e-16] = machine_zero
-                EA[EA<10e-16] = machine_zero
-                EKr[EKr<10e-16] = machine_zero
-
-                E_tot = EK + EA
-                EKd = EK - EKr + machine_zero
-
-                ax1.plot(kh, E_tot*coef_norm, 'k', linewidth=1)
-                ax1.plot(kh, EK*coef_norm, 'r', linewidth=1)
-                ax1.plot(kh, EA*coef_norm, 'b', linewidth=1)
-                ax1.plot(kh, EKr*coef_norm, 'r--', linewidth=1)
-                ax1.plot(kh, EKd*coef_norm, 'r:', linewidth=1)
+                for k, c in zip(keys, colors):
+                    dset = self._select_field(f, k, it)
+                    dset[dset < 10e-16] = machine_zero
+                    ax1.plot(kh, dset * coef_norm, c, linewidth=1)
 
         EK = dset_spectrumEK[imin_plot:imax_plot+1].mean(0)
         EA = dset_spectrumEA[imin_plot:imax_plot+1].mean(0)
@@ -367,17 +356,17 @@ imin_plot, imax_plot, delta_i_plot)
         return y, self._ani_key
 
     def _select_field(self, h5file=None, key_field=None, it=None):
-        if key_field is 'EK' or key_field is None:
-            self._ani_key = 'EK'
-            y = h5file['spectrum2D_EK'][it]
-        elif key_field is 'EA':
-            y = h5file['spectrum2D_EA'][it]
-        elif key_field is 'EKr':
-            y = h5file['spectrum2D_EKr'][it]
+        if key_field is 'Etot' or key_field is None:
+            self._ani_key = 'Etot'
+            y = h5file['spectrum2D_EK'][it] + h5file['spectrum2D_EA'][it]
         elif key_field is 'EKd':
             y = h5file['spectrum2D_EK'][it] - h5file['spectrum2D_EKr'][it]
         else:
-            raise KeyError('Unknown key ',key_field)
+            try:
+                key_field = 'spectrum2D_' + key_field
+                y = h5file[key_field][it]
+            except:
+                raise KeyError('Unknown key ', key_field)
 
         return y
 
@@ -411,6 +400,12 @@ class SpectraSW1LNormalMode(SpectraSW1L):
             'spectrum2D_Ealin': spectrum2D_Ealin}
 
         return dico_spectra1D, dico_spectra2D
+
+    def plot2d(self, tmin=0, tmax=1000, delta_t=2,
+               coef_compensate=0, keys=['Etot', 'EK', 'EA', 'Eglin', 'Ealin'],
+               colors=['k', 'r', 'b', 'g', 'y']):
+
+        super(SpectraSW1LNormalMode, self).plot2d(tmin, tmax, delta_t, coef_compensate, keys, colors)
 
     def _plot2d_lin_spectra(self, f, ax1, imin_plot, imax_plot, kh, coef_norm):
         machine_zero = 1e-15

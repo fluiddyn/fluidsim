@@ -202,7 +202,7 @@ class MoviesBase2D(MoviesBase):
         with stdout_redirected():
             field, key_field = self._ani_get_field(time)
 
-        contours = self._ani_ax.contourf(x, y, field, self._ani_nbc, cmap=plt.cm.jet)
+        contours = self._ani_ax.contourf(x, y, field, self._ani_nbc)
 
         
         # self._ani_fig.colorbar(contours)
