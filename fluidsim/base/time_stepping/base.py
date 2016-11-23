@@ -229,7 +229,7 @@ class TimeSteppingBase(object):
         else:
             deltat_CFL = self.deltat_max
 
-        deltat_wave = self.sim.oper.deltax / c  # Equivalent to a CFL number = 1. for wave
+        deltat_wave = self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
 
