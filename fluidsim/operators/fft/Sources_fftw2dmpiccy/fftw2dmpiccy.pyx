@@ -6,7 +6,8 @@ np.import_array()
 
 from mpi4py import MPI
 from mpi4py cimport MPI
-from mpi4py.mpi_c cimport *
+# from mpi4py.mpi_c cimport *
+from mpi4py.libmpi cimport *
 
 if MPI.COMM_WORLD.size == 1:
     raise ImportError('fftw2Dmpiccy only works if MPI.COMM_WORLD.size > 1.')
