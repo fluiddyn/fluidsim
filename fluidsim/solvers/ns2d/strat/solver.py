@@ -29,13 +29,13 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes = self.classes
 
         classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS2D'
+        classes.State.class_name = 'StateNS2DStrat'
 
         classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsNS2D'
+        classes.InitFields.class_name = 'InitFieldsNS2DStrat'
 
         classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.class_name = 'OutputStrat'
 
         # classes.Forcing.module_name = package + '.forcing'
         # classes.Forcing.class_name = 'ForcingNS2D'
@@ -45,13 +45,13 @@ class Simul(SimulNS2D):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
 
     """
-    InfoSolver = InfoSolverNS2D
+    InfoSolver = InfoSolverNS2DStrat
 
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        SimulBasePseudoSpectral._complete_params_with_default(params)
+        SimulNS2D._complete_params_with_default(params)
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
@@ -100,9 +100,10 @@ class Simul(SimulNS2D):
     #     return tendencies_fft
 
 
+
 if __name__ == "__main__":
 
-    import numpy as np
+    from math import pi
 
     import fluiddyn as fld
 
@@ -110,36 +111,34 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 32
-    Lh = 2*np.pi
-    params.oper.nx = nh
-    params.oper.ny = nh
-    params.oper.Lx = Lh
-    params.oper.Ly = Lh
+    params.oper.nx = params.oper.ny = nh = 32
+    params.oper.Lx = params.oper.Ly = Lh = 2 * pi
+    # params.oper.coef_dealiasing = 1.
 
-    # params.oper.type_fft = 'FFTWPY'
+    delta_x = Lh / nh
 
-    delta_x = params.oper.Lx/params.oper.nx
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 10.
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = 'dipole'
 
     params.FORCING = True
-    params.forcing.type = 'Random'
+    params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
 
+    params.output.sub_directory = 'tests'
+
     # params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 0.5
+    params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 0.5
 
-    params.output.periods_plot.phys_fields = 0.0
+    params.output.periods_plot.phys_fields = 2.0
 
     params.output.ONLINE_PLOT_OK = True
 
