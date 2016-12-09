@@ -52,7 +52,7 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {'beta': 0.}
+        attribs = {'beta': 0., 'N': 1.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
@@ -77,17 +77,20 @@ class Simul(SimulNS2D):
         px_rot = ifft2(px_rot_fft)
         py_rot = ifft2(py_rot_fft)
         px_b = ifft2(px_b_fft)
+        py_b = ifft2(py_b_fft)
 
         if self.params.beta == 0:
             Frot = -ux*px_rot - uy*py_rot
+            Fb = -ux*px_b - uy*py_b - self.params.N**2*uy
         else:
             Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
 
+        Fb_fft = fft2(Fb)
         Frot_fft_old = fft2(Frot)
-        Fb_fft = fft2(px_b)
-        Frot_fft = Frot_fft_old + Fb_fft
+        Frot_fft = Frot_fft_old + px_b_fft
         oper.dealiasing(Frot_fft)
-
+        oper.dealiasing(Fb_fft)
+        
         # T_rot = np.real(Frot_fft.conj()*rot_fft
         #                + Frot_fft*rot_fft.conj())/2.
         # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
@@ -99,6 +102,7 @@ class Simul(SimulNS2D):
             info='tendencies_nonlin')
 
         tendencies_fft.set_var('rot_fft', Frot_fft)
+        tendencies_fft.set_var('b_fft', Fb_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
@@ -124,8 +128,9 @@ if __name__ == "__main__":
     delta_x = Lh / nh
 
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.N = 2.
 
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 50.
 
     params.init_fields.type = 'dipole'
 
@@ -138,13 +143,13 @@ if __name__ == "__main__":
 
     # params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 10.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5
-    params.output.periods_save.increments = 0.5
+    params.output.periods_save.increments = 1.
 
-    params.output.periods_plot.phys_fields = 2.0
+    params.output.periods_plot.phys_fields = 10.
 
     params.output.ONLINE_PLOT_OK = True
 
@@ -153,7 +158,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = 'b'
 
     sim = Simul(params)
 

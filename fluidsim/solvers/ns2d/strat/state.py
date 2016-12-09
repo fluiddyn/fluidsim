@@ -26,6 +26,7 @@
 
 """
 
+import numpy as np
 
 from fluidsim.base.state import StatePseudoSpectral
 
@@ -64,7 +65,7 @@ class StateNS2DStrat(StateNS2D):
 
         # Introduction buoyancy term 'b'
         elif key == 'b_fft':
-            result = self.oper.fft2(self.state_phys.get_var('b_fft'))
+            result = self.oper.fft2(self.state_phys.get_var('b'))
 
         elif key == 'div_fft':
             ux_fft = self.compute('ux_fft')
@@ -119,21 +120,25 @@ class StateNS2DStrat(StateNS2D):
         rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
 
-        # init_from_rotfft takes two arguments (1 given 'self'). The curl and the buoyancy term.
-    def init_from_rotfft(self, rot_fft, b_fft):
+    def init_from_rotbfft(self, rot_fft, b_fft):
         """Initialize the state from the variable `rot_fft`."""
         self.oper.dealiasing(rot_fft)
-        self.oper.dealising(b_fft)
+        self.oper.dealiasing(b_fft)
 
         self.state_fft.set_var('rot_fft', rot_fft)
         self.state_fft.set_var('b_fft', b_fft)
 
         self.statephys_from_statefft()
 
-        # init_fft_from looks if kwargs has two arguments.
+    def init_from_rotfft(self, rot_fft):
+        b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
+        self.init_from_rotbfft(rot_fft, b_fft)
+
     def init_fft_from(self, **kwargs):
+
+        # init_fft_from looks if kwargs has two arguments.
         if len(kwargs) == 2:
-            if 'rot_fft' & 'b_fft' in kwargs:
-                self.init_from_rotfft(kwargs['rot_fft'])
+            if 'rot_fft' in kwargs and 'b_fft' in kwargs:
+                self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
         else:
             super(StateNS2D, self).init_statefft_from(**kwargs)

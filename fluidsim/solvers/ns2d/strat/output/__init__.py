@@ -76,3 +76,33 @@ class OutputStrat(Output):
         #     'module_name': 'fluidsim.base.output.increments',
         #     'class_name': 'Increments'}
         # classes._set_child('increments', attribs=attribs)
+
+    # @staticmethod
+    # def _complete_params_with_default(params, info_solver):
+    #     """Complete the `params` container (static method)."""
+    #     OutputBasePseudoSpectral._complete_params_with_default(
+    #         params, info_solver)
+
+    #     params.output.phys_fields.field_to_plot = 'rot'
+
+    def compute_energy_fft(self):
+        """Compute energy(k)"""
+        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+        b_fft = self.sim.state.state_fft.get_var('b_fft')
+        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2 + ((np.abs(b_fft)/self.sim.params.N)**2)/2
+
+    def compute_enstrophy_fft(self):
+        """Compute enstrophy(k)"""
+        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+        return np.abs(rot_fft)**2/2
+
+    def compute_energy(self):
+        """Compute the spatially averaged energy."""
+        energy_fft = self.compute_energy_fft()
+        return self.sum_wavenumbers(energy_fft)
+
+    def compute_enstrophy(self):
+        """Compute the spatially averaged enstrophy."""
+        enstrophy_fft = self.compute_enstrophy_fft()
+        return self.sum_wavenumbers(enstrophy_fft)
