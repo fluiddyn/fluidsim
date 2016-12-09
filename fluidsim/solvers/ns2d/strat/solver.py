@@ -55,49 +55,55 @@ class Simul(SimulNS2D):
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
-    # def tendencies_nonlin(self, state_fft=None):
-    #     oper = self.oper
-    #     fft2 = oper.fft2
-    #     ifft2 = oper.ifft2
+    def tendencies_nonlin(self, state_fft=None):
+        oper = self.oper
+        fft2 = oper.fft2
+        ifft2 = oper.ifft2
 
-    #     if state_fft is None:
-    #         rot_fft = self.state.state_fft.get_var('rot_fft')
-    #         ux = self.state.state_phys.get_var('ux')
-    #         uy = self.state.state_phys.get_var('uy')
-    #     else:
-    #         rot_fft = state_fft.get_var('rot_fft')
-    #         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-    #         ux = ifft2(ux_fft)
-    #         uy = ifft2(uy_fft)
+        if state_fft is None:
+            rot_fft = self.state.state_fft.get_var('rot_fft')
+            b_fft = self.state.state_fft.get_var('b_fft')
+            ux = self.state.state_phys.get_var('ux')
+            uy = self.state.state_phys.get_var('uy')
+        else:
+            rot_fft = state_fft.get_var('rot_fft')
+            b_fft = state_fft.get_var('b_fft')
+            ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
+            ux = ifft2(ux_fft)
+            uy = ifft2(uy_fft)
 
-    #     px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
-    #     px_rot = ifft2(px_rot_fft)
-    #     py_rot = ifft2(py_rot_fft)
+        px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
+        px_b_fft, py_b_fft = oper.gradfft_from_fft(b_fft)
+        px_rot = ifft2(px_rot_fft)
+        py_rot = ifft2(py_rot_fft)
+        px_b = ifft2(px_b_fft)
 
-    #     if self.params.beta == 0:
-    #         Frot = -ux*px_rot - uy*py_rot
-    #     else:
-    #         Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
+        if self.params.beta == 0:
+            Frot = -ux*px_rot - uy*py_rot
+        else:
+            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
 
-    #     Frot_fft = fft2(Frot)
-    #     oper.dealiasing(Frot_fft)
+        Frot_fft_old = fft2(Frot)
+        Fb_fft = fft2(px_b)
+        Frot_fft = Frot_fft_old + Fb_fft
+        oper.dealiasing(Frot_fft)
 
-    #     # T_rot = np.real(Frot_fft.conj()*rot_fft
-    #     #                + Frot_fft*rot_fft.conj())/2.
-    #     # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
-    #     #       ).format(self.oper.sum_wavenumbers(T_rot),
-    #     #                self.oper.sum_wavenumbers(abs(T_rot)))
+        # T_rot = np.real(Frot_fft.conj()*rot_fft
+        #                + Frot_fft*rot_fft.conj())/2.
+        # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
+        #       ).format(self.oper.sum_wavenumbers(T_rot),
+        #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-    #     tendencies_fft = SetOfVariables(
-    #         like=self.state.state_fft,
-    #         info='tendencies_nonlin')
+        tendencies_fft = SetOfVariables(
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
 
-    #     tendencies_fft.set_var('rot_fft', Frot_fft)
+        tendencies_fft.set_var('rot_fft', Frot_fft)
 
-    #     if self.params.FORCING:
-    #         tendencies_fft += self.forcing.get_forcing()
+        if self.params.FORCING:
+            tendencies_fft += self.forcing.get_forcing()
 
-    #     return tendencies_fft
+        return tendencies_fft
 
 
 

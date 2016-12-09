@@ -119,7 +119,7 @@ class StateNS2DStrat(StateNS2D):
         rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
 
-        # init_from_rotfft takes two arguments (1 given). The curl and the buoyancy term.
+        # init_from_rotfft takes two arguments (1 given 'self'). The curl and the buoyancy term.
     def init_from_rotfft(self, rot_fft, b_fft):
         """Initialize the state from the variable `rot_fft`."""
         self.oper.dealiasing(rot_fft)
