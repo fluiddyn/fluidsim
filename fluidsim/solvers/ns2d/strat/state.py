@@ -36,8 +36,6 @@ from fluidsim.solvers.ns2d.state import StateNS2D
 
 class StateNS2DStrat(StateNS2D):
 
-    
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Update `info_solver` container with the stratification terms (static method)."""
@@ -63,11 +61,11 @@ class StateNS2DStrat(StateNS2D):
             ux_fft = self.compute('ux_fft')
             uy_fft = self.compute('uy_fft')
             result = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-            
+
         # Introduction buoyancy term 'b'
         elif key == 'b_fft':
             result = self.oper.fft2(self.state_phys.get_var('b_fft'))
-            
+
         elif key == 'div_fft':
             ux_fft = self.compute('ux_fft')
             uy_fft = self.compute('uy_fft')
@@ -121,15 +119,21 @@ class StateNS2DStrat(StateNS2D):
         rot = self.state_phys.get_var('rot')
         self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
 
-    def init_from_rotfft(self, rot_fft):
+        # init_from_rotfft takes two arguments (1 given). The curl and the buoyancy term.
+    def init_from_rotfft(self, rot_fft, b_fft):
         """Initialize the state from the variable `rot_fft`."""
         self.oper.dealiasing(rot_fft)
+        self.oper.dealising(b_fft)
+
         self.state_fft.set_var('rot_fft', rot_fft)
+        self.state_fft.set_var('b_fft', b_fft)
+
         self.statephys_from_statefft()
 
+        # init_fft_from looks if kwargs has two arguments.
     def init_fft_from(self, **kwargs):
-        if len(kwargs) == 1:
-            if 'rot_fft' in kwargs:
+        if len(kwargs) == 2:
+            if 'rot_fft' & 'b_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])
         else:
             super(StateNS2D, self).init_statefft_from(**kwargs)
