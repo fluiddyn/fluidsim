@@ -90,7 +90,7 @@ class OutputStrat(Output):
         rot_fft = self.sim.state.state_fft.get_var('rot_fft')
         b_fft = self.sim.state.state_fft.get_var('b_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2 + ((np.abs(b_fft)/self.sim.params.N)**2)/2
+        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2 + (np.abs(b_fft)/self.sim.params.N)**2/2
 
     def compute_enstrophy_fft(self):
         """Compute enstrophy(k)"""
