@@ -32,7 +32,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         if mpi.rank == 0:
             to_print += (
                 '              energyK = {:9.3e}\n'
-                '              energyA = {:+9.3e}\n'
+                '              energyA = {:9.3e}\n'
                 '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
                 ''.format(energyK, energyA, energy, energy-self.energy_temp))
 
@@ -135,8 +135,9 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('t')
         ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.plot(t, E, 'k', linewidth=2)
+        ax2.plot(t, E, 'k', linewidth=2, label='E')
         ax2.plot(t, deltaE, 'b', linewidth=2)
-        ax2.plot(t, EK, 'r', linewidth=2)
-        ax2.plot(t, EA, 'g', linewidth=2)
+        ax2.plot(t, EK, 'r', linewidth=2, label='EK')
+        ax2.plot(t, EA, 'g', linewidth=2, label='EA')
+        ax2.legend()
         ax2.grid(True)

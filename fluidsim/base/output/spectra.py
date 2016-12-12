@@ -178,23 +178,26 @@ class Spectra(SpecificOutput, MoviesBase1D):
 
     def plot2d(self):
         pass
-    
+
     def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax, ymax):
-        """.. TODO: Needs more generalization for all _ani functions replaced by inheritance;"""
-        
+        """.. TODO: Needs more generalization for all _ani functions"""
+        """replaced by inheritance;"""
+
         if xmax is None:
             xmax = self.oper.khE[-1:][0]
         if ymax is None:
             ymax = 1.0
-        
-        super(Spectra, self)._ani_init(key_field, numfig, nb_contours, file_dt, xmax, ymax)
-    
+
+        super(Spectra, self)._ani_init(key_field, numfig, nb_contours, file_dt,
+                                       xmax, ymax)
+
     def _ani_get_field(self, time):
-        raise NotImplementedError('_ani_get_field function declaration missing')
-    
+        raise NotImplementedError('_ani_get_field function declaration'
+                                  'missing')
+
     def _select_field(self, field=None, key_field=None):
         raise NotImplementedError('_select_field function declaration missing')
-    
+
     def _select_axis(self, xlabel='kh'):
         # x = self.oper.khE
         f = h5py.File(self.path_file2D, 'r')
@@ -202,4 +205,4 @@ class Spectra(SpecificOutput, MoviesBase1D):
         self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
         self._ani_ax.set_ylabel(self._ani_key, fontdict=self.font)
         self._ani_ax.set_yscale('log')
-        return x    
+        return x
