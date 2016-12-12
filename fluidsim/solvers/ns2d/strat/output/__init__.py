@@ -85,12 +85,19 @@ class OutputStrat(Output):
 
     #     params.output.phys_fields.field_to_plot = 'rot'
 
-    def compute_energy_fft(self):
-        """Compute energy(k)"""
+    def compute_energies_fft(self):
+        """Compute the kinetic and potential energy (k)"""
         rot_fft = self.sim.state.state_fft.get_var('rot_fft')
         b_fft = self.sim.state.state_fft.get_var('b_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2 + (np.abs(b_fft)/self.sim.params.N)**2/2
+        energyK_fft = (np.abs(ux_fft)**2 + np.abs(uy_fft)**2)/2
+        energyA_fft = ((np.abs(b_fft)/self.sim.params.N)**2)/2
+        return energyK_fft, energyA_fft
+
+    def compute_energy_fft(self):
+        """Compute energy(k)"""
+        energyK_fft, energyA_fft = self.compute_energies_fft()
+        return energyK_fft + energyA_fft
 
     def compute_enstrophy_fft(self):
         """Compute enstrophy(k)"""
@@ -101,6 +108,13 @@ class OutputStrat(Output):
         """Compute the spatially averaged energy."""
         energy_fft = self.compute_energy_fft()
         return self.sum_wavenumbers(energy_fft)
+
+    def compute_energies(self):
+        """Compute the kinetic and potential energy"""
+        energyK_fft, energyA_fft = self.compute_energies_fft()
+        energyK = self.sum_wavenumbers(energyK_fft)
+        energyA = self.sum_wavenumbers(energyA_fft)
+        return energyK, energyA
 
     def compute_enstrophy(self):
         """Compute the spatially averaged enstrophy."""
