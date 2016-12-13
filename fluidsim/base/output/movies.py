@@ -108,7 +108,7 @@ class MoviesBase(object):
         except KeyError:
             Writer = animation.writers['mencoder']
         
-        print 'Saving movie to ',filename,'...'
+        print('Saving movie to ', filename, '...')
         writer = Writer(
             fps=1000. / frame_dt, metadata=dict(artist='Me'), bitrate=1800)
         self._animation.save(filename, writer=writer)  # _animation_ is a FuncAnimation object

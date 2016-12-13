@@ -39,7 +39,7 @@ class Increments(SpecificOutput):
         logr = np.log(rmin) + delta_logr*np.arange(self.nrx)
         self.rxs = np.array(np.round(np.exp(logr)), dtype=np.int32)
 
-        for ir in xrange(1, self.nrx):
+        for ir in range(1, self.nrx):
             if self.rxs[ir-1] >= self.rxs[ir]:
                 self.rxs[ir] = self.rxs[ir-1] + 1
 
@@ -216,7 +216,7 @@ class Increments(SpecificOutput):
 
         # ax1.set_ylabel('struct. functions, order = {0}'.format(order))
         # if delta_t != 0.:
-        #     for it in xrange(imin_plot,imax_plot+1,delta_i_plot):
+        #     for it in range(imin_plot,imax_plot+1,delta_i_plot):
         #         struc_func_ux = dset_struc_func_ux[it]
         #         struc_func_ux = struc_func_ux.reshape(
         #             [self.norders, self.nrx])
@@ -273,7 +273,7 @@ class Increments(SpecificOutput):
         # iorder2 = self.iorder_from_order(2)
 
         # if delta_t != 0.:
-        #     for it in xrange(imin_plot,imax_plot+1,delta_i_plot):
+        #     for it in range(imin_plot,imax_plot+1,delta_i_plot):
         #         struc_func_ux = dset_struc_func_ux[it]
         #         struc_func_ux = struc_func_ux.reshape(
         #             [self.norders, self.nrx])
@@ -322,7 +322,7 @@ class Increments(SpecificOutput):
         S_order = np.empty(self.rxs.shape)
         if absolute:
             values = abs(values)
-        for irx in xrange(self.rxs.size):
+        for irx in range(self.rxs.size):
             deltainc = abs(values[irx, 1] - values[irx, 0])
             S_order[irx] = deltainc*np.sum(
                 pdf[irx]*values[irx]**order)
@@ -385,7 +385,7 @@ class Increments(SpecificOutput):
         valmax_timemean = np.zeros([nb_rx_to_plot])
         nb_timemean = 0
 
-        for it in xrange(imin_plot, imax_plot+1):
+        for it in range(imin_plot, imax_plot+1):
             nb_timemean += 1
             valmin = f['valmin_'+key_var][it]
             valmax = f['valmax_'+key_var][it]
@@ -402,7 +402,7 @@ class Increments(SpecificOutput):
                 valmin_timemean[irxp], valmax_timemean[irxp])
 
         nt = 0
-        for it in xrange(imin_plot, imax_plot+1):
+        for it in range(imin_plot, imax_plot+1):
             nt += 1
             pdf_dvar2D = f['pdf_delta_'+key_var][it]
             pdf_dvar2D = pdf_dvar2D.reshape([self.nrx, self.nbins])
@@ -641,7 +641,7 @@ imin_plot, imax_plot, delta_i_plot)
 
         # ax1.set_ylabel('struct. functions, order = {0}'.format(order))
         # if delta_t != 0.:
-        #     for it in xrange(imin_plot,imax_plot+1,delta_i_plot):
+        #     for it in range(imin_plot,imax_plot+1,delta_i_plot):
         #         struc_func_ux = dset_struc_func_ux[it]
         #         struc_func_ux = struc_func_ux.reshape(
         #             [self.norders, self.nrx])
@@ -700,7 +700,7 @@ imin_plot, imax_plot, delta_i_plot)
         # iorder2 = self.iorder_from_order(2)
 
         # if delta_t != 0.:
-        #     for it in xrange(imin_plot,imax_plot+1,delta_i_plot):
+        #     for it in range(imin_plot,imax_plot+1,delta_i_plot):
         #         struc_func_ux = dset_struc_func_ux[it]
         #         struc_func_ux = struc_func_ux.reshape(
         #             [self.norders, self.nrx])

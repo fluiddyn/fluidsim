@@ -154,9 +154,11 @@ class InitFieldsVortexGrid(SpecificInitFields):
         shuffle(pm)
 
         if pm.count(+1.) != pm.count(-1.):
-            print "Clockwise: ", pm.count(-1.), ", Anti-clockwise: ", pm.count(+1.)
+            print("Clockwise: ", pm.count(-1.),
+                  ", Anti-clockwise: ", pm.count(+1.))
             raise ValueError(
-                "Mismatch between number of clockwise and anticlockwise vortices in initialisation")
+                "Mismatch between number of clockwise and "
+                "anticlockwise vortices in initialisation")
         return pm
     
        

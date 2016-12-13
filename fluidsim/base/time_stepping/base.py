@@ -183,7 +183,7 @@ class TimeSteppingBase(object):
 
         ux = self.sim.state('ux')
         uy = self.sim.state('uy')
-
+        
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
         temp = (max_ux/self.sim.oper.deltax + max_uy/self.sim.oper.deltay)

@@ -125,7 +125,7 @@ class InitFieldsFromFile(SpecificInitFields):
             except:
                 raise ValueError('file '+path_file+' is really a hd5 file?')
 
-            print ('Load state from file:\n[...]'+path_file[-75:])
+            print('Load state from file:\n[...]'+path_file[-75:])
 
             try:
                 group_oper = f['/info_simul/params/oper']
@@ -314,9 +314,9 @@ class InitFieldsConstant(SpecificInitFields):
 
 #         # BE CARREFUL, THIS WON'T WORK WITH MPI !!!
 #         if mpi.rank == 0:
-#             print 'init_fields_wave(ikx = {0:4d}, eta0 = {1:7.2e})'.format(
-#                 ikx, eta0)
-#             print 'kx[ikx] = {0:8.2f}'.format(self.oper.kxE[ikx])
+#             print('init_fields_wave(ikx = {0:4d}, eta0 = {1:7.2e})'.format(
+#                 ikx, eta0))
+#             print('kx[ikx] = {0:8.2f}'.format(self.oper.kxE[ikx]))
 
 #         if mpi.nb_proc > 1:
 #             raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'

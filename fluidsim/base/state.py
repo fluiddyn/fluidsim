@@ -67,7 +67,7 @@ class StateBase(object):
     def clear_computed(self):
         self.vars_computed.clear()
 
-    def __call__(self, key):
+    def __call__(self, key):        
         if key in self.keys_state_phys:
             return self.state_phys.get_var(key)
         else:
@@ -122,6 +122,7 @@ class StatePseudoSpectral(StateBase):
 
     def __call__(self, key):
         """Return the variable corresponding to the given key."""
+
         if key in self.keys_state_fft:
             return self.state_fft.get_var(key)
         elif key in self.keys_state_phys:
@@ -146,12 +147,12 @@ class StatePseudoSpectral(StateBase):
 
     def statefft_from_statephys(self):
         fft2 = self.oper.fft2
-        for ik in xrange(self.state_fft.nvar):
+        for ik in range(self.state_fft.nvar):
             self.state_fft[ik][:] = fft2(self.state_phys[ik])
 
     def statephys_from_statefft(self):
         ifft2 = self.oper.ifft2
-        for ik in xrange(self.state_fft.nvar):
+        for ik in range(self.state_fft.nvar):
             self.state_phys[ik] = ifft2(self.state_fft[ik])
 
     def return_statephys_from_statefft(self, state_fft=None):
@@ -161,7 +162,7 @@ class StatePseudoSpectral(StateBase):
             state_fft = self.state_fft
 
         state_phys = SetOfVariables(like=self.state_phys)
-        for ik in xrange(self.state_fft.nvar):
+        for ik in range(self.state_fft.nvar):
             state_phys[ik] = ifft2(state_fft[ik])
         return state_phys
 

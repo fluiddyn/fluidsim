@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
 
-    print 'x of s_max: ', sim.oper.xs[sim.state.state_phys.argmax()]
+    print('x of s_max: ', sim.oper.xs[sim.state.state_phys.argmax()])
 
     sim.output.phys_fields.plot()
 

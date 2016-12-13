@@ -46,9 +46,9 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
 
     params.output.HAS_TO_SAVE = HAS_TO_SAVE
 
-    with stdout_redirected():
-        sim = Simul(params)
-        sim.time_stepping.start()
+    # with stdout_redirected():
+    sim = Simul(params)
+    sim.time_stepping.start()
 
     return sim
 

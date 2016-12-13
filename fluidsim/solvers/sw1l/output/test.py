@@ -15,8 +15,8 @@ class TestSpectEnergyBudg(unittest.TestCase):
         
         r, c, nkx, nky = module.qmat.shape
         identity = np.eye(r)
-        for ikx in xrange(1,nkx):
-            for iky in xrange(1,nky):
+        for ikx in range(1,nkx):
+            for iky in range(1,nky):
                 qmat = module.qmat[:,:,ikx,iky]
                 qct = qmat.conj().transpose()
                 identity2 = np.dot(qct,qmat)

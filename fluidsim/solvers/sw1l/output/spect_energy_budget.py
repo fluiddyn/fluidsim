@@ -478,7 +478,7 @@ imin_plot, imax_plot, delta_i_plot)
         khE = khE+1
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEKr = dset_transfer2D_EKr[it]
                 transferEAr = dset_transfer2D_EAr[it]
                 PiEKr = cumsum_inv(transferEKr)*self.oper.deltakh
@@ -616,7 +616,7 @@ imin_plot, imax_plot, delta_i_plot)
         ax2.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot,imax_plot+1,delta_i_plot):
+            for it in range(imin_plot,imax_plot+1,delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
                 PiCPE = cumsum_inv(transferCPE)*self.oper.deltakh
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
@@ -871,7 +871,7 @@ imin_plot, imax_plot, delta_i_plot)
         ax1.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEK = dset_transfer2D_EK[it]
                 transferEA = dset_transfer2D_EA[it]
                 PiEK = cumsum_inv(transferEK)*self.oper.deltakh
@@ -925,7 +925,7 @@ imin_plot, imax_plot, delta_i_plot)
         ax2.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
                 PiCPE = cumsum_inv(transferCPE)*self.oper.deltakh
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
@@ -959,9 +959,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         sigma = self.sigma
         
         self.qmat = np.array(
-                [[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-                 [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-                 [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
+            [[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
+             [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
+             [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
         if mpi.rank == 0 or oper.SEQUENTIAL:
             self.qmat[:,:,0,0] = 0.
     
@@ -981,10 +981,10 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             r =  row_index[key]
             normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
             if 'px' in key:
-                for r in xrange(3):
+                for r in range(3):
                     normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
             elif 'py' in key:
-                for r in xrange(3):
+                for r in range(3):
                     normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
             if 'eta' in key:
@@ -994,17 +994,18 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def _normalmodephys_from_keyphys(self, key):
         ifft2 = self.oper.ifft2
-        key_modes, normal_mode_vec_fft = self._normalmodefft_from_keyfft(key + '_fft')
+        key_modes, normal_mode_vec_fft = self._normalmodefft_from_keyfft(
+            key + '_fft')
         normal_mode_vec_phys = np.array([ifft2(normal_mode_vec_fft[i])
-                                        for i in xrange(3)])
+                                        for i in range(3)])
         
         return key_modes, normal_mode_vec_phys
     
     def _group_matrix_using_dict(self, key_matrix, value_matrix, grouping):
         value_dict = dict.fromkeys(grouping, 0.)
         n1, n2 = key_matrix.shape
-        for i in xrange(n1):
-            for j in xrange(n2):
+        for i in range(n1):
+            for j in range(n2):
                 k1 = key_matrix[i,j]
                 k3 = None
                 for k2 in grouping.keys():
@@ -1012,7 +1013,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                         k3 = k2
                         break
                 if k3 is None:
-                    raise KeyError('Not sure which dyad group '+k1+' belongs to')
+                    raise KeyError(
+                        'Not sure which dyad group ' + k1 + ' belongs to')
                 value_dict[k3] += value_matrix[i,j]
                 
         new_matrix = np.array([value_dict[k3] for k3 in value_dict.keys()])
@@ -1034,7 +1036,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             key_modes, normal_modes[k1] =  self._normalmodefft_from_keyfft(k1)
             normal_modes[k2] = normal_modes[k1]
 
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
+        key_modes_mat = np.char.add(key_modes.transpose(), key_modes)
         if conjugate:
             Ni = normal_modes[k1].conj()
             Nj = normal_modes[k2]
@@ -1059,38 +1061,38 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         else:
             key_modes, normal_modes[k1] =  self._normalmodephys_from_keyphys(k1)
             normal_modes[k2] = normal_modes[k1]
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
+        key_modes_mat = np.char.add(key_modes.transpose(), key_modes)
         dyad_mat_phys = np.einsum('i...,j...->ij...',
-                                     normal_modes[k1],
-                                     normal_modes[k2])
+                                  normal_modes[k1],
+                                  normal_modes[k2])
         del normal_modes
         fft2 =  self.oper.fft2
         dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i,j])
-                                 for j in xrange(3)]
-                                 for i in xrange(3)])
+                                 for j in range(3)]
+                                 for i in range(3)])
 
-        for i in xrange(3):
-            for j in xrange(3):
+        for i in range(3):
+            for j in range(3):
                 self.oper.dealiasing(dyad_mat_fft[i,j])
         
         del dyad_mat_phys
         return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
         
     def _triad_from_keyfft(self, *keys_state_fft):
-        triad_group = {'GGG':['GGG'],
-                       'AGG':['AGG','GAG','GGA','aGG','GaG','GGa'],
-                       'GAAs':['aaG','aGa','Gaa','AAG','AGA','GAA'],
-                       'GAAd':['aAG','AaG','aGA','AGa','GaA','GAa'],
-                       'AAA':['AAA','aaa','AAa','AaA','aAA','aaA','aAa','Aaa']}
+        triad_group = {'GGG': ['GGG'],
+                       'AGG': ['AGG','GAG','GGA','aGG','GaG','GGa'],
+                       'GAAs': ['aaG','aGa','Gaa','AAG','AGA','GAA'],
+                       'GAAd': ['aAG','AaG','aGA','AGa','GaA','GAa'],
+                       'AAA': ['AAA','aaa','AAa','AaA','aAA','aaA','aAa','Aaa']}
         k1, k2, k3 = keys_state_fft
         
         key_modes_1, normal_modes_1 = self._normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self._dyad_from_keyfft(False, k2, k3)
         
-        key_modes_mat = np.core.defchararray.add(key_modes_1.transpose(), key_modes_23)
+        key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
         triad_mat = np.einsum('i...,j...->ij...',
-                                     normal_modes_1.conj(),
-                                     normal_modes_23)
+                              normal_modes_1.conj(),
+                              normal_modes_23)
         
         return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
 
@@ -1105,11 +1107,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         key_modes_1, normal_modes_1 = self._normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self._dyad_from_keyphys(k2, k3)
+
+        print(key_modes_23, type(key_modes_23))
         
-        key_modes_mat = np.core.defchararray.add(key_modes_1.transpose(), key_modes_23)
+        key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
         triad_mat = np.einsum('i...,j...->ij...',
-                                     normal_modes_1.conj(),
-                                     normal_modes_23)
+                              normal_modes_1.conj(),
+                              normal_modes_23)
         
         return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
         
@@ -1175,7 +1179,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
-        for i in xrange(n_modes):          # GGG, GGA etc.
+        for i in range(n_modes):          # GGG, GGA etc.
             k = triad_key_modes[0][i]
             for j in Tq_keys.keys():       # uuu, uuv etc.
                 Tq_fft[k] += np.real(Tq_coeff[j] * Tq_terms[j][i])
@@ -1194,7 +1198,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
         n_modes = dyad_key_modes[0].shape[0]
-        for i in xrange(n_modes):        # GG, AG, aG, AA
+        for i in range(n_modes):        # GG, AG, aG, AA
             k = dyad_key_modes[0][i]
             for j in Cq_keys.keys():     # ue, ve
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
@@ -1405,7 +1409,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         norm = self.sim.params.forcing.forcing_rate 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.
                 for key in ['GGG','AGG','GAAs','GAAd','AAA']:
                     transferEtot += f['Tq_' + key][it]
@@ -1468,7 +1472,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cflux_mean = cumsum_inv(exchange_mean)*self.oper.deltakh
         
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 exchangetot = 0.
                 for key in ['GG','AG','aG','AA']:
                     exchangetot += f['Cq_' + key][it]

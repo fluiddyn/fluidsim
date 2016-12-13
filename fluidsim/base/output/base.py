@@ -445,10 +445,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.iteritems():
+                for k, v in dico_arrays_1time.items():
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_arrays.iteritems():
+                for k, v in dico_arrays.items():
                     v.resize([1, v.size])
                     f.create_dataset(
                         k, data=v, maxshape=(None, v.size))
@@ -469,10 +469,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.iteritems():
+                for k, v in dico_arrays_1time.items():
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_matrix.iteritems():
+                for k, v in dico_matrix.items():
                     if isinstance(v, numbers.Number):
                         arr = np.array([v], dtype=v.__class__)
                         arr.resize((1,))
@@ -493,7 +493,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_arrays.iteritems():
+                for k, v in dico_arrays.items():
                     dset_k = f[k]
                     dset_k.resize((nb_saved_times+1, v.size))
                     dset_k[nb_saved_times] = v
@@ -507,7 +507,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_matrix.iteritems():
+                for k, v in dico_matrix.items():
                     if isinstance(v, numbers.Number):
                         dset_k = f[k]
                         dset_k.resize((nb_saved_times+1,))
@@ -522,7 +522,7 @@ class SpecificOutput(object):
             dset_times = f['times']
             dset_times.resize((nb_saved_times+1,))
             dset_times[nb_saved_times] = self.sim.time_stepping.t
-            for k, v in dico_arrays.iteritems():
+            for k, v in dico_arrays.items():
                 dset_k = f[k]
                 dset_k.resize((nb_saved_times+1, v.size))
                 dset_k[nb_saved_times] = v
