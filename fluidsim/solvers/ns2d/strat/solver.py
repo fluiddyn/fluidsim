@@ -130,7 +130,7 @@ if __name__ == "__main__":
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 2.
     params.time_stepping.USE_CFL = False
-    params.time_stepping.deltat0 = 0.05
+    params.time_stepping.deltat0 = 0.1
     params.time_stepping.t_end = 20.
 
     params.init_fields.type = 'dipole'
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'b'
+    # params.output.phys_fields.field_to_plot = 'b'
 
     sim = Simul(params)
 

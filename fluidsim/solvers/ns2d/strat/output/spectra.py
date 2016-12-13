@@ -17,8 +17,8 @@ class SpectraNS2DStrat(Spectra):
     """Save and plot spectra."""
 
     def compute(self):
-        """compute the values at one time??."""
-        energy_fft = self.output.compute_energy_fft()
+        """compute the values at one time."""
+        # energy_fft = self.output.compute_energy_fft()
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
 
         # Compute the kinetic and potential energy spectra 1D
@@ -26,15 +26,20 @@ class SpectraNS2DStrat(Spectra):
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
         dico_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
                           'spectrum1Dky_EK': spectrum1Dky_EK,
+                          'spectrum1Dkx_EA': spectrum1Dkx_EA,
                           'spectrum1Dky_EA': spectrum1Dky_EA}
+
         # # compute the spectra 1D
         # spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
         # dico_spectra1D = {'spectrum1Dkx_E': spectrum1Dkx_E,
         #                   'spectrum1Dky_E': spectrum1Dky_E}
 
         # compute the kinetic energy spectra 2D
-        spectrum2D_E = self.spectrum2D_from_fft(energyK_fft)
-        dico_spectra2D = {'spectrum2D_E': spectrum2D_E}
+        spectrum2D_EK = self.spectrum2D_from_fft(energyK_fft)
+        spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
+        dico_spectra2D = {'spectrum2D_EK': spectrum2D_EK,
+                          'spectrum2D_EA': spectrum2D_EA}
+
         return dico_spectra1D, dico_spectra2D
 
     def _online_plot(self, dico_spectra1D, dico_spectra2D):
@@ -59,20 +64,20 @@ class SpectraNS2DStrat(Spectra):
         dset_times = f['times']
 
         dset_kxE = f['kxE']
-        dset_kyE = f['kyE']
-        kh = dset_kxE[...]
-        kv = dset_kyE[...]
+       # dset_kyE = f['kyE']
+        kh = dset_kxE.value
+       # kv = dset_kyE.value
 
         # Open data set 1D kinetic energy spectra
-        dset_spectrum1Dkx = f['spectrum1Dkx_EK']
-        dset_spectrum1Dky = f['spectrum1Dky_EK']
+        dset_spectrum1Dkx_EK = f['spectrum1Dkx_EK']
+        dset_spectrum1Dky_EK = f['spectrum1Dky_EK']
 
         # dset_spectrum1Dkx = f['spectrum1Dkx_E']
         # dset_spectrum1Dky = f['spectrum1Dky_E']
 
 
         # nb_spectra = dset_times.shape[0]
-        times = dset_times[...]
+        times = dset_times.value
         # nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
@@ -93,10 +98,10 @@ class SpectraNS2DStrat(Spectra):
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
         print('''plot 1D spectra
-tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
-    tmin_plot, tmax_plot, delta_t,
-    imin_plot, imax_plot, delta_i_plot))
+        tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
+        imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
+            tmin_plot, tmax_plot, delta_t,
+            imin_plot, imax_plot, delta_i_plot))
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
@@ -108,30 +113,37 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax1.set_yscale('log')
 
         # coef_norm = 1
+        kh = kh[1:]
         coef_norm = kh**(coef_compensate)
         if delta_t != 0.:
             for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
-                EK = (dset_spectrum1Dkx[it]+dset_spectrum1Dky[it])
-                EK[EK < 10e-16] = 0.
-                ax1.plot(kh, EK*coef_norm, 'k', linewidth=2)
+                 EK = (dset_spectrum1Dkx_EK[it]+ dset_spectrum1Dky_EK[it])
+                 EK[EK < 10e-16] = 0.
+                 ax1.plot(kh, EK[1:]*coef_norm, 'k', linewidth=2)
+        # print 'it = ', it
+        # print 'EK = ', EK
+        # print 'kh = ', kh
 
-        EK = (dset_spectrum1Dkx[imin_plot:imax_plot+1] +
-              dset_spectrum1Dky[imin_plot:imax_plot+1]).mean(0)
+        EK = (dset_spectrum1Dkx_EK[imin_plot:imax_plot+1] +
+              dset_spectrum1Dky_EK[imin_plot:imax_plot+1]).mean(0)
+        print 'EK = ', EK
+        ax1.plot(kh, EK[1:]*coef_norm, 'b--', linewidth=3)
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'r', linewidth=1)
-        # ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k--', linewidth=1)
+        # ax1.plot(kh[1:], kh[1:]**(-3)*coef_norm, 'r', linewidth=1)
+        # ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k', linewidth=2)
+        ax1.plot(kh, kh**(-5/3), 'r', linewidth=2)
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
         # nb_spectra = dset_times.shape[0]
-        times = dset_times[...]
+        times = dset_times.value
         # nt = len(times)
 
-        kh = f['khE'][...]
+        kh = f['khE'].value
 
-        dset_spectrum = f['spectrum2D_E']
+        dset_spectrum = f['spectrum2D_EK']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
         delta_i_plot = int(np.round(delta_t/delta_t_save))
@@ -151,10 +163,10 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
         print('''plot 2D spectra
-tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
-tmin_plot, tmax_plot, delta_t,
-imin_plot, imax_plot, delta_i_plot))
+        tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
+        imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
+            tmin_plot, tmax_plot, delta_t,
+            imin_plot, imax_plot, delta_i_plot))
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
