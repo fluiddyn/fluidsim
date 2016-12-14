@@ -34,8 +34,9 @@ class PrintStdOutNS3D(PrintStdOutBase):
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
-        file_means = open(self.output.path_run+'/stdout.txt')
-        lines = file_means.readlines()
+
+        with open(self.output.path_run + '/stdout.txt') as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []

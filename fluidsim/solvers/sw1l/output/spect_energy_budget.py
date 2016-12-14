@@ -1107,15 +1107,14 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         key_modes_1, normal_modes_1 = self._normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self._dyad_from_keyphys(k2, k3)
-
-        print(key_modes_23, type(key_modes_23))
         
         key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
         triad_mat = np.einsum('i...,j...->ij...',
                               normal_modes_1.conj(),
                               normal_modes_23)
         
-        return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
+        return self._group_matrix_using_dict(
+            key_modes_mat, triad_mat, triad_group)
         
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         """

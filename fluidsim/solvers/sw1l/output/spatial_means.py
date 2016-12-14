@@ -218,8 +218,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
 
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
+        with open(self.path_file) as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -640,8 +640,8 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
         dico_results = super(SpatialMeansSW1L, self).load()
 
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
+        with open(self.path_file) as file_means:
+            lines = file_means.readlines()
 
         lines_epsKsuppl = []
 
@@ -654,7 +654,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         epsKsuppl = np.empty(nt)
         epsKsuppl_hypo = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_epsKsuppl[il]
             words = line.split()
             epsKsuppl[il] = float(words[1])
