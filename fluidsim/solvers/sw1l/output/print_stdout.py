@@ -1,6 +1,7 @@
 
 from __future__ import print_function, division
 
+from builtins import range
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -65,7 +66,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
         E_K = np.zeros(nt)
         E_A = np.zeros(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             it[il] = int(words[2])

@@ -1,4 +1,8 @@
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import h5py
 import unittest
@@ -432,7 +436,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         dset_transfer2D_CPE = f['transfer2D_CPE']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot = 1
         delta_t = delta_i_plot*delta_t_save
@@ -630,7 +634,7 @@ imin_plot, imax_plot, delta_i_plot)
 
     def _checksum_stdout(self, debug=False, **kwargs):
         if debug is True:
-            for key, value in kwargs.items():
+            for key, value in list(kwargs.items()):
                 if mpi.nb_proc > 1:
                     value_g = mpi.comm.gather(value, root=0)
                 else:
@@ -825,7 +829,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -958,10 +962,10 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             self.sigma = np.sqrt(f**2 + (ck)**2)
         sigma = self.sigma
         
-        self.qmat = np.array(
+        self.qmat = old_div(np.array(
             [[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
              [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-             [ 2. ** 0.5 * f * KK, c*K2, c*K2]]) / ( 2. ** 0.5 * sigma * oper.KK_not0)
+             [ 2. ** 0.5 * f * KK, c*K2, c*K2]]), ( 2. ** 0.5 * sigma * oper.KK_not0))
         if mpi.rank == 0 or oper.SEQUENTIAL:
             self.qmat[:,:,0,0] = 0.
     
@@ -988,7 +992,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                     normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
             if 'eta' in key:
-                normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
+                normal_mode_vec_fft = old_div(normal_mode_vec_fft, self.c2 ** 0.5)
 
         return key_modes, normal_mode_vec_fft
 
@@ -1008,7 +1012,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             for j in range(n2):
                 k1 = key_matrix[i,j]
                 k3 = None
-                for k2 in grouping.keys():
+                for k2 in list(grouping.keys()):
                     if k1 in grouping[k2]:
                         k3 = k2
                         break
@@ -1017,8 +1021,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                         'Not sure which dyad group ' + k1 + ' belongs to')
                 value_dict[k3] += value_matrix[i,j]
                 
-        new_matrix = np.array([value_dict[k3] for k3 in value_dict.keys()])
-        new_keys = np.array([value_dict.keys()])
+        new_matrix = np.array([value_dict[k3] for k3 in list(value_dict.keys())])
+        new_keys = np.array([list(value_dict.keys())])
         return new_keys, new_matrix
     
     def _dyad_from_keyfft(self, conjugate=False, *keys_state_fft):
@@ -1167,7 +1171,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                    'dee':['div_fft','eta','eta']}# NonQuad. K.E. - Quad A.P.E. transfer terms
                    
         Tq_terms = dict.fromkeys(Tq_keys)
-        for key in Tq_keys.keys():
+        for key in list(Tq_keys.keys()):
             triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
         
         Tq_coeff = {'uuu':-1., 'uvu':-1.,
@@ -1180,7 +1184,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         n_modes = triad_key_modes[0].shape[0]
         for i in range(n_modes):          # GGG, GGA etc.
             k = triad_key_modes[0][i]
-            for j in Tq_keys.keys():       # uuu, uuv etc.
+            for j in list(Tq_keys.keys()):       # uuu, uuv etc.
                 Tq_fft[k] += np.real(Tq_coeff[j] * Tq_terms[j][i])
         
         del(Tq_keys, Tq_terms, Tq_coeff)
@@ -1191,7 +1195,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_keys = {'ue':['ux_fft','px_eta_fft'],
                    've':['uy_fft','py_eta_fft']}
         Cq_terms = dict.fromkeys(Cq_keys)
-        for key in Cq_keys.keys():
+        for key in list(Cq_keys.keys()):
             dyad_key_modes, Cq_terms[key] = self._dyad_from_keyfft(True, *Cq_keys[key])
         
         Cq_coeff = {'ue':-c2, 've':-c2}
@@ -1199,7 +1203,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         n_modes = dyad_key_modes[0].shape[0]
         for i in range(n_modes):        # GG, AG, aG, AA
             k = dyad_key_modes[0][i]
-            for j in Cq_keys.keys():     # ue, ve
+            for j in list(Cq_keys.keys()):     # ue, ve
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
                 
         del(Cq_keys, Cq_terms, Cq_coeff)
@@ -1348,7 +1352,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -1415,13 +1419,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 PiEtot = cumsum_inv(transferEtot)*self.oper.deltakh / norm
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
-        Tq_GGG = f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AGG = f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAs = f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAd = f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AAA = f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
-        Tnq = f['Tnq'][imin_plot:imax_plot].mean(0) / norm
-        Tens =  f['Tens'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GGG = old_div(f['Tq_GGG'][imin_plot:imax_plot].mean(0), norm)
+        Tq_AGG = old_div(f['Tq_AGG'][imin_plot:imax_plot].mean(0), norm)
+        Tq_GAAs = old_div(f['Tq_GAAs'][imin_plot:imax_plot].mean(0), norm)
+        Tq_GAAd = old_div(f['Tq_GAAd'][imin_plot:imax_plot].mean(0), norm)
+        Tq_AAA = old_div(f['Tq_AAA'][imin_plot:imax_plot].mean(0), norm)
+        Tnq = old_div(f['Tnq'][imin_plot:imax_plot].mean(0), norm)
+        Tens =  old_div(f['Tens'][imin_plot:imax_plot].mean(0), norm)
         Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs +Tq_GAAd + Tq_AAA
        
         Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh 

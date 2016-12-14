@@ -2,6 +2,7 @@
 
 from __future__ import division, print_function
 
+from builtins import range
 import h5py
 import os
 import numpy as np

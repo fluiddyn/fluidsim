@@ -38,7 +38,7 @@ class TestBaseSolver(unittest.TestCase):
     with stdout_redirected():
         sim = SimulBasePseudoSpectral(params)
         sim.time_stepping.start()
-        
+
     fld.show()
 
 if __name__ == '__main__':

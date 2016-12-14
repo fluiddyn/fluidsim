@@ -42,7 +42,7 @@ def create_params(input_info_solver):
     dict_classes['Solver'] = import_class(
         info_solver.module_name, info_solver.class_name)
 
-    for Class in dict_classes.values():
+    for Class in list(dict_classes.values()):
         if hasattr(Class, '_complete_params_with_default'):
             try:
                 Class._complete_params_with_default(params)

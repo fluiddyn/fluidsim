@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import h5py
 
 import os
@@ -66,18 +69,18 @@ class TimeSignalsK(SpecificOutput):
         self.nb_k_tot = self.nb_shells*self.nb_k_per_shell
 
         i_shift = 3
-        deltalogk = np.log(
+        deltalogk = old_div(np.log(
             params.oper.nx / 2 *
-            params.oper.coef_dealiasing)/(self.nb_shells+i_shift)
+            params.oper.coef_dealiasing),(self.nb_shells+i_shift))
 
         deltakh = sim.oper.deltakh
 
         self.kh_shell = deltakh*np.exp(
             deltalogk*np.arange(i_shift, self.nb_shells+i_shift))
 
-        self.kh_shell = deltakh*np.round(self.kh_shell/deltakh)
+        self.kh_shell = deltakh*np.round(old_div(self.kh_shell,deltakh))
 
-        for i_s in xrange(1, self.nb_shells):
+        for i_s in range(1, self.nb_shells):
             if self.kh_shell[i_s-1] == self.kh_shell[i_s]:
                 self.kh_shell[i_s] += deltakh
 
@@ -92,10 +95,10 @@ class TimeSignalsK(SpecificOutput):
         kx_array_ik_approx = np.empty([self.nb_k_tot])
         ky_array_ik_approx = np.empty([self.nb_k_tot])
 
-        delta_angle = np.pi/(self.nb_k_per_shell-1)
+        delta_angle = old_div(np.pi,(self.nb_k_per_shell-1))
         for ishell, kh_s in enumerate(self.kh_shell):
-            angle = -np.pi/2
-            for ikps in xrange(self.nb_k_per_shell):
+            angle = old_div(-np.pi,2)
+            for ikps in range(self.nb_k_per_shell):
                 kx_array_ik_approx[ishell*self.nb_shells+ikps] = \
                     kh_s*np.cos(angle)
                 ky_array_ik_approx[ishell*self.nb_shells+ikps] = \
@@ -107,7 +110,7 @@ class TimeSignalsK(SpecificOutput):
         if mpi.nb_proc > 1:
             self.rank_array_ik = np.empty([self.nb_k_tot], dtype=np.int32)
 
-        for ik in xrange(self.nb_k_tot):
+        for ik in range(self.nb_k_tot):
             kx_approx = kx_array_ik_approx[ik]
             ky_approx = ky_array_ik_approx[ik]
             rank_ik, ik0, ik1 = \
@@ -120,7 +123,7 @@ class TimeSignalsK(SpecificOutput):
         self.kx_array_ik = np.empty([self.nb_k_tot])
         self.ky_array_ik = np.empty([self.nb_k_tot])
 
-        for ik in xrange(self.nb_k_tot):
+        for ik in range(self.nb_k_tot):
             ik0_ik = self.ik0_array_ik[ik]
             ik1_ik = self.ik1_array_ik[ik]
 
@@ -158,7 +161,7 @@ class TimeSignalsK(SpecificOutput):
             self.omega_array_ik = self.output.omega_from_wavenumber(
                 self.kh_array_ik)
 
-            self.period_save = np.pi/(8*self.omega_array_ik.max())
+            self.period_save = old_div(np.pi,(8*self.omega_array_ik.max()))
         else:
             self.period_save = 0.
 
@@ -213,7 +216,7 @@ class TimeSignalsK(SpecificOutput):
             d_array_ik = np.empty([self.nb_k_tot], dtype=np.complex128)
             a_array_ik = np.empty([self.nb_k_tot], dtype=np.complex128)
 
-        for ik in xrange(self.nb_k_tot):
+        for ik in range(self.nb_k_tot):
             ik0_ik = self.ik0_array_ik[ik]
             ik1_ik = self.ik1_array_ik[ik]
 
@@ -315,14 +318,14 @@ class TimeSignalsK(SpecificOutput):
         omega_shell = dico_results['omega_shell']
         period_shell = 2*np.pi/omega_shell
 
-        for ish in xrange(nb_shells):
+        for ish in range(nb_shells):
 
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel('$t/T$')
             ax1.set_ylabel('signals (s$^{-1}$)')
             title = (
                 'signals eigenmodes, ikh = {0:.2f}, solver '.format(
-                    kh_shell[ish]/sim.oper.deltakh) +
+                    old_div(kh_shell[ish],sim.oper.deltakh)) +
                 self.output.name_solver +
                 ', nh = {0:5d}'.format(self.nx) +
                 ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f)
@@ -330,17 +333,17 @@ class TimeSignalsK(SpecificOutput):
             ax1.set_title(title)
             ax1.hold(True)
 
-            coef_norm_a = self.c2/omega_shell[ish]
+            coef_norm_a = old_div(self.c2,omega_shell[ish])
 
             T = period_shell[ish]
 
-            for ikps in xrange(nb_k_per_shell):
+            for ikps in range(nb_k_per_shell):
                 isig = ish*nb_k_per_shell+ikps
 
-                ax1.plot(t/T, sig_q_fft[isig].real, 'k', linewidth=1)
-                ax1.plot(t/T, coef_norm_a*sig_a_fft[isig].real,
+                ax1.plot(old_div(t,T), sig_q_fft[isig].real, 'k', linewidth=1)
+                ax1.plot(old_div(t,T), coef_norm_a*sig_a_fft[isig].real,
                          'c', linewidth=1)
-                ax1.plot(t/T, sig_d_fft[isig].real, 'y', linewidth=1)
+                ax1.plot(old_div(t,T), sig_d_fft[isig].real, 'y', linewidth=1)
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$\omega$')
@@ -350,31 +353,31 @@ class TimeSignalsK(SpecificOutput):
     def time_spectrum(self, sig_long):
 
         Nt = sig_long.size
-        stepit0 = int(np.fix(self.nt/2))
+        stepit0 = int(np.fix(old_div(self.nt,2)))
 
         nb_spectra = 0
         it0 = 0
-        spect = np.zeros([self.nt/2+1])
+        spect = np.zeros([old_div(self.nt,2)+1])
         while it0+self.nt < Nt:
             nb_spectra += 1
             sig = sig_long[it0:it0+self.nt]
             spect_raw = (
                 abs(self.opfft1d.fft(self.hann*sig))**2 / 2 / self.deltaomega)
-            spect += spect_raw[:self.nt/2+1]
+            spect += spect_raw[:old_div(self.nt,2)+1]
             if self.nt % 2 == 0:
-                spect[1:self.nt/2] += spect_raw[self.nt-1:self.nt/2:-1]
+                spect[1:old_div(self.nt,2)] += spect_raw[self.nt-1:old_div(self.nt,2):-1]
             else:
-                spect[1:self.nt/2+1] += spect_raw[self.nt-1:self.nt/2:-1]
+                spect[1:old_div(self.nt,2)+1] += spect_raw[self.nt-1:old_div(self.nt,2):-1]
             it0 += stepit0
 
-        return spect/nb_spectra
+        return old_div(spect,nb_spectra)
 
     def compute_spectra(self):
         dico_results = self.load()
 
         t = dico_results['times']
         Nt = t.size
-        nt = 2**int(np.fix(np.log2(Nt/10)))
+        nt = 2**int(np.fix(np.log2(old_div(Nt,10))))
         # if nt%2 == 1:
         #     nt -= 1
         self.nt = nt
@@ -388,7 +391,7 @@ class TimeSignalsK(SpecificOutput):
         # self.omega = self.deltaomega*np.concatenate(
         #     (np.arange(nt/2+1), np.arange(-nt/2+1, 0)))
 
-        self.omega = self.deltaomega*np.arange(nt/2+1)
+        self.omega = self.deltaomega*np.arange(old_div(nt,2)+1)
 
         self.hann = np.hanning(nt)
 
@@ -404,13 +407,13 @@ class TimeSignalsK(SpecificOutput):
         omega_shell = dico_results['omega_shell']
         # period_shell = 2*np.pi/omega_shell
 
-        time_spectra_q = np.zeros([nb_shells, nt/2+1])
-        time_spectra_a = np.zeros([nb_shells, nt/2+1])
-        time_spectra_d = np.zeros([nb_shells, nt/2+1])
+        time_spectra_q = np.zeros([nb_shells, old_div(nt,2)+1])
+        time_spectra_a = np.zeros([nb_shells, old_div(nt,2)+1])
+        time_spectra_d = np.zeros([nb_shells, old_div(nt,2)+1])
 
-        for ish in xrange(nb_shells):
-            coef_norm_a = self.c2/omega_shell[ish]
-            for ikps in xrange(nb_k_per_shell):
+        for ish in range(nb_shells):
+            coef_norm_a = old_div(self.c2,omega_shell[ish])
+            for ikps in range(nb_k_per_shell):
                 isig = ish*nb_k_per_shell+ikps
                 sig_a_fft[isig] *= coef_norm_a
                 time_spectra_q[ish] += self.time_spectrum(sig_q_fft[isig])
@@ -450,12 +453,12 @@ class TimeSignalsK(SpecificOutput):
         ax1.hold(True)
 
         nb_shells = dico_results['nb_shells']
-        for ish in xrange(nb_shells):
-            ax1.loglog(omega/omega_shell[ish],
+        for ish in range(nb_shells):
+            ax1.loglog(old_div(omega,omega_shell[ish]),
                        time_spectra_q[ish], 'k', linewidth=1)
-            ax1.loglog(omega/omega_shell[ish],
+            ax1.loglog(old_div(omega,omega_shell[ish]),
                        time_spectra_a[ish], 'b', linewidth=1)
-            ax1.loglog(omega/omega_shell[ish],
+            ax1.loglog(old_div(omega,omega_shell[ish]),
                        time_spectra_d[ish], 'r', linewidth=1)
 
     def close_file(self):

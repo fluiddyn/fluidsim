@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import unittest
 import shutil
 
@@ -23,7 +25,7 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2./3
+        params.oper.coef_dealiasing = old_div(2.,3)
         params.nu_8 = 2.
 
         params.time_stepping.USE_CFL = False

@@ -10,6 +10,7 @@ Provides:
 """
 
 
+from builtins import object
 class PreprocessBase(object):
     _tag = 'preprocess'
 
@@ -42,7 +43,7 @@ class PreprocessBase(object):
         params._set_child('preprocess', attribs=attribs)
 
         dict_classes = info_solver.classes.Preprocess.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 Class._complete_params_with_default(params)
 

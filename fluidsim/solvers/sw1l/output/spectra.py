@@ -1,3 +1,7 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
 import h5py
 
 import numpy as np
@@ -150,7 +154,7 @@ class SpectraSW1L(Spectra):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -191,7 +195,7 @@ imin_plot, imax_plot, delta_i_plot)
         min_to_plot = 1e-16
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 E_K = (dset_spectrum1Dkx_EK[it]+dset_spectrum1Dky_EK[it])
                 # E_K[E_K<min_to_plot] = 0.
                 E_A = (dset_spectrum1Dkx_EA[it]+dset_spectrum1Dky_EA[it])
@@ -219,7 +223,7 @@ imin_plot, imax_plot, delta_i_plot)
         ax1.plot(kh, E_A*coef_norm, 'b', linewidth=2)
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh, 0.01*kh**(old_div(-5.,3))*coef_norm, 'k--', linewidth=1)
 
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
@@ -239,7 +243,7 @@ imin_plot, imax_plot, delta_i_plot)
         dset_spectrumEKr = f['spectrum2D_EKr']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -278,7 +282,7 @@ imin_plot, imax_plot, delta_i_plot)
         coef_norm = kh**coef_compensate
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 EK = dset_spectrumEK[it]
                 EA = dset_spectrumEA[it]
                 EKr = dset_spectrumEKr[it]
@@ -340,7 +344,7 @@ imin_plot, imax_plot, delta_i_plot)
 
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+        ax1.plot(kh, 0.01*kh**(old_div(-5.,3))*coef_norm, 'k-.', linewidth=1)
 
     def _ani_get_field(self, time):
         f = h5py.File(self.path_file2D, 'r')

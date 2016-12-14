@@ -117,7 +117,7 @@ class SpatialMeansBase(SpecificOutput):
         imin_mean = np.argmin(abs(times-tstatio))
 
         dico_time_means = {}
-        for key, value in dico_results.iteritems():
+        for key, value in dico_results.items():
             if isinstance(value, np.ndarray):
                 dico_time_means[key] = np.mean(
                     value[imin_mean:imax_mean+1]

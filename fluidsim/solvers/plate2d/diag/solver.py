@@ -14,7 +14,9 @@ Provides:
 """
 
 from __future__ import print_function
+from __future__ import division
 
+from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -258,17 +260,17 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 192/2
+    nh = old_div(192,2)
     Lh = 2*np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
     # params.oper.type_fft = 'FFTWPY'
-    params.oper.coef_dealiasing = 2./3
+    params.oper.coef_dealiasing = old_div(2.,3)
 
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-4*params.forcing.forcing_rate**(1./3)*delta_x**8
+    delta_x = old_div(params.oper.Lx,params.oper.nx)
+    params.nu_8 = 2.*10e-4*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
 
     kmax = np.sqrt(2)*np.pi/delta_x
 

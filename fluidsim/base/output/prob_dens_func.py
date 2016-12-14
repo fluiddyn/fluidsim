@@ -1,4 +1,8 @@
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
+from past.utils import old_div
 import h5py
 import numpy as np
 
@@ -105,7 +109,7 @@ class ProbaDensityFunc(SpecificOutput):
         dset_bin_edges_u = f['bin_edges_u']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
         if delta_i_plot == 0:
             delta_i_plot = 1
         delta_t = delta_i_plot*delta_t_save
@@ -144,11 +148,11 @@ class ProbaDensityFunc(SpecificOutput):
         ax1.set_xscale('linear')
         ax1.set_yscale('linear')
 
-        for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+        for it in range(imin_plot, imax_plot+1, delta_i_plot):
             pdf_eta = dset_pdf_eta[it]
             bin_edges_eta = dset_bin_edges_eta[it]
 
-            bin_edges_eta = (bin_edges_eta[:-1]+bin_edges_eta[1:])/2
+            bin_edges_eta = old_div((bin_edges_eta[:-1]+bin_edges_eta[1:]),2)
             ax1.plot(bin_edges_eta, pdf_eta, 'c', linewidth=1)
 
         z_bottom_axe = 0.09
@@ -161,9 +165,9 @@ class ProbaDensityFunc(SpecificOutput):
         ax2.set_xscale('linear')
         ax2.set_yscale('linear')
 
-        for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+        for it in range(imin_plot, imax_plot+1, delta_i_plot):
             pdf_u = dset_pdf_u[it]
             bin_edges_u = dset_bin_edges_u[it]
 
-            bin_edges_u = (bin_edges_u[:-1]+bin_edges_u[1:])/2
+            bin_edges_u = old_div((bin_edges_u[:-1]+bin_edges_u[1:]),2)
             ax2.plot(bin_edges_u, pdf_u, 'r', linewidth=1)

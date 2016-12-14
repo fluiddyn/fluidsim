@@ -5,6 +5,7 @@
 
 from __future__ import division, print_function
 
+from builtins import object
 import os as _os
 import glob as _glob
 import numpy as _np
@@ -306,12 +307,12 @@ class SetOfDirResults(object):
                         self.dico_values[k].append(params[k])
 
         if self.nb_dirs > 1:
-            for k, v in self.dico_values.iteritems():
+            for k, v in self.dico_values.items():
                 v.sort()
                 if isinstance(v[0], _numbers.Number):
                     self.dico_values[k] = _np.array(v)
 
-        self.paths = self.dico_paths.values()
+        self.paths = list(self.dico_paths.values())
 
     def dirs_from_values(self, k_sort='c2', **kwargs):
         """Return a list of dirs from conditions.
@@ -321,8 +322,8 @@ class SetOfDirResults(object):
 
         """
 
-        kdirs_corresp = self.dico_params.keys()
-        for k, v in kwargs.iteritems():
+        kdirs_corresp = list(self.dico_params.keys())
+        for k, v in kwargs.items():
             if isinstance(v, tuple):
                 str_operator = v[0]
                 value = v[1]
@@ -347,7 +348,7 @@ class SetOfDirResults(object):
                     'Supports only the operators ==, !=, >, <, >=, <=')
 
             kdirs_corresp_temp = [kdir for kdir, params
-                                  in self.dico_params.iteritems()
+                                  in self.dico_params.items()
                                   if cond(params[k], value)
                                   ]
 

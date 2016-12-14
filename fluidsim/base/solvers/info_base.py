@@ -77,6 +77,6 @@ class InfoSolverBase(ParamContainer):
 
     def complete_with_classes(self):
         dict_classes = self.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_info_solver'):
                 Class._complete_info_solver(self)

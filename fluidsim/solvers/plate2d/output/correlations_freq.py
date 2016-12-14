@@ -14,6 +14,8 @@ Provides:
 
 from __future__ import division, print_function
 
+from builtins import str
+from builtins import range
 import os
 import numpy as np
 import h5py
@@ -61,8 +63,8 @@ class CorrelationsFreq(SpecificOutput):
         self.key_quantity = pcorrel_freq.key_quantity
         self.iomegas1 = np.array(pcorrel_freq.iomegas1)
         self.it_last_run = pcorrel_freq.it_start
-        n0 = len(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate))
-        n1 = len(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate))
+        n0 = len(list(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate)))
+        n1 = len(list(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate)))
         nb_xs = n0 * n1
 
         self.spatio_temp = np.empty([nb_xs, self.nb_times_compute])

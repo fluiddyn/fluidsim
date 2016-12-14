@@ -24,6 +24,8 @@ Provides classes for performing fft in 1, 2, and 3 dimensions:
 
 from __future__ import division, print_function
 
+from builtins import range
+from builtins import object
 import os
 import numpy as np
 from copy import copy
@@ -35,7 +37,7 @@ else:
     nthreads = 1
 
 
-class fftp2D:
+class fftp2D(object):
     """ A class to use fftp """
     def __init__(self, nx, ny):
         if nx % 2 != 0 or ny % 2 != 0:
@@ -75,7 +77,7 @@ class fftp2D:
         return np.real(result_ifft)
 
 
-class FFTW2DReal2Complex:
+class FFTW2DReal2Complex(object):
     """ A class to use fftw """
     def __init__(self, nx, ny):
         try:
@@ -131,7 +133,7 @@ class FFTW2DReal2Complex:
         return self.fft2d(self.ifft2d(ff_fft))
 
 
-class FFTW3DReal2Complex:
+class FFTW3DReal2Complex(object):
     """ A class to use fftw """
     def __init__(self, nx, ny, nz):
         try:
@@ -250,7 +252,7 @@ class FFTW3DReal2Complex:
         return ret
     
 
-class FFTW1D:
+class FFTW1D(object):
     """ A class to use fftw 1D """
     def __init__(self, n):
         try:
@@ -289,7 +291,7 @@ class FFTW1D:
         return self.arrayX.copy()
 
 
-class FFTW1DReal2Complex:
+class FFTW1DReal2Complex(object):
     """ A class to use fftw 1D """
     def __init__(self, arg, axis=-1):
         try:

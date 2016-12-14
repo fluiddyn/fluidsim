@@ -21,6 +21,8 @@ Provides:
 
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import datetime
 import os
 import shutil
@@ -71,7 +73,7 @@ class OutputBase(object):
         params.output._set_child('periods_plot')
 
         dict_classes = info_solver.classes.Output.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 try:
                     Class._complete_params_with_default(params)
@@ -233,7 +235,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         # The class PrintStdOut has already been instantiated.
         dico_classes.pop('PrintStdOut')
 
-        for Class in dico_classes.values():
+        for Class in list(dico_classes.values()):
             if mpi.rank == 0:
                 print(Class, Class._tag)
             self.__dict__[Class._tag] = Class(self)
@@ -310,7 +312,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             shutil.move(self.path_run, path_base)
             print('move result directory in directory:\n' + new_path_run)
             self.path_run = new_path_run
-            for spec_output in self.__dict__.values():
+            for spec_output in list(self.__dict__.values()):
                 if isinstance(spec_output, SpecificOutput):
                     try:
                         spec_output.init_path_files()
@@ -324,7 +326,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if string is None:
             string = 'Size of ndarray (equiv. seq.)'
         else:
-            string = 'Size of '+string+' (equiv. seq.)'
+            string = 'Size of ' + string + ' (equiv. seq.)'
         mem = arr.nbytes*1.e-6
         if mpi.nb_proc > 1:
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
@@ -433,7 +435,7 @@ class SpecificOutput(object):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
             with h5py.File(path_file, 'w') as f:
-                f.attrs['date saving'] = str(datetime.datetime.now())
+                f.attrs['date saving'] = str(datetime.datetime.now()).encode()
                 f.attrs['name_solver'] = self.output.name_solver
                 f.attrs['name_run'] = self.output.name_run
 
@@ -443,10 +445,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.items():
+                for k, v in list(dico_arrays_1time.items()):
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_arrays.items():
+                for k, v in list(dico_arrays.items()):
                     v.resize([1, v.size])
                     f.create_dataset(
                         k, data=v, maxshape=(None, v.size))
@@ -457,7 +459,7 @@ class SpecificOutput(object):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
             with h5py.File(path_file, 'w') as f:
-                f.attrs['date saving'] = str(datetime.datetime.now())
+                f.attrs['date saving'] = str(datetime.datetime.now()).encode()
                 f.attrs['name_solver'] = self.output.name_solver
                 f.attrs['name_run'] = self.output.name_run
 
@@ -467,10 +469,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.items():
+                for k, v in list(dico_arrays_1time.items()):
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_matrix.items():
+                for k, v in list(dico_matrix.items()):
                     if isinstance(v, numbers.Number):
                         arr = np.array([v], dtype=v.__class__)
                         arr.resize((1,))
@@ -491,7 +493,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_arrays.items():
+                for k, v in list(dico_arrays.items()):
                     dset_k = f[k]
                     dset_k.resize((nb_saved_times+1, v.size))
                     dset_k[nb_saved_times] = v
@@ -505,7 +507,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_matrix.items():
+                for k, v in list(dico_matrix.items()):
                     if isinstance(v, numbers.Number):
                         dset_k = f[k]
                         dset_k.resize((nb_saved_times+1,))
@@ -520,7 +522,7 @@ class SpecificOutput(object):
             dset_times = f['times']
             dset_times.resize((nb_saved_times+1,))
             dset_times[nb_saved_times] = self.sim.time_stepping.t
-            for k, v in dico_arrays.items():
+            for k, v in list(dico_arrays.items()):
                 dset_k = f[k]
                 dset_k.resize((nb_saved_times+1, v.size))
                 dset_k[nb_saved_times] = v

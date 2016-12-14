@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import unittest
 import numpy as np
 from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
@@ -23,9 +25,9 @@ class TestSpectEnergyBudg(unittest.TestCase):
                 try:
                     self.assertTrue(np.allclose(identity2, identity))
                 except AssertionError:
-                    print('Q matrix identity not satisfied for kx, ky=',
+                    print(('Q matrix identity not satisfied for kx, ky=',
                           sim.oper.KX[ikx, iky],
-                          sim.oper.KY[ikx, iky])
+                          sim.oper.KY[ikx, iky]))
                     raise
 
     def test_energy_conservation(self):
@@ -66,7 +68,7 @@ class TestSpectEnergyBudg(unittest.TestCase):
         key_modes, py_ux_fft_modes = module._normalmodefft_from_keyfft(
             'py_ux_fft')
         ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0.
-        for mode in xrange(3):
+        for mode in range(3):
             ux_fft2 += ux_fft_modes[mode]
             uy_fft2 += uy_fft_modes[mode]
             eta_fft2 += eta_fft_modes[mode]

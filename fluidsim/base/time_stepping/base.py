@@ -10,7 +10,11 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import object
+from past.utils import old_div
 from time import time
 from signal import signal
 
@@ -160,20 +164,20 @@ class TimeSteppingBase(object):
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
         max_uz = abs(uz).max()
-        temp = (max_ux/self.sim.oper.deltax +
-                max_uy/self.sim.oper.deltay +
-                max_uz/self.sim.oper.deltaz)
+        temp = (old_div(max_ux,self.sim.oper.deltax) +
+                old_div(max_uy,self.sim.oper.deltay) +
+                old_div(max_uz,self.sim.oper.deltaz))
 
         if mpi.nb_proc > 1:
             temp = mpi.comm.allreduce(temp, op=mpi.MPI.MAX)
 
         if temp > 0:
-            deltat_CFL = self.CFL/temp
+            deltat_CFL = old_div(self.CFL,temp)
         else:
             deltat_CFL = self.deltat_max
 
         maybe_new_dt = min(deltat_CFL, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = old_div(abs(self.deltat-maybe_new_dt),maybe_new_dt)
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
@@ -186,18 +190,18 @@ class TimeSteppingBase(object):
         
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        temp = (max_ux/self.sim.oper.deltax + max_uy/self.sim.oper.deltay)
+        temp = (old_div(max_ux,self.sim.oper.deltax) + old_div(max_uy,self.sim.oper.deltay))
 
         if mpi.nb_proc > 1:
             temp = mpi.comm.allreduce(temp, op=mpi.MPI.MAX)
 
         if temp > 0:
-            deltat_CFL = self.CFL/temp
+            deltat_CFL = old_div(self.CFL,temp)
         else:
             deltat_CFL = self.deltat_max
 
         maybe_new_dt = min(deltat_CFL, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = old_div(abs(self.deltat-maybe_new_dt),maybe_new_dt)
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
@@ -211,19 +215,19 @@ class TimeSteppingBase(object):
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        temp = (max_ux/self.sim.oper.deltax + max_uy/self.sim.oper.deltay)
+        temp = (old_div(max_ux,self.sim.oper.deltax) + old_div(max_uy,self.sim.oper.deltay))
 
         if mpi.nb_proc > 1:
             temp = mpi.comm.allreduce(temp, op=mpi.MPI.MAX)
 
         if temp > 0:
-            deltat_CFL = self.CFL/temp
+            deltat_CFL = old_div(self.CFL,temp)
         else:
             deltat_CFL = self.deltat_max
         
-        deltat_wave = self.sim.oper.deltax / c # ..TODO: Make sure there is no const missing
+        deltat_wave = old_div(self.sim.oper.deltax, c) # ..TODO: Make sure there is no const missing
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = old_div(abs(self.deltat-maybe_new_dt),maybe_new_dt)
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
@@ -232,18 +236,18 @@ class TimeSteppingBase(object):
         """Compute the time increment deltat with a CLF condition."""
         ux = self.sim.state('ux')
         max_ux = abs(ux).max()
-        temp = max_ux/self.sim.oper.deltax
+        temp = old_div(max_ux,self.sim.oper.deltax)
 
         if mpi.nb_proc > 1:
             temp = mpi.comm.allreduce(temp, op=mpi.MPI.MAX)
 
         if temp > 0:
-            deltat_CFL = self.CFL/temp
+            deltat_CFL = old_div(self.CFL,temp)
         else:
             deltat_CFL = self.deltat_max
 
         maybe_new_dt = min(deltat_CFL, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = old_div(abs(self.deltat-maybe_new_dt),maybe_new_dt)
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
@@ -251,18 +255,18 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_no_ux(self):
         """Compute the time increment deltat with a CLF condition."""
         max_ux = self.params.U
-        temp = max_ux/self.sim.oper.deltax
+        temp = old_div(max_ux,self.sim.oper.deltax)
 
         if mpi.nb_proc > 1:
             temp = mpi.comm.allreduce(temp, op=mpi.MPI.MAX)
 
         if temp > 0:
-            deltat_CFL = self.CFL/temp
+            deltat_CFL = old_div(self.CFL,temp)
         else:
             deltat_CFL = self.deltat_max
 
         maybe_new_dt = min(deltat_CFL, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = old_div(abs(self.deltat-maybe_new_dt),maybe_new_dt)
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt

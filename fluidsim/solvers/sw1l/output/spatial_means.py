@@ -1,4 +1,7 @@
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -58,8 +61,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         # Compute and save skewness and kurtosis.
         eta = self.sim.state.state_phys.get_var('eta')
         meaneta2 = 2./self.c2*energyA
-        skew_eta = np.mean(eta**3)/meaneta2**(3./2)
-        kurt_eta = np.mean(eta**4)/meaneta2**(2)
+        skew_eta = old_div(np.mean(eta**3),meaneta2**(old_div(3.,2)))
+        kurt_eta = old_div(np.mean(eta**4),meaneta2**(2))
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -68,8 +71,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         rot_fft = self.sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         rot = self.sim.oper.ifft2(rot_fft)
         meanrot2 = self.sum_wavenumbers(abs(rot_fft)**2)
-        skew_rot = np.mean(rot**3)/meanrot2**(3./2)
-        kurt_rot = np.mean(rot**4)/meanrot2**(2)
+        skew_rot = old_div(np.mean(rot**3),meanrot2**(old_div(3.,2)))
+        kurt_rot = old_div(np.mean(rot**4),meanrot2**(2))
 
         if mpi.rank == 0:
             to_print = (
@@ -301,7 +304,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             c2eta2d = np.empty(nt)
             c2eta3d = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])
@@ -458,12 +461,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
-        norm = self.c2/2
-        ax1.plot(t, E/norm, 'k', linewidth=2)
-        ax1.plot(t, EK/norm, 'r', linewidth=1)
-        ax1.plot(t, EA/norm, 'b', linewidth=1)
-        ax1.plot(t, EKr/norm, 'r--', linewidth=1)
-        ax1.plot(t, (EK-EKr)/norm, 'r:', linewidth=1)
+        norm = old_div(self.c2,2)
+        ax1.plot(t, old_div(E,norm), 'k', linewidth=2)
+        ax1.plot(t, old_div(EK,norm), 'r', linewidth=1)
+        ax1.plot(t, old_div(EA,norm), 'b', linewidth=1)
+        ax1.plot(t, old_div(EKr,norm), 'r--', linewidth=1)
+        ax1.plot(t, old_div((EK-EKr),norm), 'r:', linewidth=1)
 
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
@@ -561,7 +564,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         i = 0
         for k in keys:
             E = dico_results[k]
-            dE_dt = abs(np.gradient(E, 1.)/dt)
+            dE_dt = abs(old_div(np.gradient(E, 1.),dt))
             dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)

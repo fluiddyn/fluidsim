@@ -16,6 +16,7 @@ Provides:
 """
 
 
+from builtins import object
 class ForcingBase(object):
 
     @staticmethod
@@ -43,7 +44,7 @@ class ForcingBase(object):
                      'forcing_rate': 1,
                      'key_forced': 'rot_fft'})
         dict_classes = info_solver.classes.Forcing.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 Class._complete_params_with_default(params)
 

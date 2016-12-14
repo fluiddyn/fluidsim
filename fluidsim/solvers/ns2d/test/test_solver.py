@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import unittest
 import shutil
 
@@ -24,7 +26,7 @@ class TestSolverNS2D(unittest.TestCase):
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2./3
+        params.oper.coef_dealiasing = old_div(2.,3)
         params.nu_8 = 2.
 
         params.time_stepping.t_end = 0.5
@@ -43,8 +45,8 @@ class TestSolverNS2D(unittest.TestCase):
 
         T_rot = np.real(Frot_fft.conj()*rot_fft)
 
-        ratio = (sim.oper.sum_wavenumbers(T_rot) /
-                 sim.oper.sum_wavenumbers(abs(T_rot)))
+        ratio = (old_div(sim.oper.sum_wavenumbers(T_rot),
+                 sim.oper.sum_wavenumbers(abs(T_rot))))
 
         self.assertGreater(1e-15, ratio)
 

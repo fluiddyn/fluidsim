@@ -1,5 +1,9 @@
+from __future__ import division
 
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from math import pi
 
 import numpy as np
@@ -14,8 +18,8 @@ from fluidfft import create_fft_object
 
 
 def _make_str_length(length):
-    if (length/np.pi).is_integer():
-        return repr(int(length/np.pi)) + 'pi'
+    if (old_div(length,np.pi)).is_integer():
+        return repr(int(old_div(length,np.pi))) + 'pi'
     else:
         return '{:.3f}'.format(length).rstrip('0')
 
@@ -54,7 +58,7 @@ class OperatorsPseudoSpectral3D(object):
         attribs = {'type_fft': type_fft,
                    'type_fft2d': 'fftwpy',
                    'TRANSPOSED_OK': True,
-                   'coef_dealiasing': 2./3,
+                   'coef_dealiasing': old_div(2.,3),
                    'nx': 48,
                    'ny': 48,
                    'nz': 48,
@@ -93,9 +97,9 @@ class OperatorsPseudoSpectral3D(object):
         Ly = self.Ly = params.oper.Ly
         Lz = self.Lz = params.oper.Lz
 
-        self.deltax = Lx/nx
-        self.deltay = Ly/ny
-        self.deltaz = Lz/nz
+        self.deltax = old_div(Lx,nx)
+        self.deltay = old_div(Ly,ny)
+        self.deltaz = old_div(Lz,nz)
 
         self.x_seq = self.deltax*np.arange(nx)
         self.y_seq = self.deltay*np.arange(ny)
@@ -211,7 +215,7 @@ class OperatorsPseudoSpectral3D(object):
         Ky = self.Ky
         Kz = self.Kz
 
-        tmp = (Kx * vx_fft + Ky * vy_fft + Kz * vz_fft) / self.K_square_nozero
+        tmp = old_div((Kx * vx_fft + Ky * vy_fft + Kz * vz_fft), self.K_square_nozero)
 
         return (vx_fft - Kx * tmp,
                 vy_fft - Ky * tmp,

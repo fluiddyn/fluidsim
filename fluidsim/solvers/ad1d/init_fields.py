@@ -11,6 +11,8 @@
    :members:
 
 """
+from __future__ import division
+from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
@@ -40,7 +42,7 @@ class InitFieldsGaussian(SpecificInitFields):
 
     def __call__(self):
         oper = self.sim.oper
-        s = np.exp(-(10*(oper.xs - oper.Lx/2))**2)
+        s = np.exp(-(10*(oper.xs - old_div(oper.Lx,2)))**2)
         self.sim.state.state_phys[0] = s
 
 

@@ -1,4 +1,6 @@
+from __future__ import division
 
+from past.utils import old_div
 import unittest
 import numpy as np
 import sys
@@ -34,7 +36,7 @@ def create_oper(type_fft='FFTWCY'):
 
     params.oper.type_fft = type_fft
 
-    params.oper.coef_dealiasing = 2./3
+    params.oper.coef_dealiasing = old_div(2.,3)
 
     with stdout_redirected():
         oper = OperatorsPseudoSpectral2D(params=params)
@@ -95,8 +97,8 @@ class TestOperators(unittest.TestCase):
 
         T_rot = np.real(Frot_fft.conj()*rot_fft)
 
-        ratio = (oper.sum_wavenumbers(T_rot) /
-                 oper.sum_wavenumbers(abs(T_rot)))
+        ratio = (old_div(oper.sum_wavenumbers(T_rot),
+                 oper.sum_wavenumbers(abs(T_rot))))
 
         self.assertGreater(1e-15, ratio)
 
@@ -131,8 +133,8 @@ class TestOperators(unittest.TestCase):
 
         T_rotpy = np.real(Frot_fftpy.conj()*rot_fft)
 
-        ratio = (oper2.sum_wavenumbers(T_rotpy) /
-                 oper2.sum_wavenumbers(abs(T_rotpy)))
+        ratio = (old_div(oper2.sum_wavenumbers(T_rotpy),
+                 oper2.sum_wavenumbers(abs(T_rotpy))))
 
         # print ('sum(T_rot) = {0:9.4e} ; '
         #        'sum(abs(T_rot)) = {1:9.4e}').format(

@@ -10,7 +10,12 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import h5py
 
 from copy import deepcopy
@@ -55,7 +60,7 @@ class InitFieldsBase(object):
 
         dict_classes = info_solver.classes.InitFields.import_classes()
 
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 try:
                     Class._complete_params_with_default(params)
@@ -170,7 +175,7 @@ class InitFieldsFromFile(SpecificInitFields):
                     'this is not a correct state for this simulation\n'
                     'self.params.oper.Ly != params_file.Ly')
 
-            keys_state_phys_file = group_state_phys.keys()
+            keys_state_phys_file = list(group_state_phys.keys())
         else:
             keys_state_phys_file = {}
 
@@ -255,12 +260,12 @@ class InitFieldsFromSimul(SpecificInitFields):
                 nk1_min = min(nk1_seq, nk1_seq_in)
 
                 # it is a little bit complicate to take into account ky
-                for ik1 in xrange(nk1_min):
+                for ik1 in range(nk1_min):
                     field_fft_seq_new_res[0, ik1] = field_fft_seq_in[0, ik1]
-                    field_fft_seq_new_res[nk0_min/2, ik1] = \
-                        field_fft_seq_in[nk0_min/2, ik1]
-                for ik0 in xrange(1, nk0_min/2):
-                    for ik1 in xrange(nk1_min):
+                    field_fft_seq_new_res[old_div(nk0_min,2), ik1] = \
+                        field_fft_seq_in[old_div(nk0_min,2), ik1]
+                for ik0 in range(1, old_div(nk0_min,2)):
+                    for ik1 in range(nk1_min):
                         field_fft_seq_new_res[ik0, ik1] = \
                             field_fft_seq_in[ik0, ik1]
                         field_fft_seq_new_res[-ik0, ik1] = \

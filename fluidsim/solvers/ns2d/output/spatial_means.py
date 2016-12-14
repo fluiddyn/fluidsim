@@ -9,6 +9,7 @@
 
 from __future__ import division, print_function
 
+from builtins import range
 import os
 import numpy as np
 
@@ -147,7 +148,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ_hypo = np.empty(nt)
         epsZ_tot = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])

@@ -3,7 +3,11 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -83,7 +87,7 @@ class Waves(RamdomSimplePseudoSpectral):
         c = -self.forcing_rate
 
         Delta = b**2 - 4*a*c
-        alpha = (np.sqrt(Delta) - b)/(2*a)
+        alpha = old_div((np.sqrt(Delta) - b),(2*a))
 
         Fa_fft[:] = alpha*Fa_fft
 

@@ -13,6 +13,7 @@ Provides:
 """
 from __future__ import division, print_function
 
+from builtins import range
 import os
 import numpy as np
 
@@ -180,7 +181,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         epsK_hypo = np.empty(nt)
         epsK_tot = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])
@@ -239,7 +240,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         if with_dtE:
             nt = len(t)
             dtE = np.empty(nt)
-            for il in xrange(nt-2):
+            for il in range(nt-2):
                 dtE[il+1] = (E[il+2]-E[il])/(t[il+2]-t[il])
             dtE[0] = (E[1]-E[0])/(t[1]-t[0])
             dtE[nt-1] = (E[nt-1]-E[nt-2])/(t[nt-1]-t[nt-2])

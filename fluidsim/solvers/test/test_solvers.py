@@ -1,4 +1,6 @@
+from __future__ import division
 
+from past.utils import old_div
 import unittest
 import shutil
 import numpy as np
@@ -23,7 +25,7 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    params.oper.coef_dealiasing = 2./3
+    params.oper.coef_dealiasing = old_div(2.,3)
     params.nu_8 = 2.
 
     try:
