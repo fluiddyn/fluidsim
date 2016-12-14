@@ -128,7 +128,7 @@ on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires += ['h5py']
     if FFTW3:
-        install_requires += ['pyfftw']
+        install_requires += ['pyfftw >= 0.10.4']
 
 
 setup(name='fluidsim',
