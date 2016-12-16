@@ -40,6 +40,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.nx = params.oper.nx
 
         self.spectrum2D_from_fft = output.sim.oper.spectrum2D_from_fft
+        self.spectra1D_from_fft = output.sim.oper.spectra1D_from_fft
 
         HAS_TO_PLOT_SAVED = params.output.spect_energy_budg.HAS_TO_PLOT_SAVED
         super(SpectralEnergyBudgetBase, self).__init__(
@@ -84,7 +85,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
         r"""
         Compute a non-linear term.
-        
+
         Notes
         -----
         Returns an fft-sized nd-array equivalent to the expression:

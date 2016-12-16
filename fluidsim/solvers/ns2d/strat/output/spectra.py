@@ -29,7 +29,7 @@ class SpectraNS2DStrat(Spectra):
 
         # Compute the potential energy spectra 1D two directions
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
-        
+
         # Dictionary with the 1D kinetic energy spectra
         dico_spectra1D = {'spectrum1Dkx_EK_ux': spectrum1Dkx_EK_ux,
                           'spectrum1Dky_EK_ux': spectrum1Dky_EK_ux,
@@ -37,6 +37,18 @@ class SpectraNS2DStrat(Spectra):
                           'spectrum1Dky_EK_uy': spectrum1Dky_EK_uy,
                           'spectrum1Dkx_EA': spectrum1Dkx_EA,
                           'spectrum1Dky_EA': spectrum1Dky_EA}
+
+        # Check sum wavenumbers horizontal kinetic energy
+        sum_EK_ux_kx = spectrum1Dkx_EK_ux.sum()
+        sum_EK_ux_ky = spectrum1Dky_EK_ux.sum()
+        print 'sum_EK_ux_kx = ', sum_EK_ux_kx
+        print 'sum_EK_ux_ky = ', sum_EK_ux_ky
+
+        # Check sum wavenumbers vertical kinetic energy
+        sum_EK_uy_kx = spectrum1Dkx_EK_uy.sum()
+        sum_EK_uy_ky = spectrum1Dky_EK_uy.sum()
+        print 'sum_EK_uy_kx = ', sum_EK_uy_kx
+        print 'sum_EK_uy_ky = ', sum_EK_uy_ky
 
         # spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
         # dico_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
@@ -50,9 +62,11 @@ class SpectraNS2DStrat(Spectra):
         #                   'spectrum1Dky_E': spectrum1Dky_E}
 
         # compute the kinetic energy spectra 2D
-        spectrum2D_EK = self.spectrum2D_from_fft(energyK_fft)
+        spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
+        spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)
         spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
-        dico_spectra2D = {'spectrum2D_EK': spectrum2D_EK,
+        dico_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
+                          'spectrum2D_EK_uy': spectrum2D_EK_uy,
                           'spectrum2D_EA': spectrum2D_EA}
         return dico_spectra1D, dico_spectra2D
 
@@ -156,7 +170,7 @@ class SpectraNS2DStrat(Spectra):
         ax2.set_xscale('log')
         ax2.set_yscale('log')
 
-        #coef_norm = kv**(coef_compensate)
+        # coef_norm = kv**(coef_compensate)
         EK_ux_ky = (dset_spectrum1Dky_EK_ux[imin_plot:imax_plot+1]).mean(0)
         EK_uy_ky = (dset_spectrum1Dky_EK_uy[imin_plot:imax_plot+1]).mean(0)
         ax2.plot(kv, EK_ux_ky, 'b--', label='u_x', linewidth=3)
@@ -216,7 +230,9 @@ class SpectraNS2DStrat(Spectra):
 
         kh = f['khE'].value
 
-        dset_spectrum = f['spectrum2D_EK']
+        dset_spectrum_ux = f['spectrum2D_EK_ux']
+        dset_spectrum_uy = f['spectrum2D_EK_uy']
+        dset_spectrum_EA = f['spectrum2D_EA']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
         delta_i_plot = int(np.round(delta_t/delta_t_save))
@@ -243,7 +259,7 @@ class SpectraNS2DStrat(Spectra):
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
-        ax1.set_ylabel('2D spectra')
+        ax1.set_ylabel('2D spectra normalized')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
         ax1.hold(True)
@@ -252,15 +268,25 @@ class SpectraNS2DStrat(Spectra):
 
         coef_norm = kh**coef_compensate
 
-        if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
-                EK = dset_spectrum[it]
-                EK[EK < 10e-16] = 0.
-                ax1.plot(kh, EK*coef_norm, 'k', linewidth=1)
+        # if delta_t != 0.:
+        #     for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+        #         EK = dset_spectrum_ux[it]
+        #         EK[EK < 10e-16] = 0.
+        #         ax1.plot(kh, EK*coef_norm, 'k', linewidth=1)
 
-        EK = dset_spectrum[imin_plot:imax_plot+1].mean(0)
-        EK[EK < 10e-16] = 0.
-        ax1.plot(kh, EK*coef_norm, 'k', linewidth=2)
+        EK_ux = dset_spectrum_ux[imin_plot:imax_plot+1].mean(0)
+        EK_ux[EK_ux < 10e-16] = 0.
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+        EK_uy = dset_spectrum_uy[imin_plot:imax_plot+1].mean(0)
+        EK_uy[EK_uy < 10e-16] = 0.
+
+        EA = dset_spectrum_EA[imin_plot:imax_plot+1].mean(0)
+        EA[EA < 10e-16] = 0.
+
+        ax1.plot(kh, EK_ux*coef_norm, 'b', label='EK_ux', linewidth=2)
+        ax1.plot(kh, EK_uy*coef_norm, 'r', label='EK_uy', linewidth=2)
+        ax1.plot(kh, EA*kh, 'k', label='EA', linewidth=2)
+        ax1.legend()
+
+        # ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
+        # ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
