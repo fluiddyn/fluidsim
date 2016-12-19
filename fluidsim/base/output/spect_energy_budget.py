@@ -41,13 +41,16 @@ class SpectralEnergyBudgetBase(SpecificOutput):
 
         self.spectrum2D_from_fft = output.sim.oper.spectrum2D_from_fft
         self.spectra1D_from_fft = output.sim.oper.spectra1D_from_fft
+        self.sum_wavenumbers = output.sim.oper.sum_wavenumbers
 
         HAS_TO_PLOT_SAVED = params.output.spect_energy_budg.HAS_TO_PLOT_SAVED
         super(SpectralEnergyBudgetBase, self).__init__(
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
-            dico_arrays_1time={'khE': output.sim.oper.khE})
+            dico_arrays_1time={'khE': output.sim.oper.khE,
+                               'kxE': output.sim.oper.kxE,
+                               'kyE': output.sim.oper.kyE})
 
     def compute(self):
         """compute the values at one time."""
