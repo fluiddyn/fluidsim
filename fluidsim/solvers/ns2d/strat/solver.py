@@ -127,6 +127,7 @@ if __name__ == "__main__":
 
     delta_x = Lh / nh
 
+    params.nu_2 = 0.
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 2.
     params.time_stepping.USE_CFL = False

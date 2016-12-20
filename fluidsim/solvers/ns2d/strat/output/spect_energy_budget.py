@@ -60,58 +60,75 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         Fy_fft = oper.fft2(Fy)
         oper.dealiasing(Fy_fft)
 
+        # Frequency dissipation viscosity
+        f_d, f_d_hypo = self.sim.compute_freq_diss()
+        freq_diss_EK = f_d + f_d_hypo
+
+        # Energy budget terms. Nonlinear transfer terms, exchange kinetic and
+        # potential energy B, dissipation terms.
         transferZ_fft = np.real(rot_fft.conj()*Frot_fft +
                                 rot_fft*Frot_fft.conj())/2.
+        transferEKu_fft = np.real(ux_fft.conj()*Fx_fft)
+        transferEKv_fft = np.real(uy_fft.conj()*Fy_fft)
+        B_fft = np.real(uy_fft.conj()*b_fft)
+        transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
+        dissEKu_fft = - np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
+        dissEKv_fft = - np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
+        dissEA_fft = - (1/self.params.N**2) * np.real(
+            freq_diss_EK * (b_fft.conj()*b_fft))
+        
+
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
         #                self.sum_wavenumbers(abs(transferZ_fft)))
-
-        transferEK_fft = np.real(ux_fft.conj()*Fx_fft + uy_fft.conj()*Fy_fft)
-
-        B_fft = np.real(uy_fft.conj()*b_fft)
-
-        transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
-
-        # Square of the modulus of the velocity (extract first wavenumber k=0)
-        square_modulus_vel = ux_fft.conj()*ux_fft + uy_fft.conj()*uy_fft
-        square_modulus_vel = square_modulus_vel[:, 1:]
-        square_modulus_b = b_fft.conj()*b_fft
-        square_modulus_b = square_modulus_b[:, 1:]
-
-        disipationEK = self.params.nu_2 * (
-            self.output.oper.kxE**2 + self.output.oper.kyE**2) * (
-                square_modulus_vel)
-
-        disipationEA = (self.params.nu_2/self.params.N**2) * (
-             self.output.oper.kxE**2 + self.output.oper.kyE**2) * (
-                 square_modulus_b)
 
         # print ('sum(transferEK) = {0:9.4e} ; sum(abs(transferEK)) = {1:9.4e}'
         # ).format(self.sum_wavenumbers(transferEK_fft),
         # self.sum_wavenumbers(abs(transferEK_fft)))
 
-        # Transfer spectrum 1D Kinetic energy
-        transferEK_kx, transferEK_ky = self.spectra1D_from_fft(transferEK_fft)
+        # Transfer spectrum 1D Kinetic energy, potential energy and exchange
+        # energy
+        transferEKu_kx, transferEKu_ky = self.spectra1D_from_fft(
+            transferEKu_fft)
+        transferEKv_kx, transferEKv_ky = self.spectra1D_from_fft(
+            transferEKv_fft)
         transferEA_kx, transferEA_ky = self.spectra1D_from_fft(transferEA_fft)
         B_kx, B_ky = self.spectra1D_from_fft(B_fft)
-        disipationEK_kx, disipationEK_ky = self.spectra1D_from_fft(
-             disipationEK)
-        disipationEA_kx, disipationEA_ky = self.spectra1D_from_fft(
-            disipationEA)
+        dissEKu_kx, dissEKu_ky = self.spectra1D_from_fft(dissEKu_fft)
+        dissEKv_kx, dissEKv_ky = self.spectra1D_from_fft(dissEKv_fft)
+        dissEA_kx, dissEA_ky = self.spectra1D_from_fft(dissEA_fft)
+
+        print ('sum(dissEKu_kx) = {0:9.4e}; sum(dissEKu_ky) = {1:9.4e}').format(
+            dissEKu_kx.sum(), dissEKu_ky.sum())
+        print ('sum(dissEKv_kx) = {0:9.4e}; sum(dissEKv_ky) = {1:9.4e}').format(
+            dissEKv_kx.sum(), dissEKv_ky.sum())
+        print ('sum(dissEA_kx) = {0:9.4e}; sum(dissEA_ky) = {1:9.4e}').format(
+            dissEA_kx.sum(), dissEA_ky.sum())
 
         # Transfer spectrum shell mean
-        transferEK_2d = self.spectrum2D_from_fft(transferEK_fft)
+        transferEKu_2d = self.spectrum2D_from_fft(transferEKu_fft)
+        transferEKv_2d = self.spectrum2D_from_fft(transferEKv_fft)
         transferEA_2d = self.spectrum2D_from_fft(transferEA_fft)
         B_2d = self.spectrum2D_from_fft(B_fft)
-        # disipationEK_2d = self.spectrum2D_from_fft(disipationEK)
-        # disipationEA_2d = self.spectrum2D_from_fft(disipationEA)
-
+        dissEKu_2d = self.spectrum2D_from_fft(dissEKu_fft)
+        dissEKv_2d = self.spectrum2D_from_fft(dissEKv_fft)
+        dissEA_2d = self.spectrum2D_from_fft(dissEA_fft)
         transferZ_2d = self.spectrum2D_from_fft(transferZ_fft)
 
+        # Dissipation rate at one time
+        epsilon_kx = dissEKu_kx.sum() + dissEKv_kx.sum() + dissEA_kx.sum()
+        epsilon_ky = dissEKu_ky.sum() + dissEKv_ky.sum() + dissEA_ky.sum()
+
+        print ('epsilon_kx = {0:9.4e}; epsilon_ky = {1:9.4e}').format(
+            epsilon_kx, epsilon_ky)
+        # Variables saved in a dictionary
         dico_results = {
-            'transferEK_kx': transferEK_kx,
-            'transferEK_ky': transferEK_ky,
-            'transferEK_2d': transferEK_2d,
+            'transferEKu_kx': transferEKu_kx,
+            'transferEKu_ky': transferEKu_ky,
+            'transferEKv_kx': transferEKv_kx,
+            'transferEKv_ky': transferEKv_ky,
+            'transferEKu_2d': transferEKu_2d,
+            'transferEKv_2d': transferEKv_2d,
             'transferEA_kx': transferEA_kx,
             'transferEA_ky': transferEA_ky,
             'transferEA_2d': transferEA_2d,
@@ -119,11 +136,17 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'B_kx': B_kx,
             'B_ky': B_ky,
             'B_2d': B_2d,
-            'disipationEK_kx': disipationEK_kx,
-            'disipationEK_ky': disipationEK_ky,
-            'disipationEA_kx': disipationEA_kx,
-            'disipationEA_ky': disipationEA_ky}
-            # 'disipationEK_2d': disipationEK_2d}
+            'dissEKu_kx': dissEKu_kx,
+            'dissEKu_ky': dissEKu_ky,
+            'dissEKu_2d': dissEKu_2d,
+            'dissEKv_kx': dissEKv_kx,
+            'dissEKv_ky': dissEKv_ky,
+            'dissEKv_2d': dissEKv_2d,
+            'dissEA_kx': dissEA_kx,
+            'dissEA_ky': dissEA_ky,
+            'dissEA_2d': dissEA_2d,
+            'epsilon': epsilon_kx}
+
 
         small_value = 1e-16
         for k, v in dico_results.items():
@@ -152,7 +175,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         # dset_transferE = f['transfer2D_E']
         # dset_transferZ = f['transfer2D_Z']
         dset_transferEK_kx = f['transferEK_kx']
-
 
         # nb_spectra = dset_times.shape[0]
         times = dset_times.value
@@ -195,6 +217,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 # transferZ = dset_transferZ[it]
                 transferEK_kx = dset_transferEK_kx[it]
 
+
                 # PiE = cumsum_inv(transferE)*self.oper.deltakh
                 # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
                 PiEK_kx = cumsum_inv(transferEK_kx)*self.oper.deltakx
@@ -203,14 +226,18 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 # ax1.plot(khE, PiZ, 'g', linewidth=1)
                 ax1.plot(kxE, PiEK_kx, 'g', linewidth=1)
 
+
         # transferE = dset_transferE[imin_plot:imax_plot].mean(0)
         # transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
         transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot].mean(0)
+
 
         # PiE = cumsum_inv(transferE)*self.oper.deltakh
         # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
         PiEK_kx = cumsum_inv(transferEK_kx)*self.oper.deltakh
 
+
         # ax1.plot(khE, PiE, 'r', linewidth=2)
         # ax1.plot(khE, PiZ, 'm', linewidth=2)
         ax1.plot(kxE, PiEK_kx, 'm--', linewidth=2)
+
