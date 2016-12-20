@@ -103,6 +103,7 @@ class SpectraNS2DStrat(Spectra):
         dset_spectrum1Dkx_EK_uy = f['spectrum1Dkx_EK_uy']
         dset_spectrum1Dky_EK_uy = f['spectrum1Dky_EK_uy']
         dset_spectrum1Dky_EA = f['spectrum1Dky_EA']
+        dset_spectrum1Dkx_EA = f['spectrum1Dkx_EA']
 
         # dset_spectrum1Dkx = f['spectrum1Dkx_E']
         # dset_spectrum1Dky = f['spectrum1Dky_E']
@@ -190,6 +191,32 @@ class SpectraNS2DStrat(Spectra):
         EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot+1]).mean(0)
         ax3.plot(kv, EA_ky, 'b--', linewidth=3)
 
+        fig, ax4 = self.output.figure_axe()
+        ax4.set_xlabel('$t$')
+        ax4.set_ylabel('Total energy')
+        ax4.set_title('Total energy '+self.output.name_solver +
+                      ', nh = {0:5d}'.format(self.nx))
+        ax4.hold(True)
+
+
+        Etot = np.empty_like(times)
+        for t in range(len(times)):
+            print t
+            Etot[t] = dset_spectrum1Dkx_EK_ux[t].sum()
+            + dset_spectrum1Dkx_EK_uy[t].sum()
+            + dset_spectrum1Dkx_EA[t].sum()
+
+        ax4.plot(times, Etot, 'k', linewidth=2)
+        print 'times = ', times
+        print 'Etot = ', Etot
+
+
+        # coef_norm = kh**(coef_compensate)
+        # if delta_t != 0.:
+        #     for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+        #          EK = dset_spectrum1Dkx_EK_ux[it]
+        #          EK[EK < 10e-16] = 0.
+        #          ax1.plot(kv, EK*coef_norm, 'k', linewidth=2)
 
         # coef_norm = kv**(coef_compensate)
         # if delta_t != 0.:

@@ -132,7 +132,7 @@ if __name__ == "__main__":
     params.N = 2.
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 0.1
-    params.time_stepping.t_end = 20.
+    params.time_stepping.t_end = 50.
 
     params.init_fields.type = 'dipole'
 
