@@ -41,6 +41,22 @@ class InfoSolverBase(ParamContainer):
         self._set_child('classes')
 
         self.classes._set_child(
+            'Operators',
+            attribs={'module_name': 'fluidsim.operators.operators0d',
+                     'class_name': 'Operators0D'})
+
+        self.classes._set_child(
+            'State',
+            attribs={'module_name': 'fluidsim.base.state',
+                     'class_name': 'StateBase'})
+
+        self.classes._set_child(
+            'TimeStepping',
+            attribs={'module_name':
+                     'fluidsim.base.time_stepping.simple',
+                     'class_name': 'TimeSteppingSimple'})
+
+        self.classes._set_child(
             'InitFields',
             attribs={'module_name': 'fluidsim.base.init_fields',
                      'class_name': 'InitFieldsBase'})

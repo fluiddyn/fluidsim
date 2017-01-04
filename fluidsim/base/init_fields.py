@@ -128,20 +128,22 @@ class InitFieldsFromFile(SpecificInitFields):
             try:
                 f = h5py.File(path_file, 'r')
             except:
-                raise ValueError('file '+path_file+' is really a hd5 file?')
+                raise ValueError(
+                    'Is file ' + path_file + ' really a hd5 file?')
 
-            print('Load state from file:\n[...]'+path_file[-75:])
+            print('Load state from file:\n[...]' + path_file[-75:])
 
             try:
                 group_oper = f['/info_simul/params/oper']
             except:
                 raise ValueError(
-                    'file '+path_file+' does not contain a params object')
+                    'The file ' + path_file +
+                    ' does not contain a params object')
 
             try:
                 group_state_phys = f['/state_phys']
             except:
-                raise ValueError('file ' + path_file +
+                raise ValueError('The file ' + path_file +
                                  ' does not contain a state_phys object')
 
             nx_file = group_oper.attrs['nx']
@@ -295,7 +297,7 @@ class InitFieldsManual(SpecificInitFields):
     def __call__(self):
         self.sim.state.is_initialized = False
         self.sim.output.print_stdout(
-            'Manual initialization of the fields in selected. '
+            'Manual initialization of the fields is selected. '
             'Do not forget to initialize them.')
 
 
@@ -311,40 +313,6 @@ class InitFieldsConstant(SpecificInitFields):
     def __call__(self):
         value = self.sim.params.init_fields.constant.value
         self.sim.state.state_phys.initialize(value)
-        self.sim.state.statefft_from_statephys()
 
-#     def init_fields_wave(self):
-#         ikx = self.sim.params.ikx
-#         eta0 = self.sim.params.eta0
-
-#         # BE CARREFUL, THIS WON'T WORK WITH MPI !!!
-#         if mpi.rank == 0:
-#             print('init_fields_wave(ikx = {0:4d}, eta0 = {1:7.2e})'.format(
-#                 ikx, eta0))
-#             print('kx[ikx] = {0:8.2f}'.format(self.oper.kxE[ikx]))
-
-#         if mpi.nb_proc > 1:
-#             raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'
-#                              '  DO NOT USE THIS METHOD WITH MPI '
-#                              '(or rewrite it :-)')
-
-#         eta_fft = self.oper.constant_arrayK(value=0.)
-#         ux_fft = self.oper.constant_arrayK(value=0.)
-#         uy_fft = self.oper.constant_arrayK(value=0.)
-
-#         eta_fft[0, self.sim.params.ikx] = 0.1*eta0
-#         # eta_fft[ikx, 0] = 0.1j*eta0
-
-#         self.oper.project_fft_on_realX(eta_fft)
-
-# #        ux_fft[0,ikx] = 1.j*eta0
-# #        uy_fft[0,ikx] = 1.j*eta0
-
-#         div_fft = self.oper.constant_arrayK(value=0.)
-#         div_fft[ikx, 0] = eta0
-#         div_fft[0, ikx] = eta0
-#         self.oper.project_fft_on_realX(div_fft)
-#         ux_fft, uy_fft = self.oper.vecfft_from_divfft(div_fft)
-
-#         return eta_fft, ux_fft, uy_fft
-
+        if hasattr(self.sim.state, 'statefft_from_statephys'):
+            self.sim.state.statefft_from_statephys()

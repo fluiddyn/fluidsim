@@ -52,22 +52,16 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.class_name = 'SimulBasePseudoSpectral'
         self.short_name = 'BasePS'
 
-        self.classes._set_child(
-            'State',
-            attribs={'module_name': 'fluidsim.base.state',
-                     'class_name': 'StatePseudoSpectral'})
+        self.classes.State.module_name = 'fluidsim.base.state'
+        self.classes.State.class_name = 'StatePseudoSpectral'
 
-        self.classes._set_child(
-            'TimeStepping',
-            attribs={'module_name':
-                     'fluidsim.base.time_stepping.pseudo_spect_cy',
-                     'class_name': 'TimeSteppingPseudoSpectral'})
+        self.classes.TimeStepping.module_name = \
+            'fluidsim.base.time_stepping.pseudo_spect_cy'
+        self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
 
-        self.classes._set_child(
-            'Operators',
-            attribs={'module_name': 'fluidsim.operators.operators',
-                     'class_name': 'OperatorsPseudoSpectral2D'})
-        
+        self.classes.Operators.module_name = 'fluidsim.operators.operators'
+        self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
+
         self.classes._set_child(
             'Preprocess',
             attribs={'module_name':

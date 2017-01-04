@@ -89,6 +89,7 @@ class OutputBase(object):
         params = sim.params
         self.sim = sim
         self.params = params.output
+        self.oper = sim.oper
 
         self.has_to_save = self.params.HAS_TO_SAVE
         self.name_solver = sim.info.solver.short_name
@@ -119,8 +120,24 @@ class OutputBase(object):
                         raise ValueError(
                             'Strange, no info_simul.h5 in self.path_run')
 
-                    if (params.oper.nx != params_dir.oper.nx or
-                            params.oper.ny != params_dir.oper.ny):
+                    cond = False
+                    try:
+                        if params.oper.nx != params_dir.oper.nx:
+                            cond = True
+                    except AttributeError:
+                        pass
+                    try:
+                        if params.oper.ny != params_dir.oper.ny:
+                            cond = True
+                    except AttributeError:
+                        pass
+                    try:
+                        if params.oper.nz != params_dir.oper.nz:
+                            cond = True
+                    except AttributeError:
+                        pass
+
+                    if cond:
                         params.NEW_DIR_RESULTS = True
                         print("""
 Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
@@ -165,14 +182,13 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         list_for_name_run = [self.name_solver]
         if len(self.sim.params.short_name_type_run) > 0:
             list_for_name_run.append(self.sim.params.short_name_type_run)
-        list_for_name_run.append(self.sim.oper.produce_str_describing_oper())
+        if hasattr(self, 'oper'):
+            list_for_name_run.append(self.oper.produce_str_describing_oper())
 
         return list_for_name_run
 
     def init_with_oper_and_state(self):
         sim = self.sim
-
-        self.oper = sim.oper
 
         if mpi.rank == 0:
             # print info on the run
@@ -184,7 +200,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 specifications += 'parallel ({} proc.)\n'.format(mpi.nb_proc)
             self.print_stdout(
                 '\nsolver ' + self.name_solver + specifications +
-                self.sim.oper.produce_long_str_describing_oper() +
+                self.oper.produce_long_str_describing_oper() +
                 'path_run =\n' + self.path_run + '\n' +
                 'init_fields.type: ' + sim.params.init_fields.type)
 
@@ -204,7 +220,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         info_solver_xml_path = self.path_run + '/info_solver.xml'
         params_xml_path = self.path_run + '/params_simul.xml'
 
-        if mpi.rank == 0 and self.has_to_save and self.sim.params.NEW_DIR_RESULTS:
+        if mpi.rank == 0 and self.has_to_save and \
+           self.sim.params.NEW_DIR_RESULTS:
             # save info on the run
             if replace:
                 os.remove(info_solver_xml_path)
@@ -337,14 +354,8 @@ class OutputBasePseudoSpectral(OutputBase):
 
     def init_with_oper_and_state(self):
 
-        oper = self.sim.oper
+        oper = self.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
-        # self.fft2 = oper.fft2
-        # self.ifft2 = oper.ifft2
-        # # really necessary here?
-        # self.vecfft_from_rotfft = oper.vecfft_from_rotfft
-        # self.rotfft_from_vecfft = oper.rotfft_from_vecfft
-
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
 
 

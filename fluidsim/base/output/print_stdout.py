@@ -33,7 +33,7 @@ class PrintStdOutBase(object):
         except AttributeError:
             pass
 
-        self.nx = params.oper.nx
+        # self.nx = params.oper.nx
 
         self.period_print = params.output.periods_print.print_stdout
 

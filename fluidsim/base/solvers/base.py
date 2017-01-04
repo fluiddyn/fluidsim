@@ -129,12 +129,13 @@ class SimulBase(object):
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()
-        
-        # if enabled, preprocesses flow parameters such as viscosity and forcing
-        # based on initialized fields
-        Preprocess = dico_classes['Preprocess']
-        self.preprocess = Preprocess(self)
-        self.preprocess()
+
+        # if enabled, preprocesses flow parameters such as viscosity and
+        # forcing based on initialized fields
+        if 'Preprocesses' in dico_classes:
+            Preprocess = dico_classes['Preprocess']
+            self.preprocess = Preprocess(self)
+            self.preprocess()
 
     def tendencies_nonlin(self, variables=None):
         """Return a null SetOfVariables object."""
@@ -153,3 +154,5 @@ if __name__ == "__main__":
     params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
+
+    sim = Simul(params)

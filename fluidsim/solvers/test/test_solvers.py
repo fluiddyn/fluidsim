@@ -1,9 +1,7 @@
 from __future__ import division
 
-from past.utils import old_div
 import unittest
 import shutil
-import numpy as np
 
 import fluidsim
 import fluiddyn.util.mpi as mpi
@@ -25,7 +23,7 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    params.oper.coef_dealiasing = old_div(2.,3)
+    params.oper.coef_dealiasing = 2./3
     params.nu_8 = 2.
 
     try:
@@ -69,7 +67,7 @@ class TestSolvers(unittest.TestCase):
 
     def test_sw1l(self):
         """Should be able to run a SW1L simul."""
-        self.sim = run_mini_simul('SW1L') # , HAS_TO_SAVE=True, FORCING=True)
+        self.sim = run_mini_simul('SW1L')  # , HAS_TO_SAVE=True, FORCING=True)
         clean_simul(self.sim)
 
     def test_sw1l_onlywaves(self):
@@ -81,6 +79,7 @@ class TestSolvers(unittest.TestCase):
         """Should be able to run a SW1L.exactlin simul."""
         self.sim = run_mini_simul('SW1L.exactlin')
         clean_simul(self.sim)
+
 
 if __name__ == '__main__':
     unittest.main()

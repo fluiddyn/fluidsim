@@ -203,7 +203,7 @@ class PhysFieldsBase(SpecificOutput):
 class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
 
     def plot(self, numfig=None, field=None, key_field=None):
-        field, key_field = self._field_to_plot(field, key_field)
+        field, key_field = self._select_field(field, key_field)
 
         if mpi.rank == 0:
             if numfig is None:

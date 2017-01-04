@@ -18,7 +18,6 @@ Provides:
 from builtins import range
 from builtins import object
 import numpy as np
-from copy import copy
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -69,7 +68,7 @@ class StateBase(object):
     def clear_computed(self):
         self.vars_computed.clear()
 
-    def __call__(self, key):        
+    def __call__(self, key):
         if key in self.keys_state_phys:
             return self.state_phys.get_var(key)
         else:
