@@ -33,7 +33,7 @@ class TimeSteppingBase(object):
         attribs = {'USE_T_END': True,
                    't_end': 10.,
                    'it_end': 10,
-                   'USE_CFL': True,
+                   'USE_CFL': False,
                    'type_time_scheme': 'RK4',
                    'deltat0': 0.2}
         params._set_child('time_stepping', attribs=attribs)
@@ -56,9 +56,7 @@ class TimeSteppingBase(object):
     def _init_compute_time_step(self):
 
         params_ts = self.params.time_stepping
-        
-        print('params_ts.USE_CFL', params_ts.USE_CFL)
-        
+
         if params_ts.USE_CFL:
             if params_ts.type_time_scheme == 'RK2':
                 self.CFL = 0.4

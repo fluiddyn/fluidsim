@@ -59,6 +59,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
     """Time stepping class for pseudo-spectral solvers.
 
     """
+
+    @staticmethod
+    def _complete_params_with_default(params):
+        """This static method is used to complete the *params* container.
+        """
+        TimeSteppingBase._complete_params_with_default(params)
+        params.time_stepping.USE_CFL = True
+
     def __init__(self, sim):
         super(TimeSteppingPseudoSpectral, self).__init__(sim)
 

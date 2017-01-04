@@ -15,7 +15,6 @@ This module provides two classes defining the pseudo-spectral solver
 """
 from __future__ import division
 
-from past.utils import old_div
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
@@ -177,9 +176,9 @@ if __name__ == "__main__":
     params.oper.Lx = params.oper.Ly = Lh = 2 * pi
     # params.oper.coef_dealiasing = 1.
 
-    delta_x = old_div(Lh, nh)
+    delta_x = Lh / nh
 
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
     params.time_stepping.t_end = 10.
 
