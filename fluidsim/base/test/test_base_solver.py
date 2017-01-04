@@ -2,8 +2,6 @@
 
 import unittest
 
-import numpy as np
-
 import fluiddyn as fld
 
 # to get fld.show
@@ -20,7 +18,10 @@ class TestBaseSolver(unittest.TestCase):
 
     params = Simul.create_default_params()
 
+    params.short_name_type_run = 'test'
+    params.time_stepping.USE_CFL = False
     params.time_stepping.t_end = 2.
+    params.time_stepping.deltat0 = 0.1
 
     with stdout_redirected():
         sim = Simul(params)

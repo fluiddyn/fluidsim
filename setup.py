@@ -130,7 +130,6 @@ if not on_rtd:
     if FFTW3:
         install_requires += ['pyfftw >= 0.10.4']
 
-
 setup(name='fluidsim',
       version=__version__,
       description=('Framework for studying fluid dynamics with simulations.'),

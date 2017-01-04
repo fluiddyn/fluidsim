@@ -67,23 +67,7 @@ class TimeSteppingSimple(TimeSteppingBase):
         self._init_time_scheme()
 
     def _init_freq_lin(self):
-        f_d, f_d_hypo = self.sim.compute_freq_diss()
-        freq_dissip = f_d + f_d_hypo
-
-        if hasattr(self.sim, 'compute_freq_complex'):
-            freq_complex = self._compute_freq_complex()
-            self.freq_lin = freq_dissip + freq_complex
-            freq_max = freq_complex.imag.max()
-            self.deltat_max = 0.78*np.pi/freq_max
-        else:
-            self.freq_lin = freq_dissip
-
-    def _compute_freq_complex(self):
-        state_phys = self.sim.state.state_phys
-        freq_complex = np.empty_like(state_phys)
-        for ik, key in enumerate(state_phys.keys):
-            freq_complex[ik] = self.sim.compute_freq_complex(key)
-        return freq_complex
+        self.freq_lin = 0.
 
     def _init_exact_linear_coef(self):
         self.exact_linear_coefs = ExactLinearCoefs(self)

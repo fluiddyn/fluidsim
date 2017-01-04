@@ -124,9 +124,7 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
             self.invert_to_get_solution(A_A1dt, rhs_A1dt))
 
     def right_hand_side(self, S, N, dt):
-        return (S.ravel()
-                + dt/2*self.L.dot(S.flat)
-                + dt*N.ravel())
+        return S.ravel() + dt/2*self.L.dot(S.flat) + dt*N.ravel()
 
     def invert_to_get_solution(self, A, b):
         """Solve the linear system :math:`Ax = b`."""

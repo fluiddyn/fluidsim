@@ -12,8 +12,8 @@ from fluiddyn.io import stdout_redirected
 from fluidsim.solvers.ad1d.solver import Simul
 
 
-class TestSolverNS2D(unittest.TestCase):
-    def test_tendency(self):
+class TestSolverAD1D(unittest.TestCase):
+    def test_simul(self):
 
         params = Simul.create_default_params()
 
