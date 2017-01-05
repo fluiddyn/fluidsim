@@ -772,9 +772,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             'transfer2D_CPE': transfer2D_CPE}
         self._checksum_stdout(
             EK_GGG=transfer2D_Errr,
-            EK_GGA=transfer2D_Edrr_rrd+ transfer2D_Erdr,
-            EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
-            EK_AAA=transfer2D_Eddd,
+            EK_GGA=transfer2D_Edrr_rrd,
+            EK_AAG=transfer2D_Edrd,
             EA=transfer2D_EA,
             Etot=transfer2D_EK + transfer2D_EA,
             debug=False)
@@ -1267,9 +1266,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 ax2.plot(khE, Cfluxtot, 'k', linewidth=1)
         
         ax2.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$\Sigma C_{tot}$')
-        ax2.plot(khE, Cflux_GG, 'g:', linewidth=2, label=r'$\Sigma C_{GG}$')
-        ax2.plot(khE, Cflux_AG, 'm--', linewidth=2, label=r'$\Sigma C_{GA}$')
-        ax2.plot(khE, Cflux_AA, 'y--', linewidth=2, label=r'$\Sigma C_{AA}$')
+        ax2.plot(khE, Cflux_GG, 'g', linewidth=2, label=r'$\Sigma C_{GG}$')
+        ax2.plot(khE, Cflux_AG, 'm', linewidth=2, label=r'$\Sigma C_{GA}$')
+        ax2.plot(khE, Cflux_AA, 'y', linewidth=2, label=r'$\Sigma C_{AA}$')
+        ax2.plot(khE, exchange_mean, 'k:', linewidth=2, label=r'$C_{tot}$')
+        ax2.plot(khE, exchange_GG, 'g:', linewidth=1, label=r'$C_{GG}$')
+        ax2.plot(khE, exchange_AG, 'm:', linewidth=1, label=r'$C_{GA}$')
+        ax2.plot(khE, exchange_AA, 'y:', linewidth=1, label=r'$C_{AA}$')
         ax2.legend()
 
         ax22 = fig2.add_axes(size_axe)

@@ -416,9 +416,8 @@ class SpectraSW1LNormalMode(SpectraSW1L):
                 dset_spectrumEalin = f['spectrum2D_Ealin']
 
             Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
-            ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{A}$')
+            ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{AGEO}$')
 
-        if self.params.f != 0:
             dset_spectrumEglin = f['spectrum2D_Eglin']
             Eglin = dset_spectrumEglin[imin_plot:imax_plot + 1].mean(0) + machine_zero
-            ax1.plot(kh, Eglin * coef_norm, 'g', linewidth=1, label='$E_{G}$')
+            ax1.plot(kh, Eglin * coef_norm, 'g', linewidth=1, label='$E_{GEO}$')
