@@ -43,11 +43,11 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
         potential = self.output.compute_potential()
         if mpi.rank == 0:
             to_print += (
-                '              X = {:9.3e} ; Y = {:+9.3e}\n'
-                '              potential = {:9.3e} ; Delta pot = {:+9.3e}\n'
-                '').format(self.sim.state.state_phys.get_var('X')[0],
-                           self.sim.state.state_phys.get_var('Y')[0],
-                           potential, potential-self.potential_tmp)
+                (' ' * 14) + 'X = {:9.3e} ; Y = {:+9.3e}\n' +
+                (' ' * 14) + 'potential = {:9.3e} ; Delta pot = {:+9.3e}'
+                '\n').format(float(self.sim.state.state_phys.get_var('X')),
+                             float(self.sim.state.state_phys.get_var('Y')),
+                             potential, potential-self.potential_tmp)
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
@@ -64,12 +64,15 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
             lines = file_means.readlines()
 
         lines_t = []
-        lines_E = []
+        lines_P = []
+        lines_X = []
         for il, line in enumerate(lines):
-            if line[0:4] == 'it =':
+            if line.startswith('it ='):
                 lines_t.append(line)
-            if line[0:22] == '              potential =':
-                lines_E.append(line)
+            if line.startswith(' ' * 14 + 'potential ='):
+                lines_P.append(line)
+            if line.startswith(' ' * 14 + 'X ='):
+                lines_X.append(line)
 
         nt = len(lines_t)
         if nt > 1:
@@ -79,8 +82,11 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
         t = np.zeros(nt)
         deltat = np.zeros(nt)
 
-        E = np.zeros(nt)
-        deltaE = np.zeros(nt)
+        P = np.zeros(nt)
+        deltaP = np.zeros(nt)
+
+        X = np.zeros(nt)
+        Y = np.zeros(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -89,46 +95,88 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
             t[il] = float(words[6])
             deltat[il] = float(words[10])
 
-            line = lines_E[il]
+            line = lines_P[il]
             words = line.split()
-            E[il] = float(words[2])
-            deltaE[il] = float(words[7])
+            P[il] = float(words[2])
+            deltaP[il] = float(words[7])
+
+            line = lines_X[il]
+            words = line.split()
+            X[il] = float(words[2])
+            Y[il] = float(words[6])
 
         dico_results['it'] = it
         dico_results['t'] = t
         dico_results['deltat'] = deltat
-        dico_results['E'] = E
-        dico_results['deltaE'] = deltaE
+        dico_results['P'] = P
+        dico_results['deltaP'] = deltaP
+        dico_results['X'] = X
+        dico_results['Y'] = Y
 
         return dico_results
 
-    def plot(self):
+    def plot_deltat(self):
         dico_results = self.load()
 
         t = dico_results['t']
         deltat = dico_results['deltat']
-        E = dico_results['E']
-        deltaE = dico_results['deltaE']
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
-        width_axe = 0.85
-        height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('deltat(t)')
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax1.set_title('info stdout, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
-        ax1.plot(t, deltat, 'k', linewidth=2)
+        ax.set_xlabel('t')
+        ax.set_ylabel('deltat(t)')
 
-        size_axe[1] = 0.08
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.hold(True)
-        ax2.plot(t, E, 'k', linewidth=2)
-        ax2.plot(t, deltaE, 'b', linewidth=2)
+        ax.set_title('info stdout, solver '+self.output.name_solver)
+        ax.plot(t, deltat, 'k', linewidth=2)
+
+    def plot_potential(self):
+        dico_results = self.load()
+
+        t = dico_results['t']
+        P = dico_results['P']
+        deltaP = dico_results['deltaP']
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        fig, ax = self.output.figure_axe(size_axe=size_axe)
+
+        ax.set_xlabel('t')
+        ax.set_ylabel('P(t), deltaP(t)')
+        ax.plot(t, P, 'k', linewidth=2)
+        ax.plot(t, deltaP, 'b', linewidth=2)
+
+    def plot_XY_vs_time(self):
+        dico_results = self.load()
+        t = dico_results['t']
+        X = dico_results['X']
+        Y = dico_results['Y']
+
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        fig, ax = self.output.figure_axe(size_axe=size_axe)
+
+        ax.set_xlabel('$t$')
+        ax.set_ylabel('$X$, $Y$')
+
+        ax.plot(t, X, 'b', label='$X$, prey')
+        ax.plot(t, Y, 'r', label='$Y$, predator')
+
+        ax.plot(ax.get_xlim(), [self.sim.Xs] * 2, 'b--')
+        ax.plot(ax.get_xlim(), [self.sim.Ys] * 2, 'r--')
+        ax.legend()
+
+    def plot_XY(self):
+        dico_results = self.load()
+        X = dico_results['X']
+        Y = dico_results['Y']
+
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        fig, ax = self.output.figure_axe(size_axe=size_axe)
+
+        ax.set_xlabel('$X$, prey')
+        ax.set_ylabel('$Y$, predator')
+
+        ax.plot(X, Y, 'b')
+
+        ax.plot(self.sim.Xs, self.sim.Ys, 'bx')
+
+        ax.set_xlim([0, ax.get_xlim()[1]])
+        ax.set_ylim([0, ax.get_ylim()[1]])

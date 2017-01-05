@@ -69,6 +69,12 @@ class Simul(SimulBase):
         attribs = {'A': 1., 'B': 1., 'C': 1., 'D': 0.5}
         params._set_attribs(attribs)
 
+    def __init__(self, *args, **kargs):
+        super(Simul, self).__init__(*args, **kargs)
+        p = self.params
+        self.Xs = p.C/p.D
+        self.Ys = p.A/p.B
+
     def tendencies_nonlin(self, state=None):
         r"""Compute the nonlinear tendencies.
 
@@ -125,8 +131,15 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.time_stepping.deltat0 = 0.05
+    params.time_stepping.deltat0 = 0.1
+    params.time_stepping.t_end = 20
+
+    params.output.periods_print.print_stdout = 0.01
+
     sim = Simul(params)
+
+    sim.state.state_phys.set_var('X', 2)
+    sim.state.state_phys.set_var('Y', 1.1)
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()

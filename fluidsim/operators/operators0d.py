@@ -17,7 +17,7 @@ class Operators0D(object):
     def __init__(self, params=None, SEQUENTIAL=None):
 
         self.params = params
-        self.shapeX_seq = self.shapeX_loc = (1,)
+        self.shapeX_seq = self.shapeX_loc = []
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""

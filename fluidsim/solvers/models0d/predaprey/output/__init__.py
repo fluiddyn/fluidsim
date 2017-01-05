@@ -48,6 +48,6 @@ class Output(OutputBase):
         """Compute energy(k)"""
 
         p = self.sim.params
-        X = self.sim.state.state_phys.get_var('X')[0]
-        Y = self.sim.state.state_phys.get_var('Y')[0]
+        X = self.sim.state.state_phys.get_var('X')
+        Y = self.sim.state.state_phys.get_var('Y')
         return p.C*log(X) - p.D*X + p.A*log(Y) - p.B * Y
