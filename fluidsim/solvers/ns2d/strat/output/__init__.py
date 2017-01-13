@@ -21,8 +21,6 @@ and the main output class for the ns2d solver:
 
 import numpy as np
 
-from fluidsim.base.output import OutputBasePseudoSpectral
-
 from fluidsim.solvers.ns2d.output import Output
 
 class OutputStrat(Output):
@@ -77,6 +75,7 @@ class OutputStrat(Output):
         #     'class_name': 'Increments'}
         # classes._set_child('increments', attribs=attribs)
 
+
     # @staticmethod
     # def _complete_params_with_default(params, info_solver):
     #     """Complete the `params` container (static method)."""
@@ -120,9 +119,11 @@ class OutputStrat(Output):
     def compute_energies(self):
         """Compute the kinetic and potential energy"""
         energyK_fft, energyA_fft = self.compute_energies_fft()
+        energyK_ux_fft, energyK_uy_fft = self.compute_energies2_fft()
         energyK = self.sum_wavenumbers(energyK_fft)
         energyA = self.sum_wavenumbers(energyA_fft)
-        return energyK, energyA
+        energyK_ux = self.sum_wavenumbers(energyK_ux_fft)
+        return energyK, energyA, energyK_ux
 
     def compute_enstrophy(self):
         """Compute the spatially averaged enstrophy."""

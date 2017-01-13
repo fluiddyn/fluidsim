@@ -90,7 +90,7 @@ class Simul(SimulNS2D):
         Frot_fft = Frot_fft_old + px_b_fft
         oper.dealiasing(Frot_fft)
         oper.dealiasing(Fb_fft)
-        
+
         # T_rot = np.real(Frot_fft.conj()*rot_fft
         #                + Frot_fft*rot_fft.conj())/2.
         # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
@@ -121,18 +121,19 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    params.oper.nx = params.oper.ny = nh = 32
+    params.oper.nx = nh = 32
+    params.oper.ny = 32
     params.oper.Lx = params.oper.Ly = Lh = 2 * pi
     params.oper.coef_dealiasing = 0.5
 
     delta_x = Lh / nh
 
-    params.nu_2 = 0.
+    params.nu_2 = 1.*10e-6
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.N = 2.
+    params.N = 1.  # Brunt Vaisala frequency
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 0.1
-    params.time_stepping.t_end = 50.
+    params.time_stepping.t_end = 20.  # Period of time of the simulation
 
     params.init_fields.type = 'dipole'
 
@@ -151,7 +152,7 @@ if __name__ == "__main__":
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 1.
 
-    params.output.periods_plot.phys_fields = 10.
+    params.output.periods_plot.phys_fields = 4.
 
     params.output.ONLINE_PLOT_OK = True
 
@@ -160,7 +161,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    # params.output.phys_fields.field_to_plot = 'b'
+    params.output.phys_fields.field_to_plot = 'rot'
 
     sim = Simul(params)
 

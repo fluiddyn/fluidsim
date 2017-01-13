@@ -27,7 +27,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     def _make_str_info(self):
         to_print = super(PrintStdOutNS2DStrat, self)._make_str_info()
 
-        energyK, energyA = self.output.compute_energies()
+        energyK, energyA, energyK_ux = self.output.compute_energies()
         energy = energyK + energyA
         if mpi.rank == 0:
             to_print += (
@@ -113,7 +113,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         t = dico_results['t']
         deltat = dico_results['deltat']
         E = dico_results['E']
-        deltaE = dico_results['deltaE']
+        #  deltaE = dico_results['deltaE']
         EK = dico_results['EK']
         EA = dico_results['EA']
 
@@ -135,9 +135,9 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('t')
         ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.plot(t, E, 'k', linewidth=2, label='E')
-        ax2.plot(t, deltaE, 'b', linewidth=2)
-        ax2.plot(t, EK, 'r', linewidth=2, label='EK')
-        ax2.plot(t, EA, 'g', linewidth=2, label='EA')
+        ax2.plot(t, E, 'k', linewidth=2, label='$E$')
+        # ax2.plot(t, deltaE, 'b', linewidth=2)
+        ax2.plot(t, EK, 'r', linewidth=2, label='$E_K$')
+        ax2.plot(t, EA, 'g', linewidth=2, label='$E_A$')
         ax2.legend()
         ax2.grid(True)

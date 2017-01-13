@@ -21,12 +21,15 @@ class SpectraNS2DStrat(Spectra):
         # energy_fft = self.output.compute_energy_fft()
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
         energyK_ux_fft, energyK_uy_fft = self.output.compute_energies2_fft()
-
+        energyK, energyA, energyK_ux = self.output.compute_energies()
+        
         # Compute the kinetic energy spectra 1D for the two velocity components
         # and two directions
         spectrum1Dkx_EK_ux, spectrum1Dky_EK_ux = self.spectra1D_from_fft(energyK_ux_fft)
         spectrum1Dkx_EK_uy, spectrum1Dky_EK_uy = self.spectra1D_from_fft(energyK_uy_fft)
-
+        # Parseval relation
+        spectrum = spectrum1Dkx_EK_ux.sum()
+        print 'spectrum = ', spectrum, 'Energy = ', energyK_ux
         # Compute the potential energy spectra 1D two directions
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
 
@@ -49,7 +52,6 @@ class SpectraNS2DStrat(Spectra):
         sum_EK_uy_ky = spectrum1Dky_EK_uy.sum()
         print 'sum_EK_uy_kx = ', sum_EK_uy_kx
         print 'sum_EK_uy_ky = ', sum_EK_uy_ky
-
         # spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
         # dico_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
         #                  'spectrum1Dky_EK': spectrum1Dky_EK,
@@ -102,8 +104,8 @@ class SpectraNS2DStrat(Spectra):
         dset_spectrum1Dky_EK_ux = f['spectrum1Dky_EK_ux']
         dset_spectrum1Dkx_EK_uy = f['spectrum1Dkx_EK_uy']
         dset_spectrum1Dky_EK_uy = f['spectrum1Dky_EK_uy']
-        dset_spectrum1Dky_EA = f['spectrum1Dky_EA']
         dset_spectrum1Dkx_EA = f['spectrum1Dkx_EA']
+        dset_spectrum1Dky_EA = f['spectrum1Dky_EA']
 
         # dset_spectrum1Dkx = f['spectrum1Dkx_E']
         # dset_spectrum1Dky = f['spectrum1Dky_E']
@@ -155,9 +157,10 @@ class SpectraNS2DStrat(Spectra):
 
         EK_ux_kx = (dset_spectrum1Dkx_EK_ux[imin_plot:imax_plot+1]).mean(0)
         EK_uy_kx = (dset_spectrum1Dkx_EK_uy[imin_plot:imax_plot+1]).mean(0)
-        # print 'EK = ', EK
+        EA_kx = (dset_spectrum1Dkx_EA[imin_plot:imax_plot+1]).mean(0)
         ax1.plot(kh, EK_ux_kx, 'b--', label='u_x', linewidth=3)
         ax1.plot(kh, EK_uy_kx, 'r--', label='u_y', linewidth=3)
+        ax1.plot(kh, EA_kx, 'g--', label='EA', linewidth=3)
         ax1.plot(kh[1:], 0.01*kh[1:]**(-5/3), 'k',
                  label='spectra k^(-5/3)', linewidth=2)
         ax1.legend()
@@ -174,41 +177,32 @@ class SpectraNS2DStrat(Spectra):
         # coef_norm = kv**(coef_compensate)
         EK_ux_ky = (dset_spectrum1Dky_EK_ux[imin_plot:imax_plot+1]).mean(0)
         EK_uy_ky = (dset_spectrum1Dky_EK_uy[imin_plot:imax_plot+1]).mean(0)
+        EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot+1]).mean(0)
         ax2.plot(kv, EK_ux_ky, 'b--', label='u_x', linewidth=3)
         ax2.plot(kv, EK_uy_ky, 'r--', label='u_y', linewidth=3)
+        ax2.plot(kv, EA_ky, 'g--', label='EA', linewidth=3)
         ax2.plot(kv[1:], 0.01*kv[1:]**(-3), 'k',
                  label='spectra k^(-3)', linewidth=2)
         ax2.legend()
 
-        fig, ax3 = self.output.figure_axe()
-        ax3.set_xlabel('$k_v$')
-        ax3.set_ylabel('vertical EA spectra')
-        ax3.set_title('1D spectra, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
-        ax3.set_xscale('log')
-        ax3.set_yscale('log')
-
-        EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot+1]).mean(0)
-        ax3.plot(kv, EA_ky, 'b--', linewidth=3)
-
-        fig, ax4 = self.output.figure_axe()
-        ax4.set_xlabel('$t$')
-        ax4.set_ylabel('Total energy')
-        ax4.set_title('Total energy '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
-        ax4.hold(True)
+        # fig, ax4 = self.output.figure_axe()
+        # ax4.set_xlabel('$t$')
+        # ax4.set_ylabel('Total energy')
+        # ax4.set_title('Total energy '+self.output.name_solver +
+        #               ', nh = {0:5d}'.format(self.nx))
+        # ax4.hold(True)
 
 
-        Etot = np.empty_like(times)
-        for t in range(len(times)):
-            print t
-            Etot[t] = dset_spectrum1Dkx_EK_ux[t].sum()
-            + dset_spectrum1Dkx_EK_uy[t].sum()
-            + dset_spectrum1Dkx_EA[t].sum()
+        # Etot = np.empty_like(times)
+        # for t in range(len(times)):
+        #     print t
+        #     Etot[t] = dset_spectrum1Dkx_EK_ux[t].sum()
+        #     + dset_spectrum1Dkx_EK_uy[t].sum()
+        #     + dset_spectrum1Dkx_EA[t].sum()
 
-        ax4.plot(times, Etot, 'k', linewidth=2)
-        print 'times = ', times
-        print 'Etot = ', Etot
+        # ax4.plot(times, Etot, 'k', linewidth=2)
+        # print 'times = ', times
+        # print 'Etot = ', Etot
 
 
         # coef_norm = kh**(coef_compensate)

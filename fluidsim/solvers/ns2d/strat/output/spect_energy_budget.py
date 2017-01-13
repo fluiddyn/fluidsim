@@ -72,11 +72,15 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         transferEKv_fft = np.real(uy_fft.conj()*Fy_fft)
         B_fft = np.real(uy_fft.conj()*b_fft)
         transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
-        dissEKu_fft = - np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
-        dissEKv_fft = - np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
-        dissEA_fft = - (1/self.params.N**2) * np.real(
+        dissEKu_fft = np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
+        dissEKv_fft = np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
+        dissEA_fft = (1/self.params.N**2) * np.real(
             freq_diss_EK * (b_fft.conj()*b_fft))
-        
+
+        transferEK_fft = np.real(ux_fft.conj()*Fx_fft
+                                 + ux_fft*Fx_fft.conj()
+                                 + uy_fft.conj()*Fy_fft
+                                 + uy_fft*Fy_fft.conj())/2.
 
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
@@ -88,6 +92,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         # Transfer spectrum 1D Kinetic energy, potential energy and exchange
         # energy
+        transferEK_kx, transferEK_ky = self.spectra1D_from_fft(transferEK_fft)
         transferEKu_kx, transferEKu_ky = self.spectra1D_from_fft(
             transferEKu_fft)
         transferEKv_kx, transferEKv_ky = self.spectra1D_from_fft(
@@ -123,6 +128,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             epsilon_kx, epsilon_ky)
         # Variables saved in a dictionary
         dico_results = {
+            'transferEK_kx': transferEK_kx,
+            'transferEK_ky': transferEK_ky,
             'transferEKu_kx': transferEKu_kx,
             'transferEKu_ky': transferEKu_ky,
             'transferEKv_kx': transferEKv_kx,
@@ -171,10 +178,10 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dset_kxE = f['kxE']
         kxE = dset_kxE.value
         kxE = kxE+kxE[1]
-
+        print 'kxE = ', kxE
         # dset_transferE = f['transfer2D_E']
         # dset_transferZ = f['transfer2D_Z']
-        dset_transferEK_kx = f['transferEK_kx']
+        dset_transferEKu_kx = f['transferEKu_kx']
 
         # nb_spectra = dset_times.shape[0]
         times = dset_times.value
@@ -205,7 +212,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_x$')
-        ax1.set_ylabel('flux EK')
+        ax1.set_ylabel('Non linear transfer EKu')
         ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
@@ -215,29 +222,28 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
                 # transferE = dset_transferE[it]
                 # transferZ = dset_transferZ[it]
-                transferEK_kx = dset_transferEK_kx[it]
+                transferEKu_kx = dset_transferEKu_kx[it]
 
 
                 # PiE = cumsum_inv(transferE)*self.oper.deltakh
                 # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
-                PiEK_kx = cumsum_inv(transferEK_kx)*self.oper.deltakx
+                PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakx
 
                 # ax1.plot(khE, PiE, 'k', linewidth=1)
                 # ax1.plot(khE, PiZ, 'g', linewidth=1)
-                ax1.plot(kxE, PiEK_kx, 'g', linewidth=1)
+                ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
 
 
         # transferE = dset_transferE[imin_plot:imax_plot].mean(0)
         # transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
-        transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot].mean(0)
+        transferEKu_kx = dset_transferEKu_kx[imin_plot:imax_plot].mean(0)
 
 
         # PiE = cumsum_inv(transferE)*self.oper.deltakh
         # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
-        PiEK_kx = cumsum_inv(transferEK_kx)*self.oper.deltakh
+        PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakh
 
 
         # ax1.plot(khE, PiE, 'r', linewidth=2)
         # ax1.plot(khE, PiZ, 'm', linewidth=2)
-        ax1.plot(kxE, PiEK_kx, 'm--', linewidth=2)
-
+        ax1.plot(kxE, PiEKu_kx, 'm--', linewidth=2)

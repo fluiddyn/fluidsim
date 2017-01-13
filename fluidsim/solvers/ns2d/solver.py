@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'dipole'
 
-    params.FORCING = True
+    params.FORCING = False
     params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
