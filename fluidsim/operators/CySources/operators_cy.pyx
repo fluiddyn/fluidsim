@@ -213,7 +213,7 @@ cdef class GridPseudoSpectral2D(Operators):
             if not hasattr(op_fft2d, 'shapeX_loc'):
                 raise ValueError(
                     'The fft operator does not have "shapeX_loc", '
-x                    'which seems to indicate that it can not run with mpi.')
+                    'which seems to indicate that it can not run with mpi.')
             self.shapeK_gat = op_fft2d.shapeK_gat
             self.shapeX_loc = op_fft2d.shapeX_loc
             self.shapeK_loc = op_fft2d.shapeK_loc
