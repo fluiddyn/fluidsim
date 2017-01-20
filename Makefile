@@ -12,6 +12,8 @@ clean_pyc:
 clean:
 	rm -rf build
 
+cleanall: clean clean_so
+
 tests:
 	python -m unittest discover
 
