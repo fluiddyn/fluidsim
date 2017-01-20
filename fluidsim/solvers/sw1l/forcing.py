@@ -3,7 +3,11 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -83,7 +87,7 @@ class Waves(RamdomSimplePseudoSpectral):
         c = -self.forcing_rate
 
         Delta = b**2 - 4*a*c
-        alpha = (np.sqrt(Delta) - b)/(2*a)
+        alpha = old_div((np.sqrt(Delta) - b),(2*a))
 
         Fa_fft[:] = alpha*Fa_fft
 
@@ -99,9 +103,9 @@ class OldStuff(object):
         P_Z_forcing1 = oper.sum_wavenumbers(P_Z_forcing1)
         P_Z_forcing2 = oper.sum_wavenumbers(P_Z_forcing2)
         if mpi.rank == 0:
-            print 'P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
+            print('P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
                 P_Z_forcing1+P_Z_forcing2,
-                P_Z_forcing2)
+                P_Z_forcing2))
 
     def verify_injection_rate_from_state(self):
         """Verify injection rate."""

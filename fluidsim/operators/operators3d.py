@@ -1,4 +1,7 @@
+from __future__ import division
 
+from builtins import range
+from builtins import object
 
 from math import pi
 
@@ -14,8 +17,9 @@ from fluidfft import create_fft_object
 
 
 def _make_str_length(length):
-    if (length/np.pi).is_integer():
-        return repr(int(length/np.pi)) + 'pi'
+    l_over_pi = length / np.pi
+    if l_over_pi.is_integer():
+        return repr(int(l_over_pi)) + 'pi'
     else:
         return '{:.3f}'.format(length).rstrip('0')
 
@@ -89,13 +93,13 @@ class OperatorsPseudoSpectral3D(object):
         self.shapeX_seq = op_fft.get_shapeX_seq()
         self.shapeX_loc = op_fft.get_shapeX_loc()
 
-        Lx = self.Lx = params.oper.Lx
-        Ly = self.Ly = params.oper.Ly
-        Lz = self.Lz = params.oper.Lz
+        Lx = self.Lx = float(params.oper.Lx)
+        Ly = self.Ly = float(params.oper.Ly)
+        Lz = self.Lz = float(params.oper.Lz)
 
-        self.deltax = Lx/nx
-        self.deltay = Ly/ny
-        self.deltaz = Lz/nz
+        self.deltax = Lx / nx
+        self.deltay = Ly / ny
+        self.deltaz = Lz / nz
 
         self.x_seq = self.deltax*np.arange(nx)
         self.y_seq = self.deltay*np.arange(ny)

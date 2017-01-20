@@ -1,6 +1,7 @@
 
 from __future__ import print_function, division
 
+from builtins import range
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -34,8 +35,9 @@ class PrintStdOutNS3D(PrintStdOutBase):
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
-        file_means = open(self.output.path_run+'/stdout.txt')
-        lines = file_means.readlines()
+
+        with open(self.output.path_run + '/stdout.txt') as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -56,7 +58,7 @@ class PrintStdOutNS3D(PrintStdOutBase):
         E = np.zeros(nt)
         deltaE = np.zeros(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             it[il] = int(words[2])

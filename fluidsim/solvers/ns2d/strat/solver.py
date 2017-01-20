@@ -6,6 +6,7 @@
    :private-members:
 
 """
+from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 

@@ -1,5 +1,7 @@
+from __future__ import division
 
 
+from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
@@ -50,7 +52,7 @@ class Output(OutputBasePseudoSpectral):
         vx_fft = self.sim.state.state_fft.get_var('vx_fft')
         vy_fft = self.sim.state.state_fft.get_var('vy_fft')
         vz_fft = self.sim.state.state_fft.get_var('vz_fft')
-        return (np.abs(vx_fft)**2 + np.abs(vy_fft)**2 + np.abs(vz_fft)**2)/2
+        return old_div((np.abs(vx_fft)**2 + np.abs(vy_fft)**2 + np.abs(vz_fft)**2),2)
 
     def compute_energy(self):
         energy_fft = self.compute_energy_fft()

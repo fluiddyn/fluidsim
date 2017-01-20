@@ -5,6 +5,7 @@
 
 from __future__ import division, print_function
 
+from builtins import object
 import os as _os
 import glob as _glob
 import numpy as _np
@@ -212,37 +213,35 @@ def times_start_end_from_path(path):
         print('Given path does not exist:\n '+path)
         return 666, 666
 
-    file_stdout = open(path_file, 'r')
+    with open(path_file, 'r') as file_stdout:
 
-    line = ''
-    while not line.startswith('it ='):
-        line = file_stdout.readline()
+        line = ''
+        while not line.startswith('it ='):
+            line = file_stdout.readline()
 
-    words = line.split()
-    t_s = float(words[6])
+        words = line.split()
+        t_s = float(words[6])
 
-    # in order to get the informations at the end of the file,
-    # we do not want to read the full file...
-    file_stdout.seek(0, 2)  # go to the end
-    nb_caract = file_stdout.tell()
-    nb_caract_to_read = min(nb_caract, 1000)
-    file_stdout.seek(-nb_caract_to_read, 2)
-    while line != '':
-        if line.startswith('it ='):
-            line_it = line
-        last_line = line
-        line = file_stdout.readline()
+        # in order to get the informations at the end of the file,
+        # we do not want to read the full file...
+        file_stdout.seek(0, 2)  # go to the end
+        nb_caract = file_stdout.tell()
+        nb_caract_to_read = min(nb_caract, 1000)
+        file_stdout.seek(-nb_caract_to_read, 2)
+        while line != '':
+            if line.startswith('it ='):
+                line_it = line
+            last_line = line
+            line = file_stdout.readline()
 
-    if last_line.startswith('save state_phys'):
-        word = last_line.replace('=', ' ').split()[-1]
-        t_e = float(word.replace('.hd5', ''))
-    else:
-        words = line_it.split()
-        t_e = float(words[6])
+        if last_line.startswith('save state_phys'):
+            word = last_line.replace('=', ' ').split()[-1]
+            t_e = float(word.replace('.hd5', ''))
+        else:
+            words = line_it.split()
+            t_e = float(words[6])
 
-    # print('t_s = {0:.3f}, t_e = {1:.3f}'.format(t_s, t_e))
-
-    file_stdout.close()
+        # print('t_s = {0:.3f}, t_e = {1:.3f}'.format(t_s, t_e))
 
     return t_s, t_e
 
@@ -308,12 +307,12 @@ class SetOfDirResults(object):
                         self.dico_values[k].append(params[k])
 
         if self.nb_dirs > 1:
-            for k, v in self.dico_values.iteritems():
+            for k, v in self.dico_values.items():
                 v.sort()
                 if isinstance(v[0], _numbers.Number):
                     self.dico_values[k] = _np.array(v)
 
-        self.paths = self.dico_paths.values()
+        self.paths = list(self.dico_paths.values())
 
     def dirs_from_values(self, k_sort='c2', **kwargs):
         """Return a list of dirs from conditions.
@@ -323,8 +322,8 @@ class SetOfDirResults(object):
 
         """
 
-        kdirs_corresp = self.dico_params.keys()
-        for k, v in kwargs.iteritems():
+        kdirs_corresp = list(self.dico_params.keys())
+        for k, v in kwargs.items():
             if isinstance(v, tuple):
                 str_operator = v[0]
                 value = v[1]
@@ -349,7 +348,7 @@ class SetOfDirResults(object):
                     'Supports only the operators ==, !=, >, <, >=, <=')
 
             kdirs_corresp_temp = [kdir for kdir, params
-                                  in self.dico_params.iteritems()
+                                  in self.dico_params.items()
                                   if cond(params[k], value)
                                   ]
 

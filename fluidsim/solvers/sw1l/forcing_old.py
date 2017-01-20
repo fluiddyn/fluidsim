@@ -3,7 +3,11 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -140,9 +144,9 @@ class OldStuff(object):
         P_Z_forcing1 = oper.sum_wavenumbers(P_Z_forcing1)
         P_Z_forcing2 = oper.sum_wavenumbers(P_Z_forcing2)
         if mpi.rank == 0:
-            print 'P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
+            print('P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
                 P_Z_forcing1+P_Z_forcing2,
-                P_Z_forcing2)
+                P_Z_forcing2))
 
     def verify_injection_rate_from_state(self):
         """Verify injection rate."""
@@ -160,9 +164,9 @@ class OldStuff(object):
 
         Fq_fft, Fdiv_fft, Fageo_fft = \
             self.oper.qdafft_from_uxuyetafft(Fux_fft, Fuy_fft, Feta_fft)
-        # print 'Fq_fft', abs(Fq_fft).max()
-        # print 'Fdiv_fft', abs(Fdiv_fft).max()
-        # print 'Fageo_fft', abs(Fageo_fft).max()
+        # print('Fq_fft', abs(Fq_fft).max())
+        # print('Fdiv_fft', abs(Fdiv_fft).max())
+        # print('Fageo_fft', abs(Fageo_fft).max())
 
         self.verify_injection_rate_opfft(q_fft, Fq_fft, self.oper)
 
@@ -277,7 +281,7 @@ class OldStuff(object):
         c = -self.forcing_rate
 
         Delta = b**2 - 4*a*c
-        alpha = (np.sqrt(Delta) - b)/(2*a)
+        alpha = old_div((np.sqrt(Delta) - b),(2*a))
 
         Fa_fft[:] = alpha*Fa_fft
 
@@ -289,7 +293,7 @@ class ForcingSW1LExactLin(ForcingSW1L):
 
         q_fft = self.sim.state.state_fft.get_var('q_fft')
         Fq_fft = self.forcing_fft.get_var('q_fft')
-        # print 'Fq_fft', abs(Fq_fft).max()
+        # print('Fq_fft', abs(Fq_fft).max())
         self.verify_injection_rate_opfft(q_fft, Fq_fft, self.oper)
 
     def qfftcoarse_from_setvarfft(self, set_var_fft=None):

@@ -9,6 +9,8 @@ Provides:
 
 
 """
+from __future__ import division
+from past.utils import old_div
 import numpy as np
 from .base import PreprocessBase
 
@@ -48,8 +50,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
             ux_fft = state('ux_fft')
             uy_fft = state('uy_fft')
             if u0 != 0.:
-                ux_fft = ux_fft / u0
-                uy_fft = uy_fft / u0
+                ux_fft = old_div(ux_fft, u0)
+                uy_fft = old_div(uy_fft, u0)
 
             try:
                 self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
@@ -106,23 +108,23 @@ class PreprocessPseudoSpectral(PreprocessBase):
         if viscosity_scale == 'enstrophy':
             omega_0 = self.output.compute_enstrophy()
             eta = omega_0 ** 1.5                   # Enstrophy dissipation rate
-            time_scale = eta ** (-1. / 3)
+            time_scale = eta ** (old_div(-1., 3))
         elif viscosity_scale == 'enstrophy_forcing':
             omega_0 = self.output.compute_enstrophy()
             eta = omega_0 ** 1.5
-            t1 = eta ** (-1. / 3)
+            t1 = eta ** (old_div(-1., 3))
             # Energy dissipation rate
             epsilon = self.sim.params.forcing.forcing_rate
-            t2 = epsilon ** (-1./3) * length_scale ** (2./3)
+            t2 = epsilon ** (old_div(-1.,3)) * length_scale ** (old_div(2.,3))
             time_scale = min(t1, t2)
         elif viscosity_scale == 'energy_enstrophy':
             energy_0 = self.output.compute_energy()
             omega_0 = self.output.compute_enstrophy()
             epsilon = energy_0 * (omega_0 ** 0.5)
-            time_scale = epsilon ** (-1./3) * length_scale ** (2./3)
+            time_scale = epsilon ** (old_div(-1.,3)) * length_scale ** (old_div(2.,3))
         elif viscosity_scale == 'forcing':
             epsilon = self.sim.params.forcing.forcing_rate
-            time_scale = epsilon ** (-1./3) * length_scale ** (2./3)
+            time_scale = epsilon ** (old_div(-1.,3)) * length_scale ** (old_div(2.,3))
         else:
             raise ValueError('Unknown viscosity scale: %s' % viscosity_scale)
 
@@ -132,13 +134,13 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.params.nu_m4 = 0
 
         if viscosity_type == 'laplacian':
-            self.sim.params.nu_2 = length_scale ** 2. / time_scale
+            self.sim.params.nu_2 = old_div(length_scale ** 2., time_scale)
         elif viscosity_type == 'hyper4':
-            self.sim.params.nu_4 = length_scale ** 4. / time_scale
+            self.sim.params.nu_4 = old_div(length_scale ** 4., time_scale)
         elif viscosity_type == 'hyper8':
-            self.sim.params.nu_8 = length_scale ** 8. / time_scale
+            self.sim.params.nu_8 = old_div(length_scale ** 8., time_scale)
         elif viscosity_type == 'hypo':
-            self.sim.params.nu_m4 = length_scale ** (-4.) / time_scale
+            self.sim.params.nu_m4 = old_div(length_scale ** (-4.), time_scale)
         else:
             raise ValueError('Unknown viscosity type: %s' % viscosity_type)
 

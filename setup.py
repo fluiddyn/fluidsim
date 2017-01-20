@@ -122,14 +122,13 @@ print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.0.10a7']
+install_requires = ['fluiddyn >= 0.0.10a7', 'future >= 0.16']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires += ['h5py']
     if FFTW3:
-        install_requires += ['pyfftw']
-
+        install_requires += ['pyfftw >= 0.10.4']
 
 setup(name='fluidsim',
       version=__version__,

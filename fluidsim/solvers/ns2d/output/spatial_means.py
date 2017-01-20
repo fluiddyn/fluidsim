@@ -9,6 +9,7 @@
 
 from __future__ import division, print_function
 
+from builtins import range
 import os
 import numpy as np
 
@@ -103,8 +104,8 @@ class SpatialMeansNS2D(SpatialMeansBase):
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
 
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
+        with open(self.path_file) as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -147,7 +148,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ_hypo = np.empty(nt)
         epsZ_tot = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])

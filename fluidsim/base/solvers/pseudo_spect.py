@@ -17,7 +17,9 @@ pseudo-spectral solvers.
    :private-members:
 
 """
+from __future__ import division
 
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -50,22 +52,16 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.class_name = 'SimulBasePseudoSpectral'
         self.short_name = 'BasePS'
 
-        self.classes._set_child(
-            'State',
-            attribs={'module_name': 'fluidsim.base.state',
-                     'class_name': 'StatePseudoSpectral'})
+        self.classes.State.module_name = 'fluidsim.base.state'
+        self.classes.State.class_name = 'StatePseudoSpectral'
 
-        self.classes._set_child(
-            'TimeStepping',
-            attribs={'module_name':
-                     'fluidsim.base.time_stepping.pseudo_spect_cy',
-                     'class_name': 'TimeSteppingPseudoSpectral'})
+        self.classes.TimeStepping.module_name = \
+            'fluidsim.base.time_stepping.pseudo_spect_cy'
+        self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
 
-        self.classes._set_child(
-            'Operators',
-            attribs={'module_name': 'fluidsim.operators.operators',
-                     'class_name': 'OperatorsPseudoSpectral2D'})
-        
+        self.classes.Operators.module_name = 'fluidsim.operators.operators'
+        self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
+
         self.classes._set_child(
             'Preprocess',
             attribs={'module_name':
@@ -151,7 +147,7 @@ class SimulBasePseudoSpectral(SimulBase):
             f_d += self.params.nu_8*self.oper.K8
 
         if self.params.nu_m4 != 0.:
-            f_d_hypo = self.params.nu_m4/self.oper.K2_not0**2
+            f_d_hypo = old_div(self.params.nu_m4,self.oper.K2_not0**2)
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
@@ -197,8 +193,8 @@ if __name__ == "__main__":
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    delta_x = old_div(params.oper.Lx,params.oper.nx)
+    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
 
     params.time_stepping.t_end = 5.
 

@@ -1253,7 +1253,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             E_ky_temp = energy_fft[:, 0].copy()
             E_ky_temp += 2*energy_fft[:, 1:].sum(1)
             E_ky_temp = np.ascontiguousarray(E_ky_temp)
-#            print self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape
+#            print(self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape)
             E_ky_long = np.empty(self.nky_seq)
             counts = self.comm.allgather(self.nky_loc)
             self.comm.Allgatherv(sendbuf=[E_ky_temp, MPI.DOUBLE],
@@ -1266,9 +1266,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
 ####        self.comm.barrier()
 ####        sleep(0.1)
-####        print   self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx, \
-####                            'E_ky.sum() =', E_ky.sum()*self.deltaky,\
-####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky
+####        print(self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx,
+####                          'E_ky.sum() =', E_ky.sum()*self.deltaky,
+####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky)
         return E_kx, E_ky
 
     @cython.boundscheck(False)
@@ -1503,7 +1503,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 if rank_iKx != 0:
                     # message f1D_temp
                     if rank == 0:
-                        # print 'f1D_temp', f1D_temp, f1D_temp.dtype
+                        # print('f1D_temp', f1D_temp, f1D_temp.dtype)
                         comm.Recv(
                             [f1D_temp, MPI.DOUBLE_COMPLEX],
                             source=rank_iKx, tag=iKxc)

@@ -13,6 +13,7 @@ This module provides two classes defining the pseudo-spectral solver
    :private-members:
 
 """
+from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 

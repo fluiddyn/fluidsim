@@ -1,7 +1,7 @@
+from __future__ import division
 
 import unittest
 import shutil
-import numpy as np
 
 import fluidsim
 import fluiddyn.util.mpi as mpi
@@ -52,11 +52,11 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
 
     return sim
 
+
 def clean_simul(sim):
     # clean by removing the directory
     if mpi.rank == 0:
         shutil.rmtree(sim.output.path_run)
-
 
 
 class TestSolvers(unittest.TestCase):
@@ -67,7 +67,7 @@ class TestSolvers(unittest.TestCase):
 
     def test_sw1l(self):
         """Should be able to run a SW1L simul."""
-        self.sim = run_mini_simul('SW1L') # , HAS_TO_SAVE=True, FORCING=True)
+        self.sim = run_mini_simul('SW1L')  # , HAS_TO_SAVE=True, FORCING=True)
         clean_simul(self.sim)
 
     def test_sw1l_onlywaves(self):
@@ -79,6 +79,7 @@ class TestSolvers(unittest.TestCase):
         """Should be able to run a SW1L.exactlin simul."""
         self.sim = run_mini_simul('SW1L.exactlin')
         clean_simul(self.sim)
+
 
 if __name__ == '__main__':
     unittest.main()

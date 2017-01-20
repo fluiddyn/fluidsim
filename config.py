@@ -40,6 +40,11 @@ def check_avail_library(library_name):
     if sys.platform != 'win32':
         library_name = 'lib' + library_name
 
+    try:
+        library_name = library_name.encode('utf8')
+    except AttributeError:
+        pass
+        
     return library_name in libraries
 
 

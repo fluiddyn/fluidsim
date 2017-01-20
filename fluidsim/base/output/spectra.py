@@ -1,3 +1,4 @@
+from __future__ import print_function
 import h5py
 
 import os
@@ -130,7 +131,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
                   tmin, tmax, imin_plot, imax_plot))
 
         dico_results = {'kh': kh}
-        for key in f.keys():
+        for key in list(f.keys()):
             if key.startswith('spectr'):
                 dset_key = f[key]
                 spect = dset_key[imin_plot:imax_plot+1].mean(0)
@@ -166,7 +167,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
                    tmin, tmax, imin_plot, imax_plot))
 
         dico_results = {'kh': kh}
-        for key in f.keys():
+        for key in list(f.keys()):
             if key.startswith('spectr'):
                 dset_key = f[key]
                 spect = dset_key[imin_plot:imax_plot+1].mean(0)

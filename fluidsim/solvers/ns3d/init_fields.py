@@ -8,7 +8,10 @@
    :members:
 
 """
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -39,15 +42,15 @@ class InitFieldsDipole(SpecificInitFields):
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
-        xs = oper.Lx/2
-        ys = oper.Ly/2
-        theta = np.pi/2.3
+        xs = old_div(oper.Lx,2)
+        ys = old_div(oper.Ly,2)
+        theta = old_div(np.pi,2.3)
         b = 2.5
         omega = np.zeros(oper._oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (2*np.exp(-(XX**2 + (YY-b/2)**2)) -
-                    2*np.exp(-(XX**2 + (YY+b/2)**2)))
+            return (2*np.exp(-(XX**2 + (YY-old_div(b,2))**2)) -
+                    2*np.exp(-(XX**2 + (YY+old_div(b,2))**2)))
 
         XX = oper._oper2d.XX
         YY = oper._oper2d.YY

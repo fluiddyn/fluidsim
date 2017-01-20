@@ -15,6 +15,7 @@ Provides:
 
 """
 
+from builtins import object
 import numpy as np
 
 
@@ -128,17 +129,18 @@ class SimulBase(object):
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()
-        
-        # if enabled, preprocesses flow parameters such as viscosity and forcing
-        # based on initialized fields
-        Preprocess = dico_classes['Preprocess']
-        self.preprocess = Preprocess(self)
-        self.preprocess()
+
+        # if enabled, preprocesses flow parameters such as viscosity and
+        # forcing based on initialized fields
+        if 'Preprocesses' in dico_classes:
+            Preprocess = dico_classes['Preprocess']
+            self.preprocess = Preprocess(self)
+            self.preprocess()
 
     def tendencies_nonlin(self, variables=None):
         """Return a null SetOfVariables object."""
         tendencies = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_phys,
             info='tendencies_nonlin')
         tendencies.initialize(value=0.)
         return tendencies
@@ -152,3 +154,9 @@ if __name__ == "__main__":
     params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
+    params.time_stepping.USE_CFL = False
+    params.time_stepping.t_end = 2.
+    params.time_stepping.deltat0 = 0.1
+
+    sim = Simul(params)
+    sim.time_stepping.start()

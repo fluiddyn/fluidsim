@@ -10,6 +10,12 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
+
+from builtins import str
+from past.utils import old_div
+from past.builtins import basestring
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -149,7 +155,7 @@ class PhysFieldsBase(SpecificOutput):
                 f = h5py.File(path_file, 'w')
 
         if mpi.rank == 0:
-            f.attrs['date saving'] = str(datetime.datetime.now())
+            f.attrs['date saving'] = str(datetime.datetime.now()).encode()
             f.attrs['name_solver'] = self.output.name_solver
             f.attrs['name_run'] = self.output.name_run
             if particular_attr is not None:
@@ -197,7 +203,7 @@ class PhysFieldsBase(SpecificOutput):
 class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
 
     def plot(self, numfig=None, field=None, key_field=None):
-        field, key_field = self._field_to_plot(field, key_field)
+        field, key_field = self._select_field(field, key_field)
 
         if mpi.rank == 0:
             if numfig is None:
@@ -284,19 +290,19 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
         a 2D contour plot.
         """
 
-        if isinstance(vecx, str):
+        if isinstance(vecx, basestring):
             vecx_loc = self.sim.state(vecx)
             if mpi.nb_proc > 1:
                 vecx = self.oper.gather_Xspace(vecx_loc)
             else:
                 vecx = vecx_loc
-        if isinstance(vecy, str):
+        if isinstance(vecy, basestring):
             vecy_loc = self.sim.state(vecy)
             if mpi.nb_proc > 1:
                 vecy = self.oper.gather_Xspace(vecy_loc)
             else:
                 vecy = vecy_loc
-        pas_vector = np.round(self.oper.nx_seq / 48)
+        pas_vector = np.round(old_div(self.oper.nx_seq, 48))
         if pas_vector < 1:
             pas_vector = 1
 
