@@ -1,5 +1,5 @@
 """Output (:mod:`fluidsim.solvers.ns2d.strat.output`)
-===============================================
+=====================================================
 
 Provides the modules:
 
@@ -11,7 +11,7 @@ Provides the modules:
    spectra
    spect_energy_budget
 
-and the main output class for the ns2d solver:
+and the main output class for the ns2d.strat solver:
 
 .. autoclass:: OutputStrat
    :members:
@@ -22,6 +22,7 @@ and the main output class for the ns2d solver:
 import numpy as np
 
 from fluidsim.solvers.ns2d.output import Output
+
 
 class OutputStrat(Output):
     """Output for ns2d.strat solver."""
@@ -41,7 +42,7 @@ class OutputStrat(Output):
 
         classes.PhysFields.class_name = 'PhysFieldsBase2D'
 
-        attribs={
+        attribs = {
             'module_name': base_name_mod + '.spectra',
             'class_name': 'SpectraNS2DStrat'}
         classes.Spectra._set_attribs(attribs)
@@ -51,7 +52,7 @@ class OutputStrat(Output):
         #    attribs={'module_name': base_name_mod + '.spectra',
         #             'class_name': 'SpectraNS2DStrat'})
 
-        attribs={
+        attribs = {
             'module_name': base_name_mod + '.spatial_means',
             'class_name': 'SpatialMeansNS2DStrat'}
         classes.spatial_means._set_attribs(attribs)
@@ -74,7 +75,6 @@ class OutputStrat(Output):
         #     'module_name': 'fluidsim.base.output.increments',
         #     'class_name': 'Increments'}
         # classes._set_child('increments', attribs=attribs)
-
 
     # @staticmethod
     # def _complete_params_with_default(params, info_solver):

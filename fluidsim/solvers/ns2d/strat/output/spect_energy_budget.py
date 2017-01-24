@@ -1,5 +1,5 @@
-"""Energy budget (:mod:`fluidsim.solvers.ns2d.strat.output.spect_energy_budget)
-==========================================================================
+"""Energy budget (:mod:`fluidsim.solvers.ns2d.strat.output.spect_energy_budget`)
+================================================================================
 
 .. autoclass:: SpectralEnergyBudgetNS2DStrat
    :members:
@@ -13,6 +13,7 @@ import h5py
 
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv)
+
 
 class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
     """Save and plot energy budget in spectral space."""
@@ -224,7 +225,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 # transferZ = dset_transferZ[it]
                 transferEKu_kx = dset_transferEKu_kx[it]
 
-
                 # PiE = cumsum_inv(transferE)*self.oper.deltakh
                 # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
                 PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakx
@@ -233,16 +233,13 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 # ax1.plot(khE, PiZ, 'g', linewidth=1)
                 ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
 
-
         # transferE = dset_transferE[imin_plot:imax_plot].mean(0)
         # transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
         transferEKu_kx = dset_transferEKu_kx[imin_plot:imax_plot].mean(0)
 
-
         # PiE = cumsum_inv(transferE)*self.oper.deltakh
         # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
         PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakh
-
 
         # ax1.plot(khE, PiE, 'r', linewidth=2)
         # ax1.plot(khE, PiZ, 'm', linewidth=2)

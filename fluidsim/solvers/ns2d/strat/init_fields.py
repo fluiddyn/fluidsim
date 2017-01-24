@@ -1,5 +1,5 @@
 """Initialization of the field (:mod:`fluidsim.solvers.ns2d.strat.init_fields`)
-=========================================================================
+===============================================================================
 
 .. autoclass:: InitFieldsNS2D
    :members:

@@ -1,24 +1,5 @@
-# """State for the NS2D.strat solver (:mod:`fluidsim.solvers.ns2d.strat.state`)
-# =================================================================
-
-# .. autoclass:: StateNS2DStrat
-#    :members:
-#    :private-members:
-
-# """
-# from fluidsim.base.state import StatePseudoSpectral
-
-# from fluiddyn.util import mpi
-
-# from fluidsim.solvers.ns2d.state import StateNS2D
-
-# StateNS2DStrat = StateNS2D
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 """State for the NS2D solver (:mod:`fluidsim.solvers.ns2d.strat.state`)
-=================================================================
+=======================================================================
 
 .. autoclass:: StateNS2DStrat
    :members:
@@ -28,7 +9,7 @@
 
 import numpy as np
 
-from fluidsim.base.state import StatePseudoSpectral
+# from fluidsim.base.state import StatePseudoSpectral
 
 from fluiddyn.util import mpi
 
@@ -36,10 +17,11 @@ from fluidsim.solvers.ns2d.state import StateNS2D
 
 
 class StateNS2DStrat(StateNS2D):
+    """..."""
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Update `info_solver` container with the stratification terms (static method)."""
+        """Update `info_solver` container with the stratification terms."""
         # Updating the state to a stratified state
         info_solver.classes.State._set_attribs({
             'keys_state_fft': ['rot_fft', 'b_fft'],

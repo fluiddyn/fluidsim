@@ -1,17 +1,19 @@
 """Spectra output (:mod:`fluidsim.solvers.ns2d.strat.output.spectra`)
-===============================================================
+=====================================================================
 
 .. autoclass:: SpectraNS2DStrat
    :members:
    :private-members:
 
 """
+from __future__ import print_function
 
 import h5py
 
 import numpy as np
 
 from fluidsim.base.output.spectra import Spectra
+
 
 class SpectraNS2DStrat(Spectra):
     """Save and plot spectra."""
@@ -22,14 +24,16 @@ class SpectraNS2DStrat(Spectra):
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
         energyK_ux_fft, energyK_uy_fft = self.output.compute_energies2_fft()
         energyK, energyA, energyK_ux = self.output.compute_energies()
-        
+
         # Compute the kinetic energy spectra 1D for the two velocity components
         # and two directions
-        spectrum1Dkx_EK_ux, spectrum1Dky_EK_ux = self.spectra1D_from_fft(energyK_ux_fft)
-        spectrum1Dkx_EK_uy, spectrum1Dky_EK_uy = self.spectra1D_from_fft(energyK_uy_fft)
+        spectrum1Dkx_EK_ux, spectrum1Dky_EK_ux = self.spectra1D_from_fft(
+            energyK_ux_fft)
+        spectrum1Dkx_EK_uy, spectrum1Dky_EK_uy = self.spectra1D_from_fft(
+            energyK_uy_fft)
         # Parseval relation
         spectrum = spectrum1Dkx_EK_ux.sum()
-        print 'spectrum = ', spectrum, 'Energy = ', energyK_ux
+        print('spectrum = ', spectrum, 'Energy = ', energyK_ux)
         # Compute the potential energy spectra 1D two directions
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
 
@@ -44,24 +48,14 @@ class SpectraNS2DStrat(Spectra):
         # Check sum wavenumbers horizontal kinetic energy
         sum_EK_ux_kx = spectrum1Dkx_EK_ux.sum()
         sum_EK_ux_ky = spectrum1Dky_EK_ux.sum()
-        print 'sum_EK_ux_kx = ', sum_EK_ux_kx
-        print 'sum_EK_ux_ky = ', sum_EK_ux_ky
+        print('sum_EK_ux_kx = ', sum_EK_ux_kx)
+        print('sum_EK_ux_ky = ', sum_EK_ux_ky)
 
         # Check sum wavenumbers vertical kinetic energy
         sum_EK_uy_kx = spectrum1Dkx_EK_uy.sum()
         sum_EK_uy_ky = spectrum1Dky_EK_uy.sum()
-        print 'sum_EK_uy_kx = ', sum_EK_uy_kx
-        print 'sum_EK_uy_ky = ', sum_EK_uy_ky
-        # spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
-        # dico_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
-        #                  'spectrum1Dky_EK': spectrum1Dky_EK,
-        #                  'spectrum1Dkx_EA': spectrum1Dkx_EA,
-        #                  'spectrum1Dky_EA': spectrum1Dky_EA}
-
-        # # compute the spectra 1D
-        # spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
-        # dico_spectra1D = {'spectrum1Dkx_E': spectrum1Dkx_E,
-        #                   'spectrum1Dky_E': spectrum1Dky_E}
+        print('sum_EK_uy_kx = ', sum_EK_uy_kx)
+        print('sum_EK_uy_ky = ', sum_EK_uy_ky)
 
         # compute the kinetic energy spectra 2D
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
@@ -98,7 +92,6 @@ class SpectraNS2DStrat(Spectra):
         kh = dset_kxE.value
         kv = dset_kyE.value
 
-
         # Open data set 1D kinetic energy spectra
         dset_spectrum1Dkx_EK_ux = f['spectrum1Dkx_EK_ux']
         dset_spectrum1Dky_EK_ux = f['spectrum1Dky_EK_ux']
@@ -109,7 +102,6 @@ class SpectraNS2DStrat(Spectra):
 
         # dset_spectrum1Dkx = f['spectrum1Dkx_E']
         # dset_spectrum1Dky = f['spectrum1Dky_E']
-
 
         # nb_spectra = dset_times.shape[0]
         times = dset_times.value
@@ -146,7 +138,6 @@ class SpectraNS2DStrat(Spectra):
         ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
-
 
         # coef_norm = kh**(coef_compensate)
         # if delta_t != 0.:
@@ -192,7 +183,6 @@ class SpectraNS2DStrat(Spectra):
         #               ', nh = {0:5d}'.format(self.nx))
         # ax4.hold(True)
 
-
         # Etot = np.empty_like(times)
         # for t in range(len(times)):
         #     print t
@@ -203,7 +193,6 @@ class SpectraNS2DStrat(Spectra):
         # ax4.plot(times, Etot, 'k', linewidth=2)
         # print 'times = ', times
         # print 'Etot = ', Etot
-
 
         # coef_norm = kh**(coef_compensate)
         # if delta_t != 0.:
@@ -218,7 +207,6 @@ class SpectraNS2DStrat(Spectra):
         #          EK = dset_spectrum1Dky_EK_uy[it]
         #          EK[EK < 10e-16] = 0.
         #          ax2.plot(kv, EK*coef_norm, 'k', linewidth=2)
-
 
         # coef_norm = 1
         # kh = kh[1:]

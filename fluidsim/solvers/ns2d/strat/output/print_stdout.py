@@ -1,5 +1,5 @@
 """Simple text output (:mod:`fluidsim.solvers.ns2d.strat.output.print_stdout`)
-========================================================================
+==============================================================================
 
 .. autoclass:: PrintStdOutNS2DStrat
    :members:

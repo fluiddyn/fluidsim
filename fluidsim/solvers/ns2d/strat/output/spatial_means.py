@@ -1,6 +1,5 @@
-"""Spatial means output (:mod:`fluidsim.solvers.ns2d.strat.output.
-spatial_means`)
-===========================================================================
+"""Spatial means (:mod:`fluidsim.solvers.ns2d.strat.output.spatial_means`)
+==========================================================================
 
 .. autoclass:: SpatialMeansNS2DStrat
    :members:
