@@ -44,7 +44,7 @@ def check_avail_library(library_name):
         library_name = library_name.encode('utf8')
     except AttributeError:
         pass
-        
+
     return library_name in libraries
 
 
@@ -88,19 +88,24 @@ def find_library_dirs(args, library_dirs=None, debug=True, skip=True):
 
     return library_dirs
 
-try:
-    import mpi4py
-except ImportError:
+on_rtd = os.environ.get('READTHEDOCS')
+
+if on_rtd:
     MPI4PY = False
-    print('* ImportError of mpi4py: no mpi extensions will be built.')
 else:
-    MPI4PY = True
     try:
-        cc = os.environ["CC"]
-    except KeyError:
-        cc = 'mpicc'
-        os.environ["CC"] = cc
-    print('* Compiling Cython extensions with the compiler/wrapper: ' + cc)
+        import mpi4py
+    except ImportError:
+        MPI4PY = False
+        print('* ImportError of mpi4py: no mpi extensions will be built.')
+    else:
+        MPI4PY = True
+        try:
+            cc = os.environ["CC"]
+        except KeyError:
+            cc = 'mpicc'
+            os.environ["CC"] = cc
+        print('* Compiling Cython extensions with the compiler/wrapper: ' + cc)
 
 FFTW3 = check_avail_library('fftw3')
 FFTW3MPI = check_avail_library('fftw3_mpi')

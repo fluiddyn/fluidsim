@@ -179,7 +179,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dset_kxE = f['kxE']
         kxE = dset_kxE.value
         kxE = kxE+kxE[1]
-        print 'kxE = ', kxE
+        print('kxE = ', kxE)
         # dset_transferE = f['transfer2D_E']
         # dset_transferZ = f['transfer2D_Z']
         dset_transferEKu_kx = f['transferEKu_kx']
