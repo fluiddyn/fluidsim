@@ -7,5 +7,6 @@ Provides:
    :toctree:
 
    predaprey
+   lorenz
 
 """
