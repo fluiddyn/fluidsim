@@ -11,6 +11,7 @@ from __future__ import print_function, division
 
 from builtins import range
 import numpy as np
+import matplotlib.pyplot as plt
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
 
@@ -95,7 +96,7 @@ class PrintStdOutLorenz(PrintStdOutBase):
         dico_results['deltat'] = deltat
         dico_results['X'] = X
         dico_results['Y'] = Y
-        dico_results['Y'] = Z
+        dico_results['Z'] = Z
 
         return dico_results
 
@@ -126,8 +127,8 @@ class PrintStdOutLorenz(PrintStdOutBase):
         ax.set_xlabel('$t$')
         ax.set_ylabel('$X$, $Y$')
 
-        ax.plot(t, X, 'b', label='$X$, prey')
-        ax.plot(t, Y, 'r', label='$Y$, predator')
+        ax.plot(t, X, 'b', label='$X$')
+        ax.plot(t, Y, 'r', label='$Y$')
 
         ax.plot(ax.get_xlim(), [self.sim.Xs0] * 2, 'b--')
         ax.plot(ax.get_xlim(), [self.sim.Ys0] * 2, 'r--')
@@ -145,8 +146,8 @@ class PrintStdOutLorenz(PrintStdOutBase):
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax.set_xlabel('$X$, prey')
-        ax.set_ylabel('$Y$, predator')
+        ax.set_xlabel('$X$')
+        ax.set_ylabel('$Y$')
 
         ax.plot(X, Y, 'b')
 
@@ -154,5 +155,39 @@ class PrintStdOutLorenz(PrintStdOutBase):
 
         ax.plot(self.sim.Xs1, self.sim.Ys1, 'bx')
 
-        ax.set_xlim([0, ax.get_xlim()[1]])
-        ax.set_ylim([0, ax.get_ylim()[1]])
+    def plot_XZ(self):
+        dico_results = self.load()
+        X = dico_results['X']
+        Z = dico_results['Z']
+
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        fig, ax = self.output.figure_axe(size_axe=size_axe)
+
+        ax.set_xlabel('$X$')
+        ax.set_ylabel('$Z$')
+
+        ax.plot(X, Z, 'b')
+
+        ax.plot(self.sim.Xs0, self.sim.Zs0, 'bx')
+
+        ax.plot(self.sim.Xs1, self.sim.Zs1, 'bx')
+
+    def plot_XYZ(self):
+        dico_results = self.load()
+        X = dico_results['X']
+        Y = dico_results['Y']
+        Z = dico_results['Z']
+
+        fig = plt.figure()
+        size_axe = [0.12, 0.12, 0.8, 0.8]
+        
+        ax = fig.add_axes(size_axe, projection='3d')
+        
+        ax.set_xlabel('$X$')
+        ax.set_ylabel('$Y$')
+        ax.set_zlabel('$Z$')
+        
+        ax.plot(X, Y, Z, 'b')
+
+        ax.plot(self.sim.Xs0, self.sim.Ys0, self.sim.Zs0, 'bx')
+        ax.plot(self.sim.Xs1, self.sim.Ys1, self.sim.Zs1, 'bx')

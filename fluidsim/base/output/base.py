@@ -183,7 +183,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if len(self.sim.params.short_name_type_run) > 0:
             list_for_name_run.append(self.sim.params.short_name_type_run)
         if hasattr(self, 'oper'):
-            list_for_name_run.append(self.oper.produce_str_describing_oper())
+            str_describing_oper = self.oper.produce_str_describing_oper()
+            if len(str_describing_oper) > 0:
+                list_for_name_run.append(str_describing_oper)
 
         return list_for_name_run
 
