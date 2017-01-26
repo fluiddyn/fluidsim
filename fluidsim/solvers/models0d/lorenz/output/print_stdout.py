@@ -12,6 +12,7 @@ from __future__ import print_function, division
 from builtins import range
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
 
@@ -180,14 +181,14 @@ class PrintStdOutLorenz(PrintStdOutBase):
 
         fig = plt.figure()
         size_axe = [0.12, 0.12, 0.8, 0.8]
-        
+
         ax = fig.add_axes(size_axe, projection='3d')
-        
+
         ax.set_xlabel('$X$')
         ax.set_ylabel('$Y$')
         ax.set_zlabel('$Z$')
-        
+
         ax.plot(X, Y, Z, 'b')
 
-        ax.plot(self.sim.Xs0, self.sim.Ys0, self.sim.Zs0, 'bx')
-        ax.plot(self.sim.Xs1, self.sim.Ys1, self.sim.Zs1, 'bx')
+        ax.plot([self.sim.Xs0], [self.sim.Ys0], self.sim.Zs0, 'bx')
+        ax.plot([self.sim.Xs1], [self.sim.Ys1], self.sim.Zs1, 'bx')
