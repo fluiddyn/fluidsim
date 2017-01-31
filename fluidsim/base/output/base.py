@@ -194,14 +194,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if mpi.rank == 0:
             # print info on the run
-            specifications = (
-                ', ' + sim.params.time_stepping.type_time_scheme + ' and ')
+            if hasattr(sim.params.time_stepping, 'type_time_scheme'):
+                specifications = (
+                    sim.params.time_stepping.type_time_scheme + ' and ')
+            else:
+                specifications = ''
             if mpi.nb_proc == 1:
                 specifications += 'sequential,\n'
             else:
                 specifications += 'parallel ({} proc.)\n'.format(mpi.nb_proc)
             self.print_stdout(
-                '\nsolver ' + self.name_solver + specifications +
+                '\nsolver ' + self.name_solver + ', ' + specifications +
                 self.oper.produce_long_str_describing_oper() +
                 'path_run =\n' + self.path_run + '\n' +
                 'init_fields.type: ' + sim.params.init_fields.type)

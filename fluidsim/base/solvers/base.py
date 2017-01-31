@@ -80,50 +80,50 @@ class SimulBase(object):
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 
-        dico_classes = self.info_solver.import_classes()
+        dict_classes = self.info_solver.import_classes()
 
         if not isinstance(params, Parameters):
             raise TypeError('params should be a Parameters instance.')
 
-        # params.check_and_modify()
         self.params = params
         self.info = create_info_simul(self.info_solver, params)
 
         # initialization operators and grid
-        Operators = dico_classes['Operators']
+        Operators = dict_classes['Operators']
         self.oper = Operators(params=params)
 
         # initialization output
-        Output = dico_classes['Output']
+        Output = dict_classes['Output']
         self.output = Output(self)
 
         self.output.print_stdout(
             '*************************************\n' +
-            'Program FluidDyn')
+            'Program fluidsim')
 
         # output.print_memory_usage(
         #     'Memory usage after creating operator (equiv. seq.)')
 
         # initialisation object variables
-        State = dico_classes['State']
+        State = dict_classes['State']
         self.state = State(self)
 
         # initialisation time stepping
-        TimeStepping = dico_classes['TimeStepping']
+        TimeStepping = dict_classes['TimeStepping']
         self.time_stepping = TimeStepping(self)
 
         # initialisation fields (and time if needed)
-        InitFields = dico_classes['InitFields']
+        InitFields = dict_classes['InitFields']
         self.init_fields = InitFields(self)
         self.init_fields()
 
         # just for the first output
-        if params.time_stepping.USE_CFL:
+        if hasattr(params.time_stepping, 'USE_CFL') and \
+           params.time_stepping.USE_CFL:
             self.time_stepping._compute_time_increment_CLF()
 
         # initialisation forcing
         if params.FORCING:
-            Forcing = dico_classes['Forcing']
+            Forcing = dict_classes['Forcing']
             self.forcing = Forcing(self)
             self.forcing.compute()
 
@@ -132,8 +132,8 @@ class SimulBase(object):
 
         # if enabled, preprocesses flow parameters such as viscosity and
         # forcing based on initialized fields
-        if 'Preprocesses' in dico_classes:
-            Preprocess = dico_classes['Preprocess']
+        if 'Preprocesses' in dict_classes:
+            Preprocess = dict_classes['Preprocess']
             self.preprocess = Preprocess(self)
             self.preprocess()
 
