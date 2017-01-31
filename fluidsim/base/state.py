@@ -63,7 +63,7 @@ class StateBase(object):
         self.is_initialized = False
 
     def compute(self, key):
-        pass
+        raise ValueError('No method to compute key "' + key + '"')
 
     def clear_computed(self):
         self.vars_computed.clear()

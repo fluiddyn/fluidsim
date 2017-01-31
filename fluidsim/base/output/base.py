@@ -291,6 +291,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def figure_axe(self, numfig=None, size_axe=None):
         if mpi.rank == 0:
+            if size_axe is None and numfig is None:
+                return plt.subplots()
             if size_axe is None:
                 x_left_axe = 0.12
                 z_bottom_axe = 0.1
