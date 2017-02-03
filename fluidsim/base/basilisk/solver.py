@@ -50,6 +50,8 @@ Simul = SimulBasilisk
 
 if __name__ == "__main__":
 
+    import matplotlib.pyplot as plt
+
     params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
@@ -61,4 +63,6 @@ if __name__ == "__main__":
 
     sim = Simul(params)
     sim.time_stepping.start()
+
     sim.output.print_stdout.plot_energy()
+    plt.show()

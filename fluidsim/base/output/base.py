@@ -33,7 +33,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 import fluiddyn
-from fluiddyn.util import mpi
+from fluiddyn.util import mpi, run_from_ipython
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH
 from fluiddyn.util.util import time_as_str, print_memory_usage
 from fluidsim.util.util import load_params_simul
@@ -211,7 +211,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         self.save_info_solver_params_xml()
 
-        if mpi.rank == 0:
+        if mpi.rank == 0 and run_from_ipython():
             plt.ion()
 
         if self.sim.state.is_initialized:
