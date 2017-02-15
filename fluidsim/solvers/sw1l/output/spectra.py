@@ -304,15 +304,24 @@ imin_plot, imax_plot, delta_i_plot)
         E_tot = EK + EA
         EKd = EK - EKr + machine_zero
 
-        ax1.plot(kh, E_tot * coef_norm, 'k', linewidth=3, label='$E_{tot}$')
-        ax1.plot(kh, EK * coef_norm, 'r', linewidth=2, label='$E_{K}$')
-        ax1.plot(kh, EA * coef_norm, 'b', linewidth=2, label='$E_{A}$')
-        ax1.plot(kh, EKr * coef_norm, 'r--', linewidth=2, label='$E_{Kr}$')
-        ax1.plot(kh, EKd * coef_norm, 'r:', linewidth=2, label='$E_{Kd}$')
+        if 'Etot' in keys:
+            ax1.plot(kh, E_tot * coef_norm, 'k', linewidth=3, label='$E_{tot}$')
 
-        self._plot2d_lin_spectra(f, ax1, imin_plot, imax_plot, kh, coef_norm)
-        ax1.plot(kh, -EK * coef_norm, 'k-', linewidth=2)
-        ax1.plot(kh, -EKd * coef_norm, 'k:', linewidth=2)
+        if 'EK' in keys:
+            ax1.plot(kh, EK * coef_norm, 'r', linewidth=2, label='$E_{K}$')
+            ax1.plot(kh, -EK * coef_norm, 'k-', linewidth=2)
+
+        if 'EA' in keys:
+            ax1.plot(kh, EA * coef_norm, 'b', linewidth=2, label='$E_{A}$')
+
+        if 'EKr' in keys:
+            ax1.plot(kh, EKr * coef_norm, 'r--', linewidth=2, label='$E_{Kr}$')
+
+        if 'EKd' in keys:
+            ax1.plot(kh, EKd * coef_norm, 'r:', linewidth=2, label='$E_{Kd}$')
+            ax1.plot(kh, -EKd * coef_norm, 'k:', linewidth=2)
+
+        self._plot2d_lin_spectra(f, ax1, imin_plot, imax_plot, kh, coef_norm, keys)
 
         ax1.plot(kh, kh**(-2) * coef_norm, 'k-', linewidth=1)
         ax1.plot(kh, kh**(-3) * coef_norm, 'k--', linewidth=1)
@@ -402,12 +411,12 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         return dico_spectra1D, dico_spectra2D
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
-               coef_compensate=0, keys=['Etot', 'EK', 'EA', 'Eglin', 'Ealin'],
-               colors=['k', 'r', 'b', 'g', 'y']):
+               coef_compensate=0, keys=['Etot', 'EK', 'Eglin', 'Ealin'],
+               colors=['k', 'r', 'g', 'y']):
 
         super(SpectraSW1LNormalMode, self).plot2d(tmin, tmax, delta_t, coef_compensate, keys, colors)
 
-    def _plot2d_lin_spectra(self, f, ax1, imin_plot, imax_plot, kh, coef_norm):
+    def _plot2d_lin_spectra(self, f, ax1, imin_plot, imax_plot, kh, coef_norm, keys):
         machine_zero = 1e-15
         if self.sim.info.solver.short_name.startswith('SW1L'):
             if 'spectrum2D_Edlin' in f.keys():
@@ -415,9 +424,11 @@ class SpectraSW1LNormalMode(SpectraSW1L):
             else:
                 dset_spectrumEalin = f['spectrum2D_Ealin']
 
-            Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
-            ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{AGEO}$')
+            if 'Ealin' in keys:
+                Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
+                ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{AGEO}$')
 
-            dset_spectrumEglin = f['spectrum2D_Eglin']
-            Eglin = dset_spectrumEglin[imin_plot:imax_plot + 1].mean(0) + machine_zero
-            ax1.plot(kh, Eglin * coef_norm, 'g', linewidth=1, label='$E_{GEO}$')
+            if 'Eglin' in keys:
+                dset_spectrumEglin = f['spectrum2D_Eglin']
+                Eglin = dset_spectrumEglin[imin_plot:imax_plot + 1].mean(0) + machine_zero
+                ax1.plot(kh, Eglin * coef_norm, 'g', linewidth=1, label='$E_{GEO}$')
