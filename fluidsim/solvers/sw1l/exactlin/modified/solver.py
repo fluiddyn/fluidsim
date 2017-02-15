@@ -21,6 +21,8 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
     def _init_root(self):
         super(InfoSolverSW1LExactLinModified, self)._init_root()
 
+        print('Warning: This solver is modified for test purposes')
+
         sw1l = 'fluidsim.solvers.sw1l'
 
         self.module_name = sw1l + '.exactlin.modified.solver'
@@ -31,6 +33,9 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
 
         classes.State.module_name = sw1l + '.exactlin.state'
         classes.State.class_name = 'StateSW1LExactLin'
+
+        classes.Output.module_name = sw1l + '.exactlin.modified.output'
+        classes.Output.class_name = 'OutputSW1LExactlinModified'
 
 
 class Simul(SimulSW1LExactLin):
@@ -48,43 +53,87 @@ class Simul(SimulSW1LExactLin):
         else:
             state_phys = self.state.return_statephys_from_statefft(state_fft)
 
+        rot = state_phys.get_var('rot')
+
+        ux_fft = self.state.compute('ux_fft')
+        uy_fft = self.state.compute('uy_fft')
+
+        dxux_fft, dyux_fft = oper.gradfft_from_fft(ux_fft)
+        dxux = ifft2(dxux_fft)
+        dyux = ifft2(dyux_fft)
+        dxuy_fft, dyuy_fft = oper.gradfft_from_fft(uy_fft)
+        dxuy = ifft2(dxuy_fft)
+        dyuy = ifft2(dyuy_fft)
+
+        # compute the nonlinear terms for ux, uy and eta
         ux = state_phys.get_var('ux')
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
-        rot = state_phys.get_var('rot')
 
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
+        # option = 'unmodified-non-conservative'
+        # option = 'unmodified-conservative'
+        # option = 'toy-model-non-conservative'
+        option = 'toy-model-conservative'
+        if option == 'unmodified-non-conservative':
+            Nx = -ux * dxux - uy * dyux
+            Ny = -ux * dxuy - uy * dyuy
+            Nx_fft = fft2(Nx)
+            Ny_fft = fft2(Ny)
+        elif option == 'unmodified-conservative':
+            N1x = +rot * uy
+            N1y = -rot * ux
+            gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
+                fft2(ux ** 2 + uy ** 2) / 2)
 
-        # compute Fx_fft and Fy_fft
-        rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
-        ux_rot = ifft2(ux_rot_fft)
-        uy_rot = ifft2(uy_rot_fft)
+            Nx_fft = fft2(N1x) - gradu2_x_fft
+            Ny_fft = fft2(N1y) - gradu2_y_fft
+        elif option == 'toy-model-non-conservative':
+            q_fft = state_fft.get_var('q_fft')
+            eta_fft = self.state.compute('eta_fft')
+            rot_fft = q_fft + self.params.f * eta_fft
+            # rot_fft = fft2(rot)
+            ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
+            ux_rot = ifft2(ux_rot_fft)
+            uy_rot = ifft2(uy_rot_fft)
 
-        # compute the nonlinear terms for ux, uy and eta
-        N1x = +rot * uy
-        N1y = -rot * ux
-        gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
-            fft2(ux_rot * ux + uy_rot * uy) / 2)
+            Nx = -ux_rot * dxux - uy_rot * dyux
+            Ny = -ux_rot * dxuy - uy_rot * dyuy
+            Nx_fft = fft2(Nx)
+            Ny_fft = fft2(Ny)
+        elif option == 'toy-model-conservative':
+            q_fft = state_fft.get_var('q_fft')
+            eta_fft = self.state.compute('eta_fft')
+            rot_fft = q_fft + self.params.f * eta_fft
+            # rot_fft = fft2(rot)
+            ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
+            ux_rot = ifft2(ux_rot_fft)
+            uy_rot = ifft2(uy_rot_fft)
 
-        Nx_fft = fft2(N1x) - gradu2_x_fft
-        Ny_fft = fft2(N1y) - gradu2_y_fft
+            N1x_fft = fft2(ux_rot * ux)
+            N2x_fft = fft2(uy_rot * ux)
+            N1y_fft = fft2(ux_rot * uy)
+            N2y_fft = fft2(uy_rot * uy)
 
-        jx_fft = fft2(eta * ux)
-        jy_fft = fft2(eta * uy)
-        Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
+            Nx_fft = -oper.divfft_from_vecfft(N1x_fft, N2x_fft)
+            Ny_fft = -oper.divfft_from_vecfft(N1y_fft, N2y_fft)
 
-        # self.verify_tendencies(state_fft, state_phys,
-        #                        Nx_fft, Ny_fft, Neta_fft)
+        if option.startswith('unmodified'):
+            Neta_fft = -oper.divfft_from_vecfft(fft2(ux * eta), fft2(uy * eta))
+        elif option.startswith('toy-model'):
+            # div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
+            # dxeta_fft, dyeta_fft = oper.gradfft_from_fft(eta_fft)
+            # dxeta = ifft2(dxeta_fft)
+            # dyeta = ifft2(dyeta_fft)
+            # Neta_fft = -fft2(ux_rot * dxeta + uy_rot * dyeta)
+            jx_fft = fft2(ux_rot * eta)
+            jy_fft = fft2(uy_rot * eta)
+            Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
+
+        # self.verify_tendencies(state_fft, state_phys, Nx_fft, Ny_fft, Neta_fft)
 
         # compute the nonlinear terms for q, ap and am
         (Nq_fft, Np_fft, Nm_fft
-         ) = self.oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
-
-        # Nq_fft = self.oper.constant_arrayK(value=0)
-        # Np_fft = self.oper.constant_arrayK(value=0)
-        # Nm_fft = self.oper.constant_arrayK(value=0)
+         ) = oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
 
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
@@ -99,6 +148,24 @@ class Simul(SimulSW1LExactLin):
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
+
+    def verify_tendencies(self, state_fft, state_phys,
+                          Nx_fft, Ny_fft, Neta_fft):
+        """For verifying conservation of quadratic energy."""
+
+        oper = self.oper
+        ux_fft = self.state.compute('ux_fft')
+        uy_fft = self.state.compute('uy_fft')
+        eta_fft = self.state.compute('eta_fft')
+
+        oper.dealiasing(Nx_fft, Ny_fft, Neta_fft)
+        T_ux = (ux_fft.conj() * Nx_fft).real
+        T_uy = (uy_fft.conj() * Ny_fft).real
+        T_eta = (eta_fft.conj() * Neta_fft).real * self.params.c2
+        T_tot = T_ux + T_uy + T_eta
+        print('sum(T_tot) = {0:9.4e} ; sum(abs(T_tot)) = {1:9.4e}'.format(
+            self.oper.sum_wavenumbers(T_tot),
+            self.oper.sum_wavenumbers(abs(T_tot))))
 
 
 if __name__ == "__main__":
