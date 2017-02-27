@@ -28,3 +28,7 @@ class Operators0D(object):
         """Produce a string describing the operator."""
 
         return '0d simulation\n'
+
+    def gather_Xspace(self, a):
+        """Gather an array (mpi), in this case, just return the array."""
+        return a

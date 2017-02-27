@@ -20,18 +20,7 @@ from runpy import run_path
 
 import numpy as np
 
-try:
-    from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc
-except ImportError:
-    # for bitbucket pipelines with tox
-    if 'egg_info' in sys.argv:
-        MPI4PY, FFTW3, FFTW3MPI = (False,) * 3
-        dict_ldd, dict_lib, dict_inc = ({'mpi': ['']},) * 3
-    else:
-        from glob import glob
-        path_dir = os.path.dirname(os.path.abspath(__file__))
-        ls = glob(path_dir + '/*')
-        raise ImportError(str(ls))
+from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc
 
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
