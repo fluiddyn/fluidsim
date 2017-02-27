@@ -28,7 +28,10 @@ except ImportError:
         MPI4PY, FFTW3, FFTW3MPI = (False,) * 3
         dict_ldd, dict_lib, dict_inc = ({'mpi': ['']},) * 3
     else:
-        raise
+        from glob import glob
+        path_dir = os.path.dirname(os.path.abspath(__file__))
+        ls = glob(path_dir + '/*')
+        raise ImportError(str(ls))
 
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
