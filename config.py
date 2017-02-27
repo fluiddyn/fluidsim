@@ -1,4 +1,4 @@
-"""Script to configure before Fluidsim setup.
+"""Module to configure before Fluidsim setup.
 Custom paths for MPI and FFTW libraries and shared objects are managed here.
 
 Provides
