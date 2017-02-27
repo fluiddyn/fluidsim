@@ -28,6 +28,7 @@ build/*
 dist/*.tar.gz
 dist*
 .tox/*
+.coverage/*
 
 *.so
 

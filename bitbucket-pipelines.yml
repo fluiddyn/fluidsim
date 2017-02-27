@@ -12,4 +12,6 @@ pipelines:
           - pip install -U tox
           - pip --version
           - tox --version
+          - gcc --version
+          - mpirun --version
           - tox
