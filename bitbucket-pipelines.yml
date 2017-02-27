@@ -13,4 +13,5 @@ pipelines:
           - pip --version
           - tox --version
           - pip install cython
+          - pip3 install cython
           - tox
