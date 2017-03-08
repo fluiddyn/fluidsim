@@ -88,10 +88,7 @@ class Simul(SimulSW1LExactLin):
             Nx_fft = fft2(N1x) - gradu2_x_fft
             Ny_fft = fft2(N1y) - gradu2_y_fft
         elif option == 'toy-model-non-conservative':
-            q_fft = state_fft.get_var('q_fft')
-            eta_fft = self.state.compute('eta_fft')
-            rot_fft = q_fft + self.params.f * eta_fft
-            # rot_fft = fft2(rot)
+            rot_fft = self.state.compute('rot_fft')
             ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
             ux_rot = ifft2(ux_rot_fft)
             uy_rot = ifft2(uy_rot_fft)
@@ -101,10 +98,7 @@ class Simul(SimulSW1LExactLin):
             Nx_fft = fft2(Nx)
             Ny_fft = fft2(Ny)
         elif option == 'toy-model-conservative':
-            q_fft = state_fft.get_var('q_fft')
-            eta_fft = self.state.compute('eta_fft')
-            rot_fft = q_fft + self.params.f * eta_fft
-            # rot_fft = fft2(rot)
+            rot_fft = self.state.compute('rot_fft')
             ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
             ux_rot = ifft2(ux_rot_fft)
             uy_rot = ifft2(uy_rot_fft)
@@ -121,6 +115,7 @@ class Simul(SimulSW1LExactLin):
             Neta_fft = -oper.divfft_from_vecfft(fft2(ux * eta), fft2(uy * eta))
         elif option.startswith('toy-model'):
             # div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
+            # eta_fft = self.state.compute('eta_fft')
             # dxeta_fft, dyeta_fft = oper.gradfft_from_fft(eta_fft)
             # dxeta = ifft2(dxeta_fft)
             # dyeta = ifft2(dyeta_fft)

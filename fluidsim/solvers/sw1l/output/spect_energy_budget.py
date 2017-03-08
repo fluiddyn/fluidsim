@@ -1191,8 +1191,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ax11.hold(True)
         ax11.set_xscale('log')
         ax11.axhline()
-        
-        norm = self.sim.params.forcing.forcing_rate 
+
+        P = self.sim.params.forcing.forcing_rate
+        norm = 1 if P == 0 else P
         if delta_t != 0.:
             for it in xrange(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.

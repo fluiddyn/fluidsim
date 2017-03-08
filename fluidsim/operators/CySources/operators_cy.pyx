@@ -896,6 +896,16 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         )
         return d_fft
 
+    def qapamfft_from_etafft(self, eta_fft, params=None):
+        """eta (fft) ---> q, ap, am (fft)"""
+        if params is None:
+            params = self.params
+
+        q_fft = -params.f * eta_fft
+        ap_fft = 0.5 * self.Kappa_over_ic * self.K2 * eta_fft
+        am_fft = ap_fft.copy()
+        return q_fft, ap_fft, am_fft
+
     def qapamfft_from_uxuyetafft_old(self, ux_fft, uy_fft, eta_fft,
                                      params=None):
         """ux, uy, eta (fft) ---> q, ap, am (fft)"""
