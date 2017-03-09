@@ -124,7 +124,7 @@ print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.0.10a7', 'future >= 0.16']
+install_requires = ['fluiddyn >= 0.1.0', 'future >= 0.16']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
