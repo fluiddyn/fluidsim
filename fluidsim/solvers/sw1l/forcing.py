@@ -3,7 +3,6 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
-
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -59,12 +58,14 @@ class Waves(RamdomSimplePseudoSpectral):
 
     def __init__(self, sim):
         super(Waves, self).__init__(sim)
-        if self.key_forced /= 'a_fft':
-            raise ValueError("Expected 'a_fft' for params.forcing.key_forced.")
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
+        if 'a_fft' not in self.key_forced:
+            raise ValueError(
+                "Expected 'a_fft' in params.forcing.key_forced = {}".format(self.key_forced))
+
         oper_c = self.oper_coarse
         params = self.params
         deltat = self.sim.time_stepping.deltat
@@ -145,10 +146,13 @@ class WavesVortices(Waves):
         super(WavesVortices, self).__init__(sim)
         params = sim.params.forcing
         self.forcing_rate = 0.5 * params.forcing_rate
-        if not isinstance(self.key_forced, tuple):
-            raise ValueError('Expected a tuple for params.forcing.key_forced.')
 
     def compute(self):
+        if not isinstance(self.key_forced, (tuple, list, np.ndarray)):
+            raise ValueError(
+                'Expected array-like value for params.forcing.key_forced' +
+                ' = {} : {}'.format(self.key_forced, type(self.key_forced)))
+
         v_fft = dict()
         Fv_fft = dict()
 
