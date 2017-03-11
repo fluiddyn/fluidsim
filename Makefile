@@ -23,7 +23,7 @@ tests_mpi:
 tests_coverage:
 	mkdir -p .coverage
 	coverage run -m unittest discover
-	mpirun -np 2 coverage run -m unittest discover
+	# mpirun -np 2 coverage run -m unittest discover
 	coverage report
 	coverage html
 	coverage xml
