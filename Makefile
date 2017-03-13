@@ -23,8 +23,9 @@ tests_mpi:
 tests_coverage:
 	mkdir -p .coverage
 	coverage erase
-	coverage run -a -m unittest discover
-	mpirun -np 2 coverage run -a -m unittest discover
+	coverage run -p -m unittest discover
+	mpirun -np 2 coverage run -p -m unittest discover
+	coverage combine
 	coverage report
 	coverage html
 	coverage xml
