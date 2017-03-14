@@ -51,6 +51,9 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
         sim = Simul(params)
         sim.time_stepping.start()
 
+    if HAS_TO_SAVE:
+        sim.output.spatial_means.load()
+
     return sim
 
 
@@ -76,13 +79,17 @@ class TestSW1L(TestSolver):
 
 class TestSW1LOnlyWaves(TestSW1L):
     solver = 'SW1L.onlywaves'
-    options = {'HAS_TO_SAVE': False, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'FORCING': False}
 
 
 class TestSW1LExactLin(TestSW1L):
     solver = 'SW1L.exactlin'
-    options = {'HAS_TO_SAVE': False, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'FORCING': False}
 
+
+class TestSW1LModify(TestSW1L):
+    solver = 'SW1L.modified'
+    options = {'HAS_TO_SAVE': True, 'FORCING': False}
 
 if __name__ == '__main__':
     unittest.main()

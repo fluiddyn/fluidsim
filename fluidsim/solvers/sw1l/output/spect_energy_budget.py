@@ -222,11 +222,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 # np.sum(abs(transfer2D_Edrr_rrd)))
 # )
 
-
-
-        transferErdr_fft = (  inner_prod(urx_fft, Fxdr_fft)
-                            + inner_prod(ury_fft, Fydr_fft)
-                            )
+        transferErdr_fft = (inner_prod(urx_fft, Fxdr_fft) +
+                            inner_prod(ury_fft, Fydr_fft))
         transfer2D_Erdr = self.spectrum2D_from_fft(transferErdr_fft)
         del(transferErdr_fft)
 #         print(
@@ -436,7 +433,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         dset_transfer2D_CPE = f['transfer2D_CPE']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot = 1
         delta_t = delta_i_plot*delta_t_save
@@ -679,9 +676,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             u_infl_lin_x = udx_fft + uax_fft
             u_infl_lin_y = udy_fft + uay_fft
 
-
-
-
         # compute flux of Charney PE
         Fq_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, q_fft)
 
@@ -697,7 +691,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 # np.sum(transfer2D_CPE),
 # np.sum(abs(transfer2D_CPE)))
 # )
-
 
         Feta_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, eta_fft)
         transferEA_fft = self.c2*inner_prod(eta_fft, Feta_fft)
@@ -748,7 +741,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 # np.sum(abs(transfer2D_Edrd)))
 # )
 
-
         Clfromqq = (  inner_prod(udx_fft, Fxrr_fft)
                     + inner_prod(udy_fft, Fyrr_fft)
                       )
@@ -759,6 +751,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         Clfromqq = self.spectrum2D_from_fft(Clfromqq)
         transfer2D_Edrr_rrd = self.spectrum2D_from_fft(transferEdrr_rrd_fft)
         del(transferEdrr_rrd_fft)
+
 #         print(
 # ('sum(transfer2D_Edrr_rrd) = {0:9.4e} ; '
 # 'sum(abs(transfer2D_Edrr_rrd)) = {1:9.4e}'
@@ -779,17 +772,13 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             'transfer2D_CPE': transfer2D_CPE}
         self._checksum_stdout(
             EK_GGG=transfer2D_Errr,
-            EK_GGA=transfer2D_Edrr_rrd+ transfer2D_Erdr,
-            EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
-            EK_AAA=transfer2D_Eddd,
+            # EK_GGA=transfer2D_Edrr_rrd + transfer2D_Erdr,
+            # EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
+            # EK_AAA=transfer2D_Eddd,
             EA=transfer2D_EA,
             Etot=transfer2D_EK + transfer2D_EA,
             debug=False)
         return dico_results
-
-
-
-
 
     def _online_plot(self, dico_results):
 
@@ -806,7 +795,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         self.axe_a.plot(khE+khE[1], PiEA, 'b')
         self.axe_a.plot(khE+khE[1], CCA, 'y')
         self.axe_b.plot(khE+khE[1], PiCPE, 'g')
-
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
@@ -829,7 +817,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -851,9 +839,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 tmin_plot, tmax_plot, delta_t,
 imin_plot, imax_plot, delta_i_plot)
         print(to_print)
-
-
-
 
         x_left_axe = 0.12
         z_bottom_axe = 0.36
@@ -907,9 +892,6 @@ imin_plot, imax_plot, delta_i_plot)
         ax1.plot(khE, Pi_rrr, 'm--', linewidth=1)
         ax1.plot(khE, Pi_drd, 'm-.', linewidth=1)
 
-
-
-
         convA2D = dset_convA2D[imin_plot:imax_plot].mean(0)
         CCA = cumsum_inv(convA2D)*self.oper.deltakh
 
@@ -962,10 +944,10 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             self.sigma = np.sqrt(f**2 + (ck)**2)
         sigma = self.sigma
         
-        self.qmat = old_div(np.array(
-            [[ -1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-             [ +1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-             [ 2. ** 0.5 * f * KK, c*K2, c*K2]]), ( 2. ** 0.5 * sigma * oper.KK_not0))
+        self.qmat = np.array(
+            [[-1j*2.**0.5*ck*KY, +1j*f*KY + KX*sigma, +1j*f*KY - KX*sigma],
+             [+1j*2.**0.5*ck*KX, -1j*f*KX + KY*sigma, -1j*f*KX - KY*sigma],
+             [2.**0.5*f*KK, c*K2, c*K2]]) / (2.**0.5*sigma*oper.KK_not0)
         if mpi.rank == 0 or oper.SEQUENTIAL:
             self.qmat[:,:,0,0] = 0.
     
@@ -992,7 +974,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                     normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
             if 'eta' in key:
-                normal_mode_vec_fft = old_div(normal_mode_vec_fft, self.c2 ** 0.5)
+                normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
 
         return key_modes, normal_mode_vec_fft
 
@@ -1142,9 +1124,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         """Compute spectral energy budget once for current time."""
 
         oper = self.oper
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state('ux_fft')
+        uy_fft = self.sim.state('uy_fft')
+        eta_fft = self.sim.state('eta_fft')
         c2 = self.params.c2
         
         ux = self.sim.state.state_phys.get_var('ux')
@@ -1352,7 +1334,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t/delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save

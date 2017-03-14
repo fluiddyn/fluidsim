@@ -63,8 +63,10 @@ class CorrelationsFreq(SpecificOutput):
         self.key_quantity = pcorrel_freq.key_quantity
         self.iomegas1 = np.array(pcorrel_freq.iomegas1)
         self.it_last_run = pcorrel_freq.it_start
-        n0 = len(list(range(0, output.sim.oper.shapeX_loc[0], self.coef_decimate)))
-        n1 = len(list(range(0, output.sim.oper.shapeX_loc[1], self.coef_decimate)))
+        n0 = len(list(range(0, output.sim.oper.shapeX_loc[0],
+                            self.coef_decimate)))
+        n1 = len(list(range(0, output.sim.oper.shapeX_loc[1],
+                            self.coef_decimate)))
         nb_xs = n0 * n1
 
         self.spatio_temp = np.empty([nb_xs, self.nb_times_compute])
@@ -110,7 +112,9 @@ class CorrelationsFreq(SpecificOutput):
 
             omega1_max = self.iomegas1.max() * delta_omega
             if self.omega_Nyquist <= omega1_max:
-                raise ValueError('omega_1 max is larger than omega_Nyquist.')
+                raise ValueError(
+                    'omega_1_max={} is larger than omega_Nyquist={}.'.format(
+                        omega1_max, self.omega_Nyquist))
 
             self.omega_dealiasing = (
                 self.params.oper.coef_dealiasing * np.pi *
@@ -142,6 +146,7 @@ class CorrelationsFreq(SpecificOutput):
         """Save the values at one time. """
         itsim = self.sim.time_stepping.t/self.sim.time_stepping.deltat
         periods_save = self.sim.params.output.periods_save.correl_freq
+
         if (itsim-self.it_last_run >= periods_save-1):
             self.it_last_run = itsim
             field = self.sim.state.state_phys.get_var(self.key_quantity)
@@ -182,16 +187,15 @@ class CorrelationsFreq(SpecificOutput):
                             self._online_plot(correlations)
                     #     if (tsim-self.t_last_show >= self.period_show):
                     #         self.t_last_show = tsim
-                    #         self.axe.get_figure().canvas.draw()
+                    #         self.ax.get_figure().canvas.draw()
 
     def init_online_plot(self):
-        fig, axe = self.output.figure_axe(numfig=4100000)
-        self.axe = axe
-        axe.set_xlabel('Omega')
-        axe.set_ylabel('Correlations')
-        axe.set_title('Correlation, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.params.oper.nx))
-        axe.hold(True)
+        fig, ax = self.output.figure_axe(numfig=4100000)
+        self.ax = ax
+        ax.set_xlabel('Omega')
+        ax.set_ylabel('Correlations')
+        ax.set_title('Correlation, solver '+self.output.name_solver +
+                     ', nh = {0:5d}'.format(self.params.oper.nx))
 
     def _online_plot(self, dico_results):
         nb_omegas = self.nb_omegas
@@ -213,21 +217,20 @@ class CorrelationsFreq(SpecificOutput):
                         corr2[io2, io2]))
                     corr[i1, io4, io3] = corr[i1, io3, io4]
 
-        fig, axe = self.output.figure_axe(numfig=4100000)
-        self.axe = axe
-        axe.set_xlabel('Omega')
-        axe.set_xlabel('Correlation')
-        axe.plot(corr2[:, :], 'k.')
-        # axe.set_title('Correlation, solver '+self.output.name_solver +
+        fig, ax = self.output.figure_axe(numfig=4100000)
+        self.ax = ax
+        ax.set_xlabel('Omega')
+        ax.set_xlabel('Correlation')
+        ax.plot(corr2[:, :], 'k.')
+        # ax.set_title('Correlation, solver '+self.output.name_solver +
         #               ', nh = {0:5d}'.format(self.nx))
-        axe.hold(True)
+
         fig, ax = self.output.figure_axe(numfig=2333)
         self.ax = ax
         ax.set_xlabel('Omega')
         ax.set_ylabel('Omega')
         pc = ax.pcolormesh(fx, fy, abs(corr[4, :, :]))
         fig.colorbar(pc)
-        ax.hold(True)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
         self.ax1 = ax1
@@ -470,7 +473,7 @@ class CorrelationsFreq(SpecificOutput):
                      str(nb_means))
         plt.xlabel('Omega')
         plt.ylabel('abs(corr2)')
-        #ax.loglog(self.omegas, abs(corr2_diag))
+        # ax.loglog(self.omegas, abs(corr2_diag))
         ax.plot(self.omegas, np.log10(abs(corr2_diag)))
 
     def plot_corr4(self, it=-1):
@@ -545,7 +548,7 @@ class CorrelationsFreq(SpecificOutput):
         ax1.set_xlabel('nb_means')
         # ax1.set_ylabel('convergence')
         ax1.set_title('Trispectra Convergence')
-        ax1.hold(True)
+
         for i1, io1 in enumerate(self.iomegas1):
             f_conv[:, i1] = f_conv[:, i1]/f_conv[-1, i1]
             ax1.plot(means, f_conv[:, i1], linewidth=1)

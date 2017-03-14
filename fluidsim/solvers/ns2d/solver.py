@@ -196,10 +196,10 @@ if __name__ == "__main__":
     params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 0.5
-    params.output.periods_save.increments = 0.5
+    # params.output.periods_save.spect_energy_budg = 0.5
+    # params.output.periods_save.increments = 0.5
 
-    params.output.periods_plot.phys_fields = 2.0
+    # params.output.periods_plot.phys_fields = 2.0
 
     params.output.ONLINE_PLOT_OK = True
 

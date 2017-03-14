@@ -294,16 +294,16 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    nh = 96
+    nh = 32
     Lh = 1.
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
-    params.oper.coef_dealiasing = old_div(2.,3)
+    params.oper.coef_dealiasing = 2. / 3
 
-    delta_x = old_div(Lh,nh)
-    params.nu_8 = 2e1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = Lh / nh
+    params.nu_8 = 2e1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
     kmax = np.sqrt(2)*np.pi/delta_x
     deltat = 2*np.pi/kmax**2/2
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     params.output.correl_freq.nb_times_compute = nb_times_compute
     params.output.correl_freq.coef_decimate = 1
     params.output.correl_freq.iomegas1 = np.linspace(
-        1, old_div(nb_times_compute,2)-1, 6).astype(int)
+        1, nb_times_compute/2-1, 6).astype(int)
 
     sim = Simul(params)
 

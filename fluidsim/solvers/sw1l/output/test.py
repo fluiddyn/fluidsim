@@ -138,7 +138,9 @@ class TestSpectEnergyBudg(unittest.TestCase):
         Tq_tot_exact = sim.oper.spectrum2D_from_fft(
             TKq_exact + TKdiv_exact + TPq_exact)
 
-        self.assertTrue(np.allclose(Tq_tot_exact, Tq_tot_modes))
+        # print(max(abs(Tq_tot_exact - Tq_tot_modes)))
+        # needs atol
+        self.assertTrue(np.allclose(Tq_tot_exact, Tq_tot_modes, atol=1e-5))
 
     def test_triad_conservation_laws(self):
         r"""

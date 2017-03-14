@@ -252,12 +252,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         self.print_stdout.complete_init_with_state()
 
-        dico_classes = self.sim.info.solver.classes.Output.import_classes()
+        dict_classes = self.sim.info.solver.classes.Output.import_classes()
 
         # The class PrintStdOut has already been instantiated.
-        dico_classes.pop('PrintStdOut')
+        dict_classes.pop('PrintStdOut')
 
-        for Class in list(dico_classes.values()):
+        # to get always the initialization in the same order (important with mpi)
+        keys = list(dict_classes.keys())
+        keys.sort()
+        classes = [dict_classes[key] for key in keys]
+
+        for Class in classes:
             if mpi.rank == 0:
                 print(Class, Class._tag)
             self.__dict__[Class._tag] = Class(self)
