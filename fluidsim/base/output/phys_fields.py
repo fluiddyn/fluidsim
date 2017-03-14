@@ -263,6 +263,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
                 pc = ax.pcolormesh(x_seq, y_seq, field,
                                    cmap=cmap)
                 fig.colorbar(pc)
+        else:
+            ax = None
 
         if QUIVER:
             vmax = self._quiver_plot(ax, vecx, vecy)

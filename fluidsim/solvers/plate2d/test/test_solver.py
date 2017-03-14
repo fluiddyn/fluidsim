@@ -1,5 +1,5 @@
 from __future__ import division
-from past.utils import old_div
+
 import unittest
 import shutil
 
@@ -25,7 +25,7 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = old_div(2.,3)
+        params.oper.coef_dealiasing = 2./3
         params.nu_8 = 2.
 
         params.time_stepping.USE_CFL = False
@@ -43,7 +43,7 @@ class TestSolverPLATE2D(unittest.TestCase):
 
         ratio = sim.test_tendencies_nonlin()
 
-        self.assertGreater(1e-15, ratio)
+        self.assertGreater(2e-15, ratio)
 
         if mpi.rank == 0:
             shutil.rmtree(sim.output.path_run)
