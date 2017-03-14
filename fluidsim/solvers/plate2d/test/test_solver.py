@@ -12,14 +12,13 @@ from fluidsim.solvers.plate2d.solver import Simul
 
 
 class TestSolverPLATE2D(unittest.TestCase):
-    # @unittest.expectedFailure
     def test_tendency(self):
 
         params = Simul.create_default_params()
 
         params.short_name_type_run = 'test'
 
-        nh = 64
+        nh = 32
         params.oper.nx = nh
         params.oper.ny = nh
         Lh = 6.
@@ -55,7 +54,7 @@ class TestSolverPLATE2D(unittest.TestCase):
 
         params.short_name_type_run = 'test'
 
-        nh = 32
+        nh = 24
         Lh = 1.
         params.oper.nx = nh
         params.oper.ny = nh
@@ -64,26 +63,26 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.oper.coef_dealiasing = 2. / 3
 
         delta_x = Lh / nh
-        params.nu_8 = 2e1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
         kmax = np.sqrt(2)*np.pi/delta_x
-        deltat = 2*np.pi/kmax**2/4
+        deltat = 2*np.pi/kmax**2/2
 
         params.time_stepping.USE_CFL = False
         params.time_stepping.deltat0 = deltat
         params.time_stepping.USE_T_END = False
-        params.time_stepping.t_end = 1.
-        params.time_stepping.it_end = 20
+        params.time_stepping.it_end = 16
 
         params.init_fields.type = 'noise'
         params.init_fields.noise.velo_max = 1e-6
 
         params.FORCING = True
         params.forcing.type = 'random'
-        params.forcing.forcing_rate = 1e12
+        params.forcing.forcing_rate = 1e4
         params.forcing.nkmax_forcing = 5
         params.forcing.nkmin_forcing = 2
         params.forcing.random.time_correlation = 100*deltat
+
+        params.nu_8 = 2e1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
         params.output.periods_print.print_stdout = 0.05
 
@@ -96,9 +95,8 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.output.period_refresh_plots = 0.05
 
         params.output.correl_freq.HAS_TO_PLOT_SAVED = False
-        nb_times_compute = 8
-        params.output.correl_freq.it_start = 2
-        params.output.correl_freq.nb_times_compute = nb_times_compute
+        params.output.correl_freq.it_start = 0
+        params.output.correl_freq.nb_times_compute = 8
         params.output.correl_freq.coef_decimate = 1
         params.output.correl_freq.iomegas1 = [1, 2]
 

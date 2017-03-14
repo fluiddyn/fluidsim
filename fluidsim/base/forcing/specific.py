@@ -178,7 +178,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                     if mpi.rank == rank_iKx:
                         # copy
                         for iKyc in range(nKyc):
-                            if iKyc <= old_div(nKyc,2):
+                            if iKyc <= nKyc/2.:
                                 iKy = iKyc
                             else:
                                 kynodim = iKyc - nKyc
@@ -190,7 +190,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
             for ikey in range(nb_keys):
                 for iKyc in range(nKyc):
-                    if iKyc <= old_div(nKyc,2):
+                    if iKyc <= nKyc/2.:
                         iKy = iKyc
                     else:
                         kynodim = iKyc - nKyc
