@@ -5,7 +5,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv, inner_prod)
 
-from .normal_mode import NormalModeDecomposition
+from .normal_mode import NormalModeDecomposition, NormalModeDecompositionModified
 
 
 class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
@@ -934,9 +934,33 @@ imin_plot, imax_plot, delta_i_plot)
 
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
     
-    def __init__(self, output):
-        self.norm_mode = NormalModeDecomposition(output)
+    def __init__(self, output, norm_mode=None):
+        if norm_mode is None:
+            self.norm_mode = NormalModeDecomposition(output)
+        else:
+            self.norm_mode = norm_mode
+
         super(SpectralEnergyBudgetSW1L, self).__init__(output)
+
+    def _transfer_keys_coeff(self):
+        c2 = self.params.c2
+        keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
+                'uvu':['ux_fft','uy','py_ux'],
+                'vuv':['uy_fft','ux','px_uy'],
+                'vvv':['uy_fft','uy','py_uy'],
+                'eeu':['px_eta_fft','eta','ux'], # Quad. A.P.E. transfer terms
+                'eev':['py_eta_fft','eta','uy'],
+                'uud':['ux_fft','ux','div'], # NonQuad. K.E. - Quad K.E. transfer terms
+                'vvd':['uy_fft','uy','div'],
+                'dee':['div_fft','eta','eta']}# NonQuad. K.E. - Quad A.P.E. transfer terms
+
+        coeff = {'uuu':-1., 'uvu':-1.,
+                 'vuv':-1., 'vvv':-1.,
+                 'eeu':0.5 * c2, 'eev':0.5 * c2,
+                 'uud':-0.5, 'vvd':-0.5,
+                 'dee':0.25 * c2}
+
+        return keys, coeff
 
     def compute(self):
         """Compute spectral energy budget once for current time."""
@@ -960,25 +984,12 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         
         self.norm_mode.compute()
         
-        Tq_keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
-                   'uvu':['ux_fft','uy','py_ux'],
-                   'vuv':['uy_fft','ux','px_uy'],
-                   'vvv':['uy_fft','uy','py_uy'],
-                   'eeu':['px_eta_fft','eta','ux'], # Quad. A.P.E. transfer terms
-                   'eev':['py_eta_fft','eta','uy'],
-                   'uud':['ux_fft','ux','div'], # NonQuad. K.E. - Quad K.E. transfer terms
-                   'vvd':['uy_fft','uy','div'],
-                   'dee':['div_fft','eta','eta']}# NonQuad. K.E. - Quad A.P.E. transfer terms
-                   
+        Tq_keys, Tq_coeff = self._transfer_keys_coeff()
+
         Tq_terms = dict.fromkeys(Tq_keys)
         for key in Tq_keys.keys():
             triad_key_modes, Tq_terms[key] = self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
         
-        Tq_coeff = {'uuu':-1., 'uvu':-1.,
-                    'vuv':-1., 'vvv':-1.,
-                    'eeu':0.5 * c2, 'eev':0.5 * c2,
-                    'uud':-0.5, 'vvd':-0.5,
-                    'dee':0.25 * c2}
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
@@ -1290,3 +1301,26 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         f.close()
 
+
+class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
+
+    def __init__(self, output):
+        norm_mode = NormalModeDecompositionModified(output)
+        super(SpectralEnergyBudgetSW1LModified, self).__init__(output, norm_mode)
+
+    def _transfer_keys_coeff(self):
+        c2 = self.params.c2
+        keys = {'uuu': ['ux_fft', 'urx', 'px_ux'],  # Quad. K.E. transfer terms
+                'uvu': ['ux_fft', 'ury', 'py_ux'],
+                'vuv': ['uy_fft', 'urx', 'px_uy'],
+                'vvv': ['uy_fft', 'ury', 'py_uy'],
+                'eeu': ['px_eta_fft', 'eta', 'urx'],  # Quad. A.P.E. transfer terms
+                'eev': ['py_eta_fft', 'eta', 'ury'],
+                }
+
+        coeff = {'uuu': -1., 'uvu': -1.,
+                 'vuv': -1., 'vvv': -1.,
+                 'eeu': 0.5 * c2, 'eev': 0.5 * c2,
+                 }
+
+        return keys, coeff

@@ -33,7 +33,7 @@ def module_solver_from_key(key=None):
     key = key.lower()
     keys = [
         'ns2d', 'sw1l', 'burgers', 'plate2d',
-        'sw1l.exactlin', 'sw1l.onlywaves', 'sw1l.modified', 'sw1l.etaj']
+        'sw1l.exactlin', 'sw1l.onlywaves', 'sw1l.modified', 'sw1l.exactlin.modified']
 
     if key in keys:
         part_path = key

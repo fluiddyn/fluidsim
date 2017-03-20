@@ -14,9 +14,14 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: NormalModeDecompositionModified
+   :members:
+   :private-members:
+
 """
 
 import numpy as np
+
 from fluiddyn.util import mpi
 
 
@@ -146,10 +151,10 @@ class NormalModeDecomposition(NormalModeBase):
             r = row_index[key]
             normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
             if 'px' in key:
-                for r in xrange(3):
+                for r in range(3):
                     normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
             elif 'py' in key:
-                for r in xrange(3):
+                for r in range(3):
                     normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
 
             if 'eta' in key:
@@ -161,15 +166,15 @@ class NormalModeDecomposition(NormalModeBase):
         ifft2 = self.oper.ifft2
         key_modes, normal_mode_vec_fft = self.normalmodefft_from_keyfft(key + '_fft')
         normal_mode_vec_phys = np.array([ifft2(normal_mode_vec_fft[i])
-                                        for i in xrange(3)])
+                                        for i in range(3)])
 
         return key_modes, normal_mode_vec_phys
 
     def _group_matrix_using_dict(self, key_matrix, value_matrix, grouping):
         value_dict = dict.fromkeys(grouping, 0.)
         n1, n2 = key_matrix.shape
-        for i in xrange(n1):
-            for j in xrange(n2):
+        for i in range(n1):
+            for j in range(n2):
                 k1 = key_matrix[i, j]
                 k3 = None
                 for k2 in grouping.keys():
@@ -231,11 +236,11 @@ class NormalModeDecomposition(NormalModeBase):
         del normal_modes
         fft2 = self.oper.fft2
         dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i, j])
-                                 for j in xrange(3)]
-                                 for i in xrange(3)])
+                                 for j in range(3)]
+                                 for i in range(3)])
 
-        for i in xrange(3):
-            for j in xrange(3):
+        for i in range(3):
+            for j in range(3):
                 self.oper.dealiasing(dyad_mat_fft[i, j])
 
         del dyad_mat_phys
@@ -277,3 +282,44 @@ class NormalModeDecomposition(NormalModeBase):
                               normal_modes_23)
 
         return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
+
+
+class NormalModeDecompositionModified(NormalModeDecomposition):
+    def compute(self):
+        if self.it_bvec_fft_computed != self.sim.time_stepping.it:
+            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
+                q_fft = self.sim.state('q_fft')
+                ap_fft = self.sim.state('ap_fft')
+                am_fft = self.sim.state('am_fft')
+                a_fft = ap_fft + am_fft
+                bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
+            else:
+                rot_fft = self.sim.state.compute('rot_fft')
+                uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
+                eta_fft = self.sim.state('eta_fft')
+                bvecrot_fft = self.bvecfft_from_qapamfft(uxr_fft, uyr_fft, eta_fft)
+
+            self.bvecrot_fft = bvecrot_fft
+
+        return super(NormalModeDecompositionModified, self).compute()
+
+    def normalmodefft_from_keyfft(self, key):
+        """Returns the normal mode decomposition for the state_fft key specified."""
+        if key.endswith('urx_fft') or key.endswith('ury_fft'):
+            row_index = {'urx_fft': 0, 'ury_fft': 1,
+                         'px_urx_fft': 0, 'px_ury_fft': 1,
+                         'py_urx_fft': 0, 'py_ury_fft': 1}
+
+            key_modes = np.array([['G', 'A', 'a']])
+            r = row_index[key]
+            normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvecrot_fft)
+            if 'px' in key:
+                for r in range(3):
+                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
+            elif 'py' in key:
+                for r in range(3):
+                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
+
+            return key_modes, normal_mode_vec_fft
+        else:
+            return super(NormalModeDecompositionModified, self).normalmodefft_from_keyfft(key)
