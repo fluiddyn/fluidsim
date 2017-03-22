@@ -14,6 +14,7 @@ Provides:
 from time import time
 from signal import signal
 from math import pi
+from numbers import Number
 
 from fluiddyn.util import mpi
 
@@ -54,7 +55,9 @@ class TimeSteppingBase(object):
 
         params_ts = self.params.time_stepping
 
-        if params_ts.USE_CFL:
+        if isinstance(params_ts.USE_CFL, Number):
+            self.CFL = float(params_ts.USE_CFL)
+        elif params_ts.USE_CFL:
             if params_ts.type_time_scheme == 'RK2':
                 self.CFL = 0.4
             elif params_ts.type_time_scheme == 'RK4':
