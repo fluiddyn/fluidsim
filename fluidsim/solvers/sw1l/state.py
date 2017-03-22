@@ -142,13 +142,16 @@ class StateSW1L(StatePseudoSpectral):
         state_phys.set_var('rot', ifft2(rot_fft))
 
         return state_phys
-    
+
     def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'q_fft' in kwargs.keys():
                 self.init_from_qfft(kwargs['q_fft'])
             elif 'a_fft' in kwargs.keys():
                 self.init_from_afft(kwargs['a_fft'])
+        elif len(kwargs) == 2:
+            if 'q_fft' in kwargs.keys() and 'a_fft' in kwargs.keys():
+                self.init_from_qafft(**kwargs)
         else:
             super(StateSW1L, self).init_statefft_from(**kwargs)
 
@@ -186,6 +189,14 @@ class StateSW1L(StatePseudoSpectral):
     def init_from_afft(self, a_fft):
         ux_fft, uy_fft, eta_fft = self.oper.uxuyetafft_from_afft(a_fft)
         self.init_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+
+    def init_from_qafft(self, q_fft, a_fft):
+        rot_fft = self.oper.rotfft_from_qfft(q_fft)
+        uxq_fft, uyq_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        etaq_fft = self.oper.etafft_from_qfft(q_fft)
+
+        uxa_fft, uya_fft, etaa_fft = self.oper.uxuyetafft_from_afft(a_fft)
+        self.init_from_uxuyetafft(uxq_fft + uxa_fft, uyq_fft + uxa_fft, etaq_fft + etaa_fft)
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
         oper = self.oper
