@@ -21,8 +21,6 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
     def _init_root(self):
         super(InfoSolverSW1LExactLinModified, self)._init_root()
 
-        print('Warning: This solver is modified for test purposes')
-
         sw1l = 'fluidsim.solvers.sw1l'
 
         self.module_name = sw1l + '.exactlin.modified.solver'
@@ -53,76 +51,27 @@ class Simul(SimulSW1LExactLin):
         else:
             state_phys = self.state.return_statephys_from_statefft(state_fft)
 
-        rot = state_phys.get_var('rot')
-
-        ux_fft = self.state.compute('ux_fft')
-        uy_fft = self.state.compute('uy_fft')
-
-        dxux_fft, dyux_fft = oper.gradfft_from_fft(ux_fft)
-        dxux = ifft2(dxux_fft)
-        dyux = ifft2(dyux_fft)
-        dxuy_fft, dyuy_fft = oper.gradfft_from_fft(uy_fft)
-        dxuy = ifft2(dxuy_fft)
-        dyuy = ifft2(dyuy_fft)
-
         # compute the nonlinear terms for ux, uy and eta
         ux = state_phys.get_var('ux')
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
 
-        # option = 'unmodified-non-conservative'
-        # option = 'unmodified-conservative'
-        # option = 'toy-model-non-conservative'
-        option = 'toy-model-conservative'
-        if option == 'unmodified-non-conservative':
-            Nx = -ux * dxux - uy * dyux
-            Ny = -ux * dxuy - uy * dyuy
-            Nx_fft = fft2(Nx)
-            Ny_fft = fft2(Ny)
-        elif option == 'unmodified-conservative':
-            N1x = +rot * uy
-            N1y = -rot * ux
-            gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
-                fft2(ux ** 2 + uy ** 2) / 2)
+        rot_fft = self.state.compute('rot_fft')
+        ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
+        ux_rot = ifft2(ux_rot_fft)
+        uy_rot = ifft2(uy_rot_fft)
 
-            Nx_fft = fft2(N1x) - gradu2_x_fft
-            Ny_fft = fft2(N1y) - gradu2_y_fft
-        elif option == 'toy-model-non-conservative':
-            rot_fft = self.state.compute('rot_fft')
-            ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
-            ux_rot = ifft2(ux_rot_fft)
-            uy_rot = ifft2(uy_rot_fft)
+        N1x_fft = fft2(ux_rot * ux)
+        N2x_fft = fft2(uy_rot * ux)
+        N1y_fft = fft2(ux_rot * uy)
+        N2y_fft = fft2(uy_rot * uy)
 
-            Nx = -ux_rot * dxux - uy_rot * dyux
-            Ny = -ux_rot * dxuy - uy_rot * dyuy
-            Nx_fft = fft2(Nx)
-            Ny_fft = fft2(Ny)
-        elif option == 'toy-model-conservative':
-            rot_fft = self.state.compute('rot_fft')
-            ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
-            ux_rot = ifft2(ux_rot_fft)
-            uy_rot = ifft2(uy_rot_fft)
+        Nx_fft = -oper.divfft_from_vecfft(N1x_fft, N2x_fft)
+        Ny_fft = -oper.divfft_from_vecfft(N1y_fft, N2y_fft)
 
-            N1x_fft = fft2(ux_rot * ux)
-            N2x_fft = fft2(uy_rot * ux)
-            N1y_fft = fft2(ux_rot * uy)
-            N2y_fft = fft2(uy_rot * uy)
-
-            Nx_fft = -oper.divfft_from_vecfft(N1x_fft, N2x_fft)
-            Ny_fft = -oper.divfft_from_vecfft(N1y_fft, N2y_fft)
-
-        if option.startswith('unmodified'):
-            Neta_fft = -oper.divfft_from_vecfft(fft2(ux * eta), fft2(uy * eta))
-        elif option.startswith('toy-model'):
-            # div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
-            # eta_fft = self.state.compute('eta_fft')
-            # dxeta_fft, dyeta_fft = oper.gradfft_from_fft(eta_fft)
-            # dxeta = ifft2(dxeta_fft)
-            # dyeta = ifft2(dyeta_fft)
-            # Neta_fft = -fft2(ux_rot * dxeta + uy_rot * dyeta)
-            jx_fft = fft2(ux_rot * eta)
-            jy_fft = fft2(uy_rot * eta)
-            Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
+        jx_fft = fft2(ux_rot * eta)
+        jy_fft = fft2(uy_rot * eta)
+        Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
 
         # self.verify_tendencies(state_fft, state_phys, Nx_fft, Ny_fft, Neta_fft)
 
