@@ -15,8 +15,9 @@ Provides:
 
 """
 
-
 from builtins import object
+
+
 class ForcingBase(object):
 
     @staticmethod
@@ -41,12 +42,38 @@ class ForcingBase(object):
             'forcing',
             attribs={'type': '',
                      'available_types': [],
-                     'forcing_rate': 1,
-                     'key_forced': 'rot_fft'})
+                     'forcing_rate': 1.,
+                     'key_forced': None})
+
+        params.forcing._set_doc("""
+
+type : str
+
+  Type of forcing.
+
+available_types : list
+
+  Available types that can be used.
+
+forcing_rate : float
+
+  Forcing (energy? depends on the solver) injection rate.
+
+key_forced: {None} or str
+
+  The key of the variable to be forced. If it is None, a default key depending
+  of the type of forcing is used.
+
+""")
+
         dict_classes = info_solver.classes.Forcing.import_classes()
-        for Class in list(dict_classes.values()):
-            if hasattr(Class, '_complete_params_with_default'):
-                Class._complete_params_with_default(params)
+        # iter on the dict in a determined order
+        keys = list(dict_classes.keys())
+        keys.sort()
+        for key in keys:
+            cls = dict_classes[key]
+            if hasattr(cls, '_complete_params_with_default'):
+                cls._complete_params_with_default(params)
 
     def __init__(self, sim):
         self.type_forcing = sim.params.forcing.type
@@ -88,4 +115,3 @@ class ForcingBasePseudoSpectral(ForcingBase):
 
     def get_forcing(self):
         return self._forcing.forcing_fft
-    

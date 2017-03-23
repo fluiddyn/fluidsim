@@ -33,7 +33,6 @@ Provides:
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-from past.utils import old_div
 from builtins import object
 import numpy as np
 
@@ -60,6 +59,7 @@ class SpecificForcing(object):
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
     tag = 'pseudo_spectral'
+    _key_forced_default = 'rot_fft'
 
     def __init__(self, sim):
 
@@ -77,7 +77,11 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
         self.kmin_forcing = self.oper.deltakx*params.forcing.nkmin_forcing
         self.forcing_rate = params.forcing.forcing_rate
-        self.key_forced = params.forcing.key_forced
+
+        if params.forcing.key_forced is not None:
+            self.key_forced = params.forcing.key_forced
+        else:
+            self.key_forced = self._key_forced_default
 
         i = 0
         while 2*params.forcing.nkmax_forcing > 2**i:
@@ -204,9 +208,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         a_fft = self.sim.state.state_fft.get_var(self.key_forced)
 
         PZ_forcing1 = abs(Fa_fft)**2/2*self.sim.time_stepping.deltat
-        PZ_forcing2 = old_div(np.real(
+        PZ_forcing2 = np.real(
             Fa_fft.conj()*a_fft +
-            Fa_fft*a_fft.conj()),2.)
+            Fa_fft*a_fft.conj()) / 2.
         PZ_forcing1 = self.oper.sum_wavenumbers(PZ_forcing1)
         PZ_forcing2 = self.oper.sum_wavenumbers(PZ_forcing2)
         if mpi.rank == 0:
@@ -229,7 +233,7 @@ class Proportional(SpecificForcingPseudoSpectral):
         fvc_fft = vc_fft.copy()
         fvc_fft[self.COND_NO_F] = 0.
 
-        Z_fft = old_div(abs(fvc_fft)**2,2)
+        Z_fft = abs(fvc_fft)**2 / 2.
 
         # # possibly "kill" the largest mode
         # nb_kill = 0
@@ -247,7 +251,7 @@ class Proportional(SpecificForcingPseudoSpectral):
 
         Z = self.oper_coarse.sum_wavenumbers(Z_fft)
         deltat = self.sim.time_stepping.deltat
-        alpha = old_div((np.sqrt(1 + deltat*self.forcing_rate/Z) - 1),deltat)
+        alpha = (np.sqrt(1 + deltat*self.forcing_rate/Z) - 1.) / deltat
         fvc_fft = alpha*fvc_fft
 
         return fvc_fft
@@ -319,9 +323,9 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         oper_c.project_fft_on_realX(fvc_fft)
         # fvc_fft[self.COND_NO_F] = 0.
 
-        P_forcing2 = old_div(np.real(
+        P_forcing2 = np.real(
             fvc_fft.conj()*vc_fft +
-            fvc_fft*vc_fft.conj()),2.)
+            fvc_fft*vc_fft.conj()) / 2.
         P_forcing2 = oper_c.sum_wavenumbers(P_forcing2)
 
         # we choice randomly a "particular" wavenumber
@@ -346,13 +350,13 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             vc_fft[ik0_part, ik1_part].conj())
 
         if ikx_part == 0:
-            P_forcing2_part = old_div(P_forcing2_part,2)
+            P_forcing2_part = P_forcing2_part / 2.
         P_forcing2_other = P_forcing2 - P_forcing2_part
         fvc_fft[ik0_part, ik1_part] = \
-            old_div(-P_forcing2_other,vc_fft[ik0_part, ik1_part].real)
+            -P_forcing2_other / vc_fft[ik0_part, ik1_part].real
 
         if ikx_part != 0:
-            fvc_fft[ik0_part, ik1_part] = old_div(fvc_fft[ik0_part, ik1_part],2)
+            fvc_fft[ik0_part, ik1_part] = fvc_fft[ik0_part, ik1_part] / 2.
 
         oper_c.project_fft_on_realX(fvc_fft)
 
@@ -360,7 +364,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         PZ_nonorm = (oper_c.sum_wavenumbers(abs(fvc_fft)**2) *
                      self.sim.time_stepping.deltat/2
                      )
-        fvc_fft = fvc_fft*np.sqrt(old_div(self.forcing_rate,PZ_nonorm))
+        fvc_fft = fvc_fft*np.sqrt(float(self.forcing_rate) / PZ_nonorm)
 
         return fvc_fft
 
@@ -390,7 +394,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         c = -self.forcing_rate
 
         Delta = b**2 - 4*a*c
-        alpha = old_div((np.sqrt(Delta) - b),(2*a))
+        alpha = (np.sqrt(Delta) - b) / (2*a)
 
         fvc_fft = alpha*fvc_fft
 
@@ -399,7 +403,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def coef_normalization_from_abc(self, a, b, c):
         """."""
         Delta = b**2 - 4*a*c
-        alpha = old_div((np.sqrt(Delta) - b),(2*a))
+        alpha = (np.sqrt(Delta) - b) / (2*a)
         return alpha
 
 
@@ -441,7 +445,7 @@ class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
 
             time_correlation = self.params.forcing[self.tag].time_correlation
             if time_correlation == 'based_on_forcing_rate':
-                self.period_change_F0F1 = self.forcing_rate**(old_div(-1.,3))
+                self.period_change_F0F1 = self.forcing_rate**(-1./3)
             else:
                 self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
@@ -460,7 +464,7 @@ class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
     def forcingc_from_F0F1(self):
         tsim = self.sim.time_stepping.t
         deltat = self.period_change_F0F1
-        omega = old_div(np.pi,deltat)
+        omega = np.pi/deltat
 
         deltaF = self.F1 - self.F0
 

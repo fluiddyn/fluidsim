@@ -26,19 +26,11 @@ class ForcingPlate2D(ForcingBasePseudoSpectral):
 
 
 class TCRandomPSW(TCRandomPS):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(TCRandomPSW, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'w_fft'
+    _key_forced_default = 'w_fft'
 
 
 class Proportional(ProportionalBase):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(Proportional, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'w_fft'
+    _key_forced_default = 'w_fft'
 
 
 class TimeCorrelatedRandomPseudoSpectral(TCRandomPSW):

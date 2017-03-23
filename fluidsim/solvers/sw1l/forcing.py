@@ -7,17 +7,14 @@ from __future__ import division
 from __future__ import print_function
 
 from builtins import object
-from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
 
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
-from fluidsim.base.forcing.specific import \
-    Proportional as ProportionalBase
-
 from fluidsim.base.forcing.specific import (
+    Proportional as ProportionalBase,
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS,
     RamdomSimplePseudoSpectral)
 
@@ -34,30 +31,16 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
 
 
 class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(TimeCorrelatedRandomPseudoSpectral,
-              cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'q_fft'
+    _key_forced_default = 'q_fft'
 
 
 class Proportional(ProportionalBase):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(Proportional, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'q_fft'
+    _key_forced_default = 'q_fft'
 
 
 class Waves(RamdomSimplePseudoSpectral):
     tag = 'waves'
-
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(Waves, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'a_fft'
+    _key_forced_default = 'a_fft'
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
@@ -87,7 +70,7 @@ class Waves(RamdomSimplePseudoSpectral):
         c = -self.forcing_rate
 
         Delta = b**2 - 4*a*c
-        alpha = old_div((np.sqrt(Delta) - b),(2*a))
+        alpha = (np.sqrt(Delta) - b) / (2*a)
 
         Fa_fft[:] = alpha*Fa_fft
 
