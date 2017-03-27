@@ -1,4 +1,10 @@
 
+0.0.4
+-----
+
+- 0D models (predaprey, lorenz)
+- continuous integration, unittests with bitbucket-pipelines
+
 0.0.3a0
 -------
 
