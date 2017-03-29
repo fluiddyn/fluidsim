@@ -278,7 +278,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = np.round(kx_approx/self.deltakh)
+        ikx_seq = int(np.round(kx_approx/self.deltakh))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
@@ -298,7 +298,7 @@ cdef class GridPseudoSpectral2D(Operators):
 
             ikx_loc = ikx_seq - self.iKxloc_start_rank[rank_k]
 
-        iky_loc = np.round(ky_approx/self.deltaky)
+        iky_loc = int(np.round(ky_approx/self.deltaky))
         if iky_loc < 0:
             iky_loc = self.nky_loc+iky_loc
 
@@ -1490,6 +1490,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         else:
                             kynodim = iKyc - nKyc
                             iKy = kynodim + nKy
+
                         f1D_temp[iKyc] = f_fft[iKxloc, iKy]
 
                 if rank_iKx != 0:
