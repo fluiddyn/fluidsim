@@ -1,8 +1,6 @@
 """Base module for the output (:mod:`fluidsim.base.output.base`)
 ======================================================================
 
-.. currentmodule:: fluidsim.base.output.base
-
 Provides:
 
 .. autoclass:: OutputBase
@@ -171,11 +169,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.print_stdout = PrintStdOut(self)
 
         if not self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs:
+            for k in self.params.periods_plot._get_key_attribs():
                 self.params.periods_plot[k] = 0.
 
         if not self.has_to_save:
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.
 
     def create_list_for_name_run(self):
@@ -277,19 +275,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def one_time_step(self):
 
-        for k in self.params.periods_print._attribs:
+        for k in self.params.periods_print._get_key_attribs():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
                 self.__dict__[k].online_print()
 
         if self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs:
+            for k in self.params.periods_plot._get_key_attribs():
                 period = self.params.periods_plot.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_plot()
 
         if self.has_to_save:
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_save()
@@ -322,7 +320,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0 and self.has_to_save:
             self.print_stdout.close()
 
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     if hasattr(self.__dict__[k], 'close_file'):
