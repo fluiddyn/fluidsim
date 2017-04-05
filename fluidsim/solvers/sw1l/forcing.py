@@ -25,7 +25,7 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
         This is a static method!
         """
         classes = [Proportional, TimeCorrelatedRandomPseudoSpectral, Waves,
-                   WavesVortices]
+                   WavesVortices, Potential]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
@@ -55,9 +55,6 @@ class Waves(RamdomSimplePseudoSpectral):
         super(Waves, cls)._complete_params_with_default(params)
         params.forcing.key_forced = 'a_fft'
         params.forcing[cls.tag]._set_attrib('coef_normalize_strategy', 'first')
-
-    def __init__(self, sim):
-        super(Waves, self).__init__(sim)
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
@@ -212,6 +209,39 @@ class WavesVortices(Waves):
                   'a_fft': Fa_fft}
 
         return Fv_fft
+
+
+class Potential(Waves):
+    tag = 'potential'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the *params* container."""
+        super(Potential, cls)._complete_params_with_default(params)
+        params.forcing.key_forced = 'eta_fft'
+
+    def normalize_forcingc_2nd_degree_eq(self, Feta_fft, eta_fft):
+        """Normalize the forcing Fa_fft such as the forcing rate of
+        quadratic energy is equal to self.forcing_rate."""
+        if 'eta_fft' not in self.key_forced:
+            raise ValueError(
+                "Expected 'eta_fft' in params.forcing.key_forced = {}".format(self.key_forced))
+
+        oper_c = self.oper_coarse
+        params = self.params
+        deltat = self.sim.time_stepping.deltat
+
+        a = params.c2 * deltat / 2 * oper_c.sum_wavenumbers(abs(Feta_fft) ** 2)
+
+        b = params.c2 * oper_c.sum_wavenumbers(
+            (eta_fft.conj() * Feta_fft).real)
+
+        c = -self.forcing_rate
+
+        alpha = self.coef_normalization_from_abc(a, b, c)
+        Feta_fft[:] = alpha * Feta_fft
+
+        return Feta_fft
 
 
 class OldStuff(object):
