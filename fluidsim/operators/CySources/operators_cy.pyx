@@ -902,7 +902,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             params = self.params
 
         q_fft = -params.f * eta_fft
-        ap_fft = 0.5 * self.Kappa_over_ic * self.K2 * eta_fft
+        ap_fft = 0.5 * self.K2 * eta_fft
         am_fft = ap_fft.copy()
         return q_fft, ap_fft, am_fft
 
