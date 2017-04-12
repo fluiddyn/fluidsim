@@ -647,10 +647,17 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         """compute spectral energy budget the one time."""
         oper = self.sim.oper
 
-        state_fft = self.sim.state.state_fft
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
-        eta_fft = state_fft.get_var('eta_fft')
+        try:
+            state_fft = self.sim.state.state_fft
+            ux_fft = state_fft.get_var('ux_fft')
+            uy_fft = state_fft.get_var('uy_fft')
+            eta_fft = state_fft.get_var('eta_fft')
+        except ValueError:
+            state = self.sim.state
+            ux_fft = state.compute('ux_fft')
+            uy_fft = state.compute('uy_fft')
+            eta_fft = state.compute('eta_fft')
+
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)
