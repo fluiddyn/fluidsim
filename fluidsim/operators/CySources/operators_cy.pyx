@@ -625,15 +625,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         uy_fft = -1j * self.KY_over_K2*div_fft
         return ux_fft, uy_fft
 
-
-
-
     # def gradfft_from_fft_old(self, f_fft):
     #     """Return the gradient of f_fft in spectral space."""
     #     px_f_fft = 1j * self.KX*f_fft
     #     py_f_fft = 1j * self.KY*f_fft
     #     return px_f_fft, py_f_fft
-
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

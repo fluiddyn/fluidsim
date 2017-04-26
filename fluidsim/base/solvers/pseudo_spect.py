@@ -1,5 +1,5 @@
 """Base solver (:mod:`fluidsim.base.solvers.pseudo_spect`)
-================================================================
+==========================================================
 
 This module provides two base classes that can be used to define
 pseudo-spectral solvers.
@@ -19,7 +19,6 @@ pseudo-spectral solvers.
 """
 from __future__ import division
 
-from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -147,7 +146,7 @@ class SimulBasePseudoSpectral(SimulBase):
             f_d += self.params.nu_8*self.oper.K8
 
         if self.params.nu_m4 != 0.:
-            f_d_hypo = old_div(self.params.nu_m4,self.oper.K2_not0**2)
+            f_d_hypo = self.params.nu_m4 / self.oper.K2_not0**2
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
@@ -193,8 +192,8 @@ if __name__ == "__main__":
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = old_div(params.oper.Lx,params.oper.nx)
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = params.oper.Lx / params.oper.nx
+    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
     params.time_stepping.t_end = 5.
 
