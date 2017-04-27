@@ -5,13 +5,16 @@
 
 import fluidsim
 
+from fluidsim.solvers.ns2d import solver_fluidfft as solver
+# from fluidsim.solvers.ns2d import solver
+
 # key_solver = 'NS2D'
 # key_solver = 'SW1l'
 # key_solver = 'SW1l.onlywaves'
 # key_solver = 'SW1l.exactlin'
-key_solver = 'plate2d'
+# key_solver = 'plate2d'
 
-solver = fluidsim.import_module_solver_from_key(key_solver)
+# solver = fluidsim.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'profile'
@@ -71,7 +74,6 @@ if __name__ == '__main__':
 
     cProfile.runctx("sim.time_stepping.start()",
                     globals(), locals(), "Profile.prof")
-
 
     if sim.oper.rank == 0:
         s = pstats.Stats("Profile.prof")

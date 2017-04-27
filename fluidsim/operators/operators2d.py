@@ -6,9 +6,9 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from fluidfft.fft2d.operator import OperatorsPseudoSpectral2D as _Operators
+from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from .functions2d_pythran import dealiasing_variable, dealiasing_setofvar
+from .functions2d_pythran import dealiasing_setofvar
 from ..base.setofvariables import SetOfVariables
 
 
@@ -49,8 +49,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 dealiasing_setofvar(thing, self.where_dealiased,
                                     self.nK0_loc, self.nK1_loc)
             elif isinstance(thing, np.ndarray):
-                dealiasing_variable(thing, self.where_dealiased,
-                                    self.nK0_loc, self.nK1_loc)
+                self.dealiasing_variable(thing)
 
     def dealiasing_setofvar(self, sov):
         dealiasing_setofvar(sov, self.where_dealiased,
