@@ -1,20 +1,24 @@
 
 from .solver import InfoSolverNS2D as _InfoSolverNS2D, Simul as _Simul
 
+
 class InfoSolverNS2D(_InfoSolverNS2D):
     def _init_root(self):
         super(InfoSolverNS2D, self)._init_root()
+
+        self.module_name += '_fluidfft'
+
         self.classes.Operators.module_name = 'fluidsim.operators.operators2d'
         self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
 
-        
+
 class Simul(_Simul):
     InfoSolver = InfoSolverNS2D
 
 
 if __name__ == "__main__":
     import numpy as np
-    
+
     import fluiddyn as fld
 
     params = Simul.create_default_params()
@@ -39,6 +43,7 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.25
     params.output.periods_save.phys_fields = 2.
+    params.output.periods_save.spectra = 1.
 
     sim = Simul(params)
 

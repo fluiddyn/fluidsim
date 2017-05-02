@@ -65,7 +65,7 @@ class SpectraNS2D(Spectra):
         # nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
         delta_t = delta_t_save*delta_i_plot
         if delta_i_plot == 0:
             delta_i_plot = 1
@@ -92,7 +92,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax1.set_ylabel('spectra')
         ax1.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
@@ -107,7 +106,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
               dset_spectrum1Dky[imin_plot:imax_plot+1]).mean(0)
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(old_div(-5,3))*coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k--', linewidth=1)
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
@@ -122,7 +121,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         dset_spectrum = f['spectrum2D_E']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t/delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot = 1
         delta_t = delta_i_plot*delta_t_save
@@ -138,11 +137,12 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
-        print('''plot 2D spectra
+        print(
+            '''plot 2D spectra
 tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
 imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
-tmin_plot, tmax_plot, delta_t,
-imin_plot, imax_plot, delta_i_plot))
+    tmin_plot, tmax_plot, delta_t,
+    imin_plot, imax_plot, delta_i_plot))
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
@@ -166,4 +166,4 @@ imin_plot, imax_plot, delta_i_plot))
         ax1.plot(kh, EK*coef_norm, 'k', linewidth=2)
 
         ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(old_div(-5.,3))*coef_norm, 'k-.', linewidth=1)
+        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)

@@ -1,11 +1,18 @@
 #!/usr/bin/env python
-#
-# run simul_profile.py
-# mpirun -np 8 python simul_profile.py
+"""
+python simul_profile.py
+mpirun -np 8 python simul_profile.py
 
+with gprof2dot and graphviz (command dot):
+
+gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
+
+"""
 import fluidsim
 
 old = 0
+
+import fluidsim
 
 if old:
     from fluidsim.solvers.ns2d import solver
