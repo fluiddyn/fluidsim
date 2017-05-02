@@ -1,15 +1,17 @@
 
-import sys
-from math import pi
-
 import numpy as np
 
 from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from .functions2d_pythran import dealiasing_setofvar
+from . import util2d_pythran
+from .util2d_pythran import dealiasing_setofvar
 from ..base.setofvariables import SetOfVariables
+
+if not hasattr(util2d_pythran, '__pythran__'):
+    raise ValueError('util2d_pythran has to be pythranized to be efficient! '
+                     'Install pythran and recompile.')
 
 
 class OperatorsPseudoSpectral2D(_Operators):
@@ -19,7 +21,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         """This static method is used to complete the *params* container.
         """
         if mpi.nb_proc > 1:
-            raise NotImplementedError
+            type_fft = 'fft2d.mpi_with_fftw1d'
         else:
             type_fft = 'fft2d.with_fftw2d'
 

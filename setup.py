@@ -1,6 +1,12 @@
 
 from __future__ import print_function
 
+import os
+import sys
+from runpy import run_path
+from datetime import datetime
+from distutils.sysconfig import get_config_var
+
 from setuptools import setup, find_packages
 
 try:
@@ -14,9 +20,13 @@ except ImportError:
     has_cython = False
     ext_source = 'c'
 
-import os
-import sys
-from runpy import run_path
+
+try:
+    from pythran.dist import PythranExtension
+    use_pythran = True
+except ImportError:
+    use_pythran = False
+
 
 import numpy as np
 
@@ -132,6 +142,41 @@ if not on_rtd:
     if FFTW3:
         install_requires += ['pyfftw >= 0.10.4']
 
+
+def modification_date(filename):
+    t = os.path.getmtime(filename)
+    return datetime.fromtimestamp(t)
+
+
+def make_pythran_extensions(modules):
+    develop = sys.argv[-1] == 'develop'
+    extensions = []
+    for mod in modules:
+        base_file = mod.replace('.', os.path.sep)
+        py_file = base_file + '.py'
+        # warning: does not work on Windows
+        suffix = get_config_var('EXT_SUFFIX') or '.so'
+        bin_file = base_file + suffix
+        if not develop or not os.path.exists(bin_file) or \
+           modification_date(bin_file) < modification_date(py_file):
+            pext = PythranExtension(mod, [py_file])
+            pext.include_dirs.append(np.get_include())
+            extensions.append(pext)
+    return extensions
+
+
+if not on_rtd and use_pythran:
+    ext_names = []
+    for root, dirs, files in os.walk('fluidsim'):
+        for name in files:
+            if name.endswith('_pythran.py'):
+                path = os.path.join(root, name)
+                ext_names.append(
+                    path.replace(os.path.sep, '.').split('.py')[0])
+
+    ext_modules += make_pythran_extensions(ext_names)
+
+
 setup(name='fluidsim',
       version=__version__,
       description=('Framework for studying fluid dynamics with simulations.'),
@@ -159,9 +204,10 @@ setup(name='fluidsim',
           'Programming Language :: Python',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.7',
-          # 'Programming Language :: Python :: 3',
-          # 'Programming Language :: Python :: 3.3',
-          # 'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Programming Language :: Cython',
           'Programming Language :: C',
       ],

@@ -20,6 +20,10 @@ from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
+from . import util_pythran
+
+compute_Frot = util_pythran.compute_Frot
+
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
     """Contain the information on the solver ns2d."""
@@ -139,10 +143,12 @@ class Simul(SimulBasePseudoSpectral):
         px_rot = ifft2(px_rot_fft)
         py_rot = ifft2(py_rot_fft)
 
-        if self.params.beta == 0:
-            Frot = -ux*px_rot - uy*py_rot
-        else:
-            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
+        Frot = compute_Frot(ux, uy, px_rot, py_rot, self.params.beta)
+
+        # if self.params.beta == 0:
+        #     Frot = -ux*px_rot - uy*py_rot
+        # else:
+        #     Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
 
         Frot_fft = fft2(Frot)
         oper.dealiasing(Frot_fft)
