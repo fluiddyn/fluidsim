@@ -32,7 +32,7 @@ class InitFieldsDipole(SpecificInitFields):
         rot2d = self.vorticity_1dipole2d()
         rot2d_fft = oper.fft2d(rot2d)
 
-        vx2d_fft, vy2d_fft = oper._oper2d.vecfft_from_rotfft(
+        vx2d_fft, vy2d_fft = oper.oper2d.vecfft_from_rotfft(
             rot2d_fft)
 
         vx_fft = oper.build_invariant_arrayK_from_2d_indices12X(vx2d_fft)
@@ -46,14 +46,14 @@ class InitFieldsDipole(SpecificInitFields):
         ys = old_div(oper.Ly,2)
         theta = old_div(np.pi,2.3)
         b = 2.5
-        omega = np.zeros(oper._oper2d.shapeX_loc)
+        omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
             return (2*np.exp(-(XX**2 + (YY-old_div(b,2))**2)) -
                     2*np.exp(-(XX**2 + (YY+old_div(b,2))**2)))
 
-        XX = oper._oper2d.XX
-        YY = oper._oper2d.YY
+        XX = oper.oper2d.XX
+        YY = oper.oper2d.YY
 
         for ip in range(-1, 2):
             for jp in range(-1, 2):
