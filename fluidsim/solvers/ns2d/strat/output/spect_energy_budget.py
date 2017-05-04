@@ -104,13 +104,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEKv_kx, dissEKv_ky = self.spectra1D_from_fft(dissEKv_fft)
         dissEA_kx, dissEA_ky = self.spectra1D_from_fft(dissEA_fft)
 
-        print ('sum(dissEKu_kx) = {0:9.4e}; sum(dissEKu_ky) = {1:9.4e}').format(
-            dissEKu_kx.sum(), dissEKu_ky.sum())
-        print ('sum(dissEKv_kx) = {0:9.4e}; sum(dissEKv_ky) = {1:9.4e}').format(
-            dissEKv_kx.sum(), dissEKv_ky.sum())
-        print ('sum(dissEA_kx) = {0:9.4e}; sum(dissEA_ky) = {1:9.4e}').format(
-            dissEA_kx.sum(), dissEA_ky.sum())
-
         # Transfer spectrum shell mean
         transferEKu_2d = self.spectrum2D_from_fft(transferEKu_fft)
         transferEKv_2d = self.spectrum2D_from_fft(transferEKv_fft)
@@ -125,8 +118,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         epsilon_kx = dissEKu_kx.sum() + dissEKv_kx.sum() + dissEA_kx.sum()
         epsilon_ky = dissEKu_ky.sum() + dissEKv_ky.sum() + dissEA_ky.sum()
 
-        print ('epsilon_kx = {0:9.4e}; epsilon_ky = {1:9.4e}').format(
-            epsilon_kx, epsilon_ky)
         # Variables saved in a dictionary
         dico_results = {
             'transferEK_kx': transferEK_kx,

@@ -33,7 +33,7 @@ class SpectraNS2DStrat(Spectra):
             energyK_uy_fft)
         # Parseval relation
         spectrum = spectrum1Dkx_EK_ux.sum()
-        print('spectrum = ', spectrum, 'Energy = ', energyK_ux)
+
         # Compute the potential energy spectra 1D two directions
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
 
@@ -48,15 +48,11 @@ class SpectraNS2DStrat(Spectra):
         # Check sum wavenumbers horizontal kinetic energy
         sum_EK_ux_kx = spectrum1Dkx_EK_ux.sum()
         sum_EK_ux_ky = spectrum1Dky_EK_ux.sum()
-        print('sum_EK_ux_kx = ', sum_EK_ux_kx)
-        print('sum_EK_ux_ky = ', sum_EK_ux_ky)
-
+        
         # Check sum wavenumbers vertical kinetic energy
         sum_EK_uy_kx = spectrum1Dkx_EK_uy.sum()
         sum_EK_uy_ky = spectrum1Dky_EK_uy.sum()
-        print('sum_EK_uy_kx = ', sum_EK_uy_kx)
-        print('sum_EK_uy_ky = ', sum_EK_uy_ky)
-
+        
         # compute the kinetic energy spectra 2D
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
         spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)

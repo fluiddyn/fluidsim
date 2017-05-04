@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     params.output.sub_directory = 'tests'
 
-    params.output.periods_print.print_stdout = 0.0002
+    params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 10.
     params.output.periods_save.spectra = 0.5
@@ -155,19 +155,19 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 4.
 
-    params.output.ONLINE_PLOT_OK = True
+    params.output.ONLINE_PLOT_OK = False
 
-    # params.output.spectra.HAS_TO_PLOT_SAVED = True
-    # params.output.spatial_means.HAS_TO_PLOT_SAVED = True
-    # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
-    # params.output.increments.HAS_TO_PLOT_SAVED = True
+    params.output.spectra.HAS_TO_PLOT_SAVED = True
+    params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+    params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
+    params.output.increments.HAS_TO_PLOT_SAVED = True
 
     params.output.phys_fields.field_to_plot = 'rot'
 
     sim = Simul(params)
 
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
 
     fld.show()
