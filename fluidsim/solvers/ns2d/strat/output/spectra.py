@@ -54,18 +54,22 @@ class SpectraNS2DStrat(Spectra):
         sum_EK_uy_ky = spectrum1Dky_EK_uy.sum()
         
         # compute the kinetic energy spectra 2D
+        spectrum2D_EK = self.spectrum2D_from_fft(energyK_fft)
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
         spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)
         spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
         dico_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
                           'spectrum2D_EK_uy': spectrum2D_EK_uy,
+                          'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EA': spectrum2D_EA}
         return dico_spectra1D, dico_spectra2D
 
     def _online_plot(self, dico_spectra1D, dico_spectra2D):
         if (self.nx == self.params.oper.ny and
                 self.params.oper.Lx == self.params.oper.Ly):
-            spectrum2D = dico_spectra2D['spectrum2D_E']
+            spectrum2D_EK = dico_spectra2D['spectrum2D_EK']
+            spectrum2D_EA = dico_spectra2D['spectrum2D_EA']
+            spectrum2D = spectrum2D_EK + spectrum2D_EA
             khE = self.oper.khE
             coef_norm = khE**(3.)
             self.axe.loglog(khE, spectrum2D*coef_norm, 'k')

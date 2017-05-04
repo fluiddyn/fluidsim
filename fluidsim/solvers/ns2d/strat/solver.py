@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 4.
 
-    params.output.ONLINE_PLOT_OK = False
+    params.output.ONLINE_PLOT_OK = True
 
     params.output.spectra.HAS_TO_PLOT_SAVED = True
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True

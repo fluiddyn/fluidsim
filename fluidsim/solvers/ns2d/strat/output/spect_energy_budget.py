@@ -6,6 +6,10 @@
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
+
+from past.utils import old_div
 
 import numpy as np
 import h5py
@@ -67,8 +71,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         # Energy budget terms. Nonlinear transfer terms, exchange kinetic and
         # potential energy B, dissipation terms.
-        transferZ_fft = np.real(rot_fft.conj()*Frot_fft +
-                                rot_fft*Frot_fft.conj())/2.
+        transferZ_fft = old_div(np.real(rot_fft.conj()*Frot_fft +
+                                rot_fft*Frot_fft.conj()), 2.)
         transferEKu_fft = np.real(ux_fft.conj()*Fx_fft)
         transferEKv_fft = np.real(uy_fft.conj()*Fy_fft)
         B_fft = np.real(uy_fft.conj()*b_fft)
@@ -78,10 +82,10 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEA_fft = (1/self.params.N**2) * np.real(
             freq_diss_EK * (b_fft.conj()*b_fft))
 
-        transferEK_fft = np.real(ux_fft.conj()*Fx_fft
+        transferEK_fft = old_div(np.real(ux_fft.conj()*Fx_fft
                                  + ux_fft*Fx_fft.conj()
                                  + uy_fft.conj()*Fy_fft
-                                 + uy_fft*Fy_fft.conj())/2.
+                                         + uy_fft*Fy_fft.conj()), 2.)
 
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
@@ -105,6 +109,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEA_kx, dissEA_ky = self.spectra1D_from_fft(dissEA_fft)
 
         # Transfer spectrum shell mean
+        transferEK_2d = self.spectrum2D_from_fft(transferEK_fft)
         transferEKu_2d = self.spectrum2D_from_fft(transferEKu_fft)
         transferEKv_2d = self.spectrum2D_from_fft(transferEKv_fft)
         transferEA_2d = self.spectrum2D_from_fft(transferEA_fft)
@@ -128,6 +133,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'transferEKv_ky': transferEKv_ky,
             'transferEKu_2d': transferEKu_2d,
             'transferEKv_2d': transferEKv_2d,
+            'transferEK_2d': transferEK_2d,
             'transferEA_kx': transferEA_kx,
             'transferEA_ky': transferEA_ky,
             'transferEA_2d': transferEA_2d,
@@ -155,8 +161,12 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         return dico_results
 
     def _online_plot(self, dico_results):
-        transfer2D_E = dico_results['transfer2D_E']
-        transfer2D_Z = dico_results['transfer2D_Z']
+        # transfer2D_E = dico_results['transfer2D_E']
+        # transfer2D_Z = dico_results['transfer2D_Z']
+        transfer2D_EA = dico_results['transferEA_2d']
+        transfer2D_EK = dico_results['transferEK_2d']
+        transfer2D_E = transfer2D_EA + transfer2D_EK
+        transfer2D_Z = dico_results['transferZ_2d']
         khE = self.oper.khE
         PiE = cumsum_inv(transfer2D_E)*self.oper.deltakh
         PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltakh
