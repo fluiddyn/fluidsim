@@ -1,5 +1,6 @@
-"""NS2D solver (:mod:`fluidsim.solvers.ns2d.solver`)
-====================================================
+
+"""NS2D solver (:mod:`fluidsim.solvers.ns2d.strat.solver`)
+==========================================================
 
 .. autoclass:: Simul
    :members:
