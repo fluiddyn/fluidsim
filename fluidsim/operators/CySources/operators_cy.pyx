@@ -280,17 +280,20 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakh))
+        ikx_seq = int(np.round(kx_approx/self.deltakx))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
-
+        
         if self.SEQUENTIAL:
             rank_k = 0
             ikx_loc = ikx_seq
         else:
             if self.SAME_SIZE_IN_ALL_PROC:
                 rank_k = int(np.floor(float(ikx_seq)/self.nkx_loc))
+                # print('where_is_wavenumber', ikx_seq, self.nkx_seq,
+                #       self.nkx_loc,
+                #       rank_k, np.floor(float(ikx_seq)/self.nkx_loc))
             else:
                 rank_k = 0
                 while (rank_k < self.nb_proc-1 and
@@ -407,6 +410,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if params is not None:
             self.params = params
 
+        if type_fft == 'sequential':
+            type_fft = 'fftwpy'
+            
         list_type_fft = ['fftwcy', 'fftwccy', 'fftwpy', 'fftpack']
         if type_fft not in list_type_fft:
             raise ValueError('type_fft should be in ' + repr(list_type_fft))

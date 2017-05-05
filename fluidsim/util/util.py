@@ -114,7 +114,6 @@ def load_sim_for_plot(path_dir=None):
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
     params = load_params_simul(path_dir=path_dir)
-
     params.path_run = path_dir
     params.init_fields.type = 'constant'
     params.ONLY_COARSE_OPER = True

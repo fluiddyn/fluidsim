@@ -39,7 +39,6 @@ import numpy as np
 from copy import deepcopy
 
 from fluiddyn.util import mpi
-from fluidsim.operators.operators import OperatorsPseudoSpectral2D
 from fluidsim.base.setofvariables import SetOfVariables
 
 
@@ -92,10 +91,10 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse = deepcopy(params)
             params_coarse.oper.nx = n
             params_coarse.oper.ny = n
-            params_coarse.oper.type_fft = 'FFTWPY'
+            params_coarse.oper.type_fft = 'sequential'
             params_coarse.oper.coef_dealiasing = 1.
 
-            self.oper_coarse = OperatorsPseudoSpectral2D(
+            self.oper_coarse = sim.oper.__class__(
                 SEQUENTIAL=True,
                 params=params_coarse,
                 goal_to_print='coarse resolution for forcing')

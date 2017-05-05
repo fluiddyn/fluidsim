@@ -180,10 +180,8 @@ class InitFieldsFromFile(SpecificInitFields):
             keys_state_phys_file = list(group_state_phys.keys())
         else:
             keys_state_phys_file = {}
-
         if mpi.nb_proc > 1:
             keys_state_phys_file = mpi.comm.bcast(keys_state_phys_file)
-
         state_phys = self.sim.state.state_phys
         keys_phys_needed = self.sim.info.solver.classes.State.keys_phys_needed
         for k in keys_phys_needed:
@@ -200,10 +198,8 @@ class InitFieldsFromFile(SpecificInitFields):
                 state_phys.set_var(k, field_loc)
             else:
                 state_phys.set_var(k, self.sim.oper.constant_arrayX(value=0.))
-
         if mpi.rank == 0:
             time = group_state_phys.attrs['time']
-
             try:
                 it = group_state_phys.attrs['it']
             except KeyError:

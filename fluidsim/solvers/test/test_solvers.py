@@ -62,14 +62,14 @@ class TestSolver(unittest.TestCase):
     options = {'HAS_TO_SAVE': False, 'FORCING': False}
 
     def setUp(self):
-        self.sim = run_mini_simul(self.solver, **self.options)
+        pass
 
     def tearDown(self):
         if mpi.rank == 0:
             rmtree(self.sim.output.path_run)
 
     def test(self):
-        pass
+        self.sim = run_mini_simul(self.solver, **self.options)
 
 
 class TestSW1L(TestSolver):
@@ -90,6 +90,7 @@ class TestSW1LExactLin(TestSW1L):
 class TestSW1LModify(TestSW1L):
     solver = 'SW1L.modified'
     options = {'HAS_TO_SAVE': True, 'FORCING': False}
+
 
 if __name__ == '__main__':
     unittest.main()
