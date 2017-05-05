@@ -135,8 +135,8 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                                                   self.shapeK_loc_coarse)
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time()
-            self.fstate_coarse.init_fft_from({self.key_forced: Fa_fft})
+            Fa_fft = self.forcingc_raw_each_time(a_fft)
+            self.fstate_coarse.init_fft_from(**{self.key_forced: Fa_fft})
 
         self.put_forcingc_in_forcing()
 
@@ -221,7 +221,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 class Proportional(SpecificForcingPseudoSpectral):
     tag = 'proportional'
 
-    def normalize_forcingc(self, vc_fft):
+    def forcingc_raw_each_time(self, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.
 
         varc : ndarray
@@ -280,7 +280,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             a_fft, self.shapeK_loc_coarse)
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time()
+            Fa_fft = self.forcingc_raw_each_time(a_fft)
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
             self.fstate_coarse.init_fft_from(**kwargs)
@@ -419,7 +419,7 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
         F_fft[self.COND_NO_F] = 0.
         return F_fft
 
-    def forcingc_raw_each_time(self):
+    def forcingc_raw_each_time(self, a_fft):
         return self.compute_forcingc_raw()
 
 
@@ -449,7 +449,7 @@ class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
                 self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
 
-    def forcingc_raw_each_time(self):
+    def forcingc_raw_each_time(self, a_fft):
         tsim = self.sim.time_stepping.t
         if tsim-self.t_last_change >= self.period_change_F0F1:
             self.t_last_change = tsim
