@@ -127,8 +127,8 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax1.set_xlabel('t')
         ax1.set_ylabel('deltat(t)')
 
-        ax1.set_title('info stdout, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
+        ax1.set_title('info stdout, solver '+ self.output.name_solver +
+                      ', nh = {0:5d}'.format(self.params.oper.nx))
         ax1.plot(t, deltat, 'k', linewidth=2)
 
         size_axe[1] = 0.08
