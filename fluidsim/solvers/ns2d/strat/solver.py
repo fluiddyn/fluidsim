@@ -135,7 +135,7 @@ if __name__ == "__main__":
     params.N = 1.  # Brunt Vaisala frequency
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 0.1
-    params.time_stepping.t_end = 20.  # Period of time of the simulation
+    params.time_stepping.t_end = 4.  # Period of time of the simulation
 
     params.init_fields.type = 'dipole'
 

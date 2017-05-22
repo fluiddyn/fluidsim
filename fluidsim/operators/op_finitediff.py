@@ -75,8 +75,8 @@ class OperatorFiniteDiff1DPeriodic(object):
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
-        if (old_div(self.Lx,np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx,np.pi))) + 'pi'
+        if (old_div(self.Lx, np.pi)).is_integer():
+            str_Lx = repr(int(old_div(self.Lx, np.pi))) + 'pi'
         else:
             str_Lx = '{:.3f}'.format(self.Lx).rstrip('0')
 
@@ -84,8 +84,8 @@ class OperatorFiniteDiff1DPeriodic(object):
 
     def produce_long_str_describing_oper(self):
         """Produce a string describing the operator."""
-        if (old_div(self.Lx,np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx,np.pi))) + 'pi'
+        if (old_div(self.Lx, np.pi)).is_integer():
+            str_Lx = repr(int(old_div(self.Lx, np.pi))) + 'pi'
         else:
             str_Lx = '{:.3f}'.format(self.Lx).rstrip('0')
         return (
