@@ -140,6 +140,7 @@ class TimeSteppingBase(object):
                    not self._has_to_stop):
                 self.one_time_step()
         total_time_simul = time() - time_begining_simul
+        self.time_simul = total_time_simul
         self.sim.output.end_of_simul(total_time_simul)
 
     def one_time_step(self):

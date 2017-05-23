@@ -134,8 +134,10 @@ if __name__ == "__main__":
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 1.  # Brunt Vaisala frequency
     params.time_stepping.USE_CFL = False
+    params.time_stepping.USE_T_END = False
     params.time_stepping.deltat0 = 0.1
-    params.time_stepping.t_end = 4.  # Period of time of the simulation
+    params.time_stepping.t_end = 4.# Period of time of the simulation
+    params.time_stepping.it_end = 20
 
     params.init_fields.type = 'dipole'
 
@@ -146,7 +148,7 @@ if __name__ == "__main__":
 
     params.output.sub_directory = 'tests'
 
-    params.output.periods_print.print_stdout = 0.25
+    params.output.periods_print.print_stdout = 0.001
 
     params.output.periods_save.phys_fields = 10.
     params.output.periods_save.spectra = 0.5
