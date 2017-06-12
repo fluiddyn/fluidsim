@@ -25,7 +25,7 @@ from fluiddyn.util import mpi
 from fluidsim import path_dir_results
 
 from fluidsim.base.params import (
-    load_info_solver, load_params_simul, Parameters)
+    load_info_solver, load_params_simul, Parameters, merge_params)
 
 
 def module_solver_from_key(key=None):
@@ -108,7 +108,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     return name_file
 
 
-def load_sim_for_plot(path_dir=None):
+def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     """Create a object Simul from a dir result."""
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
@@ -120,6 +120,9 @@ def load_sim_for_plot(path_dir=None):
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
     params.preprocess.enable = False
+    if merge_missing_params:
+        params = merge_params(params, solver.Simul.create_default_params())
+
     sim = solver.Simul(params)
     return sim
 
@@ -130,7 +133,8 @@ def _import_solver_from_path(path_dir):
     return solver
 
 
-def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True):
+def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True,
+                         merge_missing_params=False):
     """Create a simulation from a file."""
 
     path_dir = pathdir_from_namedir(name_dir)
@@ -151,6 +155,9 @@ def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True):
     params.init_fields.type = 'from_file'
     params.init_fields.from_file.path = path_file
     params.preprocess.enable = False
+    if merge_missing_params:
+        params = merge_params(params, solver.Simul.create_default_params())
+
     sim = solver.Simul(params)
     return sim
 
