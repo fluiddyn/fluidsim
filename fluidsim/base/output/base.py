@@ -1,8 +1,6 @@
 """Base module for the output (:mod:`fluidsim.base.output.base`)
 ======================================================================
 
-.. currentmodule:: fluidsim.base.output.base
-
 Provides:
 
 .. autoclass:: OutputBase
@@ -21,23 +19,22 @@ Provides:
 
 from __future__ import print_function
 
-import h5py
-import matplotlib.pyplot as plt
+from builtins import str
+from builtins import object
 import datetime
 import os
 import shutil
-import numpy as np
 import numbers
+
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
 
 import fluiddyn
 import fluidsim
-
-from fluiddyn.util import mpi
-
+from fluiddyn.util import mpi, run_from_ipython
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH
-
 from fluiddyn.util.util import time_as_str, print_memory_usage
-
 from fluidsim.util.util import load_params_simul
 
 
@@ -75,7 +72,7 @@ class OutputBase(object):
         params.output._set_child('periods_plot')
 
         dict_classes = info_solver.classes.Output.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 try:
                     Class._complete_params_with_default(params)
@@ -91,6 +88,7 @@ class OutputBase(object):
         params = sim.params
         self.sim = sim
         self.params = params.output
+        self.oper = sim.oper
 
         self.has_to_save = self.params.HAS_TO_SAVE
         self.name_solver = sim.info.solver.short_name
@@ -121,8 +119,24 @@ class OutputBase(object):
                         raise ValueError(
                             'Strange, no info_simul.h5 in self.path_run')
 
-                    if (params.oper.nx != params_dir.oper.nx or
-                            params.oper.ny != params_dir.oper.ny):
+                    cond = False
+                    try:
+                        if params.oper.nx != params_dir.oper.nx:
+                            cond = True
+                    except AttributeError:
+                        pass
+                    try:
+                        if params.oper.ny != params_dir.oper.ny:
+                            cond = True
+                    except AttributeError:
+                        pass
+                    try:
+                        if params.oper.nz != params_dir.oper.nz:
+                            cond = True
+                    except AttributeError:
+                        pass
+
+                    if cond:
                         params.NEW_DIR_RESULTS = True
                         print("""
 Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
@@ -156,48 +170,52 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.print_stdout = PrintStdOut(self)
 
         if not self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs:
+            for k in self.params.periods_plot._get_key_attribs():
                 self.params.periods_plot[k] = 0.
 
         if not self.has_to_save:
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.
 
     def create_list_for_name_run(self):
         list_for_name_run = [self.name_solver]
         if len(self.sim.params.short_name_type_run) > 0:
             list_for_name_run.append(self.sim.params.short_name_type_run)
-        list_for_name_run.append(self.sim.oper.produce_str_describing_oper())
+        if hasattr(self, 'oper'):
+            str_describing_oper = self.oper.produce_str_describing_oper()
+            if len(str_describing_oper) > 0:
+                list_for_name_run.append(str_describing_oper)
 
         return list_for_name_run
 
     def init_with_oper_and_state(self):
         sim = self.sim
 
-        self.oper = sim.oper
-
         if mpi.rank == 0:
             # print info on the run
-            specifications = (
-                ', ' + sim.params.time_stepping.type_time_scheme + ' and ')
+            if hasattr(sim.params.time_stepping, 'type_time_scheme'):
+                specifications = (
+                    sim.params.time_stepping.type_time_scheme + ' and ')
+            else:
+                specifications = ''
             if mpi.nb_proc == 1:
                 specifications += 'sequential,\n'
             else:
                 specifications += 'parallel ({} proc.)\n'.format(mpi.nb_proc)
             self.print_stdout(
-                '\nsolver ' + self.name_solver + specifications +
-                self.sim.oper.produce_long_str_describing_oper() +
+                '\nsolver ' + self.name_solver + ', ' + specifications +
+                self.oper.produce_long_str_describing_oper() +
                 'path_run =\n' + self.path_run + '\n' +
                 'init_fields.type: ' + sim.params.init_fields.type)
 
         self.save_info_solver_params_xml()
-        
-        if mpi.rank == 0:
+
+        if mpi.rank == 0 and run_from_ipython():
             plt.ion()
 
         if self.sim.state.is_initialized:
             self.init_with_initialized_state()
-    
+
     def save_info_solver_params_xml(self, replace=False):
         comment = ('This file has been created by'
                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
@@ -206,20 +224,21 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                    '(except for adding xml comments).')
         info_solver_xml_path = self.path_run + '/info_solver.xml'
         params_xml_path = self.path_run + '/params_simul.xml'
-        
-        if mpi.rank == 0 and self.has_to_save and self.sim.params.NEW_DIR_RESULTS:
+
+        if mpi.rank == 0 and self.has_to_save and \
+           self.sim.params.NEW_DIR_RESULTS:
             # save info on the run
             if replace:
                 os.remove(info_solver_xml_path)
                 os.remove(params_xml_path)
-                
+
             self.sim.info.solver._save_as_xml(
                 path_file=info_solver_xml_path,
                 comment=comment)
 
             self.sim.params._save_as_xml(
                 path_file=params_xml_path,
-                comment=comment)        
+                comment=comment)
 
     def init_with_initialized_state(self):
 
@@ -233,12 +252,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         self.print_stdout.complete_init_with_state()
 
-        dico_classes = self.sim.info.solver.classes.Output.import_classes()
+        dict_classes = self.sim.info.solver.classes.Output.import_classes()
 
         # The class PrintStdOut has already been instantiated.
-        dico_classes.pop('PrintStdOut')
+        dict_classes.pop('PrintStdOut')
 
-        for Class in dico_classes.values():
+        # to get always the initialization in the same order (important with mpi)
+        keys = list(dict_classes.keys())
+        keys.sort()
+        classes = [dict_classes[key] for key in keys]
+
+        for Class in classes:
             if mpi.rank == 0:
                 print(Class, Class._tag)
             self.__dict__[Class._tag] = Class(self)
@@ -253,25 +277,27 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def one_time_step(self):
 
-        for k in self.params.periods_print._attribs:
+        for k in self.params.periods_print._get_key_attribs():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
                 self.__dict__[k].online_print()
 
         if self.params.ONLINE_PLOT_OK:
-            for k in self.params.periods_plot._attribs:
+            for k in self.params.periods_plot._get_key_attribs():
                 period = self.params.periods_plot.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_plot()
 
         if self.has_to_save:
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     self.__dict__[k].online_save()
 
     def figure_axe(self, numfig=None, size_axe=None):
         if mpi.rank == 0:
+            if size_axe is None and numfig is None:
+                return plt.subplots()
             if size_axe is None:
                 x_left_axe = 0.12
                 z_bottom_axe = 0.1
@@ -296,10 +322,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0 and self.has_to_save:
             self.print_stdout.close()
 
-            for k in self.params.periods_save._attribs:
+            for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     if hasattr(self.__dict__[k], 'close_file'):
+                        print('close_file', k)
                         self.__dict__[k].close_file()
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
@@ -314,7 +341,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             shutil.move(self.path_run, path_base)
             print('move result directory in directory:\n' + new_path_run)
             self.path_run = new_path_run
-            for spec_output in self.__dict__.values():
+            for spec_output in list(self.__dict__.values()):
                 if isinstance(spec_output, SpecificOutput):
                     try:
                         spec_output.init_path_files()
@@ -328,7 +355,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if string is None:
             string = 'Size of ndarray (equiv. seq.)'
         else:
-            string = 'Size of '+string+' (equiv. seq.)'
+            string = 'Size of ' + string + ' (equiv. seq.)'
         mem = arr.nbytes*1.e-6
         if mpi.nb_proc > 1:
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
@@ -339,14 +366,8 @@ class OutputBasePseudoSpectral(OutputBase):
 
     def init_with_oper_and_state(self):
 
-        oper = self.sim.oper
+        oper = self.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
-        # self.fft2 = oper.fft2
-        # self.ifft2 = oper.ifft2
-        # # really necessary here?
-        # self.vecfft_from_rotfft = oper.vecfft_from_rotfft
-        # self.rotfft_from_vecfft = oper.rotfft_from_vecfft
-
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
 
 
@@ -437,7 +458,7 @@ class SpecificOutput(object):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
             with h5py.File(path_file, 'w') as f:
-                f.attrs['date saving'] = str(datetime.datetime.now())
+                f.attrs['date saving'] = str(datetime.datetime.now()).encode()
                 f.attrs['name_solver'] = self.output.name_solver
                 f.attrs['name_run'] = self.output.name_run
 
@@ -447,10 +468,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.iteritems():
+                for k, v in list(dico_arrays_1time.items()):
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_arrays.iteritems():
+                for k, v in list(dico_arrays.items()):
                     v.resize([1, v.size])
                     f.create_dataset(
                         k, data=v, maxshape=(None, v.size))
@@ -461,7 +482,7 @@ class SpecificOutput(object):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
             with h5py.File(path_file, 'w') as f:
-                f.attrs['date saving'] = str(datetime.datetime.now())
+                f.attrs['date saving'] = str(datetime.datetime.now()).encode()
                 f.attrs['name_solver'] = self.output.name_solver
                 f.attrs['name_run'] = self.output.name_run
 
@@ -471,10 +492,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in dico_arrays_1time.iteritems():
+                for k, v in list(dico_arrays_1time.items()):
                     f.create_dataset(k, data=v)
 
-                for k, v in dico_matrix.iteritems():
+                for k, v in list(dico_matrix.items()):
                     if isinstance(v, numbers.Number):
                         arr = np.array([v], dtype=v.__class__)
                         arr.resize((1,))
@@ -495,7 +516,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_arrays.iteritems():
+                for k, v in list(dico_arrays.items()):
                     dset_k = f[k]
                     dset_k.resize((nb_saved_times+1, v.size))
                     dset_k[nb_saved_times] = v
@@ -509,7 +530,7 @@ class SpecificOutput(object):
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in dico_matrix.iteritems():
+                for k, v in list(dico_matrix.items()):
                     if isinstance(v, numbers.Number):
                         dset_k = f[k]
                         dset_k.resize((nb_saved_times+1,))
@@ -524,7 +545,7 @@ class SpecificOutput(object):
             dset_times = f['times']
             dset_times.resize((nb_saved_times+1,))
             dset_times[nb_saved_times] = self.sim.time_stepping.t
-            for k, v in dico_arrays.iteritems():
+            for k, v in list(dico_arrays.items()):
                 dset_k = f[k]
                 dset_k.resize((nb_saved_times+1, v.size))
                 dset_k[nb_saved_times] = v

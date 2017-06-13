@@ -1,3 +1,7 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import object
+from past.utils import old_div
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -91,7 +95,6 @@ class MoviesBase(object):
         if save_file is not None:
             self._ani_save(save_file, frame_dt)
 
-
     def _ani_init(self):
         pass
 
@@ -103,8 +106,8 @@ class MoviesBase(object):
             Writer = animation.writers['ffmpeg']
         except KeyError:
             Writer = animation.writers['mencoder']
-
-        print 'Saving movie to ', filename, '...'
+        
+        print(('Saving movie to ', filename, '...'))
         writer = Writer(
             fps=1000. / frame_dt, metadata=dict(artist='Me'), bitrate=1800)
         self._animation.save(filename, writer=writer)  # _animation_ is a FuncAnimation object

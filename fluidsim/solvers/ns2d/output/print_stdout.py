@@ -9,6 +9,7 @@
 
 from __future__ import print_function, division
 
+from builtins import range
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -28,24 +29,30 @@ class PrintStdOutNS2D(PrintStdOutBase):
         to_print = super(PrintStdOutNS2D, self)._make_str_info()
 
         energy = self.output.compute_energy()
+
+        if hasattr(self, 'energy_tmp'):
+            delta_energy = energy-self.energy_tmp
+        else:
+            delta_energy = 0.
+
         if mpi.rank == 0:
             to_print += (
-                '              energy = {:9.3e} ; Delta energy = {:+9.3e}\n'
-                ''.format(energy, energy-self.energy_temp))
+                '              energy = {:9.3e} ; Delta energy = {:+9.3e}'
+                ''.format(energy, delta_energy))
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '              estimated remaining duration = {:9.3g} s'
+                    '\n              estimated remaining duration = {:9.3g} s'
                     ''.format(duration_left))
 
-        self.energy_temp = energy
+        self.energy_tmp = energy
         return to_print
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
-        file_means = open(self.output.path_run+'/stdout.txt')
-        lines = file_means.readlines()
+        with open(self.output.path_run + '/stdout.txt') as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -66,7 +73,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         E = np.zeros(nt)
         deltaE = np.zeros(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             it[il] = int(words[2])
@@ -86,33 +93,35 @@ class PrintStdOutNS2D(PrintStdOutBase):
 
         return dico_results
 
-    def plot(self):
+    def plot_deltat(self):
         dico_results = self.load()
 
         t = dico_results['t']
         deltat = dico_results['deltat']
+
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel('t')
+        ax.set_ylabel('deltat(t)')
+
+        ax.set_title('info stdout, solver ' + self.output.name_solver +
+                     ', nh = {0:5d}'.format(self.sim.oper.nx_seq))
+        ax.plot(t, deltat, 'k', linewidth=2)
+        fig.tight_layout()
+
+    def plot_energy(self):
+        dico_results = self.load()
+
+        t = dico_results['t']
         E = dico_results['E']
         deltaE = dico_results['deltaE']
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
-        width_axe = 0.85
-        height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('deltat(t)')
+        fig, ax = self.output.figure_axe()
 
-        ax1.set_title('info stdout, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
-        ax1.plot(t, deltat, 'k', linewidth=2)
+        ax.set_title('info stdout, solver ' + self.output.name_solver +
+                     ', nh = {0:5d}'.format(self.sim.oper.nx_seq))
 
-        size_axe[1] = 0.08
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.hold(True)
-        ax2.plot(t, E, 'k', linewidth=2)
-        ax2.plot(t, deltaE, 'b', linewidth=2)
+        ax.set_xlabel('t')
+        ax.set_ylabel('E(t), deltaE(t)')
+        ax.plot(t, E, 'k', linewidth=2)
+        ax.plot(t, deltaE, 'b', linewidth=2)
+        fig.tight_layout()

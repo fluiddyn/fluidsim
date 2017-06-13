@@ -13,11 +13,16 @@ This module provides two classes defining the pseudo-spectral solver
    :private-members:
 
 """
+from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+
+from . import util_pythran
+
+compute_Frot = util_pythran.compute_Frot
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
@@ -138,10 +143,12 @@ class Simul(SimulBasePseudoSpectral):
         px_rot = ifft2(px_rot_fft)
         py_rot = ifft2(py_rot_fft)
 
-        if self.params.beta == 0:
-            Frot = -ux*px_rot - uy*py_rot
-        else:
-            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
+        Frot = compute_Frot(ux, uy, px_rot, py_rot, self.params.beta)
+
+        # if self.params.beta == 0:
+        #     Frot = -ux*px_rot - uy*py_rot
+        # else:
+        #     Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
 
         Frot_fft = fft2(Frot)
         oper.dealiasing(Frot_fft)
@@ -183,7 +190,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'dipole'
 
-    params.FORCING = True
+    params.FORCING = False
     params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
@@ -195,10 +202,10 @@ if __name__ == "__main__":
     params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 0.5
-    params.output.periods_save.increments = 0.5
+    # params.output.periods_save.spect_energy_budg = 0.5
+    # params.output.periods_save.increments = 0.5
 
-    params.output.periods_plot.phys_fields = 2.0
+    # params.output.periods_plot.phys_fields = 2.0
 
     params.output.ONLINE_PLOT_OK = True
 

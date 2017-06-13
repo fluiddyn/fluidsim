@@ -42,6 +42,7 @@ else:
 IF MPI4PY:
     from mpi4py cimport MPI
     # from mpi4py.mpi_c cimport *
+    # for mpi4py > 2.0
     from mpi4py.libmpi cimport *
 
     # solve an incompatibility between openmpi and mpi4py versions
@@ -279,7 +280,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakh))
+        ikx_seq = int(np.round(kx_approx/self.deltakx))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
@@ -406,6 +407,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if params is not None:
             self.params = params
 
+        if type_fft == 'sequential':
+            type_fft = 'fftwpy'
+            
         list_type_fft = ['fftwcy', 'fftwccy', 'fftwpy', 'fftpack']
         if type_fft not in list_type_fft:
             raise ValueError('type_fft should be in ' + repr(list_type_fft))
@@ -511,10 +515,10 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        kx_max = self.deltakx * (nx + 1) // 2
-        ky_max = self.deltaky * (ny + 1) // 2
-        CONDKX = abs(self.KX) > self.coef_dealiasing * kx_max
-        CONDKY = abs(self.KY) > self.coef_dealiasing * ky_max
+        kx_max = self.deltakx * (nx + 1)//2
+        ky_max = self.deltaky * (ny + 1)//2
+        CONDKX = abs(self.KX) > coef_dealiasing*kx_max
+        CONDKY = abs(self.KY) > coef_dealiasing*ky_max
         where_dealiased = np.logical_or(CONDKX, CONDKY)
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
 
@@ -624,15 +628,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         uy_fft = -1j * self.KY_over_K2*div_fft
         return ux_fft, uy_fft
 
-
-
-
     # def gradfft_from_fft_old(self, f_fft):
     #     """Return the gradient of f_fft in spectral space."""
     #     px_f_fft = 1j * self.KX*f_fft
     #     py_f_fft = 1j * self.KY*f_fft
     #     return px_f_fft, py_f_fft
-
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -1262,7 +1262,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             E_ky_temp = energy_fft[:, 0].copy()
             E_ky_temp += 2*energy_fft[:, 1:].sum(1)
             E_ky_temp = np.ascontiguousarray(E_ky_temp)
-#            print self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape
+#            print(self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape)
             E_ky_long = np.empty(self.nky_seq)
             counts = self.comm.allgather(self.nky_loc)
             self.comm.Allgatherv(sendbuf=[E_ky_temp, MPI.DOUBLE],
@@ -1275,9 +1275,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
 ####        self.comm.barrier()
 ####        sleep(0.1)
-####        print   self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx, \
-####                            'E_ky.sum() =', E_ky.sum()*self.deltaky,\
-####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky
+####        print(self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx,
+####                          'E_ky.sum() =', E_ky.sum()*self.deltaky,
+####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky)
         return E_kx, E_ky
 
     @cython.boundscheck(False)
@@ -1512,7 +1512,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 if rank_iKx != 0:
                     # message f1D_temp
                     if rank == 0:
-                        # print 'f1D_temp', f1D_temp, f1D_temp.dtype
+                        # print('f1D_temp', f1D_temp, f1D_temp.dtype)
                         comm.Recv(
                             [f1D_temp, MPI.DOUBLE_COMPLEX],
                             source=rank_iKx, tag=iKxc)

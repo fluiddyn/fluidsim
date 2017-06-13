@@ -90,7 +90,6 @@ class SetOfVariables(np.ndarray):
         return obj
 
     def __array_finalize__(self, obj):
-        # print('in __array_finalize__')
         if obj is None:
             return
         if obj.shape == self.shape:
@@ -98,15 +97,14 @@ class SetOfVariables(np.ndarray):
             self.keys = getattr(obj, 'keys', None)
             self.nvar = getattr(obj, 'nvar', None)
 
-        # print(type(self), type(obj))
-
     def set_var(self, arg, value):
         """Set a variable."""
         if isinstance(arg, int):
-            indice = arg
+            index = arg
         else:
-            indice = self.keys.index(arg)
-        self[indice] = value
+            index = self.keys.index(arg)
+        # warning: copy...
+        self[index] = value
 
     def get_var(self, arg):
         """Get a variable as a np.array."""

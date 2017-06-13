@@ -6,8 +6,6 @@
 import pstats
 import cProfile
 
-from time import clock
-
 import fluidsim
 
 from fluiddyn.util.mpi import rank
@@ -20,10 +18,10 @@ params = solver.Simul.create_default_params()
 
 params.short_name_type_run = 'profile'
 
-n = 64
+n = 512
 params.oper.nx = n
 params.oper.ny = n
-params.oper.nz = n
+params.oper.nz = n/4
 L = 6.
 params.oper.Lx = L
 params.oper.Ly = L
@@ -43,12 +41,12 @@ params.nu_8 = 1.
 params.time_stepping.deltat0 = 1.e-4
 params.time_stepping.USE_CFL = False
 
-params.time_stepping.it_end = 100
+params.time_stepping.it_end = 10
 params.time_stepping.USE_T_END = False
 
-params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
-params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
-# params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+# params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
+# params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
+params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
 
 # params.init_fields.type_flow_init = 'DIPOLE'
 
@@ -66,6 +64,7 @@ params.output.periods_save.phys_fields = 0.
 sim = solver.Simul(params)
 
 # to evaluate the total cpu time...
+# from time import clock
 # tstart = clock()
 # sim.time_stepping.start()
 # print('Total cpu time: {} s'.format(clock() - tstart))

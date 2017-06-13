@@ -27,6 +27,8 @@ doc/ipynb/*.rst
 build/*
 dist/*.tar.gz
 dist*
+.tox/*
+.coverage/*
 
 *.so
 
@@ -42,4 +44,8 @@ dist*
 
 scripts\Experiments\path_working_exp.txt
 
-*/Profile.prof
+*/*.pstats
+*/*.png
+
+*/*_pythran.cpp
+

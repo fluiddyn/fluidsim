@@ -1,7 +1,13 @@
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import h5py
+
 from fluiddyn.util import mpi
+
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv, inner_prod)
 
@@ -215,9 +221,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 # np.sum(abs(transfer2D_Edrr_rrd)))
 # )
 
-        transferErdr_fft = (inner_prod(urx_fft, Fxdr_fft)
-                            + inner_prod(ury_fft, Fydr_fft)
-                            )
+        transferErdr_fft = (inner_prod(urx_fft, Fxdr_fft) +
+                            inner_prod(ury_fft, Fydr_fft))
         transfer2D_Erdr = self.spectrum2D_from_fft(transferErdr_fft)
         del(transferErdr_fft)
 #         print(
@@ -227,9 +232,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 # np.sum(abs(transfer2D_Erdr)))
 # )
 
-        transferEddd_fft = (inner_prod(udx_fft, Fxdd_fft)
-                            + inner_prod(udy_fft, Fydd_fft)
-                            )
+        transferEddd_fft = (inner_prod(udx_fft, Fxdd_fft) +
+                            inner_prod(udy_fft, Fydd_fft))
         transfer2D_Eddd = self.spectrum2D_from_fft(transferEddd_fft)
         del(transferEddd_fft)
 #         print(
@@ -239,10 +243,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 # np.sum(abs(transfer2D_Eddd)))
 # )
 
-        Cqfromll = (inner_prod(urx_fft, Fxdd_fft)
-                    + inner_prod(ury_fft, Fydd_fft)
-                    )
-
+        Cqfromll = (inner_prod(urx_fft, Fxdd_fft) +
+                    inner_prod(ury_fft, Fydd_fft))
         transferEddr_rdd_fft = (Cqfromll
                                 + inner_prod(udx_fft, Fxdr_fft)
                                 + inner_prod(udy_fft, Fydr_fft)
@@ -372,7 +374,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             'transfer2D_Eudeu': transfer2D_Eudeu,
             'convP2D': convP2D,
             'convK2D': convK2D,
-            'transfer2D_CPE': transfer2D_CPE, }
+            'transfer2D_CPE': transfer2D_CPE,}
         return dico_results
 
     def _online_plot(self, dico_results):
@@ -466,7 +468,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         khE = khE + 1
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEKr = dset_transfer2D_EKr[it]
                 transferEAr = dset_transfer2D_EAr[it]
                 PiEKr = cumsum_inv(transferEKr) * self.oper.deltakh
@@ -583,7 +585,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax2.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot + 1, delta_i_plot):
+            for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
                 PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
@@ -597,7 +599,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 
     def _checksum_stdout(self, debug=False, **kwargs):
         if debug is True:
-            for key, value in kwargs.items():
+            for key, value in list(kwargs.items()):
                 if mpi.nb_proc > 1:
                     value_g = mpi.comm.gather(value, root=0)
                 else:
@@ -828,7 +830,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax1.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEK = dset_transfer2D_EK[it]
                 transferEA = dset_transfer2D_EA[it]
                 PiEK = cumsum_inv(transferEK) * self.oper.deltakh
@@ -878,7 +880,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax2.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot + 1, delta_i_plot):
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
                 PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
@@ -944,15 +946,15 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Tq_keys, Tq_coeff = self._transfer_keys_coeff()
 
         Tq_terms = dict.fromkeys(Tq_keys)
-        for key in Tq_keys.keys():
-            triad_key_modes, Tq_terms[key] = self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
+        for key in list(Tq_keys.keys()):
+            triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
         
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
-        for i in xrange(n_modes):          # GGG, GGA etc.
+        for i in range(n_modes):          # GGG, GGA etc.
             k = triad_key_modes[0][i]
-            for j in Tq_keys.keys():       # uuu, uuv etc.
+            for j in list(Tq_keys.keys()):       # uuu, uuv etc.
                 Tq_fft[k] += np.real(Tq_coeff[j] * Tq_terms[j][i])
 
         del(Tq_keys, Tq_terms, Tq_coeff)
@@ -963,18 +965,17 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_keys = {'ue': ['ux_fft', 'px_eta_fft'],
                    've': ['uy_fft', 'py_eta_fft']}
         Cq_terms = dict.fromkeys(Cq_keys)
-        for key in Cq_keys.keys():
-            dyad_key_modes, Cq_terms[
-                key] = self.norm_mode.dyad_from_keyfft(True, *Cq_keys[key])
+        for key in list(Cq_keys.keys()):
+            dyad_key_modes, Cq_terms[key] = self._dyad_from_keyfft(True, *Cq_keys[key])
         
         Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
         n_modes = dyad_key_modes[0].shape[0]
-        for i in xrange(n_modes):        # GG, AG, aG, AA
+        for i in range(n_modes):        # GG, AG, aG, AA
             k = dyad_key_modes[0][i]
-            for j in Cq_keys.keys():     # ue, ve
+            for j in list(Cq_keys.keys()):     # ue, ve
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
-
+                
         del(Cq_keys, Cq_terms, Cq_coeff)
         
         # -----------------------------------------------
@@ -992,9 +993,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         u_udM = triple_prod_conv(ux_fft, uy_fft, Mx_fft, My_fft)
         M_udu = triple_prod_conv2(Mx_fft, My_fft, ux_fft, uy_fft)
         divM = oper.ifft2(
-            oper.divfft_from_vecfft(
-                Mx_fft, My_fft))
-
+                    oper.divfft_from_vecfft(
+                        Mx_fft, My_fft))
+                    
         ux_divM = oper.fft2(ux * divM)
         uy_divM = oper.fft2(uy * divM)
         oper.dealiasing(ux_divM, uy_divM)
@@ -1036,7 +1037,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                         'Cq_AG': Cq_AG,
                         'Cq_aG': Cq_aG,
                         'Cq_AA': Cq_AA,
-                        'Tens': Tens, }
+                        'Tens': Tens,}
 
         return dico_results
 
@@ -1161,24 +1162,24 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         P = self.sim.params.forcing.forcing_rate
         norm = 1 if P == 0 else P
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.
                 for key in ['GGG', 'AGG', 'GAAs', 'GAAd', 'AAA']:
                     transferEtot += f['Tq_' + key][it]
                 PiEtot = cumsum_inv(transferEtot) * self.oper.deltakh / norm
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
-        Tq_GGG = f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AGG = f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAs = f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAd = f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
-        Tq_AAA = f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
-        Tnq = f['Tnq'][imin_plot:imax_plot].mean(0) / norm
-        Tens = f['Tens'][imin_plot:imax_plot].mean(0) / norm
-        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
-
-        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh
-        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh
+        Tq_GGG = old_div(f['Tq_GGG'][imin_plot:imax_plot].mean(0), norm)
+        Tq_AGG = old_div(f['Tq_AGG'][imin_plot:imax_plot].mean(0), norm)
+        Tq_GAAs = old_div(f['Tq_GAAs'][imin_plot:imax_plot].mean(0), norm)
+        Tq_GAAd = old_div(f['Tq_GAAd'][imin_plot:imax_plot].mean(0), norm)
+        Tq_AAA = old_div(f['Tq_AAA'][imin_plot:imax_plot].mean(0), norm)
+        Tnq = old_div(f['Tnq'][imin_plot:imax_plot].mean(0), norm)
+        Tens =  old_div(f['Tens'][imin_plot:imax_plot].mean(0), norm)
+        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs +Tq_GAAd + Tq_AAA
+       
+        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh 
+        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh 
         Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltakh
         Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltakh
         Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
@@ -1225,7 +1226,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltakh
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
                 exchangetot = 0.
                 for key in ['GG', 'AG', 'aG', 'AA']:
                     exchangetot += f['Cq_' + key][it]

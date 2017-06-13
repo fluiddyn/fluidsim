@@ -29,6 +29,7 @@ else:
 IF MPI4PY:
     from mpi4py cimport MPI
     # from mpi4py.mpi_c cimport *
+    # for mpi4py > 2.0
     from mpi4py.libmpi cimport *
 
     # solve an incompatibility between openmpi and mpi4py versions

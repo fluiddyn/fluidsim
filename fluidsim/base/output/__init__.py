@@ -30,7 +30,9 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
 
+from past.utils import old_div
 import fluiddyn.output
 
 from .base import OutputBase, OutputBasePseudoSpectral
@@ -64,21 +66,21 @@ def create_description_xmf_file(path=None):
 
             nx = f['/info_simul/params/oper'].attrs['nx']
             Lx = f['/info_simul/params/oper'].attrs['Lx']
-            deltax = Lx/nx
+            deltax = old_div(Lx,nx)
             try:
                 ny = f['/info_simul/params/oper'].attrs['ny']
                 Ly = f['/info_simul/params/oper'].attrs['Ly']
-                deltay = Ly/ny
+                deltay = old_div(Ly,ny)
             except KeyError:
                 ndim = 1
             try:
                 nz = f['/info_simul/params/oper'].attrs['nz']
                 Lz = f['/info_simul/params/oper'].attrs['Lz']
-                deltaz = Lz/nz
+                deltaz = old_div(Lz,nz)
             except KeyError:
                 ndim = 2
 
-            keys = f['/state_phys'].keys()
+            keys = list(f['/state_phys'].keys())
 
         if ndim == 1:
             geometry_type = 'Origin_Dx'

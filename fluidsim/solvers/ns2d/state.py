@@ -6,6 +6,7 @@
    :private-members:
 
 """
+from __future__ import print_function
 
 
 from fluidsim.base.state import StatePseudoSpectral

@@ -2,7 +2,9 @@
 ===========================================================
 
 """
+from __future__ import division
 
+from past.utils import old_div
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
@@ -55,7 +57,7 @@ class Simul(SimulBasePseudoSpectral):
 
     def __init__(self, params):
         # Parameter(s) specific to this solver
-        params.kd2 = params.f**2/params.c2
+        params.kd2 = old_div(params.f**2,params.c2)
 
         super(Simul, self).__init__(params)
 
@@ -85,7 +87,7 @@ class Simul(SimulBasePseudoSpectral):
         F1x = rot_abs*uy
         F1y = -rot_abs*ux
         gradx_fft, grady_fft = oper.gradfft_from_fft(
-            fft2(self.params.c2*eta + (ux**2+uy**2)/2))
+            fft2(self.params.c2*eta + old_div((ux**2+uy**2),2)))
         oper.dealiasing(gradx_fft, grady_fft)
         Fx_fft = fft2(F1x) - gradx_fft
         Fy_fft = fft2(F1y) - grady_fft
@@ -137,8 +139,8 @@ if __name__ == "__main__":
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    delta_x = old_div(params.oper.Lx,params.oper.nx)
+    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
 
     params.time_stepping.t_end = 1.
     # params.time_stepping.USE_CFL = False

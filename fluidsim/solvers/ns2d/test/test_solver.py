@@ -1,23 +1,35 @@
+from __future__ import division
+
 import unittest
 import shutil
 
 import numpy as np
 
+import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.solver import Simul
+from fluidsim.solvers.ns2d.solver_fluidfft import Simul as Simul2
 
 
 class TestSolverNS2D(unittest.TestCase):
+    Simul = Simul
+
+    def tearDown(self):
+        # clean by removing the directory
+        if mpi.rank == 0:
+            if hasattr(self, 'sim'):
+                shutil.rmtree(self.sim.output.path_run)
+
     def test_tendency(self):
 
-        params = Simul.create_default_params()
+        params = self.Simul.create_default_params()
 
         params.short_name_type_run = 'test'
 
-        nh = 64
+        nh = 32
         params.oper.nx = nh
         params.oper.ny = nh
         Lh = 6.
@@ -31,10 +43,9 @@ class TestSolverNS2D(unittest.TestCase):
 
         params.init_fields.type = 'noise'
         params.output.HAS_TO_SAVE = False
-        params.FORCING = False
 
         with stdout_redirected():
-            sim = Simul(params)
+            self.sim = sim = self.Simul(params)
 
         rot_fft = sim.state('rot_fft')
 
@@ -53,9 +64,65 @@ class TestSolverNS2D(unittest.TestCase):
         #            sim.oper.sum_wavenumbers(T_rot),
         #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
-        # clean by removing the directory
-        if mpi.rank == 0:
-            shutil.rmtree(sim.output.path_run)
+    def test_forcing(self):
+
+        params = self.Simul.create_default_params()
+
+        params.short_name_type_run = 'test'
+
+        nh = 32
+        params.oper.nx = 2*nh
+        params.oper.ny = nh
+        Lh = 6.
+        params.oper.Lx = Lh
+        params.oper.Ly = Lh
+
+        params.oper.coef_dealiasing = 2./3
+        params.nu_8 = 2.
+
+        params.time_stepping.t_end = 0.5
+
+        params.init_fields.type = 'noise'
+        params.FORCING = True
+        params.forcing.type = 'random'
+
+        # save all outputs!
+        periods = params.output.periods_save
+        for key in periods._key_attribs:
+            periods[key] = 0.2
+
+        with stdout_redirected():
+            self.sim = sim = self.Simul(params)
+            sim.time_stepping.start()
+
+            if mpi.nb_proc == 1:
+                sim.output.spectra.plot1d()
+                sim.output.spectra.plot2d()
+
+                sim.output.spatial_means.plot()
+                sim.output.print_stdout.plot_energy()
+                sim.output.print_stdout.plot_deltat()
+
+                sim.output.spect_energy_budg.plot()
+
+                with self.assertRaises(ValueError):
+                    sim.state.compute('test')
+
+                sim2 = fls.load_sim_for_plot(sim.output.path_run)
+                sim2.output
+
+            # `compute('q')` two times for better coverage...
+            sim.state.compute('q')
+            sim.state.compute('q')
+            sim.state.compute('div')
+
+            sim3 = fls.load_state_phys_file(sim.output.path_run)
+            sim3.params.time_stepping.t_end += 10.
+            sim3.time_stepping.start()
+
+
+# class TestSolverNS2DFluidfft(TestSolverNS2D):
+#     Simul = Simul2
 
 
 if __name__ == '__main__':

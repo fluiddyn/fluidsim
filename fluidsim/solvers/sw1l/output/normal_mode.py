@@ -204,7 +204,7 @@ class NormalModeDecomposition(NormalModeBase):
             key_modes, normal_modes[k1] = self.normalmodefft_from_keyfft(k1)
             normal_modes[k2] = normal_modes[k1]
 
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
+        key_modes_mat = np.char.add(key_modes.transpose(), key_modes)
         if conjugate:
             Ni = normal_modes[k1].conj()
             Nj = normal_modes[k2]
@@ -229,7 +229,7 @@ class NormalModeDecomposition(NormalModeBase):
         else:
             key_modes, normal_modes[k1] = self.normalmodephys_from_keyphys(k1)
             normal_modes[k2] = normal_modes[k1]
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
+        key_modes_mat = np.char.add(key_modes.transpose(), key_modes)
         dyad_mat_phys = np.einsum('i...,j...->ij...',
                                   normal_modes[k1],
                                   normal_modes[k2])
@@ -257,7 +257,7 @@ class NormalModeDecomposition(NormalModeBase):
         key_modes_1, normal_modes_1 = self.normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self.dyad_from_keyfft(False, k2, k3)
 
-        key_modes_mat = np.core.defchararray.add(key_modes_1.transpose(), key_modes_23)
+        key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
         triad_mat = np.einsum('i...,j...->ij...',
                               normal_modes_1.conj(),
                               normal_modes_23)
@@ -276,7 +276,7 @@ class NormalModeDecomposition(NormalModeBase):
         key_modes_1, normal_modes_1 = self.normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self.dyad_from_keyphys(k2, k3)
 
-        key_modes_mat = np.core.defchararray.add(key_modes_1.transpose(), key_modes_23)
+        key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
         triad_mat = np.einsum('i...,j...->ij...',
                               normal_modes_1.conj(),
                               normal_modes_23)

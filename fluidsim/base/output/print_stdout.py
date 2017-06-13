@@ -1,10 +1,9 @@
 
 from __future__ import print_function
 
-import os
-import numpy as np
-
+from builtins import object
 from time import time
+import os
 
 from fluiddyn.util import mpi
 
@@ -34,18 +33,18 @@ class PrintStdOutBase(object):
         except AttributeError:
             pass
 
-        self.nx = params.oper.nx
+        # self.nx = params.oper.nx
 
         self.period_print = params.output.periods_print.print_stdout
 
-        self.path_file = self.output.path_run+'/stdout.txt'
+        self.path_file = self.output.path_run + '/stdout.txt'
 
         if mpi.rank == 0 and self.output.has_to_save:
-                if not os.path.exists(self.path_file):
-                    self.file = open(self.path_file, 'w')
-                else:
-                    self.file = open(self.path_file, 'r+')
-                    self.file.seek(0, 2)  # go to the end of the file
+            if not os.path.exists(self.path_file):
+                self.file = open(self.path_file, 'w')
+            else:
+                self.file = open(self.path_file, 'r+')
+                self.file.seek(0, 2)  # go to the end of the file
 
     def complete_init_with_state(self):
 
@@ -71,7 +70,7 @@ class PrintStdOutBase(object):
     def online_print(self):
         """Print simple info on the current state of the simulation"""
         tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_print_info >= self.period_print):
+        if tsim-self.t_last_print_info >= self.period_print:
             self._print_info()
             self.t_last_print_info = tsim
 

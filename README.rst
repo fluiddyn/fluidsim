@@ -2,9 +2,19 @@
 FluidSim
 ========
 
-*Framework for studying fluid dynamics by numerical simulation.*
+|release| |docs| |coverage|
 
-`Package Documentation <http://fluidsim.readthedocs.org>`__
+.. |release| image:: https://img.shields.io/pypi/v/fluidsim.svg
+   :target: https://pypi.python.org/pypi/fluidsim/
+   :alt: Latest version
+
+.. |docs| image:: https://readthedocs.org/projects/fluidsim/badge/?version=latest
+   :target: http://fluidsim.readthedocs.org
+   :alt: Documentation status
+
+.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/graph/badge.svg
+   :target: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/
+   :alt: Code coverage
 
 FluidSim is the numerically oriented package of the `FluidDyn project
 <http://fluiddyn.readthedocs.org>`__.  The project is still in a

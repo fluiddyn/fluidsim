@@ -4,7 +4,9 @@ Plate2d InitFields (:mod:`fluidsim.solvers.plate2d.init_fields`)
 
 
 """
+from __future__ import division
 
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -31,10 +33,10 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = oper.Lx/4
+            lambda0 = old_div(oper.Lx,4)
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2*np.pi*x/delta))/2
+            return old_div((1. + np.tanh(2*np.pi*x/delta)),2)
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...

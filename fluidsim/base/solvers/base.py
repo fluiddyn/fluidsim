@@ -15,6 +15,7 @@ Provides:
 
 """
 
+from builtins import object
 import numpy as np
 
 
@@ -79,66 +80,67 @@ class SimulBase(object):
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 
-        dico_classes = self.info_solver.import_classes()
+        dict_classes = self.info_solver.import_classes()
 
         if not isinstance(params, Parameters):
             raise TypeError('params should be a Parameters instance.')
 
-        # params.check_and_modify()
         self.params = params
         self.info = create_info_simul(self.info_solver, params)
 
         # initialization operators and grid
-        Operators = dico_classes['Operators']
+        Operators = dict_classes['Operators']
         self.oper = Operators(params=params)
 
         # initialization output
-        Output = dico_classes['Output']
+        Output = dict_classes['Output']
         self.output = Output(self)
 
         self.output.print_stdout(
             '*************************************\n' +
-            'Program FluidDyn')
+            'Program fluidsim')
 
         # output.print_memory_usage(
         #     'Memory usage after creating operator (equiv. seq.)')
 
         # initialisation object variables
-        State = dico_classes['State']
+        State = dict_classes['State']
         self.state = State(self)
 
         # initialisation time stepping
-        TimeStepping = dico_classes['TimeStepping']
+        TimeStepping = dict_classes['TimeStepping']
         self.time_stepping = TimeStepping(self)
 
         # initialisation fields (and time if needed)
-        InitFields = dico_classes['InitFields']
+        InitFields = dict_classes['InitFields']
         self.init_fields = InitFields(self)
         self.init_fields()
 
         # just for the first output
-        if params.time_stepping.USE_CFL:
+        if hasattr(params.time_stepping, 'USE_CFL') and \
+           params.time_stepping.USE_CFL:
             self.time_stepping._compute_time_increment_CLF()
 
         # initialisation forcing
         if params.FORCING:
-            Forcing = dico_classes['Forcing']
+            Forcing = dict_classes['Forcing']
             self.forcing = Forcing(self)
             self.forcing.compute()
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()
-        
-        # if enabled, preprocesses flow parameters such as viscosity and forcing
-        # based on initialized fields
-        Preprocess = dico_classes['Preprocess']
-        self.preprocess = Preprocess(self)
-        self.preprocess()
+
+        # if enabled, preprocesses flow parameters such as viscosity and
+        # forcing based on initialized fields
+        if 'Preprocesses' in dict_classes:
+            Preprocess = dict_classes['Preprocess']
+            self.preprocess = Preprocess(self)
+            self.preprocess()
 
     def tendencies_nonlin(self, variables=None):
         """Return a null SetOfVariables object."""
         tendencies = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_phys,
             info='tendencies_nonlin')
         tendencies.initialize(value=0.)
         return tendencies
@@ -152,3 +154,9 @@ if __name__ == "__main__":
     params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
+    params.time_stepping.USE_CFL = False
+    params.time_stepping.t_end = 2.
+    params.time_stepping.deltat0 = 0.1
+
+    sim = Simul(params)
+    sim.time_stepping.start()

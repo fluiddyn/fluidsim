@@ -14,7 +14,10 @@
    :members:
 
 """
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -45,10 +48,10 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = oper.Lx/4
+            lambda0 = old_div(oper.Lx,4)
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2*np.pi*x/delta))/2
+            return old_div((1. + np.tanh(2*np.pi*x/delta)),2)
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
@@ -105,15 +108,15 @@ class InitFieldsJet(SpecificInitFields):
         oper = self.sim.oper
         Ly = oper.Ly
         a = 0.5
-        b = Ly/2
+        b = old_div(Ly,2)
         omega0 = 2.
         omega = omega0*(
-            np.exp(-((oper.YY - Ly/2 + b/2)/a)**2) -
-            np.exp(-((oper.YY - Ly/2 - b/2)/a)**2) +
-            np.exp(-((oper.YY - Ly/2 + b/2 + Ly)/a)**2) -
-            np.exp(-((oper.YY - Ly/2 - b/2 + Ly)/a)**2) +
-            np.exp(-((oper.YY - Ly/2 + b/2 - Ly)/a)**2) -
-            np.exp(-((oper.YY - Ly/2 - b/2 - Ly)/a)**2))
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) + old_div(b,2)),a))**2) -
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) - old_div(b,2)),a))**2) +
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) + old_div(b,2) + Ly),a))**2) -
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) - old_div(b,2) + Ly),a))**2) +
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) + old_div(b,2) - Ly),a))**2) -
+            np.exp(-(old_div((oper.YY - old_div(Ly,2) - old_div(b,2) - Ly),a))**2))
         return omega
 
 
@@ -134,15 +137,15 @@ class InitFieldsDipole(SpecificInitFields):
 
     def vorticity_shape_1dipole(self):
         oper = self.sim.oper
-        xs = oper.Lx/2
-        ys = oper.Ly/2
-        theta = np.pi/2.3
+        xs = old_div(oper.Lx,2)
+        ys = old_div(oper.Ly,2)
+        theta = old_div(np.pi,2.3)
         b = 2.5
         omega = np.zeros(oper.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (2*np.exp(-(XX**2 + (YY-b/2)**2)) -
-                    2*np.exp(-(XX**2 + (YY+b/2)**2)))
+            return (2*np.exp(-(XX**2 + (YY-old_div(b,2))**2)) -
+                    2*np.exp(-(XX**2 + (YY+old_div(b,2))**2)))
 
         for ip in range(-1, 2):
             for jp in range(-1, 2):

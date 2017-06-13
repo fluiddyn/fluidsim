@@ -10,7 +10,7 @@ Provides:
 
 """
 from __future__ import division
-
+from past.utils import old_div
 import numpy as np
 from .base import PreprocessBase
 
@@ -48,7 +48,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         """
         state = self.sim.state
         scale = self.params.init_field_scale
-        C = self.params.init_field_const
+        C = float(self.params.init_field_const)
         
         if scale == 'energy':
             try:
@@ -161,7 +161,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.params.nu_4 = 0
         self.sim.params.nu_8 = 0
         self.sim.params.nu_m4 = 0
-        
+
         if viscosity_type == 'laplacian':
             self.sim.params.nu_2 = length_scale ** 2. / time_scale
         elif viscosity_type == 'hyper4':
@@ -176,7 +176,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):
-        r""" Based on C, a non-dimensional ratio of forcing rate to one of the
+        r""" Based on C, a non-dimensional ratio of forcing rate to one of the 
         following forcing scales
 
         - the initial total energy, math:: E_0
@@ -197,7 +197,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         params = self.params
 
         forcing_scale = params.forcing_scale
-        C = params.forcing_const
+        C = float(params.forcing_const)
         # Forcing wavenumber
         k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
                                     self.sim.params.forcing.nkmin_forcing) // 2)

@@ -3,16 +3,18 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
+from __future__ import division
+from __future__ import print_function
+
+from builtins import object
 import numpy as np
 
 from fluiddyn.util import mpi
 
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
-from fluidsim.base.forcing.specific import \
-    Proportional as ProportionalBase
-
 from fluidsim.base.forcing.specific import (
+    Proportional as ProportionalBase,
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS,
     RamdomSimplePseudoSpectral)
 
@@ -30,39 +32,26 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
 
 
 class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(TimeCorrelatedRandomPseudoSpectral,
-              cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'q_fft'
+    _key_forced_default = 'q_fft'
 
 
 class Proportional(ProportionalBase):
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(Proportional, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'q_fft'
+    _key_forced_default = 'q_fft'
 
 
 class Waves(RamdomSimplePseudoSpectral):
     tag = 'waves'
+    _key_forced_default = 'a_fft'
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the *params* container."""
         super(Waves, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'a_fft'
         params.forcing[cls.tag]._set_attrib('coef_normalize_strategy', 'first')
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
-        if 'a_fft' not in self.key_forced:
-            raise ValueError(
-                "Expected 'a_fft' in params.forcing.key_forced = {}".format(self.key_forced))
-
         oper_c = self.oper_coarse
         params = self.params
         deltat = self.sim.time_stepping.deltat
@@ -132,12 +121,7 @@ class Waves(RamdomSimplePseudoSpectral):
 
 class WavesVortices(Waves):
     tag = 'waves_vortices'
-
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(WavesVortices, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = ('q_fft', 'a_fft')
+    _key_forced_default = ('q_fft', 'a_fft')
 
     def __init__(self, sim):
         super(WavesVortices, self).__init__(sim)
@@ -213,12 +197,7 @@ class WavesVortices(Waves):
 
 class Potential(Waves):
     tag = 'potential'
-
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        """Complete the *params* container."""
-        super(Potential, cls)._complete_params_with_default(params)
-        params.forcing.key_forced = 'eta_fft'
+    _key_forced_default = 'eta_fft'
 
     def normalize_forcingc_2nd_degree_eq(self, Feta_fft, eta_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
@@ -253,9 +232,9 @@ class OldStuff(object):
         P_Z_forcing1 = oper.sum_wavenumbers(P_Z_forcing1)
         P_Z_forcing2 = oper.sum_wavenumbers(P_Z_forcing2)
         if mpi.rank == 0:
-            print 'P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
+            print('P_Z_f = {0:9.4e} ; P_Z_f2 = {1:9.4e};'.format(
                 P_Z_forcing1+P_Z_forcing2,
-                P_Z_forcing2)
+                P_Z_forcing2))
 
     def verify_injection_rate_from_state(self):
         """Verify injection rate."""
