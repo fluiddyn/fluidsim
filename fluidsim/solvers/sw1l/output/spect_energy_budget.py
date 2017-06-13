@@ -5,6 +5,8 @@ from fluiddyn.util import mpi
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv, inner_prod)
 
+from .normal_mode import NormalModeDecomposition, NormalModeDecompositionModified
+
 
 class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
     """Save and plot spectra."""
@@ -393,6 +395,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
         self.axe_a.plot(khE + khE[1], PiEK, 'r')
         self.axe_a.plot(khE + khE[1], PiEA, 'b')
+        self.axe_a.plot(khE + khE[1], PiEtot, 'k', linewidth=2)
         self.axe_a.plot(khE + khE[1], CCP, 'y')
         self.axe_a.plot(khE + khE[1], CCK, 'y--')
 
@@ -614,10 +617,17 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         """compute spectral energy budget the one time."""
         oper = self.sim.oper
 
-        state_fft = self.sim.state.state_fft
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
-        eta_fft = state_fft.get_var('eta_fft')
+        try:
+            state_fft = self.sim.state.state_fft
+            ux_fft = state_fft.get_var('ux_fft')
+            uy_fft = state_fft.get_var('uy_fft')
+            eta_fft = state_fft.get_var('eta_fft')
+        except ValueError:
+            state = self.sim.state
+            ux_fft = state.compute('ux_fft')
+            uy_fft = state.compute('uy_fft')
+            eta_fft = state.compute('eta_fft')
+
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)
@@ -732,9 +742,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             'transfer2D_CPE': transfer2D_CPE}
         self._checksum_stdout(
             EK_GGG=transfer2D_Errr,
-            EK_GGA=transfer2D_Edrr_rrd + transfer2D_Erdr,
-            EK_AAG=transfer2D_Edrd + transfer2D_Eddr_rdd,
-            EK_AAA=transfer2D_Eddd,
+            EK_GGA=transfer2D_Edrr_rrd,
+            EK_AAG=transfer2D_Edrd,
             EA=transfer2D_EA,
             Etot=transfer2D_EK + transfer2D_EA,
             debug=False)
@@ -881,208 +890,42 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 
 
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
+    
+    def __init__(self, output, norm_mode=None):
+        if norm_mode is None:
+            self.norm_mode = NormalModeDecomposition(output)
+        else:
+            self.norm_mode = norm_mode
 
-    def __init__(self, output):
-        self._init_qmat_sigma(output)
         super(SpectralEnergyBudgetSW1L, self).__init__(output)
 
-    def _init_qmat_sigma(self, output):
-        f = output.sim.params.f
-        c = output.sim.params.c2 ** 0.5
-        oper = output.oper
-        KX = oper.KX
-        KY = oper.KY
-        KK = oper.KK
-        K2 = oper.K2
-        ck = c * oper.KK_not0
-        if f == 0:
-            self.sigma = ck
-        else:
-            self.sigma = np.sqrt(f**2 + (ck)**2)
-        sigma = self.sigma
-
-        self.qmat = np.array(
-            [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-             [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-             [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
-
-        if mpi.rank == 0 or oper.SEQUENTIAL:
-            self.qmat[:, :, 0, 0] = 0.
-
-    def _normalmodefft_from_keyfft(self, key):
-        """Returns the normal mode decomposition for the state_fft key specified."""
-
-        if key == 'div_fft':
-            key_modes, normal_mode_vec_fft_x = self._normalmodefft_from_keyfft('px_ux_fft')
-            key_modes, normal_mode_vec_fft_y = self._normalmodefft_from_keyfft('py_uy_fft')
-            normal_mode_vec_fft = normal_mode_vec_fft_x + normal_mode_vec_fft_y
-        else:
-            key_modes = np.array([['G', 'A', 'a']])
-            row_index = {'ux_fft': 0, 'uy_fft': 1, 'eta_fft': 2,
-                         'px_ux_fft': 0, 'px_uy_fft': 1, 'px_eta_fft': 2,
-                         'py_ux_fft': 0, 'py_uy_fft': 1, 'py_eta_fft': 2}
-
-            r = row_index[key]
-            normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
-            if 'px' in key:
-                for r in xrange(3):
-                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
-            elif 'py' in key:
-                for r in xrange(3):
-                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
-
-            if 'eta' in key:
-                normal_mode_vec_fft = normal_mode_vec_fft / self.c2 ** 0.5
-
-        return key_modes, normal_mode_vec_fft
-
-    def _normalmodephys_from_keyphys(self, key):
-        ifft2 = self.oper.ifft2
-        key_modes, normal_mode_vec_fft = self._normalmodefft_from_keyfft(key + '_fft')
-        normal_mode_vec_phys = np.array([ifft2(normal_mode_vec_fft[i])
-                                        for i in xrange(3)])
-
-        return key_modes, normal_mode_vec_phys
-
-    def _group_matrix_using_dict(self, key_matrix, value_matrix, grouping):
-        value_dict = dict.fromkeys(grouping, 0.)
-        n1, n2 = key_matrix.shape
-        for i in xrange(n1):
-            for j in xrange(n2):
-                k1 = key_matrix[i, j]
-                k3 = None
-                for k2 in grouping.keys():
-                    if k1 in grouping[k2]:
-                        k3 = k2
-                        break
-                if k3 is None:
-                    raise KeyError('Not sure which dyad group ' + k1 + ' belongs to')
-                value_dict[k3] += value_matrix[i, j]
-
-        new_matrix = np.array([value_dict[k3] for k3 in value_dict.keys()])
-        new_keys = np.array([value_dict.keys()])
-        return new_keys, new_matrix
-
-    def _dyad_from_keyfft(self, conjugate=False, *keys_state_fft):
-        dyad_group = {'GG': ['GG'],
-                      'AG': ['GA', 'AG'],
-                      'aG': ['Ga', 'aG'],
-                      'AA': ['AA', 'Aa', 'aA', 'aa']}
-        k1, k2 = keys_state_fft
-
-        normal_modes = dict()
-        if k1 != k2:
-            for k in keys_state_fft:
-                key_modes, normal_modes[k] = self._normalmodefft_from_keyfft(k)
-        else:
-            key_modes, normal_modes[k1] = self._normalmodefft_from_keyfft(k1)
-            normal_modes[k2] = normal_modes[k1]
-
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
-        if conjugate:
-            Ni = normal_modes[k1].conj()
-            Nj = normal_modes[k2]
-        else:
-            Ni = normal_modes[k1]
-            Nj = normal_modes[k2]
-        dyad_mat_fft = np.einsum('i...,j...->ij...', Ni, Nj)
-        del(normal_modes, Ni, Nj)
-        return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
-
-    def _dyad_from_keyphys(self, *keys_state_phys):
-        dyad_group = {'GG': ['GG'],
-                      'AG': ['GA', 'AG'],
-                      'aG': ['Ga', 'aG'],
-                      'AA': ['AA', 'Aa', 'aA', 'aa']}
-        k1, k2 = keys_state_phys
-
-        normal_modes = dict()
-        if k1 != k2:
-            for k in keys_state_phys:
-                key_modes, normal_modes[k] = self._normalmodephys_from_keyphys(k)
-        else:
-            key_modes, normal_modes[k1] = self._normalmodephys_from_keyphys(k1)
-            normal_modes[k2] = normal_modes[k1]
-        key_modes_mat = np.core.defchararray.add(key_modes.transpose(), key_modes)
-        dyad_mat_phys = np.einsum('i...,j...->ij...',
-                                  normal_modes[k1],
-                                  normal_modes[k2])
-        del normal_modes
-        fft2 = self.oper.fft2
-        dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i, j])
-                                  for j in xrange(3)]
-                                 for i in xrange(3)])
-
-        for i in xrange(3):
-            for j in xrange(3):
-                self.oper.dealiasing(dyad_mat_fft[i, j])
-
-        del dyad_mat_phys
-        return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
-
-    def _triad_from_keyfft(self, *keys_state_fft):
-        triad_group = {'GGG': ['GGG'],
-                       'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
-                       'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
-                       'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
-                       'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
-        k1, k2, k3 = keys_state_fft
-
-        key_modes_1, normal_modes_1 = self._normalmodefft_from_keyfft(k1)
-        key_modes_23, normal_modes_23 = self._dyad_from_keyfft(False, k2, k3)
-
-        key_modes_mat = np.core.defchararray.add(key_modes_1.transpose(), key_modes_23)
-        triad_mat = np.einsum('i...,j...->ij...',
-                              normal_modes_1.conj(),
-                              normal_modes_23)
-
-        return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
-
-    def _triad_from_keyfftphys(self, key_state_fft, *keys_state_phys):
-        triad_group = {'GGG': ['GGG'],
-                       'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
-                       'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
-                       'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
-                       'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
-        k1 = key_state_fft
-        k2, k3 = keys_state_phys
-
-        key_modes_1, normal_modes_1 = self._normalmodefft_from_keyfft(k1)
-        key_modes_23, normal_modes_23 = self._dyad_from_keyphys(k2, k3)
-
-        key_modes_mat = np.core.defchararray.add(
-            key_modes_1.transpose(), key_modes_23)
-        triad_mat = np.einsum('i...,j...->ij...',
-                              normal_modes_1.conj(),
-                              normal_modes_23)
-
-        return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
-
-    def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity.
-        """
-        c = self.params.c2 ** 0.5
+    def _transfer_keys_coeff(self):
         c2 = self.params.c2
-        KK = self.oper.KK_not0
-        sigma = self.sigma
+        keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
+                'uvu':['ux_fft','uy','py_ux'],
+                'vuv':['uy_fft','ux','px_uy'],
+                'vvv':['uy_fft','uy','py_uy'],
+                'eeu':['px_eta_fft','eta','ux'], # Quad. A.P.E. transfer terms
+                'eev':['py_eta_fft','eta','uy'],
+                'uud':['ux_fft','ux','div'], # NonQuad. K.E. - Quad K.E. transfer terms
+                'vvd':['uy_fft','uy','div'],
+                'dee':['div_fft','eta','eta']}# NonQuad. K.E. - Quad A.P.E. transfer terms
 
-        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
-        q_fft = -q_fft * c / sigma
-        ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * KK)
-        am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * KK)
-        bvec_fft = np.array([q_fft, ap_fft, am_fft])
-        if mpi.rank == 0 or self.oper.SEQUENTIAL:
-            bvec_fft[:, 0, 0] = 0.
-        return bvec_fft
+        coeff = {'uuu':-1., 'uvu':-1.,
+                 'vuv':-1., 'vvv':-1.,
+                 'eeu':0.5 * c2, 'eev':0.5 * c2,
+                 'uud':-0.5, 'vvd':-0.5,
+                 'dee':0.25 * c2}
+
+        return keys, coeff
 
     def compute(self):
         """Compute spectral energy budget once for current time."""
 
         oper = self.oper
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state('ux_fft')
+        uy_fft = self.sim.state('uy_fft')
+        eta_fft = self.sim.state('eta_fft')
         c2 = self.params.c2
 
         ux = self.sim.state.state_phys.get_var('ux')
@@ -1095,28 +938,15 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         My_fft = oper.fft2(My)
         oper.dealiasing(Mx_fft, My_fft)
         del(Mx, My)
-
-        self.bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
-
-        Tq_keys = {'uuu': ['ux_fft', 'ux', 'px_ux'],    # Quad. K.E. transfer terms
-                   'uvu': ['ux_fft', 'uy', 'py_ux'],
-                   'vuv': ['uy_fft', 'ux', 'px_uy'],
-                   'vvv': ['uy_fft', 'uy', 'py_uy'],
-                   'eeu': ['px_eta_fft', 'eta', 'ux'],  # Quad. A.P.E. transfer terms
-                   'eev': ['py_eta_fft', 'eta', 'uy'],
-                   'uud': ['ux_fft', 'ux', 'div'],      # NonQuad. K.E. - Quad K.E. transfer terms
-                   'vvd': ['uy_fft', 'uy', 'div'],
-                   'dee': ['div_fft', 'eta', 'eta']}    # NonQuad. K.E. - Quad A.P.E. transfer terms
+        
+        self.norm_mode.compute()
+        
+        Tq_keys, Tq_coeff = self._transfer_keys_coeff()
 
         Tq_terms = dict.fromkeys(Tq_keys)
         for key in Tq_keys.keys():
-            triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
-
-        Tq_coeff = {'uuu': -1., 'uvu': -1.,
-                    'vuv': -1., 'vvv': -1.,
-                    'eeu': 0.5 * c2, 'eev': 0.5 * c2,
-                    'uud': -0.5, 'vvd': -0.5,
-                    'dee': 0.25 * c2}
+            triad_key_modes, Tq_terms[key] = self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
+        
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
@@ -1135,9 +965,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_terms = dict.fromkeys(Cq_keys)
         for key in Cq_keys.keys():
             dyad_key_modes, Cq_terms[
-                key] = self._dyad_from_keyfft(True, *Cq_keys[key])
-
-        Cq_coeff = {'ue': -c2, 've': -c2}
+                key] = self.norm_mode.dyad_from_keyfft(True, *Cq_keys[key])
+        
+        Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
         n_modes = dyad_key_modes[0].shape[0]
         for i in xrange(n_modes):        # GG, AG, aG, AA
@@ -1146,8 +976,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
 
         del(Cq_keys, Cq_terms, Cq_coeff)
-        del(self.bvec_fft)
-
+        
         # -----------------------------------------------
         # Non-quadratic K.E. transfer and exchange terms
         # -----------------------------------------------
@@ -1174,24 +1003,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                     inner_prod(uy_fft, uy_divM))
         Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divM)
         del(M_udu, u_udM, divM, ux_divM, uy_divM, u_u_divM)
-
-        """-----------------------------------------------
-        px_eta_fft, py_eta_fft = oper.gradfft_from_fft(eta_fft)
-        M_gradeta = (inner_prod(Mx_fft, px_eta_fft) +
-                     inner_prod(My_fft, py_eta_fft))
-        del(px_eta_fft, py_eta_fft)
-        EP = 0.5*eta*eta
-        EP_fft = oper.fft2(EP)
-        oper.dealiasing(EP_fft)
-        del(EP)
-        px_EP_fft, py_EP_fft = oper.gradfft_from_fft(EP_fft)
-        del(EP_fft)
-        u_dEP = (inner_prod(ux_fft, px_EP_fft) +
-                 inner_prod(uy_fft, py_EP_fft))
-        del(px_EP_fft, py_EP_fft)
-        Cnq_fft = -0.5 * c2 * np.real(M_gradeta + u_dEP)
-        del(M_gradeta, u_dEP)
-        """
+        
         # --------------------------------------
         # Enstrophy transfer terms
         # --------------------------------------
@@ -1312,7 +1124,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         print(to_print)
 
         # -------------------------
-        # Transfer terms
+        # Quadratic Transfer terms
         # -------------------------
         x_left_axe = 0.12
         z_bottom_axe = 0.46
@@ -1346,7 +1158,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         ax11.set_xscale('log')
         ax11.axhline()
 
-        norm = self.sim.params.forcing.forcing_rate
+        P = self.sim.params.forcing.forcing_rate
+        norm = 1 if P == 0 else P
         if delta_t != 0.:
             for it in xrange(imin_plot, imax_plot, delta_i_plot):
                 transferEtot = 0.
@@ -1371,24 +1184,25 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
         Pi_nq = cumsum_inv(Tnq) * self.oper.deltakh
         Pi_ens = cumsum_inv(Tens) * self.oper.deltakh
-        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
-
+        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs +Pi_GAAd + Pi_AAA
+       
+        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
         ax1.plot(khE, Pi_AGG, 'm--', linewidth=2, label=r'$\Pi_{GGA}$')
         ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
         ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
         ax1.plot(khE, Pi_AAA, 'y--', linewidth=2, label=r'$\Pi_{AAA}$')
         ax1.plot(khE, Pi_nq, 'k--', linewidth=2, label=r'$\Pi^{NQ}$')
-        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.legend()
-
+        ax1.axhline(y=self.sim.params.forcing.forcing_rate, color='k', linestyle=':')
+        
+        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.plot(khE, Tq_GGG, 'g--', linewidth=2, label=r'$T_{GGG}$')
         ax11.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$T_{GGA}$')
         ax11.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$T_{G\pm\pm}$')
         ax11.plot(khE, Tq_GAAd, 'b:', linewidth=2, label=r'$T_{G\pm\mp}$')
         ax11.plot(khE, Tq_AAA, 'y--', linewidth=2, label=r'$T_{AAA}$')
         ax11.plot(khE, Tnq, 'k--', linewidth=2, label=r'$T^{NQ}$')
-        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.legend()
         # -------------------------
         # Quadratic exchange terms
@@ -1419,9 +1233,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 ax2.plot(khE, Cfluxtot, 'k', linewidth=1)
 
         ax2.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$\Sigma C_{tot}$')
-        ax2.plot(khE, Cflux_GG, 'g:', linewidth=2, label=r'$\Sigma C_{GG}$')
-        ax2.plot(khE, Cflux_AG, 'm--', linewidth=2, label=r'$\Sigma C_{GA}$')
-        ax2.plot(khE, Cflux_AA, 'y--', linewidth=2, label=r'$\Sigma C_{AA}$')
+        ax2.plot(khE, Cflux_GG, 'g', linewidth=2, label=r'$\Sigma C_{GG}$')
+        ax2.plot(khE, Cflux_AG, 'm', linewidth=2, label=r'$\Sigma C_{GA}$')
+        ax2.plot(khE, Cflux_AA, 'y', linewidth=2, label=r'$\Sigma C_{AA}$')
+        ax2.plot(khE, exchange_mean, 'k:', linewidth=2, label=r'$C_{tot}$')
+        ax2.plot(khE, exchange_GG, 'g:', linewidth=1, label=r'$C_{GG}$')
+        ax2.plot(khE, exchange_AG, 'm:', linewidth=1, label=r'$C_{GA}$')
+        ax2.plot(khE, exchange_AA, 'y:', linewidth=1, label=r'$C_{AA}$')
         ax2.legend()
 
         ax22 = fig2.add_axes(size_axe)
@@ -1437,3 +1255,27 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         fig2.canvas.draw()
 
         f.close()
+
+
+class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
+
+    def __init__(self, output):
+        norm_mode = NormalModeDecompositionModified(output)
+        super(SpectralEnergyBudgetSW1LModified, self).__init__(output, norm_mode)
+
+    def _transfer_keys_coeff(self):
+        c2 = self.params.c2
+        keys = {'uuu': ['ux_fft', 'urx', 'px_ux'],  # Quad. K.E. transfer terms
+                'uvu': ['ux_fft', 'ury', 'py_ux'],
+                'vuv': ['uy_fft', 'urx', 'px_uy'],
+                'vvv': ['uy_fft', 'ury', 'py_uy'],
+                'eeu': ['px_eta_fft', 'eta', 'urx'],  # Quad. A.P.E. transfer terms
+                'eev': ['py_eta_fft', 'eta', 'ury'],
+                }
+
+        coeff = {'uuu': -1., 'uvu': -1.,
+                 'vuv': -1., 'vvv': -1.,
+                 'eeu': 0.5 * c2, 'eev': 0.5 * c2,
+                 }
+
+        return keys, coeff

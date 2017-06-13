@@ -27,6 +27,33 @@ class Parameters(ParamContainer):
     pass
 
 
+def merge_params(*paramcontainers):
+    """Merges missing parameters attributes and children."""
+    if any([not isinstance(params, Parameters) for params in paramcontainers]):
+        raise ValueError('Can only merge instances of Parameters')
+
+    params_merged = paramcontainers[0]
+
+    def merge_params_pair(params1, params2):
+        diff_attribs = params2._attribs - params1._attribs
+        for attrib in diff_attribs:
+            params1._set_attrib(attrib, params2[attrib])
+
+        diff_children = params2._tag_children - params1._tag_children
+        for child in diff_children:
+            params1._set_child(child, params2[child])
+
+        for child in params2._tag_children:
+            params1[child] = merge_params_pair(params1[child], params2[child])
+
+        return params
+
+    for params in paramcontainers[1:]:
+        params_merged = merge_params_pair(params_merged, params)
+
+    return params_merged
+
+
 def create_params(input_info_solver):
     """Create a Parameters instance from an InfoSolverBase instance."""
     if isinstance(input_info_solver, InfoSolverBase):
