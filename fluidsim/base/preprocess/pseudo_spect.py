@@ -15,7 +15,7 @@ from .base import PreprocessBase
 
 class PreprocessPseudoSpectral(PreprocessBase):
     _tag = 'pseudo_spectral'
-    
+
     def __call__(self):
         """Preprocesses if enabled."""
 
@@ -145,7 +145,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):
-        r""" Based on C, a non-dimensional ratio of forcing rate to one of the 
+        r""" Based on C, a non-dimensional ratio of forcing rate to one of the
         following forcing scales
 
         - the initial total energy, math:: E_0

@@ -1,4 +1,4 @@
-
+all:	clean_so clean_pyc clean develop
 
 develop:
 	python setup.py develop
