@@ -3,13 +3,15 @@ import unittest
 import numpy as np
 import sys
 
+from fluiddyn.util.mpi import nb_proc
+
 try:
     from fluidsim.operators.fft import fftw2dmpicy
     FFTWMPI = True
 except ImportError:
     FFTWMPI = False
 
-
+@unittest.skipIf(nb_proc, 'Not implemented.')
 @unittest.skipIf(not FFTWMPI, 'fftw2dmpicy fails to be imported.')
 @unittest.skipIf(sys.platform.startswith("win"), "Will fail on Windows")
 class TestFFT2Dmpi(unittest.TestCase):

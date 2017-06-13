@@ -25,4 +25,4 @@ try:
     from setuptools_scm import get_version
     __version__ = get_version()
 except:
-    __version__ = '0.0.2a2'
+    __version__ = '0.0.3a1'

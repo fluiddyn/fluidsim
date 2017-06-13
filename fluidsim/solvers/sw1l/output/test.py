@@ -157,8 +157,8 @@ class TestSpectEnergyBudg(unittest.TestCase):
         self.assertAlmostEqual(enstrophy_GGG,0)
 
 
-class TestSpectEnergyBudgExmod(TestSpectEnergyBudg):
-    solver = 'sw1l.exactlin.modified'
+# class TestSpectEnergyBudgExmod(TestSpectEnergyBudg):
+#     solver = 'sw1l.exactlin.modified'
 
 
 if __name__ == '__main__':
