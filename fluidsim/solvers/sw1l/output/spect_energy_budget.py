@@ -947,7 +947,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         Tq_terms = dict.fromkeys(Tq_keys)
         for key in list(Tq_keys.keys()):
-            triad_key_modes, Tq_terms[key] = self._triad_from_keyfftphys(*Tq_keys[key])
+            triad_key_modes, Tq_terms[key] = self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
         
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
@@ -966,7 +966,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                    've': ['uy_fft', 'py_eta_fft']}
         Cq_terms = dict.fromkeys(Cq_keys)
         for key in list(Cq_keys.keys()):
-            dyad_key_modes, Cq_terms[key] = self._dyad_from_keyfft(True, *Cq_keys[key])
+            dyad_key_modes, Cq_terms[key] = self.norm_mode.dyad_from_keyfft(True, *Cq_keys[key])
         
         Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
