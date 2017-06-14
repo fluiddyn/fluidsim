@@ -2,6 +2,7 @@ from __future__ import division
 
 import unittest
 import shutil
+import os
 
 import numpy as np
 
@@ -116,7 +117,11 @@ class TestSolverNS2D(unittest.TestCase):
             sim.state.compute('q')
             sim.state.compute('div')
 
-            sim3 = fls.load_state_phys_file(sim.output.path_run)
+            path_run = sim.output.path_run
+            if mpi.nb_proc > 1:
+                path_run = mpi.comm.bcast(path_run)
+
+            sim3 = fls.load_state_phys_file(path_run)
             sim3.params.time_stepping.t_end += 10.
             sim3.time_stepping.start()
 
