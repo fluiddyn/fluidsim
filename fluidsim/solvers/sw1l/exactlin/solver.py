@@ -43,6 +43,12 @@ class Simul(SimulSW1L):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
     InfoSolver = InfoSolverSW1LExactLin
 
+    def __init__(self, params):
+        if params.beta != 0:
+            raise NotImplementedError('Do not use this solver for beta-plane!')
+
+        super(Simul, self).__init__(params)
+
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
         fft2 = oper.fft2

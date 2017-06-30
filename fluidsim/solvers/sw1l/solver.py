@@ -84,6 +84,9 @@ class Simul(SimulBasePseudoSpectral):
         else:
             rot_abs = rot
 
+        if self.params.beta != 0:
+            rot_abs += self.params.beta * oper.YY
+
         F1x = rot_abs*uy
         F1y = -rot_abs*ux
         gradx_fft, grady_fft = oper.gradfft_from_fft(
