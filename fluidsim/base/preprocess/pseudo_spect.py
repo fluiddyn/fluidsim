@@ -133,11 +133,18 @@ class PreprocessPseudoSpectral(PreprocessBase):
         k_max = np.pi / delta_x * self.sim.params.oper.coef_dealiasing
         # OR np.pi / k_d, the dissipative wave number
         length_scale = C * np.pi / k_max
+        k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
+                                    self.sim.params.forcing.nkmin_forcing) // 2)
+        large_scale = np.pi / k_f
     
         if viscosity_scale == 'enstrophy':                     
             omega_0 = self.output.compute_enstrophy()
             eta = omega_0 ** 1.5                   # Enstrophy dissipation rate
             time_scale = eta ** (-1. / 3)
+        elif viscosity_scale == 'energy':
+            energy_0 = self.output.compute_energy()
+            epsilon = energy_0 * (1.5) / large_scale
+            time_scale = epsilon ** (-1./3) * length_scale ** (2./3)
         elif viscosity_scale == 'enstrophy_forcing':
             omega_0 = self.output.compute_enstrophy()
             eta = omega_0 ** 1.5

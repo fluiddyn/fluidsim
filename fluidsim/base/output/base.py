@@ -370,6 +370,20 @@ class OutputBasePseudoSpectral(OutputBase):
         self.sum_wavenumbers = oper.sum_wavenumbers
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
 
+    def compute_energy_fft(self):
+        """Compute energy(k)"""
+        energy_fft = 0.
+        for k in self.sim.state.keys_state_fft:
+            energy_fft += (
+                np.abs(self.sim.state.state_fft.get_var(k)) ** 2) / 2.
+
+        return energy_fft
+
+    def compute_energy(self):
+        """Compute the spatially averaged energy."""
+        energy_fft = self.compute_energy_fft()
+        return self.sum_wavenumbers(energy_fft)
+
 
 class SpecificOutput(object):
     """Small class for features useful for specific outputs"""
