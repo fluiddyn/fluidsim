@@ -21,7 +21,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: RamdomSimplePseudoSpectral
+.. autoclass:: RandomSimplePseudoSpectral
    :members:
    :private-members:
 
@@ -406,7 +406,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         return alpha
 
 
-class RamdomSimplePseudoSpectral(NormalizedForcing):
+class RandomSimplePseudoSpectral(NormalizedForcing):
     tag = 'random'
 
     def compute_forcingc_raw(self):
@@ -423,7 +423,8 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
         return self.compute_forcingc_raw()
 
 
-class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
+class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
+    tag = 'tcrandom'
 
     @classmethod
     def _complete_params_with_default(cls, params):

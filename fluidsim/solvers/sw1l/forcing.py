@@ -16,7 +16,7 @@ from fluidsim.base.forcing import ForcingBasePseudoSpectral
 from fluidsim.base.forcing.specific import (
     Proportional as ProportionalBase,
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS,
-    RamdomSimplePseudoSpectral)
+    RandomSimplePseudoSpectral)
 
 
 class ForcingSW1L(ForcingBasePseudoSpectral):
@@ -39,7 +39,7 @@ class Proportional(ProportionalBase):
     _key_forced_default = 'q_fft'
 
 
-class Waves(RamdomSimplePseudoSpectral):
+class Waves(RandomSimplePseudoSpectral):
     tag = 'waves'
     _key_forced_default = 'a_fft'
 
