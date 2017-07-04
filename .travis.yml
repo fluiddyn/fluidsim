@@ -24,11 +24,7 @@ addons:
 
 install:
     - pip install -U pip setuptools wheel six
-    - pip install -U numpy matplotlib scipy psutil
-    - pip install -U future pyfftw mpi4py h5py ipython pillow
-    - pip install -U tox coverage
-    - pip install -U cython pythran
-    - make develop
+    - pip install -U tox
 
 before_script:
     - |
