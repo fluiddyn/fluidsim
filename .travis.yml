@@ -11,6 +11,10 @@ matrix:
       env: TOXENV=py,codecov-travis
     - python: 2.7
       env: TOXENV=py,codecov-travis
+    - python: 3.6
+      env: TOXENV=py-pythran,codecov-travis
+    - python: 2.7
+      env: TOXENV=py-pythran,codecov-travis
 
 cache: pip
 
