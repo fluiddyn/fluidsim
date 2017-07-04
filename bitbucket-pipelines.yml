@@ -14,4 +14,4 @@ pipelines:
           - tox --version
           - gcc --version
           - mpirun --version
-          - tox
+          - tox -e py27,py36,codecov

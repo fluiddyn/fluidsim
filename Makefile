@@ -25,12 +25,16 @@ tests_coverage:
 	coverage erase
 	coverage run -p -m unittest discover
 	mpirun -np 2 coverage run -p -m unittest discover
+
+report_coverage:
 	coverage combine
 	coverage report
 	coverage html
 	coverage xml
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
+
+coverage: tests_coverage report_coverage
 
 install:
 	python setup.py install

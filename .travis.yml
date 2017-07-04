@@ -1,0 +1,43 @@
+sudo: false
+language: python
+
+matrix:
+  include:
+    - python: 3.6
+      env: TOXENV=py,codecov-travis
+    - python: 3.5
+      env: TOXENV=py,codecov-travis
+    - python: 3.4
+      env: TOXENV=py,codecov-travis
+    - python: 2.7
+      env: TOXENV=py,codecov-travis
+
+cache: pip
+
+addons:
+    apt:
+        packages:
+            - libfftw3-dev
+            - libhdf5-openmpi-dev
+            - openmpi-bin
+            - libopenblas-dev
+
+install:
+    - pip install -U pip setuptools wheel six
+    - pip install -U numpy matplotlib scipy psutil
+    - pip install -U future pyfftw mpi4py h5py ipython pillow
+    - pip install -U tox coverage
+    - pip install -U cython pythran
+    - make develop
+
+before_script:
+    - |
+      mkdir -p $HOME/.config/matplotlib
+      echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+
+script:
+    - tox
+
+notifications:
+  email: false
+  irc: "chat.freenode.net#fluiddyn"
