@@ -30,6 +30,7 @@ before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+      pip install -U numpy
 
 script:
     - tox
