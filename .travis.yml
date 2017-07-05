@@ -20,7 +20,11 @@ cache: pip
 
 addons:
     apt:
+        sources:
+            - ubuntu-toolchain-r-test
         packages:
+            - gcc-4.9
+            - g++-4.9
             - libfftw3-dev
             - libhdf5-openmpi-dev
             - openmpi-bin
