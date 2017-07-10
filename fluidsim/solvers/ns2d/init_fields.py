@@ -163,6 +163,6 @@ class InitFieldsNS2D(InitFieldsBase):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
-        super(InitFieldsNS2D, InitFieldsNS2D)._complete_info_solver(
+        InitFieldsBase._complete_info_solver(
             info_solver, classes=[
                 InitFieldsNoise, InitFieldsJet, InitFieldsDipole])

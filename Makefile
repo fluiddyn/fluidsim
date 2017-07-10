@@ -8,6 +8,7 @@ clean_so:
 
 clean_pyc:
 	find fluidsim -name "*.pyc" -delete
+	find fluidsim -name "__pycache__" -type d | xargs rm -r
 
 clean:
 	rm -rf build
