@@ -1,7 +1,6 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import object
-from past.utils import old_div
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -69,7 +68,8 @@ class MoviesBase(object):
         """
         raise NotImplementedError('_select_field function declaration missing')
 
-    def animate(self, key_field=None, numfig=None, nb_contours=10, frame_dt=300, file_dt=0.1, xmax=None, ymax=None, save_file=None):
+    def animate(self, key_field=None, numfig=None, nb_contours=10, frame_dt=300,
+                file_dt=0.1, xmax=None, ymax=None, save_file=None, **fargs):
         """
         Load the key field from multiple save files and display as
         an animated plot.
@@ -89,8 +89,9 @@ class MoviesBase(object):
                              'is not implemented.')
 
         self._ani_init(key_field, numfig, nb_contours, file_dt, xmax, ymax)
-        self._animation = animation.FuncAnimation(self._ani_fig, self._ani_update, self._ani_t,
-                                                  interval=frame_dt, blit=False)
+        self._animation = animation.FuncAnimation(
+            self._ani_fig, self._ani_update, self._ani_t, fargs=fargs.items(),
+            interval=frame_dt, blit=False)
 
         if save_file is not None:
             self._ani_save(save_file, frame_dt)
@@ -98,7 +99,7 @@ class MoviesBase(object):
     def _ani_init(self):
         pass
 
-    def _ani_update(self):
+    def _ani_update(self, **fargs):
         pass
 
     def _ani_save(self, filename=r'movie.avi', frame_dt=300):
@@ -135,7 +136,7 @@ class MoviesBase1D(MoviesBase):
         tmax = int(self.sim.time_stepping.t)
         self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
 
-    def _ani_update(self, time):
+    def _ani_update(self, time, **fargs):
         """
         Loads contour data and updates figure
         """
@@ -175,7 +176,6 @@ class MoviesBase2D(MoviesBase):
         self._set_font()
         self._set_path()
 
-
         x_left_axe = 0.08
         z_bottom_axe = 0.07
         width_axe = 0.87
@@ -190,7 +190,7 @@ class MoviesBase2D(MoviesBase):
         tmax = int(self.sim.time_stepping.t)
         self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
 
-    def _ani_update(self, time):
+    def _ani_update(self, time, **fargs):
         """
         Loads contour data and updates figure
 
@@ -201,7 +201,7 @@ class MoviesBase2D(MoviesBase):
         with stdout_redirected():
             field, key_field = self._ani_get_field(time)
 
-        contours = self._ani_ax.contourf(x, y, field, self._ani_nbc)
+        contours = self._ani_ax.contourf(x, y, field, self._ani_nbc, **fargs)
 
 
         # self._ani_fig.colorbar(contours)
