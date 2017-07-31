@@ -951,6 +951,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def _transfer_keys_coeff(self):
         c2 = self.params.c2
+        # TODO: Check again for possible bugs as found in SpectralEnergyBudgetSW1LModified
         keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
                 'uvu':['ux_fft','uy','py_ux'],
                 'vuv':['uy_fft','ux','px_uy'],
@@ -1321,13 +1322,13 @@ class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
                 'uvu': ['ux_fft', 'ury', 'py_ux'],
                 'vuv': ['uy_fft', 'urx', 'px_uy'],
                 'vvv': ['uy_fft', 'ury', 'py_uy'],
-                'eeu': ['px_eta_fft', 'eta', 'urx'],  # Quad. A.P.E. transfer terms
-                'eev': ['py_eta_fft', 'eta', 'ury'],
-                }
+                'eeu': ['eta_fft', 'urx', 'px_eta'],  # Quad. A.P.E. transfer terms
+                'eev': ['eta_fft', 'ury', 'py_eta'],
+               }
 
         coeff = {'uuu': -1., 'uvu': -1.,
                  'vuv': -1., 'vvv': -1.,
-                 'eeu': 0.5 * c2, 'eev': 0.5 * c2,
+                 'eeu': -c2, 'eev': -c2,
                  }
 
         return keys, coeff

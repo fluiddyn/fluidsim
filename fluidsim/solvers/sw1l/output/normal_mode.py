@@ -287,17 +287,20 @@ class NormalModeDecomposition(NormalModeBase):
 class NormalModeDecompositionModified(NormalModeDecomposition):
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
-            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
-                q_fft = self.sim.state('q_fft')
-                ap_fft = self.sim.state('ap_fft')
-                am_fft = self.sim.state('am_fft')
-                a_fft = ap_fft + am_fft
-                bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
-            else:
-                rot_fft = self.sim.state.compute('rot_fft')
-                uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
-                eta_fft = self.sim.state('eta_fft')
-                bvecrot_fft = self.bvecfft_from_qapamfft(uxr_fft, uyr_fft, eta_fft)
+            #
+            # FIXME:Does not work
+            #
+            # if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
+            #     q_fft = self.sim.state('q_fft')
+            #     ap_fft = self.sim.state('ap_fft')
+            #     am_fft = self.sim.state('am_fft')
+            #     a_fft = ap_fft + am_fft
+            #     bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
+            # else:
+            rot_fft = self.sim.state.compute('rot_fft')
+            uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
+            eta_fft = self.sim.state('eta_fft')
+            bvecrot_fft = self.bvecfft_from_uxuyetafft(uxr_fft, uyr_fft, eta_fft)
 
             self.bvecrot_fft = bvecrot_fft
 
