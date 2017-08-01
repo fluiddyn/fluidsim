@@ -169,7 +169,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.params.nu_4 = 0
         self.sim.params.nu_8 = 0
         self.sim.params.nu_m4 = 0
-        
+
         type_ok = False
         if 'laplacian' in viscosity_type:
             type_ok = True
@@ -186,12 +186,10 @@ class PreprocessPseudoSpectral(PreprocessBase):
         if 'hypo' in viscosity_type:
             type_ok = True
             self.sim.params.nu_m4 = length_scale ** (-4.) / time_scale
-        else:
-            raise ValueError('Unknown viscosity type: %s' % viscosity_type)
 
         if not type_ok:
             raise ValueError('Unknown viscosity type: %s'%viscosity_type)
-        
+
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):

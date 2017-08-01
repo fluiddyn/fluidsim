@@ -97,10 +97,5 @@ class TestSW1LExmod(TestSW1L):
     options = {'HAS_TO_SAVE': True, 'FORCING': False}
 
 
-    def test_sw1l_exactlin_modified(self):
-        """Should be able to run a SW1L.exactlin.modified simul."""
-        self.sim = run_mini_simul('SW1L.exactlin.modified')
-        clean_simul(self.sim)
-
 if __name__ == '__main__':
     unittest.main()
