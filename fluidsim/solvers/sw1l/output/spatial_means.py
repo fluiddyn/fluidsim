@@ -65,8 +65,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             skew_eta = 0.
             kurt_eta = 0.
         else:
-            skew_eta = old_div(np.mean(eta**3),meaneta2**(old_div(3.,2)))
-            kurt_eta = old_div(np.mean(eta**4),meaneta2**(2))
+            skew_eta = np.mean(eta**3) / meaneta2**(3. / 2)
+            kurt_eta = np.mean(eta**4) / meaneta2**(2)
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -79,8 +79,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             skew_rot = 0.
             kurt_rot = 0.
         else:
-            skew_rot = old_div(np.mean(rot**3),meanrot2**(old_div(3.,2)))
-            kurt_rot = old_div(np.mean(rot**4),meanrot2**(2))
+            skew_rot = np.mean(rot**3) / meanrot2**(3. / 2)
+            kurt_rot = np.mean(rot**4) / meanrot2**(2)
 
         if mpi.rank == 0:
             to_print = (
@@ -487,14 +487,14 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
-        norm = old_div(self.c2, 2)
-        ax1.plot(t, old_div(E, norm), 'k', linewidth=2, label='$E$')
-        ax1.plot(t, old_div(EK, norm), 'r', linewidth=1, label='$E_K$')
-        ax1.plot(t, old_div(EA, norm), 'b', linewidth=1, label='$E_A$')
-        ax1.plot(t, old_div(EKr, norm), 'r--', linewidth=1, label='$E_K^r$')
-        ax1.plot(t, old_div((EK - EKr), norm), 'r:', linewidth=1, label='$E_K^d$')
+        norm = self.c2 / 2
+        ax1.plot(t, E / norm, 'k', linewidth=2, label='$E$')
+        ax1.plot(t, EK / norm, 'r', linewidth=1, label='$E_K$')
+        ax1.plot(t, EA / norm, 'b', linewidth=1, label='$E_A$')
+        ax1.plot(t, EKr / norm, 'r--', linewidth=1, label='$E_K^r$')
+        ax1.plot(t, (EK - EKr) / norm, 'r:', linewidth=1, label='$E_K^d$')
         ax1.legend()
-
+        
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
@@ -586,7 +586,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         i = 0
         for k in keys:
             E = dico_results[k]
-            dE_dt = abs(old_div(np.gradient(E, 1.),dt))
+            dE_dt = abs(np.gradient(E, 1.) / dt)
             dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
@@ -697,7 +697,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         state = self.sim.state
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
-        eta_fft = state('eta_fft')        
+        eta_fft = state('eta_fft')
         
         Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat

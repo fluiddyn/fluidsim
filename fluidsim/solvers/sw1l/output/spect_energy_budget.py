@@ -903,6 +903,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def _transfer_keys_coeff(self):
         c2 = self.params.c2
+        # TODO: Check again for possible bugs as found in SpectralEnergyBudgetSW1LModified
         keys = {'uuu':['ux_fft','ux','px_ux'], # Quad. K.E. transfer terms
                 'uvu':['ux_fft','uy','py_ux'],
                 'vuv':['uy_fft','ux','px_uy'],
@@ -1125,7 +1126,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         print(to_print)
 
         # -------------------------
-        # Quadratic Transfer terms
+        #  Transfer terms
         # -------------------------
         x_left_axe = 0.12
         z_bottom_axe = 0.46
@@ -1169,41 +1170,40 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 PiEtot = cumsum_inv(transferEtot) * self.oper.deltakh / norm
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
-        Tq_GGG = old_div(f['Tq_GGG'][imin_plot:imax_plot].mean(0), norm)
-        Tq_AGG = old_div(f['Tq_AGG'][imin_plot:imax_plot].mean(0), norm)
-        Tq_GAAs = old_div(f['Tq_GAAs'][imin_plot:imax_plot].mean(0), norm)
-        Tq_GAAd = old_div(f['Tq_GAAd'][imin_plot:imax_plot].mean(0), norm)
-        Tq_AAA = old_div(f['Tq_AAA'][imin_plot:imax_plot].mean(0), norm)
-        Tnq = old_div(f['Tnq'][imin_plot:imax_plot].mean(0), norm)
-        Tens =  old_div(f['Tens'][imin_plot:imax_plot].mean(0), norm)
-        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs +Tq_GAAd + Tq_AAA
-       
-        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh 
-        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh 
+        Tq_GGG = f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AGG = f['Tq_AGG'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAs = f['Tq_GAAs'][imin_plot:imax_plot].mean(0) / norm
+        Tq_GAAd = f['Tq_GAAd'][imin_plot:imax_plot].mean(0) / norm
+        Tq_AAA = f['Tq_AAA'][imin_plot:imax_plot].mean(0) / norm
+        Tnq = f['Tnq'][imin_plot:imax_plot].mean(0) / norm
+        Tens = f['Tens'][imin_plot:imax_plot].mean(0) / norm
+        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
+
+        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh
+        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh
         Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltakh
         Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltakh
         Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
         Pi_nq = cumsum_inv(Tnq) * self.oper.deltakh
         Pi_ens = cumsum_inv(Tens) * self.oper.deltakh
-        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs +Pi_GAAd + Pi_AAA
-       
-        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
+        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
+
         ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
         ax1.plot(khE, Pi_AGG, 'm--', linewidth=2, label=r'$\Pi_{GGA}$')
         ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
         ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
         ax1.plot(khE, Pi_AAA, 'y--', linewidth=2, label=r'$\Pi_{AAA}$')
         ax1.plot(khE, Pi_nq, 'k--', linewidth=2, label=r'$\Pi^{NQ}$')
+        ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.legend()
-        ax1.axhline(y=self.sim.params.forcing.forcing_rate, color='k', linestyle=':')
         
-        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.plot(khE, Tq_GGG, 'g--', linewidth=2, label=r'$T_{GGG}$')
         ax11.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$T_{GGA}$')
         ax11.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$T_{G\pm\pm}$')
         ax11.plot(khE, Tq_GAAd, 'b:', linewidth=2, label=r'$T_{G\pm\mp}$')
         ax11.plot(khE, Tq_AAA, 'y--', linewidth=2, label=r'$T_{AAA}$')
         ax11.plot(khE, Tnq, 'k--', linewidth=2, label=r'$T^{NQ}$')
+        ax11.plot(khE, Tq_tot, 'k', linewidth=3, label=r'$T_{tot}$')
         ax11.legend()
         # -------------------------
         # Quadratic exchange terms
@@ -1234,13 +1234,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 ax2.plot(khE, Cfluxtot, 'k', linewidth=1)
 
         ax2.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$\Sigma C_{tot}$')
-        ax2.plot(khE, Cflux_GG, 'g', linewidth=2, label=r'$\Sigma C_{GG}$')
-        ax2.plot(khE, Cflux_AG, 'm', linewidth=2, label=r'$\Sigma C_{GA}$')
-        ax2.plot(khE, Cflux_AA, 'y', linewidth=2, label=r'$\Sigma C_{AA}$')
-        ax2.plot(khE, exchange_mean, 'k:', linewidth=2, label=r'$C_{tot}$')
-        ax2.plot(khE, exchange_GG, 'g:', linewidth=1, label=r'$C_{GG}$')
-        ax2.plot(khE, exchange_AG, 'm:', linewidth=1, label=r'$C_{GA}$')
-        ax2.plot(khE, exchange_AA, 'y:', linewidth=1, label=r'$C_{AA}$')
+        ax2.plot(khE, Cflux_GG, 'g:', linewidth=2, label=r'$\Sigma C_{GG}$')
+        ax2.plot(khE, Cflux_AG, 'm--', linewidth=2, label=r'$\Sigma C_{GA}$')
+        ax2.plot(khE, Cflux_AA, 'y--', linewidth=2, label=r'$\Sigma C_{AA}$')
         ax2.legend()
 
         ax22 = fig2.add_axes(size_axe)
@@ -1270,13 +1266,13 @@ class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
                 'uvu': ['ux_fft', 'ury', 'py_ux'],
                 'vuv': ['uy_fft', 'urx', 'px_uy'],
                 'vvv': ['uy_fft', 'ury', 'py_uy'],
-                'eeu': ['px_eta_fft', 'eta', 'urx'],  # Quad. A.P.E. transfer terms
-                'eev': ['py_eta_fft', 'eta', 'ury'],
-                }
+                'eeu': ['eta_fft', 'urx', 'px_eta'],  # Quad. A.P.E. transfer terms
+                'eev': ['eta_fft', 'ury', 'py_eta'],
+               }
 
         coeff = {'uuu': -1., 'uvu': -1.,
                  'vuv': -1., 'vvv': -1.,
-                 'eeu': 0.5 * c2, 'eev': 0.5 * c2,
+                 'eeu': -c2, 'eev': -c2,
                  }
 
         return keys, coeff

@@ -89,7 +89,7 @@ class StateSW1L(StatePseudoSpectral):
             h = self.compute('h')
             ux = self.state_phys.get_var('ux')
             uy = self.state_phys.get_var('uy')
-            result = np.sqrt(old_div((ux**2 + uy**2),(self.sim.params.c2*h)))
+            result = np.sqrt((ux**2 + uy**2)/(self.sim.params.c2*h))
 
         else:
             to_print = 'Do not know how to compute "'+key+'".'
@@ -146,7 +146,7 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
-    def init_fft_from(self, **kwargs):
+    def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'q_fft' in kwargs:
                 self.init_from_qfft(kwargs['q_fft'])
@@ -239,9 +239,9 @@ class StateSW1L(StatePseudoSpectral):
 
         uu2_fft = self.oper.fft2(ux**2 + uy**2)
 
-        eta_fft = old_div((1.j * self.oper.KX*tempx_fft/K2_not0 +
+        eta_fft = (1.j * self.oper.KX*tempx_fft/K2_not0 +
                    1.j*self.oper.KY*tempy_fft/K2_not0 -
-                   old_div(uu2_fft,2)),self.params.c2)
+                   uu2_fft/2)/self.params.c2
         if mpi.rank == 0:
             eta_fft[0, 0] = 0.
         self.oper.dealiasing(eta_fft)

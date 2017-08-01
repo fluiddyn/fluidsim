@@ -10,9 +10,9 @@ Provides:
    :private-members:
 
 """
-
-
 from builtins import object
+
+
 class PreprocessBase(object):
     _tag = 'preprocess'
 
@@ -42,7 +42,7 @@ class PreprocessBase(object):
                    'viscosity_const' : 1.,
                    'forcing_scale' : 'unity',
                    'forcing_const' : 1.}
-                   
+
         params._set_child('preprocess', attribs=attribs)
 
         dict_classes = info_solver.classes.Preprocess.import_classes()

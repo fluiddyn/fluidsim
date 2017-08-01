@@ -160,7 +160,7 @@ class SpectraSW1L(Spectra):
         nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t/delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -250,7 +250,7 @@ imin_plot, imax_plot, delta_i_plot)
         dset_spectrumEKr = f['spectrum2D_EKr']
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t,delta_t_save)))
+        delta_i_plot = int(np.round(delta_t/delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot=1
         delta_t = delta_i_plot*delta_t_save
@@ -367,7 +367,7 @@ imin_plot, imax_plot, delta_i_plot)
         y[abs(y) < 10e-16] = 0
 
         return y, self._ani_key
-
+ 
     def _select_field(self, h5file=None, key_field=None, it=None):
         if key_field is 'Etot' or key_field is None:
             self._ani_key = 'Etot'

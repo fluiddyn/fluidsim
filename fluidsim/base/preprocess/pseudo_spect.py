@@ -142,8 +142,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             omega_0 = self.output.compute_enstrophy()
             eta = omega_0 ** 1.5
             t1 = eta ** (-1. / 3)
-            # Energy dissipation rate
-            epsilon = self.sim.params.forcing.forcing_rate
+            epsilon = self.sim.params.forcing.forcing_rate    # Energy dissipation rate
             t2 = epsilon ** (-1./3) * length_scale ** (2./3)
             time_scale = min(t1, t2)
         elif viscosity_scale == 'energy_enstrophy':
@@ -161,22 +160,33 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.params.nu_4 = 0
         self.sim.params.nu_8 = 0
         self.sim.params.nu_m4 = 0
-
-        if viscosity_type == 'laplacian':
+        
+        type_ok = False
+        if 'laplacian' in viscosity_type:
+            type_ok = True
             self.sim.params.nu_2 = length_scale ** 2. / time_scale
-        elif viscosity_type == 'hyper4':
+
+        if 'hyper4' in viscosity_type:
+            type_ok = True
             self.sim.params.nu_4 = length_scale ** 4. / time_scale
-        elif viscosity_type == 'hyper8':
+
+        if 'hyper8' in viscosity_type: 
+            type_ok = True
             self.sim.params.nu_8 = length_scale ** 8. / time_scale
-        elif viscosity_type == 'hypo':
+
+        if 'hypo' in viscosity_type:
+            type_ok = True
             self.sim.params.nu_m4 = length_scale ** (-4.) / time_scale
         else:
             raise ValueError('Unknown viscosity type: %s' % viscosity_type)
 
+        if not type_ok:
+            raise ValueError('Unknown viscosity type: %s'%viscosity_type)
+        
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):
-        r""" Based on C, a non-dimensional ratio of forcing rate to one of the 
+        r""" Based on C, a non-dimensional ratio of forcing rate to one of the
         following forcing scales
 
         - the initial total energy, math:: E_0
