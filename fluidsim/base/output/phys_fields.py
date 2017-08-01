@@ -190,7 +190,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
     def plot(self, numfig=None, field=None, key_field=None,
              QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
              nb_contours=20, type_plot='contourf', iz=0,
-             cmap='viridis'):
+             vmin=None, vmax=None, cmap='viridis'):
 
         field, key_field = self._select_field(field, key_field)
         keys_state_phys = self.sim.state.keys_state_phys
@@ -225,12 +225,12 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
 
             if type_plot == 'contourf':
                 contours = ax.contourf(x_seq, y_seq, field,
-                                       nb_contours, cmap=cmap)
+                                       nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
                 fig.colorbar(contours)
                 fig.contours = contours
             elif type_plot == 'pcolor':
                 pc = ax.pcolormesh(x_seq, y_seq, field,
-                                   cmap=cmap)
+                                   vmin=vmin, vmax=vmax, cmap=cmap)
                 fig.colorbar(pc)
 
         if QUIVER:
