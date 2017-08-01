@@ -22,8 +22,12 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
 
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -112,10 +116,10 @@ class InitFieldsVortexGrid(SpecificInitFields):
             raise ValueError("Cannot initialize a net circulation free field." +
                              "N_vort should be even.")
 
-        dx_vort = Lx / N_vort
-        dy_vort = Ly / N_vort
-        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort / 2.
-        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
+        dx_vort = old_div(Lx, N_vort)
+        dy_vort = old_div(Ly, N_vort)
+        x_vort = np.linspace(0, Lx, N_vort + 1) + old_div(dx_vort, 2.)
+        y_vort = np.linspace(0, Ly, N_vort + 1) + old_div(dy_vort, 2.)
         sign_list = self._random_plus_minus_list()
 
         if SD is None:
@@ -124,12 +128,12 @@ class InitFieldsVortexGrid(SpecificInitFields):
 
         amp = params.omega_max
         wz_gaussian = lambda x, y, sign:(
-                sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD**2)))
+                sign * amp * np.exp(old_div(-(x ** 2 + y ** 2), (2 * SD**2))))
         
         omega = np.zeros(oper.shapeX_loc)
         for i in xrange(0, N_vort):
             x0 = x_vort[i]
-            for j in xrange(0, N_vort):
+            for j in range(0, N_vort):
                 y0 = y_vort[j]
                 sign = sign_list[i * N_vort + j]
                 omega = omega + wz_gaussian(XX - x0, YY - y0, sign)

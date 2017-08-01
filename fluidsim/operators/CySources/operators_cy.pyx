@@ -14,7 +14,7 @@ This module is written in Cython and provides the classes:
    :members:
    :private-members:
 
-.. autoclass:....: OperatorsPseudoSpectral2D
+.. autoclass:: OperatorsPseudoSpectral2D
    :members:
    :private-members:
 
@@ -42,6 +42,7 @@ else:
 IF MPI4PY:
     from mpi4py cimport MPI
     # from mpi4py.mpi_c cimport *
+    # for mpi4py > 2.0
     from mpi4py.libmpi cimport *
 
     # solve an incompatibility between openmpi and mpi4py versions
@@ -279,7 +280,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakh))
+        ikx_seq = int(np.round(kx_approx/self.deltakx))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
@@ -357,12 +358,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         """This static method is used to complete the *params* container.
         """
         if nb_proc > 1:
-            type_fft = 'FFTWCCY'
+            type_fft = 'fftwccy'
         else:
             if not sys.platform == 'win32':
-                type_fft = 'FFTWCY'
+                type_fft = 'fftwcy'
             else:
-                type_fft = 'FFTWPY'
+                type_fft = 'fftwpy'
 
         attribs = {'type_fft': type_fft,
                    'TRANSPOSED_OK': True,
@@ -387,7 +388,13 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         Lx = params.oper.Lx
         Ly = params.oper.Ly
-        type_fft = str(params.oper.type_fft)
+        try:
+            type_fft = str(params.oper.type_fft2d)
+        except AttributeError:
+            type_fft = str(params.oper.type_fft)
+
+        type_fft = type_fft.lower()
+            
         coef_dealiasing = params.oper.coef_dealiasing
         TRANSPOSED = params.oper.TRANSPOSED_OK
 
@@ -400,24 +407,27 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if params is not None:
             self.params = params
 
-        list_type_fft = ['FFTWCY', 'FFTWCCY', 'FFTWPY', 'FFTPACK']
+        if type_fft == 'sequential':
+            type_fft = 'fftwpy'
+            
+        list_type_fft = ['fftwcy', 'fftwccy', 'fftwpy', 'fftpack']
         if type_fft not in list_type_fft:
             raise ValueError('type_fft should be in ' + repr(list_type_fft))
 
-        if type_fft == 'FFTWCCY' and nb_proc == 1:
-            type_fft = 'FFTWCY'
+        if type_fft == 'fftwccy' and nb_proc == 1:
+            type_fft = 'fftwcy'
 
         try:
-            if type_fft == 'FFTWCY':
+            if type_fft == 'fftwcy':
                 import fluidsim.operators.fft.fftw2dmpicy as fftw2Dmpi
         except ImportError as err:
             if nb_proc == 1:
-                type_fft = 'FFTWPY'
+                type_fft = 'fftwpy'
             else:
-                type_fft = 'FFTWCCY'
+                type_fft = 'fftwccy'
 
         try:
-            if type_fft == 'FFTWCCY':
+            if type_fft == 'fftwccy':
                 # We need to do this check because after the first
                 # import, the import statement doesn't raise the
                 # ImportError correctly (is it normal?)
@@ -430,23 +440,23 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 raise ValueError(
                     'if nb_proc>1, we need one of the libraries '
                     'fftw2Dmpicy or fftw2Dmpiccy')
-            type_fft = 'FFTWPY'
+            type_fft = 'fftwpy'
 
-        if type_fft == 'FFTWPY':
+        if type_fft == 'fftwpy':
             try:
                 import pyfftw
             except ImportError as err:
-                type_fft = 'FFTPACK'
+                type_fft = 'fftpack'
 
         self.type_fft = type_fft
 
         # Initialization of the fft transforms
-        if type_fft not in ['FFTWPY', 'FFTPACK']:
-            if not TRANSPOSED and type_fft == 'FFTWCCY':
-                raise ValueError('FFTWCCY does not suport the '
+        if type_fft not in ['fftwpy', 'fftpack']:
+            if not TRANSPOSED and type_fft == 'fftwccy':
+                raise ValueError('fftwccy does not support the '
                                  '(inefficient!) option TRANSPOSED=False')
 
-            if type_fft == 'FFTWCY':
+            if type_fft == 'fftwcy':
                 op_fft2d = fftw2Dmpi.FFT2Dmpi(ny, nx,
                                               TRANSPOSED=TRANSPOSED,
                                               SEQUENTIAL=SEQUENTIAL)
@@ -458,9 +468,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                 self.scatter_Xspace = op_fft2d.scatter_Xspace
                 self.scatter_Kspace = op_fft2d.scatter_Kspace
 
-        elif type_fft == 'FFTWPY':
+        elif type_fft == 'fftwpy':
             op_fft2d = easypyfft.FFTW2DReal2Complex(nx, ny)
-        elif type_fft == 'FFTPACK':
+        elif type_fft == 'fftpack':
             op_fft2d = easypyfft.fftp2D(nx, ny)
 
         self.fft2 = op_fft2d.fft2d
@@ -505,12 +515,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        kx_max = self.deltakx * (nx + 1) // 2
-        ky_max = self.deltaky * (ny + 1) // 2
-        CONDKX = abs(self.KX) > self.coef_dealiasing * kx_max
-        CONDKY = abs(self.KY) > self.coef_dealiasing * ky_max
+        kx_max = self.deltakx * (nx + 1)//2
+        ky_max = self.deltaky * (ny + 1)//2
+        CONDKX = abs(self.KX) > coef_dealiasing*kx_max
+        CONDKY = abs(self.KY) > coef_dealiasing*ky_max
         where_dealiased = np.logical_or(CONDKX, CONDKY)
-
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
 
         try:
@@ -619,15 +628,11 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         uy_fft = -1j * self.KY_over_K2*div_fft
         return ux_fft, uy_fft
 
-
-
-
     # def gradfft_from_fft_old(self, f_fft):
     #     """Return the gradient of f_fft in spectral space."""
     #     px_f_fft = 1j * self.KX*f_fft
     #     py_f_fft = 1j * self.KY*f_fft
     #     return px_f_fft, py_f_fft
-
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -1115,9 +1120,20 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         return ux_fft, uy_fft, eta_fft
 
-    def dealiasing(self, *arguments):
-        for ii in range(len(arguments)):
-            thing = arguments[ii]
+    def get_shapeK_loc(self):
+        return tuple(self.shapeK_loc)
+
+    def get_shapeK_seq(self):
+        return tuple(self.shapeK_seq)
+
+    def get_shapeX_loc(self):
+        return tuple(self.shapeX_loc)
+
+    def get_shapeX_seq(self):
+        return tuple(self.shapeX_seq)
+    
+    def dealiasing(self, *args):
+        for thing in args:
             if isinstance(thing, SetOfVariables):
                 dealiasing_setofvar(thing, self.where_dealiased,
                                     self.nK0_loc, self.nK1_loc)
@@ -1246,7 +1262,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             E_ky_temp = energy_fft[:, 0].copy()
             E_ky_temp += 2*energy_fft[:, 1:].sum(1)
             E_ky_temp = np.ascontiguousarray(E_ky_temp)
-#            print self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape
+#            print(self.rank, 'E_ky_temp', E_ky_temp, E_ky_temp.shape)
             E_ky_long = np.empty(self.nky_seq)
             counts = self.comm.allgather(self.nky_loc)
             self.comm.Allgatherv(sendbuf=[E_ky_temp, MPI.DOUBLE],
@@ -1259,9 +1275,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
 ####        self.comm.barrier()
 ####        sleep(0.1)
-####        print   self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx, \
-####                            'E_ky.sum() =', E_ky.sum()*self.deltaky,\
-####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky
+####        print(self.rank,  'E_kx.sum() =', E_kx.sum()*self.deltakx,
+####                          'E_ky.sum() =', E_ky.sum()*self.deltaky,
+####                'diff = ', E_kx.sum()*self.deltakx-E_ky.sum()*self.deltaky)
         return E_kx, E_ky
 
     @cython.boundscheck(False)
@@ -1491,13 +1507,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         else:
                             kynodim = iKyc - nKyc
                             iKy = kynodim + nKy
-
                         f1D_temp[iKyc] = f_fft[iKxloc, iKy]
 
                 if rank_iKx != 0:
                     # message f1D_temp
                     if rank == 0:
-                        # print 'f1D_temp', f1D_temp, f1D_temp.dtype
+                        # print('f1D_temp', f1D_temp, f1D_temp.dtype)
                         comm.Recv(
                             [f1D_temp, MPI.DOUBLE_COMPLEX],
                             source=rank_iKx, tag=iKxc)

@@ -79,6 +79,7 @@ More
    FluidSim in PyPI  <https://pypi.python.org/pypi/fluidsim/>
    to_do
    changes
+   authors
 
 
 Indices and tables

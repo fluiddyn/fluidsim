@@ -10,6 +10,12 @@ Provides:
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
+
+from builtins import str
+from past.utils import old_div
+from past.builtins import basestring
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +26,8 @@ import datetime
 from fluiddyn.util import mpi
 from .base import SpecificOutput
 from .movies import MoviesBase1D, MoviesBase2D
+
+cfg = h5py.h5.get_config()
 
 
 class PhysFieldsBase(SpecificOutput):
@@ -88,24 +96,66 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.rank == 0 and not os.path.exists(path_run):
             os.mkdir(path_run)
 
-        if mpi.rank == 0:
-            if (self.period_save < 0.001 or
-                    self.params.output.phys_fields.file_with_it):
-                name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
-                    time, self.sim.time_stepping.it)
-            else:
-                name_save = 'state_phys_t={:07.3f}.hd5'.format(time)
+        if (self.period_save < 0.001 or
+                self.params.output.phys_fields.file_with_it):
+            name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
+                time, self.sim.time_stepping.it)
+        else:
+            name_save = 'state_phys_t={:07.3f}.hd5'.format(time)
 
+        path_file = os.path.join(path_run, name_save)
+        if os.path.exists(path_file):
+            name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
+                time, self.sim.time_stepping.it)
             path_file = os.path.join(path_run, name_save)
-            if os.path.exists(path_file):
-                name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
-                    time, self.sim.time_stepping.it)
-                path_file = os.path.join(path_run, name_save)
-            to_print = 'save state_phys in file ' + name_save
-            self.output.print_stdout(to_print)
+        to_print = 'save state_phys in file ' + name_save
+        self.output.print_stdout(to_print)
 
-            f = h5py.File(path_file, 'w')
-            f.attrs['date saving'] = str(datetime.datetime.now())
+        if mpi.nb_proc == 1 or not cfg.mpi:
+            if mpi.rank == 0:
+                f = h5py.File(path_file, 'w')
+                group_state_phys = f.create_group("state_phys")
+                group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
+                group_state_phys.attrs['name_type_variables'] = state_phys.info
+                group_state_phys.attrs['time'] = time
+                group_state_phys.attrs['it'] = self.sim.time_stepping.it
+        else:
+            f = h5py.File(path_file, 'w', driver='mpio', comm=mpi.comm)
+            group_state_phys = f.create_group("state_phys")
+            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
+            group_state_phys.attrs['name_type_variables'] = state_phys.info
+
+            group_state_phys.attrs['time'] = time
+            group_state_phys.attrs['it'] = self.sim.time_stepping.it
+
+        if mpi.nb_proc == 1:
+            for k in state_phys.keys:
+                field_seq = state_phys.get_var(k)
+                group_state_phys.create_dataset(k, data=field_seq)
+        elif not cfg.mpi:
+            for k in state_phys.keys:
+                field_loc = state_phys.get_var(k)
+                field_seq = self.oper.gather_Xspace(field_loc)
+                if mpi.rank == 0:
+                    group_state_phys.create_dataset(k, data=field_seq)
+        else:
+            for k in state_phys.keys:
+                field_loc = state_phys.get_var(k)
+                dset = group_state_phys.create_dataset(
+                    k, self.oper.shapeX_seq, dtype=field_loc.dtype)
+                f.atomic = False
+                xstart = self.oper.seq_index_firstK0
+                xend = self.oper.seq_index_firstK0+self.oper.shapeX_loc[0]
+                ystart = self.oper.seq_index_firstK1
+                yend = self.oper.seq_index_firstK1+self.oper.shapeX_loc[1]
+                with dset.collective:
+                    dset[xstart:xend, ystart:yend, :] = field_loc
+            f.close()
+            if mpi.rank == 0:
+                f = h5py.File(path_file, 'w')
+
+        if mpi.rank == 0:
+            f.attrs['date saving'] = str(datetime.datetime.now()).encode()
             f.attrs['name_solver'] = self.output.name_solver
             f.attrs['name_run'] = self.output.name_run
             if particular_attr is not None:
@@ -116,25 +166,6 @@ class PhysFieldsBase(SpecificOutput):
             gf_params = gp_info['params']
             gf_params.attrs['SAVE'] = True
             gf_params.attrs['NEW_DIR_RESULTS'] = True
-
-            group_state_phys = f.create_group("state_phys")
-            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-            group_state_phys.attrs['name_type_variables'] = (
-                state_phys.info)
-
-            group_state_phys.attrs['time'] = time
-            group_state_phys.attrs['it'] = self.sim.time_stepping.it
-
-        for k in state_phys.keys:
-            field_loc = state_phys.get_var(k)
-            if mpi.nb_proc > 1:
-                field_seq = self.oper.gather_Xspace(field_loc)
-            else:
-                field_seq = field_loc
-            if mpi.rank == 0:
-                group_state_phys.create_dataset(k, data=field_seq)
-
-        if mpi.rank == 0:
             f.close()
 
     def _select_field(self, field=None, key_field=None):
@@ -145,7 +176,7 @@ class PhysFieldsBase(SpecificOutput):
             if key_field is None:
                 field_to_plot = self.params.output.phys_fields.field_to_plot
                 if (field_to_plot in keys_state_phys or
-                    field_to_plot in keys_computable):
+                        field_to_plot in keys_computable):
                     key_field = field_to_plot
                 else:
                     if 'q' in keys_state_phys:
@@ -170,9 +201,9 @@ class PhysFieldsBase(SpecificOutput):
 
 
 class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
-    
+
     def plot(self, numfig=None, field=None, key_field=None):
-        field, key_field = self._field_to_plot(field, key_field)
+        field, key_field = self._select_field(field, key_field)
 
         if mpi.rank == 0:
             if numfig is None:
@@ -200,10 +231,10 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
         height_axe = 0.87
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
-        
+
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
-        
+
         if field.ndim == 3:
             field = field[iz]
 
@@ -232,6 +263,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
                 pc = ax.pcolormesh(x_seq, y_seq, field,
                                    vmin=vmin, vmax=vmax, cmap=cmap)
                 fig.colorbar(pc)
+        else:
+            ax = None
 
         if QUIVER:
             vmax = self._quiver_plot(ax, vecx, vecy)
@@ -251,7 +284,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
             ax.set_title(title)
 
             fig.canvas.draw()
-            
+
     def _quiver_plot(self, ax, vecx='ux', vecy='uy'):
         """
         Superimposes a quiver plot of velocity vectors
@@ -259,19 +292,19 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
         a 2D contour plot.
         """
 
-        if isinstance(vecx, str):
+        if isinstance(vecx, basestring):
             vecx_loc = self.sim.state(vecx)
             if mpi.nb_proc > 1:
                 vecx = self.oper.gather_Xspace(vecx_loc)
             else:
                 vecx = vecx_loc
-        if isinstance(vecy, str):
+        if isinstance(vecy, basestring):
             vecy_loc = self.sim.state(vecy)
             if mpi.nb_proc > 1:
                 vecy = self.oper.gather_Xspace(vecy_loc)
             else:
                 vecy = vecy_loc
-        pas_vector = np.round(self.oper.nx_seq / 48)
+        pas_vector = np.round(old_div(self.oper.nx_seq, 48))
         if pas_vector < 1:
             pas_vector = 1
 
@@ -283,6 +316,5 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
             ax.quiver(XX_seq[::pas_vector, ::pas_vector],
                       YY_seq[::pas_vector, ::pas_vector],
                       vecx_c, vecy_c)
-
 
         return np.max(np.sqrt(vecx**2 + vecy**2))

@@ -6,6 +6,7 @@
    :private-members:
 
 """
+from __future__ import print_function
 
 
 from fluidsim.base.state import StatePseudoSpectral
@@ -90,6 +91,13 @@ class StateNS2D(StatePseudoSpectral):
 
     def init_from_rotfft(self, rot_fft):
         """Initialize the state from the variable `rot_fft`."""
-        self.sim.oper.dealiasing(rot_fft)
+        self.oper.dealiasing(rot_fft)
         self.state_fft.set_var('rot_fft', rot_fft)
         self.statephys_from_statefft()
+
+    def init_fft_from(self, **kwargs):
+        if len(kwargs) == 1:
+            if 'rot_fft' in kwargs:
+                self.init_from_rotfft(kwargs['rot_fft'])
+        else:
+            super(StateNS2D, self).init_statefft_from(**kwargs)

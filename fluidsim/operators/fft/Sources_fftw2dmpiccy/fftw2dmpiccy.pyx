@@ -149,13 +149,13 @@ of the fftw library.
 
     def describe(self):
         if self.rank == 0:
-            print 'object of class Myfft2Dmpi'
-            print 'N0 =', self.N0, 'N1 =', self.N1
-            print 'nb_proc =', self.nb_proc,
+            print('object of class Myfft2Dmpi\n'
+                  'N0 = {}, N1 = {}\n'.format(self.N0, self.N1) +
+                  'nb_proc = {}'.format(self.nb_proc))
             if self.nb_proc == 1:
-                print '=> sequential version'
+                print('=> sequential version')
             else:
-                print '=> parallel version (MPI)'
+                print('=> parallel version (MPI)')
 
     def gather_Xspace(self, np.ndarray ff_loc,
                       root=None, type DTYPE=DTYPEf):
@@ -195,9 +195,9 @@ of the fftw library.
         if root is None:
             ff_fft_gat = np.empty(self.shapeK_gat, dtype=DTYPEc)
 #            counts1 = self.comm.allgather(self.shapeK_loc[0])
-#            print 'counts1 =', counts1
+#            print('counts1 =', counts1)
             counts = np.ones([self.nb_proc], dtype=int)*self.shapeK_loc[0]
-#            print 'counts =', counts
+#            print('counts =', counts)
             self.comm.Allgatherv(sendbuf=[ff_fft_loc, MPI.COMPLEX16],
                                  recvbuf=[ff_fft_gat, (counts, None), rowtype])
             if AS_SEQ:

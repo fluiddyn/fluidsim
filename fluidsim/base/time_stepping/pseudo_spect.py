@@ -11,6 +11,7 @@ Provides:
 
 """
 
+from builtins import object
 import numpy as np
 
 from .base import TimeSteppingBase
@@ -58,6 +59,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
     """Time stepping class for pseudo-spectral solvers.
 
     """
+
+    @staticmethod
+    def _complete_params_with_default(params):
+        """This static method is used to complete the *params* container.
+        """
+        TimeSteppingBase._complete_params_with_default(params)
+        params.time_stepping.USE_CFL = True
+
     def __init__(self, sim):
         super(TimeSteppingPseudoSpectral, self).__init__(sim)
 
@@ -90,11 +99,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def one_time_step_computation(self):
         """One time step"""
-        # import ipdb; ipdb.set_trace()
+        # WARNING: if the function _time_step_RK comes from an extension, its
+        # execution time seems to be attributed to the function
+        # one_time_step_computation by cProfile
         self._time_step_RK()
         self.sim.oper.dealiasing(self.sim.state.state_fft)
         self.sim.state.statephys_from_statefft()
-        if np.isnan(np.min(self.sim.state.state_fft[0])):
+        # np.isnan(np.sum seems to be really fast
+        if np.isnan(np.sum(self.sim.state.state_fft[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
 

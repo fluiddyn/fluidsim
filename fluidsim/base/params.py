@@ -33,24 +33,36 @@ def merge_params(*paramcontainers):
         raise ValueError('Can only merge instances of Parameters')
 
     params_merged = paramcontainers[0]
+    print(params_merged.init_fields.from_file.path)
 
     def merge_params_pair(params1, params2):
-        diff_attribs = params2._attribs - params1._attribs
+        """Merge `params1` --> `params2`."""
+        try:
+            diff_attribs = set(params2._key_attribs) - set(params1._key_attribs)
+        except AttributeError:
+            from warnings import warn
+            warn('Kept for compatibility with fluiddyn==0.0.x', DeprecationWarning)
+            diff_attribs = params2._attribs - params1._attribs
+
         for attrib in diff_attribs:
+            print('Merge params attrib: ', attrib)
             params1._set_attrib(attrib, params2[attrib])
 
-        diff_children = params2._tag_children - params1._tag_children
+        diff_children = set(params2._tag_children) - set(params1._tag_children)
+
         for child in diff_children:
-            params1._set_child(child, params2[child])
+            print('Merge params child: ', child)
+            params1._set_child(child, params2[child]._make_dict())
 
         for child in params2._tag_children:
             params1[child] = merge_params_pair(params1[child], params2[child])
 
-        return params
+        return params1
 
     for params in paramcontainers[1:]:
         params_merged = merge_params_pair(params_merged, params)
 
+    print(params_merged.init_fields.from_file.path)
     return params_merged
 
 
@@ -69,7 +81,7 @@ def create_params(input_info_solver):
     dict_classes['Solver'] = import_class(
         info_solver.module_name, info_solver.class_name)
 
-    for Class in dict_classes.values():
+    for Class in list(dict_classes.values()):
         if hasattr(Class, '_complete_params_with_default'):
             try:
                 Class._complete_params_with_default(params)

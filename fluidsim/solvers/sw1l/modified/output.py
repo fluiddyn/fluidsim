@@ -1,5 +1,7 @@
 """ """
+from __future__ import division
 
+from past.utils import old_div
 import numpy as np
 
 from fluidsim.solvers.sw1l.output import OutputBaseSW1L
@@ -26,10 +28,10 @@ class OutputSW1LModified(OutputBaseSW1L):
         uy_fft = self.sim.state.state_fft.get_var('uy_fft')
         eta_fft = self.sim.state.state_fft.get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
-        energyK_fft = np.abs(ux_fft)**2/2 + np.abs(uy_fft)**2/2
+        energyK_fft = old_div(np.abs(ux_fft)**2,2) + old_div(np.abs(uy_fft)**2,2)
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        energyKr_fft = np.abs(uxr_fft)**2/2 + np.abs(uyr_fft)**2/2
+        energyKr_fft = old_div(np.abs(uxr_fft)**2,2) + old_div(np.abs(uyr_fft)**2,2)
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
@@ -37,14 +39,14 @@ class OutputSW1LModified(OutputBaseSW1L):
         uy_fft = self.sim.state.state_fft.get_var('uy_fft')
         eta_fft = self.sim.state.state_fft.get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
-        energyK_fft = np.abs(ux_fft)**2/2 + np.abs(uy_fft)**2/2
+        energyK_fft = old_div(np.abs(ux_fft)**2,2) + old_div(np.abs(uy_fft)**2,2)
         return energyK_fft, energyA_fft
 
     def compute_PV_fft(self):
         # compute Ertel and Charney (QG) potential vorticity
         rot = self.sim.state('rot')
         eta = self.sim.state.state_phys.get_var('eta')
-        ErtelPV_fft = self.oper.fft2((self.sim.params.f+rot)/(1.+eta))
+        ErtelPV_fft = self.oper.fft2(old_div((self.sim.params.f+rot),(1.+eta)))
         ux_fft = self.sim.state.state_fft.get_var('ux_fft')
         uy_fft = self.sim.state.state_fft.get_var('uy_fft')
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)

@@ -48,9 +48,8 @@ class StateNS3D(StatePseudoSpectral):
             if RAISE_ERROR:
                 raise ValueError(to_print)
             else:
-                if mpi.rank == 0:
-                    print(to_print +
-                          '\nreturn an array of zeros.')
+                mpi.printby0(to_print +
+                             '\nreturn an array of zeros.')
 
                 result = self.oper.constant_arrayX(value=0.)
 

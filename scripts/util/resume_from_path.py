@@ -8,4 +8,3 @@ parser.add_argument('path',
 args = parser.parse_args()
 sim = fls.load_state_phys_file(args.path, modif_save_params=False)
 sim.time_stepping.start()
-

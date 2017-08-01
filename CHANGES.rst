@@ -1,4 +1,25 @@
 
+0.0.5
+-----
+
+- compatible fluiddyn 0.1.2
+
+
+0.0.4
+-----
+
+- 0D models (predaprey, lorenz)
+- continuous integration, unittests with bitbucket-pipelines
+
+0.0.3a0
+-------
+
+Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
+
+- Movies.
+- Preprocessing of parameters.
+- Less bugs.
+
 0.0.2a1
 -------
 

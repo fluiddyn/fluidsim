@@ -117,7 +117,7 @@ class SpatialMeansBase(SpecificOutput):
         imin_mean = np.argmin(abs(times-tstatio))
 
         dico_time_means = {}
-        for key, value in dico_results.iteritems():
+        for key, value in dico_results.items():
             if isinstance(value, np.ndarray):
                 dico_time_means[key] = np.mean(
                     value[imin_mean:imax_mean+1]
@@ -131,25 +131,25 @@ class SpatialMeansBase(SpecificOutput):
             pass
 
     def time_first_saved(self):
-        file_means = open(self.path_file)
-        line = ''
-        while not line.startswith('time ='):
-            line = file_means.readline()
-        file_means.close()
+        with open(self.path_file) as file_means:
+            line = ''
+            while not line.startswith('time ='):
+                line = file_means.readline()
+
         words = line.split()
         return float(words[2])
 
     def time_last_saved(self):
-        file_means = open(self.path_file)
-        file_means.seek(0, 2)  # go to the end
-        nb_caract = file_means.tell()
-        nb_caract_to_read = min(nb_caract, 1000)
-        file_means.seek(-nb_caract_to_read, 2)
-        line = file_means.readline()
-        while line != '':
-            if line.startswith('time ='):
-                line_time = line
+        with open(self.path_file) as file_means:
+            file_means.seek(0, 2)  # go to the end
+            nb_caract = file_means.tell()
+            nb_caract_to_read = min(nb_caract, 1000)
+            file_means.seek(-nb_caract_to_read, 2)
             line = file_means.readline()
-        file_means.close()
+            while line != '':
+                if line.startswith('time ='):
+                    line_time = line
+                line = file_means.readline()
+
         words = line_time.split()
         return float(words[2])

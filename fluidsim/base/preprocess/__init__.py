@@ -1,7 +1,5 @@
-"""Preprocessing of initialized fields and flow parameters (:mod:`fluidsim.base.preprocess`)
-============================================================================================
-
-.. currentmodule:: fluidsim.base.preprocess
+"""Preprocessing of parameters (:mod:`fluidsim.base.preprocess`)
+================================================================
 
 Provides:
 

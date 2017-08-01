@@ -9,6 +9,7 @@
 
 from __future__ import division, print_function
 
+from builtins import range
 import os
 import numpy as np
 
@@ -103,8 +104,8 @@ class SpatialMeansNS2D(SpatialMeansBase):
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
 
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
+        with open(self.path_file) as file_means:
+            lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -147,7 +148,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ_hypo = np.empty(nt)
         epsZ_tot = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])
@@ -242,7 +243,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         fig.suptitle('Dissipation of energy and enstrophy')
         ax1.set_ylabel('$\epsilon_K(t)$')
-        ax1.hold(True)
 
         ax1.plot(t, epsK, 'r', linewidth=2)
         ax1.plot(t, epsK_hypo, 'g', linewidth=2)
@@ -253,7 +253,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('$t$')
         ax2.set_ylabel('$\epsilon_Z(t)$')
-        ax2.hold(True)
         ax2.plot(t, epsZ, 'r', linewidth=2)
         ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
         ax2.plot(t, epsZ_tot, 'k', linewidth=2)

@@ -6,7 +6,10 @@
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
 import numpy as np
 import h5py
 
@@ -53,16 +56,15 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         oper.dealiasing(Fy_fft)
 
         transferZ_fft = np.real(rot_fft.conj()*Frot_fft +
-                                rot_fft*Frot_fft.conj())/2.
+                                rot_fft*Frot_fft.conj()) / 2.
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
         #                self.sum_wavenumbers(abs(transferZ_fft)))
 
-        transferE_fft = np.real(ux_fft.conj()*Fx_fft
-                                + ux_fft*Fx_fft.conj()
-                                + uy_fft.conj()*Fy_fft
-                                + uy_fft*Fy_fft.conj()
-                                )/2.
+        transferE_fft = np.real(ux_fft.conj()*Fx_fft +
+                                ux_fft*Fx_fft.conj() +
+                                uy_fft.conj()*Fy_fft +
+                                uy_fft*Fy_fft.conj()) / 2.
         # print ('sum(transferE) = {0:9.4e} ; sum(abs(transferE)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferE_fft),
         #                self.sum_wavenumbers(abs(transferE_fft)))
@@ -101,7 +103,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         # nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
 
         if delta_i_plot == 0 and delta_t != 0.:
             delta_i_plot = 1
@@ -126,12 +128,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
         ax1.set_ylabel('spectra')
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot, delta_i_plot):
+            for it in range(imin_plot, imax_plot, delta_i_plot):
 
                 transferE = dset_transferE[it]
                 transferZ = dset_transferZ[it]

@@ -15,7 +15,7 @@ def inner_prod(a_fft, b_fft):
 
 
 class SpectralEnergyBudgetBase(SpecificOutput):
-    """A :class:`Spectra` object handles the saving of .
+    """Handle the saving and plotting of spectral energy budget.
 
     This class uses the particular functions defined by some solvers
     :func:`` and
@@ -40,13 +40,17 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.nx = params.oper.nx
 
         self.spectrum2D_from_fft = output.sim.oper.spectrum2D_from_fft
+        self.spectra1D_from_fft = output.sim.oper.spectra1D_from_fft
+        self.sum_wavenumbers = output.sim.oper.sum_wavenumbers
 
         HAS_TO_PLOT_SAVED = params.output.spect_energy_budg.HAS_TO_PLOT_SAVED
         super(SpectralEnergyBudgetBase, self).__init__(
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
-            dico_arrays_1time={'khE': output.sim.oper.khE})
+            dico_arrays_1time={'khE': output.sim.oper.khE,
+                               'kxE': output.sim.oper.kxE,
+                               'kyE': output.sim.oper.kyE})
 
     def compute(self):
         """compute the values at one time."""
@@ -84,7 +88,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
         r"""
         Compute a non-linear term.
-        
+
         Notes
         -----
         Returns an fft-sized nd-array equivalent to the expression:

@@ -1,6 +1,9 @@
 """Plate2d state (:mod:`fluidsim.solvers.plate2d.state`)
 ==============================================================
 """
+from __future__ import print_function
+
+import numpy as np
 
 from fluidsim.base.state import StatePseudoSpectral
 
@@ -74,7 +77,16 @@ class StatePlate2D(StatePseudoSpectral):
         self.state_phys.set_var('z', self.oper.ifft2(z_fft))
 
     def init_state_from_wz_fft(self, w_fft, z_fft):
-        self.sim.oper.dealiasing(w_fft, z_fft)
+        self.oper.dealiasing(w_fft, z_fft)
         self.state_fft.set_var('w_fft', w_fft)
         self.state_fft.set_var('z_fft', z_fft)
         self.statephys_from_statefft()
+        
+    def init_fft_from(self, **kwargs):
+        if len(kwargs) == 1:
+            if 'w_fft' in kwargs:
+                w_fft = kwargs['w_fft']
+                z_fft = np.zeros_like(w_fft)
+                self.init_state_from_wz_fft(w_fft, z_fft)
+        else:
+            super(StateNS2D, self).init_statefft_from(**kwargs)

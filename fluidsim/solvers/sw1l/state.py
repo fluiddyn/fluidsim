@@ -1,7 +1,10 @@
 """
 The module :mod:`stateSW1L` supplies the class :class:`StateSW1L`.
 """
+from __future__ import division
+from __future__ import print_function
 
+from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -86,7 +89,7 @@ class StateSW1L(StatePseudoSpectral):
             h = self.compute('h')
             ux = self.state_phys.get_var('ux')
             uy = self.state_phys.get_var('uy')
-            result = np.sqrt((ux**2 + uy**2)/(self.sim.params.c2*h))
+            result = np.sqrt(old_div((ux**2 + uy**2),(self.sim.params.c2*h)))
 
         else:
             to_print = 'Do not know how to compute "'+key+'".'
@@ -143,14 +146,15 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
-    def init_statefft_from(self, **kwargs):
+    def init_fft_from(self, **kwargs):
         if len(kwargs) == 1:
-            if 'q_fft' in kwargs:
-                self.init_from_qfft(kwargs['q_fft'])
-            elif 'a_fft' in kwargs:
-                self.init_from_afft(kwargs['a_fft'])
-            elif 'eta_fft' in kwargs:
-                self.init_from_etafft(kwargs['eta_fft'])
+            key_fft, value = list(kwargs.items())[0]
+            try:
+                init_from_keyfft = self.__getattribute__(
+                    'init_from_' + key_fft.replace('_', ''))
+                init_from_keyfft(value)
+            except AttributeError:
+                super(StateSW1L, self).init_statefft_from(**kwargs)
         elif len(kwargs) == 2:
             if 'q_fft' in kwargs and 'a_fft' in kwargs:
                 self.init_from_qafft(**kwargs)
@@ -236,9 +240,9 @@ class StateSW1L(StatePseudoSpectral):
 
         uu2_fft = self.oper.fft2(ux**2 + uy**2)
 
-        eta_fft = (1.j * self.oper.KX*tempx_fft/K2_not0 +
+        eta_fft = old_div((1.j * self.oper.KX*tempx_fft/K2_not0 +
                    1.j*self.oper.KY*tempy_fft/K2_not0 -
-                   uu2_fft/2)/self.params.c2
+                   old_div(uu2_fft,2)),self.params.c2)
         if mpi.rank == 0:
             eta_fft[0, 0] = 0.
         self.oper.dealiasing(eta_fft)

@@ -78,8 +78,13 @@ class Simul(SimulSW1L):
         FNLx = -ux_rot*dxux - uy_rot*dyux
         FNLy = -ux_rot*dxuy - uy_rot*dyuy
 
-        FCx = +self.params.f*uy
-        FCy = -self.params.f*ux
+        if self.params.beta != 0:
+            f = self.params.f + self.params.beta * oper.YY
+        else:
+            f = self.params.f
+
+        FCx = +f * uy
+        FCy = -f * ux
 
         Fgradx_fft, Fgrady_fft = oper.gradfft_from_fft(self.params.c2*eta_fft)
 

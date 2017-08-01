@@ -18,6 +18,7 @@ and the main output class for the ns2d solver:
    :private-members:
 
 """
+from __future__ import division
 
 import numpy as np
 
@@ -38,7 +39,7 @@ class Output(OutputBasePseudoSpectral):
 
         classes.PrintStdOut.module_name = base_name_mod + '.print_stdout'
         classes.PrintStdOut.class_name = 'PrintStdOutNS2D'
-        
+
         classes.PhysFields.class_name = 'PhysFieldsBase2D'
 
         classes._set_child(
@@ -73,12 +74,12 @@ class Output(OutputBasePseudoSpectral):
         """Compute energy(k)"""
         rot_fft = self.sim.state.state_fft.get_var('rot_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2
+        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2.
 
     def compute_enstrophy_fft(self):
         """Compute enstrophy(k)"""
         rot_fft = self.sim.state.state_fft.get_var('rot_fft')
-        return np.abs(rot_fft)**2/2
+        return np.abs(rot_fft)**2 / 2.
 
     def compute_energy(self):
         """Compute the spatially averaged energy."""

@@ -6,7 +6,10 @@
    :private-members:
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
 import h5py
 
 import numpy as np
@@ -53,6 +56,8 @@ class SpectraNS2D(Spectra):
         dset_kxE = f['kxE']
         # dset_kyE = f['kyE']
         kh = dset_kxE[...]
+        kh2 = kh[:]
+        kh2[kh == 0] = 1e-15
 
         dset_spectrum1Dkx = f['spectrum1Dkx_E']
         dset_spectrum1Dky = f['spectrum1Dky_E']
@@ -61,7 +66,7 @@ class SpectraNS2D(Spectra):
         # nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
-        delta_i_plot = int(np.round(delta_t/delta_t_save))
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
         delta_t = delta_t_save*delta_i_plot
         if delta_i_plot == 0:
             delta_i_plot = 1
@@ -88,22 +93,32 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax1.set_ylabel('spectra')
         ax1.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
-        coef_norm = kh**(coef_compensate)
+        EKx = dset_spectrum1Dkx[0]
+        EKy = dset_spectrum1Dky[0]
+
+        is_asym = len(EKx) == len(EKy)
+
+        coef_norm = kh2**(coef_compensate)
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
-                EK = (dset_spectrum1Dkx[it]+dset_spectrum1Dky[it])
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
+                EK = dset_spectrum1Dkx[it]
+                if is_asym:
+                    EK += dset_spectrum1Dky[it]
+
                 EK[EK < 10e-16] = 0.
                 ax1.plot(kh, EK*coef_norm, 'k', linewidth=2)
 
-        EK = (dset_spectrum1Dkx[imin_plot:imax_plot+1] +
-              dset_spectrum1Dky[imin_plot:imax_plot+1]).mean(0)
+        EK = dset_spectrum1Dkx[imin_plot:imax_plot+1]
+        if is_asym:
+            EK += dset_spectrum1Dky[imin_plot:imax_plot+1]
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5/3)*coef_norm, 'k--', linewidth=1)
+        EK = EK.mean(0)
+
+        ax1.plot(kh, kh2**(-3)*coef_norm, 'k', linewidth=1)
+        ax1.plot(kh, 0.01*kh2**(-5/3)*coef_norm, 'k--', linewidth=1)
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
@@ -114,6 +129,8 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         # nt = len(times)
 
         kh = f['khE'][...]
+        kh2 = kh[:]
+        kh2[kh == 0] = 1e-15
 
         dset_spectrum = f['spectrum2D_E']
 
@@ -134,25 +151,25 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
                 tmin, tmax, delta_t) +
             ' coef_compensate={0:.3f})'.format(coef_compensate))
 
-        print('''plot 2D spectra
+        print(
+            '''plot 2D spectra
 tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
 imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
-tmin_plot, tmax_plot, delta_t,
-imin_plot, imax_plot, delta_i_plot))
+    tmin_plot, tmax_plot, delta_t,
+    imin_plot, imax_plot, delta_i_plot))
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_h$')
         ax1.set_ylabel('2D spectra')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
-        coef_norm = kh**coef_compensate
+        coef_norm = kh2**coef_compensate
 
         if delta_t != 0.:
-            for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
+            for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 EK = dset_spectrum[it]
                 EK[EK < 10e-16] = 0.
                 ax1.plot(kh, EK*coef_norm, 'k', linewidth=1)
@@ -161,5 +178,5 @@ imin_plot, imax_plot, delta_i_plot))
         EK[EK < 10e-16] = 0.
         ax1.plot(kh, EK*coef_norm, 'k', linewidth=2)
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
+        ax1.plot(kh, kh2**(-3)*coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh, 0.01*kh2**(-5./3)*coef_norm, 'k-.', linewidth=1)

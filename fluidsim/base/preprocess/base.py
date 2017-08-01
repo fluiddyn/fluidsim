@@ -1,5 +1,5 @@
 """Base preprocess (:mod:`fluiddyn.simul.base.preprocess.base`)
-========================================================
+===============================================================
 
 .. currentmodule:: fluiddyn.simul.base.preprocess.base
 
@@ -11,6 +11,8 @@ Provides:
 
 """
 
+
+from builtins import object
 class PreprocessBase(object):
     _tag = 'preprocess'
 
@@ -44,7 +46,7 @@ class PreprocessBase(object):
         params._set_child('preprocess', attribs=attribs)
 
         dict_classes = info_solver.classes.Preprocess.import_classes()
-        for Class in dict_classes.values():
+        for Class in list(dict_classes.values()):
             if hasattr(Class, '_complete_params_with_default'):
                 Class._complete_params_with_default(params)
 
@@ -54,7 +56,7 @@ class PreprocessBase(object):
         self.oper = sim.oper
         self.output = sim.output
 
-        #dict_classes = sim.info.solver.classes.Preprocess.import_classes()
+        # dict_classes = sim.info.solver.classes.Preprocess.import_classes()
 
     def __call__(self):
         if self.params.enable:
