@@ -21,7 +21,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: RamdomSimplePseudoSpectral
+.. autoclass:: RandomSimplePseudoSpectral
    :members:
    :private-members:
 
@@ -283,7 +283,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             Fa_fft = self.forcingc_raw_each_time(a_fft)
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
-            self.fstate_coarse.init_statefft_from(**kwargs)
+            self.fstate_coarse.init_fft_from(**kwargs)
 
         self.put_forcingc_in_forcing()
 
@@ -406,7 +406,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         return alpha
 
 
-class RamdomSimplePseudoSpectral(NormalizedForcing):
+class RandomSimplePseudoSpectral(NormalizedForcing):
     tag = 'random'
 
     def compute_forcingc_raw(self):
@@ -415,7 +415,7 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
         To be called only with proc 0.
         """
         F_fft = self.oper_coarse.random_arrayK()
-        F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
+        F_fft = self.oper_coarse.project_fft_on_realX(F_fft)  # fftwpy/easypyfft returns F_fft
         F_fft[self.COND_NO_F] = 0.
         return F_fft
 
@@ -423,7 +423,8 @@ class RamdomSimplePseudoSpectral(NormalizedForcing):
         return self.compute_forcingc_raw()
 
 
-class TimeCorrelatedRandomPseudoSpectral(RamdomSimplePseudoSpectral):
+class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
+    tag = 'tcrandom'
 
     @classmethod
     def _complete_params_with_default(cls, params):

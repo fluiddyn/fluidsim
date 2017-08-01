@@ -76,11 +76,11 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.init_fields.noise.velo_max = 1e-6
 
         params.FORCING = True
-        params.forcing.type = 'random'
+        params.forcing.type = 'tcrandom'
         params.forcing.forcing_rate = 1e4
         params.forcing.nkmax_forcing = 5
         params.forcing.nkmin_forcing = 2
-        params.forcing.random.time_correlation = 100*deltat
+        params.forcing.tcrandom.time_correlation = 100*deltat
 
         params.nu_8 = 2e1*params.forcing.forcing_rate**(1./3)*delta_x**8
 

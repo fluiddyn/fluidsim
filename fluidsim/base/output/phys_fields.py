@@ -176,7 +176,7 @@ class PhysFieldsBase(SpecificOutput):
             if key_field is None:
                 field_to_plot = self.params.output.phys_fields.field_to_plot
                 if (field_to_plot in keys_state_phys or
-                    field_to_plot in keys_computable):
+                        field_to_plot in keys_computable):
                     key_field = field_to_plot
                 else:
                     if 'q' in keys_state_phys:

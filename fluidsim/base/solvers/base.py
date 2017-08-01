@@ -132,7 +132,7 @@ class SimulBase(object):
 
         # if enabled, preprocesses flow parameters such as viscosity and
         # forcing based on initialized fields
-        if 'Preprocesses' in dict_classes:
+        if 'Preprocess' in dict_classes:
             Preprocess = dict_classes['Preprocess']
             self.preprocess = Preprocess(self)
             self.preprocess()

@@ -85,7 +85,7 @@ class TestSolverNS2D(unittest.TestCase):
 
         params.init_fields.type = 'noise'
         params.FORCING = True
-        params.forcing.type = 'random'
+        params.forcing.type = 'tcrandom'
 
         # save all outputs!
         periods = params.output.periods_save
