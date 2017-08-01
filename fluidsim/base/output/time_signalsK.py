@@ -310,7 +310,7 @@ class TimeSignalsK(SpecificOutput):
         sig_q_fft = dico_results['sig_q_fft']
         sig_a_fft = dico_results['sig_a_fft']
         sig_d_fft = dico_results['sig_d_fft']
-
+        
         kh_shell = dico_results['kh_shell']
         omega_shell = dico_results['omega_shell']
         period_shell = 2*np.pi/omega_shell
@@ -322,7 +322,7 @@ class TimeSignalsK(SpecificOutput):
             ax1.set_ylabel('signals (s$^{-1}$)')
             title = (
                 'signals eigenmodes, ikh = {0:.2f}, solver '.format(
-                    kh_shell[ish]/sim.oper.deltakh) +
+                    kh_shell[ish] / self.sim.oper.deltakh) +
                 self.output.name_solver +
                 ', nh = {0:5d}'.format(self.nx) +
                 ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f)

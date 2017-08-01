@@ -58,8 +58,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         # Compute and save skewness and kurtosis.
         eta = self.sim.state.state_phys.get_var('eta')
         meaneta2 = 2./self.c2*energyA
-        skew_eta = np.mean(eta**3)/meaneta2**(3./2)
-        kurt_eta = np.mean(eta**4)/meaneta2**(2)
+        if meaneta2 == 0:
+            skew_eta = 0.
+            kurt_eta = 0.
+        else:
+            skew_eta = np.mean(eta**3)/meaneta2**(3./2)
+            kurt_eta = np.mean(eta**4)/meaneta2**(2)
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -68,8 +72,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         rot_fft = self.sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         rot = self.sim.oper.ifft2(rot_fft)
         meanrot2 = self.sum_wavenumbers(abs(rot_fft)**2)
-        skew_rot = np.mean(rot**3)/meanrot2**(3./2)
-        kurt_rot = np.mean(rot**4)/meanrot2**(2)
+        if meanrot2 == 0:
+            skew_rot = 0.
+            kurt_rot = 0.
+        else:
+            skew_rot = np.mean(rot**3)/meanrot2**(3./2)
+            kurt_rot = np.mean(rot**4)/meanrot2**(2)
 
         if mpi.rank == 0:
             to_print = (
@@ -171,18 +179,36 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 tsim = self.sim.time_stepping.t
                 self.axe_b.plot(tsim, epsK_tot+epsA_tot, 'k.')
 
+    def get_FxFyFetafft(self):
+        forcing = self.sim.forcing
+        set_keys = set(self.sim.state.keys_state_fft)
+
+        if {'ux_fft', 'uy_fft', 'eta_fft'} == set_keys:
+            Fx_fft = forcing('ux_fft')
+            Fy_fft = forcing('uy_fft')
+            Feta_fft = forcing('eta_fft')
+        elif {'q_fft', 'ap_fft', 'am_fft'} == set_keys:
+            Fx_fft, Fy_fft, Feta_fft = \
+                    self.sim.oper.uxuyetafft_from_qapamfft(forcing('q_fft'),
+                                                           forcing('ap_fft'),
+                                                           forcing('am_fft'))
+        elif {'ap_fft', 'am_fft'} == set_keys:
+            Fx_fft, Fy_fft, Feta_fft = \
+                    self.sim.oper.uxuyetafft_from_afft(forcing('ap_fft') +
+                                                       forcing('am_fft'))
+        else:
+            raise NotImplementedError(
+                'Not sure how to estimate forcing rate with keys_state_fft = {}'.format(set_keys))
+
+        return Fx_fft, Fy_fft, Feta_fft
+
     def treat_forcing(self):
         """Save forcing injection rates."""
-        state_fft = self.sim.state.state_fft
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
-        eta_fft = state_fft.get_var('eta_fft')
-
-        forcing_fft = self.sim.forcing.get_forcing()
-        Fx_fft = forcing_fft.get_var('ux_fft')
-        Fy_fft = forcing_fft.get_var('uy_fft')
-        Feta_fft = forcing_fft.get_var('eta_fft')
-
+        state = self.sim.state
+        ux_fft = state('ux_fft')
+        uy_fft = state('uy_fft')
+        eta_fft = state('eta_fft')
+        Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 
         PK1_fft = (
@@ -458,13 +484,14 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
         ax1.hold(True)
-        norm = self.c2/2
-        ax1.plot(t, E/norm, 'k', linewidth=2)
-        ax1.plot(t, EK/norm, 'r', linewidth=1)
-        ax1.plot(t, EA/norm, 'b', linewidth=1)
-        ax1.plot(t, EKr/norm, 'r--', linewidth=1)
-        ax1.plot(t, (EK-EKr)/norm, 'r:', linewidth=1)
-
+        norm = self.c2 / 2
+        ax1.plot(t, E / norm, 'k', linewidth=2, label='$E$')
+        ax1.plot(t, EK / norm, 'r', linewidth=1, label='$E_K$')
+        ax1.plot(t, EA / norm, 'b', linewidth=1, label='$E_A$')
+        ax1.plot(t, EKr / norm, 'r--', linewidth=1, label='$E_K^r$')
+        ax1.plot(t, (EK - EKr) / norm, 'r:', linewidth=1, label='$E_K^d$')
+        ax1.legend()
+        
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
@@ -479,23 +506,19 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
-        ax1.set_ylabel('$P_E(t)$, $\epsilon(t)$')
+        ax1.set_ylabel('$P(t)$, $\epsilon(t)$')
         title = ('forcing and dissipation, solver ' + self.output.name_solver +
                  ', nh = {0:5d}'.format(self.nx) +
-                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
+                 )
         ax1.set_title(title)
         ax1.hold(True)
         if 'PK_tot' in dico_results:
-            (l_P_tot,) = ax1.plot(t, P_tot, 'c', linewidth=2)
-            l_P_tot.set_label('$P_{tot}$')
+            ax1.plot(t, P_tot, 'c', linewidth=2, label='$P_{tot}$')
 
-        (l_epsE,) = ax1.plot(t, epsE, 'k--', linewidth=2)
-        (l_epsE_hypo,) = ax1.plot(t, epsE_hypo, 'g', linewidth=2)
-        (l_epsE_tot,) = ax1.plot(t, epsE_tot, 'k', linewidth=2)
-
-        l_epsE.set_label('$\epsilon$')
-        l_epsE_hypo.set_label('$\epsilon_{hypo}$')
-        l_epsE_tot.set_label('$\epsilon_{tot}$')
+        ax1.plot(t, epsE, 'k--', linewidth=2, label='$\epsilon$')
+        ax1.plot(t, epsE_hypo, 'g', linewidth=2, label='$\epsilon_{hypo}$')
+        ax1.plot(t, epsE_tot, 'k', linewidth=2, label='$\epsilon_{tot}$')
 
         ax1.legend(loc=2)
 
@@ -531,7 +554,8 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 #         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
 
     def plot_rates(self, keys='E'):
-        """Plots the time history of the time derivative of a spatial mean,
+        """
+        Plots the time history of the time derivative of a spatial mean,
         and also calculates the average of the same.
 
         Parameters
@@ -673,12 +697,8 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
         eta_fft = state('eta_fft')
-
-        forcing = self.sim.forcing
-        Fx_fft = forcing('ux_fft')
-        Fy_fft = forcing('uy_fft')
-        Feta_fft = forcing('eta_fft')
-
+        
+        Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 
         PA1_fft = self.c2*inner_prod(eta_fft, Feta_fft)

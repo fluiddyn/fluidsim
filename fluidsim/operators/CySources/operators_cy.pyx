@@ -41,7 +41,8 @@ else:
 
 IF MPI4PY:
     from mpi4py cimport MPI
-    from mpi4py.mpi_c cimport *
+    # from mpi4py.mpi_c cimport *
+    from mpi4py.libmpi cimport *
 
     # solve an incompatibility between openmpi and mpi4py versions
     cdef extern from 'mpi-compat.h': pass
@@ -278,7 +279,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = np.round(kx_approx/self.deltakh)
+        ikx_seq = int(np.round(kx_approx/self.deltakh))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
@@ -298,7 +299,7 @@ cdef class GridPseudoSpectral2D(Operators):
 
             ikx_loc = ikx_seq - self.iKxloc_start_rank[rank_k]
 
-        iky_loc = np.round(ky_approx/self.deltaky)
+        iky_loc = int(np.round(ky_approx/self.deltaky))
         if iky_loc < 0:
             iky_loc = self.nky_loc+iky_loc
 
@@ -504,8 +505,10 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        CONDKX = abs(self.KX) > self.coef_dealiasing*self.kxE.max()
-        CONDKY = abs(self.KY) > self.coef_dealiasing*self.kyE.max()
+        kx_max = self.deltakx * (nx + 1) // 2
+        ky_max = self.deltaky * (ny + 1) // 2
+        CONDKX = abs(self.KX) > self.coef_dealiasing * kx_max
+        CONDKY = abs(self.KY) > self.coef_dealiasing * ky_max
         where_dealiased = np.logical_or(CONDKX, CONDKY)
 
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
@@ -893,6 +896,16 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         Delta_a_fft[i0, i1]/Kappa_over_ic[i0, i1]
                         )
         return d_fft
+
+    def qapamfft_from_etafft(self, eta_fft, params=None):
+        """eta (fft) ---> q, ap, am (fft)"""
+        if params is None:
+            params = self.params
+
+        q_fft = -params.f * eta_fft
+        ap_fft = 0.5 * self.K2 * eta_fft
+        am_fft = ap_fft.copy()
+        return q_fft, ap_fft, am_fft
 
     def qapamfft_from_uxuyetafft_old(self, ux_fft, uy_fft, eta_fft,
                                      params=None):
@@ -1477,6 +1490,7 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         else:
                             kynodim = iKyc - nKyc
                             iKy = kynodim + nKy
+
                         f1D_temp[iKyc] = f_fft[iKxloc, iKy]
 
                 if rank_iKx != 0:

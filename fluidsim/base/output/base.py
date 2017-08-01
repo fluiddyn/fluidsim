@@ -30,6 +30,7 @@ import numpy as np
 import numbers
 
 import fluiddyn
+import fluidsim
 
 from fluiddyn.util import mpi
 
@@ -200,6 +201,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
     def save_info_solver_params_xml(self, replace=False):
         comment = ('This file has been created by'
                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
+                   ' and FluidSim ' + fluidsim.__version__ +
                    '.\n\nIt should not be modified '
                    '(except for adding xml comments).')
         info_solver_xml_path = self.path_run + '/info_solver.xml'
