@@ -12,6 +12,7 @@ Provides:
 from __future__ import division
 from past.utils import old_div
 import numpy as np
+from fluiddyn.util import mpi
 from .base import PreprocessBase
 
 
@@ -34,9 +35,9 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 self.normalize_init_fields()
 
             self.sim.state.clear_computed()
-            self.set_viscosity()            
+            self.set_viscosity()
             self.output.save_info_solver_params_xml(replace=True)
-    
+
     def normalize_init_fields(self):
         """
         A non-dimensionalization procedure for the initialized fields.
@@ -49,7 +50,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         state = self.sim.state
         scale = self.params.init_field_scale
         C = float(self.params.init_field_const)
-        
+
         if scale == 'energy':
             try:
                 Ek, = self.output.compute_quad_energies()

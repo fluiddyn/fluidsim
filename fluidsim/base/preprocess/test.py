@@ -3,6 +3,7 @@ from shutil import rmtree
 import numpy as np
 
 from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
+import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
@@ -27,7 +28,8 @@ class TestPreprocessPS(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls.sim.output.path_run)
+        if mpi.rank == 0:
+            rmtree(cls.sim.output.path_run)
 
     def test_set_viscosity(self):
         """Tests if preprocess can initialize viscosity or not."""
