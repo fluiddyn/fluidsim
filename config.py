@@ -7,7 +7,7 @@ Provides
 MPI4PY : bool
     True if mpi4py installed and can be imported
 
-FFTW3 : bool
+FFTW3 : bool    
     True if FFTW3 library is available
 
 FFTW3MPI : bool
@@ -27,7 +27,6 @@ import os
 import sys
 import subprocess
 
-
 def check_avail_library(library_name):
     try:
         libraries = subprocess.check_output('/sbin/ldconfig -p', shell=True)
@@ -39,7 +38,6 @@ def check_avail_library(library_name):
 
     return library_name in libraries
 
-
 def find_library_dirs(args, library_dirs=[], debug=True, skip=True):
     """
     Takes care of non-standard library directories, instead of using LDFLAGS.
@@ -47,12 +45,12 @@ def find_library_dirs(args, library_dirs=[], debug=True, skip=True):
     """
 
     if skip:
-        print('* Skipping search for additional LDFLAGS: ', args)
+        print('* Skipping search for additional LDFLAGS: ',args)
         return library_dirs
 
     for library_name in args:
         libso = "'lib"+library_name+".so'"
-        filter1 = " | grep " + libso
+        filter1 = " | grep " + libso 
         filter2 = " | awk -F'=> ' '{print $2}'"
         filter3 = " | awk -F" + libso + " '{print $1}'"
         try:
@@ -69,10 +67,10 @@ def find_library_dirs(args, library_dirs=[], debug=True, skip=True):
         except subprocess.CalledProcessError:
             print('* Cannot extract library directory: '+library_name)
 
-    default_dirs = ['/usr/lib/', '/usr/lib32/']
+    default_dirs = ['/usr/lib/','/usr/lib32/']
     library_dirs = list(set(library_dirs) - set(default_dirs))
     if debug:
-        print('LDFLAGS for ', args, ' => ', library_dirs)
+        print('LDFLAGS for ',args,' => ',library_dirs)
 
     return library_dirs
 
@@ -100,7 +98,7 @@ dico_lib = dict.fromkeys(keys, [])
 dico_inc = dict.fromkeys(keys, [])
 
 if MPI4PY:
-    if os.environ["CC"] not in ('mpicc', 'cc'):
+    if os.environ["CC"] not in ('mpicc','cc'):
         dico_ldd['mpi'] = ['mpi']
 
     dico_lib['mpi'] = find_library_dirs(['mpi'])
@@ -108,10 +106,10 @@ if MPI4PY:
     dico_inc['mpi'] = [mpi4py.get_include(), here + '/include']
 
 if FFTW3 or FFTW3MPI:
-    print('* Compiling FFTW extensions with the fftw3.h and libfftw3.so')
+    print('* Compiling FFTW extensions with the fftw3.h and libfftw3.so') 
     dico_ldd['fftw'] = ['fftw3']
     if FFTW3MPI:
-        print('... and also fftw3_mpi.h and libfftw3_mpi.so')
+        print('... and also fftw3_mpi.h and libfftw3_mpi.so') 
         dico_ldd['fftw'].append('fftw3_mpi')
 
     try:
@@ -126,5 +124,6 @@ if FFTW3 or FFTW3MPI:
             dico_inc['fftw'].append(r'c:\Prog\fftw-3.3.4-dll64')
 
         else:
-            dico_lib['fftw'].extend(find_library_dirs(['fftw3']))
+            dico_lib['fftw'].extend(find_library_dirs('fftw3'))
             dico_inc['fftw'] = []
+

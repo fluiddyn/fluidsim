@@ -9,33 +9,22 @@ Provides:
 
 
 """
-from __future__ import division
-
 import numpy as np
 from .base import PreprocessBase
 
 
 class PreprocessPseudoSpectral(PreprocessBase):
     _tag = 'pseudo_spectral'
-
+    
     def __call__(self):
         """Preprocesses if enabled."""
 
-        super(PreprocessPseudoSpectral, self).__call__()
         if self.params.enable:
+            self.normalize_init_fields()
             if self.sim.params.FORCING:
-                if 'forcing' in self.params.init_field_scale:
-                    self.set_forcing_rate()
-                    self.normalize_init_fields()
-                else:
-                    self.normalize_init_fields()
-                    self.set_forcing_rate()
-            else:
-                self.normalize_init_fields()
-
-            self.sim.state.clear_computed()
+                self.set_forcing_rate()
             self.set_viscosity()
-            self.output.save_info_solver_params_xml(replace=True)
+            self.sim.output.save_info_solver_params_xml(replace=True)
 
     def normalize_init_fields(self):
         """
@@ -43,69 +32,42 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
         Parameters
         ----------------
-        params.preprocess.init_field_scale : string
+        init_field_scale : string (use 'energy', 'unity')
             Set quantity to normalize initialized fields with.
-             (use 'energy', 'enstrophy', 'enstrophy_forcing' or 'unity')
-
-        params.preprocess.init_field_const : float
-            Non-dimensional ratio of the desired initialized field to the scale.
-
         """
         state = self.sim.state
         scale = self.params.init_field_scale
-        C = self.params.init_field_const
 
         if scale == 'energy':
             try:
-                Ek, = self.output.compute_quad_energies()
+                Ek, = self.output.compute_energies()
             except:
                 Ek = self.output.compute_energy()
 
+            u0 = np.sqrt(Ek)
             ux_fft = state('ux_fft')
             uy_fft = state('uy_fft')
-
-            if Ek != 0.:
-                ux_fft = (C / Ek) ** 0.5 * ux_fft
-                uy_fft = (C / Ek) ** 0.5 * uy_fft
+            if u0 != 0.:
+                ux_fft = ux_fft / u0
+                uy_fft = uy_fft / u0
 
             try:
-                state.init_from_uxuyfft(ux_fft, uy_fft)
+                self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-                state.init_statefft_from(rot_fft=rot_fft)
-        elif scale == 'enstrophy':
-            omega_0 = self.output.compute_enstrophy()
-            rot_fft = state('rot_fft')
-
-            if omega_0 != 0.:
-                rot_fft = (C / omega_0) ** 0.5 * rot_fft
-                state.init_from_rotfft(rot_fft)
-            
-        elif scale == 'enstrophy_forcing':
-            P = self.sim.params.forcing.forcing_rate
-            k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
-                                        self.sim.params.forcing.nkmin_forcing) // 2)
-            omega_0 = self.output.compute_enstrophy()
-            rot_fft = state('rot_fft')
-
-            if omega_0 != 0.:
-                C_0 = omega_0 / (P ** (2. / 3) * k_f ** (4. / 3))
-                rot_fft = (C / C_0) ** 0.5 * rot_fft
-                state.init_from_rotfft(rot_fft)
+                self.sim.state.init_statefft_from(rot_fft=rot_fft)
 
         elif scale == 'unity':
             pass
-        else:
-            raise ValueError('Unknown initial fields scaling: ', scale)
 
     def set_viscosity(self):
         """Based on
 
-        - the initial total enstrophy, :math:`\Omega_0`, or
+        - the initial total enstrophy, \Omega_0, or
 
         - the initial energy
 
-        - the forcing rate, :math:`\epsilon`
+        - the forcing rate, \epsilon
 
         the viscosity scale or Reynolds number is set.
 
@@ -138,6 +100,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         k_max = np.pi / delta_x * self.sim.params.oper.coef_dealiasing
         # OR np.pi / k_d, the dissipative wave number
         length_scale = C * np.pi / k_max
+        # k_f = (self.sim.params.forcing.nkmax_forcing + self.sim.params.forcing.nkmin_forcing) / 2 * sim.oper.deltakh # Forcing scale
+        # length_scale_f = np.pi / k_f
 
         if viscosity_scale == 'enstrophy':
             omega_0 = self.output.compute_enstrophy()
@@ -170,7 +134,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         if viscosity_type == 'laplacian':
             self.sim.params.nu_2 = length_scale ** 2. / time_scale
         elif viscosity_type == 'hyper4':
-            self.sim.params.nu_4 = -length_scale ** 4. / time_scale
+            self.sim.params.nu_4 = length_scale ** 4. / time_scale
         elif viscosity_type == 'hyper8':
             self.sim.params.nu_8 = length_scale ** 8. / time_scale
         elif viscosity_type == 'hypo':
@@ -181,11 +145,11 @@ class PreprocessPseudoSpectral(PreprocessBase):
         self.sim.time_stepping.__init__(self.sim)
 
     def set_forcing_rate(self):
-        r""" Based on C, a non-dimensional ratio of forcing rate to one of the
+        r""" Based on C, a non-dimensional ratio of forcing rate to one of the 
         following forcing scales
 
-        - the initial total energy, math::`E_0`
-        - the initial total enstrophy, math::`\Omega_0`
+        - the initial total energy, math:: E_0
+        - the initial total enstrophy, math:: \Omega_0
 
         the forcing rate is set.
 
@@ -205,8 +169,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         forcing_scale = params.forcing_scale
         C = params.forcing_const
         # Forcing wavenumber
-        k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
-                                    self.sim.params.forcing.nkmin_forcing) // 2)
+        k_f = self.oper.deltakh * (self.sim.params.forcing.nkmax_forcing +
+                                   self.sim.params.forcing.nkmin_forcing) / 2
 
         if forcing_scale == 'unity':
             self.sim.params.forcing.forcing_rate = C

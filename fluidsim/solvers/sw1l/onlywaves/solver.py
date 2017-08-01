@@ -94,7 +94,7 @@ class Simul(SimulSW1LExactLin):
         tendencies_fft.set_var('ap_fft', Np_fft)
         tendencies_fft.set_var('am_fft', Nm_fft)
 
-        if self.params.FORCING and self.params.time_stepping.forcing_time_scheme == 'RK':
+        if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft

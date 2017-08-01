@@ -26,8 +26,6 @@ Provides:
 
 import numpy as np
 
-from fluiddyn.util import mpi
-
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 from fluidsim.solvers.ns2d.init_fields import (
@@ -105,6 +103,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         Ly = oper.Ly
         XX = oper.XX
         YY = oper.YY
+        shape = oper.shapeX
         N_vort = params.n_vort
         SD = params.sd
 
@@ -119,19 +118,19 @@ class InitFieldsVortexGrid(SpecificInitFields):
         sign_list = self._random_plus_minus_list()
 
         if SD is None:
-            SD = min(dx_vort, dy_vort) / 12.
+            SD = min(dx_vort, dy_vort) / 2. / 6.
             params.sd = SD
 
         amp = params.omega_max
         wz_gaussian = lambda x, y, sign:(
                 sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD**2)))
         
-        omega = np.zeros(oper.shapeX_loc)
+        omega = np.zeros(shape)
         for i in xrange(0, N_vort):
             x0 = x_vort[i]
             for j in xrange(0, N_vort):
                 y0 = y_vort[j]
-                sign = sign_list[i * N_vort + j]
+                sign = sign_list.pop()
                 omega = omega + wz_gaussian(XX - x0, YY - y0, sign)
 
         return omega
@@ -140,18 +139,24 @@ class InitFieldsVortexGrid(SpecificInitFields):
         """
         Returns a list with of length n_vort^2, with equal number of pluses and minuses.
         """
-        N = self.sim.params.init_fields.vortex_grid.n_vort ** 2
-        if mpi.rank == 0:
-            pm = np.ones(N)
-            pm[::2] = -1
-            np.random.shuffle(pm)
-        else:
-            pm = np.empty(N)
+        from random import choice, shuffle
+        
+        N = self.sim.params.init_fields.vortex_grid.n_vort
+        plus_or_minus = (+1., -1.)
+        pm = list()
 
-        if mpi.nb_proc > 1:
-            from mpi4py.MPI import INT
-            mpi.comm.Bcast([pm, INT])
+        for i in xrange(0, N**2):
+            if i < N / 2:
+                pm.append(choice(plus_or_minus))
+            else:
+                pm.append(-pm[i - N / 2])
 
+        shuffle(pm)
+
+        if pm.count(+1.) != pm.count(-1.):
+            print "Clockwise: ", pm.count(-1.), ", Anti-clockwise: ", pm.count(+1.)
+            raise ValueError(
+                "Mismatch between number of clockwise and anticlockwise vortices in initialisation")
         return pm
     
        

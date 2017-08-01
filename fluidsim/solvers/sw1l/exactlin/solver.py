@@ -91,7 +91,7 @@ class Simul(SimulSW1L):
         tendencies_fft.set_var('ap_fft', Np_fft)
         tendencies_fft.set_var('am_fft', Nm_fft)
 
-        if self.params.FORCING and self.params.time_stepping.forcing_time_scheme == 'RK':
+        if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -119,7 +119,7 @@ class Simul(SimulSW1L):
         ap_fft = state_fft.get_var('ap_fft')
         am_fft = state_fft.get_var('am_fft')
         a_fft = ap_fft + am_fft
-        div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
+        div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
 
         eta_fft = (oper.etafft_from_qfft(q_fft) +
                    oper.etafft_from_afft(a_fft))
