@@ -186,7 +186,7 @@ class NormalModeDecomposition(NormalModeBase):
                 value_dict[k3] += value_matrix[i, j]
 
         new_matrix = np.array([value_dict[k] for k in value_dict.keys()])
-        new_keys = np.array(list(value_dict.keys()))
+        new_keys = np.array([list(value_dict)])
         return new_keys, new_matrix
 
     def dyad_from_keyfft(self, conjugate=False, *keys_state_fft):
