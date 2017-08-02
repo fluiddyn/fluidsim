@@ -146,7 +146,7 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
-    def init_fft_from(self, **kwargs):
+    def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             key_fft, value = list(kwargs.items())[0]
             try:

@@ -81,8 +81,8 @@ class StatePlate2D(StatePseudoSpectral):
         self.state_fft.set_var('w_fft', w_fft)
         self.state_fft.set_var('z_fft', z_fft)
         self.statephys_from_statefft()
-        
-    def init_fft_from(self, **kwargs):
+
+    def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'w_fft' in kwargs:
                 w_fft = kwargs['w_fft']

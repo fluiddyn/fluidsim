@@ -95,7 +95,7 @@ class StateNS2D(StatePseudoSpectral):
         self.state_fft.set_var('rot_fft', rot_fft)
         self.statephys_from_statefft()
 
-    def init_fft_from(self, **kwargs):
+    def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'rot_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])

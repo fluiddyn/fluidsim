@@ -116,9 +116,9 @@ class StateNS2DStrat(StateNS2D):
         b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
         self.init_from_rotbfft(rot_fft, b_fft)
 
-    def init_fft_from(self, **kwargs):
+    def init_statefft_from(self, **kwargs):
 
-        # init_fft_from looks if kwargs has two arguments.
+        # init_statefft_from looks if kwargs has two arguments.
         if len(kwargs) == 2:
             if 'rot_fft' in kwargs and 'b_fft' in kwargs:
                 self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])

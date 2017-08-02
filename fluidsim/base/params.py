@@ -62,7 +62,6 @@ def merge_params(*paramcontainers):
     for params in paramcontainers[1:]:
         params_merged = merge_params_pair(params_merged, params)
 
-    print(params_merged.init_fields.from_file.path)
     return params_merged
 
 
