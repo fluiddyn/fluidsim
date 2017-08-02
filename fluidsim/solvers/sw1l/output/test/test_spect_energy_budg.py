@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
-from . import BaseTestCase
+from . import BaseTestCase, mpi
 
 
 class TestSW1L(BaseTestCase):
@@ -178,8 +178,12 @@ class TestSW1L(BaseTestCase):
         self.assertAlmostEqual(energy_GGG, 0)
         self.assertAlmostEqual(enstrophy_GGG, 0)
 
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
     def test_plot_spect_energy_budg(self):
         self._plot()
+
+    def test_online_plot_spatial_means(self):
         self._online_plot(self.dico)
 
 

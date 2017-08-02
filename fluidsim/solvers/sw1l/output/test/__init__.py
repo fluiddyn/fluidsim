@@ -45,5 +45,6 @@ class BaseTestCase(unittest.TestCase):
 
     def _online_plot(self, *args):
         module = self.module
-        module.init_online_plot()
-        module._online_plot(*args)
+        if mpi.rank == 0:
+            module.init_online_plot()
+            module._online_plot(*args)
