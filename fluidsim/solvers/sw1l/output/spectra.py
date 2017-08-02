@@ -30,7 +30,6 @@ class SpectraSW1L(Spectra):
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
                  )
         axe.set_title(title)
-        axe.hold(True)
 
     def compute(self):
         """compute the values at one time."""
@@ -192,7 +191,6 @@ imin_plot, imax_plot, delta_i_plot)
 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
 )
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
@@ -282,7 +280,6 @@ imin_plot, imax_plot, delta_i_plot)
 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
 )
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
@@ -327,9 +324,11 @@ imin_plot, imax_plot, delta_i_plot)
 
         self._plot2d_lin_spectra(f, ax1, imin_plot, imax_plot, kh, coef_norm, keys)
 
-        ax1.plot(kh, kh**(-2) * coef_norm, 'k-', linewidth=1)
-        ax1.plot(kh, kh**(-3) * coef_norm, 'k--', linewidth=1)
-        ax1.plot(kh, kh**(-5./3) * coef_norm, 'k-.', linewidth=1)
+        kh_pos = kh[kh > 0]
+        coef_norm = coef_norm[kh > 0]
+        ax1.plot(kh_pos, kh_pos ** (-2) * coef_norm, 'k-', linewidth=1)
+        ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh_pos, kh_pos ** (-5./3) * coef_norm, 'k-.', linewidth=1)
 
         font = {'family': 'serif',
                 'weight': 'normal',

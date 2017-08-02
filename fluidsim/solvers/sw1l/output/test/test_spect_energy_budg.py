@@ -1,17 +1,14 @@
 from __future__ import print_function
-from builtins import object
 
+import unittest
 import numpy as np
 
 from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
+from . import BaseTestCase
 
 
-class TestSpectEnergyBudg(object):
-
-    @classmethod
-    def setUpClass(cls):
-        module = cls.output.spect_energy_budg
-        cls.dico_spect_energy_budg = module.compute()
+class TestSW1L(BaseTestCase):
+    _tag = 'spect_energy_budg'
 
     def skipUnlessHasAttr(self, attr, reason=None):
         attr_names = attr.split('.')
@@ -114,7 +111,7 @@ class TestSpectEnergyBudg(object):
         Cq_tot_modes = 0.
         key_modes = ['Cq_GG', 'Cq_AG', 'Cq_aG', 'Cq_AA']
         for k in key_modes:
-            Cq_tot_modes += self.dico_spect_energy_budg[k]
+            Cq_tot_modes += self.dico[k]
 
         px_eta_fft, py_eta_fft = sim.oper.gradfft_from_fft(eta_fft)
         Cq_tot_exact = -sim.params.c2 * sim.oper.spectrum2D_from_fft(
@@ -126,7 +123,7 @@ class TestSpectEnergyBudg(object):
         Tq_tot_modes = 0.
         key_modes = ['Tq_GGG', 'Tq_AGG', 'Tq_GAAs', 'Tq_GAAd', 'Tq_AAA']
         for k in key_modes:
-            Tq_tot_modes += self.dico_spect_energy_budg[k]
+            Tq_tot_modes += self.dico[k]
 
         TKq_exact = (
             inner_prod(ux_fft,
@@ -159,16 +156,12 @@ class TestSpectEnergyBudg(object):
         .. math:: k^{2}\Sigma T_{GGG} = 0
         """
         sim = self.sim
-        # self.skipUnlessHasAttr(
-        #     'output.spect_energy_budg.norm_mode',
-        #     self.solver + "does not use normal mode spect_energy_budg")
-
         try:
-            Tq_GGG = self.dico_spect_energy_budg['Tq_GGG']
-            Tens = self.dico_spect_energy_budg['Tens']
+            Tq_GGG = self.dico['Tq_GGG']
+            Tens = self.dico['Tens']
         except KeyError:
-            Tq_GGG = self.dico_spect_energy_budg['transfer2D_Errr']
-            Tens = self.dico_spect_energy_budg['transfer2D_CPE']
+            Tq_GGG = self.dico['transfer2D_Errr']
+            Tens = self.dico['transfer2D_CPE']
 
         energy_GGG = Tq_GGG.sum()
         enstrophy_GGG = Tens.sum()
@@ -184,3 +177,27 @@ class TestSpectEnergyBudg(object):
 
         self.assertAlmostEqual(energy_GGG, 0)
         self.assertAlmostEqual(enstrophy_GGG, 0)
+
+    def test_plot_spect_energy_budg(self):
+        self._plot()
+        self._online_plot(self.dico)
+
+
+class TestWaves(TestSW1L):
+    solver = 'sw1l.onlywaves'
+
+
+class TestExactlin(TestSW1L):
+    solver = 'sw1l.exactlin'
+
+
+class TestExmod(TestSW1L):
+    solver = 'sw1l.exactlin.modified'
+
+
+class TestModif(TestSW1L):
+    solver = 'sw1l.modified'
+
+
+if __name__ == '__main__':
+    unittest.main()

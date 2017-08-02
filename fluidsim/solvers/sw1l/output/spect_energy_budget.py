@@ -392,6 +392,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltakh
         PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltakh
         PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltakh
+        PiEtot = PiEK + PiEA
         CCP = cumsum_inv(convP2D) * self.oper.deltakh
         CCK = cumsum_inv(convK2D) * self.oper.deltakh
 
@@ -461,7 +462,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
                  )
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
 
@@ -580,7 +580,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax2.set_ylabel('transfers')
         title = ('Charney PE flux')
         ax2.set_title(title)
-        ax2.hold(True)
         ax2.set_xscale('log')
         ax2.set_yscale('linear')
 
@@ -825,7 +824,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
                  )
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
 
@@ -875,7 +873,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         ax2.set_ylabel('transfers')
         title = ('Charney PE flux')
         ax2.set_title(title)
-        ax2.hold(True)
         ax2.set_xscale('log')
         ax2.set_yscale('linear')
 
@@ -892,7 +889,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 
 
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
-    
+
     def __init__(self, output, norm_mode=None):
         if norm_mode is None:
             self.norm_mode = NormalModeDecomposition(output)
@@ -1152,11 +1149,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.axhline()
         ax11.set_title(title)
-        ax11.hold(True)
         ax11.set_xscale('log')
         ax11.axhline()
 
@@ -1210,7 +1205,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         # -------------------------
         ax2.set_xlabel(r'$k_h$')
         ax2.set_ylabel(r'Exchange fluxes, $\Sigma C$')
-        ax2.hold(True)
         ax2.set_xscale('log')
         ax2.axhline()
 

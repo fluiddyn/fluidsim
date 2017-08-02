@@ -486,7 +486,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
-        ax1.hold(True)
         norm = self.c2 / 2
         ax1.plot(t, E / norm, 'k', linewidth=2, label='$E$')
         ax1.plot(t, EK / norm, 'r', linewidth=1, label='$E_K$')
@@ -494,7 +493,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax1.plot(t, EKr / norm, 'r--', linewidth=1, label='$E_K^r$')
         ax1.plot(t, (EK - EKr) / norm, 'r:', linewidth=1, label='$E_K^d$')
         ax1.legend()
-        
+
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
@@ -502,7 +501,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2.set_ylabel('Charney PE(t)')
         title = ('mean Charney PE(t)')
         ax2.set_title(title)
-        ax2.hold(True)
         ax2.plot(t, CPE, 'k', linewidth=2)
 
         z_bottom_axe = 0.56
@@ -514,7 +512,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
-        ax1.hold(True)
         if 'PK_tot' in dico_results:
             ax1.plot(t, P_tot, 'c', linewidth=2, label='$P_{tot}$')
 
@@ -531,7 +528,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2.set_ylabel('$\epsilon$ Charney PE(t)')
         title = ('dissipation Charney PE')
         ax2.set_title(title)
-        ax2.hold(True)
         ax2.plot(t, epsCPE, 'k--', linewidth=2)
         ax2.plot(t, epsCPE_hypo, 'g', linewidth=2)
         ax2.plot(t, epsCPE_tot, 'r', linewidth=2)
@@ -698,7 +694,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         ux_fft = state('ux_fft')
         uy_fft = state('uy_fft')
         eta_fft = state('eta_fft')
-        
+
         Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 

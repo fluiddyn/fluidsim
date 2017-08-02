@@ -73,7 +73,6 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         axe_a.set_ylabel(r'$\Pi(k_h)$')
         axe_a.set_title('energy flux, solver ' + self.output.name_solver +
                         ', nh = {0:5d}'.format(self.nx))
-        axe_a.hold(True)
         axe_a.set_xscale('log')
 
         z_bottom_axe = 0.08
@@ -82,7 +81,6 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.axe_b = axe_b
         axe_b.set_xlabel(r'$k_h$')
         axe_b.set_ylabel(r'$\Pi(k_h)$')
-        axe_b.hold(True)
         axe_b.set_xscale('log')
 
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
