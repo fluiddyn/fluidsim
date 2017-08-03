@@ -226,8 +226,10 @@ imin_plot, imax_plot, delta_i_plot)
         ax1.plot(kh, E_K*coef_norm, 'r', linewidth=2)
         ax1.plot(kh, E_A*coef_norm, 'b', linewidth=2)
 
-        ax1.plot(kh, kh**(-3)*coef_norm, 'k', linewidth=1)
-        ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k--', linewidth=1)
+        kh_pos = kh[kh > 0]
+        coef_norm = coef_norm[kh > 0]
+        ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, 'k--', linewidth=1)
+        ax1.plot(kh_pos, kh_pos ** (-5./3) * coef_norm, 'k-.', linewidth=1)
 
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,

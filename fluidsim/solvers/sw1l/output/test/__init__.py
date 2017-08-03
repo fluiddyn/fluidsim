@@ -3,6 +3,8 @@ from __future__ import print_function
 import unittest
 from shutil import rmtree
 
+import matplotlib.pyplot as plt
+
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 from fluidsim.solvers.test.test_solvers import run_mini_simul
@@ -35,16 +37,24 @@ class BaseTestCase(unittest.TestCase):
         module = self.module
 
         tmax = self.sim.params.time_stepping.t_end
-        delta_t = getattr(
-            self.sim.params.output.periods_save, self._tag)
         with stdout_redirected():
             try:
+                if hasattr(self.sim.params.output.periods_save, self._tag):
+                    delta_t = getattr(
+                        self.sim.params.output.periods_save, self._tag)
+                else:
+                    raise TypeError
                 module.plot(tmin=0, tmax=tmax, delta_t=delta_t)
             except TypeError:
                 module.plot()
+
+            plt.clf()
+            plt.close('all')
 
     def _online_plot(self, *args):
         module = self.module
         if mpi.rank == 0:
             module.init_online_plot()
             module._online_plot(*args)
+            plt.clf()
+            plt.close('all')

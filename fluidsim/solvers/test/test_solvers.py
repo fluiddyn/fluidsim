@@ -44,6 +44,8 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
     if FORCING:
         params.FORCING = True
         params.forcing.type = 'waves'
+        params.forcing.nkmin_forcing = 2
+        params.forcing.nkmax_forcing = 4
 
     params.output.HAS_TO_SAVE = HAS_TO_SAVE
 
