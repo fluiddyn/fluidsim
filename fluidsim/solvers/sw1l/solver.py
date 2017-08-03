@@ -98,18 +98,6 @@ class Simul(SimulBasePseudoSpectral):
         Feta_fft = -oper.divfft_from_vecfft(fft2((eta+1)*ux),
                                             fft2((eta+1)*uy))
 
-        # # for verification conservation energy
-        # oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
-        # Fx   = oper.ifft2(Fx_fft)
-        # Fy   = oper.ifft2(Fy_fft)
-        # Feta = oper.ifft2(Feta_fft)
-        # A = ( Feta*(ux**2+uy**2)/2
-        #       + (1+eta)*(ux*Fx+uy*Fy)
-        #       + self.params.c2*eta*Feta )
-        # A_fft = fft2(A)
-        # if mpi.rank == 0:
-        #     print 'should be zero =', A_fft[0,0]
-
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
             info='tendencies_nonlin')

@@ -99,16 +99,6 @@ class Simul(SimulSW1L):
         div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
         Feta_fft = -fft2(ux_rot*dxeta + uy_rot*dyeta) - div_fft
 
-        # # for verification conservation energy
-        # oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
-        # T_ux = (ux_fft.conj()*Fx_fft).real
-        # T_uy = (uy_fft.conj()*Fy_fft).real
-        # T_eta = (eta_fft.conj()*Feta_fft).real
-        # T_tot = T_ux + T_uy + T_eta
-        # print 'sum(T_tot) = {0:9.4e} ; sum(abs(T_tot)) = {1:9.4e}'.format(
-        #     self.oper.sum_wavenumbers(T_tot),
-        #     self.oper.sum_wavenumbers(abs(T_tot)))
-
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
             info='tendencies_nonlin')
