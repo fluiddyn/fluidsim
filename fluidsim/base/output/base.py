@@ -27,6 +27,7 @@ import datetime
 import os
 import shutil
 import numbers
+from time import sleep
 
 import numpy as np
 import h5py
@@ -96,11 +97,7 @@ class OutputBase(object):
         self.name_solver = sim.info.solver.short_name
 
         # initialisation name_run and path_run
-        list_for_name_run = self.create_list_for_name_run()
-        list_for_name_run.append(time_as_str())
-        self.name_run = '_'.join(list_for_name_run)
-
-        self.sim.name_run = self.name_run
+        self.init_name_run()
 
         if not params.NEW_DIR_RESULTS:
             try:
@@ -159,7 +156,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 path_base = os.path.join(
                     path_base, params.output.sub_directory)
 
-            self.path_run = os.path.join(path_base, self.sim.name_run)
+            while True:
+                path_run = os.path.join(path_base, self.name_run)
+                if not os.path.exists(path_run):
+                    break
+                else:
+                    print("Warning: NEW_DIR_RESULTS=True, but path", path_run,
+                          "already exists. Trying a new path...")
+                    sleep(1)
+                    self.init_name_run()
+
+            self.path_run = path_run
 
             if mpi.rank == 0:
                 params._set_attrib('path_run', self.path_run)
@@ -178,6 +185,12 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if not self.has_to_save:
             for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.
+
+    def init_name_run(self):
+        list_for_name_run = self.create_list_for_name_run()
+        list_for_name_run.append(time_as_str())
+        self.name_run = '_'.join(list_for_name_run)
+        self.sim.name_run = self.name_run
 
     def create_list_for_name_run(self):
         list_for_name_run = [self.name_solver]
