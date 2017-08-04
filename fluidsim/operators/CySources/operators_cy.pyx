@@ -279,7 +279,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakh))
+        ikx_seq = int(np.round(kx_approx/self.deltakx))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
