@@ -98,6 +98,11 @@ class OutputBase(object):
 
         # initialisation name_run and path_run
         self.init_name_run()
+        if mpi.nb_proc > 1:
+            # ensure same name_run across all processes
+            self.name_run = mpi.comm.bcast(self.name_run, root=0)
+
+        self.sim.name_run = self.name_run
 
         if not params.NEW_DIR_RESULTS:
             try:
@@ -156,22 +161,33 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 path_base = os.path.join(
                     path_base, params.output.sub_directory)
 
-            while True:
-                path_run = os.path.join(path_base, self.name_run)
-                if not os.path.exists(path_run):
-                    break
-                else:
-                    print("Warning: NEW_DIR_RESULTS=True, but path", path_run,
-                          "already exists. Trying a new path...")
-                    sleep(1)
-                    self.init_name_run()
+            if mpi.rank == 0:
+                while True:
+                    path_run = os.path.join(path_base, self.name_run)
+                    if not os.path.exists(path_run):
+                        try:
+                            os.makedirs(path_run)
+                        except OSError:
+                            # in case of simultaneously launched simulations
+                            print("Warning: NEW_DIR_RESULTS=True, but path", path_run,
+                                  "already exists. Trying a new path...")
+                            sleep(1)
+                            self.init_name_run()
+                        else:
+                            break
+            else:
+                path_run = ''
 
-            self.path_run = path_run
+            if mpi.nb_proc > 1:
+                self.path_run = mpi.comm.bcast(path_run, root=0)
+                self.name_run = mpi.comm.bcast(self.name_run, root=0)
+            else:
+                self.path_run = path_run
+
+            self.sim.name_run = self.name_run
 
             if mpi.rank == 0:
                 params._set_attrib('path_run', self.path_run)
-                if not os.path.exists(self.path_run):
-                    os.makedirs(self.path_run)
 
         dico_classes = sim.info.solver.classes.Output.import_classes()
 
@@ -190,7 +206,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         list_for_name_run = self.create_list_for_name_run()
         list_for_name_run.append(time_as_str())
         self.name_run = '_'.join(list_for_name_run)
-        self.sim.name_run = self.name_run
 
     def create_list_for_name_run(self):
         list_for_name_run = [self.name_solver]
