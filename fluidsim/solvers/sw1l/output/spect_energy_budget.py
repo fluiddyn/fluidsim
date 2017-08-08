@@ -1185,13 +1185,14 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
         ax1.plot(khE, Pi_AGG, 'm--', linewidth=2, label=r'$\Pi_{GGA}$')
-        ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
-        ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
+        # ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
+        # ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
+        ax1.plot(khE, Pi_GAAs + Pi_GAAd, 'r', linewidth=2, label=r'$\Pi_{GAA}$')
         ax1.plot(khE, Pi_AAA, 'y--', linewidth=2, label=r'$\Pi_{AAA}$')
-        ax1.plot(khE, Pi_nq, 'k--', linewidth=2, label=r'$\Pi^{NQ}$')
+        ax1.plot(khE, Pi_nq, 'k--', linewidth=1, label=r'$\Pi^{NQ}$')
         ax1.plot(khE, Pi_tot, 'k', linewidth=3, label=r'$\Pi_{tot}$')
         ax1.legend()
-        
+
         ax11.plot(khE, Tq_GGG, 'g--', linewidth=2, label=r'$T_{GGG}$')
         ax11.plot(khE, Tq_AGG, 'm--', linewidth=2, label=r'$T_{GGA}$')
         ax11.plot(khE, Tq_GAAs, 'r:', linewidth=2, label=r'$T_{G\pm\pm}$')
