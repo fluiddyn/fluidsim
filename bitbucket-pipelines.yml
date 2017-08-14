@@ -8,6 +8,8 @@ image: fluiddyn/python-stable
 pipelines:
   default:
     - step:
+        caches:
+          - pip
         script: # Modify the commands below to build your repository.
           - pip install -U tox
           - pip --version
@@ -17,6 +19,8 @@ pipelines:
           - tox -e py27,py36,codecov
   dev:
     - step:
+        caches:
+          - pip
         script: # Modify the commands below to build your repository.
           - pip install -U tox
           - pip --version
