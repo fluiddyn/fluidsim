@@ -21,6 +21,11 @@ tests:
 tests_mpi:
 	mpirun -np 2 python -m unittest discover
 
+build_coverage:
+	@echo "Warning! Cython extensions with linetrace enabled can make the code slow"
+	@echo "Run `make clean_so develop` after coverage tests for practical use"
+	python setup.py build_ext --force --inplace --define CYTHON_TRACE_NOGIL
+
 tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m unittest discover
@@ -34,7 +39,7 @@ report_coverage:
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
-coverage: tests_coverage report_coverage
+coverage: build_coverage tests_coverage report_coverage
 
 install:
 	python setup.py install

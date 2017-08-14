@@ -1,3 +1,4 @@
+# cython: linetrace=True
 """
 Time stepping Cython (:mod:`fluidsim.base.time_stepping.pseudo_spect_cy`)
 =========================================================================

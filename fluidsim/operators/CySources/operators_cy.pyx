@@ -1,3 +1,4 @@
+# cython: linetrace=True
 """
 Numerical operators (:mod:`fluidsim.operators.operators`)
 =========================================================
