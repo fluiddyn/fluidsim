@@ -76,7 +76,8 @@ class SimulBase(object):
         np.seterr(all='warn')
         np.seterr(under='ignore')
 
-        if not hasattr(self, 'info_solver'):
+        if not hasattr(self, 'info_solver') or \
+           self.info_solver.__class__ is not self.InfoSolver():
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 

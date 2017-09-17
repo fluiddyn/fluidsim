@@ -8,16 +8,15 @@ with gprof2dot and graphviz (command dot):
 gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
 
 """
-import fluidsim
 
 old = 0
-
-import fluidsim
 
 if old:
     from fluidsim.solvers.ns2d import solver
 else:
     from fluidsim.solvers.ns2d import solver_fluidfft as solver
+
+print('import done...')
 
 # key_solver = 'NS2D'
 # key_solver = 'SW1l'
@@ -27,6 +26,8 @@ else:
 
 # solver = fluidsim.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
+
+print('default parameters created')
 
 params.short_name_type_run = 'profile'
 
@@ -39,9 +40,7 @@ params.oper.Ly = Lh
 
 if not old:
     # params.oper.type_fft = 'fft2d.mpi_with_fftw1d'
-    params.oper.type_fft = 'mpi_with_fftwmpi2d'
-    # params.oper.type_fft = 'with_cufft'
-    # pass
+    pass
 
 params.oper.coef_dealiasing = 2./3
 

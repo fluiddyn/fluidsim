@@ -19,12 +19,13 @@ pseudo-spectral solvers.
 """
 from __future__ import division
 
+import os
+
 import numpy as np
 
 from fluiddyn.util import mpi
 
 from fluidsim.base.setofvariables import SetOfVariables
-
 from fluidsim.base.solvers.base import SimulBase, InfoSolverBase
 
 
@@ -59,6 +60,9 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
 
         self.classes.Operators.module_name = 'fluidsim.operators.operators'
+        if 'FLUIDSIM_PRIORITY_FLUIDFFT' in os.environ:
+            self.classes.Operators.module_name += '2d'
+
         self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
 
         self.classes.Forcing.class_name = 'ForcingBasePseudoSpectral'
