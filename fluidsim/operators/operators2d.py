@@ -375,20 +375,6 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         return rank_k, ik0_loc, ik1_loc
 
-    def vecfft_from_rotfft(self, rot_fft):
-        """Return the velocity in spectral space computed from the
-        rotational."""
-        ux_fft = 1j * self.KY_over_K2*rot_fft
-        uy_fft = -1j * self.KX_over_K2*rot_fft
-        return ux_fft, uy_fft
-
-    def vecfft_from_divfft(self, div_fft):
-        """Return the velocity in spectral space computed from the
-        divergence."""
-        ux_fft = -1j * self.KX_over_K2*div_fft
-        uy_fft = -1j * self.KY_over_K2*div_fft
-        return ux_fft, uy_fft
-
     def uxuyfft_from_psifft(self, psi_fft):
         px_psi_fft, py_psi_fft = self.gradfft_from_fft(psi_fft)
         ux_fft = -py_psi_fft

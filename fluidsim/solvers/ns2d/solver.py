@@ -20,9 +20,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
 
-from . import util_pythran
-
-compute_Frot = util_pythran.compute_Frot
+from .util_pythran import compute_Frot
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):

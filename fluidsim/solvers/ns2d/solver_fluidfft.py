@@ -1,6 +1,7 @@
 
 from .solver import InfoSolverNS2D as _InfoSolverNS2D, Simul as _Simul
-
+from .util_pythran import compute_Frot
+from fluidsim.base.setofvariables import SetOfVariables
 
 class InfoSolverNS2D(_InfoSolverNS2D):
     def _init_root(self):
@@ -15,6 +16,92 @@ class InfoSolverNS2D(_InfoSolverNS2D):
 class Simul(_Simul):
     InfoSolver = InfoSolverNS2D
 
+    def tendencies_nonlin(self, state_fft=None):
+        r"""Compute the nonlinear tendencies.
+
+        Parameters
+        ----------
+
+        state_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            optional
+
+            Array containing the state, i.e. the vorticity, in Fourier
+            space.  If `state_fft`, the variables vorticity and the
+            velocity are computed from it, otherwise, they are taken
+            from the global state of the simulation, `self.state`.
+
+            These two possibilities are used during the Runge-Kutta
+            time-stepping.
+
+        Returns
+        -------
+
+        tendencies_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            An array containing the tendencies for the vorticity.
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        The 2D Navier-Stockes equation can be written
+
+        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \zeta,
+
+        This function compute the nonlinear term ("tendencies")
+        :math:`\hat N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla}
+        \zeta`.
+
+        """
+        # the operator and the fast Fourier transform
+        oper = self.oper
+        ifft_as_arg = oper.ifft_as_arg
+
+        # get or compute rot_fft, ux and uy
+        if state_fft is None:
+            rot_fft = self.state.state_fft.get_var('rot_fft')
+            ux = self.state.state_phys.get_var('ux')
+            uy = self.state.state_phys.get_var('uy')
+        else:
+            rot_fft = state_fft.get_var('rot_fft')
+            ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
+            ux = self.state.field_tmp0
+            uy = self.state.field_tmp1
+            ifft_as_arg(ux_fft, ux)
+            ifft_as_arg(uy_fft, uy)            
+
+        # "px" like $\partial_x$
+        px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
+
+        px_rot = self.state.field_tmp2
+        py_rot = self.state.field_tmp3
+        
+        ifft_as_arg(px_rot_fft, px_rot)
+        ifft_as_arg(py_rot_fft, py_rot)
+
+        Frot = compute_Frot(ux, uy, px_rot, py_rot, self.params.beta)
+
+        tendencies_fft = SetOfVariables(like=self.state.state_fft)
+        Frot_fft = tendencies_fft.get_var('rot_fft')
+        oper.fft_as_arg(Frot, Frot_fft)
+        
+        oper.dealiasing(Frot_fft)
+
+        # T_rot = np.real(Frot_fft.conj()*rot_fft
+        #                + Frot_fft*rot_fft.conj())/2.
+        # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
+        #       ).format(self.oper.sum_wavenumbers(T_rot),
+        #                self.oper.sum_wavenumbers(abs(T_rot)))
+
+        # tendencies_fft.set_var('rot_fft', Frot_fft)
+
+        if self.params.FORCING:
+            tendencies_fft += self.forcing.get_forcing()
+
+        return tendencies_fft
+
+
+    
 
 if __name__ == "__main__":
     import numpy as np
