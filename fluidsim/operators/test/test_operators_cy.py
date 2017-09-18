@@ -1,14 +1,13 @@
 from __future__ import division
 
-from past.utils import old_div
 import unittest
 import numpy as np
 import sys
 
 from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
+from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidsim.base.solvers.pseudo_spect import Simul
 from fluidsim.operators.operators import OperatorsPseudoSpectral2D
 
 try:
@@ -25,7 +24,11 @@ except ImportError:
 
 def create_oper(type_fft='FFTWCY'):
 
-    params = Simul.create_default_params()
+    params = ParamContainer(tag='params')
+
+    params._set_attrib('ONLY_COARSE_OPER', False)
+
+    OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
     nh = 8
     params.oper.nx = nh
@@ -36,7 +39,7 @@ def create_oper(type_fft='FFTWCY'):
 
     params.oper.type_fft = type_fft
 
-    params.oper.coef_dealiasing = old_div(2.,3)
+    params.oper.coef_dealiasing = 2./3
 
     with stdout_redirected():
         oper = OperatorsPseudoSpectral2D(params=params)
@@ -97,8 +100,7 @@ class TestOperators(unittest.TestCase):
 
         T_rot = np.real(Frot_fft.conj()*rot_fft)
 
-        ratio = (old_div(oper.sum_wavenumbers(T_rot),
-                 oper.sum_wavenumbers(abs(T_rot))))
+        ratio = oper.sum_wavenumbers(T_rot)/oper.sum_wavenumbers(abs(T_rot))
 
         self.assertGreater(1e-15, ratio)
 
@@ -133,8 +135,8 @@ class TestOperators(unittest.TestCase):
 
         T_rotpy = np.real(Frot_fftpy.conj()*rot_fft)
 
-        ratio = (old_div(oper2.sum_wavenumbers(T_rotpy),
-                 oper2.sum_wavenumbers(abs(T_rotpy))))
+        ratio = (
+            oper2.sum_wavenumbers(T_rotpy)/oper2.sum_wavenumbers(abs(T_rotpy)))
 
         # print ('sum(T_rot) = {0:9.4e} ; '
         #        'sum(abs(T_rot)) = {1:9.4e}').format(

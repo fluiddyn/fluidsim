@@ -699,3 +699,30 @@ class OperatorsPseudoSpectral2D(_Operators):
             ux_fft[0, 0] = 0.5 * (ap_fft[0, 0] + am_fft[0, 0])
             uy_fft[0, 0] = 0.5j * (am_fft[0, 0] - ap_fft[0, 0])
         return ux_fft, uy_fft, eta_fft
+
+    def monge_ampere_from_fft(self, a_fft, b_fft):
+        KX = self.KX
+        KY = self.KY
+        ifft2 = self.ifft2
+
+        pxx_a = - ifft2(a_fft * KX**2)
+        pyy_a = - ifft2(a_fft * KY**2)
+        pxy_a = - ifft2(a_fft * KX * KY)
+
+        pxx_b = - ifft2(b_fft * KX**2)
+        pyy_b = - ifft2(b_fft * KY**2)
+        pxy_b = - ifft2(b_fft * KX * KY)
+
+        return pxx_a*pyy_b + pyy_a*pxx_b - 2*pxy_a*pxy_b
+
+    def laplacian2_fft(self, a_fft):
+        K4 = self.K4
+        lap2_afft = a_fft * K4
+        return lap2_afft
+
+    def invlaplacian2_fft(self, a_fft):
+        K4_not0 = self.K4_not0
+        invlap2_afft = a_fft / K4_not0
+        if rank == 0:
+            invlap2_afft[0, 0] = 0.
+        return invlap2_afft
