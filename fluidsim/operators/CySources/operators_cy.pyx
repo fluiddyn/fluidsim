@@ -136,7 +136,7 @@ cdef class GridPseudoSpectral2D(Operators):
     cdef public int nK0_loc, nK1_loc, dim_kx, dim_ky
     cdef public np.ndarray iKxloc_start_rank
 
-    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL
+    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL, is_sequential
     cdef public DTYPEb_t SAME_SIZE_IN_ALL_PROC
 
     # cdef public object where_is_wavenumber
@@ -179,7 +179,7 @@ cdef class GridPseudoSpectral2D(Operators):
         self.shapeK_seq = np.array([self.nky_seq, self.nkx_seq])
 
         if self.nb_proc == 1 or SEQUENTIAL:
-            self.SEQUENTIAL = True
+            self.SEQUENTIAL = self.is_sequential = True
             self.SAME_SIZE_IN_ALL_PROC = True
             self.shapeX = self.shapeX_seq
             self.shapeK = self.shapeK_seq

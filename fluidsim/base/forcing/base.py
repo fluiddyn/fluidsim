@@ -17,6 +17,8 @@ Provides:
 
 from builtins import object
 
+from fluiddyn.util import mpi
+
 
 class ForcingBase(object):
 
@@ -88,11 +90,11 @@ key_forced: {None} or str
                 sim.params.forcing.__dict__['tcrandom'] = \
                     sim.params.forcing['random']
             else:
-                print('dict_classes:', dict_classes)
+                if mpi.rank == 0:
+                    print('dict_classes:', dict_classes)
                 raise ValueError('Wrong value for params.forcing.type: ' +
                                  self.type_forcing)
 
-        
         ClassForcing = dict_classes[self.type_forcing]
 
         self._forcing = ClassForcing(sim)

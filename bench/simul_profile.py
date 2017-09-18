@@ -9,43 +9,30 @@ gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
 
 """
 
-old = 0
+import os
 
-if old:
-    from fluidsim.solvers.ns2d import solver
-else:
-    from fluidsim.solvers.ns2d import solver_fluidfft as solver
+# from fluidsim.solvers.ns2d import solver
+from fluidsim.solvers.sw1l import solver
 
-print('import done...')
-
-# key_solver = 'NS2D'
-# key_solver = 'SW1l'
-# key_solver = 'SW1l.onlywaves'
-# key_solver = 'SW1l.exactlin'
-# key_solver = 'plate2d'
-
-# solver = fluidsim.import_module_solver_from_key(key_solver)
 params = solver.Simul.create_default_params()
-
-print('default parameters created')
 
 params.short_name_type_run = 'profile'
 
-nh = 512
+nh = 512//4
 params.oper.nx = nh
 params.oper.ny = nh
 Lh = 6.
 params.oper.Lx = Lh
 params.oper.Ly = Lh
 
-if not old:
-    # params.oper.type_fft = 'fft2d.mpi_with_fftw1d'
+if 'FLUIDSIM_PRIORITY_FLUIDFFT' in os.environ:
+    # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
     pass
 
 params.oper.coef_dealiasing = 2./3
 
-params.FORCING = False
-#params.forcing.type_forcing = 'noWAVES'
+params.FORCING = True
+params.forcing.type = 'tcrandom'
 params.forcing.nkmax_forcing = 5
 params.forcing.nkmin_forcing = 4
 params.forcing.forcing_rate = 1.
@@ -63,34 +50,36 @@ except (KeyError, AttributeError):
 params.time_stepping.deltat0 = 1.e-4
 params.time_stepping.USE_CFL = False
 
-params.time_stepping.it_end = 100
+params.time_stepping.it_end = 10
 params.time_stepping.USE_T_END = False
 
-#params.oper.type_fft = 'FFTWCY'
 
 params.output.periods_print.print_stdout = 0
 
-params.output.HAS_TO_SAVE = False
-params.output.periods_save.phys_fields = 0.
-params.output.periods_save.spatial_means = 0.
-params.output.periods_save.spectra = 0.
-# params.output.periods_save.spect_energy_budg = 0.
-# params.output.periods_save.increments = 0.
+params.output.HAS_TO_SAVE = 1
+params.output.periods_save.phys_fields = 0.1
+params.output.periods_save.spatial_means = 0.1
+params.output.periods_save.spectra = 0.1
+params.output.periods_save.spect_energy_budg = 0.1
+params.output.periods_save.increments = 0.1
 
 
 sim = solver.Simul(params)
 
 if __name__ == '__main__':
-
+    from time import time
     import pstats
     import cProfile
+
+    t0 = time()
 
     cProfile.runctx('sim.time_stepping.start()',
                     globals(), locals(), 'profile.pstats')
 
     if sim.oper.rank == 0:
+        print('t1 - t0 =', time() - t0)
         s = pstats.Stats('profile.pstats')
-        s.strip_dirs().sort_stats('time').print_stats(10)
+        s.strip_dirs().sort_stats('time').print_stats(16)
         print(
             'with gprof2dot and graphviz (command dot):\n'
             'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')

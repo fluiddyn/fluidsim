@@ -375,6 +375,20 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         return rank_k, ik0_loc, ik1_loc
 
+    def vecfft_from_rotfft(self, rot_fft):
+        """Return the velocity in spectral space computed from the
+        rotational."""
+        ux_fft = 1j * self.KY_over_K2*rot_fft
+        uy_fft = -1j * self.KX_over_K2*rot_fft
+        return ux_fft, uy_fft
+
+    def vecfft_from_divfft(self, div_fft):
+        """Return the velocity in spectral space computed from the
+        divergence."""
+        ux_fft = -1j * self.KX_over_K2*div_fft
+        uy_fft = -1j * self.KY_over_K2*div_fft
+        return ux_fft, uy_fft
+
     def uxuyfft_from_psifft(self, psi_fft):
         px_psi_fft, py_psi_fft = self.gradfft_from_fft(psi_fft)
         ux_fft = -py_psi_fft
@@ -658,3 +672,30 @@ class OperatorsPseudoSpectral2D(_Operators):
                     py_f_fft[i0, i1] = 1j * KY[i0, i1]*fc_fft[i0, i1]
 
         return py_f_fft
+
+    def mean_space(self, field):
+
+        mean_field = np.mean(field)
+        if not self.is_sequential:
+            mean_field = self.comm.allreduce(mean_field, op=MPI.SUM)
+            mean_field /= nb_proc
+        return mean_field
+
+    def uxuyetafft_from_qapamfft(self, q_fft, ap_fft, am_fft):
+        """q, ap, am (fft) ---> ux, uy, eta (fft)"""
+        a_fft = ap_fft + am_fft
+        if rank == 0:
+            a_fft[0, 0] = 0.
+        div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
+        (uxa_fft, uya_fft, etaa_fft
+         ) = self.uxuyetafft_from_afft(a_fft)
+        (uxq_fft, uyq_fft, etaq_fft
+         ) = self.uxuyetafft_from_qfft(q_fft)
+        uxd_fft, uyd_fft = self.vecfft_from_divfft(div_fft)
+        ux_fft = uxa_fft + uxq_fft + uxd_fft
+        uy_fft = uya_fft + uyq_fft + uyd_fft
+        eta_fft = etaa_fft + etaq_fft
+        if rank == 0:
+            ux_fft[0, 0] = 0.5 * (ap_fft[0, 0] + am_fft[0, 0])
+            uy_fft[0, 0] = 0.5j * (am_fft[0, 0] - ap_fft[0, 0])
+        return ux_fft, uy_fft, eta_fft

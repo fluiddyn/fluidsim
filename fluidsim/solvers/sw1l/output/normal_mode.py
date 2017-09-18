@@ -76,7 +76,7 @@ class NormalModeBase(object):
         ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * KK)
         am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * KK)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
-        if mpi.rank == 0 or self.oper.SEQUENTIAL:
+        if mpi.rank == 0 or self.oper.is_sequential:
             bvec_fft[:, 0, 0] = 0.
 
         return bvec_fft
@@ -132,7 +132,7 @@ class NormalModeDecomposition(NormalModeBase):
              [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
              [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
 
-        if mpi.rank == 0 or oper.SEQUENTIAL:
+        if mpi.rank == 0 or oper.is_sequential:
             self.qmat[:, :, 0, 0] = 0.
 
     def normalmodefft_from_keyfft(self, key):
