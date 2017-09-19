@@ -53,10 +53,10 @@ def modif_params(params, old=False):
 
     params.output.periods_print.print_stdout = 0
 
-    params.output.HAS_TO_SAVE = True
-    params.output.periods_save.phys_fields = 0.1
-    params.output.periods_save.spatial_means = 0.1
-    params.output.periods_save.spectra = 0.1
+    params.output.HAS_TO_SAVE = False
+    # params.output.periods_save.phys_fields = 0.1
+    # params.output.periods_save.spatial_means = 0.1
+    # params.output.periods_save.spectra = 0.1
     # params.output.periods_save.spect_energy_budg = 0.
     # params.output.periods_save.increments = 0.
 

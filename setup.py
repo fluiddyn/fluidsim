@@ -164,6 +164,7 @@ def make_pythran_extensions(modules):
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...
             pext.extra_compile_args.extend(['-O3', '-fopenmp'])
+            pext.extra_link_args.extend(['-O3', '-fopenmp'])
             extensions.append(pext)
     return extensions
 
