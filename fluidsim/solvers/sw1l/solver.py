@@ -78,24 +78,33 @@ class Simul(SimulBasePseudoSpectral):
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
         rot = state_phys.get_var('rot')
-        if self.params.f != 0:
-            rot_abs = rot + self.params.f
-        else:
-            rot_abs = rot
 
-        if self.params.beta != 0:
-            rot_abs += self.params.beta * oper.YY
+        
+        # if self.params.f != 0:
+        #     rot_abs = rot + self.params.f
+        # else:
+        #     rot_abs = rot
 
-        F1x = rot_abs*uy
-        F1y = -rot_abs*ux
-        gradx_fft, grady_fft = oper.gradfft_from_fft(
-            fft2(self.params.c2*eta + (ux**2+uy**2)/2.))
-        oper.dealiasing(gradx_fft, grady_fft)
-        Fx_fft = fft2(F1x) - gradx_fft
-        Fy_fft = fft2(F1y) - grady_fft
+        # if self.params.beta != 0:
+        #     rot_abs += self.params.beta * oper.YY
 
-        Feta_fft = -oper.divfft_from_vecfft(fft2((eta+1)*ux),
-                                            fft2((eta+1)*uy))
+        # F1x = rot_abs*uy
+        # F1y = -rot_abs*ux
+        # gradx_fft, grady_fft = oper.gradfft_from_fft(
+        #     fft2(self.params.c2*eta + (ux**2+uy**2)/2.))
+        # oper.dealiasing(gradx_fft, grady_fft)
+        # Fx_fft = fft2(F1x) - gradx_fft
+        # Fy_fft = fft2(F1y) - grady_fft
+
+        # Feta_fft = -oper.divfft_from_vecfft(fft2((eta+1)*ux),
+        #                                     fft2((eta+1)*uy))
+
+        Fx_fft, Fy_fft, Feta_fft = compute_tendencies_nonlin_sw1l(
+            rot, ux, uy, eta,
+            self.params.f, self.params.beta, self.params.c2,
+            oper.YY,
+            oper.fft2, oper.gradfft_from_fft, oper.dealiasing,
+            oper.divfft_from_vecfft)
 
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
@@ -111,6 +120,41 @@ class Simul(SimulBasePseudoSpectral):
 
         return tendencies_fft
 
+
+# pythran export compute_tendencies_nonlin_sw1l(
+#     float[][], float[][], float[][], float[][],
+#     float, float, float, float[][],
+#     function_to_be_called_from_python_interpreter -> complex128[][],
+#     function_to_be_called_from_python_interpreter -> (
+#         complex128[][], complex128[][]),
+#     function_to_be_called_from_python_interpreter -> NoneType,
+#     function_to_be_called_from_python_interpreter -> (
+#         complex128[][], complex128[][]))
+
+def compute_tendencies_nonlin_sw1l(
+        rot, ux, uy, eta, f, beta, c2, YY,
+        fft2, gradfft_from_fft, dealiasing, divfft_from_vecfft):
+    """Compute nonlinear tendencies for the sw1l model"""
+    if f != 0:
+        rot_abs = rot + f
+    else:
+        rot_abs = rot
+
+    if beta != 0:
+        rot_abs += beta * YY
+
+    F1x = rot_abs*uy
+    F1y = -rot_abs*ux
+    gradx_fft, grady_fft = gradfft_from_fft(
+        fft2(c2*eta + (ux**2+uy**2)/2.))
+    dealiasing(gradx_fft, grady_fft)
+    Fx_fft = fft2(F1x) - gradx_fft
+    Fy_fft = fft2(F1y) - grady_fft
+
+    Feta_fft = -divfft_from_vecfft(fft2((eta+1)*ux),
+                                   fft2((eta+1)*uy))
+
+    return Fx_fft, Fy_fft, Feta_fft
 
 if __name__ == "__main__":
 
