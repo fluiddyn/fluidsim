@@ -76,7 +76,8 @@ class SimulBase(object):
         np.seterr(all='warn')
         np.seterr(under='ignore')
 
-        if not hasattr(self, 'info_solver'):
+        if not hasattr(self, 'info_solver') or \
+           self.info_solver.__class__ is not self.InfoSolver():
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 
@@ -132,7 +133,7 @@ class SimulBase(object):
 
         # if enabled, preprocesses flow parameters such as viscosity and
         # forcing based on initialized fields
-        if 'Preprocesses' in dict_classes:
+        if 'Preprocess' in dict_classes:
             Preprocess = dict_classes['Preprocess']
             self.preprocess = Preprocess(self)
             self.preprocess()

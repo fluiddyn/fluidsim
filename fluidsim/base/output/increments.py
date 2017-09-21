@@ -319,6 +319,21 @@ class Increments(SpecificOutput):
 
 
     def strfunc_from_pdf(self, pdf, values, order, absolute=False):
+        """Following the identity:
+        .. math::
+            E(x^m) = \int_{-\inf}^{\inf} x^m p(x) dx
+
+        In this case, replace x with increments,
+        .. math::
+            \delta u(r, x) = u(x+r) - u(x)
+
+        Thus, for a every value of r the mean of increments are computed
+        as follows:
+        .. math::
+            <(\delta u)^m>
+                = \int_{-\inf}^{\inf} (\delta u)^m p(\delta u) d(\delta u)
+                = d(\delta u) \Sigma (\delta u)^m p(\delta u)
+        """
         order = float(order)
         S_order = np.empty(self.rxs.shape)
         if absolute:

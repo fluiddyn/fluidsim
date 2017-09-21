@@ -33,7 +33,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         classes._set_child(
             'Spectra',
             attribs={'module_name': package + '.spectra',
-                     'class_name': 'SpectraSW1L'})
+                     'class_name': 'SpectraSW1LNormalMode'})
 
         classes._set_child(
             'SpatialMeans',

@@ -1,6 +1,8 @@
 """Base module for the output (:mod:`fluidsim.base.output.base`)
 ======================================================================
 
+.. currentmodule:: fluidsim.base.output.base
+
 Provides:
 
 .. autoclass:: OutputBase
@@ -25,12 +27,14 @@ import datetime
 import os
 import shutil
 import numbers
+from time import sleep
 
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
 import fluiddyn
+import fluidsim
 from fluiddyn.util import mpi, run_from_ipython
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH
 from fluiddyn.util.util import time_as_str, print_memory_usage
@@ -94,9 +98,10 @@ class OutputBase(object):
         self.name_solver = sim.info.solver.short_name
 
         # initialisation name_run and path_run
-        list_for_name_run = self.create_list_for_name_run()
-        list_for_name_run.append(time_as_str())
-        self.name_run = '_'.join(list_for_name_run)
+        self.init_name_run()
+        if mpi.nb_proc > 1:
+            # ensure same name_run across all processes
+            self.name_run = mpi.comm.bcast(self.name_run, root=0)
 
         self.sim.name_run = self.name_run
 
@@ -157,12 +162,34 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 path_base = os.path.join(
                     path_base, params.output.sub_directory)
 
-            self.path_run = os.path.join(path_base, self.sim.name_run)
+            if mpi.rank == 0:
+                while True:
+                    path_run = os.path.join(path_base, self.name_run)
+                    if not os.path.exists(path_run):
+                        try:
+                            os.makedirs(path_run)
+                        except OSError:
+                            # in case of simultaneously launched simulations
+                            print('Warning: NEW_DIR_RESULTS=True, but path"',
+                                  path_run,
+                                  'already exists. Trying a new path...')
+                            sleep(1)
+                            self.init_name_run()
+                        else:
+                            break
+            else:
+                path_run = ''
+
+            if mpi.nb_proc > 1:
+                self.path_run = mpi.comm.bcast(path_run, root=0)
+                self.name_run = mpi.comm.bcast(self.name_run, root=0)
+            else:
+                self.path_run = path_run
+
+            self.sim.name_run = self.name_run
 
             if mpi.rank == 0:
                 params._set_attrib('path_run', self.path_run)
-                if not os.path.exists(self.path_run):
-                    os.makedirs(self.path_run)
 
         dico_classes = sim.info.solver.classes.Output.import_classes()
 
@@ -176,6 +203,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if not self.has_to_save:
             for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.
+
+    def init_name_run(self):
+        list_for_name_run = self.create_list_for_name_run()
+        list_for_name_run.append(time_as_str())
+        self.name_run = '_'.join(list_for_name_run)
 
     def create_list_for_name_run(self):
         list_for_name_run = [self.name_solver]
@@ -243,6 +275,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
     def save_info_solver_params_xml(self, replace=False):
         comment = ('This file has been created by'
                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
+                   ' and FluidSim ' + fluidsim.__version__ +
                    '.\n\nIt should not be modified '
                    '(except for adding xml comments).')
         info_solver_xml_path = self.path_run + '/info_solver.xml'
@@ -393,6 +426,20 @@ class OutputBasePseudoSpectral(OutputBase):
         oper = self.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
         super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
+
+    def compute_energy_fft(self):
+        """Compute energy(k)"""
+        energy_fft = 0.
+        for k in self.sim.state.keys_state_fft:
+            energy_fft += (
+                np.abs(self.sim.state.state_fft.get_var(k)) ** 2) / 2.
+
+        return energy_fft
+
+    def compute_energy(self):
+        """Compute the spatially averaged energy."""
+        energy_fft = self.compute_energy_fft()
+        return self.sum_wavenumbers(energy_fft)
 
 
 class SpecificOutput(object):

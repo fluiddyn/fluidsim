@@ -1,0 +1,64 @@
+sudo: required
+language: python
+
+matrix:
+  include:
+    - python: 3.6
+      env: TOXENV=py,codecov-travis
+    - python: 3.5
+      env: TOXENV=py,codecov-travis
+    - python: 3.4
+      env: TOXENV=py,codecov-travis
+    - python: 2.7
+      env: TOXENV=py,codecov-travis
+    - python: 3.6
+      env: TOXENV=py-pythran,codecov-travis
+    - python: 2.7
+      env: TOXENV=py-pythran,codecov-travis
+
+
+before_cache:
+  - |
+      coverage erase
+      rm -f $HOME/.cache/pip/log/debug.log
+
+
+cache:
+    directories:
+        - $HOME/.cache/pip
+        - $TRAVIS_BUILD_DIR/.tox
+
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - gcc-4.9
+            - g++-4.9
+            - libfftw3-dev
+            - libhdf5-openmpi-dev
+            - openmpi-bin
+            - libopenblas-dev
+
+# update-alternatives required so that mpicc will also use gcc-4.9
+before_install:
+    - |
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 10
+      sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
+
+install:
+    - pip install -U pip setuptools wheel six colorlog
+    - pip install -U tox coverage
+
+before_script:
+    - |
+      mkdir -p $HOME/.config/matplotlib
+      echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+
+script:
+    - tox
+
+notifications:
+  email: false
+  irc: "chat.freenode.net#fluiddyn"

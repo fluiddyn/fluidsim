@@ -30,10 +30,9 @@ class PrintStdOutBase(object):
         try:
             self.c2 = params.c2
             self.f = params.f
+            self.nx = params.oper.nx
         except AttributeError:
             pass
-
-        # self.nx = params.oper.nx
 
         self.period_print = params.output.periods_print.print_stdout
 

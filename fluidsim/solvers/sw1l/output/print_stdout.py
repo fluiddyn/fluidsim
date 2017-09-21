@@ -121,7 +121,6 @@ class PrintStdOutSW1L(PrintStdOutBase):
             pass
 
         ax1.set_title(title)
-        ax1.hold(True)
         ax1.plot(t, deltat, 'k', linewidth=2)
 
         z_bottom_axe = 0.08
@@ -130,7 +129,6 @@ class PrintStdOutSW1L(PrintStdOutBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('t')
         ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.hold(True)
         ax2.plot(t, E, 'k', linewidth=2)
         ax2.plot(t, E_K, 'r', linewidth=2)
         ax2.plot(t, E_A, 'b', linewidth=2)

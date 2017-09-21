@@ -1,61 +1,65 @@
 from __future__ import print_function
-from builtins import range
 
 import unittest
-from shutil import rmtree
-
 import numpy as np
 
-import fluiddyn.util.mpi as mpi
 from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
-from fluidsim.solvers.test.test_solvers import run_mini_simul
+from . import BaseTestCase, mpi
 
 
-class TestSpectEnergyBudg(unittest.TestCase):
+class TestSW1L(BaseTestCase):
+    _tag = 'spect_energy_budg'
 
-    @classmethod
-    def setUpClass(cls):
-        cls.sim = run_mini_simul('SW1L', HAS_TO_SAVE=True)
-        cls.module = cls.sim.output.spect_energy_budg
-        cls.dico_results = cls.module.compute()
+    def skipUnlessHasAttr(self, attr, reason=None):
+        attr_names = attr.split('.')
 
-    @classmethod
-    def tearDownClass(cls):
-        if mpi.rank == 0:
-            rmtree(cls.sim.output.path_run)
+        attr = self
+        while len(attr_names) > 0:
+            subattr = attr_names.pop(0)
+            if hasattr(attr, subattr):
+                attr = getattr(attr, subattr)
+            else:
+                self.skipTest(reason)
+                break
 
     def test_qmat(self):
         """Check qmat"""
-
         sim = self.sim
+        module = self.output.spect_energy_budg
+        self.skipUnlessHasAttr(
+            'output.spect_energy_budg.norm_mode',
+            self.solver + 'does not use normal mode spect_energy_budg')
 
-        r, c, nkx, nky = self.module.qmat.shape
+        r, c, nkx, nky = module.norm_mode.qmat.shape
         identity = np.eye(r)
         for ikx in range(1, nkx):
             for iky in range(1, nky):
-                qmat = self.module.qmat[:, :, ikx, iky]
+                qmat = module.norm_mode.qmat[:, :, ikx, iky]
                 qct = qmat.conj().transpose()
                 identity2 = np.dot(qct, qmat)
                 try:
                     self.assertTrue(np.allclose(identity2, identity))
                 except AssertionError:
                     print(('Q matrix identity not satisfied for kx, ky=',
-                          sim.oper.KX[ikx, iky],
-                          sim.oper.KY[ikx, iky]))
+                           sim.oper.KX[ikx, iky],
+                           sim.oper.KY[ikx, iky]))
                     raise
 
     def test_energy_conservation(self):
         """ Check UU = BB energy conservation """
-
         sim = self.sim
+        module = self.output.spect_energy_budg
+        self.skipUnlessHasAttr(
+            'output.spect_energy_budg.norm_mode',
+            self.solver + "does not use normal mode spect_energy_budg")
 
         c2 = sim.params.c2
         ux_fft = sim.state('ux_fft')
         uy_fft = sim.state('uy_fft')
         eta_fft = sim.state('eta_fft')
-        b0_fft = self.module.bvec_fft[0]
-        bp_fft = self.module.bvec_fft[1]
-        bm_fft = self.module.bvec_fft[2]
+        b0_fft = module.norm_mode.bvec_fft[0]
+        bp_fft = module.norm_mode.bvec_fft[1]
+        bm_fft = module.norm_mode.bvec_fft[2]
         ux_fft[0, 0] = uy_fft[0, 0] = eta_fft[0, 0] = 0.
         energy_UU = (inner_prod(ux_fft, ux_fft) +
                      inner_prod(uy_fft, uy_fft) +
@@ -67,9 +71,11 @@ class TestSpectEnergyBudg(unittest.TestCase):
 
     def test_decompositions(self):
         """ Check normal mode, dyad and triad decompositions """
-
         sim = self.sim
-        module = self.module
+        module = self.output.spect_energy_budg
+        self.skipUnlessHasAttr(
+            'output.spect_energy_budg.norm_mode',
+            self.solver + "does not use normal mode spect_energy_budg")
 
         ux_fft = sim.state('ux_fft')
         uy_fft = sim.state('uy_fft')
@@ -78,13 +84,16 @@ class TestSpectEnergyBudg(unittest.TestCase):
         uy = sim.state.state_phys.get_var('uy')
         eta = sim.state.state_phys.get_var('eta')
         py_ux_fft = 1j * sim.oper.KY * ux_fft
-        module.bvec_fft = module.bvecfft_from_uxuyetafft(
+        module.norm_mode.bvec_fft = module.norm_mode.bvecfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft)
 
-        key_modes, ux_fft_modes = module._normalmodefft_from_keyfft('ux_fft')
-        key_modes, uy_fft_modes = module._normalmodefft_from_keyfft('uy_fft')
-        key_modes, eta_fft_modes = module._normalmodefft_from_keyfft('eta_fft')
-        key_modes, py_ux_fft_modes = module._normalmodefft_from_keyfft(
+        key_modes, ux_fft_modes = module.norm_mode.normalmodefft_from_keyfft(
+            'ux_fft')
+        key_modes, uy_fft_modes = module.norm_mode.normalmodefft_from_keyfft(
+            'uy_fft')
+        key_modes, eta_fft_modes = module.norm_mode.normalmodefft_from_keyfft(
+            'eta_fft')
+        key_modes, py_ux_fft_modes = module.norm_mode.normalmodefft_from_keyfft(
             'py_ux_fft')
         ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0.
         for mode in range(3):
@@ -102,7 +111,7 @@ class TestSpectEnergyBudg(unittest.TestCase):
         Cq_tot_modes = 0.
         key_modes = ['Cq_GG', 'Cq_AG', 'Cq_aG', 'Cq_AA']
         for k in key_modes:
-            Cq_tot_modes += self.dico_results[k]
+            Cq_tot_modes += self.dico[k]
 
         px_eta_fft, py_eta_fft = sim.oper.gradfft_from_fft(eta_fft)
         Cq_tot_exact = -sim.params.c2 * sim.oper.spectrum2D_from_fft(
@@ -114,7 +123,7 @@ class TestSpectEnergyBudg(unittest.TestCase):
         Tq_tot_modes = 0.
         key_modes = ['Tq_GGG', 'Tq_AGG', 'Tq_GAAs', 'Tq_GAAd', 'Tq_AAA']
         for k in key_modes:
-            Tq_tot_modes += self.dico_results[k]
+            Tq_tot_modes += self.dico[k]
 
         TKq_exact = (
             inner_prod(ux_fft,
@@ -138,20 +147,21 @@ class TestSpectEnergyBudg(unittest.TestCase):
         Tq_tot_exact = sim.oper.spectrum2D_from_fft(
             TKq_exact + TKdiv_exact + TPq_exact)
 
-        # print(max(abs(Tq_tot_exact - Tq_tot_modes)))
-        # needs atol
-        self.assertTrue(np.allclose(Tq_tot_exact, Tq_tot_modes, atol=1e-5))
+        self.assertTrue(np.allclose(Tq_tot_exact, Tq_tot_modes))
 
     def test_triad_conservation_laws(self):
-        r"""
-        Tests for certain energy and enstrophy conservation laws.
+        r"""Tests for certain energy and enstrophy conservation laws.
 
         .. math:: \Sigma T_{GGG} = 0
         .. math:: k^{2}\Sigma T_{GGG} = 0
         """
-
-        Tq_GGG = self.dico_results['Tq_GGG']
-        Tens = self.dico_results['Tens']
+        sim = self.sim
+        try:
+            Tq_GGG = self.dico['Tq_GGG']
+            Tens = self.dico['Tens']
+        except KeyError:
+            Tq_GGG = self.dico['transfer2D_Errr']
+            Tens = self.dico['transfer2D_CPE']
 
         energy_GGG = Tq_GGG.sum()
         enstrophy_GGG = Tens.sum()
@@ -159,7 +169,7 @@ class TestSpectEnergyBudg(unittest.TestCase):
         self.assertAlmostEqual(energy_GGG, 0)
         self.assertAlmostEqual(enstrophy_GGG, 0)
 
-        dkh = self.sim.oper.deltakh
+        dkh = sim.oper.deltakh
         Pi_GGG = cumsum_inv(Tq_GGG) * dkh
         Pi_ens = cumsum_inv(Tens) * dkh
         energy_GGG = Pi_GGG[0]
@@ -167,6 +177,30 @@ class TestSpectEnergyBudg(unittest.TestCase):
 
         self.assertAlmostEqual(energy_GGG, 0)
         self.assertAlmostEqual(enstrophy_GGG, 0)
+
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot_spect_energy_budg(self):
+        self._plot()
+
+    def test_online_plot_spatial_means(self):
+        self._online_plot(self.dico)
+
+
+class TestWaves(TestSW1L):
+    solver = 'sw1l.onlywaves'
+
+
+class TestExactlin(TestSW1L):
+    solver = 'sw1l.exactlin'
+
+
+class TestExmod(TestSW1L):
+    solver = 'sw1l.exactlin.modified'
+
+
+class TestModif(TestSW1L):
+    solver = 'sw1l.modified'
 
 
 if __name__ == '__main__':

@@ -17,6 +17,8 @@ from builtins import object
 
 from time import time
 from signal import signal
+from math import pi
+from numbers import Number
 
 from fluiddyn.util import mpi
 
@@ -203,7 +205,14 @@ class TimeSteppingBase(object):
 
         ux = self.sim.state('ux')
         uy = self.sim.state('uy')
-        c = self.sim.params.c2 ** 0.5
+        
+        params = self.sim.params
+        f = params.f
+        c = params.c2 ** 0.5
+        if f != 0:
+            Lh = max(params.oper.Lx, params.oper.Ly)
+            k_min = 2 * pi / Lh
+            c = (f ** 2 / k_min ** 2 + c ** 2) ** 0.5
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
@@ -217,10 +226,9 @@ class TimeSteppingBase(object):
         else:
             deltat_CFL = self.deltat_max
 
-        # ..TODO: Make sure there is no const missing
-        deltat_wave = self.sim.oper.deltax / c
+        deltat_wave = self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
-        normalize_diff = abs(self.deltat-maybe_new_dt) / maybe_new_dt
+        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
 
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt

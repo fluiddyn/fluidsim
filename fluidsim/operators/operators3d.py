@@ -1,32 +1,24 @@
 from __future__ import division
 
 from builtins import range
-from builtins import object
 
 from math import pi
+from copy import deepcopy
 
 import numpy as np
 
 from fluiddyn.util.mpi import nb_proc
 
-from fluidsim.operators.fft.easypyfft import FFTW3DReal2Complex
-from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+from .operators import OperatorsPseudoSpectral2D
+from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
+
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidfft import create_fft_object
+from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 
-def _make_str_length(length):
-    l_over_pi = length / np.pi
-    if l_over_pi.is_integer():
-        return repr(int(l_over_pi)) + 'pi'
-    else:
-        return '{:.3f}'.format(length).rstrip('0')
-
-
-class OperatorsPseudoSpectral3D(object):
+class OperatorsPseudoSpectral3D(_Operators):
     """Provides fast Fourier transform functions and 3D operators.
-
 
     Uses fft operators that implement the methods:
 
@@ -51,12 +43,12 @@ class OperatorsPseudoSpectral3D(object):
         """
 
         if nb_proc > 1:
-            type_fft = 'fluidfft3d.with_fftw3d'
+            type_fft = 'fft3d.mpi_with_fftwmpi3d'
         else:
-            type_fft = 'fftwpy'
+            type_fft = 'fft3d.with_fftw3d'
 
         attribs = {'type_fft': type_fft,
-                   'type_fft2d': 'fftwpy',
+                   'type_fft2d': 'fft2d.with_fftw2d',
                    'TRANSPOSED_OK': True,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
@@ -71,196 +63,34 @@ class OperatorsPseudoSpectral3D(object):
 
         self.params = params
 
-        nx = self.nx_seq = params.oper.nx
-        ny = self.ny_seq = params.oper.ny
-        nz = self.nz_seq = params.oper.nz
+        super(OperatorsPseudoSpectral3D, self).__init__(
+            params.oper.nx, params.oper.ny, params.oper.nz,
+            params.oper.Lx, params.oper.Ly, params.oper.Lz,
+            fft=params.oper.type_fft,
+            coef_dealiasing=params.oper.coef_dealiasing)
 
-        self.type_fft = type_fft = params.oper.type_fft
-        if type_fft == 'fftwpy':
-            op_fft = FFTW3DReal2Complex(nx, ny, nz)
-        elif type_fft.startswith('fluidfft'):
-            op_fft = create_fft_object(type_fft, nx, ny, nz)
+        # problem here type_fft
+        params2d = deepcopy(params)
+        params2d.oper.type_fft = params2d.oper.type_fft2d
+        fft = params2d.oper.type_fft
+
+        if any([fft.startswith(s) for s in ['fluidfft.fft2d.', 'fft2d.']]):
+            self.oper2d = OpPseudoSpectral2D(params2d, SEQUENTIAL=True)
         else:
-            raise NotImplementedError
+            self.oper2d = OperatorsPseudoSpectral2D(params2d, SEQUENTIAL=True)
 
-        self._op_fft = op_fft
-
-        # there is a problem here type_fft
-        self._oper2d = OperatorsPseudoSpectral2D(params, SEQUENTIAL=True)
-        self.ifft2 = self.ifft2d = self._oper2d.ifft2
-        self.fft2 = self.fft2d = self._oper2d.fft2
-
-        self.shapeX_seq = op_fft.get_shapeX_seq()
-        self.shapeX_loc = op_fft.get_shapeX_loc()
-
-        Lx = self.Lx = float(params.oper.Lx)
-        Ly = self.Ly = float(params.oper.Ly)
-        Lz = self.Lz = float(params.oper.Lz)
-
-        self.deltax = Lx / nx
-        self.deltay = Ly / ny
-        self.deltaz = Lz / nz
-
-        self.x_seq = self.deltax*np.arange(nx)
-        self.y_seq = self.deltay*np.arange(ny)
-        self.z_seq = self.deltaz*np.arange(nz)
-
-        deltakx = 2*pi/Lx
-        deltaky = 2*pi/Ly
-        deltakz = 2*pi/Lz
-
-        self.ifft3d = op_fft.ifft
-        self.fft3d = op_fft.fft
-        self.sum_wavenumbers = op_fft.sum_wavenumbers
-
-        self.shapeK_loc = op_fft.get_shapeK_loc()
-        self.nk0, self.nk1, self.nk2 = self.shapeK_loc
-
-        order = op_fft.get_dimX_K()
-        if order == (0, 1, 2):
-            self.deltaks = deltakz, deltaky, deltakx
-        elif order == (1, 0, 2):
-            self.deltaks = deltaky, deltakz, deltakx
-        elif order == (2, 1, 0):
-            self.deltaks = deltakx, deltaky, deltakz
-        else:
-            raise NotImplementedError
-
-        k0_adim_loc, k1_adim_loc, k2_adim_loc = op_fft.get_k_adim_loc()
-
-        self.k0 = self.deltaks[0] * k0_adim_loc
-        self.k1 = self.deltaks[1] * k1_adim_loc
-        self.k2 = self.deltaks[2] * k2_adim_loc
-
-        # oh that's strange!
-        K1, K0, K2 = np.meshgrid(self.k1, self.k0, self.k2, copy=False)
-
-        self.Kz = K0
-        self.Ky = K1
-        self.Kx = K2
-
-        self.K2 = K0**2 + K1**2 + K2**2
-        self.K8 = self.K2**4
-
-        self.seq_index_firstK0, self.seq_index_firstK1 = \
-            op_fft.get_seq_indices_first_K()
-
-        self.K_square_nozero = self.K2.copy()
-
-        if self.seq_index_firstK0 == 0 and self.seq_index_firstK1 == 0:
-            self.K_square_nozero[0, 0, 0] = 1e-14
-
-        self.coef_dealiasing = params.oper.coef_dealiasing
-
-        CONDKX = abs(self.Kx) > self.coef_dealiasing*self.k2.max()
-        CONDKY = abs(self.Ky) > self.coef_dealiasing*self.k1.max()
-        CONDKZ = abs(self.Kz) > self.coef_dealiasing*self.k0.max()
-        where_dealiased = np.logical_or(CONDKX, CONDKY, CONDKZ)
-        self.where_dealiased = np.array(where_dealiased, dtype=np.int8)
-        if nb_proc > 1:
-            self.gather_Xspace = op_fft.gather_Xspace
-            self.scatter_Xspace = op_fft.scatter_Xspace
-
-    def constant_arrayX(self, value=None, SHAPE='LOC'):
-        """Return a constant array in real space."""
-        if SHAPE == 'LOC':
-            shapeX = self.shapeX_loc
-        elif SHAPE == 'SEQ':
-            shapeX = self.shapeX_seq
-        else:
-            raise ValueError('SHAPE should be "LOC" of "SEQ"')
-        if value is None:
-            field = np.empty(shapeX)
-        elif value == 0:
-            field = np.zeros(shapeX)
-        else:
-            field = value*np.ones(shapeX)
-        return field
-
-    def produce_str_describing_oper(self):
-        """Produce a string describing the operator."""
-        str_Lx = _make_str_length(self.Lx)
-        str_Ly = _make_str_length(self.Ly)
-        str_Lz = _make_str_length(self.Lz)
-
-        return ('L=' + str_Lx + 'x' + str_Ly + 'x' + str_Lz +
-                '_{}x{}x{}').format(self.nx_seq, self.ny_seq, self.nz_seq)
-
-    def produce_long_str_describing_oper(self):
-        """Produce a string describing the operator."""
-
-        str_Lx = _make_str_length(self.Lx)
-        str_Ly = _make_str_length(self.Ly)
-        str_Lz = _make_str_length(self.Lz)
-
-        return (
-            'type fft: ' + self.type_fft + '\n' +
-            'nx = {0:6d} ; ny = {1:6d}\n'.format(self.nx_seq, self.ny_seq) +
-            'Lx = ' + str_Lx + ' ; Ly = ' + str_Ly +
-            ' ; Lz = ' + str_Lz + '\n')
+        self.ifft2 = self.ifft2d = self.oper2d.ifft2
+        self.fft2 = self.fft2d = self.oper2d.fft2
 
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
 
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
-            self._oper2d, arr2d)
+            self.oper2d, arr2d)
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
 
         return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
-            self._oper2d, arr2d)
-
-    def project_perpk3d(self, vx_fft, vy_fft, vz_fft):
-
-        Kx = self.Kx
-        Ky = self.Ky
-        Kz = self.Kz
-
-        tmp = (Kx * vx_fft + Ky * vy_fft + Kz * vz_fft) / self.K_square_nozero
-
-        return (vx_fft - Kx * tmp,
-                vy_fft - Ky * tmp,
-                vz_fft - Kz * tmp)
-
-    def vgradv_from_v(self, vx, vy, vz,
-                      vx_fft=None, vy_fft=None, vz_fft=None):
-
-        ifft3d = self.ifft3d
-
-        if vx_fft is None:
-            fft3d = self.fft3d
-            vx_fft = fft3d(vx)
-            vy_fft = fft3d(vy)
-            vz_fft = fft3d(vz)
-
-        Kx = self.Kx
-        Ky = self.Ky
-        Kz = self.Kz
-
-        px_vx_fft = 1j * Kx * vx_fft
-        py_vx_fft = 1j * Ky * vx_fft
-        pz_vx_fft = 1j * Kz * vx_fft
-
-        px_vy_fft = 1j * Kx * vy_fft
-        py_vy_fft = 1j * Ky * vy_fft
-        pz_vy_fft = 1j * Kz * vy_fft
-
-        px_vz_fft = 1j * Kx * vz_fft
-        py_vz_fft = 1j * Ky * vz_fft
-        pz_vz_fft = 1j * Kz * vz_fft
-
-        vgradvx = (vx * ifft3d(px_vx_fft) +
-                   vy * ifft3d(py_vx_fft) +
-                   vz * ifft3d(pz_vx_fft))
-
-        vgradvy = (vx * ifft3d(px_vy_fft) +
-                   vy * ifft3d(py_vy_fft) +
-                   vz * ifft3d(pz_vy_fft))
-
-        vgradvz = (vx * ifft3d(px_vz_fft) +
-                   vy * ifft3d(py_vz_fft) +
-                   vz * ifft3d(pz_vz_fft))
-
-        return vgradvx, vgradvy, vgradvz
+            self.oper2d, arr2d)
 
     def dealiasing(self, *args):
         for thing in args:
@@ -284,15 +114,21 @@ if __name__ == '__main__':
 
     from fluidsim.base.params import Parameters
     p = Parameters(tag='params', attribs={'ONLY_COARSE_OPER': False})
-    p._set_child(
-        'oper', {'nx': n, 'ny': n, 'nz': 2*n,
-                 'Lx': 2*pi, 'Ly': 2*pi, 'Lz': 2*pi,
-                 'type_fft': 'FFTWPY', 'coef_dealiasing': 0.66,
-                 'TRANSPOSED_OK': True})
+    OperatorsPseudoSpectral3D._complete_params_with_default(p)
+
+    p.oper.nx = n
+    p.oper.ny = 2*n
+    p.oper.nz = 4*n
+
+    # p.oper.type_fft = 'fftwpy'
+    p.oper.type_fft2d = 'fft2d.with_fftw2d'
 
     oper = OperatorsPseudoSpectral3D(params=p)
 
-    field = np.ones(oper.shape_phys)
+    field = np.ones(oper.shapeX_loc)
+
+    print(oper.shapeX_loc)
+    print(oper.oper2d.shapeX_loc)
 
     field_fft = oper.fft3d(field)
 
@@ -302,5 +138,5 @@ if __name__ == '__main__':
 
     oper.project_perpk3d(field_fft, field_fft, field_fft)
 
-    a2d = np.arange(oper.nx*oper.ny).reshape([oper.ny, oper.nx])
-    a3d = oper.expand_3dfrom2d(a2d)
+    a2d = np.arange(oper.nx*oper.ny).reshape(oper.oper2d.shapeX_loc)
+    a3d = oper.build_invariant_arrayX_from_2d_indices12X(a2d)

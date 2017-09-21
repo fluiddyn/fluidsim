@@ -4,7 +4,6 @@
 """
 from __future__ import division
 
-from past.utils import old_div
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
@@ -51,12 +50,13 @@ class Simul(SimulBasePseudoSpectral):
 
         attribs = {'f': 0,
                    'c2': 20,
-                   'kd2': 0}
+                   'kd2': 0,
+                   'beta': 0}
         params._set_attribs(attribs)
 
     def __init__(self, params):
         # Parameter(s) specific to this solver
-        params.kd2 = old_div(params.f**2,params.c2)
+        params.kd2 = params.f**2 / params.c2
 
         super(Simul, self).__init__(params)
 
@@ -78,40 +78,22 @@ class Simul(SimulBasePseudoSpectral):
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
         rot = state_phys.get_var('rot')
-        if self.params.f != 0:
-            rot_abs = rot + self.params.f
-        else:
-            rot_abs = rot
-
-        F1x = rot_abs*uy
-        F1y = -rot_abs*ux
-        gradx_fft, grady_fft = oper.gradfft_from_fft(
-            fft2(self.params.c2*eta + old_div((ux**2+uy**2),2)))
-        oper.dealiasing(gradx_fft, grady_fft)
-        Fx_fft = fft2(F1x) - gradx_fft
-        Fy_fft = fft2(F1y) - grady_fft
-
-        Feta_fft = -oper.divfft_from_vecfft(fft2((eta+1)*ux),
-                                            fft2((eta+1)*uy))
-
-        # # for verification conservation energy
-        # oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
-        # Fx   = oper.ifft2(Fx_fft)
-        # Fy   = oper.ifft2(Fy_fft)
-        # Feta = oper.ifft2(Feta_fft)
-        # A = ( Feta*(ux**2+uy**2)/2
-        #       + (1+eta)*(ux*Fx+uy*Fy)
-        #       + self.params.c2*eta*Feta )
-        # A_fft = fft2(A)
-        # if mpi.rank == 0:
-        #     print 'should be zero =', A_fft[0,0]
 
         tendencies_fft = SetOfVariables(
             like=self.state.state_fft,
             info='tendencies_nonlin')
-        tendencies_fft.set_var('ux_fft', Fx_fft)
-        tendencies_fft.set_var('uy_fft', Fy_fft)
-        tendencies_fft.set_var('eta_fft', Feta_fft)
+
+        Fx_fft = tendencies_fft.get_var('ux_fft')
+        Fy_fft = tendencies_fft.get_var('uy_fft')
+        Feta_fft = tendencies_fft.get_var('eta_fft')
+
+        compute_tendencies_nonlin_sw1l(
+            rot, ux, uy, eta,
+            Fx_fft, Fy_fft, Feta_fft,
+            self.params.f, self.params.beta, self.params.c2,
+            oper.YY,
+            oper.fft2, oper.gradfft_from_fft, oper.dealiasing,
+            oper.divfft_from_vecfft)
 
         oper.dealiasing(tendencies_fft)
 
@@ -119,6 +101,42 @@ class Simul(SimulBasePseudoSpectral):
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
+
+
+# pythran export compute_tendencies_nonlin_sw1l(
+#     float64[][], float64[][], float64[][], float64[][],
+#     complex128[][], complex128[][], complex128[][],
+#     float, float, float, float64[][],
+#     function_to_be_called_from_python_interpreter -> complex128[][],
+#     function_to_be_called_from_python_interpreter -> (
+#         complex128[][], complex128[][]),
+#     function_to_be_called_from_python_interpreter -> NoneType,
+#     function_to_be_called_from_python_interpreter -> (
+#         complex128[][], complex128[][]))
+
+def compute_tendencies_nonlin_sw1l(
+        rot, ux, uy, eta, Fx_fft, Fy_fft, Feta_fft,
+        f, beta, c2, YY,
+        fft2, gradfft_from_fft, dealiasing, divfft_from_vecfft):
+    """Compute nonlinear tendencies for the sw1l model"""
+    if f != 0:
+        rot_abs = rot + f
+    else:
+        rot_abs = rot
+
+    if beta != 0:
+        rot_abs += beta * YY
+
+    F1x = rot_abs*uy
+    F1y = -rot_abs*ux
+    gradx_fft, grady_fft = gradfft_from_fft(
+        fft2(c2*eta + (ux**2+uy**2)/2.))
+    dealiasing(gradx_fft, grady_fft)
+    Fx_fft[:] = fft2(F1x) - gradx_fft
+    Fy_fft[:] = fft2(F1y) - grady_fft
+
+    Feta_fft[:] = -divfft_from_vecfft(fft2((eta+1)*ux),
+                                      fft2((eta+1)*uy))
 
 
 if __name__ == "__main__":
@@ -138,8 +156,8 @@ if __name__ == "__main__":
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = old_div(params.oper.Lx,params.oper.nx)
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = params.oper.Lx / params.oper.nx
+    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
     params.time_stepping.t_end = 1.
     # params.time_stepping.USE_CFL = False

@@ -36,6 +36,9 @@ class InfoSolverSW1LWaves(InfoSolverSW1LExactLin):
         classes.State.module_name = sw1l + '.onlywaves.state'
         classes.State.class_name = 'StateSW1LWaves'
 
+        classes.Output.module_name = sw1l+'.onlywaves.output'
+        classes.Output.class_name = 'OutputSW1LWaves'
+
 
 class Simul(SimulSW1LExactLin):
     """A solver of the shallow-water 1 layer equations (SW1L)"""

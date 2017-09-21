@@ -8,6 +8,7 @@
 """
 from __future__ import print_function
 
+import numpy as np
 
 from fluidsim.base.state import StatePseudoSpectral
 
@@ -32,6 +33,16 @@ class StateNS2D(StatePseudoSpectral):
             'keys_phys_needed': ['rot'],
             'keys_linear_eigenmodes': ['rot_fft']})
 
+    def __init__(self, sim, oper=None):
+
+        super(StateNS2D, self).__init__(sim, oper)
+
+        if hasattr(self.oper, 'ifft_as_arg'):
+            self.field_tmp0 = np.empty_like(self.state_phys[0])
+            self.field_tmp1 = np.empty_like(self.state_phys[0])
+            self.field_tmp2 = np.empty_like(self.state_phys[0])
+            self.field_tmp3 = np.empty_like(self.state_phys[0])
+            
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         """Compute and return a variable"""
         it = self.sim.time_stepping.it
@@ -79,10 +90,20 @@ class StateNS2D(StatePseudoSpectral):
     def statephys_from_statefft(self):
         """Compute `state_phys` from `statefft`."""
         rot_fft = self.state_fft.get_var('rot_fft')
-        self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        self.state_phys.set_var('ux', self.oper.ifft2(ux_fft))
-        self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
+
+        if hasattr(self.oper, 'ifft_as_arg'):
+            # less copies!
+            rot = self.state_phys.get_var('rot')
+            self.oper.ifft_as_arg(rot_fft, rot)
+            ux = self.state_phys.get_var('ux')
+            self.oper.ifft_as_arg(ux_fft, ux)
+            uy = self.state_phys.get_var('uy')
+            self.oper.ifft_as_arg(uy_fft, uy)
+        else:
+            self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
+            self.state_phys.set_var('ux', self.oper.ifft2(ux_fft))
+            self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
 
     def statefft_from_statephys(self):
         """Compute `state_fft` from `state_phys`."""
@@ -95,7 +116,7 @@ class StateNS2D(StatePseudoSpectral):
         self.state_fft.set_var('rot_fft', rot_fft)
         self.statephys_from_statefft()
 
-    def init_fft_from(self, **kwargs):
+    def init_statefft_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'rot_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])

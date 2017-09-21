@@ -1,3 +1,4 @@
+# cython: linetrace=True
 
 
 cimport numpy as np

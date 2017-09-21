@@ -2,7 +2,7 @@
 FluidSim
 ========
 
-|release| |docs| |coverage|
+|release| |docs| |coverage| |travis|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidsim.svg
    :target: https://pypi.python.org/pypi/fluidsim/
@@ -15,6 +15,9 @@ FluidSim
 .. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/graph/badge.svg
    :target: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/
    :alt: Code coverage
+
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
+    :target: https://travis-ci.org/fluiddyn/fluidsim
 
 FluidSim is the numerically oriented package of the `FluidDyn project
 <http://fluiddyn.readthedocs.org>`__.  The project is still in a

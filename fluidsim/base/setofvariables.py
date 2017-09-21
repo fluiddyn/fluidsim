@@ -103,7 +103,7 @@ class SetOfVariables(np.ndarray):
             index = arg
         else:
             index = self.keys.index(arg)
-        # warning: copy...
+        # warning: copy... costly!
         self[index] = value
 
     def get_var(self, arg):

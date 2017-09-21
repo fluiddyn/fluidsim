@@ -2,6 +2,7 @@ syntax: glob
 
 *.pyd*
 *.pyc
+__pycache__
 *~
 *tmp
 *cy.html
@@ -48,4 +49,3 @@ scripts\Experiments\path_working_exp.txt
 */*.png
 
 */*_pythran.cpp
-

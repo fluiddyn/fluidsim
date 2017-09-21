@@ -24,14 +24,22 @@ The package is organised in four sub-packages:
 
 """
 
-from fluidsim._version import __version__
+from ._version import __version__
 
 from fluiddyn.io import FLUIDSIM_PATH as path_dir_results
 
-from fluidsim.util.util import (
+from .util.util import (
     import_module_solver_from_key,
     import_simul_class_from_key,
     load_sim_for_plot, load_state_phys_file,
     modif_resolution_from_dir, modif_resolution_all_dir)
-del util
-del base
+
+# clean up
+# from . import util, base
+# del util, base
+
+__all__ = [
+    '__version__', 'path_dir_results', 'import_module_solver_from_key',
+    'import_simul_class_from_key',
+    'load_sim_for_plot', 'load_state_phys_file',
+    'modif_resolution_from_dir', 'modif_resolution_all_dir']

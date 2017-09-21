@@ -1,3 +1,4 @@
+# cython: linetrace=True
 """
 Numerical operators (:mod:`fluidsim.operators.operators`)
 =========================================================
@@ -135,7 +136,7 @@ cdef class GridPseudoSpectral2D(Operators):
     cdef public int nK0_loc, nK1_loc, dim_kx, dim_ky
     cdef public np.ndarray iKxloc_start_rank
 
-    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL
+    cdef public DTYPEb_t TRANSPOSED, SEQUENTIAL, is_sequential
     cdef public DTYPEb_t SAME_SIZE_IN_ALL_PROC
 
     # cdef public object where_is_wavenumber
@@ -178,7 +179,7 @@ cdef class GridPseudoSpectral2D(Operators):
         self.shapeK_seq = np.array([self.nky_seq, self.nkx_seq])
 
         if self.nb_proc == 1 or SEQUENTIAL:
-            self.SEQUENTIAL = True
+            self.SEQUENTIAL = self.is_sequential = True
             self.SAME_SIZE_IN_ALL_PROC = True
             self.shapeX = self.shapeX_seq
             self.shapeK = self.shapeK_seq
@@ -280,7 +281,7 @@ cdef class GridPseudoSpectral2D(Operators):
                             (self.deltaky*self.ny_seq)**2)/2
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakh))
+        ikx_seq = int(np.round(kx_approx/self.deltakx))
 
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
@@ -407,6 +408,9 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if params is not None:
             self.params = params
 
+        if type_fft == 'sequential':
+            type_fft = 'fftwpy'
+            
         list_type_fft = ['fftwcy', 'fftwccy', 'fftwpy', 'fftpack']
         if type_fft not in list_type_fft:
             raise ValueError('type_fft should be in ' + repr(list_type_fft))
@@ -512,10 +516,10 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
 
         # Initialisation dealiasing
         self.coef_dealiasing = coef_dealiasing
-        kx_max = self.deltakx * (nx + 1)//2
-        ky_max = self.deltaky * (ny + 1)//2
-        CONDKX = abs(self.KX) > coef_dealiasing*kx_max
-        CONDKY = abs(self.KY) > coef_dealiasing*ky_max
+        kx_max = self.deltakx * (nx + 1) // 2
+        ky_max = self.deltaky * (ny + 1) // 2
+        CONDKX = abs(self.KX) > self.coef_dealiasing * kx_max
+        CONDKY = abs(self.KY) > self.coef_dealiasing * ky_max
         where_dealiased = np.logical_or(CONDKX, CONDKY)
         self.where_dealiased = np.array(where_dealiased, dtype=DTYPEb)
 
@@ -898,6 +902,16 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
                         Delta_a_fft[i0, i1]/Kappa_over_ic[i0, i1]
                         )
         return d_fft
+
+    def qapamfft_from_etafft(self, eta_fft, params=None):
+        """eta (fft) ---> q, ap, am (fft)"""
+        if params is None:
+            params = self.params
+
+        q_fft = -params.f * eta_fft
+        ap_fft = 0.5 * self.K2 * eta_fft
+        am_fft = ap_fft.copy()
+        return q_fft, ap_fft, am_fft
 
     def qapamfft_from_uxuyetafft_old(self, ux_fft, uy_fft, eta_fft,
                                      params=None):
@@ -1664,6 +1678,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
         if rank == 0:
             invlap2_afft[0, 0] = 0.
         return np.array(invlap2_afft)
+
+    def ifft_as_arg(self, arr_fft, arr):
+        arr[:] = self.ifft2(arr_fft)
+        
+    def fft_as_arg(self, arr, arr_fft):
+        arr_fft[:] = self.fft2(arr)
 
 
 @cython.boundscheck(False)
