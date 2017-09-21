@@ -169,8 +169,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                             os.makedirs(path_run)
                         except OSError:
                             # in case of simultaneously launched simulations
-                            print("Warning: NEW_DIR_RESULTS=True, but path", path_run,
-                                  "already exists. Trying a new path...")
+                            print('Warning: NEW_DIR_RESULTS=True, but path"',
+                                  path_run,
+                                  'already exists. Trying a new path...')
                             sleep(1)
                             self.init_name_run()
                         else:

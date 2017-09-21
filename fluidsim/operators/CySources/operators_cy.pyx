@@ -1679,6 +1679,12 @@ cdef class OperatorsPseudoSpectral2D(GridPseudoSpectral2D):
             invlap2_afft[0, 0] = 0.
         return np.array(invlap2_afft)
 
+    def ifft_as_arg(self, arr_fft, arr):
+        arr[:] = self.ifft2(arr_fft)
+        
+    def fft_as_arg(self, arr, arr_fft):
+        arr_fft[:] = self.fft2(arr)
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

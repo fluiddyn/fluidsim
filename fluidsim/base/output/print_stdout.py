@@ -34,7 +34,6 @@ class PrintStdOutBase(object):
         except AttributeError:
             pass
 
-
         self.period_print = params.output.periods_print.print_stdout
 
         self.path_file = self.output.path_run + '/stdout.txt'

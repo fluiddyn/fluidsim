@@ -160,11 +160,12 @@ def make_pythran_extensions(modules):
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
             pext = PythranExtension(
-                mod, [py_file], extra_compile_args=['-O3', '-fopenmp'])
+                mod, [py_file],  # extra_compile_args=['-O3', '-fopenmp']
+            )
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...
-            pext.extra_compile_args.extend(['-O3', '-fopenmp'])
-            pext.extra_link_args.extend(['-O3', '-fopenmp'])
+            pext.extra_compile_args.extend(['-O3', '-march=native'])
+            # pext.extra_link_args.extend(['-fopenmp'])
             extensions.append(pext)
     return extensions
 

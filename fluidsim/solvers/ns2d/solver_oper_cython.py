@@ -3,13 +3,14 @@ from .solver import InfoSolverNS2D as _InfoSolverNS2D, Simul as _Simul
 from .util_pythran import compute_Frot
 from fluidsim.base.setofvariables import SetOfVariables
 
+
 class InfoSolverNS2D(_InfoSolverNS2D):
     def _init_root(self):
         super(InfoSolverNS2D, self)._init_root()
 
-        self.module_name += '_fluidfft'
+        self.module_name += '_oper_cython'
 
-        self.classes.Operators.module_name = 'fluidsim.operators.operators2d'
+        self.classes.Operators.module_name = 'fluidsim.operators.operators'
         self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
 
 
@@ -55,7 +56,8 @@ class Simul(_Simul):
         """
         # the operator and the fast Fourier transform
         oper = self.oper
-        ifft_as_arg = oper.ifft_as_arg
+        fft2 = oper.fft2
+        ifft2 = oper.ifft2
 
         # get or compute rot_fft, ux and uy
         if state_fft is None:
@@ -65,26 +67,17 @@ class Simul(_Simul):
         else:
             rot_fft = state_fft.get_var('rot_fft')
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-            ux = self.state.field_tmp0
-            uy = self.state.field_tmp1
-            ifft_as_arg(ux_fft, ux)
-            ifft_as_arg(uy_fft, uy)            
+            ux = ifft2(ux_fft)
+            uy = ifft2(uy_fft)
 
         # "px" like $\partial_x$
         px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
-
-        px_rot = self.state.field_tmp2
-        py_rot = self.state.field_tmp3
-        
-        ifft_as_arg(px_rot_fft, px_rot)
-        ifft_as_arg(py_rot_fft, py_rot)
+        px_rot = ifft2(px_rot_fft)
+        py_rot = ifft2(py_rot_fft)
 
         Frot = compute_Frot(ux, uy, px_rot, py_rot, self.params.beta)
 
-        tendencies_fft = SetOfVariables(like=self.state.state_fft)
-        Frot_fft = tendencies_fft.get_var('rot_fft')
-        oper.fft_as_arg(Frot, Frot_fft)
-        
+        Frot_fft = fft2(Frot)
         oper.dealiasing(Frot_fft)
 
         # T_rot = np.real(Frot_fft.conj()*rot_fft
@@ -93,15 +86,14 @@ class Simul(_Simul):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-        # tendencies_fft.set_var('rot_fft', Frot_fft)
+        tendencies_fft = SetOfVariables(like=self.state.state_fft)
+        tendencies_fft.set_var('rot_fft', Frot_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
 
-
-    
 
 if __name__ == "__main__":
     import numpy as np

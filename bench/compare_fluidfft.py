@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 """
-python simul_profile.py
-mpirun -np 8 python simul_profile.py
-
-with gprof2dot and graphviz (command dot):
-
-gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
+python compare_fluidfft.py
+mpirun -np 8 python compare_fluidfft.py
 
 """
 from time import time
@@ -14,7 +10,7 @@ import pstats
 import cProfile
 
 from fluidsim.solvers.ns2d.solver import Simul as Simul
-from fluidsim.solvers.ns2d.solver_fluidfft import Simul as SimulFluidfft
+from fluidsim.solvers.ns2d.solver_oper_cython import Simul as SimulOperCython
 
 
 def modif_params(params, old=False):
@@ -66,31 +62,33 @@ def modif_params(params, old=False):
     else:
         params.oper.type_fft = 'FFTWCY'
 
-params = Simul.create_default_params()
+
+params = SimulOperCython.create_default_params()
 modif_params(params, 'old')
-sim = Simul(params)
+
+sim_oper_cython = SimulOperCython(params)
 
 t_start0 = time()
-cProfile.runctx('sim.time_stepping.start()',
-                globals(), locals(), 'profile.pstats')
+cProfile.runctx('sim_oper_cython.time_stepping.start()',
+                globals(), locals(), 'profile_oper_cython.pstats')
 t_end0 = time()
 
 
-params = SimulFluidfft.create_default_params()
+params = Simul.create_default_params()
 modif_params(params)
-
-sim_fluidfft = SimulFluidfft(params)
+sim = Simul(params)
 
 t_start1 = time()
-cProfile.runctx('sim_fluidfft.time_stepping.start()',
-                globals(), locals(), 'profile_fluidfft.pstats')
+cProfile.runctx('sim.time_stepping.start()',
+                globals(), locals(), 'profile.pstats')
 t_end1 = time()
 
+
 if sim.oper.rank == 0:
-    s = pstats.Stats('profile.pstats')
+    s = pstats.Stats('profile_oper_cython.pstats')
     s.strip_dirs().sort_stats('time').print_stats(10)
 
-    s = pstats.Stats('profile_fluidfft.pstats')
+    s = pstats.Stats('profile.pstats')
     s.strip_dirs().sort_stats('time').print_stats(10)
 
     print('elapsed times: {:.3f} and {:.3f}'.format(
@@ -99,4 +97,5 @@ if sim.oper.rank == 0:
     print(
         'with gprof2dot and graphviz (command dot):\n'
         'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png\n'
-        'gprof2dot -f pstats profile_fluidfft.pstats | dot -Tpng -o profile_fluidfft.png')
+        'gprof2dot -f pstats profile_oper_cython.pstats | '
+        'dot -Tpng -o profile_oper_cython.png')

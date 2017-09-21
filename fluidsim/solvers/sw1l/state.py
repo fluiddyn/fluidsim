@@ -112,37 +112,54 @@ class StateSW1L(StatePseudoSpectral):
         ux = self.state_phys.get_var('ux')
         uy = self.state_phys.get_var('uy')
         eta = self.state_phys.get_var('eta')
-        self.state_fft.set_var('ux_fft', self.oper.fft2(ux))
-        self.state_fft.set_var('uy_fft', self.oper.fft2(uy))
-        self.state_fft.set_var('eta_fft', self.oper.fft2(eta))
 
-    def statephys_from_statefft(self):
-        """Compute the state in physical space."""
-        ifft2 = self.oper.ifft2
         ux_fft = self.state_fft.get_var('ux_fft')
         uy_fft = self.state_fft.get_var('uy_fft')
         eta_fft = self.state_fft.get_var('eta_fft')
-        self.state_phys.set_var('ux', ifft2(ux_fft))
-        self.state_phys.set_var('uy', ifft2(uy_fft))
-        self.state_phys.set_var('eta', ifft2(eta_fft))
+
+        self.oper.fft_as_arg(ux, ux_fft)
+        self.oper.fft_as_arg(uy, uy_fft)
+        self.oper.fft_as_arg(eta, eta_fft)
+
+    def statephys_from_statefft(self):
+        """Compute the state in physical space."""
+        ifft_as_arg = self.oper.ifft_as_arg
+        ux_fft = self.state_fft.get_var('ux_fft')
+        uy_fft = self.state_fft.get_var('uy_fft')
+        eta_fft = self.state_fft.get_var('eta_fft')
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        self.state_phys.set_var('rot', ifft2(rot_fft))
+
+        ux = self.state_phys.get_var('ux')
+        uy = self.state_phys.get_var('uy')
+        eta = self.state_phys.get_var('eta')
+        rot = self.state_phys.get_var('rot')
+
+        ifft_as_arg(ux_fft, ux)
+        ifft_as_arg(uy_fft, uy)
+        ifft_as_arg(eta_fft, eta)
+        ifft_as_arg(rot_fft, rot)
 
     def return_statephys_from_statefft(self, state_fft=None):
         """Return the state in physical space."""
-        ifft2 = self.oper.ifft2
+        ifft_as_arg = self.oper.ifft_as_arg
         if state_fft is None:
             state_fft = self.state_fft
         ux_fft = state_fft.get_var('ux_fft')
         uy_fft = state_fft.get_var('uy_fft')
         eta_fft = state_fft.get_var('eta_fft')
-        state_phys = SetOfVariables(like=self.state_phys)
-        state_phys.set_var('ux', ifft2(ux_fft))
-        state_phys.set_var('uy', ifft2(uy_fft))
-        state_phys.set_var('eta', ifft2(eta_fft))
-
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        state_phys.set_var('rot', ifft2(rot_fft))
+
+        state_phys = SetOfVariables(like=self.state_phys)
+
+        ux = state_phys.get_var('ux')
+        uy = state_phys.get_var('uy')
+        eta = state_phys.get_var('eta')
+        rot = state_phys.get_var('rot')
+
+        ifft_as_arg(ux_fft, ux)
+        ifft_as_arg(uy_fft, uy)
+        ifft_as_arg(eta_fft, eta)
+        ifft_as_arg(rot_fft, rot)
 
         return state_phys
 

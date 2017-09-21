@@ -12,7 +12,7 @@ import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.solver import Simul
-from fluidsim.solvers.ns2d.solver_fluidfft import Simul as Simul2
+from fluidsim.solvers.ns2d.solver_oper_cython import Simul as Simul2
 
 
 class TestSolverNS2D(unittest.TestCase):

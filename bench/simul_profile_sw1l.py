@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 """
-python simul_profile.py
+python simul_profile_sw1l.py
 mpirun -np 8 python simul_profile_sw1l.py
 
-FLUIDSIM_PRIORITY_FLUIDFFT=1 mpirun -np 2 python simul_profile_sw1l.py
-
-with gprof2dot and graphviz (command dot):
-
-gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
-
+FLUIDSIM_NO_FLUIDFFT=1 python simul_profile_sw1l.py
+FLUIDSIM_NO_FLUIDFFT=1 mpirun -np 2 python simul_profile_sw1l.py
 
 
 """
@@ -76,9 +72,10 @@ if __name__ == '__main__':
                     globals(), locals(), 'profile.pstats')
 
     if sim.oper.rank == 0:
-        print('t1 - t0 =', time() - t0, '\n')
         s = pstats.Stats('profile.pstats')
         s.strip_dirs().sort_stats('time').print_stats(16)
+
+        print('elapsed time = {:.3f}\n'.format(time() - t0))
         print(
             'with gprof2dot and graphviz (command dot):\n'
             'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')

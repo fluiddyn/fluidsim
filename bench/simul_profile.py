@@ -3,9 +3,7 @@
 python simul_profile.py
 mpirun -np 8 python simul_profile.py
 
-with gprof2dot and graphviz (command dot):
-
-gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
+FLUIDSIM_NO_FLUIDFFT=1 python simul_profile.py
 
 """
 

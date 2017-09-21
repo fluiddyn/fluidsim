@@ -41,8 +41,6 @@ class OperatorFiniteDiff1DPeriodic(object):
 
         Lx = float(params.oper.Lx)
 
-        print((nx, Lx))
-        
         self.nx = nx
         self.size = nx
         self.shape = [nx]
