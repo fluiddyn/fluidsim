@@ -88,7 +88,6 @@ class SpatialMeansBase(SpecificOutput):
             title = ('mean quantities, solver ' + self.output.name_solver +
                      ', nh = {0:5d}'.format(self.nx))
             axe.set_title(title)
-            axe.hold(True)
 
             z_bottom_axe = 0.08
             size_axe[1] = z_bottom_axe
@@ -96,7 +95,6 @@ class SpatialMeansBase(SpecificOutput):
             self.axe_b = axe
             axe.set_xlabel('$t$')
             axe.set_ylabel('$\epsilon(t)$')
-            axe.hold(True)
 
     def load(self):
         dico_results = {}

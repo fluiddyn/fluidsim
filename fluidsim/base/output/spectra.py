@@ -99,7 +99,6 @@ class Spectra(SpecificOutput, MoviesBase1D):
         axe.set_ylabel('$E(k_h)$')
         axe.set_title('spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        axe.hold(True)
 
     def _online_plot(self):
         pass

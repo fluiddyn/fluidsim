@@ -37,12 +37,11 @@ class StateNS2D(StatePseudoSpectral):
 
         super(StateNS2D, self).__init__(sim, oper)
 
-        if hasattr(self.oper, 'ifft_as_arg'):
-            self.field_tmp0 = np.empty_like(self.state_phys[0])
-            self.field_tmp1 = np.empty_like(self.state_phys[0])
-            self.field_tmp2 = np.empty_like(self.state_phys[0])
-            self.field_tmp3 = np.empty_like(self.state_phys[0])
-            
+        self.field_tmp0 = np.empty_like(self.state_phys[0])
+        self.field_tmp1 = np.empty_like(self.state_phys[0])
+        self.field_tmp2 = np.empty_like(self.state_phys[0])
+        self.field_tmp3 = np.empty_like(self.state_phys[0])
+
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         """Compute and return a variable"""
         it = self.sim.time_stepping.it
@@ -92,23 +91,20 @@ class StateNS2D(StatePseudoSpectral):
         rot_fft = self.state_fft.get_var('rot_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
 
-        if hasattr(self.oper, 'ifft_as_arg'):
-            # less copies!
-            rot = self.state_phys.get_var('rot')
-            self.oper.ifft_as_arg(rot_fft, rot)
-            ux = self.state_phys.get_var('ux')
-            self.oper.ifft_as_arg(ux_fft, ux)
-            uy = self.state_phys.get_var('uy')
-            self.oper.ifft_as_arg(uy_fft, uy)
-        else:
-            self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
-            self.state_phys.set_var('ux', self.oper.ifft2(ux_fft))
-            self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
+        rot = self.state_phys.get_var('rot')
+        ux = self.state_phys.get_var('ux')
+        uy = self.state_phys.get_var('uy')
+
+        self.oper.ifft_as_arg(rot_fft, rot)
+        self.oper.ifft_as_arg(ux_fft, ux)
+        self.oper.ifft_as_arg(uy_fft, uy)
 
     def statefft_from_statephys(self):
         """Compute `state_fft` from `state_phys`."""
+
         rot = self.state_phys.get_var('rot')
-        self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
+        rot_fft = self.state_fft.get_var('rot_fft')
+        self.oper.fft_as_arg(rot, rot_fft)
 
     def init_from_rotfft(self, rot_fft):
         """Initialize the state from the variable `rot_fft`."""

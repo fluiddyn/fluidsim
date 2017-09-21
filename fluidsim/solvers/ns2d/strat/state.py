@@ -30,6 +30,13 @@ class StateNS2DStrat(StateNS2D):
             'keys_phys_needed': ['rot', 'b'],
             'keys_linear_eigenmodes': ['rot_fft', 'b_fft']})
 
+    def __init__(self, sim, oper=None):
+
+        super(StateNS2DStrat, self).__init__(sim, oper)
+
+        self.field_tmp4 = np.empty_like(self.state_phys[0])
+        self.field_tmp5 = np.empty_like(self.state_phys[0])
+
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         """Compute and return a variable"""
         it = self.sim.time_stepping.it
@@ -82,25 +89,30 @@ class StateNS2DStrat(StateNS2D):
     def statephys_from_statefft(self):
         """Compute `state_phys` from `statefft`."""
         rot_fft = self.state_fft.get_var('rot_fft')
-
-        # Compute b from b_fft
         b_fft = self.state_fft.get_var('b_fft')
-        self.state_phys.set_var('b', self.oper.ifft2(b_fft))
-
-        self.state_phys.set_var('rot', self.oper.ifft2(rot_fft))
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        self.state_phys.set_var('ux', self.oper.ifft2(ux_fft))
-        self.state_phys.set_var('uy', self.oper.ifft2(uy_fft))
+
+        rot = self.state_phys.get_var('rot')
+        ux = self.state_phys.get_var('ux')
+        uy = self.state_phys.get_var('uy')
+        b = self.state_phys.get_var('b')
+
+        self.oper.ifft_as_arg(rot_fft, rot)
+        self.oper.ifft_as_arg(ux_fft, ux)
+        self.oper.ifft_as_arg(uy_fft, uy)
+        self.oper.ifft_as_arg(b_fft, b)
 
     def statefft_from_statephys(self):
         """Compute `state_fft` from `state_phys`."""
 
-        # Compute b_fft from b
-        b = self.state_phys.get_var('b')
-        self.state_fft.set_var('b_fft', self.oper.fft2(b))
-
         rot = self.state_phys.get_var('rot')
-        self.state_fft.set_var('rot_fft', self.oper.fft2(rot))
+        b = self.state_phys.get_var('b')
+
+        rot_fft = self.state_fft.get_var('rot_fft')
+        b_fft = self.state_fft.get_var('b_fft')
+
+        self.oper.fft_as_arg(rot, rot_fft)
+        self.oper.fft_as_arg(b, b_fft)
 
     def init_from_rotbfft(self, rot_fft, b_fft):
         """Initialize the state from the variable `rot_fft`."""

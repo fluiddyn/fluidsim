@@ -9,13 +9,14 @@
 """
 from __future__ import division
 
-from fluidsim.base.setofvariables import SetOfVariables
+import numpy as np
 
-# from fluidsim.base.solvers.pseudo_spect import (
-#     SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.ns2d.solver import \
     InfoSolverNS2D, Simul as SimulNS2D
+
+from .util_pythran import tendencies_nonlin_ns2dstrat
 
 
 class InfoSolverNS2DStrat(InfoSolverNS2D):
@@ -54,13 +55,17 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {'beta': 0., 'N': 1.}
+        attribs = {'N': 1.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
-        fft2 = oper.fft2
-        ifft2 = oper.ifft2
+        fft_as_arg = oper.fft_as_arg
+        ifft_as_arg = oper.ifft_as_arg
+
+        tendencies_fft = SetOfVariables(like=self.state.state_fft)
+        Frot_fft = tendencies_fft.get_var('rot_fft')
+        Fb_fft = tendencies_fft.get_var('b_fft')
 
         if state_fft is None:
             rot_fft = self.state.state_fft.get_var('rot_fft')
@@ -71,27 +76,34 @@ class Simul(SimulNS2D):
             rot_fft = state_fft.get_var('rot_fft')
             b_fft = state_fft.get_var('b_fft')
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-            ux = ifft2(ux_fft)
-            uy = ifft2(uy_fft)
+            ux = self.state.field_tmp0
+            uy = self.state.field_tmp1
+            ifft_as_arg(ux_fft, ux)
+            ifft_as_arg(uy_fft, uy)
 
         px_rot_fft, py_rot_fft = oper.gradfft_from_fft(rot_fft)
         px_b_fft, py_b_fft = oper.gradfft_from_fft(b_fft)
-        px_rot = ifft2(px_rot_fft)
-        py_rot = ifft2(py_rot_fft)
-        px_b = ifft2(px_b_fft)
-        py_b = ifft2(py_b_fft)
 
-        if self.params.beta == 0:
-            Frot = -ux*px_rot - uy*py_rot
-            Fb = -ux*px_b - uy*py_b - self.params.N**2*uy
-        else:
-            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
+        px_rot = self.state.field_tmp2
+        py_rot = self.state.field_tmp3
 
-        Fb_fft = fft2(Fb)
-        Frot_fft_old = fft2(Frot)
-        Frot_fft = Frot_fft_old + px_b_fft
-        oper.dealiasing(Frot_fft)
-        oper.dealiasing(Fb_fft)
+        px_b = self.state.field_tmp4
+        py_b = self.state.field_tmp5
+
+        ifft_as_arg(px_rot_fft, px_rot)
+        ifft_as_arg(py_rot_fft, py_rot)
+        ifft_as_arg(px_b_fft, px_b)
+        ifft_as_arg(py_b_fft, py_b)
+
+        Frot, Fb = tendencies_nonlin_ns2dstrat(
+            ux, uy, px_rot, py_rot, px_b, py_b, self.params.N)
+
+        fft_as_arg(Fb, Fb_fft)
+        fft_as_arg(Frot, Frot_fft)
+
+        Frot_fft += px_b_fft
+
+        oper.dealiasing(tendencies_fft)
 
         # T_rot = np.real(Frot_fft.conj()*rot_fft
         #                + Frot_fft*rot_fft.conj())/2.
@@ -99,18 +111,32 @@ class Simul(SimulNS2D):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
-            info='tendencies_nonlin')
-
-        tendencies_fft.set_var('rot_fft', Frot_fft)
-        tendencies_fft.set_var('b_fft', Fb_fft)
-
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
 
+    def produce_str_describing_params(self):
+        """Produce an information string with the parameters"""
+
+        nu_2 = self.params.nu_2
+        nu_8 = self.params.nu_8
+        kf_max = self.params.forcing.nkmax_forcing
+        kf_min = self.params.forcing.nkmin_forcing
+        kf = np.average([kf_max, kf_min]) * 2 * np.pi/self.params.oper.Lx
+        epsilon = self.params.forcing.forcing_rate
+        kmax = 2 * np.pi * self.params.oper.nx/self.params.oper.Lx
+        ldiss = (self.params.nu_2**3 /
+                 self.params.forcing.forcing_rate)**(1./4)
+        one_over_kdiss = ldiss / (2 * np.pi)
+
+        str_params = ('N = {} \n'.format(self.params.N) +
+                      'nu_2 = {} ; nu_8 = {}\n'.format(nu_2, nu_8) +
+                      'kf_min = {} ; kf_max = {}\n'.format(kf_max, kf_min) +
+                      'kf = {} ; epsilon = {} \n'.format(kf, epsilon) +
+                      'kmax/kdiss = {} \n'.format(kmax * one_over_kdiss) +
+                      'kf/kdiss = {} \n'.format(kf * one_over_kdiss))
+        return str_params
 
 
 if __name__ == "__main__":
@@ -136,7 +162,8 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.USE_T_END = False
     params.time_stepping.deltat0 = 0.1
-    params.time_stepping.t_end = 4.# Period of time of the simulation
+    # Period of time of the simulation
+    params.time_stepping.t_end = 4.
     params.time_stepping.it_end = 20
 
     params.init_fields.type = 'dipole'

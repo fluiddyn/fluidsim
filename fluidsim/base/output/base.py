@@ -93,7 +93,7 @@ class OutputBase(object):
         self.sim = sim
         self.params = params.output
         self.oper = sim.oper
-        
+
         self.has_to_save = self.params.HAS_TO_SAVE
         self.name_solver = sim.info.solver.short_name
 
@@ -220,28 +220,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         return list_for_name_run
 
-    def produce_str_describing_params(self):
-        """Produce an information string with the parameters"""
-        sim = self.sim
-
-        nu_2 = sim.params.nu_2
-        nu_8 = sim.params.nu_8
-        kf_max = sim.params.forcing.nkmax_forcing
-        kf_min = sim.params.forcing.nkmin_forcing
-        kf = np.average([kf_max, kf_min]) * 2 * np.pi/sim.params.oper.Lx
-        epsilon = sim.params.forcing.forcing_rate
-        kmax = 2 * np.pi * sim.params.oper.nx/sim.params.oper.Lx
-        ldiss = (sim.params.nu_2**3 / sim.params.forcing.forcing_rate)**(1./4)
-        kdiss = 2 * np.pi / ldiss
-
-        str_params = 'N = {} \n'.format(sim.params.N) + \
-                     'nu_2 = {} ; nu_8 = {}\n'.format(nu_2, nu_8) + \
-                     'kf_min = {} ; kf_max = {}\n'.format(kf_max, kf_min) + \
-                     'kf = {} ; epsilon = {} \n'.format(kf, epsilon) + \
-                     'kmax/kdiss = {} \n'.format(kmax/kdiss) + \
-                     'kf/kdiss = {} \n'.format(kf/kdiss)
-        return str_params
-
     def init_with_oper_and_state(self):
         sim = self.sim
 
@@ -260,9 +238,12 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 '\nsolver ' + self.name_solver + ', ' + specifications +
                 self.oper.produce_long_str_describing_oper() +
                 'path_run =\n' + self.path_run + '\n' +
-                'init_fields.type: ' + sim.params.init_fields.type + '\n'
-                'Important parameters: \n' +
-                self.produce_str_describing_params())
+                'init_fields.type: ' + sim.params.init_fields.type + '\n')
+
+            if hasattr(self.sim, 'produce_str_describing_params'):
+                self.print_stdout(
+                    'Important parameters: \n' +
+                    self.sim.produce_str_describing_params())
 
         self.save_info_solver_params_xml()
 
