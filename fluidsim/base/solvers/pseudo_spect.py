@@ -60,7 +60,7 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
 
         self.classes.Operators.module_name = 'fluidsim.operators.operators'
-        if not 'FLUIDSIM_NO_FLUIDFFT' in os.environ:
+        if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
             self.classes.Operators.module_name += '2d'
 
         self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'

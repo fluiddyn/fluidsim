@@ -73,8 +73,12 @@ class StatePlate2D(StatePseudoSpectral):
     def statephys_from_statefft(self):
         w_fft = self.state_fft.get_var('w_fft')
         z_fft = self.state_fft.get_var('z_fft')
-        self.state_phys.set_var('w', self.oper.ifft2(w_fft))
-        self.state_phys.set_var('z', self.oper.ifft2(z_fft))
+
+        w = self.state_phys.get_var('w')
+        z = self.state_phys.get_var('z')
+
+        self.oper.ifft_as_arg(w_fft, w)
+        self.oper.ifft_as_arg(z_fft, z)
 
     def init_state_from_wz_fft(self, w_fft, z_fft):
         self.oper.dealiasing(w_fft, z_fft)
@@ -89,4 +93,4 @@ class StatePlate2D(StatePseudoSpectral):
                 z_fft = np.zeros_like(w_fft)
                 self.init_state_from_wz_fft(w_fft, z_fft)
         else:
-            super(StateNS2D, self).init_statefft_from(**kwargs)
+            super(StatePlate2D, self).init_statefft_from(**kwargs)

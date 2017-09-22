@@ -32,15 +32,17 @@ Provides:
 """
 from __future__ import division
 
-from past.utils import old_div
-import fluiddyn.output
-
-from .base import OutputBase, OutputBasePseudoSpectral
-
 import os
 from glob import glob
 
 import h5py
+
+import fluiddyn.output
+
+from .base import OutputBase, OutputBasePseudoSpectral
+
+
+__all__ = ['OutputBase', 'OutputBasePseudoSpectral']
 
 
 def create_description_xmf_file(path=None):
@@ -66,17 +68,17 @@ def create_description_xmf_file(path=None):
 
             nx = f['/info_simul/params/oper'].attrs['nx']
             Lx = f['/info_simul/params/oper'].attrs['Lx']
-            deltax = old_div(Lx,nx)
+            deltax = Lx/nx
             try:
                 ny = f['/info_simul/params/oper'].attrs['ny']
                 Ly = f['/info_simul/params/oper'].attrs['Ly']
-                deltay = old_div(Ly,ny)
+                deltay = Ly/ny
             except KeyError:
                 ndim = 1
             try:
                 nz = f['/info_simul/params/oper'].attrs['nz']
                 Lz = f['/info_simul/params/oper'].attrs['Lz']
-                deltaz = old_div(Lz,nz)
+                deltaz = Lz/nz
             except KeyError:
                 ndim = 2
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 python simul_profile.py
-mpirun -np 8 python simul_profile.py
+mpirun -np 2 python simul_profile.py
 
 FLUIDSIM_NO_FLUIDFFT=1 python simul_profile.py
 
@@ -65,19 +65,5 @@ params.output.periods_save.increments = 0.1
 sim = solver.Simul(params)
 
 if __name__ == '__main__':
-    from time import time
-    import pstats
-    import cProfile
-
-    t0 = time()
-
-    cProfile.runctx('sim.time_stepping.start()',
-                    globals(), locals(), 'profile.pstats')
-
-    if sim.oper.rank == 0:
-        print('t1 - t0 =', time() - t0)
-        s = pstats.Stats('profile.pstats')
-        s.strip_dirs().sort_stats('time').print_stats(16)
-        print(
-            'with gprof2dot and graphviz (command dot):\n'
-            'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')
+    from util_bench import profile
+    profile(sim)

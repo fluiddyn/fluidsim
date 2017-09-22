@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 """
-python simul_profile_sw1l.py
-mpirun -np 8 python simul_profile_sw1l.py
+python simul_profile_ns2d.py
+mpirun -np 2 python simul_profile_ns2d.py
 
-FLUIDSIM_NO_FLUIDFFT=1 python simul_profile_sw1l.py
-FLUIDSIM_NO_FLUIDFFT=1 mpirun -np 2 python simul_profile_sw1l.py
-
+FLUIDSIM_NO_FLUIDFFT=1 python simul_profile_ns2d.py
+FLUIDSIM_NO_FLUIDFFT=1 mpirun -np 2 python simul_profile_ns2d.py
 
 """
 
-import os
-
-from fluidsim.solvers.sw1l import solver
+from fluidsim.solvers.plate2d import solver
 
 params = solver.Simul.create_default_params()
 
@@ -24,13 +21,9 @@ Lh = 6.
 params.oper.Lx = Lh
 params.oper.Ly = Lh
 
-if 'FLUIDSIM_PRIORITY_FLUIDFFT' in os.environ:
-    # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
-    pass
-
 params.oper.coef_dealiasing = 2./3
 
-params.FORCING = True
+params.FORCING = False
 params.forcing.type = 'tcrandom'
 params.forcing.nkmax_forcing = 5
 params.forcing.nkmin_forcing = 4
@@ -39,15 +32,11 @@ params.forcing.forcing_rate = 1.
 delta_x = Lh/nh
 params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-params.f = 1.
-params.c2 = 200.
-
 params.time_stepping.deltat0 = 1.e-4
 params.time_stepping.USE_CFL = False
 
 params.time_stepping.it_end = 10
 params.time_stepping.USE_T_END = False
-
 
 params.output.periods_print.print_stdout = 0
 

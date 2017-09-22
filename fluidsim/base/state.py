@@ -150,14 +150,12 @@ class StatePseudoSpectral(StateBase):
             raise ValueError('key "'+key+'" is not known')
 
     def statefft_from_statephys(self):
-        fft2 = self.oper.fft2
         for ik in range(self.state_fft.nvar):
-            self.state_fft[ik][:] = fft2(self.state_phys[ik])
+            self.oper.fft_as_arg(self.state_phys[ik], self.state_fft[ik])
 
     def statephys_from_statefft(self):
-        ifft2 = self.oper.ifft2
         for ik in range(self.state_fft.nvar):
-            self.state_phys[ik] = ifft2(self.state_fft[ik])
+            self.oper.ifft_as_arg(self.state_fft[ik], self.state_phys[ik])
 
     def return_statephys_from_statefft(self, state_fft=None):
         """Return the state in physical space."""

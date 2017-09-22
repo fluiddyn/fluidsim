@@ -8,7 +8,8 @@ from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from . import util2d_pythran
-from .util2d_pythran import dealiasing_setofvar
+from .util2d_pythran import (
+    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft)
 from ..base.setofvariables import SetOfVariables
 
 if not hasattr(util2d_pythran, '__pythran__'):
@@ -599,14 +600,14 @@ class OperatorsPseudoSpectral2D(_Operators):
                         am_fft[i0, i1] = ux_fft[0, 0] - 1.j*uy_fft[0, 0]
                     else:
                         q_fft[i0, i1] = 1j*(
-                            KX[i0, i1]*uy_fft[i0, i1]
-                            - KY[i0, i1]*ux_fft[i0, i1])
+                            KX[i0, i1]*uy_fft[i0, i1] -
+                            KY[i0, i1]*ux_fft[i0, i1])
 
                         a_over2_fft = 0.5*K2[i0, i1]*eta_fft[i0, i1]
 
                         Deltaa_over2_fft = 0.5j*Kappa_over_ic[i0, i1]*(
-                            KX[i0, i1]*ux_fft[i0, i1]
-                            + KY[i0, i1]*uy_fft[i0, i1])
+                            KX[i0, i1]*ux_fft[i0, i1] +
+                            KY[i0, i1]*uy_fft[i0, i1])
 
                         ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
                         am_fft[i0, i1] = a_over2_fft - Deltaa_over2_fft
@@ -686,29 +687,8 @@ class OperatorsPseudoSpectral2D(_Operators):
             uy_fft[0, 0] = 0.5j * (am_fft[0, 0] - ap_fft[0, 0])
         return ux_fft, uy_fft, eta_fft
 
-    def monge_ampere_from_fft(self, a_fft, b_fft):
-        KX = self.KX
-        KY = self.KY
-        ifft2 = self.ifft2
-
-        pxx_a = - ifft2(a_fft * KX**2)
-        pyy_a = - ifft2(a_fft * KY**2)
-        pxy_a = - ifft2(a_fft * KX * KY)
-
-        pxx_b = - ifft2(b_fft * KX**2)
-        pyy_b = - ifft2(b_fft * KY**2)
-        pxy_b = - ifft2(b_fft * KX * KY)
-
-        return pxx_a*pyy_b + pyy_a*pxx_b - 2*pxy_a*pxy_b
-
     def laplacian2_fft(self, a_fft):
-        K4 = self.K4
-        lap2_afft = a_fft * K4
-        return lap2_afft
+        return laplacian2_fft(a_fft, self.K4)
 
     def invlaplacian2_fft(self, a_fft):
-        K4_not0 = self.K4_not0
-        invlap2_afft = a_fft / K4_not0
-        if rank == 0:
-            invlap2_afft[0, 0] = 0.
-        return invlap2_afft
+        return invlaplacian2_fft(a_fft, self.K4_not0, rank)

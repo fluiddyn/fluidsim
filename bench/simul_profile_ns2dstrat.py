@@ -60,21 +60,5 @@ params.output.HAS_TO_SAVE = 0
 sim = solver.Simul(params)
 
 if __name__ == '__main__':
-    from time import time
-    import pstats
-    import cProfile
-
-    t0 = time()
-
-    cProfile.runctx('sim.time_stepping.start()',
-                    globals(), locals(), 'profile.pstats')
-
-    if sim.oper.rank == 0:
-        s = pstats.Stats('profile.pstats')
-        # s.strip_dirs().sort_stats('time').print_stats(16)
-        s.sort_stats('time').print_stats(12)
-
-        print('elapsed time = {:.3f}\n'.format(time() - t0))
-        print(
-            'with gprof2dot and graphviz (command dot):\n'
-            'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')
+    from util_bench import profile
+    profile(sim)

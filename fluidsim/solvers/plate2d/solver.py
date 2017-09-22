@@ -23,6 +23,8 @@ plate2d.
 from __future__ import print_function
 from __future__ import division
 
+import os
+
 from past.utils import old_div
 import numpy as np
 
@@ -65,6 +67,12 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
         self.short_name = 'Plate2D'
 
         classes = self.classes
+
+        if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
+            self.classes.Operators.module_name = \
+                'fluidsim.operators.operators_plate2d'
+            self.classes.Operators.class_name = \
+                'OperatorsPseudoSpectralPlate2D'
 
         classes.State.module_name = package + '.state'
         classes.State.class_name = 'StatePlate2D'
@@ -173,25 +181,24 @@ class Simul(SimulBasePseudoSpectral):
         if state_fft is None:
             state_fft = self.state.state_fft
 
+        tendencies_fft = SetOfVariables(
+            like=self.state.state_fft,
+            info='tendencies_nonlin')
+
         w_fft = state_fft.get_var('w_fft')
         z_fft = state_fft.get_var('z_fft')
+
+        F_fft = tendencies_fft.get_var('w_fft')
+        tendencies_fft.set_var('z_fft', w_fft)
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
         chi_fft = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
         lap2z_fft = oper.laplacian2_fft(z_fft)
-        F_fft = - lap2z_fft + Nw_fft
+        F_fft[:] = - lap2z_fft + Nw_fft
 
-        oper.dealiasing(F_fft)
-        oper.dealiasing(w_fft)
-
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
-            info='tendencies_nonlin')
-
-        tendencies_fft.set_var('w_fft', F_fft)
-        tendencies_fft.set_var('z_fft', w_fft)
+        oper.dealiasing(tendencies_fft)
 
         # ratio = self.test_tendencies_nonlin(
         #     tendencies_fft, w_fft, z_fft, chi_fft)

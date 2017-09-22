@@ -1,8 +1,6 @@
 """Physical fields output (:mod:`fluidsim.base.output.phys_fields`)
 =========================================================================
 
-.. currentmodule:: fluidsim.base.output.phys_fields
-
 Provides:
 
 .. autoclass:: PhysFieldsBase
@@ -27,7 +25,7 @@ from fluiddyn.util import mpi
 from .base import SpecificOutput
 from .movies import MoviesBase1D, MoviesBase2D
 
-cfg = h5py.h5.get_config()
+cfg_h5py = h5py.h5.get_config()
 
 
 class PhysFieldsBase(SpecificOutput):
@@ -111,7 +109,7 @@ class PhysFieldsBase(SpecificOutput):
         to_print = 'save state_phys in file ' + name_save
         self.output.print_stdout(to_print)
 
-        if mpi.nb_proc == 1 or not cfg.mpi:
+        if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
                 f = h5py.File(path_file, 'w')
                 group_state_phys = f.create_group("state_phys")
@@ -132,7 +130,7 @@ class PhysFieldsBase(SpecificOutput):
             for k in state_phys.keys:
                 field_seq = state_phys.get_var(k)
                 group_state_phys.create_dataset(k, data=field_seq)
-        elif not cfg.mpi:
+        elif not cfg_h5py.mpi:
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
                 field_seq = self.oper.gather_Xspace(field_loc)
@@ -255,8 +253,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
                 cmap = plt.get_cmap('jet')
 
             if type_plot == 'contourf':
-                contours = ax.contourf(x_seq, y_seq, field,
-                                       nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
+                contours = ax.contourf(
+                    x_seq, y_seq, field,
+                    nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
                 fig.colorbar(contours)
                 fig.contours = contours
             elif type_plot == 'pcolor':
