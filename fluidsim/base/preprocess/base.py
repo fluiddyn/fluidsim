@@ -1,7 +1,5 @@
-"""Base preprocess (:mod:`fluiddyn.simul.base.preprocess.base`)
-===============================================================
-
-.. currentmodule:: fluiddyn.simul.base.preprocess.base
+"""Base preprocess (:mod:`fluidsim.base.preprocess.base`)
+=========================================================
 
 Provides:
 
@@ -34,14 +32,14 @@ class PreprocessBase(object):
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        attribs = {'enable' : False,
-                   'init_field_scale' : 'unity',
+        attribs = {'enable': False,
+                   'init_field_scale': 'unity',
                    'init_field_const': 1.,
-                   'viscosity_type' : 'laplacian',
-                   'viscosity_scale' : 'enstrophy_forcing',
-                   'viscosity_const' : 1.,
-                   'forcing_scale' : 'unity',
-                   'forcing_const' : 1.}
+                   'viscosity_type': 'laplacian',
+                   'viscosity_scale': 'enstrophy_forcing',
+                   'viscosity_const': 1.,
+                   'forcing_scale': 'unity',
+                   'forcing_const': 1.}
 
         params._set_child('preprocess', attribs=attribs)
 

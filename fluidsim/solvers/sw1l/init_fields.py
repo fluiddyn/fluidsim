@@ -1,7 +1,5 @@
-"""Initialisation of the fields (:mod:`fluiddyn.simul.base.init_fields`)
-========================================================================
-
-.. currentmodule:: fluiddyn.simul.sw1l.init_fields
+"""Initialisation of the fields (:mod:`fluidsim.solvers.sw1l.init_fields`)
+==========================================================================
 
 Provides:
 
@@ -87,7 +85,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
 
     """
     tag = 'vortex_grid'
-    
+
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsVortexGrid, cls)._complete_params_with_default(params)
@@ -100,7 +98,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         rot = self.vortex_grid_shape()
         rot_fft = self.sim.oper.fft2(rot)
         self.sim.state.init_from_rotfft(rot_fft)
-        
+
     def vortex_grid_shape(self):
         oper = self.sim.oper
         params = self.sim.params.init_fields.vortex_grid
@@ -129,7 +127,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         amp = params.omega_max
         wz_gaussian = lambda x, y, sign:(
                 sign * amp * np.exp(old_div(-(x ** 2 + y ** 2), (2 * SD**2))))
-        
+
         omega = np.zeros(oper.shapeX_loc)
         for i in xrange(0, N_vort):
             x0 = x_vort[i]
@@ -157,8 +155,8 @@ class InitFieldsVortexGrid(SpecificInitFields):
             mpi.comm.Bcast([pm, INT])
 
         return pm
-    
-       
+
+
 class InitFieldsSW1L(InitFieldsBase):
     """Init the fields for the solver SW1L."""
 

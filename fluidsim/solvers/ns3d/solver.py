@@ -7,10 +7,6 @@
    :members:
    :private-members:
 
-.. todo::
-
-   - 3D pseudo-spectral operator with parallel fft,
-   - output and 3D plotting,
 
 """
 from __future__ import division

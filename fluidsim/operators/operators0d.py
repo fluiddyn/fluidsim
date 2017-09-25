@@ -1,3 +1,14 @@
+"""Operators 0d (:mod:`fluidsim.operators.operators0d`)
+=======================================================
+
+Provides
+
+.. autoclass:: Operators0D
+   :members:
+   :private-members:
+
+"""
+
 from __future__ import division
 
 from builtins import object

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Plate2d solver (:mod:`fluidsim.solvers.plate2d.solver`)
-================================================================
+==========================================================
 
 This module provides two classes defining the pseudo-spectral solver
 plate2d.
@@ -13,10 +13,6 @@ plate2d.
 .. autoclass:: Simul
    :members:
    :private-members:
-
-.. todo::
-
-   - other solver solving exactly the linear terms.
 
 """
 

@@ -1,8 +1,6 @@
 """Normal mode decomposition for SW1L solvers
-(:mod:`fluidsim.solvers.sw1l.output`)
-===================================================
-
-.. currentmodule:: fluidsim.solvers.sw1l.output
+(:mod:`fluidsim.solvers.sw1l.output.normal_mode`)
+=================================================
 
 Provides:
 

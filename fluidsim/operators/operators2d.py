@@ -1,3 +1,13 @@
+"""Operators 2d (:mod:`fluidsim.operators.operators2d`)
+=======================================================
+
+Provides
+
+.. autoclass:: OperatorsPseudoSpectral2D
+   :members:
+   :private-members:
+
+"""
 
 from builtins import range
 

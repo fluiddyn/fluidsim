@@ -1,4 +1,20 @@
-""" """
+"""Output SW1L (:mod:`fluidsim.solvers.sw1l.output`)
+====================================================
+
+.. autoclass:: OutputBaseSW1L
+   :members:
+   :private-members:
+
+.. autosummary::
+   :toctree:
+
+   print_stdout
+   spatial_means
+   spect_energy_budget
+   spectra
+   normal_mode
+
+"""
 from __future__ import division
 
 from past.utils import old_div

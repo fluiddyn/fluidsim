@@ -1,39 +1,53 @@
 .. FluidDyn documentation master file, created by
    sphinx-quickstart on Sun Mar  2 12:15:31 2014.
 
-FluidSim documentation
+Fluidsim documentation
 ======================
 
-FluidSim is a framework for studying fluid dynamics with numerical
+Fluidsim is a framework for studying fluid dynamics with numerical
 simulations using Python. It is part of the wider project `FluidDyn
 <https://pypi.python.org/pypi/fluiddyn/>`_.
 
-The package is still in a planning stage so it is still pretty
-unstable and many of its planned features have not yet been
-implemented.
+Fluidsim is an object-oriented library to develop solvers (mainly using
+pseudo-spectral methods) by writing mainly Python code. The result is really
+efficient compared to a pure Fortran or C++ code since the time-consuming tasks
+are performed by optimized compiled functions.
 
-FluidSim provides object-oriented libraries to develop quite simple
-solvers (mainly using pseudo-spectral methods) by writing mainly
-Python code. The result should be quite efficient compared to a pure
-Fortran or C++ code since most of the time-consuming tasks are
-performed by quite optimized compiled functions (to be better
-quantified).
+Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
+code written mostly in Python. It uses the library `fluidfft
+<http://fluidfft.readthedocs.io>`_ to use very efficient FFT
+libraries. Fluidfft is written in C++, Cython and python. Fluidfft and fluidsim
+take advantage of `Pythran <https://github.com/serge-sans-paille/pythran>`_, a
+new static Python compiler which produces very efficient binaries by compiling
+Python via C++11.
 
-An advantage is that to run simulations and analyze the results, the
-users communicate (possibly interactively) with the machine through
-Python, which is nowadays among the best languages to do these tasks.
-Moreover, it should be much simpler than with pure Fortran or C++
-codes to add any complicate analysis. For example, it should be very
-simple and quick to write a solver for adjoin equations.
+An advantage of a CFD code written mostly in Python is that to run simulations
+and analyze the results, the users communicate (possibly interactively)
+together and with the machine with Python, which is nowadays among the best
+languages to do these tasks.  Moreover, it is much simpler and faster than with
+pure Fortran or C++ codes to add any complicate analysis or to write a modified
+solver.
 
-At this stage, just few solvers have been written, but at least
-FluidSim can solve these equations:
+We have created fluidsim to be easy and nice to use and to develop, efficient
+and robust.
 
-- Incompressible Navier-Stokes equations in a two-dimensional periodic space,
+At this stage, not many solvers have been written, but fluidsim can already
+solve these equations:
 
-- One-layer shallow-water equations in a two-dimensional periodic space,
+- In a two-dimensional periodic space:
 
-- ...
+  * Incompressible Navier-Stokes equations,
+
+  * Stratified Navier-Stokes equations under the Boussinesq approximation with
+    constant Brunt-Väisälä frequency,
+
+  * One-layer shallow-water equations + modified versions of these equations,
+
+  * Föppl-von Kármán equations (elastic thin plate)
+
+- In a three-dimensional periodic space:
+
+  * Incompressible Navier-Stokes equations.
 
 User Guide
 ----------
@@ -56,31 +70,32 @@ Modules Reference
    fluidsim.solvers
    fluidsim.util
 
-Scripts
--------
-
-FluidSim also comes with scripts. They are organised in the following
-directories:
-
-.. autosummary::
-   :toctree: generated/
-
-   scripts.launch
-   scripts.plot_results
-   scripts.util
-
 More
 ----
+
+.. |release| image:: https://img.shields.io/pypi/v/fluidsim.svg
+   :target: https://pypi.python.org/pypi/fluidsim/
+   :alt: Latest version
+
+.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/graph/badge.svg
+   :target: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/
+   :alt: Code coverage
+
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
+    :target: https://travis-ci.org/fluiddyn/fluidsim
+
+
+- `Fluidsim forge on Bitbucket <https://bitbucket.org/fluiddyn/fluidsim>`_
+- Fluidsim in PyPI |release|
+- Unittest coverage |coverage|
+- Continuous integration with travis |travis|
 
 .. toctree::
    :maxdepth: 1
 
-   FluidSim forge in Bitbucket <https://bitbucket.org/fluiddyn/fluidsim>
-   FluidSim in PyPI  <https://pypi.python.org/pypi/fluidsim/>
-   to_do
    changes
+   to_do
    authors
-
 
 Indices and tables
 ==================

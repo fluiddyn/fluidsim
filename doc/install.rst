@@ -9,34 +9,94 @@ documentation of the project
 Dependencies
 ------------
 
-- FFTW3 (and some modules take advantage of libfftw3_mpi, but this one
-  is optional) and on the python package pyfftw,
+- Python 2.7 or >= 3.4
 
-The first thing to do before installing FluidSim is to installed these
-libraries (in contrast, the Python packages should automatically be
-installed by the installer)!
+- Numpy
 
-- optionally, mpi4py (which depends on a MPI implementation).
+- `fluidfft <http://fluidfft.readthedocs.io>`_
 
+  fluidsim needs fluidfft. If you don't install it before carefully, it will be
+  installed automatically and you won't be able to use fancy FFT libraries
+  (using for example MPI with 2D decomposition or CUDA). If you are not too
+  concerned about performance, no problem. Otherwise, install fluidfft as
+  explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__
 
-Install commands
-----------------
-  
-FluidSim can be installed by running the following commands::
+- A C++11 compiler (for example GCC 4.9)
 
-  hg clone https://bitbucket.org/fluiddyn/fluidsim
-  cd fluidsim
-  python setup.py develop
- 
-Installation with Pip should also work::
+- `Pythran <https://github.com/serge-sans-paille/pythran>`_
+
+  We choose to use the new static Python compiler `Pythran
+  <https://github.com/serge-sans-paille/pythran>`_ for some functions. Our
+  microbenchmarks show that the performances are as good as what we are able to
+  get with Fortran or C++!
+
+.. warning::
+
+  To reach good performance, we advice to try to put in the file `~/.pythranrc`
+  the lines (see the `Pythran documentation
+  <https://pythonhosted.org/pythran/MANUAL.html>`_):
+
+  .. code:: bash
+
+     [pythran]
+     complex_hook = True
+
+- Optionally, mpi4py (which depends on a MPI implementation).
+
+Basic installation with pip
+---------------------------
+
+If you are in a hurry and that you are not really concerned about performance,
+you can use pip::
 
   pip install fluidsim
 
-Run the tests
--------------
+or::
 
-You can run some unit tests by running ``make tests`` from the root
-directory or ``python -m unittest discover`` from the root directory
-or from any of the "test" directories.
+  pip install fluidsim --user
+
+
+Install from the repository (recommended)
+-----------------------------------------
+
+Get the source code
+~~~~~~~~~~~~~~~~~~~
+
+For fluidsim, we use the revision control software Mercurial and the main
+repository is hosted `here <https://bitbucket.org/fluiddyn/fluidsim>`_ in
+Bitbucket. Download the source with something like::
+
+  hg clone https://bitbucket.org/fluiddyn/fluidsim
+
+If you are new with Mercurial and Bitbucket, you can also read `this short
+tutorial
+<http://fluiddyn.readthedocs.org/en/latest/mercurial_bitbucket.html>`_.
+
+If you don't want to use Mercurial, you can also just manually download the
+package from `the Bitbucket page <https://bitbucket.org/fluiddyn/fluidsim>`_ or
+from `the PyPI page <https://pypi.python.org/pypi/fluidsim>`_.
+
+
+Build/install
+~~~~~~~~~~~~~
+
+Build/install in development mode (with a virtualenv)::
+
+  python setup.py develop
+
+or (without virtualenv)::
+
+  python setup.py develop --user
+
+Of course you can also install FluidDyn with the install command ``python
+setup.py install``.
+
+
+Run the tests!
+--------------
+
+You can run some unit tests by running ``make tests`` or ``make tests_mpi``
+from the root directory or ``python -m unittest discover`` from the root
+directory or from any of the "test" directories.
 
 

@@ -1,3 +1,14 @@
+"""Operators plate2d model (:mod:`fluidsim.operators.operators_plate2d`)
+========================================================================
+
+Provides
+
+.. autoclass:: OperatorsPseudoSpectralPlate2D
+   :members:
+   :private-members:
+
+"""
+
 
 import numpy as np
 
@@ -8,7 +19,9 @@ from .util_plate2d_pythran import (
 
 
 class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
+    """Operators for the plate2d model.
 
+    """
     def __init__(self, params, SEQUENTIAL=None, goal_to_print=None):
         super(OperatorsPseudoSpectralPlate2D, self).__init__(
             params, SEQUENTIAL=SEQUENTIAL, goal_to_print=goal_to_print)
@@ -30,6 +43,7 @@ class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
     #         a_fft, b_fft, self.KX, self.KY, self.ifft2)
 
     def monge_ampere_from_fft(self, a_fft, b_fft):
+        """Compute the Monge-Ampere operator"""
 
         pxx_a_fft, pyy_a_fft, pxy_a_fft, pxx_b_fft, pyy_b_fft, pxy_b_fft = \
             monge_ampere_step0(a_fft, b_fft, self.KX2, self.KY2, self.KXKY)

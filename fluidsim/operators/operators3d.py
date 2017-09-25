@@ -1,3 +1,14 @@
+"""Operators 3d (:mod:`fluidsim.operators.operators3d`)
+=======================================================
+
+Provides
+
+.. autoclass:: OperatorsPseudoSpectral3D
+   :members:
+   :private-members:
+
+"""
+
 from __future__ import division
 
 from builtins import range
@@ -83,16 +94,17 @@ class OperatorsPseudoSpectral3D(_Operators):
         self.fft2 = self.fft2d = self.oper2d.fft2
 
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
-
+        """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
             self.oper2d, arr2d)
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
-
+        """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
             self.oper2d, arr2d)
 
     def dealiasing(self, *args):
+        """Dealiasing of SetOfVariables or np.ndarray"""
         for thing in args:
             if isinstance(thing, SetOfVariables):
                 _dealiasing_setofvar(thing, self.where_dealiased)

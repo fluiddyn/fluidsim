@@ -1,7 +1,5 @@
-"""Preprocessing for pseudo-spectral solvers (:mod:`fluiddyn.simul.base.preprocess.pseudo_spect`)
-================================================================================================
-
-.. currentmodule:: fluiddyn.simul.base.preprocess.base
+"""Preprocessing for pseudo-spectral solvers (:mod:`fluidsim.base.preprocess.pseudo_spect`)
+===========================================================================================
 
 Provides:
 
