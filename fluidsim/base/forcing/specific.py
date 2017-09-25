@@ -43,6 +43,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 class SpecificForcing(object):
+    """Base class for specific forcing"""
     tag = 'specific'
 
     @classmethod
@@ -57,6 +58,8 @@ class SpecificForcing(object):
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
+    """Specific forcing for pseudo-spectra solvers"""
+
     tag = 'pseudo_spectral'
     _key_forced_default = 'rot_fft'
 
@@ -219,6 +222,12 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
 
 class Proportional(SpecificForcingPseudoSpectral):
+    """Specific forcing proportional to the forced variable
+
+    .. inheritance-diagram:: Proportional
+
+    """
+
     tag = 'proportional'
 
     def forcingc_raw_each_time(self, vc_fft):
@@ -257,6 +266,11 @@ class Proportional(SpecificForcingPseudoSpectral):
 
 
 class NormalizedForcing(SpecificForcingPseudoSpectral):
+    """Specific forcing normalized to keep constant injection
+
+    .. inheritance-diagram:: NormalizedForcing
+
+    """
     tag = 'normalized_forcing'
 
     @classmethod
@@ -291,6 +305,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         # self.verify_injection_rate()
 
     def normalize_forcingc(self, fvc_fft, vc_fft):
+        """Normalize the coarse forcing"""
 
         type_normalize = self.params.forcing[self.tag].type_normalize
 
@@ -407,6 +422,10 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
 
 class RandomSimplePseudoSpectral(NormalizedForcing):
+    """Random normalized forcing
+
+    .. inheritance-diagram:: RandomSimplePseudoSpectral
+    """
     tag = 'random'
 
     def compute_forcingc_raw(self):
@@ -425,6 +444,10 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
 
 class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
+    """Time correlated random normalized forcing
+
+    .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectral
+    """
     tag = 'tcrandom'
 
     @classmethod
@@ -452,6 +475,11 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self.t_last_change = self.sim.time_stepping.t
 
     def forcingc_raw_each_time(self, a_fft):
+        """Return a coarse forcing as a linear combination of 2 random arrays
+
+        Compute the new random coarse forcing arrays when necessary.
+
+        """
         tsim = self.sim.time_stepping.t
         if tsim-self.t_last_change >= self.period_change_F0F1:
             self.t_last_change = tsim
@@ -463,6 +491,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         return F_fft
 
     def forcingc_from_F0F1(self):
+        """Return a coarse forcing as a linear combination of 2 random arrays
+
+        """
         tsim = self.sim.time_stepping.t
         deltat = self.period_change_F0F1
         omega = np.pi/deltat
