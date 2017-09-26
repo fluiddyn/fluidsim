@@ -49,3 +49,5 @@ scripts\Experiments\path_working_exp.txt
 */*.png
 
 */*_pythran.cpp
+
+bench/results_bench/*.json
