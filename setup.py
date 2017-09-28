@@ -130,6 +130,10 @@ ext_modules.extend([
     ext_misc,
     ext_cyfunc])
 
+if 'TOXENV' in os.environ:
+    for e in ext_modules:
+        e.cython_directives = {'linetrace': True}
+
 print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
