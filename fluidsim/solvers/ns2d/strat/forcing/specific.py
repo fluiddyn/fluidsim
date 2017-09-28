@@ -44,8 +44,8 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
         nkxmin_forcing = params.forcing.nkxmin_forcing
         self.kxmax_forcing = self.oper.deltakx * params.forcing.nkxmax_forcing
         self.kxmin_forcing = self.oper.deltakx * params.forcing.nkxmin_forcing
-
-        self.kzmax_forcing = np.tan(
+        print('kxmax_forcing = {}'.format(self.kxmax_forcing))
+        self.kymax_forcing = np.tan(
             radians(params.forcing.angle)) * self.kxmax_forcing
 
         self.forcing_rate = params.forcing.forcing_rate
@@ -83,11 +83,22 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
             #     self.oper_coarse.KK > self.kmax_forcing,
             #     self.oper_coarse.KK < self.kmin_forcing)
 
-            self.COND_NO_F = np.logical_or(
+            # Positive values of ky
+            print('oper_coarse.KX = {}'.format(self.oper_coarse.KX))
+            self.COND_NO_F_KX = np.logical_or(
                 self.oper_coarse.KX > self.kxmax_forcing,
-                self.oper_coarse.KX < self.kxmin_forcing,
-                self.oper_coarse.KZ > self.kzmax_forcing,
-                self.oper_coarse.KZ < 0 )
+                self.oper_coarse.KX < self.kxmin_forcing)
+            print('COND_NO_F_KX = {}'.format(self.COND_NO_F_KX))
+
+            print('oper_coarse.KY = {}'.format(self.oper_coarse.KY))
+            self.COND_NO_F_KY = np.logical_or(
+                self.oper_coarse.KY > self.kymax_forcing,
+                self.oper_coarse.KY < 0)
+            print('COND_NO_F_KY = {}'.format(self.COND_NO_F_KY))
+
+            self.COND_NO_F = np.logical_or(
+                self.COND_NO_F_KX, self.COND_NO_F_KY)
+            print('COND_NO_F = {}'.format(self.COND_NO_F))
 
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,

@@ -5,17 +5,23 @@
    :members:
 
 """
+# from fluidsim.base.forcing import ForcingBasePseudoSpectral
+from fluidsim.solvers.ns2d.strat.forcing.base import \
+    ForcingBasePseudoSpectralAnisotrop
 
-from fluidsim.solvers.ns2d.forcing import ForcingNS2D
+from fluidsim.base.forcing.specific import (
+    Proportional, TimeCorrelatedRandomPseudoSpectral)
 
-from fluidsim.solvers.ns2d.strat.forcing.specific import (
-    TimeCorrelatedRandomPseudoSpectralAnisotrop)
+from fluidsim.solvers.ns2d.strat.forcing.specific import \
+    TimeCorrelatedRandomPseudoSpectralAnisotrop
 
 
-class ForcingNS2DStrat(ForcingNS2D):
-    """Forcing class for the ns2d.strat solver."""
+class ForcingNS2DStrat(ForcingBasePseudoSpectralAnisotrop):
+    """Forcing class for the ns2d solver."""
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""
-        classes = [TimeCorrelatedRandomPseudoSpectralAnisotrop]
-        ForcingNS2D._complete_info_solver(info_solver, classes)
+        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral, \
+                   TimeCorrelatedRandomPseudoSpectralAnisotrop]
+        ForcingBasePseudoSpectralAnisotrop._complete_info_solver(info_solver,
+                                                                 classes)
