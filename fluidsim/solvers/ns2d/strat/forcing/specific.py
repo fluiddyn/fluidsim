@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-from builtins import object
+# from builtins import object
 from math import radians
 
 import numpy as np
@@ -38,9 +38,16 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
         self.forcing_fft = SetOfVariables(
             like=sim.state.state_fft, info='forcing_fft', value=0.)
 
-        self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
-        self.kmin_forcing = self.oper.deltakx*params.forcing.nkmin_forcing
-        
+        # self.kmax_forcing = self.oper.deltakx*params.forcing.nkmax_forcing
+        # self.kmin_forcing = self.oper.deltakx*params.forcing.nkmin_forcing
+        nkxmax_forcing = params.forcing.nkxmax_forcing
+        nkxmin_forcing = params.forcing.nkxmin_forcing
+        self.kxmax_forcing = self.oper.deltakx * params.forcing.nkxmax_forcing
+        self.kxmin_forcing = self.oper.deltakx * params.forcing.nkxmin_forcing
+
+        self.kzmax_forcing = np.tan(
+            radians(params.forcing.angle)) * self.kxmax_forcing
+
         self.forcing_rate = params.forcing.forcing_rate
 
         if params.forcing.key_forced is not None:
@@ -48,10 +55,16 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
         else:
             self.key_forced = self._key_forced_default
 
+        # i = 0
+        # while 2*params.forcing.nkmax_forcing > 2**i:
+        #     i += 1
+        # n = 2**i
+
         i = 0
-        while 2*params.forcing.nkmax_forcing > 2**i:
+        while 2*(nkxmax_forcing/(nkxmax_forcing - nkxmin_forcing)) > 2**i:
             i += 1
         n = 2**i
+
 
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
@@ -66,9 +79,15 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
                 goal_to_print='coarse resolution for forcing')
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
 
+            # self.COND_NO_F = np.logical_or(
+            #     self.oper_coarse.KK > self.kmax_forcing,
+            #     self.oper_coarse.KK < self.kmin_forcing)
+
             self.COND_NO_F = np.logical_or(
-                self.oper_coarse.KK > self.kmax_forcing,
-                self.oper_coarse.KK < self.kmin_forcing)
+                self.oper_coarse.KX > self.kxmax_forcing,
+                self.oper_coarse.KX < self.kxmin_forcing,
+                self.oper_coarse.KZ > self.kzmax_forcing,
+                self.oper_coarse.KZ < 0 )
 
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
@@ -184,9 +203,222 @@ class SpecificForcingPseudoSpectralAnisotrop(SpecificForcing):
                 PZ_forcing2))
 
 
+class NormalizedForcingAnisotrop(SpecificForcingPseudoSpectralAnisotrop):
+    tag = 'normalized_forcing_anisotrop'
 
-# class TimeCorrelatedRandomPseudoSpectralAnisotrop(
-#         TimeCorrelatedRandomPseudoSpectral):
-#     tag = 'tcrandom_anisotropic'
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(NormalizedForcingAnisotrop, cls)._complete_params_with_default(
+            params)
+        params.forcing._set_child(
+            cls.tag,
+            {'type_normalize': '2nd_degree_eq'})
 
-# Define functions for anisotropic forcing!!!
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+
+        try:
+            a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+        except ValueError:
+            a_fft = self.sim.state.compute(self.key_forced)
+
+        a_fft = self.oper.coarse_seq_from_fft_loc(
+            a_fft, self.shapeK_loc_coarse)
+
+        if mpi.rank == 0:
+            Fa_fft = self.forcingc_raw_each_time(a_fft)
+            Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
+            kwargs = {self.key_forced: Fa_fft}
+            self.fstate_coarse.init_statefft_from(**kwargs)
+
+        self.put_forcingc_in_forcing()
+
+        # # verification
+        # self.verify_injection_rate()
+
+    def normalize_forcingc(self, fvc_fft, vc_fft):
+
+        type_normalize = self.params.forcing[self.tag].type_normalize
+
+        if type_normalize == '2nd_degree_eq':
+            return self.normalize_forcingc_2nd_degree_eq(fvc_fft, vc_fft)
+        elif type_normalize == 'particular_k':
+            return self.normalize_forcingc_part_k(fvc_fft, vc_fft)
+        else:
+            ValueError('Bad value for parameter forcing.type_normalize:',
+                       type_normalize)
+
+    def normalize_forcingc_part_k(self, fvc_fft, vc_fft):
+        """Modify the array fvc_fft to fixe the injection rate.
+
+        To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
+
+        """
+        oper_c = self.oper_coarse
+
+        oper_c.project_fft_on_realX(fvc_fft)
+        # fvc_fft[self.COND_NO_F] = 0.
+
+        P_forcing2 = np.real(
+            fvc_fft.conj()*vc_fft +
+            fvc_fft*vc_fft.conj()) / 2.
+        P_forcing2 = oper_c.sum_wavenumbers(P_forcing2)
+
+        # we choice randomly a "particular" wavenumber
+        # in the forced space
+        KX_f = oper_c.KX[~self.COND_NO_F].flatten()
+        KY_f = oper_c.KY[~self.COND_NO_F].flatten()
+        nb_wn_f = len(KX_f)
+
+        ipart = np.random.random_integers(0, nb_wn_f-1)
+        kx_part = KX_f[ipart]
+        ky_part = KY_f[ipart]
+        ikx_part = abs(oper_c.kx_loc-kx_part).argmin()
+        iky_part = abs(oper_c.ky_loc-ky_part).argmin()
+
+        ik0_part = iky_part
+        ik1_part = ikx_part
+
+        P_forcing2_part = np.real(
+            fvc_fft[ik0_part, ik1_part].conj() *
+            vc_fft[ik0_part, ik1_part] +
+            fvc_fft[ik0_part, ik1_part] *
+            vc_fft[ik0_part, ik1_part].conj())
+
+        if ikx_part == 0:
+            P_forcing2_part = P_forcing2_part / 2.
+        P_forcing2_other = P_forcing2 - P_forcing2_part
+        fvc_fft[ik0_part, ik1_part] = \
+            -P_forcing2_other / vc_fft[ik0_part, ik1_part].real
+
+        if ikx_part != 0:
+            fvc_fft[ik0_part, ik1_part] = fvc_fft[ik0_part, ik1_part] / 2.
+
+        oper_c.project_fft_on_realX(fvc_fft)
+
+        # normalisation to obtain the wanted total forcing rate
+        PZ_nonorm = (oper_c.sum_wavenumbers(abs(fvc_fft)**2) *
+                     self.sim.time_stepping.deltat/2
+                     )
+        fvc_fft = fvc_fft*np.sqrt(float(self.forcing_rate) / PZ_nonorm)
+
+        return fvc_fft
+
+    def normalize_forcingc_2nd_degree_eq(self, fvc_fft, vc_fft):
+        """Modify the array fvc_fft to fixe the injection rate.
+
+        To be called only with proc 0.
+
+        Parameters
+        ----------
+
+        fvc_fft : ndarray
+            The non-normalized forcing at the coarse resolution.
+
+        vc_fft : ndarray
+            The forced variable at the coarse resolution.
+        """
+        oper_c = self.oper_coarse
+
+        deltat = self.sim.time_stepping.deltat
+
+        a = deltat/2*oper_c.sum_wavenumbers(abs(fvc_fft)**2)
+
+        b = oper_c.sum_wavenumbers(
+            (vc_fft.conj()*fvc_fft).real)
+
+        c = -self.forcing_rate
+
+        Delta = b**2 - 4*a*c
+        alpha = (np.sqrt(Delta) - b) / (2*a)
+
+        fvc_fft = alpha*fvc_fft
+
+        return fvc_fft
+
+    def coef_normalization_from_abc(self, a, b, c):
+        """."""
+        Delta = b**2 - 4*a*c
+        alpha = (np.sqrt(Delta) - b) / (2*a)
+        return alpha
+
+
+class RandomSimplePseudoSpectralAnisotrop(NormalizedForcingAnisotrop):
+    tag = 'random_anisotrop'
+
+    def compute_forcingc_raw(self):
+        """Random coarse forcing.
+
+        To be called only with proc 0.
+        """
+        F_fft = self.oper_coarse.random_arrayK()
+        # fftwpy/easypyfft returns F_fft
+        F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
+        F_fft[self.COND_NO_F] = 0.
+        return F_fft
+
+    def forcingc_raw_each_time(self, a_fft):
+        return self.compute_forcingc_raw()
+
+
+class TimeCorrelatedRandomPseudoSpectralAnisotrop(
+        RandomSimplePseudoSpectralAnisotrop):
+    tag = 'tcrandom_anisotrop'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(TimeCorrelatedRandomPseudoSpectralAnisotrop,
+              cls)._complete_params_with_default(params)
+        params.forcing[cls.tag]._set_attrib(
+            'time_correlation', 'based_on_forcing_rate')
+
+    def __init__(self, sim):
+
+        super(TimeCorrelatedRandomPseudoSpectralAnisotrop, self).__init__(sim)
+
+        if mpi.rank == 0:
+            self.F0 = self.compute_forcingc_raw()
+            self.F1 = self.compute_forcingc_raw()
+
+            time_correlation = self.params.forcing[self.tag].time_correlation
+            if time_correlation == 'based_on_forcing_rate':
+                self.period_change_F0F1 = self.forcing_rate**(-1./3)
+            else:
+                self.period_change_F0F1 = time_correlation
+            self.t_last_change = self.sim.time_stepping.t
+
+    def forcingc_raw_each_time(self, a_fft):
+        tsim = self.sim.time_stepping.t
+        if tsim-self.t_last_change >= self.period_change_F0F1:
+            self.t_last_change = tsim
+            self.F0 = self.F1
+            del(self.F1)
+            self.F1 = self.compute_forcingc_raw()
+
+        F_fft = self.forcingc_from_F0F1()
+        return F_fft
+
+    def forcingc_from_F0F1(self):
+        tsim = self.sim.time_stepping.t
+        deltat = self.period_change_F0F1
+        omega = np.pi/deltat
+
+        deltaF = self.F1 - self.F0
+
+        F_fft = self.F1 - 0.5*(
+            np.cos((tsim - self.t_last_change)*omega) + 1)*deltaF
+
+        return F_fft

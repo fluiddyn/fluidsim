@@ -40,8 +40,8 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes.Output.module_name = package + '.output'
         classes.Output.class_name = 'OutputStrat'
 
-        # classes.Forcing.module_name = package + '.forcing'
-        # classes.Forcing.class_name = 'ForcingNS2D'
+        classes.Forcing.module_name = package + '.forcing'
+        classes.Forcing.class_name = 'ForcingNS2DStrat'
 
 
 class Simul(SimulNS2D):

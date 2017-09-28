@@ -21,8 +21,8 @@ class ForcingBasePseudoSpectralAnisotrop(ForcingBase):
 
         # Attributes for the anisotropic forcing
         # params.forcing._set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
-        # params.forcing._set_attribs(
-        #{'angle_k': 45, 'nkxmax_forcing': 5, 'nkmin_forcing': 4})
+        params.forcing._set_attribs(
+            {'angle_k': 45, 'nkxmax_forcing': 5, 'nkmin_forcing': 4})
 
     def compute(self):
         self._forcing.compute()
