@@ -1,8 +1,26 @@
 """Forcing (:mod:`fluidsim.solvers.ns2d.strat.forcing.specific`)
 ===============================================================
 
+.. currentmodule:: fluidsim.solvers.ns2d.strat.forcing.specific
+
+Provides:
+
 .. autoclass:: SpecificForcingPseudoSpectralAnisotrop
    :members:
+   :private-members:
+
+.. autoclass:: NormalizedForcingAnisotrop
+   :members:
+   :private-members:
+
+
+.. autoclass:: RandomSimplePseudoSpectralAnisotrop
+   :members:
+   :private-members:
+
+.. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotrop
+   :members:
+   :private-members:
 
 """
 
