@@ -24,7 +24,11 @@ from .util_pythran import compute_Frot
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
-    """Contain the information on the solver ns2d."""
+    """Contain the information on the solver ns2d.
+
+    .. inheritance-diagram:: InfoSolverNS2D
+
+    """
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
 
@@ -33,7 +37,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
 
         - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
 
-        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+        - :class:`fluidsim.operators.operators2d.OperatorsPseudoSpectral2D`
 
         The other first-level classes for this solver are:
 
@@ -72,6 +76,8 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
 
 class Simul(SimulBasePseudoSpectral):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
+
+    .. inheritance-diagram:: Simul
 
     """
     InfoSolver = InfoSolverNS2D

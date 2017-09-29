@@ -55,10 +55,11 @@ before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+      echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
 
 script:
     - tox
 
 notifications:
   email: false
-  irc: "chat.freenode.net#fluiddyn"
+  irc: "chat.freenode.net#fluiddyn-dev"

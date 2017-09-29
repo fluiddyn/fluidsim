@@ -21,6 +21,8 @@ class StateNS2D(StatePseudoSpectral):
     Contains the variables corresponding to the state and handles the
     access to other fields.
 
+    .. inheritance-diagram:: StateNS2D
+
     """
 
     @staticmethod

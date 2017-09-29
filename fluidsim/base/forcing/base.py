@@ -21,7 +21,7 @@ from fluiddyn.util import mpi
 
 
 class ForcingBase(object):
-
+    """Organize the forcing schemes (base class)"""
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         """Complete the ParamContainer info_solver."""
@@ -112,6 +112,11 @@ key_forced: {None} or str
 
 
 class ForcingBasePseudoSpectral(ForcingBase):
+    """Organize the forcing schemes (pseudo-spectra)
+
+    .. inheritance-diagram:: ForcingBasePseudoSpectral
+
+    """
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

@@ -1,4 +1,3 @@
-# cython: linetrace=True
 """Miscellaneous functions (:mod:`fluidsim.operators.miscellaneous)
 ===================================================================
 
