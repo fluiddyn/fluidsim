@@ -161,12 +161,12 @@ if __name__ == "__main__":
     params.nu_2 = 1.*10e-6
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 1.  # Brunt Vaisala frequency
-    params.time_stepping.USE_CFL = False
-    params.time_stepping.USE_T_END = False
-    params.time_stepping.deltat0 = 0.1
+    params.time_stepping.USE_CFL = True
+    params.time_stepping.USE_T_END = True
+    # params.time_stepping.deltat0 = 0.1
     # Period of time of the simulation
-    params.time_stepping.t_end = 10.
-    params.time_stepping.it_end = 20
+    params.time_stepping.t_end = 5.
+    # params.time_stepping.it_end = 50
 
     params.init_fields.type = 'noise'
 
@@ -183,20 +183,20 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.001
 
-    params.output.periods_save.phys_fields = 10.
+    params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 1.
 
-    params.output.periods_plot.phys_fields = 2.
+    params.output.periods_plot.phys_fields = 5.
 
     params.output.ONLINE_PLOT_OK = True
 
     params.output.spectra.HAS_TO_PLOT_SAVED = True
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True
-    params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
-    params.output.increments.HAS_TO_PLOT_SAVED = True
+    params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = False
+    params.output.increments.HAS_TO_PLOT_SAVED = False
 
     params.output.phys_fields.field_to_plot = 'rot'
 
