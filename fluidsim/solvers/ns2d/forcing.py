@@ -10,7 +10,8 @@
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
 from fluidsim.base.forcing.specific import (
-    Proportional, TimeCorrelatedRandomPseudoSpectral)
+    Proportional, TimeCorrelatedRandomPseudoSpectral,
+    TimeCorrelatedRandomPseudoSpectralAnisotropic)
 
 
 class ForcingNS2D(ForcingBasePseudoSpectral):
@@ -22,5 +23,6 @@ class ForcingNS2D(ForcingBasePseudoSpectral):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""
-        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral]
+        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral,
+                   TimeCorrelatedRandomPseudoSpectralAnisotropic]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)

@@ -37,6 +37,7 @@ from builtins import object
 import numpy as np
 
 from copy import deepcopy
+from math import radians
 
 from fluiddyn.util import mpi
 from fluidsim.base.setofvariables import SetOfVariables
@@ -103,9 +104,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 goal_to_print='coarse resolution for forcing')
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
 
-            self.COND_NO_F = np.logical_or(
-                self.oper_coarse.KK > self.kmax_forcing,
-                self.oper_coarse.KK < self.kmin_forcing)
+            self.COND_NO_F = self._compute_cond_no_forcing()
 
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
@@ -129,6 +128,11 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         #         eta_rms_max = 0.1
         #         self.eta_cond = eta_rms_max / np.sqrt(self.nb_forced_modes)
         #         print '    eta_cond =', self.eta_cond
+
+    def _compute_cond_no_forcing(self):
+        return np.logical_or(
+            self.oper_coarse.KK > self.kmax_forcing,
+            self.oper_coarse.KK < self.kmin_forcing)
 
     def compute(self):
         """compute the forcing from a coarse forcing."""
@@ -504,3 +508,44 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             np.cos((tsim - self.t_last_change)*omega) + 1)*deltaF
 
         return F_fft
+
+
+class TimeCorrelatedRandomPseudoSpectralAnisotropic(
+        TimeCorrelatedRandomPseudoSpectral):
+    """Random normalized anisotropic forcing.
+
+    .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectralAnisotropic
+
+    """
+    tag = 'tcrandom_anisotropic'
+
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(TimeCorrelatedRandomPseudoSpectral,
+              cls)._complete_params_with_default(params)
+
+        params.forcing[cls.tag]._set_attribs({
+            'angle': '45°',
+            'time_correlation': 'based_on_forcing_rate'})
+
+    def _compute_cond_no_forcing(self):
+        """Computes condition no forcing of the anisotropic case.
+        """
+        angle = self._convert_radians_from_str_degree()
+        kymax_forcing = np.tan(angle) * self.kmax_forcing
+        kymin_forcing = np.tan(angle) * self.kmin_forcing
+        COND_NO_F_KX = np.logical_or(
+            self.oper_coarse.KX > self.kmax_forcing,
+            self.oper_coarse.KX < self.kmin_forcing)
+        COND_NO_F_KY = np.logical_or(
+            self.oper_coarse.KY > kymax_forcing,
+            self.oper_coarse.KY < kymin_forcing)
+        return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
+
+    def _convert_radians_from_str_degree(self):
+        """Converts the angle to radians."""
+        degree_str = self.params.forcing[self.tag].angle
+        return int(degree_str.split('°')[0])

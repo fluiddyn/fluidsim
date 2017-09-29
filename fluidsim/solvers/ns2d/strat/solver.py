@@ -41,8 +41,8 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes.Output.module_name = package + '.output'
         classes.Output.class_name = 'OutputStrat'
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingNS2DStrat'
+        classes.Forcing.module_name = 'fluidsim.solvers.ns2d' + '.forcing'
+        classes.Forcing.class_name = 'ForcingNS2D'
 
 
 class Simul(SimulNS2D):
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     delta_x = Lh / nh
 
     params.nu_2 = 1.*10e-6
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 1.  # Brunt Vaisala frequency
     params.time_stepping.USE_CFL = True
     params.time_stepping.USE_T_END = True
@@ -171,10 +171,10 @@ if __name__ == "__main__":
     params.init_fields.type = 'noise'
 
     params.FORCING = True
-    params.forcing.type = 'tcrandom_anisotrop'
-    params.forcing.nkxmax_forcing = 5
-    params.forcing.nkxmin_forcing = 4
-    params.forcing.angle = 45
+    params.forcing.type = 'tcrandom_anisotropic'
+    params.forcing.nkmax_forcing = 5
+    params.forcing.nkmin_forcing = 4
+    params.forcing.tcrandom_anisotropic.angle = '45°'
 
     # 'Proportional'
     # params.forcing.type_normalize
@@ -200,10 +200,10 @@ if __name__ == "__main__":
 
     params.output.phys_fields.field_to_plot = 'rot'
 
-    sim = Simul(params)
+    # sim = Simul(params)
 
-    sim.output.phys_fields.plot()
-    sim.time_stepping.start()
-    sim.output.phys_fields.plot()
+    # sim.output.phys_fields.plot()
+    # sim.time_stepping.start()
+    # sim.output.phys_fields.plot()
 
-    fld.show()
+    # fld.show()
