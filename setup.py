@@ -5,9 +5,23 @@ import os
 import sys
 from runpy import run_path
 from datetime import datetime
+import distutils
 from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
+import multiprocessing
+import threading
+try:
+    from concurrent.futures import ThreadPoolExecutor as Pool
+    PARALLEL_COMPILE = True
+except ImportError:
+    # from multiprocessing.pool import ThreadPool as Pool  # inefficient
+    PARALLEL_COMPILE = False
+    print('*' * 50)
+    print('To compile extensions in parallel, requires concurrent.futures module')
+    print('    pip install futures  # for Python 2.7 backport')
+    print('*' * 50)
+
 
 try:
     from Cython.Distutils.extension import Extension
@@ -37,7 +51,8 @@ BUILD_OLD_EXTENSIONS = False
 
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))  # run without waiting
+
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 2):
     raise RuntimeError("Python version 2.7 or >= 3.2 required.")
 
@@ -192,6 +207,30 @@ if not on_rtd and use_pythran:
     ext_modules += make_pythran_extensions(ext_names)
 
 
+if PARALLEL_COMPILE:
+    num_jobs = multiprocessing.cpu_count()
+    pool = Pool(num_jobs)
+
+    def parallelCCompile(self, sources, output_dir=None, macros=None,
+                         include_dirs=None, debug=0, extra_preargs=None,
+                         extra_postargs=None, depends=None):
+        '''Monkey-patch to compile in parallel.'''
+        global pool
+        ## the following lines are copied from distutils.ccompiler.CCompiler
+        macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
+            output_dir, macros, include_dirs, sources, depends, extra_postargs)
+        cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+
+        def _single_compile(obj):
+            src, ext = build[obj]
+            self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+
+        pool.map(_single_compile, objects)
+        return objects
+
+    distutils.ccompiler.CCompiler.compile = parallelCCompile
+
+
 setup(name='fluidsim',
       version=__version__,
       description=('Framework for studying fluid dynamics with simulations.'),
@@ -233,3 +272,9 @@ setup(name='fluidsim',
           parallel=['mpi4py']),
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules)
+
+
+if PARALLEL_COMPILE:
+    print('\nPlease wait for CCompiler to complete building extensions...\n')
+    pool.shutdown()
+    print('\nDone.')
