@@ -32,6 +32,9 @@ import numpy as np
 
 from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc
 
+BUILD_OLD_EXTENSIONS = False
+
+
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -60,7 +63,7 @@ ext_modules = []
 
 print('MPI4PY', MPI4PY)
 
-if MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
+if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
     include_dirs = [path_sources, np.get_include()] + \
         dict_inc['mpi'] + dict_inc['fftw']
@@ -76,7 +79,7 @@ if MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
                  path_sources + '/fftw2dmpiccy.' + ext_source])
     ext_modules.append(ext_fftw2dmpiccy)
 
-if FFTW3:
+if BUILD_OLD_EXTENSIONS and FFTW3:
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
     include_dirs = [path_sources, np.get_include()] + \
         dict_inc['mpi'] + dict_inc['fftw']
@@ -93,27 +96,33 @@ if FFTW3:
             sources=[path_sources + '/fftw2dmpicy.' + ext_source])
         ext_modules.append(ext_fftw2dmpicy)
 
-path_sources = 'fluidsim/operators/CySources'
-include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
-libraries = dict_ldd['mpi'] + ['m']
-library_dirs = dict_lib['mpi']
+if BUILD_OLD_EXTENSIONS:
 
-ext_operators = Extension(
-    'fluidsim.operators.operators',
-    include_dirs=include_dirs,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    cython_compile_time_env={'MPI4PY': MPI4PY},
-    sources=[path_sources + '/operators_cy.' + ext_source])
+    path_sources = 'fluidsim/operators/CySources'
+    include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
+    libraries = dict_ldd['mpi'] + ['m']
+    library_dirs = dict_lib['mpi']
+    
+    ext_operators = Extension(
+        'fluidsim.operators.operators',
+        include_dirs=include_dirs,
+        libraries=libraries,
+        library_dirs=library_dirs,
+        cython_compile_time_env={'MPI4PY': MPI4PY},
+        sources=[path_sources + '/operators_cy.' + ext_source])
 
-ext_misc = Extension(
-    'fluidsim.operators.miscellaneous',
-    include_dirs=include_dirs,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    cython_compile_time_env={'MPI4PY': MPI4PY},
-    sources=[path_sources + '/miscellaneous_cy.' + ext_source])
+    ext_misc = Extension(
+        'fluidsim.operators.miscellaneous',
+        include_dirs=include_dirs,
+        libraries=libraries,
+        library_dirs=library_dirs,
+        cython_compile_time_env={'MPI4PY': MPI4PY},
+        sources=[path_sources + '/miscellaneous_cy.' + ext_source])
 
+    ext_modules.extend([
+        ext_operators,
+        ext_misc])
+    
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
@@ -125,10 +134,7 @@ ext_cyfunc = Extension(
     library_dirs=[],
     sources=[path_sources + '/pseudo_spect_cy.' + ext_source])
 
-ext_modules.extend([
-    ext_operators,
-    ext_misc,
-    ext_cyfunc])
+ext_modules.append(ext_cyfunc)
 
 if 'TOXENV' in os.environ:
     for e in ext_modules:

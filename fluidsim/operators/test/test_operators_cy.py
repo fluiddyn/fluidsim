@@ -8,7 +8,10 @@ from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+try:
+    from fluidsim.operators.operators import OperatorsPseudoSpectral2D
+except ImportError:
+    OperatorsPseudoSpectral2D = False
 
 try:
     from fluidsim.operators.fft import fftw2dmpicy
@@ -47,7 +50,9 @@ def create_oper(type_fft='FFTWCY'):
     return oper
 
 
-@unittest.skipIf(sys.platform.startswith("win"), "Will fail on Windows")
+@unittest.skipIf(sys.platform.startswith('win'), 'Will fail on Windows')
+@unittest.skipIf(not OperatorsPseudoSpectral2D,
+                 'OperatorsPseudoSpectral2D not built?')
 class TestOperators(unittest.TestCase):
     @unittest.skipIf(not FFTWMPI, 'fftw2dmpicy fails to be imported.')
     @unittest.skipIf(mpi.nb_proc > 1, 'Will fail if mpi.nb_proc > 1')

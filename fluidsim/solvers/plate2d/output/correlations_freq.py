@@ -25,7 +25,33 @@ from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.fft.easypyfft import FFTW1DReal2Complex
-from fluidsim.operators.miscellaneous import compute_correl4, compute_correl2
+# from fluidsim.operators.miscellaneous import compute_correl4, compute_correl2
+
+from .util_pythran import compute_correl2_seq, compute_correl4_seq
+
+
+def compute_correl4(q_fftt, iomegas1, nb_omegas, nb_xs_seq):
+
+    corr4 = compute_correl4_seq(q_fftt, iomegas1, nb_omegas, nb_xs_seq)
+
+    if mpi.nb_proc > 1:
+        # reduce SUM for mean:
+        corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
+
+    if mpi.rank == 0:
+        corr4 /= nb_xs_seq
+        return corr4
+
+
+def compute_correl2(q_fftt, iomegas1, nb_omegas, nb_xs_seq):
+    corr2 = compute_correl2_seq(q_fftt, iomegas1, nb_omegas, nb_xs_seq)
+    if mpi.nb_proc > 1:
+        # reduce SUM for mean:
+        corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
+
+    if mpi.rank == 0:
+        corr2 /= nb_xs_seq
+        return corr2
 
 
 class CorrelationsFreq(SpecificOutput):
@@ -61,7 +87,7 @@ class CorrelationsFreq(SpecificOutput):
         self.nb_times_compute = pcorrel_freq.nb_times_compute
         self.coef_decimate = pcorrel_freq.coef_decimate
         self.key_quantity = pcorrel_freq.key_quantity
-        self.iomegas1 = np.array(pcorrel_freq.iomegas1)
+        self.iomegas1 = np.array(pcorrel_freq.iomegas1, dtype=np.int32)
         self.it_last_run = pcorrel_freq.it_start
         n0 = len(list(range(0, output.sim.oper.shapeX_loc[0],
                             self.coef_decimate)))
