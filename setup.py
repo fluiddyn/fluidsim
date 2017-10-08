@@ -5,9 +5,23 @@ import os
 import sys
 from runpy import run_path
 from datetime import datetime
+import distutils
 from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
+import multiprocessing
+import threading
+try:
+    from concurrent.futures import ThreadPoolExecutor as Pool
+    PARALLEL_COMPILE = True
+except ImportError:
+    # from multiprocessing.pool import ThreadPool as Pool  # inefficient
+    PARALLEL_COMPILE = False
+    print('*' * 50)
+    print('To compile extensions in parallel, requires concurrent.futures module')
+    print('    pip install futures  # for Python 2.7 backport')
+    print('*' * 50)
+
 
 try:
     from Cython.Distutils.extension import Extension
@@ -32,9 +46,13 @@ import numpy as np
 
 from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc
 
+BUILD_OLD_EXTENSIONS = False
+
+
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))  # run without waiting
+
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 2):
     raise RuntimeError("Python version 2.7 or >= 3.2 required.")
 
@@ -60,7 +78,7 @@ ext_modules = []
 
 print('MPI4PY', MPI4PY)
 
-if MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
+if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
     include_dirs = [path_sources, np.get_include()] + \
         dict_inc['mpi'] + dict_inc['fftw']
@@ -76,7 +94,7 @@ if MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
                  path_sources + '/fftw2dmpiccy.' + ext_source])
     ext_modules.append(ext_fftw2dmpiccy)
 
-if FFTW3:
+if BUILD_OLD_EXTENSIONS and FFTW3:
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
     include_dirs = [path_sources, np.get_include()] + \
         dict_inc['mpi'] + dict_inc['fftw']
@@ -93,27 +111,33 @@ if FFTW3:
             sources=[path_sources + '/fftw2dmpicy.' + ext_source])
         ext_modules.append(ext_fftw2dmpicy)
 
-path_sources = 'fluidsim/operators/CySources'
-include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
-libraries = dict_ldd['mpi'] + ['m']
-library_dirs = dict_lib['mpi']
+if BUILD_OLD_EXTENSIONS:
 
-ext_operators = Extension(
-    'fluidsim.operators.operators',
-    include_dirs=include_dirs,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    cython_compile_time_env={'MPI4PY': MPI4PY},
-    sources=[path_sources + '/operators_cy.' + ext_source])
+    path_sources = 'fluidsim/operators/CySources'
+    include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
+    libraries = dict_ldd['mpi'] + ['m']
+    library_dirs = dict_lib['mpi']
+    
+    ext_operators = Extension(
+        'fluidsim.operators.operators',
+        include_dirs=include_dirs,
+        libraries=libraries,
+        library_dirs=library_dirs,
+        cython_compile_time_env={'MPI4PY': MPI4PY},
+        sources=[path_sources + '/operators_cy.' + ext_source])
 
-ext_misc = Extension(
-    'fluidsim.operators.miscellaneous',
-    include_dirs=include_dirs,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    cython_compile_time_env={'MPI4PY': MPI4PY},
-    sources=[path_sources + '/miscellaneous_cy.' + ext_source])
+    ext_misc = Extension(
+        'fluidsim.operators.miscellaneous',
+        include_dirs=include_dirs,
+        libraries=libraries,
+        library_dirs=library_dirs,
+        cython_compile_time_env={'MPI4PY': MPI4PY},
+        sources=[path_sources + '/miscellaneous_cy.' + ext_source])
 
+    ext_modules.extend([
+        ext_operators,
+        ext_misc])
+    
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
@@ -125,10 +149,7 @@ ext_cyfunc = Extension(
     library_dirs=[],
     sources=[path_sources + '/pseudo_spect_cy.' + ext_source])
 
-ext_modules.extend([
-    ext_operators,
-    ext_misc,
-    ext_cyfunc])
+ext_modules.append(ext_cyfunc)
 
 if 'TOXENV' in os.environ:
     for e in ext_modules:
@@ -186,6 +207,30 @@ if not on_rtd and use_pythran:
     ext_modules += make_pythran_extensions(ext_names)
 
 
+if PARALLEL_COMPILE:
+    num_jobs = multiprocessing.cpu_count()
+    pool = Pool(num_jobs)
+
+    def parallelCCompile(self, sources, output_dir=None, macros=None,
+                         include_dirs=None, debug=0, extra_preargs=None,
+                         extra_postargs=None, depends=None):
+        '''Monkey-patch to compile in parallel.'''
+        global pool
+        ## the following lines are copied from distutils.ccompiler.CCompiler
+        macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
+            output_dir, macros, include_dirs, sources, depends, extra_postargs)
+        cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+
+        def _single_compile(obj):
+            src, ext = build[obj]
+            self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+
+        pool.map(_single_compile, objects)
+        return objects
+
+    distutils.ccompiler.CCompiler.compile = parallelCCompile
+
+
 setup(name='fluidsim',
       version=__version__,
       description=('Framework for studying fluid dynamics with simulations.'),
@@ -227,3 +272,9 @@ setup(name='fluidsim',
           parallel=['mpi4py']),
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules)
+
+
+if PARALLEL_COMPILE:
+    print('\nPlease wait for CCompiler to complete building extensions...\n')
+    pool.shutdown()
+    print('\nDone.')

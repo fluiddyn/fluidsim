@@ -119,7 +119,10 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params.ONLY_COARSE_OPER = True
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
-    params.preprocess.enable = False
+    try:
+        params.preprocess.enable = False
+    except AttributeError:
+        pass
     if merge_missing_params:
         params = merge_params(params, solver.Simul.create_default_params())
 
@@ -154,7 +157,10 @@ def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True,
         params.output.HAS_TO_SAVE = False
     params.init_fields.type = 'from_file'
     params.init_fields.from_file.path = path_file
-    params.preprocess.enable = False
+    try:
+        params.preprocess.enable = False
+    except AttributeError:
+        pass
     if merge_missing_params:
         params = merge_params(params, solver.Simul.create_default_params())
 
