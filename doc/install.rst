@@ -41,6 +41,21 @@ Dependencies
      [pythran]
      complex_hook = True
 
+- h5py (optionally, with MPI support)
+
+.. warning::
+
+  Prebuilt installations (for eg. via h5py wheels) may lack MPI support. It may
+  be useful to install from source, as follows:
+
+  .. code:: bash
+
+     $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
+     $ python -c 'import h5py; h5py.run_tests()'
+
+  See the `h5py documentation
+  <http://docs.h5py.org/en/latest/build.html>`_ for more details.
+
 - Optionally, mpi4py (which depends on a MPI implementation).
 
 Basic installation with pip
