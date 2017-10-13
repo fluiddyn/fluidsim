@@ -10,7 +10,7 @@ from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
 import multiprocessing
-import threading
+
 try:
     from concurrent.futures import ThreadPoolExecutor as Pool
     PARALLEL_COMPILE = True
@@ -117,7 +117,7 @@ if BUILD_OLD_EXTENSIONS:
     include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
     libraries = dict_ldd['mpi'] + ['m']
     library_dirs = dict_lib['mpi']
-    
+
     ext_operators = Extension(
         'fluidsim.operators.operators',
         include_dirs=include_dirs,
@@ -137,7 +137,7 @@ if BUILD_OLD_EXTENSIONS:
     ext_modules.extend([
         ext_operators,
         ext_misc])
-    
+
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
@@ -207,28 +207,28 @@ if not on_rtd and use_pythran:
     ext_modules += make_pythran_extensions(ext_names)
 
 
-if PARALLEL_COMPILE:
-    num_jobs = multiprocessing.cpu_count()
-    pool = Pool(num_jobs)
+# if PARALLEL_COMPILE:
+#     num_jobs = multiprocessing.cpu_count()
+#     pool = Pool(num_jobs)
 
-    def parallelCCompile(self, sources, output_dir=None, macros=None,
-                         include_dirs=None, debug=0, extra_preargs=None,
-                         extra_postargs=None, depends=None):
-        '''Monkey-patch to compile in parallel.'''
-        global pool
-        ## the following lines are copied from distutils.ccompiler.CCompiler
-        macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
-            output_dir, macros, include_dirs, sources, depends, extra_postargs)
-        cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+    # def parallelCCompile(self, sources, output_dir=None, macros=None,
+    #                      include_dirs=None, debug=0, extra_preargs=None,
+    #                      extra_postargs=None, depends=None):
+    #     '''Monkey-patch to compile in parallel.'''
+    #     global pool
+    #     ## the following lines are copied from distutils.ccompiler.CCompiler
+    #     macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
+    #         output_dir, macros, include_dirs, sources, depends, extra_postargs)
+    #     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
 
-        def _single_compile(obj):
-            src, ext = build[obj]
-            self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+    #     def _single_compile(obj):
+    #         src, ext = build[obj]
+    #         self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
 
-        pool.map(_single_compile, objects)
-        return objects
+    #     pool.map(_single_compile, objects)
+    #     return objects
 
-    distutils.ccompiler.CCompiler.compile = parallelCCompile
+    # distutils.ccompiler.CCompiler.compile = parallelCCompile
 
 
 setup(name='fluidsim',
@@ -274,7 +274,7 @@ setup(name='fluidsim',
       ext_modules=ext_modules)
 
 
-if PARALLEL_COMPILE:
-    print('\nPlease wait for CCompiler to complete building extensions...\n')
-    pool.shutdown()
-    print('\nDone.')
+# if PARALLEL_COMPILE:
+#     print('\nPlease wait for CCompiler to complete building extensions...\n')
+#     pool.shutdown()
+#     print('\nDone.')
