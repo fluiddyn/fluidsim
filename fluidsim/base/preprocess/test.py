@@ -12,6 +12,7 @@ class TestPreprocessPS(unittest.TestCase):
     def setUpClass(cls):
         """Should be able to run a base experiment."""
         cls.params = params = SimulBasePseudoSpectral.create_default_params()
+        params.short_name_type_run = 'test_preprocess_ps'
         nh = 16
         Lh = 2 * np.pi
         params.oper.nx = nh
@@ -23,8 +24,8 @@ class TestPreprocessPS(unittest.TestCase):
         params.preprocess.viscosity_type = 'laplacian'
         params.preprocess.viscosity_scale = 'energy'
 
-        with stdout_redirected():
-            cls.sim = SimulBasePseudoSpectral(params)
+        with stdout_redirected(), SimulBasePseudoSpectral(params) as sim:
+            cls.sim = sim
 
     @classmethod
     def tearDownClass(cls):
