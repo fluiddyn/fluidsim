@@ -115,6 +115,8 @@ class TimeSteppingBase(object):
         If *self.USE_T_END* is true, run till ``t >= t_end``,
         otherwise run *self.it_end* time steps.
         """
+        self.sim.__enter__()
+
         output = self.sim.output
         if (not hasattr(output, 'has_been_initialized_with_state') or
                 not output.has_been_initialized_with_state):
@@ -141,9 +143,8 @@ class TimeSteppingBase(object):
             while (self.it < self.params.time_stepping.it_end and
                    not self._has_to_stop):
                 self.one_time_step()
-        total_time_simul = time() - time_begining_simul
-        self.time_simul = total_time_simul
-        self.sim.output.end_of_simul(total_time_simul)
+
+        self.sim.__exit__()
 
     def one_time_step(self):
         """Main time stepping function."""

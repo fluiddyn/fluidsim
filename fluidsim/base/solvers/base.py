@@ -14,6 +14,7 @@ Provides:
    :private-members:
 
 """
+from time import time
 
 from builtins import object
 import numpy as np
@@ -69,6 +70,20 @@ class SimulBase(object):
         cls.info_solver = cls.InfoSolver()
         cls.info_solver.complete_with_classes()
         return create_params(cls.info_solver)
+
+    def __enter__(self):
+        if not hasattr(self, '_end_of_simul') or self._end_of_simul:
+            self.time_stepping._time_beginning_simul = time()
+            self._end_of_simul = False
+
+        return self
+
+    def __exit__(self, *args):
+        if not self._end_of_simul:
+            total_time_simul = time() - self.time_stepping._time_beginning_simul
+            self.time_stepping.time_simul = total_time_simul
+            self.output.end_of_simul(total_time_simul)
+            self._end_of_simul = True
 
     def __init__(self, params):
         # np.seterr(invalid='raise')
