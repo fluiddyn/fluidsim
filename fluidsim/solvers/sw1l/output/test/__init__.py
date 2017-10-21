@@ -18,8 +18,16 @@ class BaseTestCase(unittest.TestCase):
     _tag = ''
 
     @classmethod
-    def setUpClass(cls):
-        cls.sim = run_mini_simul(cls.solver, HAS_TO_SAVE=True)
+    def setUpClass(cls, **kwargs):
+        name_run = '_'.join(('test', cls._tag))
+        if len(kwargs) == 0:
+            cls.sim = run_mini_simul(
+                cls.solver, nh=16, name_run=name_run, HAS_TO_SAVE=True,
+                FORCING=True)
+        else:
+            cls.sim = run_mini_simul(
+                cls.solver, name_run=name_run, **kwargs)
+
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
         try:

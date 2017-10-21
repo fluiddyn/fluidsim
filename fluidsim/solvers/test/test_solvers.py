@@ -10,15 +10,16 @@ import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 
-def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
+def run_mini_simul(
+        key_solver, nh=16, init_fields='dipole', name_run='test',
+        HAS_TO_SAVE=False, FORCING=False):
 
     Simul = fluidsim.import_simul_class_from_key(key_solver)
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = name_run
 
-    nh = 16
     params.oper.nx = nh
     params.oper.ny = nh
     Lh = 6.
@@ -36,7 +37,7 @@ def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
 
     params.time_stepping.t_end = 0.5
 
-    params.init_fields.type = 'dipole'
+    params.init_fields.type = init_fields
 
     if HAS_TO_SAVE:
         params.output.periods_save.spectra = 0.25
