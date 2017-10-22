@@ -11,17 +11,6 @@ from distutils.sysconfig import get_config_var
 from setuptools import setup, find_packages
 import multiprocessing
 
-try:
-    from concurrent.futures import ThreadPoolExecutor as Pool
-    PARALLEL_COMPILE = True
-except ImportError:
-    # from multiprocessing.pool import ThreadPool as Pool  # inefficient
-    PARALLEL_COMPILE = False
-    print('*' * 50)
-    print('To compile extensions in parallel, requires concurrent.futures module')
-    print('    pip install futures  # for Python 2.7 backport')
-    print('*' * 50)
-
 
 try:
     from Cython.Distutils.extension import Extension
@@ -44,10 +33,11 @@ except ImportError:
 
 import numpy as np
 
-from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc
+from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc, monkeypatch_parallel_build
 
 BUILD_OLD_EXTENSIONS = False
 
+monkeypatch_parallel_build()
 
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
@@ -205,30 +195,6 @@ if not on_rtd and use_pythran:
                     path.replace(os.path.sep, '.').split('.py')[0])
 
     ext_modules += make_pythran_extensions(ext_names)
-
-
-# if PARALLEL_COMPILE:
-#     num_jobs = multiprocessing.cpu_count()
-#     pool = Pool(num_jobs)
-
-    # def parallelCCompile(self, sources, output_dir=None, macros=None,
-    #                      include_dirs=None, debug=0, extra_preargs=None,
-    #                      extra_postargs=None, depends=None):
-    #     '''Monkey-patch to compile in parallel.'''
-    #     global pool
-    #     ## the following lines are copied from distutils.ccompiler.CCompiler
-    #     macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
-    #         output_dir, macros, include_dirs, sources, depends, extra_postargs)
-    #     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
-
-    #     def _single_compile(obj):
-    #         src, ext = build[obj]
-    #         self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
-
-    #     pool.map(_single_compile, objects)
-    #     return objects
-
-    # distutils.ccompiler.CCompiler.compile = parallelCCompile
 
 
 setup(name='fluidsim',

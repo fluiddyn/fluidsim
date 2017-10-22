@@ -8,7 +8,7 @@ from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
 from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
-verbose =a ('-v' in sys.argv) or ('--verbose' in sys.argv)
+debug = True
 
 
 class TestSW1L(BaseTestCase):
@@ -198,7 +198,7 @@ class TestSW1L(BaseTestCase):
         Tq_tot_exact = sim.oper.spectrum2D_from_fft(
             TKq_exact + TKdiv_exact + TPdiv_exact + TPq_exact)
 
-        if verbose:
+        if debug:
             Tq_abs_error = np.absolute(Tq_tot_modes - Tq_tot_exact)
             Tq_rel_error = Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[Tq_tot_exact > 0]
             msg = 'abs. error max: {}, min: {}; '.format(
@@ -315,7 +315,7 @@ class TestExmod(TestSW1L):
         Tq_tot_exact = sim.oper.spectrum2D_from_fft(
             TKq_exact + TPq_exact)
 
-        if verbose:
+        if debug:
             Tq_abs_error = np.absolute(Tq_tot_modes - Tq_tot_exact)
             Tq_rel_error = Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[Tq_tot_exact > 0]
             msg = 'abs. error max: {}, min: {}; '.format(

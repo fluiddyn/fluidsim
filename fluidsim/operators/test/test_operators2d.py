@@ -8,7 +8,12 @@ from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+try:
+    from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+except ValueError:
+    NO_PYTHRAN = True
+else:
+    NO_PYTHRAN = False
 
 
 def create_oper(type_fft=None):
@@ -40,6 +45,9 @@ def create_oper(type_fft=None):
     return oper
 
 
+@unittest.skipIf(
+    NO_PYTHRAN,
+    'Pythran extension fluidsim.operators.util2d_pythran unavailable')
 @unittest.skipIf(sys.platform.startswith('win'), 'Untested on Windows')
 class TestOperators(unittest.TestCase):
     @classmethod
