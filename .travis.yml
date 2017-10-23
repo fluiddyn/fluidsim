@@ -58,7 +58,7 @@ before_script:
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
 
 script:
-    - tox
+    - tox -vv
 
 notifications:
   email: false
