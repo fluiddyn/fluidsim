@@ -16,22 +16,17 @@ clean:
 cleanall: clean clean_so
 
 tests:
-	python -m unittest discover
+	python -m fluidsim.util.testing
 
 tests_mpi:
-	mpirun -np 2 python -m unittest discover
+	mpirun -np 2 python -m fluidsim.util.testing
 
-build_coverage:
-	@echo "Warning! Cython extensions with linetrace enabled can make the code slow"
-	@echo "Run `make clean_so develop` after coverage tests for practical use"
-	python setup.py build_ext --force --inplace --define CYTHON_TRACE_NOGIL
-
-tests_coverage:
+_tests_coverage:
 	mkdir -p .coverage
-	coverage run -p -m unittest discover
-	mpirun -np 2 coverage run -p -m unittest discover
+	coverage run -p -m fluidsim.util.testing
+	mpirun -np 2 coverage run -p -m fluidsim.util.testing
 
-report_coverage:
+_report_coverage:
 	coverage combine
 	coverage report
 	coverage html
@@ -39,7 +34,7 @@ report_coverage:
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
-coverage: build_coverage tests_coverage report_coverage
+coverage: _tests_coverage _report_coverage
 
 install:
 	python setup.py install

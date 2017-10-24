@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import sys
 import unittest
 import numpy as np
 
@@ -8,7 +7,7 @@ from fluidsim.base.output.spect_energy_budget import inner_prod, cumsum_inv
 from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
-debug = True
+debug = False
 
 
 class TestSW1L(BaseTestCase):
@@ -95,9 +94,6 @@ class TestSW1L(BaseTestCase):
         ux_fft = sim.state('ux_fft')
         uy_fft = sim.state('uy_fft')
         eta_fft = sim.state('eta_fft')
-        ux = sim.state.state_phys.get_var('ux')
-        uy = sim.state.state_phys.get_var('uy')
-        eta = sim.state.state_phys.get_var('eta')
         py_ux_fft = 1j * sim.oper.KY * ux_fft
         module.norm_mode.bvec_fft = module.norm_mode.bvecfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft)
@@ -295,9 +291,6 @@ class TestExmod(TestSW1L):
         ux_fft = sim.state('ux_fft')
         uy_fft = sim.state('uy_fft')
         eta_fft = sim.state('eta_fft')
-        ux = sim.state.state_phys.get_var('ux')
-        uy = sim.state.state_phys.get_var('uy')
-        eta = sim.state.state_phys.get_var('eta')
         rot_fft = sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
         urx_fft, ury_fft = sim.oper.vecfft_from_rotfft(rot_fft)
@@ -334,10 +327,8 @@ class TestModif(TestExmod):
     solver = 'sw1l.modified'
     exchange_keys = ['convA2D']
     transfer_keys = [
-        'transfer2D_Errr', 'transfer2D_Edrd', 'transfer2D_Edrr_rrd',
-         # K.E. transfer terms
-        'transfer2D_EA',
-         # P.E. transfer terms
+        'transfer2D_Errr', 'transfer2D_Edrd', 'transfer2D_Edrr_rrd',  # K.E.
+        'transfer2D_EA',  # P.E.
     ]
 
     def test_transfer_term(self):

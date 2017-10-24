@@ -2,8 +2,6 @@
 import unittest
 import shutil
 import warnings
-import numpy as np
-
 
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
@@ -60,6 +58,8 @@ class TestSolverAD1D(unittest.TestCase):
 
         warnings.resetwarnings()
 
+    @unittest.skipIf(
+        mpi.nb_proc > 1, 'MPI not implemented, for eg. sim.oper.gather_Xspace')
     def test_simul(self):
         with stdout_redirected():
             self.sim.time_stepping.start()

@@ -5,11 +5,9 @@ import os
 import sys
 from runpy import run_path
 from datetime import datetime
-import distutils
 from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
-import multiprocessing
 
 
 try:
@@ -143,7 +141,9 @@ ext_modules.append(ext_cyfunc)
 
 if 'TOXENV' in os.environ:
     for e in ext_modules:
-        e.cython_directives = {'linetrace': True}
+        e.cython_directives = dict(
+            linetrace=True, define_macros='CYTHON_TRACE_NOGIL=1'
+        )
 
 print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
