@@ -8,9 +8,10 @@ from __future__ import division, print_function
 from builtins import object
 import os as _os
 import glob as _glob
-import numpy as _np
 from copy import deepcopy as _deepcopy
+import inspect
 
+import numpy as _np
 import h5py as _h5py
 
 import operator as _operator
@@ -23,18 +24,29 @@ import fluiddyn as fld
 
 from fluiddyn.util import mpi
 
-from fluidsim import path_dir_results
+from fluidsim import path_dir_results, solvers
 
 from fluidsim.base.params import (
     load_info_solver, load_params_simul, Parameters, merge_params)
 
 
+def available_solver_keys():
+    top = _os.path.split(inspect.getfile(solvers))[0]
+    keys = list()
+    _os.chdir(top)
+    for dirpath, dirname, filenames in _os.walk(_os.curdir):
+        if 'solver.py' in filenames:
+            key = dirpath.replace(_os.sep, '.')
+            key = key.lstrip(_os.curdir + '.')
+            keys.append(key)
+
+    return sorted(keys)
+
+
 def module_solver_from_key(key=None):
     """Return the string corresponding to a module solver."""
     key = key.lower()
-    keys = [
-        'ns2d', 'sw1l', 'burgers', 'plate2d',
-        'sw1l.exactlin', 'sw1l.onlywaves', 'sw1l.modified', 'sw1l.exactlin.modified']
+    keys = available_solver_keys()
 
     if key in keys:
         part_path = key

@@ -87,7 +87,8 @@ def collect_tests(*modules):
     Example
     -------
     >>> collect_tests(
-            'fluidsim.solvers.test.test_solvers',
+            'fluidsim.solvers.test.test_ns',
+            'fluidsim.solvers.test.test_sw1l',
             'fluidsim.operators.test.test_operators2d')
 
     '''
