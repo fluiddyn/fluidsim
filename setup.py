@@ -13,6 +13,7 @@ from setuptools import setup, find_packages
 try:
     from Cython.Distutils.extension import Extension
     from Cython.Distutils import build_ext
+    from Cython.Compiler import Options as CythonOptions
     has_cython = True
     ext_source = 'pyx'
 except ImportError:
@@ -66,6 +67,12 @@ ext_modules = []
 
 print('MPI4PY', MPI4PY)
 
+define_macros = []
+if has_cython and os.getenv('TOXENV') is not None:
+    cython_defaults = CythonOptions.get_directive_defaults()
+    cython_defaults['linetrace'] = True
+    define_macros.append(('CYTHON_TRACE_NOGIL', '1'))
+
 if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
     path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
     include_dirs = [path_sources, np.get_include()] + \
@@ -78,8 +85,9 @@ if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
         include_dirs=include_dirs,
         libraries=libraries,
         library_dirs=library_dirs,
-        sources=[path_sources+'/libcfftw2dmpi.c',
-                 path_sources + '/fftw2dmpiccy.' + ext_source])
+        sources=[path_sources + '/libcfftw2dmpi.c',
+                 path_sources + '/fftw2dmpiccy.' + ext_source],
+        define_macros=define_macros)
     ext_modules.append(ext_fftw2dmpiccy)
 
 if BUILD_OLD_EXTENSIONS and FFTW3:
@@ -96,7 +104,8 @@ if BUILD_OLD_EXTENSIONS and FFTW3:
             libraries=libraries,
             library_dirs=library_dirs,
             cython_compile_time_env={'MPI4PY': MPI4PY},
-            sources=[path_sources + '/fftw2dmpicy.' + ext_source])
+            sources=[path_sources + '/fftw2dmpicy.' + ext_source],
+            define_macros=define_macros)
         ext_modules.append(ext_fftw2dmpicy)
 
 if BUILD_OLD_EXTENSIONS:
@@ -112,7 +121,8 @@ if BUILD_OLD_EXTENSIONS:
         libraries=libraries,
         library_dirs=library_dirs,
         cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/operators_cy.' + ext_source])
+        sources=[path_sources + '/operators_cy.' + ext_source],
+        define_macros=define_macros)
 
     ext_misc = Extension(
         'fluidsim.operators.miscellaneous',
@@ -120,7 +130,8 @@ if BUILD_OLD_EXTENSIONS:
         libraries=libraries,
         library_dirs=library_dirs,
         cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/miscellaneous_cy.' + ext_source])
+        sources=[path_sources + '/miscellaneous_cy.' + ext_source],
+        define_macros=define_macros)
 
     ext_modules.extend([
         ext_operators,
@@ -135,15 +146,10 @@ ext_cyfunc = Extension(
         np.get_include()],
     libraries=['m'],
     library_dirs=[],
-    sources=[path_sources + '/pseudo_spect_cy.' + ext_source])
+    sources=[path_sources + '/pseudo_spect_cy.' + ext_source],
+    define_macros=define_macros)
 
 ext_modules.append(ext_cyfunc)
-
-if 'TOXENV' in os.environ:
-    for e in ext_modules:
-        e.cython_directives = dict(
-            linetrace=True, define_macros='CYTHON_TRACE_NOGIL=1'
-        )
 
 print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
