@@ -32,12 +32,13 @@ from fluidsim.base.params import (
 
 def available_solver_keys():
     top = _os.path.split(inspect.getfile(solvers))[0]
+    top = _os.path.abspath(top) + _os.sep
     keys = list()
-    _os.chdir(top)
-    for dirpath, dirname, filenames in _os.walk(_os.curdir):
+    for dirpath, dirname, filenames in _os.walk(top):
         if 'solver.py' in filenames:
-            key = dirpath.replace(_os.sep, '.')
-            key = key.lstrip(_os.curdir + '.')
+            dirpath = _os.path.abspath(dirpath)
+            key = dirpath.replace(top, '')
+            key = key.replace(_os.sep, '.')
             keys.append(key)
 
     return sorted(keys)

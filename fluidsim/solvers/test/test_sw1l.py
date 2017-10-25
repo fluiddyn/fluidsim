@@ -43,7 +43,7 @@ class TestSW1L(TestSolver):
         T_q = (Fq_fft.conj() * q_fft +
                Fq_fft * q_fft.conj()).real / 2.
         sum_T = oper.sum_wavenumbers(T_q)
-        self.assertZero(sum_T, 6, warn=False)
+        self.assertZero(sum_T, 5, warn=False)
 
     def test_energy_conservation(self):
         """Verify that the energy growth rate due to nonlinear tendencies
