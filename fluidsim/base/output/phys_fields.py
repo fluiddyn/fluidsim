@@ -234,7 +234,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
     def _ani_init(self, *args, **kwargs):
         '''Initialize list of files and times, pcolor plot, quiver and colorbar.'''
-        super(PhysFieldsBase2D, self)._ani_init(*args, **kwargs)
+        super(MoviesBasePhysFields2D, self)._ani_init(*args, **kwargs)
 
         def time_from_path(path):
             filename = os.path.basename(path)
@@ -259,7 +259,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
     def _select_axis(self, xlabel='x', ylabel='y', shape=None):
         '''Get 1D arrays for setting the axes.'''
 
-        x, y = super(PhysFieldsBase2D, self)._select_axis(xlabel, ylabel)
+        x, y = super(MoviesBasePhysFields2D, self)._select_axis(xlabel, ylabel)
         if shape is not None and (x.shape[0], y.shape[0]) != shape:
             path_file = os.path.join(self.path, 'params_simul.xml')
             params = Parameters(path_file=path_file)

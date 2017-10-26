@@ -136,7 +136,23 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
         params.preprocess.enable = False
     except AttributeError:
         pass
+
+    def find_available_fluidfft(dim):
+        fluidfft = import_module('fluidfft.fft{}d'.format(dim))
+        for k, v in fluidfft.get_classes_seq().items():
+            if v is not None:
+                break
+
+        return k
+
     if merge_missing_params:
+        method = params.oper.type_fft
+        if not (method.startswith('fft2d.') or method.startswith('fft3d.')):
+            print('params.oper.type_fft', params.oper.type_fft, end='')
+            dim = 3 if hasattr(params.oper, 'nz') else 2
+            params.oper.type_fft = find_available_fluidfft(dim)
+            print(' -> ', params.oper.type_fft)
+
         params = merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
