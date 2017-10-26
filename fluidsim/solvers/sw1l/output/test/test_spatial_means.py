@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 
-from fluidsim.solvers.test.test_solvers import run_mini_simul
+from fluidsim.solvers.test.test_ns import run_mini_simul
 from . import BaseTestCase, mpi
 
 

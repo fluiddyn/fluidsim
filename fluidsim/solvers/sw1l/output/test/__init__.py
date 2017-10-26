@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
-from fluidsim.solvers.test.test_solvers import run_mini_simul
+from fluidsim.solvers.test.test_ns import run_mini_simul
 
 
 class BaseTestCase(unittest.TestCase):
