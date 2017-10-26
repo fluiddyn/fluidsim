@@ -358,29 +358,20 @@ imin_plot, imax_plot, delta_i_plot)
             Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
             ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{A}$')
 
-    def _ani_get_field(self, time):
-        f = h5py.File(self.path_file2D, 'r')
-        dset_times = f['times']
-        times = dset_times[...]
-
-        it = np.argmin(abs(times-time))
-        y = self._select_field(h5file=f, key_field=self._ani_key, it=it)
-        y[abs(y) < 10e-16] = 0
-
-        return y, self._ani_key
- 
-    def _select_field(self, h5file=None, key_field=None, it=None):
-        if key_field is 'Etot' or key_field is None:
-            self._ani_key = 'Etot'
-            y = h5file['spectrum2D_EK'][it] + h5file['spectrum2D_EA'][it]
-        elif key_field is 'EKd':
-            y = h5file['spectrum2D_EK'][it] - h5file['spectrum2D_EKr'][it]
-        else:
-            try:
-                key_field = 'spectrum2D_' + key_field
-                y = h5file[key_field][it]
-            except:
-                raise KeyError('Unknown key ', key_field)
+    def _select_field(self, idx):
+        key_field = self._ani_key
+        with h5py.File(self.path_file2D) as f:
+            if key_field is 'Etot' or key_field is None:
+                self._ani_key = 'Etot'
+                y = f['spectrum2D_EK'][idx] + f['spectrum2D_EA'][idx]
+            elif key_field is 'EKd':
+                y = f['spectrum2D_EK'][idx] - f['spectrum2D_EKr'][idx]
+            else:
+                try:
+                    key_field = 'spectrum2D_' + key_field
+                    y = f[key_field][idx]
+                except:
+                    raise KeyError('Unknown key ', key_field)
 
         return y
 

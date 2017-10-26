@@ -1,18 +1,17 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import object
-from past.utils import old_div
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from fluiddyn.util import mpi
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, stdout_redirected
-from fluidsim.util.util import pathdir_from_namedir, load_state_phys_file
+from fluidsim.util.util import pathdir_from_namedir
 
 
 class MoviesBase(object):
-    """ ..TODO: Clean up unnecessary default function arguments"""
+
     def _set_path(self):
         """
         Sets path attribute specifying the location of saved files.
@@ -49,8 +48,7 @@ class MoviesBase(object):
         Loads a saved file corresponding to an approx. time, and
         returns contour data
         """
-        self.sim = load_state_phys_file(self.path, t_approx=time)
-        return self._select_field(key_field=self._ani_key)
+        raise NotImplementedError
 
     def _select_axis(self, xlabel='x', ylabel='y'):
         """
@@ -69,19 +67,51 @@ class MoviesBase(object):
         """
         raise NotImplementedError('_select_field function declaration missing')
 
-    def animate(self, key_field=None, numfig=None, nb_contours=10, frame_dt=300,
-                file_dt=0.1, xmax=None, ymax=None, save_file=None, **fargs):
+    def animate(self, key_field=None, numfig=None, frame_dt=300, file_dt=1,
+                tmax=None, repeat=True, save_file=None, fargs={}, **kwargs):
         """
         Load the key field from multiple save files and display as
-        an animated plot.
+        an animated plot or save as a movie file.
 
         Parameters
         ----------
-        numfig : Figure number on the window  eg: Figure 1
-        frame_dt : Interval between animated frames in milliseconds
-        file_dt : Approx. interval between saved files to load
+        key_field : str
+            Specifies which field to animate
+        numfig : int
+            Figure number on the window
+        frame_dt : int
+            Interval between animated frames in milliseconds
+        file_dt : float
+            Approx. interval between saved files to load in simulation time
+            units
+        tmax : float
+            Animate till time `tmax`.
+        repeat : bool
+            Loop the animation
+        save_file : str
+            When not `None` saves into a file instead of plotting it on screen
+        fargs : dict
+            Dictionary of arguments for `_ani_update`. Matplotlib requirement.
+
+        Keyword Parameters
+        ------------------
+        All `kwargs` are passed on to `_ani_init`.
+
+        xmax : float
+            Set x-axis limit for 1D animated plots
+        ymax : float
+            Set y-axis limit for 1D animated plots
+        clim : tuple
+            Set colorbar limit for 2D animated plots
+
+        Examples
+        --------
+        >>> sim.output.spectra.animate('E')
+        >>> sim.output.phys_fields.animate('rot')
+        >>> sim.output.phys_fields.animate('rot', file_dt=0.1, frame_dt=50, clim=(-5,5))
 
         .. TODO: Use FuncAnimation with blit=True option.
+
         """
 
         if mpi.nb_proc > 1:
@@ -89,15 +119,15 @@ class MoviesBase(object):
                              'The MPI version of get_state_from_simul()\n'
                              'is not implemented.')
 
-        self._ani_init(key_field, numfig, nb_contours, file_dt, xmax, ymax)
+        self._ani_init(key_field, numfig, file_dt, tmax, **kwargs)
         self._animation = animation.FuncAnimation(
-            self._ani_fig, self._ani_update, self._ani_t, fargs=fargs.items(),
-            interval=frame_dt, blit=False)
+            self._ani_fig, self._ani_update, len(self._ani_t), fargs=fargs.items(),
+            interval=frame_dt, blit=False, repeat=repeat)
 
         if save_file is not None:
             self._ani_save(save_file, frame_dt)
 
-    def _ani_init(self):
+    def _ani_init(self, **kwargs):
         pass
 
     def _ani_update(self, **fargs):
@@ -108,21 +138,23 @@ class MoviesBase(object):
             Writer = animation.writers['ffmpeg']
         except KeyError:
             Writer = animation.writers['mencoder']
-        
+
         print(('Saving movie to ', filename, '...'))
         writer = Writer(
             fps=1000. / frame_dt, metadata=dict(artist='Me'), bitrate=1800)
-        self._animation.save(filename, writer=writer)  # _animation_ is a FuncAnimation object
+        self._animation.save(filename, writer=writer)  # _animation is a FuncAnimation object
+
+    def _ani_get_t_actual(self, time):
+        '''Find the index and value of the closest actual time of the field.'''
+        idx = np.abs(self._ani_t_actual - time).argmin()
+        return idx, self._ani_t_actual[idx]
 
 
 class MoviesBase1D(MoviesBase):
 
-    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax, ymax):
-        """
-        Initializes animated fig. and list of times of save files to load
-        .. FIXME: "Can't open attribute (Can't locate attribute: 'ny')"
-                   Possible sources of error load_state_phys_file / info_solver
-        """
+    def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
+        """Initializes animated fig. and list of times of save files to load."""
+
         self._ani_key = key_field
         self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
         self._ani_line, = self._ani_ax.plot([], [])
@@ -131,16 +163,18 @@ class MoviesBase1D(MoviesBase):
         self._set_path()
 
         ax = self._ani_ax
-        ax.set_xlim(0, xmax)
-        ax.set_ylim(10e-16, ymax)
+        ax.set_xlim(0, kwargs['xmax'])
+        ax.set_ylim(10e-16, kwargs['ymax'])
 
-        tmax = int(self.sim.time_stepping.t)
-        self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
+        if tmax is None:
+            tmax = int(self.sim.time_stepping.t)
 
-    def _ani_update(self, time, **fargs):
-        """
-        Loads contour data and updates figure
-        """
+        self._ani_t = list(np.arange(0, tmax + file_dt, file_dt))
+
+    def _ani_update(self, frame, **fargs):
+        """Loads contour data and updates figure."""
+
+        time = self._ani_t[frame]
         with stdout_redirected():
             y, key_field = self._ani_get_field(time)
         x = self._select_axis()
@@ -150,11 +184,12 @@ class MoviesBase1D(MoviesBase):
                  ', t = {0:.3f}, '.format(time) +
                  self.output.name_solver +
                  ', nh = {0:d}'.format(self.params.oper.nx))
-        self._ani_ax.set_title(title)
+        self._ani_ax.set_title(r'${}$'.format(title))
 
         return self._ani_line
 
     def _select_axis(self, xlabel='x', ylabel='u'):
+        '''Get 1D arrays for setting the X-axis.'''
         try:
             x = self.oper.xs
         except AttributeError:
@@ -167,61 +202,22 @@ class MoviesBase1D(MoviesBase):
 
 class MoviesBase2D(MoviesBase):
 
-    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax=None, ymax=None):
-        """
-        Initializes animated fig. and list of times of save files to load
-        """
+    def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
+        """ Initializes animated fig. and list of times of save files to load."""
+
         self._ani_key = key_field
-        self._ani_nbc = nb_contours
         self._ani_t = []
         self._set_font()
         self._set_path()
 
-        x_left_axe = 0.08
-        z_bottom_axe = 0.07
-        width_axe = 0.87
-        height_axe = 0.87
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        if tmax is None:
+            tmax = int(self.sim.time_stepping.t)
 
-        if mpi.rank == 0:
-            self._ani_fig, self._ani_ax = self.output.figure_axe(numfig=numfig,
-                                                                 size_axe=size_axe)
-
-        tmax = int(self.sim.time_stepping.t)
-        self._ani_t = list(np.arange(0, tmax+file_dt, file_dt))
-
-    def _ani_update(self, time, **fargs):
-        """
-        Loads contour data and updates figure
-
-        .. TODO: Set contour limits, without which animations can be misleading
-        """
-
-        x, y = self._select_axis()
-        with stdout_redirected():
-            field, key_field = self._ani_get_field(time)
-
-        contours = self._ani_ax.contourf(x, y, field, self._ani_nbc, **fargs)
-
-
-        # self._ani_fig.colorbar(contours)
-        self._ani_fig.contours = contours
-        title = (key_field +
-                 ', t = {0:.3f}, '.format(time) +
-                 self.output.name_solver +
-                 ', nh = {0:d}'.format(self.params.oper.nx))
-
-        try:
-            vmax = self._quiver_plot(self._ani_ax)
-            title += r', max(|v|) = {0:.3f}'.format(vmax)
-        except AttributeError:
-            pass
-
-        self._ani_ax.set_title(title)
-        return contours
+        self._ani_t = list(np.arange(0, tmax + file_dt, file_dt))
+        self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
 
     def _select_axis(self, xlabel='x', ylabel='y'):
+        '''Get 1D arrays for setting the axes.'''
         x = self.oper.x_seq
         y = self.oper.y_seq
         self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
