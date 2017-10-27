@@ -17,6 +17,10 @@ addons:
 
 matrix:
   fast_finish: true
+  include:
+    - python: 3.6
+      env: TOXENV=lint
+
   allow_failures:
     - python: 3.6
       env: TOXENV=lint
@@ -48,7 +52,7 @@ before_script:
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
 
 script:
-    - tox -vv
+    - travis_wait tox -vv
 
 notifications:
   email: false
