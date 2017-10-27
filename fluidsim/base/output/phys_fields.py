@@ -237,6 +237,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         super(MoviesBasePhysFields2D, self)._ani_init(*args, **kwargs)
 
         def time_from_path(path):
+            '''Regular expression search to extract time from filename.'''
             filename = os.path.basename(path)
             t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
             return t
@@ -255,6 +256,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
         self._ani_quiver, vmax = self._quiver_plot(self._ani_ax, ux, uy, XX, YY)
+
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+        '''Make a quiver plot on axis `ax`.'''
+        pass
 
     def _select_axis(self, xlabel='x', ylabel='y', shape=None):
         '''Get 1D arrays for setting the axes.'''
@@ -319,7 +324,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
     def plot(self, numfig=None, field=None, key_field=None,
-             QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
+             QUIVER=True, vecx='ux', vecy='uy',
              nb_contours=20, type_plot='contourf', iz=0,
              vmin=None, vmax=None, cmap='viridis'):
 
@@ -387,12 +392,10 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             fig.canvas.draw()
 
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
-        """
-        Superimposes a quiver plot of velocity vectors
-        with a given ax object corresponding to
-        a 2D contour plot.
-        """
+        """Superimposes a quiver plot of velocity vectors with a given axis
+        object corresponding to a 2D contour plot.
 
+        """
         if isinstance(vecx, basestring):
             vecx_loc = self.sim.state(vecx)
             if mpi.nb_proc > 1:
@@ -407,11 +410,10 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             else:
                 vecy = vecy_loc
 
-        skip = np.round(self.oper.nx_seq // 48)
-        # 5% of the Lx it is a great separation between vector arrows.
-        # delta_quiver = 0.05 * self.oper.Lx
-        # skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
-        # skip = int(np.round(skip))
+        # 4% of the Lx it is a great separation between vector arrows.
+        delta_quiver = 0.04 * self.oper.Lx
+        skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
+        skip = int(np.round(skip))
 
         if skip < 1:
             skip = 1

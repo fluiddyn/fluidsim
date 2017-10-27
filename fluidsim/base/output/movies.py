@@ -1,3 +1,27 @@
+"""Movies output (:mod:`fluidsim.base.output.movies`)
+=====================================================
+
+Contains base classes which acts as a framework to
+implement the method `animate` to make movies.
+
+.. currentmodule:: fluidsim.base.output.movies
+
+Provides:
+
+.. autoclass:: MoviesBase
+   :members:
+   :private-members:
+
+.. autoclass:: MoviesBase1D
+   :members:
+   :private-members:
+
+.. autoclass:: MoviesBase2D
+   :members:
+   :private-members:
+
+"""
+
 from __future__ import division
 from __future__ import print_function
 from builtins import object
@@ -11,10 +35,35 @@ from fluidsim.util.util import pathdir_from_namedir
 
 
 class MoviesBase(object):
+    """Base class defining most generic functions for movies."""
+
+    def __init__(self, output, **kwargs):
+        params = output.sim.params
+        self.output = output
+        self.sim = output.sim
+        self.params = params.output
+        self.oper = self.sim.oper
+
+        self._ani_fig = None
+        self._ani_t = None
+        self._ani_t_actual = None
+
+    def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
+        """Replace this function to initialize animation data and figure to
+        plot on.
+
+        """
+        pass
+
+    def _ani_update(self, frame, **fargs):
+        """Replace this function to load data for next frame and update the
+        figure.
+
+        """
+        pass
 
     def _set_path(self):
-        """
-        Sets path attribute specifying the location of saved files.
+        """Sets path attribute specifying the location of saved files.
         Tries different directories int the following order:
         FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, output.path_run
 
@@ -33,11 +82,11 @@ class MoviesBase(object):
         self.path = pathdir_from_namedir(self.path)
 
     def _set_font(self, family='serif', size=12):
-        """
-        Use to set font attribute. May be either an alias (generic name is CSS parlance), such as
-        serif, sans-serif, cursive, fantasy, or monospace, a real font name or a list of real font names.
-        """
+        """Use to set font attribute. May be either an alias (generic name
+        is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
+        monospace, a real font name or a list of real font names.
 
+        """
         self.font = {'family': family,
                      'color': 'black',
                      'weight': 'normal',
@@ -51,8 +100,9 @@ class MoviesBase(object):
         raise NotImplementedError
 
     def _select_axis(self, xlabel='x', ylabel='y'):
-        """
-        Replace this function to change the default axes set while animating.
+        """Replace this function to change the default axes set while
+        animating.
+
         """
         pass
 
@@ -68,7 +118,7 @@ class MoviesBase(object):
         raise NotImplementedError('_select_field function declaration missing')
 
     def animate(self, key_field=None, numfig=None, frame_dt=300, file_dt=1,
-                tmax=None, repeat=True, save_file=None, fargs={}, **kwargs):
+                tmax=None, repeat=True, save_file=False, fargs={}, **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -88,14 +138,17 @@ class MoviesBase(object):
             Animate till time `tmax`.
         repeat : bool
             Loop the animation
-        save_file : str
-            When not `None` saves into a file instead of plotting it on screen
+        save_file : str or bool
+            Path to save the movie. When `True`  saves into a file instead
+            of plotting it on screen (default: ~/fluidsim_movie.mp4). Specify
+            a string to save to another file location. Format is autodetected
+            from the filename extension.
         fargs : dict
             Dictionary of arguments for `_ani_update`. Matplotlib requirement.
 
         Keyword Parameters
         ------------------
-        All `kwargs` are passed on to `_ani_init`.
+        All `kwargs` are passed on to `_ani_init` and `_ani_save`
 
         xmax : float
             Set x-axis limit for 1D animated plots
@@ -103,12 +156,18 @@ class MoviesBase(object):
             Set y-axis limit for 1D animated plots
         clim : tuple
             Set colorbar limit for 2D animated plots
+        codec : str
+            Codec used to save into a movie file (default: ffmpeg)
 
         Examples
         --------
+        >>> import fluidsim as fls
+        >>> sim = fls.load_sim_for_plot()
         >>> sim.output.spectra.animate('E')
         >>> sim.output.phys_fields.animate('rot')
         >>> sim.output.phys_fields.animate('rot', file_dt=0.1, frame_dt=50, clim=(-5,5))
+        >>> sim.output.phys_fields.animate('rot', tmax=25, clim=(-5,5), save_file='True')
+        >>> sim.output.phys_fields.animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
 
         .. TODO: Use FuncAnimation with blit=True option.
 
@@ -124,25 +183,32 @@ class MoviesBase(object):
             self._ani_fig, self._ani_update, len(self._ani_t), fargs=fargs.items(),
             interval=frame_dt, blit=False, repeat=repeat)
 
-        if save_file is not None:
-            self._ani_save(save_file, frame_dt)
+        if save_file:
+            if isinstance(save_file, bool):
+                save_file = r'~/fluidsim_movie.mp4'
 
-    def _ani_init(self, **kwargs):
-        pass
+            self._ani_save(save_file, frame_dt, **kwargs)
 
-    def _ani_update(self, **fargs):
-        pass
+    def _ani_save(self, path_file, frame_dt, codec='ffmpeg', **kwargs):
+        """Saves the animation using `matplotlib.animation.writers`."""
 
-    def _ani_save(self, filename=r'movie.avi', frame_dt=300):
-        try:
-            Writer = animation.writers['ffmpeg']
-        except KeyError:
-            Writer = animation.writers['mencoder']
+        path_file = os.path.expandvars(path_file)
+        path_file = os.path.expanduser(path_file)
+        avail = animation.writers.avail
+        if len(avail) == 0:
+            raise ValueError(
+                'Please install a codec library. For e.g. ffmpeg, mencoder, '
+                'imagemagick, html')
+        elif codec not in avail:
+            print(
+                'Using one of the available codecs: {}'.format(avail.keys()))
+            codec = list(avail.keys())[0]
 
-        print(('Saving movie to ', filename, '...'))
-        writer = Writer(
-            fps=1000. / frame_dt, metadata=dict(artist='Me'), bitrate=1800)
-        self._animation.save(filename, writer=writer)  # _animation is a FuncAnimation object
+        Writer = animation.writers[codec]
+
+        print('Saving movie to ', path_file, '...')
+        writer = Writer(fps=1000. / frame_dt, metadata=dict(artist='FluidSim'))
+        self._animation.save(path_file, writer=writer, dpi=150)  # _animation is a FuncAnimation object
 
     def _ani_get_t_actual(self, time):
         '''Find the index and value of the closest actual time of the field.'''
@@ -151,6 +217,7 @@ class MoviesBase(object):
 
 
 class MoviesBase1D(MoviesBase):
+    """Base class defining most generic functions for movies for 1D data."""
 
     def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
         """Initializes animated fig. and list of times of save files to load."""
@@ -201,6 +268,7 @@ class MoviesBase1D(MoviesBase):
 
 
 class MoviesBase2D(MoviesBase):
+    """Base class defining most generic functions for movies for 2D data."""
 
     def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
         """ Initializes animated fig. and list of times of save files to load."""
