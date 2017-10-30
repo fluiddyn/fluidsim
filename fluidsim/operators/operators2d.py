@@ -23,8 +23,9 @@ from .util2d_pythran import (
 from ..base.setofvariables import SetOfVariables
 
 if not hasattr(util2d_pythran, '__pythran__'):
-    raise ValueError('util2d_pythran has to be pythranized to be efficient! '
-                     'Install pythran and recompile.')
+    import warnings
+    warnings.warn('util2d_pythran has to be pythranized to be efficient! '
+                  'Install pythran and recompile.')
 
 nb_proc = mpi.nb_proc
 rank = mpi.rank

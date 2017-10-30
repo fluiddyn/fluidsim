@@ -1,51 +1,45 @@
-sudo: required
 language: python
 
+python:
+  - 3.6
+  - 2.7
+  - 3.5
+  - 3.4
+
+env:
+  - TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9 
+  - TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+
+addons:
+  apt:
+    sources: ubuntu-toolchain-r-test
+    packages: [gcc-4.9, g++-4.9, libfftw3-dev, libhdf5-openmpi-dev, openmpi-bin]  # , libopenblas-dev]
+
 matrix:
+  fast_finish: true
   include:
     - python: 3.6
-      env: TOXENV=py,codecov-travis
-    - python: 3.5
-      env: TOXENV=py,codecov-travis
-    - python: 3.4
-      env: TOXENV=py,codecov-travis
-    - python: 2.7
-      env: TOXENV=py,codecov-travis
-    - python: 3.6
-      env: TOXENV=py-pythran,codecov-travis
-    - python: 2.7
-      env: TOXENV=py-pythran,codecov-travis
+      env: TOXENV=lint
 
+  allow_failures:
+    - python: 3.6
+      env: TOXENV=lint
+
+  exclude:
+    - python: 3.5
+      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+    - python: 3.4
+      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
 
 before_cache:
   - |
       coverage erase
       rm -f $HOME/.cache/pip/log/debug.log
 
-
 cache:
     directories:
         - $HOME/.cache/pip
         - $TRAVIS_BUILD_DIR/.tox
-
-
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-        packages:
-            - gcc-4.9
-            - g++-4.9
-            - libfftw3-dev
-            - libhdf5-openmpi-dev
-            - openmpi-bin
-            - libopenblas-dev
-
-# update-alternatives required so that mpicc will also use gcc-4.9
-before_install:
-    - |
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 10
-      sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
 
 install:
     - pip install -U pip setuptools wheel six colorlog
@@ -58,7 +52,7 @@ before_script:
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
 
 script:
-    - tox
+    - travis_wait tox -vv
 
 notifications:
   email: false

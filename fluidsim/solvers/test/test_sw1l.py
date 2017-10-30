@@ -1,114 +1,12 @@
-from __future__ import division
-
 import unittest
-from shutil import rmtree
 
-import numpy as np
-
-import fluidsim
-import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
-
-
-def run_mini_simul(key_solver, HAS_TO_SAVE=False, FORCING=False):
-
-    Simul = fluidsim.import_simul_class_from_key(key_solver)
-
-    params = Simul.create_default_params()
-
-    params.short_name_type_run = 'test'
-
-    nh = 16
-    params.oper.nx = nh
-    params.oper.ny = nh
-    Lh = 6.
-    params.oper.Lx = Lh
-    params.oper.Ly = Lh
-
-    params.oper.coef_dealiasing = 2. / 3
-    params.nu_8 = 2.
-
-    try:
-        params.f = 1.
-        params.c2 = 200.
-    except AttributeError:
-        pass
-
-    params.time_stepping.t_end = 0.5
-
-    params.init_fields.type = 'dipole'
-
-    if HAS_TO_SAVE:
-        params.output.periods_save.spectra = 0.25
-        params.output.periods_save.spatial_means = 0.25
-        params.output.periods_save.spect_energy_budg = 0.25
-
-    if FORCING:
-        params.FORCING = True
-        params.forcing.type = 'waves'
-        params.forcing.nkmin_forcing = 2
-        params.forcing.nkmax_forcing = 4
-
-    params.output.HAS_TO_SAVE = HAS_TO_SAVE
-
-    with stdout_redirected():
-        sim = Simul(params)
-        sim.time_stepping.start()
-
-    if HAS_TO_SAVE:
-        sim.output.spatial_means.load()
-
-    return sim
-
-
-class TestSolver(unittest.TestCase):
-    solver = 'NS2D'
-    options = {'HAS_TO_SAVE': False, 'FORCING': False}
-    zero = 1e-15
-
-    @classmethod
-    def setUpClass(cls):
-        cls.sim = run_mini_simul(cls.solver, **cls.options)
-
-    @classmethod
-    def tearDownClass(cls):
-        if mpi.rank == 0:
-            rmtree(cls.sim.output.path_run)
-
-    def assertZero(self, value, places=None):
-        if places is None:
-            places = -int(np.log10(self.zero))
-
-        self.assertAlmostEqual(value, 0, places=places)
-        if places < 7 and mpi.rank == 0:
-            from warnings import warn
-            warn('Machine zero level too high. Value to be asserted as zero' +
-                 '= {} : {}'.format(value, self.id()), UserWarning)
-
-    def test_energy_conservation(self):
-        """Verify that the energy growth rate due to nonlinear tendencies
-        (advection term) must be zero.
-
-        """
-        self.sim.params.FORCING = False
-        tendencies_fft = self.sim.tendencies_nonlin()
-        state_fft = self.sim.state.state_fft
-        Frot_fft = tendencies_fft.get_var('rot_fft')
-        rot_fft = state_fft.get_var('rot_fft')
-
-        oper = self.sim.oper
-        Frot_fft = tendencies_fft.get_var('rot_fft')
-        T_rot = (Frot_fft.conj() * rot_fft +
-                 Frot_fft * rot_fft.conj()).real / 2.
-        sum_T = oper.sum_wavenumbers(T_rot)
-        sum_Tabs = oper.sum_wavenumbers(abs(T_rot))
-        self.assertZero(sum_T)
-        self.assertZero(sum_Tabs)
+from fluiddyn.util import mpi
+from fluidsim.solvers.test.test_ns import TestSolver
 
 
 class TestSW1L(TestSolver):
     solver = 'SW1L'
-    options = {'HAS_TO_SAVE': True, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'FORCING': True}
     zero = 1e-7
 
     def _get_tendencies(self):
@@ -120,6 +18,32 @@ class TestSW1L(TestSolver):
         Feta_fft = tendencies_fft.get_var('eta_fft')
 
         return Fx_fft, Fy_fft, Feta_fft
+
+    def test_enstrophy_conservation(self):
+        """Verify that the enstrophy growth rate due to nonlinear tendencies
+        (advection term) must be zero.
+
+        .. FIXME: Improve this test
+
+        """
+        self.sim.params.FORCING = False
+        tendencies_fft = self.sim.tendencies_nonlin()
+
+        state_fft = self.sim.state.state_fft
+        oper = self.sim.oper
+        try:
+            Fq_fft = tendencies_fft.get_var('q_fft')
+            q_fft = state_fft.get_var('q_fft')
+        except ValueError:
+            Fx_fft, Fy_fft, Feta_fft = self._get_tendencies()
+            Fq_fft, Fap_fft, Fam_fft = oper.qapamfft_from_uxuyetafft(
+                Fx_fft, Fy_fft, Feta_fft)
+            q_fft = self.sim.state('q_fft')
+
+        T_q = (Fq_fft.conj() * q_fft +
+               Fq_fft * q_fft.conj()).real / 2.
+        sum_T = oper.sum_wavenumbers(T_q)
+        self.assertZero(sum_T, 5, warn=False)
 
     def test_energy_conservation(self):
         """Verify that the energy growth rate due to nonlinear tendencies
@@ -167,11 +91,18 @@ class TestSW1LOnlyWaves(TestSW1LExactLin):
     solver = 'SW1L.onlywaves'
     options = {'HAS_TO_SAVE': True, 'FORCING': False}
 
+    def test_enstrophy_conservation(self):
+        # This solver does not update potential vorticity
+        pass
+
 
 class TestSW1LModify(TestSW1L):
     solver = 'SW1L.modified'
     options = {'HAS_TO_SAVE': True, 'FORCING': False}
-    zero = 1e-7
+
+    def test_enstrophy_conservation(self):
+        # Theoretically not expected to conserve quadratic potential enstrophy
+        pass
 
     def test_energy_conservation(self):
         """Verify that the energy growth rate due to nonlinear tendencies
@@ -208,24 +139,15 @@ class TestSW1LModify(TestSW1L):
         oper = self.sim.oper
         T_ux = (ux_fft.conj() * Fx_fft).real
         T_uy = (uy_fft.conj() * Fy_fft).real
-        T_eta = (eta_fft.conj() * Feta_fft).real
+        T_eta = (eta_fft.conj() * Feta_fft).real * self.sim.params.c2
         T_tot = T_ux + T_uy + T_eta
         sum_T = oper.sum_wavenumbers(T_tot)
-        sum_Tabs = oper.sum_wavenumbers(abs(T_tot))
-        try:
-            self.assertZero(sum_T)
-        except AssertionError:
-            self.assertZero(sum_T, 4)
-        try:
-            self.assertZero(sum_Tabs)
-        except AssertionError:
-            self.assertZero(sum_Tabs, 4)
+        self.assertZero(sum_T)
 
 
 class TestSW1LExmod(TestSW1LModify):
     solver = 'SW1L.exactlin.modified'
     options = {'HAS_TO_SAVE': True, 'FORCING': False}
-    zero = 1e-7
 
     def _get_tendencies(self):
         self.sim.params.FORCING = False

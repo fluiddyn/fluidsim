@@ -7,23 +7,38 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: PhysFieldsBase1D
+   :members:
+   :private-members:
+
+.. autoclass:: MoviesBasePhysFields2D
+   :members:
+   :private-members:
+
+.. autoclass:: PhysFieldsBase2D
+   :members:
+   :private-members:
+
 """
 from __future__ import division
 from __future__ import print_function
 
-from builtins import str
-from past.utils import old_div
+from builtins import str, map
 from past.builtins import basestring
+
+import re
+import os
+import datetime
+from glob import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-import os
-import datetime
 
 from fluiddyn.util import mpi
 from .base import SpecificOutput
 from .movies import MoviesBase1D, MoviesBase2D
+from ..params import Parameters
 
 cfg_h5py = h5py.h5.get_config()
 
@@ -75,7 +90,7 @@ class PhysFieldsBase(SpecificOutput):
     def online_plot(self):
         """Online plot."""
         tsim = self.sim.time_stepping.t
-        if (tsim-self.t_last_plot >= self.period_plot):
+        if (tsim - self.t_last_plot >= self.period_plot):
             self.t_last_plot = tsim
             itsim = self.sim.time_stepping.it
             self.plot(numfig=itsim,
@@ -143,9 +158,9 @@ class PhysFieldsBase(SpecificOutput):
                     k, self.oper.shapeX_seq, dtype=field_loc.dtype)
                 f.atomic = False
                 xstart = self.oper.seq_index_firstK0
-                xend = self.oper.seq_index_firstK0+self.oper.shapeX_loc[0]
+                xend = self.oper.seq_index_firstK0 + self.oper.shapeX_loc[0]
                 ystart = self.oper.seq_index_firstK1
-                yend = self.oper.seq_index_firstK1+self.oper.shapeX_loc[1]
+                yend = self.oper.seq_index_firstK1 + self.oper.shapeX_loc[1]
                 with dset.collective:
                     dset[xstart:xend, ystart:yend, :] = field_loc
             f.close()
@@ -214,10 +229,102 @@ class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
             ax.plot(xs, field)
 
 
-class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
+class MoviesBasePhysFields2D(MoviesBase2D):
+    """Methods required to animate physical fields HDF5 files."""
+
+    def _ani_init(self, *args, **kwargs):
+        '''Initialize list of files and times, pcolor plot, quiver and colorbar.'''
+        super(MoviesBasePhysFields2D, self)._ani_init(*args, **kwargs)
+
+        def time_from_path(path):
+            '''Regular expression search to extract time from filename.'''
+            filename = os.path.basename(path)
+            t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+            return t
+
+        self._ani_pathfiles = sorted(glob(os.path.join(
+            self.path, 'state_phys*')))
+        self._ani_t_actual = np.array(list(
+            map(time_from_path, self._ani_pathfiles)))
+
+        field, ux, uy = self._ani_get_field(0)
+        x, y = self._select_axis(shape=ux.shape)
+        XX, YY = np.meshgrid(x, y)
+
+        self._ani_im = self._ani_ax.pcolor(XX, YY, field)
+        self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
+        self._ani_clim = kwargs.get('clim')
+        self._ani_set_clim()
+        self._ani_quiver, vmax = self._quiver_plot(self._ani_ax, ux, uy, XX, YY)
+
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+        '''Make a quiver plot on axis `ax`.'''
+        pass
+
+    def _select_axis(self, xlabel='x', ylabel='y', shape=None):
+        '''Get 1D arrays for setting the axes.'''
+
+        x, y = super(MoviesBasePhysFields2D, self)._select_axis(xlabel, ylabel)
+        if shape is not None and (x.shape[0], y.shape[0]) != shape:
+            path_file = os.path.join(self.path, 'params_simul.xml')
+            params = Parameters(path_file=path_file)
+            x = np.arange(0, params.oper.Lx, params.oper.nx)
+            y = np.arange(0, params.oper.Ly, params.oper.ny)
+
+        return x, y
+
+    def _ani_get_field(self, time):
+        """Get field, ux, uy from saved physical fields."""
+
+        idx, t_actual = self._ani_get_t_actual(time)
+
+        with h5py.File(self._ani_pathfiles[idx]) as f:
+            field = f['state_phys'][self._ani_key].value
+            ux = f['state_phys']['ux'].value
+            uy = f['state_phys']['uy'].value
+
+        return field, ux, uy
+
+    def _ani_update(self, frame, **fargs):
+        """Loads data and updates figure."""
+
+        time = self._ani_t[frame]
+
+        field, ux, uy = self._ani_get_field(time)
+        field = field[:-1, :-1]
+
+        # Update figure, quiver and colorbar
+        self._ani_im.set_array(field.flatten())
+        self._ani_quiver.set_UVC(ux, uy)
+        self._ani_im.autoscale()
+        self._ani_set_clim()
+
+        idx, time = self._ani_get_t_actual(time)
+        title = (self._ani_key +
+                 ', t = {0:.3f}, '.format(time) +
+                 self.output.name_solver +
+                 ', nh = {0:d}'.format(self.params.oper.nx))
+
+        vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+        title += r', |\vec{v}|_{max} = ' + '{0:.3f}'.format(vmax)
+
+        self._ani_ax.set_title(r'${}$'.format(title))
+
+    def _ani_set_clim(self):
+        """Maintains a constant colorbar throughout the animation."""
+
+        clim = self._ani_clim
+        if clim is not None:
+            self._ani_im.set_clim(*clim)
+            self._ani_cbar.set_clim(*clim)
+            ticks = np.linspace(*clim, num=21, endpoint=True)
+            self._ani_cbar.set_ticks(ticks)
+
+
+class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
     def plot(self, numfig=None, field=None, key_field=None,
-             QUIVER=True, vecx='ux', vecy='uy', FIELD_LOC=True,
+             QUIVER=True, vecx='ux', vecy='uy',
              nb_contours=20, type_plot='contourf', iz=0,
              vmin=None, vmax=None, cmap='viridis'):
 
@@ -266,7 +373,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
             ax = None
 
         if QUIVER:
-            vmax = self._quiver_plot(ax, vecx, vecy)
+            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
 
         if mpi.rank == 0:
             ax.set_xlabel('x')
@@ -284,36 +391,43 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBase2D):
 
             fig.canvas.draw()
 
-    def _quiver_plot(self, ax, vecx='ux', vecy='uy'):
-        """
-        Superimposes a quiver plot of velocity vectors
-        with a given ax object corresponding to
-        a 2D contour plot.
-        """
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+        """Superimposes a quiver plot of velocity vectors with a given axis
+        object corresponding to a 2D contour plot.
 
+        """
         if isinstance(vecx, basestring):
             vecx_loc = self.sim.state(vecx)
             if mpi.nb_proc > 1:
                 vecx = self.oper.gather_Xspace(vecx_loc)
             else:
                 vecx = vecx_loc
+
         if isinstance(vecy, basestring):
             vecy_loc = self.sim.state(vecy)
             if mpi.nb_proc > 1:
                 vecy = self.oper.gather_Xspace(vecy_loc)
             else:
                 vecy = vecy_loc
-        pas_vector = np.round(old_div(self.oper.nx_seq, 48))
-        if pas_vector < 1:
-            pas_vector = 1
 
-        [XX_seq, YY_seq] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
+        # 4% of the Lx it is a great separation between vector arrows.
+        delta_quiver = 0.04 * self.oper.Lx
+        skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
+        skip = int(np.round(skip))
+
+        if skip < 1:
+            skip = 1
+
+        if XX is None and YY is None:
+            [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
+
         if mpi.rank == 0:
             # copy to avoid a bug
-            vecx_c = vecx[::pas_vector, ::pas_vector].copy()
-            vecy_c = vecy[::pas_vector, ::pas_vector].copy()
-            ax.quiver(XX_seq[::pas_vector, ::pas_vector],
-                      YY_seq[::pas_vector, ::pas_vector],
-                      vecx_c, vecy_c)
+            vecx_c = vecx[::skip, ::skip].copy()
+            vecy_c = vecy[::skip, ::skip].copy()
+            quiver = ax.quiver(
+                XX[::skip, ::skip],
+                YY[::skip, ::skip],
+                vecx_c, vecy_c)
 
-        return np.max(np.sqrt(vecx**2 + vecy**2))
+        return quiver, np.max(np.sqrt(vecx**2 + vecy**2))

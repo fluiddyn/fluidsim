@@ -169,7 +169,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
         for key in list(f.keys()):
             if key.startswith('spectr'):
                 dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot+1].mean(0)
+                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
                 dico_results[key] = spect
         return dico_results
 
@@ -179,29 +179,34 @@ class Spectra(SpecificOutput, MoviesBase1D):
     def plot2d(self):
         pass
 
-    def _ani_init(self, key_field, numfig, nb_contours, file_dt, xmax, ymax):
-        """.. TODO: Needs more generalization for all _ani functions"""
-        """replaced by inheritance;"""
+    def _ani_init(self, *args, **kwargs):
+        if 'xmax' not in kwargs:
+            kwargs['xmax'] = self.oper.khE[-1:][0]
+        if 'ymax' not in kwargs:
+            kwargs['ymax'] = 1.0
 
-        if xmax is None:
-            xmax = self.oper.khE[-1:][0]
-        if ymax is None:
-            ymax = 1.0
+        with h5py.File(self.path_file2D) as f:
+            self._ani_t_actual = f['times'][...]
 
-        super(Spectra, self)._ani_init(key_field, numfig, nb_contours, file_dt,
-                                       xmax, ymax)
+        super(Spectra, self)._ani_init(*args, **kwargs)
 
     def _ani_get_field(self, time):
-        raise NotImplementedError('_ani_get_field function declaration'
-                                  'missing')
+        idx, t_actual = self._ani_get_t_actual(time)
+        y = self._select_field(idx)
+        y[abs(y) < 10e-16] = 0
 
-    def _select_field(self, field=None, key_field=None):
-        raise NotImplementedError('_select_field function declaration missing')
+        return y, self._ani_key
 
-    def _select_axis(self, xlabel='kh'):
-        # x = self.oper.khE
-        f = h5py.File(self.path_file2D, 'r')
-        x = f['khE'][...]
+    def _select_field(self, idx):
+        with h5py.File(self.path_file2D) as f:
+            y = f['spectrum2D_' + self._ani_key][idx]
+
+        return y
+
+    def _select_axis(self, xlabel=r'$k_h$'):
+        with h5py.File(self.path_file2D) as f:
+            x = f['khE'][...]
+
         self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
         self._ani_ax.set_ylabel(self._ani_key, fontdict=self.font)
         self._ani_ax.set_yscale('log')

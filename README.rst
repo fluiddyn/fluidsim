@@ -64,3 +64,7 @@ From the root directory::
 Or, from the root directory or from any of the "test" directories::
 
   python -m unittest discover
+
+Alternatively, if you have installed FluidSim using `pip` or `easy_install`::
+
+  python -m fluidsim.util.testing
