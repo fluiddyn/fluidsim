@@ -295,7 +295,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
-        self._ani_quiver.set_UVC(ux, uy)
+
+        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip],
+                                 uy[::self._skip, ::self._skip])
         self._ani_im.autoscale()
         self._ani_set_clim()
 
@@ -396,6 +398,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         object corresponding to a 2D contour plot.
 
         """
+
+        print('_quiver_plot')
+
         if isinstance(vecx, basestring):
             vecx_loc = self.sim.state(vecx)
             if mpi.nb_proc > 1:
@@ -415,9 +420,13 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
         skip = int(np.round(skip))
 
+        print('skip', skip)
+
         if skip < 1:
             skip = 1
 
+        self._skip = skip
+            
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
 
