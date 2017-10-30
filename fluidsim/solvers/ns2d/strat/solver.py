@@ -16,8 +16,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.solvers.ns2d.solver import \
     InfoSolverNS2D, Simul as SimulNS2D
 
-# from .util_pythran import tendencies_nonlin_ns2dstrat
-from util_pythran import tendencies_nonlin_ns2dstrat
+from .util_pythran import tendencies_nonlin_ns2dstrat
 
 
 class InfoSolverNS2DStrat(InfoSolverNS2D):
