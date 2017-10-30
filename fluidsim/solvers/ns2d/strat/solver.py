@@ -9,8 +9,6 @@
 """
 from __future__ import division
 
-import numpy as np
-
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.ns2d.solver import \
@@ -115,30 +113,6 @@ class Simul(SimulNS2D):
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
-
-    # def produce_str_describing_params(self):
-    #     """Produce an information string with the parameters"""
-
-    #     nu_2 = self.params.nu_2
-    #     nu_8 = self.params.nu_8
-    #     kf_max = self.params.forcing.nkmax_forcing
-    #     kf_min = self.params.forcing.nkmin_forcing
-    #     kf = np.average([kf_max, kf_min]) * 2 * np.pi/self.params.oper.Lx
-    #     epsilon = self.params.forcing.forcing_rate
-    #     kmax = 2 * np.pi * self.params.oper.nx/self.params.oper.Lx
-    #     ldiss = (self.params.nu_2**3 /
-    #              self.params.forcing.forcing_rate)**(1./4)
-    #     one_over_kdiss = ldiss / (2 * np.pi)
-
-    #     str_params = ('N = {} \n'.format(self.params.N) +
-    #                   'nu_2 = {} ; nu_8 = {}\n'.format(nu_2, nu_8) +
-    #                   'kf_min = {} ; kf_max = {}\n'.format(kf_max, kf_min) +
-    #                   'kf = {} ; epsilon = {} \n'.format(kf, epsilon) +
-    #                   'kmax/kdiss = {} \n'.format(kmax * one_over_kdiss) +
-    #                   'kf/kdiss = {} \n'.format(kf * one_over_kdiss))
-
-    #     return str_params
-
 
 if __name__ == "__main__":
 
