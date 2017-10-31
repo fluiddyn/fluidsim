@@ -9,8 +9,6 @@
 """
 from __future__ import division
 
-import numpy as np
-
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.ns2d.solver import \
@@ -40,8 +38,8 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes.Output.module_name = package + '.output'
         classes.Output.class_name = 'OutputStrat'
 
-        # classes.Forcing.module_name = package + '.forcing'
-        # classes.Forcing.class_name = 'ForcingNS2D'
+        classes.Forcing.module_name = 'fluidsim.solvers.ns2d' + '.forcing'
+        classes.Forcing.class_name = 'ForcingNS2D'
 
 
 class Simul(SimulNS2D):
@@ -116,29 +114,6 @@ class Simul(SimulNS2D):
 
         return tendencies_fft
 
-    def produce_str_describing_params(self):
-        """Produce an information string with the parameters"""
-
-        nu_2 = self.params.nu_2
-        nu_8 = self.params.nu_8
-        kf_max = self.params.forcing.nkmax_forcing
-        kf_min = self.params.forcing.nkmin_forcing
-        kf = np.average([kf_max, kf_min]) * 2 * np.pi/self.params.oper.Lx
-        epsilon = self.params.forcing.forcing_rate
-        kmax = 2 * np.pi * self.params.oper.nx/self.params.oper.Lx
-        ldiss = (self.params.nu_2**3 /
-                 self.params.forcing.forcing_rate)**(1./4)
-        one_over_kdiss = ldiss / (2 * np.pi)
-
-        str_params = ('N = {} \n'.format(self.params.N) +
-                      'nu_2 = {} ; nu_8 = {}\n'.format(nu_2, nu_8) +
-                      'kf_min = {} ; kf_max = {}\n'.format(kf_max, kf_min) +
-                      'kf = {} ; epsilon = {} \n'.format(kf, epsilon) +
-                      'kmax/kdiss = {} \n'.format(kmax * one_over_kdiss) +
-                      'kf/kdiss = {} \n'.format(kf * one_over_kdiss))
-        return str_params
-
-
 if __name__ == "__main__":
 
     from math import pi
@@ -157,19 +132,23 @@ if __name__ == "__main__":
     delta_x = Lh / nh
 
     params.nu_2 = 1.*10e-6
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.N = 1.  # Brunt Vaisala frequency
-    params.time_stepping.USE_CFL = False
-    params.time_stepping.USE_T_END = False
-    params.time_stepping.deltat0 = 0.1
+    params.time_stepping.USE_CFL = True
+    params.time_stepping.USE_T_END = True
+    # params.time_stepping.deltat0 = 0.1
     # Period of time of the simulation
-    params.time_stepping.t_end = 4.
-    params.time_stepping.it_end = 20
+    params.time_stepping.t_end = 5.
+    # params.time_stepping.it_end = 50
 
-    params.init_fields.type = 'dipole'
+    params.init_fields.type = 'noise'
 
-    params.FORCING = False
-    params.forcing.type = 'random'
+    params.FORCING = True
+    params.forcing.type = 'tcrandom_anisotropic'
+    params.forcing.nkmax_forcing = 5
+    params.forcing.nkmin_forcing = 4
+    params.forcing.tcrandom_anisotropic.angle = '45°'
+
     # 'Proportional'
     # params.forcing.type_normalize
 
@@ -177,27 +156,27 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.001
 
-    params.output.periods_save.phys_fields = 10.
+    params.output.periods_save.phys_fields = 1.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 1.
 
-    params.output.periods_plot.phys_fields = 4.
+    params.output.periods_plot.phys_fields = 5.
 
     params.output.ONLINE_PLOT_OK = True
 
     params.output.spectra.HAS_TO_PLOT_SAVED = True
     params.output.spatial_means.HAS_TO_PLOT_SAVED = True
-    params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
-    params.output.increments.HAS_TO_PLOT_SAVED = True
+    params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = False
+    params.output.increments.HAS_TO_PLOT_SAVED = False
 
     params.output.phys_fields.field_to_plot = 'rot'
 
     sim = Simul(params)
 
-    sim.output.phys_fields.plot()
+    # sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    sim.output.phys_fields.plot()
+    # sim.output.phys_fields.plot()
 
     fld.show()

@@ -25,9 +25,9 @@ class TestsBench(unittest.TestCase):
             solver = import_module_solver_from_key('ns2d')
             bench(solver, dim='2d', n0=24, n1=None, n2=None, path_dir=path_tmp)
             if mpi.nb_proc > 1 and mpi.rank == 0:
-                plot_scaling(path_tmp, 'ns2d', 'any', n0, n0, '2d', show=False)
+                plot_scaling(path_tmp, 'ns2d', 'any', n0, n0, show=False)
                 plot_scaling(
-                    path_tmp, 'ns2d', 'any', n0, n0, '2d', show=False,
+                    path_tmp, 'ns2d', 'any', n0, n0 // 2, show=False,
                     type_plot='weak')
 
     def test3d(self):

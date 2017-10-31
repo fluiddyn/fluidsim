@@ -229,23 +229,30 @@ class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
             ax.plot(xs, field)
 
 
+def time_from_path(path):
+    '''Regular expression search to extract time from filename.'''
+    filename = os.path.basename(path)
+    t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+    return t
+
+
 class MoviesBasePhysFields2D(MoviesBase2D):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _ani_init(self, *args, **kwargs):
-        '''Initialize list of files and times, pcolor plot, quiver and colorbar.'''
-        super(MoviesBasePhysFields2D, self)._ani_init(*args, **kwargs)
-
-        def time_from_path(path):
-            '''Regular expression search to extract time from filename.'''
-            filename = os.path.basename(path)
-            t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
-            return t
-
+    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
+        """Initialize list of files and times, pcolor plot, quiver and colorbar.
+        """
+        self._set_path()
         self._ani_pathfiles = sorted(glob(os.path.join(
             self.path, 'state_phys*')))
         self._ani_t_actual = np.array(list(
             map(time_from_path, self._ani_pathfiles)))
+
+        if tmax is None:
+            tmax = self._ani_t_actual.max()
+
+        super(MoviesBasePhysFields2D, self)._ani_init(
+            key_field, numfig, file_dt, tmin, tmax, **kwargs)
 
         field, ux, uy = self._ani_get_field(0)
         x, y = self._select_axis(shape=ux.shape)
@@ -255,7 +262,8 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
-        self._ani_quiver, vmax = self._quiver_plot(self._ani_ax, ux, uy, XX, YY)
+        self._ani_quiver, vmax = self._quiver_plot(
+            self._ani_ax, ux, uy, XX, YY)
 
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
         '''Make a quiver plot on axis `ax`.'''
@@ -295,20 +303,22 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
-        self._ani_quiver.set_UVC(ux, uy)
+
+        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip],
+                                 uy[::self._skip, ::self._skip])
         self._ani_im.autoscale()
         self._ani_set_clim()
 
         idx, time = self._ani_get_t_actual(time)
         title = (self._ani_key +
-                 ', t = {0:.3f}, '.format(time) +
+                 ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
-                 ', nh = {0:d}'.format(self.params.oper.nx))
+                 ', $n_x = {0:d}$'.format(self.params.oper.nx))
 
         vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
-        title += r', |\vec{v}|_{max} = ' + '{0:.3f}'.format(vmax)
+        title += r', $|\vec{v}|_{max} = $' + '{0:.3f}'.format(vmax)
 
-        self._ani_ax.set_title(r'${}$'.format(title))
+        self._ani_ax.set_title(title)
 
     def _ani_set_clim(self):
         """Maintains a constant colorbar throughout the animation."""
@@ -331,9 +341,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         field, key_field = self._select_field(field, key_field)
         keys_state_phys = self.sim.state.keys_state_phys
         x_left_axe = 0.08
-        z_bottom_axe = 0.07
-        width_axe = 0.97
-        height_axe = 0.87
+        z_bottom_axe = 0.1
+        width_axe = 0.95
+        height_axe = 0.83
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
 
@@ -380,12 +390,12 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             ax.set_ylabel('y')
 
             title = (key_field +
-                     ', t = {0:.3f}, '.format(self.sim.time_stepping.t) +
+                     ', $t = {0:.3f}$, '.format(self.sim.time_stepping.t) +
                      self.output.name_solver +
-                     ', nh = {0:d}'.format(self.params.oper.nx))
+                     ', $n_x = {0:d}$'.format(self.params.oper.nx))
 
             if QUIVER:
-                title += r', max(|v|) = {0:.3f}'.format(vmax)
+                title += r', $max(|v|) = {0:.3f}$'.format(vmax)
 
             ax.set_title(title)
 
@@ -417,6 +427,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         if skip < 1:
             skip = 1
+
+        self._skip = skip
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
