@@ -173,10 +173,10 @@ if __name__ == "__main__":
 
     params.output.phys_fields.field_to_plot = 'rot'
 
-    # sim = Simul(params)
+    sim = Simul(params)
 
     # sim.output.phys_fields.plot()
-    # sim.time_stepping.start()
+    sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
-    # fld.show()
+    fld.show()

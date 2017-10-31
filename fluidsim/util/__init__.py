@@ -1,4 +1,4 @@
-"""Utilities
-============
+"""Console scripts for FluidSim
+===============================
 
 """

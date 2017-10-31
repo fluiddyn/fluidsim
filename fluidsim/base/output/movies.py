@@ -64,20 +64,24 @@ class MoviesBase(object):
 
     def _set_path(self):
         """Sets path attribute specifying the location of saved files.
-        Tries different directories int the following order:
+        Tries different directories in the following order:
         FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, output.path_run
 
-        .. TODO:Need to check if pathdir_from_namedir call is reqd.
+        .. TODO:Need to check if pathdir_from_namedir call is read.
         """
         self.path = os.path.join(FLUIDSIM_PATH, self.sim.name_run)
 
         if not os.path.exists(self.path):
-            self.path = os.path.join(
-                FLUIDDYN_PATH_SCRATCH, self.sim.name_run)
-            if not os.path.exists(self.path):
-                self.path = self.output.path_run
+
+            if FLUIDDYN_PATH_SCRATCH is not None:
+                self.path = os.path.join(
+                    FLUIDDYN_PATH_SCRATCH, self.sim.name_run)
                 if not os.path.exists(self.path):
-                    self.path = None
+                    self.path = self.output.path_run
+            else:
+                self.path = self.output.path_run
+            if not os.path.exists(self.path):
+                self.path = None
 
         self.path = pathdir_from_namedir(self.path)
 
@@ -127,12 +131,12 @@ class MoviesBase(object):
 
         if key_field is None:
             field_to_plot = self.params.output.phys_fields.field_to_plot
-            if (field_to_plot in keys_state_phys or
-                field_to_plot in keys_computable):
+            if field_to_plot in keys_state_phys or \
+               field_to_plot in keys_computable:
                 key_field = field_to_plot
             else:
                 raise ValueError(
-                    'params.output.phys_fields.field_to_plot not ' \
+                    'params.output.phys_fields.field_to_plot not '
                     'in keys_state_phys')
         else:
             if (key_field in keys_state_phys or key_field in keys_computable):
@@ -235,7 +239,8 @@ class MoviesBase(object):
 
         print('Saving movie to ', path_file, '...')
         writer = Writer(fps=1000. / frame_dt, metadata=dict(artist='FluidSim'))
-        self._animation.save(path_file, writer=writer, dpi=150)  # _animation is a FuncAnimation object
+        # _animation is a FuncAnimation object
+        self._animation.save(path_file, writer=writer, dpi=150)
 
     def _ani_get_t_actual(self, time):
         '''Find the index and value of the closest actual time of the field.'''
@@ -278,10 +283,10 @@ class MoviesBase1D(MoviesBase):
 
         self._ani_line.set_data(x, y)
         title = (key_field +
-                 ', t = {0:.3f}, '.format(time) +
+                 ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
-                 ', nh = {0:d}'.format(self.params.oper.nx))
-        self._ani_ax.set_title(r'${}$'.format(title))
+                 ', $n_x = {0:d}$'.format(self.params.oper.nx))
+        self._ani_ax.set_title(title)
 
         return self._ani_line
 
@@ -301,7 +306,8 @@ class MoviesBase2D(MoviesBase):
     """Base class defining most generic functions for movies for 2D data."""
 
     def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
-        """ Initializes animated fig. and list of times of save files to load."""
+        """Initializes animated fig. and list of times of save files to load.
+        """
 
         self._ani_key = self._select_key_field(key_field)
         self._ani_t = []
@@ -309,16 +315,17 @@ class MoviesBase2D(MoviesBase):
         self._set_path()
 
         if tmax is None:
-            tmax = int(self.sim.time_stepping.t)
+            tmax = self.sim.time_stepping.t
 
         if tmin is None:
             tmin = 0
 
         if tmin > tmax:
-            raise ValueError('Error tmin > tmax. ' \
+            raise ValueError('Error tmin > tmax. '
                              'Value tmin should be smaller than tmax')
 
         self._ani_t = list(np.arange(tmin, tmax + file_dt, file_dt))
+
         self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
 
     def _select_axis(self, xlabel='x', ylabel='y'):

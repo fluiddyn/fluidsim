@@ -20,7 +20,11 @@ import numpy as np
 
 from fluiddyn.util.mpi import nb_proc
 
-from .operators import OperatorsPseudoSpectral2D
+try:
+    from .operators import OperatorsPseudoSpectral2D
+except ImportError:
+    pass
+
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 
 from fluidsim.base.setofvariables import SetOfVariables
