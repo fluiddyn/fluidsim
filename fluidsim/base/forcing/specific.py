@@ -528,24 +528,24 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
               cls)._complete_params_with_default(params)
 
         params.forcing[cls.tag]._set_attribs({
-            'angle': '45°',
+            'angle': '45',
             'time_correlation': 'based_on_forcing_rate'})
 
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
-        angle = self._convert_radians_from_str_degree()
-        kymax_forcing = np.tan(angle) * self.kmax_forcing
-        kymin_forcing = np.tan(angle) * self.kmin_forcing
+        angle = radians(float(self.params.forcing[self.tag].angle))
+
+        kxmin_forcing = np.sin(angle) * self.kmin_forcing
+        kxmax_forcing = np.sin(angle) * self.kmax_forcing
+
+        kymin_forcing = np.cos(angle) * self.kmin_forcing
+        kymax_forcing = np.cos(angle) * self.kmax_forcing
+
         COND_NO_F_KX = np.logical_or(
-            self.oper_coarse.KX > self.kmax_forcing,
-            self.oper_coarse.KX < self.kmin_forcing)
+            self.oper_coarse.KX > kxmax_forcing,
+            self.oper_coarse.KX < kxmin_forcing)
         COND_NO_F_KY = np.logical_or(
             self.oper_coarse.KY > kymax_forcing,
             self.oper_coarse.KY < kymin_forcing)
         return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
-
-    def _convert_radians_from_str_degree(self):
-        """Converts the angle to radians."""
-        degree_str = self.params.forcing[self.tag].angle
-        return int(degree_str.split('°')[0])
