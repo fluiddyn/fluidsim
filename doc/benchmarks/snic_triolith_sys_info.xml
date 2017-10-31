@@ -1,0 +1,96 @@
+<sys_info>
+  <software CC="gcc (GCC) 6.2.0" MPI="mpirun (Open MPI) 1.6.5" distro="CentOS
+            6.9 Final" hostname="n61" kernel="2.6.32-696.13.2.el6.x86_64"
+            system="Linux"/>  
+
+  <hardware address_sizes="46 bits physical, 48 bits virtual" arch="x86_64"
+            bogomips="4389.02" cache_size="20480 KB" cpu_MHz_actual="[2194.512,
+            2194.512, 2194.512, 2194.512, 2194.512, 2194.512, 2194.512,
+            2194.512, 2194.512, 2194.512, 2194.512, 2194.512, 2194.512,
+            2194.512, 2194.512, 2194.512]" cpu_MHz_current="psutil.cpu_freq:
+            None" cpu_MHz_max="psutil.cpu_freq: None"
+            cpu_MHz_min="psutil.cpu_freq: None" cpu_name="Intel(R) Xeon(R) CPU
+            E5-2660 0 @ 2.20GHz" nb_cores="8" nb_procs="16" nb_siblings="8"/>  
+
+  <python compiler="GCC 4.4.7 20120313 (Red Hat 4.4.7-18)"
+          implementation="CPython" version="3.6.1">
+    <fluiddyn installed="True"
+              local_path="/home/x_ashmo/src/fluidmeta3/fluiddyn"
+              remote_path="ssh://hg@bitbucket.org/gfdyn/fluiddyn"
+              version="0.1.5"/>  
+
+    <fluidsim installed="True"
+              local_path="/home/x_ashmo/src/fluidmeta3/fluidsim"
+              remote_path="ssh://hg@bitbucket.org/fluiddyn/fluidsim"
+              version="0.1.0"/>  
+
+    <fluidlab installed="False" local_path="" remote_path="" version=""/>  
+
+    <fluidimage installed="False" local_path="" remote_path="" version=""/>  
+
+    <fluidfft installed="True"
+              local_path="/home/x_ashmo/src/fluidmeta3/fluidfft"
+              remote_path="ssh://hg@bitbucket.org/fluiddyn/fluidfft"
+              version="0.1.0"/>  
+
+    <fluidcoriolis installed="False" local_path="" remote_path="" version=""/>  
+
+    <fluiddevops installed="False" local_path="" remote_path="" version=""/>  
+
+    <numpy installed="True"
+           local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/numpy"
+           remote_path="" version="1.13.3">
+      <lapack_opt define_macros="[('HAVE_CBLAS', None)]" language="c"
+                  libraries="['openblas', 'openblas']"
+                  library_dirs="['/home/x_ashmo/opt/openblas-0.2.20/lib']"
+                  runtime_library_dirs="['/home/x_ashmo/opt/openblas-0.2.20/lib']"/>  
+
+      <blas_opt define_macros="[('HAVE_CBLAS', None)]" language="c"
+                libraries="['openblas', 'openblas']"
+                library_dirs="['/home/x_ashmo/opt/openblas-0.2.20/lib']"
+                runtime_library_dirs="['/home/x_ashmo/opt/openblas-0.2.20/lib']"/>  
+
+      <fftw/>  
+
+      <mkl/>  
+
+    </numpy>
+
+    <cython installed="True"
+            local_path="/software/apps/python3/3.6.1/snic-1/lib/python3.6/site-packages"
+            remote_path="" version="0.25.2"/>  
+
+    <mpi4py installed="True"
+            local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/mpi4py"
+            remote_path="" version="2.0.0"/>  
+
+    <pythran installed="True"
+             local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/pythran"
+             remote_path="" version="0.8.3"/>  
+
+    <pyfftw installed="True"
+            local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/pyfftw"
+            remote_path="" version="0.10.3.dev0+e827cb5"/>  
+
+    <matplotlib installed="True"
+                local_path="/software/apps/python3/3.6.1/snic-1/lib/python3.6/site-packages/matplotlib"
+                remote_path="" version="2.0.2"/>  
+
+    <scipy installed="True"
+           local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/scipy"
+           remote_path="" version="0.19.1"/>  
+
+    <skimage installed="False" local_path="" remote_path="" version=""/>  
+
+    <h5py installed="True"
+          local_path="/home/x_ashmo/opt/my-envs/fluidmeta3/lib/python3.6/site-packages/h5py"
+          remote_path="" version="2.7.1">
+      <config HDF5_version="1.8.18" MPI_enabled="False"
+              single_writer_multiple_reader_available="False"
+              virtual_dataset_available="False"/>  
+
+    </h5py>
+
+  </python>
+
+</sys_info>

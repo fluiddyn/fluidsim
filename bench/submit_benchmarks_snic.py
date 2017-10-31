@@ -2,7 +2,7 @@
 import os
 import numpy as np
 from fluiddyn.clusters.snic import ClusterSNIC as Cluster
-import fluidfft
+import fluidsim
 
 
 # Parameters
@@ -57,7 +57,7 @@ def submit(cluster, interactive, nb_nodes, nb_cores_per_node=None):
     else:
         cluster.submit_command(
             cmd,
-            name_run='{}{}_{}'.format(solver, argv['dim'], nb_mpi),
+            name_run='{}_{}'.format(solver, nb_mpi),
             nb_nodes=nb_nodes,
             nb_cores_per_node=nb_cores_per_node,
             walltime=argv['time'],

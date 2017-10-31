@@ -1,0 +1,1 @@
+{"hostname": "n110", "k0_loc": 128, "k1_loc": 1024, "key_solver": "ns2d", "n0": 1024, "n0_loc": 256, "n1": 1024, "n1_loc": 1024, "nb_iter": 1000, "nb_proc": 4, "pid": 33254, "t_elapsed_sys": 236.60134528100025, "t_elapsed_usr": 236.6013491153717, "time_as_str": "2017-10-31_12-10-08", "type_fft": "fluidfft.fft2d.mpi_with_fftw1d"}
