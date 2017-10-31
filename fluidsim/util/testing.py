@@ -14,6 +14,7 @@ import os
 import sys
 import inspect
 import unittest
+import argparse
 
 import matplotlib
 from importlib import import_module
@@ -52,7 +53,7 @@ def discover_tests(module_name='fluidsim', start_dir=None, verbose=False):
     ----------
     module_name: str
 
-        Tests are discovered under module
+        Tests are discovered under this module
 
     start_dir: str
 
@@ -92,6 +93,7 @@ def collect_tests(*modules):
             'fluidsim.operators.test.test_operators2d')
 
     '''
+    matplotlib.use('agg')
     suite = unittest.TestSuite()
     for module in modules:
         module = import_module(module)
@@ -101,9 +103,40 @@ def collect_tests(*modules):
     return _run(suite)
 
 
-if __name__ == '__main__':
-    result = discover_tests()
+def init_parser(parser):
+    """Initialize argument parser for `fluidsim-test`."""
+
+    parser.add_argument(
+        '-m', '--module', default='fluidsim',
+        help='tests are discovered under this module')
+    parser.add_argument(
+        '-s', '--start-dir', default=None,
+        help=(
+            'tests are discovered under this directory and overrides -m'
+            ' option.')
+    )
+    parser.add_argument(
+        '-v', '--verbose', action='store_true', help='for verbose output')
+
+
+def run(args=None):
+    """Run fluidsim-test command."""
+
+    if args is None:
+        parser = argparse.ArgumentParser(
+            prog='fluidsim-test',
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            description='Run FluidSim tests using unittest from any direidealctory.')
+
+        init_parser(parser)
+        args = parser.parse_args()
+
+    result = discover_tests(args.module, args.start_dir, args.verbose)
     if result.wasSuccessful():
         sys.exit(0)
     else:
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    run()

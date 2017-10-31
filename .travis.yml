@@ -20,6 +20,7 @@ matrix:
   include:
     - python: 3.6
       env: TOXENV=lint
+      addons:
 
   allow_failures:
     - python: 3.6
@@ -43,7 +44,7 @@ cache:
 
 install:
     - pip install -U pip setuptools wheel six colorlog
-    - pip install -U tox coverage
+    - pip install -U tox coverage cython
 
 before_script:
     - |
@@ -52,7 +53,7 @@ before_script:
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
 
 script:
-    - travis_wait tox -vv
+    - travis_wait 30 tox -vv
 
 notifications:
   email: false

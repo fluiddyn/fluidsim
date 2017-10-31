@@ -67,4 +67,5 @@ Or, from the root directory or from any of the "test" directories::
 
 Alternatively, if you have installed FluidSim using `pip` or `easy_install`::
 
-  python -m fluidsim.util.testing
+  fluidsim-test
+  mpirun -np 2 fluidsim-test

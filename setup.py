@@ -243,10 +243,9 @@ setup(name='fluidsim',
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),
       cmdclass={"build_ext": build_ext},
-      ext_modules=ext_modules)
-
-
-# if PARALLEL_COMPILE:
-#     print('\nPlease wait for CCompiler to complete building extensions...\n')
-#     pool.shutdown()
-#     print('\nDone.')
+      ext_modules=ext_modules,
+      entry_points={
+          'console_scripts':
+          ['fluidsim = fluidsim.util.console.__main__:run',
+           'fluidsim-test = fluidsim.util.testing:run']}
+)
