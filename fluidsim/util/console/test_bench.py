@@ -34,7 +34,9 @@ class TestsBench(unittest.TestCase):
         """Test launching ns3d benchmarks and plotting results."""
         with stdout_redirected():
             solver = import_module_solver_from_key('ns3d')
-            bench(solver, dim='3d', n0=8, n1=None, n2=None, path_dir=path_tmp)
+            bench(
+                solver, dim='3d', n0=8, n1=None, n2=None, path_dir=path_tmp,
+                type_fft='fft3d.mpi_with_fftw1d')
 
 
 if __name__ == '__main__':
