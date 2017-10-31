@@ -9,17 +9,20 @@ import fluidfft
 # ----------
 ## n0 = 2 ** 10; 'Triolith / Beskow'
 n0 = 1024; nb_cores = [2, 4, 8, 16, 32]; nodes = [2, 4, 8]
-
 ## n0 = 2**6 * 3**2 * 7; 'Kebnekaise'
 # n0 = 1008; nb_cores = [2, 4, 8, 12, 16, 21, 24, 28]; nodes = [2, 3, 4, 6]
 
-argv = dict(dim='2d', nh='{} -d 2'.format(n0), time='00:04:00')  # 2D benchmarks
-# argv = dict(dim='3d', nh='960 960 240', time='00:20:00')  # 3D benchmarks
+argv = dict(dim='2d', nh='{} -d 2'.format(n0), time='00:10:00')  # 2D benchmarks
+# argv = dict(dim='3d', nh='960 960 240', time='00:50:00')  # 3D benchmarks
+
+solver = 'ns2d'
+
 # mode = 'intra'
 # mode = 'inter'
-solver = 'ns2d'
 mode = 'inter-intra'
 
+dry_run = False
+# dry_run = True
 
 def init_cluster():
     global output_dir
@@ -33,7 +36,7 @@ def init_cluster():
         interactive=True
 
     output_dir = os.path.abspath('{}/../doc/benchmarks/snic_{}_{}'.format(
-        os.path.split(fluidfft.__file__)[0], cluster.name_cluster, argv['dim']))
+        os.path.split(fluidsim.__file__)[0], cluster.name_cluster, argv['dim']))
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -47,14 +50,19 @@ def submit(cluster, interactive, nb_nodes, nb_cores_per_node=None):
         nb_cores_per_node = cluster.nb_cores_per_node
 
     nb_mpi = nb_cores_per_node * nb_nodes
-    cluster.submit_command(
-        'fluidsim bench -s ' + solver + argv['nh'] + ' -o ' + output_dir,
-        name_run='fft{}_{}'.format(argv['dim'], nb_mpi),
-        nb_nodes=nb_nodes,
-        nb_cores_per_node=nb_cores_per_node,
-        walltime=argv['time'],
-        nb_mpi_processes=nb_mpi, omp_num_threads=1,
-        ask=False, bash=False, interactive=interactive)
+    cmd = 'fluidsim bench -s {} {} -o {}'.format(solver, argv['nh'], output_dir)
+    if dry_run:
+        print('nb_mpi = ', nb_mpi, end=' ')
+        print(cmd)
+    else:
+        cluster.submit_command(
+            cmd,
+            name_run='{}{}_{}'.format(solver, argv['dim'], nb_mpi),
+            nb_nodes=nb_nodes,
+            nb_cores_per_node=nb_cores_per_node,
+            walltime=argv['time'],
+            nb_mpi_processes=nb_mpi, omp_num_threads=1,
+            ask=False, bash=False, interactive=interactive)
 
 
 cluster, interactive = init_cluster()
