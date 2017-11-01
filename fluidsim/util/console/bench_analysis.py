@@ -2,7 +2,7 @@
 =========================================================================
 
 """
-
+import os
 from glob import glob
 import json
 
@@ -57,7 +57,8 @@ def filter_by_shapeloc(df, n0_loc, n1_loc):
 
 def plot_scaling(
         path_dir, solver, hostname, n0, n1, show=True,
-        type_time='usr', type_plot='strong'):
+        type_time='usr', type_plot='strong', fig=None, ax0=None, ax1=None,
+        name_dir=None):
     """Plot speedup vs number of processes from benchmark results."""
 
     def check_empty(df):
@@ -65,8 +66,16 @@ def plot_scaling(
             raise ValueError(
                 'No benchmarks corresponding to the input parameters')
 
+    if name_dir is None:
+        name_dir = os.path.basename(
+            os.path.abspath(path_dir)).replace('_', ' ').upper()
+
     df = load_bench(path_dir, solver, hostname)
     check_empty(df)
+
+    df.t_elapsed_sys /= df.nb_iter
+    df.t_elapsed_usr /= df.nb_iter
+
     if type_plot == 'strong':
         df_filter = filter_by_shape(df, n0, n1)
     elif type_plot == 'weak':
@@ -78,8 +87,6 @@ def plot_scaling(
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
         check_empty(df)
-        df.t_elapsed_sys /= df.nb_iter
-        df.t_elapsed_usr /= df.nb_iter
         if show:
             print(df)
 
@@ -106,12 +113,34 @@ def plot_scaling(
         df_filter_nb_proc_min)
 
     # Finally, start preparing figure and plot
-    fig = plt.figure(figsize=[15, 5])
-    ax0 = plt.subplot(121)
-    ax1 = plt.subplot(122)
+    if fig is None or ax0 is None or ax1 is None:
+        fig, axes = plt.subplots(1, 2)
+        ax0, ax1 = axes.ravel()
+
     ax0.set_ylabel('speedup ({} scaling)'.format(type_plot))
     ax1.set_ylabel('efficiency % ({} scaling)'.format(type_plot))
 
+    def plot_once(ax, x, y, label, linestyle='-k'):
+        """Avoid plotting the same label again."""
+        plotted = any(
+            [lines.get_label() == label for lines in ax.get_lines()])
+        if not plotted:
+            ax.plot(x, y, linestyle, label=label)
+
+    def add_hline(ax, series):
+        """Add a horizontal line to the axis."""
+        y = series.iloc[0]
+        xmin = series.index.min()
+        xmax = series.index.max()
+        plot_once(ax, [xmin, xmax], [y, y], 'linear')
+
+    def set_label_scale(ax, yscale='log'):
+        """Set log scale, legend and label of the axis."""
+        ax.set_xscale('log')
+        ax.set_yscale(yscale)
+        ax.set_xlabel('number of processes')
+
+    # Plot speedup
     for name in df_filter.index.levels[0]:
         tmp = df_filter.loc[name]
         # print(name)
@@ -120,33 +149,19 @@ def plot_scaling(
             speedup = t_min_filter / tmp[k] * nb_proc_min_filter
             ax0.plot(
                 speedup.index, speedup.values, 'x-',
-                label='{}, {}'.format(name, k))
+                label='{}, {}'.format(name, name_dir))
 
-    def add_hline(ax, series):
-        """Add a horizontal line to the axis."""
-        y = series.iloc[0]
-        xmin = series.index.min()
-        xmax = series.index.max()
-        ax.hlines(y, xmin, xmax, label='ideal')
-
-    def set_label_scale(ax):
-        """Set log scale, legend and label of the axis."""
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.set_xlabel('number of processes')
-        ax.legend()
-
-    # Plot speedup
     ax0.xaxis.set_major_locator(MaxNLocator(integer=True))
     if type_plot == 'strong':
         theoretical = [speedup.index.min(), speedup.index.max()]
-        ax0.plot(theoretical, theoretical, '-k', label='ideal')
+        plot_once(ax0, theoretical, theoretical, 'linear')
     else:
         add_hline(ax0, speedup)
 
     set_label_scale(ax0)
-    ax0.set_title('Best for {} procs: {}, {} ({:.2f} ms)'.format(
-        nb_proc_min_filter, name_min_filter, key_min_filter,
+    ax0.legend()
+    ax0.set_title('Best for {} processes: {}, {}={:.2f} ms'.format(
+    nb_proc_min_filter, name_min_filter, key_min_filter,
         t_min_filter * 1000))
 
     # Plot efficiency
@@ -160,9 +175,9 @@ def plot_scaling(
             add_hline(ax1, efficiency)
             ax1.plot(
                 efficiency.index, efficiency.values, 'x-',
-                label='{}, {}'.format(name, k))
+                label='{}, {}'.format(name, name_dir))
 
-    set_label_scale(ax1)
+    set_label_scale(ax1, 'linear')
 
     if show:
         plt.show()
@@ -173,10 +188,18 @@ def init_parser(parser):
     """Initialize argument parser for `fluidsim bench-analysis`."""
 
     init_parser_base(parser)
-    parser.add_argument('-i', '--input_dir', default=path_results)
+    parser.add_argument(
+        '-i', '--input-dir', default=path_results,
+        help='plot results from a single directory')
+    parser.add_argument(
+        '--input-dirs',
+        nargs='+',
+        default=[],
+        help='plot results from mulitiple input directories')
     parser.add_argument(
         '-p', '--type-plot', default='strong',
         help='load and plot data for strong or weak scaling analysis')
+    parser.add_argument('--save', action='store_true')
     parser.add_argument('--hostname', default='any')
 
 
@@ -186,6 +209,19 @@ def run(args):
     if args.dim == '3d':
         raise NotImplementedError
     else:
-        plot_scaling(
-            args.input_dir, args.solver, args.hostname, args.n0, args.n1,
-            show=True, type_plot=args.type_plot)
+        if len(args.input_dirs) == 0:
+            args.input_dirs = [args.input_dir]
+
+        fig = plt.figure(figsize=[12, 5])
+        ax0 = plt.subplot(121)
+        ax1 = plt.subplot(122)
+        for in_dir in args.input_dirs:
+            fig = plot_scaling(
+                in_dir, args.solver, args.hostname, args.n0, args.n1,
+                show=False, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1)
+
+        if args.save:
+            figname = 'fig_bench_' + os.path.basename(args.input_dir) + '.png'
+            fig.savefig(figname)
+        else:
+            plt.show()
