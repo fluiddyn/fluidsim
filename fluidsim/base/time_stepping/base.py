@@ -20,6 +20,9 @@ from signal import signal
 from math import pi
 from numbers import Number
 
+import numpy as np
+from math import radians
+
 from fluiddyn.util import mpi
 
 
@@ -77,6 +80,7 @@ class TimeSteppingBase(object):
         has_uy = (can_key_be_obtained('uy') or can_key_be_obtained('vy'))
         has_uz = (can_key_be_obtained('uz') or can_key_be_obtained('vz'))
         has_eta = can_key_be_obtained('eta')
+        has_b = can_key_be_obtained('b')
 
         if has_ux and has_uy and has_uz:
             self._compute_time_increment_CLF = \
@@ -84,6 +88,9 @@ class TimeSteppingBase(object):
         elif has_ux and has_uy and has_eta:
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CLF_uxuyeta
+        elif has_ux and has_uy and has_b:
+            self._compute_time_increment_CLF = \
+                self._compute_time_increment_CLF_uxuyb
         elif has_ux and has_uy:
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CLF_uxuy
@@ -206,7 +213,7 @@ class TimeSteppingBase(object):
 
         ux = self.sim.state('ux')
         uy = self.sim.state('uy')
-        
+
         params = self.sim.params
         f = params.f
         c = params.c2 ** 0.5
@@ -229,6 +236,43 @@ class TimeSteppingBase(object):
 
         deltat_wave = self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
+        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+
+        if normalize_diff > 0.02:
+            self.deltat = maybe_new_dt
+
+    def _compute_time_increment_CLF_uxuyb(self):
+        """Compute the time increment deltat with a CLF condition."""
+
+        ux = self.sim.state('ux')
+        uy = self.sim.state('uy')
+
+        params = self.sim.params
+        N = params.N
+        if params.forcing.FORCING:
+            P = params.forcing.forcing_rate
+            angle = params.forcing.tcrandom_anisotropic.angle
+
+        max_ux = abs(ux).max()
+        max_uy = abs(uy).max()
+        tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
+
+        if mpi.nb_proc > 1:
+            tmp = mpi.comm.allreduce(tmp, op=mpi.MPI.MAX)
+
+        if tmp > 0:
+            deltat_CFL = self.CFL / tmp
+        else:
+            deltat_CFL = self.deltat_max
+
+        if params.forcing.FORCING:
+            deltat_l = 1. / (N * np.sin(radians(float(angle))))
+            deltat_f = 1. / (P**(1./3))
+            maybe_new_dt = min(deltat_CFL, deltat_l, deltat_f, self.deltat_max)
+
+        if not params.forcing.FORCING:
+            maybe_new_dt = min(deltat_CFL, self.deltat_max)
+
         normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
 
         if normalize_diff > 0.02:
