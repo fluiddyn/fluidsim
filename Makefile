@@ -16,10 +16,10 @@ clean:
 cleanall: clean clean_so
 
 tests:
-	python -m fluidsim-test -v
+	fluidsim-test -v
 
 tests_mpi:
-	mpirun -np 2 python -m fluidsim-test -v
+	mpirun -np 2 fluidsim-test -v
 
 _tests_coverage:
 	mkdir -p .coverage

@@ -53,8 +53,8 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
 
     def run(self, test):
         result = super(TimeLoggingTestRunner, self).run(test)
-        self.stream.writeln(
-            "\nSlow Tests (>{:.03}s):".format(self.slow_test_threshold))
+        msg = "\n\nSlow tests (>{:.03}s):".format(self.slow_test_threshold)
+        self.stream.writeln(msg + '\n' + '-' * len(msg))
 
         for name, elapsed in result.getTestTimings():
             if elapsed > self.slow_test_threshold:
@@ -80,6 +80,8 @@ def _run(tests, verbose=False):
 
     result = testRunner.run(tests)
     if verbose:
+        msg = 'Skipped tests'
+        mpi.printby0('\n', msg, '\n', '-' * len(msg))
         for (case, reason) in result.skipped:
             mpi.printby0("S  %s (%s)" % (_mname(case), reason), file=sys.stderr)
         for (case, reason) in result.expectedFailures:
