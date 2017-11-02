@@ -254,7 +254,6 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         else:
             nKy = self.shapeK_seq[0]
-            # nKx = self.shapeK_seq[1]
             fc_fft = np.empty([nKyc, nKxc], np.complex128)
             for iKyc in range(nKyc):
                 if iKyc <= nKyc/2:
