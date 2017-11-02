@@ -126,7 +126,7 @@ def run(args=None):
         parser = argparse.ArgumentParser(
             prog='fluidsim-test',
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            description='Run FluidSim tests using unittest from any direidealctory.')
+            description='Run FluidSim tests using unittest from any directory.')
 
         init_parser(parser)
         args = parser.parse_args()

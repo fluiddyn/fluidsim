@@ -216,37 +216,40 @@ class OperatorsPseudoSpectral2D(_Operators):
         nKxc = shapeK_loc_coarse[1]
 
         if nb_proc > 1:
+            if not self.is_transposed:
+                raise NotImplementedError()
+
             fc_trans = np.empty([nKxc, nKyc], np.complex128)
-            nKy = self.shapeK_seq[0]
-            f1D_temp = np.empty([nKyc], np.complex128)
+            nKy = self.shapeK_seq[1]
+            f1d_temp = np.empty([nKyc], np.complex128)
 
             for iKxc in range(nKxc):
                 kx = self.deltakx*iKxc
                 rank_iKx, iKxloc, iKyloc = self.where_is_wavenumber(kx, 0.)
                 if rank == rank_iKx:
-                    # create f1D_temp
+                    # create f1d_temp
                     for iKyc in range(nKyc):
                         if iKyc <= nKyc/2:
                             iKy = iKyc
                         else:
                             kynodim = iKyc - nKyc
                             iKy = kynodim + nKy
-                        f1D_temp[iKyc] = f_fft[iKxloc, iKy]
+                        f1d_temp[iKyc] = f_fft[iKxloc, iKy]
 
                 if rank_iKx != 0:
-                    # message f1D_temp
+                    # message f1d_temp
                     if rank == 0:
-                        # print('f1D_temp', f1D_temp, f1D_temp.dtype)
+                        # print('f1d_temp', f1d_temp, f1d_temp.dtype)
                         comm.Recv(
-                            [f1D_temp, MPI.DOUBLE_COMPLEX],
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
                             source=rank_iKx, tag=iKxc)
                     elif rank == rank_iKx:
                         comm.Send(
-                            [f1D_temp, MPI.DOUBLE_COMPLEX],
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
                             dest=0, tag=iKxc)
                 if rank == 0:
                     # copy into fc_trans
-                    fc_trans[iKxc] = f1D_temp.copy()
+                    fc_trans[iKxc] = f1d_temp.copy()
             fc_fft = fc_trans.transpose()
 
         else:

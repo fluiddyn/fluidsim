@@ -159,7 +159,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             ar3Dfc = self.fstate_coarse.state_fft
 
         if mpi.nb_proc > 1:
-            nKy = self.oper.shapeK_seq[0]
+            if not self.oper.is_transposed:
+                raise NotImplementedError()
+            nKy = self.oper.shapeK_seq[1]
 
             for ikey in range(nb_keys):
                 if mpi.rank == 0:
