@@ -549,16 +549,9 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         kxmin_forcing = np.sin(angle) * self.kmin_forcing
         kxmax_forcing = np.sin(angle) * self.kmax_forcing
-        # print('kxmin_forcing = ', kxmin_forcing)
-        # print('kxmax_forcing = ', kxmax_forcing)
-        # print('differece_kx = ', kxmax_forcing - kxmin_forcing)
 
         kymin_forcing = np.cos(angle) * self.kmin_forcing
         kymax_forcing = np.cos(angle) * self.kmax_forcing
-
-        # print('kymin_forcing = ', kymin_forcing)
-        # print('kymax_forcing = ', kymax_forcing)
-        # print('differece_ky = ', kymax_forcing - kymin_forcing)
 
         if kxmax_forcing - kxmin_forcing < self.oper.deltakx or \
            kymax_forcing - kymin_forcing < self.oper.deltaky:
@@ -567,10 +560,9 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         COND_NO_F_KX = np.logical_or(
             self.oper_coarse.KX > kxmax_forcing,
             self.oper_coarse.KX < kxmin_forcing)
-        print(self.oper_coarse.KX)
-        # print('COND_NO_F_KX', COND_NO_F_KX)
+
         COND_NO_F_KY = np.logical_or(
             self.oper_coarse.KY > kymax_forcing,
             self.oper_coarse.KY < kymin_forcing)
-        # print('COND_NO_F_KY', COND_NO_F_KY)
+
         return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
