@@ -17,17 +17,25 @@ path_tmp = '/tmp/fluidsim_test_bench'
 
 class TestsBench(unittest.TestCase):
     """Test benchmarking."""
+    n0 = 16
 
     def test2d(self):
-        """Test launching ns2d benchmarks and plotting results."""
-        n0 = 24
+        """Test launching ns2d benchmarks."""
+        n0 = self.n0
         with stdout_redirected():
             solver = import_module_solver_from_key('ns2d')
-            bench(solver, dim='2d', n0=24, n1=None, n2=None, path_dir=path_tmp)
-            if mpi.nb_proc > 1 and mpi.rank == 0:
+            bench(solver, dim='2d', n0=n0, n1=None, n2=None, path_dir=path_tmp)
+            bench(solver, dim='2d', n0=n0 * 4, n1=n0 // 2, n2=None, path_dir=path_tmp)
+
+    @unittest.skipIf(mpi.nb_proc == 1, 'Can plot only parallel benchmarks.')
+    def test2d_plot_scaling(self):
+        """Test plotting ns2d benchmarks."""
+        n0 = self.n0
+        with stdout_redirected():
+            if mpi.rank == 0:
                 plot_scaling(path_tmp, 'ns2d', 'any', n0, n0, show=False)
                 plot_scaling(
-                    path_tmp, 'ns2d', 'any', n0, n0 // 2, show=False,
+                    path_tmp, 'ns2d', 'any', n0 * 4, n0 // 2, show=False,
                     type_plot='weak')
 
     def test3d(self):

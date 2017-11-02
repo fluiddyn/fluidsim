@@ -9,10 +9,10 @@ import numpy as np
 from fluiddyn.util import mpi, info
 from fluiddyn.io import stdout_redirected
 
+from ..util import import_module_solver_from_key
 from .util import (
     modif_params2d, modif_params3d, init_parser_base,
-    parse_args_dim, import_module_solver_from_key, bench as run_bench,
-    tear_down)
+    parse_args_dim, bench as run_bench, tear_down)
 
 
 path_results = '/tmp/fluidsim_bench'
@@ -41,7 +41,7 @@ def bench(
         sim = Simul(params)
     try:
         run_bench(sim, path_dir)
-    except:
+    except Exception:
         # raise
         print('WARNING: Some error occured while saving results!')
     finally:
@@ -166,7 +166,10 @@ def run(args):
         # Initialize simulation and run benchmarks
         solver = import_module_solver_from_key(args.solver)
         if args.dim == '3d':
-            bench(solver, args.dim, args.n0, args.n1, args.n2,
-                  path_dir=args.output_dir)
+            bench(
+                solver, args.dim, args.n0, args.n1, args.n2,
+                path_dir=args.output_dir, type_fft=args.type_fft)
         else:
-            bench(solver, args.dim, args.n0, args.n1, path_dir=args.output_dir)
+            bench(
+                solver, args.dim, args.n0, args.n1, path_dir=args.output_dir,
+                type_fft=args.type_fft)

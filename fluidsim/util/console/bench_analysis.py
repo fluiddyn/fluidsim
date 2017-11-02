@@ -62,6 +62,7 @@ def plot_scaling(
     """Plot speedup vs number of processes from benchmark results."""
 
     def check_empty(df):
+        """Check if the dataframe is empty."""
         if df.empty:
             raise ValueError(
                 'No benchmarks corresponding to the input parameters')
@@ -84,6 +85,7 @@ def plot_scaling(
         raise ValueError('Unknown plot type.')
 
     def group_df(df):
+        """Group and take median dataframe results with same number of processes."""
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
         check_empty(df)
@@ -102,6 +104,7 @@ def plot_scaling(
     df_filter_nb_proc_min = df_filter.xs(nb_proc_min_filter, level=1)
 
     def get_min(df):
+        """Get minima from a set of results."""
         m = df.as_matrix()
         i0, i1 = np.unravel_index(np.argmin(m), m.shape)
         mymin = m[i0, i1]
@@ -161,7 +164,7 @@ def plot_scaling(
     set_label_scale(ax0)
     ax0.legend()
     ax0.set_title('Best for {} processes: {}, {}={:.2f} ms'.format(
-    nb_proc_min_filter, name_min_filter, key_min_filter,
+        nb_proc_min_filter, name_min_filter, key_min_filter,
         t_min_filter * 1000))
 
     # Plot efficiency

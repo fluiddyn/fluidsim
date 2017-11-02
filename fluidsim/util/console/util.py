@@ -2,6 +2,7 @@
 =============================================================================
 
 """
+from __future__ import division
 import os
 from time import time
 try:
@@ -17,15 +18,65 @@ import shutil
 
 from fluiddyn.util import time_as_str
 from fluiddyn.util import mpi
-from ..util import import_module_solver_from_key, available_solver_keys
+from ..util import available_solver_keys
 
 
 class MyValueError(ValueError):
+    """Bypass errors."""
     pass
 
 
+def modif_box_size(params, n0, n1, n2=None):
+    """Modify box size, such that the aspect ration is square
+
+    Parameters
+    ----------
+    params : ParamContainer
+        Input parameters
+    n0 : int
+        Number of grid points in x-axis of the grid
+    n1 : int
+        Number of grid points in y-axis of the grid
+    n2 :
+        Number of grid points in z-axis of the grid
+
+    Returns
+    -------
+
+    """
+    if n1 != n0:
+        if n1 < n0:
+            params.oper.Ly = params.oper.Ly * n1 / n0
+        else:
+            params.oper.Lx = params.oper.Lx * n0 / n1
+
+    if n2 is not None and n2 != n0:
+        if n2 < n0:
+            params.oper.Lz = params.oper.Lz * n2 / n0
+        else:
+            params.oper.Lx = params.oper.Lx * n0 / n2
+            # Recurse to correct x-y aspect ratio
+            modif_box_size(params, n0, n1, n2)
+
+
 def modif_params2d(
-        params, n0=3*2**8, n1=None, name_run='profile', type_fft=''):
+        params, n0=3*2**8, n1=None, name_run='profile', type_fft=None):
+    """Modify parameters for 2D benchmarks.
+
+    Parameters
+    ----------
+    params : ParamContainer
+        Default parameters
+    n0 : int
+        Number of grid points in x-axis of the grid
+    n1 : int
+        Number of grid points in y-axis of the grid
+    name_run : str
+        Short name of the run
+    type_fft : str
+        When set, uses a diffrent FFT type than the default
+
+    """
     params.short_name_type_run = name_run
 
     if n1 is None:
@@ -33,7 +84,9 @@ def modif_params2d(
 
     params.oper.nx = n0
     params.oper.ny = n1
-    if type_fft != None:
+    modif_box_size(params, n0, n1)
+
+    if type_fft is not None:
         params.oper.type_fft = type_fft
 
     if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
@@ -68,7 +121,25 @@ def modif_params2d(
 
 
 def modif_params3d(
-        params, n0=256, n1=None, n2=None, name_run='profile', type_fft=''):
+        params, n0=256, n1=None, n2=None, name_run='profile', type_fft=None):
+    """Modify parameters for 3D benchmarks.
+
+    Parameters
+    ----------
+    params : ParamContainer
+        Default parameters
+    n0 : int
+        Number of grid points in x-axis of the grid
+    n1 : int
+        Number of grid points in y-axis of the grid
+    n2 : int
+        Number of grid points in z-axis of the grid
+    name_run : str
+        Short name of the run
+    type_fft : str
+        When set, uses a diffrent FFT type than the default
+
+    """
     params.short_name_type_run = name_run
 
     if n1 is None:
@@ -80,7 +151,9 @@ def modif_params3d(
     params.oper.nx = n0
     params.oper.ny = n1
     params.oper.nz = n2
-    if type_fft != None:
+    modif_box_size(params, n0, n1, n2)
+
+    if type_fft is not None:
         params.oper.type_fft = type_fft
 
     if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
@@ -115,6 +188,14 @@ def modif_params3d(
 
 
 def init_parser_base(parser):
+    """Initalize argument parser with common arguments for benchmarking
+    analysis and profile console tools.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+
+    """
     parser.add_argument('n0', nargs='?', type=int, default=64)
     parser.add_argument('n1', nargs='?', type=int, default=None)
     parser.add_argument('n2', nargs='?', type=int, default=None)
@@ -128,7 +209,13 @@ def init_parser_base(parser):
 
 
 def parse_args_dim(args):
+    """Parse dimension argument args.dim
 
+    Parameters
+    ----------
+    args : argparse.ArgumentParser
+
+    """
     dim = args.dim
     n0 = args.n0
     n1 = args.n1
@@ -166,7 +253,16 @@ def parse_args_dim(args):
 
 
 def profile(sim, nb_dim=2):
+    """Profile a simulation run and save the results in `profile.pstats`
 
+    Parameters
+    ----------
+    sim : Simul
+        An initialized simulation object
+    nb_dim : int
+        Dimension of the solver
+
+    """
     t0 = time()
 
     cProfile.runctx('sim.time_stepping.start()',
@@ -192,7 +288,16 @@ def profile(sim, nb_dim=2):
 
 
 def bench(sim, path_results):
+    """Benchmark a simulation run and save the results in a JSON file.
 
+    Parameters
+    ----------
+    sim : Simul
+        An initialized simulation object
+    path_results :  str
+        Directory path to save results in
+
+    """
     t_as_str = time_as_str()
     t0_usr = time()
     t0_sys = clock()
@@ -257,6 +362,14 @@ def tear_down(sim):
 
 
 def print_analysis(s):
+    """Print analysis of profiling result of a 2D solver.
+
+    Parameters
+    ----------
+    s : pstats.Stats
+        Object pointing to a stats file
+
+    """
     total_time = 0.
     times = {'fft2d': 0., 'fft_as': 0., 'pythran': 0., '.pyx': 0.}
     for key, value in s.stats.items():
@@ -318,6 +431,14 @@ def print_analysis(s):
 
 
 def print_analysis3d(s):
+    """Print analysis of profiling result of a 3D solver.
+
+    Parameters
+    ----------
+    s : pstats.Stats
+        Object pointing to a stats file
+
+    """
     total_time = 0.
     times = {'fft3d': 0., 'fft_as': 0., 'pythran': 0., '.pyx': 0.}
     for key, value in s.stats.items():
