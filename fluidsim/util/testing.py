@@ -15,6 +15,7 @@ import sys
 import inspect
 import unittest
 import argparse
+import time
 
 import matplotlib
 from importlib import import_module
@@ -22,6 +23,44 @@ from fluiddyn.util import mpi
 
 
 matplotlib.use('agg')
+
+
+class TimeLoggingTestResult(unittest.TextTestResult):
+    def __init__(self, *args, **kwargs):
+        super(TimeLoggingTestResult, self).__init__(*args, **kwargs)
+        self.test_timings = []
+
+    def startTest(self, test):
+        self._test_started_at = time.time()
+        super(TimeLoggingTestResult, self).startTest(test)
+
+    def addSuccess(self, test):
+        elapsed = time.time() - self._test_started_at
+        name = self.getDescription(test)
+        self.test_timings.append((name, elapsed))
+        super(TimeLoggingTestResult, self).addSuccess(test)
+
+    def getTestTimings(self):
+        return self.test_timings
+
+
+class TimeLoggingTestRunner(unittest.TextTestRunner):
+
+    def __init__(self, slow_test_threshold=0.3, *args, **kwargs):
+        self.slow_test_threshold = slow_test_threshold
+        return super(TimeLoggingTestRunner, self).__init__(
+            resultclass=TimeLoggingTestResult, *args, **kwargs)
+
+    def run(self, test):
+        result = super(TimeLoggingTestRunner, self).run(test)
+        self.stream.writeln(
+            "\nSlow Tests (>{:.03}s):".format(self.slow_test_threshold))
+
+        for name, elapsed in result.getTestTimings():
+            if elapsed > self.slow_test_threshold:
+                self.stream.writeln("({:.03}s) {}".format(elapsed, name))
+
+        return result
 
 
 def _mname(obj):
@@ -34,7 +73,11 @@ def _mname(obj):
 def _run(tests, verbose=False):
     """Run a set of tests using unittest."""
 
-    testRunner = unittest.runner.TextTestRunner(verbosity=1)
+    if verbose:
+        testRunner = TimeLoggingTestRunner(verbosity=1)
+    else:
+        testRunner = unittest.runner.TextTestRunner(verbosity=1)
+
     result = testRunner.run(tests)
     if verbose:
         for (case, reason) in result.skipped:

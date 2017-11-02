@@ -60,7 +60,7 @@ def modif_box_size(params, n0, n1, n2=None):
 
 
 def modif_params2d(
-        params, n0=3*2**8, n1=None, name_run='profile', type_fft=None):
+        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None):
     """Modify parameters for 2D benchmarks.
 
     Parameters
@@ -422,10 +422,10 @@ def print_analysis(s):
     for k in keys:
         t = times[k]
         print('time {:10s}: {:5.01f} % ({:4.02f} s)'.format(
-            k, t/total_time*100, t))
+            k, t / total_time * 100, t))
 
     print('-' * 24 + '\n{:15s}  {:5.01f} %'.format(
-        '', sum([t for t in times.values()])/total_time*100))
+        '', sum([t for t in times.values()]) / total_time * 100))
 
     return times
 
@@ -468,9 +468,9 @@ def print_analysis3d(s):
     for k in keys:
         t = times[k]
         print('time {:10s}: {:5.01f} % ({:4.02f} s)'.format(
-            k, t/total_time*100, t))
+            k, t / total_time * 100, t))
 
     print('-' * 24 + '\n{:15s}  {:5.01f} %'.format(
-        '', sum([t for t in times.values()])/total_time*100))
+        '', sum([t for t in times.values()]) / total_time * 100))
 
     return times

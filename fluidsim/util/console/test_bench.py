@@ -24,17 +24,13 @@ class TestsBench(unittest.TestCase):
         n0 = self.n0
         with stdout_redirected():
             solver = import_module_solver_from_key('ns2d')
-            bench(solver, dim='2d', n0=2*n0, n1=n0,
+            bench(solver, dim='2d', n0=2 * n0, n1=n0,
                   n2=None, path_dir=path_tmp)
 
-    @unittest.skipIf(mpi.nb_proc == 1, 'Can plot only parallel benchmarks.')
-    def test2d_plot_scaling(self):
-        """Test plotting ns2d benchmarks."""
-        n0 = self.n0
-        with stdout_redirected():
-            if mpi.rank == 0:
+            # Can plot only parallel benchmarks
+            if mpi.rank == 0 and mpi.nb_proc == 0:
                 plot_scaling(
-                    path_tmp, 'ns2d', 'any', 2*n0, n0, show=False,
+                    path_tmp, 'ns2d', 'any', 2 * n0, n0, show=False,
                     type_plot='weak')
 
     def test3d(self):
