@@ -37,9 +37,9 @@ def bench(
     else:
         raise ValueError("dim has to be in ['2d', '3d']")
 
-    with stdout_redirected():
-        sim = Simul(params)
     try:
+        with stdout_redirected():
+            sim = Simul(params)
         run_bench(sim, path_dir)
     except Exception:
         # raise

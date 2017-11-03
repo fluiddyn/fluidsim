@@ -191,7 +191,7 @@ def make_pythran_extensions(modules):
     return extensions
 
 
-if not on_rtd and use_pythran:
+if use_pythran:
     ext_names = []
     for root, dirs, files in os.walk('fluidsim'):
         for name in files:

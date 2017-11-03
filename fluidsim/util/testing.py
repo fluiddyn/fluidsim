@@ -120,7 +120,7 @@ def discover_tests(module_name='fluidsim', start_dir=None, verbose=False):
     return _run(tests, verbose)
 
 
-def collect_tests(*modules):
+def collect_tests(verbose, *modules):
     '''Creates a `TestSuite` from several modules.
 
     Parameters
@@ -138,14 +138,13 @@ def collect_tests(*modules):
             'fluidsim.operators.test.test_operators2d')
 
     '''
-    matplotlib.use('agg')
     suite = unittest.TestSuite()
     for module in modules:
         module = import_module(module)
         tests = unittest.defaultTestLoader.loadTestsFromModule(module)
         suite.addTests(tests)
 
-    return _run(suite)
+    return _run(suite, verbose)
 
 
 def init_parser(parser):
@@ -159,6 +158,11 @@ def init_parser(parser):
         help=(
             'tests are discovered under this directory and overrides -m'
             ' option.')
+    )
+    parser.add_argument(
+        '-c', '--collect', nargs='+', default=[],
+        help=('create a TestSuite by collecting multiple modules containing'
+              'TestCases')
     )
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='for verbose output')
@@ -176,7 +180,11 @@ def run(args=None):
         init_parser(parser)
         args = parser.parse_args()
 
-    result = discover_tests(args.module, args.start_dir, args.verbose)
+    if len(args.collect) > 0:
+        result = collect_tests(args.verbose, *args.collect)
+    else:
+        result = discover_tests(args.module, args.start_dir, args.verbose)
+
     if result.wasSuccessful():
         sys.exit(0)
     else:

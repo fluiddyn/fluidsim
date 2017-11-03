@@ -15,12 +15,12 @@ from fluidsim.util.console.bench_analysis import plot_scaling
 path_tmp = '/tmp/fluidsim_test_bench'
 
 
-class TestsBench(unittest.TestCase):
+class TestBench(unittest.TestCase):
     """Test benchmarking."""
     n0 = 16
 
     def test2d(self):
-        """Test launching ns2d benchmarks."""
+        """Test launching ns2d benchmarks and plotting results."""
         n0 = self.n0
         with stdout_redirected():
             solver = import_module_solver_from_key('ns2d')

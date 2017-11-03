@@ -17,7 +17,7 @@ from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from . import util2d_pythran
+from . import util2d_pythran, util_sw1l_pythran
 from .util2d_pythran import (
     dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft)
 from ..base.setofvariables import SetOfVariables
@@ -571,61 +571,9 @@ class OperatorsPseudoSpectral2D(_Operators):
         # KX_over_K2 = self.KX_over_K2
         # KY_over_K2 = self.KY_over_K2
 
-        q_fft = np.empty([n0, n1], dtype=np.complex128)
-        ap_fft = np.empty([n0, n1], dtype=np.complex128)
-        am_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        freq_Corio = params.f
-        f_over_c2 = freq_Corio/params.c2
-
-        if freq_Corio != 0:
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    if i0 == 0 and i1 == 0 and rank == 0:
-                        q_fft[i0, i1] = 0
-                        ap_fft[i0, i1] = ux_fft[0, 0] + 1.j*uy_fft[0, 0]
-                        am_fft[i0, i1] = ux_fft[0, 0] - 1.j*uy_fft[0, 0]
-                    else:
-
-                        rot_fft = 1j*(
-                            KX[i0, i1]*uy_fft[i0, i1] -
-                            KY[i0, i1]*ux_fft[i0, i1])
-
-                        q_fft[i0, i1] = rot_fft - freq_Corio*eta_fft[i0, i1]
-
-                        a_over2_fft = 0.5*(
-                            K2[i0, i1] * eta_fft[i0, i1] +
-                            f_over_c2*rot_fft)
-
-                        Deltaa_over2_fft = 0.5j*Kappa_over_ic[i0, i1]*(
-                            KX[i0, i1]*ux_fft[i0, i1] +
-                            KY[i0, i1]*uy_fft[i0, i1])
-
-                        ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
-                        am_fft[i0, i1] = a_over2_fft - Deltaa_over2_fft
-
-        else:  # (freq_Corio == 0.)
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    if i0 == 0 and i1 == 0 and rank == 0:
-                        q_fft[i0, i1] = 0
-                        ap_fft[i0, i1] = ux_fft[0, 0] + 1.j*uy_fft[0, 0]
-                        am_fft[i0, i1] = ux_fft[0, 0] - 1.j*uy_fft[0, 0]
-                    else:
-                        q_fft[i0, i1] = 1j*(
-                            KX[i0, i1]*uy_fft[i0, i1] -
-                            KY[i0, i1]*ux_fft[i0, i1])
-
-                        a_over2_fft = 0.5*K2[i0, i1]*eta_fft[i0, i1]
-
-                        Deltaa_over2_fft = 0.5j*Kappa_over_ic[i0, i1]*(
-                            KX[i0, i1]*ux_fft[i0, i1] +
-                            KY[i0, i1]*uy_fft[i0, i1])
-
-                        ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
-                        am_fft[i0, i1] = a_over2_fft - Deltaa_over2_fft
-
-        return q_fft, ap_fft, am_fft
+        return util_sw1l_pythran.qapamfft_from_uxuyetafft(
+            ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
+            Kappa_over_ic, params.f, params.c2, rank)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""

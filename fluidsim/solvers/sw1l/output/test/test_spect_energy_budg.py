@@ -17,9 +17,6 @@ class TestSW1L(BaseTestCase):
 
     @classmethod
     def setUpClass(cls, init_fields='dipole'):
-        # if mpi.nb_proc > 1:
-        #     nh = 64
-        # else:
         nh = 32
         super(TestSW1L, cls).setUpClass(
             nh=nh, init_fields=init_fields, HAS_TO_SAVE=True, FORCING=True)

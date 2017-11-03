@@ -10,6 +10,8 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 from fluiddyn.util import mpi
 
+from .util_pythran import compute_Frot
+
 
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
     """Information about the solver SW1L."""
@@ -67,7 +69,6 @@ class Simul(SimulBasePseudoSpectral):
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
-        fft2 = oper.fft2
 
         if state_fft is None:
             state_phys = self.state.state_phys
@@ -119,24 +120,15 @@ def compute_tendencies_nonlin_sw1l(
         f, beta, c2, YY,
         fft2, gradfft_from_fft, dealiasing, divfft_from_vecfft):
     """Compute nonlinear tendencies for the sw1l model"""
-    if f != 0:
-        rot_abs = rot + f
-    else:
-        rot_abs = rot
-
-    if beta != 0:
-        rot_abs += beta * YY
-
-    F1x = rot_abs*uy
-    F1y = -rot_abs*ux
+    F1x, F1y = compute_Frot(rot, ux, uy, f, beta, YY)
     gradx_fft, grady_fft = gradfft_from_fft(
-        fft2(c2*eta + (ux**2+uy**2)/2.))
+        fft2(c2 * eta + (ux**2 + uy ** 2) / 2.))
     dealiasing(gradx_fft, grady_fft)
     Fx_fft[:] = fft2(F1x) - gradx_fft
     Fy_fft[:] = fft2(F1y) - grady_fft
 
-    Feta_fft[:] = -divfft_from_vecfft(fft2((eta+1)*ux),
-                                      fft2((eta+1)*uy))
+    Feta_fft[:] = -divfft_from_vecfft(fft2((eta + 1) * ux),
+                                      fft2((eta + 1) * uy))
 
 
 if __name__ == "__main__":
@@ -150,14 +142,14 @@ if __name__ == "__main__":
     params.short_name_type_run = 'test'
 
     nh = 32
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate**(1. / 3) * delta_x**8
 
     params.time_stepping.t_end = 1.
     # params.time_stepping.USE_CFL = False
