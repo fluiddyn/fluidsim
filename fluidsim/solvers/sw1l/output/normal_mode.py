@@ -21,6 +21,7 @@ Provides:
 import numpy as np
 
 from fluiddyn.util import mpi
+from .normal_mode_pythran import get_qmat
 
 
 class NormalModeBase(object):
@@ -115,20 +116,18 @@ class NormalModeDecomposition(NormalModeBase):
     def __init__(self, output):
         super(NormalModeDecomposition, self).__init__(output)
         oper = self.oper
-        KX = oper.KX
-        KY = oper.KY
-        KK = oper.KK
-        K2 = oper.K2
         sigma = self.sigma
 
         f = self.params.f
         c = self.params.c2 ** 0.5
-        ck = c * self.oper.KK_not0
 
-        self.qmat = np.array(
-            [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-             [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-             [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
+        self.qmat = get_qmat(
+            f, c, sigma, oper.KX, oper.KY, oper.KK, oper.K2, oper.KK_not0)
+        # qmat_py = np.array(
+        #    [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
+        #     [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
+        #     [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
+        # np.testing.assert_allclose(qmat_py, self.qmat, rtol=1e-14)
 
         if mpi.rank == 0 or oper.is_sequential:
             self.qmat[:, :, 0, 0] = 0.

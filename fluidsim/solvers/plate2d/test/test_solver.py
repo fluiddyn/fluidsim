@@ -12,6 +12,10 @@ from fluidsim.solvers.plate2d.solver import Simul
 
 
 class TestSolverPLATE2D(unittest.TestCase):
+    def tearDown(self):
+        if mpi.rank == 0:
+            shutil.rmtree(self.sim.output.path_run)
+
     def test_tendency(self):
 
         params = Simul.create_default_params()
@@ -39,14 +43,11 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.output.ONLINE_PLOT_OK = False
 
         with stdout_redirected():
-            sim = Simul(params)
+            self.sim = sim = Simul(params)
 
         ratio = sim.test_tendencies_nonlin()
 
         self.assertGreater(2e-15, ratio)
-
-        if mpi.rank == 0:
-            shutil.rmtree(sim.output.path_run)
 
     def test_output(self):
 
@@ -101,7 +102,7 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.output.correl_freq.iomegas1 = [1, 2]
 
         with stdout_redirected():
-            sim = Simul(params)
+            self.sim = sim = Simul(params)
             sim.time_stepping.start()
 
         sim.output.correl_freq.compute_corr4_norm()
