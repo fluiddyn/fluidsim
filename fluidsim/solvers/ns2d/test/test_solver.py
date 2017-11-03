@@ -91,7 +91,7 @@ class TestSolverNS2D(unittest.TestCase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
-        with stdout_redirected(0):
+        with stdout_redirected():
             self.sim = sim = self.Simul(params)
             sim.time_stepping.start()
 
