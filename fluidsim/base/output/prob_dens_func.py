@@ -37,9 +37,9 @@ class ProbaDensityFunc(SpecificOutput):
     def init_online_plot(self):
         self.fig, axe = self.output.figure_axe(numfig=5000000)
         self.axe = axe
-        axe.set_xlabel('$\eta$')
+        axe.set_xlabel(r'$\eta$')
         axe.set_ylabel('pdf')
-        title = ('pdf $\eta$, solver ' + self.output.name_solver +
+        title = (r'pdf $\eta$, solver ' + self.output.name_solver +
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         axe.set_title(title)
@@ -138,7 +138,7 @@ class ProbaDensityFunc(SpecificOutput):
         size_axe = [x_left_axe, z_bottom_axe,
                     width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('$\eta$')
+        ax1.set_xlabel(r'$\eta$')
         ax1.set_ylabel('PDF')
         ax1.set_title('PDF, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx) +

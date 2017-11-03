@@ -192,16 +192,17 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             Feta_fft = forcing('eta_fft')
         elif {'q_fft', 'ap_fft', 'am_fft'} == set_keys:
             Fx_fft, Fy_fft, Feta_fft = \
-                    self.sim.oper.uxuyetafft_from_qapamfft(forcing('q_fft'),
-                                                           forcing('ap_fft'),
-                                                           forcing('am_fft'))
+                self.sim.oper.uxuyetafft_from_qapamfft(forcing('q_fft'),
+                                                       forcing('ap_fft'),
+                                                       forcing('am_fft'))
         elif {'ap_fft', 'am_fft'} == set_keys:
             Fx_fft, Fy_fft, Feta_fft = \
-                    self.sim.oper.uxuyetafft_from_afft(forcing('ap_fft') +
-                                                       forcing('am_fft'))
+                self.sim.oper.uxuyetafft_from_afft(forcing('ap_fft') +
+                                                   forcing('am_fft'))
         else:
             raise NotImplementedError(
-                'Not sure how to estimate forcing rate with keys_state_fft = {}'.format(set_keys))
+                'Not sure how to estimate forcing rate with '
+                'keys_state_fft = {}'.format(set_keys))
 
         return Fx_fft, Fy_fft, Feta_fft
 
@@ -507,7 +508,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('t')
-        ax1.set_ylabel('$P_E(t)$, $\epsilon(t)$')
+        ax1.set_ylabel(r'$P_E(t)$, $\epsilon(t)$')
         title = ('forcing and dissipation, solver ' + self.output.name_solver +
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
@@ -515,9 +516,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         if 'PK_tot' in dico_results:
             ax1.plot(t, P_tot, 'c', linewidth=2, label='$P_{tot}$')
 
-        ax1.plot(t, epsE, 'k--', linewidth=2, label='$\epsilon$')
-        ax1.plot(t, epsE_hypo, 'g', linewidth=2, label='$\epsilon_{hypo}$')
-        ax1.plot(t, epsE_tot, 'k', linewidth=2, label='$\epsilon_{tot}$')
+        ax1.plot(t, epsE, 'k--', linewidth=2, label=r'$\epsilon$')
+        ax1.plot(t, epsE_hypo, 'g', linewidth=2, label=r'$\epsilon_{hypo}$')
+        ax1.plot(t, epsE_tot, 'k', linewidth=2, label=r'$\epsilon_{tot}$')
 
         ax1.legend(loc=2)
 
@@ -525,7 +526,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('t')
-        ax2.set_ylabel('$\epsilon$ Charney PE(t)')
+        ax2.set_ylabel(r'$\epsilon$ Charney PE(t)')
         title = ('dissipation Charney PE')
         ax2.set_title(title)
         ax2.plot(t, epsCPE, 'k--', linewidth=2)
@@ -631,7 +632,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         if mpi.rank == 0:
             to_print = (
                 'epsKsup= {0:11.6e} ; epsKshypo  = {1:11.6e} ;\n'
-            ).format(epsKsuppl,   epsKsuppl_hypo)
+            ).format(epsKsuppl, epsKsuppl_hypo)
             self.file.write(to_print)
 
     def compute_epsK(self, f_d, f_d_hypo,

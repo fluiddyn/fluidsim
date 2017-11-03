@@ -14,21 +14,19 @@ SAVE_FIG = 1
 name_file = 'spectra_forcingq_diff_c.eps'
 
 create_fig = CreateFigArticles(
-    short_name_article='SW1l', 
-    SAVE_FIG=SAVE_FIG, 
-    FOR_BEAMER=False, 
-    fontsize=19
-    )
+    short_name_article='SW1l',
+    SAVE_FIG=SAVE_FIG,
+    FOR_BEAMER=False,
+    fontsize=19)
 
-dir_base  = (
-create_fig.path_base_dir+'/Results_for_article_SW1l'
-'/Approach_runs_2048x2048'
-)
+dir_base = (
+    create_fig.path_base_dir+'/Results_for_article_SW1l'
+    '/Approach_runs_2048x2048')
 set_of_dir_results = solveq2d.SetOfDirResults(dir_base=dir_base)
 dirs = set_of_dir_results.dirs_from_values(solver='SW1lexlin',
                                            FORCING=True)
 
-print dirs
+print(dirs)
 
 tmin = 264
 
@@ -80,17 +78,17 @@ ax1.plot(kh, EKd3*coef_norm, 'c:', linewidth=2)
 
 
 cond = np.logical_and(kh > 1 , kh < 20)
-ax1.plot(kh[cond], 1e1*kh[cond]**(-3.)*coef_norm[cond], 
+ax1.plot(kh[cond], 1e1*kh[cond]**(-3.)*coef_norm[cond],
          'k--', linewidth=1)
 plt.figtext(0.6, 0.78, '$k^{-3}$', fontsize=20)
 
 cond = np.logical_and(kh > 0.3 , kh < 10)
-ax1.plot(kh[cond], 4e-2*kh[cond]**(-2.)*coef_norm[cond], 
+ax1.plot(kh[cond], 4e-2*kh[cond]**(-2.)*coef_norm[cond],
          'k:', linewidth=1)
 plt.figtext(0.25, 0.55, '$k^{-2}$', fontsize=20)
 
 cond = np.logical_and(kh > 0.3 , kh < 15)
-ax1.plot(kh[cond], 1e-2*kh[cond]**(-5./3)*coef_norm[cond], 
+ax1.plot(kh[cond], 1e-2*kh[cond]**(-5./3)*coef_norm[cond],
          'k-.', linewidth=1)
 plt.figtext(0.5, 0.45, '$k^{-5/3}$', fontsize=20)
 
@@ -111,9 +109,9 @@ ax1.set_ylabel('2D spectra')
 
 # plt.rc('legend', numpoints=1)
 # leg1 = plt.figlegend(
-#         [l_Etot[0], l_EK[0], l_EA[0]], 
-#         ['$E$', '$E_K$', '$E_A$'], 
-#         loc=(0.78, 0.7), 
+#         [l_Etot[0], l_EK[0], l_EA[0]],
+#         ['$E$', '$E_K$', '$E_A$'],
+#         loc=(0.78, 0.7),
 #         labelspacing = 0.2
 # )
 
@@ -126,14 +124,3 @@ ax1.set_ylim([1e-5,2e1])
 create_fig.save_fig()
 
 plt.show()
-
-
-
-
-
-
-
-
-
-
-

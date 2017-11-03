@@ -157,11 +157,10 @@ print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.1.6', 'future >= 0.16']
+install_requires = ['fluiddyn >= 0.1.6', 'future >= 0.16', 'h5py']
 
-install_requires += ['h5py']
 if FFTW3:
-    install_requires += ['pyfftw >= 0.10.4']
+    install_requires += ['pyfftw >= 0.10.4', 'fluidfft']
 
 
 def modification_date(filename):

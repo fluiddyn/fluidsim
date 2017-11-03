@@ -2,7 +2,6 @@ from __future__ import division
 
 import unittest
 import shutil
-import os
 
 import numpy as np
 
@@ -12,7 +11,7 @@ import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.solver import Simul
-from fluidsim.solvers.ns2d.solver_oper_cython import Simul as Simul2
+# from fluidsim.solvers.ns2d.solver_oper_cython import Simul as Simul2
 
 
 class TestSolverNS2D(unittest.TestCase):
@@ -71,7 +70,7 @@ class TestSolverNS2D(unittest.TestCase):
 
         params.short_name_type_run = 'test'
 
-        nh = 32
+        nh = 16
         params.oper.nx = 2*nh
         params.oper.ny = nh
         Lh = 6.
@@ -92,7 +91,7 @@ class TestSolverNS2D(unittest.TestCase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
-        with stdout_redirected():
+        with stdout_redirected(0):
             self.sim = sim = self.Simul(params)
             sim.time_stepping.start()
 
@@ -122,7 +121,7 @@ class TestSolverNS2D(unittest.TestCase):
                 path_run = mpi.comm.bcast(path_run)
 
             sim3 = fls.load_state_phys_file(path_run)
-            sim3.params.time_stepping.t_end += 10.
+            sim3.params.time_stepping.t_end += 1.
             sim3.time_stepping.start()
 
 
