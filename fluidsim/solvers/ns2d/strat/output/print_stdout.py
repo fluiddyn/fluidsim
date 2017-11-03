@@ -77,7 +77,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         EK = np.zeros(nt)
         EA = np.zeros(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             it[il] = int(words[2])
