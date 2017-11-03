@@ -22,6 +22,7 @@ doc/**generated/*
 doc/**.zip
 doc/ipynb/*_files/*.png
 doc/ipynb/*.rst
+**.nbconvert.ipynb
 
 *.ipynb_checkpoints*
 *Untitled*.ipynb

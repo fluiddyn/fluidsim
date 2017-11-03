@@ -54,7 +54,8 @@ class NormalModeBase(object):
                 ux_fft = self.sim.state('ux_fft')
                 uy_fft = self.sim.state('uy_fft')
                 eta_fft = self.sim.state('eta_fft')
-                bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+                bvec_fft = self.bvecfft_from_uxuyetafft(
+                    ux_fft, uy_fft, eta_fft)
 
             self.bvec_fft = bvec_fft
             self.it_bvec_fft_computed = self.sim.time_stepping.it
@@ -62,10 +63,8 @@ class NormalModeBase(object):
         return self.bvec_fft
 
     def bvecfft_from_qapamfft(self, q_fft, ap_fft, am_fft):
-        """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
-        from diagonalized linear modes.
-        """
+        r""" Compute normal mode vector :math:`\mathbf{B}`
+        with dimensions of velocity from diagonalized linear modes.  """
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
         KK = self.oper.KK_not0
@@ -81,11 +80,10 @@ class NormalModeBase(object):
         return bvec_fft
 
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
-        from primitive variables.
-        """
-        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+        r""" Compute normal mode vector, :math:`\mathbf{B}` 
+        with dimensions of velocity from primitive variables.  """
+        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(
+            ux_fft, uy_fft, eta_fft)
 
         return self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
 
