@@ -1,7 +1,6 @@
 
 channels:
   - conda-forge
-  - serge-sans-paille
 
 dependencies:
   - python=3.6
@@ -15,4 +14,3 @@ dependencies:
   - matplotlib
   - fftw
   - pyfftw
-  - pythran
