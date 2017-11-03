@@ -35,8 +35,9 @@ from .util.util import (
     modif_resolution_from_dir, modif_resolution_all_dir)
 
 # clean up
-# from . import util, base
-# del util, base
+from . import util
+del util
+
 
 __all__ = [
     '__version__', 'path_dir_results', 'import_module_solver_from_key',

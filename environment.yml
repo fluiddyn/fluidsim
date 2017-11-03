@@ -1,6 +1,9 @@
 
+channels:
+  - conda-forge
+
 dependencies:
-  - python=3.4
+  - python=3.6
   - numpy
   - cython
   - mpi4py
@@ -9,3 +12,5 @@ dependencies:
   - numpydoc
   - jupyter
   - matplotlib
+  - fftw
+  - pyfftw
