@@ -10,6 +10,7 @@ import numpy as np
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
+from .util_pythran import strfunc_from_pdf
 
 
 class Increments(SpecificOutput):
@@ -327,15 +328,8 @@ class Increments(SpecificOutput):
                 = \int_{-\inf}^{\inf} (\delta u)^m p(\delta u) d(\delta u)
                 = d(\delta u) \Sigma (\delta u)^m p(\delta u)
         """
-        order = float(order)
-        S_order = np.empty(self.rxs.shape)
-        if absolute:
-            values = abs(values)
-        for irx in range(self.rxs.size):
-            deltainc = abs(values[irx, 1] - values[irx, 0])
-            S_order[irx] = deltainc*np.sum(
-                pdf[irx]*values[irx]**order)
-        return S_order
+        return strfunc_from_pdf(
+            self.rxs, pdf, values, float(order), absolute)
 
     def load_pdf_from_file(self, tmin=0, tmax=None, key_var='ux',
                            irx_to_plot=None):

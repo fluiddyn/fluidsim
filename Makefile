@@ -23,8 +23,8 @@ tests_mpi:
 
 _tests_coverage:
 	mkdir -p .coverage
-	coverage run -p -m fluidsim.util.testing
-	mpirun -np 2 coverage run -p -m fluidsim.util.testing
+	coverage run -p -m fluidsim.util.testing -v
+	mpirun -np 2 coverage run -p -m fluidsim.util.testing -v
 
 _report_coverage:
 	coverage combine

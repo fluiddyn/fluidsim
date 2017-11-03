@@ -21,6 +21,7 @@ from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
+from .util_pythran import linear_eigenmode_from_values_1k
 
 
 class OutputBaseSW1L(OutputBasePseudoSpectral):
@@ -87,12 +88,9 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     def linear_eigenmode_from_values_1k(self, ux_fft, uy_fft, eta_fft,
                                         kx, ky):
-        div_fft = 1j*(kx*ux_fft + ky*uy_fft)
-        rot_fft = 1j*(kx*uy_fft - ky*ux_fft)
-        q_fft = rot_fft - self.sim.params.f*eta_fft
-        k2 = kx**2+ky**2
-        ageo_fft = self.sim.params.f*rot_fft/self.sim.params.c2 + k2*eta_fft
-        return q_fft, div_fft, ageo_fft
+        return linear_eigenmode_from_values_1k(
+            ux_fft, uy_fft, eta_fft, kx, ky, self.sim.params.f,
+            self.sim.params.c2)
 
     def omega_from_wavenumber(self, k):
         return np.sqrt(self.sim.params.f**2 + self.sim.params.c2*k**2)

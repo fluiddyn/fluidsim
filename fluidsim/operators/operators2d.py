@@ -19,7 +19,8 @@ from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from . import util2d_pythran, util_sw1l_pythran
 from .util2d_pythran import (
-    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft)
+    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft,
+    compute_increments_dim1)
 from ..base.setofvariables import SetOfVariables
 
 if not hasattr(util2d_pythran, '__pythran__'):
@@ -312,15 +313,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def compute_increments_dim1(self, var, irx):
         """Compute the increments of var over the dim 1."""
-
-        n0 = var.shape[0]
-        n1 = var.shape[1]
-        n1new = n1 - irx
-        inc_var = np.empty([n0, n1new])
-        for i0 in range(n0):
-            for i1 in range(n1new):
-                inc_var[i0, i1] = (var[i0, i1+irx] - var[i0, i1])
-        return inc_var
+        return compute_increments_dim1(var, int(irx))
 
     def pdf_normalized(self, field, nb_bins=100):
         """Compute the normalized pdf"""

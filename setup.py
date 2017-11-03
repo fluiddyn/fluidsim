@@ -178,6 +178,8 @@ def make_pythran_extensions(modules):
         # warning: does not work on Windows
         suffix = get_config_var('EXT_SUFFIX') or '.so'
         bin_file = base_file + suffix
+        print('make_pythran_extension: {} -> {} '.format(
+            py_file, os.path.basename(bin_file)))
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
             pext = PythranExtension(

@@ -129,7 +129,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
                 sign * amp * np.exp(old_div(-(x ** 2 + y ** 2), (2 * SD**2))))
 
         omega = np.zeros(oper.shapeX_loc)
-        for i in xrange(0, N_vort):
+        for i in range(0, N_vort):
             x0 = x_vort[i]
             for j in range(0, N_vort):
                 y0 = y_vort[j]

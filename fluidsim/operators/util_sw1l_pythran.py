@@ -1,10 +1,10 @@
+import numpy as np
+
+
 # pythran export qapamfft_from_uxuyetafft(
 #     complex128[][], complex128[][], complex128[][],
 #     int, int, float64[][], float64[][], float64[][],
 #     complex128[][], float, float, int)
-import numpy as np
-
-
 def qapamfft_from_uxuyetafft(
         ux_fft, uy_fft, eta_fft,
         n0, n1, KX, KY, K2,

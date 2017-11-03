@@ -45,6 +45,18 @@ def create_oper(type_fft=None):
     return oper
 
 
+def compute_increments_dim1_old(var, irx):
+    """Old version of the function compute_increments_dim1."""
+    n0 = var.shape[0]
+    n1 = var.shape[1]
+    n1new = n1 - irx
+    inc_var = np.empty([n0, n1new])
+    for i0 in range(n0):
+        for i1 in range(n1new):
+            inc_var[i0, i1] = (var[i0, i1 + irx] - var[i0, i1])
+    return inc_var
+
+
 @unittest.skipIf(
     NO_PYTHRAN,
     'Pythran extension fluidsim.operators.util2d_pythran unavailable')
@@ -54,7 +66,7 @@ class TestOperators(unittest.TestCase):
     def setUpClass(cls):
         cls.oper = create_oper()
         cls.rtol = 1e-15
-        cls.atol = 1e-15  # Absolute tolerance for double precision FFT
+        cls.atol = 1e-14  # Absolute tolerance for double precision FFT
 
     def test_curl(self):
         """Test curl"""
@@ -70,7 +82,7 @@ class TestOperators(unittest.TestCase):
         np.testing.assert_allclose(rot2_fft, rot_fft, self.rtol, self.atol)
 
     def test_uxuyeta_qapam_conversion(self):
-        """Test gradient"""
+        """Test conversion back and forth from q,ap,am -> ux, uy, eta"""
         oper = self.oper
         q_fft = oper.random_arrayK()
         ap_fft = oper.random_arrayK()
@@ -99,6 +111,18 @@ class TestOperators(unittest.TestCase):
 
         np.testing.assert_allclose(ff_fft, ff_fft_back, self.rtol, self.atol)
 
+    def test_compute_increments_dim1(self):
+        """Test computing increments of var over the dim 1."""
+        oper = self.oper
+        var = oper.random_arrayX()
+        def assert_increments_equal(irx):
+            inc_var = oper.compute_increments_dim1(var, irx)
+            inc_var_old = compute_increments_dim1_old(var, irx)
+            np.testing.assert_equal(inc_var_old, inc_var)
+
+        n1 = oper.shapeX[1]
+        for irx in [n1, n1 // 2, 0]:
+            assert_increments_equal(irx)
 
 if __name__ == '__main__':
     unittest.main()

@@ -21,7 +21,7 @@ Provides:
 import numpy as np
 
 from fluiddyn.util import mpi
-from .normal_mode_pythran import get_qmat
+from .util_pythran import get_qmat
 
 
 class NormalModeBase(object):
