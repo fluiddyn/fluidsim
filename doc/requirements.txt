@@ -3,6 +3,7 @@ jupyter
 numpy
 matplotlib
 scipy
-fluiddyn>=0.0.11a1
+fluiddyn>=0.1.6
 Sphinx>=1.1
 numpydoc
+fluidfft

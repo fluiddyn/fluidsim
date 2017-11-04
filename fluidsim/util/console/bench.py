@@ -40,9 +40,8 @@ def bench(
     try:
         with stdout_redirected():
             sim = Simul(params)
-        run_bench(sim, path_dir)
+            run_bench(sim, path_dir)
     except Exception:
-        # raise
         print('WARNING: Some error occured while saving results!')
     finally:
         tear_down(sim)
