@@ -6,7 +6,6 @@ dependencies:
   - python=3.6
   - numpy
   - cython
-  - mpi4py
   - h5py
   - sphinx
   - numpydoc
