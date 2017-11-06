@@ -1,8 +1,6 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util`)
 =================================================================
 
-.. currentmodule:: fluidsim.util
-
 """
 
 from __future__ import division, print_function

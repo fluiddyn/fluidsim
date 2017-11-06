@@ -1,13 +1,15 @@
 """Utilities for the unittests (:mod:`fluidsim.util.testing`)
 =============================================================
+
 This module extends the functionalities provide by the `unittest` standard
 library. It enforces matplotlib to use its `Agg` backend, thereby smoothly
 executing plotting tests without window pop-ups. It is also useful to execute
 this module to run FluidSim unittests, without going into the source directory
 for eg. when it is installed through `pip`.
 
-.. TODO: Use `argparse` to add optional arguments such as module names and
-verbosity.
+.. TODO:: 
+
+   Use `argparse` to add optional arguments such as module names and verbosity.
 
 """
 import os

@@ -14,14 +14,12 @@
 import sys
 import os
 
-# to be able to build the doc without h5py with Read the docs
-on_rtd = os.environ.get('READTHEDOCS')
-if on_rtd:
-    # this package comes from fluiddyn
-    from fluidrtd import mock_modules
-    mock_modules(['h5py'])
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+plt.ioff()
 
-from fluidrtd.ipynb_maker import ipynb_to_rst
+from fluiddoc.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()
 
 import fluidsim
