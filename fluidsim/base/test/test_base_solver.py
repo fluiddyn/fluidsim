@@ -16,9 +16,10 @@ class TestBaseSolver(unittest.TestCase):
     def setUp(self):
         params = Simul.create_default_params()
 
-        params.short_name_type_run = 'test'
+        params.short_name_type_run = 'test_base_solver'
         params.time_stepping.USE_CFL = False
-        params.time_stepping.t_end = 2.
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 4
         params.time_stepping.deltat0 = 0.1
 
         with stdout_redirected():

@@ -15,54 +15,116 @@ Provides:
 from __future__ import division, print_function
 
 import os
+from importlib import import_module
+from builtins import map
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.util import import_class
+from fluiddyn.util import mpi
 
 from fluidsim.base.solvers.info_base import InfoSolverBase
 
 
 class Parameters(ParamContainer):
     """Contain the parameters."""
-    pass
+    def __ior__(self, other):
+        """Defines operator `|=`
 
+        This operator performs a union with other Parameters instances.
+        In simpler words, merge missing attributes and children (members).
+        Do note, this does not check for mismatch in the parameter values.
 
-def merge_params(*paramcontainers):
-    """Merges missing parameters attributes and children."""
-    if any([not isinstance(params, Parameters) for params in paramcontainers]):
-        raise ValueError('Can only merge instances of Parameters')
+        Parameters
+        ----------
+        other: Parameters
+            Another Parameters instance to look for missing members.
 
-    params_merged = paramcontainers[0]
-    print(params_merged.init_fields.from_file.path)
+        Returns
+        -------
+        Parameters
 
-    def merge_params_pair(params1, params2):
-        """Merge `params1` --> `params2`."""
-        try:
-            diff_attribs = set(params2._key_attribs) - set(params1._key_attribs)
-        except AttributeError:
-            from warnings import warn
-            warn('Kept for compatibility with fluiddyn==0.0.x', DeprecationWarning)
-            diff_attribs = params2._attribs - params1._attribs
+        """
+        if not isinstance(other, Parameters):
+            raise TypeError(
+                '{}. Can only merge instances of Parameters'.format(
+                    type(other)))
+
+        params1 = self
+        params2 = other
+
+        # Merge attributes
+        diff_attribs = set(params2._key_attribs) - set(params1._key_attribs)
+
+        if len(diff_attribs) > 0:
+            print('Add parameter attributes: ', diff_attribs)
 
         for attrib in diff_attribs:
-            print('Merge params attrib: ', attrib)
             params1._set_attrib(attrib, params2[attrib])
 
+        # Merge childrean
         diff_children = set(params2._tag_children) - set(params1._tag_children)
+        internal_attribs = [
+            'attribs', 'children', 'key_attribs', 'tag', 'tag_children']
+
+        if len(diff_children) > 0:
+            print('Add parameter children: ', diff_children)
 
         for child in diff_children:
-            print('Merge params child: ', child)
-            params1._set_child(child, params2[child]._make_dict())
+            child_attribs = params2[child]._make_dict()
+            # Clean up intenal attributes from dictionary
+            list(map(child_attribs.__delitem__, internal_attribs))
 
+            params1._set_child(child, child_attribs)
+
+        # Recurse
         for child in params2._tag_children:
-            params1[child] = merge_params_pair(params1[child], params2[child])
+            params1[child] |= params2[child]
 
-        return params1
+        return self
 
-    for params in paramcontainers[1:]:
-        params_merged = merge_params_pair(params_merged, params)
 
-    return params_merged
+def merge_params(to_params, *other_params):
+    """Merges missing parameters attributes and children of a typical
+    Simulation object's parameters when compared to other parameters.
+    Also, tries to replace `to_params.oper.type_fft` if found to be
+    not based on FluidFFT.
+
+    Parameters
+    ----------
+    to_params: ParamContainer
+
+    other_params: ParamContainer, ParamContainer, ...
+
+    """
+    for other in other_params:
+        to_params |= other
+
+    def find_available_fluidfft(dim):
+        """Find available FluidFFT implementations."""
+        use_mpi = mpi.nb_proc > 1
+        fluidfft = import_module('fluidfft.fft{}d'.format(dim))
+        fluidfft_classes = (
+            fluidfft.get_classes_mpi() if use_mpi else fluidfft.get_classes_seq())
+        for k, v in fluidfft_classes.items():
+            if v is not None:
+                break
+        else:
+            raise ValueError(
+                'No compatible fluidfft FFT types found for'
+                '{}D, mpi={}'.format(dim, use_mpi))
+
+        return k
+
+    # Substitute old FFT types with newer FluidFFT implementations
+    if hasattr(to_params, 'oper') and hasattr(to_params.oper, 'type_fft'):
+        method = to_params.oper.type_fft
+        if not (method.startswith('fft2d.') or method.startswith('fft3d.')):
+            dim = 3 if hasattr(params.oper, 'nz') else 2
+            type_fft = find_available_fluidfft(dim)
+            print(
+                'params.oper.type_fft', to_params.oper.type_fft, '->',
+                type_fft)
+            to_params.oper.type_fft = type_fft
 
 
 def create_params(input_info_solver):
@@ -131,4 +193,4 @@ if __name__ == '__main__':
 
     params = create_params(info_solver)
 
-    info = create_info_simul(info_solver, params)
+    # info = create_info_simul(info_solver, params)

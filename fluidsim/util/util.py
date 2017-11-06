@@ -1,6 +1,8 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util`)
 =================================================================
 
+.. currentmodule:: fluidsim.util
+
 """
 
 from __future__ import division, print_function
@@ -31,6 +33,14 @@ from fluidsim.base.params import (
 
 
 def available_solver_keys():
+    """Inspects the subpackage `fluidsim.solvers` for all available
+    solvers.
+
+    Returns
+    -------
+    list
+
+    """
     top = _os.path.split(inspect.getfile(solvers))[0]
     top = _os.path.abspath(top) + _os.sep
     keys = list()
@@ -138,23 +148,8 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     except AttributeError:
         pass
 
-    def find_available_fluidfft(dim):
-        fluidfft = import_module('fluidfft.fft{}d'.format(dim))
-        for k, v in fluidfft.get_classes_seq().items():
-            if v is not None:
-                break
-
-        return k
-
     if merge_missing_params:
-        method = params.oper.type_fft
-        if not (method.startswith('fft2d.') or method.startswith('fft3d.')):
-            print('params.oper.type_fft', params.oper.type_fft, end='')
-            dim = 3 if hasattr(params.oper, 'nz') else 2
-            params.oper.type_fft = find_available_fluidfft(dim)
-            print(' -> ', params.oper.type_fft)
-
-        params = merge_params(params, solver.Simul.create_default_params())
+        merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
     return sim
@@ -192,8 +187,9 @@ def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True,
         params.preprocess.enable = False
     except AttributeError:
         pass
+
     if merge_missing_params:
-        params = merge_params(params, solver.Simul.create_default_params())
+        merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
     return sim
