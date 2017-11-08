@@ -4,6 +4,7 @@
 """
 from __future__ import print_function, division
 
+from collections import OrderedDict
 import numpy as np
 
 from fluiddyn.util import mpi, info
@@ -30,24 +31,34 @@ def bench(
     Simul = solver.Simul
     params = Simul.create_default_params()
 
-    if dim == '2d':
-        modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
-    elif dim == '3d':
-        modif_params3d(params, n0, n1, n2, name_run='bench', type_fft=type_fft)
+    def _bench(type_fft):
+        if dim == '2d':
+            modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
+        elif dim == '3d':
+            modif_params3d(params, n0, n1, n2, name_run='bench', type_fft=type_fft)
+        else:
+            raise ValueError("dim has to be in ['2d', '3d']")
+
+        try:
+            with stdout_redirected():
+                sim = Simul(params)
+                run_bench(sim, path_dir)
+        except Exception:
+            print('WARNING: Some error occured while saving results!')
+        finally:
+            tear_down(sim)
+
+    if type_fft.lower() == 'all':
+        d = get_opfft(n0, n1, n2, dim, only_dict=True)
+        for type_fft, cls in d.items():
+            if cls is not None:
+                print(type_fft)
+                _bench(type_fft)
     else:
-        raise ValueError("dim has to be in ['2d', '3d']")
-
-    try:
-        with stdout_redirected():
-            sim = Simul(params)
-            run_bench(sim, path_dir)
-    except Exception:
-        print('WARNING: Some error occured while saving results!')
-    finally:
-        tear_down(sim)
+        _bench(type_fft)
 
 
-def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, show=False):
+def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
     """Instantiate FFT operator provided by fluidfft."""
 
     if n2 is None or dim == '2d':
@@ -57,8 +68,8 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, show=False):
         from fluidfft.fft3d import get_classes_mpi
         d = get_classes_mpi()
 
-    if show:
-        info._print_dict(d)
+    if only_dict:
+        return d
     else:
         if type_fft not in d:
             raise ValueError('{} not in {}'.format(type_fft, list(d.keys())))
@@ -89,22 +100,25 @@ def estimate_shapes_weak_scaling(
 
     assert nproc_max % nproc_min == 0
 
-    # Generate a geometric progression of powers
-    power_max = int(np.log(nproc_max) / np.log(nproc_min))
-    start = nproc_min
-    ratio = nproc_min
-    nproc_gp = [start * ratio ** power for power in range(power_max)]
+    # Generate a geometric progression for number of processes
+
+    def log(x):
+        return int(np.log(x) / np.log(nproc_min))
+
+    num_gp = int(log(nproc_max))
+    nproc_gp = np.logspace(1, num_gp, num_gp, base=nproc_min, dtype=int)
+    nproc_max = nproc_gp[-1]
 
     opfft = get_opfft(n0_max, n1_max, n2_max, type_fft=type_fft)
     shapeX_seq = opfft.get_shapeX_seq()
-    shapes = dict()
+    shapes = OrderedDict()
     for nproc in nproc_gp:
         divisor = nproc_max // nproc
         if n2_max is None:
-            shapes[str(nproc)] = (
+            shapes[str(nproc)] = '{} {}'.format(
                 shapeX_seq[0], shapeX_seq[1] // divisor)
         else:
-            shapes[str(nproc)] = (
+            shapes[str(nproc)] = '{} {}'.format(
                 shapeX_seq[0], shapeX_seq[1], shapeX_seq[2] // divisor)
 
     if show:
@@ -133,7 +147,11 @@ def init_parser(parser):
 
     init_parser_base(parser)
     parser.add_argument('-o', '--output_dir', default=path_results)
-    parser.add_argument('-t', '--type-fft', default=None)
+    parser.add_argument(
+        '-t', '--type-fft', default=None,
+        help=(
+            'specify FFT type key (for eg. "fft2d.mpi_with_fftw1d") or "all";'
+            'if not specified uses the default FFT method in operators'))
     parser.add_argument(
         '-l', '--list-type-fft', action='store_true',
         help='list FFT types available for the specified shape or dimension')
@@ -151,7 +169,8 @@ def run(args):
     args = parse_args_dim(args)
 
     if args.list_type_fft:
-        get_opfft(args.n0, args.n1, args.n2, dim=args.dim, show=True)
+        d = get_opfft(args.n0, args.n1, args.n2, dim=args.dim, only_dict=True)
+        info._print_dict(d)
     elif args.print_shape_loc:
         if args.type_fft is None:
             args.type_fft = 'fft2d.mpi_with_fftw1d'

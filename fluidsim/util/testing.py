@@ -7,10 +7,6 @@ executing plotting tests without window pop-ups. It is also useful to execute
 this module to run FluidSim unittests, without going into the source directory
 for eg. when it is installed through `pip`.
 
-.. TODO:: 
-
-   Use `argparse` to add optional arguments such as module names and verbosity.
-
 """
 import os
 import sys

@@ -91,9 +91,9 @@ def merge_params(to_params, *other_params):
 
     Parameters
     ----------
-    to_params: ParamContainer
+    to_params: Parameters
 
-    other_params: ParamContainer, ParamContainer, ...
+    other_params: Parameters, Parameters, ...
 
     """
     for other in other_params:
