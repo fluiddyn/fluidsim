@@ -24,7 +24,7 @@ import numpy as np
 from math import radians
 
 from fluiddyn.util import mpi
-# from fluiddyn.util.util import print_memory_usage
+from fluiddyn.util.util import print_memory_usage
 
 
 class TimeSteppingBase(object):
@@ -90,8 +90,10 @@ class TimeSteppingBase(object):
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CLF_uxuyeta
         elif has_ux and has_uy and has_b:
+            print_memory_usage('MEMORY before compute dt = ')
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CLF_uxuyb
+            print_memory_usage('MEMORY after compute dt = ')
         elif has_ux and has_uy:
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CLF_uxuy
