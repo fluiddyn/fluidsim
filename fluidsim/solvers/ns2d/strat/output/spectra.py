@@ -13,14 +13,14 @@ import h5py
 import numpy as np
 
 from fluidsim.base.output.spectra import Spectra
-from fluiddyn.util.util import print_memory_usage
+# from fluiddyn.util.util import print_memory_usage
 
 class SpectraNS2DStrat(Spectra):
     """Save and plot spectra."""
 
     def compute(self):
         """compute the values at one time."""
-        print_memory_usage('before spectra')
+        # print_memory_usage('before spectra')
         # energy_fft = self.output.compute_energy_fft()
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
         energy_fft = energyK_fft + energyA_fft
@@ -63,7 +63,7 @@ class SpectraNS2DStrat(Spectra):
                           'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EA': spectrum2D_EA,
                           'spectrum2D_E': spectrum2D_E}
-        print_memory_usage('end spectra')
+        # print_memory_usage('end spectra')
         return dico_spectra1D, dico_spectra2D
 
     def _online_plot(self, dico_spectra1D, dico_spectra2D):

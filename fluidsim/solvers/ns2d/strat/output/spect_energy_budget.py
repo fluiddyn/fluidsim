@@ -18,7 +18,7 @@ import h5py
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv)
 
-from fluiddyn.util.util import print_memory_usage
+# from fluiddyn.util.util import print_memory_usage
 
 
 class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
@@ -28,7 +28,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         """compute the spectral energy budget at one time."""
         oper = self.sim.oper
 
-        print_memory_usage('start function compute seb')
+        # print_memory_usage('start function compute seb')
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -156,7 +156,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'dissEA_2d': dissEA_2d,
             'epsilon': epsilon_kx}
 
-        print_memory_usage('after dico_results_seb')
+        # print_memory_usage('after dico_results_seb')
         # Check!
         # small_value = 1e-16
         # for k, v in dico_results.items():
