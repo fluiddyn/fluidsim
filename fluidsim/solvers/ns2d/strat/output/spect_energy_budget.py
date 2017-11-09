@@ -18,6 +18,8 @@ import h5py
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv)
 
+from fluiddyn.util.util import print_memory_usage
+
 
 class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
     """Save and plot energy budget in spectral space."""
@@ -152,12 +154,14 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'dissEA_2d': dissEA_2d,
             'epsilon': epsilon_kx}
 
-
-        small_value = 1e-16
-        for k, v in dico_results.items():
-            if k.startswith('transfer'):
-                if abs(v.sum()) < small_value:
-                    print('warning: (abs(v.sum()) < small_value) for ' + k)
+        # Check!
+        # small_value = 1e-16
+        # for k, v in dico_results.items():
+        #     if k.startswith('transfer'):
+        #         if abs(v.sum()) < small_value:
+        #             print('warning: (abs(v.sum()) < small_value) for ' + k)
+        #             print_memory_usage(
+        #                 'Memory after printing warning output = ')
 
         return dico_results
 

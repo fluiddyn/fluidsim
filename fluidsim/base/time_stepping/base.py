@@ -24,6 +24,7 @@ import numpy as np
 from math import radians
 
 from fluiddyn.util import mpi
+# from fluiddyn.util.util import print_memory_usage
 
 
 class TimeSteppingBase(object):
@@ -160,6 +161,7 @@ class TimeSteppingBase(object):
         if self.params.FORCING:
             self.sim.forcing.compute()
         self.sim.output.one_time_step()
+        # print_memory_usage('memory after one time step = ')
         self.one_time_step_computation()
         self.t += self.deltat
         self.it += 1
