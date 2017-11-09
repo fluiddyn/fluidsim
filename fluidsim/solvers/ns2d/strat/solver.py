@@ -10,7 +10,7 @@
 from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
-from fluiddyn.util.util import print_memory_usage
+# from fluiddyn.util.util import print_memory_usage
 
 from fluidsim.solvers.ns2d.solver import \
     InfoSolverNS2D, Simul as SimulNS2D
@@ -58,7 +58,7 @@ class Simul(SimulNS2D):
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
-        print_memory_usage('before nonlin tendencies')
+        # print_memory_usage('before nonlin tendencies')
         oper = self.oper
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg
@@ -113,7 +113,7 @@ class Simul(SimulNS2D):
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
-        print_memory_usage('end non lin tendencies')
+        # print_memory_usage('end non lin tendencies')
         return tendencies_fft
 
 if __name__ == "__main__":
