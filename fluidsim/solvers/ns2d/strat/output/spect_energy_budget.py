@@ -28,6 +28,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         """compute the spectral energy budget at one time."""
         oper = self.sim.oper
 
+        print_memory_usage('start function compute spec_en_budget')
+
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
 
@@ -55,6 +57,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         px_uy = oper.ifft2(px_uy_fft)
         py_uy = oper.ifft2(py_uy_fft)
 
+        print_memory_usage('before starting computing fluxes')
+        
         Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
         Frot_fft = oper.fft2(Frot)
         oper.dealiasing(Frot_fft)
@@ -66,11 +70,14 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         Fy = -ux*px_uy - uy*(py_uy)
         Fy_fft = oper.fft2(Fy)
         oper.dealiasing(Fy_fft)
+        
+        print_memory_usage('before frequency dissipation')
 
         # Frequency dissipation viscosity
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         freq_diss_EK = f_d + f_d_hypo
 
+        print_memory_usage('before computing transfers, diss terms and B')
         # Energy budget terms. Nonlinear transfer terms, exchange kinetic and
         # potential energy B, dissipation terms.
         transferZ_fft = old_div(np.real(rot_fft.conj()*Frot_fft +
@@ -125,6 +132,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         epsilon_kx = dissEKu_kx.sum() + dissEKv_kx.sum() + dissEA_kx.sum()
         epsilon_ky = dissEKu_ky.sum() + dissEKv_ky.sum() + dissEA_ky.sum()
 
+        print_memory_usage('end of function compute seb')
+        
         # Variables saved in a dictionary
         dico_results = {
             'transferEK_kx': transferEK_kx,
