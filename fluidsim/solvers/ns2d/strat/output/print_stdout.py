@@ -15,6 +15,8 @@ from fluidsim.base.output.print_stdout import PrintStdOutBase
 from fluiddyn.util.util import get_memory_usage
 
 from fluiddyn.util import mpi
+import os
+
 
 
 class PrintStdOutNS2DStrat(PrintStdOutBase):
@@ -24,6 +26,20 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     to print simple info on the current state of the simulation.
 
     """
+    def __init__(self, output):
+        super(PrintStdOutNS2DStrat, self).__init__(output)
+        self.path_memory = self.output.path_run + '/memory_out.txt'
+        if mpi.rank == 0:
+            if not os.path.exists(self.path_memory):
+                self.file_memory = open(self.path_memory, 'w')
+            else:
+                self.file_memory = open(self.path_memory, 'r+')
+                self.file_memory.seek(0, 2)  # go to the end of the file
+
+    def close(self):
+        super(PrintStdOutNS2DStrat, self).close()
+        self.file_memory.close()
+
 
     def _make_str_info(self):
         to_print = super(PrintStdOutNS2DStrat, self)._make_str_info()
@@ -51,6 +67,31 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
 
         self.energy_temp = energy
         return to_print
+
+    def _write_memory_txt(self):
+        """Write memory .txt"""
+        it = self.sim.time_stepping.it
+        mem = get_memory_usage()
+        self.file_memory.write('{:.3f},{:.3f}\n'.format(it, mem))
+        self.file_memory.flush()
+
+    def plot_memory(self):
+        """ Plot memory used from memory_out.txt """
+        file_memory = open(self.output.path_run + '/memory_out.txt')
+        lines = file_memory.readlines()
+
+        lines_it = []
+        lines_memory = []
+        for il, line in enumerate(lines):
+            lines_it.append(float(line.split(',')[0]))
+            lines_memory.append(float(line.split(',')[1]))
+
+
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel('it')
+        ax.set_ylabel('Memory (Mo)')
+
+        ax.plot(lines_it, lines_memory, 'k', linewidth=2)
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}

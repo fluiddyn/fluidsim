@@ -38,7 +38,7 @@ class PrintStdOutBase(object):
         self.period_print = params.output.periods_print.print_stdout
 
         self.path_file = self.output.path_run + '/stdout.txt'
-        self.path_memory = self.output.path_run + '/memory_out.txt'
+
 
         if mpi.rank == 0 and self.output.has_to_save:
             if not os.path.exists(self.path_file):
@@ -46,13 +46,6 @@ class PrintStdOutBase(object):
             else:
                 self.file = open(self.path_file, 'r+')
                 self.file.seek(0, 2)  # go to the end of the file
-
-        if mpi.rank == 0:
-            if not os.path.exists(self.path_memory):
-                self.file_memory = open(self.path_memory, 'w')
-            else:
-                self.file_memory = open(self.path_memory, 'r+')
-                self.file_memory.seek(0, 2)  # go to the end of the file
 
     def complete_init_with_state(self):
 
@@ -70,7 +63,6 @@ class PrintStdOutBase(object):
         """Print in stdout and if SAVE in the file stdout.txt"""
         if mpi.rank == 0:
             print(to_print, end=end)
-            # self._write_memory_txt()
             if self.output.has_to_save:
                 self.file.write(to_print+end)
                 self.file.flush()
@@ -91,13 +83,6 @@ class PrintStdOutBase(object):
             self.sim.time_stepping.it,
             self.sim.time_stepping.t,
             self.sim.time_stepping.deltat)
-
-    def _write_memory_txt(self):
-        """Write memory .txt"""
-        it = self.sim.time_stepping.it
-        mem = get_memory_usage()
-        self.file_memory.write('{:.3f},{:.3f}\n'.format(it, mem))
-        self.file_memory.flush()
 
     def _evaluate_duration_left(self):
         """ Computes the remaining time. """
@@ -128,6 +113,5 @@ class PrintStdOutBase(object):
     def close(self):
         try:
             self.file.close()
-            self.file_memory.close()
         except AttributeError:
             pass
