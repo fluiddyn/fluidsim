@@ -21,11 +21,12 @@ from math import pi
 from numbers import Number
 
 import numpy as np
+import os
 from math import radians
 
 from fluiddyn.util import mpi
-from fluiddyn.util.util import print_memory_usage
-
+from fluiddyn.util.util import print_memory_usage, get_memory_usage
+# from fluiddyn.util.util import get_memory_usage
 
 class TimeSteppingBase(object):
     """Universal time stepping class used for all solvers.
@@ -50,6 +51,15 @@ class TimeSteppingBase(object):
 
         self.it = 0
         self.t = 0
+
+        self.path_memory = self.params.path_run + '/memory_out.txt'
+
+        if mpi.rank == 0:
+            if not os.path.exists(self.path_memory):
+                self.file = open(self.path_memory, 'w')
+            else:
+                self.file = open(self.path_memory, 'r+')
+                self.file.seek(0, 2)  # go to the end of the file
 
         self._has_to_stop = False
 
@@ -161,8 +171,14 @@ class TimeSteppingBase(object):
         if self.params.FORCING:
             self.sim.forcing.compute()
         self.sim.output.one_time_step()
-        # print_memory_usage('memory after one time step = ')
         self.one_time_step_computation()
+
+        memory = get_memory_usage()
+        if mpi.rank == 0:
+            self.file.write('{:.3f},{:.3f}\n'.format(self.it, memory))
+            self.file.flush()
+            os.fsync(self.file.fileno())
+
         self.t += self.deltat
         self.it += 1
 
