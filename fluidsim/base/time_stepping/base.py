@@ -52,14 +52,15 @@ class TimeSteppingBase(object):
         self.it = 0
         self.t = 0
 
-        self.path_memory = self.params.path_run + '/memory_out.txt'
+        # self.path_memory = self.sim.path_run + '/memory_out.txt'
 
-        if mpi.rank == 0:
-            if not os.path.exists(self.path_memory):
-                self.file = open(self.path_memory, 'w')
-            else:
-                self.file = open(self.path_memory, 'r+')
-                self.file.seek(0, 2)  # go to the end of the file
+        # if mpi.rank == 0:
+        #     self.path_memory = self.params.path_run + '/memory_out.txt'
+        #     if not os.path.exists(self.path_memory):
+        #         self.file = open(self.path_memory, 'w')
+        #     else:
+        #         self.file = open(self.path_memory, 'r+')
+        #         self.file.seek(0, 2)  # go to the end of the file
 
         self._has_to_stop = False
 
@@ -161,7 +162,8 @@ class TimeSteppingBase(object):
             while (self.it < self.params.time_stepping.it_end and
                    not self._has_to_stop):
                 self.one_time_step()
-
+                
+        # self.file.close()
         self.sim.__exit__()
 
     def one_time_step(self):
@@ -173,11 +175,11 @@ class TimeSteppingBase(object):
         self.sim.output.one_time_step()
         self.one_time_step_computation()
 
-        memory = get_memory_usage()
-        if mpi.rank == 0:
-            self.file.write('{:.3f},{:.3f}\n'.format(self.it, memory))
-            self.file.flush()
-            os.fsync(self.file.fileno())
+        # memory = get_memory_usage()
+        # if mpi.rank == 0:
+        #     self.file.write('{:.3f},{:.3f}\n'.format(self.it, memory))
+        #     self.file.flush()
+        #     os.fsync(self.file.fileno())
 
         self.t += self.deltat
         self.it += 1

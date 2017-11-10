@@ -6,6 +6,7 @@ from time import time
 import os
 
 from fluiddyn.util import mpi
+from fluiddyn.util.util import get_memory_usage
 
 
 class PrintStdOutBase(object):
@@ -37,6 +38,7 @@ class PrintStdOutBase(object):
         self.period_print = params.output.periods_print.print_stdout
 
         self.path_file = self.output.path_run + '/stdout.txt'
+        self.path_memory = self.output.path_run + '/memory_out.txt'
 
         if mpi.rank == 0 and self.output.has_to_save:
             if not os.path.exists(self.path_file):
@@ -44,6 +46,13 @@ class PrintStdOutBase(object):
             else:
                 self.file = open(self.path_file, 'r+')
                 self.file.seek(0, 2)  # go to the end of the file
+
+        if mpi.rank == 0:
+            if not os.path.exists(self.path_memory):
+                self.file_memory = open(self.path_memory, 'w')
+            else:
+                self.file_memory = open(self.path_memory, 'r+')
+                self.file_memory.seek(0, 2)  # go to the end of the file
 
     def complete_init_with_state(self):
 
@@ -82,7 +91,14 @@ class PrintStdOutBase(object):
             self.sim.time_stepping.t,
             self.sim.time_stepping.deltat)
 
+    def _write_memory_txt(self):
+        """Write memory .txt"""
+        it = self.sim.time_stepping.it
+        mem = get_memory_usage()
+        self.file_memory.write('{:.1f},{:.3f}\n'.format(it, mem))
+
     def _evaluate_duration_left(self):
+        """ Computes the remaining time. """
         t_real_word = time()
         try:
             duration_real_word = t_real_word - self.t_real_word_last
@@ -110,5 +126,6 @@ class PrintStdOutBase(object):
     def close(self):
         try:
             self.file.close()
+            self.file_memory.close()
         except AttributeError:
             pass

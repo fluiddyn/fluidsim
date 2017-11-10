@@ -36,6 +36,12 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
                 ''.format(energyK, energyA, energy, energy-self.energy_temp))
 
+            # memory = self._evaluate_memory()
+            self._write_memory_txt()
+
+            # to_print += (
+            #     '              memory  = {:9.3f} Mo.\n'.format(memory))
+
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
