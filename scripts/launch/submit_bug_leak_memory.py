@@ -14,7 +14,7 @@ command_to_submit = 'python bug_leak_memory.py {} {} {}'.format(
 
 cluster.submit_command(
     command_to_submit,
-    name_run='fluidsim_factdiss_{}'.format(factor_diss),
+    name_run='fluidsim_bug_leak_memory{}'.format(factor_diss),
     nb_cores_per_node=cluster.nb_cores_per_node,
     walltime='6:00:00',
     nb_mpi_processes=nb_proc,
