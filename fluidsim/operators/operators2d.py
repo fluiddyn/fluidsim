@@ -17,9 +17,10 @@ from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from . import util2d_pythran
+from . import util2d_pythran, util_sw1l_pythran
 from .util2d_pythran import (
-    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft)
+    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft,
+    compute_increments_dim1)
 from ..base.setofvariables import SetOfVariables
 
 if not hasattr(util2d_pythran, '__pythran__'):
@@ -216,42 +217,44 @@ class OperatorsPseudoSpectral2D(_Operators):
         nKxc = shapeK_loc_coarse[1]
 
         if nb_proc > 1:
+            if not self.is_transposed:
+                raise NotImplementedError()
+
             fc_trans = np.empty([nKxc, nKyc], np.complex128)
-            nKy = self.shapeK_seq[0]
-            f1D_temp = np.empty([nKyc], np.complex128)
+            nKy = self.shapeK_seq[1]
+            f1d_temp = np.empty([nKyc], np.complex128)
 
             for iKxc in range(nKxc):
                 kx = self.deltakx*iKxc
                 rank_iKx, iKxloc, iKyloc = self.where_is_wavenumber(kx, 0.)
                 if rank == rank_iKx:
-                    # create f1D_temp
+                    # create f1d_temp
                     for iKyc in range(nKyc):
                         if iKyc <= nKyc/2:
                             iKy = iKyc
                         else:
                             kynodim = iKyc - nKyc
                             iKy = kynodim + nKy
-                        f1D_temp[iKyc] = f_fft[iKxloc, iKy]
+                        f1d_temp[iKyc] = f_fft[iKxloc, iKy]
 
                 if rank_iKx != 0:
-                    # message f1D_temp
+                    # message f1d_temp
                     if rank == 0:
-                        # print('f1D_temp', f1D_temp, f1D_temp.dtype)
+                        # print('f1d_temp', f1d_temp, f1d_temp.dtype)
                         comm.Recv(
-                            [f1D_temp, MPI.DOUBLE_COMPLEX],
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
                             source=rank_iKx, tag=iKxc)
                     elif rank == rank_iKx:
                         comm.Send(
-                            [f1D_temp, MPI.DOUBLE_COMPLEX],
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
                             dest=0, tag=iKxc)
                 if rank == 0:
                     # copy into fc_trans
-                    fc_trans[iKxc] = f1D_temp.copy()
+                    fc_trans[iKxc] = f1d_temp.copy()
             fc_fft = fc_trans.transpose()
 
         else:
             nKy = self.shapeK_seq[0]
-            # nKx = self.shapeK_seq[1]
             fc_fft = np.empty([nKyc, nKxc], np.complex128)
             for iKyc in range(nKyc):
                 if iKyc <= nKyc/2:
@@ -310,15 +313,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def compute_increments_dim1(self, var, irx):
         """Compute the increments of var over the dim 1."""
-
-        n0 = var.shape[0]
-        n1 = var.shape[1]
-        n1new = n1 - irx
-        inc_var = np.empty([n0, n1new])
-        for i0 in range(n0):
-            for i1 in range(n1new):
-                inc_var[i0, i1] = (var[i0, i1+irx] - var[i0, i1])
-        return inc_var
+        return compute_increments_dim1(var, int(irx))
 
     def pdf_normalized(self, field, nb_bins=100):
         """Compute the normalized pdf"""
@@ -569,61 +564,9 @@ class OperatorsPseudoSpectral2D(_Operators):
         # KX_over_K2 = self.KX_over_K2
         # KY_over_K2 = self.KY_over_K2
 
-        q_fft = np.empty([n0, n1], dtype=np.complex128)
-        ap_fft = np.empty([n0, n1], dtype=np.complex128)
-        am_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        freq_Corio = params.f
-        f_over_c2 = freq_Corio/params.c2
-
-        if freq_Corio != 0:
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    if i0 == 0 and i1 == 0 and rank == 0:
-                        q_fft[i0, i1] = 0
-                        ap_fft[i0, i1] = ux_fft[0, 0] + 1.j*uy_fft[0, 0]
-                        am_fft[i0, i1] = ux_fft[0, 0] - 1.j*uy_fft[0, 0]
-                    else:
-
-                        rot_fft = 1j*(
-                            KX[i0, i1]*uy_fft[i0, i1] -
-                            KY[i0, i1]*ux_fft[i0, i1])
-
-                        q_fft[i0, i1] = rot_fft - freq_Corio*eta_fft[i0, i1]
-
-                        a_over2_fft = 0.5*(
-                            K2[i0, i1] * eta_fft[i0, i1] +
-                            f_over_c2*rot_fft)
-
-                        Deltaa_over2_fft = 0.5j*Kappa_over_ic[i0, i1]*(
-                            KX[i0, i1]*ux_fft[i0, i1] +
-                            KY[i0, i1]*uy_fft[i0, i1])
-
-                        ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
-                        am_fft[i0, i1] = a_over2_fft - Deltaa_over2_fft
-
-        else:  # (freq_Corio == 0.)
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    if i0 == 0 and i1 == 0 and rank == 0:
-                        q_fft[i0, i1] = 0
-                        ap_fft[i0, i1] = ux_fft[0, 0] + 1.j*uy_fft[0, 0]
-                        am_fft[i0, i1] = ux_fft[0, 0] - 1.j*uy_fft[0, 0]
-                    else:
-                        q_fft[i0, i1] = 1j*(
-                            KX[i0, i1]*uy_fft[i0, i1] -
-                            KY[i0, i1]*ux_fft[i0, i1])
-
-                        a_over2_fft = 0.5*K2[i0, i1]*eta_fft[i0, i1]
-
-                        Deltaa_over2_fft = 0.5j*Kappa_over_ic[i0, i1]*(
-                            KX[i0, i1]*ux_fft[i0, i1] +
-                            KY[i0, i1]*uy_fft[i0, i1])
-
-                        ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
-                        am_fft[i0, i1] = a_over2_fft - Deltaa_over2_fft
-
-        return q_fft, ap_fft, am_fft
+        return util_sw1l_pythran.qapamfft_from_uxuyetafft(
+            ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
+            Kappa_over_ic, params.f, params.c2, rank)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""

@@ -21,6 +21,7 @@ Provides:
 import numpy as np
 
 from fluiddyn.util import mpi
+from .util_pythran import get_qmat
 
 
 class NormalModeBase(object):
@@ -53,7 +54,8 @@ class NormalModeBase(object):
                 ux_fft = self.sim.state('ux_fft')
                 uy_fft = self.sim.state('uy_fft')
                 eta_fft = self.sim.state('eta_fft')
-                bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+                bvec_fft = self.bvecfft_from_uxuyetafft(
+                    ux_fft, uy_fft, eta_fft)
 
             self.bvec_fft = bvec_fft
             self.it_bvec_fft_computed = self.sim.time_stepping.it
@@ -61,10 +63,8 @@ class NormalModeBase(object):
         return self.bvec_fft
 
     def bvecfft_from_qapamfft(self, q_fft, ap_fft, am_fft):
-        """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
-        from diagonalized linear modes.
-        """
+        r""" Compute normal mode vector :math:`\mathbf{B}`
+        with dimensions of velocity from diagonalized linear modes.  """
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
         KK = self.oper.KK_not0
@@ -80,11 +80,10 @@ class NormalModeBase(object):
         return bvec_fft
 
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        """
-        Compute normal mode vector, :math:`\mathbf{B}` with dimensions of velocity
-        from primitive variables.
-        """
-        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
+        r""" Compute normal mode vector, :math:`\mathbf{B}` 
+        with dimensions of velocity from primitive variables.  """
+        q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(
+            ux_fft, uy_fft, eta_fft)
 
         return self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
 
@@ -115,20 +114,18 @@ class NormalModeDecomposition(NormalModeBase):
     def __init__(self, output):
         super(NormalModeDecomposition, self).__init__(output)
         oper = self.oper
-        KX = oper.KX
-        KY = oper.KY
-        KK = oper.KK
-        K2 = oper.K2
         sigma = self.sigma
 
         f = self.params.f
         c = self.params.c2 ** 0.5
-        ck = c * self.oper.KK_not0
 
-        self.qmat = np.array(
-            [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-             [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-             [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
+        self.qmat = get_qmat(
+            f, c, sigma, oper.KX, oper.KY, oper.KK, oper.K2, oper.KK_not0)
+        # qmat_py = np.array(
+        #    [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
+        #     [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
+        #     [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
+        # np.testing.assert_allclose(qmat_py, self.qmat, rtol=1e-14)
 
         if mpi.rank == 0 or oper.is_sequential:
             self.qmat[:, :, 0, 0] = 0.

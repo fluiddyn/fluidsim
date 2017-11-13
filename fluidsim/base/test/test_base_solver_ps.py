@@ -23,7 +23,7 @@ class TestBaseSolverPS(unittest.TestCase):
 
         params.short_name_type_run = 'test_base_solver_ps'
 
-        nh = 16
+        nh = 8
         Lh = 2*np.pi
         params.oper.nx = nh
         params.oper.ny = nh

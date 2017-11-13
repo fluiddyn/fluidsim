@@ -94,7 +94,7 @@ class SpatialMeansBase(SpecificOutput):
             axe = fig.add_axes(size_axe)
             self.axe_b = axe
             axe.set_xlabel('$t$')
-            axe.set_ylabel('$\epsilon(t)$')
+            axe.set_ylabel(r'$\epsilon(t)$')
 
     def load(self):
         dico_results = {}

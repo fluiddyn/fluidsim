@@ -1,11 +1,17 @@
 
+channels:
+  - conda-forge
+
 dependencies:
-  - python=3.4
+  - python=3.6
   - numpy
   - cython
-  - mpi4py
   - h5py
   - sphinx
   - numpydoc
   - jupyter
   - matplotlib
+  - fftw
+  - pyfftw
+  - pip:
+    - fluidfft

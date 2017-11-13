@@ -1068,23 +1068,36 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cflux_AG = cumsum_inv(Cq_AG) * self.oper.deltakh
         Cflux_AA = cumsum_inv(Cq_AA) * self.oper.deltakh
 
-        self.axe_a.plot(khE+khE[1], Pi_tot, 'k', linewidth=2, label=r'$\Pi_{tot}$')
-        self.axe_a.plot(khE+khE[1], Pi_GGG, 'g--', linewidth=1, label=r'$\Pi_{GGG}$')
-        # self.axe_a.plot(khE+khE[1], Piens, 'g:', linewidth=1, label=r'$\Pi_{ens}$')
-        self.axe_a.plot(khE+khE[1], Pi_AGG, 'm--', linewidth=1, label=r'$\Pi_{GGA}$')
-        self.axe_a.plot(khE+khE[1], Pi_GAAs, 'r:', linewidth=1, label=r'$\Pi_{G\pm\pm}$')
-        self.axe_a.plot(khE+khE[1], Pi_GAAd, 'b:', linewidth=1, label=r'$\Pi_{G\pm\mp}$')
-        self.axe_a.plot(khE+khE[1], Pi_AAA, 'y--', linewidth=1, label=r'$\Pi_{AAA}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_tot, 'k', linewidth=2, label=r'$\Pi_{tot}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_GGG, 'g--', linewidth=1, label=r'$\Pi_{GGG}$')
+        # self.axe_a.plot(
+        #     khE+khE[1], Piens, 'g:', linewidth=1, label=r'$\Pi_{ens}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_AGG, 'm--', linewidth=1, label=r'$\Pi_{GGA}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_GAAs, 'r:', linewidth=1, label=r'$\Pi_{G\pm\pm}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_GAAd, 'b:', linewidth=1, label=r'$\Pi_{G\pm\mp}$')
+        self.axe_a.plot(
+            khE+khE[1], Pi_AAA, 'y--', linewidth=1, label=r'$\Pi_{AAA}$')
 
-        self.axe_b.plot(khE+khE[1], Cflux_tot, 'k', linewidth=2, label=r'$\Sigma C_{tot}$')
-        self.axe_b.plot(khE+khE[1], Cflux_GG, 'g:', linewidth=1,  label=r'$\Sigma C_{GG}$')
-        self.axe_b.plot(khE+khE[1], Cflux_AG, 'm--', linewidth=1, label=r'$\Sigma C_{GA}$')
-        self.axe_b.plot(khE+khE[1], Cflux_AA, 'y--', linewidth=1, label=r'$\Sigma C_{AA}$')
+        self.axe_b.plot(
+            khE+khE[1], Cflux_tot, 'k', linewidth=2, label=r'$\Sigma C_{tot}$')
+        self.axe_b.plot(
+            khE+khE[1], Cflux_GG, 'g:', linewidth=1, label=r'$\Sigma C_{GG}$')
+        self.axe_b.plot(
+            khE+khE[1], Cflux_AG, 'm--', linewidth=1, label=r'$\Sigma C_{GA}$')
+        self.axe_b.plot(
+            khE+khE[1], Cflux_AA, 'y--', linewidth=1, label=r'$\Sigma C_{AA}$')
 
         if self.nb_saved_times == 2:
-            title = ('Spectral Energy Budget, solver ' + self.output.name_solver +
+            title = ('Spectral Energy Budget, solver ' +
+                     self.output.name_solver +
                      ', nh = {0:5d}'.format(self.nx) +
-                     ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+                     ', c = {0:.4g}, f = {1:.4g}'.format(
+                         np.sqrt(self.c2), self.f))
             self.axe_a.set_title(title)
             self.axe_a.legend()
             self.axe_b.legend()
@@ -1135,7 +1148,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         fig2, ax2 = self.output.figure_axe(size_axe=size_axe)
 
         ax1.set_xlabel('$k_h$')
-        ax1.set_ylabel('Transfer fluxes, $\Pi(k_h)$')
+        ax1.set_ylabel(r'Transfer fluxes, $\Pi(k_h)$')
 
         z_bottom_axe = 0.07
         height_axe = 0.27
@@ -1211,7 +1224,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         # .. TODO: Normalize with energy??
         exchange_GG = f['Cq_GG'][imin_plot:imax_plot].mean(0)
-        exchange_AG = (f['Cq_AG'][imin_plot:imax_plot].mean(0) + f['Cq_aG'][imin_plot:imax_plot].mean(0))
+        exchange_AG = (f['Cq_AG'][imin_plot:imax_plot].mean(0) +
+                       f['Cq_aG'][imin_plot:imax_plot].mean(0))
         exchange_AA = f['Cq_AA'][imin_plot:imax_plot].mean(0)
         exchange_mean = (exchange_GG + exchange_AG + exchange_AA)
 

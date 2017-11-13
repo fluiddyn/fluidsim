@@ -346,7 +346,7 @@ class TimeSignalsK(SpecificOutput):
                 ax1.plot(old_div(t,T), sig_d_fft[isig].real, 'y', linewidth=1)
 
         fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel('$\omega$')
+        ax1.set_xlabel(r'$\omega$')
         ax1.set_ylabel('kh_shell')
         ax1.loglog(kh_shell, omega_shell, 'o', linewidth=2)
 
@@ -441,8 +441,8 @@ class TimeSignalsK(SpecificOutput):
         omega_shell = dico_results['omega_shell']
 
         fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel('r$\omega/\omega_{lin}$')
-        ax1.set_ylabel('r$E(\omega)$)')
+        ax1.set_xlabel(r'r$\omega/\omega_{lin}$')
+        ax1.set_ylabel(r'r$E(\omega)$)')
         title = (
             'time spectra, solver ' +
             self.output.name_solver +

@@ -242,7 +242,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         fig.suptitle('Dissipation of energy and enstrophy')
-        ax1.set_ylabel('$\epsilon_K(t)$')
+        ax1.set_ylabel(r'$\epsilon_K(t)$')
 
         ax1.plot(t, epsK, 'r', linewidth=2)
         ax1.plot(t, epsK_hypo, 'g', linewidth=2)
@@ -252,7 +252,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('$t$')
-        ax2.set_ylabel('$\epsilon_Z(t)$')
+        ax2.set_ylabel(r'$\epsilon_Z(t)$')
         ax2.plot(t, epsZ, 'r', linewidth=2)
         ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
         ax2.plot(t, epsZ_tot, 'k', linewidth=2)

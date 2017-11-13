@@ -10,6 +10,7 @@ import numpy as np
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
+from .util_pythran import strfunc_from_pdf
 
 
 class Increments(SpecificOutput):
@@ -74,10 +75,10 @@ class Increments(SpecificOutput):
     def init_online_plot(self):
         self.fig, axe = self.output.figure_axe(numfig=5000000)
         self.axe = axe
-        axe.set_xlabel('$\delta u_x (x)$')
+        axe.set_xlabel(r'$\delta u_x (x)$')
         axe.set_ylabel('pdf')
         axe.set_title(
-            'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
+            r'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
             ', nh = {0:5d}'.format(self.nx))
 
     def _online_plot(self, dico_results, key='rot'):
@@ -312,7 +313,7 @@ class Increments(SpecificOutput):
         ax2.plot(rxs, 3*np.ones(rxs.shape), 'k--', linewidth=0.5)
 
     def strfunc_from_pdf(self, pdf, values, order, absolute=False):
-        """Following the identity:
+        r"""Following the identity:
         .. math::
             E(x^m) = \int_{-\inf}^{\inf} x^m p(x) dx
 
@@ -327,15 +328,8 @@ class Increments(SpecificOutput):
                 = \int_{-\inf}^{\inf} (\delta u)^m p(\delta u) d(\delta u)
                 = d(\delta u) \Sigma (\delta u)^m p(\delta u)
         """
-        order = float(order)
-        S_order = np.empty(self.rxs.shape)
-        if absolute:
-            values = abs(values)
-        for irx in range(self.rxs.size):
-            deltainc = abs(values[irx, 1] - values[irx, 0])
-            S_order[irx] = deltainc*np.sum(
-                pdf[irx]*values[irx]**order)
-        return S_order
+        return strfunc_from_pdf(
+            self.rxs, pdf, values, float(order), absolute)
 
     def load_pdf_from_file(self, tmin=0, tmax=None, key_var='ux',
                            irx_to_plot=None):
@@ -451,7 +445,7 @@ class Increments(SpecificOutput):
         ax1.set_yscale('linear')
 
         ax1.set_xlabel(key_var)
-        ax1.set_ylabel('PDF x $\delta v^'+repr(order)+'$')
+        ax1.set_ylabel(r'PDF x $\delta v^'+repr(order)+'$')
 
         colors = ['k', 'y', 'r', 'b', 'g', 'm', 'c']
 
@@ -588,7 +582,8 @@ imin_plot, imax_plot, delta_i_plot)
                     width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel('$r_x$')
-        ax1.set_ylabel('$\langle \delta u^{'+'{0}'.format(order)+'} \\rangle$')
+        ax1.set_ylabel(r'$\langle \delta u^{' +
+                       '{0}'.format(order) + '} \\rangle$')
 
         ax1.set_title('struct. functions, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))

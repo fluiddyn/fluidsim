@@ -11,12 +11,4 @@ Provides
    operators_plate2d
    operators3d
 
-Deprecated:
-
-.. autosummary::
-   :toctree:
-
-   operators
-   fft
-
 """

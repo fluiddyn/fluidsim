@@ -279,13 +279,13 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         fig.suptitle('Dissipation of energy and enstrophy')
-        ax1.set_ylabel('$\epsilon (t) = \epsilon_K + \epsilon_A$')
+        ax1.set_ylabel(r'$\epsilon (t) = \epsilon_K + \epsilon_A$')
         ax1.hold(True)
 
-        ax1.plot(t, epsK+epsA, 'r', label='$\epsilon$', linewidth=2)
-        ax1.plot(t, epsK_hypo+epsA_hypo, 'g', label='$\epsilon_{hypo}$',
+        ax1.plot(t, epsK+epsA, 'r', label=r'$\epsilon$', linewidth=2)
+        ax1.plot(t, epsK_hypo+epsA_hypo, 'g', label=r'$\epsilon_{hypo}$',
                  linewidth=2)
-        ax1.plot(t, epsK_tot+epsA_tot, 'k', label='$\epsilon_{tot}$',
+        ax1.plot(t, epsK_tot+epsA_tot, 'k', label=r'$\epsilon_{tot}$',
                  linewidth=2)
         ax1.legend()
 
@@ -293,7 +293,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel('$t$')
-        ax2.set_ylabel('$\epsilon_Z(t)$')
+        ax2.set_ylabel(r'$\epsilon_Z(t)$')
         ax2.hold(True)
         ax2.plot(t, epsZ, 'r', linewidth=2)
         ax2.plot(t, epsZ_hypo, 'g', linewidth=2)

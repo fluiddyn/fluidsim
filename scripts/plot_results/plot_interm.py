@@ -13,11 +13,10 @@ from create_figs_articles import CreateFigArticles
 SAVE_FIG = False
 
 create_fig = CreateFigArticles(
-    short_name_article='SW1l', 
-    SAVE_FIG=SAVE_FIG, 
-    FOR_BEAMER=False, 
-    fontsize=19
-    )
+    short_name_article='SW1l',
+    SAVE_FIG=SAVE_FIG,
+    FOR_BEAMER=False,
+    fontsize=19)
 
 dir_base  = create_fig.path_base_dir+'/Results_SW1lw'
 
@@ -29,11 +28,11 @@ str_resol = repr(resol)
 str_to_find_path = (
     dir_base+'/Pure_standing_waves_'+
     str_resol+'*/SE2D*c='+repr(c))+'_*'
-print str_to_find_path
+print(str_to_find_path)
 
 paths_dir = glob.glob(str_to_find_path)
 
-print paths_dir
+print(paths_dir)
 
 
 sim = solveq2d.create_sim_plot_from_dir(paths_dir[0])
@@ -95,11 +94,11 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
     M_order = np.empty(rxs.shape)
     for irx in xrange(rxs.size):
         deltainc = values_inc_timemean[irx, 1] - values_inc_timemean[irx, 0]
-        M_order[irx] = deltainc*np.sum( 
+        M_order[irx] = deltainc*np.sum(
             pdf_timemean[irx]
             *abs(values_inc_timemean[irx])**order)
 
-        # M_order[irx] = np.abs(deltainc*np.sum( 
+        # M_order[irx] = np.abs(deltainc*np.sum(
         #     pdf_timemean[irx]
         #     *values_inc_timemean[irx]**order
         #     ))
@@ -107,7 +106,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
     pol = np.polyfit(np.log(rxs[condr]), np.log(M_order[condr]), 1)
     expo = pol[0]
 
-    print 'order = {0:.2f} ; expo = {1:.2f}'.format(order, expo)
+    print('order = {0:.2f} ; expo = {1:.2f}'.format(order, expo))
     M_lin = np.exp((pol[1] + np.log(rxs[condr])*pol[0]))
 
 
@@ -130,14 +129,14 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
         ax1.set_yscale('log')
 
         norm = rxs**(1)
-        
-        ax1.plot(rxs, M_order/norm, 
+
+        ax1.plot(rxs, M_order/norm,
                  'x-', linewidth=1)
 
         ax1.plot(rxs[condr], M_order[condr]/norm[condr], 'x-r', linewidth=1)
 
         ax1.plot(rxs[condr], M_lin/norm[condr], 'y', linewidth=2)
-        
+
         l_1 = ax1.plot(rxs, rxs/norm, 'k', linewidth=1)
         l_K41 = ax1.plot(rxs, rxs**(order/3)/norm, 'k--', linewidth=1)
 
@@ -154,10 +153,10 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
 
         plt.rc('legend', numpoints=1)
         leg1 = ax1.legend(
-            [l_smooth[0], l_K41[0], l_1[0]], 
-            ['smooth $r^q$', 'K41 $r^{q/3}$', 
-             'shocks $r^1$'], 
-            loc=0 
+            [l_smooth[0], l_K41[0], l_1[0]],
+            ['smooth $r^q$', 'K41 $r^{q/3}$',
+             'shocks $r^1$'],
+            loc=0
             # labelspacing = 0.2
 )
 
@@ -178,15 +177,15 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
 
         ax1.set_xlabel(key_var)
         ax1.set_ylabel('PDF x $\delta v^'+repr(order)+'$')
-        
+
         colors = ['k', 'y', 'r', 'b', 'g', 'm', 'c']
 
         irx_to_plot = [10, 50, 100]
         for irxp, irx in enumerate(irx_to_plot):
-            
+
             val_inc = values_inc_timemean[irx]
 
-            ax1.plot(val_inc, pdf_timemean[irx]*abs(val_inc)**order, 
+            ax1.plot(val_inc, pdf_timemean[irx]*abs(val_inc)**order,
                      colors[irxp]+'x-', linewidth=1)
 
     return expo

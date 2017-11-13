@@ -17,9 +17,6 @@ class TestSW1L(BaseTestCase):
 
     @classmethod
     def setUpClass(cls, init_fields='dipole'):
-        # if mpi.nb_proc > 1:
-        #     nh = 64
-        # else:
         nh = 32
         super(TestSW1L, cls).setUpClass(
             nh=nh, init_fields=init_fields, HAS_TO_SAVE=True, FORCING=True)
@@ -42,7 +39,7 @@ class TestSW1L(BaseTestCase):
         module = self.output.spect_energy_budg
         self.skipUnlessHasAttr(
             'output.spect_energy_budg.norm_mode',
-            self.solver + 'does not use normal mode spect_energy_budg')
+            self.solver + ' does not use normal mode spect_energy_budg')
 
         r, c, nkx, nky = module.norm_mode.qmat.shape
         identity = np.eye(r)
@@ -65,7 +62,7 @@ class TestSW1L(BaseTestCase):
         module = self.output.spect_energy_budg
         self.skipUnlessHasAttr(
             'output.spect_energy_budg.norm_mode',
-            self.solver + "does not use normal mode spect_energy_budg")
+            self.solver + " does not use normal mode spect_energy_budg")
 
         c2 = sim.params.c2
         ux_fft = sim.state('ux_fft')
@@ -89,7 +86,7 @@ class TestSW1L(BaseTestCase):
         module = self.output.spect_energy_budg
         self.skipUnlessHasAttr(
             'output.spect_energy_budg.norm_mode',
-            self.solver + "does not use normal mode spect_energy_budg")
+            self.solver + " does not use normal mode spect_energy_budg")
 
         ux_fft = sim.state('ux_fft')
         uy_fft = sim.state('uy_fft')
@@ -126,7 +123,7 @@ class TestSW1L(BaseTestCase):
         sim = self.sim
         self.skipUnlessHasAttr(
             'output.spect_energy_budg.norm_mode',
-            self.solver + "does not use normal mode spect_energy_budg")
+            self.solver + " does not use normal mode spect_energy_budg")
 
         Cq_tot_modes = 0.
         for k in self.exchange_keys:
@@ -238,14 +235,6 @@ class TestSW1L(BaseTestCase):
             self.assertAlmostEqual(energy_GGG, 0)
             self.assertAlmostEqual(enstrophy_GGG, 0)
 
-    @unittest.skipIf(mpi.nb_proc > 1,
-                     'plot function works sequentially only')
-    def test_plot_spect_energy_budg(self):
-        self._plot()
-
-    def test_online_plot_spect_energy_budg(self):
-        self._online_plot(self.dico)
-
 
 class TestWaves(TestSW1L):
     solver = 'sw1l.onlywaves'
@@ -269,6 +258,14 @@ class TestWaves(TestSW1L):
 
 class TestExactlin(TestSW1L):
     solver = 'sw1l.exactlin'
+
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot_spect_energy_budg(self):
+        self._plot()
+
+    def test_online_plot_spect_energy_budg(self):
+        self._online_plot(self.dico)
 
 
 class TestExmod(TestSW1L):
@@ -334,6 +331,14 @@ class TestModif(TestExmod):
     def test_transfer_term(self):
         """Check triad decomposition. """
         super(TestModif, self).test_transfer_term(check_hasattr=False)
+
+    @unittest.skip('Uses the same plot function as sw1l')
+    def test_plot_spect_energy_budg(self):
+        pass
+
+    @unittest.skip('Uses the same plot function as sw1l')
+    def test_online_plot_spect_energy_budg(self):
+        pass
 
 
 if __name__ == '__main__':

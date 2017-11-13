@@ -149,7 +149,7 @@ if __name__ == "__main__":
     params.forcing.type = 'tcrandom_anisotropic'
     params.forcing.nkmax_forcing = 5
     params.forcing.nkmin_forcing = 4
-    params.forcing.tcrandom_anisotropic.angle = '45°'
+    params.forcing.tcrandom_anisotropic.angle = '45'
 
     # 'Proportional'
     # params.forcing.type_normalize

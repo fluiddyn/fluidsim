@@ -1,4 +1,4 @@
-
+import numpy as np
 
 # pythran export dealiasing_setofvar(complex128[][][], uint8[][], int, int)
 
@@ -25,3 +25,14 @@ def invlaplacian2_fft(a_fft, K4_not0, rank):
     if rank == 0:
         invlap2_afft[0, 0] = 0.
     return invlap2_afft
+
+
+# pythran export compute_increments_dim1(float64[][], int)
+
+def compute_increments_dim1(var, irx):
+    """Compute the increments of var over the dim 1."""
+    n0 = var.shape[0]
+    n1 = var.shape[1]
+    n1new = n1 - irx
+    inc_var = var[:, irx:n1] - var[:, 0:n1new]
+    return inc_var

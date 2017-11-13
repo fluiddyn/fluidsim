@@ -16,6 +16,8 @@ Provides:
 
 """
 
+from __future__ import absolute_import
+
 cimport numpy as np
 import numpy as np
 np.import_array()
@@ -30,8 +32,8 @@ from libc.math cimport exp
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from pseudo_spect import ExactLinearCoefs as ExactLinearCoefsPurePython
-from pseudo_spect import TimeSteppingPseudoSpectral as \
+from .pseudo_spect import ExactLinearCoefs as ExactLinearCoefsPurePython
+from .pseudo_spect import TimeSteppingPseudoSpectral as \
     TimeSteppingPseudoSpectralPurePython
 
 

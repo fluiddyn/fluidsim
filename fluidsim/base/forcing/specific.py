@@ -102,12 +102,18 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             i += 1
         n = 2**i
 
+        for nbig in sim.oper.shapeX_seq:
+            if nbig < n:
+                raise NotImplementedError(
+                    'The resolution is to small for the wanted forcing')
+
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
             params_coarse.oper.nx = n
             params_coarse.oper.ny = n
             params_coarse.oper.type_fft = 'sequential'
-            params_coarse.oper.coef_dealiasing = 3.  # FIXME: Workaround for incorrect forcing
+            # FIXME: Workaround for incorrect forcing
+            params_coarse.oper.coef_dealiasing = 3.
 
             self.oper_coarse = sim.oper.__class__(
                 SEQUENTIAL=True,
@@ -171,7 +177,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             ar3Dfc = self.fstate_coarse.state_fft
 
         if mpi.nb_proc > 1:
-            nKy = self.oper.shapeK_seq[0]
+            if not self.oper.is_transposed:
+                raise NotImplementedError()
+            nKy = self.oper.shapeK_seq[1]
 
             for ikey in range(nb_keys):
                 if mpi.rank == 0:

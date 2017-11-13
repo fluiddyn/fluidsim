@@ -32,7 +32,9 @@ except ImportError:
 
 import numpy as np
 
-from config import MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc, monkeypatch_parallel_build
+from config import (
+    MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc,
+    monkeypatch_parallel_build)
 
 BUILD_OLD_EXTENSIONS = False
 
@@ -40,7 +42,7 @@ monkeypatch_parallel_build()
 
 print('Running fluidsim setup.py on platform ' + sys.platform)
 
-here = os.path.abspath(os.path.dirname(__file__))  # run without waiting
+here = os.path.abspath(os.path.dirname(__file__))
 
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 2):
     raise RuntimeError("Python version 2.7 or >= 3.2 required.")
@@ -155,13 +157,10 @@ print('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.1.2', 'future >= 0.16']
+install_requires = ['fluiddyn >= 0.1.6', 'future >= 0.16', 'h5py']
 
-on_rtd = os.environ.get('READTHEDOCS')
-if not on_rtd:
-    install_requires += ['h5py']
-    if FFTW3:
-        install_requires += ['pyfftw >= 0.10.4']
+if FFTW3:
+    install_requires += ['pyfftw >= 0.10.4', 'fluidfft']
 
 
 def modification_date(filename):
@@ -178,6 +177,8 @@ def make_pythran_extensions(modules):
         # warning: does not work on Windows
         suffix = get_config_var('EXT_SUFFIX') or '.so'
         bin_file = base_file + suffix
+        print('make_pythran_extension: {} -> {} '.format(
+            py_file, os.path.basename(bin_file)))
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
             pext = PythranExtension(
@@ -191,7 +192,7 @@ def make_pythran_extensions(modules):
     return extensions
 
 
-if not on_rtd and use_pythran:
+if use_pythran:
     ext_names = []
     for root, dirs, files in os.walk('fluidsim'):
         for name in files:
