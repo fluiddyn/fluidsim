@@ -294,9 +294,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         # The class PrintStdOut has already been instantiated.
         dict_classes.pop('PrintStdOut')
 
-        # to get always the initialization in the same order (important with mpi)
-        keys = list(dict_classes.keys())
-        keys.sort()
+        # to get always the same order (important with mpi)
+        keys = sorted(dict_classes.keys())
         classes = [dict_classes[key] for key in keys]
 
         for Class in classes:
@@ -385,7 +384,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         spec_output.init_path_files()
                     except AttributeError:
                         pass
-
 
     def compute_energy(self):
         return 0.

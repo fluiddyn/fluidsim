@@ -7,6 +7,7 @@ from math import pi, degrees
 
 import numpy as np
 
+
 def _make_params_sim(R, F):
     """
     Make parameters of the simulation.
@@ -32,15 +33,15 @@ def _make_params_sim(R, F):
 
     # Compute Lx in order to have kf ~ 1
     params.oper.Lx = params.oper.Ly = Lh = \
-                     params.forcing.nkmax_forcing * 2 * pi
+        params.forcing.nkmax_forcing * 2 * pi
 
     # Compute dissipation wave-number
-    k_max = ((2 * pi)/params.oper.Lx) * (params.oper.nx/2)
+    k_max = ((2 * pi)/Lh) * (params.oper.nx/2)
     coef = 0.9
     if coef > 1:
         raise ValueError('k_diss should be smaller than k_max.')
     k_diss = coef * k_max
-    
+
     # Hyper-viscosity order q
     q = 8
     nu_q = params.forcing.forcing_rate**(1./3) * (1/k_diss**q)
@@ -57,10 +58,11 @@ def _make_params_sim(R, F):
     params.N = R * (params.forcing.forcing_rate**(1./3)/F)
 
     # Time stepping parameters
-    params.time_stepping.USE_CFL = True
+    params.time_stepping.USE_CFL = False
     params.time_stepping.USE_T_END = False
     # params.time_stepping.t_end = 100.
     params.time_stepping.it_end = 60
+    params.time_stepping.deltat0 = 1e-10
 
     # Output parameters
     params.output.sub_directory = ''
@@ -74,20 +76,20 @@ def _make_params_sim(R, F):
 
     return params
 
+
 def make_sim(R, F, factor_diss):
     """ Make simulation. """
     params = _make_params_sim(R, F)
     params.nu_8 = params.nu_8 * 10**factor_diss
-    params.output.sub_directory = '/fsnet/project/meige/2015/15DELDUCA/DataSim'
+    params.output.sub_directory = 'bugs'
     sim = Simul(params)
     sim.time_stepping.start()
     fig = sim.output.print_stdout.plot_memory()
     fig.savefig('tmp_fig_memory.png')
+
 
 if __name__ == '__main__':
     R = 1
     F = 0.5
     factor_diss = 4
     make_sim(R, F, factor_diss)
-
-
