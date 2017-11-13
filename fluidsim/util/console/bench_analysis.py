@@ -58,7 +58,7 @@ def filter_by_shapeloc(df, n0_loc, n1_loc):
 def plot_scaling(
         path_dir, solver, hostname, n0, n1, show=True,
         type_time='usr', type_plot='strong', fig=None, ax0=None, ax1=None,
-        name_dir=None):
+        name_dir=None, once=False):
     """Plot speedup vs number of processes from benchmark results."""
 
     def check_empty(df):
@@ -73,7 +73,6 @@ def plot_scaling(
 
     df = load_bench(path_dir, solver, hostname)
     check_empty(df)
-
     df.t_elapsed_sys /= df.nb_iter
     df.t_elapsed_usr /= df.nb_iter
 
@@ -93,7 +92,7 @@ def plot_scaling(
             print(df)
 
         nb_proc_min = df.nb_proc.min()
-        df_grouped = df.groupby(['key_solver', 'nb_proc']).quantile(q=0.2)
+        df_grouped = df.groupby(['type_fft', 'nb_proc']).quantile(q=0.2)
         return df_grouped, nb_proc_min
 
     df_filter, nb_proc_min_filter = group_df(df_filter)
@@ -104,7 +103,6 @@ def plot_scaling(
     df_filter_nb_proc_min = df_filter.xs(nb_proc_min_filter, level=1)
 
     def get_min(df):
-        """Get minima from a set of results."""
         m = df.as_matrix()
         i0, i1 = np.unravel_index(np.argmin(m), m.shape)
         mymin = m[i0, i1]
@@ -127,7 +125,7 @@ def plot_scaling(
         """Avoid plotting the same label again."""
         plotted = any(
             [lines.get_label() == label for lines in ax.get_lines()])
-        if not plotted:
+        if not (plotted and once):
             ax.plot(x, y, linestyle, label=label)
 
     def add_hline(ax, series):
@@ -221,7 +219,7 @@ def run(args):
         for in_dir in args.input_dirs:
             fig = plot_scaling(
                 in_dir, args.solver, args.hostname, args.n0, args.n1,
-                show=False, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1)
+                show=True, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1)
 
         if args.save:
             figname = 'fig_bench_' + os.path.basename(args.input_dir) + '.png'

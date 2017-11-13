@@ -4,6 +4,7 @@
 """
 from __future__ import print_function, division
 
+import gc
 from collections import OrderedDict
 import numpy as np
 
@@ -47,8 +48,9 @@ def bench(
             print('WARNING: Some error occured while saving results!')
         finally:
             tear_down(sim)
+            gc.collect()
 
-    if type_fft.lower() == 'all':
+    if str(type_fft).lower() == 'all':
         d = get_opfft(n0, n1, n2, dim, only_dict=True)
         for type_fft, cls in d.items():
             if cls is not None:
@@ -63,10 +65,16 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
 
     if n2 is None or dim == '2d':
         from fluidfft.fft2d import get_classes_mpi
-        d = get_classes_mpi()
     elif isinstance(n2, int) or dim == '3d':
         from fluidfft.fft3d import get_classes_mpi
+
+    if mpi.rank == 0:
         d = get_classes_mpi()
+    else:
+        d = {}
+
+    if mpi.nb_proc > 1:
+        mpi.comm.bcast(d)
 
     if only_dict:
         return d
