@@ -7,7 +7,7 @@ nb_proc = cluster.nb_cores_per_node // 2
 
 R = 1
 F = 0.5
-factor_diss_list = 4
+factor_diss = 4
 
 command_to_submit = 'python bug_leak_memory.py {} {} {}'.format(
     R, F, factor_diss)
