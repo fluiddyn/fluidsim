@@ -87,9 +87,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self.kmax_forcing = self.oper.deltakh * params.forcing.nkmax_forcing
         self.kmin_forcing = self.oper.deltakh * params.forcing.nkmin_forcing
 
-        # self.kmax_forcing = self.oper.deltakx * params.forcing.nkmax_forcing
-        # self.kmin_forcing = self.oper.deltakx * params.forcing.nkmin_forcing
-
         self.forcing_rate = params.forcing.forcing_rate
 
         if params.forcing.key_forced is not None:
@@ -123,12 +120,12 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
             self.COND_NO_F = self._compute_cond_no_forcing()
 
-            self.nb_forced_modes = (self.COND_NO_F.size -
-                                    np.array(self.COND_NO_F,
-                                             dtype=np.int32).sum())
+            # self.nb_forced_modes = (self.COND_NO_F.size -
+            #                         np.array(self.COND_NO_F,
+            #                                  dtype=np.int32).sum())
 
-            self.ind_forcing = np.logical_not(
-                self.COND_NO_F).flatten().nonzero()[0]
+            # self.ind_forcing = np.logical_not(
+            #     self.COND_NO_F).flatten().nonzero()[0]
 
             self.fstate_coarse = sim.state.__class__(
                 sim, oper=self.oper_coarse)
@@ -147,10 +144,10 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         #         self.eta_cond = eta_rms_max / np.sqrt(self.nb_forced_modes)
         #         print '    eta_cond =', self.eta_cond
 
-    # def _compute_cond_no_forcing(self):
-    #     return np.logical_or(
-    #         self.oper_coarse.KK > self.kmax_forcing,
-    #         self.oper_coarse.KK < self.kmin_forcing)
+    def _compute_cond_no_forcing(self):
+        return np.logical_or(
+            self.oper_coarse.KK > self.kmax_forcing,
+            self.oper_coarse.KK < self.kmin_forcing)
 
     def compute(self):
         """compute the forcing from a coarse forcing."""
@@ -424,14 +421,17 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
         deltat = self.sim.time_stepping.deltat
 
+
         a = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft)**2)
 
         b = oper_c.sum_wavenumbers(
             (vc_fft.conj() * fvc_fft).real)
 
+
         c = -self.forcing_rate
 
         Delta = b**2 - 4 * a * c
+
         alpha = (np.sqrt(Delta) - b) / (2 * a)
 
         fvc_fft = alpha * fvc_fft
@@ -497,6 +497,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             else:
                 self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
+
 
     def forcingc_raw_each_time(self, a_fft):
         """Return a coarse forcing as a linear combination of 2 random arrays
