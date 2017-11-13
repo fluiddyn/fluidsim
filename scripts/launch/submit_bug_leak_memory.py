@@ -3,7 +3,7 @@
 from fluiddyn.clusters.legi import Calcul7
 
 cluster = Calcul7()
-nb_proc = cluster.nb_cores_per_node // 2
+nb_proc = 1  # cluster.nb_cores_per_node // 2
 
 R = 1
 F = 0.5
@@ -15,7 +15,7 @@ command_to_submit = 'python bug_leak_memory.py {} {} {}'.format(
 cluster.submit_command(
     command_to_submit,
     name_run='fluidsim_bug_leak_memory{}'.format(factor_diss),
-    nb_cores_per_node=cluster.nb_cores_per_node,
+    nb_cores_per_node=nb_proc,
     walltime='6:00:00',
-    nb_mpi_processes=nb_proc,
+    nb_mpi_processes=1,
     ask=False)

@@ -12,8 +12,8 @@ def _make_params_sim(R, F):
     Make parameters of the simulation.
     """
     params = Simul.create_default_params()
-    params.oper.nx = nh = 512
-    params.oper.ny = 512
+    params.oper.nx = nh = 48
+    params.oper.ny = nh
     # params.oper.Lx = params.oper.Ly = Lh = 2 * pi
     params.oper.coef_dealiasing = 0.5
 
@@ -58,8 +58,9 @@ def _make_params_sim(R, F):
 
     # Time stepping parameters
     params.time_stepping.USE_CFL = True
-    params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 100.
+    params.time_stepping.USE_T_END = False
+    # params.time_stepping.t_end = 100.
+    params.time_stepping.it_end = 60
 
     # Output parameters
     params.output.sub_directory = ''
@@ -68,6 +69,8 @@ def _make_params_sim(R, F):
     params.output.periods_save.spatial_means = 0.05
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 1.
+
+    params.output.periods_print.print_stdout = 1e-16
 
     return params
 
@@ -78,6 +81,8 @@ def make_sim(R, F, factor_diss):
     params.output.sub_directory = '/fsnet/project/meige/2015/15DELDUCA/DataSim'
     sim = Simul(params)
     sim.time_stepping.start()
+    fig = sim.output.print_stdout.plot_memory()
+    fig.savefig('tmp_fig_memory.png')
 
 if __name__ == '__main__':
     R = 1

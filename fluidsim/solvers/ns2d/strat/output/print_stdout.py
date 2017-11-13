@@ -92,6 +92,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax.set_ylabel('Memory (Mo)')
 
         ax.plot(lines_it, lines_memory, 'k', linewidth=2)
+        return fig
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
