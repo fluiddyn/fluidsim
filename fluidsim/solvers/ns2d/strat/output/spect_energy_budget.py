@@ -18,8 +18,6 @@ import h5py
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv)
 
-# from fluiddyn.util.util import print_memory_usage
-
 
 class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
     """Save and plot energy budget in spectral space."""
@@ -27,8 +25,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
     def compute(self):
         """compute the spectral energy budget at one time."""
         oper = self.sim.oper
-
-        # print_memory_usage('start function compute seb')
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -56,7 +52,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         px_uy_fft, py_uy_fft = oper.gradfft_from_fft(uy_fft)
         px_uy = oper.ifft2(px_uy_fft)
         py_uy = oper.ifft2(py_uy_fft)
-        
+
         Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
         Frot_fft = oper.fft2(Frot)
         oper.dealiasing(Frot_fft)
@@ -68,7 +64,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         Fy = -ux*px_uy - uy*(py_uy)
         Fy_fft = oper.fft2(Fy)
         oper.dealiasing(Fy_fft)
-        
+
         # Frequency dissipation viscosity
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         freq_diss_EK = f_d + f_d_hypo
@@ -156,15 +152,12 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'dissEA_2d': dissEA_2d,
             'epsilon': epsilon_kx}
 
-        # print_memory_usage('after dico_results_seb')
-        # Check!
-        # small_value = 1e-16
-        # for k, v in dico_results.items():
-        #     if k.startswith('transfer'):
-        #         if abs(v.sum()) < small_value:
-        #             print('warning: (abs(v.sum()) < small_value) for ' + k)
-        #             print_memory_usage(
-        #                 'Memory after printing warning output = ')
+
+        small_value = 1e-16
+        for k, v in dico_results.items():
+            if k.startswith('transfer'):
+                if abs(v.sum()) < small_value:
+                    print('warning: (abs(v.sum()) < small_value) for ' + k)
 
         return dico_results
 

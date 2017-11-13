@@ -13,7 +13,7 @@ Provides:
 
 from builtins import object
 import numpy as np
-# from fluiddyn.util.util import print_memory_usage
+
 from .base import TimeSteppingBase
 
 
@@ -99,7 +99,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def one_time_step_computation(self):
         """One time step"""
-        # print_memory_usage('before one time step')
         # WARNING: if the function _time_step_RK comes from an extension, its
         # execution time seems to be attributed to the function
         # one_time_step_computation by cProfile
@@ -110,7 +109,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if np.isnan(np.sum(self.sim.state.state_fft[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
-        # print_memory_usage('after one time step')
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.

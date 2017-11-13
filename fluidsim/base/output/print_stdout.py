@@ -6,7 +6,6 @@ from time import time
 import os
 
 from fluiddyn.util import mpi
-from fluiddyn.util.util import get_memory_usage
 
 
 class PrintStdOutBase(object):
@@ -38,7 +37,6 @@ class PrintStdOutBase(object):
         self.period_print = params.output.periods_print.print_stdout
 
         self.path_file = self.output.path_run + '/stdout.txt'
-
 
         if mpi.rank == 0 and self.output.has_to_save:
             if not os.path.exists(self.path_file):

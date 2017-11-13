@@ -308,7 +308,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         try:
             self.print_size_in_Mo(self.sim.state.state_fft, 'state_fft')
-            # self.print_size_in_Mo(self.sim.state.state_phys, 'state_phys')
         except AttributeError:
             self.print_size_in_Mo(self.sim.state.state_phys, 'state_phys')
 

@@ -14,7 +14,7 @@ import numpy as np
 
 
 from fluiddyn.util import mpi
-# from fluiddyn.util.util import print_memory_usage
+
 from fluidsim.base.output.spatial_means import SpatialMeansBase
 
 
@@ -22,7 +22,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
     """Spatial means output stratified fluid"""
 
     def save_one_time(self):
-        # print_memory_usage('before spatial means')
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
 
@@ -113,7 +112,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 self.t_last_show = tsim
                 fig = self.axe_a.get_figure()
                 fig.canvas.draw()
-        # print_memory_usage('after spatial means')
 
     def load(self):
         """Generates a dictionary with the output values"""

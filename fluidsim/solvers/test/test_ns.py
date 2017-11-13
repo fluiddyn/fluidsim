@@ -73,8 +73,10 @@ class TestSolver(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        path_run = cls.sim.output.path_run
+        del cls.sim
         if mpi.rank == 0:
-            rmtree(cls.sim.output.path_run)
+            rmtree(path_run)
 
     def assertZero(self, value, places=None, msg=None, warn=True):
         if places is None:
