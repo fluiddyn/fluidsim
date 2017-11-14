@@ -216,7 +216,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_x$')
         ax1.set_ylabel('Non linear transfer EKu')
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
 

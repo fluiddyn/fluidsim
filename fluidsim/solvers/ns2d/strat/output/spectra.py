@@ -142,7 +142,6 @@ class SpectraNS2DStrat(Spectra):
         ax1.set_ylabel('horizontal EK spectra')
         ax1.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
@@ -176,7 +175,7 @@ class SpectraNS2DStrat(Spectra):
         ax2.set_ylabel('vertical EK spectra')
         ax2.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax2.hold(True)
+
         ax2.set_xscale('log')
         ax2.set_yscale('log')
 
@@ -203,7 +202,7 @@ class SpectraNS2DStrat(Spectra):
         # ax4.set_ylabel('Total energy')
         # ax4.set_title('Total energy '+self.output.name_solver +
         #               ', nh = {0:5d}'.format(self.nx))
-        # ax4.hold(True)
+
 
         # Etot = np.empty_like(times)
         # for t in range(len(times)):
@@ -293,7 +292,7 @@ class SpectraNS2DStrat(Spectra):
         ax1.set_ylabel('2D spectra normalized')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-        ax1.hold(True)
+
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
