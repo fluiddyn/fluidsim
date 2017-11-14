@@ -122,6 +122,8 @@ class OutputStrat(Output):
         energyK_ux_fft, energyK_uy_fft = self.compute_energies2_fft()
         energyK = self.sum_wavenumbers(energyK_fft)
         energyA = self.sum_wavenumbers(energyA_fft)
+
+        # energyK_ux (##TODO: remove it. not sense)
         energyK_ux = self.sum_wavenumbers(energyK_ux_fft)
         return energyK, energyA, energyK_ux
 

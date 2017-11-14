@@ -29,6 +29,10 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic
+   :members:
+   :private-members:
+
 """
 from __future__ import division
 from __future__ import print_function
@@ -77,8 +81,12 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self.forcing_fft = SetOfVariables(
             like=sim.state.state_fft, info='forcing_fft', value=0.)
 
-        self.kmax_forcing = self.oper.deltakx * params.forcing.nkmax_forcing
-        self.kmin_forcing = self.oper.deltakx * params.forcing.nkmin_forcing
+        if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
+            raise ValueError('params.forcing.nkmax_forcing < \n'
+                             'params.forcing.nkmin_forcing')
+        self.kmax_forcing = self.oper.deltakh * params.forcing.nkmax_forcing
+        self.kmin_forcing = self.oper.deltakh * params.forcing.nkmin_forcing
+
         self.forcing_rate = params.forcing.forcing_rate
 
         if params.forcing.key_forced is not None:
@@ -549,10 +557,16 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         kymin_forcing = np.cos(angle) * self.kmin_forcing
         kymax_forcing = np.cos(angle) * self.kmax_forcing
 
+        if kxmax_forcing - kxmin_forcing < self.oper.deltakx or \
+           kymax_forcing - kymin_forcing < self.oper.deltaky:
+            raise ValueError('No forcing modes in one direction.')
+
         COND_NO_F_KX = np.logical_or(
             self.oper_coarse.KX > kxmax_forcing,
             self.oper_coarse.KX < kxmin_forcing)
+
         COND_NO_F_KY = np.logical_or(
             self.oper_coarse.KY > kymax_forcing,
             self.oper_coarse.KY < kymin_forcing)
+
         return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)

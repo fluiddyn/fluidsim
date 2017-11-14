@@ -9,10 +9,13 @@
 
 from __future__ import print_function, division
 
+import os
+
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
 
+from fluiddyn.util.util import get_memory_usage
 from fluiddyn.util import mpi
 
 
@@ -23,6 +26,15 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     to print simple info on the current state of the simulation.
 
     """
+    def __init__(self, output):
+        super(PrintStdOutNS2DStrat, self).__init__(output)
+        self.path_memory = self.output.path_run + '/memory_out.txt'
+        if mpi.rank == 0 and self.output.has_to_save:
+            if not os.path.exists(self.path_memory):
+                self.file_memory = open(self.path_memory, 'w')
+            else:
+                self.file_memory = open(self.path_memory, 'r+')
+                self.file_memory.seek(0, 2)  # go to the end of the file
 
     def _make_str_info(self):
         to_print = super(PrintStdOutNS2DStrat, self)._make_str_info()
@@ -36,6 +48,13 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
                 ''.format(energyK, energyA, energy, energy-self.energy_temp))
 
+            if self.output.has_to_save:
+                memory = get_memory_usage()
+                self._write_memory_txt()
+
+                to_print += (
+                    '              memory  = {:9.3f} Mo.\n'.format(memory))
+
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
@@ -44,6 +63,33 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
 
         self.energy_temp = energy
         return to_print
+
+    def _write_memory_txt(self):
+        """Write memory .txt"""
+        it = self.sim.time_stepping.it
+        mem = get_memory_usage()
+        self.file_memory.write('{:.3f},{:.3f}\n'.format(it, mem))
+        self.file_memory.flush()
+        os.fsync(self.file_memory.fileno())
+
+    def plot_memory(self):
+        """ Plot memory used from memory_out.txt """
+        with open(self.output.path_run + '/memory_out.txt') as file_memory:
+            lines = file_memory.readlines()
+
+        lines_it = []
+        lines_memory = []
+        for il, line in enumerate(lines):
+            lines_it.append(float(line.split(',')[0]))
+            lines_memory.append(float(line.split(',')[1]))
+
+
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel('it')
+        ax.set_ylabel('Memory (Mo)')
+
+        ax.plot(lines_it, lines_memory, 'k', linewidth=2)
+        return fig
 
     def load(self):
         dico_results = {'name_solver': self.output.name_solver}
@@ -77,7 +123,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         EK = np.zeros(nt)
         EA = np.zeros(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             it[il] = int(words[2])
@@ -141,3 +187,11 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax2.plot(t, EA, 'g', linewidth=2, label='$E_A$')
         ax2.legend()
         ax2.grid(True)
+
+    def close(self):
+        print('close files')
+        super(PrintStdOutNS2DStrat, self).close()
+        try:
+            self.file_memory.close()
+        except AttributeError:
+            pass

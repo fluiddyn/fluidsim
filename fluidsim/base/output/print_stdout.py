@@ -83,6 +83,7 @@ class PrintStdOutBase(object):
             self.sim.time_stepping.deltat)
 
     def _evaluate_duration_left(self):
+        """ Computes the remaining time. """
         t_real_word = time()
         try:
             duration_real_word = t_real_word - self.t_real_word_last

@@ -168,7 +168,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         epsA_hypo = np.empty(nt)
         epsA_tot = np.empty(nt)
 
-        for il in xrange(nt):
+        for il in range(nt):
             line = lines_t[il]
             words = line.split()
             t[il] = float(words[2])

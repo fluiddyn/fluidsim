@@ -18,7 +18,6 @@ from builtins import object
 from time import time
 from signal import signal
 from math import pi
-from numbers import Number
 
 import numpy as np
 from math import radians
@@ -135,7 +134,6 @@ class TimeSteppingBase(object):
             'Beginning of the computation')
         if self.sim.output.has_to_save:
             self.sim.output.phys_fields.save()
-        time_begining_simul = time()
         if self.params.time_stepping.USE_T_END:
             print_stdout(
                 '    compute until t = {0:10.6g}'.format(
