@@ -1,0 +1,1 @@
+{"hostname": "nid00693", "k0_loc": 64, "k1_loc": 256, "key_solver": "ns2d", "n0": 256, "n0_loc": 32, "n1": 1024, "n1_loc": 1024, "nb_iter": 1000, "nb_proc": 8, "pid": 8548, "t_elapsed_sys": 30.937422144925222, "t_elapsed_usr": 30.937424421310425, "time_as_str": "2017-11-14_04-21-16", "type_fft": "fluidfft.fft2d.mpi_with_fftw1d"}
