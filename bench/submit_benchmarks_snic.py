@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from itertools import product
 from fluiddyn.clusters.snic import ClusterSNIC as Cluster
 import fluidsim
 from fluidsim.util.console import bench
@@ -15,12 +16,12 @@ n0 = 1024; nb_cores = [2, 4, 8, 16, 32]; nodes = [2, 4, 8]
 # 2D benchmarks
 argv = dict(
     dim='2d', nh='{} {}'.format(n0, n0), time='00:20:00',
-    weak=True,
+    weak=False,
     fft=[
         'fft2d.mpi_with_fftw1d',
         'fft2d.mpi_with_fftwmpi2d',
     ]
-
+)
 # 3D benchmarks
 # argv = dict(dim='3d', nh='960 960 240', time='00:50:00')
 
@@ -30,8 +31,8 @@ solver = 'ns2d'
 # mode = 'inter'
 mode = 'inter-intra'
 
-dry_run = False
 # dry_run = True
+dry_run = False
 
 
 def init_cluster():
@@ -84,7 +85,7 @@ if __name__ == '__main__':
 
     if 'intra' in mode:
         nb_nodes = 1
-        for nb_cores_per_node, type_fft in zip(nb_cores, argv['fft']):
+        for nb_cores_per_node, type_fft in product(nb_cores, argv['fft']):
             if nb_cores_per_node > cluster.nb_cores_per_node:
                 continue
             if argv['weak']:
@@ -98,7 +99,7 @@ if __name__ == '__main__':
             submit(cluster, interactive, nb_nodes, nb_cores_per_node, shape=shape, fft=type_fft)
 
     if 'inter' in mode:
-        for nb_nodes, type_fft in zip(nodes, argv['fft']):
+        for nb_nodes, type_fft in product(nodes, argv['fft']):
             if argv['weak']:
                 try:
                     shape = _shapes[nb_nodes * cluster.nb_cores_per_node]

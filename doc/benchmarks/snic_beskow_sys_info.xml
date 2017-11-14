@@ -1,12 +1,11 @@
-<!--Created manually in login node-->
 <sys_info>
   <software CC="icc (ICC) 18.0.0 20170811" MPI="/bin/sh: mpirun: command not
             found" distro="SUSE Linux Enterprise Server 11 x86_64"
-            hostname="beskow-login2.pdc.kth.se"
+            hostname="beskow-login1.pdc.kth.se"
             kernel="3.0.101-0.46.1_1.0502.8871-cray_ari_s" system="Linux"/>  
 
   <hardware address_sizes="46 bits physical, 48 bits virtual" arch="x86_64"
-            bogomips="5200.09" cache_size="20480 KB" cpu_MHz_actual="[2601.0,
+            bogomips="5200.06" cache_size="20480 KB" cpu_MHz_actual="[2601.0,
             2601.0, 2601.0, 2601.0, 2601.0, 2601.0, 2601.0, 2601.0, 2601.0,
             2601.0, 2601.0, 2601.0, 2601.0, 2601.0, 2601.0, 2601.0]"
             cpu_MHz_current="2601.000" cpu_MHz_max="2601.000"
@@ -15,14 +14,13 @@
 
   <python compiler="GCC 7.2.0" implementation="CPython" version="3.6.3">
     <fluiddyn installed="True"
-              local_path="/cfs/klemming/nobackup/a/avmo/src/fluidmeta3/fluiddyn"
-              remote_path="ssh://hg@bitbucket.org/fluiddyn/fluiddyn"
-              version="0.1.5"/>  
+              local_path="/cfs/klemming/nobackup/a/avmo/my-envs/fluidmeta3/lib/python3.6/site-packages/fluiddyn-0.1.6.post1-py3.6.egg/fluiddyn"
+              remote_path="" version="0.1.6.post1"/>  
 
     <fluidsim installed="True"
               local_path="/cfs/klemming/nobackup/a/avmo/src/fluidmeta3/fluidsim"
               remote_path="ssh://hg@bitbucket.org/fluiddyn/fluidsim"
-              version="0.1.0"/>  
+              version="0.1.0.post2"/>  
 
     <fluidlab installed="False" local_path="" remote_path="" version=""/>  
 
@@ -31,7 +29,7 @@
     <fluidfft installed="True"
               local_path="/cfs/klemming/nobackup/a/avmo/src/fluidmeta3/fluidfft"
               remote_path="https://bitbucket.org/fluiddyn/fluidfft"
-              version="0.1.0"/>  
+              version="0.2.1"/>  
 
     <fluidcoriolis installed="False" local_path="" remote_path="" version=""/>  
 

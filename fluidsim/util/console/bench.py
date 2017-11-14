@@ -29,10 +29,10 @@ def bench(
         type_fft=None):
     """Instantiate simulation object and run benchmarks."""
 
-    Simul = solver.Simul
-    params = Simul.create_default_params()
-
     def _bench(type_fft):
+        Simul = solver.Simul
+        params = Simul.create_default_params()
+
         if dim == '2d':
             modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
         elif dim == '3d':
@@ -40,9 +40,9 @@ def bench(
         else:
             raise ValueError("dim has to be in ['2d', '3d']")
 
+        sim = Simul(params)
         try:
             with stdout_redirected():
-                sim = Simul(params)
                 run_bench(sim, path_dir)
         except Exception:
             print('WARNING: Some error occured while saving results!')
