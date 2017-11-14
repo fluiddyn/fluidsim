@@ -25,7 +25,7 @@ class TestBench(unittest.TestCase):
         with stdout_redirected(0):
             solver = import_module_solver_from_key('ns2d')
             bench(solver, dim='2d', n0=2*n0, n1=n0,
-                  n2=None, path_dir=path_tmp)
+                  n2=None, path_dir=path_tmp, raise_error=True)
 
             # Can plot only parallel benchmarks
             if mpi.rank == 0 and mpi.nb_proc == 0:
@@ -45,7 +45,7 @@ class TestBench(unittest.TestCase):
             solver = import_module_solver_from_key('ns3d')
             bench(
                 solver, dim='3d', n0=8, n1=None, n2=None, path_dir=path_tmp,
-                type_fft=type_fft)
+                type_fft=type_fft, raise_error=True)
 
 
 if __name__ == '__main__':

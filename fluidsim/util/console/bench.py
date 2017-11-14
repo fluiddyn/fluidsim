@@ -26,7 +26,7 @@ nb_proc = mpi.nb_proc
 
 def bench(
         solver, dim='2d', n0=1024 * 2, n1=None, n2=None, path_dir=None,
-        type_fft=None):
+        type_fft=None, raise_error=False):
     """Instantiate simulation object and run benchmarks."""
 
     def _bench(type_fft):
@@ -40,12 +40,18 @@ def bench(
         else:
             raise ValueError("dim has to be in ['2d', '3d']")
 
-        sim = Simul(params)
+        with stdout_redirected():
+            sim = Simul(params)
+
         try:
             with stdout_redirected():
                 run_bench(sim, path_dir)
-        except Exception:
-            print('WARNING: Some error occured while saving results!')
+        except Exception as e:
+            if raise_error:
+                raise
+            else:
+                print('WARNING: Some error occured while running benchmark / saving results!')
+                print(e)
         finally:
             tear_down(sim)
             gc.collect()
