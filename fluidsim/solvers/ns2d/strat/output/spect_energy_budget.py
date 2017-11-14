@@ -14,6 +14,7 @@ from past.utils import old_div
 import numpy as np
 import h5py
 
+from fluiddyn.util import mpi
 
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv)
@@ -150,14 +151,17 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'dissEA_kx': dissEA_kx,
             'dissEA_ky': dissEA_ky,
             'dissEA_2d': dissEA_2d,
-            'epsilon': epsilon_kx}
+            'epsilon_kx': epsilon_kx,
+            'epsilon_ky': epsilon_ky}
 
-
-        small_value = 1e-16
-        for k, v in dico_results.items():
-            if k.startswith('transfer'):
-                if abs(v.sum()) < small_value:
-                    print('warning: (abs(v.sum()) < small_value) for ' + k)
+        if mpi.rank == 0:
+            small_value = 1e-14
+            for k, v in dico_results.items():
+                if k.startswith('transfer'):
+                    if abs(v.sum()) > small_value:
+                        print('warning: (abs(v.sum()) > small_value) for ' + k)
+                        print('k = ', k)
+                        print('abs(v.sum()) = ', abs(v.sum()))
 
         return dico_results
 
