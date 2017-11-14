@@ -12,6 +12,9 @@ Provides:
 """
 
 from builtins import object
+
+from warnings import warn
+
 import numpy as np
 
 from .base import TimeSteppingBase
@@ -86,6 +89,37 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             self.deltat_max = 0.78*np.pi/freq_max
         else:
             self.freq_lin = freq_dissip
+
+    def _init_time_scheme(self):
+
+        params_ts = self.params.time_stepping
+
+        if params_ts.type_time_scheme not in ['RK2', 'RK4']:
+            raise ValueError('Problem name time_scheme')
+
+        dtype = self.freq_lin.dtype
+        if dtype == np.float64:
+            str_type = 'float'
+        elif dtype == np.complex128:
+            str_type = 'complex'
+        else:
+            raise NotImplementedError('dtype of freq_lin:' + repr(dtype))
+
+        name_function = (
+            '_time_step_' + params_ts.type_time_scheme +
+            '_state_ndim{}_freqlin_ndim{}_'.format(
+                self.sim.state.state_fft.ndim, self.freq_lin.ndim) +
+            str_type)
+
+        if not hasattr(self, name_function):
+            warn(
+                'The specialized function ' + name_function +
+                ' is not implemented.')
+
+            name_function = '_time_step_' + params_ts.type_time_scheme
+
+        exec('self._time_step_RK = self.' + name_function,
+             globals(), locals())
 
     def _compute_freq_complex(self):
         state_fft = self.sim.state.state_fft
