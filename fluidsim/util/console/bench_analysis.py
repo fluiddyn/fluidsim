@@ -58,7 +58,7 @@ def filter_by_shapeloc(df, n0_loc, n1_loc):
 def plot_scaling(
         path_dir, solver, hostname, n0, n1, show=True,
         type_time='usr', type_plot='strong', fig=None, ax0=None, ax1=None,
-        name_dir=None, once=False):
+        name_dir=None, once=False, t_min_cum=1e10):
     """Plot speedup vs number of processes from benchmark results."""
 
     def check_empty(df):
@@ -88,11 +88,11 @@ def plot_scaling(
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
         check_empty(df)
-        if show:
-            print(df)
 
         nb_proc_min = df.nb_proc.min()
         df_grouped = df.groupby(['type_fft', 'nb_proc']).quantile(q=0.2)
+        if show:
+            print(df)
         return df_grouped, nb_proc_min
 
     df_filter, nb_proc_min_filter = group_df(df_filter)
@@ -103,6 +103,7 @@ def plot_scaling(
     df_filter_nb_proc_min = df_filter.xs(nb_proc_min_filter, level=1)
 
     def get_min(df):
+        """Get minumum time from the whole dataframe"""
         m = df.as_matrix()
         i0, i1 = np.unravel_index(np.argmin(m), m.shape)
         mymin = m[i0, i1]
@@ -113,6 +114,10 @@ def plot_scaling(
     t_min_filter, name_min_filter, key_min_filter = get_min(
         df_filter_nb_proc_min)
 
+    print('{}: Best for 2 procs t={} for {}, {}'.format(
+        path_dir, t_min_filter, name_min_filter, key_min_filter))
+
+    t_min_filter = min(t_min_filter, t_min_cum)
     # Finally, start preparing figure and plot
     if fig is None or ax0 is None or ax1 is None:
         fig, axes = plt.subplots(1, 2)
@@ -128,12 +133,15 @@ def plot_scaling(
         if not (plotted and once):
             ax.plot(x, y, linestyle, label=label)
 
-    def add_hline(ax, series):
+    def add_hline(ax, series=None, y=None):
         """Add a horizontal line to the axis."""
-        y = series.iloc[0]
+        if y is None:
+            y = series.iloc[0]
+
         xmin = series.index.min()
-        xmax = series.index.max()
-        plot_once(ax, [xmin, xmax], [y, y], 'linear')
+        xmax = max(series.index.max(), ax.get_xlim()[1])
+        # plot_once(ax, [xmin, xmax], [y, y], 'linear')
+        ax.plot([xmin, xmax], [y, y], 'k-')
 
     def set_label_scale(ax, yscale='log'):
         """Set log scale, legend and label of the axis."""
@@ -142,22 +150,24 @@ def plot_scaling(
         ax.set_xlabel('number of processes')
 
     # Plot speedup
+    print('Grouped names:')
     for name in df_filter.index.levels[0]:
         tmp = df_filter.loc[name]
-        # print(name)
+        print(name)
 
         for k in keys_filter:
             speedup = t_min_filter / tmp[k] * nb_proc_min_filter
             ax0.plot(
                 speedup.index, speedup.values, 'x-',
-                label='{}, {}'.format(name, name_dir))
+                label='{}, {}'.format(name.replace('fluidfft.', ''), name_dir))
 
     ax0.xaxis.set_major_locator(MaxNLocator(integer=True))
     if type_plot == 'strong':
         theoretical = [speedup.index.min(), speedup.index.max()]
-        plot_once(ax0, theoretical, theoretical, 'linear')
+        # plot_once(ax0, theoretical, theoretical, 'linear')
+        ax0.plot(theoretical, theoretical, 'k-')
     else:
-        add_hline(ax0, speedup)
+        add_hline(ax0, speedup, 2)
 
     set_label_scale(ax0)
     ax0.legend()
@@ -167,22 +177,25 @@ def plot_scaling(
 
     # Plot efficiency
     for name in df_filter.index.levels[0]:
+        tmp = df_filter.loc[name]
         for k in keys_filter:
             speedup = t_min_filter / tmp[k] * nb_proc_min_filter
             if type_plot == 'strong':
                 efficiency = speedup / speedup.index * 100
             else:
-                efficiency = speedup / speedup.iloc[0] * 100
-            add_hline(ax1, efficiency)
+                # efficiency = speedup / speedup.iloc[0] * 100
+                efficiency = speedup / 2 * 100
             ax1.plot(
                 efficiency.index, efficiency.values, 'x-',
                 label='{}, {}'.format(name, name_dir))
+
+    add_hline(ax1, efficiency, 100)
 
     set_label_scale(ax1, 'linear')
 
     if show:
         plt.show()
-    return fig
+    return fig, t_min_filter
 
 
 def init_parser(parser):
@@ -216,10 +229,12 @@ def run(args):
         fig = plt.figure(figsize=[12, 5])
         ax0 = plt.subplot(121)
         ax1 = plt.subplot(122)
+        t_min = 1e10
         for in_dir in args.input_dirs:
-            fig = plot_scaling(
+            fig, t_min = plot_scaling(
                 in_dir, args.solver, args.hostname, args.n0, args.n1,
-                show=True, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1)
+                show=True, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1,
+                t_min_cum=t_min)
 
         if args.save:
             figname = 'fig_bench_' + os.path.basename(args.input_dir) + '.png'

@@ -57,6 +57,7 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
 
         self.classes.TimeStepping.module_name = \
             'fluidsim.base.time_stepping.pseudo_spect_cy'
+
         self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
 
         self.classes.Operators.module_name = 'fluidsim.operators.operators'

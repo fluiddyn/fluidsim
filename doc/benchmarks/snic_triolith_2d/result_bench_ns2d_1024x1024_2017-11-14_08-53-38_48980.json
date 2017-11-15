@@ -1,0 +1,1 @@
+{"hostname": "n352", "k0_loc": 129, "k1_loc": 1024, "key_solver": "ns2d", "n0": 1024, "n0_loc": 256, "n1": 1024, "n1_loc": 1024, "nb_iter": 1000, "nb_proc": 4, "pid": 48980, "t_elapsed_sys": 161.76805756008253, "t_elapsed_usr": 161.76806092262268, "time_as_str": "2017-11-14_08-53-38", "type_fft": "fluidfft.fft2d.mpi_with_fftwmpi2d"}

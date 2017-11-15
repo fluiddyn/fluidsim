@@ -161,6 +161,11 @@ def print_analysis(s):
         name = key[2]
         time = value[2]
         total_time += time
+        if name == 'one_time_step_computation':
+            print('warning: special case one_time_step_computation '
+                  'included in .pyx (see explanation in the code)')
+            times['.pyx'] += time
+
         for k in times.keys():
             if k in name or k in key[0]:
                 if k == '.pyx':
@@ -222,6 +227,11 @@ def print_analysis3d(s):
         name = key[2]
         time = value[2]
         total_time += time
+        if name == 'one_time_step_computation':
+            print('warning: special case one_time_step_computation '
+                  'included in .pyx (see explanation in the code)')
+            times['.pyx'] += time
+
         for k in times.keys():
             if k in name or k in key[0]:
 

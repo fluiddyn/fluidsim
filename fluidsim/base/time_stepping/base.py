@@ -1,8 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping.base`)
 ================================================================
 
-.. currentmodule:: fluidsim.base.time_stepping.base
-
 Provides:
 
 .. autoclass:: TimeSteppingBase
@@ -15,7 +13,6 @@ from __future__ import print_function
 
 from builtins import object
 
-from time import time
 from signal import signal
 from math import pi
 
