@@ -252,7 +252,7 @@ def parse_args_dim(args):
     return args
 
 
-def profile(sim, nb_dim=2):
+def profile(sim, nb_dim=2, path_results='.'):
     """Profile a simulation run and save the results in `profile.pstats`
 
     Parameters
@@ -261,15 +261,18 @@ def profile(sim, nb_dim=2):
         An initialized simulation object
     nb_dim : int
         Dimension of the solver
+    path_results : str
+        Path where all pstats files will be saved
 
     """
     t0 = time()
 
+    path = get_path_file(sim, path_results, name='profile', ext='.pstats')
     cProfile.runctx('sim.time_stepping.start()',
-                    globals(), locals(), 'profile.pstats')
+                    globals(), locals(), path)
     t_end = time()
     if sim.oper.rank == 0:
-        s = pstats.Stats('profile.pstats')
+        s = pstats.Stats(path)
         # s.strip_dirs().sort_stats('time').print_stats(16)
         s.sort_stats('time').print_stats(12)
 
@@ -284,7 +287,25 @@ def profile(sim, nb_dim=2):
 
         print(
             '\nwith gprof2dot and graphviz (command dot):\n'
-            'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')
+            'gprof2dot -f pstats {} | dot -Tpng -o profile.png'.format(path))
+
+
+def get_path_file(sim, path_results, name='bench', ext='.json'):
+    """Generate a unique filename from simulation object."""
+
+    if not os.path.exists(path_results):
+        os.makedirs(path_results)
+
+    t_as_str = time_as_str()
+    key_solver = sim.info_solver.short_name.lower()
+    pid = os.getpid()
+    nfile = (
+        'result_' + name + '_' + key_solver + '_' +
+        sim.oper.produce_str_describing_grid() +
+        '_' + t_as_str + '_{}'.format(pid) + ext)
+
+    path = os.path.join(path_results, nfile)
+    return path
 
 
 def bench(sim, path_results):
@@ -298,7 +319,6 @@ def bench(sim, path_results):
         Directory path to save results in
 
     """
-    t_as_str = time_as_str()
     t0_usr = time()
     t0_sys = clock()
     sim.time_stepping.start()
@@ -308,17 +328,7 @@ def bench(sim, path_results):
     if sim.oper.rank != 0:
         return
 
-    if not os.path.exists(path_results):
-        os.makedirs(path_results)
-
-    key_solver = sim.info_solver.short_name.lower()
-    pid = os.getpid()
-    nfile = (
-        'result_bench_' + key_solver + '_' +
-        sim.oper.produce_str_describing_grid() +
-        '_' + t_as_str + '_{}'.format(pid) + '.json')
-
-    path = os.path.join(path_results, nfile)
+    path = get_path_file(sim, path_results)
 
     results = {
         't_elapsed_usr': t_elapsed_usr,
@@ -376,6 +386,11 @@ def print_analysis(s):
         name = key[2]
         time = value[2]
         total_time += time
+        if name == 'one_time_step_computation':
+            print('warning: special case one_time_step_computation '
+                  'included in .pyx (see explanation in the code)')
+            times['.pyx'] += time
+
         for k in times.keys():
             if k in name or k in key[0]:
                 if k == '.pyx':
@@ -445,6 +460,11 @@ def print_analysis3d(s):
         name = key[2]
         time = value[2]
         total_time += time
+        if name == 'one_time_step_computation':
+            print('warning: special case one_time_step_computation '
+                  'included in .pyx (see explanation in the code)')
+            times['.pyx'] += time
+
         for k in times.keys():
             if k in name or k in key[0]:
 

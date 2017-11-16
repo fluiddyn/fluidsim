@@ -4,7 +4,7 @@
 """
 import argparse
 from ..._version import __version__
-from . import bench, bench_analysis
+from . import bench, bench_analysis, profile
 from .util import MyValueError
 
 
@@ -41,7 +41,9 @@ def get_parser():
         help='see "fluidsim {subcommand} -h" for more details')
     for module, description in [
             (bench, 'Run benchmarks of FluidSim solvers'),
-            (bench_analysis, 'Plot results of benchmarks')]:
+            (bench_analysis, 'Plot results of benchmarks'),
+            (profile, 'Profile time-elapsed in various function calls'),
+    ]:
         add_subparser(subparsers, module, description)
 
     return parser
@@ -50,12 +52,15 @@ def get_parser():
 def run():
     """Parse arguments and execute the current script."""
     parser = get_parser()
+
     def print_help(args):
+        """To print help when no subcommands are given."""
         parser.print_help()
 
     parser.set_defaults(func=print_help)
     args = parser.parse_args()
     args.func(args)
+
 
 if __name__ == '__main__':
     run()
