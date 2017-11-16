@@ -273,7 +273,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         '''Get 1D arrays for setting the axes.'''
 
         x, y = super(MoviesBasePhysFields2D, self)._select_axis(xlabel, ylabel)
-        if shape is not None and (x.shape[0], y.shape[0]) != shape:
+        if shape is not None and (y.shape[0], x.shape[0]) != shape:
             path_file = os.path.join(self.path, 'params_simul.xml')
             params = Parameters(path_file=path_file)
             x = np.arange(0, params.oper.Lx, params.oper.nx)

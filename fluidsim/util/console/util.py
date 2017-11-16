@@ -265,16 +265,16 @@ def profile(sim, nb_dim=2, path_results='.'):
         Path where all pstats files will be saved
 
     """
+    path, t_as_str = get_path_file(sim, path_results)
     t0 = time()
-
-    path = get_path_file(sim, path_results, name='profile', ext='.pstats')
     cProfile.runctx('sim.time_stepping.start()',
                     globals(), locals(), path)
     t_end = time()
+
     if sim.oper.rank == 0:
-        s = pstats.Stats(path)
-        # s.strip_dirs().sort_stats('time').print_stats(16)
-        s.sort_stats('time').print_stats(12)
+        stats = pstats.Stats(path)
+        # stats.strip_dirs().sort_stats('time').print_stats(16)
+        stats.sort_stats('time').print_stats(12)
 
         if nb_dim == 2:
             times = print_analysis(s)
@@ -305,7 +305,7 @@ def get_path_file(sim, path_results, name='bench', ext='.json'):
         '_' + t_as_str + '_{}'.format(pid) + ext)
 
     path = os.path.join(path_results, nfile)
-    return path
+    return path, t_as_str
 
 
 def bench(sim, path_results):
@@ -319,6 +319,8 @@ def bench(sim, path_results):
         Directory path to save results in
 
     """
+    path, t_as_str = get_path_file(sim, path_results)
+    
     t0_usr = time()
     t0_sys = clock()
     sim.time_stepping.start()
@@ -327,8 +329,6 @@ def bench(sim, path_results):
 
     if sim.oper.rank != 0:
         return
-
-    path = get_path_file(sim, path_results)
 
     results = {
         't_elapsed_usr': t_elapsed_usr,
@@ -341,7 +341,7 @@ def bench(sim, path_results):
         'k0_loc': sim.oper.shapeK_loc[0],
         'k1_loc': sim.oper.shapeK_loc[1],
         'nb_proc': mpi.nb_proc,
-        'pid': pid,
+        'pid': os.getpid(),
         'time_as_str': t_as_str,
         'hostname': socket.gethostname(),
         'nb_iter': sim.params.time_stepping.it_end,
