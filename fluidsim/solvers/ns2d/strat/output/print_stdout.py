@@ -189,7 +189,6 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax2.grid(True)
 
     def close(self):
-        print('close files')
         super(PrintStdOutNS2DStrat, self).close()
         try:
             self.file_memory.close()

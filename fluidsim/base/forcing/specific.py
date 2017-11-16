@@ -13,6 +13,10 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: UserDefinedForcingPseudoSpectral
+   :members:
+   :private-members:
+
 .. autoclass:: NormalizedForcing
    :members:
    :private-members:
@@ -38,10 +42,12 @@ from __future__ import division
 from __future__ import print_function
 from builtins import range
 from builtins import object
-import numpy as np
 
 from copy import deepcopy
 from math import radians
+import types
+
+import numpy as np
 
 from fluiddyn.util import mpi
 from fluidsim.base.setofvariables import SetOfVariables
@@ -148,19 +154,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.oper_coarse.KK > self.kmax_forcing,
             self.oper_coarse.KK < self.kmin_forcing)
 
-    def compute(self):
-        """compute the forcing from a coarse forcing."""
-
-        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
-        a_fft = self.oper.coarse_seq_from_fft_loc(a_fft,
-                                                  self.shapeK_loc_coarse)
-
-        if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time(a_fft)
-            self.fstate_coarse.init_statefft_from(**{self.key_forced: Fa_fft})
-
-        self.put_forcingc_in_forcing()
-
     def put_forcingc_in_forcing(self):
         """Copy data from forcingc_fft into forcing_fft."""
         nKyc = self.shapeK_loc_coarse[0]
@@ -241,6 +234,41 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 PZ_forcing2))
 
 
+class UserDefinedForcingPseudoSpectral(SpecificForcingPseudoSpectral):
+    """Forcing maker for forcing defined by the user in the launching script
+
+    .. inheritance-diagram:: UserDefinedForcingPseudoSpectral
+
+    """
+    tag = 'user_defined'
+
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+
+        if mpi.rank == 0:
+            Fa_fft = self.compute_forcingc_fft_each_time()
+            kwargs = {self.key_forced: Fa_fft}
+            self.fstate_coarse.init_statefft_from(**kwargs)
+
+        self.put_forcingc_in_forcing()
+
+    def compute_forcingc_fft_each_time(self):
+        """Compute the coarse forcing in Fourier space"""
+        return self.oper_coarse.fft(self.compute_forcingc_each_time())
+
+    def compute_forcingc_each_time(self):
+        """Compute the coarse forcing in real space"""
+        return self.oper_coarse.random_arrayX()
+
+    def monkeypatch_compute_forcingc_fft_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcingc_fft_each_time = types.MethodType(func, self)
+
+    def monkeypatch_compute_forcingc_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcingc_each_time = types.MethodType(func, self)
+
+
 class Proportional(SpecificForcingPseudoSpectral):
     """Specific forcing proportional to the forced variable
 
@@ -249,6 +277,24 @@ class Proportional(SpecificForcingPseudoSpectral):
     """
 
     tag = 'proportional'
+
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+
+        try:
+            a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+        except ValueError:
+            a_fft = self.sim.state.compute(self.key_forced)
+
+        a_fft = self.oper.coarse_seq_from_fft_loc(
+            a_fft, self.shapeK_loc_coarse)
+
+        if mpi.rank == 0:
+            Fa_fft = self.forcingc_raw_each_time(a_fft)
+            kwargs = {self.key_forced: Fa_fft}
+            self.fstate_coarse.init_statefft_from(**kwargs)
+
+        self.put_forcingc_in_forcing()
 
     def forcingc_raw_each_time(self, vc_fft):
         """Modify the array fvc_fft to fixe the injection rate.

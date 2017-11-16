@@ -362,7 +362,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
                     if hasattr(self.__dict__[k], 'close_file'):
-                        print('close_file', k)
                         self.__dict__[k].close_file()
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):

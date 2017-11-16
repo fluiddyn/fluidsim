@@ -124,12 +124,13 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    params.oper.nx = nh = 32
-    params.oper.ny = 32
-    params.oper.Lx = params.oper.Ly = Lh = 2 * pi
+    params.oper.nx = nx = 64
+    params.oper.ny = nx//2
+    params.oper.Lx = Lx = 2 * pi
+    params.oper.Ly = Lx/2
     params.oper.coef_dealiasing = 0.5
 
-    delta_x = Lh / nh
+    delta_x = Lx / nx
 
     params.nu_2 = 1.*10e-6
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
@@ -144,8 +145,10 @@ if __name__ == "__main__":
     params.init_fields.type = 'noise'
 
     params.FORCING = True
-    params.forcing.type = 'tcrandom_anisotropic'
-    params.forcing.nkmax_forcing = 5
+    # params.forcing.type = 'tcrandom_anisotropic'
+    params.forcing.type = 'user_defined'
+
+    params.forcing.nkmax_forcing = 12
     params.forcing.nkmin_forcing = 4
     params.forcing.tcrandom_anisotropic.angle = '45'
 
@@ -154,12 +157,12 @@ if __name__ == "__main__":
 
     params.output.sub_directory = 'tests'
 
-    params.output.periods_print.print_stdout = 0.001
+    params.output.periods_print.print_stdout = 0.01
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 2.
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 0.5
+    params.output.periods_save.spect_energy_budg = 1.
     params.output.periods_save.increments = 1.
 
     params.output.periods_plot.phys_fields = 5.
@@ -175,8 +178,23 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
+    # monkey-patching for forcing
+    import numpy as np
+
+    forcing_maker = sim.forcing.forcing_maker
+    oper = forcing_maker.oper_coarse
+    forcing0 = np.cos(2*np.pi*oper.Y / oper.ly)
+    omega = 2*np.pi
+
+    def compute_forcingc_each_time(self):
+        return forcing0 * np.sin(omega*sim.time_stepping.t)
+
+    forcing_maker.monkeypatch_compute_forcingc_each_time(
+        compute_forcingc_each_time)
+
+
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
 
     fld.show()

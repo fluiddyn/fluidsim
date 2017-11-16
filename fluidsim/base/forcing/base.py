@@ -97,7 +97,7 @@ key_forced: {None} or str
 
         ClassForcing = dict_classes[self.type_forcing]
 
-        self._forcing = ClassForcing(sim)
+        self.forcing_maker = ClassForcing(sim)
 
     def __call__(self, key):
         """Return the variable corresponding to the given key."""
@@ -105,10 +105,10 @@ key_forced: {None} or str
         return forcing.get_var(key)
 
     def compute(self):
-        self._forcing.compute()
+        self.forcing_maker.compute()
 
     def get_forcing(self):
-        return self._forcing.forcing_phys
+        return self.forcing_maker.forcing_phys
 
 
 class ForcingBasePseudoSpectral(ForcingBase):
@@ -126,8 +126,5 @@ class ForcingBasePseudoSpectral(ForcingBase):
 
         params.forcing._set_attribs({'nkmax_forcing': 5, 'nkmin_forcing': 4})
 
-    def compute(self):
-        self._forcing.compute()
-
     def get_forcing(self):
-        return self._forcing.forcing_fft
+        return self.forcing_maker.forcing_fft
