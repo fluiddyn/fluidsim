@@ -21,11 +21,21 @@ and the main output class for the ns2d.strat solver:
 
 import numpy as np
 
+from math import radians
+
 from fluidsim.solvers.ns2d.output import Output
 
 
 class OutputStrat(Output):
     """Output for ns2d.strat solver."""
+
+    def __init__(self, sim):
+
+        super(OutputStrat, self).__init__(sim)
+
+        if self.sim.params.forcing.type.endswith('anisotropic'):
+            self.froude_number = self._compute_froude_number()
+            self.ratio_omegas = self._compute_ratio_omegas()
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -131,3 +141,16 @@ class OutputStrat(Output):
         """Compute the spatially averaged enstrophy."""
         enstrophy_fft = self.compute_enstrophy_fft()
         return self.sum_wavenumbers(enstrophy_fft)
+
+    def _compute_froude_number(self):
+        """Compute froude number ONLY for anisotropic forcing."""
+        return np.round(
+            np.sin(radians(float(
+                self.sim.params.forcing.tcrandom_anisotropic.angle))), 3)
+
+    def _compute_ratio_omegas(self):
+        """Compute ratio omegas; R = N * sin(angle)/P**(1/3.)"""
+        P = self.sim.params.forcing.forcing_rate
+        N = self.sim.params.N
+        froude_number = self._compute_froude_number()
+        return N * froude_number / P**(1./3)
