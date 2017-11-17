@@ -76,10 +76,18 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         transferEKv_fft = np.real(uy_fft.conj()*Fy_fft)
         B_fft = np.real(uy_fft.conj()*b_fft)
         transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
+
         dissEKu_fft = np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
         dissEKv_fft = np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
+
+        dissEK_fft = np.real(freq_diss_EK * (ux_fft.conj() * ux_fft +
+                                             ux_fft * ux_fft.conj() +
+                                             uy_fft.conj() * uy_fft +
+                                             uy_fft * uy_fft.conj()) / 2.)
+
         dissEA_fft = (1/self.params.N**2) * np.real(
             freq_diss_EK * (b_fft.conj()*b_fft))
+
         transferEK_fft = np.real(ux_fft.conj() * Fx_fft +
                                  ux_fft * Fx_fft.conj() +
                                  uy_fft.conj() * Fy_fft +
@@ -94,6 +102,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             transferEKv_fft)
         transferEA_kx, transferEA_ky = self.spectra1D_from_fft(transferEA_fft)
         B_kx, B_ky = self.spectra1D_from_fft(B_fft)
+
+        dissEK_kx, dissEK_ky = self.spectra1D_from_fft(dissEK_fft)
         dissEKu_kx, dissEKu_ky = self.spectra1D_from_fft(dissEKu_fft)
         dissEKv_kx, dissEKv_ky = self.spectra1D_from_fft(dissEKv_fft)
         dissEA_kx, dissEA_ky = self.spectra1D_from_fft(dissEA_fft)
@@ -131,6 +141,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'B_kx': B_kx,
             'B_ky': B_ky,
             'B_2d': B_2d,
+            'dissEK_kx': dissEK_kx,
+            'dissEK_ky': dissEK_ky,
             'dissEKu_kx': dissEKu_kx,
             'dissEKu_ky': dissEKu_ky,
             'dissEKu_2d': dissEKu_2d,
@@ -233,13 +245,14 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot].mean(0)
         transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot].mean(0)
+
         PiEK_kx = cumsum_inv(transferEK_kx) * self.oper.deltakx
         PiEA_kx = cumsum_inv(transferEA_kx) * self.oper.deltakx
 
         ax1.plot(kxE, PiEK_kx + PiEA_kx, label='T_E')
         ax1.plot(kxE, PiEK_kx, label='T_EK')
         ax1.plot(kxE, PiEA_kx, label='T_EA')
-
+        ax1.plot(kxE, kxE * 0., 'k--')
         ax1.legend()
 
         # Parameters of the figure
@@ -274,5 +287,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.plot(kyE, PiEK_ky + PiEA_ky, label='T_E')
         ax2.plot(kyE, PiEK_ky, label='T_EK')
         ax2.plot(kyE, PiEA_ky, label='T_EA')
+        ax2.plot(kyE, kyE * 0., 'k--')
 
         ax2.legend()
