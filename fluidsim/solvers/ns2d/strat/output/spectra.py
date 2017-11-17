@@ -167,18 +167,19 @@ class SpectraNS2DStrat(Spectra):
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=3):
+        """Plot 2D spectra."""
+
+        # Load data from file
         f = h5py.File(self.path_file2D, 'r')
         dset_times = f['times']
-        # nb_spectra = dset_times.shape[0]
-        times = dset_times.value
-        # nt = len(times)
-
         kh = f['khE'].value
+        times = dset_times.value
 
-        dset_spectrum_ux = f['spectrum2D_EK_ux']
-        dset_spectrum_uy = f['spectrum2D_EK_uy']
+        dset_spectrum_E = f['spectrum2D_E']
+        dset_spectrum_EK = f['spectrum2D_EK']
         dset_spectrum_EA = f['spectrum2D_EA']
 
+        # Compute average from tmin and tmax for plot
         delta_t_save = np.mean(times[1:]-times[0:-1])
         delta_i_plot = int(np.round(delta_t/delta_t_save))
         if delta_i_plot == 0 and delta_t != 0.:
@@ -202,36 +203,21 @@ class SpectraNS2DStrat(Spectra):
             tmin_plot, tmax_plot, delta_t,
             imin_plot, imax_plot, delta_i_plot))
 
+        # Parameters figure
         fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel('$k_h$')
-        ax1.set_ylabel('2D spectra normalized')
+        ax1.set_xlabel('$k$')
+        ax1.set_ylabel('E(k)')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
-        coef_norm = kh**coef_compensate
-
-        # if delta_t != 0.:
-        #     for it in xrange(imin_plot, imax_plot+1, delta_i_plot):
-        #         EK = dset_spectrum_ux[it]
-        #         EK[EK < 10e-16] = 0.
-        #         ax1.plot(kh, EK*coef_norm, 'k', linewidth=1)
-
-        EK_ux = dset_spectrum_ux[imin_plot:imax_plot+1].mean(0)
-        EK_ux[EK_ux < 10e-16] = 0.
-
-        EK_uy = dset_spectrum_uy[imin_plot:imax_plot+1].mean(0)
-        EK_uy[EK_uy < 10e-16] = 0.
-
+        E = dset_spectrum_E[imin_plot:imax_plot+1].mean(0)
+        EK = dset_spectrum_EK[imin_plot:imax_plot+1].mean(0)
         EA = dset_spectrum_EA[imin_plot:imax_plot+1].mean(0)
-        EA[EA < 10e-16] = 0.
 
-        ax1.plot(kh, EK_ux*coef_norm, 'b', label='EK_ux', linewidth=2)
-        ax1.plot(kh, EK_uy*coef_norm, 'r', label='EK_uy', linewidth=2)
-        ax1.plot(kh, EA*kh, 'k', label='EA', linewidth=2)
+        ax1.plot(kh, E, label='E')
+        ax1.plot(kh, EK, label='EK')
+        ax1.plot(kh, EA, label='EA')
+
         ax1.legend()
-
-        # ax1.plot(kh, kh**(-3)*coef_norm, 'k--', linewidth=1)
-        # ax1.plot(kh, 0.01*kh**(-5./3)*coef_norm, 'k-.', linewidth=1)
