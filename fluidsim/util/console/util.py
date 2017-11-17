@@ -60,7 +60,7 @@ def modif_box_size(params, n0, n1, n2=None):
 
 
 def modif_params2d(
-        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None):
+        params, n0=3*2**8, n1=None, name_run='profile', type_fft=None):
     """Modify parameters for 2D benchmarks.
 
     Parameters
@@ -277,9 +277,9 @@ def profile(sim, nb_dim=2, path_results='.'):
         stats.sort_stats('time').print_stats(12)
 
         if nb_dim == 2:
-            times = print_analysis(s)
+            times = print_analysis(stats)
         elif nb_dim == 3:
-            times = print_analysis3d(s)
+            times = print_analysis3d(stats)
         else:
             raise NotImplementedError
 
