@@ -561,12 +561,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         KY = self.KY
         K2 = self.K2
         Kappa_over_ic = self.Kappa_over_ic
-        # KX_over_K2 = self.KX_over_K2
-        # KY_over_K2 = self.KY_over_K2
+        f = float(params.f)
+        c2 = float(params.c2)
 
         return util_sw1l_pythran.qapamfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
-            Kappa_over_ic, params.f, params.c2, rank)
+            Kappa_over_ic, f, c2, rank)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""

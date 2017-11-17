@@ -116,7 +116,7 @@ class NormalModeDecomposition(NormalModeBase):
         oper = self.oper
         sigma = self.sigma
 
-        f = self.params.f
+        f = float(self.params.f)
         c = self.params.c2 ** 0.5
 
         self.qmat = get_qmat(
