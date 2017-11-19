@@ -22,6 +22,7 @@ old_print = print
 print = mpi.printby0
 rank = mpi.rank
 nb_proc = mpi.nb_proc
+description = 'Run benchmarks of FluidSim solvers'
 
 
 def bench(

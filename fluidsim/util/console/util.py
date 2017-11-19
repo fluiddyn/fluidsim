@@ -10,15 +10,13 @@ try:
 except ImportError:
     # python 2.7
     from time import clock
-import pstats
-import cProfile
 import json
 import socket
 import shutil
 
 from fluiddyn.util import time_as_str
 from fluiddyn.util import mpi
-from ..util import available_solver_keys
+from ..util import available_solver_keys, get_dim_from_solver_key
 
 
 class MyValueError(ValueError):
@@ -111,9 +109,9 @@ def modif_params2d(
     except AttributeError:
         pass
 
-    params.time_stepping.deltat0 = 1.e-4
+    params.time_stepping.deltat0 = 1.e-6
     params.time_stepping.USE_CFL = False
-    params.time_stepping.it_end = 1000
+    params.time_stepping.it_end = 20
     params.time_stepping.USE_T_END = False
 
     params.output.periods_print.print_stdout = 0
@@ -180,7 +178,7 @@ def modif_params3d(
 
     params.time_stepping.deltat0 = 1.e-4
     params.time_stepping.USE_CFL = False
-    params.time_stepping.it_end = 100
+    params.time_stepping.it_end = 10
     params.time_stepping.USE_T_END = False
 
     params.output.periods_print.print_stdout = 0
@@ -196,16 +194,15 @@ def init_parser_base(parser):
     parser : argparse.ArgumentParser
 
     """
-    parser.add_argument('n0', nargs='?', type=int, default=64)
+    parser.add_argument('n0', nargs='?', type=int, default=None)
     parser.add_argument('n1', nargs='?', type=int, default=None)
     parser.add_argument('n2', nargs='?', type=int, default=None)
 
     parser.add_argument(
         '-s', '--solver', type=str, default='ns2d',
         help='Any of the following solver keys: {}'.format(
-            available_solver_keys())
-    )
-    parser.add_argument('-d', '--dim', default='2')
+            available_solver_keys()))
+    parser.add_argument('-d', '--dim', default=None)
 
 
 def parse_args_dim(args):
@@ -220,6 +217,10 @@ def parse_args_dim(args):
     n0 = args.n0
     n1 = args.n1
     n2 = args.n2
+    solver = args.solver
+
+    if solver is not None:
+        dim = get_dim_from_solver_key(solver)
 
     if dim is None:
         if n0 is not None and n1 is not None and n2 is None:
@@ -233,11 +234,15 @@ def parse_args_dim(args):
             raise MyValueError
 
     if dim.lower() in ['3', '3d']:
+        if n0 is None:
+            n0 = 128
         if n2 is None:
             n2 = n0
         dim = '3d'
     elif dim.lower() in ['2', '2d']:
         dim = '2d'
+        if n0 is None:
+            n0 = 512
     else:
         raise ValueError('dim should not be {}'.format(dim))
 
@@ -250,44 +255,6 @@ def parse_args_dim(args):
     args.n2 = n2
 
     return args
-
-
-def profile(sim, nb_dim=2, path_results='.'):
-    """Profile a simulation run and save the results in `profile.pstats`
-
-    Parameters
-    ----------
-    sim : Simul
-        An initialized simulation object
-    nb_dim : int
-        Dimension of the solver
-    path_results : str
-        Path where all pstats files will be saved
-
-    """
-    path, t_as_str = get_path_file(sim, path_results)
-    t0 = time()
-    cProfile.runctx('sim.time_stepping.start()',
-                    globals(), locals(), path)
-    t_end = time()
-
-    if sim.oper.rank == 0:
-        stats = pstats.Stats(path)
-        # stats.strip_dirs().sort_stats('time').print_stats(16)
-        stats.sort_stats('time').print_stats(12)
-
-        if nb_dim == 2:
-            times = print_analysis(stats)
-        elif nb_dim == 3:
-            times = print_analysis3d(stats)
-        else:
-            raise NotImplementedError
-
-        print('\nelapsed time = {:.3f} s'.format(t_end - t0))
-
-        print(
-            '\nwith gprof2dot and graphviz (command dot):\n'
-            'gprof2dot -f pstats {} | dot -Tpng -o profile.png'.format(path))
 
 
 def get_path_file(sim, path_results, name='bench', ext='.json'):
@@ -320,7 +287,7 @@ def bench(sim, path_results):
 
     """
     path, t_as_str = get_path_file(sim, path_results)
-    
+
     t0_usr = time()
     t0_sys = clock()
     sim.time_stepping.start()
@@ -369,128 +336,3 @@ def tear_down(sim):
     if mpi.rank == 0:
         print('Cleaning up simulation.')
         shutil.rmtree(sim.output.path_run)
-
-
-def print_analysis(s):
-    """Print analysis of profiling result of a 2D solver.
-
-    Parameters
-    ----------
-    s : pstats.Stats
-        Object pointing to a stats file
-
-    """
-    total_time = 0.
-    times = {'fft2d': 0., 'fft_as': 0., 'pythran': 0., '.pyx': 0.}
-    for key, value in s.stats.items():
-        name = key[2]
-        time = value[2]
-        total_time += time
-        if name == 'one_time_step_computation':
-            print('warning: special case one_time_step_computation '
-                  'included in .pyx (see explanation in the code)')
-            times['.pyx'] += time
-
-        for k in times.keys():
-            if k in name or k in key[0]:
-                if k == '.pyx':
-                    if 'fft/Sources' in key[0]:
-                        continue
-                    if 'fft_as_arg' in key[2]:
-                        continue
-
-                if k == 'fft2d':
-
-                    if 'util_pythran' in key[2] or \
-                       'operators.py' in key[0] or \
-                       'fft_as_arg' in key[2]:
-                        continue
-
-                    callers = value[4]
-
-                    time = 0
-                    for kcaller, vcaller in callers.items():
-                        if 'fft_as_arg' not in kcaller[2] and\
-                           'fft_as_arg' not in kcaller[0]:
-                            time += vcaller[2]
-
-                    # print(k, key)
-                    # print(value[:100])
-                    # print(time, '\n')
-
-                if k == 'fft_as':
-                    if '.pyx' in key[0]:
-                        continue
-                    # time = value[3]
-
-                    # print(k, key)
-                    # print(value[:100])
-                    # print(time, '\n')
-
-                times[k] += time
-
-    print('Analysis (percentage of total time):')
-
-    keys = list(times.keys())
-    keys.sort(key=lambda key: times[key], reverse=True)
-
-    for k in keys:
-        t = times[k]
-        print('time {:10s}: {:5.01f} % ({:4.02f} s)'.format(
-            k, t / total_time * 100, t))
-
-    print('-' * 24 + '\n{:15s}  {:5.01f} %'.format(
-        '', sum([t for t in times.values()]) / total_time * 100))
-
-    return times
-
-
-def print_analysis3d(s):
-    """Print analysis of profiling result of a 3D solver.
-
-    Parameters
-    ----------
-    s : pstats.Stats
-        Object pointing to a stats file
-
-    """
-    total_time = 0.
-    times = {'fft3d': 0., 'fft_as': 0., 'pythran': 0., '.pyx': 0.}
-    for key, value in s.stats.items():
-        name = key[2]
-        time = value[2]
-        total_time += time
-        if name == 'one_time_step_computation':
-            print('warning: special case one_time_step_computation '
-                  'included in .pyx (see explanation in the code)')
-            times['.pyx'] += time
-
-        for k in times.keys():
-            if k in name or k in key[0]:
-
-                if k == 'fft3d':
-                    if 'pythran' in key[0]:
-                        continue
-                    if 'operators.py' in key[0]:
-                        continue
-
-                # print(k, key)
-                # print(value[:100])
-                # print(time, '\n')
-
-                times[k] += time
-
-    print('Analysis (percentage of total time):')
-
-    keys = list(times.keys())
-    keys.sort(key=lambda key: times[key], reverse=True)
-
-    for k in keys:
-        t = times[k]
-        print('time {:10s}: {:5.01f} % ({:4.02f} s)'.format(
-            k, t / total_time * 100, t))
-
-    print('-' * 24 + '\n{:15s}  {:5.01f} %'.format(
-        '', sum([t for t in times.values()]) / total_time * 100))
-
-    return times
