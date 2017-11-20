@@ -260,9 +260,13 @@ class TimeSteppingBase(object):
         if params.FORCING:
             P = params.forcing.forcing_rate
             angle = params.forcing.tcrandom_anisotropic.angle
-            deltat_l = 1. / (N * np.sin(radians(float(angle))))
             deltat_f = 1. / (P**(1./3))
-            maybe_new_dt = min(deltat_CFL, deltat_l, deltat_f, self.deltat_max)
+            if N == 0:
+                maybe_new_dt = min(deltat_CFL, deltat_f, self.deltat_max)
+            else:
+                deltat_l = 1. / (N * np.sin(radians(float(angle))))
+                maybe_new_dt = min(
+                    deltat_CFL, deltat_l, deltat_f, self.deltat_max)
         else:
             maybe_new_dt = min(deltat_CFL, self.deltat_max)
 
