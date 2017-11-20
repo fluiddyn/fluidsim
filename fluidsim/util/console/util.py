@@ -19,8 +19,8 @@ from fluiddyn.util import mpi
 from ..util import available_solver_keys, get_dim_from_solver_key
 
 
-class MyValueError(ValueError):
-    """Bypass errors."""
+class ConsoleError(ValueError):
+    """Distinguish errors from console utilities."""
     pass
 
 
@@ -58,7 +58,7 @@ def modif_box_size(params, n0, n1, n2=None):
 
 
 def modif_params2d(
-        params, n0=3*2**8, n1=None, name_run='profile', type_fft=None):
+        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None):
     """Modify parameters for 2D benchmarks.
 
     Parameters
@@ -199,7 +199,7 @@ def init_parser_base(parser):
     parser.add_argument('n2', nargs='?', type=int, default=None)
 
     parser.add_argument(
-        '-s', '--solver', type=str, default='ns2d',
+        '-s', '--solver', type=str, default=None,
         help='Any of the following solver keys: {}'.format(
             available_solver_keys()))
     parser.add_argument('-d', '--dim', default=None)
@@ -228,10 +228,9 @@ def parse_args_dim(args):
         elif n0 is not None and n1 is not None and n2 is not None:
             dim = '3d'
         else:
-            print(
+            raise ConsoleError(
                 'Cannot determine which shape you want to use for this bench '
                 "('2d' or '3d')")
-            raise MyValueError
 
     if dim.lower() in ['3', '3d']:
         if n0 is None:
@@ -244,15 +243,19 @@ def parse_args_dim(args):
         if n0 is None:
             n0 = 512
     else:
-        raise ValueError('dim should not be {}'.format(dim))
+        raise ConsoleError('dim should not be {}'.format(dim))
 
     if n1 is None:
         n1 = n0
+
+    if solver is None:
+        solver = 'ns2d' if dim == '2d' else 'ns3d'
 
     args.dim = dim
     args.n0 = n0
     args.n1 = n1
     args.n2 = n2
+    args.solver = solver
 
     return args
 

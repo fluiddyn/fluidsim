@@ -5,7 +5,7 @@
 import argparse
 from ..._version import __version__
 from . import bench, bench_analysis, profile
-from .util import MyValueError
+from .util import ConsoleError
 
 
 def compute_name_command(module):
@@ -25,7 +25,7 @@ def add_subparser(subparsers, module, description=None, subcommand=None):
         subcommand, description=description)
     try:
         module.init_parser(parser_subcommand)
-    except MyValueError:
+    except ConsoleError:
         return
 
     parser_subcommand.set_defaults(func=module.run)

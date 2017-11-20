@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 from .bench import (
-    path_results, parse_args_dim, init_parser_base)
+    path_results, parse_args_dim, init_parser_base, ConsoleError)
 
 description = 'Plot results of benchmarks'
 
@@ -98,7 +98,7 @@ def plot_scaling(
     elif type_plot == 'weak':
         df_filter = filter_by_shapeloc(df, n0, n1, n2)
     else:
-        raise ValueError('Unknown plot type.')
+        raise ConsoleError('Unknown plot type.')
 
     def group_df(df):
         """Group and take median dataframe results with same number of processes.
