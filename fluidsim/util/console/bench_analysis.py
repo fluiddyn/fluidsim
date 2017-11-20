@@ -5,6 +5,7 @@
 import os
 from glob import glob
 import json
+import sys
 
 import pandas as pd
 import numpy as np
@@ -13,6 +14,8 @@ from matplotlib.ticker import MaxNLocator
 
 from .bench import (
     path_results, parse_args_dim, init_parser_base)
+
+description = 'Plot results of benchmarks'
 
 
 def load_bench(path_dir, solver, hostname='any'):
@@ -55,24 +58,30 @@ def filter_by_shapeloc(df, n0_loc, n1_loc):
     return df[df.columns.difference(['n0_loc', 'n1_loc'])]
 
 
+def exit_if_empty(df, input_params):
+    """Check if the dataframe is empty."""
+    if df.empty:
+        print('No benchmarks corresponding to the input parameters:')
+        for k, v in input_params.items():
+            print(k, '=', repr(v))
+        sys.exit()
+
+
 def plot_scaling(
         path_dir, solver, hostname, n0, n1, show=True,
         type_time='usr', type_plot='strong', fig=None, ax0=None, ax1=None,
         name_dir=None, once=False, t_min_cum=1e10):
     """Plot speedup vs number of processes from benchmark results."""
 
-    def check_empty(df):
-        """Check if the dataframe is empty."""
-        if df.empty:
-            raise ValueError(
-                'No benchmarks corresponding to the input parameters')
+    input_params = dict(
+        path_dir=path_dir, solver=solver, hostname=hostname, n0=n0, n1=n1)
 
     if name_dir is None:
         name_dir = os.path.basename(
             os.path.abspath(path_dir)).replace('_', ' ').upper()
 
     df = load_bench(path_dir, solver, hostname)
-    check_empty(df)
+    exit_if_empty(df, input_params)
     df.t_elapsed_sys /= df.nb_iter
     df.t_elapsed_usr /= df.nb_iter
 
@@ -84,10 +93,11 @@ def plot_scaling(
         raise ValueError('Unknown plot type.')
 
     def group_df(df):
-        """Group and take median dataframe results with same number of processes."""
+        """Group and take median dataframe results with same number of processes.
+        """
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
-        check_empty(df)
+        exit_if_empty(df, input_params)
 
         nb_proc_min = df.nb_proc.min()
         df_grouped = df.groupby(['type_fft', 'nb_proc']).quantile(q=0.2)

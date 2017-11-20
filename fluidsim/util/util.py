@@ -82,6 +82,17 @@ def import_module_solver_from_key(key=None):
     return import_module(module_solver_from_key(key))
 
 
+def get_dim_from_solver_key(key):
+    cls = import_simul_class_from_key(key)
+    info = cls.InfoSolver()
+    for dim in range(4):
+        if str(dim) in info.classes.Operators.class_name:
+            return str(dim)
+    raise NotImplementedError(
+        'Cannot deduce dimension of the solver from the name ' +
+        info.classes.Operators.class_name)
+
+
 def import_simul_class_from_key(key):
     """Import and reload a simul class.
 

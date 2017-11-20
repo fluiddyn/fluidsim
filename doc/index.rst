@@ -53,11 +53,12 @@ User Guide
 ----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    install
    tutorials
    examples
+   test_bench_profile
 
 Modules Reference
 -----------------

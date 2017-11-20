@@ -8,14 +8,18 @@ from . import bench, bench_analysis, profile
 from .util import MyValueError
 
 
+def compute_name_command(module):
+    name = module.__name__.split('.')[-1]
+    return name.replace('_', '-')
+
+
 def add_subparser(subparsers, module, description=None, subcommand=None):
     """Add a subparser for a module. Expects two functions `init_parser` and
     `run` to be defined within the module.
 
     """
     if subcommand is None:
-        subcommand = module.__name__.split('.')[-1]
-        subcommand = subcommand.replace('_', '-')
+        subcommand = compute_name_command(module)
 
     parser_subcommand = subparsers.add_parser(
         subcommand, description=description)
@@ -39,12 +43,8 @@ def get_parser():
 
     subparsers = parser.add_subparsers(
         help='see "fluidsim {subcommand} -h" for more details')
-    for module, description in [
-            (bench, 'Run benchmarks of FluidSim solvers'),
-            (bench_analysis, 'Plot results of benchmarks'),
-            (profile, 'Profile time-elapsed in various function calls'),
-    ]:
-        add_subparser(subparsers, module, description)
+    for module in (bench, bench_analysis, profile):
+        add_subparser(subparsers, module, module.description)
 
     return parser
 
@@ -60,6 +60,29 @@ def run():
     parser.set_defaults(func=print_help)
     args = parser.parse_args()
     args.func(args)
+
+
+def _run_from_module(module):
+    parser = argparse.ArgumentParser(
+        prog='fluidsim' + compute_name_command(module),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=module.description)
+
+    module.init_parser(parser)
+    args = parser.parse_args()
+    module.run(args)
+
+
+def run_profile():
+    _run_from_module(profile)
+
+
+def run_bench():
+    _run_from_module(bench)
+
+
+def run_bench_analysis():
+    _run_from_module(bench_analysis)
 
 
 if __name__ == '__main__':

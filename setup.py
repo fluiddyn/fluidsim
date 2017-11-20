@@ -203,6 +203,15 @@ if use_pythran:
 
     ext_modules += make_pythran_extensions(ext_names)
 
+console_scripts = [
+    'fluidsim = fluidsim.util.console.__main__:run',
+    'fluidsim-test = fluidsim.util.testing:run']
+
+for command in ['profile', 'bench', 'bench-analysis']:
+    console_scripts.append(
+        'fluidsim-' + command +
+        ' = fluidsim.util.console.__main__:run_' + command.replace('-', '_'))
+
 
 setup(name='fluidsim',
       version=__version__,
@@ -245,8 +254,4 @@ setup(name='fluidsim',
           parallel=['mpi4py']),
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules,
-      entry_points={
-          'console_scripts':
-          ['fluidsim = fluidsim.util.console.__main__:run',
-           'fluidsim-test = fluidsim.util.testing:run']}
-)
+      entry_points={'console_scripts': console_scripts})

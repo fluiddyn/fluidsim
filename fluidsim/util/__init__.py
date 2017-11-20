@@ -1,8 +1,6 @@
 """Utilities for FluidSim
 =========================
 
-.. currentmodule:: fluidsim.util
-
 Provides:
 
 .. autosummary::
