@@ -303,9 +303,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
-
-        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip],
-                                 uy[::self._skip, ::self._skip])
+        vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
+                                 uy[::self._skip, ::self._skip]/vmax)
         self._ani_im.autoscale()
         self._ani_set_clim()
 
@@ -315,7 +315,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                  self.output.name_solver +
                  ', $n_x = {0:d}$'.format(self.params.oper.nx))
 
-        vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+        # vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
         title += r', $|\vec{v}|_{max} = $' + '{0:.3f}'.format(vmax)
 
         self._ani_ax.set_title(title)
