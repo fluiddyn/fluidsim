@@ -100,7 +100,11 @@ class OutputStrat(Output):
         b_fft = self.sim.state.state_fft.get_var('b_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         energyK_fft = (np.abs(ux_fft)**2 + np.abs(uy_fft)**2)/2
-        energyA_fft = ((np.abs(b_fft)/self.sim.params.N)**2)/2
+
+        if self.sim.params.N == 0:
+            energyA_fft = np.zeros_like(energyK_fft)
+        else:
+            energyA_fft = ((np.abs(b_fft)/self.sim.params.N)**2)/2
         return energyK_fft, energyA_fft
 
     def compute_energies2_fft(self):

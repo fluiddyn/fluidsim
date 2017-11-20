@@ -75,7 +75,11 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         transferEKu_fft = np.real(ux_fft.conj()*Fx_fft)
         transferEKv_fft = np.real(uy_fft.conj()*Fy_fft)
         B_fft = np.real(uy_fft.conj()*b_fft)
-        transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
+
+        if self.params.N == 0:
+            transferEA_fft = np.zeros_like(transferZ_fft)
+        else:
+            transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
 
         dissEKu_fft = np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
         dissEKv_fft = np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
@@ -84,9 +88,11 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                                              ux_fft * ux_fft.conj() +
                                              uy_fft.conj() * uy_fft +
                                              uy_fft * uy_fft.conj()) / 2.)
-
-        dissEA_fft = (1/self.params.N**2) * np.real(
-            freq_diss_EK * (b_fft.conj()*b_fft))
+        if self.params.N == 0:
+            dissEA_fft = np.zeros_like(dissEK_fft)
+        else:
+            dissEA_fft = (1/self.params.N**2) * np.real(
+                freq_diss_EK * (b_fft.conj()*b_fft))
 
         transferEK_fft = np.real(ux_fft.conj() * Fx_fft +
                                  ux_fft * Fx_fft.conj() +
