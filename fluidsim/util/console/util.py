@@ -260,7 +260,7 @@ def parse_args_dim(args):
 def get_path_file(sim, path_results, name='bench', ext='.json'):
     """Generate a unique filename from simulation object."""
 
-    if not os.path.exists(path_results):
+    if not os.path.exists(path_results) and mpi.rank == 0:
         os.makedirs(path_results)
 
     t_as_str = time_as_str()
