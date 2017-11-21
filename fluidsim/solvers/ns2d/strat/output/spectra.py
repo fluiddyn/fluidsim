@@ -145,6 +145,14 @@ class SpectraNS2DStrat(Spectra):
         ax1.plot(kx, E_kx, label='E')
         ax1.plot(kx, EK_kx, label='EK')
         ax1.plot(kx, EA_kx, label='EA')
+
+        ax1.plot(
+            kx[1:], kx[1:]**(-5./3), 'k', linewidth=0.8, label=r'$k^{-5/3}$')
+        ax1.plot(
+            kx[1:], kx[1:]**(-2), 'k-.', linewidth=0.8, label=r'$k^{-2}$')
+        ax1.plot(
+            kx[1:], kx[1:]**(-3), 'k--', linewidth=0.8, label=r'$k^{-3}$')
+
         ax1.legend()
 
         # Parameters figure E(k_y)
@@ -163,6 +171,14 @@ class SpectraNS2DStrat(Spectra):
         ax2.plot(ky, E_ky, label='E')
         ax2.plot(ky, EK_ky, label='EK')
         ax2.plot(ky, EA_ky, label='EA')
+
+        ax2.plot(
+            ky[1:], ky[1:]**(-5./3), 'k', linewidth=0.8, label=r'$k^{-5/3}$')
+        ax2.plot(
+            ky[1:], ky[1:]**(-2), 'k-.', linewidth=0.8, label=r'$k^{-2}$')
+        ax2.plot(
+            ky[1:], ky[1:]**(-3), 'k--', linewidth=0.8, label=r'$k^{-3}$')
+
         ax2.legend()
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
