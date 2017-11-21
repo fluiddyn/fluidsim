@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 from .bench import (
-    path_results, parse_args_dim, init_parser_base)
+    path_results, parse_args_dim, init_parser_base, ConsoleError)
 
 description = 'Plot results of benchmarks'
 
@@ -36,14 +36,18 @@ def load_bench(path_dir, solver, hostname='any'):
     return df
 
 
-def filter_by_shape(df, n0, n1):
+def filter_by_shape(df, n0, n1, n2=None):
     """Filters all results with the same `n0` and same `n1`."""
 
-    df = df[(df.n0 == n0) & (df.n1 == n1)]
-    return df[df.columns.difference(['n0', 'n1'])]
+    if n2 is None:
+        df = df[(df.n0 == n0) & (df.n1 == n1)]
+        return df[df.columns.difference(['n0', 'n1'])]
+    else:
+        df = df[(df.n0 == n0) & (df.n1 == n1) &  (df.n2 == n2)]
+        return df[df.columns.difference(['n0', 'n1', 'n2'])]
 
 
-def filter_by_shapeloc(df, n0_loc, n1_loc):
+def filter_by_shapeloc(df, n0_loc, n1_loc, n2_loc=None):
     """Filters all results with the same `n0_loc * n1_loc`.
 
     This implies shapeK_loc has same no. of points. This is a weak check and
@@ -54,8 +58,12 @@ def filter_by_shapeloc(df, n0_loc, n1_loc):
     >>> mpirun -np {nb_proc} fluidsim bench -c
 
     """
-    df = df[(df.n0_loc * df.n1_loc == n0_loc * n1_loc)]
-    return df[df.columns.difference(['n0_loc', 'n1_loc'])]
+    if n2_loc is None:
+        df = df[(df.n0_loc * df.n1_loc == n0_loc * n1_loc)]
+        return df[df.columns.difference(['n0_loc', 'n1_loc'])]
+    else:
+        df = df[(df.n0_loc * df.n1_loc * df.n2_loc == n0_loc * n1_loc * n2_loc)]
+        return df[df.columns.difference(['n0_loc', 'n1_loc', 'n2_loc'])]
 
 
 def exit_if_empty(df, input_params):
@@ -68,7 +76,7 @@ def exit_if_empty(df, input_params):
 
 
 def plot_scaling(
-        path_dir, solver, hostname, n0, n1, show=True,
+        path_dir, solver, hostname, n0, n1, n2=None, show=True,
         type_time='usr', type_plot='strong', fig=None, ax0=None, ax1=None,
         name_dir=None, once=False, t_min_cum=1e10):
     """Plot speedup vs number of processes from benchmark results."""
@@ -86,11 +94,11 @@ def plot_scaling(
     df.t_elapsed_usr /= df.nb_iter
 
     if type_plot == 'strong':
-        df_filter = filter_by_shape(df, n0, n1)
+        df_filter = filter_by_shape(df, n0, n1, n2)
     elif type_plot == 'weak':
-        df_filter = filter_by_shapeloc(df, n0, n1)
+        df_filter = filter_by_shapeloc(df, n0, n1, n2)
     else:
-        raise ValueError('Unknown plot type.')
+        raise ConsoleError('Unknown plot type.')
 
     def group_df(df):
         """Group and take median dataframe results with same number of processes.
@@ -230,24 +238,21 @@ def init_parser(parser):
 def run(args):
     """Run `fluidsim bench-analysis` command."""
     args = parse_args_dim(args)
-    if args.dim == '3d':
-        raise NotImplementedError
+    if len(args.input_dirs) == 0:
+        args.input_dirs = [args.input_dir]
+
+    fig = plt.figure(figsize=[12, 5])
+    ax0 = plt.subplot(121)
+    ax1 = plt.subplot(122)
+    t_min = 1e10
+    for in_dir in args.input_dirs:
+        fig, t_min = plot_scaling(
+            in_dir, args.solver, args.hostname, args.n0, args.n1, args.n2,
+            show=True, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1,
+            t_min_cum=t_min)
+
+    if args.save:
+        figname = 'fig_bench_' + os.path.basename(args.input_dir) + '.png'
+        fig.savefig(figname)
     else:
-        if len(args.input_dirs) == 0:
-            args.input_dirs = [args.input_dir]
-
-        fig = plt.figure(figsize=[12, 5])
-        ax0 = plt.subplot(121)
-        ax1 = plt.subplot(122)
-        t_min = 1e10
-        for in_dir in args.input_dirs:
-            fig, t_min = plot_scaling(
-                in_dir, args.solver, args.hostname, args.n0, args.n1,
-                show=True, type_plot=args.type_plot, fig=fig, ax0=ax0, ax1=ax1,
-                t_min_cum=t_min)
-
-        if args.save:
-            figname = 'fig_bench_' + os.path.basename(args.input_dir) + '.png'
-            fig.savefig(figname)
-        else:
-            plt.show()
+        plt.show()

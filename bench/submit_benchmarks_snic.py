@@ -14,18 +14,30 @@ n0 = 1024; nb_cores = [2, 4, 8, 16, 32]; nodes = [2, 4, 8]
 # n0 = 1008; nb_cores = [2, 4, 8, 12, 16, 21, 24, 28]; nodes = [2, 3, 4, 6]
 
 # 2D benchmarks
+# argv = dict(
+#     dim='2d', nh='{} {}'.format(n0, n0), time='00:20:00',
+#     weak=False,
+#     fft=[
+#         'fft2d.mpi_with_fftw1d',
+#         'fft2d.mpi_with_fftwmpi2d',
+#     ]
+# )
+# solver = 'ns2d'
+
+# 3D benchmarks
+nb_cores = [2, 4, 8, 16, 32]; nodes = [2, 4, 8, 16, 32]
 argv = dict(
-    dim='2d', nh='{} {}'.format(n0, n0), time='00:20:00',
+    # dim='3d', nh='960 960 240', time='00:50:00',
+    dim='3d', nh='1344 1344 672', time='00:30:00',
     weak=False,
     fft=[
-        'fft2d.mpi_with_fftw1d',
-        'fft2d.mpi_with_fftwmpi2d',
+        'fft3d.mpi_with_fftw1d',
+        'fft3d.mpi_with_fftwmpi3d',
+        'fft3d.mpi_with_p3dfft',
+        'fft3d.mpi_with_pfft',
     ]
 )
-# 3D benchmarks
-# argv = dict(dim='3d', nh='960 960 240', time='00:50:00')
-
-solver = 'ns2d'
+solver = 'ns3d'
 
 # mode = 'intra'
 # mode = 'inter'

@@ -14,7 +14,7 @@ from fluiddyn.io import stdout_redirected
 from ..util import import_module_solver_from_key
 from .util import (
     modif_params2d, modif_params3d, init_parser_base,
-    parse_args_dim, bench as run_bench, tear_down)
+    parse_args_dim, bench as run_bench, tear_down, ConsoleError)
 
 
 path_results = '/tmp/fluidsim_bench'
@@ -38,8 +38,6 @@ def bench(
             modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
         elif dim == '3d':
             modif_params3d(params, n0, n1, n2, name_run='bench', type_fft=type_fft)
-        else:
-            raise ValueError("dim has to be in ['2d', '3d']")
 
         with stdout_redirected():
             sim = Simul(params)
@@ -87,7 +85,7 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
         return d
     else:
         if type_fft not in d:
-            raise ValueError('{} not in {}'.format(type_fft, list(d.keys())))
+            raise ConsoleError('{} not in {}'.format(type_fft, list(d.keys())))
 
         if n2 is None:
             opfft = d[type_fft](n0, n1)
@@ -184,6 +182,7 @@ def run(args):
     args = parse_args_dim(args)
 
     if args.list_type_fft:
+        print('FFT classes available for', args.dim.upper())
         d = get_opfft(args.n0, args.n1, args.n2, dim=args.dim, only_dict=True)
         info._print_dict(d)
     elif args.print_shape_loc:
