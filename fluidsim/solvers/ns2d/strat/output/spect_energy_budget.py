@@ -79,7 +79,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         if self.params.N == 0:
             transferEA_fft = np.zeros_like(transferZ_fft)
         else:
-            transferEA_fft = (1/self.params.N**2) * np.real(b_fft.conj()*Fb_fft)
+            transferEA_fft = (1/self.params.N**2) * np.real(
+                b_fft.conj()*Fb_fft)
 
         dissEKu_fft = np.real(freq_diss_EK * (ux_fft.conj()*ux_fft))
         dissEKv_fft = np.real(freq_diss_EK * (uy_fft.conj()*uy_fft))
@@ -228,7 +229,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         # Parameters of the figure
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_x$')
-        ax1.set_ylabel('')
+        ax1.set_ylabel(r'$\Pi$')
         ax1.set_xscale('log')
         ax1.set_yscale('linear')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
@@ -255,16 +256,16 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         PiEK_kx = cumsum_inv(transferEK_kx) * self.oper.deltakx
         PiEA_kx = cumsum_inv(transferEA_kx) * self.oper.deltakx
 
-        ax1.plot(kxE, PiEK_kx + PiEA_kx, label='T_E')
-        ax1.plot(kxE, PiEK_kx, label='T_EK')
-        ax1.plot(kxE, PiEA_kx, label='T_EA')
-        ax1.plot(kxE, kxE * 0., 'k--')
+        ax1.plot(kxE, PiEK_kx + PiEA_kx, label=r'$\Pi$')
+        ax1.plot(kxE, PiEK_kx, label=r'$\Pi_K$')
+        ax1.plot(kxE, PiEA_kx, label=r'$\Pi_A$')
+        ax1.plot(kxE, kxE * 0., 'k--', linewidth=0.8)
         ax1.legend()
 
         # Parameters of the figure
         fig, ax2 = self.output.figure_axe()
         ax2.set_xlabel('$k_y$')
-        ax2.set_ylabel('')
+        ax2.set_ylabel(r'$\Pi$')
         ax2.set_xscale('log')
         ax2.set_yscale('linear')
         ax2.set_title('2D spectra, solver ' + self.output.name_solver +
@@ -290,9 +291,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         PiEK_ky = cumsum_inv(transferEK_ky) * self.oper.deltaky
         PiEA_ky = cumsum_inv(transferEA_ky) * self.oper.deltaky
 
-        ax2.plot(kyE, PiEK_ky + PiEA_ky, label='T_E')
-        ax2.plot(kyE, PiEK_ky, label='T_EK')
-        ax2.plot(kyE, PiEA_ky, label='T_EA')
-        ax2.plot(kyE, kyE * 0., 'k--')
+        ax2.plot(kyE, PiEK_ky + PiEA_ky, label=r'$\Pi$')
+        ax2.plot(kyE, PiEK_ky, label=r'$\Pi_K$')
+        ax2.plot(kyE, PiEA_ky, label=r'$\Pi_A$')
+        ax2.plot(kyE, kyE * 0., 'k--', linewidth=0.8)
 
         ax2.legend()
