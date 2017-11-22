@@ -285,7 +285,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                  linewidth=2)
         ax1.plot(t, epsK_tot+epsA_tot, 'k', label=r'$\epsilon_{tot}$',
                  linewidth=2)
-        ax1.legend()
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
@@ -300,7 +299,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if self.sim.params.FORCING:
             PK_tot = dico_results['PK_tot']
             PZ_tot = dico_results['PZ_tot']
-            ax1.plot(t, PK_tot, 'c', linewidth=2)
-            ax2.plot(t, PZ_tot, 'c', linewidth=2)
+            ax1.plot(t, PK_tot, 'c', label='P', linewidth=2)
+            ax2.plot(t, PZ_tot, 'c', label='P', linewidth=2)
             ax1.set_ylabel('P_E(t), epsK(t)')
             ax2.set_ylabel('P_Z(t), epsZ(t)')
+
+        ax1.legend()
