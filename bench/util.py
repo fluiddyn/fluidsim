@@ -10,7 +10,7 @@ def create_common_params(n0, n1=None, n2=None):
     params = Parameters('submit')
     params._set_attrib('weak', False)
     params._set_attrib('dry_run', False)
-    params._set_attrib('mode', 'intra')
+    params._set_attrib('mode', '')
     params._set_attrib('dim', 3)
     params._set_attrib('output_dir', '')
 
@@ -20,6 +20,8 @@ def create_common_params(n0, n1=None, n2=None):
     params._set_child('two_d', dict(
         shape='{} {}'.format(n0, n1), time='00:20:00',
         solver='ns2d',
+        fft_seq=['fft2d.with_fftw1d',
+                 'fft2d.with_fftw2d'],
         fft=['fft2d.mpi_with_fftw1d',
              'fft2d.mpi_with_fftwmpi2d'],
         nb_cores=np.logspace(1, 8, 8, base=2, dtype=int), nodes=[1]))
@@ -30,6 +32,7 @@ def create_common_params(n0, n1=None, n2=None):
     params._set_child('three_d', dict(
         shape='{} {} {}'.format(n0, n1, n2), time='00:30:00',
         solver='ns3d',
+        fft_seq=['fft2d.with_fftw3d'],
         fft=['fft3d.mpi_with_fftw1d',
              'fft3d.mpi_with_fftwmpi3d',
              'fft3d.mpi_with_p3dfft',
@@ -39,11 +42,12 @@ def create_common_params(n0, n1=None, n2=None):
     return params
 
 
-def get_parser(prog='', description=''):
+def get_parser(prog='', description='', epilog=''):
     parser = argparse.ArgumentParser(
         prog=prog,
         description=description,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog)
     parser.add_argument('n0', nargs='?', type=int, default=None)
     parser.add_argument('n1', nargs='?', type=int, default=None)
     parser.add_argument('n2', nargs='?', type=int, default=None)
@@ -54,7 +58,7 @@ def get_parser(prog='', description=''):
     parser.add_argument('-d', '--dim', type=int, default=3)
 
     parser.add_argument('-n', '--dry-run', action='store_true')
-    parser.add_argument('-m', '--mode', default='intra')
+    parser.add_argument('-m', '--mode', default='seq-intra-inter')
     return parser
 
 
@@ -73,12 +77,12 @@ def parser_to_params(parser):
     return params, params_dim
 
 
-def init_cluster(params, Cluster, prefix='snic'):
+def init_cluster(params, Cluster, prefix='snic', subdir='benchmarks'):
 
     cluster = Cluster()
     output_dir = params.output_dir = os.path.abspath(
-        './../doc/benchmarks/{}_{}_{}d'.format(
-            prefix, cluster.name_cluster, params.dim))
+        './../doc/{}/{}_{}_{}d'.format(
+            subdir, prefix, cluster.name_cluster, params.dim))
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -89,15 +93,16 @@ def init_cluster(params, Cluster, prefix='snic'):
 
 
 def submit(
-        params, params_dim, cluster, nb_nodes, nb_cores_per_node=None, fft='all'):
+        params, params_dim, cluster, nb_nodes, nb_cores_per_node=None,
+        fft='all', cmd='bench'):
     if nb_cores_per_node is None:
         nb_cores_per_node = cluster.nb_cores_per_node
 
     nb_mpi = nb_cores_per_node * nb_nodes
-    cmd = 'fluidsim bench -s {} {} -t {} -o {}'.format(
-        params_dim.solver, params_dim.shape, fft, params.output_dir)
+    cmd = 'fluidsim {} -s {} {} -t {} -o {}'.format(
+        cmd, params_dim.solver, params_dim.shape, fft, params.output_dir)
     if params.dry_run:
-        print('nb_mpi = ', nb_mpi, end=' ')
+        print('np =', nb_mpi, end=' ')
         print(cmd)
     else:
         cluster.submit_command(

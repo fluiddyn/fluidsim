@@ -1,5 +1,13 @@
 #!/usr/bin/env python
-"""Submit weak scaling benchmarks in a loop."""
+"""Submit weak scaling benchmarks in a loop.
+
+Examples
+--------
+./submit_weak --help
+./submit_weak -n
+./submit_weak -n -d 2 32 32
+
+"""
 import os
 import numpy as np
 from util import get_parser, parser_to_params, init_cluster, submit
@@ -13,7 +21,8 @@ else:
     cluster_type = 'local'
 
 
-parser = get_parser('submit_weak', 'Generic script to submit weak scaling benchmarks')
+parser = get_parser(
+    'submit_weak', 'Generic script to submit weak scaling benchmarks', __doc__)
 if cluster_type == 'snic':
     parser.set_defaults(n0=1024, n1=1024, nz=240)  # or 1344 1344 672
 else:
@@ -31,7 +40,6 @@ multipliers = np.array(params_dim.nodes)
 args = parser.parse_args()
 
 
-
 def submit_once(nb_nodes, nb_cores_per_node, type_fft, n0, n1, n2=None):
     global params, params_dim, cluster
     if params.dim == 3:
@@ -45,6 +53,10 @@ def submit_once(nb_nodes, nb_cores_per_node, type_fft, n0, n1, n2=None):
 
 if params.dry_run:
     print(params_dim)
+
+if 'seq' in mode:
+    for type_fft in params_dim.fft_seq:
+        submit(params, params_dim, cluster, 1, 1, type_fft)
 
 if params.dim == 2:
     n0 = args.n0

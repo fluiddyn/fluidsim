@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""Submit strong scaling benchmarks in a loop.
+"""Submit profiles in a loop.
 
 Examples
 --------
-./submit_strong --help
-./submit_strong -n
-./submit_strong -n -d 2 32 32
+./submit_profile --help
+./submit_profile -n
+./submit_profile -n -d 2 32 32
 
 """
 import os
@@ -22,15 +22,14 @@ else:
 
 
 parser = get_parser(
-    'submit_strong', 'Generic script to submit strong scaling benchmarks',
-    __doc__)
+    'submit_profile', 'Generic script to submit profiles', __doc__)
 if cluster_type == 'snic':
     parser.set_defaults(n0=1024, n1=1024, nz=240)  # or 1344 1344 672
 else:
     parser.set_defaults(n0=64, n1=64, nz=8)
 
 params, params_dim = parser_to_params(parser)
-cluster = init_cluster(params, Cluster)
+cluster = init_cluster(params, Cluster, subdir='profiles')
 mode = params.mode
 
 if __name__ == '__main__':
@@ -39,7 +38,7 @@ if __name__ == '__main__':
 
     if 'seq' in mode:
         for type_fft in params_dim.fft_seq:
-            submit(params, params_dim, cluster, 1, 1, type_fft)
+            submit(params, params_dim, cluster, 1, 1, type_fft, 'profile')
 
     if 'intra' in mode:
         nb_nodes = 1
@@ -47,8 +46,10 @@ if __name__ == '__main__':
             if nb_cores_per_node > cluster.nb_cores_per_node:
                 continue
 
-            submit(params, params_dim, cluster, nb_nodes, nb_cores_per_node, type_fft)
+            submit(params, params_dim, cluster, nb_nodes, nb_cores_per_node,
+                   type_fft, 'profile')
 
     if 'inter' in mode:
         for nb_nodes, type_fft in product(params_dim.nodes, params_dim.fft):
-            submit(params, params_dim, cluster, nb_nodes, fft=type_fft)
+            submit(params, params_dim, cluster, nb_nodes, fft=type_fft,
+                   cmd='profile')

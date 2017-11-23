@@ -46,7 +46,7 @@ def run_profile(sim, nb_dim=2, path_results='.', plot=False):
         Path where all pstats files will be saved
 
     """
-    path, t_as_str = get_path_file(sim, path_results)
+    path, t_as_str = get_path_file(sim, path_results, 'profile', '.pstats')
     t0 = time()
     cProfile.runctx('sim.time_stepping.start()',
                     globals(), locals(), path)
@@ -149,7 +149,7 @@ def run(args):
     if args.stats_file is not None:
         # get solver from name... Not clean at all...
         tmp = os.path.split(args.stats_file)[-1]
-        args.solver = tmp.split('result_bench_')[-1].split('_')[0]
+        args.solver = tmp.split('result_profile_')[-1].split('_')[0]
 
     args = parse_args_dim(args)
 
