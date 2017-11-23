@@ -1,11 +1,9 @@
 
 conda:
-    file: environment.yml
+    file: doc/environment.yml
 
 formats:
     - none
-
-requirements_file: doc/requirements.txt
 
 python:
    version: 3
