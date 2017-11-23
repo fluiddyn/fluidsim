@@ -79,7 +79,7 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
         d = {}
 
     if mpi.nb_proc > 1:
-        mpi.comm.bcast(d)
+        d = mpi.comm.bcast(d)
 
     if only_dict:
         return d
