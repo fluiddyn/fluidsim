@@ -24,7 +24,7 @@ def create_common_params(n0, n1=None, n2=None):
                  'fft2d.with_fftw2d'],
         fft=['fft2d.mpi_with_fftw1d',
              'fft2d.mpi_with_fftwmpi2d'],
-        nb_cores=np.logspace(1, 8, 8, base=2, dtype=int), nodes=[1]))
+        nb_cores=np.logspace(1, 8, 8, base=2, dtype=int), nodes=[]))
 
     if n2 is None:
         n2 = n0
@@ -38,7 +38,7 @@ def create_common_params(n0, n1=None, n2=None):
              'fft3d.mpi_with_p3dfft',
              'fft3d.mpi_with_pfft'],
         nb_cores=np.logspace(1, 10, 10, base=2, dtype=int),
-        nodes=[1]))
+        nodes=[]))
     return params
 
 
@@ -55,10 +55,19 @@ def get_parser(prog='', description='', epilog=''):
         '-s', '--solver', type=str, default=None,
         help='Any of the following solver keys: {}'.format(
             available_solver_keys()))
-    parser.add_argument('-d', '--dim', type=int, default=3)
+    parser.add_argument(
+        '-d', '--dim', type=int, default=3,
+        help='dimension of the solver (default: 3)')
 
-    parser.add_argument('-n', '--dry-run', action='store_true')
-    parser.add_argument('-m', '--mode', default='seq-intra-inter')
+    parser.add_argument(
+        '-n', '--dry-run', action='store_true',
+        help='simply print the commands which will be run')
+    parser.add_argument(
+        '-m', '--mode', default='seq-intra-inter',
+        help='could be "seq", "intra", "inter" or a combination of these')
+    parser.add_argument(
+        '-x', '--max-nodes', type=int, default=1,
+        help='max. no. of nodes to use (default: 1)')
     return parser
 
 
@@ -74,6 +83,10 @@ def parser_to_params(parser):
     if args.solver is not None:
         params_dim.solver = args.solver
 
+    if args.max_nodes > 1:
+        params_dim.nodes = np.logspace(
+            1, args.max_nodes, args.max_nodes, base=2, dtype=int)
+
     params.dim = args.dim
     params.dry_run = args.dry_run
     params.mode = args.mode
@@ -83,6 +96,11 @@ def parser_to_params(parser):
 def init_cluster(params, Cluster, prefix='snic', subdir='benchmarks'):
 
     cluster = Cluster()
+    if cluster.name_cluster == 'beskow':
+        cluster.default_project = '2016-34-10'
+    else:
+        cluster.default_project = 'SNIC2016-34-10'
+
     output_dir = params.output_dir = os.path.abspath(
         './../doc/{}/{}_{}_{}d'.format(
             subdir, prefix, cluster.name_cluster, params.dim))
