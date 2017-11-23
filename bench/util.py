@@ -71,6 +71,9 @@ def parser_to_params(parser):
         params = create_common_params(args.n0, args.n1)
         params_dim = params.two_d
 
+    if args.solver is not None:
+        params_dim.solver = args.solver
+
     params.dim = args.dim
     params.dry_run = args.dry_run
     params.mode = args.mode
