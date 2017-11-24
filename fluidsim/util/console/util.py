@@ -25,7 +25,7 @@ class ConsoleError(ValueError):
 
 
 def modif_box_size(params, n0, n1, n2=None):
-    """Modify box size, such that the aspect ration is square
+    """Modify box size, such that the aspect ratio is square / cube
 
     Parameters
     ----------
@@ -48,6 +48,10 @@ def modif_box_size(params, n0, n1, n2=None):
         else:
             params.oper.Lx = params.oper.Lx * n0 / n1
 
+    if n2 is None:
+        mpi.printby0('nh = ({}, {}); Lh = ({}, {})'.format(
+            n0, n1, params.oper.Lx, params.oper.Ly))
+
     if n2 is not None and n2 != n0:
         if n2 < n0:
             params.oper.Lz = params.oper.Lz * n2 / n0
@@ -55,6 +59,9 @@ def modif_box_size(params, n0, n1, n2=None):
             params.oper.Lx = params.oper.Lx * n0 / n2
             # Recurse to correct x-y aspect ratio
             modif_box_size(params, n0, n1, n2)
+
+        mpi.printby0('nh = ({}, {}, {}); Lh = ({}, {}, {})'.format(
+            n0, n1, n2, params.oper.Lx, params.oper.Ly, params.oper.Lz))
 
 
 def modif_params2d(

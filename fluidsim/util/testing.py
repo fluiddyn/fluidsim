@@ -52,13 +52,20 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
     def run(self, test):
         result = super(TimeLoggingTestRunner, self).run(test)
         msg = "\n\nSlow tests (>{:.03}s):".format(self.slow_test_threshold)
-        self.stream.writeln(msg + '\n' + '-' * len(msg))
+        self.write_result(msg)
+        self.write_result('-' * len(msg))
 
         for name, elapsed in result.getTestTimings():
             if elapsed > self.slow_test_threshold:
-                self.stream.writeln("({:.03}s) {}".format(elapsed, name))
+                self.write_result("({:.03}s) {}".format(elapsed, name))
 
         return result
+
+    def write_result(self, *strs, end='\n'):
+        """Write strings to the result stream."""
+        if mpi.rank == 0:
+            msg = ' '.join(strs)
+            self.stream.writeln(msg)
 
 
 def _mname(obj):
@@ -79,11 +86,11 @@ def _run(tests, verbose=False):
     result = testRunner.run(tests)
     if verbose:
         msg = 'Skipped tests'
-        mpi.printby0('\n', msg, '\n', '-' * len(msg))
+        testRunner.write_result('\n', msg, '\n', '-' * len(msg))
         for (case, reason) in result.skipped:
-            mpi.printby0("S  %s (%s)" % (_mname(case), reason), file=sys.stderr)
+            testRunner.write_result("S  %s (%s)" % (_mname(case), reason))
         for (case, reason) in result.expectedFailures:
-            mpi.printby0("X  %s" % _mname(case), file=sys.stderr)
+            testRunner.write_result("X  %s" % _mname(case))
 
     return result
 

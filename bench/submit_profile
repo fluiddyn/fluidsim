@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+"""Submit profiles in a loop.
+
+Examples
+--------
+./submit_profile --help
+./submit_profile -n
+./submit_profile -n -d 2 32 32
+
+"""
+import os
+from itertools import product
+from util import get_parser, parser_to_params, init_cluster, submit
+import fluidsim
+
+if os.getenv('SNIC_RESOURCE') is not None:
+    from fluiddyn.clusters.snic import ClusterSNIC as Cluster
+    cluster_type = 'snic'
+else:
+    from fluiddyn.clusters.local import ClusterLocal as Cluster
+    cluster_type = 'local'
+
+
+parser = get_parser(
+    'submit_profile', 'Generic script to submit profiles', __doc__)
+if cluster_type == 'snic':
+    parser.set_defaults(n0=1024, n1=1024, nz=240)  # or 1344 1344 672
+else:
+    parser.set_defaults(n0=64, n1=64, nz=8)
+
+params, params_dim = parser_to_params(parser)
+cluster = init_cluster(params, Cluster, subdir='profiles')
+mode = params.mode
+
+if __name__ == '__main__':
+    if params.dry_run:
+        print(params_dim)
+
+    if 'seq' in mode:
+        for type_fft in params_dim.fft_seq:
+            submit(params, params_dim, cluster, 1, 1, type_fft, 'profile')
+
+    if 'intra' in mode:
+        nb_nodes = 1
+        for nb_cores_per_node, type_fft in product(params_dim.nb_cores, params_dim.fft):
+            if nb_cores_per_node > cluster.nb_cores_per_node:
+                continue
+
+            submit(params, params_dim, cluster, nb_nodes, nb_cores_per_node,
+                   type_fft, 'profile')
+
+    if 'inter' in mode:
+        for nb_nodes, type_fft in product(params_dim.nodes, params_dim.fft):
+            submit(params, params_dim, cluster, nb_nodes, fft=type_fft,
+                   cmd='profile')

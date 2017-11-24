@@ -16,6 +16,7 @@ __pycache__
 
 bench/launcher_*
 bench/SLURM*
+bench/LOCAL*
 
 doc/_build/*
 doc/**generated/*
