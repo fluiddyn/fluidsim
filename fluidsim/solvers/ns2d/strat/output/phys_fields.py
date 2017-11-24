@@ -23,11 +23,39 @@ from fluidsim.base.output.phys_fields import time_from_path
 
 class PhysFields2DStrat(PhysFieldsBase2D):
 
-    def _ani_update(self, frame, **fargs):
+    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax,
+                  INLET_ANIMATION=True, **kwargs):
+
+        super(PhysFields2DStrat, self)._ani_init(
+            key_field, numfig, file_dt, tmin, tmax, **kwargs)
+
+        if INLET_ANIMATION:
+
+            left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
+            ax2 = self._ani_fig.add_axes([left, bottom, width, height])
+            self._ani_spatial_means_t, self._ani_spatial_means_key = \
+                        self._get_spatial_means()
+
+            self._ani_im_inlet = ax2.plot([0], [0], color='red')
+            ax2.plot(
+                self._ani_spatial_means_t, self._ani_spatial_means_key,
+                linewidth=0.8, color='grey', alpha=0.4)
+
+
+    def _ani_update(self, frame, INLET_ANIMATION=True, **fargs):
 
         super(PhysFields2DStrat, self)._ani_update(frame, **fargs)
 
         time = self._ani_t[frame]
+
+        if INLET_ANIMATION:
+            idx_spatial = np.abs(self._ani_spatial_means_t - time).argmin()
+            t = self._ani_spatial_means_t
+            E = self._ani_spatial_means_key
+
+            self._ani_im_inlet[0].set_data(
+                t[:idx_spatial], E[:idx_spatial])
+
         title = (self._ani_key +
                  ', R = {0:.2f}'.format(
                      self.output.ratio_omegas) +
@@ -36,78 +64,6 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                  ', $t = {0:.3f}$'.format(time))
 
         self._ani_ax.set_title(title)
-
-    def plot(self, numfig=None, field=None, key_field=None,
-             QUIVER=True, vecx='ux', vecy='uy',
-             nb_contours=20, type_plot='contourf', iz=0,
-             vmin=None, vmax=None, cmap='viridis'):
-
-        field, key_field = self._select_field(field, key_field)
-        keys_state_phys = self.sim.state.keys_state_phys
-        x_left_axe = 0.08
-        z_bottom_axe = 0.1
-        width_axe = 0.95
-        height_axe = 0.83
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
-
-        if vecx not in keys_state_phys or vecy not in keys_state_phys:
-            QUIVER = False
-
-        if field.ndim == 3:
-            field = field[iz]
-
-        if mpi.rank == 0:
-            if numfig is None:
-                fig, ax = self.output.figure_axe(size_axe=size_axe)
-            else:
-                fig, ax = self.output.figure_axe(numfig=numfig,
-                                                 size_axe=size_axe)
-            x_seq = self.oper.x_seq
-            y_seq = self.oper.y_seq
-            [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
-            try:
-                cmap = plt.get_cmap(cmap)
-            except ValueError:
-                print('Use matplotlib >= 1.5.0 for new standard colorschemes.\
-                       Installed matplotlib :' + plt.matplotlib.__version__)
-                cmap = plt.get_cmap('jet')
-
-            if type_plot == 'contourf':
-                contours = ax.contourf(
-                    x_seq, y_seq, field,
-                    nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
-                fig.colorbar(contours)
-                fig.contours = contours
-            elif type_plot == 'pcolor':
-                pc = ax.pcolormesh(x_seq, y_seq, field,
-                                   vmin=vmin, vmax=vmax, cmap=cmap)
-                fig.colorbar(pc)
-        else:
-            ax = None
-
-        if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
-
-        if mpi.rank == 0:
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
-
-            title = (key_field +
-                     ', R = {0:.2f}'.format(
-                         self.output.ratio_omegas) +
-                     ', F = {0:.1f}'.format(
-                         self.output.froude_number) +
-                     ', $t = {0:.3f}$ '.format(
-                         self.sim.time_stepping.t))
-
-            if QUIVER:
-                title += r', $max(|v|) = {0:.3f}$'.format(vmax)
-
-            ax.set_title(title)
-
-            fig.canvas.draw()
-
 
     def _plot_init(self, key_field):
         """
@@ -192,7 +148,7 @@ class PhysFields2DStrat(PhysFieldsBase2D):
             ax = None
 
         if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, ux, uy)
+            quiver, vmax = self._quiver_plot_phys(ax, ux, uy)
 
         if mpi.rank == 0:
             ax.set_xlabel('x')
@@ -210,7 +166,8 @@ class PhysFields2DStrat(PhysFieldsBase2D):
 
             fig.canvas.draw()
 
-    def _quiver_plot(self, ax, ux, uy, vecx='ux', vecy='uy', XX=None, YY=None):
+    def _quiver_plot_phys(
+            self, ax, ux, uy, vecx='ux', vecy='uy', XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -254,14 +211,12 @@ class PhysFields2DStrat(PhysFieldsBase2D):
         return quiver, np.max(np.sqrt(vecx**2 + vecy**2))
 
 
-    def _get_field(self, key_spatial='E'):
+    def _get_spatial_means(self, key_spatial='E'):
         """ Get field for the inlet plot."""
-
         # Check if key_spatial can be loaded.
         keys_spatial = ['E', 'EK', 'EA']
         if key_spatial not in keys_spatial:
             raise ValueError('key_spatial not in spatial means keys.')
-
         # Load data for inlet plot
         dico = self.output.spatial_means.load()
         t = dico['t']
@@ -271,7 +226,7 @@ class PhysFields2DStrat(PhysFieldsBase2D):
 
     def _inlet_plot(self, fig, time):
         """ It makes the inlet plot. """
-        t, E = self._get_field()
+        t, E = self._get_spatial_means()
         idx_spatial = np.abs(t - time).argmin()
         t_inlet = t[0:idx_spatial]
         E_inlet = E[0:idx_spatial]
