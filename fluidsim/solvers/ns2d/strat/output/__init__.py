@@ -149,7 +149,7 @@ class OutputStrat(Output):
         """
         str_froude_number = str(self._compute_froude_number())
         str_ratio_omegas = str(self._compute_ratio_omegas())
-        print('str_ratio_omegas = ', str_ratio_omegas)
+
         if '.' in str_froude_number:
             str_froude_number = str_froude_number.split('.')[0] + \
                                 str_froude_number.split('.')[1]
