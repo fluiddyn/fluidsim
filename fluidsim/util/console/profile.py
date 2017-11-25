@@ -60,6 +60,9 @@ def run_profile(sim, nb_dim=2, path_results='.', plot=False):
         print(
             '\nwith gprof2dot and graphviz (command dot):\n'
             'gprof2dot -f pstats {} | dot -Tpng -o profile.png'.format(path))
+    else:
+        # Retain only rank 0 profiles
+        os.remove(path)
 
     return path
 
