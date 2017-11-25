@@ -18,23 +18,48 @@ from past.builtins import basestring
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.phys_fields import PhysFieldsBase2D
+from fluidsim.base.output.phys_fields import MoviesBasePhysFields2D
 from fluidsim.base.output.phys_fields import time_from_path
 
 
 class PhysFields2DStrat(PhysFieldsBase2D):
 
-    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax,
+    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, QUIVER=True,
                   INLET_ANIMATION=True, **kwargs):
 
-        super(PhysFields2DStrat, self)._ani_init(
+        self._ANI_QUIVER = QUIVER
+        self._ANI_INLET_ANIMATION = INLET_ANIMATION
+
+        self._set_path()
+        self._ani_pathfiles = sorted(glob(os.path.join(
+            self.path, 'state_phys*')))
+        self._ani_t_actual = np.array(list(
+            map(time_from_path, self._ani_pathfiles)))
+
+        if tmax is None:
+            tmax = self._ani_t_actual.max()
+
+        super(MoviesBasePhysFields2D, self)._ani_init(
             key_field, numfig, file_dt, tmin, tmax, **kwargs)
 
-        if INLET_ANIMATION:
+        field, ux, uy = self._ani_get_field(0)
+        x, y = self._select_axis(shape=ux.shape)
+        XX, YY = np.meshgrid(x, y)
 
+        self._ani_im = self._ani_ax.pcolor(XX, YY, field)
+        self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
+        self._ani_clim = kwargs.get('clim')
+        self._ani_set_clim()
+
+        if QUIVER:
+            self._ani_quiver, vmax = self._quiver_plot(
+                self._ani_ax, ux, uy, XX, YY)
+
+        if INLET_ANIMATION:
             left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
             ax2 = self._ani_fig.add_axes([left, bottom, width, height])
             self._ani_spatial_means_t, self._ani_spatial_means_key = \
-                        self._get_spatial_means()
+                                                self._get_spatial_means()
 
             self._ani_im_inlet = ax2.plot([0], [0], color='red')
             ax2.plot(
@@ -42,13 +67,23 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                 linewidth=0.8, color='grey', alpha=0.4)
 
 
-    def _ani_update(self, frame, INLET_ANIMATION=True, **fargs):
-
-        super(PhysFields2DStrat, self)._ani_update(frame, **fargs)
+    def _ani_update(self, frame, **fargs):
 
         time = self._ani_t[frame]
 
-        if INLET_ANIMATION:
+        field, ux, uy = self._ani_get_field(time)
+        field = field[:-1, :-1]
+
+        # Update figure, quiver and colorbar
+        self._ani_im.set_array(field.flatten())
+        if self._ANI_QUIVER:
+            vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+            self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
+                                 uy[::self._skip, ::self._skip]/vmax)
+        self._ani_im.autoscale()
+        self._ani_set_clim()
+
+        if self._ANI_INLET_ANIMATION:
             idx_spatial = np.abs(self._ani_spatial_means_t - time).argmin()
             t = self._ani_spatial_means_t
             E = self._ani_spatial_means_key
@@ -90,6 +125,7 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                    vmin=None, vmax=None, cmap='viridis'):
         """
         Plots the physical fields with an inlet windows.
+        The time to plot can be chosen by the user!
         """
         if time is None:
             time = self.sim.time_stepping.t
