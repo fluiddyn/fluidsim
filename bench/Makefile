@@ -7,7 +7,13 @@ SLURM_JOBS := $(shell squeue -h -u $(USER) | awk '{print $$1}')
 
 archive:
 	mkdir -p archive_$(DATE)
-	mv $(JOBLOG) $(STDOUT) $(STDERR) archive_$(DATE)
+	@mv $(JOBLOG) $(STDOUT) $(STDERR) archive_$(DATE)
+
+checkout:
+	vim -p $(STDOUT)
+
+checkerr:
+	vim -p $(STDERR)
 
 clean:
 	@- $(RM) $(STDOUT)
