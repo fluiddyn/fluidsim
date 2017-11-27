@@ -275,11 +275,12 @@ def get_path_file(sim, path_results, name='bench', ext='.json'):
 
     t_as_str = time_as_str()
     key_solver = sim.info_solver.short_name.lower()
-    pid = os.getpid()
-    nfile = (
-        'result_' + name + '_' + key_solver + '_' +
-        sim.oper.produce_str_describing_grid() +
-        '_' + t_as_str + '_{}'.format(pid) + ext)
+    pid = str(os.getpid())
+    nb_proc = 'np={}'.format(mpi.nb_proc)
+    type_fft = sim.params.oper.type_fft.split('.')[-1].replace('_', '-')
+    nfile = '_'.join([
+        'result', name, key_solver, sim.oper.produce_str_describing_grid(),
+        nb_proc, type_fft, t_as_str + pid]) + ext
 
     path = os.path.join(path_results, nfile)
     return path, t_as_str

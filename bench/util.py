@@ -24,7 +24,7 @@ def create_common_params(n0, n1=None, n2=None):
                  'fft2d.with_fftw2d'],
         fft=['fft2d.mpi_with_fftw1d',
              'fft2d.mpi_with_fftwmpi2d'],
-        nb_cores=np.logspace(1, 8, 8, base=2, dtype=int), nodes=[]))
+        nb_cores=np.logspace(1, 10, 10, base=2, dtype=int), nodes=[]))
 
     if n2 is None:
         n2 = n0
@@ -32,7 +32,7 @@ def create_common_params(n0, n1=None, n2=None):
     params._set_child('three_d', dict(
         shape='{} {} {}'.format(n0, n1, n2), time='00:30:00',
         solver='ns3d',
-        fft_seq=['fft2d.with_fftw3d'],
+        fft_seq=['fft3d.with_fftw3d'],
         fft=['fft3d.mpi_with_fftw1d',
              'fft3d.mpi_with_fftwmpi3d',
              'fft3d.mpi_with_p3dfft',
@@ -66,8 +66,14 @@ def get_parser(prog='', description='', epilog=''):
         '-m', '--mode', default='seq-intra-inter',
         help='could be "seq", "intra", "inter" or a combination of these')
     parser.add_argument(
-        '-x', '--max-nodes', type=int, default=1,
-        help='max. no. of nodes to use (default: 1)')
+        '-nc', '--min-cores', type=int, default=1,
+        help='min. no. of processes to use (default: 1)')
+    parser.add_argument(
+        '-nn', '--min-nodes', type=int, default=2,
+        help='max. no. of nodes to use for intra-node runs (default: 2)')
+    parser.add_argument(
+        '-xn', '--max-nodes', type=int, default=2,
+        help='max. no. of nodes to use for intra-node runs (default: 2)')
     return parser
 
 
@@ -83,9 +89,16 @@ def parser_to_params(parser):
     if args.solver is not None:
         params_dim.solver = args.solver
 
+    if args.min_cores > 1:
+        log_min = np.log2(args.min_cores)
+        params_dim.nb_cores = np.logspace(
+            log_min, 10, int(10 - log_min) + 1, base=2, dtype=int)
+
     if args.max_nodes > 1:
+        log_min = np.log2(args.min_nodes)
+        log_max = np.log2(args.max_nodes)
         params_dim.nodes = np.logspace(
-            1, args.max_nodes, args.max_nodes, base=2, dtype=int)
+            log_min, log_max, int(log_max - log_min) + 1, base=2, dtype=int)
 
     params.dim = args.dim
     params.dry_run = args.dry_run
