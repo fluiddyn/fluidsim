@@ -1,0 +1,1 @@
+{"hostname": "nid00267", "k0_loc": 128, "k1_loc": 33, "k2_loc": 256, "key_solver": "ns3d", "n0": 256, "n0_loc": 128, "n1": 256, "n1_loc": 64, "n2": 256, "n2_loc": 256, "nb_iter": 10, "nb_proc": 8, "pid": 32315, "t_elapsed_sys": 92.9318485269323, "t_elapsed_usr": 92.93185067176819, "time_as_str": "2017-11-26_18-20-36", "type_fft": "fluidfft.fft3d.mpi_with_pfft"}
