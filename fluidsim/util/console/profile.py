@@ -199,10 +199,17 @@ def plot_pie(times, long_functions, ax=None):
 
     percentages.sort()
     labels = labels[args]
+    idx_other = labels.index('other')
+    # Explode the 'other' slice from the pie chart
+    explode = np.zeros_like(labels, dtype=float)
+    explode[idx_other] = 0.2
 
-    fig, ax = plt.subplots()
+    if ax is None:
+        fig, ax = plt.subplots()
+
     ax.pie(percentages,
            labels=labels,
+           explode=explode,
            autopct='%1.1f%%',
            startangle=0)
     ax.axis('equal')
