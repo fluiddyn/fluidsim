@@ -74,6 +74,28 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
     tag = 'pseudo_spectral'
     _key_forced_default = 'rot_fft'
 
+    @staticmethod
+    def _check_nkmax_with_shape(nkmax, shape):
+        """Check if nkmax exceeds the shape.
+
+        Parameters
+        ----------
+        nkmax: int
+            Index of largest forcing wavenumber
+
+        shape: array-like
+            A tuple indicating the shape of an array or Operators instance.
+
+        Returns
+        -------
+        bool
+
+        """
+        if any(np.greater([nkmax], shape)):
+            raise NotImplementedError(
+                'The resolution is too small for the required forcing: '
+                'any{} < {}'.format(shape, nkmax))
+
     def __init__(self, sim):
 
         super(SpecificForcingPseudoSpectral, self).__init__(sim)
@@ -105,10 +127,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             i += 1
         n = 2**i
 
-        for nbig in sim.oper.shapeX_seq:
-            if nbig < n:
-                raise NotImplementedError(
-                    'The resolution is to small for the wanted forcing')
+        self._check_nkmax_with_shape(n, sim.oper.shapeX_seq)
 
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
@@ -135,6 +154,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.fstate_coarse = sim.state.__class__(
                 sim, oper=self.oper_coarse)
 
+            self._check_nkmax_with_shape(n, self.oper_coarse.shapeK_seq)
         else:
             self.shapeK_loc_coarse = None
 
