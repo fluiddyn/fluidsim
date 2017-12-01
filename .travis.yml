@@ -43,7 +43,7 @@ cache:
         - $TRAVIS_BUILD_DIR/.tox
 
 install:
-    - pip install -U pip setuptools wheel six colorlog
+    - pip install -U pip "setuptools<=36.6.0" wheel six colorlog
     - pip install -U tox coverage cython
 
 before_script:
