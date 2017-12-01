@@ -80,7 +80,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             self.iKxloc_start_rank = np.array(
                 comm.allgather(self.iKxloc_start))
 
-            nkx_loc_rank = np.array(comm.allgather(self.nky_loc))
+            nkx_loc_rank = np.array(comm.allgather(self.nkx_loc))
             a = nkx_loc_rank
             self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
 
@@ -350,7 +350,6 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
         ikx_seq = int(np.round(kx_approx/self.deltakx))
-
         if ikx_seq >= self.nkx_seq:
             raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
 
@@ -360,6 +359,9 @@ class OperatorsPseudoSpectral2D(_Operators):
         else:
             if self.SAME_SIZE_IN_ALL_PROC:
                 rank_k = int(np.floor(float(ikx_seq)/self.nkx_loc))
+                if ikx_seq >= self.nkx_loc * mpi.nb_proc:
+                    raise ValueError(
+                        'not good :-) ikx_seq >= self.nkx_loc * mpi.nb_proc')
             else:
                 rank_k = 0
                 while (rank_k < self.nb_proc-1 and
