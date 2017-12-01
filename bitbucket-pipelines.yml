@@ -11,7 +11,7 @@ pipelines:
         caches:
           - pip
         script: # Modify the commands below to build your repository.
-          - pip install -U tox
+          - pip install -U tox "setuptools<=36.6.0"
           - pip --version
           - tox --version
           - gcc --version
@@ -22,7 +22,7 @@ pipelines:
         caches:
           - pip
         script: # Modify the commands below to build your repository.
-          - pip install -U tox
+          - pip install -U tox "setuptools<=36.6.0"
           - pip --version
           - tox --version
           - gcc --version

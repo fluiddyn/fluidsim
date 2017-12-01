@@ -75,13 +75,15 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
     _key_forced_default = 'rot_fft'
 
     @staticmethod
-    def _check_nkmax_with_shape(nkmax, shape):
-        """Check if nkmax exceeds the shape.
+    def _check_forcing_shape(shape_forcing, shape):
+        """Check if shape of the forcing array exceeds the shape
+        of the global array.
 
         Parameters
         ----------
-        nkmax: int
-            Index of largest forcing wavenumber
+        shape_forcing: array-like
+            A single-element array containing index of largest forcing
+            wavenumber or a tuple indincating shape of the forcing array.
 
         shape: array-like
             A tuple indicating the shape of an array or Operators instance.
@@ -91,10 +93,10 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         bool
 
         """
-        if any(np.greater([nkmax], shape)):
+        if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
                 'The resolution is too small for the required forcing: '
-                'any{} < {}'.format(shape, nkmax))
+                'any{} < {}'.format(shape, shape_forcing))
 
     def __init__(self, sim):
 
@@ -127,7 +129,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             i += 1
         n = 2**i
 
-        self._check_nkmax_with_shape(n, sim.oper.shapeX_seq)
+        self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
@@ -154,7 +156,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.fstate_coarse = sim.state.__class__(
                 sim, oper=self.oper_coarse)
 
-            self._check_nkmax_with_shape(n, self.oper_coarse.shapeK_seq)
         else:
             self.shapeK_loc_coarse = None
 
@@ -376,8 +377,14 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         except ValueError:
             a_fft = self.sim.state.compute(self.key_forced)
 
-        a_fft = self.oper.coarse_seq_from_fft_loc(
-            a_fft, self.shapeK_loc_coarse)
+        try:
+            a_fft = self.oper.coarse_seq_from_fft_loc(
+                a_fft, self.shapeK_loc_coarse)
+        except IndexError:
+            raise ValueError(
+                'rank={}, shapeK_loc(coarse)={}, shapeK_loc={}'.format(
+                    self.oper.rank, self.shapeK_loc_coarse,
+                    self.oper.shapeK_loc))
 
         if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time(a_fft)
