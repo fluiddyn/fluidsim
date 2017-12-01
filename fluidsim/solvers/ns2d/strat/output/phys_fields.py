@@ -268,6 +268,10 @@ class PhysFields2DStrat(PhysFieldsBase2D):
         E_inlet = E[0:idx_spatial]
         left, bottom, width, height = [0.63, 0.72, 0.2, 0.2]
         ax2 = fig.add_axes([left, bottom, width, height])
+
+        ax2.set_xlabel('$t$', fontweight='bold')
+        ax2.set_ylabel('$E$', fontweight='bold')
+
         ax2.plot(t, E, linestyle='--', linewidth=1, color='grey', alpha=0.5)
         ax2.plot(t_inlet, E_inlet, linewidth=1, color='black')
         return ax2

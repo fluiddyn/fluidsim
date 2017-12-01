@@ -157,10 +157,11 @@ class SpectraNS2DStrat(Spectra):
 
         # Parameters figure E(k_y)
         fig, ax2 = self.output.figure_axe()
-        ax2.set_xlabel('$k_z$')
-        ax2.set_ylabel('E(k_z)')
+        ax2.set_xlabel(r'$k_z$')
+        ax2.set_ylabel(r'$E(k_z)$')
         ax2.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
+
         ax2.set_xscale('log')
         ax2.set_yscale('log')
 
@@ -178,6 +179,8 @@ class SpectraNS2DStrat(Spectra):
             ky[1:], ky[1:]**(-2), 'k-.', linewidth=0.8, label=r'$k^{-2}$')
         ax2.plot(
             ky[1:], ky[1:]**(-3), 'k--', linewidth=0.8, label=r'$k^{-3}$')
+
+        ax2.legend()
 
         ax2.legend()
 
@@ -221,10 +224,11 @@ class SpectraNS2DStrat(Spectra):
 
         # Parameters figure
         fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel('$k$')
-        ax1.set_ylabel('E(k)')
+        ax1.set_xlabel(r'$k$')
+        ax1.set_ylabel(r'$E(k)$')
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
+
         ax1.set_xscale('log')
         ax1.set_yscale('log')
 
