@@ -151,8 +151,8 @@ def print_shape_loc(n0, n1, n2=None, type_fft=None):
     shapeK_loc = opfft.get_shapeK_loc()
     print('-' * 8)
     print('type fft = ', type_fft)
-    print('shapeX_loc = {}, shapeK_loc = {}'.format(
-        shapeX_loc, shapeK_loc))
+    old_print('rank {}: shapeX_loc = {}, shapeK_loc = {}'.format(
+        rank, shapeX_loc, shapeK_loc))
 
 
 def init_parser(parser):
