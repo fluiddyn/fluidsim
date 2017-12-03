@@ -172,16 +172,24 @@ def _compute_shorter_name(key, kind):
     if kind == 'fft_as':
         return key.split()[1][1:-1]
 
+    if kind == 'pythran' in key:
+        key = key.split('_pythran.')[-1].rstrip('>')
+        return key + ' (pythran)'
+
     if 'fluidsim.solvers.' in key:
         return key.split('fluidsim.solvers.')[-1][:-1]
 
     if key.startswith('<built-in method '):
         return key.split('<built-in method ')[-1][:-1]
 
+    if key.startswith('<method '):
+        key = key.split('<method ')[-1][:-1]
+        return key.split(' ')[0].strip("'")
+
     return key
 
 
-def plot_pie(times, long_functions, ax=None):
+def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
     """Plot a pie chart """
     percentages = []
     labels = []
@@ -195,26 +203,41 @@ def plot_pie(times, long_functions, ax=None):
     labels.append('other')
 
     labels = np.array(labels)
-    args = percentages.argsort()
+    if times_descending:
+        args = percentages.argsort()[::-1]
+        percentages.sort()
+        percentages = percentages[::-1]
+    else:
+        args = percentages.argsort()
+        percentages.sort()
 
-    percentages.sort()
     labels = labels[args]
-    idx_other = labels.index('other')
-    # Explode the 'other' slice from the pie chart
-    explode = np.zeros_like(labels, dtype=float)
-    explode[idx_other] = 0.2
+    if 'explode' in kwargs:
+        if kwargs['explode'] == 'other':
+            # Explode the 'other' slice from the pie chart
+            idx_other = np.argwhere(labels == 'other')[0]
+            explode = np.zeros_like(labels, dtype=float)
+            explode[idx_other] = 0.2
+            kwargs['explode'] = explode
+        elif isinstance(kwargs['explode'], float):
+            # Explode all slices based on percentage
+            kwargs['explode'] /= percentages
+
+    if 'labeldistance' in kwargs:
+        if isinstance(kwargs['labeldistance'], float):
+            kwargs['labeldistance'] /= percentages
+            kwargs['labeldistance'] += 1.1
 
     if ax is None:
         fig, ax = plt.subplots()
 
-    ax.pie(percentages,
-           labels=labels,
-           explode=explode,
-           autopct='%1.1f%%',
-           startangle=0)
+    if 'startangle' not in kwargs:
+        kwargs['startangle'] = 0
+
+    pie = ax.pie(percentages, labels=labels, autopct='%1.1f%%', **kwargs)
     ax.axis('equal')
 
-    return ax
+    return pie
 
 
 _kinds = ('fft_as', 'pythran', '.pyx', '.py')
