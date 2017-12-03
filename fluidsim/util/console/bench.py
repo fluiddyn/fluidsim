@@ -37,7 +37,8 @@ def bench(
         if dim == '2d':
             modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
         elif dim == '3d':
-            modif_params3d(params, n0, n1, n2, name_run='bench', type_fft=type_fft)
+            modif_params3d(
+                params, n0, n1, n2, name_run='bench', type_fft=type_fft)
 
         with stdout_redirected():
             sim = Simul(params)
@@ -49,7 +50,8 @@ def bench(
             if raise_error:
                 raise
             else:
-                print('WARNING: Some error occured while running benchmark / saving results!')
+                print('WARNING: Some error occured while running benchmark'
+                      ' / saving results!')
                 print(e)
         finally:
             tear_down(sim)
