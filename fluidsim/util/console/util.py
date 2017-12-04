@@ -32,36 +32,39 @@ def modif_box_size(params, n0, n1, n2=None):
     params : ParamContainer
         Input parameters
     n0 : int
-        Number of grid points in x-axis of the grid
+        Number of grid points in 0-axis of the grid
     n1 : int
-        Number of grid points in y-axis of the grid
+        Number of grid points in 1-axis of the grid
     n2 :
-        Number of grid points in z-axis of the grid
+        Number of grid points in 2-axis of the grid
 
     Returns
     -------
 
     """
-    if n1 != n0:
-        if n1 < n0:
-            params.oper.Ly = params.oper.Ly * n1 / n0
+    if n2 is None:
+        nx = n1
+        ny = n0
+    else:
+        nx = n2
+        ny = n1
+        nz = n0
+
+    if nx != ny:
+        if nx < ny:
+            params.oper.Ly = params.oper.Ly * ny / nx
         else:
-            params.oper.Lx = params.oper.Lx * n0 / n1
+            params.oper.Lx = params.oper.Lx * nx / ny
 
     if n2 is None:
         mpi.printby0('nh = ({}, {}); Lh = ({}, {})'.format(
-            n0, n1, params.oper.Lx, params.oper.Ly))
+            n0, n1, params.oper.Ly, params.oper.Lx))
 
     if n2 is not None and n2 != n0:
-        if n2 < n0:
-            params.oper.Lz = params.oper.Lz * n2 / n0
-        else:
-            params.oper.Lx = params.oper.Lx * n0 / n2
-            # Recurse to correct x-y aspect ratio
-            modif_box_size(params, n0, n1, n2)
+        params.oper.Lz = params.oper.Lx * nz / nx
 
-        mpi.printby0('nh = ({}, {}, {}); Lh = ({}, {}, {})'.format(
-            n0, n1, n2, params.oper.Lx, params.oper.Ly, params.oper.Lz))
+        mpi.printby0('n = ({}, {}, {}); L = ({}, {}, {})'.format(
+            n0, n1, n2, params.oper.Lz, params.oper.Ly, params.oper.Lx))
 
 
 def modif_params2d(
@@ -87,8 +90,8 @@ def modif_params2d(
     if n1 is None:
         n1 = n0
 
-    params.oper.nx = n0
-    params.oper.ny = n1
+    params.oper.nx = n1
+    params.oper.ny = n0
     modif_box_size(params, n0, n1)
 
     if type_fft is not None:
@@ -100,8 +103,8 @@ def modif_params2d(
 
     params.FORCING = True
     params.forcing.type = 'tcrandom'
-    params.forcing.nkmax_forcing = 5
-    params.forcing.nkmin_forcing = 4
+    params.forcing.nkmax_forcing = 6
+    params.forcing.nkmin_forcing = 3
     params.forcing.forcing_rate = 1.
 
     params.nu_8 = 1.
@@ -153,9 +156,9 @@ def modif_params3d(
     if n2 is None:
         n2 = n0
 
-    params.oper.nx = n0
+    params.oper.nx = n2
     params.oper.ny = n1
-    params.oper.nz = n2
+    params.oper.nz = n0
     modif_box_size(params, n0, n1, n2)
 
     if type_fft is not None:
