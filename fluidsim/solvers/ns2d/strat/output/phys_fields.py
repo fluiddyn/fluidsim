@@ -9,6 +9,7 @@ Provides:
 
 """
 import h5py
+import re
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,12 +67,83 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                 self._ani_spatial_means_t, self._ani_spatial_means_key,
                 linewidth=0.8, color='grey', alpha=0.4)
 
+    def time_from_path(path):
+        '''Regular expression search to extract time from filename.'''
+        filename = os.path.basename(path)
+        t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+        return t
+
+    def _load_field_from_file(self, path):
+        """Load field from file."""
+        with h5py.File(path) as f:
+            field = f['state_phys'][self._ani_key].value
+            ux = f['state_phys']['ux'].value
+            uy = f['state_phys']['uy'].value
+        return field, ux, uy
+
+    def _ani_get_weighted_field(self, time):
+        """Get weighted field between to saved fields. """
+
+        idx, t_actual = self._ani_get_t_actual(time)
+
+        # Trick (better?). If time is greater than the last time,
+        # the frame is the last time. 
+        if idx + 1 >= len(self._ani_t_actual) and time > t_actual:
+            field, ux, uy = self._load_field_from_file(
+                self._ani_pathfiles[idx-1])
+
+        else:
+            if t_actual < time:
+                dt_save = self._ani_t_actual[idx + 1] - self._ani_t_actual[idx]
+                weight_0 = 1 - np.abs(
+                    time - self._ani_t_actual[idx]) / dt_save
+                weight_1 = 1 - np.abs(
+                    time - self._ani_t_actual[idx + 1]) / dt_save
+
+                field_0, ux_0, uy_0 = self._load_field_from_file(
+                    self._ani_pathfiles[idx])
+
+                field_1, ux_1, uy_1 = self._load_field_from_file(
+                    self._ani_pathfiles[idx + 1])
+
+                field = field_0 * weight_0 + field_1 * weight_1
+                ux = ux_0 * weight_0 + ux_1 * weight_1
+                uy = uy_0 * weight_0 + uy_1 * weight_1
+
+            elif t_actual > time:
+
+                dt_save = self._ani_t_actual[idx] - self._ani_t_actual[idx - 1]
+                weight_0 = 1 - np.abs(
+                    time - self._ani_t_actual[idx - 1]) / dt_save
+                weight_1 = 1 - np.abs(
+                    time - self._ani_t_actual[idx]) / dt_save
+
+                field_0, ux_0, uy_0 = self._load_field_from_file(
+                    self._ani_pathfiles[idx - 1])
+
+                field_1, ux_1, uy_1 = self._load_field_from_file(
+                    self._ani_pathfiles[idx])
+
+                field = field_0 * weight_0 + field_1 * weight_1
+                ux = ux_0 * weight_0 + ux_1 * weight_1
+                uy = uy_0 * weight_0 + uy_1 * weight_1
+
+            else:
+
+                field, ux, uy = self._load_field_from_file(
+                    self._ani_pathfiles[idx])
+
+        return field, ux, uy
 
     def _ani_update(self, frame, **fargs):
 
         time = self._ani_t[frame]
 
-        field, ux, uy = self._ani_get_field(time)
+        # field, ux, uy = self._ani_get_field(time)
+        # field = field[:-1, :-1]
+
+        # Makes a weighted average between two saved files.
+        field, ux, uy = self._ani_get_weighted_field(time)
         field = field[:-1, :-1]
 
         # Update figure, quiver and colorbar
@@ -79,7 +151,7 @@ class PhysFields2DStrat(PhysFieldsBase2D):
         if self._ANI_QUIVER:
             vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
             self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
-                                 uy[::self._skip, ::self._skip]/vmax)
+                                     uy[::self._skip, ::self._skip]/vmax)
         self._ani_im.autoscale()
         self._ani_set_clim()
 
