@@ -16,7 +16,12 @@ import shutil
 
 from fluiddyn.util import time_as_str
 from fluiddyn.util import mpi
+from fluiddyn.io import stdout_redirected
 from ..util import available_solver_keys, get_dim_from_solver_key
+
+
+old_print = print
+print = mpi.printby0
 
 
 class ConsoleError(ValueError):
@@ -68,7 +73,8 @@ def modif_box_size(params, n0, n1, n2=None):
 
 
 def modif_params2d(
-        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None):
+        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None,
+        it_end=20):
     """Modify parameters for 2D benchmarks.
 
     Parameters
@@ -121,7 +127,7 @@ def modif_params2d(
 
     params.time_stepping.deltat0 = 1.e-6
     params.time_stepping.USE_CFL = False
-    params.time_stepping.it_end = 20
+    params.time_stepping.it_end = it_end
     params.time_stepping.USE_T_END = False
 
     params.output.periods_print.print_stdout = 0
@@ -129,7 +135,8 @@ def modif_params2d(
 
 
 def modif_params3d(
-        params, n0=256, n1=None, n2=None, name_run='profile', type_fft=None):
+        params, n0=256, n1=None, n2=None, name_run='profile', type_fft=None,
+        it_end=10):
     """Modify parameters for 3D benchmarks.
 
     Parameters
@@ -188,7 +195,7 @@ def modif_params3d(
 
     params.time_stepping.deltat0 = 1.e-4
     params.time_stepping.USE_CFL = False
-    params.time_stepping.it_end = 10
+    params.time_stepping.it_end = it_end
     params.time_stepping.USE_T_END = False
 
     params.output.periods_print.print_stdout = 0
@@ -301,12 +308,14 @@ def bench(sim, path_results):
 
     """
     path, t_as_str = get_path_file(sim, path_results)
-
-    t0_usr = time()
-    t0_sys = clock()
-    sim.time_stepping.start()
-    t_elapsed_sys = clock() - t0_sys
-    t_elapsed_usr = time() - t0_usr
+    print('running a benchmark simulation... ', end='')
+    with stdout_redirected():
+        t0_usr = time()
+        t0_sys = clock()
+        sim.time_stepping.start()
+        t_elapsed_sys = clock() - t0_sys
+        t_elapsed_usr = time() - t0_usr
+    print('done is {:.2f} s'.format(t_elapsed_usr))
 
     if sim.oper.rank != 0:
         return
@@ -342,7 +351,7 @@ def bench(sim, path_results):
         json.dump(results, f, sort_keys=True)
         f.write('\n')
 
-    print('\nresults benchmarks saved in\n' + path + '\n')
+    print('results benchmarks saved in\n' + path + '\n')
 
 
 def tear_down(sim):
