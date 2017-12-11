@@ -150,7 +150,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             if line.startswith('epsA ='):
                 lines_epsA.append(line)
 
-
         nt = len(lines_t)
         if nt > 1:
             nt -= 1
@@ -184,7 +183,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             words = line.split()
             E[il] = float(words[2])
             Z[il] = float(words[6])
-            E_shear[il] = float(words[10])
+
+            if 'E_shear' in lines[2]:
+                E_shear[il] = float(words[10])
 
             if self.sim.params.FORCING:
                 line = lines_PK[il]
@@ -220,7 +221,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         dico_results['t'] = t
         dico_results['E'] = E
         dico_results['Z'] = Z
-        dico_results['E_shear'] = E_shear
+
+        if 'E_shear' in lines[2]:
+            dico_results['E_shear'] = E_shear
 
         dico_results['PK1'] = PK1
         dico_results['PK2'] = PK2
