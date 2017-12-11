@@ -32,6 +32,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         energy_fft = self.output.compute_energy_fft()
         energy = self.sum_wavenumbers(energy_fft)
 
+        # Compute energy of the shear modes
+        energy_shear = energy_fft[0, :].sum()
+
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
@@ -79,11 +82,11 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             self.file.write(
                 '####\ntime = {0:7.3f}\n'.format(tsim))
             to_print = (
-'E    = {0:11.6e} ; Z         = {1:11.6e} \n'
-'epsA = {2:11.6e} ; epsA_hypo = {3:11.6e} ; epsA_tot = {4:11.9e} \n'
-'epsK = {5:11.6e} ; epsK_hypo = {6:11.6e} ; epsK_tot = {7:11.6e} \n'
-'epsZ = {8:11.6e} ; epsZ_hypo = {9:11.6e} ; epsZ_tot = {10:11.6e} \n'
-).format(energy, enstrophy,
+'E    = {0:11.6e} ; Z         = {1:11.6e} ; E_shear  = {2:11.6e}\n'
+'epsA = {3:11.6e} ; epsA_hypo = {4:11.6e} ; epsA_tot = {5:11.9e} \n'
+'epsK = {6:11.6e} ; epsK_hypo = {7:11.6e} ; epsK_tot = {8:11.6e} \n'
+'epsZ = {9:11.6e} ; epsZ_hypo = {10:11.6e} ; epsZ_tot = {11:11.6e} \n'
+).format(energy, enstrophy, energy_shear,
          epsA, epsA_hypo, epsA+epsA_hypo,
          epsK, epsK_hypo, epsK+epsK_hypo,
          epsZ, epsZ_hypo, epsZ+epsZ_hypo)
@@ -122,6 +125,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         lines_t = []
         lines_E = []
+        lines_E_shear = []
         lines_PK = []
         lines_PZ = []
         lines_epsK = []
@@ -133,6 +137,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 lines_t.append(line)
             if line.startswith('E    ='):
                 lines_E.append(line)
+            if line.startswith('E_shear    ='):
+                lines_E_shear.append(line)
             if line.startswith('PK1  ='):
                 lines_PK.append(line)
             if line.startswith('PZ1  ='):
@@ -151,6 +157,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         t = np.empty(nt)
         E = np.empty(nt)
+        E_shear = np.empty(nt)
         Z = np.empty(nt)
         PK1 = np.empty(nt)
         PK2 = np.empty(nt)
@@ -177,6 +184,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             words = line.split()
             E[il] = float(words[2])
             Z[il] = float(words[6])
+            E_shear[il] = float(words[10])
 
             if self.sim.params.FORCING:
                 line = lines_PK[il]
@@ -212,6 +220,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         dico_results['t'] = t
         dico_results['E'] = E
         dico_results['Z'] = Z
+        dico_results['E_shear'] = E_shear
 
         dico_results['PK1'] = PK1
         dico_results['PK2'] = PK2
