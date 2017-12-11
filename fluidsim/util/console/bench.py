@@ -27,7 +27,7 @@ description = 'Run benchmarks of FluidSim solvers'
 
 def bench(
         solver, dim='2d', n0=1024 * 2, n1=None, n2=None, path_dir=None,
-        type_fft=None, raise_error=False):
+        type_fft=None, raise_error=False, it_end=None):
     """Instantiate simulation object and run benchmarks."""
 
     def _bench(type_fft):
@@ -40,12 +40,14 @@ def bench(
             modif_params3d(
                 params, n0, n1, n2, name_run='bench', type_fft=type_fft)
 
+        if it_end is not None:
+            params.time_stepping.it_end = it_end
+
         with stdout_redirected():
             sim = Simul(params)
 
         try:
-            with stdout_redirected():
-                run_bench(sim, path_dir)
+            run_bench(sim, path_dir)
         except Exception as e:
             if raise_error:
                 raise
@@ -177,6 +179,10 @@ def init_parser(parser):
         '-e', '--estimate-shapes', action='store_true',
         help='estimate shapes to plan weak scaling benchmarks')
 
+    parser.add_argument(
+        '-it', '--it-end', default=None, type=int,
+        help='Number of iterations')
+
 
 def run(args):
     """Run `fluidsim bench` command."""
@@ -202,8 +208,9 @@ def run(args):
         if args.dim == '3d':
             bench(
                 solver, args.dim, args.n0, args.n1, args.n2,
-                path_dir=args.output_dir, type_fft=args.type_fft)
+                path_dir=args.output_dir, type_fft=args.type_fft,
+                it_end=args.it_end)
         else:
             bench(
                 solver, args.dim, args.n0, args.n1, path_dir=args.output_dir,
-                type_fft=args.type_fft)
+                type_fft=args.type_fft, it_end=args.it_end)
