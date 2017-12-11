@@ -69,6 +69,7 @@ bz = solver.state['bz']
 
 u['g'] = np.ones_like(x)
 w['g'] = np.ones_like(x)
+b['g'] = np.ones_like(x)
 u.differentiate('z', out=uz)
 w.differentiate('z', out=wz)
 b.differentiate('z', out=bz)
