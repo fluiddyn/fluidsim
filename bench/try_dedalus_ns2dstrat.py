@@ -42,10 +42,10 @@ problem.parameters['alpha'] = Aspect_ratio
 problem.add_equation(
     'dt(u) + dx(p) - (1/(Re * alpha**2)) * ((alpha**2) * dx(dx(u)) + dz(uz)) = - u*dx(u) - w*uz')
 problem.add_equation(
-    '(Fh**2) * dt(w) + dz(p) + b - (1/(Re * alpha**2)) * ((alpha**2) * dx(dx(w) + dz(wz)) = (Fh**2) * (- u*dx(w) - w*wz)')
+    '(Fh**2) * dt(w) + dz(p) + b - (1/(Re * alpha**2)) * ((alpha**2) * dx(dx(w)) + dz(wz)) = (Fh**2) * (- u*dx(w) - w*wz)')
 
 problem.add_equation(
-    'dt(b) - uz - (1/(Re * Sc * alpha**2)) * ((alpha**2) * dx(dx(b) + dz(bz)) = - u*dx(b) - w*bz')
+    'dt(b) - uz - (1/(Re * Sc * alpha**2)) * ((alpha**2) * dx(dx(b)) + dz(bz)) = - u*dx(b) - w*bz')
 
 problem.add_equation('dx(u) + (Fh**2 / alpha**2) * wz = 0')
 
