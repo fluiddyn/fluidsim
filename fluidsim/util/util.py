@@ -127,13 +127,19 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
     """
-    path_files = _glob.glob(path_dir+'/state_phys_t=*')
+    path_files = _glob.glob(path_dir + '/state_phys_t*')
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
         raise ValueError('No state file in the dir\n'+path_dir)
+    name_files = [_os.path.split(path)[-1] for path in path_files]
+    if 'state_phys_t=' in name_files[0]:
+        ind_start_time = len('state_phys_t=')
+    else:
+        ind_start_time = len('state_phys_t')
+
     times = _np.empty([nb_files])
-    for ii, path in enumerate(path_files):
-        times[ii] = float(path.split('_t=')[1][:7])
+    for ii, name in enumerate(name_files):
+        times[ii] = float(name[ind_start_time:ind_start_time+7])
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times-t_approx).argmin()
