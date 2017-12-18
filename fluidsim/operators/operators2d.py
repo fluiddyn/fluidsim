@@ -361,7 +361,10 @@ class OperatorsPseudoSpectral2D(_Operators):
                 rank_k = int(np.floor(float(ikx_seq)/self.nkx_loc))
                 if ikx_seq >= self.nkx_loc * mpi.nb_proc:
                     raise ValueError(
-                        'not good :-) ikx_seq >= self.nkx_loc * mpi.nb_proc')
+                        'not good :-) ikx_seq >= self.nkx_loc * mpi.nb_proc\n'
+                        'ikx_seq, self.nkx_loc, mpi.nb_proc = '
+                        '{}, {}, {}'.format(
+                            ikx_seq, self.nkx_loc, mpi.nb_proc))
             else:
                 rank_k = 0
                 while (rank_k < self.nb_proc-1 and

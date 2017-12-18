@@ -34,6 +34,7 @@ from glob import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
+import h5netcdf
 
 from fluiddyn.util import mpi
 from .base import SpecificOutput
@@ -41,6 +42,29 @@ from .movies import MoviesBase1D, MoviesBase2D
 from ..params import Parameters
 
 cfg_h5py = h5py.h5.get_config()
+
+if cfg_h5py.mpi:
+    ext = 'h5'
+    h5pack = h5py
+else:
+    ext = 'nc'
+    h5pack = h5netcdf
+
+
+def _create_variable(group, key, field):
+    if ext == 'nc':
+        if field.ndim == 0:
+            dimensions = tuple()
+        elif field.ndim == 1:
+            dimensions = ('x',)
+        elif field.ndim == 2:
+            dimensions = ('y', 'x')
+        elif field.ndim == 3:
+            dimensions = ('z', 'y', 'x')
+
+        group.create_variable(key, data=field, dimensions=dimensions)
+    else:
+        group.create_dataset(key, data=field)
 
 
 class PhysFieldsBase(SpecificOutput):
@@ -111,22 +135,22 @@ class PhysFieldsBase(SpecificOutput):
 
         if (self.period_save < 0.001 or
                 self.params.output.phys_fields.file_with_it):
-            name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
-                time, self.sim.time_stepping.it)
+            name_save = 'state_phys_t{:07.3f}_it={}.{}'.format(
+                time, self.sim.time_stepping.it, ext)
         else:
-            name_save = 'state_phys_t={:07.3f}.hd5'.format(time)
+            name_save = 'state_phys_t{:07.3f}.{}'.format(time, ext)
 
         path_file = os.path.join(path_run, name_save)
         if os.path.exists(path_file):
-            name_save = 'state_phys_t={:07.3f}_it={}.hd5'.format(
-                time, self.sim.time_stepping.it)
+            name_save = 'state_phys_t{:07.3f}_it={}.{}'.format(
+                time, self.sim.time_stepping.it, ext)
             path_file = os.path.join(path_run, name_save)
         to_print = 'save state_phys in file ' + name_save
         self.output.print_stdout(to_print)
 
         if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
-                f = h5py.File(path_file, 'w')
+                f = h5netcdf.File(path_file, 'w', invalid_netcdf=True)
                 group_state_phys = f.create_group("state_phys")
                 group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
                 group_state_phys.attrs['name_type_variables'] = state_phys.info
@@ -144,13 +168,13 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.nb_proc == 1:
             for k in state_phys.keys:
                 field_seq = state_phys.get_var(k)
-                group_state_phys.create_dataset(k, data=field_seq)
+                _create_variable(group_state_phys, k, field_seq)
         elif not cfg_h5py.mpi:
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
                 field_seq = self.oper.gather_Xspace(field_loc)
                 if mpi.rank == 0:
-                    group_state_phys.create_dataset(k, data=field_seq)
+                    _create_variable(group_state_phys, k, field_seq)
         else:
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
@@ -165,7 +189,7 @@ class PhysFieldsBase(SpecificOutput):
                     dset[xstart:xend, ystart:yend, :] = field_loc
             f.close()
             if mpi.rank == 0:
-                f = h5py.File(path_file, 'w')
+                f = h5pack.File(path_file, 'w')
 
         if mpi.rank == 0:
             f.attrs['date saving'] = str(datetime.datetime.now()).encode()
@@ -177,8 +201,8 @@ class PhysFieldsBase(SpecificOutput):
             self.sim.info._save_as_hdf5(hdf5_parent=f)
             gp_info = f['info_simul']
             gf_params = gp_info['params']
-            gf_params.attrs['SAVE'] = True
-            gf_params.attrs['NEW_DIR_RESULTS'] = True
+            gf_params.attrs['SAVE'] = 1
+            gf_params.attrs['NEW_DIR_RESULTS'] = 1
             f.close()
 
     def _select_field(self, field=None, key_field=None):
@@ -232,7 +256,7 @@ class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
 def time_from_path(path):
     '''Regular expression search to extract time from filename.'''
     filename = os.path.basename(path)
-    t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+    t = float(re.search(r'[-+]?[0-9]*.?[0-9]+', filename).group(0))
     return t
 
 
