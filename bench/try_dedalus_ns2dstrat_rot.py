@@ -40,7 +40,7 @@ problem.parameters['Sc'] = Schmidt
 
 # Non-dimensional NS2D of stratified fluid.
 problem.add_equation(
-    'dt(xi) + (R**2/(F(1 - F**2)**(1/2.))) * dx(b) - (F**2 / Re) * dx(dx(xi)) - ((1 - F**2) / Re) * dz(xiz)) = - u * dx(xi) - w * xiz')
+    'dt(xi) + (R**2 / (F * (1 - F**2)**(1/2.))) * dx(b) - (F**2  /  Re) * dx(dx(xi)) - ((1 - F**2) / Re) * dz(xiz) = - u * dx(xi) - w * xiz')
 
 problem.add_equation(
     'dt(b) + uz - (F**2/(Re * Sc)) * dx(dx(b) - ((1 - F**2)/(Re * Sc))*dz(bz)) = - u*dx(b) - w*bz')
@@ -76,7 +76,7 @@ xi['g'] = np.ones_like(x)
 u.differentiate('z', out=uz)
 w.differentiate('z', out=wz)
 b.differentiate('z', out=bz)
-xi.differentiate('xi', out=xiz)
+xi.differentiate('z', out=xiz)
 
 dt = 1e-12
 
