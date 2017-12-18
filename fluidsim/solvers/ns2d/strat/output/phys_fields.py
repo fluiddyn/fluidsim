@@ -20,7 +20,13 @@ from past.builtins import basestring
 from fluiddyn.util import mpi
 from fluidsim.base.output.phys_fields import PhysFieldsBase2D
 from fluidsim.base.output.phys_fields import MoviesBasePhysFields2D
-from fluidsim.base.output.phys_fields import time_from_path
+# from fluidsim.base.output.phys_fields import time_from_path
+
+def time_from_path(path):
+    '''Regular expression search to extract time from filename.'''
+    filename = os.path.basename(path)
+    t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+    return t
 
 
 class PhysFields2DStrat(PhysFieldsBase2D):
@@ -67,11 +73,11 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                 self._ani_spatial_means_t, self._ani_spatial_means_key,
                 linewidth=0.8, color='grey', alpha=0.4)
 
-    def time_from_path(path):
-        '''Regular expression search to extract time from filename.'''
-        filename = os.path.basename(path)
-        t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
-        return t
+    # def time_from_path(path):
+    #     '''Regular expression search to extract time from filename.'''
+    #     filename = os.path.basename(path)
+    #     t = float(re.search('[-+]?[0-9]*\.?[0-9]+', filename).group(0))
+    #     return t
 
     def _load_field_from_file(self, path):
         """Load field from file."""
