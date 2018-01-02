@@ -30,7 +30,7 @@ def time_from_path(path):
 
 
 class PhysFields2DStrat(PhysFieldsBase2D):
-
+    """Class physical fields of solver ns2d.strat """
     def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, QUIVER=True,
                   INLET_ANIMATION=True, **kwargs):
 
@@ -169,12 +169,15 @@ class PhysFields2DStrat(PhysFieldsBase2D):
             self._ani_im_inlet[0].set_data(
                 t[:idx_spatial], E[:idx_spatial])
 
-        title = (self._ani_key +
-                 ', R = {0:.2f}'.format(
-                     self.output.ratio_omegas) +
-                 ', F = {0:.1f}'.format(
-                     self.output.froude_number) +
-                 ', $t = {0:.3f}$'.format(time))
+        if 'ratio_omegas' in self.__dict__:
+            title = (self._ani_key +
+                     ', R = {0:.2f}'.format(
+                         self.output.ratio_omegas) +
+                     ', F = {0:.1f}'.format(
+                         self.output.froude_number) +
+                     ', $t = {0:.3f}$'.format(time))
+        else:
+            title = (self._ani_key + ', $t = {0:.3f}$'.format(time))
 
         self._ani_ax.set_title(title)
 
@@ -268,13 +271,18 @@ class PhysFields2DStrat(PhysFieldsBase2D):
             ax.set_xlabel('x')
             ax.set_ylabel('y')
 
-            title = (self._ani_key +
-                     ', R = {0:.2f}'.format(
-                         self.output.ratio_omegas) +
-                     ', F = {}'.format(
-                         self.output.froude_number) +
-                     ', $t = {0:.3f}$ '.format(
-                         t_actual))
+            if 'ratio_omegas' in self.__dict__:
+                title = (self._ani_key +
+                         ', R = {0:.2f}'.format(
+                             self.output.ratio_omegas) +
+                         ', F = {}'.format(
+                             self.output.froude_number) +
+                         ', $t = {0:.3f}$ '.format(
+                             t_actual))
+
+            else:
+                title = (self._ani_key + ', $t = {0:.3f}$ '.format(
+                    t_actual))
 
             ax.set_title(title)
 
