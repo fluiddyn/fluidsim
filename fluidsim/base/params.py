@@ -19,7 +19,7 @@ from importlib import import_module
 from builtins import map
 
 from fluiddyn.util.paramcontainer import ParamContainer
-from fluiddyn.util.util import import_class
+from fluiddyn.util import import_class
 from fluiddyn.util import mpi
 
 from fluidsim.base.solvers.info_base import InfoSolverBase

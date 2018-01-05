@@ -2,7 +2,7 @@
 from copy import deepcopy
 
 from fluiddyn.util.paramcontainer import ParamContainer
-from fluiddyn.util.util import import_class
+from fluiddyn.util import import_class
 
 
 def create_info_simul(info_solver, params):

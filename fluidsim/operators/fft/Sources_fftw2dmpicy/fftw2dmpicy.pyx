@@ -185,8 +185,8 @@ cdef class FFT2Dmpi(object):
 
         # print('init_seq:', self.shapeX_seq, self.shapeK_seq)
 
-        # from fluiddyn.util.debug_with_ipython import ipydebug
-        # ipydebug()
+        # import fluiddyn as fld
+        # fld.ipydebug()
 
         self.shapeX_loc = self.shapeX_seq
         self.shapeK_loc = self.shapeK_seq
