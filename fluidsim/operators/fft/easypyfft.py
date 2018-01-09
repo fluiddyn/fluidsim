@@ -1,2 +1,2 @@
 
-from fluiddyn.util.easypyfft import *
+from fluiddyn.calcul.easypyfft import *

@@ -15,7 +15,7 @@ import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
 
-from fluiddyn.util.util import get_memory_usage
+from fluiddyn.util import get_memory_usage
 from fluiddyn.util import mpi
 
 
