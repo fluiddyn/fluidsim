@@ -68,6 +68,12 @@ class OutputStrat(Output):
             'class_name': 'SpectralEnergyBudgetNS2DStrat'}
         classes.spect_energy_budg._set_attribs(attribs)
 
+        classes._set_child(
+            'spatio_temporal_spectra',
+            attribs={'module_name': base_name_mod + '.spatio_temporal_spectra',
+                     'class_name': 'SpatioTempSpectra'})
+
+
 
     # @staticmethod
     # def _complete_params_with_default(params, info_solver):
