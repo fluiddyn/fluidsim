@@ -5,21 +5,23 @@ A modified version of ``spectralDNS/demo/TG.py``
 
 To run::
 
-  python try_spectraldns_3d.py --optimization cython NS
-
-  mpirun -np 2 python try_spectraldns_3d.py --optimization cython NS
+  python profile_spectraldns_3d.py --optimization cython NS
 
 To be compared with::
 
-  fluidsim-bench 128 -d 3 -s ns3d -it 10
+  cd profiling
+  python simul_profile_ns3d.py
 
-  mpirun -np 2 fluidsim-bench 128 -d 3 -s ns3d -it 10
 
 """
 from __future__ import print_function
 import time
 import numpy as np
 from numpy import zeros, sum, float64, sin, cos, prod, asscalar
+
+import pstats
+import cProfile
+
 # from numpy.linalg import norm
 from spectralDNS import config, get_solver, solve
 
@@ -144,7 +146,7 @@ if __name__ == "__main__":
         {
             'nu': U * L / Re,  # Viscosity
             'dt': 1e-12,       # Time step
-            'T': 1e-11,        # End time
+            'T': 1.05e-11,        # End time
             'L': [L, L, L],
             'M': [7, 7, 7],    # Mesh size is pow(2, M[i]) in direction i
             #'planner_effort': {'fft': 'FFTW_EXHAUSTIVE'},
@@ -183,9 +185,14 @@ if __name__ == "__main__":
 
     # Double check benchmark walltime
     start_time = time.time()
-    solve(sol, context)
+    cProfile.runctx('solve(sol, context)',
+                    globals(), locals(), 'profile.pstats')
     end_time = time.time()
     print('Run time: %f' % (end_time - start_time))
 
+    s = pstats.Stats('profile.pstats')
+    s.sort_stats('time').print_stats(12)
+
+    
     #context.hdf5file._init_h5file(config.params, **context)
     # context.hdf5file.f.close()

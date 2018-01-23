@@ -78,7 +78,7 @@ def modif_params_profile3d(params, nh=256, nz=32):
 
     params.time_stepping.deltat0 = 1.e-4
     params.time_stepping.USE_CFL = False
-    params.time_stepping.it_end = 4
+    params.time_stepping.it_end = 10
     params.time_stepping.USE_T_END = False
 
     params.output.periods_print.print_stdout = 0
