@@ -11,9 +11,9 @@ To run::
 
 To be compared with::
 
-  fluidsim-bench 256 -d 3 -s ns3d -it 10
+  fluidsim-bench 128 -d 3 -s ns3d -it 10
 
-  mpirun -np 2 fluidsim-bench 256 -d 3 -s ns3d -it 10
+  mpirun -np 2 fluidsim-bench 128 -d 3 -s ns3d -it 10
 
 """
 from __future__ import print_function
