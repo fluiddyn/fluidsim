@@ -9,7 +9,7 @@ from fluidsim.solvers.ns3d import solver
 from util_bench import profile, modif_params_profile3d
 
 params = solver.Simul.create_default_params()
-modif_params_profile3d(params)
+modif_params_profile3d(params, nh=128, nz=128)
 
 sim = solver.Simul(params)
 

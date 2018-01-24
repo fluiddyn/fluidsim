@@ -103,7 +103,7 @@ class Simul(SimulBasePseudoSpectral):
 
     def tendencies_nonlin(self, state_fft=None):
         oper = self.oper
-        fft3d = oper.fft3d
+        # fft3d = oper.fft3d
         ifft3d = oper.ifft3d
 
         if state_fft is None:
@@ -120,12 +120,7 @@ class Simul(SimulBasePseudoSpectral):
             vy = ifft3d(vy_fft)
             vz = ifft3d(vz_fft)
 
-        Fvx, Fvy, Fvz = oper.vgradv_from_v(
-            vx, vy, vz, vx_fft, vy_fft, vz_fft)
-
-        Fvx_fft = fft3d(Fvx)
-        Fvy_fft = fft3d(Fvy)
-        Fvz_fft = fft3d(Fvz)
+        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)
 
         oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
 
