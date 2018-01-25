@@ -48,8 +48,6 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
 class Simul(SimulBasePseudoSpectral):
     r"""Pseudo-spectral solver 3D incompressible Navier-Stokes equations.
 
-    Not yet implemented!
-
     Notes
     -----
 
@@ -83,14 +81,16 @@ class Simul(SimulBasePseudoSpectral):
 
     .. math::
 
-      N(\vv) = -P_\perp \widehat{ \vv \cdot \bnabla \vv },
+      N(\vv) = -P_\perp \widehat{\bnabla \cdot \vv \vv},
 
     .. math::
 
       L = - \nu_\alpha |\kk|^{2\alpha},
 
-    with :math:`P_\perp = (1 - \ek \ek \cdot)` the operator projection
-    on the plane perpendicular to the wave number :math:`\kk`.
+    with :math:`P_\perp = (1 - \ek \ek \cdot)` the operator projection on the
+    plane perpendicular to the wave number :math:`\kk`. Since the flow is
+    incompressible (:math:`\kk \cdot \vv = 0`), the effect of the pressure term
+    is taken into account with the operator :math:`P_\perp`.
 
     """
     InfoSolver = InfoSolverNS3D
