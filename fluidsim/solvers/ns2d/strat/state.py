@@ -121,41 +121,36 @@ class StateNS2DStrat(StateNS2D):
 
     def init_from_rotbfft(self, rot_fft, b_fft):
         """Initialize the state from the variable rot_fft and b_fft."""
-        # self.oper.dealiasing(rot_fft)
-        # self.oper.dealiasing(b_fft)
+        self.oper.dealiasing(rot_fft)
+        self.oper.dealiasing(b_fft)
 
         self.state_fft.set_var('rot_fft', rot_fft)
         self.state_fft.set_var('b_fft', b_fft)
-
-        # Check energy
-        print('###### Print energy injection #####')
-        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        energyK_fft = (np.abs(ux_fft)**2 + np.abs(uy_fft)**2)/2
-        energyA_fft = ((np.abs(b_fft)/self.sim.params.N)**2)/2
-
-        # print('energy = ', self.sim.output.sum_wavenumbers(energyK_fft + energyA_fft))
-        # print('energyK = ', self.sum_wavenumbers(energyK_fft))
-        # print('energyA = ', self.sum_wavenumbers(energyA_fft))
 
         self.statephys_from_statefft()
 
     def init_from_linear_mode(self, ap_fft, am_fft):
         """Initialize state from the linear mode."""
         uy_fft = (1. / (2 * self.params.N**2)) * (ap_fft + am_fft)
-        ux_fft = - (self.oper.KY / self.oper.KX) * uy_fft
-        ux_fft[:, 0] = 0
-        print('ux_fft = ', ux_fft)
+        division = np.zeros_like(self.oper.KY)
+        division[:, 1:] = self.oper.KY[:, 1:] / self.oper.KX[:, 1:]
+        ux_fft = -1 * division * uy_fft
 
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        print('rot_fft = ', rot_fft)
 
-        # omega_k: array with frequency from dispersion relation at each mode.
-        print('oper.KK = ', self.oper.KK)
-        omega_k = self.params.N * (self.oper.KX / self.oper.KK)
-        b_fft = (2j * omega_k) ** (-1) * (ap_fft + am_fft)
-        b_fft[:, 0] = 0
-        print('b_fft', b_fft)
+        omega_k = np.zeros_like(self.oper.KX)
+        omega_k[0, 0] = 0
+        omega_k[1:, 1:] = self.params.N * (
+            self.oper.KX[1:, 1:] / self.oper.KK[1:, 1:])
+        omega_k[0, 1:] = self.params.N * (
+            self.oper.KX[0, 1:] / self.oper.KK[0, 1:])
+        omega_k[1:, 0] = self.params.N * (
+            self.oper.KX[1:, 0] / self.oper.KK[1:, 0])
 
+        b_fft = np.zeros_like(am_fft)
+        b_fft[:, 0] = 0. + 0j
+        b_fft[:, 1:] = (1. / (2j * omega_k[:, 1:])) * (
+            ap_fft[:, 1:] + am_fft[:, 1:])
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_from_rotfft(self, rot_fft):
