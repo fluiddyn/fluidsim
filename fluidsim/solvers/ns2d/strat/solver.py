@@ -9,6 +9,7 @@
 """
 from __future__ import division
 
+import numpy as np
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.ns2d.solver import \
@@ -41,6 +42,12 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes.Forcing.module_name = 'fluidsim.solvers.ns2d' + '.forcing'
         classes.Forcing.class_name = 'ForcingNS2D'
 
+        # New class time_stepping for the solver strat.
+        classes.TimeStepping.module_name = \
+            package + '.time_stepping.pseudo_spect_strat'
+
+        classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectralStrat'
+
 
 class Simul(SimulNS2D):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
@@ -53,10 +60,50 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {'N': 1.}
+        attribs = {'N': 1., 'NO_SHEAR_MODES': False}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_fft=None):
+        r"""Compute the nonlinear tendencies of the solver ns2d.strat.
+
+        Parameters
+        ----------
+
+        state_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            optional
+
+            Array containing the state, i.e. the vorticity, in Fourier
+            space.  If `state_fft`, the variables vorticity and the
+            velocity are computed from it, otherwise, they are taken
+            from the global state of the simulation, `self.state`.
+
+            These two possibilities are used during the Runge-Kutta
+            time-stepping.
+
+        Returns
+        -------
+
+        tendencies_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            An array containing the tendencies for the vorticity.
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        The 2D Navier-Stockes equation can be written
+
+        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \zeta,
+
+        and
+
+        .. math:: \p_t \hat b = \hat N(b) - \sigma(k) \zeta
+
+        This function compute the nonlinear terms ("tendencies")
+        :math:`\hat N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla}
+        \zeta + \mathbf{\nabla}\curl b\mathbf{e_z}` and :math:`\hat N(b)
+        = - \mathbf{u}\cdot \mathbf{\nabla} b + N^2u_y`.
+        """
         oper = self.oper
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg
@@ -103,16 +150,58 @@ class Simul(SimulNS2D):
 
         oper.dealiasing(tendencies_fft)
 
-        # T_rot = np.real(Frot_fft.conj()*rot_fft
-        #                + Frot_fft*rot_fft.conj())/2.
-        # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
-        #       ).format(self.oper.sum_wavenumbers(T_rot),
-        #                self.oper.sum_wavenumbers(abs(T_rot)))
+        # # CHECK NON-LINEAR TRANSFER rot
+        # T_rot = np.real(Frot_fft.conj()*rot_fft + Frot_fft*rot_fft.conj())/2.
+        # print(('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}').format(
+        #     self.oper.sum_wavenumbers(T_rot),
+        #     self.oper.sum_wavenumbers(abs(T_rot))))
+
+        # # CHECK NON-LINEAR TRANSFER b
+        # T_b = np.real(Fb_fft.conj()*b_fft + Fb_fft*b_fft.conj())/2.
+        # print(('sum(T_b) = {0:9.4e} ; sum(abs(T_b)) = {1:9.4e}').format(
+        #     self.oper.sum_wavenumbers(T_b),
+        #     self.oper.sum_wavenumbers(abs(T_b))))
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
 
+        # CHECK ENERGY CONSERVATION
+        Nrot_fft = tendencies_fft.get_var('rot_fft')
+        Nb_fft = tendencies_fft.get_var('b_fft')
+        self.check_energy_conservation(rot_fft, b_fft, Nrot_fft, Nb_fft)
+
         return tendencies_fft
+
+
+    def check_energy_conservation(self, rot_fft, b_fft, N_rot, N_b):
+        """ Check energy conservation for the inviscid case. """
+        oper = self.oper
+        params = self.params
+
+        # Compute time derivative kinetic energy
+        division = 1./(oper.KX**2 + oper.KY**2)
+        division[np.where(division == np.inf)] = 0
+
+        pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * N_rot)
+        pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.
+
+        # Compute time derivative potential energy
+        pt_energyA_fft = (1./(2 * params.N**2)) * np.real(b_fft.conj() * N_b)
+
+        # Time derivative total energy
+        pt_energy_fft = pt_energyK_fft + pt_energyA_fft
+
+        # Check time derivative energy is ~ 0.
+        epsilon = 1e-12
+        pt_energy = self.output.sum_wavenumbers(pt_energy_fft)
+        energy_conserved = np.abs(pt_energy) < epsilon
+        if not energy_conserved:
+            print('Energy conserved = ', energy_conserved)
+            print('pt_energy = {}'.format(np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
+        # print(
+        #     'Energy is conserved = ', \
+        #     np.abs(self.output.sum_wavenumbers(pt_energy_fft)) < epsilon)
+
 
 if __name__ == "__main__":
 
