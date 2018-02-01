@@ -104,7 +104,24 @@ class InitFieldsLinearMode(SpecificInitFields):
         super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={
             'i_mode': (8, 8),
-            'epsilon': 1})
+            'delta_k_adim': 1,
+            'amplitude': 1})
+
+        params.init_fields.linear_mode._set_doc("""
+        i_mode : tuple
+
+          Index of initialized mode.
+
+         delta_k_adim : int
+
+          Size of the initialization region.
+
+        amplitude : float
+
+          Amplitude of the initial linear mode
+
+        """)
+
 
     def __call__(self):
         ap_fft, am_fft = self.compute_linear_mode()
@@ -117,22 +134,18 @@ class InitFieldsLinearMode(SpecificInitFields):
         oper = self.sim.oper
 
         i_mode = params.init_fields.linear_mode.i_mode
-        epsilon = params.init_fields.linear_mode.epsilon
+        delta_k_adim = params.init_fields.linear_mode.delta_k_adim
 
         am_fft = np.zeros(oper.shapeK) + 1j * np.zeros(oper.shapeK)
         ap_fft = am_fft.copy()
 
-        # Define contour epsilon region [epsx_min: epsx_max, epsy_min, epsymax]
-        epsx_min = i_mode[0] - epsilon
-        epsy_min = i_mode[1] - epsilon
+        # Define contour delta_k_adim
+        # region [epsx_min: epsx_max, epsy_min, epsymax]
+        epsx_min = i_mode[0] - delta_k_adim
+        epsy_min = i_mode[1] - delta_k_adim
 
-        epsx_max = i_mode[0] + epsilon + 1
-        epsy_max = i_mode[1] + epsilon + 1
-
-        # print('epsx_min = ', epsx_min)
-        # print('epsx_max = ', epsx_max)
-        # print('epsy_min = ', epsy_min)
-        # print('epsy_max = ', epsy_max)
+        epsx_max = i_mode[0] + delta_k_adim + 1
+        epsy_max = i_mode[1] + delta_k_adim + 1
 
         if epsx_min < 0:
             epsx_min = 0
@@ -140,9 +153,6 @@ class InitFieldsLinearMode(SpecificInitFields):
             epsy_min = 0
 
         ap_fft[epsx_min:epsx_max, epsy_min:epsy_max] = 1. + 0j
-        # print('ap_fft = ', ap_fft)
-        oper.dealiasing(am_fft, ap_fft)
-        # print('ap_fft_dealiasing = ', ap_fft)
         return ap_fft, am_fft
 
 
