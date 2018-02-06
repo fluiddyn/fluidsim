@@ -44,7 +44,7 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
 
         # New class time_stepping for the solver strat.
         classes.TimeStepping.module_name = \
-            package + '.time_stepping.pseudo_spect_strat'
+            package + '.time_stepping.pseudo_spect'
 
         classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectralStrat'
 
