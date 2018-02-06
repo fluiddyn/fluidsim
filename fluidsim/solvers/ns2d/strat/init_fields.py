@@ -135,8 +135,10 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         i_mode = params.init_fields.linear_mode.i_mode
         delta_k_adim = params.init_fields.linear_mode.delta_k_adim
+        amplitude = params.init_fields.linear_mode.amplitude * params.N**2
 
         am_fft = np.zeros(oper.shapeK) + 1j * np.zeros(oper.shapeK)
+        am_fft = amplitude * am_fft
         ap_fft = am_fft.copy()
 
         # Define contour delta_k_adim
@@ -153,6 +155,7 @@ class InitFieldsLinearMode(SpecificInitFields):
             epsy_min = 0
 
         ap_fft[epsx_min:epsx_max, epsy_min:epsy_max] = 1. + 0j
+        ap_fft = amplitude * ap_fft
         return ap_fft, am_fft
 
 

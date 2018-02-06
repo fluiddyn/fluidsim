@@ -132,25 +132,17 @@ class StateNS2DStrat(StateNS2D):
     def init_from_linear_mode(self, ap_fft, am_fft):
         """Initialize state from the linear mode."""
         uy_fft = (1. / (2 * self.params.N**2)) * (ap_fft + am_fft)
+        cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
-        division[:, 1:] = self.oper.KY[:, 1:] / self.oper.KX[:, 1:]
+        division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
         ux_fft = -1 * division * uy_fft
 
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
-        omega_k = np.zeros_like(self.oper.KX)
-        omega_k[0, 0] = 0
-        omega_k[1:, 1:] = self.params.N * (
-            self.oper.KX[1:, 1:] / self.oper.KK[1:, 1:])
-        omega_k[0, 1:] = self.params.N * (
-            self.oper.KX[0, 1:] / self.oper.KK[0, 1:])
-        omega_k[1:, 0] = self.params.N * (
-            self.oper.KX[1:, 0] / self.oper.KK[1:, 0])
-
+        omega_k = self.params.N * self.oper.KX / self.oper.KK_not0
         b_fft = np.zeros_like(am_fft)
-        b_fft[:, 0] = 0. + 0j
-        b_fft[:, 1:] = (1. / (2j * omega_k[:, 1:])) * (
-            ap_fft[:, 1:] + am_fft[:, 1:])
+        b_fft[cond] = (1. / (2j * omega_k[cond])) * (
+            ap_fft[cond] + am_fft[cond])
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_from_rotfft(self, rot_fft):

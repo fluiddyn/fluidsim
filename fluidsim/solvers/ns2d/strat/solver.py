@@ -166,9 +166,9 @@ class Simul(SimulNS2D):
             tendencies_fft += self.forcing.get_forcing()
 
         # CHECK ENERGY CONSERVATION
-        Nrot_fft = tendencies_fft.get_var('rot_fft')
-        Nb_fft = tendencies_fft.get_var('b_fft')
-        self.check_energy_conservation(rot_fft, b_fft, Nrot_fft, Nb_fft)
+        # Nrot_fft = tendencies_fft.get_var('rot_fft')
+        # Nb_fft = tendencies_fft.get_var('b_fft')
+        # self.check_energy_conservation(rot_fft, b_fft, Nrot_fft, Nb_fft)
 
         return tendencies_fft
 
@@ -192,15 +192,13 @@ class Simul(SimulNS2D):
         pt_energy_fft = pt_energyK_fft + pt_energyA_fft
 
         # Check time derivative energy is ~ 0.
-        epsilon = 1e-12
+        epsilon = 1e-8
         pt_energy = self.output.sum_wavenumbers(pt_energy_fft)
         energy_conserved = np.abs(pt_energy) < epsilon
         if not energy_conserved:
             print('Energy conserved = ', energy_conserved)
-            print('pt_energy = {}'.format(np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
-        # print(
-        #     'Energy is conserved = ', \
-        #     np.abs(self.output.sum_wavenumbers(pt_energy_fft)) < epsilon)
+            print('pt_energy = {}'.format(
+                np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
 
 
 if __name__ == "__main__":

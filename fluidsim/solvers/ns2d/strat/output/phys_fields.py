@@ -22,6 +22,7 @@ from fluidsim.base.output.phys_fields import PhysFieldsBase2D
 from fluidsim.base.output.phys_fields import MoviesBasePhysFields2D
 # from fluidsim.base.output.phys_fields import time_from_path
 
+
 def time_from_path(path):
     '''Regular expression search to extract time from filename.'''
     filename = os.path.basename(path)

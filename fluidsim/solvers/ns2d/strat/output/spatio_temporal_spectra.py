@@ -11,13 +11,11 @@ Provides:
    :private-members:
 
 #TODO: key_quantity == linear eigenmode a
-# First, make sure we do it with the correct variable.
 
 """
 
 from __future__ import division, print_function
 
-from builtins import str
 from builtins import range
 
 import os
@@ -72,7 +70,8 @@ class SpatioTempSpectra(SpecificOutput):
                             self.coef_decimate)))
         n1 = len(list(range(0, output.sim.oper.shapeX_loc[1],
                             self.coef_decimate)))
-
+        print('n0', n0)
+        print('n1', n1)
         # 3D array (time, x, y) and init FFTW object
         # self.spatio_temp = np.empty([self.nb_times_compute, n0, n1])
         self.spatio_temp = np.empty([self.nb_times_compute, n0, n1 // 2 + 1])
