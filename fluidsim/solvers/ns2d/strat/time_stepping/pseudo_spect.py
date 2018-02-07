@@ -51,14 +51,15 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
         # Try to compute deltat_dispersion_relation.
         try:
-            self.dispersion_relation = self._compute_dispersion_relation()
-            self.deltat_dispersion_relation = \
-                self.coef_deltat_dispersion_relation * \
-                (2. * pi / self.dispersion_relation.max())
+            self.dispersion_relation = self.sim.compute_dispersion_relation()
         except AttributeError:
-            print('_compute_dispersion_relation is not'
+            print('compute_dispersion_relation is not'
                   'not implemented.')
             self.deltat_dispersion_relation = 1.
+        else:
+            self.deltat_dispersion_relation = (
+                self.coef_deltat_dispersion_relation *
+                (2. * pi / self.dispersion_relation.max()))
 
         # Try to compute deltat_group_vel
         try:
@@ -72,30 +73,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         if self.params.FORCING:
             self.deltat_f = self._compute_time_increment_forcing()
 
-    def _compute_fourier_space_from_params(self):
-        """ Define the Fourier axes. """
-        Lx = self.params.oper.Lx
-        Lz = self.params.oper.Ly
-
-        nx = self.params.oper.nx
-        nz = self.params.oper.ny
-
-        delta_kx = 2 * pi / Lx
-        delta_kz = 2 * pi / Lz
-
-        kx_loc = np.arange(0, delta_kx * (nx / 2 + 1), delta_kx)
-
-        kz_loc = np.zeros(nz)
-        kz_loc[0: int(nz/2) + 1] = np.arange(
-            0, delta_kz * (nz / 2) + delta_kz, delta_kz)
-        kz_loc[int(nz/2) + 1::] = -1 * kz_loc[1: int(nz/2)][::-1]
-
-        self.KX, self.KZ = np.meshgrid(kx_loc, kz_loc)
-        self.KK = np.sqrt(self.KX**2 + self.KZ**2)
-
-        self.KK_not0 = self.KK.copy()
-        self.KK_not0[0, 0] = 1e-10
-
     def _compute_time_increment_forcing(self):
         """
         Compute time increment of the forcing.
@@ -108,10 +85,11 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         waves as \omega_g = max(|c_g|) \cdot max(|k|)
         """
         N = self.params.N
+        oper = self.sim.oper
 
-        KX = self.KX
-        KZ = self.KZ
-        KK_not0 = self.KK_not0
+        KX = oper.KX
+        KZ = oper.KZ
+        KK_not0 = oper.KK_not0
 
         # Group velocity cg
         cg_kx = (1 / (2 * pi)) * (N / KK_not0) * (KZ**2 / KK_not0**2)
@@ -124,20 +102,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         cp = (N / (2 * pi)) * (KX / KK_not0**2)
         deltat_phase = 1. / (cp.max() * KK_not0.max())
         return self.coef_group * deltat_group, self.coef_phase * deltat_phase
-
-    def _compute_dispersion_relation(self):
-        """
-        Computes the dispersion relation of internal gravity waves solver 
-        ns2d.strat.
-
-        Returns
-        -------
-        omega_dispersion_relation : arr
-          Frequency dispersion relation in rad.
-        """
-        super(
-            TimeSteppingPseudoSpectralStrat, self)._compute_dispersion_relation()
-        return self.params.N * (self.KX / self.KK_not0)
 
 
     def _compute_time_increment_CFL_uxuyb(self):

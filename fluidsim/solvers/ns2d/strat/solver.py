@@ -200,6 +200,18 @@ class Simul(SimulNS2D):
             print('pt_energy = {}'.format(
                 np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
 
+    def compute_dispersion_relation(self):
+        """
+        Computes the dispersion relation of internal gravity waves solver 
+        ns2d.strat.
+
+        Returns
+        -------
+        omega_dispersion_relation : arr
+          Frequency dispersion relation in rad.
+        """
+        return self.params.N * (self.oper.KX / self.oper.KK_not0)
+
 
 if __name__ == "__main__":
 
