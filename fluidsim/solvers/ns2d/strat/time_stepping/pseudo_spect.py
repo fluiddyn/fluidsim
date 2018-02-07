@@ -1,5 +1,5 @@
-"""Time stepping (:mod:`fluidsim.solvers.ns2d.strat.time_stepping.pseudo_spect_strat`)
-======================================================================================
+"""Time stepping (:mod:`fluidsim.solvers.ns2d.strat.time_stepping.pseudo_spect`)
+===============================================================================
 
 .. currentmodule:: fluidsim.solvers.ns2d.strat.time_stepping.pseudo_spect_strat
 
@@ -47,8 +47,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             self._compute_time_increment_CLF = \
                 self._compute_time_increment_CFL_uxuyb
 
-        self._compute_fourier_space_from_params()
-
         # Try to compute deltat_dispersion_relation.
         try:
             self.dispersion_relation = self.sim.compute_dispersion_relation()
@@ -65,8 +63,8 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         try:
             self.deltat_group_vel, self.deltat_phase_vel = (
                 self._compute_time_increment_group_and_phase())
-        except AttributeError:
-            print('_compute_time_increment_group_and_phase is not implemented')
+        except AttributeError as e:
+            print('_compute_time_increment_group_and_phase is not implemented', e)
             self.deltat_group_vel = 1.
             self.deltat_phase_vel = 1.
 
@@ -88,7 +86,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         oper = self.sim.oper
 
         KX = oper.KX
-        KZ = oper.KZ
+        KZ = oper.KY
         KK_not0 = oper.KK_not0
 
         # Group velocity cg
