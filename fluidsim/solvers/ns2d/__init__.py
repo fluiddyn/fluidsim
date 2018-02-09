@@ -15,12 +15,12 @@ The modules for this ns2d solvers are:
    output
    forcing
 
-There is also a package for a stratified Navier-Stokes 2D solver
-:mod:`fluidsim.solvers.ns2d.strat.solver`
+There are also a packages for other Navier-Stokes 2D solvers:
 
 .. autosummary::
    :toctree:
 
    strat
+   bouss
 
 """

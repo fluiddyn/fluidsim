@@ -119,11 +119,10 @@ class Simul(SimulBasePseudoSpectral):
 
         The 2D Navier-Stockes equation can be written
 
-        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \zeta,
+        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \hat \zeta,
 
         This function compute the nonlinear term ("tendencies")
-        :math:`\hat N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla}
-        \zeta`.
+        :math:`N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla} \zeta`.
 
         """
         # the operator and the fast Fourier transform
