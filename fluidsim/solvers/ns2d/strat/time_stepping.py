@@ -1,7 +1,7 @@
-"""Time stepping (:mod:`fluidsim.solvers.ns2d.strat.time_stepping.pseudo_spect`)
+"""Time stepping (:mod:`fluidsim.solvers.ns2d.strat.time_stepping`)
 ===============================================================================
 
-.. currentmodule:: fluidsim.solvers.ns2d.strat.time_stepping.pseudo_spect_strat
+.. currentmodule:: fluidsim.solvers.ns2d.strat.time_stepping
 
 Provides:
 
@@ -17,7 +17,8 @@ import numpy as np
 
 from math import pi
 from fluiddyn.util import mpi
-from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
+from fluidsim.base.time_stepping.pseudo_spect_cy import \
+    TimeSteppingPseudoSpectral
 
 
 class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
