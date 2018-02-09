@@ -41,7 +41,7 @@ Dependencies
      [pythran]
      complex_hook = True
 
-- h5py (optionally, with MPI support)
+- h5py (optionally, with MPI support only if you know what you do)
 
 .. warning::
 
@@ -95,7 +95,7 @@ from `the PyPI page <https://pypi.python.org/pypi/fluidsim>`_.
 Build/install
 ~~~~~~~~~~~~~
 
-Build/install in development mode (with a virtualenv)::
+Build/install in development mode (with a virtualenv or with conda)::
 
   python setup.py develop
 

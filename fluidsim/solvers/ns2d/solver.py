@@ -160,13 +160,11 @@ class Simul(SimulBasePseudoSpectral):
 
         oper.dealiasing(Frot_fft)
 
-        # T_rot = np.real(Frot_fft.conj()*rot_fft
-        #                + Frot_fft*rot_fft.conj())/2.
-        # print ('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
+        # import numpy as np
+        # T_rot = np.real(Frot_fft.conj()*rot_fft + Frot_fft*rot_fft.conj())/2.
+        # print(('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
         #       ).format(self.oper.sum_wavenumbers(T_rot),
-        #                self.oper.sum_wavenumbers(abs(T_rot)))
-
-        # tendencies_fft.set_var('rot_fft', Frot_fft)
+        #                self.oper.sum_wavenumbers(abs(T_rot))))
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()

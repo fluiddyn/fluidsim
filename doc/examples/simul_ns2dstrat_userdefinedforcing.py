@@ -21,7 +21,6 @@ params.oper.Lx = lx = 2 * pi
 params.oper.Ly = lx/2
 params.oper.coef_dealiasing = 0.7
 
-delta_x = lx / nx
 
 params.nu_8 = 1e-9
 params.N = 1.  # Brunt Vaisala frequency

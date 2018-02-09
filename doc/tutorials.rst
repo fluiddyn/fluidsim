@@ -8,5 +8,3 @@ Most of these tutorials have been produced by Ipython notebook.
 
    ipynb/tuto_user
    ipynb/tuto_dev
-
-.. tuto_dev
