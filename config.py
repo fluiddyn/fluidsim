@@ -177,9 +177,12 @@ def build_extensions(self):
             pass
 
     try:
-        num_jobs = os.cpu_count()
-    except AttributeError:
-        num_jobs = multiprocessing.cpu_count()
+        num_jobs = int(os.environ['FLUIDDYN_NUM_PROCS_BUILD'])
+    except KeyError:
+        try:
+            num_jobs = os.cpu_count()
+        except AttributeError:
+            num_jobs = multiprocessing.cpu_count()
 
     pool = Pool(num_jobs)
     pool.map(self.build_extension, self.extensions)
