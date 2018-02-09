@@ -55,18 +55,35 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
                   'not implemented.')
             self.deltat_dispersion_relation = 1.
         else:
+            freq_disp_relation = self.dispersion_relation.max()
+
+            if mpi.nb_proc > 1:
+                freq_disp_relation = mpi.comm.allreduce(
+                    freq_disp_relation, op=mpi.MPI.MAX)
+
             self.deltat_dispersion_relation = (
                 self.coef_deltat_dispersion_relation *
-                (2. * pi / self.dispersion_relation.max()))
+                (2. * pi / freq_disp_relation))
 
         # Try to compute deltat_group_vel
         try:
-            self.deltat_group_vel, self.deltat_phase_vel = (
+            freq_group, freq_phase= (
                 self._compute_time_increment_group_and_phase())
         except AttributeError as e:
-            print('_compute_time_increment_group_and_phase is not implemented', e)
+            print(
+            '_compute_time_increment_group_and_phase is not implemented', e)
             self.deltat_group_vel = 1.
             self.deltat_phase_vel = 1.
+
+        else:
+            if mpi.nb_proc > 1:
+                freq_group = mpi.comm.allreduce(
+                    freq_group, op=mpi.MPI.MAX)
+                freq_phase = mpi.comm.allreduce(
+                    freq_phase, op=mpi.MPI.MAX)
+
+            self.deltat_group_vel = self.coef_group / freq_group
+            self.deltat_phase_vel = self.coef_phase / freq_phase
 
         if self.params.FORCING:
             self.deltat_f = self._compute_time_increment_forcing()
@@ -90,17 +107,22 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         KK_not0 = oper.KK_not0
 
         # Group velocity cg
-        cg_kx = (1 / (2 * pi)) * (N / KK_not0) * (KZ**2 / KK_not0**2)
-        cg_kz = (1. / (2 * pi)) * (-N / KK_not0) * (
-            (KX / KK_not0) * (KZ / KK_not0))
-        cg = np.sqrt(cg_kx**2 + cg_kz**2)
-        deltat_group = 1. / (cg.max() * KK_not0.max())
+        cg_kx = (N / KK_not0) * (KZ**2 / KK_not0**2)
+        cg_kz = (-N / KK_not0) * ((KX / KK_not0) * (KZ / KK_not0))
+        # cg = np.sqrt(cg_kx**2 + cg_kz**2)
+        max_cgx = cg_kx.max()
+        max_cgz = cg_kz.max()
+
+        freq_group = (max_cgx / oper.deltax +
+                      max_cgz / oper.deltay)
 
         # Phase velocity cp
-        cp = (N / (2 * pi)) * (KX / KK_not0**2)
-        deltat_phase = 1. / (cp.max() * KK_not0.max())
-        return self.coef_group * deltat_group, self.coef_phase * deltat_phase
+        cp = N * (KX / KK_not0**2)
+        max_cp = cp.max()
 
+        freq_phase = max_cp / oper.deltax
+
+        return freq_group, freq_phase
 
     def _compute_time_increment_CFL_uxuyb(self):
         """
