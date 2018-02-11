@@ -334,20 +334,16 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0:
             if size_axe is None and numfig is None:
                 return plt.subplots()
-            if size_axe is None:
-                x_left_axe = 0.12
-                z_bottom_axe = 0.1
-                width_axe = 0.85
-                height_axe = 0.84
-                size_axe = [x_left_axe, z_bottom_axe,
-                            width_axe, height_axe]
             if numfig is None:
                 fig = plt.figure()
             else:
                 fig = plt.figure(numfig)
                 fig.clf()
-            axe = fig.add_axes(size_axe)
-            return fig, axe
+            if size_axe is not None:
+                ax = fig.add_axes(size_axe)
+            else:
+                ax = fig.subplots()
+            return fig, ax
 
     def end_of_simul(self, total_time):
         self.print_stdout(
@@ -500,6 +496,8 @@ class SpecificOutput(object):
                     if (tsim - self.t_last_show >= self.period_show):
                         self.t_last_show = tsim
                         self.fig.canvas.draw()
+                        # needed to really show the figures
+                        plt.pause(1e-3)
 
     def create_file_from_dico_arrays_old(self, path_file,
                                          dico_arrays, dico_arrays_1time):

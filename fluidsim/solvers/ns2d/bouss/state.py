@@ -129,6 +129,12 @@ class StateNS2DBouss(StateNS2D):
 
         self.statephys_from_statefft()
 
+    def init_from_rotb(self, rot, b):
+        """Initialize the state from the variable rot and b."""
+        rot_fft = self.oper.fft(rot)
+        b_fft = self.oper.fft(b)
+        self.init_from_rotbfft(rot_fft, b_fft)
+
     def init_from_rotfft(self, rot_fft):
         b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
         self.init_from_rotbfft(rot_fft, b_fft)

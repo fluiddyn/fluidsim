@@ -19,10 +19,10 @@ from fluidsim.solvers.ns2d.solver import \
 from .util_pythran import tendencies_nonlin_ns2dbouss
 
 
-class InfoSolverNS2DStrat(InfoSolverNS2D):
+class InfoSolverNS2DBouss(InfoSolverNS2D):
     def _init_root(self):
 
-        super(InfoSolverNS2DStrat, self)._init_root()
+        super(InfoSolverNS2DBouss, self)._init_root()
 
         package = 'fluidsim.solvers.ns2d.bouss'
         self.module_name = package + '.solver'
@@ -53,7 +53,7 @@ class Simul(SimulNS2D):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
 
     """
-    InfoSolver = InfoSolverNS2DStrat
+    InfoSolver = InfoSolverNS2DBouss
 
     @staticmethod
     def _complete_params_with_default(params):

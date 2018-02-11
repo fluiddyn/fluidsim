@@ -96,7 +96,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         return (1. / (self.sim.params.forcing.forcing_rate**(1./3)))
 
     def _compute_time_increment_group_and_phase(self):
-        """
+        r"""
         Compute time increment from group velocity of the internal gravity
         waves as \omega_g = max(|c_g|) \cdot max(|k|)
         """

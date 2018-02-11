@@ -62,7 +62,7 @@ sim.time_stepping.start()
 if rank == 0:
     print(
         '\nTo display a video of this simumation, you can do:\n'
-        f'cd {sim.output.path_run}' + 
+        f'cd {sim.output.path_run}' +
         """
 ipython --matplotlib
 

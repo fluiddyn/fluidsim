@@ -1,8 +1,8 @@
 from math import pi
 
-from fluidsim.solvers.ns2d.solver import Simul
-
 import fluiddyn as fld
+
+from fluidsim.solvers.ns2d.solver import Simul
 
 params = Simul.create_default_params()
 
@@ -19,7 +19,7 @@ params.time_stepping.t_end = 2.
 params.init_fields.type = 'dipole'
 
 params.FORCING = True
-params.forcing.type = 'random'
+params.forcing.type = 'tcrandom'
 
 params.output.sub_directory = 'examples'
 

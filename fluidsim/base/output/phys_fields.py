@@ -364,12 +364,6 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         field, key_field = self._select_field(field, key_field)
         keys_state_phys = self.sim.state.keys_state_phys
-        x_left_axe = 0.08
-        z_bottom_axe = 0.1
-        width_axe = 0.95
-        height_axe = 0.83
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
 
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
@@ -379,10 +373,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         if mpi.rank == 0:
             if numfig is None:
-                fig, ax = self.output.figure_axe(size_axe=size_axe)
+                fig, ax = self.output.figure_axe()
             else:
-                fig, ax = self.output.figure_axe(numfig=numfig,
-                                                 size_axe=size_axe)
+                fig, ax = self.output.figure_axe(numfig=numfig)
             x_seq = self.oper.x_seq
             y_seq = self.oper.y_seq
             [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
@@ -423,7 +416,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
             ax.set_title(title)
 
+            fig.tight_layout()
             fig.canvas.draw()
+            plt.pause(1e-3)
 
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
