@@ -377,7 +377,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             'transfer2D_CPE': transfer2D_CPE,}
         return dico_results
 
-    def _online_plot(self, dico_results):
+    def _online_plot_saving(self, dico_results):
 
         transfer2D_CPE = dico_results['transfer2D_CPE']
         transfer2D_EKr = dico_results['transfer2D_EKr']
@@ -750,7 +750,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             debug=False)
         return dico_results
 
-    def _online_plot(self, dico_results):
+    def _online_plot_saving(self, dico_results):
 
         transfer2D_CPE = dico_results['transfer2D_CPE']
         transfer2D_EK = dico_results['transfer2D_EK']
@@ -1039,7 +1039,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         return dico_results
 
-    def _online_plot(self, dico_results):
+    def _online_plot_saving(self, dico_results):
 
         Tens = dico_results['Tens']
         Tq_GGG = dico_results['Tq_GGG']

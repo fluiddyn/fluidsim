@@ -1,7 +1,7 @@
+
 from math import pi
 
 import fluiddyn as fld
-
 from fluidsim.solvers.ns2d.solver import Simul
 
 params = Simul.create_default_params()
@@ -14,7 +14,7 @@ params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 delta_x = Lh / nh
 params.nu_8 = 2.*params.forcing.forcing_rate**(1./3)*delta_x**8
 
-params.time_stepping.t_end = 2.
+params.time_stepping.t_end = 10.
 
 params.init_fields.type = 'dipole'
 
@@ -31,8 +31,6 @@ params.output.periods_save.spatial_means = 0.05
 params.output.periods_save.spect_energy_budg = 0.5
 params.output.periods_save.increments = 0.5
 
-params.output.periods_plot.phys_fields = 0.0
-
 params.output.ONLINE_PLOT_OK = True
 
 params.output.spectra.HAS_TO_PLOT_SAVED = True
@@ -42,11 +40,9 @@ params.output.increments.HAS_TO_PLOT_SAVED = True
 
 params.output.phys_fields.field_to_plot = 'rot'
 
-if __name__ == '__main__':
-    sim = Simul(params)
+sim = Simul(params)
+    
+sim.time_stepping.start()
+sim.output.phys_fields.plot()
 
-    sim.output.phys_fields.plot()
-    sim.time_stepping.start()
-    sim.output.phys_fields.plot()
-
-    fld.show()
+fld.show()

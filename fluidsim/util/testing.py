@@ -135,8 +135,8 @@ def collect_tests(verbose, *modules):
         Strings representing modules containing atleast one unittest.TestCase
         class.
 
-    Example
-    -------
+    Examples
+    --------
     >>> collect_tests(
             'fluidsim.solvers.test.test_ns',
             'fluidsim.solvers.test.test_sw1l',

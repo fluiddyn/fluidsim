@@ -94,11 +94,11 @@ class OutputBase(object):
         self.params = params.output
         self.oper = sim.oper
 
-        self.has_to_save = self.params.HAS_TO_SAVE
+        self._has_to_save = self.params.HAS_TO_SAVE
         self.name_solver = sim.info.solver.short_name
 
         # initialisation name_run and path_run
-        self.init_name_run()
+        self._init_name_run()
         if mpi.nb_proc > 1:
             # ensure same name_run across all processes
             self.name_run = mpi.comm.bcast(self.name_run, root=0)
@@ -113,10 +113,10 @@ class OutputBase(object):
                 print('Strange: params.NEW_DIR_RESULTS == False '
                       'but no params.path_run')
 
-            # if has_to_save, we verify the correspondence between the
+            # if _has_to_save, we verify the correspondence between the
             # resolution of the simulation and the resolution of the
             # previous simulation saved in this directory
-            if self.has_to_save:
+            if self._has_to_save:
                 if mpi.rank == 0:
                     try:
                         params_dir = load_params_simul(path_dir=self.path_run)
@@ -174,7 +174,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                                   path_run,
                                   'already exists. Trying a new path...')
                             sleep(1)
-                            self.init_name_run()
+                            self._init_name_run()
                         else:
                             break
             else:
@@ -200,16 +200,18 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             for k in self.params.periods_plot._get_key_attribs():
                 self.params.periods_plot[k] = 0.
 
-        if not self.has_to_save:
+        if not self._has_to_save:
             for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.
 
-    def init_name_run(self):
-        list_for_name_run = self.create_list_for_name_run()
+    def _init_name_run(self):
+        """Initialize the run name"""
+        list_for_name_run = self._create_list_for_name_run()
         list_for_name_run.append(time_as_str())
         self.name_run = '_'.join(list_for_name_run)
 
-    def create_list_for_name_run(self):
+    def _create_list_for_name_run(self):
+        """Create a list of strings to make the run name."""
         list_for_name_run = [self.name_solver]
         if len(self.sim.params.short_name_type_run) > 0:
             list_for_name_run.append(self.sim.params.short_name_type_run)
@@ -245,7 +247,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     'Important parameters: \n' +
                     self.sim.produce_str_describing_params())
 
-        self.save_info_solver_params_xml()
+        self._save_info_solver_params_xml()
 
         if mpi.rank == 0 and is_run_from_ipython():
             plt.ion()
@@ -253,7 +255,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if self.sim.state.is_initialized:
             self.init_with_initialized_state()
 
-    def save_info_solver_params_xml(self, replace=False):
+    def _save_info_solver_params_xml(self, replace=False):
+        """Save files with information on the solver and on the run."""
         comment = ('This file has been created by'
                    ' the Python program FluidDyn ' + fluiddyn.__version__ +
                    ' and FluidSim ' + fluidsim.__version__ +
@@ -262,7 +265,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         info_solver_xml_path = self.path_run + '/info_solver.xml'
         params_xml_path = self.path_run + '/params_simul.xml'
 
-        if mpi.rank == 0 and self.has_to_save and \
+        if mpi.rank == 0 and self._has_to_save and \
            self.sim.params.NEW_DIR_RESULTS:
             # save info on the run
             if replace:
@@ -279,11 +282,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def init_with_initialized_state(self):
 
-        if (hasattr(self, 'has_been_initialized_with_state') and
-                self.has_been_initialized_with_state):
+        if (hasattr(self, '_has_been_initialized_with_state') and
+                self._has_been_initialized_with_state):
             return
         else:
-            self.has_been_initialized_with_state = True
+            self._has_been_initialized_with_state = True
 
         self.print_stdout('Initialization outputs:')
 
@@ -316,19 +319,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         for k in self.params.periods_print._get_key_attribs():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
-                self.__dict__[k].online_print()
+                self.__dict__[k]._online_print()
 
         if self.params.ONLINE_PLOT_OK:
             for k in self.params.periods_plot._get_key_attribs():
                 period = self.params.periods_plot.__dict__[k]
                 if period != 0:
-                    self.__dict__[k].online_plot()
+                    self.__dict__[k]._online_plot()
 
-        if self.has_to_save:
+        if self._has_to_save:
             for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
-                    self.__dict__[k].online_save()
+                    self.__dict__[k]._online_save()
 
     def figure_axe(self, numfig=None, size_axe=None):
         if mpi.rank == 0:
@@ -349,16 +352,16 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.print_stdout(
             'Computation completed in {0:8.6g} s\n'.format(total_time) +
             'path_run =\n'+self.path_run)
-        if self.has_to_save:
+        if self._has_to_save:
             self.phys_fields.save()
-        if mpi.rank == 0 and self.has_to_save:
+        if mpi.rank == 0 and self._has_to_save:
             self.print_stdout.close()
 
             for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:
-                    if hasattr(self.__dict__[k], 'close_file'):
-                        self.__dict__[k].close_file()
+                    if hasattr(self.__dict__[k], '_close_file'):
+                        self.__dict__[k]._close_file()
 
         if (not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0):
             path_base = FLUIDSIM_PATH
@@ -375,7 +378,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             for spec_output in list(self.__dict__.values()):
                 if isinstance(spec_output, SpecificOutput):
                     try:
-                        spec_output.init_path_files()
+                        spec_output._init_path_files()
                     except AttributeError:
                         pass
 
@@ -448,24 +451,24 @@ class SpecificOutput(object):
         self.period_show = params.output.period_refresh_plots
         self.t_last_show = 0.
 
-        self.init_path_files()
+        self._init_path_files()
 
         if self.has_to_plot and mpi.rank == 0:
             # FIXME: the mpi.rank constraint can be problematic for phys_fields
-            self.init_online_plot()
+            self._init_online_plot()
 
-        if not output.has_to_save:
+        if not output._has_to_save:
             self.period_save = 0.
 
         if self.period_save != 0.:
-            self.init_files(dico_arrays_1time)
+            self._init_files(dico_arrays_1time)
 
-    def init_path_files(self):
+    def _init_path_files(self):
         if hasattr(self, '_name_file'):
             self.path_file = os.path.join(
                 self.output.path_run, self._name_file)
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         if dico_arrays_1time is None:
             dico_arrays_1time = {}
         dico_results = self.compute()
@@ -482,7 +485,7 @@ class SpecificOutput(object):
                                              dico_results)
         self.t_last_save = self.sim.time_stepping.t
 
-    def online_save(self):
+    def _online_save(self):
         """Save the values at one time. """
         tsim = self.sim.time_stepping.t
         if (tsim - self.t_last_save >= self.period_save):
@@ -493,36 +496,36 @@ class SpecificOutput(object):
                                              dico_results)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
-                    self._online_plot(dico_results)
+                    self._online_plot_saving(dico_results)
                     if (tsim - self.t_last_show >= self.period_show):
                         self.t_last_show = tsim
                         self.fig.canvas.draw()
                         # needed to really show the figures
                         plt.pause(1e-3)
 
-    def create_file_from_dico_arrays_old(self, path_file,
-                                         dico_arrays, dico_arrays_1time):
-        if os.path.exists(path_file):
-            print('file NOT created since it already exists!')
-        elif mpi.rank == 0:
-            with h5py.File(path_file, 'w') as f:
-                f.attrs['date saving'] = str(datetime.datetime.now()).encode()
-                f.attrs['name_solver'] = self.output.name_solver
-                f.attrs['name_run'] = self.output.name_run
+    # def create_file_from_dico_arrays_old(self, path_file,
+    #                                      dico_arrays, dico_arrays_1time):
+    #     if os.path.exists(path_file):
+    #         print('file NOT created since it already exists!')
+    #     elif mpi.rank == 0:
+    #         with h5py.File(path_file, 'w') as f:
+    #             f.attrs['date saving'] = str(datetime.datetime.now()).encode()
+    #             f.attrs['name_solver'] = self.output.name_solver
+    #             f.attrs['name_run'] = self.output.name_run
 
-                self.sim.info._save_as_hdf5(hdf5_parent=f)
+    #             self.sim.info._save_as_hdf5(hdf5_parent=f)
 
-                times = np.array([self.sim.time_stepping.t])
-                f.create_dataset(
-                    'times', data=times, maxshape=(None,))
+    #             times = np.array([self.sim.time_stepping.t])
+    #             f.create_dataset(
+    #                 'times', data=times, maxshape=(None,))
 
-                for k, v in list(dico_arrays_1time.items()):
-                    f.create_dataset(k, data=v)
+    #             for k, v in list(dico_arrays_1time.items()):
+    #                 f.create_dataset(k, data=v)
 
-                for k, v in list(dico_arrays.items()):
-                    v.resize([1, v.size])
-                    f.create_dataset(
-                        k, data=v, maxshape=(None, v.size))
+    #             for k, v in list(dico_arrays.items()):
+    #                 v.resize([1, v.size])
+    #                 f.create_dataset(
+    #                     k, data=v, maxshape=(None, v.size))
 
     def create_file_from_dico_arrays(self, path_file,
                                      dico_matrix, dico_arrays_1time):
@@ -555,19 +558,19 @@ class SpecificOutput(object):
                         f.create_dataset(
                             k, data=arr, maxshape=((None,) + v.shape))
 
-    def add_dico_arrays_to_file_old(self, path_file, dico_arrays):
-        if not os.path.exists(path_file):
-            raise ValueError('can not add dico arrays in nonexisting file!')
-        elif mpi.rank == 0:
-            with h5py.File(path_file, 'r+') as f:
-                dset_times = f['times']
-                nb_saved_times = dset_times.shape[0]
-                dset_times.resize((nb_saved_times+1,))
-                dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in list(dico_arrays.items()):
-                    dset_k = f[k]
-                    dset_k.resize((nb_saved_times+1, v.size))
-                    dset_k[nb_saved_times] = v
+    # def add_dico_arrays_to_file_old(self, path_file, dico_arrays):
+    #     if not os.path.exists(path_file):
+    #         raise ValueError('can not add dico arrays in nonexisting file!')
+    #     elif mpi.rank == 0:
+    #         with h5py.File(path_file, 'r+') as f:
+    #             dset_times = f['times']
+    #             nb_saved_times = dset_times.shape[0]
+    #             dset_times.resize((nb_saved_times+1,))
+    #             dset_times[nb_saved_times] = self.sim.time_stepping.t
+    #             for k, v in list(dico_arrays.items()):
+    #                 dset_k = f[k]
+    #                 dset_k.resize((nb_saved_times+1, v.size))
+    #                 dset_k[nb_saved_times] = v
 
     def add_dico_arrays_to_file(self, path_file, dico_matrix):
         if not os.path.exists(path_file):

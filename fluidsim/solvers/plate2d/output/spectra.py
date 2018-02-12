@@ -49,7 +49,7 @@ class SpectraPlate2D(Spectra):
                           'spectrum2D_EE': spectrum2D_EE}
         return dico_spectra1D, dico_spectra2D
 
-    def _online_plot(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
         if (self.nx == self.params.oper.ny and
                 self.params.oper.Lx == self.params.oper.Ly):
             spectrum2D_EK = dico_spectra2D['spectrum2D_EK']

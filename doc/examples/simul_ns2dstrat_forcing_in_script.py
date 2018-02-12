@@ -30,7 +30,7 @@ params.time_stepping.t_end = 10.
 params.init_fields.type = 'noise'
 
 params.FORCING = True
-params.forcing.type = 'user_defined'
+params.forcing.type = 'in_script'
 params.forcing.nkmax_forcing = 12
 
 params.output.sub_directory = 'examples'
@@ -64,7 +64,7 @@ if rank == 0:
         '\nTo display a video of this simumation, you can do:\n'
         f'cd {sim.output.path_run}' +
         """
-ipython --matplotlib
+ipython
 
 # then in ipython (copy the 3 lines in the terminal):
 

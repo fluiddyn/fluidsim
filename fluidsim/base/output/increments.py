@@ -48,7 +48,7 @@ class Increments(SpecificOutput):
         self.nbins = 400
 
         self.output = output
-        self.init_path_files()
+        self._init_path_files()
 
         if os.path.exists(self.path_file):
             if mpi.rank == 0:
@@ -72,7 +72,7 @@ class Increments(SpecificOutput):
             has_to_plot_saved=params.output.increments.HAS_TO_PLOT_SAVED,
             dico_arrays_1time=dico_arrays_1time)
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         self.fig, axe = self.output.figure_axe(numfig=5000000)
         self.axe = axe
         axe.set_xlabel(r'$\delta u_x (x)$')
@@ -81,7 +81,7 @@ class Increments(SpecificOutput):
             r'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
             ', nh = {0:5d}'.format(self.nx))
 
-    def _online_plot(self, dico_results, key='rot'):
+    def _online_plot_saving(self, dico_results, key='rot'):
         """online plot on pdf"""
         pdf = dico_results['pdf_delta_'+key]
         pdf = pdf.reshape([self.nrx, self.nbins])
@@ -479,9 +479,9 @@ class IncrementsSW1L(Increments):
         self.c2 = params.c2
         self.f = params.f
 
-    def _online_plot(self, dico_results, key='eta'):
+    def _online_plot_saving(self, dico_results, key='eta'):
         """online plot on pdf"""
-        super(IncrementsSW1L, self)._online_plot(dico_results, key=key)
+        super(IncrementsSW1L, self)._online_plot_saving(dico_results, key=key)
 
     def compute(self):
         dico_results = super(IncrementsSW1L, self).compute()

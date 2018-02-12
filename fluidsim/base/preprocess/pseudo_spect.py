@@ -35,7 +35,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
             self.sim.state.clear_computed()
             self.set_viscosity()
-            self.output.save_info_solver_params_xml(replace=True)
+            self.output._save_info_solver_params_xml(replace=True)
 
     def normalize_init_fields(self):
         """
@@ -116,8 +116,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         params.preprocess.viscosity_const : float
           Calibration constant to set dissipative wave number
 
-        Note
-        ----
+        Notes
+        -----
 
         Algorithm: Sets viscosity variable nu and reinitializes f_d array for
         timestepping

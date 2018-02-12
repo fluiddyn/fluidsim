@@ -85,8 +85,8 @@ class Waves(RandomSimplePseudoSpectral):
         """Compute the roots of a quadratic equation, given the coefficients `a`,`b` and `c`.
         Then, select one of the roots based on a criteria and return it.
 
-        Note
-        ----
+        Notes
+        -----
         Set params.forcing.waves.coef_normalize_strategy to choose the root with:
             `minabs` : minimum absolute value
             `first` : root with positive sign before discriminant

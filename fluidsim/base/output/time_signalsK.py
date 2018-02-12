@@ -168,7 +168,7 @@ class TimeSignalsK(SpecificOutput):
         if mpi.nb_proc > 1:
             self.period_save = mpi.comm.bcast(self.period_save)
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         if (not os.path.exists(self.path_file)):
             dico_results = self.compute()
             if mpi.rank == 0:
@@ -192,7 +192,7 @@ class TimeSignalsK(SpecificOutput):
 
         self.t_last_save = self.sim.time_stepping.t
 
-    def online_save(self):
+    def _online_save(self):
         """Save the values at one time. """
         tsim = self.sim.time_stepping.t
         if (tsim-self.t_last_save >= self.period_save):
@@ -461,7 +461,7 @@ class TimeSignalsK(SpecificOutput):
             ax1.loglog(old_div(omega,omega_shell[ish]),
                        time_spectra_d[ish], 'r', linewidth=1)
 
-    def close_file(self):
+    def _close_file(self):
         try:
             self.file.close()
         except AttributeError:

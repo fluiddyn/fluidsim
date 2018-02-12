@@ -31,12 +31,15 @@ solver.
 We have created fluidsim to be easy and nice to use and to develop, efficient
 and robust.
 
-At this stage, not many solvers have been written, but fluidsim can already
+At this stage, only few solvers have been written, but fluidsim can already
 solve these equations:
 
 - In a two-dimensional periodic space:
 
   * Incompressible Navier-Stokes equations,
+
+  * Incompressible Navier-Stokes equations under the Boussinesq approximation
+    (with a buoyancy variable),
 
   * Stratified Navier-Stokes equations under the Boussinesq approximation with
     constant Brunt-Väisälä frequency,

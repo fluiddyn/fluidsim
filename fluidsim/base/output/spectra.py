@@ -35,12 +35,12 @@ class Spectra(SpecificOutput, MoviesBase1D):
             period_save=params.output.periods_save.spectra,
             has_to_plot_saved=params.output.spectra.HAS_TO_PLOT_SAVED)
 
-    def init_path_files(self):
+    def _init_path_files(self):
         path_run = self.output.path_run
         self.path_file1D = path_run + '/spectra1D.h5'
         self.path_file2D = path_run + '/spectra2D.h5'
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         dico_spectra1D, dico_spectra2D = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1D):
@@ -65,7 +65,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
 
         self.t_last_save = self.sim.time_stepping.t
 
-    def online_save(self):
+    def _online_save(self):
         """Save the values at one time. """
         tsim = self.sim.time_stepping.t
         if (tsim-self.t_last_save >= self.period_save):
@@ -80,7 +80,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
                                              dico_spectra2D)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
-                    self._online_plot(dico_spectra1D, dico_spectra2D)
+                    self._online_plot_saving(dico_spectra1D, dico_spectra2D)
 
                     if (tsim-self.t_last_show >= self.period_show):
                         self.t_last_show = tsim
@@ -92,7 +92,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
             dico_results = {}
             return dico_results
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         fig, axe = self.output.figure_axe(numfig=1000000)
         self.axe = axe
         axe.set_xlabel('$k_h$')
@@ -100,7 +100,7 @@ class Spectra(SpecificOutput, MoviesBase1D):
         axe.set_title('spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
 
-    def _online_plot(self):
+    def _online_plot_saving(self):
         pass
 
     def load2d_mean(self, tmin=None, tmax=None):

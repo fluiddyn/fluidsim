@@ -98,20 +98,20 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         pass
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         pass
 
-    def online_save(self):
+    def _online_save(self):
         """Online save."""
         tsim = self.sim.time_stepping.t
         if self._has_to_online_save():
             self.t_last_save = tsim
             self.save()
 
-    def online_plot(self):
+    def _online_plot(self):
         """Online plot."""
         tsim = self.sim.time_stepping.t
         if (tsim - self.t_last_plot >= self.period_plot):
@@ -279,7 +279,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             key_field, numfig, file_dt, tmin, tmax, **kwargs)
 
         field, ux, uy = self._ani_get_field(0)
-        self._ani_init_fig(self, field, ux, uy)
+        self._ani_init_fig(field, ux, uy)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
@@ -361,7 +361,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
 class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         self._ani_key = self.params.output.phys_fields.field_to_plot
         self._ani_fig, self._ani_ax = plt.subplots()
         self._set_font()
@@ -373,7 +373,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             self._ani_im.autoscale()
             # self._ani_im.draw()
 
-    def online_plot(self):
+    def _online_plot(self):
         """Online plot."""
         tsim = self.sim.time_stepping.t
         if (tsim - self.t_last_plot >= self.period_plot):

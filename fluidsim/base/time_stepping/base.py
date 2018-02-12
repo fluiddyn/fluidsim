@@ -114,15 +114,15 @@ class TimeSteppingBase(object):
         self.sim.__enter__()
 
         output = self.sim.output
-        if (not hasattr(output, 'has_been_initialized_with_state') or
-                not output.has_been_initialized_with_state):
+        if (not hasattr(output, '_has_been_initialized_with_state') or
+                not output._has_been_initialized_with_state):
             output.init_with_initialized_state()
 
         print_stdout = output.print_stdout
         print_stdout(
             '*************************************\n' +
             'Beginning of the computation')
-        if self.sim.output.has_to_save:
+        if self.sim.output._has_to_save:
             self.sim.output.phys_fields.save()
         if self.params.time_stepping.USE_T_END:
             print_stdout(

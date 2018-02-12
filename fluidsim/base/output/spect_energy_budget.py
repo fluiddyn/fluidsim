@@ -58,7 +58,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             dico_results = {}
             return dico_results
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         width_axe = 0.85
         height_axe = 0.37
         x_left_axe = 0.12

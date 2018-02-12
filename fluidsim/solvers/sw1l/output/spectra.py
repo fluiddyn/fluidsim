@@ -19,7 +19,7 @@ class SpectraSW1L(Spectra):
 
         super(SpectraSW1L, self).__init__(output)
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         fig, axe = self.output.figure_axe(numfig=1000000)
         self.axe = axe
         axe.set_xlabel('k_h')
@@ -111,7 +111,7 @@ class SpectraSW1L(Spectra):
 
         return dico_spectra1D, dico_spectra2D
 
-    def _online_plot(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
         if (self.params.oper.nx==self.params.oper.ny
                 and self.params.oper.Lx==self.params.oper.Ly):
             spectrum2D_EK = dico_spectra2D['spectrum2D_EK']

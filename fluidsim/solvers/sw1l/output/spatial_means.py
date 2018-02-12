@@ -27,7 +27,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         super(SpatialMeansMSW1L, self).__init__(output)
 
-    def save_one_time(self):
+    def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
 

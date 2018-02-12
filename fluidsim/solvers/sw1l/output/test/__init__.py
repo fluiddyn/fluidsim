@@ -59,10 +59,10 @@ class BaseTestCase(unittest.TestCase):
             plt.clf()
             plt.close('all')
 
-    def _online_plot(self, *args):
+    def _online_plot_saving(self, *args):
         module = self.module
         if mpi.rank == 0:
-            module.init_online_plot()
-            module._online_plot(*args)
+            module._init_online_plot()
+            module._online_plot_saving(*args)
             plt.clf()
             plt.close('all')

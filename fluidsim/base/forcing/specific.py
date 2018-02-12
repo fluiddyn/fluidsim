@@ -13,7 +13,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: UserDefinedForcingPseudoSpectral
+.. autoclass:: InScriptForcingPseudoSpectral
    :members:
    :private-members:
 
@@ -255,13 +255,13 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 PZ_forcing2))
 
 
-class UserDefinedForcingPseudoSpectral(SpecificForcingPseudoSpectral):
+class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
     """Forcing maker for forcing defined by the user in the launching script
 
-    .. inheritance-diagram:: UserDefinedForcingPseudoSpectral
+    .. inheritance-diagram:: InScriptForcingPseudoSpectral
 
     """
-    tag = 'user_defined'
+    tag = 'in_script'
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""

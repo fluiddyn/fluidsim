@@ -173,7 +173,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         return dico_results
 
-    def _online_plot(self, dico_results):
+    def _online_plot_saving(self, dico_results):
 
         transfer2D_EA = dico_results['transferEA_2d']
         transfer2D_EK = dico_results['transferEK_2d']

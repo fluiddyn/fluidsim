@@ -42,7 +42,7 @@ class InitFieldsBase(object):
             classes = []
 
         classes.extend([InitFieldsFromFile, InitFieldsFromSimul,
-                        InitFieldsManual, InitFieldsConstant])
+                        InitFieldsInScript, InitFieldsConstant])
 
         for cls in classes:
             classesXML._set_child(
@@ -286,9 +286,9 @@ class InitFieldsFromSimul(SpecificInitFields):
         self.sim.state.statephys_from_statefft()
 
 
-class InitFieldsManual(SpecificInitFields):
+class InitFieldsInScript(SpecificInitFields):
 
-    tag = 'manual'
+    tag = 'in_script'
 
     def __call__(self):
         self.sim.state.is_initialized = False

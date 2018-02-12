@@ -168,9 +168,9 @@ class OutputStrat(Output):
             str_ratio_omegas = str_ratio_omegas[:-1]
         return 'F' + str_froude_number + '_' + 'R' + str_ratio_omegas
 
-    def create_list_for_name_run(self):
+    def _create_list_for_name_run(self):
         """Creates new name_run for the simulation."""
-        list_for_name_run = super(OutputStrat, self).create_list_for_name_run()
+        list_for_name_run = super(OutputStrat, self)._create_list_for_name_run()
         if self.sim.params.forcing.type.endswith('anisotropic'):
             str_describing_attribs_strat = \
                         self._produce_str_describing_attribs_strat()

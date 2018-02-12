@@ -1,8 +1,9 @@
 """Script for a short simulation with the solver ns2d.bouss
 
-The field initialization is done in the script and a forcing implemented in the
-script enforces that there are 2 static layers in the top and the bottom of the
-numerical domain.
+The field initialization is done in the script.
+
+A forcing implemented in the script enforces that there is one static layers in
+the top and the bottom of the numerical domain.
 
 """
 from math import pi
@@ -149,7 +150,7 @@ if rank == 0:
         '\nTo display a video of this simumation, you can do:\n'
         f'cd {sim.output.path_run}' +
         """
-ipython --matplotlib
+ipython
 
 # then in ipython (copy the 3 lines in the terminal):
 

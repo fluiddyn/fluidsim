@@ -149,11 +149,11 @@ class CorrelationsFreq(SpecificOutput):
             if self.omega_dealiasing > self.omega_Nyquist:
                 print('Warning: omega_dealiasing > omega_Nyquist')
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         # we can not do anything when this function is called.
         pass
 
-    def init_files2(self, correlations):
+    def _init_files2(self, correlations):
         time_tot = (
             self.sim.time_stepping.deltat * self.nb_times_compute *
             self.periods_fill)
@@ -168,7 +168,7 @@ class CorrelationsFreq(SpecificOutput):
 
         self.t_last_save = self.sim.time_stepping.t
 
-    def online_save(self):
+    def _online_save(self):
         """Save the values at one time. """
         itsim = self.sim.time_stepping.t/self.sim.time_stepping.deltat
         periods_save = self.sim.params.output.periods_save.correl_freq
@@ -204,18 +204,18 @@ class CorrelationsFreq(SpecificOutput):
                                         'corr2': self.corr2,
                                         'nb_means': self.nb_means_times}
                         if not os.path.exists(self.path_file):
-                            self.init_files2(correlations)
+                            self._init_files2(correlations)
                         else:
                             # save the spectra in the file correl_freq.h5
                             self.add_dico_arrays_to_file(self.path_file,
                                                          correlations)
                         if self.has_to_plot:
-                            self._online_plot(correlations)
+                            self._online_plot_saving(correlations)
                     #     if (tsim-self.t_last_show >= self.period_show):
                     #         self.t_last_show = tsim
                     #         self.ax.get_figure().canvas.draw()
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         fig, ax = self.output.figure_axe(numfig=4100000)
         self.ax = ax
         ax.set_xlabel('Omega')
@@ -223,7 +223,7 @@ class CorrelationsFreq(SpecificOutput):
         ax.set_title('Correlation, solver '+self.output.name_solver +
                      ', nh = {0:5d}'.format(self.params.oper.nx))
 
-    def _online_plot(self, dico_results):
+    def _online_plot_saving(self, dico_results):
         nb_omegas = self.nb_omegas
 
         corr4 = dico_results['corr4']

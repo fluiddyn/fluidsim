@@ -265,7 +265,7 @@ class TestExactlin(TestSW1L):
         self._plot()
 
     def test_online_plot_spect_energy_budg(self):
-        self._online_plot(self.dico)
+        self._online_plot_saving(self.dico)
 
 
 class TestExmod(TestSW1L):

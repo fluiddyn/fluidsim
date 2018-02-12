@@ -29,7 +29,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     def __init__(self, output):
         super(PrintStdOutNS2DStrat, self).__init__(output)
         self.path_memory = self.output.path_run + '/memory_out.txt'
-        if mpi.rank == 0 and self.output.has_to_save:
+        if mpi.rank == 0 and self.output._has_to_save:
             if not os.path.exists(self.path_memory):
                 self.file_memory = open(self.path_memory, 'w')
             else:
@@ -48,7 +48,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
                 ''.format(energyK, energyA, energy, energy-self.energy_temp))
 
-            if self.output.has_to_save:
+            if self.output._has_to_save:
                 memory = get_memory_usage()
                 self._write_memory_txt()
 

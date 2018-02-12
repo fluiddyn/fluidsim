@@ -69,11 +69,11 @@ class Output(OutputBasePseudoSpectral):
 
         params.output.phys_fields.field_to_plot = 'z'
 
-    def create_list_for_name_run(self):
-        list_for_name_run = super(Output, self).create_list_for_name_run()
+    def _create_list_for_name_run(self):
+        list_for_name_run = super(Output, self)._create_list_for_name_run()
 
         if self.sim.params.FORCING:
-            str_P = ('P={:5.0e}'.format(self.sim.params.forcing.forcing_rate))
+            str_P = ('P{:5.0e}'.format(self.sim.params.forcing.forcing_rate))
             str_P = str_P.replace('+', '')
             list_for_name_run.insert(2, str_P)
 

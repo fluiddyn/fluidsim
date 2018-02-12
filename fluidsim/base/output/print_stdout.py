@@ -38,7 +38,7 @@ class PrintStdOutBase(object):
 
         self.path_file = self.output.path_run + '/stdout.txt'
 
-        if mpi.rank == 0 and self.output.has_to_save:
+        if mpi.rank == 0 and self.output._has_to_save:
             if not os.path.exists(self.path_file):
                 self.file = open(self.path_file, 'w')
             else:
@@ -61,12 +61,12 @@ class PrintStdOutBase(object):
         """Print in stdout and if SAVE in the file stdout.txt"""
         if mpi.rank == 0:
             print(to_print, end=end)
-            if self.output.has_to_save:
+            if self.output._has_to_save:
                 self.file.write(to_print+end)
                 self.file.flush()
                 os.fsync(self.file.fileno())
 
-    def online_print(self):
+    def _online_print(self):
         """Print simple info on the current state of the simulation"""
         tsim = self.sim.time_stepping.t
         if tsim-self.t_last_print_info >= self.period_print:

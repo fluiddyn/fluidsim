@@ -22,7 +22,7 @@ from fluidsim.base.output.spatial_means import SpatialMeansBase
 class SpatialMeansNS2D(SpatialMeansBase):
     """Spatial means output."""
 
-    def save_one_time(self):
+    def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
 

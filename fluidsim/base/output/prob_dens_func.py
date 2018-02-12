@@ -34,7 +34,7 @@ class ProbaDensityFunc(SpecificOutput):
             period_save=params.output.periods_save.pdf,
             has_to_plot_saved=params.output.pdf.HAS_TO_PLOT_SAVED)
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         self.fig, axe = self.output.figure_axe(numfig=5000000)
         self.axe = axe
         axe.set_xlabel(r'$\eta$')
@@ -45,7 +45,7 @@ class ProbaDensityFunc(SpecificOutput):
         axe.set_title(title)
         axe.hold(True)
 
-    def _online_plot(self, dico_pdf):
+    def _online_plot_saving(self, dico_pdf):
         """online plot on pdf"""
         pdf_eta = dico_pdf['pdf_eta']
         bin_edges_eta = dico_pdf['bin_edges_eta']

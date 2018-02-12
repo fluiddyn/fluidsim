@@ -117,11 +117,11 @@ class SpatioTempSpectra(SpecificOutput):
             if self.omega_dealiasing > self.omega_Nyquist:
                 print('Warning: omega_dealiasing > omega_Nyquist')
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
         # we can not do anything when this function is called.
         pass
 
-    def init_files2(self, spatio_temp_spectra):
+    def _init_files2(self, spatio_temp_spectra):
         time_tot = (
             self.sim.time_stepping.deltat * self.nb_times_compute *
             self.periods_fill)
@@ -136,7 +136,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         self.t_last_save = self.sim.time_stepping.t
 
-    def online_save(self):
+    def _online_save(self):
         """Computes and saves the values at one time."""
         itsim = int(self.sim.time_stepping.t / self.sim.time_stepping.deltat)
         periods_save = \
@@ -173,7 +173,7 @@ class SpatioTempSpectra(SpecificOutput):
                                            self.spatio_fft}
 
                     if not os.path.exists(self.path_file):
-                            self.init_files2(spatio_temp_spectra)
+                            self._init_files2(spatio_temp_spectra)
                     else:
                         self.add_dico_arrays_to_file(self.path_file,
                                                      spatio_temp_spectra)

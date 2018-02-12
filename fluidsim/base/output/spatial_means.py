@@ -47,9 +47,9 @@ class SpatialMeansBase(SpecificOutput):
             has_to_plot_saved=params.output.spatial_means.HAS_TO_PLOT_SAVED)
 
         if self.period_save != 0:
-            self.save_one_time()
+            self._save_one_time()
 
-    def init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dico_arrays_1time=None):
 
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
@@ -59,19 +59,19 @@ class SpatialMeansBase(SpecificOutput):
                 # to go to the end of the file
                 self.file.seek(0, 2)
 
-    def online_save(self):
+    def _online_save(self):
         self()
 
     def __call__(self):
         """Save the values at one time. """
         if (self.sim.time_stepping.t-self.t_last_save >= self.period_save):
             self.t_last_save = self.sim.time_stepping.t
-            self.save_one_time()
+            self._save_one_time()
 
-    def save_one_time(self):
+    def _save_one_time(self):
         self.t_last_save = self.sim.time_stepping.t
 
-    def init_online_plot(self):
+    def _init_online_plot(self):
         if mpi.rank == 0:
             width_axe = 0.85
             height_axe = 0.4
@@ -122,7 +122,7 @@ class SpatialMeansBase(SpecificOutput):
                     )
         return dico_time_means, dico_results
 
-    def close_file(self):
+    def _close_file(self):
         try:
             self.file.close()
         except AttributeError:

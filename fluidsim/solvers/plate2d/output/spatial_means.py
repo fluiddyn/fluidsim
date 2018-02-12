@@ -58,7 +58,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
 """
 
-    def save_one_time(self):
+    def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
         (Ek_fft, El_fft, Ee_fft, conversion_k_to_l_fft,
