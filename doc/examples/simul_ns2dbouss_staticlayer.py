@@ -37,10 +37,10 @@ params.time_stepping.t_end = 8.
 params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = 0.02
 
-params.init_fields.type = 'manual'
+params.init_fields.type = 'in_script'
 
 params.FORCING = True
-params.forcing.type = 'user_defined'
+params.forcing.type = 'in_script'
 params.forcing.nkmax_forcing = 10
 
 params.output.sub_directory = 'examples'
