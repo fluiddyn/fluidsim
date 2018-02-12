@@ -451,6 +451,7 @@ class SpecificOutput(object):
         self.init_path_files()
 
         if self.has_to_plot and mpi.rank == 0:
+            # FIXME: the mpi.rank constraint can be problematic for phys_fields
             self.init_online_plot()
 
         if not output.has_to_save:

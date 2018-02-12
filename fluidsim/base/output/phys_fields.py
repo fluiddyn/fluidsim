@@ -279,13 +279,16 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             key_field, numfig, file_dt, tmin, tmax, **kwargs)
 
         field, ux, uy = self._ani_get_field(0)
+        self._ani_init_fig(self, field, ux, uy)
+        self._ani_clim = kwargs.get('clim')
+        self._ani_set_clim()
+
+    def _ani_init_fig(self, field, ux, uy):
         x, y = self._select_axis(shape=ux.shape)
         XX, YY = np.meshgrid(x, y)
 
         self._ani_im = self._ani_ax.pcolor(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
-        self._ani_clim = kwargs.get('clim')
-        self._ani_set_clim()
         self._ani_quiver, vmax = self._quiver_plot(
             self._ani_ax, ux, uy, XX, YY)
 
@@ -334,15 +337,16 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_set_clim()
 
         idx, time = self._ani_get_t_actual(time)
-        title = (self._ani_key +
+        self._set_title(self._ani_ax, self._ani_key, time, vmax)
+
+    def _set_title(self, ax, key, time, vmax=None):
+        title = (key +
                  ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
                  ', $n_x = {0:d}$'.format(self.params.oper.nx))
-
-        # vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
-        title += r', $|\vec{v}|_{max} = $' + '{0:.3f}'.format(vmax)
-
-        self._ani_ax.set_title(title)
+        if vmax is not None:
+            title += r', $|\vec{v}|_{max} = $' + '{0:.3f}'.format(vmax)
+        ax.set_title(title)
 
     def _ani_set_clim(self):
         """Maintains a constant colorbar throughout the animation."""
@@ -356,6 +360,42 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
 
 class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
+
+    def init_online_plot(self):
+        self._ani_key = self.params.output.phys_fields.field_to_plot
+        self._ani_fig, self._ani_ax = plt.subplots()
+        self._set_font()
+        field, _ = self._select_field(key_field=self._ani_key)
+        ux, _ = self._select_field(key_field='ux')
+        uy, _ = self._select_field(key_field='uy')
+        if mpi.rank == 0:
+            self._ani_init_fig(field, ux, uy)
+            self._ani_im.autoscale()
+            # self._ani_im.draw()
+
+    def online_plot(self):
+        """Online plot."""
+        tsim = self.sim.time_stepping.t
+        if (tsim - self.t_last_plot >= self.period_plot):
+            self.t_last_plot = tsim
+            key_field = self.params.output.phys_fields.field_to_plot
+            field, _ = self._select_field(key_field=key_field)
+            ux, _ = self._select_field(key_field='ux')
+            uy, _ = self._select_field(key_field='uy')
+            if mpi.rank == 0:
+                field = field[:-1, :-1]
+
+                # Update figure, quiver and colorbar
+                self._ani_im.set_array(field.flatten())
+                vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+                self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip] / vmax,
+                                         uy[::self._skip, ::self._skip] / vmax)
+                self._set_title(self._ani_ax, self._ani_key, tsim, vmax)
+
+                self._ani_im.autoscale()
+                # self._ani_im.draw()
+                self._ani_fig.canvas.draw()
+                plt.pause(1e-6)
 
     def plot(self, numfig=None, field=None, key_field=None,
              QUIVER=True, vecx='ux', vecy='uy',
@@ -401,20 +441,13 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         if QUIVER:
             quiver, vmax = self._quiver_plot(ax, vecx, vecy)
+        else:
+            vmax = None
 
         if mpi.rank == 0:
             ax.set_xlabel('x')
             ax.set_ylabel('y')
-
-            title = (key_field +
-                     ', $t = {0:.3f}$, '.format(self.sim.time_stepping.t) +
-                     self.output.name_solver +
-                     ', $n_x = {0:d}$'.format(self.params.oper.nx))
-
-            if QUIVER:
-                title += r', $max(|v|) = {0:.3f}$'.format(vmax)
-
-            ax.set_title(title)
+            self._set_title(ax, key_field, self.sim.time_stepping.t, vmax)
 
             fig.tight_layout()
             fig.canvas.draw()

@@ -42,10 +42,11 @@ params.output.increments.HAS_TO_PLOT_SAVED = True
 
 params.output.phys_fields.field_to_plot = 'rot'
 
-sim = Simul(params)
+if __name__ == '__main__':
+    sim = Simul(params)
 
-sim.output.phys_fields.plot()
-sim.time_stepping.start()
-sim.output.phys_fields.plot()
+    sim.output.phys_fields.plot()
+    sim.time_stepping.start()
+    sim.output.phys_fields.plot()
 
-fld.show()
+    fld.show()
