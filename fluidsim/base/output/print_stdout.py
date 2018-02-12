@@ -4,6 +4,7 @@ from __future__ import print_function
 from builtins import object
 from time import time
 import os
+import sys
 
 from fluiddyn.util import mpi
 
@@ -61,6 +62,7 @@ class PrintStdOutBase(object):
         """Print in stdout and if SAVE in the file stdout.txt"""
         if mpi.rank == 0:
             print(to_print, end=end)
+            sys.stdout.flush()
             if self.output._has_to_save:
                 self.file.write(to_print+end)
                 self.file.flush()
