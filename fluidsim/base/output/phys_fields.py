@@ -265,8 +265,7 @@ def time_from_path(path):
 class MoviesBasePhysFields2D(MoviesBase2D):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax,
-                  INLET_ANIMATION=True, **kwargs):
+    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
         """Initialize list of files and times, pcolor plot, quiver and colorbar.
         """
         self._set_path()
@@ -286,7 +285,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
-    def _ani_init_fig(self, field, ux, uy):
+    def _ani_init_fig(self, field, ux, uy, INLET_ANIMATION=True):
         x, y = self._select_axis(shape=ux.shape)
         XX, YY = np.meshgrid(x, y)
 
@@ -297,7 +296,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         self._ANI_INLET_ANIMATION = INLET_ANIMATION
 
-        if self._ANI_INLET_ANIMATION:
+        if self._ANI_INLET_ANIMATION and not self.params.output.ONLINE_PLOT_OK:
             left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
             ax2 = self._ani_fig.add_axes([left, bottom, width, height])
             self._ani_spatial_means_t, self._ani_spatial_means_key = (
