@@ -15,4 +15,5 @@ dependencies:
   - pyfftw
   - mako
   - pip:
+    - fluiddyn
     - fluidfft
