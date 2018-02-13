@@ -528,15 +528,16 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
              QUIVER=True, vecx='ux', vecy='uy', nb_contours=20,
              type_plot='contourf', iz=0, vmin=None, vmax=None, cmap='viridis'):
 
-        if time is None:
-            time = self.sim.time_stepping.t
-
-        # Init the plot
         self._plot_init(key_field)
+        
+        if time is None:
+            field, _ = self._select_field(key_field=self._ani_key)
+            ux, _ = self._select_field(key_field='ux')
+            uy, _ = self._select_field(key_field='uy')
 
-        # Get the field
-        idx, t_actual = self._ani_get_t_actual(time)
-        field, ux, uy = self._ani_get_field(time)
+        else:
+            idx, t_actual = self._ani_get_t_actual(time)
+            field, ux, uy = self._ani_get_field(time)
 
         keys_state_phys = self.sim.state.keys_state_phys
 
@@ -575,15 +576,24 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             ax = None
 
         if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
+            quiver, vmax = self._quiver_plot(ax, ux, uy)
         else:
             vmax = None
 
         if mpi.rank == 0:
             ax.set_xlabel('x')
             ax.set_ylabel('y')
-            self._set_title(ax, key_field, self.sim.time_stepping.t, vmax)
 
+            if time is not None:
+                if time > self.sim.time_stepping.t:
+                    print('Warning: time > self.sim.time_stepping.t')
+                    self._set_title(
+                        ax, key_field, self.sim.time_stepping.t, vmax)
+                else:    
+                    self._set_title(ax, key_field, time, vmax)
+            else:
+                self._set_title(ax, key_field, self.sim.time_stepping.t, vmax)
+                                
             fig.tight_layout()
             fig.canvas.draw()
             plt.pause(1e-3)
