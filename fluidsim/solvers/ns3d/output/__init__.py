@@ -49,9 +49,9 @@ class Output(OutputBasePseudoSpectral):
         params.output.phys_fields.field_to_plot = 'rotxy'
 
     def compute_energy_fft(self):
-        vx_fft = self.sim.state.state_fft.get_var('vx_fft')
-        vy_fft = self.sim.state.state_fft.get_var('vy_fft')
-        vz_fft = self.sim.state.state_fft.get_var('vz_fft')
+        vx_fft = self.sim.state.state_spect.get_var('vx_fft')
+        vy_fft = self.sim.state.state_spect.get_var('vy_fft')
+        vz_fft = self.sim.state.state_spect.get_var('vz_fft')
         return old_div((np.abs(vx_fft)**2 + np.abs(vy_fft)**2 + np.abs(vz_fft)**2),2)
 
     def compute_energy(self):

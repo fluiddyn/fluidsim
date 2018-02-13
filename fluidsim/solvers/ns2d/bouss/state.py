@@ -29,7 +29,7 @@ class StateNS2DBouss(StateNS2D):
         """Update `info_solver` container with the stratification terms."""
         # Updating the state to a stratified state
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': ['rot_fft', 'b_fft'],
+            'keys_state_spect': ['rot_fft', 'b_fft'],
             'keys_state_phys': ['ux', 'uy', 'rot', 'b'],
             'keys_computable': [],
             'keys_phys_needed': ['rot', 'b'],
@@ -91,10 +91,10 @@ class StateNS2DBouss(StateNS2D):
 
         return result
 
-    def statephys_from_statefft(self):
-        """Compute `state_phys` from `statefft`."""
-        rot_fft = self.state_fft.get_var('rot_fft')
-        b_fft = self.state_fft.get_var('b_fft')
+    def statephys_from_statespect(self):
+        """Compute `state_phys` from `statespect`."""
+        rot_fft = self.state_spect.get_var('rot_fft')
+        b_fft = self.state_spect.get_var('b_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
 
         rot = self.state_phys.get_var('rot')
@@ -107,14 +107,14 @@ class StateNS2DBouss(StateNS2D):
         self.oper.ifft_as_arg(uy_fft, uy)
         self.oper.ifft_as_arg(b_fft, b)
 
-    def statefft_from_statephys(self):
-        """Compute `state_fft` from `state_phys`."""
+    def statespect_from_statephys(self):
+        """Compute `state_spect` from `state_phys`."""
 
         rot = self.state_phys.get_var('rot')
         b = self.state_phys.get_var('b')
 
-        rot_fft = self.state_fft.get_var('rot_fft')
-        b_fft = self.state_fft.get_var('b_fft')
+        rot_fft = self.state_spect.get_var('rot_fft')
+        b_fft = self.state_spect.get_var('b_fft')
 
         self.oper.fft_as_arg(rot, rot_fft)
         self.oper.fft_as_arg(b, b_fft)
@@ -124,10 +124,10 @@ class StateNS2DBouss(StateNS2D):
         self.oper.dealiasing(rot_fft)
         self.oper.dealiasing(b_fft)
 
-        self.state_fft.set_var('rot_fft', rot_fft)
-        self.state_fft.set_var('b_fft', b_fft)
+        self.state_spect.set_var('rot_fft', rot_fft)
+        self.state_spect.set_var('b_fft', b_fft)
 
-        self.statephys_from_statefft()
+        self.statephys_from_statespect()
 
     def init_from_rotb(self, rot, b):
         """Initialize the state from the variable rot and b."""
@@ -139,11 +139,11 @@ class StateNS2DBouss(StateNS2D):
         b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
         self.init_from_rotbfft(rot_fft, b_fft)
 
-    def init_statefft_from(self, **kwargs):
+    def init_statespect_from(self, **kwargs):
 
-        # init_statefft_from looks if kwargs has two arguments.
+        # init_statespect_from looks if kwargs has two arguments.
         if len(kwargs) == 2:
             if 'rot_fft' in kwargs and 'b_fft' in kwargs:
                 self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
         else:
-            super(StateNS2D, self).init_statefft_from(**kwargs)
+            super(StateNS2D, self).init_statespect_from(**kwargs)

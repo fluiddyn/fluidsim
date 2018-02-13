@@ -49,15 +49,15 @@ class Simul(SimulSW1L):
 
         super(Simul, self).__init__(params)
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
         fft2 = oper.fft2
 
-        if state_fft is None:
+        if state_spect is None:
             state_phys = self.state.state_phys
-            state_fft = self.state.state_fft
+            state_spect = self.state.state_spect
         else:
-            state_phys = self.state.return_statephys_from_statefft(state_fft)
+            state_phys = self.state.return_statephys_from_statespect(state_spect)
 
         ux = state_phys.get_var('ux')
         uy = state_phys.get_var('uy')
@@ -77,7 +77,7 @@ class Simul(SimulSW1L):
         jy_fft = fft2(eta*uy)
         Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
 
-        # self.verify_tendencies(state_fft, state_phys,
+        # self.verify_tendencies(state_spect, state_phys,
         #                        Nx_fft, Ny_fft, Neta_fft)
 
         # compute the nonlinear terms for q, ap and am
@@ -91,7 +91,7 @@ class Simul(SimulSW1L):
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
         tendencies_fft.set_var('q_fft', Nq_fft)
         tendencies_fft.set_var('ap_fft', Np_fft)
@@ -112,7 +112,7 @@ class Simul(SimulSW1L):
             omega = -1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
         return omega
 
-    def verify_tendencies(self, state_fft, state_phys,
+    def verify_tendencies(self, state_spect, state_phys,
                           Nx_fft, Ny_fft, Neta_fft):
         # for verification conservation energy
         # compute the linear terms
@@ -121,9 +121,9 @@ class Simul(SimulSW1L):
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
 
-        q_fft = state_fft.get_var('q_fft')
-        ap_fft = state_fft.get_var('ap_fft')
-        am_fft = state_fft.get_var('am_fft')
+        q_fft = state_spect.get_var('q_fft')
+        ap_fft = state_spect.get_var('ap_fft')
+        am_fft = state_spect.get_var('am_fft')
         a_fft = ap_fft + am_fft
         div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
 

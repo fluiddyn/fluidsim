@@ -29,7 +29,7 @@ class StateNS2D(StatePseudoSpectral):
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': ['rot_fft'],
+            'keys_state_spect': ['rot_fft'],
             'keys_state_phys': ['ux', 'uy', 'rot'],
             'keys_computable': [],
             'keys_phys_needed': ['rot'],
@@ -88,9 +88,9 @@ class StateNS2D(StatePseudoSpectral):
 
         return result
 
-    def statephys_from_statefft(self):
-        """Compute `state_phys` from `statefft`."""
-        rot_fft = self.state_fft.get_var('rot_fft')
+    def statephys_from_statespect(self):
+        """Compute `state_phys` from `statespect`."""
+        rot_fft = self.state_spect.get_var('rot_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
 
         rot = self.state_phys.get_var('rot')
@@ -101,22 +101,22 @@ class StateNS2D(StatePseudoSpectral):
         self.oper.ifft_as_arg(ux_fft, ux)
         self.oper.ifft_as_arg(uy_fft, uy)
 
-    def statefft_from_statephys(self):
-        """Compute `state_fft` from `state_phys`."""
+    def statespect_from_statephys(self):
+        """Compute `state_spect` from `state_phys`."""
 
         rot = self.state_phys.get_var('rot')
-        rot_fft = self.state_fft.get_var('rot_fft')
+        rot_fft = self.state_spect.get_var('rot_fft')
         self.oper.fft_as_arg(rot, rot_fft)
 
     def init_from_rotfft(self, rot_fft):
         """Initialize the state from the variable `rot_fft`."""
         self.oper.dealiasing(rot_fft)
-        self.state_fft.set_var('rot_fft', rot_fft)
-        self.statephys_from_statefft()
+        self.state_spect.set_var('rot_fft', rot_fft)
+        self.statephys_from_statespect()
 
-    def init_statefft_from(self, **kwargs):
+    def init_statespect_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'rot_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])
         else:
-            super(StateNS2D, self).init_statefft_from(**kwargs)
+            super(StateNS2D, self).init_statespect_from(**kwargs)

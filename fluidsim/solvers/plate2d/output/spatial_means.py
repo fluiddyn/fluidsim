@@ -80,8 +80,8 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         if self.sim.params.FORCING:
             deltat = self.sim.time_stepping.deltat
-            state_fft = self.sim.state.state_fft
-            w_fft = state_fft.get_var('w_fft')
+            state_spect = self.sim.state.state_spect
+            w_fft = state_spect.get_var('w_fft')
 
             forcing_fft = self.sim.forcing.get_forcing()
             Fw_fft = forcing_fft.get_var('w_fft')

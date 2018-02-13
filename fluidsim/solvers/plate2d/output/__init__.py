@@ -101,8 +101,8 @@ class Output(OutputBasePseudoSpectral):
                 conversion_k_to_l_fft, conversion_l_to_e_fft)
 
     def compute_energies_fft(self):
-        w_fft = self.sim.state.state_fft.get_var('w_fft')
-        z_fft = self.sim.state.state_fft.get_var('z_fft')
+        w_fft = self.sim.state.state_spect.get_var('w_fft')
+        z_fft = self.sim.state.state_spect.get_var('z_fft')
         chi_fft = self.sim.state.compute('chi_fft')
         Ek_fft = 0.5*np.abs(w_fft)**2
         El_fft = np.abs(0.5*self.sim.oper.laplacian2_fft(np.abs(z_fft)**2+0j))

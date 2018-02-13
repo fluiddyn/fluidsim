@@ -179,7 +179,7 @@ class SimulBasePseudoSpectral(SimulBase):
             An array containing only zeros.
 
         """
-        tendencies = SetOfVariables(like=self.state.state_fft)
+        tendencies = SetOfVariables(like=self.state.state_spect)
         tendencies.initialize(value=0.)
         return tendencies
 

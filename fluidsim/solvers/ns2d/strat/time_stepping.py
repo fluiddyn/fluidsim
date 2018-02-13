@@ -164,17 +164,17 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # execution time seems to be attributed to the function
         # one_time_step_computation by cProfile
         self._time_step_RK()
-        self.sim.oper.dealiasing(self.sim.state.state_fft)
+        self.sim.oper.dealiasing(self.sim.state.state_spect)
 
         # If no shear modes in the flow.
         if self.sim.params.NO_SHEAR_MODES:
-            for ikey, key_name in enumerate(self.sim.state.state_fft.keys):
-                key_fft = self.sim.state.state_fft.get_var(key_name)
+            for ikey, key_name in enumerate(self.sim.state.state_spect.keys):
+                key_fft = self.sim.state.state_spect.get_var(key_name)
                 key_fft[0, :] = 0
-                self.sim.state.state_fft.set_var(key_name, key_fft)
+                self.sim.state.state_spect.set_var(key_name, key_fft)
 
-        self.sim.state.statephys_from_statefft()
+        self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
-        if np.isnan(np.sum(self.sim.state.state_fft[0])):
+        if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))

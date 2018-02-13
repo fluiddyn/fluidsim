@@ -24,9 +24,9 @@ class OutputSW1LModified(OutputBaseSW1L):
         classes.SpectralEnergyBudget.class_name = 'SpectralEnergyBudgetMSW1L'
 
     def compute_energies_fft(self):
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state.state_spect.get_var('ux_fft')
+        uy_fft = self.sim.state.state_spect.get_var('uy_fft')
+        eta_fft = self.sim.state.state_spect.get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
         energyK_fft = old_div(np.abs(ux_fft)**2,2) + old_div(np.abs(uy_fft)**2,2)
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -35,9 +35,9 @@ class OutputSW1LModified(OutputBaseSW1L):
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state.state_spect.get_var('ux_fft')
+        uy_fft = self.sim.state.state_spect.get_var('uy_fft')
+        eta_fft = self.sim.state.state_spect.get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
         energyK_fft = old_div(np.abs(ux_fft)**2,2) + old_div(np.abs(uy_fft)**2,2)
         return energyK_fft, energyA_fft
@@ -47,9 +47,9 @@ class OutputSW1LModified(OutputBaseSW1L):
         rot = self.sim.state('rot')
         eta = self.sim.state.state_phys.get_var('eta')
         ErtelPV_fft = self.oper.fft2(old_div((self.sim.params.f+rot),(1.+eta)))
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
+        ux_fft = self.sim.state.state_spect.get_var('ux_fft')
+        uy_fft = self.sim.state.state_spect.get_var('uy_fft')
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        eta_fft = self.sim.state.state_spect.get_var('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
         return ErtelPV_fft, CharneyPV_fft

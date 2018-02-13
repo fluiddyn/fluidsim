@@ -139,7 +139,7 @@ class WavesVortices(Waves):
 
         for key in self.key_forced:
             try:
-                v_fft[key] = self.sim.state.state_fft.get_var(key)
+                v_fft[key] = self.sim.state.state_spect.get_var(key)
             except ValueError:
                 v_fft[key] = self.sim.state.compute(key)
 
@@ -152,7 +152,7 @@ class WavesVortices(Waves):
             kwargs = v_fft
             kwargs.update(Fv_fft)
             Fv_fft = self.normalize_forcingc(**kwargs)
-            self.fstate_coarse.init_statefft_from(**Fv_fft)
+            self.fstate_coarse.init_statespect_from(**Fv_fft)
 
         self.put_forcingc_in_forcing()
 
@@ -239,9 +239,9 @@ class OldStuff(object):
     def verify_injection_rate_from_state(self):
         """Verify injection rate."""
 
-        ux_fft = self.sim.state.state_fft.get_var('ux_fft')
-        uy_fft = self.sim.state.state_fft.get_var('uy_fft')
-        eta_fft = self.sim.state.state_fft.get_var('eta_fft')
+        ux_fft = self.sim.state.state_spect.get_var('ux_fft')
+        uy_fft = self.sim.state.state_spect.get_var('uy_fft')
+        eta_fft = self.sim.state.state_spect.get_var('eta_fft')
 
         q_fft, div_fft, ageo_fft = \
             self.oper.qdafft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)

@@ -310,7 +310,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             '\nMemory usage at the end of init. (equiv. seq.)')
 
         try:
-            self.print_size_in_Mo(self.sim.state.state_fft, 'state_fft')
+            self.print_size_in_Mo(self.sim.state.state_spect, 'state_spect')
         except AttributeError:
             self.print_size_in_Mo(self.sim.state.state_phys, 'state_phys')
 
@@ -407,9 +407,9 @@ class OutputBasePseudoSpectral(OutputBase):
     def compute_energy_fft(self):
         """Compute energy(k)"""
         energy_fft = 0.
-        for k in self.sim.state.keys_state_fft:
+        for k in self.sim.state.keys_state_spect:
             energy_fft += (
-                np.abs(self.sim.state.state_fft.get_var(k)) ** 2) / 2.
+                np.abs(self.sim.state.state_spect.get_var(k)) ** 2) / 2.
 
         return energy_fft
 

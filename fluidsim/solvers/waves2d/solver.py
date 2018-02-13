@@ -111,10 +111,10 @@ class Simul(SimulBasePseudoSpectral):
     def __init__(self, params):
         super(Simul, self).__init__(params, info_solver)
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
 
         tendencies_fft[:] = 0.

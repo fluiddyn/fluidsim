@@ -43,7 +43,7 @@ class TimeCorrelatedRandomPseudoSpectral(TCRandomPSW):
     # def compute_forcing_2nd_degree_eq(self):
     #     """compute a forcing normalize with a 2nd degree eq."""
 
-    #     w_fft = self.sim.state.state_fft.get_var('w_fft')
+    #     w_fft = self.sim.state.state_spect.get_var('w_fft')
     #     vmax = self.sim.params.forcing.vmax
     #     n0 = w_fft.shape[0]
     #     n1 = w_fft.shape[1]
