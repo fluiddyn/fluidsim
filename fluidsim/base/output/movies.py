@@ -48,7 +48,7 @@ class MoviesBase(object):
         self._ani_t = None
         self._ani_t_actual = None
 
-    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
         """Replace this function to initialize animation data and figure to
         plot on.
 
@@ -147,9 +147,9 @@ class MoviesBase(object):
 
         return key_field
 
-    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=300, file_dt=1,
-                tmin=None, tmax=None, repeat=True, save_file=False, fargs={},
-                **kwargs):
+    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=300,
+                dt_equations=None, tmin=None, tmax=None, repeat=True,
+                save_file=False, fargs={}, **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -162,7 +162,7 @@ class MoviesBase(object):
             Figure number on the window
         dt_frame_in_sec : int
             Interval between animated frames in milliseconds
-        file_dt : float
+        dt_equations : float
             Approx. interval between saved files to load in simulation time
             units
         tmax : float
@@ -196,7 +196,7 @@ class MoviesBase(object):
         >>> sim = fls.load_sim_for_plot()
         >>> sim.output.spectra.animate('E')
         >>> sim.output.phys_fields.animate('rot')
-        >>> sim.output.phys_fields.animate('rot', file_dt=0.1, dt_frame_in_sec=50, clim=(-5,5))
+        >>> sim.output.phys_fields.animate('rot', dt_equations=0.1, dt_frame_in_sec=50, clim=(-5,5))
         >>> sim.output.phys_fields.animate('rot', tmax=25, clim=(-5,5), save_file='True')
         >>> sim.output.phys_fields.animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
 
@@ -209,12 +209,15 @@ class MoviesBase(object):
                              'The MPI version of get_state_from_simul()\n'
                              'is not implemented.')
 
-        self._ani_init(key_field, numfig, file_dt, tmin, tmax, **kwargs)
+        if dt_equations is None:
+            dt_equations = self.sim.params.output.periods_save.phys_fields
+
+        self._ani_init(key_field, numfig, dt_equations, tmin, tmax, **kwargs)
         if is_run_from_jupyter():
             try:
                 from ipywidgets import interact, widgets
                 slider = widgets.IntSlider(
-                    min=tmin, max=tmax, step=file_dt, value=tmin)
+                    min=tmin, max=tmax, step=dt_equations, value=tmin)
 
                 def widget_update(time):
                     self._ani_update(time)
@@ -270,7 +273,7 @@ class MoviesBase(object):
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
 
-    def _ani_init(self, key_field, numfig, file_dt, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmax, **kwargs):
         """Initializes animated fig. and list of times of save files to load."""
 
         if key_field is None:
@@ -290,7 +293,10 @@ class MoviesBase1D(MoviesBase):
         if tmax is None:
             tmax = int(self.sim.time_stepping.t)
 
-        self._ani_t = list(np.arange(0, tmax + file_dt, file_dt))
+        if dt_equations is None:
+            dt_equations = self.params.periods_save.phys_fields
+
+        self._ani_t = list(np.arange(0, tmax + dt_equations, dt_equations))
 
     def _ani_update(self, frame, **fargs):
         """Loads contour data and updates figure."""
@@ -324,7 +330,7 @@ class MoviesBase1D(MoviesBase):
 class MoviesBase2D(MoviesBase):
     """Base class defining most generic functions for movies for 2D data."""
 
-    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
         """Initializes animated fig. and list of times of save files to load.
         """
 
@@ -343,7 +349,10 @@ class MoviesBase2D(MoviesBase):
             raise ValueError('Error tmin > tmax. '
                              'Value tmin should be smaller than tmax')
 
-        self._ani_t = list(np.arange(tmin, tmax + file_dt, file_dt))
+        if dt_equations is None:
+            dt_equations = self.params.periods_save.phys_fields
+
+        self._ani_t = list(np.arange(tmin, tmax + dt_equations, dt_equations))
 
         self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
 
