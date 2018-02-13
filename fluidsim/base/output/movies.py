@@ -147,7 +147,7 @@ class MoviesBase(object):
 
         return key_field
 
-    def animate(self, key_field=None, numfig=None, frame_dt=300, file_dt=1,
+    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=300, file_dt=1,
                 tmin=None, tmax=None, repeat=True, save_file=False, fargs={},
                 **kwargs):
         """
@@ -160,7 +160,7 @@ class MoviesBase(object):
             Specifies which field to animate
         numfig : int
             Figure number on the window
-        frame_dt : int
+        dt_frame_in_sec : int
             Interval between animated frames in milliseconds
         file_dt : float
             Approx. interval between saved files to load in simulation time
@@ -196,7 +196,7 @@ class MoviesBase(object):
         >>> sim = fls.load_sim_for_plot()
         >>> sim.output.spectra.animate('E')
         >>> sim.output.phys_fields.animate('rot')
-        >>> sim.output.phys_fields.animate('rot', file_dt=0.1, frame_dt=50, clim=(-5,5))
+        >>> sim.output.phys_fields.animate('rot', file_dt=0.1, dt_frame_in_sec=50, clim=(-5,5))
         >>> sim.output.phys_fields.animate('rot', tmax=25, clim=(-5,5), save_file='True')
         >>> sim.output.phys_fields.animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
 
@@ -231,15 +231,15 @@ class MoviesBase(object):
         else:
             self._animation = animation.FuncAnimation(
                 self._ani_fig, self._ani_update, len(self._ani_t),
-                fargs=fargs.items(), interval=frame_dt, blit=False, repeat=repeat)
+                fargs=fargs.items(), interval=dt_frame_in_sec, blit=False, repeat=repeat)
 
         if save_file:
             if isinstance(save_file, bool):
                 save_file = r'~/fluidsim_movie.mp4'
 
-            self._ani_save(save_file, frame_dt, **kwargs)
+            self._ani_save(save_file, dt_frame_in_sec, **kwargs)
 
-    def _ani_save(self, path_file, frame_dt, codec='ffmpeg', **kwargs):
+    def _ani_save(self, path_file, dt_frame_in_sec, codec='ffmpeg', **kwargs):
         """Saves the animation using `matplotlib.animation.writers`."""
 
         path_file = os.path.expandvars(path_file)
@@ -257,7 +257,7 @@ class MoviesBase(object):
         Writer = animation.writers[codec]
 
         print('Saving movie to ', path_file, '...')
-        writer = Writer(fps=1000. / frame_dt, metadata=dict(artist='FluidSim'))
+        writer = Writer(fps=1000. / dt_frame_in_sec, metadata=dict(artist='FluidSim'))
         # _animation is a FuncAnimation object
         self._animation.save(path_file, writer=writer, dpi=150)
 
