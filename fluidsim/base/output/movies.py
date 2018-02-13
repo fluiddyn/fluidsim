@@ -147,7 +147,7 @@ class MoviesBase(object):
 
         return key_field
 
-    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=300,
+    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=0.3,
                 dt_equations=None, tmin=None, tmax=None, repeat=True,
                 save_file=False, fargs={}, **kwargs):
         """
@@ -161,7 +161,7 @@ class MoviesBase(object):
         numfig : int
             Figure number on the window
         dt_frame_in_sec : int
-            Interval between animated frames in milliseconds
+            Interval between animated frames in seconds
         dt_equations : float
             Approx. interval between saved files to load in simulation time
             units
@@ -234,7 +234,7 @@ class MoviesBase(object):
         else:
             self._animation = animation.FuncAnimation(
                 self._ani_fig, self._ani_update, len(self._ani_t),
-                fargs=fargs.items(), interval=dt_frame_in_sec, blit=False, repeat=repeat)
+                fargs=fargs.items(), interval=dt_frame_in_sec * 1000, blit=False, repeat=repeat)
 
         if save_file:
             if isinstance(save_file, bool):
@@ -260,7 +260,7 @@ class MoviesBase(object):
         Writer = animation.writers[codec]
 
         print('Saving movie to ', path_file, '...')
-        writer = Writer(fps=1000. / dt_frame_in_sec, metadata=dict(artist='FluidSim'))
+        writer = Writer(fps=1. / dt_frame_in_sec, metadata=dict(artist='FluidSim'))
         # _animation is a FuncAnimation object
         self._animation.save(path_file, writer=writer, dpi=150)
 
