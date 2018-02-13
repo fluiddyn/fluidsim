@@ -34,8 +34,8 @@ params.forcing.type = 'in_script'
 params.forcing.nkmax_forcing = 12
 
 params.output.sub_directory = 'examples'
-params.output.periods_print.print_stdout = 0.01
-params.output.periods_save.phys_fields = 0.1
+params.output.periods_print.print_stdout = 0.5
+params.output.periods_save.phys_fields = 0.2
 params.output.periods_save.spectra = 0.5
 params.output.periods_save.spatial_means = 0.05
 params.output.periods_save.spect_energy_budg = 1.
@@ -71,5 +71,5 @@ ipython
 from fluidsim import load_sim_for_plot
 sim = load_sim_for_plot()
 
-sim.output.phys_fields.animate(frame_dt=100, file_dt=0.1, repeat=True)
+sim.output.phys_fields.animate('b', dt_frame_in_sec=0.1, dt_equations=0.1)
 """)

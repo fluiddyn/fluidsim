@@ -23,12 +23,12 @@ params.oper.coef_dealiasing = 0.7
 
 params.nu_8 = 1e-10
 
-params.time_stepping.t_end = 2.
+params.time_stepping.t_end = 5.
 
 params.init_fields.type = 'in_script'
 
 params.output.sub_directory = 'examples'
-params.output.periods_print.print_stdout = 0.05
+params.output.periods_print.print_stdout = 0.5
 params.output.periods_save.phys_fields = 0.1
 params.output.periods_save.spatial_means = 0.1
 
@@ -65,5 +65,5 @@ ipython
 from fluidsim import load_sim_for_plot
 sim = load_sim_for_plot()
 
-sim.output.phys_fields.animate(key_field='b', frame_dt=200, file_dt=0.1)
+sim.output.phys_fields.animate('b', dt_frame_in_sec=0.3, dt_equations=0.1)
 """)

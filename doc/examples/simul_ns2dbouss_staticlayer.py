@@ -106,7 +106,7 @@ if rank == 0:
         """This function is called by the forcing_maker to compute the forcing
 
         """
-        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
         rot_fft = self.oper.coarse_seq_from_fft_loc(
             rot_fft, self.shapeK_loc_coarse)
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
@@ -157,7 +157,7 @@ ipython
 from fluidsim import load_sim_for_plot
 sim = load_sim_for_plot()
 
-sim.output.phys_fields.animate(key_field='uy', frame_dt=300, file_dt=0.1)
+sim.output.phys_fields.animate('uy', dt_frame_in_sec=0.3, dt_equations=0.1)
 """)
 
 plt.show()

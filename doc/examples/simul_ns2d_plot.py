@@ -23,7 +23,7 @@ params.forcing.type = 'tcrandom'
 
 params.output.sub_directory = 'examples'
 
-params.output.periods_print.print_stdout = 0.25
+params.output.periods_print.print_stdout = 0.5
 
 params.output.periods_save.phys_fields = 1.
 params.output.periods_save.spectra = 0.5

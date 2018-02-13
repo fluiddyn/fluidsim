@@ -147,9 +147,9 @@ class MoviesBase(object):
 
         return key_field
 
-    def animate(self, key_field=None, numfig=None, dt_frame_in_sec=0.3,
+    def animate(self, key_field=None, dt_frame_in_sec=0.3,
                 dt_equations=None, tmin=None, tmax=None, repeat=True,
-                save_file=False, fargs={}, **kwargs):
+                save_file=False, numfig=None, fargs=None, **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -160,7 +160,7 @@ class MoviesBase(object):
             Specifies which field to animate
         numfig : int
             Figure number on the window
-        dt_frame_in_sec : int
+        dt_frame_in_sec : float
             Interval between animated frames in seconds
         dt_equations : float
             Approx. interval between saved files to load in simulation time
@@ -194,23 +194,24 @@ class MoviesBase(object):
         --------
         >>> import fluidsim as fls
         >>> sim = fls.load_sim_for_plot()
-        >>> sim.output.spectra.animate('E')
-        >>> sim.output.phys_fields.animate('rot')
-        >>> sim.output.phys_fields.animate('rot', dt_equations=0.1, dt_frame_in_sec=50, clim=(-5,5))
-        >>> sim.output.phys_fields.animate('rot', tmax=25, clim=(-5,5), save_file='True')
-        >>> sim.output.phys_fields.animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
+        >>> animate = sim.output.spectra.animate
+        >>> animate('E')
+        >>> animate('rot')
+        >>> animate('rot', dt_equations=0.1, dt_frame_in_sec=50, clim=(-5,5))
+        >>> animate('rot', tmax=25, clim=(-5,5), save_file='True')
+        >>> animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
 
         .. TODO: Use FuncAnimation with blit=True option.
 
         """
-
         if mpi.nb_proc > 1:
-            raise ValueError('Do NOT use this script with MPI !\n'
-                             'The MPI version of get_state_from_simul()\n'
-                             'is not implemented.')
+            raise NotImplementedError(
+                'Do NOT use this script with MPI !\n'
+                'The MPI version of get_state_from_simul()\n'
+                'is not implemented.')
 
-        if dt_equations is None:
-            dt_equations = self.sim.params.output.periods_save.phys_fields
+        if fargs is None:
+            fargs = {}
 
         self._ani_init(key_field, numfig, dt_equations, tmin, tmax, **kwargs)
         if is_run_from_jupyter():
@@ -234,7 +235,8 @@ class MoviesBase(object):
         else:
             self._animation = animation.FuncAnimation(
                 self._ani_fig, self._ani_update, len(self._ani_t),
-                fargs=fargs.items(), interval=dt_frame_in_sec * 1000, blit=False, repeat=repeat)
+                fargs=fargs.items(), interval=dt_frame_in_sec * 1000,
+                blit=False, repeat=repeat)
 
         if save_file:
             if isinstance(save_file, bool):
@@ -260,7 +262,8 @@ class MoviesBase(object):
         Writer = animation.writers[codec]
 
         print('Saving movie to ', path_file, '...')
-        writer = Writer(fps=1. / dt_frame_in_sec, metadata=dict(artist='FluidSim'))
+        writer = Writer(fps=1. / dt_frame_in_sec,
+                        metadata=dict(artist='FluidSim'))
         # _animation is a FuncAnimation object
         self._animation.save(path_file, writer=writer, dpi=150)
 

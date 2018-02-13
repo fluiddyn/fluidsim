@@ -274,6 +274,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_t_actual = np.array(list(
             map(time_from_path, self._ani_pathfiles)))
 
+        if dt_equations is None:
+            dt_equations = np.median(np.diff(self._ani_t_actual))
+            print('dt_equations = {:.4f}'.format(dt_equations))
+
         if tmax is None:
             tmax = self._ani_t_actual.max()
 
@@ -344,24 +348,30 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         return x, y
 
-    def _ani_get_field(self, time):
+    def _ani_get_field(self, time, key=None, need_uxuy=True):
         """Get field, ux, uy from saved physical fields."""
 
+        if key is None:
+            key = self._ani_key
         idx, t_actual = self._ani_get_t_actual(time)
 
         with h5py.File(self._ani_pathfiles[idx]) as f:
-            field = f['state_phys'][self._ani_key].value
-            ux = f['state_phys']['ux'].value
-            uy = f['state_phys']['uy'].value
+            field = f['state_phys'][key].value
 
-        return field, ux, uy
+            if need_uxuy:
+                ux = f['state_phys']['ux'].value
+                uy = f['state_phys']['uy'].value
+
+        if need_uxuy:
+            return field, ux, uy
+        else:
+            return field
 
     def _ani_update(self, frame, **fargs):
         """Loads data and updates figure."""
 
         time = self._ani_t[frame]
 
-        # field, ux, uy = self._ani_get_field(time)
         field, ux, uy = self._ani_get_weighted_field(time)
         field = field[:-1, :-1]
 
@@ -506,42 +516,84 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 self._ani_fig.canvas.draw()
                 plt.pause(1e-6)
 
-    def _plot_init(self, key_field):
+    def plot(self, field=None, key_field=None, time=None,
+             QUIVER=True, vecx='ux', vecy='uy',
+             nb_contours=20, type_plot='contourf', iz=0, vmin=None, vmax=None,
+             cmap='viridis', numfig=None):
+        """Plot a field.
+
+        This function is surely buggy! It has to be fixed.
+
+        Parameters
+        ----------
+
+        field : {str, np.ndarray}, optional
+
+        time : number, optional
+
+        QUIVER : True
+
+        vecx : 'ux'
+
+        vecy : 'uy'
+
+        nb_contours : 20
+
+        type_plot : 'contourf'
+
+        iz : 0
+
+        vmin : None
+
+        vmax : None
+
+        cmap : 'viridis'
+
+        numfig : None
+
         """
-        Initializes the plot of the physical fields.
-        """
-        self._set_path()
-        if key_field is None:
-            raise ValueError('key_field should not be None.')
 
-        self._ani_key = key_field
+        is_field_ready = False
 
-        if self._ani_key not in self.sim.state.keys_state_phys:
-            raise ValueError('key not in state.keys_state_phys')
+        if field is None and key_field is None:
+            key_field = self.field_to_plot
+        elif isinstance(field, np.ndarray) and key_field is None:
+            key_field = 'given array'
+            is_field_ready = True
+        elif field is not None and key_field is None:
+            key_field, field = field, key_field
 
-        self._ani_pathfiles = sorted(glob(os.path.join(
-            self.path, 'state_phys*')))
-        self._ani_t_actual = np.array(list(
-            map(time_from_path, self._ani_pathfiles)))
+        assert key_field is not None
 
-    def plot(self, time=None, numfig=None, field=None, key_field='rot',
-             QUIVER=True, vecx='ux', vecy='uy', nb_contours=20,
-             type_plot='contourf', iz=0, vmin=None, vmax=None, cmap='viridis'):
-
-        if time is None:
+        if time is None and not is_field_ready:
+            # we have to get the field from the state
             time = self.sim.time_stepping.t
+            field = self._get_field_seq(key_field)
+            if QUIVER:
+                vecx = self._get_field_seq(vecx)
+                vecy = self._get_field_seq(vecy)
+        else:
+            # we have to get the field from a file
+            self._set_path()
 
-        # Init the plot
-        self._plot_init(key_field)
+            if key_field not in self.sim.state.keys_state_phys:
+                raise ValueError('key not in state.keys_state_phys')
 
-        # Get the field
-        idx, t_actual = self._ani_get_t_actual(time)
-        field, ux, uy = self._ani_get_field(time)
+            self._ani_pathfiles = sorted(glob(os.path.join(
+                self.path, 'state_phys*')))
+            self._ani_t_actual = np.array(list(
+                map(time_from_path, self._ani_pathfiles)))
 
-        keys_state_phys = self.sim.state.keys_state_phys
+            idx, t_actual = self._ani_get_t_actual(time)
 
-        if vecx not in keys_state_phys or vecy not in keys_state_phys:
-            QUIVER = False
+            keys_state_phys = self.sim.state.keys_state_phys
+            if vecx not in keys_state_phys or vecy not in keys_state_phys:
+                QUIVER = False
+
+            if QUIVER:
+                field, vecx, vecy = self._ani_get_field(time, key_field)
+            else:
+                field = self._ani_get_field(time, key_field, need_uxuy=False)
 
         if field.ndim == 3:
             field = field[iz]
@@ -582,7 +634,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         if mpi.rank == 0:
             ax.set_xlabel('x')
             ax.set_ylabel('y')
-            self._set_title(ax, key_field, self.sim.time_stepping.t, vmax)
+            self._set_title(ax, key_field, time, vmax)
 
             fig.tight_layout()
             fig.canvas.draw()
@@ -597,24 +649,23 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             skip = 1
         return skip
 
+    def _get_field_seq(self, key):
+        field_loc = self.sim.state(key)
+        if mpi.nb_proc > 1:
+            return self.oper.gather_Xspace(field_loc)
+        else:
+            return field_loc
+
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
         """
         if isinstance(vecx, basestring):
-            vecx_loc = self.sim.state(vecx)
-            if mpi.nb_proc > 1:
-                vecx = self.oper.gather_Xspace(vecx_loc)
-            else:
-                vecx = vecx_loc
+            vecx = self._get_field_seq(vecx)
 
         if isinstance(vecy, basestring):
-            vecy_loc = self.sim.state(vecy)
-            if mpi.nb_proc > 1:
-                vecy = self.oper.gather_Xspace(vecy_loc)
-            else:
-                vecy = vecy_loc
+            vecy = self._get_field_seq(vecy)
 
         self._skip = skip = self._compute_skip_quiver()
 
