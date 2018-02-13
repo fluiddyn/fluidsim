@@ -9,35 +9,31 @@ pipelines:
   branches:
     default:
       - step:
+          image: fluiddyn/python3-stable
           caches:
             - pip
-          script: # Modify the commands below to build your repository.
-            - pip install -U tox "setuptools<=36.6.0"
-            - pip --version
-            - tox --version
-            - gcc --version
-            - mpirun --version
-            - tox -e py27,py36,codecov
-          services:
-            - python2
-            - python3
+          script:
+            - pip install -U tox
+            - tox -e py36,codecov
+      - step:
+          image: fluiddyn/python2-stable
+          caches:
+            - pip
+          script:
+            - pip install -U tox
+            - tox -e py27,codecov
     dev:
       - step:
+          image: fluiddyn/python3-stable
           caches:
             - pip
-          script: # Modify the commands below to build your repository.
-            - pip install -U tox "setuptools<=36.6.0"
-            - pip --version
-            - tox --version
-            - gcc --version
-            - mpirun --version
-            - tox -e py27,py36,codecov
-          services:
-            - python2
-            - python3
-definitions:
-  services:
-    python2:
-      image: fluiddyn/python2-stable
-    python3:
-      image: fluiddyn/python3-stable
+          script:
+            - pip install -U tox
+            - tox -e py36,codecov
+      - step:
+          image: fluiddyn/python2-stable
+          caches:
+            - pip
+          script:
+            - pip install -U tox
+            - tox -e py27,codecov
