@@ -25,7 +25,7 @@ class StateNS3D(StatePseudoSpectral):
         keys_state_phys = ['vx', 'vy', 'vz']
 
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': [k + '_fft' for k in keys_state_phys],
+            'keys_state_spect': [k + '_fft' for k in keys_state_phys],
             'keys_state_phys': keys_state_phys,
             'keys_phys_needed': keys_state_phys,
             'keys_computable': [],
@@ -59,28 +59,28 @@ class StateNS3D(StatePseudoSpectral):
 
         return result
 
-    def statephys_from_statefft(self):
-        vx_fft = self.state_fft.get_var('vx_fft')
-        vy_fft = self.state_fft.get_var('vy_fft')
-        vz_fft = self.state_fft.get_var('vz_fft')
+    def statephys_from_statespect(self):
+        vx_fft = self.state_spect.get_var('vx_fft')
+        vy_fft = self.state_spect.get_var('vy_fft')
+        vz_fft = self.state_spect.get_var('vz_fft')
 
         self.state_phys.set_var('vx', self.oper.ifft3d(vx_fft))
         self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))
         self.state_phys.set_var('vz', self.oper.ifft3d(vz_fft))
 
-    def statefft_from_statephys(self):
+    def statespect_from_statephys(self):
         vx = self.state_phys.get_var('vx')
         vy = self.state_phys.get_var('vy')
         vz = self.state_phys.get_var('vz')
 
-        self.state_fft.set_var('vx_fft', self.oper.fft3d(vx))
-        self.state_fft.set_var('vy_fft', self.oper.fft3d(vy))
-        self.state_fft.set_var('vz_fft', self.oper.fft3d(vz))
+        self.state_spect.set_var('vx_fft', self.oper.fft3d(vx))
+        self.state_spect.set_var('vy_fft', self.oper.fft3d(vy))
+        self.state_spect.set_var('vz_fft', self.oper.fft3d(vz))
 
     def init_from_vxvyfft(self, vx_fft, vy_fft):
-        self.state_fft.set_var('vx_fft', vx_fft)
-        self.state_fft.set_var('vy_fft', vy_fft)
-        self.state_fft.set_var('vz_fft', np.zeros_like(vx_fft))
+        self.state_spect.set_var('vx_fft', vx_fft)
+        self.state_spect.set_var('vy_fft', vy_fft)
+        self.state_spect.set_var('vz_fft', np.zeros_like(vx_fft))
 
         self.state_phys.set_var('vx', self.oper.ifft3d(vx_fft))
         self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))

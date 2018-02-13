@@ -143,4 +143,4 @@ if __name__ == '__main__':
     sov = SetOfVariables(keys=['rot_fft'],
                          shape_variable=(33, 18),
                          dtype=np.complex128,
-                         info='state_fft')
+                         info='state_spect')

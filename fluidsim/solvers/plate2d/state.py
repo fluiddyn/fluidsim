@@ -23,7 +23,7 @@ class StatePlate2D(StatePseudoSpectral):
         This is a static method!
         """
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': ['w_fft', 'z_fft'],
+            'keys_state_spect': ['w_fft', 'z_fft'],
             'keys_state_phys': ['w', 'z'],
             'keys_computable': [],
             'keys_phys_needed': ['w', 'z'],
@@ -41,7 +41,7 @@ class StatePlate2D(StatePseudoSpectral):
         elif key == 'z_fft':
             result = oper.fft2(self.state_phys.get_var('z'))
         elif key == 'chi_fft':
-            z_fft = self.state_fft.get_var('z_fft')
+            z_fft = self.state_spect.get_var('z_fft')
             mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
             result = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
         elif key == 'chi':
@@ -49,7 +49,7 @@ class StatePlate2D(StatePseudoSpectral):
             result = oper.ifft2(chi_fft)
         elif key == 'Nw_fft':
             mamp_zchi = oper.monge_ampere_from_fft(
-                self.state_fft.get_var('z_fft'), self.compute('chi_fft'))
+                self.state_spect.get_var('z_fft'), self.compute('chi_fft'))
             result = oper.fft2(mamp_zchi)
         elif key == 'lapz_fft':
             z_fft = self.compute('z_fft')
@@ -70,9 +70,9 @@ class StatePlate2D(StatePseudoSpectral):
 
         return result
 
-    def statephys_from_statefft(self):
-        w_fft = self.state_fft.get_var('w_fft')
-        z_fft = self.state_fft.get_var('z_fft')
+    def statephys_from_statespect(self):
+        w_fft = self.state_spect.get_var('w_fft')
+        z_fft = self.state_spect.get_var('z_fft')
 
         w = self.state_phys.get_var('w')
         z = self.state_phys.get_var('z')
@@ -82,15 +82,15 @@ class StatePlate2D(StatePseudoSpectral):
 
     def init_state_from_wz_fft(self, w_fft, z_fft):
         self.oper.dealiasing(w_fft, z_fft)
-        self.state_fft.set_var('w_fft', w_fft)
-        self.state_fft.set_var('z_fft', z_fft)
-        self.statephys_from_statefft()
+        self.state_spect.set_var('w_fft', w_fft)
+        self.state_spect.set_var('z_fft', z_fft)
+        self.statephys_from_statespect()
 
-    def init_statefft_from(self, **kwargs):
+    def init_statespect_from(self, **kwargs):
         if len(kwargs) == 1:
             if 'w_fft' in kwargs:
                 w_fft = kwargs['w_fft']
                 z_fft = np.zeros_like(w_fft)
                 self.init_state_from_wz_fft(w_fft, z_fft)
         else:
-            super(StatePlate2D, self).init_statefft_from(**kwargs)
+            super(StatePlate2D, self).init_statespect_from(**kwargs)

@@ -32,7 +32,7 @@ class StateSW1LModified(StateSW1L):
         This is a static method!
         """
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': ['ux_fft', 'uy_fft', 'eta_fft'],
+            'keys_state_spect': ['ux_fft', 'uy_fft', 'eta_fft'],
             'keys_state_phys': ['ux', 'uy', 'eta'],
             'keys_computable': [],
             'keys_phys_needed': ['ux', 'uy', 'eta'],
@@ -67,15 +67,15 @@ class StateSW1LModified(StateSW1L):
             eta = self.sim.state.state_phys.get_var('eta')
             result = rot-self.f*eta
         elif key == 'q_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
-            eta_fft = self.state_fft.get_var('eta_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
+            eta_fft = self.state_spect.get_var('eta_fft')
             rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
             result = rot_fft-self.params.f*eta_fft
         elif key == 'a_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
-            eta_fft = self.state_fft.get_var('eta_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
+            eta_fft = self.state_spect.get_var('eta_fft')
             result = self.oper.afft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
         else:
             to_print = 'Do not know how to compute "' + key + '".'
@@ -110,34 +110,34 @@ class StateSW1LModified(StateSW1L):
         eta_fft = self._etafft_no_div(ux, uy, rot)
         eta = ifft2(eta_fft)
 
-        state_fft = self.state_fft
-        state_fft.set_var('ux_fft', ux_fft)
-        state_fft.set_var('uy_fft', uy_fft)
-        state_fft.set_var('eta_fft', eta_fft)
+        state_spect = self.state_spect
+        state_spect.set_var('ux_fft', ux_fft)
+        state_spect.set_var('uy_fft', uy_fft)
+        state_spect.set_var('eta_fft', eta_fft)
 
         state_phys = self.state_phys
         state_phys.set_var('ux', ux)
         state_phys.set_var('uy', uy)
         state_phys.set_var('eta', eta)
 
-    def statephys_from_statefft(self):
+    def statephys_from_statespect(self):
         """Compute the state in physical space."""
         ifft2 = self.oper.ifft2
-        ux_fft = self.state_fft.get_var('ux_fft')
-        uy_fft = self.state_fft.get_var('uy_fft')
-        eta_fft = self.state_fft.get_var('eta_fft')
+        ux_fft = self.state_spect.get_var('ux_fft')
+        uy_fft = self.state_spect.get_var('uy_fft')
+        eta_fft = self.state_spect.get_var('eta_fft')
         self.state_phys.set_var('ux', ifft2(ux_fft))
         self.state_phys.set_var('uy', ifft2(uy_fft))
         self.state_phys.set_var('eta', ifft2(eta_fft))
 
-    def return_statephys_from_statefft(self, state_fft=None):
+    def return_statephys_from_statespect(self, state_spect=None):
         """Return the state in physical space."""
         ifft2 = self.oper.ifft2
-        if state_fft is None:
-            state_fft = self.state_fft
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
-        eta_fft = state_fft.get_var('eta_fft')
+        if state_spect is None:
+            state_spect = self.state_spect
+        ux_fft = state_spect.get_var('ux_fft')
+        uy_fft = state_spect.get_var('uy_fft')
+        eta_fft = state_spect.get_var('eta_fft')
         state_phys = SetOfVariables(like=self.state_phys)
         state_phys.set_var('ux', ifft2(ux_fft))
         state_phys.set_var('uy', ifft2(uy_fft))

@@ -29,11 +29,11 @@ class TestSW1L(TestSolver):
         self.sim.params.FORCING = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
-        state_fft = self.sim.state.state_fft
+        state_spect = self.sim.state.state_spect
         oper = self.sim.oper
         try:
             Fq_fft = tendencies_fft.get_var('q_fft')
-            q_fft = state_fft.get_var('q_fft')
+            q_fft = state_spect.get_var('q_fft')
         except ValueError:
             Fx_fft, Fy_fft, Feta_fft = self._get_tendencies()
             Fq_fft, Fap_fft, Fam_fft = oper.qapamfft_from_uxuyetafft(

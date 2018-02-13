@@ -67,13 +67,13 @@ class Simul(SimulBasePseudoSpectral):
                 'c2 = {0:6.5g} ; f = {1:6.5g} ; kd2 = {2:6.5g}'.format(
                     params.c2, params.f, params.kd2))
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
 
-        if state_fft is None:
+        if state_spect is None:
             state_phys = self.state.state_phys
         else:
-            state_phys = self.state.return_statephys_from_statefft(state_fft)
+            state_phys = self.state.return_statephys_from_statespect(state_spect)
 
         ux = state_phys.get_var('ux')
         uy = state_phys.get_var('uy')
@@ -81,7 +81,7 @@ class Simul(SimulBasePseudoSpectral):
         rot = state_phys.get_var('rot')
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
 
         Fx_fft = tendencies_fft.get_var('ux_fft')

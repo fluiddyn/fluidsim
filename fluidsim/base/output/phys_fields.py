@@ -588,6 +588,15 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             fig.canvas.draw()
             plt.pause(1e-3)
 
+    def _compute_skip_quiver(self):
+        # 4% of the Lx it is a great separation between vector arrows.
+        delta_quiver = 0.04 * self.oper.Lx
+        skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
+        skip = int(np.round(skip))
+        if skip < 1:
+            skip = 1
+        return skip
+
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
@@ -607,15 +616,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             else:
                 vecy = vecy_loc
 
-        # 4% of the Lx it is a great separation between vector arrows.
-        delta_quiver = 0.04 * self.oper.Lx
-        skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
-        skip = int(np.round(skip))
-
-        if skip < 1:
-            skip = 1
-
-        self._skip = skip
+        self._skip = skip = self._compute_skip_quiver()
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)

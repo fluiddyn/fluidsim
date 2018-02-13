@@ -45,7 +45,7 @@ class NormalModeBase(object):
 
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
-            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
+            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_spect):
                 q_fft = self.sim.state('q_fft')
                 ap_fft = self.sim.state('ap_fft')
                 am_fft = self.sim.state('am_fft')
@@ -131,7 +131,7 @@ class NormalModeDecomposition(NormalModeBase):
             self.qmat[:, :, 0, 0] = 0.
 
     def normalmodefft_from_keyfft(self, key):
-        """Returns the normal mode decomposition for the state_fft key specified."""
+        """Returns the normal mode decomposition for the state_spect key specified."""
 
         if key == 'div_fft':
             key_modes, normal_mode_vec_fft_x = self.normalmodefft_from_keyfft('px_ux_fft')
@@ -184,16 +184,16 @@ class NormalModeDecomposition(NormalModeBase):
         new_keys = np.array([list(value_dict)])
         return new_keys, new_matrix
 
-    def dyad_from_keyfft(self, conjugate=False, *keys_state_fft):
+    def dyad_from_keyfft(self, conjugate=False, *keys_state_spect):
         dyad_group = {'GG': ['GG'],
                       'AG': ['GA', 'AG'],
                       'aG': ['Ga', 'aG'],
                       'AA': ['AA', 'Aa', 'aA', 'aa']}
-        k1, k2 = keys_state_fft
+        k1, k2 = keys_state_spect
 
         normal_modes = dict()
         if k1 != k2:
-            for k in keys_state_fft:
+            for k in keys_state_spect:
                 key_modes, normal_modes[k] = self.normalmodefft_from_keyfft(k)
         else:
             key_modes, normal_modes[k1] = self.normalmodefft_from_keyfft(k1)
@@ -241,13 +241,13 @@ class NormalModeDecomposition(NormalModeBase):
         del dyad_mat_phys
         return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
 
-    def triad_from_keyfft(self, *keys_state_fft):
+    def triad_from_keyfft(self, *keys_state_spect):
         triad_group = {'GGG': ['GGG'],
                        'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
                        'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
                        'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
                        'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
-        k1, k2, k3 = keys_state_fft
+        k1, k2, k3 = keys_state_spect
 
         key_modes_1, normal_modes_1 = self.normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self.dyad_from_keyfft(False, k2, k3)
@@ -259,13 +259,13 @@ class NormalModeDecomposition(NormalModeBase):
 
         return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
 
-    def triad_from_keyfftphys(self, key_state_fft, *keys_state_phys):
+    def triad_from_keyfftphys(self, key_state_spect, *keys_state_phys):
         triad_group = {'GGG': ['GGG'],
                        'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
                        'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
                        'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
                        'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
-        k1 = key_state_fft
+        k1 = key_state_spect
         k2, k3 = keys_state_phys
 
         key_modes_1, normal_modes_1 = self.normalmodefft_from_keyfft(k1)
@@ -285,7 +285,7 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
             #
             # FIXME:Does not work
             #
-            # if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_fft):
+            # if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_spect):
             #     q_fft = self.sim.state('q_fft')
             #     ap_fft = self.sim.state('ap_fft')
             #     am_fft = self.sim.state('am_fft')
@@ -302,7 +302,7 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
         return super(NormalModeDecompositionModified, self).compute()
 
     def normalmodefft_from_keyfft(self, key):
-        """Returns the normal mode decomposition for the state_fft key specified."""
+        """Returns the normal mode decomposition for the state_spect key specified."""
         if key.endswith('urx_fft') or key.endswith('ury_fft'):
             row_index = {'urx_fft': 0, 'ury_fft': 1,
                          'px_urx_fft': 0, 'px_ury_fft': 1,

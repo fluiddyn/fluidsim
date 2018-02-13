@@ -26,7 +26,7 @@ class StateSW1L(StatePseudoSpectral):
         This is a static method!
         """
         info_solver.classes.State._set_attribs({
-            'keys_state_fft': ['ux_fft', 'uy_fft', 'eta_fft'],
+            'keys_state_spect': ['ux_fft', 'uy_fft', 'eta_fft'],
             'keys_state_phys': ['ux', 'uy', 'eta', 'rot'],
             'keys_computable': [],
             'keys_phys_needed': ['ux', 'uy', 'eta'],
@@ -54,12 +54,12 @@ class StateSW1L(StatePseudoSpectral):
             Jy = self.compute('Jy')
             result = self.oper.fft2(Jy)
         elif key == 'rot_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
             result = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         elif key == 'div_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
             result = self.oper.divfft_from_vecfft(ux_fft, uy_fft)
         elif key == 'div':
             div_fft = self.compute('div_fft')
@@ -69,16 +69,16 @@ class StateSW1L(StatePseudoSpectral):
             eta = self.state_phys.get_var('eta')
             result = rot-self.params.f*eta
         elif key == 'q_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
-            eta_fft = self.state_fft.get_var('eta_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
+            eta_fft = self.state_spect.get_var('eta_fft')
             rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
             result = rot_fft-self.params.f*eta_fft
 
         elif key == 'a_fft':
-            ux_fft = self.state_fft.get_var('ux_fft')
-            uy_fft = self.state_fft.get_var('uy_fft')
-            eta_fft = self.state_fft.get_var('eta_fft')
+            ux_fft = self.state_spect.get_var('ux_fft')
+            uy_fft = self.state_spect.get_var('uy_fft')
+            eta_fft = self.state_spect.get_var('eta_fft')
             result = self.oper.afft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
         elif key == 'h':
@@ -107,26 +107,26 @@ class StateSW1L(StatePseudoSpectral):
 
         return result
 
-    def statefft_from_statephys(self):
+    def statespect_from_statephys(self):
         """Compute the state in Fourier space."""
         ux = self.state_phys.get_var('ux')
         uy = self.state_phys.get_var('uy')
         eta = self.state_phys.get_var('eta')
 
-        ux_fft = self.state_fft.get_var('ux_fft')
-        uy_fft = self.state_fft.get_var('uy_fft')
-        eta_fft = self.state_fft.get_var('eta_fft')
+        ux_fft = self.state_spect.get_var('ux_fft')
+        uy_fft = self.state_spect.get_var('uy_fft')
+        eta_fft = self.state_spect.get_var('eta_fft')
 
         self.oper.fft_as_arg(ux, ux_fft)
         self.oper.fft_as_arg(uy, uy_fft)
         self.oper.fft_as_arg(eta, eta_fft)
 
-    def statephys_from_statefft(self):
+    def statephys_from_statespect(self):
         """Compute the state in physical space."""
         ifft_as_arg = self.oper.ifft_as_arg
-        ux_fft = self.state_fft.get_var('ux_fft')
-        uy_fft = self.state_fft.get_var('uy_fft')
-        eta_fft = self.state_fft.get_var('eta_fft')
+        ux_fft = self.state_spect.get_var('ux_fft')
+        uy_fft = self.state_spect.get_var('uy_fft')
+        eta_fft = self.state_spect.get_var('eta_fft')
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
         ux = self.state_phys.get_var('ux')
@@ -139,14 +139,14 @@ class StateSW1L(StatePseudoSpectral):
         ifft_as_arg(eta_fft, eta)
         ifft_as_arg(rot_fft, rot)
 
-    def return_statephys_from_statefft(self, state_fft=None):
+    def return_statephys_from_statespect(self, state_spect=None):
         """Return the state in physical space."""
         ifft_as_arg = self.oper.ifft_as_arg
-        if state_fft is None:
-            state_fft = self.state_fft
-        ux_fft = state_fft.get_var('ux_fft')
-        uy_fft = state_fft.get_var('uy_fft')
-        eta_fft = state_fft.get_var('eta_fft')
+        if state_spect is None:
+            state_spect = self.state_spect
+        ux_fft = state_spect.get_var('ux_fft')
+        uy_fft = state_spect.get_var('uy_fft')
+        eta_fft = state_spect.get_var('eta_fft')
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
         state_phys = SetOfVariables(like=self.state_phys)
@@ -163,7 +163,7 @@ class StateSW1L(StatePseudoSpectral):
 
         return state_phys
 
-    def init_statefft_from(self, **kwargs):
+    def init_statespect_from(self, **kwargs):
         if len(kwargs) == 1:
             key_fft, value = list(kwargs.items())[0]
             try:
@@ -171,30 +171,30 @@ class StateSW1L(StatePseudoSpectral):
                     'init_from_' + key_fft.replace('_', ''))
                 init_from_keyfft(value)
             except AttributeError:
-                super(StateSW1L, self).init_statefft_from(**kwargs)
+                super(StateSW1L, self).init_statespect_from(**kwargs)
         elif len(kwargs) == 2:
             if 'q_fft' in kwargs and 'a_fft' in kwargs:
                 self.init_from_qafft(**kwargs)
         else:
-            super(StateSW1L, self).init_statefft_from(**kwargs)
+            super(StateSW1L, self).init_statespect_from(**kwargs)
 
     def init_from_etafft(self, eta_fft):
-        state_fft = self.state_fft
-        state_fft.set_var('ux_fft', np.zeros_like(eta_fft))
-        state_fft.set_var('uy_fft', np.zeros_like(eta_fft))
-        state_fft.set_var('eta_fft', eta_fft)
+        state_spect = self.state_spect
+        state_spect.set_var('ux_fft', np.zeros_like(eta_fft))
+        state_spect.set_var('uy_fft', np.zeros_like(eta_fft))
+        state_spect.set_var('eta_fft', eta_fft)
 
-        self.oper.dealiasing(state_fft)
-        self.statephys_from_statefft()
+        self.oper.dealiasing(state_spect)
+        self.statephys_from_statespect()
 
     def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        state_fft = self.state_fft
-        state_fft.set_var('ux_fft', ux_fft)
-        state_fft.set_var('uy_fft', uy_fft)
-        state_fft.set_var('eta_fft', eta_fft)
+        state_spect = self.state_spect
+        state_spect.set_var('ux_fft', ux_fft)
+        state_spect.set_var('uy_fft', uy_fft)
+        state_spect.set_var('eta_fft', eta_fft)
 
-        self.oper.dealiasing(state_fft)
-        self.statephys_from_statefft()
+        self.oper.dealiasing(state_spect)
+        self.statephys_from_statespect()
 
     def init_from_rotuxuyfft(self, rot, ux_fft, uy_fft):
         self.init_from_uxuyfft(ux_fft, uy_fft)
@@ -237,10 +237,10 @@ class StateSW1L(StatePseudoSpectral):
         eta_fft = self._etafft_no_div(ux, uy, rot)
         eta = ifft2(eta_fft)
 
-        state_fft = self.state_fft
-        state_fft.set_var('ux_fft', ux_fft)
-        state_fft.set_var('uy_fft', uy_fft)
-        state_fft.set_var('eta_fft', eta_fft)
+        state_spect = self.state_spect
+        state_spect.set_var('ux_fft', ux_fft)
+        state_spect.set_var('uy_fft', uy_fft)
+        state_spect.set_var('eta_fft', eta_fft)
 
         state_phys = self.state_phys
         state_phys.set_var('rot', rot)

@@ -40,16 +40,16 @@ class Simul(SimulSW1LExactLin):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
     InfoSolver = InfoSolverSW1LExactLinModified
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
         fft2 = oper.fft2
         ifft2 = oper.ifft2
 
-        if state_fft is None:
+        if state_spect is None:
             state_phys = self.state.state_phys
-            state_fft = self.state.state_fft
+            state_spect = self.state.state_spect
         else:
-            state_phys = self.state.return_statephys_from_statefft(state_fft)
+            state_phys = self.state.return_statephys_from_statespect(state_spect)
 
         # compute the nonlinear terms for ux, uy and eta
         ux = state_phys.get_var('ux')
@@ -73,7 +73,7 @@ class Simul(SimulSW1LExactLin):
         jy_fft = fft2(uy_rot * eta)
         Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
 
-        # self.verify_tendencies(state_fft, state_phys, Nx_fft, Ny_fft, Neta_fft)
+        # self.verify_tendencies(state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft)
 
         # compute the nonlinear terms for q, ap and am
         (Nq_fft, Np_fft, Nm_fft
@@ -82,7 +82,7 @@ class Simul(SimulSW1LExactLin):
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
         tendencies_fft.set_var('q_fft', Nq_fft)
         tendencies_fft.set_var('ap_fft', Np_fft)
@@ -93,7 +93,7 @@ class Simul(SimulSW1LExactLin):
 
         return tendencies_fft
 
-    def verify_tendencies(self, state_fft, state_phys,
+    def verify_tendencies(self, state_spect, state_phys,
                           Nx_fft, Ny_fft, Neta_fft):
         """For verifying conservation of quadratic energy."""
 

@@ -101,21 +101,21 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
         # fft3d = oper.fft3d
         ifft3d = oper.ifft3d
 
-        if state_fft is None:
+        if state_spect is None:
             vx = self.state.state_phys.get_var('vx')
             vy = self.state.state_phys.get_var('vy')
             vz = self.state.state_phys.get_var('vz')
             vx_fft = vy_fft = vz_fft = None
 
         else:
-            vx_fft = state_fft.get_var('vx_fft')
-            vy_fft = state_fft.get_var('vy_fft')
-            vz_fft = state_fft.get_var('vz_fft')
+            vx_fft = state_spect.get_var('vx_fft')
+            vy_fft = state_spect.get_var('vy_fft')
+            vz_fft = state_spect.get_var('vz_fft')
             vx = ifft3d(vx_fft)
             vy = ifft3d(vy_fft)
             vz = ifft3d(vz_fft)
@@ -125,7 +125,7 @@ class Simul(SimulBasePseudoSpectral):
         oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
 
         tendencies_fft.set_var('vx_fft', Fvx_fft)

@@ -109,7 +109,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self.ifft2 = sim.oper.ifft2
 
         self.forcing_fft = SetOfVariables(
-            like=sim.state.state_fft, info='forcing_fft', value=0.)
+            like=sim.state.state_spect, info='forcing_fft', value=0.)
 
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
             raise ValueError('params.forcing.nkmax_forcing < \n'
@@ -184,7 +184,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         ar3Df = self.forcing_fft
         if mpi.rank == 0:
             # ar3Dfc = self.forcingc_fft
-            ar3Dfc = self.fstate_coarse.state_fft
+            ar3Dfc = self.fstate_coarse.state_spect
 
         if mpi.nb_proc > 1:
             if not self.oper.is_transposed:
@@ -241,7 +241,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
     def verify_injection_rate(self):
         """Verify injection rate."""
         Fa_fft = self.forcing_fft.get_var(self.key_forced)
-        a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+        a_fft = self.sim.state.state_spect.get_var(self.key_forced)
 
         PZ_forcing1 = abs(Fa_fft)**2 / 2 * self.sim.time_stepping.deltat
         PZ_forcing2 = np.real(
@@ -269,7 +269,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
         if mpi.rank == 0:
             Fa_fft = self.compute_forcingc_fft_each_time()
             kwargs = {self.key_forced: Fa_fft}
-            self.fstate_coarse.init_statefft_from(**kwargs)
+            self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
 
@@ -303,7 +303,7 @@ class Proportional(SpecificForcingPseudoSpectral):
         """compute a forcing normalize with a 2nd degree eq."""
 
         try:
-            a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+            a_fft = self.sim.state.state_spect.get_var(self.key_forced)
         except ValueError:
             a_fft = self.sim.state.compute(self.key_forced)
 
@@ -313,7 +313,7 @@ class Proportional(SpecificForcingPseudoSpectral):
         if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time(a_fft)
             kwargs = {self.key_forced: Fa_fft}
-            self.fstate_coarse.init_statefft_from(**kwargs)
+            self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
 
@@ -373,7 +373,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         """compute a forcing normalize with a 2nd degree eq."""
 
         try:
-            a_fft = self.sim.state.state_fft.get_var(self.key_forced)
+            a_fft = self.sim.state.state_spect.get_var(self.key_forced)
         except ValueError:
             a_fft = self.sim.state.compute(self.key_forced)
 
@@ -390,7 +390,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             Fa_fft = self.forcingc_raw_each_time(a_fft)
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
-            self.fstate_coarse.init_statefft_from(**kwargs)
+            self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
 

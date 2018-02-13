@@ -170,19 +170,19 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         """Compute the "nonlinear" tendencies."""
         oper = self.oper
 
-        if state_fft is None:
-            state_fft = self.state.state_fft
+        if state_spect is None:
+            state_spect = self.state.state_spect
 
         tendencies_fft = SetOfVariables(
-            like=self.state.state_fft,
+            like=self.state.state_spect,
             info='tendencies_nonlin')
 
-        w_fft = state_fft.get_var('w_fft')
-        z_fft = state_fft.get_var('z_fft')
+        w_fft = state_spect.get_var('w_fft')
+        z_fft = state_spect.get_var('z_fft')
 
         F_fft = tendencies_fft.get_var('w_fft')
         tendencies_fft.set_var('z_fft', w_fft)
@@ -208,8 +208,8 @@ class Simul(SimulBasePseudoSpectral):
     def compute_freq_diss(self):
         """Compute the dissipation frequencies with dissipation only for w."""
         f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
-        f_d = np.zeros_like(self.state.state_fft, dtype=np.float64)
-        f_d_hypo = np.zeros_like(self.state.state_fft,
+        f_d = np.zeros_like(self.state.state_spect, dtype=np.float64)
+        f_d_hypo = np.zeros_like(self.state.state_spect,
                                  dtype=np.float64)
         f_d[0] = f_d_w
         f_d_hypo[0] = f_d_hypo_w
@@ -253,8 +253,8 @@ class Simul(SimulBasePseudoSpectral):
 
         if tendencies_fft is None:
             tendencies_fft = self.tendencies_nonlin()
-            w_fft = self.state.state_fft.get_var('w_fft')
-            z_fft = self.state.state_fft.get_var('z_fft')
+            w_fft = self.state.state_spect.get_var('w_fft')
+            z_fft = self.state.state_spect.get_var('z_fft')
             chi_fft = self.state.compute('chi_fft')
 
         F_w_fft = tendencies_fft.get_var('w_fft')

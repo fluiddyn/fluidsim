@@ -184,7 +184,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
     def get_FxFyFetafft(self):
         forcing = self.sim.forcing
-        set_keys = set(self.sim.state.keys_state_fft)
+        set_keys = set(self.sim.state.keys_state_spect)
 
         if {'ux_fft', 'uy_fft', 'eta_fft'} == set_keys:
             Fx_fft = forcing('ux_fft')
@@ -202,7 +202,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         else:
             raise NotImplementedError(
                 'Not sure how to estimate forcing rate with '
-                'keys_state_fft = {}'.format(set_keys))
+                'keys_state_spect = {}'.format(set_keys))
 
         return Fx_fft, Fy_fft, Feta_fft
 

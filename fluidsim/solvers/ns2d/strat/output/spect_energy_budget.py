@@ -28,8 +28,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
 
-        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
-        b_fft = self.sim.state.state_fft.get_var('b_fft')
+        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
+        b_fft = self.sim.state.state_spect.get_var('b_fft')
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
 
         px_b_fft, py_b_fft = oper.gradfft_from_fft(b_fft)

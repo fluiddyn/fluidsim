@@ -63,17 +63,17 @@ class Simul(SimulNS2D):
         attribs = {'NO_SHEAR_MODES': False}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         r"""Compute the nonlinear tendencies of the solver ns2d.strat.
 
         Parameters
         ----------
 
-        state_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+        state_spect : :class:`fluidsim.base.setofvariables.SetOfVariables`
             optional
 
             Array containing the state, i.e. the vorticity, in Fourier
-            space.  If `state_fft`, the variables vorticity and the
+            space.  If `state_spect`, the variables vorticity and the
             velocity are computed from it, otherwise, they are taken
             from the global state of the simulation, `self.state`.
 
@@ -109,18 +109,18 @@ class Simul(SimulNS2D):
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg
 
-        tendencies_fft = SetOfVariables(like=self.state.state_fft)
+        tendencies_fft = SetOfVariables(like=self.state.state_spect)
         Frot_fft = tendencies_fft.get_var('rot_fft')
         Fb_fft = tendencies_fft.get_var('b_fft')
 
-        if state_fft is None:
-            rot_fft = self.state.state_fft.get_var('rot_fft')
-            b_fft = self.state.state_fft.get_var('b_fft')
+        if state_spect is None:
+            rot_fft = self.state.state_spect.get_var('rot_fft')
+            b_fft = self.state.state_spect.get_var('b_fft')
             ux = self.state.state_phys.get_var('ux')
             uy = self.state.state_phys.get_var('uy')
         else:
-            rot_fft = state_fft.get_var('rot_fft')
-            b_fft = state_fft.get_var('b_fft')
+            rot_fft = state_spect.get_var('rot_fft')
+            b_fft = state_spect.get_var('b_fft')
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = self.state.field_tmp0
             uy = self.state.field_tmp1

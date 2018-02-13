@@ -42,7 +42,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
             Frot_fft = self.sim.forcing.get_forcing().get_var('rot_fft')
             Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
 
-            rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+            rot_fft = self.sim.state.state_spect.get_var('rot_fft')
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
             PZ1_fft = np.real(

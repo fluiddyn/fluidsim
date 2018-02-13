@@ -214,8 +214,8 @@ class InitFieldsFromFile(SpecificInitFields):
             time = mpi.comm.bcast(time)
             it = mpi.comm.bcast(it)
 
-        self.sim.state.statefft_from_statephys()
-        self.sim.state.statephys_from_statefft()
+        self.sim.state.statespect_from_statephys()
+        self.sim.state.statephys_from_statespect()
         self.sim.time_stepping.t = time
         self.sim.time_stepping.it = it
 
@@ -241,14 +241,14 @@ class InitFieldsFromSimul(SpecificInitFields):
 
         if (self.params.oper.nx == sim_in.params.oper.nx and
                 self.params.oper.ny == sim_in.params.oper.ny):
-            state_fft = deepcopy(sim_in.state.state_fft)
+            state_spect = deepcopy(sim_in.state.state_spect)
         else:
             # modify resolution
-            # state_fft = SetOfVariables('state_fft')
-            state_fft = SetOfVariables(like=self.sim.state.state_fft)
-            keys_state_fft = sim_in.info.solver.classes.State['keys_state_fft']
-            for k in keys_state_fft:
-                field_fft_seq_in = sim_in.state.state_fft[k]
+            # state_spect = SetOfVariables('state_spect')
+            state_spect = SetOfVariables(like=self.sim.state.state_spect)
+            keys_state_spect = sim_in.info.solver.classes.State['keys_state_spect']
+            for k in keys_state_spect:
+                field_fft_seq_in = sim_in.state.state_spect[k]
                 field_fft_seq_new_res = \
                     self.sim.oper.constant_arrayK(value=0.)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape
@@ -269,21 +269,21 @@ class InitFieldsFromSimul(SpecificInitFields):
                         field_fft_seq_new_res[-ik0, ik1] = \
                             field_fft_seq_in[-ik0, ik1]
 
-                state_fft[k] = field_fft_seq_new_res
+                state_spect[k] = field_fft_seq_new_res
 
         if self.sim.output.name_solver == sim_in.output.name_solver:
-            self.sim.state.state_fft = state_fft
+            self.sim.state.state_spect = state_spect
         else:  # complicated case... untested solution !
-            # state_fft = SetOfVariables('state_fft')
+            # state_spect = SetOfVariables('state_spect')
             raise ValueError('Not yet implemented...')
-            for k in self.sim.info.solver.classes.State['keys_state_fft']:
-                if k in sim_in.info.solver.classes.State['keys_state_fft']:
-                    self.sim.state.state_fft[k] = state_fft[k]
+            for k in self.sim.info.solver.classes.State['keys_state_spect']:
+                if k in sim_in.info.solver.classes.State['keys_state_spect']:
+                    self.sim.state.state_spect[k] = state_spect[k]
                 else:
-                    self.sim.state.state_fft[k] = \
+                    self.sim.state.state_spect[k] = \
                         self.oper.constant_arrayK(value=0.)
 
-        self.sim.state.statephys_from_statefft()
+        self.sim.state.statephys_from_statespect()
 
 
 class InitFieldsInScript(SpecificInitFields):
@@ -310,5 +310,5 @@ class InitFieldsConstant(SpecificInitFields):
         value = self.sim.params.init_fields.constant.value
         self.sim.state.state_phys.initialize(value)
 
-        if hasattr(self.sim.state, 'statefft_from_statephys'):
-            self.sim.state.statefft_from_statephys()
+        if hasattr(self.sim.state, 'statespect_from_statephys'):
+            self.sim.state.statespect_from_statephys()

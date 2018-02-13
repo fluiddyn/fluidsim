@@ -85,8 +85,8 @@ class OutputStrat(Output):
 
     def compute_energies_fft(self):
         """Compute the kinetic and potential energy (k)"""
-        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
-        b_fft = self.sim.state.state_fft.get_var('b_fft')
+        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
+        b_fft = self.sim.state.state_spect.get_var('b_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         energyK_fft = (np.abs(ux_fft)**2 + np.abs(uy_fft)**2)/2
 
@@ -98,7 +98,7 @@ class OutputStrat(Output):
 
     def compute_energies2_fft(self):
         """Compute the two kinetic energies for u_x and u_y"""
-        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         energyK_ux_fft = (np.abs(ux_fft)**2)/2
         energyK_uy_fft = (np.abs(uy_fft)**2)/2
@@ -111,7 +111,7 @@ class OutputStrat(Output):
 
     def compute_enstrophy_fft(self):
         """Compute enstrophy(k)"""
-        rot_fft = self.sim.state.state_fft.get_var('rot_fft')
+        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
         return np.abs(rot_fft)**2/2
 
     def compute_energy(self):

@@ -1,8 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping.pseudo_spect`)
 ========================================================================
 
-.. currentmodule:: fluidsim.base.time_stepping.pseudo_spect
-
 Provides:
 
 .. autoclass:: TimeSteppingPseudoSpectral
@@ -108,7 +106,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         name_function = (
             '_time_step_' + params_ts.type_time_scheme +
             '_state_ndim{}_freqlin_ndim{}_'.format(
-                self.sim.state.state_fft.ndim, self.freq_lin.ndim) +
+                self.sim.state.state_spect.ndim, self.freq_lin.ndim) +
             str_type)
 
         if not hasattr(self, name_function):
@@ -122,9 +120,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              globals(), locals())
 
     def _compute_freq_complex(self):
-        state_fft = self.sim.state.state_fft
-        freq_complex = np.empty_like(state_fft)
-        for ik, key in enumerate(state_fft.keys):
+        state_spect = self.sim.state.state_spect
+        freq_complex = np.empty_like(state_spect)
+        for ik, key in enumerate(state_spect.keys):
             freq_complex[ik] = self.sim.compute_freq_complex(key)
         return freq_complex
 
@@ -137,10 +135,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # execution time seems to be attributed to the function
         # one_time_step_computation by cProfile
         self._time_step_RK()
-        self.sim.oper.dealiasing(self.sim.state.state_fft)
-        self.sim.state.statephys_from_statefft()
+        self.sim.oper.dealiasing(self.sim.state.state_spect)
+        self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
-        if np.isnan(np.sum(self.sim.state.state_fft[0])):
+        if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
                 'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
 
@@ -191,12 +189,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
         tendencies_nonlin = self.sim.tendencies_nonlin
-        state_fft = self.sim.state.state_fft
+        state_spect = self.sim.state.state_spect
 
         tendencies_fft_n = tendencies_nonlin()
-        state_fft_n12 = (state_fft + dt/2*tendencies_fft_n)*diss2
-        tendencies_fft_n12 = tendencies_nonlin(state_fft_n12)
-        self.sim.state.state_fft = (state_fft*diss +
+        state_spect_n12 = (state_spect + dt/2*tendencies_fft_n)*diss2
+        tendencies_fft_n12 = tendencies_nonlin(state_spect_n12)
+        self.sim.state.state_spect = (state_spect*diss +
                                     dt*diss2*tendencies_fft_n12)
 
     def _time_step_RK4(self):
@@ -297,37 +295,37 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
         tendencies_nonlin = self.sim.tendencies_nonlin
-        state_fft = self.sim.state.state_fft
+        state_spect = self.sim.state.state_spect
 
         tendencies_fft_0 = tendencies_nonlin()
 
         # based on approximation 1
-        state_fft_temp = (state_fft +
+        state_spect_temp = (state_spect +
                           dt/6*tendencies_fft_0)*diss
-        state_fft_np12_approx1 = (state_fft +
+        state_spect_np12_approx1 = (state_spect +
                                   dt/2*tendencies_fft_0)*diss2
 
         del(tendencies_fft_0)
-        tendencies_fft_1 = tendencies_nonlin(state_fft_np12_approx1)
-        del(state_fft_np12_approx1)
+        tendencies_fft_1 = tendencies_nonlin(state_spect_np12_approx1)
+        del(state_spect_np12_approx1)
 
         # based on approximation 2
-        state_fft_temp += dt/3*diss2*tendencies_fft_1
-        state_fft_np12_approx2 = (state_fft*diss2 +
+        state_spect_temp += dt/3*diss2*tendencies_fft_1
+        state_spect_np12_approx2 = (state_spect*diss2 +
                                   dt/2*tendencies_fft_1)
 
         del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_fft_np12_approx2)
-        del(state_fft_np12_approx2)
+        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx2)
+        del(state_spect_np12_approx2)
 
         # based on approximation 3
-        state_fft_temp += dt/3*diss2*tendencies_fft_2
-        state_fft_np1_approx = (state_fft*diss +
+        state_spect_temp += dt/3*diss2*tendencies_fft_2
+        state_spect_np1_approx = (state_spect*diss +
                                 dt*diss2*tendencies_fft_2)
 
         del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_fft_np1_approx)
-        del(state_fft_np1_approx)
+        tendencies_fft_3 = tendencies_nonlin(state_spect_np1_approx)
+        del(state_spect_np1_approx)
 
         # result using the 4 approximations
-        self.sim.state.state_fft = state_fft_temp + dt/6*tendencies_fft_3
+        self.sim.state.state_spect = state_spect_temp + dt/6*tendencies_fft_3

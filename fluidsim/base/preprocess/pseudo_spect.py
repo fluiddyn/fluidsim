@@ -67,7 +67,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 state.init_from_uxuyfft(ux_fft, uy_fft)
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-                state.init_statefft_from(rot_fft=rot_fft)
+                state.init_statespect_from(rot_fft=rot_fft)
         elif scale == 'enstrophy':
             omega_0 = self.output.compute_enstrophy()
             rot_fft = state('rot_fft')

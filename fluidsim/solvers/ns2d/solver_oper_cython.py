@@ -17,17 +17,17 @@ class InfoSolverNS2D(_InfoSolverNS2D):
 class Simul(_Simul):
     InfoSolver = InfoSolverNS2D
 
-    def tendencies_nonlin(self, state_fft=None):
+    def tendencies_nonlin(self, state_spect=None):
         r"""Compute the nonlinear tendencies.
 
         Parameters
         ----------
 
-        state_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+        state_spect : :class:`fluidsim.base.setofvariables.SetOfVariables`
             optional
 
             Array containing the state, i.e. the vorticity, in Fourier
-            space.  If `state_fft`, the variables vorticity and the
+            space.  If `state_spect`, the variables vorticity and the
             velocity are computed from it, otherwise, they are taken
             from the global state of the simulation, `self.state`.
 
@@ -60,12 +60,12 @@ class Simul(_Simul):
         ifft2 = oper.ifft2
 
         # get or compute rot_fft, ux and uy
-        if state_fft is None:
-            rot_fft = self.state.state_fft.get_var('rot_fft')
+        if state_spect is None:
+            rot_fft = self.state.state_spect.get_var('rot_fft')
             ux = self.state.state_phys.get_var('ux')
             uy = self.state.state_phys.get_var('uy')
         else:
-            rot_fft = state_fft.get_var('rot_fft')
+            rot_fft = state_spect.get_var('rot_fft')
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = ifft2(ux_fft)
             uy = ifft2(uy_fft)
@@ -86,7 +86,7 @@ class Simul(_Simul):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-        tendencies_fft = SetOfVariables(like=self.state.state_fft)
+        tendencies_fft = SetOfVariables(like=self.state.state_spect)
         tendencies_fft.set_var('rot_fft', Frot_fft)
 
         if self.params.FORCING:

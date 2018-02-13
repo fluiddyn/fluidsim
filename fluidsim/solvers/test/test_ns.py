@@ -96,10 +96,10 @@ class TestSolver(unittest.TestCase):
         """
         self.sim.params.FORCING = False
         tendencies_fft = self.sim.tendencies_nonlin()
-        state_fft = self.sim.state.state_fft
+        state_spect = self.sim.state.state_spect
         oper = self.sim.oper
         Frot_fft = tendencies_fft.get_var('rot_fft')
-        rot_fft = state_fft.get_var('rot_fft')
+        rot_fft = state_spect.get_var('rot_fft')
 
         T_rot = (Frot_fft.conj() * rot_fft +
                  Frot_fft * rot_fft.conj()).real / 2.
@@ -124,13 +124,13 @@ class TestNS2DStrat(TestSolver):
         tendencies_fft = self.sim.tendencies_nonlin()
 
         oper = self.sim.oper
-        state_fft = self.sim.state.state_fft
+        state_spect = self.sim.state.state_spect
         Frot_fft = tendencies_fft.get_var('rot_fft')
-        rot_fft = state_fft.get_var('rot_fft')
+        rot_fft = state_spect.get_var('rot_fft')
         Fx_fft, Fy_fft = oper.vecfft_from_rotfft(Frot_fft)
         Fb_fft = tendencies_fft.get_var('b_fft')
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-        b_fft = state_fft.get_var('b_fft')
+        b_fft = state_spect.get_var('b_fft')
 
         transferEK = np.real(
             ux_fft.conj() * Fx_fft + uy_fft.conj() * Fy_fft)
