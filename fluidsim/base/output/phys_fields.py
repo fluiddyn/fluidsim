@@ -265,7 +265,7 @@ def time_from_path(path):
 class MoviesBasePhysFields2D(MoviesBase2D):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _ani_init(self, key_field, numfig, file_dt, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
         """Initialize list of files and times, pcolor plot, quiver and colorbar.
         """
         self._set_path()
@@ -278,7 +278,12 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             tmax = self._ani_t_actual.max()
 
         super(MoviesBasePhysFields2D, self)._ani_init(
-            key_field, numfig, file_dt, tmin, tmax, **kwargs)
+            key_field, numfig, dt_equations, tmin, tmax, **kwargs)
+
+        dt_file = (self._ani_t_actual[-1] - self._ani_t_actual[0]) / (
+            self._ani_t_actual.size)
+        if dt_equations < dt_file / 4:
+            raise ValueError('dt_equations < dt_file / 4')
 
         field, ux, uy = self._ani_get_field(0)
         self._ani_init_fig(field, ux, uy)
@@ -377,10 +382,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             self._ani_im_inlet[0].set_data(
                 t[:idx_spatial], E[:idx_spatial])
 
-        idx, time = self._ani_get_t_actual(time)
         self._set_title(self._ani_ax, self._ani_key, time, vmax)
 
     def _set_title(self, ax, key, time, vmax=None):
+        # print('time={}'.format(time))
         title = (key +
                  ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
