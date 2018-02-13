@@ -29,7 +29,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
-from fluiddyn.util import mpi
+from fluiddyn.util import mpi, is_run_from_jupyter
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, stdout_redirected
 from fluidsim.util.util import pathdir_from_namedir
 
@@ -210,9 +210,28 @@ class MoviesBase(object):
                              'is not implemented.')
 
         self._ani_init(key_field, numfig, file_dt, tmin, tmax, **kwargs)
-        self._animation = animation.FuncAnimation(
-            self._ani_fig, self._ani_update, len(self._ani_t),
-            fargs=fargs.items(), interval=frame_dt, blit=False, repeat=repeat)
+        if is_run_from_jupyter():
+            try:
+                from ipywidgets import interact, widgets
+                slider = widgets.IntSlider(
+                    min=tmin, max=tmax, step=file_dt, value=tmin)
+
+                def widget_update(time):
+                    self._ani_update(time)
+                    self._ani_fig.canvas.draw()
+
+                interact(widget_update, time=slider)
+            except ImportError:
+                print('Install jupyter nbextension ipywidgets and enable it:\n'
+                      '  pip install ipywidgets\n'
+                      '  jupyter-nbextension enable --py widgetsnbextension\n'
+                      'Restart the notebook and call the function under the'
+                      'magic:\n'
+                      '  %matplotlib notebook')
+        else:
+            self._animation = animation.FuncAnimation(
+                self._ani_fig, self._ani_update, len(self._ani_t),
+                fargs=fargs.items(), interval=frame_dt, blit=False, repeat=repeat)
 
         if save_file:
             if isinstance(save_file, bool):
