@@ -15,5 +15,5 @@ dependencies:
   - pyfftw
   - mako
   - pip:
-    - fluiddyn == 0.1.6.post1
-    - fluidfft == 0.2.1
+    - fluiddyn
+    - fluidfft
