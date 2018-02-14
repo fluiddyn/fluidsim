@@ -61,7 +61,7 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
 
         return result
 
-    def write_result(self, *strs, end='\n'):
+    def write_result(self, *strs):
         """Write strings to the result stream."""
         if mpi.rank == 0:
             msg = ' '.join(strs)
