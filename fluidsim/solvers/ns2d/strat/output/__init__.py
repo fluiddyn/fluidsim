@@ -137,16 +137,16 @@ class OutputStrat(Output):
 
     def _compute_froude_number(self):
         """Compute froude number ONLY for anisotropic forcing."""
-        return np.round(
+        return round(
             np.sin(radians(float(
-                self.sim.params.forcing.tcrandom_anisotropic.angle))), 3)
+                self.sim.params.forcing.tcrandom_anisotropic.angle))), 1)
 
     def _compute_ratio_omegas(self):
         """Compute ratio omegas; R = N * sin(angle)/P**(1/3.)"""
         P = self.sim.params.forcing.forcing_rate
         N = self.sim.params.N
         froude_number = self._compute_froude_number()
-        return N * froude_number / P**(1./3)
+        return round(N * froude_number / P**(1./3), 1)
 
     def _produce_str_describing_attribs_strat(self):
         """
@@ -155,7 +155,7 @@ class OutputStrat(Output):
         """
         str_froude_number = str(self._compute_froude_number())
         str_ratio_omegas = str(self._compute_ratio_omegas())
-
+        
         if '.' in str_froude_number:
             str_froude_number = str_froude_number.split('.')[0] + \
                                 str_froude_number.split('.')[1]
@@ -166,6 +166,7 @@ class OutputStrat(Output):
                                 str_ratio_omegas.split('.')[1]
         if str_ratio_omegas.endswith('0'):
             str_ratio_omegas = str_ratio_omegas[:-1]
+            
         return 'F' + str_froude_number + '_' + 'gamma' + str_ratio_omegas
 
     def _create_list_for_name_run(self):
