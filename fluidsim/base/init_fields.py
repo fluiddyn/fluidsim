@@ -14,11 +14,12 @@ from __future__ import division
 from __future__ import print_function
 
 from builtins import range
-from past.utils import old_div
 from builtins import object
-import h5py
 
 from copy import deepcopy
+
+import numpy as np
+import h5py
 
 from fluiddyn.util import mpi
 
@@ -30,23 +31,36 @@ class InitFieldsBase(object):
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
-        """Complete the ParamContainer info_solver.
+        """Static method to complete the ParamContainer info_solver.
 
-        This is a static method!
+        Parameters
+        ----------
+
+        info_solver : fluiddyn.util.paramcontainer.ParamContainer
+
+        classes : iterable of classes (SpecificInitFields)
+
+          If a class has the same tag of a default class, it replaces the
+          default one (for example with the tag 'noise').
+
         """
         info_solver.classes.InitFields._set_child('classes')
 
         classesXML = info_solver.classes.InitFields.classes
 
-        if classes is None:
-            classes = []
+        classes_used = [InitFieldsFromFile, InitFieldsFromSimul,
+                        InitFieldsInScript, InitFieldsConstant,
+                        InitFieldsNoise]
 
-        classes.extend([InitFieldsFromFile, InitFieldsFromSimul,
-                        InitFieldsInScript, InitFieldsConstant])
+        classes_used = {cls.tag: cls for cls in classes_used}
 
-        for cls in classes:
+        if classes is not None:
+            for cls in classes:
+                classes_used[cls.tag] = cls
+
+        for tag, cls in classes_used.items():
             classesXML._set_child(
-                cls.tag,
+                tag,
                 attribs={'module_name': cls.__module__,
                          'class_name': cls.__name__})
 
@@ -246,7 +260,8 @@ class InitFieldsFromSimul(SpecificInitFields):
             # modify resolution
             # state_spect = SetOfVariables('state_spect')
             state_spect = SetOfVariables(like=self.sim.state.state_spect)
-            keys_state_spect = sim_in.info.solver.classes.State['keys_state_spect']
+            keys_state_spect = sim_in.info.solver.classes.State[
+                'keys_state_spect']
             for k in keys_state_spect:
                 field_fft_seq_in = sim_in.state.state_spect[k]
                 field_fft_seq_new_res = \
@@ -260,9 +275,9 @@ class InitFieldsFromSimul(SpecificInitFields):
                 # it is a little bit complicate to take into account ky
                 for ik1 in range(nk1_min):
                     field_fft_seq_new_res[0, ik1] = field_fft_seq_in[0, ik1]
-                    field_fft_seq_new_res[old_div(nk0_min,2), ik1] = \
-                        field_fft_seq_in[old_div(nk0_min,2), ik1]
-                for ik0 in range(1, old_div(nk0_min,2)):
+                    field_fft_seq_new_res[nk0_min//2, ik1] = \
+                        field_fft_seq_in[nk0_min//2, ik1]
+                for ik0 in range(1, nk0_min//2):
                     for ik1 in range(nk1_min):
                         field_fft_seq_new_res[ik0, ik1] = \
                             field_fft_seq_in[ik0, ik1]
@@ -312,3 +327,24 @@ class InitFieldsConstant(SpecificInitFields):
 
         if hasattr(self.sim.state, 'statespect_from_statephys'):
             self.sim.state.statespect_from_statephys()
+
+
+class InitFieldsNoise(SpecificInitFields):
+    """Initialize the state with noise."""
+    tag = 'noise'
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """Complete the `params` container (class method)."""
+        super(InitFieldsNoise, cls)._complete_params_with_default(params)
+        params.init_fields._set_child(cls.tag, attribs={
+            'max': 1.})
+
+    def __call__(self):
+        state_phys = self.sim.state.state_phys
+        state_phys[...] = self.sim.params.init_fields.noise.max/0.5*(
+            np.random.rand(*state_phys.shape) - 0.5)
+
+        if hasattr(self.sim.state, 'statespect_from_statephys'):
+            self.sim.state.statespect_from_statephys()
+            self.sim.state.statephys_from_statespect()

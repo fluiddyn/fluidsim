@@ -6,7 +6,6 @@ Plate2d InitFields (:mod:`fluidsim.solvers.plate2d.init_fields`)
 """
 from __future__ import division
 
-from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -33,10 +32,10 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = old_div(oper.Lx,4)
+            lambda0 = oper.Lx/4.
 
         def H_smooth(x, delta):
-            return old_div((1. + np.tanh(2*np.pi*x/delta)),2)
+            return (1. + np.tanh(2*np.pi*x/delta))/2.
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
@@ -105,14 +104,6 @@ class InitFieldsPlate2D(InitFieldsBase):
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""
 
-        InitFieldsBase._complete_info_solver(info_solver)
-
-        classesXML = info_solver.classes.InitFields.classes
-
-        classes = [InitFieldsNoise, InitFieldsHarmonic]
-
-        for cls in classes:
-            classesXML._set_child(
-                cls.tag,
-                attribs={'module_name': cls.__module__,
-                         'class_name': cls.__name__})
+        InitFieldsBase._complete_info_solver(
+            info_solver,
+            classes=[InitFieldsNoise, InitFieldsHarmonic])

@@ -295,6 +295,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_set_clim()
 
     def _ani_init_fig(self, field, ux, uy, INLET_ANIMATION=True):
+
         x, y = self._select_axis(shape=ux.shape)
         XX, YY = np.meshgrid(x, y)
 
@@ -303,9 +304,17 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_quiver, vmax = self._quiver_plot(
             self._ani_ax, ux, uy, XX, YY)
 
+        if not self.sim.time_stepping.is_simul_completed():
+            INLET_ANIMATION = False
+
+        try:
+            self.output.spatial_means
+        except AttributeError:
+            INLET_ANIMATION = False
+
         self._ANI_INLET_ANIMATION = INLET_ANIMATION
 
-        if self._ANI_INLET_ANIMATION and not self.params.output.ONLINE_PLOT_OK:
+        if self._ANI_INLET_ANIMATION:
             left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
             ax2 = self._ani_fig.add_axes([left, bottom, width, height])
             self._ani_spatial_means_t, self._ani_spatial_means_key = (
@@ -317,8 +326,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             # Format of the ticks in ylabel
             ax2.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
 
-            ax2.set_xlim(
-                0, self._ani_spatial_means_t.max())
+            ax2.set_xlim(0, self._ani_spatial_means_t.max())
             # Correct visualization inlet_animation 10% of the difference
             # value_max-value-min
             ax2.set_ylim(
@@ -585,6 +593,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 map(time_from_path, self._ani_pathfiles)))
 
             idx, t_actual = self._ani_get_t_actual(time)
+            time = t_actual
 
             keys_state_phys = self.sim.state.keys_state_phys
             if vecx not in keys_state_phys or vecy not in keys_state_phys:

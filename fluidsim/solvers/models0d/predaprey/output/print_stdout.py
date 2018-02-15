@@ -1,7 +1,7 @@
 """Simple text output (:mod:`fluidsim.solvers.ns2d.output.print_stdout`)
 ========================================================================
 
-.. autoclass:: PrintStdOutNS2D
+.. autoclass:: PrintStdOutPredaPrey
    :members:
    :private-members:
 

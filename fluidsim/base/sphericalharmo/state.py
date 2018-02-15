@@ -1,37 +1,33 @@
-"""State of the variables (:mod:`fluidsim.base.state`)
-============================================================
+"""State of the variables (:mod:`fluidsim.base.sphericalharmo.state`)
+=====================================================================
 
 Provides:
 
-.. autoclass:: StateBase
-   :members:
-   :private-members:
-
-.. autoclass:: StatePseudoSpectral
+.. autoclass:: StateSphericalHarmo
    :members:
    :private-members:
 
 """
 
-from builtins import range
-
-from ..setofvariables import SetOfVariables
+# from ..setofvariables import SetOfVariables
 from ..state import StatePseudoSpectral
 
 
 class StateSphericalHarmo(StatePseudoSpectral):
     """Contains the state variables and handles the access to fields.
 
-    This is the general class for the pseudo-spectral solvers.
+    This is the general class for the pseudo-spectral solvers base on the
+    Sperical harmonic transform.
+
+    .. warning::
+
+       We assume incompressibility (div = 0) in this base class!
 
     """
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
-
-        This is a static method!
-        """
+        """Static method to complete the ParamContainer info_solver."""
 
         StatePseudoSpectral._complete_info_solver(info_solver)
 
@@ -54,20 +50,8 @@ class StateSphericalHarmo(StatePseudoSpectral):
             result = self.oper.sht(self.state_phys.get_var('ux'))
         elif key == 'uy_sh':
             result = self.oper.sht(self.state_phys.get_var('uy'))
-        elif key == 'rot_sh':
-            ux = self.state_phys.get_var('ux')
-            uy = self.state_phys.get_var('uy')
-            div_sh, rot_sh = self.oper.hdivrotsh_from_uv(ux, uy)
-            result = rot_sh
-            results = {'div_sh': div_sh}
         elif key == 'div_sh':
-            ux = self.state_phys.get_var('ux')
-            uy = self.state_phys.get_var('uy')
-            div_sh, rot_sh = self.oper.hdivrotsh_from_uv(ux, uy)
-            result = div_sh
-            results = {'rot_sh': rot_sh}
-        elif key == 'rot':
-            result = self.state_phys.get_var('rot')
+            result = self.oper.create_array_sh(0.)
         elif key == 'div':
             result = self.oper.create_array_spat(0.)
         elif key == 'q':
@@ -93,21 +77,35 @@ class StateSphericalHarmo(StatePseudoSpectral):
 
         return result
 
-    def statespect_from_statephys(self):
-        for ik in range(self.state_spect.nvar):
-            self.oper.sht_as_arg(self.state_phys[ik], self.state_spect[ik])
-
     def statephys_from_statespect(self):
-        for ik in range(self.state_spect.nvar):
-            self.oper.isht_as_arg(self.state_spect[ik], self.state_phys[ik])
+        """Compute `state_phys` from `statespect`."""
+        rot_sh = self.state_spect.get_var('rot_sh')
 
-    def return_statephys_from_statespect(self, state_spect=None):
-        """Return the state in physical space."""
-        isht = self.oper.isht
-        if state_spect is None:
-            state_spect = self.state_spect
+        # efficient
+        rot = self.state_phys.get_var('rot')
+        self.oper.isht_as_arg(rot_sh, rot)
 
-        state_phys = SetOfVariables(like=self.state_phys)
-        for ik in range(self.state_spect.nvar):
-            state_phys[ik] = isht(state_spect[ik])
-        return state_phys
+        # not very efficient!
+        ux, uy = self.oper.vec_from_rotsh(rot_sh)
+        self.state_phys.set_var('ux', ux)
+        self.state_phys.set_var('uy', uy)
+
+    def statespect_from_statephys(self):
+        """Compute `state_spect` from `state_phys`."""
+
+        rot = self.state_phys.get_var('rot')
+        rot_sh = self.state_spect.get_var('rot_sh')
+        self.oper.sht_as_arg(rot, rot_sh)
+
+    def init_from_rotsh(self, rot_sh):
+        """Initialize the state from the variable `rot_sh`."""
+        self.oper.dealiasing(rot_sh)
+        self.state_spect.set_var('rot_sh', rot_sh)
+        self.statephys_from_statespect()
+
+    def init_statespect_from(self, **kwargs):
+        if len(kwargs) == 1:
+            if 'rot_sh' in kwargs:
+                self.init_from_rotsh(kwargs['rot_sh'])
+        else:
+            super(StateSphericalHarmo, self).init_statespect_from(**kwargs)

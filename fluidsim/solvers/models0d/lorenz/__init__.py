@@ -1,5 +1,5 @@
-"""Lorenz solver (:mod:`fluidsim.solvers.lorenz`)
-=================================================
+"""Lorenz solver (:mod:`fluidsim.solvers.models0d.lorenz`)
+==========================================================
 
 Provides:
 

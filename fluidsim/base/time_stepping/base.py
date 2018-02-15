@@ -141,6 +141,12 @@ class TimeSteppingBase(object):
 
         self.sim.__exit__()
 
+    def is_simul_completed(self):
+        if self.params.time_stepping.USE_T_END:
+            return self.t >= self.params.time_stepping.t_end
+        else:
+            return self.it >= self.params.time_stepping.it_end
+
     def one_time_step(self):
         """Main time stepping function."""
         if self.params.time_stepping.USE_CFL:

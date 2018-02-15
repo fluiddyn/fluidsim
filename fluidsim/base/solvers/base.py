@@ -80,8 +80,9 @@ class SimulBase(object):
 
     def __exit__(self, *args):
         if not self._end_of_simul:
-            total_time_simul = time() - self.time_stepping._time_beginning_simul
-            self.time_stepping.time_simul = total_time_simul
+            total_time_simul = (
+                time() - self.time_stepping._time_beginning_simul)
+            self.time_stepping.time_simul_in_sec = total_time_simul
             self.output.end_of_simul(total_time_simul)
             self._end_of_simul = True
 

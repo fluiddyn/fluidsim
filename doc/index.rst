@@ -9,9 +9,9 @@ simulations using Python. It is part of the wider project `FluidDyn
 <https://pypi.python.org/pypi/fluiddyn/>`_.
 
 Fluidsim is an object-oriented library to develop solvers (mainly using
-pseudo-spectral methods) by writing mainly Python code. The result is really
-efficient compared to a pure Fortran or C++ code since the time-consuming tasks
-are performed by optimized compiled functions.
+pseudo-spectral methods) by writing mainly Python code. The result is **very
+efficient** even compared to a pure Fortran or C++ code since the
+time-consuming tasks are performed by optimized compiled functions.
 
 Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
 code written mostly in Python. It uses the library `fluidfft
@@ -28,13 +28,13 @@ languages to do these tasks.  Moreover, it is much simpler and faster than with
 pure Fortran or C++ codes to add any complicate analysis or to write a modified
 solver.
 
-We have created fluidsim to be easy and nice to use and to develop, efficient
-and robust.
+We have created fluidsim to be **easy and nice to use and to develop**,
+**efficient** and **robust**.
 
-At this stage, only few solvers have been written, but fluidsim can already
-solve these equations:
-
-- In a two-dimensional periodic space:
+Fluidsim is a young package but the list of solvers already implemented (see
+:ref:`solvers-section`) gives a good idea of the versatility of
+fluidsim. However, fluidsim excels in solving equations over a two-dimensional
+periodic space:
 
   * Incompressible Navier-Stokes equations,
 
@@ -46,11 +46,8 @@ solve these equations:
 
   * One-layer shallow-water equations + modified versions of these equations,
 
-  * Föppl-von Kármán equations (elastic thin plate)
+  * Föppl-von Kármán equations (elastic thin plate).
 
-- In a three-dimensional periodic space:
-
-  * Incompressible Navier-Stokes equations.
 
 User Guide
 ----------

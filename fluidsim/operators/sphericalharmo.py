@@ -33,6 +33,14 @@ class OperatorsSphericalHarmonics(EasySHT):
         super(OperatorsSphericalHarmonics, self).__init__(
             lmax=lmax, radius=radius)
 
+        self._zeros_sh = self.create_array_sh(0.)
+
+    def vec_from_rotsh(self, rot_sh):
+        return self.uv_from_hdivrotsh(self._zeros_sh, rot_sh)
+
+    def vec_from_divsh(self, div_sh):
+        return self.uv_from_hdivrotsh(div_sh, self._zeros_sh)
+
 
 if __name__ == '__main__':
 

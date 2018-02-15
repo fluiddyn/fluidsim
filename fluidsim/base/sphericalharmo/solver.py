@@ -1,6 +1,14 @@
 """Base solver (:mod:`fluidsim.base.solvers.spherical_harmo`)
 =============================================================
 
+.. autoclass:: InfoSolver
+   :members:
+   :private-members:
+
+.. autoclass:: SimulSphericalHarmo
+   :members:
+   :private-members:
+
 
 """
 
@@ -8,7 +16,7 @@ from ..solvers.pseudo_spect import (
     InfoSolverPseudoSpectral, SimulBasePseudoSpectral)
 
 
-class InfoSolver(InfoSolverPseudoSpectral):
+class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
     """Contain the information on a base pseudo-spectral solver."""
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
@@ -20,7 +28,7 @@ class InfoSolver(InfoSolverPseudoSpectral):
 
         """
 
-        super(InfoSolver, self)._init_root()
+        super(InfoSolverSphericalHarmo, self)._init_root()
 
         here = 'fluidsim.base.sphericalharmo'
 
@@ -41,7 +49,7 @@ class InfoSolver(InfoSolverPseudoSpectral):
 
 class SimulSphericalHarmo(SimulBasePseudoSpectral):
     """Pseudo-spectral base solver."""
-    InfoSolver = InfoSolver
+    InfoSolver = InfoSolverSphericalHarmo
 
 
 Simul = SimulSphericalHarmo

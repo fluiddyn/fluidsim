@@ -3,7 +3,7 @@
 
 This module provides classes to solve the Lotka-Volterra equations.
 
-.. autoclass:: InfoSolverLV
+.. autoclass:: InfoSolverPredaPrey
    :members:
    :private-members:
 

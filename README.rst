@@ -30,9 +30,9 @@ numerical code to solve fluid equations in a periodic two-dimensional space
 with pseudo-spectral methods.
 
 Now, Fluidsim is an object-oriented library to develop solvers (mainly using
-pseudo-spectral methods) by writing mainly Python code. The result is really
-efficient compared to a pure Fortran or C++ code since the time-consuming tasks
-are performed by optimized compiled functions.
+pseudo-spectral methods) by writing mainly Python code. The result is **very
+efficient** even compared to a pure Fortran or C++ code since the
+time-consuming tasks are performed by optimized compiled functions.
 
 Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
 code written mostly in Python. It uses the library `fluidfft

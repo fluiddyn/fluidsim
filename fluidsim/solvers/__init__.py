@@ -1,7 +1,8 @@
-"""Particular solvers
-=====================
+"""
+.. _solvers-section:
 
-.. currentmodule:: fluidsim.solvers
+Solvers
+=======
 
 Base package containing the source code of the particular solvers.  It
 provides the following solver packages:
@@ -15,5 +16,8 @@ provides the following solver packages:
    plate2d
    ad1d
    waves2d
+   sphere
+   models0d
+   ad1d
 
 """
