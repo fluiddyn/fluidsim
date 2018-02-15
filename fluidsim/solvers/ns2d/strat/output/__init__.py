@@ -166,7 +166,7 @@ class OutputStrat(Output):
                                 str_ratio_omegas.split('.')[1]
         if str_ratio_omegas.endswith('0'):
             str_ratio_omegas = str_ratio_omegas[:-1]
-        return 'F' + str_froude_number + '_' + 'R' + str_ratio_omegas
+        return 'F' + str_froude_number + '_' + 'gamma' + str_ratio_omegas
 
     def _create_list_for_name_run(self):
         """Creates new name_run for the simulation."""
