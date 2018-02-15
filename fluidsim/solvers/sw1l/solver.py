@@ -1,5 +1,19 @@
-"""Solver one-layer shallow-water (Saint Venant) equations.
-===========================================================
+"""One-layer shallow-water (Saint Venant) equations solver (:mod:`fluidsim.solvers.sw1l.solver`)
+================================================================================================
+
+This module provides two classes defining the pseudo-spectral solver for
+biperiodic one-layer shallow water equations, expressed using primitive
+variables, i.e. the horizontal velocities and surface dispacement.
+
+.. autoclass:: InfoSolverSW1L
+   :members:
+   :private-members:
+
+.. autoclass:: Simul
+   :members:
+   :private-members:
+
+
 
 """
 from __future__ import division
@@ -16,6 +30,29 @@ from .util_pythran import compute_Frot
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
     """Information about the solver SW1L."""
     def _init_root(self):
+        """The simulation object is instantiated with classes defined in this
+        function.
+
+        The super function `InfoSolverPseudoSpectral._init_root` is
+        called first. Two classes defined by this function are retianed:
+
+        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+
+        - :class:`fluidsim.operators.operators2d.OperatorsPseudoSpectral2D`
+
+        Solver-specific first-level classes are added:
+
+        - :class:`fluidsim.solvers.sw1l.solver.Simul`
+
+        - :class:`fluidsim.solvers.sw1l.state.StateSW1L`
+
+        - :class:`fluidsim.solvers.sw1l.init_fields.InitFieldsSW1L`
+
+        - :class:`fluidsim.solvers.sw1l.output.Output`
+
+        - :class:`fluidsim.solvers.sw1l.forcing.ForcingSW1L`
+
+        """
         super(InfoSolverSW1L, self)._init_root()
 
         package = 'fluidsim.solvers.sw1l'
@@ -40,13 +77,34 @@ class InfoSolverSW1L(InfoSolverPseudoSpectral):
 
 
 class Simul(SimulBasePseudoSpectral):
-    """A solver of the shallow-water 1 layer equations (SW1L)"""
+    """A solver of the shallow-water 1 layer equations (SW1L).
+
+    .. inheritance-diagram:: Simul
+
+    """
 
     InfoSolver = InfoSolverSW1L
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
+        r"""This static method is used to complete the *params* container.
+
+        Notes
+        -----
+
+        * :math:`f` is the system rotation.
+
+        * :math:`c` is the phase speed of surface gravity waves in the short-
+        wave limit.
+
+        * :math:`k_d` is the Rossby deformation wavenumber.
+
+        * :math:`\beta` is differential rotation parameter, approximately given
+        by :math:`\partial_y f`.
+
+        The present solver will not work in the beta-plane. However a
+        vorticity-divergence formulation can be solved with a beta term.
+
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
 
@@ -72,6 +130,48 @@ class Simul(SimulBasePseudoSpectral):
                     params.c2, params.f, params.kd2))
 
     def tendencies_nonlin(self, state_spect=None):
+        r"""Compute the nonlinear tendencies.
+
+        Parameters
+        ----------
+
+        state_spect : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            optional
+
+            Array containing the state, i.e. the horizontal velocities and
+            surface displacement scalars vorticity, in Fourier space.  When
+            `state_spect` is provided, the variables vorticity and the
+            velocities and surface displacement are computed from it, otherwise,
+            they are taken from the global state of the simulation,
+            `self.state`.
+
+            These two possibilities are used during the Runge-Kutta
+            time-stepping.
+
+        Returns
+        -------
+
+        tendencies_fft : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            An array containing the tendencies for the vorticity.
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        The one-layer shallow water equations can be written as:
+
+␖
+        .. math:: \partial_t \mathbf u  = - \nabla (|\mathbf u|^2/2 + c^2 \eta)
+                        - (\zeta + f) \times \mathbf u
+        .. math:: \partial_t eta = - \nabla. ((\eta + H) \mathbf u)
+
+        This function computes all terms on the RHS of the equations above,
+        including the nonlinear term. The dissipation term (not shown above) is
+        computed implicitly in
+        :class:`fluidsim.base.time_stepping.pseudo_spect.ExactLinearCoefs`.
+
+        """
         oper = self.oper
 
         if state_spect is None:

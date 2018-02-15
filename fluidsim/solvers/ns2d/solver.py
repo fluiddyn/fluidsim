@@ -30,7 +30,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
 
     """
     def _init_root(self):
-        """Init. `self` by writting the information on the solver.
+        """Init. `self` by writing the information on the solver.
 
         The function `InfoSolverPseudoSpectral._init_root` is
         called. We keep two classes listed by this function:
@@ -117,7 +117,7 @@ class Simul(SimulBasePseudoSpectral):
 
         .. |p| mathmacro:: \partial
 
-        The 2D Navier-Stockes equation can be written
+        The 2D Navier-Stokes equation can be written as:
 
         .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \hat \zeta,
 
