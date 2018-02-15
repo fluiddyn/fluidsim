@@ -59,6 +59,10 @@ class Simul(SimulBasePseudoSpectral):
     def __init__(self, params):
         # Parameter(s) specific to this solver
         params.kd2 = params.f**2 / params.c2
+        if params.beta != 0:
+            raise NotImplementedError(
+                'Do not use this solver for beta-plane! '
+                'Equations are non-periodic in this formulation.')
 
         super(Simul, self).__init__(params)
 
@@ -91,8 +95,7 @@ class Simul(SimulBasePseudoSpectral):
         compute_tendencies_nonlin_sw1l(
             rot, ux, uy, eta,
             Fx_fft, Fy_fft, Feta_fft,
-            self.params.f, self.params.beta, self.params.c2,
-            oper.YY,
+            self.params.f, self.params.c2,
             oper.fft2, oper.gradfft_from_fft, oper.dealiasing,
             oper.divfft_from_vecfft)
 
@@ -107,7 +110,7 @@ class Simul(SimulBasePseudoSpectral):
 # pythran export compute_tendencies_nonlin_sw1l(
 #     float64[][], float64[][], float64[][], float64[][],
 #     complex128[][], complex128[][], complex128[][],
-#     float, float, float, float64[][],
+#     float, float,
 #     function_to_be_called_from_python_interpreter -> complex128[][],
 #     function_to_be_called_from_python_interpreter -> (
 #         complex128[][], complex128[][]),
@@ -116,11 +119,10 @@ class Simul(SimulBasePseudoSpectral):
 #         complex128[][], complex128[][]))
 
 def compute_tendencies_nonlin_sw1l(
-        rot, ux, uy, eta, Fx_fft, Fy_fft, Feta_fft,
-        f, beta, c2, YY,
-        fft2, gradfft_from_fft, dealiasing, divfft_from_vecfft):
+        rot, ux, uy, eta, Fx_fft, Fy_fft, Feta_fft, f, c2, fft2,
+        gradfft_from_fft, dealiasing, divfft_from_vecfft):
     """Compute nonlinear tendencies for the sw1l model"""
-    F1x, F1y = compute_Frot(rot, ux, uy, f, beta, YY)
+    F1x, F1y = compute_Frot(rot, ux, uy, f)
     gradx_fft, grady_fft = gradfft_from_fft(
         fft2(c2 * eta + (ux**2 + uy ** 2) / 2.))
     dealiasing(gradx_fft, grady_fft)
