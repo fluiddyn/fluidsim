@@ -148,10 +148,12 @@ class StatePseudoSpectral(StateBase):
             raise ValueError('key "'+key+'" is not known')
 
     def statespect_from_statephys(self):
+        print('statespect_from_statephys')
         for ik in range(self.state_spect.nvar):
             self.oper.fft_as_arg(self.state_phys[ik], self.state_spect[ik])
 
     def statephys_from_statespect(self):
+        print('statephys_from_statespect')
         for ik in range(self.state_spect.nvar):
             self.oper.ifft_as_arg(self.state_spect[ik], self.state_phys[ik])
 

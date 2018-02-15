@@ -152,7 +152,7 @@ class PhysFieldsBase(SpecificOutput):
 
         if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
-                f = h5netcdf.File(path_file, 'w', invalid_netcdf=True)
+                f = h5netcdf.File(path_file, 'w')
                 group_state_phys = f.create_group("state_phys")
                 group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
                 group_state_phys.attrs['name_type_variables'] = state_phys.info
@@ -270,7 +270,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         """
         self._set_path()
         self._ani_pathfiles = sorted(glob(os.path.join(
-            self.path, 'state_phys*')))
+            self.path, 'state_phys*.nc')))
         self._ani_t_actual = np.array(list(
             map(time_from_path, self._ani_pathfiles)))
 
@@ -367,8 +367,12 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             field = f['state_phys'][key].value
 
             if need_uxuy:
-                ux = f['state_phys']['ux'].value
-                uy = f['state_phys']['uy'].value
+                try:
+                    ux = f['state_phys']['ux'].value
+                    uy = f['state_phys']['uy'].value
+                except KeyError:
+                    ux = f['state_phys']['vx'].value
+                    uy = f['state_phys']['vy'].value
 
         if need_uxuy:
             return field, ux, uy
@@ -606,6 +610,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         if field.ndim == 3:
             field = field[iz]
+            vecx, vecy = vecx[iz], vecy[iz]
 
         if mpi.rank == 0:
             if numfig is None:

@@ -7,5 +7,14 @@ Provides:
    :toctree:
 
    solver
+   state
+   init_fields
+
+
+.. autosummary::
+   :toctree:
+
+   strat
+   bouss
 
 """

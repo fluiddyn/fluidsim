@@ -1,8 +1,6 @@
 """Output (:mod:`fluidsim.base.output`)
 =============================================
 
-.. currentmodule:: fluidsim.base.output
-
 Provides:
 
 .. autosummary::
@@ -35,7 +33,7 @@ from __future__ import division
 import os
 from glob import glob
 
-import h5py
+import h5netcdf
 
 import fluiddyn.output
 
@@ -51,7 +49,7 @@ def create_description_xmf_file(path=None):
         path = os.getcwd()
 
     if os.path.isdir(path):
-        paths = glob(path + '/state_phys*.hd5')
+        paths = glob(path + '/state_phys*.nc')
     else:
         paths = glob(path)
 
@@ -59,11 +57,11 @@ def create_description_xmf_file(path=None):
         raise ValueError('No file corresponds to this path.')
 
     for path in paths:
-        path_out = path.split('.hd5')[0] + '.xmf'
+        path_out = path.split('.nc')[0] + '.xmf'
 
         base_name = os.path.basename(path)
 
-        with h5py.File(path) as f:
+        with h5netcdf.File(path) as f:
             ndim = 3
 
             nx = f['/info_simul/params/oper'].attrs['nx']

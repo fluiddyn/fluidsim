@@ -1,50 +1,50 @@
 # -*- coding: utf-8 -*-
 
-"""NS3D solver (:mod:`fluidsim.solvers.ns3d.solver`)
-====================================================
+"""Boussinesq NS3D solver (:mod:`fluidsim.solvers.ns3d.bouss.solver`)
+=====================================================================
+
+.. autoclass:: InfoSolverNS3DBouss
+   :members:
+   :private-members:
 
 .. autoclass:: Simul
    :members:
    :private-members:
-
 
 """
 from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D)
+from ..strat.solver import InfoSolverNS3DStrat, Simul as SimulStrat
 
 
-class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
+class InfoSolverNS3DBouss(InfoSolverNS3DStrat):
     def _init_root(self):
 
-        super(InfoSolverNS3D, self)._init_root()
+        super(InfoSolverNS3DBouss, self)._init_root()
 
-        package = 'fluidsim.solvers.ns3d'
+        package = 'fluidsim.solvers.ns3d.bouss'
         self.module_name = package + '.solver'
         self.class_name = 'Simul'
-        self.short_name = 'ns3d'
+        self.short_name = 'ns3d.bouss'
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS3D'
+        # classes.State.module_name = package + '.state'
+        # classes.State.class_name = 'StateNS3DStrat'
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsNS3D'
+        # classes.InitFields.module_name = package + '.init_fields'
+        # classes.InitFields.class_name = 'InitFieldsNS3D'
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        # classes.Output.module_name = package + '.output'
+        # classes.Output.class_name = 'Output'
 
-        del(classes.Forcing)
-        classes._tag_children.remove('Forcing')
         # classes.Forcing.module_name = package + '.forcing'
         # classes.Forcing.class_name = 'ForcingNS3D'
 
 
-class Simul(SimulBasePseudoSpectral):
+class Simul(SimulStrat):
     r"""Pseudo-spectral solver 3D incompressible Navier-Stokes equations.
 
     Notes
@@ -92,13 +92,15 @@ class Simul(SimulBasePseudoSpectral):
     is taken into account with the operator :math:`P_\perp`.
 
     """
-    InfoSolver = InfoSolverNS3D
+    InfoSolver = InfoSolverNS3DBouss
 
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        SimulBasePseudoSpectral._complete_params_with_default(params)
+        SimulStrat._complete_params_with_default(params)
+        attribs = {'NO_SHEAR_MODES': False}
+        params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
@@ -109,27 +111,35 @@ class Simul(SimulBasePseudoSpectral):
             vx = self.state.state_phys.get_var('vx')
             vy = self.state.state_phys.get_var('vy')
             vz = self.state.state_phys.get_var('vz')
-            vx_fft = vy_fft = vz_fft = None
-
+            b = self.state.state_phys.get_var('b')
+            vz_fft = self.state.state_spect.get_var('vz_fft')
+            b_fft = self.state.state_spect.get_var('b_fft')
         else:
             vx_fft = state_spect.get_var('vx_fft')
             vy_fft = state_spect.get_var('vy_fft')
             vz_fft = state_spect.get_var('vz_fft')
+            b_fft = state_spect.get_var('b_fft')
             vx = ifft3d(vx_fft)
             vy = ifft3d(vy_fft)
             vz = ifft3d(vz_fft)
+            b = ifft3d(b_fft)
 
-        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)
+        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)        
+        Fvx_fft, Fvy_fft, Fvz_fft = -Fvx_fft, -Fvy_fft, -Fvz_fft
+        Fvz_fft += b_fft
 
+        Fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b)
+        
         oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
 
         tendencies_fft = SetOfVariables(
             like=self.state.state_spect,
             info='tendencies_nonlin')
 
-        tendencies_fft.set_var('vx_fft', -Fvx_fft)
-        tendencies_fft.set_var('vy_fft', -Fvy_fft)
-        tendencies_fft.set_var('vz_fft', -Fvz_fft)
+        tendencies_fft.set_var('vx_fft', Fvx_fft)
+        tendencies_fft.set_var('vy_fft', Fvy_fft)
+        tendencies_fft.set_var('vz_fft', Fvz_fft)
+        tendencies_fft.set_var('b_fft', Fb_fft)
 
         if self.params.FORCING:
             tendencies_fft += self.forcing.get_forcing()
@@ -147,8 +157,8 @@ if __name__ == "__main__":
 
     params.short_name_type_run = 'test'
 
-    n = 32
-    L = 4
+    n = 16
+    L = 2*np.pi
     params.oper.nx = n
     params.oper.ny = n
     params.oper.nz = n
@@ -165,11 +175,9 @@ if __name__ == "__main__":
 
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 6.
-    # params.time_stepping.it_end = 2
+    params.time_stepping.it_end = 2
 
-    params.init_fields.type = 'noise'
-    params.init_fields.noise.velo_max = 1.
-    params.init_fields.noise.length = 1.
+    params.init_fields.type = 'in_script'
 
     params.FORCING = False
     # params.forcing.type = 'random'
@@ -195,8 +203,12 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
+    # here we have to initialize the flow fields
+
+    # we need to improve fluidfft for this.
+    
     # sim.output.phys_fields.plot()
-    sim.time_stepping.start()
+    # sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
-    fld.show()
+    # fld.show()

@@ -43,6 +43,15 @@ class StateNS3D(StatePseudoSpectral):
             result = self.oper.fft3d(self.state_phys.get_var('vy'))
         elif key == 'vz_fft':
             result = self.oper.fft3d(self.state_phys.get_var('vz'))
+        elif key == 'ux':
+            result = self.state_phys.get_var('vx')
+        elif key == 'uy':
+            result = self.state_phys.get_var('vy')
+        elif key == 'rotz':
+            vx_fft = self('vx_fft')
+            vy_fft = self('vy_fft')
+            rotz_fft = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
+            result = self.oper.ifft3d(rotz_fft)
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
@@ -59,30 +68,18 @@ class StateNS3D(StatePseudoSpectral):
 
         return result
 
-    def statephys_from_statespect(self):
-        vx_fft = self.state_spect.get_var('vx_fft')
-        vy_fft = self.state_spect.get_var('vy_fft')
-        vz_fft = self.state_spect.get_var('vz_fft')
-
-        self.state_phys.set_var('vx', self.oper.ifft3d(vx_fft))
-        self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))
-        self.state_phys.set_var('vz', self.oper.ifft3d(vz_fft))
-
-    def statespect_from_statephys(self):
-        vx = self.state_phys.get_var('vx')
-        vy = self.state_phys.get_var('vy')
-        vz = self.state_phys.get_var('vz')
-
-        self.state_spect.set_var('vx_fft', self.oper.fft3d(vx))
-        self.state_spect.set_var('vy_fft', self.oper.fft3d(vy))
-        self.state_spect.set_var('vz_fft', self.oper.fft3d(vz))
-
     def init_from_vxvyfft(self, vx_fft, vy_fft):
         self.state_spect.set_var('vx_fft', vx_fft)
         self.state_spect.set_var('vy_fft', vy_fft)
         self.state_spect.set_var('vz_fft', np.zeros_like(vx_fft))
 
-        self.state_phys.set_var('vx', self.oper.ifft3d(vx_fft))
-        self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))
-        vx = self.state_phys.get_var('vx')
-        self.state_phys.set_var('vz', np.zeros_like(vx))
+        self.statephys_from_statespect()
+        self.statespect_from_statephys()
+
+    def init_from_vxvyvzfft(self, vx_fft, vy_fft, vz_fft):
+        self.state_spect.set_var('vx_fft', vx_fft)
+        self.state_spect.set_var('vy_fft', vy_fft)
+        self.state_spect.set_var('vz_fft', vz_fft)
+
+        self.statephys_from_statespect()
+        self.statespect_from_statephys()
