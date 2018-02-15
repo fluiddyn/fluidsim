@@ -265,7 +265,8 @@ def time_from_path(path):
 class MoviesBasePhysFields2D(MoviesBase2D):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  quiver_sep=None, INLET_ANIMATION=True, **kwargs):
         """Initialize list of files and times, pcolor plot, quiver and colorbar.
         """
         self._set_path()
@@ -289,11 +290,11 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             raise ValueError('dt_equations < dt_file / 4')
 
         field, ux, uy = self._ani_get_field(0)
-        self._ani_init_fig(field, ux, uy)
+        self._ani_init_fig(field, ux, uy, quiver_sep, INLET_ANIMATION)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
-    def _ani_init_fig(self, field, ux, uy, INLET_ANIMATION=True):
+    def _ani_init_fig(self, field, ux, uy, quiver_sep, INLET_ANIMATION):
 
         x, y = self._select_axis(shape=ux.shape)
         XX, YY = np.meshgrid(x, y)
@@ -301,7 +302,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_im = self._ani_ax.pcolor(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
         self._ani_quiver, vmax = self._quiver_plot(
-            self._ani_ax, ux, uy, XX, YY)
+            self._ani_ax, quiver_sep, ux, uy, XX, YY)
 
         if not self.sim.time_stepping.is_simul_completed():
             INLET_ANIMATION = False
@@ -339,7 +340,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                 linewidth=0.8, color='grey', alpha=0.4)
             self._ani_im_inlet = ax2.plot([0], [0], color='red')
 
-    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+    def _quiver_plot(self, ax, quiver_sep, vecx='ux', vecy='uy', XX=None, YY=None):
         '''Make a quiver plot on axis `ax`.'''
         pass
 
@@ -525,7 +526,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
     def plot(self, field=None, key_field=None, time=None,
              QUIVER=True, vecx='ux', vecy='uy',
              nb_contours=20, type_plot='contourf', iz=0, vmin=None, vmax=None,
-             cmap='viridis', numfig=None, frac_lx_arrows=0.04):
+             cmap='viridis', numfig=None, quiver_sep=None):
         """Plot a field.
 
         This function is surely buggy! It has to be fixed.
@@ -557,8 +558,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         numfig : None
 
-        frac_lx_arrows : 0.04
-          Separation of 4% of the Lx
+        quiver_sep : None
+          Percentage of Lx to compute separation arrows.
 
         """
 
@@ -637,7 +638,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             ax = None
 
         if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, frac_lx_arrows, vecx, vecy)
+            quiver, vmax = self._quiver_plot(ax, quiver_sep, vecx, vecy)
         else:
             vmax = None
 
@@ -650,14 +651,16 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             fig.canvas.draw()
             plt.pause(1e-3)
 
-    def _compute_skip_quiver(self, frac_lx_arrows):
+    def _compute_skip_quiver(self, quiver_sep):
         """
-        Computes the skip for the quiver. frac_lx_arrows is the 
+        Computes the skip for the quiver. quiver_sep is the 
         percentage of Lx for the arrows separation.
 
         """
-        # 4% of the Lx it is a great separation between vector arrows.
-        delta_quiver = frac_lx_arrows * self.oper.Lx
+        if quiver_sep is None:
+            # 4% of the Lx it is a great separation between vector arrows.
+            quiver_sep = 0.04
+        delta_quiver = quiver_sep * self.oper.Lx
         skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
         skip = int(np.round(skip))
         if skip < 1:
@@ -671,7 +674,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         else:
             return field_loc
 
-    def _quiver_plot(self, ax, frac_lx_arrows, vecx='ux', vecy='uy', XX=None, YY=None):
+    def _quiver_plot(self, ax, quiver_sep, vecx='ux', vecy='uy', XX=None,
+                     YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -682,7 +686,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         if isinstance(vecy, basestring):
             vecy = self._get_field_seq(vecy)
 
-        self._skip = skip = self._compute_skip_quiver(frac_lx_arrows)
+        self._skip = skip = self._compute_skip_quiver(quiver_sep)
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
