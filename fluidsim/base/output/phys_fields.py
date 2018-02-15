@@ -276,7 +276,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         if dt_equations is None:
             dt_equations = np.median(np.diff(self._ani_t_actual))
-            print('dt_equations = {:.4f}'.format(dt_equations))
 
         if tmax is None:
             tmax = self._ani_t_actual.max()
@@ -386,8 +385,8 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
         vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
-        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
-                                 uy[::self._skip, ::self._skip]/vmax)
+        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip],
+                                 uy[::self._skip, ::self._skip])
         self._ani_im.autoscale()
         self._ani_set_clim()
 
@@ -403,7 +402,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._set_title(self._ani_ax, self._ani_key, time, vmax)
 
     def _set_title(self, ax, key, time, vmax=None):
-        # print('time={}'.format(time))
         title = (key +
                  ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
@@ -527,7 +525,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
     def plot(self, field=None, key_field=None, time=None,
              QUIVER=True, vecx='ux', vecy='uy',
              nb_contours=20, type_plot='contourf', iz=0, vmin=None, vmax=None,
-             cmap='viridis', numfig=None):
+             cmap='viridis', numfig=None, frac_lx_arrows=0.04):
         """Plot a field.
 
         This function is surely buggy! It has to be fixed.
@@ -558,6 +556,9 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         cmap : 'viridis'
 
         numfig : None
+
+        frac_lx_arrows : 0.04
+          Separation of 4% of the Lx
 
         """
 
@@ -636,7 +637,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             ax = None
 
         if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
+            quiver, vmax = self._quiver_plot(ax, frac_lx_arrows, vecx, vecy)
         else:
             vmax = None
 
@@ -649,9 +650,14 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             fig.canvas.draw()
             plt.pause(1e-3)
 
-    def _compute_skip_quiver(self):
+    def _compute_skip_quiver(self, frac_lx_arrows):
+        """
+        Computes the skip for the quiver. frac_lx_arrows is the 
+        percentage of Lx for the arrows separation.
+
+        """
         # 4% of the Lx it is a great separation between vector arrows.
-        delta_quiver = 0.04 * self.oper.Lx
+        delta_quiver = frac_lx_arrows * self.oper.Lx
         skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
         skip = int(np.round(skip))
         if skip < 1:
@@ -665,7 +671,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         else:
             return field_loc
 
-    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+    def _quiver_plot(self, ax, frac_lx_arrows, vecx='ux', vecy='uy', XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -676,22 +682,20 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         if isinstance(vecy, basestring):
             vecy = self._get_field_seq(vecy)
 
-        self._skip = skip = self._compute_skip_quiver()
+        self._skip = skip = self._compute_skip_quiver(frac_lx_arrows)
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
 
         if mpi.rank == 0:
-            normalize_diff = (
-                np.max(np.sqrt(vecx**2 + vecy**2)) -
-                np.min(np.sqrt(vecx**2 + vecy**2))) / (np.max(
-                    np.sqrt(vecx**2 + vecy**2)))
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
             # copy to avoid a bug
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
+            # Scale quiver is found to be good 10*vmax of each field.
             quiver = ax.quiver(
                 XX[::skip, ::skip],
                 YY[::skip, ::skip],
-                vecx_c, vecy_c, scale=10*normalize_diff)
+                vecx_c, vecy_c, scale=10*vmax)
 
-        return quiver, np.max(np.sqrt(vecx**2 + vecy**2))
+        return quiver, vmax
