@@ -148,12 +148,10 @@ class StatePseudoSpectral(StateBase):
             raise ValueError('key "'+key+'" is not known')
 
     def statespect_from_statephys(self):
-        print('statespect_from_statephys')
         for ik in range(self.state_spect.nvar):
             self.oper.fft_as_arg(self.state_phys[ik], self.state_spect[ik])
 
     def statephys_from_statespect(self):
-        print('statephys_from_statespect')
         for ik in range(self.state_spect.nvar):
             self.oper.ifft_as_arg(self.state_spect[ik], self.state_phys[ik])
 
@@ -203,3 +201,33 @@ class StatePseudoSpectral(StateBase):
                 raise ValueError(
                     'Do not know how to initialize with key "{}".'.format(key))
             self.state_spect.set_var(key, value)
+
+    def init_statephys_from(self, **kwargs):
+        """Initialize `state_phys` from arrays.
+
+        Parameters
+        ----------
+
+        **kwargs : {key: array, ...}
+
+          keys and arrays used for the initialization. The other keys
+          are set to zero.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+           kwargs = {'a': Fa}
+           init_statespect_from(**kwargs)
+
+           init_statespect_from(ux=ux, uy=uy, eta=eta)
+
+        """
+        self.state_phys[:] = 0.
+
+        for key, value in list(kwargs.items()):
+            if key not in self.keys_state_phys:
+                raise ValueError(
+                    'Do not know how to initialize with key "{}".'.format(key))
+            self.state_phys.set_var(key, value)

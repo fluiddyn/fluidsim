@@ -183,7 +183,7 @@ if __name__ == "__main__":
     params.init_fields.noise.velo_max = 1.
     params.init_fields.noise.length = 1.
 
-    params.forcing.enable = False
+    # params.forcing.enable = False
     # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize

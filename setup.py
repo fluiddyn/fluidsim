@@ -206,7 +206,8 @@ if use_pythran:
 
 console_scripts = [
     'fluidsim = fluidsim.util.console.__main__:run',
-    'fluidsim-test = fluidsim.util.testing:run']
+    'fluidsim-test = fluidsim.util.testing:run',
+    'fluidsim-create-xml-description = fluidsim.base.output:run']
 
 for command in ['profile', 'bench', 'bench-analysis']:
     console_scripts.append(
