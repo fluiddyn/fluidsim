@@ -39,7 +39,7 @@ params.time_stepping.deltat0 = 0.02
 
 params.init_fields.type = 'in_script'
 
-params.FORCING = True
+params.forcing.enable = True
 params.forcing.type = 'in_script'
 params.forcing.nkmax_forcing = 10
 

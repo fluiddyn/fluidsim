@@ -37,7 +37,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ = self.sum_wavenumbers(f_d*2*enstrophy_fft)
         epsZ_hypo = self.sum_wavenumbers(f_d_hypo*2*enstrophy_fft)
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             Frot_fft = self.sim.forcing.get_forcing().get_var('rot_fft')
             Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
@@ -77,7 +77,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
          epsZ, epsZ_hypo, epsZ+epsZ_hypo)
             self.file.write(to_print)
 
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 PK_tot = PK1+PK2
                 to_print = (
 'PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n'
@@ -93,7 +93,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
             self.axe_a.plot(tsim, energy, 'k.')
 
             self.axe_b.plot(tsim, epsK_tot, 'k.')
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 self.axe_b.plot(tsim, PK_tot, 'm.')
 
             if (tsim-self.t_last_show >= self.period_show):
@@ -158,7 +158,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
             E[il] = float(words[2])
             Z[il] = float(words[6])
 
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 line = lines_PK[il]
                 words = line.split()
                 PK1[il] = float(words[2])
@@ -257,7 +257,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
         ax2.plot(t, epsZ_tot, 'k', linewidth=2)
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             PK_tot = dico_results['PK_tot']
             PZ_tot = dico_results['PZ_tot']
             ax1.plot(t, PK_tot, 'c', linewidth=2)

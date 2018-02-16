@@ -42,7 +42,8 @@ class ForcingBase(object):
         """
         params._set_child(
             'forcing',
-            attribs={'type': '',
+            attribs={'enable': False,
+                     'type': '',
                      'available_types': [],
                      'forcing_rate': 1.,
                      'key_forced': None})

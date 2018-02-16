@@ -89,7 +89,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 skew_eta, kurt_eta, skew_rot, kurt_rot)
             self.file.write(to_print)
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             self.treat_forcing()
 
         if mpi.rank == 0:

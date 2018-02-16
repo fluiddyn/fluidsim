@@ -83,6 +83,22 @@ class Parameters(ParamContainer):
         return self
 
 
+def fix_old_params(params):
+    """Fix old parameters with depreciated values."""
+    # params.FORCING -> params.forcing.enable (2018-02-16)
+    try:
+        params.FORCING
+    except AttributeError:
+        pass
+    else:
+        try:
+            params.forcing
+        except AttributeError:
+            pass
+        else:
+            params.forcing._set_attrib('enable', params.FORCING)
+
+
 def merge_params(to_params, *other_params):
     """Merges missing parameters attributes and children of a typical
     Simulation object's parameters when compared to other parameters.
@@ -104,7 +120,8 @@ def merge_params(to_params, *other_params):
         use_mpi = mpi.nb_proc > 1
         fluidfft = import_module('fluidfft.fft{}d'.format(dim))
         fluidfft_classes = (
-            fluidfft.get_classes_mpi() if use_mpi else fluidfft.get_classes_seq())
+            fluidfft.get_classes_mpi() if use_mpi else
+            fluidfft.get_classes_seq())
         for k, v in fluidfft_classes.items():
             if v is not None:
                 break

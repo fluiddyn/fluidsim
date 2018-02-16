@@ -19,7 +19,8 @@ class TestSW1L(BaseTestCase):
     def setUpClass(cls, init_fields='dipole'):
         nh = 32
         super(TestSW1L, cls).setUpClass(
-            nh=nh, init_fields=init_fields, HAS_TO_SAVE=True, FORCING=True)
+            nh=nh, init_fields=init_fields, HAS_TO_SAVE=True,
+            forcing_enable=True)
 
     def skipUnlessHasAttr(self, attr, reason=None):
         attr_names = attr.split('.')

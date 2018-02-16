@@ -27,7 +27,8 @@ from fluiddyn.util import mpi
 from fluidsim import path_dir_results, solvers
 
 from fluidsim.base.params import (
-    load_info_solver, load_params_simul, Parameters, merge_params)
+    load_info_solver, load_params_simul, Parameters, merge_params,
+    fix_old_params)
 
 
 def available_solver_keys():
@@ -163,6 +164,8 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     except AttributeError:
         pass
 
+    fix_old_params(params)
+
     if merge_missing_params:
         merge_params(params, solver.Simul.create_default_params())
 
@@ -202,6 +205,8 @@ def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True,
         params.preprocess.enable = False
     except AttributeError:
         pass
+
+    fix_old_params(params)
 
     if merge_missing_params:
         merge_params(params, solver.Simul.create_default_params())
@@ -321,7 +326,7 @@ class SetOfDirResults(object):
         self.dico_paths = {}
         self.dico_params = {}
 
-        keys_values = ['c', 'f', 'name_solver', 'FORCING', 'nh']
+        keys_values = ['c', 'f', 'name_solver', 'nh']
         self.dico_values = {}
         for k in keys_values:
             self.dico_values[k] = []
@@ -346,7 +351,7 @@ class SetOfDirResults(object):
                     raise ValueError('name_run != name_run2')
 
                 # old code that have to be modified...
-                params = Params(path_dir=path_dir, VERBOSE=False)
+                params = Parameters(path_dir=path_dir, VERBOSE=False)
                 self.dico_params[name_run] = params
 
                 params.add_a_param('name_solver', name_solver)
@@ -416,14 +421,6 @@ class SetOfDirResults(object):
         kdirs_corresp.sort(key=lambda key: self.dico_params[key][k_sort])
 
         return kdirs_corresp
-
-    def filter_old(self, solver=None, c2=None, f=None,
-                   FORCING=None, nh=None):
-        """Return a filtered SetOfDirResults."""
-        dirs = self.dirs_from_values(solver=solver, c2=c2, f=f,
-                                     FORCING=FORCING, nh=nh)
-        paths = [self.dico_paths[dir_i] for dir_i in dirs]
-        return SetOfDirResults(paths)
 
     def filter(self, **kwargs):
         """Return a filtered SetOfDirResults from conditions.

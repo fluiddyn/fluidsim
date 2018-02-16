@@ -12,7 +12,7 @@ from fluiddyn.io import stdout_redirected
 
 def run_mini_simul(
         key_solver, nh=16, init_fields='dipole', name_run='test',
-        type_forcing='waves', HAS_TO_SAVE=False, FORCING=False):
+        type_forcing='waves', HAS_TO_SAVE=False, forcing_enable=False):
 
     Simul = fluidsim.import_simul_class_from_key(key_solver)
 
@@ -44,8 +44,8 @@ def run_mini_simul(
         params.output.periods_save.spatial_means = 0.25
         params.output.periods_save.spect_energy_budg = 0.25
 
-    if FORCING:
-        params.FORCING = True
+    if forcing_enable:
+        params.forcing.enable = True
         params.forcing.type = type_forcing
         params.forcing.nkmin_forcing = 2
         params.forcing.nkmax_forcing = 4
@@ -64,7 +64,7 @@ def run_mini_simul(
 
 class TestSolver(unittest.TestCase):
     solver = 'NS2D'
-    options = {'HAS_TO_SAVE': False, 'FORCING': False}
+    options = {'HAS_TO_SAVE': False, 'forcing_enable': False}
     zero = 1e-15
 
     @classmethod
@@ -94,7 +94,7 @@ class TestSolver(unittest.TestCase):
         (advection term) must be zero.
 
         """
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
         state_spect = self.sim.state.state_spect
         oper = self.sim.oper
@@ -109,7 +109,7 @@ class TestSolver(unittest.TestCase):
 
 class TestNS2DStrat(TestSolver):
     solver = 'NS2D.strat'
-    options = {'HAS_TO_SAVE': False, 'FORCING': False}
+    options = {'HAS_TO_SAVE': False, 'forcing_enable': False}
 
     def test_enstrophy_conservation(self):
         # This solver does not solve for vertical component of vorticity
@@ -120,7 +120,7 @@ class TestNS2DStrat(TestSolver):
         (advection term) must be zero.
 
         """
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
         oper = self.sim.oper

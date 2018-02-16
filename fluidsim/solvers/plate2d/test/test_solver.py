@@ -38,7 +38,7 @@ class TestSolverPLATE2D(unittest.TestCase):
 
         params.init_fields.type = 'noise'
         params.output.HAS_TO_SAVE = False
-        params.FORCING = False
+        params.forcing.enable = False
 
         params.output.ONLINE_PLOT_OK = False
 
@@ -76,7 +76,7 @@ class TestSolverPLATE2D(unittest.TestCase):
         params.init_fields.type = 'noise'
         params.init_fields.noise.velo_max = 1e-6
 
-        params.FORCING = True
+        params.forcing.enable = True
         params.forcing.type = 'tcrandom'
         params.forcing.forcing_rate = 1e4
         params.forcing.nkmax_forcing = 5

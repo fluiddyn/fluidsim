@@ -165,7 +165,7 @@ class Simul(SimulBasePseudoSpectral):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot))))
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'dipole'
 
-    params.FORCING = False
+    params.forcing.enable = False
     params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize

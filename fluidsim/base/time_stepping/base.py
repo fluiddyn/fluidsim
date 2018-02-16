@@ -151,7 +151,7 @@ class TimeSteppingBase(object):
         """Main time stepping function."""
         if self.params.time_stepping.USE_CFL:
             self._compute_time_increment_CLF()
-        if self.params.FORCING:
+        if self.sim.is_forcing_enabled:
             self.sim.forcing.compute()
         self.sim.output.one_time_step()
         self.one_time_step_computation()

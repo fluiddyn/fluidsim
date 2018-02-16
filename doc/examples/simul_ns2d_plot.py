@@ -16,7 +16,7 @@ params.time_stepping.t_end = 10.
 
 params.init_fields.type = 'dipole'
 
-params.FORCING = True
+params.forcing.enable = True
 params.forcing.type = 'tcrandom'
 
 params.output.sub_directory = 'examples'

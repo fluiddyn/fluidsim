@@ -161,7 +161,7 @@ class Simul(SimulNS2D):
         #     self.oper.sum_wavenumbers(T_b),
         #     self.oper.sum_wavenumbers(abs(T_b))))
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         # CHECK ENERGY CONSERVATION
@@ -241,7 +241,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'noise'
 
-    params.FORCING = True
+    params.forcing.enable = True
     # params.forcing.type = 'tcrandom_anisotropic'
     params.forcing.type = 'user_defined'
 
