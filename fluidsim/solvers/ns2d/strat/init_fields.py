@@ -85,8 +85,8 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
 
         # if NO_SHEAR_MODES --> No energy in shear modes!
         if self.sim.params.NO_SHEAR_MODES:
-            ux_fft[0, :] = 0
-            uy_fft[0, :] = 0
+            ux_fft[:, 0] = 0
+            uy_fft[:, 0] = 0
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         return rot_fft, ux_fft, uy_fft
