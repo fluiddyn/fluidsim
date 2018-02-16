@@ -36,8 +36,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if mpi.nb_proc > 1:
             energy_shear = np.NaN
         else:
-            energy_shear = np.sum(
-                energy_fft[:, -1]) + 2*np.sum(energy_fft[:, 1:-1])
+            energy_shear = np.sum(energy_fft[:, 0])
+
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
