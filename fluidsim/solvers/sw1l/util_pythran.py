@@ -1,16 +1,13 @@
 
 # pythran export compute_Frot(
 #     float64[][], float64[][], float64[][],
-#     float or int, float or int, float64[][])
-def compute_Frot(rot, ux, uy, f, beta, YY):
+#     float or int)
+def compute_Frot(rot, ux, uy, f):
     """Compute cross-product of absolute potential vorticity with velocity."""
     if f != 0:
         rot_abs = rot + f
     else:
         rot_abs = rot
-
-    if beta != 0:
-        rot_abs += beta * YY
 
     F1x = rot_abs * uy
     F1y = -rot_abs * ux

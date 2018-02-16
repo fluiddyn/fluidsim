@@ -83,7 +83,7 @@ class TestSolverNS2D(unittest.TestCase):
         params.time_stepping.t_end = 0.5
 
         params.init_fields.type = 'noise'
-        params.FORCING = True
+        params.forcing.enable = True
         params.forcing.type = 'tcrandom'
 
         # save all outputs!

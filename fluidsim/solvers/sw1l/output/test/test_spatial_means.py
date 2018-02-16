@@ -20,7 +20,8 @@ class TestSpatialMeansForced(TestSpatialMeans):
 
     @classmethod
     def setUpClass(cls):
-        cls.sim = run_mini_simul(cls.solver, HAS_TO_SAVE=True, FORCING=True)
+        cls.sim = run_mini_simul(cls.solver, HAS_TO_SAVE=True,
+                                 forcing_enable=True)
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
         cls.dico = module.load()

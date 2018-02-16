@@ -76,7 +76,7 @@ class Simul(SimulBase):
             like=self.state.state_phys,
             info='tendencies', value=0.)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies += self.forcing.tendencies
 
         return tendencies

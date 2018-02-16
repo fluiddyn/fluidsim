@@ -86,7 +86,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             self.deltat_group_vel = self.coef_group / freq_group
             self.deltat_phase_vel = self.coef_phase / freq_phase
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             self.deltat_f = self._compute_time_increment_forcing()
 
     def _compute_time_increment_forcing(self):
@@ -151,7 +151,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             self.deltat_group_vel, self.deltat_phase_vel,
             self.deltat_max)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             maybe_new_dt = min(maybe_new_dt, self.deltat_f)
 
         normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt

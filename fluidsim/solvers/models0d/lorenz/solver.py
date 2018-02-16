@@ -126,7 +126,7 @@ class Simul(SimulBase):
         tendencies.set_var('Y', p.rho * X - Y - X * Z)
         tendencies.set_var('Z', X*Y - p.beta * Z)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies += self.forcing.get_forcing()
 
         return tendencies

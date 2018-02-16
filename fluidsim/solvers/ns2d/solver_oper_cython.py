@@ -45,7 +45,7 @@ class Simul(_Simul):
 
         .. |p| mathmacro:: \partial
 
-        The 2D Navier-Stockes equation can be written
+        The 2D Navier-Stokes equation can be written
 
         .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \zeta,
 
@@ -89,7 +89,7 @@ class Simul(_Simul):
         tendencies_fft = SetOfVariables(like=self.state.state_spect)
         tendencies_fft.set_var('rot_fft', Frot_fft)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft

@@ -29,7 +29,7 @@ params.time_stepping.t_end = 10.
 
 params.init_fields.type = 'noise'
 
-params.FORCING = True
+params.forcing.enable = True
 params.forcing.type = 'in_script'
 params.forcing.nkmax_forcing = 12
 

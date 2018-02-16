@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'noise'
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.type = 'Random'
     # 'Proportional'
     # params.forcing.type_normalize

@@ -200,7 +200,7 @@ class Simul(SimulBasePseudoSpectral):
         #     tendencies_fft, w_fft, z_fft, chi_fft)
         # print('ratio:', ratio)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     params.init_fields.noise.velo_max = 1e-6
     # params.init_fields.path_file = ''
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.type = 'random'
     params.forcing.forcing_rate = 1e12
     params.forcing.nkmax_forcing = 5

@@ -60,7 +60,6 @@ class SimulBase(object):
         attribs = {'short_name_type_run': '',
                    'NEW_DIR_RESULTS': True,
                    'ONLY_COARSE_OPER': False,
-                   'FORCING': False,
                    # Physical parameters:
                    'nu_2': 0.}
         params._set_attribs(attribs)
@@ -139,10 +138,17 @@ class SimulBase(object):
             self.time_stepping._compute_time_increment_CLF()
 
         # initialisation forcing
-        if params.FORCING:
-            Forcing = dict_classes['Forcing']
-            self.forcing = Forcing(self)
-            self.forcing.compute()
+        self.is_forcing_enabled = False
+        try:
+            params.forcing
+        except AttributeError:
+            pass
+        else:
+            if params.forcing.enable:
+                self.is_forcing_enabled = True
+                Forcing = dict_classes['Forcing']
+                self.forcing = Forcing(self)
+                self.forcing.compute()
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()

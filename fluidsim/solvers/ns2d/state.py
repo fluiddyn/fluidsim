@@ -115,6 +115,10 @@ class StateNS2D(StatePseudoSpectral):
         self.statephys_from_statespect()
 
     def init_statespect_from(self, **kwargs):
+        """Initializes *state_spect* using arrays provided as keyword
+        arguments.
+
+        """
         if len(kwargs) == 1:
             if 'rot_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])

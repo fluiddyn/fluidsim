@@ -23,7 +23,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
         super(PreprocessPseudoSpectral, self).__call__()
         if self.params.enable:
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 if 'forcing' in self.params.init_field_scale:
                     self.set_forcing_rate()
                     self.normalize_init_fields()
