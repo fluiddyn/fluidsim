@@ -32,9 +32,12 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         energy_fft = self.output.compute_energy_fft()
         energy = self.sum_wavenumbers(energy_fft)
 
-        # Compute energy of the shear modes
-        energy_shear = energy_fft[0, :].sum()
-
+        # Compute energy of the shear modes. (Not implemented in MPI)
+        if mpi.nb_proc > 1:
+            energy_shear = np.NaN
+        else:
+            energy_shear = np.sum(
+                energy_fft[:, -1]) + 2*np.sum(energy_fft[:, 1:-1])
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
@@ -125,7 +128,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         lines_t = []
         lines_E = []
-        lines_E_shear = []
         lines_PK = []
         lines_PZ = []
         lines_epsK = []
@@ -137,8 +139,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 lines_t.append(line)
             if line.startswith('E    ='):
                 lines_E.append(line)
-            if line.startswith('E_shear    ='):
-                lines_E_shear.append(line)
             if line.startswith('PK1  ='):
                 lines_PK.append(line)
             if line.startswith('PZ1  ='):
@@ -183,9 +183,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             words = line.split()
             E[il] = float(words[2])
             Z[il] = float(words[6])
-
-            if 'E_shear' in lines[2]:
-                E_shear[il] = float(words[10])
+            E_shear[il] = float(words[10])
 
             if self.sim.params.FORCING:
                 line = lines_PK[il]
@@ -221,9 +219,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         dico_results['t'] = t
         dico_results['E'] = E
         dico_results['Z'] = Z
-
-        if 'E_shear' in lines[2]:
-            dico_results['E_shear'] = E_shear
+        dico_results['E_shear'] = E_shear
 
         dico_results['PK1'] = PK1
         dico_results['PK2'] = PK2
