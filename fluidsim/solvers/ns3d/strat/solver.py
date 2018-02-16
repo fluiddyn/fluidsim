@@ -16,9 +16,6 @@ from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D)
-
 from ..solver import InfoSolverNS3D, Simul as SimulNS3D
 
 
@@ -146,7 +143,7 @@ class Simul(SimulNS3D):
         tendencies_fft.set_var('vz_fft', Fvz_fft)
         tendencies_fft.set_var('b_fft', Fb_fft)
 
-        if self.params.FORCING:
+        if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -186,7 +183,7 @@ if __name__ == "__main__":
     params.init_fields.noise.velo_max = 1.
     params.init_fields.noise.length = 1.
 
-    params.FORCING = False
+    params.forcing.enable = False
     # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize

@@ -108,7 +108,7 @@ def modif_params2d(
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.type = 'tcrandom'
     params.forcing.nkmax_forcing = 6
     params.forcing.nkmin_forcing = 3
@@ -176,7 +176,7 @@ def modif_params3d(
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
-    # params.FORCING = False
+    # params.forcing.enable = False
     # params.forcing.type = 'tcrandom'
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4

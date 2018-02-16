@@ -145,7 +145,7 @@ class Simul(SimulBasePseudoSpectral):
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             # this is WRONG
             forcing_fft = self.forcing.get_forcing()
             forcing_w_fft = forcing_fft
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='
     #     '2pix2pi_256x256_2015-03-04_22-36-37/state_phys_t=000.100.hd5')
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.forcing_rate = 100.
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4

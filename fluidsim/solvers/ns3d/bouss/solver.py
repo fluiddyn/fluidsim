@@ -124,12 +124,12 @@ class Simul(SimulStrat):
             vz = ifft3d(vz_fft)
             b = ifft3d(b_fft)
 
-        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)        
+        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)
         Fvx_fft, Fvy_fft, Fvz_fft = -Fvx_fft, -Fvy_fft, -Fvz_fft
         Fvz_fft += b_fft
 
         Fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b)
-        
+
         oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
 
         tendencies_fft = SetOfVariables(
@@ -141,7 +141,7 @@ class Simul(SimulStrat):
         tendencies_fft.set_var('vz_fft', Fvz_fft)
         tendencies_fft.set_var('b_fft', Fb_fft)
 
-        if self.params.FORCING:
+        if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'in_script'
 
-    params.FORCING = False
+    params.forcing.enable = False
     # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize

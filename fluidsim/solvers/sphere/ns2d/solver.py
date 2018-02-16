@@ -115,7 +115,7 @@ class SimulSphereNS2D(SimulSphericalHarmo):
               ).format(self.oper.sum_wavenumbers(T_rot),
                        self.oper.sum_wavenumbers(abs(T_rot))))
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_sh += self.forcing.get_forcing()
 
         return tendencies_sh

@@ -89,7 +89,7 @@ class Simul(_Simul):
         tendencies_fft = SetOfVariables(like=self.state.state_spect)
         tendencies_fft.set_var('rot_fft', Frot_fft)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft

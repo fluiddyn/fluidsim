@@ -6,11 +6,11 @@ from fluidsim.solvers.test.test_ns import TestSolver
 
 class TestSW1L(TestSolver):
     solver = 'SW1L'
-    options = {'HAS_TO_SAVE': True, 'FORCING': True}
+    options = {'HAS_TO_SAVE': True, 'forcing_enable': True}
     zero = 1e-7
 
     def _get_tendencies(self):
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
         Fx_fft = tendencies_fft.get_var('ux_fft')
@@ -26,7 +26,7 @@ class TestSW1L(TestSolver):
         .. FIXME: Improve this test
 
         """
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
         state_spect = self.sim.state.state_spect
@@ -71,10 +71,10 @@ class TestSW1L(TestSolver):
 
 class TestSW1LExactLin(TestSW1L):
     solver = 'SW1L.exactlin'
-    options = {'HAS_TO_SAVE': True, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'forcing_enable': False}
 
     def _get_tendencies(self):
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
         Fap_fft = tendencies_fft.get_var('ap_fft')
@@ -89,7 +89,7 @@ class TestSW1LExactLin(TestSW1L):
 
 class TestSW1LOnlyWaves(TestSW1LExactLin):
     solver = 'SW1L.onlywaves'
-    options = {'HAS_TO_SAVE': True, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'forcing_enable': False}
 
     def test_enstrophy_conservation(self):
         # This solver does not update potential vorticity
@@ -98,7 +98,7 @@ class TestSW1LOnlyWaves(TestSW1LExactLin):
 
 class TestSW1LModify(TestSW1L):
     solver = 'SW1L.modified'
-    options = {'HAS_TO_SAVE': True, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'forcing_enable': False}
 
     def test_enstrophy_conservation(self):
         # Theoretically not expected to conserve quadratic potential enstrophy
@@ -147,10 +147,10 @@ class TestSW1LModify(TestSW1L):
 
 class TestSW1LExmod(TestSW1LModify):
     solver = 'SW1L.exactlin.modified'
-    options = {'HAS_TO_SAVE': True, 'FORCING': False}
+    options = {'HAS_TO_SAVE': True, 'forcing_enable': False}
 
     def _get_tendencies(self):
-        self.sim.params.FORCING = False
+        self.sim.params.forcing.enable = False
         tendencies_fft = self.sim.tendencies_nonlin()
 
         Fq_fft = tendencies_fft.get_var('q_fft')

@@ -204,7 +204,7 @@ class Simul(SimulBasePseudoSpectral):
 
         oper.dealiasing(tendencies_fft)
 
-        if self.params.FORCING:
+        if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
     params.init_fields.type = 'noise'
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.type = 'waves'
 
     params.output.periods_print.print_stdout = 0.25

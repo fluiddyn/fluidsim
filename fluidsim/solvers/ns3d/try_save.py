@@ -34,7 +34,7 @@ params.init_fields.type = 'dipole'
 #params.init_fields.type = 'from_file'
 #params.init_fields.from_file.path = '/home/users/bonamy2c/Sim_data/ns3d_test_L=2pix2pix2pi_64x64x64_2016-07-27_16-45-23/state_phys_t=006.006.hd5' 
 
-params.FORCING = False
+params.forcing.enable = False
 # params.forcing.type = 'random'
 # 'Proportional'
 # params.forcing.type_normalize

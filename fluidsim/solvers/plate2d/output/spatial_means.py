@@ -78,7 +78,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         # assert that z is not dissipated
         assert not (f_d[1].any() and f_d_hypo[1].any())
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             state_spect = self.sim.state.state_spect
             w_fft = state_spect.get_var('w_fft')
@@ -114,7 +114,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
             self.file.write(to_print)
 
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 to_print = (
                     'P1 = {:11.6e} ; P2 = {:11.6e} ; P_tot = {:11.6e} \n'
                 ).format(P1, P2, P1+P2)
@@ -133,7 +133,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             self.axe_b.plot(tsim, epsK_tot, 'k.')
             self.axe_b.plot(tsim, conversion_k_to_l, 'c.')
             self.axe_b.plot(tsim, conversion_l_to_e, 'g.')
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 self.axe_b.plot(tsim, P1+P2, 'm.')
 
             if (tsim-self.t_last_show >= self.period_show):
@@ -172,7 +172,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         E_l = np.empty(nt)
         E_e = np.empty(nt)
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             P1 = np.empty(nt)
             P2 = np.empty(nt)
             P_tot = np.empty(nt)
@@ -193,7 +193,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             E_l[il] = float(words[10])
             E_e[il] = float(words[14])
 
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
 
                 line = lines_P[il]
                 words = line.split()
@@ -213,7 +213,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         dico_results['E_l'] = E_l
         dico_results['E_e'] = E_e
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             dico_results['P1'] = P1
             dico_results['P2'] = P2
             dico_results['P_tot'] = P_tot
@@ -270,7 +270,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.plot(t, epsK_hypo, 'k:', linewidth=2)
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
 
-        if self.sim.params.FORCING:
+        if self.sim.params.forcing.enable:
             P_tot = dico_results['P_tot']
             ax1.plot(t, P_tot, 'm', linewidth=2)
 
@@ -278,7 +278,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             ax1.plot(t, dtE, 'b', linewidth=2)
 
             should_be_zeros = dtE+epsK_tot
-            if self.sim.params.FORCING:
+            if self.sim.params.forcing.enable:
                 should_be_zeros -= P_tot
 
             ax1.plot(t, should_be_zeros, 'g', linewidth=2)

@@ -23,7 +23,7 @@ class BaseTestCase(unittest.TestCase):
         if len(kwargs) == 0:
             cls.sim = run_mini_simul(
                 cls.solver, nh=16, name_run=name_run, HAS_TO_SAVE=True,
-                FORCING=True)
+                forcing_enable=True)
         else:
             cls.sim = run_mini_simul(
                 cls.solver, name_run=name_run, **kwargs)
