@@ -20,6 +20,11 @@ from fluidsim.base.forcing.specific import (
 
 
 class ForcingSW1L(ForcingBasePseudoSpectral):
+    """Forcing class for the sw1l solver.
+
+    .. inheritance-diagram:: ForcingSW1L
+
+    """
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.
@@ -32,6 +37,10 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
 
 
 class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
+    """Forces the geostrophic variable (by default) while maintaining a
+    correlation for a certain time interval.
+
+    """
     _key_forced_default = 'q_fft'
 
 
@@ -40,6 +49,10 @@ class Proportional(ProportionalBase):
 
 
 class Waves(RandomSimplePseudoSpectral):
+    """Forces the ageostrophic variable and normalizes the forcing power based
+    on the K.E and A.P.E thus generated. The forcing is white noise in time.
+
+    """
     tag = 'waves'
     _key_forced_default = 'a_fft'
 
@@ -50,7 +63,7 @@ class Waves(RandomSimplePseudoSpectral):
         params.forcing[cls.tag]._set_attrib('coef_normalize_strategy', 'first')
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
-        """Normalize the forcing Fa_fft such as the forcing rate of
+        """Normalize the forcing Fa_fft such that the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
         oper_c = self.oper_coarse
         params = self.params
@@ -120,6 +133,10 @@ class Waves(RandomSimplePseudoSpectral):
 
 
 class WavesVortices(Waves):
+    """Forces both the geostrophic and ageostrophic variable equally and
+    normalizes the forcing rate based on the K.E and A.P.E thus generated.
+
+    """
     tag = 'waves_vortices'
     _key_forced_default = ('q_fft', 'a_fft')
 
@@ -196,6 +213,7 @@ class WavesVortices(Waves):
 
 
 class Potential(Waves):
+    """Forces only in A.P.E. and normalize for the desired forcing rate."""
     tag = 'potential'
     _key_forced_default = 'eta_fft'
 

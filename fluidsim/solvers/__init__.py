@@ -1,8 +1,8 @@
-"""
+""" Solvers for a variety of physical problems
+==============================================
+
 .. _solvers-section:
 
-Solvers
-=======
 
 Base package containing the source code of the particular solvers.  It
 provides the following solver packages:

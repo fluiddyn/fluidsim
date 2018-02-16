@@ -1,5 +1,10 @@
-"""
-The module :mod:`stateSW1L` supplies the class :class:`StateSW1L`.
+"""State for the SW1L solver (:mod:`fluidsim.solvers.sw1l.state`)
+=================================================================
+
+.. autoclass:: StateSW1L
+   :members:
+   :private-members:
+
 """
 from __future__ import division
 from __future__ import print_function
@@ -14,8 +19,12 @@ from fluiddyn.util import mpi
 
 
 class StateSW1L(StatePseudoSpectral):
-    """Contains the variables corresponding to the state and handles the
+    """State for the solver sw1l.
+
+    Contains the variables corresponding to the state and handles the
     access to other fields for the solver SW1L.
+
+    .. inheritance-diagram:: StateSW1L
 
     """
 
@@ -33,6 +42,7 @@ class StateSW1L(StatePseudoSpectral):
             'keys_linear_eigenmodes': ['q_fft', 'a_fft', 'd_fft']})
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
+        """Compute and return a variable."""
         it = self.sim.time_stepping.it
         if (key in self.vars_computed and it == self.it_computed[key]):
             return self.vars_computed[key]
@@ -164,6 +174,10 @@ class StateSW1L(StatePseudoSpectral):
         return state_phys
 
     def init_statespect_from(self, **kwargs):
+        """Initializes *state_spect* using arrays provided as keyword
+        arguments.
+
+        """
         if len(kwargs) == 1:
             key_fft, value = list(kwargs.items())[0]
             try:
@@ -179,6 +193,7 @@ class StateSW1L(StatePseudoSpectral):
             super(StateSW1L, self).init_statespect_from(**kwargs)
 
     def init_from_etafft(self, eta_fft):
+        r"""Initialize from :math:`\hat \eta` and set velocities to zero."""
         state_spect = self.state_spect
         state_spect.set_var('ux_fft', np.zeros_like(eta_fft))
         state_spect.set_var('uy_fft', np.zeros_like(eta_fft))
@@ -188,6 +203,7 @@ class StateSW1L(StatePseudoSpectral):
         self.statephys_from_statespect()
 
     def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
+        """Self explanatory."""
         state_spect = self.state_spect
         state_spect.set_var('ux_fft', ux_fft)
         state_spect.set_var('uy_fft', uy_fft)
@@ -197,23 +213,28 @@ class StateSW1L(StatePseudoSpectral):
         self.statephys_from_statespect()
 
     def init_from_rotuxuyfft(self, rot, ux_fft, uy_fft):
+        """Initializes from velocities and discards vorticity."""
         self.init_from_uxuyfft(ux_fft, uy_fft)
 
     def init_from_rotfft(self, rot_fft):
+        """Initializes with rotational velocities computed from vorticity."""
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         self.init_from_uxuyfft(ux_fft, uy_fft)
 
     def init_from_qfft(self, q_fft):
+        """Initialize from potential vorticity."""
         rot_fft = self.oper.rotfft_from_qfft(q_fft)
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         eta_fft = self.oper.etafft_from_qfft(q_fft)
         self.init_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
     def init_from_afft(self, a_fft):
+        """Initialize from ageostrophic variable."""
         ux_fft, uy_fft, eta_fft = self.oper.uxuyetafft_from_afft(a_fft)
         self.init_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
     def init_from_qafft(self, q_fft, a_fft):
+        """Initialize from potential vorticity and ageostrophic variables."""
         rot_fft = self.oper.rotfft_from_qfft(q_fft)
         uxq_fft, uyq_fft = self.oper.vecfft_from_rotfft(rot_fft)
         etaq_fft = self.oper.etafft_from_qfft(q_fft)
@@ -222,6 +243,10 @@ class StateSW1L(StatePseudoSpectral):
         self.init_from_uxuyetafft(uxq_fft + uxa_fft, uyq_fft + uxa_fft, etaq_fft + etaa_fft)
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
+        """Initialize from velocities and adjust surface displacement by solving
+        a Poisson equation, assuming no mean flow.
+
+        """
         oper = self.oper
         ifft2 = oper.ifft2
 

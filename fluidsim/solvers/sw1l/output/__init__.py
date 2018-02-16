@@ -28,7 +28,8 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
+        """Complete the ParamContainer *info_solver* with child classes to be
+        instantiated under *sim.output*.
 
         This is a static method!
         """
@@ -88,62 +89,81 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     def linear_eigenmode_from_values_1k(self, ux_fft, uy_fft, eta_fft,
                                         kx, ky):
+        """Compute the linear eigenmodes for a single wavenumber."""
         return linear_eigenmode_from_values_1k(
             ux_fft, uy_fft, eta_fft, kx, ky, self.sim.params.f,
             self.sim.params.c2)
 
     def omega_from_wavenumber(self, k):
+        r"""Evaluates the dispersion relation and returns the linear frequency
+
+        .. math:: \omega = \sqrt{f ^ 2 + (ck)^2}
+
+        """
         return np.sqrt(self.sim.params.f**2 + self.sim.params.c2*k**2)
 
     def compute_enstrophy_fft(self):
+        r"""Calculate enstrophy from vorticity in the spectral space."""
         rot_fft = self.sim.state('rot_fft')
-        return old_div(np.abs(rot_fft)**2,2)
+        return np.abs(rot_fft)**2 / 2.
 
     def compute_PV_fft(self):
-        """Compute Ertel and Charney (QG) potential vorticity."""
+        r"""Compute Ertel and Charney (QG) potential vorticity.
+
+        .. math:: \zeta_{er} = \frac{f + \zeta}{1 + \eta}
+        .. math:: \zeta_{ch} = \zeta - f \eta
+
+        """
         rot = self.sim.state('rot')
         eta = self.sim.state.state_phys.get_var('eta')
-        ErtelPV_fft = self.oper.fft2(old_div((self.sim.params.f+rot),(1.+eta)))
+        ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1. + eta))
         rot_fft = self.sim.state('rot_fft')
         eta_fft = self.sim.state('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
         return ErtelPV_fft, CharneyPV_fft
 
     def compute_PE_fft(self):
+        """Compute Ertel and Charney (QG) potential enstrophy."""
         ErtelPV_fft, CharneyPV_fft = self.compute_PV_fft()
-        return (old_div(abs(ErtelPV_fft)**2,2),
-                old_div(abs(CharneyPV_fft)**2,2))
+        return (abs(ErtelPV_fft)**2 / 2., abs(CharneyPV_fft)**2 / 2.)
 
     def compute_CharneyPE_fft(self):
-        # compute Charney (QG) potential vorticity
+        """Compute Charney (QG) potential enstrophy."""
         rot_fft = self.sim.state('rot_fft')
         eta_fft = self.sim.state('eta_fft')
-        CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
-        return old_div(abs(CharneyPV_fft)**2,2)
+        CharneyPV_fft = rot_fft - self.sim.params.f * eta_fft
+        return abs(CharneyPV_fft)**2 / 2.
 
     def compute_energies(self):
+        """Compute kinetic, available potential and rotational kinetic energies."""
         energyK_fft, energyA_fft, energyKr_fft = self.compute_energies_fft()
         return (self.sum_wavenumbers(energyK_fft),
                 self.sum_wavenumbers(energyA_fft),
                 self.sum_wavenumbers(energyKr_fft))
 
     def compute_energiesKA(self):
+        """Compute K.E. and A.P.E."""
         energyK_fft, energyA_fft = self.compute_energiesKA_fft()
         return (self.sum_wavenumbers(energyK_fft),
                 self.sum_wavenumbers(energyA_fft))
 
     def compute_energy(self):
+        """Compute total energy by summing K.E. and A.P.E."""
         energyK_fft, energyA_fft = self.compute_energiesKA_fft()
         return (self.sum_wavenumbers(energyK_fft) +
                 self.sum_wavenumbers(energyA_fft))
 
     def compute_enstrophy(self):
+        """Compute total enstrophy."""
         enstrophy_fft = self.compute_enstrophy_fft()
         return self.sum_wavenumbers(enstrophy_fft)
 
     def compute_lin_energies_fft(self):
-        """Compute quadratic energies."""
+        r"""Compute quadratic energies decomposed into contributions from
+        potential vorticity (:math:`q`), divergence (:math:`\nabla.\mathbf u`),
+        and ageostrophic variable (:math:`a`).
 
+        """
         ux_fft = self.sim.state('ux_fft')
         uy_fft = self.sim.state('uy_fft')
         eta_fft = self.sim.state('eta_fft')
@@ -168,6 +188,14 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 class OutputSW1L(OutputBaseSW1L):
 
     def compute_energies_fft(self):
+        r"""Compute kinetic, available potential and rotational kinetic energies
+        in the spectral space.
+
+        .. math:: E_K = (h \mathbf u).\mathbf u / 2
+        .. math:: E_A = c^2 \eta^2) / 2
+        .. math:: E_{K,r} = (h \mathbf u_r).\mathbf u_r / 2
+
+        """
         state = self.sim.state
         eta_fft = state('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
@@ -187,6 +215,7 @@ class OutputSW1L(OutputBaseSW1L):
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
+        """Compute K.E. and A.P.E in the spectral space."""
         state = self.sim.state
         eta_fft = state('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
