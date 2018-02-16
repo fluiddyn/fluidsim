@@ -32,9 +32,9 @@ We have created fluidsim to be **easy and nice to use and to develop**,
 **efficient** and **robust**.
 
 Fluidsim is a young package but the list of solvers already implemented (see
-:ref:`solvers-section`) gives a good idea of the versatility of
-fluidsim. However, fluidsim excels in solving equations over a two-dimensional
-periodic space:
+:ref:`solvers-section`) gives a good idea of the versatility of this framework.
+However, currently, fluidsim excels in particular in solving equations over a
+two-dimensional periodic space:
 
   * Incompressible Navier-Stokes equations,
 

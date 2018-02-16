@@ -315,10 +315,16 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ANI_INLET_ANIMATION = INLET_ANIMATION
 
         if self._ANI_INLET_ANIMATION:
+            try:
+                self._ani_spatial_means_t, self._ani_spatial_means_key = (
+                    self._get_spatial_means())
+            except FileNotFoundError:
+                print('No spatial means file => no inlet plot.')
+                self._ANI_INLET_ANIMATION = False
+                return
+
             left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
             ax2 = self._ani_fig.add_axes([left, bottom, width, height])
-            self._ani_spatial_means_t, self._ani_spatial_means_key = (
-                self._get_spatial_means())
 
             ax2.set_xlabel('t', labelpad=0.1)
             ax2.set_ylabel('E', labelpad=0.1)

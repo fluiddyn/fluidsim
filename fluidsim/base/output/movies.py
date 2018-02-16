@@ -239,7 +239,7 @@ class MoviesBase(object):
                 blit=False, repeat=repeat)
 
         if save_file:
-            if isinstance(save_file, bool):
+            if not isinstance(save_file, str):
                 save_file = r'~/fluidsim_movie.mp4'
 
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
