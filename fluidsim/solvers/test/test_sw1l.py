@@ -38,7 +38,7 @@ class TestSW1L(TestSolver):
             Fx_fft, Fy_fft, Feta_fft = self._get_tendencies()
             Fq_fft, Fap_fft, Fam_fft = oper.qapamfft_from_uxuyetafft(
                 Fx_fft, Fy_fft, Feta_fft)
-            q_fft = self.sim.state('q_fft')
+            q_fft = self.sim.state.get_var('q_fft')
 
         T_q = (Fq_fft.conj() * q_fft +
                Fq_fft * q_fft.conj()).real / 2.
@@ -132,9 +132,9 @@ class TestSW1LModify(TestSW1L):
         """
         Fx_fft, Fy_fft, Feta_fft = self._get_tendencies()
         state = self.sim.state
-        ux_fft = state('ux_fft')
-        uy_fft = state('uy_fft')
-        eta_fft = state('eta_fft')
+        ux_fft = state.get_var('ux_fft')
+        uy_fft = state.get_var('uy_fft')
+        eta_fft = state.get_var('eta_fft')
 
         oper = self.sim.oper
         T_ux = (ux_fft.conj() * Fx_fft).real

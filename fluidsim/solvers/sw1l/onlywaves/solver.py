@@ -53,7 +53,8 @@ class Simul(SimulSW1LExactLin):
             state_phys = self.state.state_phys
             state_spect = self.state.state_spect
         else:
-            state_phys = self.state.return_statephys_from_statespect(state_spect)
+            state_phys = self.state.return_statephys_from_statespect(
+                state_spect)
 
         ux = state_phys.get_var('ux')
         uy = state_phys.get_var('uy')
@@ -67,8 +68,8 @@ class Simul(SimulSW1LExactLin):
         Ny_fft = - gradu2_y_fft
 
         if self.params.f > 0:
-            # this is not very efficient, but this is simple...
-            rot = self.state('rot')
+            # not very efficient, but simple...
+            rot = self.state.get_var('rot')
             N1x = +rot*uy
             N1y = -rot*ux
 

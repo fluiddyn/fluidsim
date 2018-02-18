@@ -66,9 +66,10 @@ class TestSW1L(BaseTestCase):
             self.solver + " does not use normal mode spect_energy_budg")
 
         c2 = sim.params.c2
-        ux_fft = sim.state('ux_fft')
-        uy_fft = sim.state('uy_fft')
-        eta_fft = sim.state('eta_fft')
+        get_var = sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         b0_fft = module.norm_mode.bvec_fft[0]
         bp_fft = module.norm_mode.bvec_fft[1]
         bm_fft = module.norm_mode.bvec_fft[2]
@@ -79,7 +80,8 @@ class TestSW1L(BaseTestCase):
         energy_BB = (inner_prod(b0_fft, b0_fft) +
                      inner_prod(bp_fft, bp_fft) +
                      inner_prod(bm_fft, bm_fft))
-        np.testing.assert_allclose(energy_BB, energy_UU, rtol=1e-14, atol=1e-15)
+        np.testing.assert_allclose(
+            energy_BB, energy_UU, rtol=1e-14, atol=1e-15)
 
     def test_decompositions(self):
         """Check normal mode decompositions."""
@@ -89,9 +91,10 @@ class TestSW1L(BaseTestCase):
             'output.spect_energy_budg.norm_mode',
             self.solver + " does not use normal mode spect_energy_budg")
 
-        ux_fft = sim.state('ux_fft')
-        uy_fft = sim.state('uy_fft')
-        eta_fft = sim.state('eta_fft')
+        get_var = sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         py_ux_fft = 1j * sim.oper.KY * ux_fft
         module.norm_mode.bvec_fft = module.norm_mode.bvecfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft)
@@ -130,16 +133,19 @@ class TestSW1L(BaseTestCase):
         for k in self.exchange_keys:
             Cq_tot_modes += self.dico[k]
 
-        ux_fft = sim.state('ux_fft')
-        uy_fft = sim.state('uy_fft')
-        eta_fft = sim.state('eta_fft')
+        get_var = sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         px_eta_fft, py_eta_fft = sim.oper.gradfft_from_fft(eta_fft)
         Cq_tot_exact = -sim.params.c2 * sim.oper.spectrum2D_from_fft(
             inner_prod(ux_fft, px_eta_fft) +
             inner_prod(uy_fft, py_eta_fft))
-        np.testing.assert_allclose(Cq_tot_modes, Cq_tot_exact, rtol=1e-14, atol=1e-15)
+        np.testing.assert_allclose(
+            Cq_tot_modes, Cq_tot_exact, rtol=1e-14, atol=1e-15)
 
-    def test_transfer_term(self, check_hasattr=True, include_non_quad_terms=True):
+    def test_transfer_term(self, check_hasattr=True,
+                           include_non_quad_terms=True):
         """Check triad decomposition. """
 
         sim = self.sim
@@ -153,9 +159,10 @@ class TestSW1L(BaseTestCase):
         for k in self.transfer_keys:
             Tq_tot_modes += self.dico[k]
 
-        ux_fft = sim.state('ux_fft')
-        uy_fft = sim.state('uy_fft')
-        eta_fft = sim.state('eta_fft')
+        get_var = sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         ux = sim.state.state_phys.get_var('ux')
         uy = sim.state.state_phys.get_var('uy')
         eta = sim.state.state_phys.get_var('eta')
@@ -286,9 +293,10 @@ class TestExmod(TestSW1L):
         for k in self.transfer_keys:
             Tq_tot_modes += self.dico[k]
 
-        ux_fft = sim.state('ux_fft')
-        uy_fft = sim.state('uy_fft')
-        eta_fft = sim.state('eta_fft')
+        get_var = sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         rot_fft = sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
         urx_fft, ury_fft = sim.oper.vecfft_from_rotfft(rot_fft)

@@ -66,7 +66,7 @@ class StateBase(object):
     def clear_computed(self):
         self.vars_computed.clear()
 
-    def __call__(self, key):
+    def get_var(self, key):
         if key in self.keys_state_phys:
             return self.state_phys.get_var(key)
         else:
@@ -78,6 +78,10 @@ class StateBase(object):
                 self.vars_computed[key] = value
                 self.it_computed[key] = it
                 return value
+
+    def __call__(self, key):
+        raise DeprecationWarning('Do not call a state object. '
+                                 'Instead, use its get_var method.')
 
     def __setitem__(self, key, value):
         if key in self.keys_state_phys:
@@ -122,7 +126,7 @@ class StatePseudoSpectral(StateBase):
                                           dtype=np.complex128,
                                           info='state_spect')
 
-    def __call__(self, key):
+    def get_var(self, key):
         """Return the variable corresponding to the given key."""
 
         if key in self.keys_state_spect:

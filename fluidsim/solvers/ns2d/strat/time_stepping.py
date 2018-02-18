@@ -130,8 +130,8 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         Compute time increment with the CFL condition solver ns2d.strat.
         """
         # Compute deltat_CFL at each time step.
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
+        ux = self.sim.state.get_var('ux')
+        uy = self.sim.state.get_var('uy')
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()

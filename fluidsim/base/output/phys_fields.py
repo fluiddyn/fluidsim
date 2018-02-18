@@ -1,5 +1,5 @@
 """Physical fields output (:mod:`fluidsim.base.output.phys_fields`)
-=========================================================================
+===================================================================
 
 Provides:
 
@@ -224,9 +224,9 @@ class PhysFieldsBase(SpecificOutput):
                         key_field = 'rot'
                     else:
                         key_field = keys_state_phys[0]
-                field_loc = self.sim.state(key_field)
+                field_loc = self.sim.state.get_var(key_field)
             else:
-                field_loc = self.sim.state(key_field)
+                field_loc = self.sim.state.get_var(key_field)
         else:
             key_field = 'given field'
             field_loc = field
@@ -670,7 +670,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         return skip
 
     def _get_field_seq(self, key):
-        field_loc = self.sim.state(key)
+        field_loc = self.sim.state.get_var(key)
         if mpi.nb_proc > 1:
             return self.oper.gather_Xspace(field_loc)
         else:

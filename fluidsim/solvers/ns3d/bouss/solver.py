@@ -159,9 +159,9 @@ if __name__ == "__main__":
 
     n = 64
     L = 10
-    params.oper.nx = n
-    params.oper.ny = n
-    params.oper.nz = n
+    params.oper.nx = n*2
+    params.oper.ny = 32
+    params.oper.nz = 8
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L

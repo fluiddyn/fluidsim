@@ -160,10 +160,11 @@ class TimeSteppingBase(object):
 
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""
+        get_var = self.sim.state.get_var
 
-        ux = self.sim.state('vx')
-        uy = self.sim.state('vy')
-        uz = self.sim.state('vz')
+        ux = get_var('vx')
+        uy = get_var('vy')
+        uz = get_var('vz')
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
@@ -193,8 +194,8 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_uxuy(self):
         """Compute the time increment deltat with a CLF condition."""
 
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
+        ux = self.sim.state.get_var('ux')
+        uy = self.sim.state.get_var('uy')
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
@@ -205,8 +206,8 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_uxuyeta(self):
         """Compute the time increment deltat with a CLF condition."""
 
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
+        ux = self.sim.state.get_var('ux')
+        uy = self.sim.state.get_var('uy')
 
         params = self.sim.params
         f = params.f
@@ -237,7 +238,7 @@ class TimeSteppingBase(object):
 
     def _compute_time_increment_CLF_ux(self):
         """Compute the time increment deltat with a CLF condition."""
-        ux = self.sim.state('ux')
+        ux = self.sim.state.get_var('ux')
         max_ux = abs(ux).max()
         tmp = max_ux / self.sim.oper.deltax
         self._compute_time_increment_CLF_from_tmp(tmp)

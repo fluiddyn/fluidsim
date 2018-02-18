@@ -47,7 +47,7 @@ class TestSolverNS2D(unittest.TestCase):
         with stdout_redirected():
             self.sim = sim = self.Simul(params)
 
-        rot_fft = sim.state('rot_fft')
+        rot_fft = sim.state.get_var('rot_fft')
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
         Frot_fft = tend.get_var('rot_fft')

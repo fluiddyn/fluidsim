@@ -25,7 +25,7 @@ from __future__ import print_function
 
 
 from builtins import range
-from past.utils import old_div
+
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -62,7 +62,7 @@ class InitFieldsWave(SpecificInitFields):
         eta_max = self.sim.params.init_fields.wave.eta_max
 
         kx = oper.deltakx * ikx
-        eta_fft = np.zeros_like(self.sim.state('eta_fft'))
+        eta_fft = np.zeros_like(self.sim.state.get_var('eta_fft'))
         cond = np.logical_and(oper.KX == kx, oper.KY == 0.)
         eta_fft[cond] = eta_max
         oper.project_fft_on_realX(eta_fft)
@@ -71,17 +71,22 @@ class InitFieldsWave(SpecificInitFields):
 
 
 class InitFieldsVortexGrid(SpecificInitFields):
-    """
-        Initializes the vorticity field with n_vort^2 Gaussian vortices in a square grid.
-        Vortices are randomly assigned clockwise / anti-clockwise directions;
-        with equal no of vortices for each direction.
+    """Initializes the vorticity field with n_vort^2 Gaussian vortices in a square
+    grid.
 
-        Parameters
-        ----------
-        omega_max : Max vorticity of a single vortex at its center
-        n_vort : No. of vortices along one edge of the square grid, should be       even integer
-        sd : Standard Deviation of the gaussian, optional
-             If not specified, follows six-sigma rule based on half vortex spacing
+    Vortices are randomly assigned clockwise / anti-clockwise directions;
+    with equal no of vortices for each direction.
+
+    Parameters
+    ----------
+    omega_max : Max vorticity of a single vortex at its center
+
+    n_vort :
+
+      No. of vortices along one edge of the square grid, should be even integer
+
+    sd : Standard Deviation of the gaussian, optional
+      If not specified, follows six-sigma rule based on half vortex spacing
 
     """
     tag = 'vortex_grid'
@@ -111,13 +116,13 @@ class InitFieldsVortexGrid(SpecificInitFields):
         SD = params.sd
 
         if N_vort % 2 != 0:
-            raise ValueError("Cannot initialize a net circulation free field." +
+            raise ValueError("Cannot initialize a net circulation free field."
                              "N_vort should be even.")
 
-        dx_vort = old_div(Lx, N_vort)
-        dy_vort = old_div(Ly, N_vort)
-        x_vort = np.linspace(0, Lx, N_vort + 1) + old_div(dx_vort, 2.)
-        y_vort = np.linspace(0, Ly, N_vort + 1) + old_div(dy_vort, 2.)
+        dx_vort = Lx/N_vort
+        dy_vort = Ly/N_vort
+        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort/2.
+        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort/2.
         sign_list = self._random_plus_minus_list()
 
         if SD is None:
@@ -125,8 +130,9 @@ class InitFieldsVortexGrid(SpecificInitFields):
             params.sd = SD
 
         amp = params.omega_max
-        wz_gaussian = lambda x, y, sign:(
-                sign * amp * np.exp(old_div(-(x ** 2 + y ** 2), (2 * SD**2))))
+
+        def wz_gaussian(x, y, sign):
+            return sign * amp * np.exp(-(x ** 2 + y ** 2)/ (2 * SD**2))
 
         omega = np.zeros(oper.shapeX_loc)
         for i in range(0, N_vort):
