@@ -1,7 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping`)
 ===========================================================
 
-.. currentmodule:: fluidsim.base.time_stepping
 
 Provides:
 

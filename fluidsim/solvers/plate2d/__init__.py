@@ -1,7 +1,6 @@
 """Plate2d solvers (:mod:`fluidsim.solvers.plate2d`)
 ==========================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d
 
 Provides:
 

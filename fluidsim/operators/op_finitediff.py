@@ -1,7 +1,6 @@
 """Operators finite differences (:mod:`fluidsim.operators.op_finitediff`)
 ===============================================================================
 
-.. currentmodule:: fluidsim.operators.op_finitediff
 
 Provides:
 

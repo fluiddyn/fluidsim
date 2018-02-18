@@ -16,7 +16,7 @@ time-consuming tasks are performed by optimized compiled functions.
 Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
 code written mostly in Python. It uses the library `fluidfft
 <http://fluidfft.readthedocs.io>`_ to use very efficient FFT
-libraries. Fluidfft is written in C++, Cython and python. Fluidfft and fluidsim
+libraries. Fluidfft is written in C++, Cython and Python. Fluidfft and fluidsim
 take advantage of `Pythran <https://github.com/serge-sans-paille/pythran>`_, a
 new static Python compiler which produces very efficient binaries by compiling
 Python via C++11.
@@ -32,9 +32,9 @@ We have created fluidsim to be **easy and nice to use and to develop**,
 **efficient** and **robust**.
 
 Fluidsim is a young package but the list of solvers already implemented (see
-:ref:`solvers-section`) gives a good idea of the versatility of this framework.
-However, currently, fluidsim excels in particular in solving equations over a
-two-dimensional periodic space:
+:mod:`fluidsim.solvers`) gives a good idea of the versatility of this
+framework.  However, currently, fluidsim excels in particular in solving
+equations over a two-dimensional periodic space:
 
   * Incompressible Navier-Stokes equations,
 

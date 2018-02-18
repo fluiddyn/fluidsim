@@ -1,7 +1,6 @@
 """Information on a solver (:mod:`fluidsim.base.params`)
 ==============================================================
 
-.. currentmodule:: fluidsim.base.params
 
 Provides:
 

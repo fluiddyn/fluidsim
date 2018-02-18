@@ -3,7 +3,6 @@
 """Plate2d solver (:mod:`fluidsim.solvers.plate2d.dimensional`)
 ================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.dimensional
 
 Provides:
 

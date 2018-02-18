@@ -1,7 +1,6 @@
 """Forcing schemes (:mod:`fluidsim.base.forcing`)
 =======================================================
 
-.. currentmodule:: fluidsim.base.forcing
 
 Provides:
 

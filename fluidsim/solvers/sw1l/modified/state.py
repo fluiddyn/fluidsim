@@ -2,7 +2,6 @@
 (:mod:`fluidsim.solvers.sw1l.modified.state`)
 ===================================================
 
-.. currentmodule:: fluidsim.solvers.sw1l.modified.state
 
 Provides:
 

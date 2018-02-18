@@ -2,7 +2,6 @@
 Spatial means (:mod:`fluidsim.solvers.plate2d.output.spatial_means`)
 ==========================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output.spatial_means
 
 Provides:
 

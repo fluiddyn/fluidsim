@@ -21,7 +21,16 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 class StateBase(object):
-    """Contains the state variables and handles the access to fields."""
+    """Contains the state variables and handles the access to fields.
+
+    Parameters
+    ----------
+
+    sim : child of :class:`fluidsim.base.solvers.base.SimulBase`
+
+    oper : Optional[operators]
+
+    """
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -61,12 +70,26 @@ class StateBase(object):
         self.is_initialized = False
 
     def compute(self, key):
+        """Compute a not stored variable from the stored variables"""
         raise ValueError('No method to compute key "' + key + '"')
 
     def clear_computed(self):
+        """Clear the stored computed variables."""
         self.vars_computed.clear()
 
     def get_var(self, key):
+        """Get a physical variable (from the storage array or computed).
+
+        This is one of the main method of the state classes.
+
+        It tries to return the array corresponding to a physical variable. If
+        it is stored in the main storage array of the state class, it is
+        directly returned.  Otherwise, we try to compute the quantity with the
+        method :func:`compute`.
+
+        It should not be necessary to redefine this method in child class.
+
+        """
         if key in self.keys_state_phys:
             return self.state_phys.get_var(key)
         else:
@@ -84,12 +107,17 @@ class StateBase(object):
                                  'Instead, use its get_var method.')
 
     def __setitem__(self, key, value):
+        """General setter function to set the value of a variable
+
+        It should not be necessary to redefine this method in child class.
+        """
         if key in self.keys_state_phys:
             self.state_phys.set_var(key, value)
         else:
             raise ValueError('key "' + key + '" is not known')
 
     def can_this_key_be_obtained(self, key):
+        """To check whether a variable can be obtained."""
         return (key in self.keys_state_phys or
                 key in self.keys_computable)
 
@@ -99,8 +127,14 @@ class StatePseudoSpectral(StateBase):
 
     This is the general class for the pseudo-spectral solvers.
 
-    """
+    Parameters
+    ----------
 
+    sim : child of :class:`fluidsim.base.solvers.base.SimulBase`
+
+    oper : Optional[operators]
+
+    """
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.
@@ -127,7 +161,18 @@ class StatePseudoSpectral(StateBase):
                                           info='state_spect')
 
     def get_var(self, key):
-        """Return the variable corresponding to the given key."""
+        """Get a variable (from the storage arrays or computed).
+
+        This is one of the main method of the state classes.
+
+        It tries to return the array corresponding to a physical variable. If
+        it is stored in the main storage arrays (`state_phys` and `state_spec`)
+        of the state class, it is directly returned.  Otherwise, we try to
+        compute the quantity with the method :func:`compute`.
+
+        It should not be necessary to redefine this method in child class.
+
+        """
 
         if key in self.keys_state_spect:
             return self.state_spect.get_var(key)
@@ -144,6 +189,10 @@ class StatePseudoSpectral(StateBase):
                 return value
 
     def __setitem__(self, key, value):
+        """General setter function to set the value of a variable
+
+        It should not be necessary to redefine this method in child class.
+        """
         if key in self.keys_state_spect:
             self.state_spect.set_var(key, value)
         elif key in self.keys_state_phys:
@@ -152,15 +201,23 @@ class StatePseudoSpectral(StateBase):
             raise ValueError('key "'+key+'" is not known')
 
     def statespect_from_statephys(self):
+        """Compute the spectral variables from the physical variables.
+
+        When you implement a new solver, check that this method does the job!
+        """
         for ik in range(self.state_spect.nvar):
             self.oper.fft_as_arg(self.state_phys[ik], self.state_spect[ik])
 
     def statephys_from_statespect(self):
+        """Compute the physical variables from the spectral variables.
+
+        When you implement a new solver, check that this method does the job!
+        """
         for ik in range(self.state_spect.nvar):
             self.oper.ifft_as_arg(self.state_spect[ik], self.state_phys[ik])
 
     def return_statephys_from_statespect(self, state_spect=None):
-        """Return the state in physical space."""
+        """Return the physical variables computed from the spectral variables."""
         ifft2 = self.oper.ifft2
         if state_spect is None:
             state_spect = self.state_spect

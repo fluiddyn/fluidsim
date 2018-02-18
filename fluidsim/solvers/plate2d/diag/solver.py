@@ -3,7 +3,6 @@
 """Plate2d solver diag. (:mod:`fluidsim.solvers.plate2d.diag.solver`)
 ===========================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.diag.solver
 
 Provides:
 

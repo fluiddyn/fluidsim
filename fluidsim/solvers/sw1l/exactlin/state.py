@@ -2,7 +2,6 @@
 (:mod:`fluidsim.solvers.sw1l.exactlin.state`)
 ===================================================
 
-.. currentmodule:: fluidsim.solvers.sw1l.exactlin.state
 
 Provides:
 

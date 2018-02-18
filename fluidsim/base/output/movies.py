@@ -4,7 +4,6 @@
 Contains base classes which acts as a framework to
 implement the method `animate` to make movies.
 
-.. currentmodule:: fluidsim.base.output.movies
 
 Provides:
 

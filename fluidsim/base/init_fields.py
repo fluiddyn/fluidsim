@@ -1,7 +1,6 @@
 """Initialisation of the fields (:mod:`fluidsim.base.init_fields`)
 ========================================================================
 
-.. currentmodule:: fluidsim.base.init_fields
 
 Provides:
 

@@ -1,7 +1,6 @@
 """Standard output (:mod:`fluidsim.solvers.plate2d.output.print_stdout`)
 ==============================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output.print_stdout
 
 Provides:
 

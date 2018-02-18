@@ -1,7 +1,6 @@
 """Time stepping (:mod:`fluidsim.solvers.ns2d.strat.time_stepping`)
 ===============================================================================
 
-.. currentmodule:: fluidsim.solvers.ns2d.strat.time_stepping
 
 Provides:
 

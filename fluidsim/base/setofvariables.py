@@ -1,7 +1,6 @@
 """Variable container (:mod:`fluidsim.base.setofvariables`)
 ===========================================================
 
-.. currentmodule:: fluidsim.base.setofvariables
 
 Provides:
 

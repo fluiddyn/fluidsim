@@ -2,7 +2,6 @@
 Plate2d output (:mod:`fluidsim.solvers.plate2d.output`)
 =============================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output
 
 Provides:
 

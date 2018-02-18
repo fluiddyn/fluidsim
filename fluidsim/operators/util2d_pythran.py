@@ -1,8 +1,23 @@
-import numpy as np
+"""
+Pythran compatible functions: 2d operators (:mod:`fluidsim.operators.util2d_pythran`)
+=====================================================================================
+
+.. autofunction:: dealiasing_setofvar
+
+.. autofunction:: laplacian2_fft
+
+.. autofunction:: invlaplacian2_fft
+
+.. autofunction:: compute_increments_dim1
+
+"""
+
+# import numpy as np
 
 # pythran export dealiasing_setofvar(complex128[][][], uint8[][], int, int)
 
 def dealiasing_setofvar(setofvar_fft, where, n0, n1):
+    """Dealiasing of a setofvar arrays"""
     nk = setofvar_fft.shape[0]
 
     for i0 in range(n0):
@@ -15,12 +30,14 @@ def dealiasing_setofvar(setofvar_fft, where, n0, n1):
 # pythran export laplacian2_fft(complex128[][], float64[][])
 
 def laplacian2_fft(a_fft, K4):
+    """Compute the Laplacian square."""
     return a_fft * K4
 
 
 # pythran export invlaplacian2_fft(complex128[][], float64[][], int)
 
 def invlaplacian2_fft(a_fft, K4_not0, rank):
+    """Compute the inverse Laplace square."""
     invlap2_afft = a_fft / K4_not0
     if rank == 0:
         invlap2_afft[0, 0] = 0.

@@ -1,7 +1,6 @@
 """AD1D solver (:mod:`fluidsim.solvers.ad1d.solver`)
 =========================================================
 
-.. currentmodule:: fluidsim.solvers.ad1d.solver
 
 Provides:
 
