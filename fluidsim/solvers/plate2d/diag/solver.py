@@ -218,7 +218,7 @@ class Simul(SimulBasePseudoSpectral):
     #         tendencies_fft = self.tendencies_nonlin()
     #         w_fft = self.state.state_spect['w_fft']
     #         z_fft = self.state.state_spect['z_fft']
-    #         chi_fft = self.state.compute('chi_fft')
+    #         chi_fft = self.state.get_var('chi_fft')
 
     #     F_w_fft = tendencies_fft['w_fft']
     #     F_z_fft = tendencies_fft['z_fft']

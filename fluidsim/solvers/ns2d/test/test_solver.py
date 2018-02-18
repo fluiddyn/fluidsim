@@ -106,15 +106,15 @@ class TestSolverNS2D(unittest.TestCase):
                 sim.output.spect_energy_budg.plot()
 
                 with self.assertRaises(ValueError):
-                    sim.state.compute('test')
+                    sim.state.get_var('test')
 
                 sim2 = fls.load_sim_for_plot(sim.output.path_run)
                 sim2.output
 
             # `compute('q')` two times for better coverage...
-            sim.state.compute('q')
-            sim.state.compute('q')
-            sim.state.compute('div')
+            sim.state.get_var('q')
+            sim.state.get_var('q')
+            sim.state.get_var('div')
 
             path_run = sim.output.path_run
             if mpi.nb_proc > 1:

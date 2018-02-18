@@ -305,7 +305,7 @@ class Proportional(SpecificForcingPseudoSpectral):
         try:
             a_fft = self.sim.state.state_spect.get_var(self.key_forced)
         except ValueError:
-            a_fft = self.sim.state.compute(self.key_forced)
+            a_fft = self.sim.state.get_var(self.key_forced)
 
         a_fft = self.oper.coarse_seq_from_fft_loc(
             a_fft, self.shapeK_loc_coarse)
@@ -375,7 +375,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         try:
             a_fft = self.sim.state.state_spect.get_var(self.key_forced)
         except ValueError:
-            a_fft = self.sim.state.compute(self.key_forced)
+            a_fft = self.sim.state.get_var(self.key_forced)
 
         try:
             a_fft = self.oper.coarse_seq_from_fft_loc(

@@ -295,7 +295,7 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
             #     a_fft = ap_fft + am_fft
             #     bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
             # else:
-            rot_fft = self.sim.state.compute('rot_fft')
+            rot_fft = self.sim.state.get_var('rot_fft')
             uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
             eta_fft = get_var('eta_fft')
             bvecrot_fft = self.bvecfft_from_uxuyetafft(
