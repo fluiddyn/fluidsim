@@ -124,11 +124,17 @@ class InitFieldsLinearMode(SpecificInitFields):
 
 
     def __call__(self):
-        ap_fft, am_fft = self.compute_linear_mode()
-        self.sim.state.init_from_linear_mode(ap_fft, am_fft)
+        if mpi.nb_proc > 1:
+            raise NotImplementedError(
+                'Function compute_apfft_ones not implemented in MPI.')
 
-    def compute_linear_mode(self):
-        """Compute the linear mode ap_fft, am_fft."""
+        ap_fft = self.compute_apfft_ones()
+        # To avoid bugs: we have to define first variable kwargs.
+        kwargs = {'ap_fft': ap_fft}
+        self.sim.state.init_statespect_from(**kwargs)
+        
+    def compute_apfft_ones(self):
+        """Compute the linear mode apfft"""
 
         params = self.sim.params
         oper = self.sim.oper
@@ -156,7 +162,7 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         ap_fft[epsx_min:epsx_max, epsy_min:epsy_max] = 1. + 0j
         ap_fft = amplitude * ap_fft
-        return ap_fft, am_fft
+        return ap_fft
 
 
 class InitFieldsNS2DStrat(InitFieldsBase):
