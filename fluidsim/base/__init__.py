@@ -1,7 +1,6 @@
 """Base classes for writing solvers
 ===================================
 
-.. currentmodule:: fluidsim.base
 
 Provides:
 

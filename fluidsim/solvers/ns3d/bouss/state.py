@@ -2,12 +2,7 @@
 ==========================================================================
 """
 
-import numpy as np
-
-from fluiddyn.util import mpi
-
 from ..state import StateNS3D
-
 
 
 class StateNS3DBouss(StateNS3D):
@@ -31,24 +26,3 @@ class StateNS3DBouss(StateNS3D):
             'keys_computable': [],
             'keys_linear_eigenmodes': ['rot_fft']
         })
-
-    def init_from_vxvyfft(self, vx_fft, vy_fft):
-        self.state_spect.set_var('vx_fft', vx_fft)
-        self.state_spect.set_var('vy_fft', vy_fft)
-        self.state_spect.set_var('vz_fft', np.zeros_like(vx_fft))
-        self.state_spect.set_var('b_fft', np.zeros_like(vx_fft))
-
-        vx = self.oper.ifft3d(vx_fft)
-        self.state_phys.set_var('vx', vx)
-        self.state_phys.set_var('vy', self.oper.ifft3d(vy_fft))
-        self.state_phys.set_var('vz', np.zeros_like(vx))
-        self.state_phys.set_var('b', np.zeros_like(vx))
-        
-    def init_from_vxvyvzfft(self, vx_fft, vy_fft, vz_fft):
-        self.state_spect.set_var('vx_fft', vx_fft)
-        self.state_spect.set_var('vy_fft', vy_fft)
-        self.state_spect.set_var('vz_fft', vz_fft)
-        self.state_spect.set_var('b_fft', np.zeros_like(vx_fft))
-
-        self.statephys_from_statespect()
-        self.statespect_from_statephys()

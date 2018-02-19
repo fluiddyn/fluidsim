@@ -2,7 +2,6 @@
 (:mod:`fluidsim.solvers.sw1l.onlywaves.state`)
 ====================================================
 
-.. currentmodule:: fluidsim.solvers.sw1l.onlywaves.state
 
 Provides:
 

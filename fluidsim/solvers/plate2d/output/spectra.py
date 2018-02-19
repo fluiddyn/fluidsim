@@ -1,7 +1,6 @@
 """Spectra (:mod:`fluidsim.solvers.plate2d.output.spectra`)
 =================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output.spectra
 
 Provides:
 

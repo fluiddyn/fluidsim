@@ -151,35 +151,33 @@ if __name__ == "__main__":
 
     import numpy as np
 
-    import fluiddyn as fld
+    # import fluiddyn as fld
 
     params = Simul.create_default_params()
 
     params.short_name_type_run = 'test'
 
-    n = 16
-    L = 2*np.pi
-    params.oper.nx = n
-    params.oper.ny = n
-    params.oper.nz = n
+    n = 64
+    L = 10
+    params.oper.nx = n*2
+    params.oper.ny = 32
+    params.oper.nz = 8
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L
-    params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+    # params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
     # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
-    delta_x = params.oper.Lx / params.oper.nx
-    # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_8 = 2.*10e-1*delta_x**8
+    # delta_x = params.oper.Lx / params.oper.nx
+    params.nu_8 = 2e-6
 
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 6.
-    params.time_stepping.it_end = 2
+    params.time_stepping.t_end = 10.
 
     params.init_fields.type = 'in_script'
 
-    params.forcing.enable = False
+    # params.forcing.enable = False
     # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
@@ -205,10 +203,24 @@ if __name__ == "__main__":
 
     # here we have to initialize the flow fields
 
-    # we need to improve fluidfft for this.
-    
+    variables = {k: 1e-6 * sim.oper.random_arrayX()
+                 for k in ('vx', 'vy', 'vz')}
+
+    X, Y, Z = sim.oper.get_XYZ_loc()
+
+    x0 = y0 = z0 = L/2.
+    R2 = (X-x0)**2 + (Y-y0)**2 + (Z-z0)**2
+    r0 = 0.5
+    b = -np.exp(-R2/r0**2)
+    variables['b'] = b
+
+    sim.state.init_statephys_from(**variables)
+
+    sim.state.statespect_from_statephys()
+    sim.state.statephys_from_statespect()
+
     # sim.output.phys_fields.plot()
-    # sim.time_stepping.start()
+    sim.time_stepping.start()
     # sim.output.phys_fields.plot()
 
     # fld.show()

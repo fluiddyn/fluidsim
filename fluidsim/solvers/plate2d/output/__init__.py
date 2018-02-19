@@ -2,7 +2,6 @@
 Plate2d output (:mod:`fluidsim.solvers.plate2d.output`)
 =============================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output
 
 Provides:
 
@@ -81,9 +80,9 @@ class Output(OutputBasePseudoSpectral):
 
 
     def compute_energies_conversion_fft(self):
-        w_fft = self.sim.state.compute('w_fft')
-        z_fft = self.sim.state.compute('z_fft')
-        chi_fft = self.sim.state.compute('chi_fft')
+        w_fft = self.sim.state.get_var('w_fft')
+        z_fft = self.sim.state.get_var('z_fft')
+        chi_fft = self.sim.state.get_var('chi_fft')
         K4 = self.sim.oper.K4
 
         Ek_fft = 0.5*np.abs(w_fft)**2
@@ -103,7 +102,7 @@ class Output(OutputBasePseudoSpectral):
     def compute_energies_fft(self):
         w_fft = self.sim.state.state_spect.get_var('w_fft')
         z_fft = self.sim.state.state_spect.get_var('z_fft')
-        chi_fft = self.sim.state.compute('chi_fft')
+        chi_fft = self.sim.state.get_var('chi_fft')
         Ek_fft = 0.5*np.abs(w_fft)**2
         El_fft = np.abs(0.5*self.sim.oper.laplacian2_fft(np.abs(z_fft)**2+0j))
         Ee_fft = np.abs(

@@ -2,7 +2,6 @@
 ================================================
 
 .. _simul:
-.. currentmodule:: fluidsim
 
 The package :mod:`fluidsim` **will** provide an object-oriented
 toolkit for doing numerical simulations of different equations

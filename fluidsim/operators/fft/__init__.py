@@ -1,7 +1,6 @@
 """Fast Fourier transforms (:mod:`fluidsim.operators.fft`)
 ==========================================================
 
-.. currentmodule:: fluidsim.operators.fft
 
 Provides
 

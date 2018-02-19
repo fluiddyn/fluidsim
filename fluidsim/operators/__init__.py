@@ -10,5 +10,6 @@ Provides
    operators2d
    operators_plate2d
    operators3d
+   util2d_pythran
 
 """

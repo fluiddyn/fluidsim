@@ -56,7 +56,7 @@ class Simul(SimulSW1LExactLin):
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
 
-        rot_fft = self.state.compute('rot_fft')
+        rot_fft = self.state.get_var('rot_fft')
         ux_rot_fft, uy_rot_fft = oper.vecfft_from_rotfft(rot_fft)
         ux_rot = ifft2(ux_rot_fft)
         uy_rot = ifft2(uy_rot_fft)
@@ -98,9 +98,9 @@ class Simul(SimulSW1LExactLin):
         """For verifying conservation of quadratic energy."""
 
         oper = self.oper
-        ux_fft = self.state.compute('ux_fft')
-        uy_fft = self.state.compute('uy_fft')
-        eta_fft = self.state.compute('eta_fft')
+        ux_fft = self.state.get_var('ux_fft')
+        uy_fft = self.state.get_var('uy_fft')
+        eta_fft = self.state.get_var('eta_fft')
 
         oper.dealiasing(Nx_fft, Ny_fft, Neta_fft)
         T_ux = (ux_fft.conj() * Nx_fft).real

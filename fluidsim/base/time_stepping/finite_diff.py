@@ -1,7 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping.finite_diff`)
 =======================================================================
 
-.. currentmodule:: fluidsim.base.time_stepping.finite_diff
 
 Provides:
 

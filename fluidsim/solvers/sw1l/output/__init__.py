@@ -17,7 +17,6 @@
 """
 from __future__ import division
 
-from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
@@ -104,7 +103,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     def compute_enstrophy_fft(self):
         r"""Calculate enstrophy from vorticity in the spectral space."""
-        rot_fft = self.sim.state('rot_fft')
+        rot_fft = self.sim.state.get_var('rot_fft')
         return np.abs(rot_fft)**2 / 2.
 
     def compute_PV_fft(self):
@@ -114,11 +113,12 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         .. math:: \zeta_{ch} = \zeta - f \eta
 
         """
-        rot = self.sim.state('rot')
+        get_var = self.sim.state.get_var
+        rot = get_var('rot')
         eta = self.sim.state.state_phys.get_var('eta')
         ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1. + eta))
-        rot_fft = self.sim.state('rot_fft')
-        eta_fft = self.sim.state('eta_fft')
+        rot_fft = get_var('rot_fft')
+        eta_fft = get_var('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f*eta_fft
         return ErtelPV_fft, CharneyPV_fft
 
@@ -129,8 +129,8 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
     def compute_CharneyPE_fft(self):
         """Compute Charney (QG) potential enstrophy."""
-        rot_fft = self.sim.state('rot_fft')
-        eta_fft = self.sim.state('eta_fft')
+        rot_fft = self.sim.state.get_var('rot_fft')
+        eta_fft = self.sim.state.get_var('eta_fft')
         CharneyPV_fft = rot_fft - self.sim.params.f * eta_fft
         return abs(CharneyPV_fft)**2 / 2.
 
@@ -164,9 +164,10 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         and ageostrophic variable (:math:`a`).
 
         """
-        ux_fft = self.sim.state('ux_fft')
-        uy_fft = self.sim.state('uy_fft')
-        eta_fft = self.sim.state('eta_fft')
+        get_var = self.sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
 
         q_fft, div_fft, ageo_fft = \
             self.oper.qdafft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
@@ -196,34 +197,34 @@ class OutputSW1L(OutputBaseSW1L):
         .. math:: E_{K,r} = (h \mathbf u_r).\mathbf u_r / 2
 
         """
-        state = self.sim.state
-        eta_fft = state('eta_fft')
+        get_var = self.sim.state.get_var
+        eta_fft = get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
-        Jx_fft = state('Jx_fft')
-        Jy_fft = state('Jy_fft')
-        ux_fft = state('ux_fft')
-        uy_fft = state('uy_fft')
-        energyK_fft = old_div(np.real(Jx_fft.conj()*ux_fft +
-                              Jy_fft.conj()*uy_fft),2)
+        Jx_fft = get_var('Jx_fft')
+        Jy_fft = get_var('Jy_fft')
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        energyK_fft = np.real(Jx_fft.conj()*ux_fft +
+                              Jy_fft.conj()*uy_fft)/2.
 
-        rot_fft = state('rot_fft')
+        rot_fft = get_var('rot_fft')
         uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
         rotJ_fft = self.oper.rotfft_from_vecfft(Jx_fft, Jy_fft)
         Jxr_fft, Jyr_fft = self.oper.vecfft_from_rotfft(rotJ_fft)
-        energyKr_fft = old_div(np.real(Jxr_fft.conj()*uxr_fft +
-                               Jyr_fft.conj()*uyr_fft),2)
+        energyKr_fft = np.real(Jxr_fft.conj()*uxr_fft +
+                               Jyr_fft.conj()*uyr_fft)/2.
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
         """Compute K.E. and A.P.E in the spectral space."""
-        state = self.sim.state
-        eta_fft = state('eta_fft')
+        get_var = self.sim.state.get_var
+        eta_fft = get_var('eta_fft')
         energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2/2
-        Jx_fft = state('Jx_fft')
-        Jy_fft = state('Jy_fft')
-        ux_fft = state('ux_fft')
-        uy_fft = state('uy_fft')
-        energyK_fft = old_div(np.real(Jx_fft.conj()*ux_fft +
-                              Jy_fft.conj()*uy_fft),2)
+        Jx_fft = get_var('Jx_fft')
+        Jy_fft = get_var('Jy_fft')
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        energyK_fft = np.real(Jx_fft.conj()*ux_fft +
+                              Jy_fft.conj()*uy_fft)/2.
 
         return energyK_fft, energyA_fft

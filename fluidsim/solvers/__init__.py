@@ -1,11 +1,10 @@
-""" Solvers for a variety of physical problems
-==============================================
+"""Solvers for a variety of physical problems
+=============================================
 
-.. _solvers-section:
-
-
-Base package containing the source code of the particular solvers.  It
-provides the following solver packages:
+Base package containing the source code of the particular solvers.  Some
+sub-packages contains also solvers for variant of the mentioned equations (for
+example, :mod:`fluidsim.solvers.ns2d.strat` or
+:mod:`fluidsim.solvers.sw1l.modified`).
 
 .. autosummary::
    :toctree:

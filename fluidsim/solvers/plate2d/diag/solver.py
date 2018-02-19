@@ -3,7 +3,6 @@
 """Plate2d solver diag. (:mod:`fluidsim.solvers.plate2d.diag.solver`)
 ===========================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.diag.solver
 
 Provides:
 
@@ -218,7 +217,7 @@ class Simul(SimulBasePseudoSpectral):
     #         tendencies_fft = self.tendencies_nonlin()
     #         w_fft = self.state.state_spect['w_fft']
     #         z_fft = self.state.state_spect['z_fft']
-    #         chi_fft = self.state.compute('chi_fft')
+    #         chi_fft = self.state.get_var('chi_fft')
 
     #     F_w_fft = tendencies_fft['w_fft']
     #     F_z_fft = tendencies_fft['z_fft']

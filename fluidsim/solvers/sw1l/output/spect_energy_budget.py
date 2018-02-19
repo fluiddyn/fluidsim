@@ -2,7 +2,6 @@ from __future__ import division
 from __future__ import print_function
 
 from builtins import range
-from past.utils import old_div
 import numpy as np
 import h5py
 
@@ -11,7 +10,8 @@ from fluiddyn.util import mpi
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase, cumsum_inv, inner_prod)
 
-from .normal_mode import NormalModeDecomposition, NormalModeDecompositionModified
+from .normal_mode import (
+    NormalModeDecomposition, NormalModeDecompositionModified)
 
 
 class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
@@ -42,9 +42,10 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         Jy_fft = oper.fft2(Jy)
         del(Jx, Jy)
 
-        ux_fft = self.sim.state('ux_fft')
-        uy_fft = self.sim.state('uy_fft')
-        eta_fft = self.sim.state('eta_fft')
+        get_var = self.sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         h_fft = eta_fft.copy()
         if mpi.rank == 0:
             h_fft[0, 0] = 1.
@@ -625,9 +626,9 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             eta_fft = state_spect.get_var('eta_fft')
         except ValueError:
             state = self.sim.state
-            ux_fft = state.compute('ux_fft')
-            uy_fft = state.compute('uy_fft')
-            eta_fft = state.compute('eta_fft')
+            ux_fft = state.get_var('ux_fft')
+            uy_fft = state.get_var('uy_fft')
+            eta_fft = state.get_var('eta_fft')
 
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -923,9 +924,10 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         """Compute spectral energy budget once for current time."""
 
         oper = self.oper
-        ux_fft = self.sim.state('ux_fft')
-        uy_fft = self.sim.state('uy_fft')
-        eta_fft = self.sim.state('eta_fft')
+        get_var = self.sim.state.get_var
+        ux_fft = get_var('ux_fft')
+        uy_fft = get_var('uy_fft')
+        eta_fft = get_var('eta_fft')
         c2 = self.params.c2
 
         ux = self.sim.state.state_phys.get_var('ux')
@@ -938,15 +940,15 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         My_fft = oper.fft2(My)
         oper.dealiasing(Mx_fft, My_fft)
         del(Mx, My)
-        
+
         self.norm_mode.compute()
-        
+
         Tq_keys, Tq_coeff = self._transfer_keys_coeff()
 
         Tq_terms = dict.fromkeys(Tq_keys)
         for key in list(Tq_keys.keys()):
-            triad_key_modes, Tq_terms[key] = self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
-        
+            triad_key_modes, Tq_terms[key] = \
+                self.norm_mode.triad_from_keyfftphys(*Tq_keys[key])
 
         Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
         n_modes = triad_key_modes[0].shape[0]
@@ -965,7 +967,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_terms = dict.fromkeys(Cq_keys)
         for key in list(Cq_keys.keys()):
             dyad_key_modes, Cq_terms[key] = self.norm_mode.dyad_from_keyfft(True, *Cq_keys[key])
-        
+
         Cq_coeff = {'ue':-c2, 've':-c2}
         Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
         n_modes = dyad_key_modes[0].shape[0]
@@ -973,9 +975,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             k = dyad_key_modes[0][i]
             for j in list(Cq_keys.keys()):     # ue, ve
                 Cq_fft[k] += np.real(Cq_coeff[j] * Cq_terms[j][i])
-                
+
         del(Cq_keys, Cq_terms, Cq_coeff)
-        
+
         # -----------------------------------------------
         # Non-quadratic K.E. transfer and exchange terms
         # -----------------------------------------------
@@ -993,7 +995,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         divM = oper.ifft2(
                     oper.divfft_from_vecfft(
                         Mx_fft, My_fft))
-                    
+
         ux_divM = oper.fft2(ux * divM)
         uy_divM = oper.fft2(uy * divM)
         oper.dealiasing(ux_divM, uy_divM)
@@ -1002,7 +1004,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                     inner_prod(uy_fft, uy_divM))
         Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divM)
         del(M_udu, u_udM, divM, ux_divM, uy_divM, u_u_divM)
-        
+
         # --------------------------------------
         # Enstrophy transfer terms
         # --------------------------------------

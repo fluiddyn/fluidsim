@@ -1,7 +1,6 @@
 """Base simulations (:mod:`fluidsim.base.solvers`)
 ========================================================
 
-.. currentmodule:: fluidsim.base.solvers
 
 Provides:
 

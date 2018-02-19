@@ -56,8 +56,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
             except:
                 Ek = self.output.compute_energy()
 
-            ux_fft = state('ux_fft')
-            uy_fft = state('uy_fft')
+            ux_fft = state.get_var('ux_fft')
+            uy_fft = state.get_var('uy_fft')
 
             if Ek != 0.:
                 ux_fft = (C / Ek) ** 0.5 * ux_fft
@@ -70,7 +70,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
                 state.init_statespect_from(rot_fft=rot_fft)
         elif scale == 'enstrophy':
             omega_0 = self.output.compute_enstrophy()
-            rot_fft = state('rot_fft')
+            rot_fft = state.get_var('rot_fft')
 
             if omega_0 != 0.:
                 rot_fft = (C / omega_0) ** 0.5 * rot_fft
@@ -78,10 +78,11 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
         elif scale == 'enstrophy_forcing':
             P = self.sim.params.forcing.forcing_rate
-            k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
-                                        self.sim.params.forcing.nkmin_forcing) // 2)
+            k_f = self.oper.deltakh * (
+                (self.sim.params.forcing.nkmax_forcing +
+                 self.sim.params.forcing.nkmin_forcing) // 2)
             omega_0 = self.output.compute_enstrophy()
-            rot_fft = state('rot_fft')
+            rot_fft = state.get_var('rot_fft')
 
             if omega_0 != 0.:
                 C_0 = omega_0 / (P ** (2. / 3) * k_f ** (4. / 3))

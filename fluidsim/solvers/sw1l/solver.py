@@ -95,15 +95,15 @@ class Simul(SimulBasePseudoSpectral):
         Notes
         -----
 
-        * :math:`f` is the system rotation.
+        - :math:`f` is the system rotation.
 
-        * :math:`c` is the phase speed of surface gravity waves in the short-
-        wave limit.
+        - :math:`c` is the phase speed of surface gravity waves in the short-
+          wave limit.
 
-        * :math:`k_d` is the Rossby deformation wavenumber.
+        - :math:`k_d` is the Rossby deformation wavenumber.
 
-        * :math:`\beta` is differential rotation parameter, approximately given
-        by :math:`\partial_y f`.
+        - :math:`\beta` is differential rotation parameter, approximately given
+          by :math:`\partial_y f`.
 
         The present solver will not work in the beta-plane. However a
         vorticity-divergence formulation can be solved with a beta term.

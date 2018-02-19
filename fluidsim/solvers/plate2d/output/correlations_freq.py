@@ -2,7 +2,6 @@
 Correl freq (:mod:`fluidsim.solvers.plate2d.output.correlations_freq`)
 ============================================================================
 
-.. currentmodule:: fluidsim.solvers.plate2d.output.correlations_freq
 
 Provides:
 

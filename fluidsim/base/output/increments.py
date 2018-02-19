@@ -97,7 +97,7 @@ class Increments(SpecificOutput):
         """compute the values at one time."""
         dico_results = {}
         for key in self.keys_vars_to_compute:
-            var = self.sim.state(key)
+            var = self.sim.state.get_var(key)
 
             pdf_var = np.empty([self.nrx, self.nbins])
             valmin = np.empty([self.nrx])
@@ -486,9 +486,10 @@ class IncrementsSW1L(Increments):
     def compute(self):
         dico_results = super(IncrementsSW1L, self).compute()
 
-        ux = self.sim.state('ux')
-        uy = self.sim.state('uy')
-        eta = self.sim.state('eta')
+        get_var = self.sim.state.get_var
+        ux = get_var('ux')
+        uy = get_var('uy')
+        eta = get_var('eta')
         Jx = (1+eta)*ux
 
         S_uL2JL = np.empty([self.nrx])

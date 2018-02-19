@@ -2,7 +2,6 @@
 SpatioTempSpectra (:mod:`fluidsim.solvers.ns2d.strat.spatio_temporal_spectra`)
 ===============================================================================
 
-.. currentmodule:: fluidsim.solvers.ns2d.strat.output.spatio_temporal_spectra
 
 Provides:
 

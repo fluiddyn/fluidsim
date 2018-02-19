@@ -45,15 +45,16 @@ class NormalModeBase(object):
 
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
+            get_var = self.sim.state.get_var
             if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_spect):
-                q_fft = self.sim.state('q_fft')
-                ap_fft = self.sim.state('ap_fft')
-                am_fft = self.sim.state('am_fft')
+                q_fft = get_var('q_fft')
+                ap_fft = get_var('ap_fft')
+                am_fft = get_var('am_fft')
                 bvec_fft = self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
             else:
-                ux_fft = self.sim.state('ux_fft')
-                uy_fft = self.sim.state('uy_fft')
-                eta_fft = self.sim.state('eta_fft')
+                ux_fft = get_var('ux_fft')
+                uy_fft = get_var('uy_fft')
+                eta_fft = get_var('eta_fft')
                 bvec_fft = self.bvecfft_from_uxuyetafft(
                     ux_fft, uy_fft, eta_fft)
 
@@ -276,26 +277,29 @@ class NormalModeDecomposition(NormalModeBase):
                               normal_modes_1.conj(),
                               normal_modes_23)
 
-        return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
+        return self._group_matrix_using_dict(
+            key_modes_mat, triad_mat, triad_group)
 
 
 class NormalModeDecompositionModified(NormalModeDecomposition):
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
+            get_var = self.sim.state.get_var
             #
             # FIXME:Does not work
             #
             # if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_spect):
-            #     q_fft = self.sim.state('q_fft')
-            #     ap_fft = self.sim.state('ap_fft')
-            #     am_fft = self.sim.state('am_fft')
+            #     q_fft = get_var('q_fft')
+            #     ap_fft = get_var('ap_fft')
+            #     am_fft = get_var('am_fft')
             #     a_fft = ap_fft + am_fft
             #     bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
             # else:
-            rot_fft = self.sim.state.compute('rot_fft')
+            rot_fft = self.sim.state.get_var('rot_fft')
             uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
-            eta_fft = self.sim.state('eta_fft')
-            bvecrot_fft = self.bvecfft_from_uxuyetafft(uxr_fft, uyr_fft, eta_fft)
+            eta_fft = get_var('eta_fft')
+            bvecrot_fft = self.bvecfft_from_uxuyetafft(
+                uxr_fft, uyr_fft, eta_fft)
 
             self.bvecrot_fft = bvecrot_fft
 

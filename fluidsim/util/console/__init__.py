@@ -2,7 +2,6 @@
 =================================
 See `fluidsim -h`
 
-.. currentmodule:: fluidsim.util.console
 
 Provides:
 

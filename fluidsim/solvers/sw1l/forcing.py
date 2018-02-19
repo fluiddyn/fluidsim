@@ -158,7 +158,7 @@ class WavesVortices(Waves):
             try:
                 v_fft[key] = self.sim.state.state_spect.get_var(key)
             except ValueError:
-                v_fft[key] = self.sim.state.compute(key)
+                v_fft[key] = self.sim.state.get_var(key)
 
             v_fft[key] = self.oper.coarse_seq_from_fft_loc(v_fft[key], self.shapeK_loc_coarse)
 

@@ -47,7 +47,7 @@ class TestSolverNS2D(unittest.TestCase):
         with stdout_redirected():
             self.sim = sim = self.Simul(params)
 
-        rot_fft = sim.state('rot_fft')
+        rot_fft = sim.state.get_var('rot_fft')
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
         Frot_fft = tend.get_var('rot_fft')
@@ -106,15 +106,15 @@ class TestSolverNS2D(unittest.TestCase):
                 sim.output.spect_energy_budg.plot()
 
                 with self.assertRaises(ValueError):
-                    sim.state.compute('test')
+                    sim.state.get_var('test')
 
                 sim2 = fls.load_sim_for_plot(sim.output.path_run)
                 sim2.output
 
             # `compute('q')` two times for better coverage...
-            sim.state.compute('q')
-            sim.state.compute('q')
-            sim.state.compute('div')
+            sim.state.get_var('q')
+            sim.state.get_var('q')
+            sim.state.get_var('div')
 
             path_run = sim.output.path_run
             if mpi.nb_proc > 1:
