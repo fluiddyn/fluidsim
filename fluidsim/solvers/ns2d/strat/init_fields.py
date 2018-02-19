@@ -129,9 +129,7 @@ class InitFieldsLinearMode(SpecificInitFields):
                 'Function compute_apfft_ones not implemented in MPI.')
 
         ap_fft = self.compute_apfft_ones()
-        # To avoid bugs: we have to define first variable kwargs.
-        kwargs = {'ap_fft': ap_fft}
-        self.sim.state.init_statespect_from(**kwargs)
+        self.sim.state.init_statespect_from(ap_fft=ap_ffr)
         
     def compute_apfft_ones(self):
         """Compute the linear mode apfft"""
