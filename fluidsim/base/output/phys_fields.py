@@ -296,7 +296,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
-    def _ani_init_fig(self, field, ux=None, uy=None, INLET_ANIMATION=True):
+    def _ani_init_fig(self, field, ux=None, uy=None, INSET=True):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
@@ -315,22 +315,22 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                 self._ani_ax, ux, uy, XX, YY)
 
         if not self.sim.time_stepping.is_simul_completed():
-            INLET_ANIMATION = False
+            INSET = False
 
         try:
             self.output.spatial_means
         except AttributeError:
-            INLET_ANIMATION = False
+            INSET = False
 
-        self._ANI_INLET_ANIMATION = INLET_ANIMATION
+        self._ANI_INSET = INSET
 
-        if self._ANI_INLET_ANIMATION:
+        if self._ANI_INSET:
             try:
                 self._ani_spatial_means_t, self._ani_spatial_means_key = (
                     self._get_spatial_means())
             except FileNotFoundError:
                 print('No spatial means file => no inlet plot.')
-                self._ANI_INLET_ANIMATION = False
+                self._ANI_INSET = False
                 return
 
             left, bottom, width, height = [0.53, 0.67, 0.2, 0.2]
@@ -419,7 +419,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ani_set_clim()
 
         # INLET ANIMATION
-        if self._ANI_INLET_ANIMATION:
+        if self._ANI_INSET:
             idx_spatial = np.abs(self._ani_spatial_means_t - time).argmin()
             t = self._ani_spatial_means_t
             E = self._ani_spatial_means_key
