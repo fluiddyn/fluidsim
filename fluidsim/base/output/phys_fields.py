@@ -289,20 +289,30 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         if dt_equations < dt_file / 4:
             raise ValueError('dt_equations < dt_file / 4')
 
+        self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
         field, ux, uy = self._ani_get_field(0)
+
         self._ani_init_fig(field, ux, uy)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
-    def _ani_init_fig(self, field, ux, uy, INLET_ANIMATION=True):
+    def _ani_init_fig(self, field, ux=None, uy=None, INLET_ANIMATION=True):
+        """Initialize only the figure and related matplotlib objects. This
+        method is shared by both ``animate`` and ``online_plot``
+        functionalities.
 
-        x, y = self._select_axis(shape=ux.shape)
+        """
+        x, y = self._select_axis(shape=field.shape)
         XX, YY = np.meshgrid(x, y)
 
         self._ani_im = self._ani_ax.pcolor(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
-        self._ani_quiver, vmax = self._quiver_plot(
-            self._ani_ax, ux, uy, XX, YY)
+
+        self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
+
+        if self._has_uxuy:
+            self._ani_quiver, vmax = self._quiver_plot(
+                self._ani_ax, ux, uy, XX, YY)
 
         if not self.sim.time_stepping.is_simul_completed():
             INLET_ANIMATION = False
@@ -372,7 +382,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         with h5py.File(self._ani_pathfiles[idx]) as f:
             field = f['state_phys'][key].value
 
-            if need_uxuy:
+            if need_uxuy and self._has_uxuy:
                 try:
                     ux = f['state_phys']['ux'].value
                     uy = f['state_phys']['uy'].value
@@ -381,7 +391,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                     uy = f['state_phys']['vy'].value
 
         if need_uxuy:
-            return field, ux, uy
+            if self._has_uxuy:
+                return field, ux, uy
+            else:
+                return field, None, None
         else:
             return field
 
@@ -395,9 +408,13 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
-        vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
-        self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
-                                 uy[::self._skip, ::self._skip]/vmax)
+        if self._has_uxuy:
+            vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+            self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
+                                     uy[::self._skip, ::self._skip]/vmax)
+        else:
+            vmax = None
+
         self._ani_im.autoscale()
         self._ani_set_clim()
 
@@ -502,9 +519,15 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
         self._ani_key = self.params.output.phys_fields.field_to_plot
         self._ani_fig, self._ani_ax = plt.subplots()
         self._set_font()
+
+        self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
         field, _ = self._select_field(key_field=self._ani_key)
-        ux, _ = self._select_field(key_field='ux')
-        uy, _ = self._select_field(key_field='uy')
+        if self._has_uxuy:
+            ux, _ = self._select_field(key_field='ux')
+            uy, _ = self._select_field(key_field='uy')
+        else:
+            ux = uy = None
+
         if mpi.rank == 0:
             self._ani_init_fig(field, ux, uy)
             self._ani_im.autoscale()
@@ -517,16 +540,22 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             self.t_last_plot = tsim
             key_field = self.params.output.phys_fields.field_to_plot
             field, _ = self._select_field(key_field=key_field)
-            ux, _ = self._select_field(key_field='ux')
-            uy, _ = self._select_field(key_field='uy')
+            if self._has_uxuy
+                ux, _ = self._select_field(key_field='ux')
+                uy, _ = self._select_field(key_field='uy')
+
             if mpi.rank == 0:
                 field = field[:-1, :-1]
 
                 # Update figure, quiver and colorbar
                 self._ani_im.set_array(field.flatten())
-                vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
-                self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip] / vmax,
-                                         uy[::self._skip, ::self._skip] / vmax)
+                if self._has_uxuy:
+                    vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+                    self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip] / vmax,
+                                             uy[::self._skip, ::self._skip] / vmax)
+                else:
+                    vmax = None
+
                 self._set_title(self._ani_ax, self._ani_key, tsim, vmax)
 
                 self._ani_im.autoscale()

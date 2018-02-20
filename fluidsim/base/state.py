@@ -77,6 +77,25 @@ class StateBase(object):
         """Clear the stored computed variables."""
         self.vars_computed.clear()
 
+    def has_vars(self, *keys):
+        """Checks if all of the keys are present in the union of
+        ``keys_state_phys`` and ``keys_computable``.
+
+        Returns
+        -------
+        bool
+
+        Example
+        -------
+        >>> sim.state.has_vars('ux', 'uy')
+        >>> sim.state.has_vars('ux')
+
+        """
+        keys_state = set(
+            self.keys_state_phys + self.keys_computable)
+        keys = set(keys)
+        return keys.issubset(keys_state)
+
     def get_var(self, key):
         """Get a physical variable (from the storage array or computed).
 
@@ -159,6 +178,25 @@ class StatePseudoSpectral(StateBase):
                                           shape_variable=self.oper.shapeK_loc,
                                           dtype=np.complex128,
                                           info='state_spect')
+
+    def has_vars(self, *keys):
+        """Checks if all of the keys are present in the union of
+        ``keys_state_phys``, ``keys_computable``, and ``keys_state_spect``.
+
+        Returns
+        -------
+        bool
+
+        Examples
+        --------
+        >>> sim.state.has_vars('ux', 'uy', 'ux_fft')
+        >>> sim.state.has_vars('rot')
+
+        """
+        keys_state = set(
+            self.keys_state_phys + self.keys_computable + self.keys_state_spect)
+        keys = set(keys)
+        return keys.issubset(keys_state)
 
     def get_var(self, key):
         """Get a variable (from the storage arrays or computed).
