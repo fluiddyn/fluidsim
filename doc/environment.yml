@@ -15,5 +15,5 @@ dependencies:
   - pyfftw
   - mako
   - pip:
-    - fluiddyn
+    - sphinx_rtd_theme
     - fluidfft
