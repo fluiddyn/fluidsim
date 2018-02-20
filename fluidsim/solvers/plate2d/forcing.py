@@ -10,6 +10,7 @@ from fluidsim.base.forcing.specific import \
     Proportional as ProportionalBase
 
 from fluidsim.base.forcing.specific import \
+    InScriptForcingPseudoSpectral, \
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS
 
 
@@ -21,7 +22,8 @@ class ForcingPlate2D(ForcingBasePseudoSpectral):
 
         This is a static method!
         """
-        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral]
+        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral,
+                   InScriptForcingPseudoSpectral]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
@@ -33,7 +35,7 @@ class Proportional(ProportionalBase):
     _key_forced_default = 'w_fft'
 
 
-class TimeCorrelatedRandomPseudoSpectral(TCRandomPSW):
+class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
     def compute_forcingc_raw(self):
         Fw_fft = super(TimeCorrelatedRandomPseudoSpectral,
                        self).compute_forcingc_raw()
