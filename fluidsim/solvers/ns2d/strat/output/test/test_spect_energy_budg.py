@@ -49,15 +49,13 @@ class TestNS2DStrat(BaseTestCase):
         oper.dealiasing(Fy_fft)
 
         transferEK_fft = np.real(ux_fft.conj() * Fx_fft +
-                                 ux_fft * Fx_fft.conj() +
-                                 uy_fft.conj() * Fy_fft +
-                                 uy_fft * Fy_fft.conj()) / 2.
-
+                                 uy_fft.conj() * Fy_fft)
+        
         transferEK_kx, transferEK_ky = oper.spectra1D_from_fft(
             transferEK_fft)
         
-        sum_transferEK_kx = transferEK_kx.sum()
-        self.assertAlmostEqual(sum_transferEK_kx, 0)
+        self.assertAlmostEqual(transferEK_kx.sum(), 0)
+        self.assertAlmostEqual(transferEK_ky.sum(), 0)
 
     def test_spectra(self):
         """
