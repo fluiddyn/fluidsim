@@ -540,7 +540,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             self.t_last_plot = tsim
             key_field = self.params.output.phys_fields.field_to_plot
             field, _ = self._select_field(key_field=key_field)
-            if self._has_uxuy
+            if self._has_uxuy:
                 ux, _ = self._select_field(key_field='ux')
                 uy, _ = self._select_field(key_field='uy')
 
