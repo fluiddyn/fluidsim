@@ -93,12 +93,13 @@ class Spectra(SpecificOutput, MoviesBase1D):
             return dico_results
 
     def _init_online_plot(self):
-        fig, axe = self.output.figure_axe(numfig=1000000)
-        self.axe = axe
-        axe.set_xlabel('$k_h$')
-        axe.set_ylabel('$E(k_h)$')
-        axe.set_title('spectra, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
+        if mpi.rank == 0:
+            fig, axe = self.output.figure_axe(numfig=1000000)
+            self.axe = axe
+            axe.set_xlabel('$k_h$')
+            axe.set_ylabel('$E(k_h)$')
+            axe.set_title('spectra, solver '+self.output.name_solver +
+                          ', nh = {0:5d}'.format(self.nx))
 
     def _online_plot_saving(self):
         pass

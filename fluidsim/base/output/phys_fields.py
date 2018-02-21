@@ -329,7 +329,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                 self._ani_spatial_means_t, self._ani_spatial_means_key = (
                     self._get_spatial_means())
             except FileNotFoundError:
-                print('No spatial means file => no inlet plot.')
+                print('No spatial means file => no inset plot.')
                 self._ANI_INSET = False
                 return
 
@@ -343,7 +343,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             ax2.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
 
             ax2.set_xlim(0, self._ani_spatial_means_t.max())
-            # Correct visualization inlet_animation 10% of the difference
+            # Correct visualization inset_animation 10% of the difference
             # value_max-value-min
             ax2.set_ylim(
                 self._ani_spatial_means_key.min(),
@@ -354,7 +354,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             ax2.plot(
                 self._ani_spatial_means_t, self._ani_spatial_means_key,
                 linewidth=0.8, color='grey', alpha=0.4)
-            self._ani_im_inlet = ax2.plot([0], [0], color='red')
+            self._ani_im_inset = ax2.plot([0], [0], color='red')
 
     def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
         '''Make a quiver plot on axis `ax`.'''
@@ -424,7 +424,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             t = self._ani_spatial_means_t
             E = self._ani_spatial_means_key
 
-            self._ani_im_inlet[0].set_data(
+            self._ani_im_inset[0].set_data(
                 t[:idx_spatial], E[:idx_spatial])
 
         self._set_title(self._ani_ax, self._ani_key, time, vmax)
@@ -500,12 +500,12 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         return field, ux, uy
 
     def _get_spatial_means(self, key_spatial='E'):
-        """ Get field for the inlet plot."""
+        """ Get field for the inset plot."""
         # Check if key_spatial can be loaded.
         keys_spatial = ['E', 'EK', 'EA']
         if key_spatial not in keys_spatial:
             raise ValueError('key_spatial not in spatial means keys.')
-        # Load data for inlet plot
+        # Load data for inset plot
         dico = self.output.spatial_means.load()
         t = dico['t']
         E = dico[key_spatial]
@@ -517,10 +517,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
     def _init_online_plot(self):
         self._ani_key = self.params.output.phys_fields.field_to_plot
-        self._ani_fig, self._ani_ax = plt.subplots()
-        self._set_font()
-
         self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
+
         field, _ = self._select_field(key_field=self._ani_key)
         if self._has_uxuy:
             ux, _ = self._select_field(key_field='ux')
@@ -529,9 +527,12 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
             ux = uy = None
 
         if mpi.rank == 0:
+            self._set_font()
+            self._ani_fig, self._ani_ax = plt.subplots()
             self._ani_init_fig(field, ux, uy)
             self._ani_im.autoscale()
-            # self._ani_im.draw()
+            self._ani_fig.canvas.draw()
+            plt.pause(1e-6)
 
     def _online_plot(self):
         """Online plot."""
@@ -559,7 +560,6 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 self._set_title(self._ani_ax, self._ani_key, tsim, vmax)
 
                 self._ani_im.autoscale()
-                # self._ani_im.draw()
                 self._ani_fig.canvas.draw()
                 plt.pause(1e-6)
 
@@ -733,5 +733,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 XX[::skip, ::skip],
                 YY[::skip, ::skip],
                 vecx_c, vecy_c, scale=10*normalize_diff)
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+        else:
+            quiver = vmax = None
 
-        return quiver, np.max(np.sqrt(vecx**2 + vecy**2))
+        return quiver, vmax
