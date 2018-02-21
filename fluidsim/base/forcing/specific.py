@@ -136,7 +136,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse.oper.ny = n
             params_coarse.oper.type_fft = 'sequential'
             # FIXME: Workaround for incorrect forcing
-            params_coarse.oper.coef_dealiasing = 3.
+            params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = sim.oper.__class__(
                 SEQUENTIAL=True,

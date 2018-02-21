@@ -144,6 +144,10 @@ class TimeSteppingBase(object):
         self.sim.__exit__()
 
     def is_simul_completed(self):
+        """Checks if simulation time or iteration has reached the end according
+        to parameters specified.
+
+        """
         if self.params.time_stepping.USE_T_END:
             return self.t >= self.params.time_stepping.t_end
         else:

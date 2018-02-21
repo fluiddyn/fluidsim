@@ -292,7 +292,8 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
         field, ux, uy = self._ani_get_field(0)
 
-        self._ani_init_fig(field, ux, uy)
+        INSET = True if 'INSET' not in kwargs else kwargs['INSET']
+        self._ani_init_fig(field, ux, uy, INSET)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
@@ -323,7 +324,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             INSET = False
 
         self._ANI_INSET = INSET
-
         if self._ANI_INSET:
             try:
                 self._ani_spatial_means_t, self._ani_spatial_means_key = (
