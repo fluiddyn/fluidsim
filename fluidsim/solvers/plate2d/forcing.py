@@ -22,7 +22,7 @@ class ForcingPlate2D(ForcingBasePseudoSpectral):
 
         This is a static method!
         """
-        classes = [Proportional, TimeCorrelatedRandomPseudoSpectral,
+        classes = [Proportional, TCRandomPSW,
                    InScriptForcingPseudoSpectral]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 

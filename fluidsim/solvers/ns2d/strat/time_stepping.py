@@ -38,10 +38,10 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         self.coef_group = 1.0
         self.coef_phase = 1.0
 
-        can_key_be_obtained = self.sim.state.can_this_key_be_obtained
-        has_ux = (can_key_be_obtained('ux') or can_key_be_obtained('vx'))
-        has_uy = (can_key_be_obtained('uy') or can_key_be_obtained('vy'))
-        has_b = can_key_be_obtained('b')
+        has_vars = self.sim.state.has_vars
+        has_ux = (has_vars('ux') or has_vars('vx'))
+        has_uy = (has_vars('uy') or has_vars('vy'))
+        has_b = has_vars('b')
 
         if has_ux and has_uy and has_b:
             self._compute_time_increment_CLF = \
