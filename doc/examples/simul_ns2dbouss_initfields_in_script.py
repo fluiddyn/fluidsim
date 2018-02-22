@@ -62,8 +62,8 @@ ipython
 
 # then in ipython (copy the 3 lines in the terminal):
 
-from fluidsim import load_state_phys_file
-sim = load_state_phys_file()
+from fluidsim import load_sim_for_plot
+sim = load_sim_for_plot()
 
 sim.output.phys_fields.animate('b', dt_frame_in_sec=0.3, dt_equations=0.1)
 """)
