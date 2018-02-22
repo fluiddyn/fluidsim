@@ -12,7 +12,7 @@ class TestNS2DStrat(BaseTestCase):
     @classmethod
     def setUpClass(cls, init_fields='noise',
                    type_forcing='tcrandom_anisotropic'):
-        nh = 32
+        nh = 480
         super(TestNS2DStrat, cls).setUpClass(nh=nh, init_fields=init_fields,
                                              type_forcing=type_forcing,
                                              HAS_TO_SAVE=False,
