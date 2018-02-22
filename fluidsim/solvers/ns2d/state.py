@@ -51,8 +51,10 @@ class StateNS2D(StatePseudoSpectral):
             return self.vars_computed[key]
 
         if key == 'ux_fft':
+            # not efficient!
             result = self.oper.fft2(self.state_phys.get_var('ux'))
         elif key == 'uy_fft':
+            # not efficient!
             result = self.oper.fft2(self.state_phys.get_var('uy'))
         elif key == 'rot_fft':
             ux_fft = self.compute('ux_fft')
@@ -62,14 +64,11 @@ class StateNS2D(StatePseudoSpectral):
             ux_fft = self.compute('ux_fft')
             uy_fft = self.compute('uy_fft')
             result = self.oper.divfft_from_vecfft(ux_fft, uy_fft)
-        elif key == 'rot':
-            rot_fft = self.compute('rot_fft')
-            result = self.oper.ifft2(rot_fft)
         elif key == 'div':
             div_fft = self.compute('div_fft')
             result = self.oper.ifft2(div_fft)
         elif key == 'q':
-            rot = self.compute('rot')
+            rot = self.get_var('rot')
             result = rot
         else:
             to_print = 'Do not know how to compute "' + key + '".'
