@@ -448,3 +448,293 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             self._ani_cbar.set_clim(*clim)
             ticks = np.linspace(*clim, num=21, endpoint=True)
             self._ani_cbar.set_ticks(ticks)
+
+    def _ani_get_weighted_field(self, time):
+        """Get weighted field between to saved files."""
+        idx, t_actual = self._ani_get_t_actual(time)
+        # If time > time last frame --> frame == last frame.
+        if idx + 1 >= len(self._ani_t_actual) and time > t_actual:
+            t = self._ani_t_actual[idx - 1]
+            field, ux, uy = self._ani_get_field(t)
+
+        else:
+            if t_actual < time:
+                dt_save = self._ani_t_actual[idx + 1] - self._ani_t_actual[idx]
+                weight_0 = 1 - np.abs(
+                    time - self._ani_t_actual[idx]) / dt_save
+                weight_1 = 1 - np.abs(
+                    time - self._ani_t_actual[idx + 1]) / dt_save
+
+                t0 = self._ani_t_actual[idx]
+                field_0, ux_0, uy_0 = self._ani_get_field(t0)
+
+                t1 = self._ani_t_actual[idx + 1]
+                field_1, ux_1, uy_1 = self._ani_get_field(t1)
+
+                field = field_0 * weight_0 + field_1 * weight_1
+                ux = ux_0 * weight_0 + ux_1 * weight_1
+                uy = uy_0 * weight_0 + uy_1 * weight_1
+
+            elif t_actual > time:
+
+                dt_save = self._ani_t_actual[idx] - self._ani_t_actual[idx - 1]
+                weight_0 = 1 - np.abs(
+                    time - self._ani_t_actual[idx - 1]) / dt_save
+                weight_1 = 1 - np.abs(
+                    time - self._ani_t_actual[idx]) / dt_save
+
+                t0 = self._ani_t_actual[idx - 1]
+                field_0, ux_0, uy_0 = self._ani_get_field(t0)
+
+                t1 = self._ani_t_actual[idx]
+                field_1, ux_1, uy_1 = self._ani_get_field(t1)
+
+                field = field_0 * weight_0 + field_1 * weight_1
+                ux = ux_0 * weight_0 + ux_1 * weight_1
+                uy = uy_0 * weight_0 + uy_1 * weight_1
+
+            else:
+                t = self._ani_t_actual[idx]
+                field, ux, uy = self._ani_get_field(t)
+
+        return field, ux, uy
+
+    def _get_spatial_means(self, key_spatial='E'):
+        """ Get field for the inset plot."""
+        # Check if key_spatial can be loaded.
+        keys_spatial = ['E', 'EK', 'EA']
+        if key_spatial not in keys_spatial:
+            raise ValueError('key_spatial not in spatial means keys.')
+        # Load data for inset plot
+        dico = self.output.spatial_means.load()
+        t = dico['t']
+        E = dico[key_spatial]
+
+        return t, E
+
+
+class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
+
+    def _init_online_plot(self):
+        self._ani_key = self.params.output.phys_fields.field_to_plot
+        self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
+
+        field, _ = self._select_field(key_field=self._ani_key)
+        if self._has_uxuy:
+            ux, _ = self._select_field(key_field='ux')
+            uy, _ = self._select_field(key_field='uy')
+        else:
+            ux = uy = None
+
+        if mpi.rank == 0:
+            self._set_font()
+            self._ani_fig, self._ani_ax = plt.subplots()
+            self._ani_init_fig(field, ux, uy)
+            self._ani_im.autoscale()
+            self._ani_fig.canvas.draw()
+            plt.pause(1e-6)
+
+    def _online_plot(self):
+        """Online plot."""
+        tsim = self.sim.time_stepping.t
+        if (tsim - self.t_last_plot >= self.period_plot):
+            self.t_last_plot = tsim
+            key_field = self.params.output.phys_fields.field_to_plot
+            field, _ = self._select_field(key_field=key_field)
+            if self._has_uxuy:
+                ux, _ = self._select_field(key_field='ux')
+                uy, _ = self._select_field(key_field='uy')
+
+            if mpi.rank == 0:
+                field = field[:-1, :-1]
+
+                # Update figure, quiver and colorbar
+                self._ani_im.set_array(field.flatten())
+                if self._has_uxuy:
+                    vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+                    self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip] / vmax,
+                                             uy[::self._skip, ::self._skip] / vmax)
+                else:
+                    vmax = None
+
+                self._set_title(self._ani_ax, self._ani_key, tsim, vmax)
+
+                self._ani_im.autoscale()
+                self._ani_fig.canvas.draw()
+                plt.pause(1e-6)
+
+    def plot(self, field=None, key_field=None, time=None,
+             QUIVER=True, vecx='ux', vecy='uy',
+             nb_contours=20, type_plot='contourf', iz=0, vmin=None, vmax=None,
+             cmap='viridis', numfig=None):
+        """Plot a field.
+
+        This function is surely buggy! It has to be fixed.
+
+        Parameters
+        ----------
+
+        field : {str, np.ndarray}, optional
+
+        time : number, optional
+
+        QUIVER : True
+
+        vecx : 'ux'
+
+        vecy : 'uy'
+
+        nb_contours : 20
+
+        type_plot : 'contourf'
+
+        iz : 0
+
+        vmin : None
+
+        vmax : None
+
+        cmap : 'viridis'
+
+        numfig : None
+
+        """
+
+        is_field_ready = False
+
+        if field is None and key_field is None:
+            key_field = self.field_to_plot
+        elif isinstance(field, np.ndarray) and key_field is None:
+            key_field = 'given array'
+            is_field_ready = True
+        elif field is not None and key_field is None:
+            key_field, field = field, key_field
+
+        assert key_field is not None
+
+        if time is None and not is_field_ready:
+            # we have to get the field from the state
+            time = self.sim.time_stepping.t
+            field = self._get_field_seq(key_field)
+            if QUIVER:
+                vecx = self._get_field_seq(vecx)
+                vecy = self._get_field_seq(vecy)
+        else:
+            # we have to get the field from a file
+            self._set_path()
+
+            if key_field not in self.sim.state.keys_state_phys:
+                raise ValueError('key not in state.keys_state_phys')
+
+            self._ani_pathfiles = sorted(glob(os.path.join(
+                self.path, 'state_phys*')))
+            self._ani_t_actual = np.array(list(
+                map(time_from_path, self._ani_pathfiles)))
+
+            idx, t_actual = self._ani_get_t_actual(time)
+            time = t_actual
+
+            keys_state_phys = self.sim.state.keys_state_phys
+            if vecx not in keys_state_phys or vecy not in keys_state_phys:
+                QUIVER = False
+
+            if QUIVER:
+                field, vecx, vecy = self._ani_get_field(time, key_field)
+            else:
+                field = self._ani_get_field(time, key_field, need_uxuy=False)
+
+        if field.ndim == 3:
+            field = field[iz]
+            vecx, vecy = vecx[iz], vecy[iz]
+
+        if mpi.rank == 0:
+            if numfig is None:
+                fig, ax = self.output.figure_axe()
+            else:
+                fig, ax = self.output.figure_axe(numfig=numfig)
+            x_seq = self.oper.x_seq
+            y_seq = self.oper.y_seq
+            [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
+            try:
+                cmap = plt.get_cmap(cmap)
+            except ValueError:
+                print('Use matplotlib >= 1.5.0 for new standard colorschemes.\
+                       Installed matplotlib :' + plt.matplotlib.__version__)
+                cmap = plt.get_cmap('jet')
+
+            if type_plot == 'contourf':
+                contours = ax.contourf(
+                    x_seq, y_seq, field,
+                    nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
+                fig.colorbar(contours)
+                fig.contours = contours
+            elif type_plot == 'pcolor':
+                pc = ax.pcolormesh(x_seq, y_seq, field,
+                                   vmin=vmin, vmax=vmax, cmap=cmap)
+                fig.colorbar(pc)
+        else:
+            ax = None
+
+        if QUIVER:
+            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
+        else:
+            vmax = None
+
+        if mpi.rank == 0:
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            self._set_title(ax, key_field, time, vmax)
+
+            fig.tight_layout()
+            fig.canvas.draw()
+            plt.pause(1e-3)
+
+    def _compute_skip_quiver(self):
+        # 4% of the Lx it is a great separation between vector arrows.
+        delta_quiver = 0.04 * self.oper.Lx
+        skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
+        skip = int(np.round(skip))
+        if skip < 1:
+            skip = 1
+        return skip
+
+    def _get_field_seq(self, key):
+        field_loc = self.sim.state.get_var(key)
+        if mpi.nb_proc > 1:
+            return self.oper.gather_Xspace(field_loc)
+        else:
+            return field_loc
+
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+        """Superimposes a quiver plot of velocity vectors with a given axis
+        object corresponding to a 2D contour plot.
+
+        """
+        if isinstance(vecx, basestring):
+            vecx = self._get_field_seq(vecx)
+
+        if isinstance(vecy, basestring):
+            vecy = self._get_field_seq(vecy)
+
+        self._skip = skip = self._compute_skip_quiver()
+
+        if XX is None and YY is None:
+            [XX, YY] = np.meshgrid(self.oper.x_seq, self.oper.y_seq)
+
+        if mpi.rank == 0:
+            normalize_diff = (
+                np.max(np.sqrt(vecx**2 + vecy**2)) -
+                np.min(np.sqrt(vecx**2 + vecy**2))) / (np.max(
+                    np.sqrt(vecx**2 + vecy**2)))
+            # copy to avoid a bug
+            vecx_c = vecx[::skip, ::skip].copy()
+            vecy_c = vecy[::skip, ::skip].copy()
+            quiver = ax.quiver(
+                XX[::skip, ::skip],
+                YY[::skip, ::skip],
+                vecx_c, vecy_c, scale=10*normalize_diff)
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+        else:
+            quiver = vmax = None
+
+        return quiver, vmax
