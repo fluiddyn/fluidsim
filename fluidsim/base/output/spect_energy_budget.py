@@ -59,29 +59,30 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             return dico_results
 
     def _init_online_plot(self):
-        width_axe = 0.85
-        height_axe = 0.37
-        x_left_axe = 0.12
-        z_bottom_axe = 0.56
+        if mpi.rank == 0:
+            width_axe = 0.85
+            height_axe = 0.37
+            x_left_axe = 0.12
+            z_bottom_axe = 0.56
 
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
-        self.fig, axe_a = self.output.figure_axe(size_axe=size_axe,
-                                                 numfig=4000000)
-        self.axe_a = axe_a
-        axe_a.set_xlabel(r'$k_h$')
-        axe_a.set_ylabel(r'$\Pi(k_h)$')
-        axe_a.set_title('energy flux, solver ' + self.output.name_solver +
-                        ', nh = {0:5d}'.format(self.nx))
-        axe_a.set_xscale('log')
+            size_axe = [x_left_axe, z_bottom_axe,
+                        width_axe, height_axe]
+            self.fig, axe_a = self.output.figure_axe(size_axe=size_axe,
+                                                     numfig=4000000)
+            self.axe_a = axe_a
+            axe_a.set_xlabel(r'$k_h$')
+            axe_a.set_ylabel(r'$\Pi(k_h)$')
+            axe_a.set_title('energy flux, solver ' + self.output.name_solver +
+                            ', nh = {0:5d}'.format(self.nx))
+            axe_a.set_xscale('log')
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        axe_b = self.fig.add_axes(size_axe)
-        self.axe_b = axe_b
-        axe_b.set_xlabel(r'$k_h$')
-        axe_b.set_ylabel(r'$\Pi(k_h)$')
-        axe_b.set_xscale('log')
+            z_bottom_axe = 0.08
+            size_axe[1] = z_bottom_axe
+            axe_b = self.fig.add_axes(size_axe)
+            self.axe_b = axe_b
+            axe_b.set_xlabel(r'$k_h$')
+            axe_b.set_ylabel(r'$\Pi(k_h)$')
+            axe_b.set_xscale('log')
 
     def fnonlinfft_from_uxuy_funcfft(self, ux, uy, f_fft):
         r"""

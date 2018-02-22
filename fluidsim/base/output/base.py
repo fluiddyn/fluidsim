@@ -57,7 +57,7 @@ class OutputBase(object):
         classes._set_child(
             'PhysFields',
             attribs={'module_name': 'fluidsim.base.output.phys_fields',
-                     'class_name': 'PhysFieldsBase'})
+                     'class_name': 'PhysFieldsBase2D'})
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
@@ -451,8 +451,7 @@ class SpecificOutput(object):
 
         self._init_path_files()
 
-        if self.has_to_plot and mpi.rank == 0:
-            # FIXME: the mpi.rank constraint can be problematic for phys_fields
+        if self.has_to_plot:
             self._init_online_plot()
 
         if not output._has_to_save:

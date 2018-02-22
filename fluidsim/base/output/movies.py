@@ -203,11 +203,8 @@ class MoviesBase(object):
         .. TODO: Use FuncAnimation with blit=True option.
 
         """
-        if mpi.nb_proc > 1:
-            raise NotImplementedError(
-                'Do NOT use this script with MPI !\n'
-                'The MPI version of get_state_from_simul()\n'
-                'is not implemented.')
+        if mpi.rank > 0:
+            raise NotImplementedError('Do NOT use this script with MPI !')
 
         if fargs is None:
             fargs = {}

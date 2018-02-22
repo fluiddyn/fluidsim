@@ -6,6 +6,7 @@ from past.utils import old_div
 import h5py
 import numpy as np
 
+from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
 
 
@@ -35,15 +36,15 @@ class ProbaDensityFunc(SpecificOutput):
             has_to_plot_saved=params.output.pdf.HAS_TO_PLOT_SAVED)
 
     def _init_online_plot(self):
-        self.fig, axe = self.output.figure_axe(numfig=5000000)
-        self.axe = axe
-        axe.set_xlabel(r'$\eta$')
-        axe.set_ylabel('pdf')
-        title = (r'pdf $\eta$, solver ' + self.output.name_solver +
-                 ', nh = {0:5d}'.format(self.nx) +
-                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
-        axe.set_title(title)
-        axe.hold(True)
+        if mpi.rank == 0:
+            self.fig, axe = self.output.figure_axe(numfig=5000000)
+            self.axe = axe
+            axe.set_xlabel(r'$\eta$')
+            axe.set_ylabel('pdf')
+            title = (r'pdf $\eta$, solver ' + self.output.name_solver +
+                     ', nh = {0:5d}'.format(self.nx) +
+                     ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+            axe.set_title(title)
 
     def _online_plot_saving(self, dico_pdf):
         """online plot on pdf"""

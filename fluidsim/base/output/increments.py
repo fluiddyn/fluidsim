@@ -73,13 +73,14 @@ class Increments(SpecificOutput):
             dico_arrays_1time=dico_arrays_1time)
 
     def _init_online_plot(self):
-        self.fig, axe = self.output.figure_axe(numfig=5000000)
-        self.axe = axe
-        axe.set_xlabel(r'$\delta u_x (x)$')
-        axe.set_ylabel('pdf')
-        axe.set_title(
-            r'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
-            ', nh = {0:5d}'.format(self.nx))
+        if mpi.rank == 0:
+            self.fig, axe = self.output.figure_axe(numfig=5000000)
+            self.axe = axe
+            axe.set_xlabel(r'$\delta u_x (x)$')
+            axe.set_ylabel('pdf')
+            axe.set_title(
+                r'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
+                ', nh = {0:5d}'.format(self.nx))
 
     def _online_plot_saving(self, dico_results, key='rot'):
         """online plot on pdf"""

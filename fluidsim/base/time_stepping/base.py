@@ -67,12 +67,14 @@ class TimeSteppingBase(object):
 
         self.deltat = params_ts.deltat0
 
-        can_key_be_obtained = self.sim.state.can_this_key_be_obtained
+        has_vars = self.sim.state.has_vars
 
-        has_ux = (can_key_be_obtained('ux') or can_key_be_obtained('vx'))
-        has_uy = (can_key_be_obtained('uy') or can_key_be_obtained('vy'))
-        has_uz = (can_key_be_obtained('uz') or can_key_be_obtained('vz'))
-        has_eta = can_key_be_obtained('eta')
+        # TODO: Replace multiple function calls below when has_vars supports
+        # `strict` parameter.
+        has_ux = has_vars('ux') or has_vars('vx')
+        has_uy = has_vars('uy') or has_vars('vy')
+        has_uz = has_vars('uz') or has_vars('vz')
+        has_eta = has_vars('eta')
 
         if has_ux and has_uy and has_uz:
             self._compute_time_increment_CLF = \
@@ -142,6 +144,10 @@ class TimeSteppingBase(object):
         self.sim.__exit__()
 
     def is_simul_completed(self):
+        """Checks if simulation time or iteration has reached the end according
+        to parameters specified.
+
+        """
         if self.params.time_stepping.USE_T_END:
             return self.t >= self.params.time_stepping.t_end
         else:

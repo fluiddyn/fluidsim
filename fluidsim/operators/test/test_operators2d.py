@@ -16,7 +16,7 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None):
+def create_oper(type_fft=None, coef_dealiasing=2./3):
 
     params = ParamContainer(tag='params')
 
@@ -27,7 +27,11 @@ def create_oper(type_fft=None):
 
     OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
-    nh = 8
+    if mpi.nb_proc == 1:
+        nh = 9
+    else:
+        nh = 8
+
     params.oper.nx = nh
     params.oper.ny = nh
     Lh = 6.
@@ -37,7 +41,7 @@ def create_oper(type_fft=None):
     if type_fft is not None:
         params.oper.type_fft = type_fft
 
-    params.oper.coef_dealiasing = 2./3
+    params.oper.coef_dealiasing = coef_dealiasing
 
     with stdout_redirected():
         oper = OperatorsPseudoSpectral2D(params=params)
@@ -123,6 +127,25 @@ class TestOperators(unittest.TestCase):
         n1 = oper.shapeX[1]
         for irx in [n1, n1 // 2, 0]:
             assert_increments_equal(irx)
+
+
+class TestOperatorsDealiasing(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.oper = create_oper(coef_dealiasing=1.)
+
+    def test_dealiasing(self):
+        """Test if dealiasing with coef_dealiasing=1.0 keeps the original
+        array unchanged.
+
+        """
+        oper = self.oper
+        var_fft = oper.constant_arrayK(1.)
+        sum_var = var_fft.sum()
+        oper.dealiasing(var_fft)
+        sum_var_dealiased = var_fft.sum()
+        self.assertEqual(sum_var, sum_var_dealiased)
+
 
 if __name__ == '__main__':
     unittest.main()

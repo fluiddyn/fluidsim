@@ -14,6 +14,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 
 from fluidsim.base.forcing.specific import (
+    InScriptForcingPseudoSpectral,
     Proportional as ProportionalBase,
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS,
     RandomSimplePseudoSpectral)
@@ -32,7 +33,7 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
         This is a static method!
         """
         classes = [Proportional, TCRandomPS, RandomSimplePseudoSpectral, Waves,
-                   WavesVortices, Potential]
+                   WavesVortices, Potential, InScriptForcingPseudoSpectral]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 

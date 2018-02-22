@@ -215,12 +215,13 @@ class CorrelationsFreq(SpecificOutput):
                     #         self.ax.get_figure().canvas.draw()
 
     def _init_online_plot(self):
-        fig, ax = self.output.figure_axe(numfig=4100000)
-        self.ax = ax
-        ax.set_xlabel('Omega')
-        ax.set_ylabel('Correlations')
-        ax.set_title('Correlation, solver '+self.output.name_solver +
-                     ', nh = {0:5d}'.format(self.params.oper.nx))
+        if mpi.rank == 0:
+            fig, ax = self.output.figure_axe(numfig=4100000)
+            self.ax = ax
+            ax.set_xlabel('Omega')
+            ax.set_ylabel('Correlations')
+            ax.set_title('Correlation, solver '+self.output.name_solver +
+                         ', nh = {0:5d}'.format(self.params.oper.nx))
 
     def _online_plot_saving(self, dico_results):
         nb_omegas = self.nb_omegas

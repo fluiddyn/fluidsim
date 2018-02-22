@@ -77,6 +77,47 @@ class StateBase(object):
         """Clear the stored computed variables."""
         self.vars_computed.clear()
 
+    def has_vars(self, *keys):
+        """Checks if all of the keys are present in the union of
+        ``keys_state_phys`` and ``keys_computable``.
+
+        Parameters
+        ----------
+        keys: str, str ...
+            Strings indicating state variable names.
+
+        Returns
+        -------
+        bool
+
+        Example
+        -------
+        >>> sim.state.has_vars('ux', 'uy')
+        >>> sim.state.has_vars('ux')
+        >>> sim.state.has_vars('ux', 'vx', strict=False)
+
+        .. todo::
+
+           ``strict=True`` can be a Python 3 compatible keywords-only argument
+           with the function like::
+
+               def has_vars(self, *keys, strict=True):
+                   ...
+                   if strict:
+                       return keys.issubset(keys_state)
+                   else:
+                       return len(keys.intersection(keys_state)) > 0
+
+            When ``True``, checks if all keys form a subset of state keys. When
+            ``False``, checks if the intersection of the keys and the state keys
+            has atleast one member.
+
+        """
+        keys_state = set(
+            self.keys_state_phys + self.keys_computable)
+        keys = set(keys)
+        return keys.issubset(keys_state)
+
     def get_var(self, key):
         """Get a physical variable (from the storage array or computed).
 
@@ -104,7 +145,7 @@ class StateBase(object):
 
     def __call__(self, key):
         raise DeprecationWarning('Do not call a state object. '
-                                 'Instead, use its get_var method.')
+                                 'Instead, use get_var method.')
 
     def __setitem__(self, key, value):
         """General setter function to set the value of a variable
@@ -117,9 +158,14 @@ class StateBase(object):
             raise ValueError('key "' + key + '" is not known')
 
     def can_this_key_be_obtained(self, key):
-        """To check whether a variable can be obtained."""
-        return (key in self.keys_state_phys or
-                key in self.keys_computable)
+        """To check whether a variable can be obtained.
+
+        .. deprecated:: 0.2.0
+           Use ``has_vars`` method instead.
+
+        """
+        raise DeprecationWarning('Do not call can_this_key_be_obtained. '
+                                 'Instead, use has_vars method.')
 
 
 class StatePseudoSpectral(StateBase):
@@ -159,6 +205,30 @@ class StatePseudoSpectral(StateBase):
                                           shape_variable=self.oper.shapeK_loc,
                                           dtype=np.complex128,
                                           info='state_spect')
+
+    def has_vars(self, *keys):
+        """Checks if all of the keys are present in the union of
+        ``keys_state_phys``, ``keys_computable``, and ``keys_state_spect``.
+
+        Parameters
+        ----------
+        keys: str, str ...
+            Strings indicating state variable names.
+
+        Returns
+        -------
+        bool
+
+        Examples
+        --------
+        >>> sim.state.has_vars('ux', 'uy', 'ux_fft')
+        >>> sim.state.has_vars('rot')
+
+        """
+        keys_state = set(
+            self.keys_state_phys + self.keys_computable + self.keys_state_spect)
+        keys = set(keys)
+        return keys.issubset(keys_state)
 
     def get_var(self, key):
         """Get a variable (from the storage arrays or computed).

@@ -5,6 +5,7 @@ import h5py
 
 import numpy as np
 
+from fluiddyn.util import mpi
 from fluidsim.base.output.spectra import Spectra
 from .normal_mode import NormalModeBase
 
@@ -20,15 +21,13 @@ class SpectraSW1L(Spectra):
         super(SpectraSW1L, self).__init__(output)
 
     def _init_online_plot(self):
-        fig, axe = self.output.figure_axe(numfig=1000000)
-        self.axe = axe
-        axe.set_xlabel('k_h')
-        axe.set_ylabel('E(k_h)')
-        title = ('spectra, solver '+self.output.name_solver+
-                 ', nh = {0:5d}'.format(self.nx)+
-                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
-                 )
-        axe.set_title(title)
+        super(SpectraSW1L, self)._init_online_plot()
+        if mpi.rank == 0:
+            title = ('spectra, solver '+self.output.name_solver+
+                     ', nh = {0:5d}'.format(self.nx)+
+                     ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f)
+                     )
+            self.axe.set_title(title)
 
     def compute(self):
         """compute the values at one time."""

@@ -16,12 +16,14 @@ from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
 
 class TestBaseSolverPS(unittest.TestCase):
-    def setUp(self):
+    def setUp(self, params=None):
         """Should be able to run a base experiment."""
 
-        params = SimulBasePseudoSpectral.create_default_params()
-
-        params.short_name_type_run = 'test_base_solver_ps'
+        if params is None:
+            params = SimulBasePseudoSpectral.create_default_params()
+            params.output.periods_plot.phys_fields = 0.
+            params.output.periods_print.print_stdout = 0.
+            params.short_name_type_run = 'test_base_solver_ps'
 
         nh = 8
         Lh = 2*np.pi
@@ -33,9 +35,6 @@ class TestBaseSolverPS(unittest.TestCase):
         params.nu_2 = 1.
 
         params.time_stepping.t_end = 2.
-
-        params.output.periods_plot.phys_fields = 0.
-        params.output.periods_print.print_stdout = 0.
 
         with stdout_redirected():
             self.sim = SimulBasePseudoSpectral(params)
@@ -53,6 +52,16 @@ class TestBaseSolverPS(unittest.TestCase):
             self.sim.time_stepping.start()
 
         fld.show()
+
+
+class TestOutputPS(TestBaseSolverPS):
+    """Test a simulation run with online plotting and stdout printing."""
+    def setUp(self):
+        params = SimulBasePseudoSpectral.create_default_params()
+        params.output.periods_plot.phys_fields = 1.
+        params.output.periods_print.print_stdout = 1.
+        params.short_name_type_run = 'test_output_ps'
+        TestBaseSolverPS.setUp(self, params)
 
 
 if __name__ == '__main__':

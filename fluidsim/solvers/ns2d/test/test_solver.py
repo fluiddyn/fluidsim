@@ -64,7 +64,7 @@ class TestSolverNS2D(unittest.TestCase):
         #            sim.oper.sum_wavenumbers(T_rot),
         #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
-    def test_forcing(self):
+    def test_forcing_output(self):
 
         params = self.Simul.create_default_params()
 
@@ -104,7 +104,6 @@ class TestSolverNS2D(unittest.TestCase):
                 sim.output.print_stdout.plot_deltat()
 
                 sim.output.spect_energy_budg.plot()
-
                 with self.assertRaises(ValueError):
                     sim.state.get_var('test')
 
@@ -120,9 +119,15 @@ class TestSolverNS2D(unittest.TestCase):
             if mpi.nb_proc > 1:
                 path_run = mpi.comm.bcast(path_run)
 
-            sim3 = fls.load_state_phys_file(path_run)
-            sim3.params.time_stepping.t_end += 1.
+            sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+            sim3.params.time_stepping.t_end += 0.2
             sim3.time_stepping.start()
+
+        if mpi.rank == 0:
+            sim3.output.phys_fields.animate(
+                'ux', dt_frame_in_sec=1e-6, dt_equations=0.2, repeat=False,
+                clim=(-1, 1), save_file=False, numfig=1)
+
 
 
 # class TestSolverNS2DFluidfft(TestSolverNS2D):
