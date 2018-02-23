@@ -236,14 +236,16 @@ def print_analysis3d(s):
             if k in name or k in key[0]:
 
                 if k == 'fft3d':
-                    if 'pythran' in key[0]:
+                    if 'pythran' in key[0] or 'pythran' in key[2]:
                         continue
                     if 'operators.py' in key[0]:
                         continue
+                    if 'as_arg' in  key[2]:
+                        continue
 
-                # print(k, key)
-                # print(value[:100])
-                # print(time, '\n')
+                    # print(k, key)
+                    # print(value[:100])
+                    # print(time, '\n')
 
                 times[k] += time
 
