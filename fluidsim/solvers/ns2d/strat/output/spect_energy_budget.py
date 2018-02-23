@@ -163,7 +163,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'epsilon_ky': epsilon_ky}
 
         if mpi.rank == 0:
-            small_value = 1e-14
+            small_value = 1e-12
             for k, v in dico_results.items():
                 if k.startswith('transfer'):
                     if abs(v.sum()) > small_value:
@@ -250,8 +250,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         #         # ax1.plot(khE, PiZ, 'g', linewidth=1)
         #         ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
 
-        transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot].mean(0)
-        transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot].mean(0)
+        transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot + 1].mean(0)
+        transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot + 1].mean(0)
 
         PiEK_kx = cumsum_inv(transferEK_kx) * self.oper.deltakx
         PiEA_kx = cumsum_inv(transferEA_kx) * self.oper.deltakx
@@ -286,8 +286,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         #         # ax1.plot(khE, PiZ, 'g', linewidth=1)
         #         ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
 
-        transferEK_ky = dset_transferEK_ky[imin_plot:imax_plot].mean(0)
-        transferEA_ky = dset_transferEA_ky[imin_plot:imax_plot].mean(0)
+        transferEK_ky = dset_transferEK_ky[imin_plot:imax_plot + 1].mean(0)
+        transferEA_ky = dset_transferEA_ky[imin_plot:imax_plot + 1].mean(0)
         PiEK_ky = cumsum_inv(transferEK_ky) * self.oper.deltaky
         PiEA_ky = cumsum_inv(transferEA_ky) * self.oper.deltaky
 
