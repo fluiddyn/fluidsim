@@ -157,13 +157,17 @@ class StateNS2DStrat(StateNS2D):
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_statespect_from(self, **kwargs):
-        if len(kwargs) == 2:
-            if 'rot_fft' in kwargs and 'b_fft' in kwargs:
-                self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
         if len(kwargs) == 1:
             if 'rot_fft' in kwargs:
                 self.init_from_rotfft(kwargs['rot_fft'])
             elif 'ap_fft' in kwargs:
                 self.init_from_apfft(kwargs['ap_fft'])
+            else:
+                raise ValueError('init from {} not implemented'.format(kwargs))
+        elif len(kwargs) == 2:
+            if 'rot_fft' in kwargs and 'b_fft' in kwargs:
+                self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
+            else:
+                raise ValueError('init from {} not implemented'.format(kwargs))
         else:
             super(StateNS2D, self).init_statespect_from(**kwargs)
