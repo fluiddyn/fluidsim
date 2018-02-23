@@ -63,18 +63,14 @@ class StateNS2DStrat(StateNS2D):
         elif key == 'ap_fft':
             uy_fft = self.oper.fft2(self.state_phys.get_var('uy'))
             b_fft = self.state_spect.get_var('b_fft')
-
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-
             result = (N**2) * uy_fft + j * omega_k * b_fft
         elif key == 'am_fft':
             uy_fft = self.oper.fft2(self.state_phys.get_var('uy'))
             b_fft = self.state_spect.get_var('b_fft')
-
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-
             result = (N**2) * uy_fft - j * omega_k * b_fft
         else:
             to_print = 'Do not know how to compute "' + key + '".'
@@ -155,7 +151,6 @@ class StateNS2DStrat(StateNS2D):
         b_fft[cond] = (1. / (2j * omega_k[cond])) * (
             ap_fft[cond] + am_fft[cond])
         return rot_fft, b_fft
-        
 
     def init_from_rotfft(self, rot_fft):
         b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
@@ -165,8 +160,10 @@ class StateNS2DStrat(StateNS2D):
         if len(kwargs) == 2:
             if 'rot_fft' in kwargs and 'b_fft' in kwargs:
                 self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
-        elif len(kwargs) == 1:
-            if 'ap_fft' in kwargs:
+        if len(kwargs) == 1:
+            if 'rot_fft' in kwargs:
+                self.init_from_rotfft(kwargs['rot_fft'])
+            elif 'ap_fft' in kwargs:
                 self.init_from_apfft(kwargs['ap_fft'])
         else:
             super(StateNS2D, self).init_statespect_from(**kwargs)
