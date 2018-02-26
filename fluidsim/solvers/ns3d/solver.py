@@ -105,26 +105,17 @@ class Simul(SimulBasePseudoSpectral):
     def tendencies_nonlin(self, state_spect=None):
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
         fft_as_arg = oper.fft_as_arg
         
         if state_spect is None:
-            state_spect = self.state.state_spect
-            vx_fft = state_spect.get_var('vx_fft')
-            vy_fft = state_spect.get_var('vy_fft')
-            vz_fft = state_spect.get_var('vz_fft')
-            vx = self.state.state_phys.get_var('vx')
-            vy = self.state.state_phys.get_var('vy')
-            vz = self.state.state_phys.get_var('vz')
+            spect_get_var = self.state.state_spect.get_var
         else:
-            vx_fft = state_spect.get_var('vx_fft')
-            vy_fft = state_spect.get_var('vy_fft')
-            vz_fft = state_spect.get_var('vz_fft')
-            vx = self.state.fields_tmp[0]
-            vy = self.state.fields_tmp[1]
-            vz = self.state.fields_tmp[2]
-            ifft_as_arg(vx_fft, vx)
-            ifft_as_arg(vy_fft, vy)
-            ifft_as_arg(vz_fft, vz)
+            spect_get_var = state_spect.get_var
+
+        vx_fft = spect_get_var('vx_fft')
+        vy_fft = spect_get_var('vy_fft')
+        vz_fft = spect_get_var('vz_fft')
 
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft)
@@ -133,9 +124,21 @@ class Simul(SimulBasePseudoSpectral):
         omegay = self.state.fields_tmp[4]
         omegaz = self.state.fields_tmp[5]
 
-        ifft_as_arg(omegax_fft, omegax)
-        ifft_as_arg(omegay_fft, omegay)
-        ifft_as_arg(omegaz_fft, omegaz)
+        ifft_as_arg_destroy(omegax_fft, omegax)
+        ifft_as_arg_destroy(omegay_fft, omegay)
+        ifft_as_arg_destroy(omegaz_fft, omegaz)        
+
+        if state_spect is None:
+            vx = self.state.state_phys.get_var('vx')
+            vy = self.state.state_phys.get_var('vy')
+            vz = self.state.state_phys.get_var('vz')
+        else:
+            vx = self.state.fields_tmp[0]
+            vy = self.state.fields_tmp[1]
+            vz = self.state.fields_tmp[2]
+            ifft_as_arg(vx_fft, vx)
+            ifft_as_arg(vy_fft, vy)
+            ifft_as_arg(vz_fft, vz)
 
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 

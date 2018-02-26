@@ -60,7 +60,7 @@ class OperatorsPseudoSpectral3D(_Operators):
         if nb_proc > 1:
             type_fft = 'fft3d.mpi_with_fftwmpi3d'
         else:
-            type_fft = 'fft3d.with_fftw3d'
+            type_fft = 'fft3d.with_pyfftw'
 
         attribs = {'type_fft': type_fft,
                    'type_fft2d': 'fft2d.with_fftw2d',

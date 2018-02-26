@@ -44,8 +44,8 @@ class OperatorsPseudoSpectral2D(_Operators):
         if nb_proc > 1:
             type_fft = 'fft2d.mpi_with_fftw1d'
         else:
-            type_fft = 'fft2d.with_fftw2d'
-
+            type_fft = 'fft2d.with_pyfftw'
+            
         attribs = {'type_fft': type_fft,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
