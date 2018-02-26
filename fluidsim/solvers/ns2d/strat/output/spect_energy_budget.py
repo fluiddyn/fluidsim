@@ -189,18 +189,15 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         """Plot the energy budget."""
 
         # Load data from file
-        f = h5py.File(self.path_file, 'r')
-        dset_times = f['times']
-        dset_kxE = f['kxE']
-        dset_kyE = f['kyE']
-        times = dset_times.value
-        kxE = dset_kxE.value
-        kyE = dset_kyE.value
+        with h5py.File(self.path_file, 'r') as f:
+            times = f['times'].value
+            kxE = f['kxE'].value
+            kyE = f['kyE'].value
 
-        dset_transferEK_kx = f['transferEK_kx']
-        dset_transferEK_ky = f['transferEK_ky']
-        dset_transferEA_kx = f['transferEA_kx']
-        dset_transferEA_ky = f['transferEA_ky']
+            dset_transferEK_kx = f['transferEK_kx'].value
+            dset_transferEK_ky = f['transferEK_ky'].value
+            dset_transferEA_kx = f['transferEA_kx'].value
+            dset_transferEA_ky = f['transferEA_ky'].value
 
         # Average from tmin and tmax for plot
         delta_t_save = np.mean(times[1:]-times[0:-1])
@@ -235,21 +232,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax1.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
 
-        # if delta_t != 0.:
-        #     for it in range(imin_plot, imax_plot, delta_i_plot):
-
-        #         # transferE = dset_transferE[it]
-        #         # transferZ = dset_transferZ[it]
-        #         transferEKu_kx = dset_transferEKu_kx[it]
-
-        #         # PiE = cumsum_inv(transferE)*self.oper.deltakh
-        #         # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
-        #         PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakx
-
-        #         # ax1.plot(khE, PiE, 'k', linewidth=1)
-        #         # ax1.plot(khE, PiZ, 'g', linewidth=1)
-        #         ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
-
         transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot + 1].mean(0)
         transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot + 1].mean(0)
 
@@ -270,21 +252,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.set_yscale('linear')
         ax2.set_title('2D spectra, solver ' + self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
-
-        # if delta_t != 0.:
-        #     for it in range(imin_plot, imax_plot, delta_i_plot):
-
-        #         # transferE = dset_transferE[it]
-        #         # transferZ = dset_transferZ[it]
-        #         transferEKu_kx = dset_transferEKu_kx[it]
-
-        #         # PiE = cumsum_inv(transferE)*self.oper.deltakh
-        #         # PiZ = cumsum_inv(transferZ)*self.oper.deltakh
-        #         PiEKu_kx = cumsum_inv(transferEKu_kx)*self.oper.deltakx
-
-        #         # ax1.plot(khE, PiE, 'k', linewidth=1)
-        #         # ax1.plot(khE, PiZ, 'g', linewidth=1)
-        #         ax1.plot(kxE, PiEKu_kx, 'g', linewidth=1)
 
         transferEK_ky = dset_transferEK_ky[imin_plot:imax_plot + 1].mean(0)
         transferEA_ky = dset_transferEA_ky[imin_plot:imax_plot + 1].mean(0)
