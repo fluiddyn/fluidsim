@@ -84,9 +84,9 @@ class Simul(SimulSW1L):
         (Nq_fft, Np_fft, Nm_fft
          ) = self.oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
 
-        # Nq_fft = self.oper.constant_arrayK(value=0)
-        # Np_fft = self.oper.constant_arrayK(value=0)
-        # Nm_fft = self.oper.constant_arrayK(value=0)
+        # Nq_fft = self.oper.create_arrayK(value=0)
+        # Np_fft = self.oper.create_arrayK(value=0)
+        # Nm_fft = self.oper.create_arrayK(value=0)
 
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
@@ -105,7 +105,7 @@ class Simul(SimulSW1L):
     def compute_freq_complex(self, key):
         K2 = self.oper.K2
         if key == 'q_fft':
-            omega = self.oper.constant_arrayK(value=0)
+            omega = self.oper.create_arrayK(value=0)
         elif key == 'ap_fft':
             omega = 1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
         elif key == 'am_fft':

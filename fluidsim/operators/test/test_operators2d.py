@@ -75,7 +75,7 @@ class TestOperators(unittest.TestCase):
     def test_curl(self):
         """Test curl"""
         oper = self.oper
-        rot = oper.random_arrayX()
+        rot = oper.create_arrayX_random()
         rot_fft = oper.fft2(rot)
         if mpi.rank == 0:
             rot_fft[0, 0] = 0.
@@ -88,9 +88,9 @@ class TestOperators(unittest.TestCase):
     def test_uxuyeta_qapam_conversion(self):
         """Test conversion back and forth from q,ap,am -> ux, uy, eta"""
         oper = self.oper
-        q_fft = oper.random_arrayK()
-        ap_fft = oper.random_arrayK()
-        am_fft = oper.random_arrayK()
+        q_fft = oper.create_arrayK_random()
+        ap_fft = oper.create_arrayK_random()
+        am_fft = oper.create_arrayK_random()
         if mpi.rank == 0:
             q_fft[0, 0] = ap_fft[0, 0] = am_fft[0, 0] = 0.
 
@@ -105,7 +105,7 @@ class TestOperators(unittest.TestCase):
 
     def test_laplacian2(self):
         oper = self.oper
-        ff = oper.random_arrayX()
+        ff = oper.create_arrayX_random()
         ff_fft = oper.fft2(ff)
         if mpi.rank == 0:
             ff_fft[0, 0] = 0.
@@ -118,7 +118,7 @@ class TestOperators(unittest.TestCase):
     def test_compute_increments_dim1(self):
         """Test computing increments of var over the dim 1."""
         oper = self.oper
-        var = oper.random_arrayX()
+        var = oper.create_arrayX_random()
         def assert_increments_equal(irx):
             inc_var = oper.compute_increments_dim1(var, irx)
             inc_var_old = compute_increments_dim1_old(var, irx)
@@ -140,7 +140,7 @@ class TestOperatorsDealiasing(unittest.TestCase):
 
         """
         oper = self.oper
-        var_fft = oper.constant_arrayK(1.)
+        var_fft = oper.create_arrayK(1.)
         sum_var = var_fft.sum()
         oper.dealiasing(var_fft)
         sum_var_dealiased = var_fft.sum()

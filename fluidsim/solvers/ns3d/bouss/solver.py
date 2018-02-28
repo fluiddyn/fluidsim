@@ -203,7 +203,7 @@ if __name__ == "__main__":
 
     # here we have to initialize the flow fields
 
-    variables = {k: 1e-6 * sim.oper.random_arrayX()
+    variables = {k: 1e-6 * sim.oper.create_arrayX_random()
                  for k in ('vx', 'vy', 'vz')}
 
     X, Y, Z = sim.oper.get_XYZ_loc()

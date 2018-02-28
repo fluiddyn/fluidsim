@@ -44,11 +44,9 @@ def dealiasing_variable_numpy(ff_fft, where_dealiased):
 
 
 if hasattr(util3d_pythran, '__pythran__'):
-    print('USING PYTHRAN SETOFVAR dealiasing')
     dealiasing_variable = util3d_pythran.dealiasing_variable
     dealiasing_setofvar = util3d_pythran.dealiasing_setofvar
 else:
-    print('USING NUMPY SETOFVAR dealiasing')
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
 

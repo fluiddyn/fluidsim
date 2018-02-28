@@ -106,10 +106,10 @@ class StateSW1LWaves(StateSW1L):
             result = self.oper.ifft2(rot_fft)
 
         elif key == 'q_fft':
-            result = self.oper.constant_arrayK(value=0)
+            result = self.oper.create_arrayK(value=0)
 
         elif key == 'q':
-            result = self.oper.constant_arrayX(value=0)
+            result = self.oper.create_arrayX(value=0)
 
         else:
             result = super(StateSW1LWaves, self).compute(
@@ -124,7 +124,7 @@ class StateSW1LWaves(StateSW1L):
             #     if mpi.rank == 0:
             #         print(to_print
             #               +'\nreturn an array of zeros.')
-            #     result = self.oper.constant_arrayX(value=0.)
+            #     result = self.oper.create_arrayX(value=0.)
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result
@@ -151,7 +151,7 @@ class StateSW1LWaves(StateSW1L):
     def statephys_from_statespect(self):
         """Compute the state in physical space."""
         ifft2 = self.oper.ifft2
-        q_fft = self.oper.constant_arrayK(value=0)
+        q_fft = self.oper.create_arrayK(value=0)
         ap_fft = self.state_spect.get_var('ap_fft')
         am_fft = self.state_spect.get_var('am_fft')
 
@@ -168,7 +168,7 @@ class StateSW1LWaves(StateSW1L):
         if state_spect is None:
             state_spect = self.state_spect
 
-        q_fft = self.oper.constant_arrayK(value=0)
+        q_fft = self.oper.create_arrayK(value=0)
         ap_fft = state_spect.get_var('ap_fft')
         am_fft = state_spect.get_var('am_fft')
 

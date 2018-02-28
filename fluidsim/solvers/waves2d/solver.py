@@ -123,7 +123,7 @@ class Simul(SimulBasePseudoSpectral):
 
     def compute_freq_complex(self, key):
         if key == 'f_fft':
-            omega = self.oper.constant_arrayK(value=0)
+            omega = self.oper.create_arrayK(value=0)
         elif key == 'g_fft':
             omega = 1.j*np.sqrt(self.params.f**2 +
                                 self.params.c2*self.oper.K2)

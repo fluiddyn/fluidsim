@@ -7,6 +7,17 @@ Provides:
    :members:
    :private-members:
 
+.. todo::
+
+  It would be interesting to implement phase-shifting timestepping schemes as:
+
+  - RK2 + phase-shifting
+
+  - Adams-Bashforth (leapfrog) + phase-shifting
+
+  For a theoretical presentation of phase-shifting see
+  https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19810022965.pdf.
+
 """
 
 from builtins import object
