@@ -107,7 +107,7 @@ class Simul(SimulBasePseudoSpectral):
         ifft_as_arg = oper.ifft_as_arg
         ifft_as_arg_destroy = oper.ifft_as_arg_destroy
         fft_as_arg = oper.fft_as_arg
-        
+
         if state_spect is None:
             spect_get_var = self.state.state_spect.get_var
         else:
@@ -126,7 +126,7 @@ class Simul(SimulBasePseudoSpectral):
 
         ifft_as_arg_destroy(omegax_fft, omegax)
         ifft_as_arg_destroy(omegay_fft, omegay)
-        ifft_as_arg_destroy(omegaz_fft, omegaz)        
+        ifft_as_arg_destroy(omegaz_fft, omegaz)
 
         if state_spect is None:
             vx = self.state.state_phys.get_var('vx')
