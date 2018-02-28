@@ -49,7 +49,7 @@ class Simul(SimulSW1L):
 
         super(Simul, self).__init__(params)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         fft2 = oper.fft2
 
@@ -90,9 +90,12 @@ class Simul(SimulSW1L):
 
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
         tendencies_fft.set_var('q_fft', Nq_fft)
         tendencies_fft.set_var('ap_fft', Np_fft)
         tendencies_fft.set_var('am_fft', Nm_fft)

@@ -102,7 +102,7 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg
         ifft_as_arg_destroy = oper.ifft_as_arg_destroy
@@ -142,9 +142,12 @@ class Simul(SimulBasePseudoSpectral):
 
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
         fx_fft = tendencies_fft.get_var('vx_fft')
         fy_fft = tendencies_fft.get_var('vy_fft')

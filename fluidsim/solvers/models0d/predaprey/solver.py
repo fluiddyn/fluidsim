@@ -75,7 +75,7 @@ class Simul(SimulBase):
         self.Xs = p.C/p.D
         self.Ys = p.A/p.B
 
-    def tendencies_nonlin(self, state=None):
+    def tendencies_nonlin(self, state=None, old=None):
         r"""Compute the nonlinear tendencies.
 
         Parameters
@@ -116,7 +116,10 @@ class Simul(SimulBase):
         X = state.get_var('X')
         Y = state.get_var('Y')
 
-        tendencies = SetOfVariables(like=self.state.state_phys)
+        if old is None:
+            tendencies = SetOfVariables(like=self.state.state_phys)
+        else:
+            tendencies = old
         tendencies.set_var('X', p.A*X - p.B*X*Y)
         tendencies.set_var('Y', -p.C*Y + p.D*X*Y)
 

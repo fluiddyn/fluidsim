@@ -63,7 +63,7 @@ class Simul(SimulNS2D):
         attribs = {'NO_SHEAR_MODES': False}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         r"""Compute the nonlinear tendencies of the solver ns2d.strat.
 
         Parameters
@@ -109,7 +109,10 @@ class Simul(SimulNS2D):
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg
 
-        tendencies_fft = SetOfVariables(like=self.state.state_spect)
+        if old is None:
+            tendencies_fft = SetOfVariables(like=self.state.state_spect)
+        else:
+            tendencies_fft = old
         Frot_fft = tendencies_fft.get_var('rot_fft')
         Fb_fft = tendencies_fft.get_var('b_fft')
 

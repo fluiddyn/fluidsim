@@ -167,7 +167,7 @@ class SimulBasePseudoSpectral(SimulBase):
 
         return f_d, f_d_hypo
 
-    def tendencies_nonlin(self, variables=None):
+    def tendencies_nonlin(self, variables=None, old=None):
         r"""Compute the nonlinear tendencies.
 
         This function has to be overridden in a child class.
@@ -179,7 +179,11 @@ class SimulBasePseudoSpectral(SimulBase):
             An array containing only zeros.
 
         """
-        tendencies = SetOfVariables(like=self.state.state_spect)
+        if old is None:
+            tendencies = SetOfVariables(like=self.state.state_spect)
+        else:
+            tendencies = old
+
         tendencies.initialize(value=0.)
         return tendencies
 
