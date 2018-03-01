@@ -202,7 +202,7 @@ class InitFieldsFromFile(SpecificInitFields):
                 if mpi.rank == 0:
                     field_seq = group_state_phys[k][...]
                 else:
-                    field_seq = self.sim.oper.constant_arrayX()
+                    field_seq = self.sim.oper.create_arrayX()
 
                 if mpi.nb_proc > 1:
                     field_loc = self.sim.oper.scatter_Xspace(field_seq)
@@ -210,7 +210,7 @@ class InitFieldsFromFile(SpecificInitFields):
                     field_loc = field_seq
                 state_phys.set_var(k, field_loc)
             else:
-                state_phys.set_var(k, self.sim.oper.constant_arrayX(value=0.))
+                state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.))
         if mpi.rank == 0:
             time = group_state_phys.attrs['time']
             try:
@@ -264,7 +264,7 @@ class InitFieldsFromSimul(SpecificInitFields):
             for k in keys_state_spect:
                 field_fft_seq_in = sim_in.state.state_spect[k]
                 field_fft_seq_new_res = \
-                    self.sim.oper.constant_arrayK(value=0.)
+                    self.sim.oper.create_arrayK(value=0.)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape
                 [nk0_seq_in, nk1_seq_in] = field_fft_seq_in.shape
 
@@ -295,7 +295,7 @@ class InitFieldsFromSimul(SpecificInitFields):
                     self.sim.state.state_spect[k] = state_spect[k]
                 else:
                     self.sim.state.state_spect[k] = \
-                        self.oper.constant_arrayK(value=0.)
+                        self.oper.create_arrayK(value=0.)
 
         self.sim.state.statephys_from_statespect()
 

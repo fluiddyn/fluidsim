@@ -111,19 +111,22 @@ class Simul(SimulBasePseudoSpectral):
     def __init__(self, params):
         super(Simul, self).__init__(params, info_solver)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
-
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
+            
         tendencies_fft[:] = 0.
 
         return tendencies_fft
 
     def compute_freq_complex(self, key):
         if key == 'f_fft':
-            omega = self.oper.constant_arrayK(value=0)
+            omega = self.oper.create_arrayK(value=0)
         elif key == 'g_fft':
             omega = 1.j*np.sqrt(self.params.f**2 +
                                 self.params.c2*self.oper.K2)

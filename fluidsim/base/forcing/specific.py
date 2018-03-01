@@ -278,7 +278,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
 
     def compute_forcingc_each_time(self):
         """Compute the coarse forcing in real space"""
-        return self.oper_coarse.random_arrayX()
+        return self.oper_coarse.create_arrayX_random()
 
     def monkeypatch_compute_forcingc_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
@@ -525,7 +525,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
         To be called only with proc 0.
         """
-        F_fft = self.oper_coarse.random_arrayK()
+        F_fft = self.oper_coarse.create_arrayK_random()
         # fftwpy/easypyfft returns F_fft
         F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
         F_fft[self.COND_NO_F] = 0.

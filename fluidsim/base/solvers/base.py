@@ -159,11 +159,14 @@ class SimulBase(object):
             self.preprocess = Preprocess(self)
             self.preprocess()
 
-    def tendencies_nonlin(self, variables=None):
+    def tendencies_nonlin(self, variables=None, old=None):
         """Return a null SetOfVariables object."""
-        tendencies = SetOfVariables(
-            like=self.state.state_phys,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies = SetOfVariables(
+                like=self.state.state_phys,
+                info='tendencies_nonlin')
+        else:
+            tendencies = old
         tendencies.initialize(value=0.)
         return tendencies
 

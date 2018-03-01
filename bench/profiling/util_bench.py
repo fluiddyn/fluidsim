@@ -10,17 +10,15 @@ from fluiddyn.util import time_as_str
 from fluiddyn.util import mpi
 
 
-def modif_params_profile2d(params, nh=3*2**8):
+def modif_params_profile2d(params, nh=3**2*2**7):
     params.short_name_type_run = 'profile'
 
     params.oper.nx = nh
     params.oper.ny = nh
 
-    if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
-        # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
-        pass
+    # params.oper.type_fft = 'fft3d.mpi_with_fftw1d'
 
-    params.FORCING = True
+    params.forcing.enable = True
     params.forcing.type = 'tcrandom'
     params.forcing.nkmax_forcing = 5
     params.forcing.nkmin_forcing = 4
@@ -54,11 +52,9 @@ def modif_params_profile3d(params, nh=256, nz=32):
     params.oper.ny = nh
     params.oper.nz = nz
 
-    if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
-        # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
-        pass
+    # params.oper.type_fft = 'fft3d.with_fftw3d'
 
-    # params.FORCING = False
+    # params.forcing.enable = False
     # params.forcing.type = 'tcrandom'
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4
@@ -240,7 +236,7 @@ def print_analysis3d(s):
                         continue
                     if 'operators.py' in key[0]:
                         continue
-                    if 'as_arg' in  key[2]:
+                    if 'as_arg' in key[2]:
                         continue
 
                     # print(k, key)

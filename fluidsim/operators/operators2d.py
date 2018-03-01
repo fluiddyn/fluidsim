@@ -44,8 +44,8 @@ class OperatorsPseudoSpectral2D(_Operators):
         if nb_proc > 1:
             type_fft = 'fft2d.mpi_with_fftw1d'
         else:
-            type_fft = 'fft2d.with_fftw2d'
-
+            type_fft = 'fft2d.with_pyfftw'
+            
         attribs = {'type_fft': type_fft,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
@@ -106,68 +106,6 @@ class OperatorsPseudoSpectral2D(_Operators):
     def dealiasing_setofvar(self, sov):
         dealiasing_setofvar(sov, self.where_dealiased,
                             self.nK0_loc, self.nK1_loc)
-
-    def constant_arrayK(self, value=None, dtype=complex, shape='loc'):
-        """Return a constant array in spectral space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeK = self.shapeK_loc
-        elif shape == 'seq':
-            shapeK = self.shapeK_seq
-        elif shape == 'gat':
-            shapeK = self.shapeK_gat
-        else:
-            raise ValueError('shape should be "loc" or "seq"')
-        if value is None:
-            field_lm = np.empty(shapeK, dtype=dtype)
-        elif value == 0:
-            field_lm = np.zeros(shapeK, dtype=dtype)
-        else:
-            field_lm = value*np.ones(shapeK, dtype=dtype)
-        return field_lm
-
-    def constant_arrayX(self, value=None, dtype=np.float64, shape='loc'):
-        """Return a constant array in real space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeX = self.shapeX_loc
-        elif shape == 'seq':
-            shapeX = self.shapeX_seq
-        else:
-            raise ValueError('shape should be "loc" of "seq"')
-        if value is None:
-            field = np.empty(shapeX, dtype=dtype)
-        elif value == 0:
-            field = np.zeros(shapeX, dtype=dtype)
-        else:
-            field = value*np.ones(shapeX, dtype=dtype)
-        return field
-
-    def random_arrayK(self, shape='loc'):
-        """Return a random array in spectral space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeK = self.shapeK_loc
-        elif shape == 'seq':
-            shapeK = self.shapeK_seq
-        elif shape == 'gat':
-            shapeK = self.shapeK_gat
-        else:
-            raise ValueError('shape should be "loc", "gat" or "seq"')
-        a_fft = (np.random.random(shapeK) +
-                 1j*np.random.random(shapeK) - 0.5 - 0.5j)
-        return a_fft
-
-    def random_arrayX(self, shape='loc'):
-        """Return a random array in real space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeX = self.shapeX_loc
-        elif shape == 'seq':
-            shapeX = self.shapeX_seq
-        else:
-            raise ValueError('shape should be "loc" or "seq"')
-        return np.random.random(shapeX)
 
     def project_fft_on_realX_seq(self, f_fft):
         """Project the given field in spectral space such as its
@@ -273,7 +211,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         if nb_proc > 1:
             nKy = self.shapeK_seq[0]
-            f_fft = self.constant_arrayK(value=0.)
+            f_fft = self.create_arrayK(value=0.)
             fc_trans = fc_fft.transpose()
 
             for iKxc in range(nKxc):
@@ -409,7 +347,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
         if params.f == 0:
-            eta_fft = self.constant_arrayK(value=0)
+            eta_fft = self.create_arrayK(value=0)
         else:
             eta_fft = -params.f*q_fft/(K2_not0+params.kd2)/params.c2
         if rank == 0:
@@ -424,7 +362,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         K2_not0 = self.K2_not0
 
         if params.f == 0:
-            rot_fft = self.constant_arrayK(value=0)
+            rot_fft = self.create_arrayK(value=0)
         else:
             rot_fft = params.f*a_fft/(K2_not0+params.kd2)
         if rank == 0:
@@ -454,7 +392,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         # K2 = self.K2
         K2_not0 = self.K2_not0
         if params.f == 0:
-            rot_fft = self.constant_arrayK(value=0)
+            rot_fft = self.create_arrayK(value=0)
         else:
             rot_fft = params.f*a_fft/(K2_not0+params.kd2)
         if rank == 0:
@@ -477,7 +415,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         K2_not0 = self.K2_not0
         if params.f == 0:
-            eta_fft = self.constant_arrayK(value=0)
+            eta_fft = self.create_arrayK(value=0)
         else:
             eta_fft = -params.f/params.c2*q_fft/(K2_not0+params.kd2)
         if rank == 0:

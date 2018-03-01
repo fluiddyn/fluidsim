@@ -25,11 +25,31 @@ try:
 except ImportError:
     pass
 
-from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
-
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
+
+from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
+
+from . import util3d_pythran
+
+
+def dealiasing_setofvar_numpy(sov, where_dealiased):
+    for i in range(sov.shape[0]):
+        sov[i][np.nonzero(where_dealiased)] = 0.
+
+
+def dealiasing_variable_numpy(ff_fft, where_dealiased):
+    ff_fft[np.nonzero(where_dealiased)] = 0.
+
+
+if hasattr(util3d_pythran, '__pythran__'):
+    dealiasing_variable = util3d_pythran.dealiasing_variable
+    dealiasing_setofvar = util3d_pythran.dealiasing_setofvar
+else:
+    dealiasing_variable = dealiasing_variable_numpy
+    dealiasing_setofvar = dealiasing_setofvar_numpy
+
 
 
 class OperatorsPseudoSpectral3D(_Operators):
@@ -60,7 +80,7 @@ class OperatorsPseudoSpectral3D(_Operators):
         if nb_proc > 1:
             type_fft = 'fft3d.mpi_with_fftwmpi3d'
         else:
-            type_fft = 'fft3d.with_fftw3d'
+            type_fft = 'fft3d.with_pyfftw'
 
         attribs = {'type_fft': type_fft,
                    'type_fft2d': 'fft2d.with_fftw2d',
@@ -111,18 +131,9 @@ class OperatorsPseudoSpectral3D(_Operators):
         """Dealiasing of SetOfVariables or np.ndarray"""
         for thing in args:
             if isinstance(thing, SetOfVariables):
-                _dealiasing_setofvar(thing, self.where_dealiased)
+                dealiasing_setofvar(thing, self.where_dealiased)
             elif isinstance(thing, np.ndarray):
-                _dealiasing_variable(thing, self.where_dealiased)
-
-
-def _dealiasing_setofvar(sov, where_dealiased):
-    for i in range(sov.shape[0]):
-        sov[i][np.nonzero(where_dealiased)] = 0.
-
-
-def _dealiasing_variable(ff_fft, where_dealiased):
-    ff_fft[np.nonzero(where_dealiased)] = 0.
+                dealiasing_variable(thing, self.where_dealiased)
 
 
 if __name__ == '__main__':

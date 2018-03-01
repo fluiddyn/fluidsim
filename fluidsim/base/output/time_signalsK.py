@@ -6,10 +6,9 @@ import os
 import numpy as np
 
 from fluiddyn.util import mpi
+from fluiddyn.calcul import easypyfft
 
 from fluidsim.base.output.base import SpecificOutput
-
-from fluidsim.operators.fft import easypyfft
 
 
 class TimeSignalsK(SpecificOutput):

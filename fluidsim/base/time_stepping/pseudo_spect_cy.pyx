@@ -176,9 +176,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])*exact2[i0, i1]
 
-        del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx1)
-        del(state_spect_np12_approx1)
+        tendencies_fft_2 = tendencies_nonlin(
+            state_spect_np12_approx1, old=tendencies_fft_1)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_2
@@ -188,7 +187,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_2
 
-        state_spect_np12_approx2 = SetOfVariables(like=state_spect)
+        state_spect_np12_approx2 = state_spect_np12_approx1
+        del(state_spect_np12_approx1)
+        
         datatemp2 = state_spect_np12_approx2
 
         for ik in xrange(nk):
@@ -201,9 +202,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact2[i0, i1]*datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])
 
-        del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_spect_np12_approx2)
-        del(state_spect_np12_approx2)
+        tendencies_fft_3 = tendencies_nonlin(
+            state_spect_np12_approx2, old=tendencies_fft_2)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_3
@@ -213,7 +213,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_3
 
-        state_spect_np1_approx = SetOfVariables(like=state_spect)
+        state_spect_np1_approx = state_spect_np12_approx2
+        del(state_spect_np12_approx2)
         datatemp2 = state_spect_np1_approx
 
         for ik in xrange(nk):
@@ -226,8 +227,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact[i0, i1]*datas[ik, i0, i1] +
                         dt*exact2[i0, i1]*datat[ik, i0, i1])
 
-        del(tendencies_fft_3)
-        tendencies_fft_4 = tendencies_nonlin(state_spect_np1_approx)
+        tendencies_fft_4 = tendencies_nonlin(
+            state_spect_np1_approx, old=tendencies_fft_3)
         del(state_spect_np1_approx)
 
         # # alternativelly, this
@@ -297,9 +298,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])*exact2[ik, i0, i1]
 
-        del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx1)
-        del(state_spect_np12_approx1)
+        tendencies_fft_2 = tendencies_nonlin(
+            state_spect_np12_approx1, old=tendencies_fft_1)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_2
@@ -309,7 +309,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_2
 
-        state_spect_np12_approx2 = SetOfVariables(like=state_spect)
+        state_spect_np12_approx2 = state_spect_np12_approx1
+        del(state_spect_np12_approx1)
         datatemp2 = state_spect_np12_approx2
 
         for ik in xrange(nk):
@@ -322,9 +323,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact2[ik, i0, i1]*datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])
 
-        del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_spect_np12_approx2)
-        del(state_spect_np12_approx2)
+        tendencies_fft_3 = tendencies_nonlin(
+            state_spect_np12_approx2, old=tendencies_fft_2)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_3
@@ -334,7 +334,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_3
 
-        state_spect_np1_approx = SetOfVariables(like=state_spect)
+        state_spect_np1_approx = state_spect_np12_approx2
+        del(state_spect_np12_approx2)
         datatemp2 = state_spect_np1_approx
 
         for ik in xrange(nk):
@@ -347,8 +348,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact[ik, i0, i1]*datas[ik, i0, i1] +
                         dt*exact2[ik, i0, i1]*datat[ik, i0, i1])
 
-        del(tendencies_fft_3)
-        tendencies_fft_4 = tendencies_nonlin(state_spect_np1_approx)
+        tendencies_fft_4 = tendencies_nonlin(
+            state_spect_np1_approx, old=tendencies_fft_3)
         del(state_spect_np1_approx)
 
         # # alternativelly, this
@@ -421,9 +422,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])*exact2[ik, i0, i1]
 
-        del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx1)
-        del(state_spect_np12_approx1)
+        tendencies_fft_2 = tendencies_nonlin(
+            state_spect_np12_approx1, old=tendencies_fft_1)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_2
@@ -433,7 +433,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_2
 
-        state_spect_np12_approx2 = SetOfVariables(like=state_spect)
+        state_spect_np12_approx2 = state_spect_np12_approx1
+        del(state_spect_np12_approx1)
         datatemp2 = state_spect_np12_approx2
 
         for ik in xrange(nk):
@@ -446,9 +447,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact2[ik, i0, i1]*datas[ik, i0, i1] +
                         dt/2*datat[ik, i0, i1])
 
-        del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_spect_np12_approx2)
-        del(state_spect_np12_approx2)
+        tendencies_fft_3 = tendencies_nonlin(
+            state_spect_np12_approx2, old=tendencies_fft_2)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_3
@@ -458,7 +458,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_3
 
-        state_spect_np1_approx = SetOfVariables(like=state_spect)
+        state_spect_np1_approx = state_spect_np12_approx2
+        del(state_spect_np12_approx2)
         datatemp2 = state_spect_np1_approx
 
         for ik in xrange(nk):
@@ -471,8 +472,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                         exact[ik, i0, i1]*datas[ik, i0, i1] +
                         dt*exact2[ik, i0, i1]*datat[ik, i0, i1])
 
-        del(tendencies_fft_3)
-        tendencies_fft_4 = tendencies_nonlin(state_spect_np1_approx)
+        tendencies_fft_4 = tendencies_nonlin(
+            state_spect_np1_approx, old=tendencies_fft_3)
         del(state_spect_np1_approx)
 
         # # alternativelly, this
@@ -551,9 +552,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                             datas[ik, i0, i1, i2] +
                             dt/2*datat[ik, i0, i1, i2])*exact2[i0, i1, i2]
 
-        del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx1)
-        del(state_spect_np12_approx1)
+        tendencies_fft_2 = tendencies_nonlin(
+            state_spect_np12_approx1, old=tendencies_fft_1)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_2
@@ -563,7 +563,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_2
 
-        state_spect_np12_approx2 = SetOfVariables(like=state_spect)
+        state_spect_np12_approx2 = state_spect_np12_approx1
+        del(state_spect_np12_approx1)
         datatemp2 = state_spect_np12_approx2
 
         for ik in xrange(nk):
@@ -577,9 +578,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                             exact2[i0, i1, i2]*datas[ik, i0, i1, i2] +
                             dt/2*datat[ik, i0, i1, i2])
 
-        del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_spect_np12_approx2)
-        del(state_spect_np12_approx2)
+        tendencies_fft_3 = tendencies_nonlin(
+            state_spect_np12_approx2, old=tendencies_fft_2)
 
         # # alternativelly, this
         # state_spect_temp += dt/3*exact2*tendencies_fft_3
@@ -589,7 +589,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
 
         datat = tendencies_fft_3
 
-        state_spect_np1_approx = SetOfVariables(like=state_spect)
+        state_spect_np1_approx = state_spect_np12_approx2
+        del(state_spect_np12_approx2)
         datatemp2 = state_spect_np1_approx
 
         for ik in xrange(nk):
@@ -603,8 +604,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingPseudoSpectralPurePython):
                             exact[i0, i1, i2]*datas[ik, i0, i1, i2] +
                             dt*exact2[i0, i1, i2]*datat[ik, i0, i1, i2])
 
-        del(tendencies_fft_3)
-        tendencies_fft_4 = tendencies_nonlin(state_spect_np1_approx)
+        tendencies_fft_4 = tendencies_nonlin(
+            state_spect_np1_approx, old=tendencies_fft_3)
         del(state_spect_np1_approx)
 
         # # alternativelly, this

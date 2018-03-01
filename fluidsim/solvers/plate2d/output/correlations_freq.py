@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
-from fluidsim.operators.fft.easypyfft import FFTW1DReal2Complex
+from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 # from fluidsim.operators.miscellaneous import compute_correl4, compute_correl2
 
 from .util_pythran import compute_correl2_seq, compute_correl4_seq

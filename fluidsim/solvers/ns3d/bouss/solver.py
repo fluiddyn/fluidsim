@@ -102,44 +102,68 @@ class Simul(SimulStrat):
         attribs = {'NO_SHEAR_MODES': False}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
-        # fft3d = oper.fft3d
-        ifft3d = oper.ifft3d
+        ifft_as_arg = oper.ifft_as_arg
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
+        fft_as_arg = oper.fft_as_arg
+
+        if state_spect is None:
+            spect_get_var = self.state.state_spect.get_var
+        else:
+            spect_get_var = state_spect.get_var
+
+        vx_fft = spect_get_var('vx_fft')
+        vy_fft = spect_get_var('vy_fft')
+        vz_fft = spect_get_var('vz_fft')
+        b_fft = spect_get_var('b_fft')
+        
+        omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
+            vx_fft, vy_fft, vz_fft)
+
+        omegax = self.state.fields_tmp[3]
+        omegay = self.state.fields_tmp[4]
+        omegaz = self.state.fields_tmp[5]
+
+        ifft_as_arg_destroy(omegax_fft, omegax)
+        ifft_as_arg_destroy(omegay_fft, omegay)
+        ifft_as_arg_destroy(omegaz_fft, omegaz)
 
         if state_spect is None:
             vx = self.state.state_phys.get_var('vx')
             vy = self.state.state_phys.get_var('vy')
             vz = self.state.state_phys.get_var('vz')
-            b = self.state.state_phys.get_var('b')
-            vz_fft = self.state.state_spect.get_var('vz_fft')
-            b_fft = self.state.state_spect.get_var('b_fft')
         else:
-            vx_fft = state_spect.get_var('vx_fft')
-            vy_fft = state_spect.get_var('vy_fft')
-            vz_fft = state_spect.get_var('vz_fft')
-            b_fft = state_spect.get_var('b_fft')
-            vx = ifft3d(vx_fft)
-            vy = ifft3d(vy_fft)
-            vz = ifft3d(vz_fft)
-            b = ifft3d(b_fft)
+            vx = self.state.fields_tmp[0]
+            vy = self.state.fields_tmp[1]
+            vz = self.state.fields_tmp[2]
+            ifft_as_arg(vx_fft, vx)
+            ifft_as_arg(vy_fft, vy)
+            ifft_as_arg(vz_fft, vz)
 
-        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)
-        Fvx_fft, Fvy_fft, Fvz_fft = -Fvx_fft, -Fvy_fft, -Fvz_fft
-        Fvz_fft += b_fft
+        fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
-        Fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b)
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
-        oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
+        fx_fft = tendencies_fft.get_var('vx_fft')
+        fy_fft = tendencies_fft.get_var('vy_fft')
+        fz_fft = tendencies_fft.get_var('vz_fft')
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        fft_as_arg(fx, fx_fft)
+        fft_as_arg(fy, fy_fft)
+        fft_as_arg(fz, fz_fft)
 
-        tendencies_fft.set_var('vx_fft', Fvx_fft)
-        tendencies_fft.set_var('vy_fft', Fvy_fft)
-        tendencies_fft.set_var('vz_fft', Fvz_fft)
-        tendencies_fft.set_var('b_fft', Fb_fft)
+        fz_fft += b_fft
+
+        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
+
+        fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b)
+        tendencies_fft.set_var('b_fft', fb_fft)
 
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
@@ -203,7 +227,7 @@ if __name__ == "__main__":
 
     # here we have to initialize the flow fields
 
-    variables = {k: 1e-6 * sim.oper.random_arrayX()
+    variables = {k: 1e-6 * sim.oper.create_arrayX_random()
                  for k in ('vx', 'vy', 'vz')}
 
     X, Y, Z = sim.oper.get_XYZ_loc()

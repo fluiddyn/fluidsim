@@ -43,7 +43,7 @@ class Simul(SimulSW1L):
 
     InfoSolver = InfoSolverSW1LModified
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         fft2 = oper.fft2
         ifft2 = oper.ifft2
@@ -99,9 +99,12 @@ class Simul(SimulSW1L):
         div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
         Feta_fft = -fft2(ux_rot*dxeta + uy_rot*dyeta) - div_fft
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
         tendencies_fft.set_var('ux_fft', Fx_fft)
         tendencies_fft.set_var('uy_fft', Fy_fft)
