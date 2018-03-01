@@ -83,7 +83,7 @@ class SpectraNS2DStrat(Spectra):
                   'of the spectra for this case')
 
     def plot1d(self, tmin=0, tmax=1000, delta_t=2,
-               coef_compensate=3):
+               coef_compensate_kx=5./3, coef_compensate_kz=3.):
         """Plot spectra one-dimensional."""
 
         f = h5py.File(self.path_file1D, 'r')
@@ -120,7 +120,7 @@ class SpectraNS2DStrat(Spectra):
         print(
             'plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},'.format(
                 tmin, tmax, delta_t) +
-            ' coef_compensate={0:.3f})'.format(coef_compensate))
+            ' coef_compensate_kx={0:.3f})'.format(coef_compensate_kx))
 
         print('''plot 1D spectra
         tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
@@ -131,7 +131,8 @@ class SpectraNS2DStrat(Spectra):
         # Parameters figure E(k_x)
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel('$k_x$')
-        ax1.set_ylabel('E(k_x)')
+        ax1.set_ylabel(r'$E(k_x)k_x^{{{}}}$'.format(
+            round(coef_compensate_kx, 2)))
         ax1.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
         ax1.set_xscale('log')
@@ -142,23 +143,17 @@ class SpectraNS2DStrat(Spectra):
         EK_kx = (dset_spectrum1Dkx_EK[imin_plot:imax_plot+1]).mean(0)
         EA_kx = (dset_spectrum1Dkx_EA[imin_plot:imax_plot+1]).mean(0)
 
-        ax1.plot(kx, E_kx, label='E')
-        ax1.plot(kx, EK_kx, label='EK')
-        ax1.plot(kx, EA_kx, label='EA')
-
-        ax1.plot(
-            kx[1:], kx[1:]**(-5./3), 'k', linewidth=0.8, label=r'$k^{-5/3}$')
-        ax1.plot(
-            kx[1:], kx[1:]**(-2), 'k-.', linewidth=0.8, label=r'$k^{-2}$')
-        ax1.plot(
-            kx[1:], kx[1:]**(-3), 'k--', linewidth=0.8, label=r'$k^{-3}$')
+        ax1.plot(kx, E_kx * kx**(coef_compensate_kx), label='E')
+        ax1.plot(kx, EK_kx * kx**(coef_compensate_kx), label='EK')
+        ax1.plot(kx, EA_kx * kx**(coef_compensate_kx), label='EA')
 
         ax1.legend()
 
         # Parameters figure E(k_y)
         fig, ax2 = self.output.figure_axe()
         ax2.set_xlabel(r'$k_z$')
-        ax2.set_ylabel(r'$E(k_z)$')
+        ax2.set_ylabel(r'$E(k_z)k_z^{{{}}}$'.format(
+            round(coef_compensate_kz, 2)))
         ax2.set_title('1D spectra, solver '+self.output.name_solver +
                       ', nh = {0:5d}'.format(self.nx))
 
@@ -169,18 +164,9 @@ class SpectraNS2DStrat(Spectra):
         EK_ky = (dset_spectrum1Dky_EK[imin_plot:imax_plot+1]).mean(0)
         EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot+1]).mean(0)
 
-        ax2.plot(ky, E_ky, label='E')
-        ax2.plot(ky, EK_ky, label='EK')
-        ax2.plot(ky, EA_ky, label='EA')
-
-        ax2.plot(
-            ky[1:], ky[1:]**(-5./3), 'k', linewidth=0.8, label=r'$k^{-5/3}$')
-        ax2.plot(
-            ky[1:], ky[1:]**(-2), 'k-.', linewidth=0.8, label=r'$k^{-2}$')
-        ax2.plot(
-            ky[1:], ky[1:]**(-3), 'k--', linewidth=0.8, label=r'$k^{-3}$')
-
-        ax2.legend()
+        ax2.plot(ky, E_ky * ky**(coef_compensate_kz), label='E')
+        ax2.plot(ky, EK_ky * ky**(coef_compensate_kz), label='EK')
+        ax2.plot(ky, EA_ky * ky**(coef_compensate_kz), label='EA')
 
         ax2.legend()
 
