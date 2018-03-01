@@ -430,7 +430,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._set_title(self._ani_ax, self._ani_key, time, vmax)
 
     def _set_title(self, ax, key, time, vmax=None):
-        # print('time={}'.format(time))
         title = (key +
                  ', $t = {0:.3f}$, '.format(time) +
                  self.output.name_solver +
@@ -728,14 +727,15 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 np.max(np.sqrt(vecx**2 + vecy**2)) -
                 np.min(np.sqrt(vecx**2 + vecy**2))) / (np.max(
                     np.sqrt(vecx**2 + vecy**2)))
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+            # Quiver is normalized by the vmax
             # copy to avoid a bug
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
             quiver = ax.quiver(
                 XX[::skip, ::skip],
                 YY[::skip, ::skip],
-                vecx_c, vecy_c, scale=10*normalize_diff)
-            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+                vecx_c/vmax, vecy_c/vmax)
         else:
             quiver = vmax = None
 
