@@ -5,9 +5,9 @@ A modified version of ``spectralDNS/demo/TG2D.py``
 
 To run::
 
-  python try_spectraldns_2d.py NS2D
+  python bench_2d.py NS2D
 
-  mpirun -np 2 python try_spectraldns_2d.py NS2D
+  mpirun -np 2 python bench_2d.py NS2D
 
 To be compared with::
 
