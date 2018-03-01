@@ -16,8 +16,7 @@ from dedalus import public as de
 
 
 lx, ly = (1., 1.)
-# TODO: nx, ny = (512, 512)
-nx, ny = (32, 32)
+nx, ny = (512, 512)
 
 # Create bases and domain
 x_basis = de.Fourier('x', nx, interval=(0, lx), dealias=3/2)
