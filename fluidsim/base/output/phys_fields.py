@@ -602,6 +602,8 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         is_field_ready = False
 
+        self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
+
         if field is None and key_field is None:
             key_field = self.field_to_plot
         elif isinstance(field, np.ndarray) and key_field is None:
