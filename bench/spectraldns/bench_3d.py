@@ -5,9 +5,9 @@ A modified version of ``spectralDNS/demo/TG.py``
 
 To run::
 
-  python try_spectraldns_3d.py --optimization cython NS
+  python bench_3d.py --optimization cython NS
 
-  mpirun -np 2 python try_spectraldns_3d.py --optimization cython NS
+  mpirun -np 2 python bench_3d.py --optimization cython NS
 
 To be compared with::
 
