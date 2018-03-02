@@ -79,14 +79,12 @@ class InitFieldsNoise(SpecificInitFields):
         velo_max = np.sqrt(ux**2+uy**2).max()
         if mpi.nb_proc > 1:
             velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-        # print('velo_max = ', velo_max)
         ux = params.init_fields.noise.velo_max*ux/velo_max
         uy = params.init_fields.noise.velo_max*uy/velo_max
 
         ux_fft = oper.fft2(ux)
         uy_fft = oper.fft2(uy)
-        print('ux_fft', ux_fft)
-
+        
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         return rot_fft, ux_fft, uy_fft
 
