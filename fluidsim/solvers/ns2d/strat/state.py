@@ -65,13 +65,13 @@ class StateNS2DStrat(StateNS2D):
             b_fft = self.state_spect.get_var('b_fft')
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-            result = (N**2) * uy_fft + j * omega_k * b_fft
+            result = (N**2) * uy_fft + 1j * omega_k * b_fft
         elif key == 'am_fft':
             uy_fft = self.oper.fft2(self.state_phys.get_var('uy'))
             b_fft = self.state_spect.get_var('b_fft')
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-            result = (N**2) * uy_fft - j * omega_k * b_fft
+            result = (N**2) * uy_fft - 1j * omega_k * b_fft
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
