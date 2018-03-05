@@ -272,7 +272,7 @@ class MoviesBase(object):
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
         """Initializes animated fig. and list of times of save files to load."""
 
         if key_field is None:
@@ -303,6 +303,7 @@ class MoviesBase1D(MoviesBase):
         time = self._ani_t[frame]
         with stdout_redirected():
             y, key_field = self._ani_get_field(time)
+
         x = self._select_axis()
 
         self._ani_line.set_data(x, y)
