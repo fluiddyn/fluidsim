@@ -20,35 +20,15 @@ from builtins import object
 from past.utils import old_div
 import numpy as np
 import scipy.sparse as sparse
+from .base import OperatorsBase1D
 
 
-class OperatorFiniteDiff1DPeriodic(object):
-
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
-        attribs = {'nx': 48, 'Lx': 8.}
-        params._set_child('oper', attribs=attribs)
+class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
 
     def __init__(self, params=None):
-
-        if not params.ONLY_COARSE_OPER:
-            nx = int(params.oper.nx)
-        else:
-            nx = 4
-
-        Lx = float(params.oper.Lx)
-
-        self.nx = nx
-        self.size = nx
-        self.shape = [nx]
-        self.shapeX_loc = self.shape
-        self.Lx = Lx
-        self.deltax = old_div(Lx,nx)
+        super(OperatorFiniteDiff1DPeriodic, self).__init__(params)
+        nx = self.nx
         dx = self.deltax
-
-        self.xs = np.linspace(0, Lx, nx)
 
         self.sparse_px = sparse.diags(
             diagonals=[-np.ones(nx-1), np.ones(nx-1), -1, 1],
@@ -70,26 +50,9 @@ class OperatorFiniteDiff1DPeriodic(object):
     def identity(self):
         return sparse.identity(self.size)
 
-    def produce_str_describing_oper(self):
-        """Produce a string describing the operator."""
-        if (old_div(self.Lx, np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx, np.pi))) + 'pi'
-        else:
-            str_Lx = '{:.3f}'.format(self.Lx).rstrip('0')
-
-        return ('L='+str_Lx+'_{}').format(self.nx)
-
     def produce_long_str_describing_oper(self):
-        """Produce a string describing the operator."""
-        if (old_div(self.Lx, np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx, np.pi))) + 'pi'
-        else:
-            str_Lx = '{:.3f}'.format(self.Lx).rstrip('0')
-        return (
-            'Finite difference operator 1D,\n'
-            'nx = {0:6d}\n'.format(self.nx) +
-            'Lx = ' + str_Lx + '\n')
-
+        return super(OperatorFiniteDiff1DPeriodic, self).produce_long_str_describing_oper(
+                'Finite difference')
 
 class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 

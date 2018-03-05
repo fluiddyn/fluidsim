@@ -16,6 +16,7 @@ Provides:
 from time import time
 
 from builtins import object
+from warnings import warn
 import numpy as np
 
 
@@ -91,7 +92,9 @@ class SimulBase(object):
         np.seterr(under='ignore')
 
         if not hasattr(self, 'info_solver') or \
-           self.info_solver.__class__ is not self.InfoSolver():
+           self.info_solver.__class__ is not self.InfoSolver:
+            warn("Creating a new info_solver instance because it's missing or "
+                 "due to type mismatch  {}".format(self.InfoSolver))
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 

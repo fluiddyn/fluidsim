@@ -7,6 +7,10 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: MoviesBasePhysFields1D
+   :members:
+   :private-members:
+
 .. autoclass:: PhysFieldsBase1D
    :members:
    :private-members:
@@ -63,10 +67,21 @@ def _create_variable(group, key, field):
             dimensions = ('y', 'x')
         elif field.ndim == 3:
             dimensions = ('z', 'y', 'x')
-
-        group.create_variable(key, data=field, dimensions=dimensions)
+        try:
+            group.create_variable(key, data=field, dimensions=dimensions)
+        except AttributeError:
+            raise ValueError(
+                'Error while creating a netCDF4 variable using group'
+                ' of type {} for key {}'.format(
+                    type(group), key))
     else:
-        group.create_dataset(key, data=field)
+        try:
+            group.create_dataset(key, data=field)
+        except AttributeError:
+            raise ValueError(
+                'Error while creating a HDF5 dataset using group'
+                ' of type {} for key {}'.format(
+                    type(group), key))
 
 
 class PhysFieldsBase(SpecificOutput):
@@ -150,16 +165,22 @@ class PhysFieldsBase(SpecificOutput):
         to_print = 'save state_phys in file ' + name_save
         self.output.print_stdout(to_print)
 
+        # FIXME: bad condition below when run sequentially, with MPI enabled h5py
+        # As a workaround the instantiation is made with h5pack
         if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
-                f = h5netcdf.File(path_file, 'w')
+                # originally:
+                # f = h5netcdf.File(...
+                f = h5pack.File(path_file, 'w')
                 group_state_phys = f.create_group("state_phys")
                 group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
                 group_state_phys.attrs['name_type_variables'] = state_phys.info
                 group_state_phys.attrs['time'] = time
                 group_state_phys.attrs['it'] = self.sim.time_stepping.it
         else:
-            f = h5py.File(path_file, 'w', driver='mpio', comm=mpi.comm)
+            # originally:
+            # f = h5py.File(...
+            f = h5pack.File(path_file, 'w', driver='mpio', comm=mpi.comm)
             group_state_phys = f.create_group("state_phys")
             group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
             group_state_phys.attrs['name_type_variables'] = state_phys.info
@@ -239,9 +260,41 @@ class PhysFieldsBase(SpecificOutput):
         return field, key_field
 
 
-class PhysFieldsBase1D(PhysFieldsBase, MoviesBase1D):
+class MoviesBasePhysFields1D(MoviesBase1D):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+        """Initialize list of files and times, pcolor plot, quiver and colorbar.
+        """
+        self._set_path()
+        self._ani_pathfiles = sorted(glob(os.path.join(
+            self.path, 'state_phys*.[hn]*')))
+        self._ani_t_actual = np.array(list(
+            map(time_from_path, self._ani_pathfiles)))
 
-    def plot(self, numfig=None, field=None, key_field=None):
+        if dt_equations is None:
+            dt_equations = np.median(np.diff(self._ani_t_actual))
+            print('dt_equations = {:.4f}'.format(dt_equations))
+
+        if tmax is None:
+            tmax = self._ani_t_actual.max()
+
+        super(MoviesBasePhysFields1D, self)._ani_init(
+            key_field, numfig, dt_equations, tmin, tmax, **kwargs)
+
+
+    def _ani_get_field(self, time, key=None, need_uxuy=True):
+        """Get field from saved physical fields."""
+        if key is None:
+            key = self._ani_key
+        idx, t_actual = self._ani_get_t_actual(time)
+
+        with h5py.File(self._ani_pathfiles[idx]) as f:
+            field = f['state_phys'][key].value
+
+        return field
+
+
+class PhysFieldsBase1D(PhysFieldsBase, MoviesBasePhysFields1D):
+    def plot(self, key_field=None, field=None, numfig=None):
         field, key_field = self._select_field(field, key_field)
 
         if mpi.rank == 0:
@@ -270,7 +323,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         """
         self._set_path()
         self._ani_pathfiles = sorted(glob(os.path.join(
-            self.path, 'state_phys*.nc')))
+            self.path, 'state_phys*.[hn]*')))
         self._ani_t_actual = np.array(list(
             map(time_from_path, self._ani_pathfiles)))
 
@@ -457,45 +510,35 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             t = self._ani_t_actual[idx - 1]
             field, ux, uy = self._ani_get_field(t)
 
-        else:
+        elif t_actual != time:
             if t_actual < time:
-                dt_save = self._ani_t_actual[idx + 1] - self._ani_t_actual[idx]
-                weight_0 = 1 - np.abs(
-                    time - self._ani_t_actual[idx]) / dt_save
-                weight_1 = 1 - np.abs(
-                    time - self._ani_t_actual[idx + 1]) / dt_save
-
-                t0 = self._ani_t_actual[idx]
-                field_0, ux_0, uy_0 = self._ani_get_field(t0)
-
-                t1 = self._ani_t_actual[idx + 1]
-                field_1, ux_1, uy_1 = self._ani_get_field(t1)
-
-                field = field_0 * weight_0 + field_1 * weight_1
-                ux = ux_0 * weight_0 + ux_1 * weight_1
-                uy = uy_0 * weight_0 + uy_1 * weight_1
-
+                idx_0 = idx
+                idx_1 = idx + 1
             elif t_actual > time:
+                idx_0 = idx - 1
+                idx_1 = idx
 
-                dt_save = self._ani_t_actual[idx] - self._ani_t_actual[idx - 1]
-                weight_0 = 1 - np.abs(
-                    time - self._ani_t_actual[idx - 1]) / dt_save
-                weight_1 = 1 - np.abs(
-                    time - self._ani_t_actual[idx]) / dt_save
+            dt_save = self._ani_t_actual[idx_1] - self._ani_t_actual[idx_0]
+            weight_0 = 1 - np.abs(
+                time - self._ani_t_actual[idx_0]) / dt_save
+            weight_1 = 1 - np.abs(
+                time - self._ani_t_actual[idx_1]) / dt_save
 
-                t0 = self._ani_t_actual[idx - 1]
-                field_0, ux_0, uy_0 = self._ani_get_field(t0)
+            t0 = self._ani_t_actual[idx_0]
+            field_0, ux_0, uy_0 = self._ani_get_field(t0)
 
-                t1 = self._ani_t_actual[idx]
-                field_1, ux_1, uy_1 = self._ani_get_field(t1)
+            t1 = self._ani_t_actual[idx_1]
+            field_1, ux_1, uy_1 = self._ani_get_field(t1)
 
-                field = field_0 * weight_0 + field_1 * weight_1
+            field = field_0 * weight_0 + field_1 * weight_1
+            if self._has_uxuy:
                 ux = ux_0 * weight_0 + ux_1 * weight_1
                 uy = uy_0 * weight_0 + uy_1 * weight_1
-
             else:
-                t = self._ani_t_actual[idx]
-                field, ux, uy = self._ani_get_field(t)
+                ux = uy = None
+        else:
+            t = self._ani_t_actual[idx]
+            field, ux, uy = self._ani_get_field(t)
 
         return field, ux, uy
 
@@ -563,7 +606,7 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
                 self._ani_fig.canvas.draw()
                 plt.pause(1e-6)
 
-    def plot(self, field=None, key_field=None, time=None,
+    def plot(self, key_field=None, field=None, time=None,
              QUIVER=True, vecx='ux', vecy='uy',
              nb_contours=20, type_plot='contourf', iz=0, vmin=None, vmax=None,
              cmap='viridis', numfig=None):
@@ -612,6 +655,10 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
         assert key_field is not None
 
+        keys_state_phys = self.sim.state.keys_state_phys
+        if vecx not in keys_state_phys or vecy not in keys_state_phys:
+            QUIVER = False
+
         if time is None and not is_field_ready:
             # we have to get the field from the state
             time = self.sim.time_stepping.t
@@ -633,10 +680,6 @@ class PhysFieldsBase2D(PhysFieldsBase, MoviesBasePhysFields2D):
 
             idx, t_actual = self._ani_get_t_actual(time)
             time = t_actual
-
-            keys_state_phys = self.sim.state.keys_state_phys
-            if vecx not in keys_state_phys or vecy not in keys_state_phys:
-                QUIVER = False
 
             if QUIVER:
                 field, vecx, vecy = self._ani_get_field(time, key_field)
