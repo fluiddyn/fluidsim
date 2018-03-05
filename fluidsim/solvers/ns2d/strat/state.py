@@ -32,7 +32,7 @@ class StateNS2DStrat(StateNS2D):
             'keys_state_spect': ['rot_fft', 'b_fft'],
             'keys_state_phys': ['ux', 'uy', 'rot', 'b'],
             'keys_computable': ['ux_fft', 'uy_fft', 'div_fft', 'div', 'ap_fft',
-                                'am_fft'],
+                                'am_fft', 'ap', 'am'],
             'keys_phys_needed': ['rot', 'b'],
             'keys_linear_eigenmodes': ['rot_fft', 'b_fft']})
 
@@ -72,6 +72,13 @@ class StateNS2DStrat(StateNS2D):
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
             result = (N**2) * uy_fft - 1j * omega_k * b_fft
+        elif key == 'ap':
+            ap_fft = self.compute('ap_fft')
+            result = self.oper.ifft(ap_fft)
+        elif key == 'am':
+            am_fft = self.compute('am_fft')
+            result = self.oper.ifft(am_fft)
+
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
