@@ -261,7 +261,8 @@ class PhysFieldsBase(SpecificOutput):
 
 
 class MoviesBasePhysFields1D(MoviesBase1D):
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  fig_kw, **kwargs):
         """Initialize list of files and times, pcolor plot, quiver and colorbar.
         """
         self._set_path()
@@ -278,7 +279,7 @@ class MoviesBasePhysFields1D(MoviesBase1D):
             tmax = self._ani_t_actual.max()
 
         super(MoviesBasePhysFields1D, self)._ani_init(
-            key_field, numfig, dt_equations, tmin, tmax, **kwargs)
+            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs)
 
 
     def _ani_get_field(self, time, key=None, need_uxuy=True):
@@ -318,7 +319,8 @@ def time_from_path(path):
 class MoviesBasePhysFields2D(MoviesBase2D):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  fig_kw, **kwargs):
         """Initialize list of files and times, pcolor plot, quiver and colorbar.
         """
         self._set_path()
@@ -335,7 +337,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             tmax = self._ani_t_actual.max()
 
         super(MoviesBasePhysFields2D, self)._ani_init(
-            key_field, numfig, dt_equations, tmin, tmax, **kwargs)
+            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs)
 
         dt_file = (self._ani_t_actual[-1] - self._ani_t_actual[0]) / (
             self._ani_t_actual.size)
@@ -360,7 +362,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         XX, YY = np.meshgrid(x[::self.step], y[::self.step])
         field = field[::self.step, ::self.step]
 
-        self._ani_im = self._ani_ax.pcolor(XX, YY, field)
+        self._ani_im = self._ani_ax.pcolormesh(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
 
         self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
@@ -458,7 +460,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         field, ux, uy = self._ani_get_weighted_field(time)
         field = field[::self.step, ::self.step]
-
+        # tricky: https://stackoverflow.com/questions/29009743/using-set-array-with-pyplot-pcolormesh-ruins-figure
+        field = field[:-1, :-1]
+        
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
         

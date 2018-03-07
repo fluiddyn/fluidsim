@@ -47,7 +47,8 @@ class MoviesBase(object):
         self._ani_t = None
         self._ani_t_actual = None
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  fig_kw, **kwargs):
         """Replace this function to initialize animation data and figure to
         plot on.
 
@@ -149,7 +150,7 @@ class MoviesBase(object):
     def animate(self, key_field=None, dt_frame_in_sec=0.3,
                 dt_equations=None, tmin=None, tmax=None, repeat=True,
                 save_file=False, numfig=None, fargs=None, step=1, QUIVER=True,
-                **kwargs):
+                fig_kw=None, **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -176,6 +177,8 @@ class MoviesBase(object):
             from the filename extension.
         fargs : dict
             Dictionary of arguments for `_ani_update`. Matplotlib requirement.
+        fig_kw : dict
+            Dictionary of arguments for arguments for the figure.
 
         Keyword Parameters
         ------------------
@@ -210,10 +213,14 @@ class MoviesBase(object):
         if fargs is None:
             fargs = {}
 
+        if fig_kw is None:
+            fig_kw = {}
+
         self.step = step
         self.QUIVER = QUIVER
         
-        self._ani_init(key_field, numfig, dt_equations, tmin, tmax, **kwargs)
+        self._ani_init(key_field, numfig, dt_equations, tmin, tmax,
+                       fig_kw, **kwargs)
         if is_run_from_jupyter():
             try:
                 from ipywidgets import interact, widgets
@@ -276,14 +283,15 @@ class MoviesBase(object):
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  fig_kw, **kwargs):
         """Initializes animated fig. and list of times of save files to load."""
 
         if key_field is None:
             raise ValueError('key_field should not be None.')
 
         self._ani_key = key_field
-        self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
+        self._ani_fig, self._ani_ax = plt.subplots(num=numfig, **fig_kw)
         self._ani_line, = self._ani_ax.plot([], [])
         self._ani_t = []
         self._set_font()
@@ -333,7 +341,8 @@ class MoviesBase1D(MoviesBase):
 class MoviesBase2D(MoviesBase):
     """Base class defining most generic functions for movies for 2D data."""
 
-    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax, **kwargs):
+    def _ani_init(self, key_field, numfig, dt_equations, tmin, tmax,
+                  fig_kw, **kwargs):
         """Initializes animated fig. and list of times of save files to load.
         """
 
@@ -357,7 +366,7 @@ class MoviesBase2D(MoviesBase):
 
         self._ani_t = list(np.arange(tmin, tmax + dt_equations, dt_equations))
 
-        self._ani_fig, self._ani_ax = plt.subplots(num=numfig)
+        self._ani_fig, self._ani_ax = plt.subplots(num=numfig, **fig_kw)
 
     def _select_axis(self, xlabel='x', ylabel='y'):
         '''Get 1D arrays for setting the axes.'''
