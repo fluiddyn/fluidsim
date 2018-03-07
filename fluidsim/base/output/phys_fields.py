@@ -357,14 +357,15 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         """
         x, y = self._select_axis(shape=field.shape)
-        XX, YY = np.meshgrid(x, y)
+        XX, YY = np.meshgrid(x[::self.step], y[::self.step])
+        field = field[::self.step, ::self.step]
 
         self._ani_im = self._ani_ax.pcolor(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
 
         self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
 
-        if self._has_uxuy:
+        if self._has_uxuy and self.QUIVER:
             self._ani_quiver, vmax = self._quiver_plot(
                 self._ani_ax, ux, uy, XX, YY)
 
@@ -453,15 +454,15 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
     def _ani_update(self, frame, **fargs):
         """Loads data and updates figure."""
-
         time = self._ani_t[frame]
 
         field, ux, uy = self._ani_get_weighted_field(time)
-        field = field[:-1, :-1]
+        field = field[::self.step, ::self.step]
 
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
-        if self._has_uxuy:
+        
+        if self._has_uxuy and self.QUIVER:
             vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
             self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
                                      uy[::self._skip, ::self._skip]/vmax)

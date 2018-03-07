@@ -148,7 +148,8 @@ class MoviesBase(object):
 
     def animate(self, key_field=None, dt_frame_in_sec=0.3,
                 dt_equations=None, tmin=None, tmax=None, repeat=True,
-                save_file=False, numfig=None, fargs=None, **kwargs):
+                save_file=False, numfig=None, fargs=None, step=1, QUIVER=True,
+                **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -209,6 +210,9 @@ class MoviesBase(object):
         if fargs is None:
             fargs = {}
 
+        self.step = step
+        self.QUIVER = QUIVER
+        
         self._ani_init(key_field, numfig, dt_equations, tmin, tmax, **kwargs)
         if is_run_from_jupyter():
             try:
@@ -303,7 +307,6 @@ class MoviesBase1D(MoviesBase):
         time = self._ani_t[frame]
         with stdout_redirected():
             y, key_field = self._ani_get_field(time)
-
         x = self._select_axis()
 
         self._ani_line.set_data(x, y)
