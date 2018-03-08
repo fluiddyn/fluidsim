@@ -348,26 +348,29 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         field, ux, uy = self._ani_get_field(0)
 
         INSET = True if 'INSET' not in kwargs else kwargs['INSET']
-        self._ani_init_fig(field, ux, uy, INSET)
+        self._ani_init_fig(field, ux, uy, INSET, **kwargs)
         self._ani_clim = kwargs.get('clim')
         self._ani_set_clim()
 
-    def _ani_init_fig(self, field, ux=None, uy=None, INSET=True):
+    def _ani_init_fig(self, field, ux=None, uy=None, INSET=True, **kwargs):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
 
         """
+        self._step = step = 1 if 'step' not in kwargs else kwargs['step']
+        self._QUIVER = True if 'QUIVER' not in kwargs else kwargs['QUIVER']
+
         x, y = self._select_axis(shape=field.shape)
-        XX, YY = np.meshgrid(x[::self.step], y[::self.step])
-        field = field[::self.step, ::self.step]
+        XX, YY = np.meshgrid(x[::step], y[::step])
+        field = field[::step, ::step]
 
         self._ani_im = self._ani_ax.pcolormesh(XX, YY, field)
         self._ani_cbar = self._ani_fig.colorbar(self._ani_im)
 
         self._has_uxuy = self.sim.state.has_vars('ux', 'uy')
 
-        if self._has_uxuy and self.QUIVER:
+        if self._has_uxuy and self._QUIVER:
             self._ani_quiver, vmax = self._quiver_plot(
                 self._ani_ax, ux, uy, XX, YY)
 
@@ -457,16 +460,17 @@ class MoviesBasePhysFields2D(MoviesBase2D):
     def _ani_update(self, frame, **fargs):
         """Loads data and updates figure."""
         time = self._ani_t[frame]
+        step = self._step
 
         field, ux, uy = self._ani_get_weighted_field(time)
-        field = field[::self.step, ::self.step]
+        field = field[::step, ::step]
         # tricky: https://stackoverflow.com/questions/29009743/using-set-array-with-pyplot-pcolormesh-ruins-figure
         field = field[:-1, :-1]
         
         # Update figure, quiver and colorbar
         self._ani_im.set_array(field.flatten())
         
-        if self._has_uxuy and self.QUIVER:
+        if self._has_uxuy and self._QUIVER:
             vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
             self._ani_quiver.set_UVC(ux[::self._skip, ::self._skip]/vmax,
                                      uy[::self._skip, ::self._skip]/vmax)
@@ -507,7 +511,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             self._ani_cbar.set_ticks(ticks)
 
     def _ani_get_weighted_field(self, time):
-        """Get weighted field between to saved files."""
+        """Get weighted field between two saved files."""
         idx, t_actual = self._ani_get_t_actual(time)
         # If time > time last frame --> frame == last frame.
         if idx + 1 >= len(self._ani_t_actual) and time > t_actual:

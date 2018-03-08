@@ -147,10 +147,10 @@ class MoviesBase(object):
 
         return key_field
 
-    def animate(self, key_field=None, dt_frame_in_sec=0.3,
-                dt_equations=None, tmin=None, tmax=None, repeat=True,
-                save_file=False, numfig=None, fargs=None, step=1, QUIVER=True,
-                fig_kw=None, **kwargs):
+    def animate(
+            self, key_field=None, dt_frame_in_sec=0.3, dt_equations=None,
+            tmin=None, tmax=None, repeat=True, save_file=False, numfig=None,
+            fargs=None, fig_kw=None, **kwargs):
         """
         Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -159,8 +159,6 @@ class MoviesBase(object):
         ----------
         key_field : str
             Specifies which field to animate
-        numfig : int
-            Figure number on the window
         dt_frame_in_sec : float
             Interval between animated frames in seconds
         dt_equations : float
@@ -175,6 +173,8 @@ class MoviesBase(object):
             of plotting it on screen (default: ~/fluidsim_movie.mp4). Specify
             a string to save to another file location. Format is autodetected
             from the filename extension.
+        numfig : int
+            Figure number on the window
         fargs : dict
             Dictionary of arguments for `_ani_update`. Matplotlib requirement.
         fig_kw : dict
@@ -189,7 +189,11 @@ class MoviesBase(object):
         ymax : float
             Set y-axis limit for 1D animated plots
         clim : tuple
-            Set colorbar limit for 2D animated plots
+            Set colorbar limits for 2D animated plots
+        step : int
+            Set step value to get a coarse 2D field
+        QUIVER : bool
+            Set quiver on or off on top of 2D pcolor plots
         codec : str
             Codec used to save into a movie file (default: ffmpeg)
 
@@ -206,6 +210,13 @@ class MoviesBase(object):
 
         .. TODO: Use FuncAnimation with blit=True option.
 
+        Note
+        ----
+        This method is kept as generic as possible. Any arguments specific to
+        1D, 2D or 3D animations or specific to a type of output are be passed
+        via keyword arguments (``kwargs``) into its respective ``_ani_init`` or
+        ``_ani_update`` methods.
+
         """
         if mpi.rank > 0:
             raise NotImplementedError('Do NOT use this script with MPI !')
@@ -216,9 +227,6 @@ class MoviesBase(object):
         if fig_kw is None:
             fig_kw = {}
 
-        self.step = step
-        self.QUIVER = QUIVER
-        
         self._ani_init(key_field, numfig, dt_equations, tmin, tmax,
                        fig_kw, **kwargs)
         if is_run_from_jupyter():
