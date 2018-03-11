@@ -39,7 +39,7 @@ class TestBench(unittest.TestCase):
         if mpi.nb_proc > 1:
             type_fft = 'fft3d.mpi_with_fftw1d'
         else:
-            type_fft = 'fft3d.with_fftw3d'
+            type_fft = 'fft3d.with_pyfftw'
 
         with stdout_redirected():
             solver = import_module_solver_from_key('ns3d')

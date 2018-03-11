@@ -46,6 +46,11 @@ except ImportError:
     from multiprocessing.pool import ThreadPool as Pool
     PARALLEL_COMPILE = True
 
+try:  # python 3
+    from configparser import ConfigParser
+except ImportError:  # python 2.7
+    from ConfigParser import ConfigParser
+
 
 def check_avail_library(library_name):
     try:
@@ -216,3 +221,76 @@ def monkeypatch_parallel_build():
     if PARALLEL_COMPILE:
         build_ext.build_extensions = build_extensions
         CCompiler.compile = compile
+
+
+def get_default_config():
+    """Generate default configuration."""
+    config = ConfigParser()
+    section = 'exclude_pythran'
+    config.add_section(section)
+    exclude_pythran = (
+        'fluidsim.solvers.plate2d',
+        'fluidsim.solvers.plate2d.output',
+        'fluidsim.solvers.sw1l',
+        'fluidsim.solvers.sw1l.output',
+        'fluidsim.solvers.ns2d.strat',
+        'fluidsim.solvers.ns2d.bouss')
+    for excluded in exclude_pythran:
+        config.set(section, excluded, 'True')
+    return config
+
+
+def make_site_cfg_default_file():
+    """Write the default configuration to site.cfg.default."""
+
+    config = get_default_config()
+
+    with open('site.cfg.default', 'w') as configfile:
+        config.write(configfile)
+
+
+def get_config():
+    """Check for site-specific configuration file saved as either:
+
+    1. site.cfg in source directory, or
+    2. $HOME/.fluidsim-site.cfg
+
+    and read if found, else revert to default configuration.
+
+    Returns
+    -------
+    dict
+
+    """
+    config = get_default_config()
+
+    user_dir = '~user' if sys.platform == 'win32' else '~'
+    configfile_user = os.path.expanduser(os.path.join(
+        user_dir, '.fluidsim-site.cfg'))
+
+    for configfile in ('site.cfg', configfile_user):
+        if os.path.exists(configfile):
+            print('Parsing', configfile)
+            config.read(configfile)
+            break
+    else:
+        print('Using default configuration.')
+        print('Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg '
+              'to specify site specific libraries.')
+
+    config_dict = {}
+    for section in config.sections():
+
+        section_dict = {}
+        config_dict[section] = section_dict
+        for option in config.options(section):
+            value = config.get(section, option)
+            if value.lower() == 'false':
+                value = False
+            section_dict[option] = value
+
+    return config_dict
+
+
+if __name__ == '__main__':
+    make_site_cfg_default_file()

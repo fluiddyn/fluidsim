@@ -1,6 +1,6 @@
 """
 Plate2d forcing (:mod:`fluidsim.solvers.plate2d.forcing`)
-===============================================================
+=========================================================
 
 """
 
@@ -35,12 +35,12 @@ class Proportional(ProportionalBase):
     _key_forced_default = 'w_fft'
 
 
-class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
-    def compute_forcingc_raw(self):
-        Fw_fft = super(TimeCorrelatedRandomPseudoSpectral,
-                       self).compute_forcingc_raw()
+# class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
+#     def compute_forcingc_raw(self):
+#         Fw_fft = super(TimeCorrelatedRandomPseudoSpectral,
+#                        self).compute_forcingc_raw()
 
-        return Fw_fft
+#         return Fw_fft
 
     # def compute_forcing_2nd_degree_eq(self):
     #     """compute a forcing normalize with a 2nd degree eq."""

@@ -11,12 +11,12 @@
 """
 from __future__ import division
 
+from fluidfft.fft3d.operators import vector_product
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D)
-
-from fluidfft.fft3d.operators import vector_product
 
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     params.oper.Ly = L
     params.oper.Lz = L
     params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
-    # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
+    # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     delta_x = params.oper.Lx / params.oper.nx

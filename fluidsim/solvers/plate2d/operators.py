@@ -12,9 +12,9 @@ Provides
 
 import numpy as np
 
-from .operators2d import OperatorsPseudoSpectral2D
+from ...operators.operators2d import OperatorsPseudoSpectral2D
 
-from .util_plate2d_pythran import (
+from .util_oper_pythran import (
     monge_ampere_step0, monge_ampere_step1)
 
 

@@ -14,6 +14,8 @@
 """
 from __future__ import division
 
+from fluidfft.fft3d.operators import vector_product
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 from ..strat.solver import InfoSolverNS3DStrat, Simul as SimulStrat
@@ -29,7 +31,7 @@ class InfoSolverNS3DBouss(InfoSolverNS3DStrat):
         self.class_name = 'Simul'
         self.short_name = 'ns3d.bouss'
 
-        classes = self.classes
+        # classes = self.classes
 
         # classes.State.module_name = package + '.state'
         # classes.State.class_name = 'StateNS3DStrat'
@@ -117,7 +119,7 @@ class Simul(SimulStrat):
         vy_fft = spect_get_var('vy_fft')
         vz_fft = spect_get_var('vz_fft')
         b_fft = spect_get_var('b_fft')
-        
+
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft)
 
@@ -190,7 +192,7 @@ if __name__ == "__main__":
     params.oper.Ly = L
     params.oper.Lz = L
     # params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
-    # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
+    # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     # delta_x = params.oper.Lx / params.oper.nx

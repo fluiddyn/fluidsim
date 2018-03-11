@@ -83,7 +83,7 @@ class OperatorsPseudoSpectral3D(_Operators):
             type_fft = 'fft3d.with_pyfftw'
 
         attribs = {'type_fft': type_fft,
-                   'type_fft2d': 'fft2d.with_fftw2d',
+                   'type_fft2d': 'fft2d.with_pyfftw',
                    'TRANSPOSED_OK': True,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     p.oper.nz = 4*n
 
     # p.oper.type_fft = 'fftwpy'
-    p.oper.type_fft2d = 'fft2d.with_fftw2d'
+    p.oper.type_fft2d = 'fft2d.with_pyfftw'
 
     oper = OperatorsPseudoSpectral3D(params=p)
 

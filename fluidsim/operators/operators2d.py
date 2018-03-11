@@ -17,7 +17,7 @@ from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from . import util2d_pythran, util_sw1l_pythran
+from . import util2d_pythran
 from .util2d_pythran import (
     dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft,
     compute_increments_dim1)
@@ -45,7 +45,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             type_fft = 'fft2d.mpi_with_fftw1d'
         else:
             type_fft = 'fft2d.with_pyfftw'
-            
+
         attribs = {'type_fft': type_fft,
                    'coef_dealiasing': 2./3,
                    'nx': 48,
@@ -490,26 +490,6 @@ class OperatorsPseudoSpectral2D(_Operators):
         ap_fft = 0.5 * self.K2 * eta_fft
         am_fft = ap_fft.copy()
         return q_fft, ap_fft, am_fft
-
-    def qapamfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
-        """ux, uy, eta (fft) ---> q, ap, am (fft)"""
-
-        if params is None:
-            params = self.params
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KX = self.KX
-        KY = self.KY
-        K2 = self.K2
-        Kappa_over_ic = self.Kappa_over_ic
-        f = float(params.f)
-        c2 = float(params.c2)
-
-        return util_sw1l_pythran.qapamfft_from_uxuyetafft(
-            ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
-            Kappa_over_ic, f, c2, rank)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""

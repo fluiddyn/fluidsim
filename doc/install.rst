@@ -21,7 +21,7 @@ Dependencies
   concerned about performance, no problem. Otherwise, install fluidfft as
   explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__
 
-- A C++11 compiler (for example GCC 4.9)
+- A C++11 compiler (for example GCC 4.9 or clang)
 
 - `Pythran <https://github.com/serge-sans-paille/pythran>`_
 
@@ -30,31 +30,45 @@ Dependencies
   microbenchmarks show that the performances are as good as what we are able to
   get with Fortran or C++!
 
-.. warning::
+  .. warning::
 
-  To reach good performance, we advice to try to put in the file `~/.pythranrc`
-  the lines (see the `Pythran documentation
-  <https://pythonhosted.org/pythran/MANUAL.html>`_):
+     To reach good performance, we advice to try to put in the file
+     `~/.pythranrc` the lines (it seems to work well on Linux, see the `Pythran
+     documentation <https://pythonhosted.org/pythran/MANUAL.html>`_):
 
-  .. code:: bash
+     .. code:: bash
 
-     [pythran]
-     complex_hook = True
+        [pythran]
+        complex_hook = True
+
+  .. warning::
+
+     The compilation of C++ files produced by Pythran can be long and can
+     consume a lot of memory. If you encounter any problems, you can try to use
+     clang (for example with ``conda install clangdev``) and to enable its use
+     in the file `~/.pythranrc` with:
+
+     .. code:: bash
+
+        [compiler]
+        CXX=clang++
+        CC=clang
 
 - h5py (optionally, with MPI support only if you know what you do)
 
-.. warning::
+  .. warning::
 
-  Prebuilt installations (for eg. via h5py wheels) may lack MPI support. It may
-  be useful to install from source, as follows:
+    Prebuilt installations (for eg. via h5py wheels) may lack MPI support.
+    Most of the time, this is what you want.  However, you can install h5py
+    from source and link it to a hdf5 built with MPI support, as follows:
 
-  .. code:: bash
+    .. code:: bash
 
-     $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
-     $ python -c 'import h5py; h5py.run_tests()'
+       $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
+       $ python -c 'import h5py; h5py.run_tests()'
 
-  See the `h5py documentation
-  <http://docs.h5py.org/en/latest/build.html>`_ for more details.
+    See the `h5py documentation
+    <http://docs.h5py.org/en/latest/build.html>`_ for more details.
 
 - Optionally, mpi4py (which depends on a MPI implementation).
 
@@ -69,6 +83,12 @@ you can use pip::
 or::
 
   pip install fluidsim --user
+
+You can also configure the installation of fluidsim by creating the file
+``~/.fluidsim-site.cfg`` and modify it to fit your requirements before the
+installation with pip::
+
+  wget https://bitbucket.org/fluiddyn/fluidsim/raw/default/site.cfg.default -O ~/.fluidsim-site.cfg
 
 
 Install from the repository (recommended)
@@ -91,6 +111,19 @@ If you don't want to use Mercurial, you can also just manually download the
 package from `the Bitbucket page <https://bitbucket.org/fluiddyn/fluidsim>`_ or
 from `the PyPI page <https://pypi.python.org/pypi/fluidsim>`_.
 
+Configuration file
+~~~~~~~~~~~~~~~~~~
+
+For particular installation setup, copy the default configuration file::
+
+  cp site.cfg.default site.cfg
+
+and modify it to fit your requirements.
+
+.. warning::
+
+   If you care about performance, correctly set up a configuration file. By
+   default, some Pythran files are not Pythranized!
 
 Build/install
 ~~~~~~~~~~~~~

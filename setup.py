@@ -34,7 +34,9 @@ import numpy as np
 
 from config import (
     MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc,
-    monkeypatch_parallel_build)
+    monkeypatch_parallel_build, get_config)
+
+config = get_config()
 
 BUILD_OLD_EXTENSIONS = False
 
@@ -170,9 +172,18 @@ def modification_date(filename):
 
 
 def make_pythran_extensions(modules):
+    exclude_pythran = tuple(
+        key for key, value in config['exclude_pythran'].items()
+        if value)
+    if len(exclude_pythran) > 0:
+        print('Pythran files in the packages ' + str(exclude_pythran) +
+              ' will not be built.')
     develop = sys.argv[-1] == 'develop'
     extensions = []
     for mod in modules:
+        package = mod.rsplit('.', maxsplit=1)[0]
+        if any(package == excluded for excluded in exclude_pythran):
+            continue
         base_file = mod.replace('.', os.path.sep)
         py_file = base_file + '.py'
         # warning: does not work on Windows
