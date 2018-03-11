@@ -17,7 +17,12 @@ FluidSim
    :alt: Code coverage
 
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
-    :target: https://travis-ci.org/fluiddyn/fluidsim
+   :target: https://travis-ci.org/fluiddyn/fluidsim
+   :alt: Travis CI status
+
+.. |binder| image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim?filepath=doc%2Fipynb
+   :alt: Binder notebook
 
 Fluidsim is a framework for studying fluid dynamics with numerical
 simulations using Python. It is part of the wider project `FluidDyn
@@ -68,6 +73,8 @@ Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
 The development mode is often useful. From the root directory::
 
   python setup.py develop
+
+To try fluidsim online: |binder|
 
 Tests
 -----
