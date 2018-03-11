@@ -312,7 +312,14 @@ class PhysFieldsBase1D(PhysFieldsBase, MoviesBasePhysFields1D):
 def time_from_path(path):
     '''Regular expression search to extract time from filename.'''
     filename = os.path.basename(path)
-    t = float(re.search(r'(?!t)[0-9]*.?[0-9]+', filename).group(0))
+    pattern = r'''
+        (?!t)     # text after t but exclude it
+        [0-9]+    # a couple of digits
+        \.        # the decimal point
+        [0-9]+    # a couple of digits
+    '''
+    match = re.search(pattern, filename, re.VERBOSE)
+    t = float(match.group(0))
     return t
 
 
