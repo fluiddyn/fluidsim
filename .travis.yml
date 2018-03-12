@@ -44,7 +44,7 @@ cache:
 
 install:
     - pip install -U pip "setuptools<=36.6.0" wheel six colorlog
-    - pip install -U tox coverage
+    - pip install -U tox-pipenv coverage
     - pip install -U numpy cython mako mpi4py  # To be removed when pip==10 is out and this step can be bootstrapped
 
 before_script:
