@@ -21,7 +21,7 @@ FluidSim
    :alt: Travis CI status
 
 .. |binder| image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim?filepath=doc%2Fipynb
+   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?filepath=doc%2Fipynb
    :alt: Binder notebook
 
 Fluidsim is a framework for studying fluid dynamics with numerical
