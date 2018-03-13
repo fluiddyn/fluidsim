@@ -170,7 +170,11 @@ def run(args):
 
 def _compute_shorter_name(key, kind):
     if kind == 'fft_as':
-        return key.split()[1][1:-1]
+        words = key.split()
+        if len(words) == 1:
+            return key
+        else:
+            return words[1][1:-1]
 
     if kind == 'pythran' in key:
         key = key.split('_pythran.')[-1].rstrip('>')
@@ -300,6 +304,9 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
                         continue
 
                 if k == '.py':
+                    if 'fft_as_arg' in key[2]:
+                        continue
+
                     if name == 'one_time_step_computation':
                         print(
                             'warning: special case one_time_step_computation '

@@ -4,7 +4,7 @@ FluidSim
 
 |release| |docs| |coverage| |travis|
 
-.. |release| image:: https://img.shields.io/pypi/v/fluidsim.svg
+.. |release| image:: https://badge.fury.io/py/fluidsim.svg
    :target: https://pypi.python.org/pypi/fluidsim/
    :alt: Latest version
 

@@ -5,6 +5,9 @@ import shutil
 
 import numpy as np
 
+import matplotlib
+matplotlib.use('Agg')
+
 import fluiddyn as fld
 from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
@@ -34,7 +37,7 @@ class TestBaseSolverPS(unittest.TestCase):
 
         params.nu_2 = 1.
 
-        params.time_stepping.t_end = 2.
+        params.time_stepping.t_end = 0.4
 
         with stdout_redirected():
             self.sim = SimulBasePseudoSpectral(params)
@@ -58,8 +61,8 @@ class TestOutputPS(TestBaseSolverPS):
     """Test a simulation run with online plotting and stdout printing."""
     def setUp(self):
         params = SimulBasePseudoSpectral.create_default_params()
-        params.output.periods_plot.phys_fields = 1.
-        params.output.periods_print.print_stdout = 1.
+        params.output.periods_plot.phys_fields = 0.2
+        params.output.periods_print.print_stdout = 0.2
         params.short_name_type_run = 'test_output_ps'
         TestBaseSolverPS.setUp(self, params)
 

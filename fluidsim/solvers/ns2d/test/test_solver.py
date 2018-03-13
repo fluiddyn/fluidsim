@@ -110,6 +110,10 @@ class TestSolverNS2D(unittest.TestCase):
                 sim2 = fls.load_sim_for_plot(sim.output.path_run)
                 sim2.output
 
+                sim2.output.increments.load()
+                sim2.output.increments.plot()
+                sim2.output.increments.load_pdf_from_file()
+
             # `compute('q')` two times for better coverage...
             sim.state.get_var('q')
             sim.state.get_var('q')
@@ -125,7 +129,7 @@ class TestSolverNS2D(unittest.TestCase):
 
         if mpi.rank == 0:
             sim3.output.phys_fields.animate(
-                'ux', dt_frame_in_sec=1e-6, dt_equations=0.2, repeat=False,
+                'ux', dt_frame_in_sec=1e-6, dt_equations=0.3, repeat=False,
                 clim=(-1, 1), save_file=False, numfig=1)
 
 

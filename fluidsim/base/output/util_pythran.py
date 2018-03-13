@@ -1,5 +1,10 @@
 # pythran export strfunc_from_pdf(
 #     float64[][], float64[][], float64[][], float, bool)
+
+# pythran export strfunc_from_pdf(
+#     int32[], float64[][], float64[][], float, bool)
+
+
 import numpy as np
 
 
