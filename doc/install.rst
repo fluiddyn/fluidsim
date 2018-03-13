@@ -17,9 +17,9 @@ Dependencies
 
   fluidsim needs fluidfft. If you don't install it before carefully, it will be
   installed automatically and you won't be able to use fancy FFT libraries
-  (using for example MPI with 2D decomposition or CUDA). If you are not too
-  concerned about performance, no problem. Otherwise, install fluidfft as
-  explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__
+  (using for example MPI with 2D decomposition or GPU with CUDA). If you are
+  not too concerned about performance, no problem. Otherwise, install fluidfft
+  as explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__.
 
 - A C++11 compiler (for example GCC 4.9 or clang)
 
@@ -54,7 +54,7 @@ Dependencies
         CXX=clang++
         CC=clang
 
-- h5py (optionally, with MPI support only if you know what you do)
+- h5py (optionally, with MPI support, but only if you know what you do)
 
   .. warning::
 
@@ -70,7 +70,8 @@ Dependencies
     See the `h5py documentation
     <http://docs.h5py.org/en/latest/build.html>`_ for more details.
 
-- Optionally, mpi4py (which depends on a MPI implementation).
+- Optionally (for MPI runs), `mpi4py <http://mpi4py.scipy.org>`_ (which depends
+  on a MPI implementation).
 
 Basic installation with pip
 ---------------------------
@@ -109,7 +110,7 @@ tutorial
 
 If you don't want to use Mercurial, you can also just manually download the
 package from `the Bitbucket page <https://bitbucket.org/fluiddyn/fluidsim>`_ or
-from `the PyPI page <https://pypi.python.org/pypi/fluidsim>`_.
+from `the PyPI page <https://pypi.org/project/fluidsim>`_.
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~
@@ -143,8 +144,9 @@ setup.py install``.
 Run the tests!
 --------------
 
-You can run some unit tests by running ``make tests`` or ``make tests_mpi``
-from the root directory or ``python -m unittest discover`` from the root
-directory or from any of the "test" directories.
+You can run some unit tests by running ``make tests`` (shortcut for
+``fluidsim-test -v``) or ``make tests_mpi`` (shortcut for ``mpirun -np 2
+fluidsim-test -v``). Alternatively, you can also run ``python -m unittest
+discover`` from the root directory or from any of the "test" directories.
 
 

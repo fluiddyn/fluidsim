@@ -224,6 +224,24 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         sim = self.sim
 
         if mpi.rank == 0:
+
+            objects_to_print = {
+                'sim': sim, 'sim.oper': sim.oper,
+                'sim.output': sim.output,
+                'sim.state': sim.state,
+                'sim.time_stepping': sim.time_stepping,
+                'sim.init_fields': sim.init_fields}
+
+            if hasattr(sim, 'forcing'):
+                objects_to_print['sim.forcing'] = sim.forcing
+
+            if hasattr(sim, 'preprocess'):
+                objects_to_print['sim.preprocess'] = sim.preprocess
+
+            for key, obj in objects_to_print.items():
+                self.print_stdout(
+                    '{:20s}'.format(key + ': ') + str(obj.__class__))
+
             # print info on the run
             if hasattr(sim.params.time_stepping, 'type_time_scheme'):
                 specifications = (
@@ -301,7 +319,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         for Class in classes:
             if mpi.rank == 0:
-                print(Class, Class._tag)
+                self.print_stdout(
+                    '{:30s}'.format('sim.output.' + Class._tag + ':') +
+                    str(Class))
             self.__dict__[Class._tag] = Class(self)
 
         print_memory_usage(

@@ -90,8 +90,8 @@ class StateBase(object):
         -------
         bool
 
-        Example
-        -------
+        Examples
+        --------
         >>> sim.state.has_vars('ux', 'uy')
         >>> sim.state.has_vars('ux')
         >>> sim.state.has_vars('ux', 'vx', strict=False)

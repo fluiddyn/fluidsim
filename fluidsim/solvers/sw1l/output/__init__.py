@@ -73,7 +73,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         classes._set_child('ProbaDensityFunc', attribs=attribs)
 
         attribs = {
-            'module_name': 'fluidsim.base.output.time_signalsK',
+            'module_name': 'fluidsim.base.output.time_signals_fft',
             'class_name': 'TimeSignalsK'}
         classes._set_child('TimeSignalsK', attribs=attribs)
 

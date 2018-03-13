@@ -181,7 +181,7 @@ def make_pythran_extensions(modules):
     develop = sys.argv[-1] == 'develop'
     extensions = []
     for mod in modules:
-        package = mod.rsplit('.', maxsplit=1)[0]
+        package = mod.rsplit('.', 1)[0]
         if any(package == excluded for excluded in exclude_pythran):
             continue
         base_file = mod.replace('.', os.path.sep)

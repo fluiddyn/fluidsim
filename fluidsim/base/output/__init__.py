@@ -11,9 +11,7 @@ Provides:
    spectra
    phys_fields
    spatial_means
-   time_signalsK
-   spatial_means
-   time_signalsK
+   time_signals_fft
    increments
    print_stdout
    spect_energy_budget

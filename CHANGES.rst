@@ -1,19 +1,29 @@
 
+0.1.1
+-----
+
+- Better ``phys_fields.plot`` and ``phys_fields.animate`` (by Ashwin Vishnu and
+  Miguel Calpe Linares).
+- Faster installation (with configuration file).
+- Installation without mpi4py.
+- Faster time stepping with less memory allocation.
+- Much faster ns3d solvers.
+
 0.1.0
 -----
 
-- uses fluidfft and Pythran
+- Uses fluidfft and Pythran
 
 0.0.5
 -----
 
-- compatible fluiddyn 0.1.2
+- Compatible fluiddyn 0.1.2
 
 0.0.4
 -----
 
 - 0D models (predaprey, lorenz)
-- continuous integration, unittests with bitbucket-pipelines
+- Continuous integration, unittests with bitbucket-pipelines
 
 0.0.3a0
 -------
