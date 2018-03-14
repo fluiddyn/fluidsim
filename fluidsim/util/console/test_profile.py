@@ -3,6 +3,7 @@ import unittest
 import sys
 from glob import glob
 from shutil import rmtree
+import os
 
 import matplotlib
 matplotlib.use('Agg')
@@ -12,7 +13,7 @@ from fluiddyn.io import stdout_redirected
 
 from .__main__ import run_profile
 
-path_dir = '/tmp/tmp_test_fluidsim_profile_dir'
+path_dir = '/tmp/tmp_test_fluidsim_profile_dir_pid{}'.format(os.getpid())
 
 
 class TestsProfile(unittest.TestCase):
