@@ -57,6 +57,9 @@ long_description = ''.join(lines[14:])
 # Get the version from the relevant file
 d = run_path('fluidsim/_version.py')
 __version__ = d['__version__']
+__about__ = d['__about__']
+
+print(__about__)
 
 # Get the development status from the version string
 if 'a' in __version__:
