@@ -1,5 +1,4 @@
-"""
-Script to configure before Fluidsim setup.
+"""Script to configure before Fluidsim setup.
 Custom paths for MPI and FFTW libraries and shared objects are managed here.
 
 Provides
@@ -39,6 +38,20 @@ try:  # python 3
 except ImportError:  # python 2.7
     from ConfigParser import ConfigParser
 
+try:
+    import colorlog as logging
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.ColoredFormatter(
+        '%(log_color)s%(levelname)s: %(message)s'))
+except ImportError:
+    import logging
+    handler = logging.StreamHandler()
+
+
+logger = logging.getLogger('fluidsim')
+logger.addHandler(handler)
+logger.setLevel(20)
+
 
 def check_avail_library(library_name):
     try:
@@ -65,15 +78,11 @@ else:
         import mpi4py
     except ImportError:
         MPI4PY = False
-        print('* ImportError of mpi4py: no mpi extensions will be built.')
+        logger.info('ImportError of mpi4py: no mpi extensions will be built.')
     else:
         MPI4PY = True
-        try:
-            cc = os.environ["CC"]
-        except KeyError:
-            cc = 'mpicc'
-            os.environ["CC"] = cc
-        print('* Compiling Cython extensions with the compiler/wrapper: ' + cc)
+        CC = os.getenv('CC', 'mpicc')
+        logger.info('Compiling Cython extensions with the compiler/wrapper: ' + CC)
 
 FFTW3 = check_avail_library('fftw3')
 
@@ -179,13 +188,13 @@ def get_config():
 
     for configfile in ('site.cfg', configfile_user):
         if os.path.exists(configfile):
-            print('Parsing', configfile)
+            logger.info('Parsing ' + configfile)
             config.read(configfile)
             break
     else:
-        print('Using default configuration.')
-        print('Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg '
-              'to specify site specific libraries.')
+        logger.info('Using default configuration.')
+        logger.info('Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg '
+                     'to specify site specific libraries.')
 
     config_dict = {}
     for section in config.sections():

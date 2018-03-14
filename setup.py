@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
+from time import time
 from runpy import run_path
 from datetime import datetime
 from distutils.sysconfig import get_config_var
@@ -32,13 +33,15 @@ except ImportError:
 
 import numpy as np
 
-from config import MPI4PY, FFTW3, monkeypatch_parallel_build, get_config
+from config import (
+    MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger)
 
+time_start = time()
 config = get_config()
 
 monkeypatch_parallel_build()
 
-print('Running fluidsim setup.py on platform ' + sys.platform)
+logger.info('Running fluidsim setup.py on platform ' + sys.platform)
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -65,7 +68,7 @@ else:
 
 ext_modules = []
 
-print('MPI4PY', MPI4PY)
+logger.info('Importing mpi4py: {}'.format(MPI4PY))
 
 define_macros = []
 if has_cython and os.getenv('TOXENV') is not None:
@@ -86,7 +89,7 @@ ext_cyfunc = Extension(
 
 ext_modules.append(ext_cyfunc)
 
-print('The following extensions could be built if necessary:\n' +
+logger.info('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
@@ -107,8 +110,8 @@ def make_pythran_extensions(modules):
         key for key, value in config['exclude_pythran'].items()
         if value)
     if len(exclude_pythran) > 0:
-        print('Pythran files in the packages ' + str(exclude_pythran) +
-              ' will not be built.')
+        logger.info('Pythran files in the packages ' + str(exclude_pythran) +
+                    ' will not be built.')
     develop = sys.argv[-1] == 'develop'
     extensions = []
     for mod in modules:
@@ -120,7 +123,7 @@ def make_pythran_extensions(modules):
         # warning: does not work on Windows
         suffix = get_config_var('EXT_SUFFIX') or '.so'
         bin_file = base_file + suffix
-        print('make_pythran_extension: {} -> {} '.format(
+        logger.info('make_pythran_extension: {} -> {} '.format(
             py_file, os.path.basename(bin_file)))
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
@@ -199,3 +202,5 @@ setup(name='fluidsim',
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules,
       entry_points={'console_scripts': console_scripts})
+
+logger.info('Setup completed in {:.3f} seconds.'.format(time() - time_start))
