@@ -13,7 +13,16 @@ from fluiddyn.io import stdout_redirected
 
 from .__main__ import run_profile
 
-path_dir = '/tmp/tmp_test_fluidsim_profile_dir_pid{}'.format(os.getpid())
+
+if mpi.rank == 0:
+    pid = os.getpid()
+else:
+    pid = None
+
+if mpi.nb_proc > 1:
+    pid = mpi.comm.bcast(pid, root=0)
+
+path_dir = '/tmp/tmp_test_fluidsim_profile_dir_pid{}'.format(pid)
 
 
 class TestsProfile(unittest.TestCase):
