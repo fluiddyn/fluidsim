@@ -32,13 +32,9 @@ except ImportError:
 
 import numpy as np
 
-from config import (
-    MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc,
-    monkeypatch_parallel_build, get_config)
+from config import MPI4PY, FFTW3, monkeypatch_parallel_build, get_config
 
 config = get_config()
-
-BUILD_OLD_EXTENSIONS = False
 
 monkeypatch_parallel_build()
 
@@ -76,71 +72,6 @@ if has_cython and os.getenv('TOXENV') is not None:
     cython_defaults = CythonOptions.get_directive_defaults()
     cython_defaults['linetrace'] = True
     define_macros.append(('CYTHON_TRACE_NOGIL', '1'))
-
-if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
-    path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
-    include_dirs = [path_sources, np.get_include()] + \
-        dict_inc['mpi'] + dict_inc['fftw']
-    libraries = dict_ldd['mpi'] + dict_ldd['fftw'] + ['m']
-    library_dirs = dict_lib['mpi'] + dict_lib['fftw']
-
-    ext_fftw2dmpiccy = Extension(
-        'fluidsim.operators.fft.fftw2dmpiccy',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        sources=[path_sources + '/libcfftw2dmpi.c',
-                 path_sources + '/fftw2dmpiccy.' + ext_source],
-        define_macros=define_macros)
-    ext_modules.append(ext_fftw2dmpiccy)
-
-if BUILD_OLD_EXTENSIONS and FFTW3:
-    path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
-    include_dirs = [path_sources, np.get_include()] + \
-        dict_inc['mpi'] + dict_inc['fftw']
-    libraries = dict_ldd['mpi'] + dict_ldd['fftw'] + ['m']
-    library_dirs = dict_lib['mpi'] + dict_lib['fftw']
-
-    if FFTW3MPI:
-        ext_fftw2dmpicy = Extension(
-            'fluidsim.operators.fft.fftw2dmpicy',
-            include_dirs=include_dirs,
-            libraries=libraries,
-            library_dirs=library_dirs,
-            cython_compile_time_env={'MPI4PY': MPI4PY},
-            sources=[path_sources + '/fftw2dmpicy.' + ext_source],
-            define_macros=define_macros)
-        ext_modules.append(ext_fftw2dmpicy)
-
-if BUILD_OLD_EXTENSIONS:
-
-    path_sources = 'fluidsim/operators/CySources'
-    include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
-    libraries = dict_ldd['mpi'] + ['m']
-    library_dirs = dict_lib['mpi']
-
-    ext_operators = Extension(
-        'fluidsim.operators.operators',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/operators_cy.' + ext_source],
-        define_macros=define_macros)
-
-    ext_misc = Extension(
-        'fluidsim.operators.miscellaneous',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/miscellaneous_cy.' + ext_source],
-        define_macros=define_macros)
-
-    ext_modules.extend([
-        ext_operators,
-        ext_misc])
-
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
