@@ -39,10 +39,10 @@ class TestsProfile(unittest.TestCase):
             args.append(path_dir)
             sys.argv = args
             run_profile()
-            paths = glob(path_dir + '/*')
-            path = paths[0]
 
             if mpi.nb_proc == 1:
+                paths = glob(path_dir + '/*')
+                path = paths[0]
                 command = 'fluidsim-profile -p -sf'
                 args = command.split()
                 args.append(path)
