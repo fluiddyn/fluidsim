@@ -143,13 +143,15 @@ def create_description_xmf_file(path=None):
 
     if os.path.isdir(path):
         paths = glob(path + '/state_phys*.nc')
+        path_dir = path
     else:
         paths = glob(path)
+        path_dir = os.path.dirname(path)
 
     if len(paths) == 0:
         raise ValueError('No file corresponds to this path.')
 
-    path_out = 'states_phys.xmf'
+    path_out = os.path.join(path_dir, 'states_phys.xmf')
 
     paths.sort()
     path = paths[0]
@@ -240,6 +242,9 @@ def create_description_xmf_file(path=None):
 
     with open(path_out, 'w') as f:
         f.write(txt)
+
+    print('Creation of the file ' + path_out +
+          '\nOpen it with a Xdmf reader to read the output files.')
 
 
 def run():

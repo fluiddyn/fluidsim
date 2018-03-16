@@ -13,7 +13,7 @@ from fluidsim.solvers.ns2d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.output.sub_directory = 'examples'
 
 params.oper.nx = nx = 64
 params.oper.ny = nx//2

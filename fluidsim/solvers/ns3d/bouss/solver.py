@@ -164,6 +164,12 @@ class Simul(SimulStrat):
 
         oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
 
+        if state_spect is None:
+            b = self.state.state_phys.get_var('b')
+        else:
+            b = self.state.fields_tmp[3]
+            ifft_as_arg(b_fft, b)
+
         fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b)
         tendencies_fft.set_var('b_fft', fb_fft)
 
