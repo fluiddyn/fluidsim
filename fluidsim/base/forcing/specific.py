@@ -45,10 +45,11 @@ from builtins import object
 from copy import deepcopy
 from math import radians
 import types
-
+from warnings import warn
 import numpy as np
 
 from fluiddyn.util import mpi
+from fluiddyn.calcul.easypyfft import fftw_grid_size
 from fluidsim.base.setofvariables import SetOfVariables
 
 
@@ -87,10 +88,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         shape: array-like
             A tuple indicating the shape of an array or Operators instance.
 
-        Returns
-        -------
-        bool
-
         """
         if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
@@ -123,10 +120,14 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         else:
             self.key_forced = self._key_forced_default
 
-        i = 0
-        while 2 * params.forcing.nkmax_forcing > 2**i:
-            i += 1
-        n = 2**i
+        try:
+            n = 2 * fftw_grid_size(params.forcing.nkmax_forcing)
+        except ImportError:
+            warn('To use smaller forcing arrays: pip install pulp')
+            i = 0
+            while 2 * params.forcing.nkmax_forcing > 2**i:
+                i += 1
+            n = 2**i
 
         self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
