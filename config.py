@@ -54,6 +54,17 @@ logger.setLevel(20)
 
 
 def check_avail_library(library_name):
+    """Check if a shared library is available.
+
+    Parameters
+    ----------
+    library_name : str
+
+    Returns
+    -------
+    bool
+
+    """
     try:
         libraries = subprocess.check_output(shlex.split('/sbin/ldconfig -p'))
     except subprocess.CalledProcessError:
@@ -69,7 +80,9 @@ def check_avail_library(library_name):
 
     return library_name in libraries
 
+
 on_rtd = os.environ.get('READTHEDOCS')
+
 
 if on_rtd:
     MPI4PY = False
@@ -84,9 +97,15 @@ else:
         CC = os.getenv('CC', 'mpicc')
         logger.info('Compiling Cython extensions with the compiler/wrapper: ' + CC)
 
+
 FFTW3 = check_avail_library('fftw3')
 
+
 def build_extensions(self):
+    """Function to monkey-patch
+    distutils.command.build_ext.build_ext.build_extensions
+
+    """
     self.check_extensions_list(self.extensions)
     try:
         self.compiler.compiler_so.remove('-Wstrict-prototypes')
@@ -119,7 +138,7 @@ def build_extensions(self):
 def compile(self, sources, output_dir=None, macros=None,
             include_dirs=None, debug=0, extra_preargs=None,
             extra_postargs=None, depends=None):
-    '''Monkey-patch to compile in parallel.'''
+    '''Function to monkey-patch distutils.ccompiler.CCompiler'''
     macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
         output_dir, macros, include_dirs, sources, depends, extra_postargs)
     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
@@ -136,6 +155,7 @@ def compile(self, sources, output_dir=None, macros=None,
 
 
 def monkeypatch_parallel_build():
+    '''Monkey-patch to compile in parallel.'''
     if PARALLEL_COMPILE:
         build_ext.build_extensions = build_extensions
         CCompiler.compile = compile
@@ -194,7 +214,7 @@ def get_config():
     else:
         logger.info('Using default configuration.')
         logger.info('Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg '
-                     'to specify site specific libraries.')
+                    'to specify site specific libraries.')
 
     config_dict = {}
     for section in config.sections():
