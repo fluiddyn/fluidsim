@@ -127,10 +127,10 @@ class TestSolverNS2D(unittest.TestCase):
             sim3.params.time_stepping.t_end += 0.2
             sim3.time_stepping.start()
 
-        if mpi.rank == 0:
-            sim3.output.phys_fields.animate(
-                'ux', dt_frame_in_sec=1e-6, dt_equations=0.3, repeat=False,
-                clim=(-1, 1), save_file=False, numfig=1)
+            if mpi.nb_proc == 1:
+                sim3.output.phys_fields.animate(
+                    'ux', dt_frame_in_sec=1e-6, dt_equations=0.3, repeat=False,
+                    clim=(-1, 1), save_file=False, numfig=1)
 
 
 

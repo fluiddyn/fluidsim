@@ -75,7 +75,6 @@ class OperatorsPseudoSpectral2D(_Operators):
                 self.project_fft_on_realX = self.project_fft_on_realX_slow
 
         if not self.is_sequential:
-
             self.iKxloc_start, _ = self.opfft.get_seq_indices_first_K()
             self.iKxloc_start_rank = np.array(
                 comm.allgather(self.iKxloc_start))

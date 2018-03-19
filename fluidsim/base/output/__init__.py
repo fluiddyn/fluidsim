@@ -10,6 +10,10 @@ Provides:
    prob_dens_func
    spectra
    phys_fields
+   phys_fields1d
+   phys_fields2d
+   phys_fields3d
+   movies
    spatial_means
    time_signals_fft
    increments

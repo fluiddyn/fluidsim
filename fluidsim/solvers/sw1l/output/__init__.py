@@ -44,7 +44,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
         classes._set_child(
             'PhysFields',
-            attribs={'module_name': 'fluidsim.base.output.phys_fields',
+            attribs={'module_name': 'fluidsim.base.output.phys_fields2d',
                      'class_name': 'PhysFieldsBase2D'})
 
         classes._set_child(

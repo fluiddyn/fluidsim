@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     # Plot once
     # sim.output.init_with_initialized_state()
-    # sim.output.phys_fields.plot(key_field='s')
+    # sim.output.phys_fields.plot(field='s')
 
     sim.time_stepping.start()
-    # sim.output.phys_fields.plot(key_field='s')
+    # sim.output.phys_fields.plot(field='s')

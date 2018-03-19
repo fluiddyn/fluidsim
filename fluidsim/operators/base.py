@@ -2,7 +2,7 @@
 ===============================================================
 
 Numerical method agnostic base operator classes
- 
+
 Provides:
 
 .. autoclass:: OperatorBase1D
@@ -12,9 +12,7 @@ Provides:
 """
 from __future__ import division
 from __future__ import print_function
-from builtins import range
 from builtins import object
-from past.utils import old_div
 import numpy as np
 
 
@@ -42,11 +40,11 @@ class OperatorsBase1D(object):
         self.params = params
 
         self.nx = nx = int(params.oper.nx)
-        self.Lx = Lx = float(params.oper.Lx)
+        self.lx = self.Lx = Lx = float(params.oper.Lx)
 
         self.size = nx
         self.shapeX = self.shapeX_seq = self.shapeX_loc = self.shape = (nx,)
-        self.deltax = dx = Lx / nx
+        self.deltax = Lx / nx
         self.x = self.x_seq = self.x_loc = self.xs = np.linspace(0, Lx, nx)
 
     def _str_describing_oper(self):

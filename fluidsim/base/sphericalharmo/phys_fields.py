@@ -1,6 +1,6 @@
 
 
-from ..output.phys_fields import PhysFieldsBase2D
+from ..output.phys_fields2d import PhysFieldsBase2D
 
 
 class PhysFieldsSphericalHarmo(PhysFieldsBase2D):

@@ -1,13 +1,11 @@
 """AD1D solver (:mod:`fluidsim.solvers.ad1d.solver`)
-=========================================================
-
+====================================================
 
 Provides:
 
 .. autoclass:: Simul
    :members:
    :private-members:
-
 
 """
 from __future__ import print_function

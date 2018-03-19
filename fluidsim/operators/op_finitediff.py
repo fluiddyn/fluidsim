@@ -16,10 +16,11 @@ Provides:
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-from builtins import object
 from past.utils import old_div
+
 import numpy as np
 import scipy.sparse as sparse
+
 from .base import OperatorsBase1D
 
 
@@ -28,6 +29,7 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
     def __init__(self, params=None):
         super(OperatorFiniteDiff1DPeriodic, self).__init__(params)
         nx = self.nx
+        self.nx_seq = nx
         dx = self.deltax
 
         self.sparse_px = sparse.diags(
@@ -51,8 +53,10 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
         return sparse.identity(self.size)
 
     def produce_long_str_describing_oper(self):
-        return super(OperatorFiniteDiff1DPeriodic, self).produce_long_str_describing_oper(
-                'Finite difference')
+        return super(OperatorFiniteDiff1DPeriodic,
+                     self).produce_long_str_describing_oper(
+                         'Finite difference')
+
 
 class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
@@ -84,8 +88,8 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         self.shape = [ny, nx]
         size = nx*ny
         self.size = size
-        self.Lx = Lx
-        self.Ly = Ly
+        self.lx = self.Lx = Lx
+        self.ly = self.Ly = Ly
         self.deltax = old_div(Lx,nx)
         self.deltay = old_div(Ly,ny)
         dx = self.deltax
