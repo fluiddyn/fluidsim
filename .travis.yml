@@ -21,6 +21,9 @@ matrix:
     - python: 3.6
       env: TOXENV=lint
       addons:
+        # workaround because of the pip install -U ... mpi4py line in install section
+        apt:
+          packages: [libopenmpi-dev, openmpi-bin]
 
   allow_failures:
     - python: 3.6
