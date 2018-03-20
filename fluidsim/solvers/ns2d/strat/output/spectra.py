@@ -19,7 +19,7 @@ class SpectraNS2DStrat(Spectra):
     """Save and plot spectra."""
 
     def compute(self):
-        """compute the values at one time."""
+        """Compute the values at one time."""
 
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
         energy_fft = energyK_fft + energyA_fft
@@ -53,22 +53,14 @@ class SpectraNS2DStrat(Spectra):
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
         spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)
         spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
-
-        # Compute energy spectrum vs kykx (saved in dictionary 2D)
-        spectrumkykx_E = self.oper.compute_spectrum_kykx(energy_fft)
-        spectrumkykx_EK = self.oper.compute_spectrum_kykx(energyK_fft)
-        spectrumkykx_EA = self.oper.compute_spectrum_kykx(energyA_fft)
         
         # Dictionary 2D isotropic and kykx spectra
         dico_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
                           'spectrum2D_EK_uy': spectrum2D_EK_uy,
                           'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EA': spectrum2D_EA,
-                          'spectrum2D_E': spectrum2D_E,
-                          'spectrumkykx_E' : spectrumkykx_E,
-                          'spectrumkykx_EK' : spectrumkykx_EK,
-                          'spectrumkykx_EA' : spectrumkykx_EA}
-
+                          'spectrum2D_E': spectrum2D_E}
+                          
         return dico_spectra1D, dico_spectra2D
 
     def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
