@@ -20,26 +20,22 @@ class SpectraNS2DStrat(Spectra):
 
     def compute(self):
         """compute the values at one time."""
-        # energy_fft = self.output.compute_energy_fft()
+
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
         energy_fft = energyK_fft + energyA_fft
         energyK_ux_fft, energyK_uy_fft = self.output.compute_energies2_fft()
         energyK, energyA, energyK_ux = self.output.compute_energies()
 
-        # Compute the kinetic energy spectra 1D for the two velocity components
-        # and two directions
+        # Compute 1D energy spectra
+        spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
         spectrum1Dkx_EK_ux, spectrum1Dky_EK_ux = self.spectra1D_from_fft(
             energyK_ux_fft)
         spectrum1Dkx_EK_uy, spectrum1Dky_EK_uy = self.spectra1D_from_fft(
             energyK_uy_fft)
         spectrum1Dkx_EK, spectrum1Dky_EK = self.spectra1D_from_fft(energyK_fft)
-
-        # Compute the potential energy spectra 1D two directions
         spectrum1Dkx_EA, spectrum1Dky_EA = self.spectra1D_from_fft(energyA_fft)
-
-        # Compute the total energy spectra 1D
-        spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
-        # Dictionary with the 1D kinetic energy spectra
+        
+        # Dictionary 1D energy spectra
         dico_spectra1D = {'spectrum1Dkx_EK_ux': spectrum1Dkx_EK_ux,
                           'spectrum1Dky_EK_ux': spectrum1Dky_EK_ux,
                           'spectrum1Dkx_EK_uy': spectrum1Dkx_EK_uy,
@@ -51,17 +47,27 @@ class SpectraNS2DStrat(Spectra):
                           'spectrum1Dkx_E': spectrum1Dkx_E,
                           'spectrum1Dky_E': spectrum1Dky_E}
 
-        # compute the kinetic energy spectra 2D
+        # Compute 2D isotropic energy spectra 
         spectrum2D_E = self.spectrum2D_from_fft(energy_fft)
         spectrum2D_EK = self.spectrum2D_from_fft(energyK_fft)
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
         spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)
         spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
+
+        # Compute energy spectrum vs kykx (saved in dictionary 2D)
+        spectrumkykx_E = self.oper.compute_spectrum_kykx(energy_fft)
+        spectrumkykx_EK = self.oper.compute_spectrum_kykx(energyK_fft)
+        spectrumkykx_EA = self.oper.compute_spectrum_kykx(energyA_fft)
+        
+        # Dictionary 2D isotropic and kykx spectra
         dico_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
                           'spectrum2D_EK_uy': spectrum2D_EK_uy,
                           'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EA': spectrum2D_EA,
-                          'spectrum2D_E': spectrum2D_E}
+                          'spectrum2D_E': spectrum2D_E,
+                          'spectrumkykx_E' : spectrumkykx_E,
+                          'spectrumkykx_EK' : spectrumkykx_EK,
+                          'spectrumkykx_EA' : spectrumkykx_EA}
 
         return dico_spectra1D, dico_spectra2D
 
