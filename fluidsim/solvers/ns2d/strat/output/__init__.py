@@ -57,6 +57,11 @@ class OutputStrat(Output):
             'module_name': base_name_mod + '.spectra',
             'class_name': 'SpectraNS2DStrat'}
         classes.Spectra._set_attribs(attribs)
+        
+        attribs = {
+            'module_name': base_name_mod + '.spectra_multidim',
+            'class_name': 'SpectraMultiDimNS2DStrat'}
+        classes.SpectraMultiDim._set_attribs(attribs)
 
         attribs = {
             'module_name': base_name_mod + '.spatial_means',
@@ -68,20 +73,6 @@ class OutputStrat(Output):
             'class_name': 'SpectralEnergyBudgetNS2DStrat'}
         classes.spect_energy_budg._set_attribs(attribs)
 
-        # classes._set_child(
-        #     'spatio_temporal_spectra',
-        #     attribs={'module_name': base_name_mod + '.spatio_temporal_spectra',
-        #              'class_name': 'SpatioTempSpectra'})
-
-
-
-    # @staticmethod
-    # def _complete_params_with_default(params, info_solver):
-    #     """Complete the `params` container (static method)."""
-    #     OutputBasePseudoSpectral._complete_params_with_default(
-    #         params, info_solver)
-
-    #     params.output.phys_fields.field_to_plot = 'rot'
 
     def compute_energies_fft(self):
         """Compute the kinetic and potential energy (k)"""
