@@ -29,6 +29,10 @@ class SpectraMultiDim(SpecificOutput):
         params = output.sim.params
         self.nx = int(params.oper.nx)
 
+        if not params.output.HAS_TO_SAVE:
+            params.output.periods_save.spectra_multidim = False
+
+
         super(SpectraMultiDim, self).__init__(
             output,
             period_save=params.output.periods_save.spectra_multidim,
