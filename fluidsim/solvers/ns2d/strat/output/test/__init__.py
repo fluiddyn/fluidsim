@@ -15,6 +15,6 @@ class TestNS2DStrat(BaseTestCase):
         nh = 128
         super(TestNS2DStrat, cls).setUpClass(nh=nh, init_fields=init_fields,
                                              type_forcing=type_forcing,
-                                             HAS_TO_SAVE=False,
+                                             HAS_TO_SAVE=True,
                                              forcing_enable=False,
                                              dissipation_enable=False)
