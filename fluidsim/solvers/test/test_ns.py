@@ -44,7 +44,7 @@ def run_mini_simul(
 
     if HAS_TO_SAVE:
         params.output.periods_save.spectra = 0.25
-        params.output.periods_save.spatial_means = 0.25
+        params.output.periods_save.spatial_means = 0.1
         params.output.periods_save.spect_energy_budg = 0.25
 
         try:
