@@ -3,7 +3,7 @@ from __future__ import print_function
 import unittest
 import numpy as np
 
-from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat
+from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat, mpi
 
 
 class TestSpectra(TestNS2DStrat):
@@ -42,6 +42,21 @@ class TestSpectra(TestNS2DStrat):
                 spectrum1DEA_kx.sum() * oper.deltakx, energyA)
             self.assertAlmostEqual(
                 spectrum1DEA_ky.sum() * oper.deltaky, energyA)
+
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot1d_spectra(self):
+        self.module.plot = self.module.plot1d
+        self._plot()
+
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot2d_spectra(self):
+        self.module.plot = self.module.plot2d
+        self._plot()
+
+    def test_online_plot_spectra(self):
+        self._online_plot_saving(*self.dico)
 
 
 if __name__ == '__main__':
