@@ -122,10 +122,10 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
     def load(self):
         """Generates a dictionary with the output values"""
         dico_results = {'name_solver': self.output.name_solver}
-
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
-
+        
+        with open(self.path_file, 'r') as f:
+            lines = f.readlines()
+            
         lines_t = []
         lines_E = []
         lines_PK = []
