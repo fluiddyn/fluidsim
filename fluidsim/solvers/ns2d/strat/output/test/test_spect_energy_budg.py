@@ -46,6 +46,15 @@ class TestSpectEnergyBudg(TestNS2DStrat):
         self.assertAlmostEqual(transferEK_kx.sum(), 0)
         self.assertAlmostEqual(transferEK_ky.sum(), 0)
 
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot_spect_energy_budg(self):
+        self.module.plot = self.module.plot
+        self._plot()
+
+    def test_online_plot_spect_energy_budg(self):
+        self._online_plot_saving(self.dico)
+
 
 if __name__ == '__main__':
     unittest.main()        
