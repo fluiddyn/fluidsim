@@ -3,7 +3,7 @@ from __future__ import print_function
 import unittest
 import numpy as np
 
-from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat
+from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat, mpi
 
 
 class TestSpectraMultiDim(TestNS2DStrat):
@@ -110,6 +110,13 @@ class TestSpectraMultiDim(TestNS2DStrat):
 
             self.assertAlmostEqual(np.mean(diff_kx), 0)
             self.assertAlmostEqual(np.mean(diff_ky), 0)
+
+
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot_spectra(self):
+        self.module.plot = self.module.plot
+        self._plot()
 
 
 if __name__ == '__main__':
