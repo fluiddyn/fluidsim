@@ -212,7 +212,7 @@ class Simul(SimulNS2D):
     #     omega_dispersion_relation : arr
     #       Frequency dispersion relation in rad.
     #     """
-    #     return self.params.N * (self.oper.KX / self.oper.KK_not0)
+    #     return self.params.N * (self.oper.KX / self.oper.K_not0)
 
 
 if __name__ == "__main__":

@@ -114,9 +114,9 @@ class InitFieldsNoise(SpecificInitFields):
         k0 = 2*np.pi/lambda0
         delta_k0 = 1.*k0
 
-        KK = np.sqrt(oper.K2)
+        K = np.sqrt(oper.K2)
         
-        vv_fft = [vi_fft*H_smooth(k0-KK, delta_k0) for vi_fft in vv_fft]
+        vv_fft = [vi_fft*H_smooth(k0-K, delta_k0) for vi_fft in vv_fft]
         vv = [oper.ifft(ui_fft) for ui_fft in vv_fft]
 
         velo_max = np.sqrt(vv[0]**2+vv[1]**2+vv[2]**2).max()

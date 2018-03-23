@@ -6,8 +6,6 @@ A forcing implemented in the script enforces that there is one static layers in
 the top and the bottom of the numerical domain.
 
 """
-from math import pi
-# import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,7 +18,8 @@ from fluidsim.solvers.ns2d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.output.sub_directory = 'examples'
+params.short_name_type_run = 'staticlayer'
 
 params.oper.nx = nx = 128
 params.oper.ny = ny = nx//4

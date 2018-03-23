@@ -44,9 +44,10 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         """
         self._equation = equation
+        self.movies._equation = equation
 
     def plot(self, field=None, time=None,
-             QUIVER=True, vector='v', equation='iz=0',
+             QUIVER=True, vector='v', equation=None,
              nb_contours=20, type_plot='contourf', vmin=None, vmax=None,
              cmap='viridis', numfig=None):
         """Plot a field.
@@ -78,6 +79,10 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         """
 
+        if equation is not None:
+            self.set_equation_crosssection(equation)
+        equation = self._equation
+        
         is_field_ready = False
 
         self._has_uxuy = self.sim.state.has_vars('vx', 'vy')
@@ -185,3 +190,51 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             fig.tight_layout()
             fig.canvas.draw()
             plt.pause(1e-3)
+
+    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+        """Superimposes a quiver plot of velocity vectors with a given axis
+        object corresponding to a 2D contour plot.
+
+        """
+        if isinstance(vecx, basestring):
+            vecx = self.get_field_to_plot(vecx)
+
+        if isinstance(vecy, basestring):
+            vecy = self.get_field_to_plot(vecy)
+            
+        if XX is None and YY is None:
+            equation = self._equation
+            if equation.startswith('iz=') or equation.startswith('z='):
+                x_seq = self.oper.x_seq
+                y_seq = self.oper.y_seq
+            elif equation.startswith('iy=') or equation.startswith('y='):
+                x_seq = self.oper.x_seq
+                y_seq = self.oper.z_seq
+            elif equation.startswith('ix=') or equation.startswith('x='):
+                x_seq = self.oper.y_seq
+                y_seq = self.oper.z_seq
+            else:
+                raise NotImplementedError
+            
+            [XX, YY] = np.meshgrid(x_seq, y_seq)
+
+        if mpi.rank == 0:
+            # local variable 'normalize_diff' is assigned to but never used
+            # normalize_diff = (
+            #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
+            #      np.min(np.sqrt(vecx**2 + vecy**2))) /
+            #     np.max(np.sqrt(vecx**2 + vecy**2)))
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+            # Quiver is normalized by the vmax
+            # copy to avoid a bug
+            skip = self._skip_quiver
+            vecx_c = vecx[::skip, ::skip].copy()
+            vecy_c = vecy[::skip, ::skip].copy()
+            quiver = ax.quiver(
+                XX[::skip, ::skip],
+                YY[::skip, ::skip],
+                vecx_c/vmax, vecy_c/vmax)
+        else:
+            quiver = vmax = None
+
+        return quiver, vmax

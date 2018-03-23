@@ -85,7 +85,7 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
         The first-level classes for this base solver are the same as
         for the 2D pseudo-spectral base solver except the class:
 
-        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
+        - :class:`fluidsim.operators.operators2d.OperatorsPseudoSpectral3D`
 
         """
 
@@ -160,7 +160,7 @@ class SimulBasePseudoSpectral(SimulBase):
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
 
-            f_d_hypo[self.oper.KK <= 20] = 0.
+            f_d_hypo[self.oper.K <= 20] = 0.
 
         else:
             f_d_hypo = np.zeros_like(f_d)

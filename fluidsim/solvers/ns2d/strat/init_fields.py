@@ -70,8 +70,8 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
 
         k0 = 2*np.pi/lambda0
         delta_k0 = 1.*k0
-        ux_fft = ux_fft*H_smooth(k0-oper.KK, delta_k0)
-        uy_fft = uy_fft*H_smooth(k0-oper.KK, delta_k0)
+        ux_fft = ux_fft*H_smooth(k0-oper.K, delta_k0)
+        uy_fft = uy_fft*H_smooth(k0-oper.K, delta_k0)
 
         ux = oper.ifft2(ux_fft)
         uy = oper.ifft2(uy_fft)

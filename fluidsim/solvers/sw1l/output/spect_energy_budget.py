@@ -158,17 +158,17 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # print_memory_usage('after convK2D')
 
 #         print(
-# ('sum(convP2D-convK2D)*deltakh = {0:9.4e}, sum(convP2D)*deltakh = {1:9.4e}'
+# ('sum(convP2D-convK2D)*deltak = {0:9.4e}, sum(convP2D)*deltak = {1:9.4e}'
 # ).format(
-# np.sum(convP2D-convK2D)*self.oper.deltakh,
-# np.sum(convP2D)*self.oper.deltakh
+# np.sum(convP2D-convK2D)*self.oper.deltak,
+# np.sum(convP2D)*self.oper.deltak
 # )
 # )
 
 #         print(
-# ('                                           sum(convK2D)*deltakh = {0:9.4e}'
+# ('                                           sum(convK2D)*deltak = {0:9.4e}'
 # ).format(
-# np.sum(convK2D)*self.oper.deltakh
+# np.sum(convK2D)*self.oper.deltak
 # )
 # )
 
@@ -390,12 +390,12 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         convP2D = dico_results['convP2D']
         convK2D = dico_results['convK2D']
         khE = self.oper.khE
-        PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltakh
-        PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltakh
-        PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltakh
+        PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltak
+        PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltak
+        PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltak
         PiEtot = PiEK + PiEA
-        CCP = cumsum_inv(convP2D) * self.oper.deltakh
-        CCK = cumsum_inv(convK2D) * self.oper.deltakh
+        CCP = cumsum_inv(convP2D) * self.oper.deltak
+        CCK = cumsum_inv(convK2D) * self.oper.deltak
 
         self.axe_a.plot(khE + khE[1], PiEK, 'r')
         self.axe_a.plot(khE + khE[1], PiEA, 'b')
@@ -472,21 +472,21 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
             for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEKr = dset_transfer2D_EKr[it]
                 transferEAr = dset_transfer2D_EAr[it]
-                PiEKr = cumsum_inv(transferEKr) * self.oper.deltakh
-                PiEAr = cumsum_inv(transferEAr) * self.oper.deltakh
+                PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
+                PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
                 PiE = PiEKr + PiEAr
                 ax1.plot(khE, PiE, 'k', linewidth=1)
 
                 convK = dset_convK2D[it]
-                CCK = cumsum_inv(convK) * self.oper.deltakh
+                CCK = cumsum_inv(convK) * self.oper.deltak
                 ax1.plot(khE, CCK, 'y', linewidth=1)
 
                 convP = dset_convP2D[it]
-                CCP = cumsum_inv(convP) * self.oper.deltakh
+                CCP = cumsum_inv(convP) * self.oper.deltak
                 ax1.plot(khE, CCP, 'y--', linewidth=1)
 
-                # print(convK.sum()*self.oper.deltakh,
-                #       convP.sum()*self.oper.deltakh,
+                # print(convK.sum()*self.oper.deltak,
+                #       convP.sum()*self.oper.deltak,
                 #       CCP[0], CCK[0])
 
         transferEKr = dset_transfer2D_EKr[imin_plot:imax_plot].mean(0)
@@ -495,11 +495,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         transferEAd = dset_transfer2D_EAd[imin_plot:imax_plot].mean(0)
         transferEPd = dset_transfer2D_EPd[imin_plot:imax_plot].mean(0)
 
-        PiEKr = cumsum_inv(transferEKr) * self.oper.deltakh
-        PiEKd = cumsum_inv(transferEKd) * self.oper.deltakh
-        PiEAr = cumsum_inv(transferEAr) * self.oper.deltakh
-        PiEAd = cumsum_inv(transferEAd) * self.oper.deltakh
-        PiEPd = cumsum_inv(transferEPd) * self.oper.deltakh
+        PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
+        PiEKd = cumsum_inv(transferEKd) * self.oper.deltak
+        PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
+        PiEAd = cumsum_inv(transferEAd) * self.oper.deltak
+        PiEPd = cumsum_inv(transferEPd) * self.oper.deltak
 
         PiEK = PiEKr + PiEKd
         PiEA = PiEAr + PiEAd
@@ -519,14 +519,14 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         convP = dset_convP2D[imin_plot:imax_plot].mean(0)
         convK = dset_convK2D[imin_plot:imax_plot].mean(0)
 
-        CCP = cumsum_inv(convP) * self.oper.deltakh
-        CCK = cumsum_inv(convK) * self.oper.deltakh
+        CCP = cumsum_inv(convP) * self.oper.deltak
+        CCK = cumsum_inv(convK) * self.oper.deltak
 
         ax1.plot(khE, CCP, 'y--', linewidth=2)
         ax1.plot(khE, CCK, 'y', linewidth=2)
 
-#         print(convK.sum()*self.oper.deltakh,
-#               convP.sum()*self.oper.deltakh,
+#         print(convK.sum()*self.oper.deltak,
+#               convP.sum()*self.oper.deltak,
 #               CCP[0], CCK[0],
 #               CCP[1], CCK[1]
 # )
@@ -540,9 +540,9 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
         transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
 
-        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltakh
-        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltakh
-        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltakh
+        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
+        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
+        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
 
         ax1.plot(khE, Pi_drr_rrd, 'm:', linewidth=1)
         ax1.plot(khE, Pi_rrr, 'm--', linewidth=1)
@@ -560,11 +560,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
 
         transferEudeu = dset_transfer2D_Eudeu[imin_plot:imax_plot].mean(0)
 
-        Pi_ddr_rdd = cumsum_inv(transferEddr_rdd) * self.oper.deltakh
-        Pi_ddd = cumsum_inv(transferEddd) * self.oper.deltakh
-        Pi_rdr = cumsum_inv(transferErdr) * self.oper.deltakh
+        Pi_ddr_rdd = cumsum_inv(transferEddr_rdd) * self.oper.deltak
+        Pi_ddd = cumsum_inv(transferEddd) * self.oper.deltak
+        Pi_rdr = cumsum_inv(transferErdr) * self.oper.deltak
 
-        Pi_udeu = cumsum_inv(transferEudeu) * self.oper.deltakh
+        Pi_udeu = cumsum_inv(transferEudeu) * self.oper.deltak
 
         ax1.plot(khE, Pi_ddr_rdd, 'c:', linewidth=1)
         ax1.plot(khE, Pi_ddd, 'c--', linewidth=1)
@@ -587,11 +587,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
-                PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
+                PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
 
         transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
-        PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
+        PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
 
         ax2.plot(khE, PiCPE, 'm', linewidth=2)
 
@@ -758,10 +758,10 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         transfer2D_EA = dico_results['transfer2D_EA']
         convA2D = dico_results['convA2D']
         khE = self.oper.khE
-        PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltakh
-        PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltakh
-        PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltakh
-        CCA = cumsum_inv(convA2D) * self.oper.deltakh
+        PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltak
+        PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltak
+        PiEA = cumsum_inv(transfer2D_EA) * self.oper.deltak
+        CCA = cumsum_inv(convA2D) * self.oper.deltak
         self.axe_a.plot(khE + khE[1], PiEK, 'r')
         self.axe_a.plot(khE + khE[1], PiEA, 'b')
         self.axe_a.plot(khE + khE[1], CCA, 'y')
@@ -832,15 +832,15 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
             for it in range(imin_plot, imax_plot, delta_i_plot):
                 transferEK = dset_transfer2D_EK[it]
                 transferEA = dset_transfer2D_EA[it]
-                PiEK = cumsum_inv(transferEK) * self.oper.deltakh
-                PiEA = cumsum_inv(transferEA) * self.oper.deltakh
+                PiEK = cumsum_inv(transferEK) * self.oper.deltak
+                PiEA = cumsum_inv(transferEA) * self.oper.deltak
                 PiE = PiEK + PiEA
                 ax1.plot(khE, PiE, 'k', linewidth=1)
 
         transferEK = dset_transfer2D_EK[imin_plot:imax_plot].mean(0)
         transferEA = dset_transfer2D_EA[imin_plot:imax_plot].mean(0)
-        PiEK = cumsum_inv(transferEK) * self.oper.deltakh
-        PiEA = cumsum_inv(transferEA) * self.oper.deltakh
+        PiEK = cumsum_inv(transferEK) * self.oper.deltak
+        PiEA = cumsum_inv(transferEA) * self.oper.deltak
         PiE = PiEK + PiEA
 
         ax1.plot(khE, PiE, 'k', linewidth=2)
@@ -852,16 +852,16 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
         transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
 
-        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltakh
-        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltakh
-        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltakh
+        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
+        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
+        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
 
         ax1.plot(khE, Pi_drr_rrd, 'm:', linewidth=1)
         ax1.plot(khE, Pi_rrr, 'm--', linewidth=1)
         ax1.plot(khE, Pi_drd, 'm-.', linewidth=1)
 
         convA2D = dset_convA2D[imin_plot:imax_plot].mean(0)
-        CCA = cumsum_inv(convA2D) * self.oper.deltakh
+        CCA = cumsum_inv(convA2D) * self.oper.deltak
 
         ax1.plot(khE + khE[1], CCA, 'y', linewidth=2)
 
@@ -880,11 +880,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 transferCPE = dset_transfer2D_CPE[it]
-                PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
+                PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
                 ax2.plot(khE, PiCPE, 'g', linewidth=1)
 
         transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
-        PiCPE = cumsum_inv(transferCPE) * self.oper.deltakh
+        PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
 
         ax2.plot(khE, PiCPE, 'm', linewidth=2)
 
@@ -1057,18 +1057,18 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_tot = Cq_GG + Cq_AG + Cq_AA
 
         khE = self.oper.khE
-        Piens = cumsum_inv(Tens) * self.oper.deltakh
-        Pi_tot = cumsum_inv(Tq_tot) * self.oper.deltakh
-        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh
-        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh
-        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltakh
-        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltakh
-        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
+        Piens = cumsum_inv(Tens) * self.oper.deltak
+        Pi_tot = cumsum_inv(Tq_tot) * self.oper.deltak
+        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltak
+        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltak
+        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltak
+        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltak
+        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltak
 
-        Cflux_tot = cumsum_inv(Cq_tot) * self.oper.deltakh
-        Cflux_GG = cumsum_inv(Cq_GG) * self.oper.deltakh
-        Cflux_AG = cumsum_inv(Cq_AG) * self.oper.deltakh
-        Cflux_AA = cumsum_inv(Cq_AA) * self.oper.deltakh
+        Cflux_tot = cumsum_inv(Cq_tot) * self.oper.deltak
+        Cflux_GG = cumsum_inv(Cq_GG) * self.oper.deltak
+        Cflux_AG = cumsum_inv(Cq_AG) * self.oper.deltak
+        Cflux_AA = cumsum_inv(Cq_AA) * self.oper.deltak
 
         self.axe_a.plot(
             khE+khE[1], Pi_tot, 'k', linewidth=2, label=r'$\Pi_{tot}$')
@@ -1177,7 +1177,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 transferEtot = 0.
                 for key in ['GGG', 'AGG', 'GAAs', 'GAAd', 'AAA']:
                     transferEtot += f['Tq_' + key][it]
-                PiEtot = cumsum_inv(transferEtot) * self.oper.deltakh / norm
+                PiEtot = cumsum_inv(transferEtot) * self.oper.deltak / norm
                 ax1.plot(khE, PiEtot, 'k', linewidth=1)
 
         Tq_GGG = f['Tq_GGG'][imin_plot:imax_plot].mean(0) / norm
@@ -1189,13 +1189,13 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Tens = f['Tens'][imin_plot:imax_plot].mean(0) / norm
         Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
 
-        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltakh
-        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltakh
-        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltakh
-        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltakh
-        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltakh
-        Pi_nq = cumsum_inv(Tnq) * self.oper.deltakh
-        Pi_ens = cumsum_inv(Tens) * self.oper.deltakh
+        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltak
+        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltak
+        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltak
+        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltak
+        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltak
+        Pi_nq = cumsum_inv(Tnq) * self.oper.deltak
+        Pi_ens = cumsum_inv(Tens) * self.oper.deltak
         Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
 
         ax1.plot(khE, Pi_GGG, 'g--', linewidth=2, label=r'$\Pi_{GGG}$')
@@ -1231,17 +1231,17 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         exchange_AA = f['Cq_AA'][imin_plot:imax_plot].mean(0)
         exchange_mean = (exchange_GG + exchange_AG + exchange_AA)
 
-        Cflux_GG = cumsum_inv(exchange_GG) * self.oper.deltakh
-        Cflux_AG = cumsum_inv(exchange_AG) * self.oper.deltakh
-        Cflux_AA = cumsum_inv(exchange_AA) * self.oper.deltakh
-        Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltakh
+        Cflux_GG = cumsum_inv(exchange_GG) * self.oper.deltak
+        Cflux_AG = cumsum_inv(exchange_AG) * self.oper.deltak
+        Cflux_AA = cumsum_inv(exchange_AA) * self.oper.deltak
+        Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltak
 
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot, delta_i_plot):
                 exchangetot = 0.
                 for key in ['GG', 'AG', 'aG', 'AA']:
                     exchangetot += f['Cq_' + key][it]
-                Cfluxtot = cumsum_inv(exchangetot) * self.oper.deltakh
+                Cfluxtot = cumsum_inv(exchangetot) * self.oper.deltak
                 ax2.plot(khE, Cfluxtot, 'k', linewidth=1)
 
         ax2.plot(khE, Cflux_mean, 'k', linewidth=4, label=r'$\Sigma C_{tot}$')

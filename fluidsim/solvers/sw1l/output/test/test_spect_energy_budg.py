@@ -234,7 +234,7 @@ class TestSW1L(BaseTestCase):
         self.assertAlmostEqual(enstrophy_GGG, 0)
 
         if mpi.nb_proc == 1:
-            dkh = sim.oper.deltakh
+            dkh = sim.oper.deltak
             Pi_GGG = cumsum_inv(Tq_GGG) * dkh
             Pi_ens = cumsum_inv(Tens) * dkh
             energy_GGG = Pi_GGG[0]

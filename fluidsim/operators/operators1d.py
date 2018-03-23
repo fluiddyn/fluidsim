@@ -73,7 +73,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         self.K2 = self.KX**2
         self.K4 = self.K2**2
         self.K8 = self.K4**2
-        self.KK = self.KX
+        self.K = self.KX
 
     def produce_long_str_describing_oper(self):
         return super(OperatorsPseudoSpectral1D, self).produce_long_str_describing_oper(

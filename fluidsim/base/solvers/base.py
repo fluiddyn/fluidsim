@@ -149,7 +149,8 @@ class SimulBase(object):
                 self.is_forcing_enabled = True
                 Forcing = dict_classes['Forcing']
                 self.forcing = Forcing(self)
-                self.forcing.compute()
+                # we can not yet compute a forcing...
+                # self.forcing.compute()
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()
