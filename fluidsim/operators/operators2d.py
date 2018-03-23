@@ -54,7 +54,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                    'Ly': 8}
         params._set_child('oper', attribs=attribs)
 
-    def __init__(self, params, SEQUENTIAL=None, goal_to_print=None):
+    def __init__(self, params):
 
         self.params = params
 
@@ -568,3 +568,76 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def invlaplacian2_fft(self, a_fft):
         return invlaplacian2_fft(a_fft, self.K4_not0, rank)
+
+    def put_coarse_array_in_array_fft(self, arr_coarse, arr, oper_coarse,
+                                      shapeK_loc_coarse):
+        """Put the values contained in a coarse array in an array.
+
+        Both arrays are in Fourier space.
+
+        """
+        if arr.ndim == 3:
+            if mpi.rank == 0:
+                if arr_coarse.ndim != 3:
+                    raise ValueError
+
+            for ikey in range(arr.shape[0]):
+                if mpi.rank == 0:
+                    arr2d_coarse = arr_coarse[ikey]
+                else:
+                    arr2d_coarse = None
+                self.put_coarse_array_in_array_fft(
+                    arr2d_coarse, arr[ikey], oper_coarse,
+                    shapeK_loc_coarse)
+            return
+
+        nKyc, nKxc = shapeK_loc_coarse
+
+        if mpi.nb_proc > 1:
+            if not self.is_transposed:
+                raise NotImplementedError()
+            nKy = self.shapeK_seq[1]
+
+            if mpi.rank == 0:
+                fck_fft = arr_coarse.transpose()
+
+            for iKxc in range(nKxc):
+                kx = self.deltakx * iKxc
+                rank_iKx, iKxloc, iKyloc = (
+                    self.where_is_wavenumber(kx, 0.))
+
+                if mpi.rank == 0:
+                    fc1D = fck_fft[iKxc]
+
+                if rank_iKx != 0:
+                    # message fc1D
+                    if mpi.rank == rank_iKx:
+                        fc1D = np.empty([nKyc], dtype=np.complex128)
+                    if mpi.rank == 0 or mpi.rank == rank_iKx:
+                        fc1D = np.ascontiguousarray(fc1D)
+                    if mpi.rank == 0:
+                        mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
+                                      dest=rank_iKx, tag=iKxc)
+                    elif mpi.rank == rank_iKx:
+                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX],
+                                      source=0, tag=iKxc)
+                if mpi.rank == rank_iKx:
+                    # copy
+                    for iKyc in range(nKyc):
+                        if iKyc <= nKyc / 2.:
+                            iKy = iKyc
+                        else:
+                            kynodim = iKyc - nKyc
+                            iKy = kynodim + nKy
+                        arr[iKxloc, iKy] = fc1D[iKyc]
+        else:
+            nKy = self.shapeK_seq[0]
+
+            for iKyc in range(nKyc):
+                if iKyc <= nKyc / 2.:
+                    iKy = iKyc
+                else:
+                    kynodim = iKyc - nKyc
+                    iKy = kynodim + nKy
+                for iKxc in range(nKxc):
+                    arr[iKy, iKxc] = arr_coarse[iKyc, iKxc]

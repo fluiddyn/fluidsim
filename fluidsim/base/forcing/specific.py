@@ -100,10 +100,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
         params = sim.params
 
-        self.sum_wavenumbers = sim.oper.sum_wavenumbers
-        self.fft2 = sim.oper.fft2
-        self.ifft2 = sim.oper.ifft2
-
         self.forcing_fft = SetOfVariables(
             like=sim.state.state_spect, info='forcing_fft', value=0.)
 
@@ -134,15 +130,20 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
             params_coarse.oper.nx = n
-            params_coarse.oper.ny = n
+            try:
+                params_coarse.oper.ny = n
+            except AttributeError:
+                pass
+            try:
+                params_coarse.oper.nz = n
+            except AttributeError:
+                pass
             params_coarse.oper.type_fft = 'sequential'
             # FIXME: Workaround for incorrect forcing
             params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = sim.oper.__class__(
-                SEQUENTIAL=True,
-                params=params_coarse,
-                goal_to_print='coarse resolution for forcing')
+                params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
 
             self.COND_NO_F = self._compute_cond_no_forcing()
@@ -163,80 +164,23 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.shapeK_loc_coarse = mpi.comm.bcast(
                 self.shapeK_loc_coarse, root=0)
 
-        # if params.forcing.type_forcing == 'WAVES':
-        #     self.compute = self.compute_forcing_waves
-        #     if mpi.rank == 0:
-        #         eta_rms_max = 0.1
-        #         self.eta_cond = eta_rms_max / np.sqrt(self.nb_forced_modes)
-        #         print '    eta_cond =', self.eta_cond
-
     def _compute_cond_no_forcing(self):
         return np.logical_or(
             self.oper_coarse.KK > self.kmax_forcing,
             self.oper_coarse.KK < self.kmin_forcing)
 
     def put_forcingc_in_forcing(self):
-        """Copy data from forcingc_fft into forcing_fft."""
-        nKyc = self.shapeK_loc_coarse[0]
-        nKxc = self.shapeK_loc_coarse[1]
-        nb_keys = self.forcing_fft.nvar
-
-        ar3Df = self.forcing_fft
+        """Copy data from self.fstate_coarse.state_spect into forcing_fft."""
         if mpi.rank == 0:
-            # ar3Dfc = self.forcingc_fft
-            ar3Dfc = self.fstate_coarse.state_spect
-
-        if mpi.nb_proc > 1:
-            if not self.oper.is_transposed:
-                raise NotImplementedError()
-            nKy = self.oper.shapeK_seq[1]
-
-            for ikey in range(nb_keys):
-                if mpi.rank == 0:
-                    fck_fft = ar3Dfc[ikey].transpose()
-
-                for iKxc in range(nKxc):
-                    kx = self.oper.deltakx * iKxc
-                    rank_iKx, iKxloc, iKyloc = (
-                        self.oper.where_is_wavenumber(kx, 0.))
-
-                    if mpi.rank == 0:
-                        fc1D = fck_fft[iKxc]
-
-                    if rank_iKx != 0:
-                        # message fc1D
-                        if mpi.rank == rank_iKx:
-                            fc1D = np.empty([nKyc], dtype=np.complex128)
-                        if mpi.rank == 0 or mpi.rank == rank_iKx:
-                            fc1D = np.ascontiguousarray(fc1D)
-                        if mpi.rank == 0:
-                            mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
-                                          dest=rank_iKx, tag=iKxc)
-                        elif mpi.rank == rank_iKx:
-                            mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX],
-                                          source=0, tag=iKxc)
-                    if mpi.rank == rank_iKx:
-                        # copy
-                        for iKyc in range(nKyc):
-                            if iKyc <= nKyc / 2.:
-                                iKy = iKyc
-                            else:
-                                kynodim = iKyc - nKyc
-                                iKy = kynodim + nKy
-                            ar3Df[ikey, iKxloc, iKy] = fc1D[iKyc]
-
+            state_spect = self.fstate_coarse.state_spect
+            oper_coarse = self.oper_coarse
         else:
-            nKy = self.oper.shapeK_seq[0]
+            state_spect = None
+            oper_coarse = None
 
-            for ikey in range(nb_keys):
-                for iKyc in range(nKyc):
-                    if iKyc <= nKyc / 2.:
-                        iKy = iKyc
-                    else:
-                        kynodim = iKyc - nKyc
-                        iKy = kynodim + nKy
-                    for iKxc in range(nKxc):
-                        ar3Df[ikey, iKy, iKxc] = ar3Dfc[ikey, iKyc, iKxc]
+        self.oper.put_coarse_array_in_array_fft(
+            state_spect, self.forcing_fft, oper_coarse,
+            self.shapeK_loc_coarse)
 
     def verify_injection_rate(self):
         """Verify injection rate."""
@@ -369,6 +313,12 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             cls.tag,
             {'type_normalize': '2nd_degree_eq'})
 
+    def __init__(self, sim):
+        super(NormalizedForcing, self).__init__(sim)
+
+        if self.params.forcing[self.tag].type_normalize == 'particular_k':
+            raise NotImplementedError
+
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
@@ -440,6 +390,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         KX_f = oper_c.KX[~self.COND_NO_F].flatten()
         KY_f = oper_c.KY[~self.COND_NO_F].flatten()
         nb_wn_f = len(KX_f)
+
+        # warning : this is 2d specific!
 
         ipart = np.random.random_integers(0, nb_wn_f - 1)
         kx_part = KX_f[ipart]
@@ -577,7 +529,8 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         if tsim - self.t_last_change >= self.period_change_F0F1:
             self.t_last_change = tsim
             self.F0 = self.F1
-            del(self.F1)
+            # pa: this del should be useless...
+            # del(self.F1)
             self.F1 = self.compute_forcingc_raw()
 
         F_fft = self.forcingc_from_F0F1()
