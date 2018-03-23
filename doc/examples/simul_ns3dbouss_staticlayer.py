@@ -18,9 +18,9 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'examples'
 
-nx = 96
-ny = 64
-nz = 48
+nx = 144
+ny = nx//3*2
+nz = nx//2
 lz = 2
 params.oper.nx = nx
 params.oper.ny = ny
@@ -28,15 +28,6 @@ params.oper.nz = nz
 params.oper.Lx = lx = lz/nz*nx
 params.oper.Ly = ly = lz/nz*ny
 params.oper.Lz = lz
-fft = 'fftwmpi3d'  # works fine
-fft = 'fftw1d'  # works fine
-# fft = 'pfft'  # gather buggy
-fft = 'p3dfft'  # gather buggy
-
-# for sequential runs, just comment this line
-# params.oper.type_fft = 'fluidfft.fft3d.mpi_with_' + fft
-
-# params.short_name_type_run = fft
 
 r"""
 
@@ -62,7 +53,7 @@ where $C$ is a constant of order 1.
 
 """
 n = 8
-C = 2.
+C = 1.
 dx = lx/nx
 B = 1
 D = 1
@@ -74,14 +65,13 @@ params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 8.
 # we need small time step for a strong forcing
-params.time_stepping.USE_CFL = False
-params.time_stepping.deltat0 = 0.015
+params.time_stepping.deltat_max = 0.01
+params.time_stepping.cfl_coef = 0.5
 
 params.init_fields.type = 'in_script'
 
 params.forcing.enable = True
 params.forcing.type = 'in_script'
-params.forcing.nkmax_forcing = 20
 
 params.output.periods_print.print_stdout = 1e-1
 
@@ -90,7 +80,6 @@ params.output.periods_save.phys_fields = 0.5
 sim = Simul(params)
 
 # here we have to initialize the flow fields
-
 variables = {k: 1e-6 * sim.oper.create_arrayX_random()
              for k in ('vx', 'vy', 'vz')}
 
@@ -109,44 +98,49 @@ sim.state.init_statephys_from(**variables)
 sim.state.statespect_from_statephys()
 sim.state.statephys_from_statespect()
 
-
 # monkey-patching for forcing
-if rank == 0:
+oper = sim.oper
+X, Y, Z = oper.get_XYZ_loc()
 
-    forcing_maker = sim.forcing.forcing_maker
-    oper = forcing_maker.oper_coarse
-    X, Y, Z = oper.get_XYZ_loc()
-
-    d = lz/6
-    alpha = - 80 * (np.exp(-Z**2/d**2) + np.exp(-(Z - lz)**2/d**2))
-    
-    def compute_forcingc_fft_each_time(self):
-        """This function is called by the forcing_maker to compute the forcing
-
-        """
-        def compute_forcing_1var(key):
-            vi_fft = self.sim.state.state_spect.get_var(key + '_fft')
-            vi_fft = self.oper.coarse_seq_from_fft_loc(
-                vi_fft, self.shapeK_loc_coarse)
-            vi = oper.ifft(vi_fft)
-            fi = alpha * vi
-            return oper.fft(fi)
-
-        # keys = ('vx', 'vy', 'vz')
-        keys = ('vz',)
-        result = {key + '_fft': compute_forcing_1var(key)
-                  for key in keys}
-        return result
-
-    forcing_maker.monkeypatch_compute_forcingc_fft_each_time(
-        compute_forcingc_fft_each_time)
+d = lz/6
+alpha = - 80 * (np.exp(-Z**2/d**2) + np.exp(-(Z - lz)**2/d**2))
 
 
+def compute_forcing_fft_each_time(self):
+    """This function is called by the forcing_maker to compute the forcing
+
+    """
+    def compute_forcing_1var(key):
+        vi = self.sim.state.state_phys.get_var(key)
+        fi = alpha * vi
+        return oper.fft(fi)
+
+    keys = ('vz',)
+    result = {key + '_fft': compute_forcing_1var(key)
+              for key in keys}
+    return result
+
+sim.forcing.forcing_maker.monkeypatch_compute_forcing_fft_each_time(
+    compute_forcing_fft_each_time)
+
+# finally we start the simulation
 sim.time_stepping.start()
 
 printby0(f"""
-To visualize the output with Paraview, create a file states_phys.xmf with:
+# To visualize the output with Paraview, create a file states_phys.xmf with:
 
 fluidsim-create-xml-description {sim.output.path_run}
+
+# To visualize with fluidsim:
+
+cd {sim.output.path_run}
+ipython
+
+# in ipython:
+
+from fluidsim import load_sim_for_plot
+sim = load_sim_for_plot()
+sim.output.phys_fields.set_equation_crosssection('x={lx/2}')
+sim.output.phys_fields.animate('b')
 
 """)

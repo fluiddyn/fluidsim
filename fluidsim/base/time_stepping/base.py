@@ -33,7 +33,9 @@ class TimeSteppingBase(object):
                    'it_end': 10,
                    'USE_CFL': False,
                    'type_time_scheme': 'RK4',
-                   'deltat0': 0.2}
+                   'deltat0': 0.2,
+                   'deltat_max': 0.2,
+                   'cfl_coef': None}
         params._set_child('time_stepping', attribs=attribs)
 
     def __init__(self, sim):
@@ -56,7 +58,9 @@ class TimeSteppingBase(object):
         params_ts = self.params.time_stepping
 
         if params_ts.USE_CFL:
-            if params_ts.type_time_scheme == 'RK2':
+            if params_ts.cfl_coef is not None:
+                self.CFL = params_ts.cfl_coef
+            elif params_ts.type_time_scheme == 'RK2':
                 self.CFL = 0.4
             elif params_ts.type_time_scheme == 'RK4':
                 self.CFL = 1.0
@@ -94,7 +98,7 @@ class TimeSteppingBase(object):
         elif params_ts.USE_CFL:
             raise ValueError('params_ts.USE_CFL but no velocity.')
 
-        self.deltat_max = 0.2
+        self.deltat_max = params_ts.deltat_max
 
     def _init_time_scheme(self):
 

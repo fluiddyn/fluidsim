@@ -20,6 +20,7 @@ from fluiddyn.util import mpi
 
 from .specific import (
     InScriptForcingPseudoSpectral,
+    InScriptForcingPseudoSpectralCoarse,
     Proportional, TimeCorrelatedRandomPseudoSpectral)
 
 
@@ -125,15 +126,16 @@ class ForcingBasePseudoSpectral(ForcingBase):
         """Complete the ParamContainer info_solver."""
 
         classes_default = (InScriptForcingPseudoSpectral,
+                           InScriptForcingPseudoSpectralCoarse,
                            Proportional, TimeCorrelatedRandomPseudoSpectral)
-        
+
         if classes is None:
             classes = classes_default[:]
         else:
             for cls_default in classes_default:
                 if not any(cls_default.tag == cls.tag for cls in classes):
                     classes.append(cls_default)
-            
+
         ForcingBase._complete_info_solver(info_solver, classes=classes)
 
     @staticmethod
