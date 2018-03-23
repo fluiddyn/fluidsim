@@ -20,11 +20,6 @@ import numpy as np
 
 from fluiddyn.util.mpi import nb_proc
 
-try:
-    from .operators import OperatorsPseudoSpectral2D
-except ImportError:
-    pass
-
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
@@ -94,7 +89,7 @@ class OperatorsPseudoSpectral3D(_Operators):
                    'Lz': 2*pi}
         params._set_child('oper', attribs=attribs)
 
-    def __init__(self, params=None, SEQUENTIAL=None):
+    def __init__(self, params=None):
 
         self.params = params
 
@@ -110,9 +105,9 @@ class OperatorsPseudoSpectral3D(_Operators):
         fft = params2d.oper.type_fft
 
         if any([fft.startswith(s) for s in ['fluidfft.fft2d.', 'fft2d.']]):
-            self.oper2d = OpPseudoSpectral2D(params2d, SEQUENTIAL=True)
+            self.oper2d = OpPseudoSpectral2D(params2d)
         else:
-            self.oper2d = OperatorsPseudoSpectral2D(params2d, SEQUENTIAL=True)
+            raise ValueError
 
         self.ifft2 = self.ifft2d = self.oper2d.ifft2
         self.fft2 = self.fft2d = self.oper2d.fft2

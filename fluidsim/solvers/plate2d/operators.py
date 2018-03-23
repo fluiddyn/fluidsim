@@ -22,9 +22,8 @@ class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
     """Operators for the plate2d model.
 
     """
-    def __init__(self, params, SEQUENTIAL=None, goal_to_print=None):
-        super(OperatorsPseudoSpectralPlate2D, self).__init__(
-            params, SEQUENTIAL=SEQUENTIAL, goal_to_print=goal_to_print)
+    def __init__(self, params):
+        super(OperatorsPseudoSpectralPlate2D, self).__init__(params)
 
         self.KX2 = self.KX**2
         self.KY2 = self.KY**2
