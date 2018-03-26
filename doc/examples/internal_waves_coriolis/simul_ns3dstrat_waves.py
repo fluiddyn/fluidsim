@@ -13,14 +13,13 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from fluiddyn.util import mpi
-
 from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex, fftw_grid_size
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
 
 # main input parameters
 omega_f = 0.3  # rad/s
-delta_omega_f = 0.1  # rad/s
+delta_omega_f = 0.03  # rad/s
 N = 0.4  # rad/s
 amplitude = 0.05  # m
 
@@ -73,7 +72,7 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'waves_coriolis'
 
-nz = 48
+nz = 80
 nx = ny = nz*2
 lz = 1
 
@@ -117,16 +116,18 @@ params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 100*period_N
+params.time_stepping.deltat_max = period_N/50
 
 params.init_fields.type = 'noise'
-params.init_fields.noise.velo_max = 0.01
+params.init_fields.noise.velo_max = 0.001
+params.init_fields.noise.length = 2e-1
 
 params.forcing.enable = True
 params.forcing.type = 'in_script'
 
 params.output.periods_print.print_stdout = 0.5
 
-params.output.periods_save.phys_fields = 1.
+params.output.periods_save.phys_fields = 2.
 
 sim = Simul(params)
 
@@ -137,7 +138,7 @@ X, Y, Z = oper.get_XYZ_loc()
 
 # calculus of the target velocity components
 
-width = max(6*dx, 1e-2)
+width = max(4*dx, amplitude/5)
 
 def step_func(x):
     """Activation function"""
@@ -145,12 +146,12 @@ def step_func(x):
 
 amplitude_side = amplitude + 0.15
 
-vxtarget = (
+vxtarget = U * (
     (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude))) *
     step_func(Y - amplitude_side) * step_func(-(Y - (ly - amplitude_side)))
 )
 
-vytarget = (
+vytarget = U * (
     (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude))) *
     step_func(X - amplitude_side) * step_func(-(X - (lx - amplitude_side)))
 )
@@ -168,7 +169,7 @@ If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
 
 sigma = gamma / (n_dt * dt)
 """
-gamma = 1
+gamma = 2
 n_dt = 4
 coef_sigma = gamma/n_dt
 
