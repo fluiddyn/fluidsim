@@ -53,8 +53,8 @@ class InitFieldsNoise(SpecificInitFields):
 
         k0 = 2*np.pi/lambda0
         delta_k0 = 1.*k0
-        w_fft = w_fft*H_smooth(k0-oper.KK, delta_k0)
-        z_fft = z_fft*H_smooth(k0-oper.KK, delta_k0)
+        w_fft = w_fft*H_smooth(k0-oper.K, delta_k0)
+        z_fft = z_fft*H_smooth(k0-oper.K, delta_k0)
 
         w = oper.ifft2(w_fft)
         z = oper.ifft2(z_fft)

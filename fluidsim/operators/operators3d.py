@@ -18,7 +18,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from fluiddyn.util.mpi import nb_proc
+from fluiddyn.util.mpi import nb_proc, rank
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -129,6 +129,66 @@ class OperatorsPseudoSpectral3D(_Operators):
                 dealiasing_setofvar(thing, self.where_dealiased)
             elif isinstance(thing, np.ndarray):
                 dealiasing_variable(thing, self.where_dealiased)
+
+    def put_coarse_array_in_array_fft(self, arr_coarse, arr, oper_coarse,
+                                      shapeK_loc_coarse):
+        """Put the values contained in a coarse array in an array.
+
+        Both arrays are in Fourier space.
+
+        """
+        if arr.ndim == 4:
+            if rank == 0:
+                if arr_coarse.ndim != 4:
+                    raise ValueError
+
+            for ikey in range(arr.shape[0]):
+                if rank == 0:
+                    arr3d_coarse = arr_coarse[ikey]
+                else:
+                    arr3d_coarse = None
+                self.put_coarse_array_in_array_fft(
+                    arr3d_coarse, arr[ikey], oper_coarse,
+                    shapeK_loc_coarse)
+            return
+
+        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        
+        if nb_proc > 1:
+            raise NotImplementedError
+        else:
+            nkz, nky, nkx = self.shapeK_seq
+            for ikzc in range(nkzc):
+                ikz = _ik_from_ikc(ikzc, nkzc, nkz)
+                for ikyc in range(nkyc):
+                    iky = _ik_from_ikc(ikyc, nkyc, nky)
+                    for ikxc in range(nkxc):
+                        arr[ikz, iky, ikxc] = arr_coarse[ikzc, ikyc, ikxc]
+
+    def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
+        """Return a coarse field in K space."""
+        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        if nb_proc > 1:
+            raise NotImplementedError()
+        else:
+            fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
+            nkz, nky, nkx = self.shapeK_seq
+            for ikzc in range(nkzc):
+                ikz = _ik_from_ikc(ikzc, nkzc, nkz)
+                for ikyc in range(nkyc):
+                    iky = _ik_from_ikc(ikyc, nkyc, nky)
+                    for ikxc in range(nkxc):
+                        fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
+        return fc_fft
+
+
+def _ik_from_ikc(ikc, nkc, nk):
+    if ikc <= nkc / 2.:
+        ik = ikc
+    else:
+        knodim = ikc - nkc
+        ik = knodim + nk
+    return ik
 
 
 if __name__ == '__main__':

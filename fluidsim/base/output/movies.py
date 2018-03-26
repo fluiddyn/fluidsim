@@ -343,6 +343,23 @@ class MoviesBase2D(MoviesBase):
           y-axis data.
 
         """
-        x = self.oper.x_seq
-        y = self.oper.y_seq
+        
+        if not hasattr(self, '_equation'):
+            equation = None
+        else:
+            equation = self._equation
+
+        if equation is None or \
+           equation.startswith('iz=') or equation.startswith('z='):
+            x = self.oper.x_seq
+            y = self.oper.y_seq
+        elif equation.startswith('iy=') or equation.startswith('y='):
+            x = self.oper.x_seq
+            y = self.oper.z_seq
+        elif equation.startswith('ix=') or equation.startswith('x='):
+            x = self.oper.y_seq
+            y = self.oper.z_seq
+        else:
+            raise NotImplementedError
+            
         return x, y

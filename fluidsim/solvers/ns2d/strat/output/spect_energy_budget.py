@@ -180,8 +180,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         transfer2D_E = transfer2D_EA + transfer2D_EK
         transfer2D_Z = dico_results['transferZ_2d']
         khE = self.oper.khE
-        PiE = cumsum_inv(transfer2D_E)*self.oper.deltakh
-        PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltakh
+        PiE = cumsum_inv(transfer2D_E)*self.oper.deltak
+        PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltak
         self.axe_a.plot(khE+khE[1], PiE, 'k')
         self.axe_b.plot(khE+khE[1], PiZ, 'g')
 

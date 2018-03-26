@@ -71,8 +71,8 @@ class InitFieldsNoise(SpecificInitFields):
 
         k0 = 2*np.pi/lambda0
         delta_k0 = 1.*k0
-        ux_fft = ux_fft*H_smooth(k0-oper.KK, delta_k0)
-        uy_fft = uy_fft*H_smooth(k0-oper.KK, delta_k0)
+        ux_fft = ux_fft*H_smooth(k0-oper.K, delta_k0)
+        uy_fft = uy_fft*H_smooth(k0-oper.K, delta_k0)
 
         ux = oper.ifft2(ux_fft)
         uy = oper.ifft2(uy_fft)
@@ -103,7 +103,7 @@ class InitFieldsJet(SpecificInitFields):
         oper = self.sim.oper
         rot = self.vorticity_jet()
         rot_fft = oper.fft2(rot)
-        rot_fft[oper.KK == 0] = 0.
+        rot_fft[oper.K == 0] = 0.
         self.sim.state.init_from_rotfft(rot_fft)
 
     def vorticity_jet(self):

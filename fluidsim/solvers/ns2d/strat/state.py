@@ -153,7 +153,7 @@ class StateNS2DStrat(StateNS2D):
 
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
-        omega_k = self.params.N * self.oper.KX / self.oper.KK_not0
+        omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros_like(am_fft)
         b_fft[cond] = (1. / (2j * omega_k[cond])) * (
             ap_fft[cond] + am_fft[cond])

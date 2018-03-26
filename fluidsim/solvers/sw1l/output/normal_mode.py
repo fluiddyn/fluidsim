@@ -33,7 +33,7 @@ class NormalModeBase(object):
 
         f = self.params.f
         c = self.params.c2 ** 0.5
-        ck = c * self.oper.KK_not0
+        ck = c * self.oper.K_not0
 
         if f == 0:
             self.sigma = ck
@@ -68,12 +68,12 @@ class NormalModeBase(object):
         with dimensions of velocity from diagonalized linear modes.  """
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
-        KK = self.oper.KK_not0
+        K = self.oper.K_not0
         sigma = self.sigma
 
         q_fft = -q_fft * c / sigma
-        ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * KK)
-        am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * KK)
+        ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * K)
+        am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * K)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.is_sequential:
             bvec_fft[:, 0, 0] = 0.
@@ -121,11 +121,11 @@ class NormalModeDecomposition(NormalModeBase):
         c = self.params.c2 ** 0.5
 
         self.qmat = get_qmat(
-            f, c, sigma, oper.KX, oper.KY, oper.KK, oper.K2, oper.KK_not0)
+            f, c, sigma, oper.KX, oper.KY, oper.K, oper.K2, oper.K_not0)
         # qmat_py = np.array(
         #    [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
         #     [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-        #     [2. ** 0.5 * f * KK, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.KK_not0)
+        #     [2. ** 0.5 * f * K, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.K_not0)
         # np.testing.assert_allclose(qmat_py, self.qmat, rtol=1e-14)
 
         if mpi.rank == 0 or oper.is_sequential:

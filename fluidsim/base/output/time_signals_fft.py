@@ -71,20 +71,20 @@ class TimeSignalsK(SpecificOutput):
             params.oper.nx / 2 *
             params.oper.coef_dealiasing)/(self.nb_shells+i_shift)
 
-        deltakh = sim.oper.deltakh
+        deltak = sim.oper.deltak
 
-        self.kh_shell = deltakh*np.exp(
+        self.kh_shell = deltak*np.exp(
             deltalogk*np.arange(i_shift, self.nb_shells+i_shift))
 
-        self.kh_shell = deltakh*np.round(self.kh_shell/deltakh)
+        self.kh_shell = deltak*np.round(self.kh_shell/deltak)
 
         for i_s in range(1, self.nb_shells):
             if self.kh_shell[i_s-1] == self.kh_shell[i_s]:
-                self.kh_shell[i_s] += deltakh
+                self.kh_shell[i_s] += deltak
 
         # if mpi.rank == 0:
-        #     print 'self.kh_shell/deltakh'
-        #     print self.kh_shell/sim.oper.deltakh
+        #     print 'self.kh_shell/deltak'
+        #     print self.kh_shell/sim.oper.deltak
 
         # hypothese dispersion relation only function of the module
         # of the wavenumber ("shells")
@@ -324,7 +324,7 @@ class TimeSignalsK(SpecificOutput):
             ax1.set_ylabel('signals (s$^{-1}$)')
             title = (
                 'signals eigenmodes, ikh = {0:.2f}, solver '.format(
-                    (kh_shell[ish]/ self.sim.oper.deltakh)) +
+                    (kh_shell[ish]/ self.sim.oper.deltak)) +
                 self.output.name_solver +
                 ', nh = {0:5d}'.format(self.nx) +
                 ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f))

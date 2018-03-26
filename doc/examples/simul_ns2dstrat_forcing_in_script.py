@@ -13,7 +13,8 @@ from fluidsim.solvers.ns2d.strat.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.output.sub_directory = 'examples'
+params.short_name_type_run = 'forcinginscript'
 
 params.oper.nx = nx = 64
 params.oper.ny = nx//2
@@ -30,7 +31,7 @@ params.time_stepping.t_end = 10.
 params.init_fields.type = 'noise'
 
 params.forcing.enable = True
-params.forcing.type = 'in_script'
+params.forcing.type = 'in_script_coarse'
 params.forcing.nkmax_forcing = 12
 
 params.output.sub_directory = 'examples'

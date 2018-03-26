@@ -1,10 +1,17 @@
 """Forcing schemes (:mod:`fluidsim.base.forcing.specific`)
 ================================================================
 
-
 Provides:
 
 .. autoclass:: SpecificForcing
+   :members:
+   :private-members:
+
+.. autoclass:: SpecificForcingPseudoSpectralSimple
+   :members:
+   :private-members:
+
+.. autoclass:: InScriptForcingPseudoSpectral
    :members:
    :private-members:
 
@@ -12,7 +19,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: InScriptForcingPseudoSpectral
+.. autoclass:: InScriptForcingPseudoSpectralCoarse
    :members:
    :private-members:
 
@@ -39,7 +46,7 @@ Provides:
 """
 from __future__ import division
 from __future__ import print_function
-from builtins import range
+
 from builtins import object
 
 from copy import deepcopy
@@ -66,6 +73,52 @@ class SpecificForcing(object):
         self.sim = sim
         self.oper = sim.oper
         self.params = sim.params
+
+
+class SpecificForcingPseudoSpectralSimple(SpecificForcing):
+    """Specific forcing for pseudo-spectra solvers"""
+
+    tag = 'pseudo_spectral'
+
+    def __init__(self, sim):
+        super(SpecificForcingPseudoSpectralSimple, self).__init__(sim)
+        self.fstate = sim.state.__class__(
+            sim, oper=self.sim.oper)
+        self.forcing_fft = self.fstate.state_spect
+
+
+class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
+    """Forcing maker for forcing defined by the user in the launching script
+
+    .. inheritance-diagram:: InScriptForcingPseudoSpectral
+
+    """
+    tag = 'in_script'
+
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+        obj = self.compute_forcing_fft_each_time()
+        if isinstance(obj, dict):
+            kwargs = obj
+        else:
+            kwargs = {self.key_forced: obj}
+        self.fstate.init_statespect_from(**kwargs)
+
+    def compute_forcing_fft_each_time(self):
+        """Compute the coarse forcing in Fourier space"""
+        return self.sim.oper.fft(self.compute_forcing_each_time())
+
+    def compute_forcing_each_time(self):
+        """Compute the coarse forcing in real space"""
+        return self.sim.oper.create_arrayX_random()
+
+    def monkeypatch_compute_forcing_fft_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcing_fft_each_time = types.MethodType(func, self)
+
+    def monkeypatch_compute_forcing_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcing_each_time = types.MethodType(func, self)
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
@@ -106,8 +159,8 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
             raise ValueError('params.forcing.nkmax_forcing < \n'
                              'params.forcing.nkmin_forcing')
-        self.kmax_forcing = self.oper.deltakh * params.forcing.nkmax_forcing
-        self.kmin_forcing = self.oper.deltakh * params.forcing.nkmin_forcing
+        self.kmax_forcing = self.oper.deltak * params.forcing.nkmax_forcing
+        self.kmin_forcing = self.oper.deltak * params.forcing.nkmin_forcing
 
         self.forcing_rate = params.forcing.forcing_rate
 
@@ -156,7 +209,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
             self.fstate_coarse = sim.state.__class__(
                 sim, oper=self.oper_coarse)
-
         else:
             self.shapeK_loc_coarse = None
 
@@ -165,9 +217,12 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 self.shapeK_loc_coarse, root=0)
 
     def _compute_cond_no_forcing(self):
-        return np.logical_or(
-            self.oper_coarse.KK > self.kmax_forcing,
-            self.oper_coarse.KK < self.kmin_forcing)
+        if hasattr(self.oper_coarse, 'K'):
+            K = self.oper_coarse.K
+        else:
+            K = np.sqrt(self.oper_coarse.K2)
+
+        return np.logical_or(K > self.kmax_forcing, K < self.kmin_forcing)
 
     def put_forcingc_in_forcing(self):
         """Copy data from self.fstate_coarse.state_spect into forcing_fft."""
@@ -199,20 +254,23 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 PZ_forcing2))
 
 
-class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
+class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     """Forcing maker for forcing defined by the user in the launching script
 
-    .. inheritance-diagram:: InScriptForcingPseudoSpectral
+    .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
 
     """
-    tag = 'in_script'
+    tag = 'in_script_coarse'
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
         if mpi.rank == 0:
-            Fa_fft = self.compute_forcingc_fft_each_time()
-            kwargs = {self.key_forced: Fa_fft}
+            obj = self.compute_forcingc_fft_each_time()
+            if isinstance(obj, dict):
+                kwargs = obj
+            else:
+                kwargs = {self.key_forced: obj}
             self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
