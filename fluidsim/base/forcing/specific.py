@@ -106,7 +106,13 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
 
     def compute_forcing_fft_each_time(self):
         """Compute the coarse forcing in Fourier space"""
-        return self.sim.oper.fft(self.compute_forcing_each_time())
+        obj = self.compute_forcing_each_time()
+        if isinstance(obj, dict):
+            kwargs = {key: self.sim.oper.fft(value)
+                      for key, value in obj.items()}
+        else:
+            kwargs = {self.key_forced: self.sim.oper.fft(obj)}
+        return kwargs
 
     def compute_forcing_each_time(self):
         """Compute the coarse forcing in real space"""
