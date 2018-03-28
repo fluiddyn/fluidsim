@@ -9,61 +9,62 @@ Launch with::
 
 from math import pi
 import numpy as np
-import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
 
-from fluiddyn.util.mpi import printby0, rank
+from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex, fftw_grid_size
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
 
 # main input parameters
-omega_f_min = 0.2  # rad/s
-omega_f_max = 0.4  # rad/s
+omega_f = 0.3  # rad/s
+delta_omega_f = 0.03  # rad/s
 N = 0.4  # rad/s
 amplitude = 0.05  # m
 
-# secondary input parameters
+# useful parameters and secondary input parameters
 
+period_N = 2*pi/N
 # total period of the forcing signal
-period_forcing = 1e2*2*pi/N
-dt_forcing = 2*pi/N/1e1
-
-
-def step_func(x, width):
-    return 0.5*(np.tanh(x/width) + 1)
+period_forcing = 1e3*period_N
+dt_forcing = period_N/1e1
 
 
 # preparation of a time signal for the forcing
 nt_forcing = 2 * fftw_grid_size(int(period_forcing/dt_forcing))
-print(nt_forcing)
 dt_forcing = period_forcing/nt_forcing
-print('dt_forcing', dt_forcing)
 
-oper_fft_forcing = FFTW1DReal2Complex(nt_forcing)
-nomegas_forcing = oper_fft_forcing.shapeK[0]
-forcing_omega = (np.random.rand(nomegas_forcing) +
-                 1j*np.random.rand(nomegas_forcing))
 
-domega = 2*pi/period_forcing
-omegas_forcing = domega*np.arange(nomegas_forcing)
-times_forcing = dt_forcing * np.arange(nt_forcing)
+if mpi.rank == 0:
+    oper_fft_forcing = FFTW1DReal2Complex(nt_forcing)
+    nomegas_forcing = oper_fft_forcing.shapeK[0]
+    domega = 2*pi/period_forcing
 
-forcing_omega *= (step_func(omegas_forcing-omega_f_min, 4*domega) *
-                  step_func(-omegas_forcing+omega_f_max, 4*domega))
+    omegas_forcing = domega*np.arange(nomegas_forcing)
+    times_forcing = dt_forcing * np.arange(nt_forcing)
 
-# print(forcing_omega[omegas_forcing < 2*N])
-forcing_time = oper_fft_forcing.ifft(forcing_omega)
-forcing_time /= max(forcing_time)
+    def create_interpolation_forcing_function():
+        forcing_time = np.random.rand(nt_forcing)
+        forcing_omega = oper_fft_forcing.fft(forcing_time)
+        forcing_omega *= np.exp(
+            -(omegas_forcing - omega_f)**2 / (2*delta_omega_f**2))
 
-calcul_forcing_time = interp1d(times_forcing, forcing_time,
-                               fill_value='extrapolate')
+        forcing_time = oper_fft_forcing.ifft(forcing_omega)
+        forcing_time /= max(forcing_time)
 
-# problem large values beginning and end...
-# fig, ax = plt.subplots()
-# ax.plot(times_forcing, forcing_time)
-# plt.show()
+        return interp1d(times_forcing, forcing_time,
+                        fill_value='extrapolate')
+
+    calcul_forcing_time_x = create_interpolation_forcing_function()
+    calcul_forcing_time_y = create_interpolation_forcing_function()
+else:
+    calcul_forcing_time_x = calcul_forcing_time_y = None
+
+if mpi.nb_proc > 1:
+    calcul_forcing_time_x = mpi.comm.bcast(calcul_forcing_time_x, root=0)
+    calcul_forcing_time_y = mpi.comm.bcast(calcul_forcing_time_y, root=0)
+
 
 # initialization of the simulation
 
@@ -71,7 +72,7 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'waves_coriolis'
 
-nz = 48
+nz = 80
 nx = ny = nz*2
 lz = 1
 
@@ -108,28 +109,25 @@ where $C$ is a constant of order 1.
 n = 8
 C = 1.
 dx = lx/nx
-U = amplitude*omega_f_max
+U = amplitude*omega_f
 H = 1
 eps = 1e-2*U**3/H
 params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 
-# printby0(f'nu_8 = {params.nu_8:.3e}')
-
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 8.
-# we need small time step for a strong forcing
-params.time_stepping.deltat_max = 0.01
-params.time_stepping.cfl_coef = 0.5
+params.time_stepping.t_end = 100*period_N
+params.time_stepping.deltat_max = period_N/50
 
 params.init_fields.type = 'noise'
-params.init_fields.noise.velo_max = 0.01
+params.init_fields.noise.velo_max = 0.001
+params.init_fields.noise.length = 2e-1
 
 params.forcing.enable = True
 params.forcing.type = 'in_script'
 
-params.output.periods_print.print_stdout = 1e-1
+params.output.periods_print.print_stdout = 0.5
 
-params.output.periods_save.phys_fields = 0.5
+params.output.periods_save.phys_fields = 2.
 
 sim = Simul(params)
 
@@ -137,16 +135,31 @@ sim = Simul(params)
 oper = sim.oper
 X, Y, Z = oper.get_XYZ_loc()
 
+
 # calculus of the target velocity components
-width = max(4*dx, 5e-3)
-vxtarget = (step_func(-(X - amplitude), width) +
-            step_func(X - (lx - amplitude), width))
-vytarget = (step_func(-(Y - amplitude), width) +
-            step_func(Y - (ly - amplitude), width))
+
+width = max(4*dx, amplitude/5)
+
+def step_func(x):
+    """Activation function"""
+    return 0.5*(np.tanh(x/width) + 1)
+
+amplitude_side = amplitude + 0.15
+
+vxtarget = U * (
+    (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude))) *
+    step_func(Y - amplitude_side) * step_func(-(Y - (ly - amplitude_side)))
+)
+
+vytarget = U * (
+    (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude))) *
+    step_func(X - amplitude_side) * step_func(-(X - (lx - amplitude_side)))
+)
 
 z_variation = np.sin(2*pi*Z)
 vxtarget *= z_variation
 vytarget *= z_variation
+
 
 # calculus of coef_sigma
 """
@@ -165,13 +178,15 @@ def compute_forcing_each_time(self):
     """This function is called by the forcing_maker to compute the forcing
 
     """
-    coef_forcing_time = calcul_forcing_time(
-        sim.time_stepping.t % period_forcing)
-    vx = self.sim.state.state_phys.get_var('vx')
-    vy = self.sim.state.state_phys.get_var('vy')
+    sim = self.sim
+    time = sim.time_stepping.t % period_forcing
+    coef_forcing_time_x = calcul_forcing_time_x(time)
+    coef_forcing_time_y = calcul_forcing_time_y(time)
+    vx = sim.state.state_phys.get_var('vx')
+    vy = sim.state.state_phys.get_var('vy')
     sigma = coef_sigma/sim.time_stepping.deltat
-    fx = sigma * (coef_forcing_time * vxtarget - vx)
-    fy = sigma * (coef_forcing_time * vytarget - vy)
+    fx = sigma * (coef_forcing_time_x * vxtarget - vx)
+    fy = sigma * (coef_forcing_time_y * vytarget - vy)
     result = {'vx_fft': fx, 'vy_fft': fy}
     return result
 
@@ -181,7 +196,7 @@ sim.forcing.forcing_maker.monkeypatch_compute_forcing_each_time(
 # finally we start the simulation
 sim.time_stepping.start()
 
-printby0(f"""
+mpi.printby0(f"""
 # To visualize the output with Paraview, create a file states_phys.xmf with:
 
 fluidsim-create-xml-description {sim.output.path_run}
