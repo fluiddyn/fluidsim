@@ -14,7 +14,6 @@
 from __future__ import division
 
 from builtins import range
-from past.utils import old_div
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -41,19 +40,20 @@ class InitFieldsDipole(SpecificInitFields):
         vx_fft = oper.build_invariant_arrayK_from_2d_indices12X(vx2d_fft)
         vy_fft = oper.build_invariant_arrayK_from_2d_indices12X(vy2d_fft)
 
-        self.sim.state.init_from_vxvyfft(vx_fft, vy_fft)
+        fields = {'vx_fft': vx_fft, 'vy_fft': vy_fft}
+        self.sim.state.init_statespect_from(**fields)
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
-        xs = old_div(oper.Lx,2)
-        ys = old_div(oper.Ly,2)
-        theta = old_div(np.pi,2.3)
+        xs = oper.Lx/2.
+        ys = oper.Ly/2.
+        theta = np.pi/2.3
         b = 2.5
         omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (2*np.exp(-(XX**2 + (YY-old_div(b,2))**2)) -
-                    2*np.exp(-(XX**2 + (YY+old_div(b,2))**2)))
+            return (2*np.exp(-(XX**2 + (YY-(b/2.))**2)) -
+                    2*np.exp(-(XX**2 + (YY+(b/2.))**2)))
 
         XX = oper.oper2d.XX
         YY = oper.oper2d.YY
@@ -79,11 +79,44 @@ class InitFieldsNoise(SpecificInitFields):
 
         params.init_fields._set_child(cls.tag, attribs={
             'velo_max': 1.,
-            'length': 0})
+            'length': None})
 
     def __call__(self):
         vx_fft, vy_fft, vz_fft = self.compute_vv_fft()
-        self.sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
+        fields = {'vx_fft': vx_fft, 'vy_fft': vy_fft, 'vz_fft': vz_fft}
+        params = self.sim.params
+        oper = self.sim.oper
+
+        lambda0 = params.init_fields.noise.length
+        if lambda0 is None:
+            lambda0 = oper.Lx / 4.
+
+        def H_smooth(x, delta):
+            return (1. + np.tanh(2*np.pi*x/delta))/2.
+
+        k0 = 2*np.pi/lambda0
+        delta_k0 = 1.*k0
+
+        K = np.sqrt(oper.K2)
+        velo_max = params.init_fields.noise.velo_max
+
+        for key in self.sim.state.keys_state_spect:
+            if key not in fields:
+                field = np.random.random(oper.shapeX_loc)
+                field_fft = oper.fft(field)
+                if mpi.rank == 0:
+                    field_fft[0, 0, 0] = 0.
+
+                field_fft *= H_smooth(k0-K, delta_k0)
+                oper.ifft_as_arg(field_fft, field)
+
+                value_max = np.abs(field).max()
+                if mpi.nb_proc > 1:
+                    value_max = oper.comm.allreduce(value_max, op=mpi.MPI.MAX)
+                    
+                fields[key] = (velo_max/value_max) * field_fft                
+
+        self.sim.state.init_statespect_from(**fields)
 
     def compute_vv_fft(self):
 
@@ -91,7 +124,7 @@ class InitFieldsNoise(SpecificInitFields):
         oper = self.sim.oper
 
         lambda0 = params.init_fields.noise.length
-        if lambda0 == 0:
+        if lambda0 is None:
             lambda0 = oper.Lx / 4.
 
         def H_smooth(x, delta):
@@ -106,7 +139,7 @@ class InitFieldsNoise(SpecificInitFields):
                   1j*np.random.random(oper.shapeK) - 0.5 - 0.5j))
         
             if mpi.rank == 0:
-                vv_fft[ii][0, 0] = 0.
+                vv_fft[ii][0, 0, 0] = 0.
 
         oper.project_perpk3d(*vv_fft)
         oper.dealiasing(*vv_fft)

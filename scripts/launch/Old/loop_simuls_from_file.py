@@ -44,7 +44,7 @@ def modify_param(param):
     param['file_load']         = name_file
 
 
-dico_solvers = solveq2d.ModulesSolvers(['SW1lexlin'])
+dict_solvers = solveq2d.ModulesSolvers(['SW1lexlin'])
 
 t_approx = 10.e10
 nh = 1024
@@ -77,7 +77,7 @@ for c2, name_solver in tuple_loop:
     param = solveq2d.Param(path_file=path_file)
     modify_param(param)
 
-    solver = dico_solvers[name_solver]
+    solver = dict_solvers[name_solver]
     sim = solver.Simul(param)
     sim.time_stepping.start()
     del(sim)

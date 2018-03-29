@@ -39,8 +39,8 @@ class InfoSolverNS3DStrat(InfoSolverNS3D):
         # classes.InitFields.module_name = package + '.init_fields'
         # classes.InitFields.class_name = 'InitFieldsNS3D'
 
-        # classes.Output.module_name = package + '.output'
-        # classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + '.output'
+        classes.Output.class_name = 'Output'
 
         # classes.Forcing.module_name = package + '.forcing'
         # classes.Forcing.class_name = 'ForcingNS3D'

@@ -132,11 +132,11 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
-        dico_eps = self.compute_dissipation_rates(
+        dict_eps = self.compute_dissipation_rates(
             f_d, f_d_hypo,
             energyK_fft, energyA_fft, CharneyPE_fft)
 
-        self.save_dissipation_rates(dico_eps)
+        self.save_dissipation_rates(dict_eps)
 
     def compute_dissipation_rates(
             self, f_d, f_d_hypo,
@@ -149,21 +149,21 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         epsCPE = self.sum_wavenumbers(f_d*2*CharneyPE_fft)
         epsCPE_hypo = self.sum_wavenumbers(f_d_hypo*2*CharneyPE_fft)
 
-        dico_eps = {'epsK': epsK,
+        dict_eps = {'epsK': epsK,
                     'epsK_hypo': epsK_hypo,
                     'epsA': epsA,
                     'epsA_hypo': epsA_hypo,
                     'epsCPE': epsCPE,
                     'epsCPE_hypo': epsCPE_hypo}
-        return dico_eps
+        return dict_eps
 
-    def save_dissipation_rates(self, dico_eps):
-        epsK = dico_eps['epsK']
-        epsK_hypo = dico_eps['epsK_hypo']
-        epsA = dico_eps['epsA']
-        epsA_hypo = dico_eps['epsA_hypo']
-        epsCPE = dico_eps['epsCPE']
-        epsCPE_hypo = dico_eps['epsCPE_hypo']
+    def save_dissipation_rates(self, dict_eps):
+        epsK = dict_eps['epsK']
+        epsK_hypo = dict_eps['epsK_hypo']
+        epsA = dict_eps['epsA']
+        epsA_hypo = dict_eps['epsA_hypo']
+        epsCPE = dict_eps['epsCPE']
+        epsCPE_hypo = dict_eps['epsCPE_hypo']
 
         if mpi.rank == 0:
             epsK_tot = epsK+epsK_hypo
@@ -244,7 +244,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             self.axe_b.plot(tsim, PK_tot+PA_tot, 'c.')
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
+        dict_results = {'name_solver': self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -396,79 +396,79 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 c2eta2d[il] = float(words[10])
                 c2eta3d[il] = float(words[14])
 
-        dico_results['t'] = t
-        dico_results['E'] = E
-        dico_results['CPE'] = CPE
+        dict_results['t'] = t
+        dict_results['E'] = E
+        dict_results['CPE'] = CPE
 
-        dico_results['EK'] = EK
-        dico_results['EA'] = EA
-        dico_results['EKr'] = EKr
+        dict_results['EK'] = EK
+        dict_results['EA'] = EA
+        dict_results['EKr'] = EKr
 
-        dico_results['epsK'] = epsK
-        dico_results['epsK_hypo'] = epsK_hypo
-        dico_results['epsK_tot'] = epsK_tot
+        dict_results['epsK'] = epsK
+        dict_results['epsK_hypo'] = epsK_hypo
+        dict_results['epsK_tot'] = epsK_tot
 
-        dico_results['epsA'] = epsA
-        dico_results['epsA_hypo'] = epsA_hypo
-        dico_results['epsA_tot'] = epsA_tot
+        dict_results['epsA'] = epsA
+        dict_results['epsA_hypo'] = epsA_hypo
+        dict_results['epsA_tot'] = epsA_tot
 
-        dico_results['epsCPE'] = epsCPE
-        dico_results['epsCPE_hypo'] = epsCPE_hypo
-        dico_results['epsCPE_tot'] = epsCPE_tot
+        dict_results['epsCPE'] = epsCPE
+        dict_results['epsCPE_hypo'] = epsCPE_hypo
+        dict_results['epsCPE_tot'] = epsCPE_tot
 
         if len(lines_PK) == len(lines_t):
-            dico_results['PK1'] = PK1
-            dico_results['PK2'] = PK2
-            dico_results['PK_tot'] = PK_tot
-            dico_results['PA1'] = PA1
-            dico_results['PA2'] = PA2
-            dico_results['PA_tot'] = PA_tot
+            dict_results['PK1'] = PK1
+            dict_results['PK2'] = PK2
+            dict_results['PK_tot'] = PK_tot
+            dict_results['PA1'] = PA1
+            dict_results['PA2'] = PA2
+            dict_results['PA_tot'] = PA_tot
 
         if len(lines_rotskew) == len(lines_t):
-            dico_results['skew_eta'] = skew_eta
-            dico_results['kurt_eta'] = kurt_eta
-            dico_results['skew_rot'] = skew_rot
-            dico_results['kurt_rot'] = kurt_rot
+            dict_results['skew_eta'] = skew_eta
+            dict_results['kurt_eta'] = kurt_eta
+            dict_results['skew_rot'] = skew_rot
+            dict_results['kurt_rot'] = kurt_rot
 
         if len(lines_Conv) == len(lines_t):
-            dico_results['Conv'] = Conv
-            dico_results['c2eta1d'] = c2eta1d
-            dico_results['c2eta2d'] = c2eta2d
-            dico_results['c2eta3d'] = c2eta3d
+            dict_results['Conv'] = Conv
+            dict_results['c2eta1d'] = c2eta1d
+            dict_results['c2eta2d'] = c2eta2d
+            dict_results['c2eta3d'] = c2eta3d
 
-        return dico_results
+        return dict_results
 
     def plot(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
+        t = dict_results['t']
 
-        E = dico_results['E']
-        CPE = dico_results['CPE']
+        E = dict_results['E']
+        CPE = dict_results['CPE']
 
-        EK = dico_results['EK']
-        EA = dico_results['EA']
-        EKr = dico_results['EKr']
+        EK = dict_results['EK']
+        EA = dict_results['EA']
+        EKr = dict_results['EKr']
 
-        epsK = dico_results['epsK']
-        epsK_hypo = dico_results['epsK_hypo']
-        epsK_tot = dico_results['epsK_tot']
+        epsK = dict_results['epsK']
+        epsK_hypo = dict_results['epsK_hypo']
+        epsK_tot = dict_results['epsK_tot']
 
-        epsA = dico_results['epsA']
-        epsA_hypo = dico_results['epsA_hypo']
-        epsA_tot = dico_results['epsA_tot']
+        epsA = dict_results['epsA']
+        epsA_hypo = dict_results['epsA_hypo']
+        epsA_tot = dict_results['epsA_tot']
 
         epsE      = epsK      + epsA
         epsE_hypo = epsK_hypo + epsA_hypo
         epsE_tot  = epsK_tot  + epsA_tot
 
-        epsCPE = dico_results['epsCPE']
-        epsCPE_hypo = dico_results['epsCPE_hypo']
-        epsCPE_tot = dico_results['epsCPE_tot']
+        epsCPE = dict_results['epsCPE']
+        epsCPE_hypo = dict_results['epsCPE_hypo']
+        epsCPE_tot = dict_results['epsCPE_tot']
 
-        if 'PK_tot' in dico_results:
-            PK_tot = dico_results['PK_tot']
-            PA_tot = dico_results['PA_tot']
+        if 'PK_tot' in dict_results:
+            PK_tot = dict_results['PK_tot']
+            PA_tot = dict_results['PA_tot']
             P_tot = PK_tot + PA_tot
 
         width_axe = 0.85
@@ -511,7 +511,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                  ', nh = {0:5d}'.format(self.nx) +
                  ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
         ax1.set_title(title)
-        if 'PK_tot' in dico_results:
+        if 'PK_tot' in dict_results:
             ax1.plot(t, P_tot, 'c', linewidth=2, label='$P_{tot}$')
 
         ax1.plot(t, epsE, 'k--', linewidth=2, label=r'$\epsilon$')
@@ -531,10 +531,10 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2.plot(t, epsCPE_hypo, 'g', linewidth=2)
         ax2.plot(t, epsCPE_tot, 'r', linewidth=2)
 
-#         skew_eta = dico_results['skew_eta']
-#         kurt_eta = dico_results['kurt_eta']
-#         skew_rot = dico_results['skew_rot']
-#         kurt_rot = dico_results['kurt_rot']
+#         skew_eta = dict_results['skew_eta']
+#         kurt_eta = dict_results['kurt_eta']
+#         skew_rot = dict_results['skew_rot']
+#         kurt_rot = dict_results['kurt_rot']
 
 #         fig, ax1 = self.output.figure_axe()
 
@@ -573,14 +573,14 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         """
 
-        dico_results = self.load()
-        t = dico_results['t']
+        dict_results = self.load()
+        t = dict_results['t']
         dt = np.gradient(t, 1.)
 
         fig, axarr = plt.subplots(len(keys), sharex=True)
         i = 0
         for k in keys:
-            E = dico_results[k]
+            E = dict_results[k]
             dE_dt = abs(np.gradient(E, 1.) / dt)
             dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
             try:
@@ -617,15 +617,15 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
-        dico_eps = super(
+        dict_eps = super(
             SpatialMeansSW1L, self
         ).compute_dissipation_rates(
             f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft)
 
         (epsKsuppl, epsKsuppl_hypo
-         ) = self.compute_epsK(f_d, f_d_hypo, energyK_fft, dico_eps)
+         ) = self.compute_epsK(f_d, f_d_hypo, energyK_fft, dict_eps)
 
-        super(SpatialMeansSW1L, self).save_dissipation_rates(dico_eps)
+        super(SpatialMeansSW1L, self).save_dissipation_rates(dict_eps)
 
         if mpi.rank == 0:
             to_print = (
@@ -634,7 +634,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             self.file.write(to_print)
 
     def compute_epsK(self, f_d, f_d_hypo,
-                     energyK_fft, dico_eps):
+                     energyK_fft, dict_eps):
 
         ux = self.sim.state.state_phys.get_var('ux')
         uy = self.sim.state.state_phys.get_var('uy')
@@ -650,14 +650,14 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         epsKsuppl_hypo = self.sum_wavenumbers(
             f_d_hypo*inner_prod(EKquad_fft, eta_fft))
 
-        dico_eps['epsK'] += epsKsuppl
-        dico_eps['epsK_hypo'] += epsKsuppl_hypo
+        dict_eps['epsK'] += epsKsuppl
+        dict_eps['epsK_hypo'] += epsKsuppl_hypo
 
         return epsKsuppl, epsKsuppl_hypo
 
     def load(self):
 
-        dico_results = super(SpatialMeansSW1L, self).load()
+        dict_results = super(SpatialMeansSW1L, self).load()
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -668,7 +668,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             if line.startswith('epsKsup='):
                 lines_epsKsuppl.append(line)
 
-        t = dico_results['t']
+        t = dict_results['t']
         nt = len(t)
         epsKsuppl = np.empty(nt)
         epsKsuppl_hypo = np.empty(nt)
@@ -679,10 +679,10 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             epsKsuppl[il] = float(words[1])
             epsKsuppl_hypo[il] = float(words[5])
 
-        dico_results['epsKsuppl'] = epsKsuppl
-        dico_results['epsKsuppl_hypo'] = epsKsuppl_hypo
+        dict_results['epsKsuppl'] = epsKsuppl
+        dict_results['epsKsuppl_hypo'] = epsKsuppl_hypo
 
-        return dico_results
+        return dict_results
 
     def treat_forcing(self):
         """

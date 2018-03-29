@@ -1,7 +1,7 @@
-"""Spatial means output (:mod:`fluidsim.solvers.ns2d.output.spatial_means`)
+"""Spatial means output (:mod:`fluidsim.solvers.ns3d.output.spatial_means`)
 ===========================================================================
 
-.. autoclass:: SpatialMeansNS2D
+.. autoclass:: SpatialMeansNS3D
    :members:
    :private-members:
 
@@ -19,70 +19,62 @@ from fluiddyn.util import mpi
 from fluidsim.base.output.spatial_means import SpatialMeansBase
 
 
-class SpatialMeansNS2D(SpatialMeansBase):
+class SpatialMeansNS3D(SpatialMeansBase):
     """Spatial means output."""
 
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
-
-        energy_fft = self.output.compute_energy_fft()
-        enstrophy_fft = self.output.compute_enstrophy_fft()
-        energy = self.sum_wavenumbers(energy_fft)
-        enstrophy = self.sum_wavenumbers(enstrophy_fft)
+        nrj_vx_fft, nrj_vy_fft, nrj_vz_fft = self.output.compute_energies_fft()
+        energy_fft = nrj_vx_fft + nrj_vy_fft + nrj_vz_fft
+        nrj_vx = self.sum_wavenumbers(nrj_vx_fft)
+        nrj_vy = self.sum_wavenumbers(nrj_vy_fft)
+        nrj_vz = self.sum_wavenumbers(nrj_vz_fft)
+        energy = nrj_vx + nrj_vy + nrj_vz
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         epsK = self.sum_wavenumbers(f_d*2*energy_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo*2*energy_fft)
-        epsZ = self.sum_wavenumbers(f_d*2*enstrophy_fft)
-        epsZ_hypo = self.sum_wavenumbers(f_d_hypo*2*enstrophy_fft)
-
+    
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
-            Frot_fft = self.sim.forcing.get_forcing().get_var('rot_fft')
-            Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
+            forcing_fft = self.sim.forcing.get_forcing()
 
-            rot_fft = self.sim.state.state_spect.get_var('rot_fft')
-            ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
-
-            PZ1_fft = np.real(
-                rot_fft.conj()*Frot_fft +
-                rot_fft*Frot_fft.conj())/2
-            PZ2_fft = (abs(Frot_fft)**2)*deltat/2
-
-            PZ1 = self.sum_wavenumbers(PZ1_fft)
-            PZ2 = self.sum_wavenumbers(PZ2_fft)
+            fx_fft = forcing_fft.get_var('vx_fft')
+            fy_fft = forcing_fft.get_var('vy_fft')
+            fz_fft = forcing_fft.get_var('vz_fft')
+            
+            vx_fft = self.sim.state.state_spect.get_var('vx_fft')
+            vy_fft = self.sim.state.state_spect.get_var('vy_fft')
+            vz_fft = self.sim.state.state_spect.get_var('vz_fft')
 
             PK1_fft = np.real(
-                ux_fft.conj()*Fx_fft +
-                ux_fft*Fx_fft.conj() +
-                uy_fft.conj()*Fy_fft +
-                uy_fft*Fy_fft.conj())/2
-            PK2_fft = (abs(Fx_fft)**2+abs(Fy_fft)**2)*deltat/2
+                vx_fft.conj()*fx_fft +
+                vy_fft.conj()*fy_fft + vz_fft.conj()*fz_fft
+            )
+            PK2_fft = (abs(fx_fft)**2 + abs(fy_fft)**2 +
+                       abs(fz_fft)**2)*deltat/2
 
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
-            epsK_tot = epsK+epsK_hypo
 
             self.file.write(
-                '####\ntime = {0:7.3f}\n'.format(tsim))
+                '####\ntime = {:7.3f}\n'.format(tsim))
             to_print = (
-'E    = {0:11.6e} ; Z         = {1:11.6e} \n'
-'epsK = {2:11.6e} ; epsK_hypo = {3:11.6e} ; epsK_tot = {4:11.6e} \n'
-'epsZ = {5:11.6e} ; epsZ_hypo = {6:11.6e} ; epsZ_tot = {7:11.6e} \n'
-).format(energy, enstrophy,
-         epsK, epsK_hypo, epsK+epsK_hypo,
-         epsZ, epsZ_hypo, epsZ+epsZ_hypo)
+                'E    = {:11.6e}\n'
+                'Ex   = {:11.6e} ; Ey   = {:11.6e} ; Ez   = {:11.6e}\n'
+                'epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; '
+                'epsK_tot = {:11.6e} \n').format(
+                    energy, nrj_vx, nrj_vy, nrj_vz,
+                    epsK, epsK_hypo, epsK+epsK_hypo,)
             self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
-                PK_tot = PK1+PK2
                 to_print = (
-'PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n'
-'PZ1  = {3:11.6e} ; PZ2       = {4:11.6e} ; PZ_tot   = {5:11.6e} \n'
-).format(PK1, PK2, PK1+PK2, PZ1, PZ2, PZ1+PZ2)
+                    'PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; '
+                    'PK_tot   = {2:11.6e} \n').format(PK1, PK2, PK1+PK2)
                 self.file.write(to_print)
 
             self.file.flush()
@@ -92,9 +84,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
             self.axe_a.plot(tsim, energy, 'k.')
 
-            self.axe_b.plot(tsim, epsK_tot, 'k.')
-            if self.sim.params.forcing.enable:
-                self.axe_b.plot(tsim, PK_tot, 'm.')
+            # self.axe_b.plot(tsim, epsK_tot, 'k.')
+            # if self.sim.params.forcing.enable:
+            #     self.axe_b.plot(tsim, PK_tot, 'm.')
 
             if (tsim-self.t_last_show >= self.period_show):
                 self.t_last_show = tsim
@@ -109,24 +101,21 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         lines_t = []
         lines_E = []
+        lines_Ex = []
         lines_PK = []
-        lines_PZ = []
         lines_epsK = []
-        lines_epsZ = []
 
         for il, line in enumerate(lines):
             if line.startswith('time ='):
                 lines_t.append(line)
             if line.startswith('E    ='):
                 lines_E.append(line)
+            if line.startswith('Ex   ='):
+                lines_Ex.append(line)
             if line.startswith('PK1  ='):
                 lines_PK.append(line)
-            if line.startswith('PZ1  ='):
-                lines_PZ.append(line)
             if line.startswith('epsK ='):
                 lines_epsK.append(line)
-            if line.startswith('epsZ ='):
-                lines_epsZ.append(line)
 
         nt = len(lines_t)
         if nt > 1:
@@ -134,19 +123,15 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         t = np.empty(nt)
         E = np.empty(nt)
-        Z = np.empty(nt)
+        Ex = np.empty(nt)
+        Ey = np.empty(nt)
+        Ez = np.empty(nt)
         PK1 = np.empty(nt)
         PK2 = np.empty(nt)
         PK_tot = np.empty(nt)
-        PZ1 = np.empty(nt)
-        PZ2 = np.empty(nt)
-        PZ_tot = np.empty(nt)
         epsK = np.empty(nt)
         epsK_hypo = np.empty(nt)
         epsK_tot = np.empty(nt)
-        epsZ = np.empty(nt)
-        epsZ_hypo = np.empty(nt)
-        epsZ_tot = np.empty(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -156,7 +141,12 @@ class SpatialMeansNS2D(SpatialMeansBase):
             line = lines_E[il]
             words = line.split()
             E[il] = float(words[2])
-            Z[il] = float(words[6])
+
+            line = lines_Ex[il]
+            words = line.split()
+            Ex[il] = float(words[2])
+            Ey[il] = float(words[6])
+            Ez[il] = float(words[10])
 
             if self.sim.params.forcing.enable:
                 line = lines_PK[il]
@@ -165,43 +155,23 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 PK2[il] = float(words[6])
                 PK_tot[il] = float(words[10])
 
-                line = lines_PZ[il]
-                words = line.split()
-                PZ1[il] = float(words[2])
-                PZ2[il] = float(words[6])
-                PZ_tot[il] = float(words[10])
-
             line = lines_epsK[il]
             words = line.split()
             epsK[il] = float(words[2])
             epsK_hypo[il] = float(words[6])
             epsK_tot[il] = float(words[10])
 
-            line = lines_epsZ[il]
-            words = line.split()
-            epsZ[il] = float(words[2])
-            epsZ_hypo[il] = float(words[6])
-            epsZ_tot[il] = float(words[10])
-
         dict_results['t'] = t
         dict_results['E'] = E
-        dict_results['Z'] = Z
 
         dict_results['PK1'] = PK1
         dict_results['PK2'] = PK2
         dict_results['PK_tot'] = PK_tot
 
-        dict_results['PZ1'] = PZ1
-        dict_results['PZ2'] = PZ2
-        dict_results['PZ_tot'] = PZ_tot
-
         dict_results['epsK'] = epsK
         dict_results['epsK_hypo'] = epsK_hypo
         dict_results['epsK_tot'] = epsK_tot
 
-        dict_results['epsZ'] = epsZ
-        dict_results['epsZ_hypo'] = epsZ_hypo
-        dict_results['epsZ_tot'] = epsZ_tot
         return dict_results
 
     def plot(self):
@@ -209,15 +179,13 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         t = dict_results['t']
         E = dict_results['E']
-        Z = dict_results['Z']
+        Ex = dict_results['Ex']
+        Ey = dict_results['Ey']
+        Ez = dict_results['Ez']
 
         epsK = dict_results['epsK']
         epsK_hypo = dict_results['epsK_hypo']
         epsK_tot = dict_results['epsK_tot']
-
-        epsZ = dict_results['epsZ']
-        epsZ_hypo = dict_results['epsZ_hypo']
-        epsZ_tot = dict_results['epsZ_tot']
 
         width_axe = 0.85
         height_axe = 0.39
@@ -230,13 +198,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
         fig.suptitle('Energy and enstrophy')
         ax1.set_ylabel('$E(t)$')
         ax1.plot(t, E, 'k', linewidth=2)
-
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_ylabel('$Z(t)$')
-        ax2.set_xlabel('$t$')
-        ax2.plot(t, Z, 'k', linewidth=2)
+        ax1.plot(t, Ex, 'b')
+        ax1.plot(t, Ey, 'r')
+        ax1.plot(t, Ez, 'c')
 
         z_bottom_axe = 0.54
         size_axe[1] = z_bottom_axe
@@ -248,19 +212,3 @@ class SpatialMeansNS2D(SpatialMeansBase):
         ax1.plot(t, epsK_hypo, 'g', linewidth=2)
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('$t$')
-        ax2.set_ylabel(r'$\epsilon_Z(t)$')
-        ax2.plot(t, epsZ, 'r', linewidth=2)
-        ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
-        ax2.plot(t, epsZ_tot, 'k', linewidth=2)
-
-        if self.sim.params.forcing.enable:
-            PK_tot = dict_results['PK_tot']
-            PZ_tot = dict_results['PZ_tot']
-            ax1.plot(t, PK_tot, 'c', linewidth=2)
-            ax2.plot(t, PZ_tot, 'c', linewidth=2)
-            ax1.set_ylabel('P_E(t), epsK(t)')
-            ax2.set_ylabel('P_Z(t), epsZ(t)')

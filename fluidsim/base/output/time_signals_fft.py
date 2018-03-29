@@ -166,19 +166,19 @@ class TimeSignalsK(SpecificOutput):
         if mpi.nb_proc > 1:
             self.period_save = mpi.comm.bcast(self.period_save)
 
-    def _init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dict_arrays_1time=None):
         if (not os.path.exists(self.path_file)):
-            dico_results = self.compute()
+            dict_results = self.compute()
             if mpi.rank == 0:
-                dico_arrays_1time = {
+                dict_arrays_1time = {
                     'kh_shell': self.kh_shell,
                     'omega_shell': self.omega_shell,
                     'kx_array_ik': self.kx_array_ik,
                     'ky_array_ik': self.ky_array_ik,
                     'kh_array_ik': self.kh_array_ik,
                     'omega_array_ik': self.omega_array_ik}
-                self.create_file_from_dico_arrays(
-                    self.path_file, dico_results, dico_arrays_1time)
+                self._create_file_from_dict_arrays(
+                    self.path_file, dict_results, dict_arrays_1time)
 
         if mpi.rank == 0:
             self.file = h5py.File(self.path_file, 'r+')
@@ -195,10 +195,10 @@ class TimeSignalsK(SpecificOutput):
         tsim = self.sim.time_stepping.t
         if (tsim-self.t_last_save >= self.period_save):
             self.t_last_save = tsim
-            dico_results = self.compute()
+            dict_results = self.compute()
             if mpi.rank == 0:
-                self.add_dico_arrays_to_open_file(self.file,
-                                                  dico_results,
+                self._add_dict_arrays_to_open_file(self.file,
+                                                  dict_results,
                                                   self.nb_saved_times)
                 self.nb_saved_times += 1
 
@@ -257,10 +257,10 @@ class TimeSignalsK(SpecificOutput):
                 a_array_ik[ik] = a_1k
 
         if mpi.rank == 0:
-            dico_results = {'q_array_ik': q_array_ik,
+            dict_results = {'q_array_ik': q_array_ik,
                             'd_array_ik': d_array_ik,
                             'a_array_ik': a_array_ik}
-            return dico_results
+            return dict_results
 
     def load(self):
 
@@ -273,12 +273,12 @@ class TimeSignalsK(SpecificOutput):
             dset_times = f['times']
             times = dset_times[...]
 
-            dico_results = {}
-            dico_results['times'] = times
+            dict_results = {}
+            dict_results['times'] = times
 
-            dico_results['nb_shells'] = f.attrs['nb_shells']
-            dico_results['nb_k_per_shell'] = f.attrs['nb_k_per_shell']
-            dico_results['nb_k_tot'] = f.attrs['nb_k_tot']
+            dict_results['nb_shells'] = f.attrs['nb_shells']
+            dict_results['nb_k_per_shell'] = f.attrs['nb_k_per_shell']
+            dict_results['nb_k_tot'] = f.attrs['nb_k_tot']
 
             keys_1time = [
                 'kh_shell',
@@ -290,7 +290,7 @@ class TimeSignalsK(SpecificOutput):
 
             for key in keys_1time:
                 dset_temp = f[key]
-                dico_results[key] = dset_temp[...]
+                dict_results[key] = dset_temp[...]
 
             keys_linear_eigenmodes = \
                 self.sim.info.solver.classes.State.keys_linear_eigenmodes
@@ -298,23 +298,23 @@ class TimeSignalsK(SpecificOutput):
             for key in keys_linear_eigenmodes:
                 dset_temp = f[key[:-3]+'array_ik']
                 A = dset_temp[...]
-                dico_results['sig_'+key] = np.ascontiguousarray(A.transpose())
-        return dico_results
+                dict_results['sig_'+key] = np.ascontiguousarray(A.transpose())
+        return dict_results
 
     def plot(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['times']
+        t = dict_results['times']
 
-        nb_shells = dico_results['nb_shells']
-        nb_k_per_shell = dico_results['nb_k_per_shell']
+        nb_shells = dict_results['nb_shells']
+        nb_k_per_shell = dict_results['nb_k_per_shell']
 
-        sig_q_fft = dico_results['sig_q_fft']
-        sig_a_fft = dico_results['sig_a_fft']
-        sig_d_fft = dico_results['sig_d_fft']
+        sig_q_fft = dict_results['sig_q_fft']
+        sig_a_fft = dict_results['sig_a_fft']
+        sig_d_fft = dict_results['sig_d_fft']
 
-        kh_shell = dico_results['kh_shell']
-        omega_shell = dico_results['omega_shell']
+        kh_shell = dict_results['kh_shell']
+        omega_shell = dict_results['omega_shell']
         period_shell = 2*np.pi/omega_shell
 
         for ish in range(nb_shells):
@@ -370,9 +370,9 @@ class TimeSignalsK(SpecificOutput):
         return spect/nb_spectra
 
     def compute_spectra(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['times']
+        t = dict_results['times']
         Nt = t.size
         nt = 2**int(np.fix(np.log2(Nt/10)))
         # if nt%2 == 1:
@@ -392,16 +392,16 @@ class TimeSignalsK(SpecificOutput):
 
         self.hann = np.hanning(nt)
 
-        nb_shells = dico_results['nb_shells']
-        nb_k_per_shell = dico_results['nb_k_per_shell']
-        # nb_k_tot = dico_results['nb_k_tot']
+        nb_shells = dict_results['nb_shells']
+        nb_k_per_shell = dict_results['nb_k_per_shell']
+        # nb_k_tot = dict_results['nb_k_tot']
 
-        sig_q_fft = dico_results['sig_q_fft']
-        sig_a_fft = dico_results['sig_a_fft']
-        sig_d_fft = dico_results['sig_d_fft']
+        sig_q_fft = dict_results['sig_q_fft']
+        sig_a_fft = dict_results['sig_a_fft']
+        sig_d_fft = dict_results['sig_d_fft']
 
-        # kh_shell = dico_results['kh_shell']
-        omega_shell = dico_results['omega_shell']
+        # kh_shell = dict_results['kh_shell']
+        omega_shell = dict_results['omega_shell']
         # period_shell = 2*np.pi/omega_shell
 
         time_spectra_q = np.zeros([nb_shells, nt//2+1])
@@ -421,21 +421,21 @@ class TimeSignalsK(SpecificOutput):
         time_spectra_a /= nb_k_per_shell
         time_spectra_d /= nb_k_per_shell
 
-        dico_spectra = {
+        dict_spectra = {
             'omega': self.omega,
             'time_spectra_q': time_spectra_q,
             'time_spectra_a': time_spectra_a,
             'time_spectra_d': time_spectra_d}
-        return dico_spectra, dico_results
+        return dict_spectra, dict_results
 
     def plot_spectra(self):
-        dico_spectra, dico_results = self.compute_spectra()
+        dict_spectra, dict_results = self.compute_spectra()
 
-        omega = dico_spectra['omega']
-        time_spectra_q = dico_spectra['time_spectra_q']
-        time_spectra_a = dico_spectra['time_spectra_a']
-        time_spectra_d = dico_spectra['time_spectra_d']
-        omega_shell = dico_results['omega_shell']
+        omega = dict_spectra['omega']
+        time_spectra_q = dict_spectra['time_spectra_q']
+        time_spectra_a = dict_spectra['time_spectra_a']
+        time_spectra_d = dict_spectra['time_spectra_d']
+        omega_shell = dict_results['omega_shell']
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel(r'r$\omega/\omega_{lin}$')
@@ -448,7 +448,7 @@ class TimeSignalsK(SpecificOutput):
         ax1.set_title(title)
         ax1.hold(True)
 
-        nb_shells = dico_results['nb_shells']
+        nb_shells = dict_results['nb_shells']
         for ish in range(nb_shells):
             ax1.loglog(omega/ omega_shell[ish],
                        time_spectra_q[ish], 'k', linewidth=1)

@@ -92,8 +92,9 @@ class SimulBase(object):
 
         if not hasattr(self, 'info_solver') or \
            self.info_solver.__class__ is not self.InfoSolver:
-            warn("Creating a new info_solver instance because it's missing or "
-                 "due to type mismatch  {}".format(self.InfoSolver))
+            if hasattr(self, 'info_solver'):
+                warn("Creating a new info_solver instance "
+                     "due to type mismatch  {}".format(self.InfoSolver))
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 

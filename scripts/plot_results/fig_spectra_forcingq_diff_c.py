@@ -34,11 +34,11 @@ tmin = 264
 def sprectra_from_namedir(name_dir_results):
     path_dir_results = set_of_dir_results.path_dirs[name_dir_results]
     sim = solveq2d.create_sim_plot_from_dir(path_dir_results)
-    dico_results = sim.output.spectra.load2D_mean(tmin=tmin)
-    kh = dico_results['kh']
-    EK = dico_results['spectrum2D_EK']
-    EA = dico_results['spectrum2D_EA']
-    EKr = dico_results['spectrum2D_EKr']
+    dict_results = sim.output.spectra.load2D_mean(tmin=tmin)
+    kh = dict_results['kh']
+    EK = dict_results['spectrum2D_EK']
+    EA = dict_results['spectrum2D_EA']
+    EKr = dict_results['spectrum2D_EKr']
     EKd = EK - EKr
     return kh, EKr, EKd
 

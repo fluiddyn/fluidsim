@@ -55,7 +55,7 @@ class PrintStdOutLorenz(PrintStdOutBase):
         return to_print
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
+        dict_results = {'name_solver': self.output.name_solver}
         with open(self.output.path_run + '/stdout.txt') as file_means:
             lines = file_means.readlines()
 
@@ -92,20 +92,20 @@ class PrintStdOutLorenz(PrintStdOutBase):
             Y[il] = float(words[6])
             Z[il] = float(words[10])
 
-        dico_results['it'] = it
-        dico_results['t'] = t
-        dico_results['deltat'] = deltat
-        dico_results['X'] = X
-        dico_results['Y'] = Y
-        dico_results['Z'] = Z
+        dict_results['it'] = it
+        dict_results['t'] = t
+        dict_results['deltat'] = deltat
+        dict_results['X'] = X
+        dict_results['Y'] = Y
+        dict_results['Z'] = Z
 
-        return dico_results
+        return dict_results
 
     def plot_deltat(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        deltat = dico_results['deltat']
+        t = dict_results['t']
+        deltat = dict_results['deltat']
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
@@ -117,10 +117,10 @@ class PrintStdOutLorenz(PrintStdOutBase):
         ax.plot(t, deltat, 'k', linewidth=2)
 
     def plot_XY_vs_time(self):
-        dico_results = self.load()
-        t = dico_results['t']
-        X = dico_results['X']
-        Y = dico_results['Y']
+        dict_results = self.load()
+        t = dict_results['t']
+        X = dict_results['X']
+        Y = dict_results['Y']
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
@@ -140,9 +140,9 @@ class PrintStdOutLorenz(PrintStdOutBase):
         ax.legend()
 
     def plot_XY(self):
-        dico_results = self.load()
-        X = dico_results['X']
-        Y = dico_results['Y']
+        dict_results = self.load()
+        X = dict_results['X']
+        Y = dict_results['Y']
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
@@ -157,9 +157,9 @@ class PrintStdOutLorenz(PrintStdOutBase):
         ax.plot(self.sim.Xs1, self.sim.Ys1, 'bx')
 
     def plot_XZ(self):
-        dico_results = self.load()
-        X = dico_results['X']
-        Z = dico_results['Z']
+        dict_results = self.load()
+        X = dict_results['X']
+        Z = dict_results['Z']
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
@@ -174,10 +174,10 @@ class PrintStdOutLorenz(PrintStdOutBase):
         ax.plot(self.sim.Xs1, self.sim.Zs1, 'bx')
 
     def plot_XYZ(self):
-        dico_results = self.load()
-        X = dico_results['X']
-        Y = dico_results['Y']
-        Z = dico_results['Z']
+        dict_results = self.load()
+        X = dict_results['X']
+        Y = dict_results['Y']
+        Z = dict_results['Z']
 
         fig = plt.figure()
         size_axe = [0.12, 0.12, 0.8, 0.8]

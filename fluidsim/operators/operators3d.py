@@ -181,6 +181,13 @@ class OperatorsPseudoSpectral3D(_Operators):
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
         return fc_fft
 
+    def urudfft_from_vxvyfft(self, vx_fft, vy_fft):
+        """Compute toroidal and poloidal horizontal velocities
+
+        """
+        return util3d_pythran.urudfft_from_vxvyfft(
+            vx_fft, vy_fft, self.Kx, self.Ky, rank)
+
 
 def _ik_from_ikc(ikc, nkc, nk):
     if ikc <= nkc / 2.:

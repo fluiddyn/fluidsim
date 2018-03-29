@@ -217,9 +217,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         if key_spatial not in keys_spatial:
             raise ValueError('key_spatial not in spatial means keys.')
         # Load data for inset plot
-        dico = self.output.spatial_means.load()
-        t = dico['t']
-        E = dico[key_spatial]
+        results = self.output.spatial_means.load()
+        t = results['t']
+        E = results[key_spatial]
 
         return t, E
 

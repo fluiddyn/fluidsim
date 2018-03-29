@@ -131,7 +131,7 @@ class TestSW1L(BaseTestCase):
 
         Cq_tot_modes = 0.
         for k in self.exchange_keys:
-            Cq_tot_modes += self.dico[k]
+            Cq_tot_modes += self.dict_results[k]
 
         get_var = sim.state.get_var
         ux_fft = get_var('ux_fft')
@@ -157,7 +157,7 @@ class TestSW1L(BaseTestCase):
 
         Tq_tot_modes = 0.
         for k in self.transfer_keys:
-            Tq_tot_modes += self.dico[k]
+            Tq_tot_modes += self.dict_results[k]
 
         get_var = sim.state.get_var
         ux_fft = get_var('ux_fft')
@@ -221,11 +221,11 @@ class TestSW1L(BaseTestCase):
         """
         sim = self.sim
         try:
-            Tq_GGG = self.dico['Tq_GGG']
-            Tens = self.dico['Tens']
+            Tq_GGG = self.dict_results['Tq_GGG']
+            Tens = self.dict_results['Tens']
         except KeyError:
-            Tq_GGG = self.dico['transfer2D_Errr']
-            Tens = self.dico['transfer2D_CPE']
+            Tq_GGG = self.dict_results['transfer2D_Errr']
+            Tens = self.dict_results['transfer2D_CPE']
 
         energy_GGG = Tq_GGG.sum()
         enstrophy_GGG = Tens.sum()
@@ -273,7 +273,7 @@ class TestExactlin(TestSW1L):
         self._plot()
 
     def test_online_plot_spect_energy_budg(self):
-        self._online_plot_saving(self.dico)
+        self._online_plot_saving(self.dict_results)
 
 
 class TestExmod(TestSW1L):
@@ -291,7 +291,7 @@ class TestExmod(TestSW1L):
 
         Tq_tot_modes = 0.
         for k in self.transfer_keys:
-            Tq_tot_modes += self.dico[k]
+            Tq_tot_modes += self.dict_results[k]
 
         get_var = sim.state.get_var
         ux_fft = get_var('ux_fft')

@@ -189,9 +189,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             if mpi.rank == 0:
                 params._set_attrib('path_run', self.path_run)
 
-        dico_classes = sim.info.solver.classes.Output.import_classes()
+        dict_classes = sim.info.solver.classes.Output.import_classes()
 
-        PrintStdOut = dico_classes['PrintStdOut']
+        PrintStdOut = dict_classes['PrintStdOut']
         self.print_stdout = PrintStdOut(self)
 
         if not self.params.ONLINE_PLOT_OK:
@@ -442,7 +442,7 @@ class SpecificOutput(object):
 
     def __init__(self, output, period_save=0, period_plot=0,
                  has_to_plot_saved=False,
-                 dico_arrays_1time=None):
+                 dict_arrays_1time=None):
 
         sim = output.sim
         params = sim.params
@@ -478,28 +478,28 @@ class SpecificOutput(object):
             self.period_save = 0.
 
         if self.period_save != 0.:
-            self._init_files(dico_arrays_1time)
+            self._init_files(dict_arrays_1time)
 
     def _init_path_files(self):
         if hasattr(self, '_name_file'):
             self.path_file = os.path.join(
                 self.output.path_run, self._name_file)
 
-    def _init_files(self, dico_arrays_1time=None):
-        if dico_arrays_1time is None:
-            dico_arrays_1time = {}
-        dico_results = self.compute()
+    def _init_files(self, dict_arrays_1time=None):
+        if dict_arrays_1time is None:
+            dict_arrays_1time = {}
+        dict_results = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
-                self.create_file_from_dico_arrays(
-                    self.path_file, dico_results, dico_arrays_1time)
+                self._create_file_from_dict_arrays(
+                    self.path_file, dict_results, dict_arrays_1time)
                 self.nb_saved_times = 1
             else:
                 with h5py.File(self.path_file, 'r') as f:
                     dset_times = f['times']
                     self.nb_saved_times = dset_times.shape[0]+1
-                self.add_dico_arrays_to_file(self.path_file,
-                                             dico_results)
+                self._add_dict_arrays_to_file(self.path_file,
+                                             dict_results)
         self.t_last_save = self.sim.time_stepping.t
 
     def _online_save(self):
@@ -507,45 +507,21 @@ class SpecificOutput(object):
         tsim = self.sim.time_stepping.t
         if (tsim - self.t_last_save >= self.period_save):
             self.t_last_save = tsim
-            dico_results = self.compute()
+            dict_results = self.compute()
             if mpi.rank == 0:
-                self.add_dico_arrays_to_file(self.path_file,
-                                             dico_results)
+                self._add_dict_arrays_to_file(self.path_file,
+                                             dict_results)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
-                    self._online_plot_saving(dico_results)
+                    self._online_plot_saving(dict_results)
                     if (tsim - self.t_last_show >= self.period_show):
                         self.t_last_show = tsim
                         self.fig.canvas.draw()
                         # needed to really show the figures
                         plt.pause(1e-3)
 
-    # def create_file_from_dico_arrays_old(self, path_file,
-    #                                      dico_arrays, dico_arrays_1time):
-    #     if os.path.exists(path_file):
-    #         print('file NOT created since it already exists!')
-    #     elif mpi.rank == 0:
-    #         with h5py.File(path_file, 'w') as f:
-    #             f.attrs['date saving'] = str(datetime.datetime.now()).encode()
-    #             f.attrs['name_solver'] = self.output.name_solver
-    #             f.attrs['name_run'] = self.output.name_run
-
-    #             self.sim.info._save_as_hdf5(hdf5_parent=f)
-
-    #             times = np.array([self.sim.time_stepping.t])
-    #             f.create_dataset(
-    #                 'times', data=times, maxshape=(None,))
-
-    #             for k, v in list(dico_arrays_1time.items()):
-    #                 f.create_dataset(k, data=v)
-
-    #             for k, v in list(dico_arrays.items()):
-    #                 v.resize([1, v.size])
-    #                 f.create_dataset(
-    #                     k, data=v, maxshape=(None, v.size))
-
-    def create_file_from_dico_arrays(self, path_file,
-                                     dico_matrix, dico_arrays_1time):
+    def _create_file_from_dict_arrays(self, path_file,
+                                     dict_matrix, dict_arrays_1time):
         if os.path.exists(path_file):
             print('file NOT created since it already exists!')
         elif mpi.rank == 0:
@@ -560,10 +536,10 @@ class SpecificOutput(object):
                 f.create_dataset(
                     'times', data=times, maxshape=(None,))
 
-                for k, v in list(dico_arrays_1time.items()):
+                for k, v in list(dict_arrays_1time.items()):
                     f.create_dataset(k, data=v)
 
-                for k, v in list(dico_matrix.items()):
+                for k, v in list(dict_matrix.items()):
                     if isinstance(v, numbers.Number):
                         arr = np.array([v], dtype=v.__class__)
                         arr.resize((1,))
@@ -575,30 +551,16 @@ class SpecificOutput(object):
                         f.create_dataset(
                             k, data=arr, maxshape=((None,) + v.shape))
 
-    # def add_dico_arrays_to_file_old(self, path_file, dico_arrays):
-    #     if not os.path.exists(path_file):
-    #         raise ValueError('can not add dico arrays in nonexisting file!')
-    #     elif mpi.rank == 0:
-    #         with h5py.File(path_file, 'r+') as f:
-    #             dset_times = f['times']
-    #             nb_saved_times = dset_times.shape[0]
-    #             dset_times.resize((nb_saved_times+1,))
-    #             dset_times[nb_saved_times] = self.sim.time_stepping.t
-    #             for k, v in list(dico_arrays.items()):
-    #                 dset_k = f[k]
-    #                 dset_k.resize((nb_saved_times+1, v.size))
-    #                 dset_k[nb_saved_times] = v
-
-    def add_dico_arrays_to_file(self, path_file, dico_matrix):
+    def _add_dict_arrays_to_file(self, path_file, dict_matrix):
         if not os.path.exists(path_file):
-            raise ValueError('can not add dico matrix in nonexisting file!')
+            raise ValueError('can not add dict arrays in nonexisting file!')
         elif mpi.rank == 0:
             with h5py.File(path_file, 'r+') as f:
                 dset_times = f['times']
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times+1,))
                 dset_times[nb_saved_times] = self.sim.time_stepping.t
-                for k, v in list(dico_matrix.items()):
+                for k, v in list(dict_matrix.items()):
                     if isinstance(v, numbers.Number):
                         dset_k = f[k]
                         dset_k.resize((nb_saved_times+1,))
@@ -608,12 +570,12 @@ class SpecificOutput(object):
                         dset_k.resize((nb_saved_times+1,) + v.shape)
                         dset_k[nb_saved_times] = v
 
-    def add_dico_arrays_to_open_file(self, f, dico_arrays, nb_saved_times):
+    def _add_dict_arrays_to_open_file(self, f, dict_arrays, nb_saved_times):
         if mpi.rank == 0:
             dset_times = f['times']
             dset_times.resize((nb_saved_times+1,))
             dset_times[nb_saved_times] = self.sim.time_stepping.t
-            for k, v in list(dico_arrays.items()):
+            for k, v in list(dict_arrays.items()):
                 dset_k = f[k]
                 dset_k.resize((nb_saved_times+1, v.size))
                 dset_k[nb_saved_times] = v

@@ -50,7 +50,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         return to_print
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
+        dict_results = {'name_solver': self.output.name_solver}
         with open(self.output.path_run + '/stdout.txt') as file_means:
             lines = file_means.readlines()
 
@@ -85,19 +85,19 @@ class PrintStdOutNS2D(PrintStdOutBase):
             E[il] = float(words[2])
             deltaE[il] = float(words[7])
 
-        dico_results['it'] = it
-        dico_results['t'] = t
-        dico_results['deltat'] = deltat
-        dico_results['E'] = E
-        dico_results['deltaE'] = deltaE
+        dict_results['it'] = it
+        dict_results['t'] = t
+        dict_results['deltat'] = deltat
+        dict_results['E'] = E
+        dict_results['deltaE'] = deltaE
 
-        return dico_results
+        return dict_results
 
     def plot_deltat(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        deltat = dico_results['deltat']
+        t = dict_results['t']
+        deltat = dict_results['deltat']
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel('t')
@@ -109,11 +109,11 @@ class PrintStdOutNS2D(PrintStdOutBase):
         fig.tight_layout()
 
     def plot_energy(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        E = dico_results['E']
-        deltaE = dico_results['deltaE']
+        t = dict_results['t']
+        E = dict_results['E']
+        deltaE = dict_results['deltaE']
 
         fig, ax = self.output.figure_axe()
 

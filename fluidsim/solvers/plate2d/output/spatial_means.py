@@ -141,7 +141,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
                 fig.canvas.draw()
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
+        dict_results = {'name_solver': self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -206,35 +206,35 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             epsK_hypo[il] = float(words[6])
             epsK_tot[il] = float(words[10])
 
-        dico_results['t'] = t
-        dico_results['E'] = E
-        dico_results['E_k'] = E_k
-        dico_results['E_l'] = E_l
-        dico_results['E_e'] = E_e
+        dict_results['t'] = t
+        dict_results['E'] = E
+        dict_results['E_k'] = E_k
+        dict_results['E_l'] = E_l
+        dict_results['E_e'] = E_e
 
         if self.sim.params.forcing.enable:
-            dico_results['P1'] = P1
-            dico_results['P2'] = P2
-            dico_results['P_tot'] = P_tot
+            dict_results['P1'] = P1
+            dict_results['P2'] = P2
+            dict_results['P_tot'] = P_tot
 
-        dico_results['epsK'] = epsK
-        dico_results['epsK_hypo'] = epsK_hypo
-        dico_results['epsK_tot'] = epsK_tot
+        dict_results['epsK'] = epsK
+        dict_results['epsK_hypo'] = epsK_hypo
+        dict_results['epsK_tot'] = epsK_tot
 
-        return dico_results
+        return dict_results
 
     def plot(self, with_dtE=False):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        E = dico_results['E']
-        E_k = dico_results['E_k']
-        E_l = dico_results['E_l']
-        E_e = dico_results['E_e']
+        t = dict_results['t']
+        E = dict_results['E']
+        E_k = dict_results['E_k']
+        E_l = dict_results['E_l']
+        E_e = dict_results['E_e']
 
-        epsK = dico_results['epsK']
-        epsK_hypo = dico_results['epsK_hypo']
-        epsK_tot = dico_results['epsK_tot']
+        epsK = dict_results['epsK']
+        epsK_hypo = dict_results['epsK_hypo']
+        epsK_tot = dict_results['epsK_tot']
 
         if with_dtE:
             nt = len(t)
@@ -270,7 +270,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         ax1.plot(t, epsK_tot, 'k', linewidth=2)
 
         if self.sim.params.forcing.enable:
-            P_tot = dico_results['P_tot']
+            P_tot = dict_results['P_tot']
             ax1.plot(t, P_tot, 'm', linewidth=2)
 
         if with_dtE:

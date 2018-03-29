@@ -48,15 +48,15 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
-            dico_arrays_1time={'khE': output.sim.oper.khE,
+            dict_arrays_1time={'khE': output.sim.oper.khE,
                                'kxE': output.sim.oper.kxE,
                                'kyE': output.sim.oper.kyE})
 
     def compute(self):
         """compute the values at one time."""
         if mpi.rank == 0:
-            dico_results = {}
-            return dico_results
+            dict_results = {}
+            return dict_results
 
     def _init_online_plot(self):
         if mpi.rank == 0:

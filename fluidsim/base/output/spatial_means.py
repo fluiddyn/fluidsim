@@ -39,7 +39,10 @@ class SpatialMeansBase(SpecificOutput):
         self.nx = params.oper.nx
 
         self.sum_wavenumbers = output.sum_wavenumbers
-        self.vecfft_from_rotfft = output.oper.vecfft_from_rotfft
+        try:
+            self.vecfft_from_rotfft = output.oper.vecfft_from_rotfft
+        except AttributeError:
+            pass
 
         super(SpatialMeansBase, self).__init__(
             output,
@@ -49,7 +52,7 @@ class SpatialMeansBase(SpecificOutput):
         if self.period_save != 0:
             self._save_one_time()
 
-    def _init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dict_arrays_1time=None):
 
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
@@ -97,30 +100,30 @@ class SpatialMeansBase(SpecificOutput):
             axe.set_ylabel(r'$\epsilon(t)$')
 
     def load(self):
-        dico_results = {}
-        return dico_results
+        dict_results = {}
+        return dict_results
 
     def plot(self):
         pass
 
     def compute_time_means(self, tstatio=0., tmax=None):
         """compute the temporal means."""
-        dico_results = self.load()
+        dict_results = self.load()
         if tmax is None:
-            times = dico_results['t']
+            times = dict_results['t']
             imax_mean = times.size-1
             tmax = times[imax_mean]
         else:
             imax_mean = np.argmin(abs(times-tmax))
         imin_mean = np.argmin(abs(times-tstatio))
 
-        dico_time_means = {}
-        for key, value in dico_results.items():
+        dict_time_means = {}
+        for key, value in dict_results.items():
             if isinstance(value, np.ndarray):
-                dico_time_means[key] = np.mean(
+                dict_time_means[key] = np.mean(
                     value[imin_mean:imax_mean+1]
                     )
-        return dico_time_means, dico_results
+        return dict_time_means, dict_results
 
     def _close_file(self):
         try:

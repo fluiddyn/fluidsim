@@ -31,16 +31,16 @@ create_fig.path_base_dir+'/Results_for_article_SW1l'
 
 sim = solveq2d.create_sim_plot_from_dir(name_dir_results)
 tmin = 30
-dico_results = sim.output.spectra.load2D_mean(tmin=tmin)
+dict_results = sim.output.spectra.load2D_mean(tmin=tmin)
 
-kh = dico_results['kh']
+kh = dict_results['kh']
 
-EK = dico_results['spectrum2D_EK']
-EA = dico_results['spectrum2D_EA']
-EKr = dico_results['spectrum2D_EKr']
+EK = dict_results['spectrum2D_EK']
+EA = dict_results['spectrum2D_EA']
+EKr = dict_results['spectrum2D_EKr']
 E_tot = EK + EA
 EKd = EK - EKr
-Edlin = dico_results['spectrum2D_Edlin']
+Edlin = dict_results['spectrum2D_Edlin']
 
 fig, ax1 = create_fig.figure_axe(name_file=name_file)
 ax1.set_xscale('log')

@@ -377,13 +377,13 @@ class SetOfDirResults(object):
 
         self.nb_dirs = len(paths_results)
 
-        self.dico_paths = {}
-        self.dico_params = {}
+        self.dict_paths = {}
+        self.dict_params = {}
 
         keys_values = ['c', 'f', 'name_solver', 'nh']
-        self.dico_values = {}
+        self.dict_values = {}
         for k in keys_values:
-            self.dico_values[k] = []
+            self.dict_values[k] = []
 
         for path_dir in paths_results:
             path_file = path_dir+'/param_simul.h5'
@@ -395,7 +395,7 @@ class SetOfDirResults(object):
                       'This directory is skipped...')
                 self.nb_dirs -= 1
             else:
-                self.dico_paths[name_run] = path_dir
+                self.dict_paths[name_run] = path_dir
 
                 with _h5py.File(path_file, 'r') as f:
                     name_run2 = f.attrs['name_run']
@@ -406,7 +406,7 @@ class SetOfDirResults(object):
 
                 # old code that have to be modified...
                 params = Parameters(path_dir=path_dir, VERBOSE=False)
-                self.dico_params[name_run] = params
+                self.dict_params[name_run] = params
 
                 params.add_a_param('name_solver', name_solver)
                 params.add_a_param('solver', name_solver)
@@ -417,16 +417,16 @@ class SetOfDirResults(object):
                     params.add_a_param('c', _np.sqrt(params['c2']))
 
                 for k in keys_values:
-                    if not params[k] in self.dico_values[k]:
-                        self.dico_values[k].append(params[k])
+                    if not params[k] in self.dict_values[k]:
+                        self.dict_values[k].append(params[k])
 
         if self.nb_dirs > 1:
-            for k, v in self.dico_values.items():
+            for k, v in self.dict_values.items():
                 v.sort()
                 if isinstance(v[0], _numbers.Number):
-                    self.dico_values[k] = _np.array(v)
+                    self.dict_values[k] = _np.array(v)
 
-        self.paths = list(self.dico_paths.values())
+        self.paths = list(self.dict_paths.values())
 
     def dirs_from_values(self, k_sort='c2', **kwargs):
         """Return a list of dirs from conditions.
@@ -436,7 +436,7 @@ class SetOfDirResults(object):
 
         """
 
-        kdirs_corresp = list(self.dico_params.keys())
+        kdirs_corresp = list(self.dict_params.keys())
         for k, v in kwargs.items():
             if isinstance(v, tuple):
                 str_operator = v[0]
@@ -462,7 +462,7 @@ class SetOfDirResults(object):
                     'Supports only the operators ==, !=, >, <, >=, <=')
 
             kdirs_corresp_temp = [kdir for kdir, params
-                                  in self.dico_params.items()
+                                  in self.dict_params.items()
                                   if cond(params[k], value)
                                   ]
 
@@ -472,7 +472,7 @@ class SetOfDirResults(object):
         if len(kdirs_corresp) == 0 and mpi.rank == 0:
             print('No result directory corresponds to the criteria.')
 
-        kdirs_corresp.sort(key=lambda key: self.dico_params[key][k_sort])
+        kdirs_corresp.sort(key=lambda key: self.dict_params[key][k_sort])
 
         return kdirs_corresp
 
@@ -482,7 +482,7 @@ class SetOfDirResults(object):
         >>> setofdir2 = setofdir.filter(c2=100, f=('>', 1), nh=('=',1920))
         """
         dirs = self.dirs_from_values(**kwargs)
-        paths = [self.dico_paths[dir_i] for dir_i in dirs]
+        paths = [self.dict_paths[dir_i] for dir_i in dirs]
         return SetOfDirResults(paths)
 
     def path_larger_t_start(self):
@@ -508,11 +508,11 @@ class SetOfDirResults(object):
         """
         keys_corresp = self.dirs_from_values(**kwargs)
         if len(keys_corresp) == 1:
-            return self.dico_paths[keys_corresp[0]]
+            return self.dict_paths[keys_corresp[0]]
         elif len(keys_corresp) == 0:
             print('No directory corresponds to the given values.')
         elif len(keys_corresp) > 1:
             print('More than one directory corresponds to the given value(s).')
-            paths = [self.dico_paths[dir_i] for dir_i in keys_corresp]
+            paths = [self.dict_paths[dir_i] for dir_i in keys_corresp]
             sod = SetOfDirResults(paths)
             return sod.path_larger_t_start()

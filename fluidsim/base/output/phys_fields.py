@@ -109,7 +109,7 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
 
-    def _init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dict_arrays_1time=None):
         # Does nothing on purpose...
         pass
 

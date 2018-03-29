@@ -57,20 +57,20 @@ if LOAD:
         irun += 1
         sim = solveq2d.create_sim_plot_from_dir(name_dir=path_dir)
 
-        (dico_time_means, dico_results
+        (dict_time_means, dict_results
          ) = sim.output.spatial_means.compute_time_means(tstatio)
 
         arr_c2[irun] = sim.param['c2']
-        EK[irun] = dico_time_means['EK']
+        EK[irun] = dict_time_means['EK']
 
         Froude_numbers[irun] = 2*EK[irun]/sim.param['c2']
 
-        EA[irun] = dico_time_means['EA']
-        EKr[irun] = dico_time_means['EKr']
-        epsK[irun] = dico_time_means['epsK']
-        epsA[irun] = dico_time_means['epsA']
-        epsK_tot[irun] = dico_time_means['epsK_tot']
-        epsA_tot[irun] = dico_time_means['epsA_tot']
+        EA[irun] = dict_time_means['EA']
+        EKr[irun] = dict_time_means['EKr']
+        epsK[irun] = dict_time_means['epsK']
+        epsA[irun] = dict_time_means['epsA']
+        epsK_tot[irun] = dict_time_means['epsK_tot']
+        epsA_tot[irun] = dict_time_means['epsA_tot']
 
     eps = epsK + epsA
     eps_tot = epsK_tot + epsA_tot

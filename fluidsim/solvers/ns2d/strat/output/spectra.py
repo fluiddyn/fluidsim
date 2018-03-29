@@ -40,7 +40,7 @@ class SpectraNS2DStrat(Spectra):
         # Compute the total energy spectra 1D
         spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
         # Dictionary with the 1D kinetic energy spectra
-        dico_spectra1D = {'spectrum1Dkx_EK_ux': spectrum1Dkx_EK_ux,
+        dict_spectra1D = {'spectrum1Dkx_EK_ux': spectrum1Dkx_EK_ux,
                           'spectrum1Dky_EK_ux': spectrum1Dky_EK_ux,
                           'spectrum1Dkx_EK_uy': spectrum1Dkx_EK_uy,
                           'spectrum1Dky_EK_uy': spectrum1Dky_EK_uy,
@@ -57,19 +57,19 @@ class SpectraNS2DStrat(Spectra):
         spectrum2D_EK_ux = self.spectrum2D_from_fft(energyK_ux_fft)
         spectrum2D_EK_uy = self.spectrum2D_from_fft(energyK_uy_fft)
         spectrum2D_EA = self.spectrum2D_from_fft(energyA_fft)
-        dico_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
+        dict_spectra2D = {'spectrum2D_EK_ux': spectrum2D_EK_ux,
                           'spectrum2D_EK_uy': spectrum2D_EK_uy,
                           'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EA': spectrum2D_EA,
                           'spectrum2D_E': spectrum2D_E}
 
-        return dico_spectra1D, dico_spectra2D
+        return dict_spectra1D, dict_spectra2D
 
-    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dict_spectra1D, dict_spectra2D):
         if (self.nx == self.params.oper.ny and
                 self.params.oper.Lx == self.params.oper.Ly):
-            spectrum2D_EK = dico_spectra2D['spectrum2D_EK']
-            spectrum2D_EA = dico_spectra2D['spectrum2D_EA']
+            spectrum2D_EK = dict_spectra2D['spectrum2D_EK']
+            spectrum2D_EA = dict_spectra2D['spectrum2D_EA']
             spectrum2D = spectrum2D_EK + spectrum2D_EA
             khE = self.oper.khE
             coef_norm = khE**(3.)

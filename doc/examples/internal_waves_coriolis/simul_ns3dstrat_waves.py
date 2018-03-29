@@ -51,7 +51,7 @@ if mpi.rank == 0:
             -(omegas_forcing - omega_f)**2 / (2*delta_omega_f**2))
 
         forcing_time = oper_fft_forcing.ifft(forcing_omega)
-        forcing_time /= max(forcing_time)
+        forcing_time /= np.sqrt(np.mean(np.square(forcing_time)))
 
         return interp1d(times_forcing, forcing_time,
                         fill_value='extrapolate')
@@ -73,7 +73,8 @@ params = Simul.create_default_params()
 params.output.sub_directory = 'waves_coriolis'
 
 nz = 80
-nx = ny = nz*2
+aspect_ratio = 2
+nx = ny = nz*aspect_ratio
 lz = 1
 
 params.oper.nx = nx
@@ -107,7 +108,7 @@ where $C$ is a constant of order 1.
 
 """
 n = 8
-C = 1.
+C = 2.
 dx = lx/nx
 U = amplitude*omega_f
 H = 1
@@ -115,8 +116,8 @@ eps = 1e-2*U**3/H
 params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 100*period_N
-params.time_stepping.deltat_max = period_N/50
+params.time_stepping.t_end = 10*period_N
+params.time_stepping.deltat_max = period_N/40
 
 params.init_fields.type = 'noise'
 params.init_fields.noise.velo_max = 0.001
@@ -125,9 +126,11 @@ params.init_fields.noise.length = 2e-1
 params.forcing.enable = True
 params.forcing.type = 'in_script'
 
-params.output.periods_print.print_stdout = 0.5
+params.output.periods_print.print_stdout = 1.
 
 params.output.periods_save.phys_fields = 2.
+params.output.periods_save.spectra = 0.5
+params.output.periods_save.spatial_means = 0.5
 
 sim = Simul(params)
 

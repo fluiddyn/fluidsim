@@ -131,7 +131,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         epsilon_ky = dissEKu_ky.sum() + dissEKv_ky.sum() + dissEA_ky.sum()
 
         # Variables saved in a dictionary
-        dico_results = {
+        dict_results = {
             'transferEK_kx': transferEK_kx,
             'transferEK_ky': transferEK_ky,
             'transferEKu_kx': transferEKu_kx,
@@ -164,21 +164,21 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         if mpi.rank == 0:
             small_value = 1e-12
-            for k, v in dico_results.items():
+            for k, v in dict_results.items():
                 if k.startswith('transfer'):
                     if abs(v.sum()) > small_value:
                         print('warning: (abs(v.sum()) > small_value) for ' + k)
                         print('k = ', k)
                         print('abs(v.sum()) = ', abs(v.sum()))
 
-        return dico_results
+        return dict_results
 
-    def _online_plot_saving(self, dico_results):
+    def _online_plot_saving(self, dict_results):
 
-        transfer2D_EA = dico_results['transferEA_2d']
-        transfer2D_EK = dico_results['transferEK_2d']
+        transfer2D_EA = dict_results['transferEA_2d']
+        transfer2D_EK = dict_results['transferEK_2d']
         transfer2D_E = transfer2D_EA + transfer2D_EK
-        transfer2D_Z = dico_results['transferZ_2d']
+        transfer2D_Z = dict_results['transferZ_2d']
         khE = self.oper.khE
         PiE = cumsum_inv(transfer2D_E)*self.oper.deltak
         PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltak
