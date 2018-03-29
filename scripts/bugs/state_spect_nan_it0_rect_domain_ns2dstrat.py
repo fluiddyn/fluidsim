@@ -48,7 +48,7 @@ params.oper.nx = 128
 params.oper.ny = params.oper.nx // 4
 
 params.oper.Lx = 2 * pi
-params.oper.Ly = params.oper.Lx / 4
+params.oper.Ly = params.oper.Lx * (params.oper.ny / params.oper.nx)
 
 params.init_fields.type = 'noise'
 
