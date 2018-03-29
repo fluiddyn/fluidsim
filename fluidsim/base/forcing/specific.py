@@ -54,6 +54,8 @@ from math import radians
 import types
 from warnings import warn
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size
@@ -210,6 +212,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
                                              dtype=np.int32).sum())
+            if not self.nb_forced_modes:
+                raise ValueError('0 modes forced.')
+            
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
@@ -641,22 +646,92 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         """
         angle = radians(float(self.params.forcing[self.tag].angle))
 
-        kxmin_forcing = np.sin(angle) * self.kmin_forcing
-        kxmax_forcing = np.sin(angle) * self.kmax_forcing
+        
+        
+        self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
+        self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
 
-        kymin_forcing = np.cos(angle) * self.kmin_forcing
-        kymax_forcing = np.cos(angle) * self.kmax_forcing
+        self.kymin_forcing = np.cos(angle) * self.kmin_forcing
+        self.kymax_forcing = np.cos(angle) * self.kmax_forcing
 
-        if kxmax_forcing - kxmin_forcing < self.oper.deltakx or \
-           kymax_forcing - kymin_forcing < self.oper.deltaky:
+        if self.kxmax_forcing - self.kxmin_forcing < self.oper.deltakx or \
+           self.kymax_forcing - self.kymin_forcing < self.oper.deltaky:
             raise ValueError('No forcing modes in one direction.')
 
         COND_NO_F_KX = np.logical_or(
-            self.oper_coarse.KX > kxmax_forcing,
-            self.oper_coarse.KX < kxmin_forcing)
+            self.oper_coarse.KX > self.kxmax_forcing,
+            self.oper_coarse.KX < self.kxmin_forcing)
 
         COND_NO_F_KY = np.logical_or(
-            self.oper_coarse.KY > kymax_forcing,
-            self.oper_coarse.KY < kymin_forcing)
+            self.oper_coarse.KY > self.kymax_forcing,
+            self.oper_coarse.KY < self.kymin_forcing)
 
         return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
+
+    def plot_forcing_region(self):
+        """Plots the forcing region"""
+        pforcing = self.params.forcing
+        oper = self.oper
+
+        kxmin_forcing = self.kxmin_forcing
+        kxmax_forcing = self.kxmax_forcing
+        kymin_forcing = self.kymin_forcing
+        kymax_forcing = self.kymax_forcing
+        
+        # Define forcing region
+        coord_x = kxmin_forcing
+        coord_y = kymin_forcing
+        width = kxmax_forcing - kxmin_forcing
+        height = kymax_forcing - kymin_forcing
+
+        KX = self.oper_coarse.KX
+        KY = self.oper_coarse.KY
+
+        fig, ax = plt.subplots()
+        ax.set_aspect('equal')
+        
+        title = (pforcing.type + '; ' + 
+                 r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
+                 r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
+                 r'$\theta = {}^\circ$'.format(pforcing.tcrandom_anisotropic.angle))
+
+        ax.set_title(title)
+        ax.set_xlabel(r'$k_x$')
+        ax.set_ylabel(r'$k_z$')
+        
+        # Parameters figure
+        ax.set_xlim([abs(KX).min(), abs(KX).max()])
+        ax.set_ylim([abs(KY).min(), abs(KY).max()])
+
+        xticks = np.arange(abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        # ax.set_xticks(xticks)
+        
+        ax.add_patch(patches.Rectangle(
+            xy=(coord_x, coord_y),
+            width=width,
+            height=height,
+            fill=False))
+
+        ax.add_patch(patches.Arc(
+            xy=(0, 0),
+            width=4,
+            height=4,
+            angle=0, theta1=60, theta2=90))
+        
+        ax.plot([0, kxmin_forcing], [0, kymin_forcing], color='k', linewidth=1)
+        ax.plot([kxmin_forcing, kxmin_forcing], [0, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([kxmax_forcing, kxmax_forcing], [0, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([0, kxmin_forcing], [kymin_forcing, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([0, kxmin_forcing], [kymax_forcing, kymax_forcing],
+                'k--', linewidth=0.8)
+
+        ax.text(kxmin_forcing, - 1 * oper.deltaky, r'$k_{x,min}$')
+        ax.text(kxmax_forcing, - 1 * oper.deltaky, r'$k_{x,max}$')
+        ax.text(-1 * oper.deltakx, kymin_forcing, r'$k_{z,min}$')
+        ax.text(- 1 * oper.deltakx, kymax_forcing, r'$k_{z,max}$')
+
+        plt.show(block=False)
+
