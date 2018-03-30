@@ -8,13 +8,11 @@ Launch with::
 
 """
 
-import numpy as np
-
-from fluiddyn.util.mpi import printby0
-
 from fluidsim.solvers.ns3d.strat.solver import Simul
 
 params = Simul.create_default_params()
+
+params.f = 1.
 
 params.output.sub_directory = 'examples'
 

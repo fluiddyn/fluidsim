@@ -171,18 +171,21 @@ class TimeSteppingBase(object):
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""
         get_var = self.sim.state.get_var
-
         ux = get_var('vx')
         uy = get_var('vy')
         uz = get_var('vz')
 
-        max_ux = abs(ux).max()
-        max_uy = abs(uy).max()
-        max_uz = abs(uz).max()
-        tmp = (max_ux / self.sim.oper.deltax +
-               max_uy / self.sim.oper.deltay +
-               max_uz / self.sim.oper.deltaz)
+        if ux.size > 0:
+            max_ux = abs(ux).max()
+            max_uy = abs(uy).max()
+            max_uz = abs(uz).max()
+            tmp = (max_ux / self.sim.oper.deltax +
+                   max_uy / self.sim.oper.deltay +
+                   max_uz / self.sim.oper.deltaz)
+        else:
+            tmp = 0.
 
+            
         self._compute_time_increment_CLF_from_tmp(tmp)
 
     def _compute_time_increment_CLF_from_tmp(self, tmp):
@@ -239,7 +242,8 @@ class TimeSteppingBase(object):
         else:
             deltat_CFL = self.deltat_max
 
-        deltat_wave = self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
+        deltat_wave = self.CFL * min(self.sim.oper.deltax,
+                                     self.sim.oper.deltay) / c
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
 

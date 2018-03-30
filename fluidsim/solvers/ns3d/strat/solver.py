@@ -123,6 +123,9 @@ class Simul(SimulNS3D):
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft)
 
+        if self.params.f is not None:
+            self._modif_omegafft_with_f(omegax_fft, omegay_fft, omegaz_fft)
+
         omegax = self.state.fields_tmp[3]
         omegay = self.state.fields_tmp[4]
         omegaz = self.state.fields_tmp[5]
@@ -142,7 +145,7 @@ class Simul(SimulNS3D):
             ifft_as_arg(vx_fft, vx)
             ifft_as_arg(vy_fft, vy)
             ifft_as_arg(vz_fft, vz)
-
+            
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
         if old is None:
