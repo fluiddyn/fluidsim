@@ -32,8 +32,8 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
 
         This is a static method!
         """
-        classes = [Proportional, TCRandomPS, RandomSimplePseudoSpectral, Waves,
-                   WavesVortices, Potential, InScriptForcingPseudoSpectral]
+        classes = [TCRandomPS, RandomSimplePseudoSpectral, Waves,
+                   WavesVortices, Potential]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 

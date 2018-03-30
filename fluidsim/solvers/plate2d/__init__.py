@@ -9,6 +9,7 @@ Provides:
 
    solver
    state
+   operators
    output
    init_fields
    forcing

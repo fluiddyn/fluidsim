@@ -1,6 +1,10 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util`)
 =================================================================
 
+.. autofunction:: load_sim_for_plot
+
+.. autofunction:: load_state_phys_file
+
 """
 
 from __future__ import division, print_function
@@ -84,6 +88,9 @@ def import_module_solver_from_key(key=None):
 
 
 def get_dim_from_solver_key(key):
+    """Try to guess the dimension from the solver key (via the operator name).
+
+    """
     cls = import_simul_class_from_key(key)
     info = cls.InfoSolver()
     for dim in range(4):
@@ -149,7 +156,25 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
 
 def load_sim_for_plot(path_dir=None, merge_missing_params=False):
-    """Create a object Simul from a dir result."""
+    """Create a object Simul from a dir result.
+
+    Creating simulation objects with this function should be fast because the
+    state is not initialized with the output file and only a coarse operator is
+    created.
+
+    Parameters
+    ----------
+
+    path_dir : str (optional)
+
+      Path of the directory of the simulation.
+
+    merge_missing_params : bool (optional, default == False)
+
+      Can be used to load old simulations carried out with an old fluidsim
+      version.
+
+    """
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
     params = load_params_simul(path_dir=path_dir)
@@ -181,7 +206,36 @@ def _import_solver_from_path(path_dir):
 
 def load_state_phys_file(name_dir=None, t_approx=None, modif_save_params=True,
                          merge_missing_params=False):
-    """Create a simulation from a file."""
+    """Create a simulation from a file.
+
+    For large resolution, creating a simulation object with this function can
+    be slow because the state is initialized with the output file.
+
+    Parameters
+    ----------
+
+    name_dir : str (optional)
+
+      Name of the directory of the simulation. If nothing is given, we load the
+      data in the current directory.
+
+    t_approx : number (optional)
+
+      Approximate time of the file to be loaded.
+
+    modif_save_params :  bool (optional, default == True)
+
+      If True, the parameters of the simulation are modified before loading::
+
+        params.output.HAS_TO_SAVE = False
+        params.output.ONLINE_PLOT_OK = False
+
+    merge_missing_params : bool (optional, default == False)
+
+      Can be used to load old simulations carried out with an old fluidsim
+      version.
+
+    """
 
     path_dir = pathdir_from_namedir(name_dir)
 

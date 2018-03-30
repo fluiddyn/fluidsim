@@ -7,6 +7,17 @@ Provides:
    :members:
    :private-members:
 
+.. todo::
+
+  It would be interesting to implement phase-shifting timestepping schemes as:
+
+  - RK2 + phase-shifting
+
+  - Adams-Bashforth (leapfrog) + phase-shifting
+
+  For a theoretical presentation of phase-shifting see
+  https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19810022965.pdf.
+
 """
 
 from builtins import object
@@ -193,7 +204,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         tendencies_fft_n = tendencies_nonlin()
         state_spect_n12 = (state_spect + dt/2*tendencies_fft_n)*diss2
-        tendencies_fft_n12 = tendencies_nonlin(state_spect_n12)
+        tendencies_fft_n12 = tendencies_nonlin(
+            state_spect_n12, old=tendencies_fft_n)
         self.sim.state.state_spect = (state_spect*diss +
                                     dt*diss2*tendencies_fft_n12)
 
@@ -305,8 +317,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_np12_approx1 = (state_spect +
                                   dt/2*tendencies_fft_0)*diss2
 
-        del(tendencies_fft_0)
-        tendencies_fft_1 = tendencies_nonlin(state_spect_np12_approx1)
+        tendencies_fft_1 = tendencies_nonlin(
+            state_spect_np12_approx1, old=tendencies_fft_0)
         del(state_spect_np12_approx1)
 
         # based on approximation 2
@@ -314,8 +326,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_np12_approx2 = (state_spect*diss2 +
                                   dt/2*tendencies_fft_1)
 
-        del(tendencies_fft_1)
-        tendencies_fft_2 = tendencies_nonlin(state_spect_np12_approx2)
+        tendencies_fft_2 = tendencies_nonlin(
+            state_spect_np12_approx2, old=tendencies_fft_1)
         del(state_spect_np12_approx2)
 
         # based on approximation 3
@@ -323,8 +335,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_np1_approx = (state_spect*diss +
                                 dt*diss2*tendencies_fft_2)
 
-        del(tendencies_fft_2)
-        tendencies_fft_3 = tendencies_nonlin(state_spect_np1_approx)
+        tendencies_fft_3 = tendencies_nonlin(
+            state_spect_np1_approx, old=tendencies_fft_2)
         del(state_spect_np1_approx)
 
         # result using the 4 approximations

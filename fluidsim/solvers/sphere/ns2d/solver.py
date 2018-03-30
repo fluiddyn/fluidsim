@@ -50,7 +50,7 @@ class SimulSphereNS2D(SimulSphericalHarmo):
     #     attribs = {'f': 0.}
     #     params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         r"""Compute the nonlinear tendencies.
 
         Parameters
@@ -103,7 +103,10 @@ class SimulSphereNS2D(SimulSphericalHarmo):
 
         Frot = compute_Frot(ux, uy, px_rot, py_rot, beta=0)
 
-        tendencies_sh = SetOfVariables(like=self.state.state_spect)
+        if old is None:
+            tendencies_sh = SetOfVariables(like=self.state.state_spect)
+        else:
+            tendencies_sh = old
         Frot_sh = tendencies_sh.get_var('rot_sh')
         oper.sht_as_arg(Frot, Frot_sh)
 

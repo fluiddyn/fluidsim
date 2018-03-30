@@ -25,7 +25,7 @@ class Output(OutputBase):
 
         classes._set_child(
             'PhysFields',
-            attribs={'module_name': 'fluidsim.base.output.phys_fields',
+            attribs={'module_name': 'fluidsim.base.output.phys_fields1d',
                      'class_name': 'PhysFieldsBase1D'})
 
     @staticmethod

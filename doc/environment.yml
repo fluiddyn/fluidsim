@@ -4,7 +4,8 @@ channels:
 
 dependencies:
   - python=3.6
-  - numpy
+  - scipy
+  - pandas
   - cython
   - h5py
   - sphinx
@@ -16,4 +17,5 @@ dependencies:
   - mako
   - pip:
     - sphinx_rtd_theme
-    - fluidfft
+    - hg+https://bitbucket.org/fluiddyn/fluiddyn#egg=fluiddyn
+    - hg+https://bitbucket.org/fluiddyn/fluidfft#egg=fluidfft

@@ -3,21 +3,10 @@ from __future__ import print_function
 import unittest
 import numpy as np
 
-from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
+from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat, mpi
 
-class TestNS2DStrat(BaseTestCase):
-    solver = 'NS2D.strat'
+class TestSpectEnergyBudg(TestNS2DStrat):
     _tag = 'spect_energy_budg'
-
-    @classmethod
-    def setUpClass(cls, init_fields='noise',
-                   type_forcing='tcrandom_anisotropic'):
-        nh = 480
-        super(TestNS2DStrat, cls).setUpClass(nh=nh, init_fields=init_fields,
-                                             type_forcing=type_forcing,
-                                             HAS_TO_SAVE=False,
-                                             forcing_enable=False)
-
     def test_nonlinear_transfer(self):
         """
         Check sum(transferEK_kx) == 0
@@ -57,39 +46,15 @@ class TestNS2DStrat(BaseTestCase):
         self.assertAlmostEqual(transferEK_kx.sum(), 0)
         self.assertAlmostEqual(transferEK_ky.sum(), 0)
 
-    def test_spectra(self):
-        """
-        Check sum(spectra) * deltak == energy.
-        """
-        sim = self.sim
-        oper = sim.oper
-        state_spect = sim.state.state_spect
+    @unittest.skipIf(mpi.nb_proc > 1,
+                     'plot function works sequentially only')
+    def test_plot_spect_energy_budg(self):
+        self.module.plot = self.module.plot
+        self._plot()
 
-        rot_fft = state_spect.get_var('rot_fft')
-        b_fft = state_spect.get_var('b_fft')
-        ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-        
-        energyK_fft = (1. / 2) * (np.abs(ux_fft.conj() * ux_fft) +
-                                  np.abs(uy_fft.conj() * uy_fft))
-        spectrum1DEK_kx, spectrum1DEK_ky = oper.spectra1D_from_fft(energyK_fft)
-        energyK = oper.sum_wavenumbers(energyK_fft)
-        self.assertAlmostEqual(spectrum1DEK_kx.sum() * oper.deltakx, energyK)
-        self.assertAlmostEqual(spectrum1DEK_ky.sum() * oper.deltaky, energyK)
+    def test_online_plot_spect_energy_budg(self):
+        self._online_plot_saving(self.dico)
 
-        try:
-            energyA_fft = (1. / 2) * ((
-                np.abs(b_fft.conj() * b_fft) / sim.params.N**2))
-        except ZeroDivisionError:
-            pass
-        else:
-            spectrum1DEA_kx, spectrum1DEA_ky = oper.spectra1D_from_fft(
-                energyA_fft)
-            energyA = oper.sum_wavenumbers(energyA_fft)
 
-            self.assertAlmostEqual(
-                spectrum1DEA_kx.sum() * oper.deltakx, energyA)
-            self.assertAlmostEqual(
-                spectrum1DEA_ky.sum() * oper.deltaky, energyA)
-        
 if __name__ == '__main__':
     unittest.main()        

@@ -58,3 +58,9 @@ scripts\Experiments\path_working_exp.txt
 bench/results_bench/*.json
 bench/oar_launcher_*
 bench/OAR.fluidsim_bench*
+
+**/OAR.*.stdout
+**/OAR.*.stderr
+**/oar_launcher_*
+
+site.cfg

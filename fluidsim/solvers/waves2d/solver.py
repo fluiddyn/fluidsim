@@ -9,6 +9,8 @@
 from __future__ import division
 
 from past.utils import old_div
+import numpy as np
+from fluidsim.base.params import create_params
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
@@ -24,8 +26,8 @@ info_solver.short_name = 'Waves2d'
 
 classes = info_solver.classes
 
-# classes.State.module_name = package + '.state'
-# classes.State.class_name = 'StateWaves'
+classes.State.module_name = package + '.state'
+classes.State.class_name = 'StateWaves'
 
 # classes.InitFields.module_name = package + '.init_fields'
 # classes.InitFields.class_name = 'InitFieldsWaves'
@@ -108,22 +110,31 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'c2': 1., 'f': 0}
         params._set_attribs(attribs)
 
+    @classmethod
+    def create_default_params(cls):
+        return create_params(info_solver)
+
     def __init__(self, params):
-        super(Simul, self).__init__(params, info_solver)
+        self.info_solver = info_solver
+        super(Simul, self).__init__(params)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
-
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
+            
         tendencies_fft[:] = 0.
 
         return tendencies_fft
 
     def compute_freq_complex(self, key):
+        assert key in ['f_fft', 'g_fft'], 'Unexpected key: ' + key
         if key == 'f_fft':
-            omega = self.oper.constant_arrayK(value=0)
+            omega = self.oper.create_arrayK(value=0)
         elif key == 'g_fft':
             omega = 1.j*np.sqrt(self.params.f**2 +
                                 self.params.c2*self.oper.K2)
@@ -135,8 +146,9 @@ if __name__ == "__main__":
     import numpy as np
 
     import fluiddyn as fld
+    from fluidsim.base.params import create_params
 
-    params = fld.simul.create_params(info_solver)
+    params = create_params(info_solver)
 
     params.short_name_type_run = 'test'
 
@@ -153,21 +165,18 @@ if __name__ == "__main__":
     params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
 
     params.time_stepping.t_end = 1.
+    params.time_stepping.USE_CFL = False
 
     params.init_fields.type = 'noise'
 
-    params.forcing.enable = True
-    params.forcing.type = 'Random'
+    # params.forcing.enable = True
+    # params.forcing.type = 'tcrandom'
     # 'Proportional'
     # params.forcing.type_normalize
 
     # params.output.periods_print.print_stdout = 0.25
 
     params.output.periods_save.phys_fields = 0.5
-    params.output.periods_save.spectra = 0.5
-    params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 0.5
-    params.output.periods_save.increments = 0.5
 
     params.output.periods_plot.phys_fields = 0.0
 
@@ -178,7 +187,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = 'f'
 
     sim = Simul(params)
 

@@ -13,7 +13,7 @@ from fluidsim.solvers.ns2d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.output.sub_directory = 'examples'
 
 params.oper.nx = nx = 64
 params.oper.ny = nx//2
@@ -35,7 +35,7 @@ params.output.periods_save.spatial_means = 0.1
 sim = Simul(params)
 
 # field initialization in the script
-rot = 1e-6 * sim.oper.random_arrayX()
+rot = 1e-6 * sim.oper.create_arrayX_random()
 X = sim.oper.X
 Y = sim.oper.Y
 x0 = y0 = 1.

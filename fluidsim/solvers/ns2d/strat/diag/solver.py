@@ -54,7 +54,7 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         fft2 = oper.fft2
         ifft2 = oper.ifft2
@@ -87,9 +87,12 @@ class Simul(SimulBasePseudoSpectral):
         #       ).format(self.oper.sum_wavenumbers(T_rot),
         #                self.oper.sum_wavenumbers(abs(T_rot)))
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
         tendencies_fft.set_var('rot_fft', Frot_fft)
 

@@ -51,13 +51,13 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
 
     def run(self, test):
         result = super(TimeLoggingTestRunner, self).run(test)
-        msg = "\n\nSlow tests (>{:.03}s):".format(self.slow_test_threshold)
+        msg = "\n\nSlow tests (>{:.3f}s):".format(self.slow_test_threshold)
         self.write_result(msg)
         self.write_result('-' * len(msg))
 
         for name, elapsed in result.getTestTimings():
             if elapsed > self.slow_test_threshold:
-                self.write_result("({:.03}s) {}".format(elapsed, name))
+                self.write_result("({:.3f}s) {}".format(elapsed, name))
 
         return result
 

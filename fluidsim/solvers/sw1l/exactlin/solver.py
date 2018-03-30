@@ -49,7 +49,7 @@ class Simul(SimulSW1L):
 
         super(Simul, self).__init__(params)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         fft2 = oper.fft2
 
@@ -84,15 +84,18 @@ class Simul(SimulSW1L):
         (Nq_fft, Np_fft, Nm_fft
          ) = self.oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
 
-        # Nq_fft = self.oper.constant_arrayK(value=0)
-        # Np_fft = self.oper.constant_arrayK(value=0)
-        # Nm_fft = self.oper.constant_arrayK(value=0)
+        # Nq_fft = self.oper.create_arrayK(value=0)
+        # Np_fft = self.oper.create_arrayK(value=0)
+        # Nm_fft = self.oper.create_arrayK(value=0)
 
         oper.dealiasing(Nq_fft, Np_fft, Nm_fft)
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
         tendencies_fft.set_var('q_fft', Nq_fft)
         tendencies_fft.set_var('ap_fft', Np_fft)
         tendencies_fft.set_var('am_fft', Nm_fft)
@@ -105,7 +108,7 @@ class Simul(SimulSW1L):
     def compute_freq_complex(self, key):
         K2 = self.oper.K2
         if key == 'q_fft':
-            omega = self.oper.constant_arrayK(value=0)
+            omega = self.oper.create_arrayK(value=0)
         elif key == 'ap_fft':
             omega = 1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
         elif key == 'am_fft':

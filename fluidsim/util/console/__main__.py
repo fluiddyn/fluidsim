@@ -3,7 +3,7 @@
 
 """
 import argparse
-from ..._version import __version__
+from fluidsim import __version__
 from . import bench, bench_analysis, profile
 from .util import ConsoleError
 

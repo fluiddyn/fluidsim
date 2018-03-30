@@ -1,13 +1,11 @@
 """AD1D solver (:mod:`fluidsim.solvers.ad1d.solver`)
-=========================================================
-
+====================================================
 
 Provides:
 
 .. autoclass:: Simul
    :members:
    :private-members:
-
 
 """
 from __future__ import print_function
@@ -69,12 +67,15 @@ class Simul(SimulBase):
         attribs = {'U': 1.}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_phys=None):
+    def tendencies_nonlin(self, state_phys=None, old=None):
         """Compute the "nonlinear" tendencies."""
-        tendencies = SetOfVariables(
-            like=self.state.state_phys,
-            info='tendencies', value=0.)
-
+        if old is None:
+            tendencies = SetOfVariables(
+                like=self.state.state_phys,
+                info='tendencies', value=0.)
+        else:
+            tendencies = old
+            
         if self.params.forcing.enable:
             tendencies += self.forcing.tendencies
 

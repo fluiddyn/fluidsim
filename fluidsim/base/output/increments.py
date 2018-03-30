@@ -111,9 +111,9 @@ class Increments(SpecificOutput):
                 valmin[irx] = bin_edges_var[0]
                 valmax[irx] = bin_edges_var[self.nbins]
 
-            dico_results['pdf_delta_'+key] = pdf_var.flatten()
-            dico_results['valmin_'+key] = valmin
-            dico_results['valmax_'+key] = valmax
+            dico_results['pdf_delta_' + key] = pdf_var.flatten()
+            dico_results['valmin_' + key] = valmin
+            dico_results['valmax_' + key] = valmax
 
         return dico_results
 
@@ -127,7 +127,9 @@ class Increments(SpecificOutput):
         dset_times = f['times']
         times = dset_times[...]
 
-        list_base_keys = ['pdf_delta_', 'valmin_', 'valmax_', 'struc_func_']
+        list_base_keys = ['pdf_delta_', 'valmin_', 'valmax_',
+                          # 'struc_func_'
+        ]
 
         dico_results = {'times': times}
         for key in self.keys_vars_to_compute:

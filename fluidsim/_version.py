@@ -25,4 +25,19 @@ try:
     from setuptools_scm import get_version
     __version__ = get_version()
 except:
-    __version__ = '0.1.0.post2'
+    __version__ = '0.1.1'
+
+
+try:
+    from pyfiglet import figlet_format
+    __about__ = figlet_format('fluidsim v' + __version__, font='big')
+except:
+    __about__ = r"""
+  __ _       _     _     _
+ / _| |     (_)   | |   (_)
+| |_| |_   _ _  __| |___ _ _ __ ___
+|  _| | | | | |/ _` / __| | '_ ` _ \
+| | | | |_| | | (_| \__ \ | | | | | |
+|_| |_|\__,_|_|\__,_|___/_|_| |_| |_|
+
+"""

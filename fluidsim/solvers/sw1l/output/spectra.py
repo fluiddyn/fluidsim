@@ -289,7 +289,7 @@ imin_plot, imax_plot, delta_i_plot)
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot+1, delta_i_plot):
                 for k, c in zip(keys, colors):
-                    dset = self._select_field(it, k, f)
+                    dset = self._get_field_to_plot(it, k, f)
                     dset[dset < 10e-16] = machine_zero
                     ax1.plot(kh, dset * coef_norm, c, linewidth=1)
 
@@ -356,7 +356,7 @@ imin_plot, imax_plot, delta_i_plot)
             Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
             ax1.plot(kh, Ealin * coef_norm, 'y', linewidth=1, label='$E_{A}$')
 
-    def _select_field(self, idx, key_field=None, f=None):
+    def _get_field_to_plot(self, idx, key_field=None, f=None):
         if key_field is None:
             key_field = self._ani_key
 

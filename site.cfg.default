@@ -1,0 +1,8 @@
+[exclude_pythran]
+fluidsim.solvers.plate2d = True
+fluidsim.solvers.plate2d.output = True
+fluidsim.solvers.sw1l = True
+fluidsim.solvers.sw1l.output = True
+fluidsim.solvers.ns2d.strat = True
+fluidsim.solvers.ns2d.bouss = True
+

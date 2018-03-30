@@ -89,7 +89,7 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         r"""Compute the nonlinear tendencies.
 
         Parameters
@@ -153,7 +153,11 @@ class Simul(SimulBasePseudoSpectral):
 
         Frot = compute_Frot(ux, uy, px_rot, py_rot, self.params.beta)
 
-        tendencies_fft = SetOfVariables(like=self.state.state_spect)
+        if old is None:
+            tendencies_fft = SetOfVariables(like=self.state.state_spect)
+        else:
+            tendencies_fft = old
+            
         Frot_fft = tendencies_fft.get_var('rot_fft')
         oper.fft_as_arg(Frot, Frot_fft)
 

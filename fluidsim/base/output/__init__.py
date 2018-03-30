@@ -10,10 +10,12 @@ Provides:
    prob_dens_func
    spectra
    phys_fields
+   phys_fields1d
+   phys_fields2d
+   phys_fields3d
+   movies
    spatial_means
-   time_signalsK
-   spatial_means
-   time_signalsK
+   time_signals_fft
    increments
    print_stdout
    spect_energy_budget
@@ -145,13 +147,15 @@ def create_description_xmf_file(path=None):
 
     if os.path.isdir(path):
         paths = glob(path + '/state_phys*.nc')
+        path_dir = path
     else:
         paths = glob(path)
+        path_dir = os.path.dirname(path)
 
     if len(paths) == 0:
         raise ValueError('No file corresponds to this path.')
 
-    path_out = 'states_phys.xmf'
+    path_out = os.path.join(path_dir, 'states_phys.xmf')
 
     paths.sort()
     path = paths[0]
@@ -193,6 +197,23 @@ def create_description_xmf_file(path=None):
         origins = '0 0 0'
         deltaxs = '{} {} {}'.format(deltaz, deltay, deltax)
 
+    if ndim in (2, 3):
+        vectors = []
+        if ndim == 2:
+            components = ('x', 'y')
+            for_join = '$0, $1'
+        elif ndim == 3:
+            components = ('x', 'y', 'z')
+            for_join = '$0, $1, $2'
+
+        for key in keys:
+            if key.endswith('x'):
+                vector = key[:-1]
+                vector_components = set(
+                    [vector + compo for compo in components])
+                if vector_components.issubset(set(keys)):
+                    vectors.append(vector)
+
     txt = """<?xml version="1.0" ?>
 <!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
 <Xdmf>
@@ -232,6 +253,25 @@ def create_description_xmf_file(path=None):
       </Attribute>
 """.format(key=key, dims_data=dims_data, file_name=base_name)
 
+        for vector in vectors:
+            txt += """
+      <Attribute Name="{vector}" AttributeType="Vector" Center="Node">
+        <DataItem Dimensions="{dims_data} {ndim}"  ItemType="Function"
+                  Function="JOIN({for_join})">
+          <DataItem Dimensions="{dims_data}" NumberType="Float" Format="HDF">
+            {file_name}:/state_phys/{vector}x
+          </DataItem>
+          <DataItem Dimensions="{dims_data}" NumberType="Float" Format="HDF">
+            {file_name}:/state_phys/{vector}y
+          </DataItem>
+          <DataItem Dimensions="{dims_data}" NumberType="Float" Format="HDF">
+            {file_name}:/state_phys/{vector}z
+          </DataItem>
+        </DataItem>
+      </Attribute>
+""".format(vector=vector, dims_data=dims_data, for_join=for_join, ndim=ndim,
+           file_name=base_name)
+
         txt += '    </Grid>'
 
     txt += """
@@ -242,6 +282,9 @@ def create_description_xmf_file(path=None):
 
     with open(path_out, 'w') as f:
         f.write(txt)
+
+    print('Creation of the file ' + path_out +
+          '\nOpen it with a Xdmf reader to read the output files.')
 
 
 def run():

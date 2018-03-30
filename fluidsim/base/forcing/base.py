@@ -18,6 +18,11 @@ from builtins import object
 
 from fluiddyn.util import mpi
 
+from .specific import (
+    InScriptForcingPseudoSpectral,
+    InScriptForcingPseudoSpectralCoarse,
+    Proportional, TimeCorrelatedRandomPseudoSpectral)
+
 
 class ForcingBase(object):
     """Organize the forcing schemes (base class)"""
@@ -70,9 +75,7 @@ key_forced: {None} or str
 
         dict_classes = info_solver.classes.Forcing.import_classes()
         # iter on the dict in a determined order
-        keys = list(dict_classes.keys())
-        keys.sort()
-        for key in keys:
+        for key in sorted(dict_classes.keys()):
             cls = dict_classes[key]
             if hasattr(cls, '_complete_params_with_default'):
                 cls._complete_params_with_default(params)
@@ -117,6 +120,23 @@ class ForcingBasePseudoSpectral(ForcingBase):
     .. inheritance-diagram:: ForcingBasePseudoSpectral
 
     """
+
+    @staticmethod
+    def _complete_info_solver(info_solver, classes=None):
+        """Complete the ParamContainer info_solver."""
+
+        classes_default = (InScriptForcingPseudoSpectral,
+                           InScriptForcingPseudoSpectralCoarse,
+                           Proportional, TimeCorrelatedRandomPseudoSpectral)
+
+        if classes is None:
+            classes = classes_default[:]
+        else:
+            for cls_default in classes_default:
+                if not any(cls_default.tag == cls.tag for cls in classes):
+                    classes.append(cls_default)
+
+        ForcingBase._complete_info_solver(info_solver, classes=classes)
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

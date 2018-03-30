@@ -104,11 +104,11 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
         KX = oper.KX
         KZ = oper.KY
-        KK_not0 = oper.KK_not0
+        K_not0 = oper.K_not0
 
         # Group velocity cg
-        cg_kx = (N / KK_not0) * (KZ**2 / KK_not0**2)
-        cg_kz = (-N / KK_not0) * ((KX / KK_not0) * (KZ / KK_not0))
+        cg_kx = (N / K_not0) * (KZ**2 / K_not0**2)
+        cg_kz = (-N / K_not0) * ((KX / K_not0) * (KZ / K_not0))
         # cg = np.sqrt(cg_kx**2 + cg_kz**2)
         max_cgx = cg_kx.max()
         max_cgz = cg_kz.max()
@@ -117,7 +117,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
                       max_cgz / oper.deltay)
 
         # Phase velocity cp
-        cp = N * (KX / KK_not0**2)
+        cp = N * (KX / K_not0**2)
         max_cp = cp.max()
 
         freq_phase = max_cp / oper.deltax

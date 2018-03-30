@@ -11,6 +11,8 @@
 """
 from __future__ import division
 
+from fluidfft.fft3d.operators import vector_product
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
@@ -37,11 +39,6 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
 
         classes.Output.module_name = package + '.output'
         classes.Output.class_name = 'Output'
-
-        del(classes.Forcing)
-        classes._tag_children.remove('Forcing')
-        # classes.Forcing.module_name = package + '.forcing'
-        # classes.Forcing.class_name = 'ForcingNS3D'
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -100,36 +97,62 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
-        # fft3d = oper.fft3d
-        ifft3d = oper.ifft3d
+        ifft_as_arg = oper.ifft_as_arg
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
+        fft_as_arg = oper.fft_as_arg
+
+        if state_spect is None:
+            spect_get_var = self.state.state_spect.get_var
+        else:
+            spect_get_var = state_spect.get_var
+
+        vx_fft = spect_get_var('vx_fft')
+        vy_fft = spect_get_var('vy_fft')
+        vz_fft = spect_get_var('vz_fft')
+
+        omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
+            vx_fft, vy_fft, vz_fft)
+
+        omegax = self.state.fields_tmp[3]
+        omegay = self.state.fields_tmp[4]
+        omegaz = self.state.fields_tmp[5]
+
+        ifft_as_arg_destroy(omegax_fft, omegax)
+        ifft_as_arg_destroy(omegay_fft, omegay)
+        ifft_as_arg_destroy(omegaz_fft, omegaz)
 
         if state_spect is None:
             vx = self.state.state_phys.get_var('vx')
             vy = self.state.state_phys.get_var('vy')
             vz = self.state.state_phys.get_var('vz')
-            vx_fft = vy_fft = vz_fft = None
-
         else:
-            vx_fft = state_spect.get_var('vx_fft')
-            vy_fft = state_spect.get_var('vy_fft')
-            vz_fft = state_spect.get_var('vz_fft')
-            vx = ifft3d(vx_fft)
-            vy = ifft3d(vy_fft)
-            vz = ifft3d(vz_fft)
+            vx = self.state.fields_tmp[0]
+            vy = self.state.fields_tmp[1]
+            vz = self.state.fields_tmp[2]
+            ifft_as_arg(vx_fft, vx)
+            ifft_as_arg(vy_fft, vy)
+            ifft_as_arg(vz_fft, vz)
 
-        Fvx_fft, Fvy_fft, Fvz_fft = oper.div_vv_fft_from_v(vx, vy, vz)
+        fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
-        oper.project_perpk3d(Fvx_fft, Fvy_fft, Fvz_fft)
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        fx_fft = tendencies_fft.get_var('vx_fft')
+        fy_fft = tendencies_fft.get_var('vy_fft')
+        fz_fft = tendencies_fft.get_var('vz_fft')
 
-        tendencies_fft.set_var('vx_fft', -Fvx_fft)
-        tendencies_fft.set_var('vy_fft', -Fvy_fft)
-        tendencies_fft.set_var('vz_fft', -Fvz_fft)
+        fft_as_arg(fx, fx_fft)
+        fft_as_arg(fy, fy_fft)
+        fft_as_arg(fz, fz_fft)
+
+        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
 
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
@@ -156,7 +179,7 @@ if __name__ == "__main__":
     params.oper.Ly = L
     params.oper.Lz = L
     params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
-    # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
+    # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     delta_x = params.oper.Lx / params.oper.nx

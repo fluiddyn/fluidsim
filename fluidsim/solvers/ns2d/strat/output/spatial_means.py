@@ -121,11 +121,11 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
     def load(self):
         """Generates a dictionary with the output values"""
-        dict_results = {'name_solver': self.output.name_solver}
-
-        file_means = open(self.path_file)
-        lines = file_means.readlines()
-
+        dico_results = {'name_solver': self.output.name_solver}
+        
+        with open(self.path_file, 'r') as f:
+            lines = f.readlines()
+            
         lines_t = []
         lines_E = []
         lines_PK = []
@@ -216,51 +216,51 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             epsA_hypo[il] = float(words[6])
             epsA_tot[il] = float(words[10])
 
-        dict_results['t'] = t
-        dict_results['E'] = E
-        dict_results['Z'] = Z
-        dict_results['E_shear'] = E_shear
+        dico_results['t'] = t
+        dico_results['E'] = E
+        dico_results['Z'] = Z
+        dico_results['E_shear'] = E_shear
 
-        dict_results['PK1'] = PK1
-        dict_results['PK2'] = PK2
-        dict_results['PK_tot'] = PK_tot
+        dico_results['PK1'] = PK1
+        dico_results['PK2'] = PK2
+        dico_results['PK_tot'] = PK_tot
 
-        dict_results['PZ1'] = PZ1
-        dict_results['PZ2'] = PZ2
-        dict_results['PZ_tot'] = PZ_tot
+        dico_results['PZ1'] = PZ1
+        dico_results['PZ2'] = PZ2
+        dico_results['PZ_tot'] = PZ_tot
 
-        dict_results['epsK'] = epsK
-        dict_results['epsK_hypo'] = epsK_hypo
-        dict_results['epsK_tot'] = epsK_tot
+        dico_results['epsK'] = epsK
+        dico_results['epsK_hypo'] = epsK_hypo
+        dico_results['epsK_tot'] = epsK_tot
 
-        dict_results['epsZ'] = epsZ
-        dict_results['epsZ_hypo'] = epsZ_hypo
-        dict_results['epsZ_tot'] = epsZ_tot
+        dico_results['epsZ'] = epsZ
+        dico_results['epsZ_hypo'] = epsZ_hypo
+        dico_results['epsZ_tot'] = epsZ_tot
 
-        dict_results['epsA'] = epsA
-        dict_results['epsA_hypo'] = epsA_hypo
-        dict_results['epsA_tot'] = epsA_tot
+        dico_results['epsA'] = epsA
+        dico_results['epsA_hypo'] = epsA_hypo
+        dico_results['epsA_tot'] = epsA_tot
 
-        return dict_results
+        return dico_results
 
     def plot(self):
-        dict_results = self.load()
+        dico_results = self.load()
 
-        t = dict_results['t']
-        E = dict_results['E']
-        Z = dict_results['Z']
+        t = dico_results['t']
+        E = dico_results['E']
+        Z = dico_results['Z']
 
-        epsK = dict_results['epsK']
-        epsK_hypo = dict_results['epsK_hypo']
-        epsK_tot = dict_results['epsK_tot']
+        epsK = dico_results['epsK']
+        epsK_hypo = dico_results['epsK_hypo']
+        epsK_tot = dico_results['epsK_tot']
 
-        epsZ = dict_results['epsZ']
-        epsZ_hypo = dict_results['epsZ_hypo']
-        epsZ_tot = dict_results['epsZ_tot']
+        epsZ = dico_results['epsZ']
+        epsZ_hypo = dico_results['epsZ_hypo']
+        epsZ_tot = dico_results['epsZ_tot']
 
-        epsA = dict_results['epsA']
-        epsA_hypo = dict_results['epsA_hypo']
-        epsA_tot = dict_results['epsA_tot']
+        epsA = dico_results['epsA']
+        epsA_hypo = dico_results['epsA_hypo']
+        epsA_tot = dico_results['epsA_tot']
 
         width_axe = 0.85
         height_axe = 0.39
@@ -305,8 +305,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax2.plot(t, epsZ_tot, 'k', linewidth=2)
 
         if self.sim.params.forcing.enable:
-            PK_tot = dict_results['PK_tot']
-            PZ_tot = dict_results['PZ_tot']
+            PK_tot = dico_results['PK_tot']
+            PZ_tot = dico_results['PZ_tot']
             ax1.plot(t, PK_tot, 'c', label='P', linewidth=2)
             ax2.plot(t, PZ_tot, 'c', label='P', linewidth=2)
             ax1.set_ylabel('P_E(t), epsK(t)')

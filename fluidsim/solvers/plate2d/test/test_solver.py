@@ -11,7 +11,7 @@ from fluiddyn.io import stdout_redirected
 from fluidsim.solvers.plate2d.solver import Simul
 
 
-class TestSolverPLATE2D(unittest.TestCase):
+class TestSolverPlate2D(unittest.TestCase):
     def tearDown(self):
         if mpi.rank == 0:
             shutil.rmtree(self.sim.output.path_run)

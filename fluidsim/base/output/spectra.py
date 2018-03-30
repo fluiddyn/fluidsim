@@ -1,8 +1,9 @@
 from __future__ import print_function
-import h5py
 
 import os
+
 import numpy as np
+import h5py
 
 from fluiddyn.util import mpi
 
@@ -10,7 +11,68 @@ from .base import SpecificOutput
 from .movies import MoviesBase1D
 
 
-class Spectra(SpecificOutput, MoviesBase1D):
+class MoviesSpectra(MoviesBase1D):
+
+    def __init__(self, output, spectra):
+        self.spectra = spectra
+        super(MoviesSpectra, self).__init__(output)
+
+    def init_animation(self, *args, **kwargs):
+        if 'xmax' not in kwargs:
+            kwargs['xmax'] = self.oper.khE[-1:][0]
+        if 'ymax' not in kwargs:
+            kwargs['ymax'] = 1.0
+
+        with h5py.File(self.spectra.path_file2D) as f:
+            self.times = f['times'][...]
+
+        super(MoviesSpectra, self).init_animation(*args, **kwargs)
+
+    def get_field_to_plot(self, time, key=None):
+        if key is None:
+            key = self.key_field
+        idx, t_file = self.get_closest_time_file(time)
+        with h5py.File(self.spectra.path_file2D) as f:
+            y = f['spectrum2D_' + key][idx]
+        y[abs(y) < 10e-16] = 0
+        return y
+
+    def get_closest_time_file(self, time):
+        '''Find the index and value of the closest actual time of the field.'''
+        idx = np.abs(self.times - time).argmin()
+        return idx, self.times[idx]
+
+    def _init_labels(self, xlabel='x'):
+        '''Initialize the labels.'''
+        self.ax.set_xlabel(xlabel, fontdict=self.font)
+        self.ax.set_ylabel(self.key_field, fontdict=self.font)
+        self.ax.set_yscale('log')
+
+    def _get_axis_data(self):
+        """Get axis data.
+
+        Returns
+        -------
+
+        x : array
+          x-axis data.
+
+        """
+        with h5py.File(self.spectra.path_file2D) as f:
+            x = f['khE'][...]
+
+        return x
+
+    def _set_key_field(self, key_field):
+        """
+        Defines key_field default.
+        """
+        if key_field is None:
+            key_field = 'E'
+        self.key_field = key_field
+
+
+class Spectra(SpecificOutput):
     """Used for the saving of spectra."""
 
     _tag = 'spectra'
@@ -23,7 +85,15 @@ class Spectra(SpecificOutput, MoviesBase1D):
         params.output._set_child(tag,
                                  attribs={'HAS_TO_PLOT_SAVED': False})
 
+    def _init_movies(self):
+        self.movies = MoviesSpectra(self.output, self)
+
     def __init__(self, output):
+        self.output = output
+
+        if hasattr(self, '_init_movies'):
+            self._init_movies()
+
         params = output.sim.params
         self.nx = int(params.oper.nx)
 
@@ -179,36 +249,3 @@ class Spectra(SpecificOutput, MoviesBase1D):
 
     def plot2d(self):
         pass
-
-    def _ani_init(self, *args, **kwargs):
-        if 'xmax' not in kwargs:
-            kwargs['xmax'] = self.oper.khE[-1:][0]
-        if 'ymax' not in kwargs:
-            kwargs['ymax'] = 1.0
-
-        with h5py.File(self.path_file2D) as f:
-            self._ani_t_actual = f['times'][...]
-
-        super(Spectra, self)._ani_init(*args, **kwargs)
-
-    def _ani_get_field(self, time):
-        idx, t_actual = self._ani_get_t_actual(time)
-        y = self._select_field(idx)
-        y[abs(y) < 10e-16] = 0
-
-        return y, self._ani_key
-
-    def _select_field(self, idx):
-        with h5py.File(self.path_file2D) as f:
-            y = f['spectrum2D_' + self._ani_key][idx]
-
-        return y
-
-    def _select_axis(self, xlabel=r'$k_h$'):
-        with h5py.File(self.path_file2D) as f:
-            x = f['khE'][...]
-
-        self._ani_ax.set_xlabel(xlabel, fontdict=self.font)
-        self._ani_ax.set_ylabel(self._ani_key, fontdict=self.font)
-        self._ani_ax.set_yscale('log')
-        return x

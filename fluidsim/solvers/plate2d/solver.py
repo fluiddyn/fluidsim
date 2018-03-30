@@ -19,9 +19,6 @@ plate2d.
 from __future__ import print_function
 from __future__ import division
 
-import os
-
-from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -35,13 +32,13 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
         """Init. `self` by writting the information on the solver.
 
         The function `InfoSolverPseudoSpectral._init_root` is
-        called. We keep two classes listed by this function:
+        called. We keep one class listed by this function:
 
         - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
 
-        - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
-
         The other first-level classes for this solver are:
+
+        - :class:`fluidsim.solvers.plate2d.operators.OperatorsPseudoSpectralPlate2D`
 
         - :class:`fluidsim.solvers.plate2d.solver.Simul`
 
@@ -64,11 +61,8 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
 
         classes = self.classes
 
-        if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
-            self.classes.Operators.module_name = \
-                'fluidsim.operators.operators_plate2d'
-            self.classes.Operators.class_name = \
-                'OperatorsPseudoSpectralPlate2D'
+        classes.Operators.module_name = package + '.operators'
+        classes.Operators.class_name = 'OperatorsPseudoSpectralPlate2D'
 
         classes.State.module_name = package + '.state'
         classes.State.class_name = 'StatePlate2D'
@@ -170,16 +164,19 @@ class Simul(SimulBasePseudoSpectral):
         attribs = {'beta': 0.}
         params._set_attribs(attribs)
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         """Compute the "nonlinear" tendencies."""
         oper = self.oper
 
         if state_spect is None:
             state_spect = self.state.state_spect
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
 
         w_fft = state_spect.get_var('w_fft')
         z_fft = state_spect.get_var('z_fft')
@@ -280,7 +277,7 @@ class Simul(SimulBasePseudoSpectral):
             # print('NQ\n', dt_E_NQ)
             return 0
         else:
-            T = old_div(T,norm)
+            T = T/norm
             # print('ratio array\n', T)
             # print('(K+L)\n', (dt_E_K+dt_E_L)/norm)
             # print('NQ\n', dt_E_NQ/norm)
@@ -322,11 +319,11 @@ if __name__ == "__main__":
     # params.init_fields.path_file = ''
 
     params.forcing.enable = True
-    params.forcing.type = 'random'
+    params.forcing.type = 'tcrandom'
     params.forcing.forcing_rate = 1e12
     params.forcing.nkmax_forcing = 5
     params.forcing.nkmin_forcing = 2
-    params.forcing.random.time_correlation = 100*deltat
+    params.forcing.tcrandom.time_correlation = 100*deltat
 
     params.output.periods_print.print_stdout = 0.05
 

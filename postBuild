@@ -1,0 +1,3 @@
+# Commands to run on Binder https://mybinder.org after building from
+# environment.yml
+python setup.py install

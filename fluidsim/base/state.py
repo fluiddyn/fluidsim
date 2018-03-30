@@ -90,8 +90,8 @@ class StateBase(object):
         -------
         bool
 
-        Example
-        -------
+        Examples
+        --------
         >>> sim.state.has_vars('ux', 'uy')
         >>> sim.state.has_vars('ux')
         >>> sim.state.has_vars('ux', 'vx', strict=False)
@@ -166,6 +166,36 @@ class StateBase(object):
         """
         raise DeprecationWarning('Do not call can_this_key_be_obtained. '
                                  'Instead, use has_vars method.')
+
+    def init_statephys_from(self, **kwargs):
+        """Initialize `state_phys` from arrays.
+
+        Parameters
+        ----------
+
+        **kwargs : {key: array, ...}
+
+          keys and arrays used for the initialization. The other keys
+          are set to zero.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+           kwargs = {'a': Fa}
+           init_statespect_from(**kwargs)
+
+           init_statespect_from(ux=ux, uy=uy, eta=eta)
+
+        """
+        self.state_phys[:] = 0.
+
+        for key, value in list(kwargs.items()):
+            if key not in self.keys_state_phys:
+                raise ValueError(
+                    'Do not know how to initialize with key "{}".'.format(key))
+            self.state_phys.set_var(key, value)
 
 
 class StatePseudoSpectral(StateBase):
@@ -288,13 +318,13 @@ class StatePseudoSpectral(StateBase):
 
     def return_statephys_from_statespect(self, state_spect=None):
         """Return the physical variables computed from the spectral variables."""
-        ifft2 = self.oper.ifft2
+        ifft = self.oper.ifft
         if state_spect is None:
             state_spect = self.state_spect
 
         state_phys = SetOfVariables(like=self.state_phys)
         for ik in range(self.state_spect.nvar):
-            state_phys[ik] = ifft2(state_spect[ik])
+            state_phys[ik] = ifft(state_spect[ik])
         return state_phys
 
     def can_this_key_be_obtained(self, key):
@@ -332,33 +362,3 @@ class StatePseudoSpectral(StateBase):
                 raise ValueError(
                     'Do not know how to initialize with key "{}".'.format(key))
             self.state_spect.set_var(key, value)
-
-    def init_statephys_from(self, **kwargs):
-        """Initialize `state_phys` from arrays.
-
-        Parameters
-        ----------
-
-        **kwargs : {key: array, ...}
-
-          keys and arrays used for the initialization. The other keys
-          are set to zero.
-
-        Examples
-        --------
-
-        .. code-block:: python
-
-           kwargs = {'a': Fa}
-           init_statespect_from(**kwargs)
-
-           init_statespect_from(ux=ux, uy=uy, eta=eta)
-
-        """
-        self.state_phys[:] = 0.
-
-        for key, value in list(kwargs.items()):
-            if key not in self.keys_state_phys:
-                raise ValueError(
-                    'Do not know how to initialize with key "{}".'.format(key))
-            self.state_phys.set_var(key, value)

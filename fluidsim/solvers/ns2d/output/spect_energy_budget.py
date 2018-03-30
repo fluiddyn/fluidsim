@@ -82,8 +82,8 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         transfer2D_E = dico_results['transfer2D_E']
         transfer2D_Z = dico_results['transfer2D_Z']
         khE = self.oper.khE
-        PiE = cumsum_inv(transfer2D_E)*self.oper.deltakh
-        PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltakh
+        PiE = cumsum_inv(transfer2D_E)*self.oper.deltak
+        PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltak
         self.axe_a.plot(khE+khE[1], PiE, 'k')
         self.axe_b.plot(khE+khE[1], PiZ, 'g')
 
@@ -137,8 +137,8 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
                 transferE = dset_transferE[it]
                 transferZ = dset_transferZ[it]
 
-                PiE = cumsum_inv(transferE)*self.oper.deltakh
-                PiZ = cumsum_inv(transferZ)*self.oper.deltakh
+                PiE = cumsum_inv(transferE)*self.oper.deltak
+                PiZ = cumsum_inv(transferZ)*self.oper.deltak
 
                 ax1.plot(khE, PiE, 'k', linewidth=1)
                 ax1.plot(khE, PiZ, 'g', linewidth=1)
@@ -146,8 +146,8 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}'''.format(
         transferE = dset_transferE[imin_plot:imax_plot].mean(0)
         transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
 
-        PiE = cumsum_inv(transferE)*self.oper.deltakh
-        PiZ = cumsum_inv(transferZ)*self.oper.deltakh
+        PiE = cumsum_inv(transferE)*self.oper.deltak
+        PiZ = cumsum_inv(transferZ)*self.oper.deltak
 
         ax1.plot(khE, PiE, 'r', linewidth=2)
         ax1.plot(khE, PiZ, 'm', linewidth=2)

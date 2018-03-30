@@ -17,7 +17,7 @@ from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from . import util2d_pythran, util_sw1l_pythran
+from . import util2d_pythran
 from .util2d_pythran import (
     dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft,
     compute_increments_dim1)
@@ -44,7 +44,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if nb_proc > 1:
             type_fft = 'fft2d.mpi_with_fftw1d'
         else:
-            type_fft = 'fft2d.with_fftw2d'
+            type_fft = 'fft2d.with_pyfftw'
 
         attribs = {'type_fft': type_fft,
                    'coef_dealiasing': 2./3,
@@ -54,7 +54,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                    'Ly': 8}
         params._set_child('oper', attribs=attribs)
 
-    def __init__(self, params, SEQUENTIAL=None, goal_to_print=None):
+    def __init__(self, params):
 
         self.params = params
 
@@ -75,7 +75,6 @@ class OperatorsPseudoSpectral2D(_Operators):
                 self.project_fft_on_realX = self.project_fft_on_realX_slow
 
         if not self.is_sequential:
-
             self.iKxloc_start, _ = self.opfft.get_seq_indices_first_K()
             self.iKxloc_start_rank = np.array(
                 comm.allgather(self.iKxloc_start))
@@ -106,68 +105,6 @@ class OperatorsPseudoSpectral2D(_Operators):
     def dealiasing_setofvar(self, sov):
         dealiasing_setofvar(sov, self.where_dealiased,
                             self.nK0_loc, self.nK1_loc)
-
-    def constant_arrayK(self, value=None, dtype=complex, shape='loc'):
-        """Return a constant array in spectral space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeK = self.shapeK_loc
-        elif shape == 'seq':
-            shapeK = self.shapeK_seq
-        elif shape == 'gat':
-            shapeK = self.shapeK_gat
-        else:
-            raise ValueError('shape should be "loc" or "seq"')
-        if value is None:
-            field_lm = np.empty(shapeK, dtype=dtype)
-        elif value == 0:
-            field_lm = np.zeros(shapeK, dtype=dtype)
-        else:
-            field_lm = value*np.ones(shapeK, dtype=dtype)
-        return field_lm
-
-    def constant_arrayX(self, value=None, dtype=np.float64, shape='loc'):
-        """Return a constant array in real space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeX = self.shapeX_loc
-        elif shape == 'seq':
-            shapeX = self.shapeX_seq
-        else:
-            raise ValueError('shape should be "loc" of "seq"')
-        if value is None:
-            field = np.empty(shapeX, dtype=dtype)
-        elif value == 0:
-            field = np.zeros(shapeX, dtype=dtype)
-        else:
-            field = value*np.ones(shapeX, dtype=dtype)
-        return field
-
-    def random_arrayK(self, shape='loc'):
-        """Return a random array in spectral space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeK = self.shapeK_loc
-        elif shape == 'seq':
-            shapeK = self.shapeK_seq
-        elif shape == 'gat':
-            shapeK = self.shapeK_gat
-        else:
-            raise ValueError('shape should be "loc", "gat" or "seq"')
-        a_fft = (np.random.random(shapeK) +
-                 1j*np.random.random(shapeK) - 0.5 - 0.5j)
-        return a_fft
-
-    def random_arrayX(self, shape='loc'):
-        """Return a random array in real space."""
-        shape = shape.lower()
-        if shape == 'loc':
-            shapeX = self.shapeX_loc
-        elif shape == 'seq':
-            shapeX = self.shapeX_seq
-        else:
-            raise ValueError('shape should be "loc" or "seq"')
-        return np.random.random(shapeX)
 
     def project_fft_on_realX_seq(self, f_fft):
         """Project the given field in spectral space such as its
@@ -213,102 +150,102 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
         """Return a coarse field in K space."""
-        nKyc = shapeK_loc_coarse[0]
-        nKxc = shapeK_loc_coarse[1]
+        nkyc = shapeK_loc_coarse[0]
+        nkxc = shapeK_loc_coarse[1]
 
         if nb_proc > 1:
             if not self.is_transposed:
                 raise NotImplementedError()
 
-            fc_trans = np.empty([nKxc, nKyc], np.complex128)
-            nKy = self.shapeK_seq[1]
-            f1d_temp = np.empty([nKyc], np.complex128)
+            fc_trans = np.empty([nkxc, nkyc], np.complex128)
+            nky = self.shapeK_seq[1]
+            f1d_temp = np.empty([nkyc], np.complex128)
 
-            for iKxc in range(nKxc):
-                kx = self.deltakx*iKxc
-                rank_iKx, iKxloc, iKyloc = self.where_is_wavenumber(kx, 0.)
-                if rank == rank_iKx:
+            for ikxc in range(nkxc):
+                kx = self.deltakx*ikxc
+                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
+                if rank == rank_ikx:
                     # create f1d_temp
-                    for iKyc in range(nKyc):
-                        if iKyc <= nKyc/2:
-                            iKy = iKyc
+                    for ikyc in range(nkyc):
+                        if ikyc <= nkyc/2:
+                            iky = ikyc
                         else:
-                            kynodim = iKyc - nKyc
-                            iKy = kynodim + nKy
-                        f1d_temp[iKyc] = f_fft[iKxloc, iKy]
+                            kynodim = ikyc - nkyc
+                            iky = kynodim + nky
+                        f1d_temp[ikyc] = f_fft[ikxloc, iky]
 
-                if rank_iKx != 0:
+                if rank_ikx != 0:
                     # message f1d_temp
                     if rank == 0:
                         # print('f1d_temp', f1d_temp, f1d_temp.dtype)
                         comm.Recv(
                             [f1d_temp, MPI.DOUBLE_COMPLEX],
-                            source=rank_iKx, tag=iKxc)
-                    elif rank == rank_iKx:
+                            source=rank_ikx, tag=ikxc)
+                    elif rank == rank_ikx:
                         comm.Send(
                             [f1d_temp, MPI.DOUBLE_COMPLEX],
-                            dest=0, tag=iKxc)
+                            dest=0, tag=ikxc)
                 if rank == 0:
                     # copy into fc_trans
-                    fc_trans[iKxc] = f1d_temp.copy()
+                    fc_trans[ikxc] = f1d_temp.copy()
             fc_fft = fc_trans.transpose()
 
         else:
-            nKy = self.shapeK_seq[0]
-            fc_fft = np.empty([nKyc, nKxc], np.complex128)
-            for iKyc in range(nKyc):
-                if iKyc <= nKyc/2:
-                    iKy = iKyc
+            nky = self.shapeK_seq[0]
+            fc_fft = np.empty([nkyc, nkxc], np.complex128)
+            for ikyc in range(nkyc):
+                if ikyc <= nkyc/2:
+                    iky = ikyc
                 else:
-                    kynodim = iKyc - nKyc
-                    iKy = kynodim + nKy
-                for iKxc in range(nKxc):
-                    fc_fft[iKyc, iKxc] = f_fft[iKy, iKxc]
+                    kynodim = ikyc - nkyc
+                    iky = kynodim + nky
+                for ikxc in range(nkxc):
+                    fc_fft[ikyc, ikxc] = f_fft[iky, ikxc]
         return fc_fft
 
     def fft_loc_from_coarse_seq(self, fc_fft, shapeK_loc_coarse):
         """Return a large field in K space."""
-        nKyc = shapeK_loc_coarse[0]
-        nKxc = shapeK_loc_coarse[1]
+        nkyc = shapeK_loc_coarse[0]
+        nkxc = shapeK_loc_coarse[1]
 
         if nb_proc > 1:
-            nKy = self.shapeK_seq[0]
-            f_fft = self.constant_arrayK(value=0.)
+            nky = self.shapeK_seq[0]
+            f_fft = self.create_arrayK(value=0.)
             fc_trans = fc_fft.transpose()
 
-            for iKxc in range(nKxc):
-                kx = self.deltakx*iKxc
-                rank_iKx, iKxloc, iKyloc = self.where_is_wavenumber(kx, 0.)
-                fc1D = fc_trans[iKxc]
-                if rank_iKx != 0:
+            for ikxc in range(nkxc):
+                kx = self.deltakx*ikxc
+                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
+                fc1D = fc_trans[ikxc]
+                if rank_ikx != 0:
                     # message fc1D
                     fc1D = np.ascontiguousarray(fc1D)
                     if rank == 0:
-                        comm.Send(fc1D, dest=rank_iKx, tag=iKxc)
-                    elif rank == rank_iKx:
-                        comm.Recv(fc1D, source=0, tag=iKxc)
-                if rank == rank_iKx:
+                        comm.Send(fc1D, dest=rank_ikx, tag=ikxc)
+                    elif rank == rank_ikx:
+                        comm.Recv(fc1D, source=0, tag=ikxc)
+                if rank == rank_ikx:
                     # copy
-                    for iKyc in range(nKyc):
-                        if iKyc <= nKyc/2:
-                            iKy = iKyc
+                    for ikyc in range(nkyc):
+                        if ikyc <= nkyc/2:
+                            iky = ikyc
                         else:
-                            kynodim = iKyc - nKyc
-                            iKy = kynodim + nKy
-                        f_fft[iKxloc, iKy] = fc1D[iKyc]
+                            kynodim = ikyc - nkyc
+                            iky = kynodim + nky
+                        f_fft[ikxloc, iky] = fc1D[ikyc]
 
         else:
-            nKy = self.shapeK_seq[0]
-            nKx = self.shapeK_seq[1]
-            f_fft = np.zeros([nKy, nKx], np.complex128)
-            for iKyc in range(nKyc):
-                if iKyc <= nKyc/2:
-                    iKy = iKyc
+            nky = self.shapeK_seq[0]
+            nkx = self.shapeK_seq[1]
+            f_fft = np.zeros([nky, nkx], np.complex128)
+            for ikyc in range(nkyc):
+                if ikyc <= nkyc/2:
+                    iky = ikyc
                 else:
-                    kynodim = iKyc - nKyc
-                    iKy = kynodim + nKy
-                for iKxc in range(nKxc):
-                    f_fft[iKy, iKxc] = fc_fft[iKyc, iKxc]
+                    kynodim = ikyc - nkyc
+                    iky = kynodim + nky
+                for ikxc in range(nkxc):
+                    f_fft[iky, ikxc] = fc_fft[ikyc, ikxc]
         return f_fft
 
     def compute_increments_dim1(self, var, irx):
@@ -409,7 +346,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
         if params.f == 0:
-            eta_fft = self.constant_arrayK(value=0)
+            eta_fft = self.create_arrayK(value=0)
         else:
             eta_fft = -params.f*q_fft/(K2_not0+params.kd2)/params.c2
         if rank == 0:
@@ -424,7 +361,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         K2_not0 = self.K2_not0
 
         if params.f == 0:
-            rot_fft = self.constant_arrayK(value=0)
+            rot_fft = self.create_arrayK(value=0)
         else:
             rot_fft = params.f*a_fft/(K2_not0+params.kd2)
         if rank == 0:
@@ -454,7 +391,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         # K2 = self.K2
         K2_not0 = self.K2_not0
         if params.f == 0:
-            rot_fft = self.constant_arrayK(value=0)
+            rot_fft = self.create_arrayK(value=0)
         else:
             rot_fft = params.f*a_fft/(K2_not0+params.kd2)
         if rank == 0:
@@ -477,7 +414,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         K2_not0 = self.K2_not0
         if params.f == 0:
-            eta_fft = self.constant_arrayK(value=0)
+            eta_fft = self.create_arrayK(value=0)
         else:
             eta_fft = -params.f/params.c2*q_fft/(K2_not0+params.kd2)
         if rank == 0:
@@ -552,26 +489,6 @@ class OperatorsPseudoSpectral2D(_Operators):
         ap_fft = 0.5 * self.K2 * eta_fft
         am_fft = ap_fft.copy()
         return q_fft, ap_fft, am_fft
-
-    def qapamfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
-        """ux, uy, eta (fft) ---> q, ap, am (fft)"""
-
-        if params is None:
-            params = self.params
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KX = self.KX
-        KY = self.KY
-        K2 = self.K2
-        Kappa_over_ic = self.Kappa_over_ic
-        f = float(params.f)
-        c2 = float(params.c2)
-
-        return util_sw1l_pythran.qapamfft_from_uxuyetafft(
-            ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
-            Kappa_over_ic, f, c2, rank)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""
@@ -651,3 +568,76 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     def invlaplacian2_fft(self, a_fft):
         return invlaplacian2_fft(a_fft, self.K4_not0, rank)
+
+    def put_coarse_array_in_array_fft(self, arr_coarse, arr, oper_coarse,
+                                      shapeK_loc_coarse):
+        """Put the values contained in a coarse array in an array.
+
+        Both arrays are in Fourier space.
+
+        """
+        if arr.ndim == 3:
+            if mpi.rank == 0:
+                if arr_coarse.ndim != 3:
+                    raise ValueError
+
+            for ikey in range(arr.shape[0]):
+                if mpi.rank == 0:
+                    arr2d_coarse = arr_coarse[ikey]
+                else:
+                    arr2d_coarse = None
+                self.put_coarse_array_in_array_fft(
+                    arr2d_coarse, arr[ikey], oper_coarse,
+                    shapeK_loc_coarse)
+            return
+
+        nKyc, nKxc = shapeK_loc_coarse
+
+        if mpi.nb_proc > 1:
+            if not self.is_transposed:
+                raise NotImplementedError()
+            nKy = self.shapeK_seq[1]
+
+            if mpi.rank == 0:
+                fck_fft = arr_coarse.transpose()
+
+            for ikxc in range(nKxc):
+                kx = self.deltakx * ikxc
+                rank_ikx, ikxloc, ikyloc = (
+                    self.where_is_wavenumber(kx, 0.))
+
+                if mpi.rank == 0:
+                    fc1D = fck_fft[ikxc]
+
+                if rank_ikx != 0:
+                    # message fc1D
+                    if mpi.rank == rank_ikx:
+                        fc1D = np.empty([nKyc], dtype=np.complex128)
+                    if mpi.rank == 0 or mpi.rank == rank_ikx:
+                        fc1D = np.ascontiguousarray(fc1D)
+                    if mpi.rank == 0:
+                        mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
+                                      dest=rank_ikx, tag=ikxc)
+                    elif mpi.rank == rank_ikx:
+                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX],
+                                      source=0, tag=ikxc)
+                if mpi.rank == rank_ikx:
+                    # copy
+                    for ikyc in range(nKyc):
+                        if ikyc <= nKyc / 2.:
+                            iky = ikyc
+                        else:
+                            kynodim = ikyc - nKyc
+                            iky = kynodim + nKy
+                        arr[ikxloc, iky] = fc1D[ikyc]
+        else:
+            nKy = self.shapeK_seq[0]
+
+            for ikyc in range(nKyc):
+                if ikyc <= nKyc / 2.:
+                    iky = ikyc
+                else:
+                    kynodim = ikyc - nKyc
+                    iky = kynodim + nKy
+                for ikxc in range(nKxc):
+                    arr[iky, ikxc] = arr_coarse[ikyc, ikxc]

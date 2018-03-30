@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
+from time import time
 from runpy import run_path
 from datetime import datetime
 from distutils.sysconfig import get_config_var
@@ -33,14 +34,14 @@ except ImportError:
 import numpy as np
 
 from config import (
-    MPI4PY, FFTW3, FFTW3MPI, dict_ldd, dict_lib, dict_inc,
-    monkeypatch_parallel_build)
+    MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger)
 
-BUILD_OLD_EXTENSIONS = False
+time_start = time()
+config = get_config()
 
 monkeypatch_parallel_build()
 
-print('Running fluidsim setup.py on platform ' + sys.platform)
+logger.info('Running fluidsim setup.py on platform ' + sys.platform)
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -56,6 +57,9 @@ long_description = ''.join(lines[14:])
 # Get the version from the relevant file
 d = run_path('fluidsim/_version.py')
 __version__ = d['__version__']
+__about__ = d['__about__']
+
+print(__about__)
 
 # Get the development status from the version string
 if 'a' in __version__:
@@ -67,78 +71,13 @@ else:
 
 ext_modules = []
 
-print('MPI4PY', MPI4PY)
+logger.info('Importing mpi4py: {}'.format(MPI4PY))
 
 define_macros = []
 if has_cython and os.getenv('TOXENV') is not None:
     cython_defaults = CythonOptions.get_directive_defaults()
     cython_defaults['linetrace'] = True
     define_macros.append(('CYTHON_TRACE_NOGIL', '1'))
-
-if BUILD_OLD_EXTENSIONS and MPI4PY and FFTW3:  # ..TODO: Redundant? Check.
-    path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpiccy'
-    include_dirs = [path_sources, np.get_include()] + \
-        dict_inc['mpi'] + dict_inc['fftw']
-    libraries = dict_ldd['mpi'] + dict_ldd['fftw'] + ['m']
-    library_dirs = dict_lib['mpi'] + dict_lib['fftw']
-
-    ext_fftw2dmpiccy = Extension(
-        'fluidsim.operators.fft.fftw2dmpiccy',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        sources=[path_sources + '/libcfftw2dmpi.c',
-                 path_sources + '/fftw2dmpiccy.' + ext_source],
-        define_macros=define_macros)
-    ext_modules.append(ext_fftw2dmpiccy)
-
-if BUILD_OLD_EXTENSIONS and FFTW3:
-    path_sources = 'fluidsim/operators/fft/Sources_fftw2dmpicy'
-    include_dirs = [path_sources, np.get_include()] + \
-        dict_inc['mpi'] + dict_inc['fftw']
-    libraries = dict_ldd['mpi'] + dict_ldd['fftw'] + ['m']
-    library_dirs = dict_lib['mpi'] + dict_lib['fftw']
-
-    if FFTW3MPI:
-        ext_fftw2dmpicy = Extension(
-            'fluidsim.operators.fft.fftw2dmpicy',
-            include_dirs=include_dirs,
-            libraries=libraries,
-            library_dirs=library_dirs,
-            cython_compile_time_env={'MPI4PY': MPI4PY},
-            sources=[path_sources + '/fftw2dmpicy.' + ext_source],
-            define_macros=define_macros)
-        ext_modules.append(ext_fftw2dmpicy)
-
-if BUILD_OLD_EXTENSIONS:
-
-    path_sources = 'fluidsim/operators/CySources'
-    include_dirs = [path_sources, np.get_include()] + dict_inc['mpi']
-    libraries = dict_ldd['mpi'] + ['m']
-    library_dirs = dict_lib['mpi']
-
-    ext_operators = Extension(
-        'fluidsim.operators.operators',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/operators_cy.' + ext_source],
-        define_macros=define_macros)
-
-    ext_misc = Extension(
-        'fluidsim.operators.miscellaneous',
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        cython_compile_time_env={'MPI4PY': MPI4PY},
-        sources=[path_sources + '/miscellaneous_cy.' + ext_source],
-        define_macros=define_macros)
-
-    ext_modules.extend([
-        ext_operators,
-        ext_misc])
-
 
 path_sources = 'fluidsim/base/time_stepping'
 ext_cyfunc = Extension(
@@ -153,11 +92,11 @@ ext_cyfunc = Extension(
 
 ext_modules.append(ext_cyfunc)
 
-print('The following extensions could be built if necessary:\n' +
+logger.info('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.2.0', 'future >= 0.16',
+install_requires = ['fluiddyn >= 0.2.2', 'future >= 0.16',
                     'h5py', 'h5netcdf']
 
 if FFTW3:
@@ -170,15 +109,24 @@ def modification_date(filename):
 
 
 def make_pythran_extensions(modules):
+    exclude_pythran = tuple(
+        key for key, value in config['exclude_pythran'].items()
+        if value)
+    if len(exclude_pythran) > 0:
+        logger.info('Pythran files in the packages ' + str(exclude_pythran) +
+                    ' will not be built.')
     develop = sys.argv[-1] == 'develop'
     extensions = []
     for mod in modules:
+        package = mod.rsplit('.', 1)[0]
+        if any(package == excluded for excluded in exclude_pythran):
+            continue
         base_file = mod.replace('.', os.path.sep)
         py_file = base_file + '.py'
         # warning: does not work on Windows
         suffix = get_config_var('EXT_SUFFIX') or '.so'
         bin_file = base_file + suffix
-        print('make_pythran_extension: {} -> {} '.format(
+        logger.info('make_pythran_extension: {} -> {} '.format(
             py_file, os.path.basename(bin_file)))
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
@@ -257,3 +205,5 @@ setup(name='fluidsim',
       cmdclass={"build_ext": build_ext},
       ext_modules=ext_modules,
       entry_points={'console_scripts': console_scripts})
+
+logger.info('Setup completed in {:.3f} seconds.'.format(time() - time_start))

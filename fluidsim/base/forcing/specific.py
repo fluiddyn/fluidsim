@@ -1,10 +1,17 @@
 """Forcing schemes (:mod:`fluidsim.base.forcing.specific`)
 ================================================================
 
-
 Provides:
 
 .. autoclass:: SpecificForcing
+   :members:
+   :private-members:
+
+.. autoclass:: SpecificForcingPseudoSpectralSimple
+   :members:
+   :private-members:
+
+.. autoclass:: InScriptForcingPseudoSpectral
    :members:
    :private-members:
 
@@ -12,7 +19,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: InScriptForcingPseudoSpectral
+.. autoclass:: InScriptForcingPseudoSpectralCoarse
    :members:
    :private-members:
 
@@ -39,16 +46,19 @@ Provides:
 """
 from __future__ import division
 from __future__ import print_function
-from builtins import range
+
 from builtins import object
 
 from copy import deepcopy
 from math import radians
 import types
-
+from warnings import warn
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
+from fluiddyn.calcul.easypyfft import fftw_grid_size
 from fluidsim.base.setofvariables import SetOfVariables
 
 
@@ -65,6 +75,58 @@ class SpecificForcing(object):
         self.sim = sim
         self.oper = sim.oper
         self.params = sim.params
+
+
+class SpecificForcingPseudoSpectralSimple(SpecificForcing):
+    """Specific forcing for pseudo-spectra solvers"""
+
+    tag = 'pseudo_spectral'
+
+    def __init__(self, sim):
+        super(SpecificForcingPseudoSpectralSimple, self).__init__(sim)
+        self.fstate = sim.state.__class__(
+            sim, oper=self.sim.oper)
+        self.forcing_fft = self.fstate.state_spect
+
+
+class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
+    """Forcing maker for forcing defined by the user in the launching script
+
+    .. inheritance-diagram:: InScriptForcingPseudoSpectral
+
+    """
+    tag = 'in_script'
+
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+        obj = self.compute_forcing_fft_each_time()
+        if isinstance(obj, dict):
+            kwargs = obj
+        else:
+            kwargs = {self.key_forced: obj}
+        self.fstate.init_statespect_from(**kwargs)
+
+    def compute_forcing_fft_each_time(self):
+        """Compute the coarse forcing in Fourier space"""
+        obj = self.compute_forcing_each_time()
+        if isinstance(obj, dict):
+            kwargs = {key: self.sim.oper.fft(value)
+                      for key, value in obj.items()}
+        else:
+            kwargs = {self.key_forced: self.sim.oper.fft(obj)}
+        return kwargs
+
+    def compute_forcing_each_time(self):
+        """Compute the coarse forcing in real space"""
+        return self.sim.oper.create_arrayX_random()
+
+    def monkeypatch_compute_forcing_fft_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcing_fft_each_time = types.MethodType(func, self)
+
+    def monkeypatch_compute_forcing_each_time(self, func):
+        """Replace the method by a user-defined method"""
+        self.compute_forcing_each_time = types.MethodType(func, self)
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
@@ -87,10 +149,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         shape: array-like
             A tuple indicating the shape of an array or Operators instance.
 
-        Returns
-        -------
-        bool
-
         """
         if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
@@ -103,18 +161,14 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
         params = sim.params
 
-        self.sum_wavenumbers = sim.oper.sum_wavenumbers
-        self.fft2 = sim.oper.fft2
-        self.ifft2 = sim.oper.ifft2
-
         self.forcing_fft = SetOfVariables(
             like=sim.state.state_spect, info='forcing_fft', value=0.)
 
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
             raise ValueError('params.forcing.nkmax_forcing < \n'
                              'params.forcing.nkmin_forcing')
-        self.kmax_forcing = self.oper.deltakh * params.forcing.nkmax_forcing
-        self.kmin_forcing = self.oper.deltakh * params.forcing.nkmin_forcing
+        self.kmax_forcing = self.oper.deltak * params.forcing.nkmax_forcing
+        self.kmin_forcing = self.oper.deltak * params.forcing.nkmin_forcing
 
         self.forcing_rate = params.forcing.forcing_rate
 
@@ -123,25 +177,34 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         else:
             self.key_forced = self._key_forced_default
 
-        i = 0
-        while 2 * params.forcing.nkmax_forcing > 2**i:
-            i += 1
-        n = 2**i
+        try:
+            n = 2 * fftw_grid_size(params.forcing.nkmax_forcing)
+        except ImportError:
+            warn('To use smaller forcing arrays: pip install pulp')
+            i = 0
+            while 2 * params.forcing.nkmax_forcing > 2**i:
+                i += 1
+            n = 2**i
 
         self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
             params_coarse.oper.nx = n
-            params_coarse.oper.ny = n
+            try:
+                params_coarse.oper.ny = n
+            except AttributeError:
+                pass
+            try:
+                params_coarse.oper.nz = n
+            except AttributeError:
+                pass
             params_coarse.oper.type_fft = 'sequential'
             # FIXME: Workaround for incorrect forcing
             params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = sim.oper.__class__(
-                SEQUENTIAL=True,
-                params=params_coarse,
-                goal_to_print='coarse resolution for forcing')
+                params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
 
             self.COND_NO_F = self._compute_cond_no_forcing()
@@ -149,12 +212,14 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
                                              dtype=np.int32).sum())
+            if not self.nb_forced_modes:
+                raise ValueError('0 modes forced.')
+            
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
             self.fstate_coarse = sim.state.__class__(
                 sim, oper=self.oper_coarse)
-
         else:
             self.shapeK_loc_coarse = None
 
@@ -162,80 +227,26 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.shapeK_loc_coarse = mpi.comm.bcast(
                 self.shapeK_loc_coarse, root=0)
 
-        # if params.forcing.type_forcing == 'WAVES':
-        #     self.compute = self.compute_forcing_waves
-        #     if mpi.rank == 0:
-        #         eta_rms_max = 0.1
-        #         self.eta_cond = eta_rms_max / np.sqrt(self.nb_forced_modes)
-        #         print '    eta_cond =', self.eta_cond
-
     def _compute_cond_no_forcing(self):
-        return np.logical_or(
-            self.oper_coarse.KK > self.kmax_forcing,
-            self.oper_coarse.KK < self.kmin_forcing)
+        if hasattr(self.oper_coarse, 'K'):
+            K = self.oper_coarse.K
+        else:
+            K = np.sqrt(self.oper_coarse.K2)
+
+        return np.logical_or(K > self.kmax_forcing, K < self.kmin_forcing)
 
     def put_forcingc_in_forcing(self):
-        """Copy data from forcingc_fft into forcing_fft."""
-        nKyc = self.shapeK_loc_coarse[0]
-        nKxc = self.shapeK_loc_coarse[1]
-        nb_keys = self.forcing_fft.nvar
-
-        ar3Df = self.forcing_fft
+        """Copy data from self.fstate_coarse.state_spect into forcing_fft."""
         if mpi.rank == 0:
-            # ar3Dfc = self.forcingc_fft
-            ar3Dfc = self.fstate_coarse.state_spect
-
-        if mpi.nb_proc > 1:
-            if not self.oper.is_transposed:
-                raise NotImplementedError()
-            nKy = self.oper.shapeK_seq[1]
-
-            for ikey in range(nb_keys):
-                if mpi.rank == 0:
-                    fck_fft = ar3Dfc[ikey].transpose()
-
-                for iKxc in range(nKxc):
-                    kx = self.oper.deltakx * iKxc
-                    rank_iKx, iKxloc, iKyloc = (
-                        self.oper.where_is_wavenumber(kx, 0.))
-
-                    if mpi.rank == 0:
-                        fc1D = fck_fft[iKxc]
-
-                    if rank_iKx != 0:
-                        # message fc1D
-                        if mpi.rank == rank_iKx:
-                            fc1D = np.empty([nKyc], dtype=np.complex128)
-                        if mpi.rank == 0 or mpi.rank == rank_iKx:
-                            fc1D = np.ascontiguousarray(fc1D)
-                        if mpi.rank == 0:
-                            mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
-                                          dest=rank_iKx, tag=iKxc)
-                        elif mpi.rank == rank_iKx:
-                            mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX],
-                                          source=0, tag=iKxc)
-                    if mpi.rank == rank_iKx:
-                        # copy
-                        for iKyc in range(nKyc):
-                            if iKyc <= nKyc / 2.:
-                                iKy = iKyc
-                            else:
-                                kynodim = iKyc - nKyc
-                                iKy = kynodim + nKy
-                            ar3Df[ikey, iKxloc, iKy] = fc1D[iKyc]
-
+            state_spect = self.fstate_coarse.state_spect
+            oper_coarse = self.oper_coarse
         else:
-            nKy = self.oper.shapeK_seq[0]
+            state_spect = None
+            oper_coarse = None
 
-            for ikey in range(nb_keys):
-                for iKyc in range(nKyc):
-                    if iKyc <= nKyc / 2.:
-                        iKy = iKyc
-                    else:
-                        kynodim = iKyc - nKyc
-                        iKy = kynodim + nKy
-                    for iKxc in range(nKxc):
-                        ar3Df[ikey, iKy, iKxc] = ar3Dfc[ikey, iKyc, iKxc]
+        self.oper.put_coarse_array_in_array_fft(
+            state_spect, self.forcing_fft, oper_coarse,
+            self.shapeK_loc_coarse)
 
     def verify_injection_rate(self):
         """Verify injection rate."""
@@ -254,20 +265,23 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 PZ_forcing2))
 
 
-class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
+class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     """Forcing maker for forcing defined by the user in the launching script
 
-    .. inheritance-diagram:: InScriptForcingPseudoSpectral
+    .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
 
     """
-    tag = 'in_script'
+    tag = 'in_script_coarse'
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
         if mpi.rank == 0:
-            Fa_fft = self.compute_forcingc_fft_each_time()
-            kwargs = {self.key_forced: Fa_fft}
+            obj = self.compute_forcingc_fft_each_time()
+            if isinstance(obj, dict):
+                kwargs = obj
+            else:
+                kwargs = {self.key_forced: obj}
             self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
@@ -278,7 +292,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectral):
 
     def compute_forcingc_each_time(self):
         """Compute the coarse forcing in real space"""
-        return self.oper_coarse.random_arrayX()
+        return self.oper_coarse.create_arrayX_random()
 
     def monkeypatch_compute_forcingc_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
@@ -368,6 +382,12 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             cls.tag,
             {'type_normalize': '2nd_degree_eq'})
 
+    def __init__(self, sim):
+        super(NormalizedForcing, self).__init__(sim)
+
+        if self.params.forcing[self.tag].type_normalize == 'particular_k':
+            raise NotImplementedError
+
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
@@ -439,6 +459,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         KX_f = oper_c.KX[~self.COND_NO_F].flatten()
         KY_f = oper_c.KY[~self.COND_NO_F].flatten()
         nb_wn_f = len(KX_f)
+
+        # warning : this is 2d specific!
 
         ipart = np.random.random_integers(0, nb_wn_f - 1)
         kx_part = KX_f[ipart]
@@ -525,7 +547,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
         To be called only with proc 0.
         """
-        F_fft = self.oper_coarse.random_arrayK()
+        F_fft = self.oper_coarse.create_arrayK_random()
         # fftwpy/easypyfft returns F_fft
         F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
         F_fft[self.COND_NO_F] = 0.
@@ -576,7 +598,8 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         if tsim - self.t_last_change >= self.period_change_F0F1:
             self.t_last_change = tsim
             self.F0 = self.F1
-            del(self.F1)
+            # pa: this del should be useless...
+            # del(self.F1)
             self.F1 = self.compute_forcingc_raw()
 
         F_fft = self.forcingc_from_F0F1()
@@ -623,22 +646,92 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         """
         angle = radians(float(self.params.forcing[self.tag].angle))
 
-        kxmin_forcing = np.sin(angle) * self.kmin_forcing
-        kxmax_forcing = np.sin(angle) * self.kmax_forcing
+        
+        
+        self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
+        self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
 
-        kymin_forcing = np.cos(angle) * self.kmin_forcing
-        kymax_forcing = np.cos(angle) * self.kmax_forcing
+        self.kymin_forcing = np.cos(angle) * self.kmin_forcing
+        self.kymax_forcing = np.cos(angle) * self.kmax_forcing
 
-        if kxmax_forcing - kxmin_forcing < self.oper.deltakx or \
-           kymax_forcing - kymin_forcing < self.oper.deltaky:
+        if self.kxmax_forcing - self.kxmin_forcing < self.oper.deltakx or \
+           self.kymax_forcing - self.kymin_forcing < self.oper.deltaky:
             raise ValueError('No forcing modes in one direction.')
 
         COND_NO_F_KX = np.logical_or(
-            self.oper_coarse.KX > kxmax_forcing,
-            self.oper_coarse.KX < kxmin_forcing)
+            self.oper_coarse.KX > self.kxmax_forcing,
+            self.oper_coarse.KX < self.kxmin_forcing)
 
         COND_NO_F_KY = np.logical_or(
-            self.oper_coarse.KY > kymax_forcing,
-            self.oper_coarse.KY < kymin_forcing)
+            self.oper_coarse.KY > self.kymax_forcing,
+            self.oper_coarse.KY < self.kymin_forcing)
 
         return np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
+
+    def plot_forcing_region(self):
+        """Plots the forcing region"""
+        pforcing = self.params.forcing
+        oper = self.oper
+
+        kxmin_forcing = self.kxmin_forcing
+        kxmax_forcing = self.kxmax_forcing
+        kymin_forcing = self.kymin_forcing
+        kymax_forcing = self.kymax_forcing
+        
+        # Define forcing region
+        coord_x = kxmin_forcing
+        coord_y = kymin_forcing
+        width = kxmax_forcing - kxmin_forcing
+        height = kymax_forcing - kymin_forcing
+
+        KX = self.oper_coarse.KX
+        KY = self.oper_coarse.KY
+
+        fig, ax = plt.subplots()
+        ax.set_aspect('equal')
+        
+        title = (pforcing.type + '; ' + 
+                 r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
+                 r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
+                 r'$\theta = {}^\circ$'.format(pforcing.tcrandom_anisotropic.angle))
+
+        ax.set_title(title)
+        ax.set_xlabel(r'$k_x$')
+        ax.set_ylabel(r'$k_z$')
+        
+        # Parameters figure
+        ax.set_xlim([abs(KX).min(), abs(KX).max()])
+        ax.set_ylim([abs(KY).min(), abs(KY).max()])
+
+        xticks = np.arange(abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        # ax.set_xticks(xticks)
+        
+        ax.add_patch(patches.Rectangle(
+            xy=(coord_x, coord_y),
+            width=width,
+            height=height,
+            fill=False))
+
+        ax.add_patch(patches.Arc(
+            xy=(0, 0),
+            width=4,
+            height=4,
+            angle=0, theta1=60, theta2=90))
+        
+        ax.plot([0, kxmin_forcing], [0, kymin_forcing], color='k', linewidth=1)
+        ax.plot([kxmin_forcing, kxmin_forcing], [0, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([kxmax_forcing, kxmax_forcing], [0, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([0, kxmin_forcing], [kymin_forcing, kymin_forcing],
+                'k--', linewidth=0.8)
+        ax.plot([0, kxmin_forcing], [kymax_forcing, kymax_forcing],
+                'k--', linewidth=0.8)
+
+        ax.text(kxmin_forcing, - 1 * oper.deltaky, r'$k_{x,min}$')
+        ax.text(kxmax_forcing, - 1 * oper.deltaky, r'$k_{x,max}$')
+        ax.text(-1 * oper.deltakx, kymin_forcing, r'$k_{z,min}$')
+        ax.text(- 1 * oper.deltakx, kymax_forcing, r'$k_{z,max}$')
+
+        plt.show(block=False)
+

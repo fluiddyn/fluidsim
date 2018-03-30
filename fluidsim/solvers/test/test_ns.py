@@ -12,7 +12,8 @@ from fluiddyn.io import stdout_redirected
 
 def run_mini_simul(
         key_solver, nh=16, init_fields='dipole', name_run='test',
-        type_forcing='waves', HAS_TO_SAVE=False, forcing_enable=False):
+        type_forcing='waves', HAS_TO_SAVE=False, forcing_enable=False,
+        dissipation_enable=True, periods_save_spatial_means=0.25):
 
     Simul = fluidsim.import_simul_class_from_key(key_solver)
 
@@ -27,7 +28,9 @@ def run_mini_simul(
     params.oper.Ly = Lh
 
     params.oper.coef_dealiasing = 2. / 3
-    params.nu_8 = 2.
+
+    if dissipation_enable:
+        params.nu_8 = 2.
 
     try:
         params.f = 1.
@@ -41,8 +44,13 @@ def run_mini_simul(
 
     if HAS_TO_SAVE:
         params.output.periods_save.spectra = 0.25
-        params.output.periods_save.spatial_means = 0.25
+        params.output.periods_save.spatial_means = periods_save_spatial_means
         params.output.periods_save.spect_energy_budg = 0.25
+
+        try:
+            params.output.periods_save.spectra_multidim = 0.25
+        except AttributeError:
+            pass
 
     if forcing_enable:
         params.forcing.enable = True

@@ -1,7 +1,6 @@
 """Base solver (:mod:`fluidsim.base.solvers.base`)
 ==================================================
 
-
 Provides:
 
 .. autoclass:: InfoSolverBase
@@ -16,6 +15,7 @@ Provides:
 from time import time
 
 from builtins import object
+from warnings import warn
 import numpy as np
 
 
@@ -91,7 +91,9 @@ class SimulBase(object):
         np.seterr(under='ignore')
 
         if not hasattr(self, 'info_solver') or \
-           self.info_solver.__class__ is not self.InfoSolver():
+           self.info_solver.__class__ is not self.InfoSolver:
+            warn("Creating a new info_solver instance because it's missing or "
+                 "due to type mismatch  {}".format(self.InfoSolver))
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
 
@@ -147,7 +149,8 @@ class SimulBase(object):
                 self.is_forcing_enabled = True
                 Forcing = dict_classes['Forcing']
                 self.forcing = Forcing(self)
-                self.forcing.compute()
+                # we can not yet compute a forcing...
+                # self.forcing.compute()
 
         # complete the initialisation of the object output
         self.output.init_with_oper_and_state()
@@ -159,11 +162,14 @@ class SimulBase(object):
             self.preprocess = Preprocess(self)
             self.preprocess()
 
-    def tendencies_nonlin(self, variables=None):
+    def tendencies_nonlin(self, variables=None, old=None):
         """Return a null SetOfVariables object."""
-        tendencies = SetOfVariables(
-            like=self.state.state_phys,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies = SetOfVariables(
+                like=self.state.state_phys,
+                info='tendencies_nonlin')
+        else:
+            tendencies = old
         tendencies.initialize(value=0.)
         return tendencies
 

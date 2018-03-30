@@ -316,7 +316,9 @@ def bench(sim, path_results):
         sim.time_stepping.start()
         t_elapsed_sys = clock() - t0_sys
         t_elapsed_usr = time() - t0_usr
-    print('done is {:.2f} s'.format(t_elapsed_usr))
+
+    print('done.\n{} time steps computed in {:.2f} s'.format(
+        sim.time_stepping.it, t_elapsed_usr))
 
     if sim.oper.rank != 0:
         return

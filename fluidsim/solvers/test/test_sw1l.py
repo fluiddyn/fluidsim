@@ -82,7 +82,7 @@ class TestSW1LExactLin(TestSW1L):
         try:
             Fq_fft = tendencies_fft.get_var('q_fft')
         except ValueError:
-            Fq_fft = self.sim.oper.constant_arrayK(value=0.j)
+            Fq_fft = self.sim.oper.create_arrayK(value=0.j)
 
         return self.sim.oper.uxuyetafft_from_qapamfft(Fq_fft, Fap_fft, Fam_fft)
 

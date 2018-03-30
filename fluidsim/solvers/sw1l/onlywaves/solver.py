@@ -45,7 +45,7 @@ class Simul(SimulSW1LExactLin):
 
     InfoSolver = InfoSolverSW1LWaves
 
-    def tendencies_nonlin(self, state_spect=None):
+    def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         fft2 = oper.fft2
 
@@ -87,14 +87,17 @@ class Simul(SimulSW1LExactLin):
         (Nq_fft, Np_fft, Nm_fft
          ) = self.oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
 
-        # Np_fft = self.oper.constant_arrayK(value=0)
-        # Nm_fft = self.oper.constant_arrayK(value=0)
+        # Np_fft = self.oper.create_arrayK(value=0)
+        # Nm_fft = self.oper.create_arrayK(value=0)
 
         oper.dealiasing(Np_fft, Nm_fft)
 
-        tendencies_fft = SetOfVariables(
-            like=self.state.state_spect,
-            info='tendencies_nonlin')
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect,
+                info='tendencies_nonlin')
+        else:
+            tendencies_fft = old
         tendencies_fft.set_var('ap_fft', Np_fft)
         tendencies_fft.set_var('am_fft', Nm_fft)
 
@@ -105,7 +108,7 @@ class Simul(SimulSW1LExactLin):
 
     def compute_freq_complex(self, key):
         K2 = self.oper.K2
-        # return self.oper.constant_arrayK(value=0)
+        # return self.oper.create_arrayK(value=0)
         if key == 'ap_fft':
             omega = 1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
         elif key == 'am_fft':
@@ -121,7 +124,7 @@ class Simul(SimulSW1LExactLin):
         uy = state_phys.get_var('uy')
         eta = state_phys.get_var('eta')
 
-        # q_fft = self.oper.constant_arrayK(value=0)
+        # q_fft = self.oper.create_arrayK(value=0)
         ap_fft = state_spect.get_var('ap_fft')
         am_fft = state_spect.get_var('am_fft')
         a_fft = ap_fft + am_fft

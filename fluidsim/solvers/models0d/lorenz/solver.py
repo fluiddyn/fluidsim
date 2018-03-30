@@ -79,7 +79,7 @@ class Simul(SimulBase):
         self.Xs0 = self.Ys0 = sqrt(p.beta * Zs)
         self.Xs1 = self.Ys1 = -self.Xs0
 
-    def tendencies_nonlin(self, state=None):
+    def tendencies_nonlin(self, state=None, old=None):
         r"""Compute the nonlinear tendencies.
 
         Parameters
@@ -121,7 +121,10 @@ class Simul(SimulBase):
         Y = state.get_var('Y')
         Z = state.get_var('Z')
 
-        tendencies = SetOfVariables(like=self.state.state_phys)
+        if old is None:
+            tendencies = SetOfVariables(like=self.state.state_phys)
+        else:
+            tendencies = old
         tendencies.set_var('X', p.sigma * (Y - X))
         tendencies.set_var('Y', p.rho * X - Y - X * Z)
         tendencies.set_var('Z', X*Y - p.beta * Z)

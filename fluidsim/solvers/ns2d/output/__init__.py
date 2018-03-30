@@ -46,7 +46,12 @@ class Output(OutputBasePseudoSpectral):
             'Spectra',
             attribs={'module_name': base_name_mod + '.spectra',
                      'class_name': 'SpectraNS2D'})
-
+        
+        classes._set_child(
+            'SpectraMultiDim',
+            attribs={'module_name': base_name_mod + '.spectra_multidim',
+                     'class_name': 'SpectraMultiDimNS2D'})
+        
         classes._set_child(
             'spatial_means',
             attribs={'module_name': base_name_mod + '.spatial_means',

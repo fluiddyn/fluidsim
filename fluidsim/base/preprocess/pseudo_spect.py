@@ -78,7 +78,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
         elif scale == 'enstrophy_forcing':
             P = self.sim.params.forcing.forcing_rate
-            k_f = self.oper.deltakh * (
+            k_f = self.oper.deltak * (
                 (self.sim.params.forcing.nkmax_forcing +
                  self.sim.params.forcing.nkmin_forcing) // 2)
             omega_0 = self.output.compute_enstrophy()
@@ -174,7 +174,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         forcing_scale = params.forcing_scale
         C = float(params.forcing_const)
         # Forcing wavenumber
-        k_f = self.oper.deltakh * ((self.sim.params.forcing.nkmax_forcing +
+        k_f = self.oper.deltak * ((self.sim.params.forcing.nkmax_forcing +
                                     self.sim.params.forcing.nkmin_forcing) // 2)
 
         if forcing_scale == 'unity':
@@ -246,21 +246,21 @@ def calcul_viscosity(
         nk_f = ((oper.params.forcing.nkmax_forcing +
                  oper.params.forcing.nkmin_forcing) // 2)
         delta_x = oper.deltax
-        deltakh = oper.deltakh
+        deltak = oper.deltak
     else:
         nh = kwargs['nh']
         Lh = kwargs['Lh']
         coef_dealiasing = kwargs['coef_dealiasing']
         nk_f = kwargs['nk_f']
         delta_x = Lh / nh
-        deltakh = 2 * np.pi / Lh
+        deltak = 2 * np.pi / Lh
 
     # Smallest resolved scale
     k_max = np.pi / delta_x * coef_dealiasing
     # OR np.pi / k_d, the dissipative wave number
     C = viscosity_const
     length_scale = C * np.pi / k_max
-    k_f = deltakh * nk_f
+    k_f = deltak * nk_f
     large_scale = np.pi / k_f
     if verbose:
         print('Max. wavenumber =', np.pi / delta_x)
