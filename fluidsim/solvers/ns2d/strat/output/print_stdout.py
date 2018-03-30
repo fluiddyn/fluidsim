@@ -92,10 +92,9 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         return fig
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
-        
-        with open(self.output.path_run+'/stdout.txt') as f:
-            lines = f.readlines()
+        dict_results = {'name_solver': self.output.name_solver}
+        file_means = open(self.output.path_run+'/stdout.txt')
+        lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
@@ -144,25 +143,25 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
             words = line.split()
             EA[il] = float(words[2])
 
-        dico_results['it'] = it
-        dico_results['t'] = t
-        dico_results['deltat'] = deltat
-        dico_results['E'] = E
-        dico_results['deltaE'] = deltaE
-        dico_results['EK'] = EK
-        dico_results['EA'] = EA
+        dict_results['it'] = it
+        dict_results['t'] = t
+        dict_results['deltat'] = deltat
+        dict_results['E'] = E
+        dict_results['deltaE'] = deltaE
+        dict_results['EK'] = EK
+        dict_results['EA'] = EA
 
-        return dico_results
+        return dict_results
 
     def plot(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        deltat = dico_results['deltat']
-        E = dico_results['E']
-        #  deltaE = dico_results['deltaE']
-        EK = dico_results['EK']
-        EA = dico_results['EA']
+        t = dict_results['t']
+        deltat = dict_results['deltat']
+        E = dict_results['E']
+        #  deltaE = dict_results['deltaE']
+        EK = dict_results['EK']
+        EA = dict_results['EA']
 
         x_left_axe = 0.12
         z_bottom_axe = 0.55
