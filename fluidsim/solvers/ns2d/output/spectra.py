@@ -25,17 +25,17 @@ class SpectraNS2D(Spectra):
         energy_fft = self.output.compute_energy_fft()
         # compute the spectra 1D
         spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
-        dico_spectra1D = {'spectrum1Dkx_E': spectrum1Dkx_E,
+        dict_spectra1D = {'spectrum1Dkx_E': spectrum1Dkx_E,
                           'spectrum1Dky_E': spectrum1Dky_E}
         # compute the spectra 2D
         spectrum2D_E = self.spectrum2D_from_fft(energy_fft)
-        dico_spectra2D = {'spectrum2D_E': spectrum2D_E}
-        return dico_spectra1D, dico_spectra2D
+        dict_spectra2D = {'spectrum2D_E': spectrum2D_E}
+        return dict_spectra1D, dict_spectra2D
 
-    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dict_spectra1D, dict_spectra2D):
         if (self.nx == self.params.oper.ny and
                 self.params.oper.Lx == self.params.oper.Ly):
-            spectrum2D = dico_spectra2D['spectrum2D_E']
+            spectrum2D = dict_spectra2D['spectrum2D_E']
             khE = self.oper.khE
             coef_norm = khE**(3.)
             self.axe.loglog(khE, spectrum2D*coef_norm, 'k')
@@ -54,16 +54,13 @@ class SpectraNS2D(Spectra):
         dset_times = f['times']
 
         dset_kxE = f['kxE']
-        # dset_kyE = f['kyE']
         kh = dset_kxE[...]
         kh2 = kh[:]
         kh2[kh == 0] = 1e-15
 
         dset_spectrum1Dkx = f['spectrum1Dkx_E']
         dset_spectrum1Dky = f['spectrum1Dky_E']
-        # nb_spectra = dset_times.shape[0]
         times = dset_times[...]
-        # nt = len(times)
 
         delta_t_save = np.mean(times[1:]-times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))

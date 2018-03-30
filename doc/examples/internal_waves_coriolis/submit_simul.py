@@ -5,7 +5,7 @@ cluster = Cluster()
 cluster.commands_setting_env = [
     'source /etc/profile',
     'export PATH="/home/users/augier3pi/opt/miniconda3/bin:$PATH"',
-    'export FLUIDDYN_PATH_SCRATCH=/fsnet/project/watu/2018/18INTERNAL/Data_simul'
+    'export FLUIDSIM_PATH=/fsnet/project/watu/2018/18INTERNAL/Data_simul'
 ]
 
 

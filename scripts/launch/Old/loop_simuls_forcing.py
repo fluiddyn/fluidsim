@@ -71,7 +71,7 @@ param['ONLINE_PLOT_OK']            = False
 
 values_solver = ['SW1lexlin', 'SW1l']
 
-dico_solvers = solveq2d.ModulesSolvers(values_solver)
+dict_solvers = solveq2d.ModulesSolvers(values_solver)
 
 values_c2 = [100, 200, 400, 600]
 
@@ -83,7 +83,7 @@ for c2, name_solver in tuple_loop:
 
     param['c2'] = c2
 
-    solver = dico_solvers[name_solver]
+    solver = dict_solvers[name_solver]
 
     sim = solver.Simul(param)
     sim.time_stepping.start()

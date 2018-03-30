@@ -357,7 +357,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
         # print_memory_usage('end of function compute seb')
 
-        dico_results = {
+        dict_results = {
             'transfer2D_EAr': transfer2D_EAr,
             'transfer2D_EAd': transfer2D_EAd,
             'transfer2D_EPd': transfer2D_EPd,
@@ -376,19 +376,19 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             'convP2D': convP2D,
             'convK2D': convK2D,
             'transfer2D_CPE': transfer2D_CPE,}
-        return dico_results
+        return dict_results
 
-    def _online_plot_saving(self, dico_results):
+    def _online_plot_saving(self, dict_results):
 
-        transfer2D_CPE = dico_results['transfer2D_CPE']
-        transfer2D_EKr = dico_results['transfer2D_EKr']
-        transfer2D_EKd = dico_results['transfer2D_EKd']
+        transfer2D_CPE = dict_results['transfer2D_CPE']
+        transfer2D_EKr = dict_results['transfer2D_EKr']
+        transfer2D_EKd = dict_results['transfer2D_EKd']
         transfer2D_EK = transfer2D_EKr + transfer2D_EKd
-        transfer2D_EAr = dico_results['transfer2D_EAr']
-        transfer2D_EAd = dico_results['transfer2D_EAd']
+        transfer2D_EAr = dict_results['transfer2D_EAr']
+        transfer2D_EAd = dict_results['transfer2D_EAd']
         transfer2D_EA = transfer2D_EAr + transfer2D_EAd
-        convP2D = dico_results['convP2D']
-        convK2D = dico_results['convK2D']
+        convP2D = dict_results['convP2D']
+        convK2D = dict_results['convK2D']
         khE = self.oper.khE
         PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltak
         PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltak
@@ -733,7 +733,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 # )
 
         transfer2D_EK = transfer2D_Errr + transfer2D_Edrd + transfer2D_Edrr_rrd
-        dico_results = {
+        dict_results = {
             'transfer2D_EK': transfer2D_EK,
             'transfer2D_Errr': transfer2D_Errr,
             'transfer2D_Edrd': transfer2D_Edrd,
@@ -749,14 +749,14 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             EA=transfer2D_EA,
             Etot=transfer2D_EK + transfer2D_EA,
             debug=False)
-        return dico_results
+        return dict_results
 
-    def _online_plot_saving(self, dico_results):
+    def _online_plot_saving(self, dict_results):
 
-        transfer2D_CPE = dico_results['transfer2D_CPE']
-        transfer2D_EK = dico_results['transfer2D_EK']
-        transfer2D_EA = dico_results['transfer2D_EA']
-        convA2D = dico_results['convA2D']
+        transfer2D_CPE = dict_results['transfer2D_CPE']
+        transfer2D_EK = dict_results['transfer2D_EK']
+        transfer2D_EA = dict_results['transfer2D_EA']
+        convA2D = dict_results['convA2D']
         khE = self.oper.khE
         PiCPE = cumsum_inv(transfer2D_CPE) * self.oper.deltak
         PiEK = cumsum_inv(transfer2D_EK) * self.oper.deltak
@@ -1027,7 +1027,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         #   GGG=Tq_GGG, GGA=Tq_AGG, AAG=(Tq_GAAs+Tq_GAAd), AAA=Tq_AAA,
         #   TNQ=Tnq, TOTAL=Tq_TOT, debug=True)
 
-        dico_results = {'Tq_GGG': Tq_GGG,
+        dict_results = {'Tq_GGG': Tq_GGG,
                         'Tq_AGG': Tq_AGG,
                         'Tq_GAAs': Tq_GAAs,
                         'Tq_GAAd': Tq_GAAd,
@@ -1039,21 +1039,21 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                         'Cq_AA': Cq_AA,
                         'Tens': Tens,}
 
-        return dico_results
+        return dict_results
 
-    def _online_plot_saving(self, dico_results):
+    def _online_plot_saving(self, dict_results):
 
-        Tens = dico_results['Tens']
-        Tq_GGG = dico_results['Tq_GGG']
-        Tq_AGG = dico_results['Tq_AGG']
-        Tq_GAAs = dico_results['Tq_GAAs']
-        Tq_GAAd = dico_results['Tq_GAAd']
-        Tq_AAA = dico_results['Tq_AAA']
+        Tens = dict_results['Tens']
+        Tq_GGG = dict_results['Tq_GGG']
+        Tq_AGG = dict_results['Tq_AGG']
+        Tq_GAAs = dict_results['Tq_GAAs']
+        Tq_GAAd = dict_results['Tq_GAAd']
+        Tq_AAA = dict_results['Tq_AAA']
         Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
 
-        Cq_GG = dico_results['Cq_GG']
-        Cq_AG = dico_results['Cq_AG'] + dico_results['Cq_aG']
-        Cq_AA = dico_results['Cq_AA']
+        Cq_GG = dict_results['Cq_GG']
+        Cq_AG = dict_results['Cq_AG'] + dict_results['Cq_aG']
+        Cq_AA = dict_results['Cq_AA']
         Cq_tot = Cq_GG + Cq_AG + Cq_AA
 
         khE = self.oper.khE

@@ -37,7 +37,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
         return to_print
 
     def load(self):
-        dico_results = {'name_solver': self.output.name_solver}
+        dict_results = {'name_solver': self.output.name_solver}
 
         with open(self.output.path_run + '/stdout.txt') as file_means:
             lines = file_means.readlines()
@@ -83,24 +83,24 @@ class PrintStdOutSW1L(PrintStdOutBase):
             E_K[il] = float(words[2])
             E_A[il] = float(words[6])
 
-        dico_results['it'] = it
-        dico_results['t'] = t
-        dico_results['deltat'] = deltat
-        dico_results['E'] = E
-        dico_results['deltaE'] = deltaE
-        dico_results['E_K'] = E_K
-        dico_results['E_A'] = E_A
-        return dico_results
+        dict_results['it'] = it
+        dict_results['t'] = t
+        dict_results['deltat'] = deltat
+        dict_results['E'] = E
+        dict_results['deltaE'] = deltaE
+        dict_results['E_K'] = E_K
+        dict_results['E_A'] = E_A
+        return dict_results
 
     def plot(self):
-        dico_results = self.load()
+        dict_results = self.load()
 
-        t = dico_results['t']
-        deltat = dico_results['deltat']
-        E = dico_results['E']
-        deltaE = dico_results['deltaE']
-        E_K = dico_results['E_K']
-        E_A = dico_results['E_A']
+        t = dict_results['t']
+        deltat = dict_results['deltat']
+        E = dict_results['E']
+        deltaE = dict_results['deltaE']
+        E_K = dict_results['E_K']
+        E_A = dict_results['E_A']
 
         x_left_axe = 0.12
         z_bottom_axe = 0.55

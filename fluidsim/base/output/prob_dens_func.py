@@ -46,10 +46,10 @@ class ProbaDensityFunc(SpecificOutput):
                      ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
             axe.set_title(title)
 
-    def _online_plot_saving(self, dico_pdf):
+    def _online_plot_saving(self, dict_pdf):
         """online plot on pdf"""
-        pdf_eta = dico_pdf['pdf_eta']
-        bin_edges_eta = dico_pdf['bin_edges_eta']
+        pdf_eta = dict_pdf['pdf_eta']
+        bin_edges_eta = dict_pdf['bin_edges_eta']
         self.axe.plot(bin_edges_eta[:-1], pdf_eta, 'k')
 
     def compute(self):
@@ -66,11 +66,11 @@ class ProbaDensityFunc(SpecificOutput):
         u_norme = np.sqrt((ux - uxm)**2 + (uy - uym)**2)
         pdf_u, bin_edges_u = self.oper.pdf_normalized(u_norme)
 
-        dico_pdf = {'pdf_eta': pdf_eta,
+        dict_pdf = {'pdf_eta': pdf_eta,
                     'bin_edges_eta': bin_edges_eta,
                     'pdf_u': pdf_u,
                     'bin_edges_u': bin_edges_u}
-        return dico_pdf
+        return dict_pdf
 
     def load(self):
         """load the saved pdf and return a dictionary."""
@@ -91,11 +91,11 @@ class ProbaDensityFunc(SpecificOutput):
         pdf_u = dset_pdf_u[...]
         bin_edges_u = dset_bin_edges_u[...]
 
-        dico_pdf = {'pdf_eta': pdf_eta,
+        dict_pdf = {'pdf_eta': pdf_eta,
                     'bin_edges_eta': bin_edges_eta,
                     'pdf_u': pdf_u,
                     'bin_edges_u': bin_edges_u}
-        return dico_pdf
+        return dict_pdf
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         """Plot some pdf."""

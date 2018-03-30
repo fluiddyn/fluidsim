@@ -72,15 +72,15 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         transfer2D_E = self.spectrum2D_from_fft(transferE_fft)
         transfer2D_Z = self.spectrum2D_from_fft(transferZ_fft)
 
-        dico_results = {
+        dict_results = {
             'transfer2D_E': transfer2D_E,
             'transfer2D_Z': transfer2D_Z
         }
-        return dico_results
+        return dict_results
 
-    def _online_plot_saving(self, dico_results):
-        transfer2D_E = dico_results['transfer2D_E']
-        transfer2D_Z = dico_results['transfer2D_Z']
+    def _online_plot_saving(self, dict_results):
+        transfer2D_E = dict_results['transfer2D_E']
+        transfer2D_Z = dict_results['transfer2D_Z']
         khE = self.oper.khE
         PiE = cumsum_inv(transfer2D_E)*self.oper.deltak
         PiZ = cumsum_inv(transfer2D_Z)*self.oper.deltak

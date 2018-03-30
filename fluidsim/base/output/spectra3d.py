@@ -19,11 +19,11 @@ class MoviesSpectra(MoviesBase1D):
 
     def init_animation(self, *args, **kwargs):
         if 'xmax' not in kwargs:
-            kwargs['xmax'] = self.oper.khE[-1:][0]
+            kwargs['xmax'] = self.oper.k_spectra3d[-1]
         if 'ymax' not in kwargs:
             kwargs['ymax'] = 1.0
 
-        with h5py.File(self.spectra.path_file2D) as f:
+        with h5py.File(self.spectra.path_file3d) as f:
             self.times = f['times'][...]
 
         super(MoviesSpectra, self).init_animation(*args, **kwargs)
@@ -32,8 +32,8 @@ class MoviesSpectra(MoviesBase1D):
         if key is None:
             key = self.key_field
         idx, t_file = self.get_closest_time_file(time)
-        with h5py.File(self.spectra.path_file2D) as f:
-            y = f['spectrum2D_' + key][idx]
+        with h5py.File(self.spectra.path_file3d) as f:
+            y = f['spectra_' + key][idx]
         y[abs(y) < 10e-16] = 0
         return y
 
@@ -58,8 +58,8 @@ class MoviesSpectra(MoviesBase1D):
           x-axis data.
 
         """
-        with h5py.File(self.spectra.path_file2D) as f:
-            x = f['khE'][...]
+        with h5py.File(self.spectra.path_file3d) as f:
+            x = f['k_spectra3d'][...]
 
         return x
 
@@ -97,9 +97,6 @@ class Spectra(SpecificOutput):
         params = output.sim.params
         self.nx = int(params.oper.nx)
 
-        self.spectrum2D_from_fft = output.sim.oper.spectrum2D_from_fft
-        self.spectra1D_from_fft = output.sim.oper.spectra1D_from_fft
-
         super(Spectra, self).__init__(
             output,
             period_save=params.output.periods_save.spectra,
@@ -107,31 +104,34 @@ class Spectra(SpecificOutput):
 
     def _init_path_files(self):
         path_run = self.output.path_run
-        self.path_file1D = path_run + '/spectra1D.h5'
-        self.path_file2D = path_run + '/spectra2D.h5'
+        self.path_file1d = path_run + '/spectra1d.h5'
+        self.path_file3d = path_run + '/spectra3d.h5'
 
     def _init_files(self, dict_arrays_1time=None):
-        dict_spectra1D, dict_spectra2D = self.compute()
+        dict_spectra1d, dict_spectra3d = self.compute()
         if mpi.rank == 0:
-            if not os.path.exists(self.path_file1D):
-                dict_arrays_1time = {'kxE': self.sim.oper.kxE,
-                                     'kyE': self.sim.oper.kyE}
+            if not os.path.exists(self.path_file1d):
+                oper = self.sim.oper
+                kx = oper.deltakx * np.arange(oper.nkx_spectra)
+                ky = oper.deltaky * np.arange(oper.nky_spectra)
+                kz = oper.deltakz * np.arange(oper.nkz_spectra)                
+                dict_arrays_1time = {'kx': kx, 'ky': ky, 'kz': kz}
                 self._create_file_from_dict_arrays(
-                    self.path_file1D, dict_spectra1D, dict_arrays_1time)
-                dict_arrays_1time = {'khE': self.sim.oper.khE}
+                    self.path_file1d, dict_spectra1d, dict_arrays_1time)
+                dict_arrays_1time = {'k_spectra3d': self.sim.oper.k_spectra3d}
                 self._create_file_from_dict_arrays(
-                    self.path_file2D, dict_spectra2D, dict_arrays_1time)
+                    self.path_file3d, dict_spectra3d, dict_arrays_1time)
                 self.nb_saved_times = 1
             else:
-                with h5py.File(self.path_file1D, 'r') as f:
+                with h5py.File(self.path_file1d, 'r') as f:
                     dset_times = f['times']
                     self.nb_saved_times = dset_times.shape[0]+1
-                # save the spectra in the file spectra1D.h5
-                self._add_dict_arrays_to_file(self.path_file1D,
-                                             dict_spectra1D)
-                # save the spectra in the file spectra2D.h5
-                self._add_dict_arrays_to_file(self.path_file2D,
-                                             dict_spectra2D)
+                # save the spectra in the file spectra1s.h5
+                self._add_dict_arrays_to_file(self.path_file1d,
+                                             dict_spectra1d)
+                # save the spectra in the file spectra3d.h5
+                self._add_dict_arrays_to_file(self.path_file3d,
+                                             dict_spectra3d)
 
         self.t_last_save = self.sim.time_stepping.t
 
@@ -140,17 +140,17 @@ class Spectra(SpecificOutput):
         tsim = self.sim.time_stepping.t
         if (tsim-self.t_last_save >= self.period_save):
             self.t_last_save = tsim
-            dict_spectra1D, dict_spectra2D = self.compute()
+            dict_spectra1d, dict_spectra3d = self.compute()
             if mpi.rank == 0:
                 # save the spectra in the file spectra1D.h5
-                self._add_dict_arrays_to_file(self.path_file1D,
-                                             dict_spectra1D)
+                self._add_dict_arrays_to_file(self.path_file1d,
+                                             dict_spectra1d)
                 # save the spectra in the file spectra2D.h5
-                self._add_dict_arrays_to_file(self.path_file2D,
-                                             dict_spectra2D)
+                self._add_dict_arrays_to_file(self.path_file3d,
+                                             dict_spectra3d)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
-                    self._online_plot_saving(dict_spectra1D, dict_spectra2D)
+                    self._online_plot_saving(dict_spectra1d, dict_spectra3d)
 
                     if (tsim-self.t_last_show >= self.period_show):
                         self.t_last_show = tsim
@@ -166,21 +166,21 @@ class Spectra(SpecificOutput):
         if mpi.rank == 0:
             fig, axe = self.output.figure_axe(numfig=1000000)
             self.axe = axe
-            axe.set_xlabel('$k_h$')
-            axe.set_ylabel('$E(k_h)$')
+            axe.set_xlabel('$k$')
+            axe.set_ylabel('$E(k)$')
             axe.set_title('spectra, solver '+self.output.name_solver +
                           ', nh = {0:5d}'.format(self.nx))
 
     def _online_plot_saving(self):
         pass
 
-    def load2d_mean(self, tmin=None, tmax=None):
-        f = h5py.File(self.path_file2D, 'r')
+    def load3d_mean(self, tmin=None, tmax=None):
+        f = h5py.File(self.path_file3d, 'r')
         dset_times = f['times']
         times = dset_times[...]
         nt = len(times)
 
-        kh = f['khE'][...]
+        k3d = f['k_spectra3d'][...]
 
         if tmin is None:
             imin_plot = 0
@@ -200,7 +200,7 @@ class Spectra(SpecificOutput):
                'imin = {2:8d} ; imax = {3:8d}').format(
                   tmin, tmax, imin_plot, imax_plot))
 
-        dict_results = {'kh': kh}
+        dict_results = {'k': k3d}
         for key in list(f.keys()):
             if key.startswith('spectr'):
                 dset_key = f[key]
@@ -209,14 +209,14 @@ class Spectra(SpecificOutput):
         return dict_results
 
     def load1d_mean(self, tmin=None, tmax=None):
-        f = h5py.File(self.path_file1D, 'r')
+        f = h5py.File(self.path_file1d, 'r')
         dset_times = f['times']
         times = dset_times[...]
         nt = len(times)
 
-        kx = f['kxE'][...]
-        # ky = f['kyE'][...]
-        kh = kx
+        dict_results = {}
+        for key in ('kx', 'ky', 'kz'):
+            dict_results[key] = f['kx'][...]
 
         if tmin is None:
             imin_plot = 0
@@ -236,7 +236,6 @@ class Spectra(SpecificOutput):
                'imin = {2:8d} ; imax = {3:8d}\n').format(
                    tmin, tmax, imin_plot, imax_plot))
 
-        dict_results = {'kh': kh}
         for key in list(f.keys()):
             if key.startswith('spectr'):
                 dset_key = f[key]
@@ -247,5 +246,5 @@ class Spectra(SpecificOutput):
     def plot1d(self):
         pass
 
-    def plot2d(self):
+    def plot3d(self):
         pass

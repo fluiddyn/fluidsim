@@ -32,7 +32,7 @@ class SpectraPlate2D(Spectra):
         spectrum1Dkx_EL, spectrum1Dky_EL = self.spectra1D_from_fft(EL_fft)
         spectrum1Dkx_EE, spectrum1Dky_EE = self.spectra1D_from_fft(EE_fft)
 
-        dico_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
+        dict_spectra1D = {'spectrum1Dkx_EK': spectrum1Dkx_EK,
                           'spectrum1Dky_EK': spectrum1Dky_EK,
                           'spectrum1Dkx_EL': spectrum1Dkx_EL,
                           'spectrum1Dky_EL': spectrum1Dky_EL,
@@ -43,17 +43,17 @@ class SpectraPlate2D(Spectra):
         spectrum2D_EK = self.spectrum2D_from_fft(EK_fft)
         spectrum2D_EL = self.spectrum2D_from_fft(EL_fft)
         spectrum2D_EE = self.spectrum2D_from_fft(EE_fft)
-        dico_spectra2D = {'spectrum2D_EK': spectrum2D_EK,
+        dict_spectra2D = {'spectrum2D_EK': spectrum2D_EK,
                           'spectrum2D_EL': spectrum2D_EL,
                           'spectrum2D_EE': spectrum2D_EE}
-        return dico_spectra1D, dico_spectra2D
+        return dict_spectra1D, dict_spectra2D
 
-    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dict_spectra1D, dict_spectra2D):
         if (self.nx == self.params.oper.ny and
                 self.params.oper.Lx == self.params.oper.Ly):
-            spectrum2D_EK = dico_spectra2D['spectrum2D_EK']
-            spectrum2D_EL = dico_spectra2D['spectrum2D_EL']
-            spectrum2D_EE = dico_spectra2D['spectrum2D_EE']
+            spectrum2D_EK = dict_spectra2D['spectrum2D_EK']
+            spectrum2D_EL = dict_spectra2D['spectrum2D_EL']
+            spectrum2D_EE = dict_spectra2D['spectrum2D_EE']
             spectrum2D_Etot = (spectrum2D_EK + spectrum2D_EL + spectrum2D_EE)
             khE = self.oper.khE
             coef_norm = khE**(3.)

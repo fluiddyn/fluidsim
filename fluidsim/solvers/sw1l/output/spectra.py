@@ -48,7 +48,7 @@ class SpectraSW1L(Spectra):
         spectrum1Dkx_CPE, spectrum1Dky_CPE = \
             self.spectra1D_from_fft(CharneyPE_fft)
 
-        dico_spectra1D = {
+        dict_spectra1D = {
             'spectrum1Dkx_EK': spectrum1Dkx_EK,
             'spectrum1Dky_EK': spectrum1Dky_EK,
             'spectrum1Dkx_EA': spectrum1Dkx_EA,
@@ -67,18 +67,18 @@ class SpectraSW1L(Spectra):
         spectrum2D_EPE = self.spectrum2D_from_fft(ErtelPE_fft)
         spectrum2D_CPE = self.spectrum2D_from_fft(CharneyPE_fft)
 
-        dico_spectra2D = {
+        dict_spectra2D = {
             'spectrum2D_EK': spectrum2D_EK,
             'spectrum2D_EA': spectrum2D_EA,
             'spectrum2D_EKr': spectrum2D_EKr,
             'spectrum2D_EPE': spectrum2D_EPE,
             'spectrum2D_CPE': spectrum2D_CPE}
 
-        dico_lin_spectra1D, dico_lin_spectra2D = self.compute_lin_spectra()
-        dico_spectra1D.update(dico_lin_spectra1D)
-        dico_spectra2D.update(dico_lin_spectra2D)
+        dict_lin_spectra1D, dict_lin_spectra2D = self.compute_lin_spectra()
+        dict_spectra1D.update(dict_lin_spectra1D)
+        dict_spectra2D.update(dict_lin_spectra2D)
 
-        return dico_spectra1D, dico_spectra2D
+        return dict_spectra1D, dict_spectra2D
 
     def compute_lin_spectra(self):
         energy_glin_fft, energy_dlin_fft, energy_alin_fft = \
@@ -91,7 +91,7 @@ class SpectraSW1L(Spectra):
         spectrum1Dkx_Ealin, spectrum1Dky_Ealin = \
             self.spectra1D_from_fft(energy_alin_fft)
 
-        dico_spectra1D = {
+        dict_spectra1D = {
             'spectrum1Dkx_Eglin': spectrum1Dkx_Eglin,
             'spectrum1Dky_Eglin': spectrum1Dky_Eglin,
             'spectrum1Dkx_Edlin': spectrum1Dkx_Edlin,
@@ -103,19 +103,19 @@ class SpectraSW1L(Spectra):
         spectrum2D_Edlin = self.spectrum2D_from_fft(energy_dlin_fft)
         spectrum2D_Ealin = self.spectrum2D_from_fft(energy_alin_fft)
 
-        dico_spectra2D = {
+        dict_spectra2D = {
             'spectrum2D_Eglin': spectrum2D_Eglin,
             'spectrum2D_Edlin': spectrum2D_Edlin,
             'spectrum2D_Ealin': spectrum2D_Ealin}
 
-        return dico_spectra1D, dico_spectra2D
+        return dict_spectra1D, dict_spectra2D
 
-    def _online_plot_saving(self, dico_spectra1D, dico_spectra2D):
+    def _online_plot_saving(self, dict_spectra1D, dict_spectra2D):
         if (self.params.oper.nx==self.params.oper.ny
                 and self.params.oper.Lx==self.params.oper.Ly):
-            spectrum2D_EK = dico_spectra2D['spectrum2D_EK']
-            spectrum2D_EA = dico_spectra2D['spectrum2D_EA']
-            spectrum2D_EKr = dico_spectra2D['spectrum2D_EKr']
+            spectrum2D_EK = dict_spectra2D['spectrum2D_EK']
+            spectrum2D_EA = dict_spectra2D['spectrum2D_EA']
+            spectrum2D_EKr = dict_spectra2D['spectrum2D_EKr']
             spectrum2D_E = spectrum2D_EK + spectrum2D_EA
             spectrum2D_EKd = spectrum2D_EK - spectrum2D_EKr
             khE = self.oper.khE
@@ -397,7 +397,7 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         spectrum1Dkx_Ealin, spectrum1Dky_Ealin = \
             self.spectra1D_from_fft(energy_alin_fft)
 
-        dico_spectra1D = {
+        dict_spectra1D = {
             'spectrum1Dkx_Eglin': spectrum1Dkx_Eglin,
             'spectrum1Dky_Eglin': spectrum1Dky_Eglin,
             'spectrum1Dkx_Ealin': spectrum1Dkx_Ealin,
@@ -406,11 +406,11 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         spectrum2D_Eglin = self.spectrum2D_from_fft(energy_glin_fft)
         spectrum2D_Ealin = self.spectrum2D_from_fft(energy_alin_fft)
 
-        dico_spectra2D = {
+        dict_spectra2D = {
             'spectrum2D_Eglin': spectrum2D_Eglin,
             'spectrum2D_Ealin': spectrum2D_Ealin}
 
-        return dico_spectra1D, dico_spectra2D
+        return dict_spectra1D, dict_spectra2D
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2,
                coef_compensate=0, keys=['Etot', 'EK', 'Eglin', 'Ealin'],

@@ -1,7 +1,6 @@
 from __future__ import division
 
 
-from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
@@ -26,19 +25,19 @@ class Output(OutputBasePseudoSpectral):
             'fluidsim.base.output.phys_fields3d'
         classes.PhysFields.class_name = 'PhysFieldsBase3D'
 
-        # classes._set_child(
-        #     'Spectra',
-        #     attribs={'module_name': base_name_mod + '.spectra',
-        #              'class_name': 'SpectraNS2D'})
+        classes._set_child(
+            'Spectra',
+            attribs={'module_name': base_name_mod + '.spectra',
+                     'class_name': 'SpectraNS3D'})
 
-        # classes._set_child(
-        #     'spatial_means',
-        #     attribs={'module_name': base_name_mod + '.spatial_means',
-        #              'class_name': 'SpatialMeansNS2D'})
+        classes._set_child(
+            'Spatial_means',
+            attribs={'module_name': base_name_mod + '.spatial_means',
+                     'class_name': 'SpatialMeansNS3D'})
 
         # attribs = {
         #     'module_name': base_name_mod + '.spect_energy_budget',
-        #     'class_name': 'SpectralEnergyBudgetNS2D'}
+        #     'class_name': 'SpectralEnergyBudgetNS3D'}
         # classes._set_child('spect_energy_budg', attribs=attribs)
 
     @staticmethod
@@ -47,15 +46,20 @@ class Output(OutputBasePseudoSpectral):
         """
         OutputBasePseudoSpectral._complete_params_with_default(
             params, info_solver)
+        params.output.phys_fields.field_to_plot = 'rotz'
 
-        params.output.phys_fields.field_to_plot = 'rotxy'
-
-    def compute_energy_fft(self):
+    def compute_energies_fft(self):
         vx_fft = self.sim.state.state_spect.get_var('vx_fft')
         vy_fft = self.sim.state.state_spect.get_var('vy_fft')
         vz_fft = self.sim.state.state_spect.get_var('vz_fft')
-        return old_div((np.abs(vx_fft)**2 + np.abs(vy_fft)**2 + np.abs(vz_fft)**2),2)
+        return (0.5*np.abs(vx_fft)**2, 0.5*np.abs(vy_fft)**2,
+                0.5*np.abs(vz_fft)**2)
+
+    def compute_energy_fft(self):
+        nrj_x_fft, nrj_y_fft, nrj_z_fft = self.compute_energies_fft()
+        return nrj_x_fft + nrj_y_fft + nrj_z_fft
 
     def compute_energy(self):
+        print('compute_energy, ns3d')
         energy_fft = self.compute_energy_fft()
         return self.sum_wavenumbers(energy_fft)

@@ -31,9 +31,9 @@ class BaseTestCase(unittest.TestCase):
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
         try:
-            cls.dico = module.compute()
+            cls.dict_results = module.compute()
         except AttributeError:
-            cls.dico = module.load()
+            cls.dict_results = module.load()
 
     @classmethod
     def tearDownClass(cls):

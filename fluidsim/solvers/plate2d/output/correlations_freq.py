@@ -148,7 +148,7 @@ class CorrelationsFreq(SpecificOutput):
             if self.omega_dealiasing > self.omega_Nyquist:
                 print('Warning: omega_dealiasing > omega_Nyquist')
 
-    def _init_files(self, dico_arrays_1time=None):
+    def _init_files(self, dict_arrays_1time=None):
         # we can not do anything when this function is called.
         pass
 
@@ -157,13 +157,13 @@ class CorrelationsFreq(SpecificOutput):
             self.sim.time_stepping.deltat * self.nb_times_compute *
             self.periods_fill)
         omegas = 2*np.pi/time_tot * np.arange(self.nb_omegas)
-        dico_arrays_1time = {
+        dict_arrays_1time = {
             'omegas': omegas,
             'deltat': self.sim.time_stepping.deltat,
             'nb_times_compute': self.nb_times_compute,
             'periods_fill': self.periods_fill}
-        self.create_file_from_dico_arrays(
-            self.path_file, correlations, dico_arrays_1time)
+        self._create_file_from_dict_arrays(
+            self.path_file, correlations, dict_arrays_1time)
 
         self.t_last_save = self.sim.time_stepping.t
 
@@ -206,7 +206,7 @@ class CorrelationsFreq(SpecificOutput):
                             self._init_files2(correlations)
                         else:
                             # save the spectra in the file correl_freq.h5
-                            self.add_dico_arrays_to_file(self.path_file,
+                            self._add_dict_arrays_to_file(self.path_file,
                                                          correlations)
                         if self.has_to_plot:
                             self._online_plot_saving(correlations)
@@ -223,11 +223,11 @@ class CorrelationsFreq(SpecificOutput):
             ax.set_title('Correlation, solver '+self.output.name_solver +
                          ', nh = {0:5d}'.format(self.params.oper.nx))
 
-    def _online_plot_saving(self, dico_results):
+    def _online_plot_saving(self, dict_results):
         nb_omegas = self.nb_omegas
 
-        corr4 = dico_results['corr4']
-        corr2 = dico_results['corr2']
+        corr4 = dict_results['corr4']
+        corr2 = dict_results['corr2']
         corr = np.empty(corr4.shape)
         fy, fx = np.meshgrid(self.omegas, self.omegas)
         for i1, io1 in enumerate(self.iomegas1):

@@ -17,12 +17,13 @@ class TestPrintStdout(BaseTestCase):
 
     def test_energy_vs_spatial_means(self):
         '''Verify energy saved by spatial_means module is the same.'''
-        dico_spatial_means = self.output.spatial_means.load()
+        dict_spatial_means = self.output.spatial_means.load()
         try:
             self.assertTrue(
-                np.allclose(self.dico['E'], dico_spatial_means['E'], atol=1.e-4))
+                np.allclose(self.dict_results['E'],
+                            dict_spatial_means['E'], atol=1.e-4))
         except AssertionError:
-            print(self.dico['E'], dico_spatial_means['E'])
+            print(self.dict_results['E'], dict_spatial_means['E'])
             raise
 
 

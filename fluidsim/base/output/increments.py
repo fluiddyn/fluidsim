@@ -60,7 +60,7 @@ class Increments(SpecificOutput):
                 self.nbins = mpi.comm.bcast(self.nbins)
 
         self.nrx = self.rxs.size
-        dico_arrays_1time = {
+        dict_arrays_1time = {
             'rxs': self.rxs,
             'nbins': self.nbins}
 
@@ -70,7 +70,7 @@ class Increments(SpecificOutput):
             output,
             period_save=params.output.periods_save.increments,
             has_to_plot_saved=params.output.increments.HAS_TO_PLOT_SAVED,
-            dico_arrays_1time=dico_arrays_1time)
+            dict_arrays_1time=dict_arrays_1time)
 
     def _init_online_plot(self):
         if mpi.rank == 0:
@@ -82,12 +82,12 @@ class Increments(SpecificOutput):
                 r'pdf $\delta u_x (x)$, solver ' + self.output.name_solver +
                 ', nh = {0:5d}'.format(self.nx))
 
-    def _online_plot_saving(self, dico_results, key='rot'):
+    def _online_plot_saving(self, dict_results, key='rot'):
         """online plot on pdf"""
-        pdf = dico_results['pdf_delta_'+key]
+        pdf = dict_results['pdf_delta_'+key]
         pdf = pdf.reshape([self.nrx, self.nbins])
-        valmin = dico_results['valmin_'+key]
-        valmax = dico_results['valmax_'+key]
+        valmin = dict_results['valmin_'+key]
+        valmax = dict_results['valmax_'+key]
 
         for irx, rx in enumerate(self.rxs):
             values_inc = self.compute_values_inc(
@@ -96,7 +96,7 @@ class Increments(SpecificOutput):
 
     def compute(self):
         """compute the values at one time."""
-        dico_results = {}
+        dict_results = {}
         for key in self.keys_vars_to_compute:
             var = self.sim.state.get_var(key)
 
@@ -111,11 +111,11 @@ class Increments(SpecificOutput):
                 valmin[irx] = bin_edges_var[0]
                 valmax[irx] = bin_edges_var[self.nbins]
 
-            dico_results['pdf_delta_' + key] = pdf_var.flatten()
-            dico_results['valmin_' + key] = valmin
-            dico_results['valmax_' + key] = valmax
+            dict_results['pdf_delta_' + key] = pdf_var.flatten()
+            dict_results['valmin_' + key] = valmin
+            dict_results['valmax_' + key] = valmax
 
-        return dico_results
+        return dict_results
 
     def compute_values_inc(self, valmin, valmax):
         return (valmin +
@@ -131,14 +131,14 @@ class Increments(SpecificOutput):
                           # 'struc_func_'
         ]
 
-        dico_results = {'times': times}
+        dict_results = {'times': times}
         for key in self.keys_vars_to_compute:
             for base_key in list_base_keys:
                 dset_pdf = f[base_key+key]
                 result = dset_pdf[...]
-                dico_results[base_key+key] = result
+                dict_results[base_key+key] = result
 
-        return dico_results
+        return dict_results
 
     def plot(self, tmin=0, tmax=None, delta_t=2, order=2, yscale='log'):
         """Plot some structure functions."""
@@ -482,12 +482,12 @@ class IncrementsSW1L(Increments):
         self.c2 = params.c2
         self.f = params.f
 
-    def _online_plot_saving(self, dico_results, key='eta'):
+    def _online_plot_saving(self, dict_results, key='eta'):
         """online plot on pdf"""
-        super(IncrementsSW1L, self)._online_plot_saving(dico_results, key=key)
+        super(IncrementsSW1L, self)._online_plot_saving(dict_results, key=key)
 
     def compute(self):
-        dico_results = super(IncrementsSW1L, self).compute()
+        dict_results = super(IncrementsSW1L, self).compute()
 
         get_var = self.sim.state.get_var
         ux = get_var('ux')
@@ -511,14 +511,14 @@ class IncrementsSW1L(Increments):
             S_c2h2uL[irx] = self.params.c2*np.mean(inc_eta**2*inc_ux)
             S_uT2uL[irx] = np.mean(inc_uy2*inc_ux)
 
-        dico_results['struc_func_uL2JL'] = S_uL2JL
-        dico_results['struc_func_uT2JL'] = S_uT2JL
-        dico_results['struc_func_c2h2uL'] = S_c2h2uL
-        dico_results['struc_func_Kolmo'] = S_uL2JL + S_uT2JL + S_c2h2uL
+        dict_results['struc_func_uL2JL'] = S_uL2JL
+        dict_results['struc_func_uT2JL'] = S_uT2JL
+        dict_results['struc_func_c2h2uL'] = S_c2h2uL
+        dict_results['struc_func_Kolmo'] = S_uL2JL + S_uT2JL + S_c2h2uL
 
-        dico_results['struc_func_uT2uL'] = S_uT2uL
+        dict_results['struc_func_uT2uL'] = S_uT2uL
 
-        return dico_results
+        return dict_results
 
     def plot(self, tmin=0, tmax=None, delta_t=2, order=2, yscale='log'):
         """Plot some structure functions."""

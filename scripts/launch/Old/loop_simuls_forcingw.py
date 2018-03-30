@@ -67,7 +67,7 @@ param['ONLINE_PLOT_OK']            = False
 
 
 values_solver = ['SW1lwaves']
-dico_solvers = solveq2d.ModulesSolvers(values_solver)
+dict_solvers = solveq2d.ModulesSolvers(values_solver)
 
 values_c = np.array([10, 20, 40, 70, 100, 200, 400, 700, 1000])
 # values_c =np.array([10])
@@ -81,7 +81,7 @@ tuple_loop =  [(c2, name_solver)
                for name_solver in values_solver]
 for c2, name_solver in tuple_loop:
     param['c2'] = c2
-    solver = dico_solvers[name_solver]
+    solver = dict_solvers[name_solver]
 
     sim = solver.Simul(param)
     sim.time_stepping.start()

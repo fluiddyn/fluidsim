@@ -13,7 +13,7 @@ c2 = sim.param.c2
 f = sim.param.f
 name_solver = sim.output.name_solver
 
-dico_results = sim.output.spatial_means.load()
+dict_results = sim.output.spatial_means.load()
 
 
 def derivate1D(t, func):
@@ -23,33 +23,33 @@ def derivate1D(t, func):
     dt_func[-1] = (func[-1] - func[-2])/(t[-1] - t[-2])
     return dt_func
 
-t = dico_results['t']
+t = dict_results['t']
 
-E = dico_results['E']
-CPE = dico_results['CPE']
+E = dict_results['E']
+CPE = dict_results['CPE']
 
-EK = dico_results['EK']
-EA = dico_results['EA']
-EKr = dico_results['EKr']
+EK = dict_results['EK']
+EA = dict_results['EA']
+EKr = dict_results['EKr']
 
-epsK = dico_results['epsK']
-epsK_hypo = dico_results['epsK_hypo']
-epsK_tot = dico_results['epsK_tot']
+epsK = dict_results['epsK']
+epsK_hypo = dict_results['epsK_hypo']
+epsK_tot = dict_results['epsK_tot']
 
-epsA = dico_results['epsA']
-epsA_hypo = dico_results['epsA_hypo']
-epsA_tot = dico_results['epsA_tot']
+epsA = dict_results['epsA']
+epsA_hypo = dict_results['epsA_hypo']
+epsA_tot = dict_results['epsA_tot']
 
 epsE      = epsK      + epsA
 epsE_hypo = epsK_hypo + epsA_hypo
 epsE_tot  = epsK_tot  + epsA_tot
 
-epsCPE = dico_results['epsCPE']
-epsCPE_hypo = dico_results['epsCPE_hypo']
-epsCPE_tot = dico_results['epsCPE_tot']
+epsCPE = dict_results['epsCPE']
+epsCPE_hypo = dict_results['epsCPE_hypo']
+epsCPE_tot = dict_results['epsCPE_tot']
 
-PK_tot = dico_results['PK_tot']
-PA_tot = dico_results['PA_tot']
+PK_tot = dict_results['PK_tot']
+PA_tot = dict_results['PA_tot']
 P_tot = PK_tot + PA_tot
 
 
@@ -121,19 +121,19 @@ ax2.plot(t, epsCPE, 'k--', linewidth=2 )
 ax2.plot(t, epsCPE_hypo, 'g', linewidth=2 )
 ax2.plot(t, epsCPE_tot, 'r', linewidth=2 )
 
-if dico_results.has_key('epsKsuppl'):
-    epsKsuppl = dico_results['epsKsuppl']
-    epsKsuppl_hypo = dico_results['epsKsuppl_hypo']
+if dict_results.has_key('epsKsuppl'):
+    epsKsuppl = dict_results['epsKsuppl']
+    epsKsuppl_hypo = dict_results['epsKsuppl_hypo']
 
     ax1.plot(t, epsKsuppl, 'r--', linewidth=1)
     ax1.plot(t, epsKsuppl_hypo, 'g--', linewidth=1)
 
-if 'Conv' in dico_results.keys():
+if 'Conv' in dict_results.keys():
     print('Conv is saved')
-    Conv = dico_results['Conv']
-    c2eta1d = dico_results['c2eta1d']
-    c2eta2d = dico_results['c2eta2d']
-    c2eta3d = dico_results['c2eta3d']
+    Conv = dict_results['Conv']
+    c2eta1d = dict_results['c2eta1d']
+    c2eta2d = dict_results['c2eta2d']
+    c2eta3d = dict_results['c2eta3d']
 
     Conv2 = c2eta1d + c2eta2d/2
 

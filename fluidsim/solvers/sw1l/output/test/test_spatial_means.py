@@ -24,7 +24,7 @@ class TestSpatialMeansForced(TestSpatialMeans):
                                  forcing_enable=True)
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
-        cls.dico = module.load()
+        cls.dict_results = module.load()
 
 
 if __name__ == '__main__':
