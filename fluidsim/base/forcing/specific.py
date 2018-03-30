@@ -208,7 +208,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
 
             self.COND_NO_F = self._compute_cond_no_forcing()
-
+            
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
                                              dtype=np.int32).sum())
@@ -620,7 +620,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         return F_fft
 
-
+    
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         TimeCorrelatedRandomPseudoSpectral):
     """Random normalized anisotropic forcing.
@@ -639,8 +639,15 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         params.forcing[cls.tag]._set_attribs({
             'angle': '45',
-            'time_correlation': 'based_on_forcing_rate'})
+            'time_correlation': 'based_on_forcing_rate',
+            'HAS_TO_PLOT': False})
 
+    def __init__(self, sim):
+        super(TimeCorrelatedRandomPseudoSpectralAnisotropic, self).__init__(sim)
+
+        if self.params.forcing[self.tag].HAS_TO_PLOT:
+            self.plot_forcing_region()
+        
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
@@ -684,6 +691,9 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         width = kxmax_forcing - kxmin_forcing
         height = kymax_forcing - kymin_forcing
 
+        theta1 = 90.0 - float(pforcing.tcrandom_anisotropic.angle)
+        theta2 = 90.0
+
         KX = self.oper_coarse.KX
         KY = self.oper_coarse.KY
 
@@ -693,7 +703,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         title = (pforcing.type + '; ' + 
                  r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
                  r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
-                 r'$\theta = {}^\circ$'.format(pforcing.tcrandom_anisotropic.angle))
+                 r'$\theta = {}^\circ$; '.format(pforcing.tcrandom_anisotropic.angle) +
+                 r'Forced modes = {}'.format(self.nb_forced_modes))
 
         ax.set_title(title)
         ax.set_xlabel(r'$k_x$')
@@ -710,13 +721,15 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             xy=(coord_x, coord_y),
             width=width,
             height=height,
-            fill=False))
+            fill=False,
+            hatch='\\'))
 
+        # width and height arc 50% the length of the axis
         ax.add_patch(patches.Arc(
             xy=(0, 0),
-            width=4,
-            height=4,
-            angle=0, theta1=60, theta2=90))
+            width=abs(KX).max() * 0.5,
+            height=abs(KX).max() * 0.5,
+            angle=0, theta1=theta1, theta2=theta2))
         
         ax.plot([0, kxmin_forcing], [0, kymin_forcing], color='k', linewidth=1)
         ax.plot([kxmin_forcing, kxmin_forcing], [0, kymin_forcing],
@@ -728,10 +741,14 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.plot([0, kxmin_forcing], [kymax_forcing, kymax_forcing],
                 'k--', linewidth=0.8)
 
-        ax.text(kxmin_forcing, - 1 * oper.deltaky, r'$k_{x,min}$')
-        ax.text(kxmax_forcing, - 1 * oper.deltaky, r'$k_{x,max}$')
-        ax.text(-1 * oper.deltakx, kymin_forcing, r'$k_{z,min}$')
-        ax.text(- 1 * oper.deltakx, kymax_forcing, r'$k_{z,max}$')
+        # Location labels 0.8% the length of the axis
+        factor = 0.008
+        loc_label_y = abs(KY).max() * factor
+        loc_label_x = abs(KX).max() * factor
+        ax.text(loc_label_x + kxmin_forcing,  loc_label_y, r'$k_{x,min}$')
+        ax.text(loc_label_x + kxmax_forcing,  loc_label_y, r'$k_{x,max}$')
+        ax.text(loc_label_x, kymin_forcing + loc_label_y, r'$k_{z,min}$')
+        ax.text(loc_label_x, kymax_forcing + loc_label_y, r'$k_{z,max}$')
 
         plt.show(block=False)
 
