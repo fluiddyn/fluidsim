@@ -123,6 +123,9 @@ class Simul(SimulStrat):
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft)
 
+        if self.params.f is not None:
+            self._modif_omegafft_with_f(omegax_fft, omegay_fft, omegaz_fft)
+
         omegax = self.state.fields_tmp[3]
         omegay = self.state.fields_tmp[4]
         omegaz = self.state.fields_tmp[5]

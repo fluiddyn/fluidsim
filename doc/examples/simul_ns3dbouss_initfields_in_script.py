@@ -16,7 +16,7 @@ from fluidsim.solvers.ns3d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'bug'
+params.output.sub_directory = 'examples'
 
 nx = 48
 ny = 64
@@ -28,15 +28,15 @@ params.oper.nz = nz
 params.oper.Lx = Lx
 params.oper.Ly = Ly = Lx/nx*ny
 params.oper.Lz = Lz = Lx/nx*nz
-fft = 'fftwmpi3d'  # works fine
-fft = 'fftw1d'  # works fine
-# fft = 'pfft'  # gather buggy
-fft = 'p3dfft'  # gather buggy
+fft = 'fftwmpi3d'
+# fft = 'fftw1d'
+# fft = 'pfft'
+# fft = 'p3dfft'
 
-# for sequential runs, just comment this line
+# for sequential runs, just comment these 2 lines
 params.oper.type_fft = 'fluidfft.fft3d.mpi_with_' + fft
-
 params.short_name_type_run = fft
+
 
 r"""
 
@@ -72,7 +72,7 @@ params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 printby0(f'nu_8 = {params.nu_8:.3e}')
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 1.
+params.time_stepping.t_end = 10.
 
 params.init_fields.type = 'in_script'
 
@@ -84,7 +84,7 @@ sim = Simul(params)
 
 # here we have to initialize the flow fields
 
-variables = {k: 1e-6 * sim.oper.create_arrayX_random()
+variables = {k: 1e-2 * sim.oper.create_arrayX_random()
              for k in ('vx', 'vy', 'vz')}
 
 X, Y, Z = sim.oper.get_XYZ_loc()

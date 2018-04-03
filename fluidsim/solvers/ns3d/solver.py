@@ -11,6 +11,8 @@
 """
 from __future__ import division
 
+from fluiddyn.util.mpi import rank
+
 from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -96,6 +98,11 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
+        params._set_attrib('f', None)
+
+    def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
+        if rank == 0:
+            omegaz_fft[0, 0, 0] += self.params.f
 
     def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
@@ -115,6 +122,9 @@ class Simul(SimulBasePseudoSpectral):
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft)
 
+        if self.params.f is not None:
+            self._modif_omegafft_with_f(omegax_fft, omegay_fft, omegaz_fft)
+        
         omegax = self.state.fields_tmp[3]
         omegay = self.state.fields_tmp[4]
         omegaz = self.state.fields_tmp[5]

@@ -10,7 +10,7 @@ Launch with::
 
 import numpy as np
 
-from fluiddyn.util.mpi import printby0, rank
+from fluiddyn.util.mpi import printby0
 
 from fluidsim.solvers.ns3d.bouss.solver import Simul
 
@@ -19,7 +19,7 @@ params = Simul.create_default_params()
 params.output.sub_directory = 'examples'
 
 nx = 144
-ny = nx//3*2
+ny = nx
 nz = nx//2
 lz = 2
 params.oper.nx = nx
@@ -28,6 +28,9 @@ params.oper.nz = nz
 params.oper.Lx = lx = lz/nz*nx
 params.oper.Ly = ly = lz/nz*ny
 params.oper.Lz = lz
+
+# rotation
+params.f = 1.
 
 r"""
 
@@ -63,10 +66,8 @@ params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 # printby0(f'nu_8 = {params.nu_8:.3e}')
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 8.
-# we need small time step for a strong forcing
+params.time_stepping.t_end = 10.
 params.time_stepping.deltat_max = 0.01
-params.time_stepping.cfl_coef = 0.5
 
 params.init_fields.type = 'in_script'
 
@@ -80,17 +81,27 @@ params.output.periods_save.phys_fields = 0.5
 sim = Simul(params)
 
 # here we have to initialize the flow fields
-variables = {k: 1e-6 * sim.oper.create_arrayX_random()
+variables = {k: 1e-2 * sim.oper.create_arrayX_random()
              for k in ('vx', 'vy', 'vz')}
 
 X, Y, Z = sim.oper.get_XYZ_loc()
 
+width_step = max(4*dx, 0.1)
+
+def step_func(x):
+    """Activation function"""
+    return 0.5*(np.tanh(x/width_step) + 1)
+
+
 x0 = lx/2.
 y0 = ly/2.
-z0 = lz/2.
-R2 = (X-x0)**2 + (Y-y0)**2 + (Z-z0)**2
+Rh2 = (X-x0)**2 + (Y-y0)**2
 r0 = 0.5
-b = -0.5*(1-np.tanh((R2 - r0**2)/0.2**2))
+d_forcing = lz/10
+d_forcing_b = 1.2 * d_forcing
+
+b = -0.5*(1-np.tanh((Rh2 - r0**2)/0.2**2)) * \
+    step_func(Z - d_forcing_b) * step_func(-(Z - (lz - d_forcing_b)))
 variables['b'] = b
 
 sim.state.init_statephys_from(**variables)
@@ -102,8 +113,20 @@ sim.state.statephys_from_statespect()
 oper = sim.oper
 X, Y, Z = oper.get_XYZ_loc()
 
-d = lz/6
-alpha = - 80 * (np.exp(-Z**2/d**2) + np.exp(-(Z - lz)**2/d**2))
+alpha = step_func(d_forcing - Z) + step_func(Z - (lz - d_forcing))
+
+
+# calculus of coef_sigma
+"""
+f(t) = f0 * exp(-sigma*t)
+
+If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
+
+sigma = gamma / (n_dt * dt)
+"""
+gamma = 2
+n_dt = 4
+coef_sigma = gamma/n_dt
 
 
 def compute_forcing_fft_each_time(self):
@@ -112,7 +135,8 @@ def compute_forcing_fft_each_time(self):
     """
     def compute_forcing_1var(key):
         vi = self.sim.state.state_phys.get_var(key)
-        fi = alpha * vi
+        sigma = coef_sigma/self.sim.time_stepping.deltat
+        fi = - sigma * alpha * vi
         return oper.fft(fi)
 
     keys = ('vz',)
