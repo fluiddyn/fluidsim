@@ -730,7 +730,24 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             width=abs(KX).max() * 0.5,
             height=abs(KX).max() * 0.5,
             angle=0, theta1=theta1, theta2=theta2))
-        
+
+        # Plot arc kmin and kmax
+        ax.add_patch(patches.Arc(
+            xy=(0,0),
+            width=2 * self.kmin_forcing,
+            height=2 * self.kmin_forcing,
+            angle=0, theta1=0, theta2=90.0,
+            linestyle='--'))
+        ax.add_patch(patches.Arc(
+            xy=(0,0),
+            width=2 * self.kmax_forcing,
+            height=2 * self.kmax_forcing,
+            angle=0, theta1=0, theta2=90.0,
+            linestyle='--'))
+
+        # Plot forced modes in red
+        # use numpy.argwhere
+
         ax.plot([0, kxmin_forcing], [0, kymin_forcing], color='k', linewidth=1)
         ax.plot([kxmin_forcing, kxmin_forcing], [0, kymin_forcing],
                 'k--', linewidth=0.8)
