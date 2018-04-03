@@ -206,7 +206,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.oper_coarse = sim.oper.__class__(
                 params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
-
+            print('self.shapeK_loc_coarse', self.shapeK_loc_coarse)
             self.COND_NO_F = self._compute_cond_no_forcing()
             
             self.nb_forced_modes = (self.COND_NO_F.size -
@@ -697,7 +697,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         KX = self.oper_coarse.KX
         KY = self.oper_coarse.KY
-
+        
         fig, ax = plt.subplots()
         ax.set_aspect('equal')
         
@@ -775,9 +775,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         # Plot forced modes in red
         indices_forcing = np.argwhere(self.COND_NO_F == False)
         for i, index in enumerate(indices_forcing):
-            ax.plot(KY[index[1], 0], KX[0, index[0]],
-                    color='r', marker='o',
-                    label='Forced mode' if i == 0 else "")
+                ax.plot(KX[0, index[1]], KY[index[0], 0],
+                        'ro', label='Forced mode' if i == 0 else "")
 
         # Location labels 0.8% the length of the axis
         factor = 0.008
