@@ -48,7 +48,7 @@ class SpectraMultiDim(SpecificOutput):
             if not os.path.exists(self.path_file):
                 dico_arrays_1time = {'kxE': self.sim.oper.kxE,
                                      'kyE': self.sim.oper.kyE}
-                self.create_file_from_dico_arrays(
+                self._create_file_from_dict_arrays(
                     self.path_file, dico_spectra, dico_arrays_1time)
                 self.nb_saved_times = 1
             else:
@@ -56,7 +56,7 @@ class SpectraMultiDim(SpecificOutput):
                     dset_times = f['times']
                     self.nb_saved_times = dset_times.shape[0] + 1
                 # save the spectra in the file spectra_multidim.h5
-                self.add_dico_arrays_to_file(self.path_file, dico_spectra)
+                self._add_dict_arrays_to_file(self.path_file, dico_spectra)
 
         self.t_last_save = self.sim.time_stepping.t
 
@@ -68,7 +68,7 @@ class SpectraMultiDim(SpecificOutput):
             dico_spectra = self.compute()
             if mpi.rank == 0:
                 # save the spectra in the file spectra_multidim.h5
-                self.add_dico_arrays_to_file(self.path_file, dico_spectra)
+                self._add_dict_arrays_to_file(self.path_file, dico_spectra)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
                     self._online_plot_saving(dico_spectra)
