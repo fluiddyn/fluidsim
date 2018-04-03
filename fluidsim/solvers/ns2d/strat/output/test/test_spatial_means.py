@@ -23,8 +23,7 @@ class TestSpatialMeans(TestNS2DStrat):
 
     def test_energy_conservation(self):
         """Check conservation of energy (no viscosity & no dissipation)"""
-        dico = self.dico
-        energies = dico['E']
+        energies = self.dict_results['E']
 
         # Compute energy difference
         dE = []

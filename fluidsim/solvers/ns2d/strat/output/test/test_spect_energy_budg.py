@@ -53,7 +53,7 @@ class TestSpectEnergyBudg(TestNS2DStrat):
         self._plot()
 
     def test_online_plot_spect_energy_budg(self):
-        self._online_plot_saving(self.dico)
+        self._online_plot_saving(self.dict_results)
 
 
 if __name__ == '__main__':

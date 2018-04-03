@@ -23,20 +23,20 @@ class SpectraMultiDimNS2D(SpectraMultiDim):
         spectrumkykx_E = self.oper.compute_spectrum_kykx(energy_fft)
 
         # Save results into dictionary
-        dico_spectra = {'spectrumkykx_E' : spectrumkykx_E}
+        dict_spectra = {'spectrumkykx_E' : spectrumkykx_E}
 
-        return dico_spectra
+        return dict_spectra
 
-    def online_plot_saving(self, dico_spectra):
+    def online_plot_saving(self, dict_spectra):
         raise NotImplementedError('Online plot saving is not implemented.')
 
     def plot(self):
         """Plots spectrumkykx averaged between tmin and tmax."""
         
-        dico_results = self.load_mean(tmin, tmax)
-        kx = dico_results['kxE']
-        ky = dico_results['kyE']
-        spectrumkykx_E = dico_results['spectrumkykx_E']
+        dict_results = self.load_mean(tmin, tmax)
+        kx = dict_results['kxE']
+        ky = dict_results['kyE']
+        spectrumkykx_E = dict_results['spectrumkykx_E']
         
         fig, ax = self.output.figure_axe()
         ax.set_xlabel('$k_x$')
