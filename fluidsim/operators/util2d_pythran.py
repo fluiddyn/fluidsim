@@ -17,7 +17,7 @@ Pythran compatible functions: 2d operators (:mod:`fluidsim.operators.util2d_pyth
 # pythran export dealiasing_setofvar(complex128[][][], uint8[][], int, int)
 
 def dealiasing_setofvar(setofvar_fft, where, n0, n1):
-    """Dealiasing of a setofvar arrays"""
+    """Dealiasing of a setofvar arrays."""
     nk = setofvar_fft.shape[0]
 
     for i0 in range(n0):

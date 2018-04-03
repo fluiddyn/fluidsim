@@ -153,7 +153,7 @@ class OperatorsPseudoSpectral3D(_Operators):
             return
 
         nkzc, nkyc, nkxc = shapeK_loc_coarse
-        
+
         if nb_proc > 1:
             raise NotImplementedError
         else:
