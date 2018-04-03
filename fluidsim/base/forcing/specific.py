@@ -214,7 +214,15 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                                              dtype=np.int32).sum())
             if not self.nb_forced_modes:
                 raise ValueError('0 modes forced.')
-            
+
+            try:
+                hasattr(self, 'plot_forcing_region')
+            except NotImplementedError:
+                pass
+            else:
+                mpi.printby0('To plot the forcing modes, you can use:\n'
+                              'sim.forcing.forcing_maker.plot_forcing_region()')
+                
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
@@ -639,14 +647,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         params.forcing[cls.tag]._set_attribs({
             'angle': '45',
-            'time_correlation': 'based_on_forcing_rate',
-            'HAS_TO_PLOT': False})
-
-    def __init__(self, sim):
-        super(TimeCorrelatedRandomPseudoSpectralAnisotropic, self).__init__(sim)
-
-        if self.params.forcing[self.tag].HAS_TO_PLOT:
-            self.plot_forcing_region()
+            'time_correlation': 'based_on_forcing_rate'})
         
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
@@ -714,15 +715,17 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.set_xlim([abs(KX).min(), abs(KX).max()])
         ax.set_ylim([abs(KY).min(), abs(KY).max()])
 
-        xticks = np.arange(abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        # Set ticks
+        # xticks = np.arange(abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        # yticks = np.arange(abs(KY).min(), abs(KY).max(), self.oper.deltaky)
         # ax.set_xticks(xticks)
+        # ax.set_yticks(yticks)
         
         ax.add_patch(patches.Rectangle(
             xy=(coord_x, coord_y),
             width=width,
             height=height,
-            fill=False,
-            hatch='\\'))
+            fill=False))
 
         # width and height arc 50% the length of the axis
         ax.add_patch(patches.Arc(
@@ -767,5 +770,14 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.text(loc_label_x, kymin_forcing + loc_label_y, r'$k_{z,min}$')
         ax.text(loc_label_x, kymax_forcing + loc_label_y, r'$k_{z,max}$')
 
+        # Plot forced modes in red
+        indices_forcing = np.argwhere(self.COND_NO_F == False)
+        for i, index in enumerate(indices_forcing):
+            ax.plot(KY[index[1], 0], KX[0, index[0]],
+                    color='r', marker='o',
+                    label='Forced mode' if i == 0 else "")
+        
+
+        ax.legend()
         plt.show(block=False)
 
