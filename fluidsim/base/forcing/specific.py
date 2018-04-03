@@ -715,11 +715,24 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.set_xlim([abs(KX).min(), abs(KX).max()])
         ax.set_ylim([abs(KY).min(), abs(KY).max()])
 
-        # Set ticks
-        # xticks = np.arange(abs(KX).min(), abs(KX).max(), self.oper.deltakx)
-        # yticks = np.arange(abs(KY).min(), abs(KY).max(), self.oper.deltaky)
-        # ax.set_xticks(xticks)
-        # ax.set_yticks(yticks)
+        # Set ticks 10% of the KX.max and KY.max
+        factor = 0.1
+        sep_x = abs(KX).max() * factor
+        sep_y = abs(KY).max() * factor
+        nb_deltakx = int(sep_x // self.oper.deltakx)
+        nb_deltaky = int(sep_y // self.oper.deltaky)
+
+        if not nb_deltakx:
+            nb_deltakx = 1
+        if not nb_deltaky:
+             nb_deltaky = 1   
+
+        xticks = np.arange(
+            abs(KX).min(), abs(KX).max(), nb_deltakx * self.oper.deltakx)
+        yticks = np.arange(
+            abs(KY).min(), abs(KY).max(), nb_deltaky * self.oper.deltaky)
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
         
         ax.add_patch(patches.Rectangle(
             xy=(coord_x, coord_y),
@@ -740,17 +753,15 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             width=2 * self.kmin_forcing,
             height=2 * self.kmin_forcing,
             angle=0, theta1=0, theta2=90.0,
-            linestyle='--'))
+            linestyle='-.'))
         ax.add_patch(patches.Arc(
             xy=(0,0),
             width=2 * self.kmax_forcing,
             height=2 * self.kmax_forcing,
             angle=0, theta1=0, theta2=90.0,
-            linestyle='--'))
+            linestyle='-.'))
 
-        # Plot forced modes in red
-        # use numpy.argwhere
-
+        # Plot lines angle & lines forcing region
         ax.plot([0, kxmin_forcing], [0, kymin_forcing], color='k', linewidth=1)
         ax.plot([kxmin_forcing, kxmin_forcing], [0, kymin_forcing],
                 'k--', linewidth=0.8)
@@ -761,23 +772,32 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.plot([0, kxmin_forcing], [kymax_forcing, kymax_forcing],
                 'k--', linewidth=0.8)
 
-        # Location labels 0.8% the length of the axis
-        factor = 0.008
-        loc_label_y = abs(KY).max() * factor
-        loc_label_x = abs(KX).max() * factor
-        ax.text(loc_label_x + kxmin_forcing,  loc_label_y, r'$k_{x,min}$')
-        ax.text(loc_label_x + kxmax_forcing,  loc_label_y, r'$k_{x,max}$')
-        ax.text(loc_label_x, kymin_forcing + loc_label_y, r'$k_{z,min}$')
-        ax.text(loc_label_x, kymax_forcing + loc_label_y, r'$k_{z,max}$')
-
         # Plot forced modes in red
         indices_forcing = np.argwhere(self.COND_NO_F == False)
         for i, index in enumerate(indices_forcing):
             ax.plot(KY[index[1], 0], KX[0, index[0]],
                     color='r', marker='o',
                     label='Forced mode' if i == 0 else "")
-        
 
+        # Location labels 0.8% the length of the axis
+        factor = 0.008
+        loc_label_y = abs(KY).max() * factor
+        loc_label_x = abs(KX).max() * factor
+
+        ax.text(loc_label_x + kxmin_forcing,  loc_label_y, r'$k_{x,min}$')
+        ax.text(loc_label_x + kxmax_forcing,  loc_label_y, r'$k_{x,max}$')
+        ax.text(loc_label_x, kymin_forcing + loc_label_y, r'$k_{z,min}$')
+        ax.text(loc_label_x, kymax_forcing + loc_label_y, r'$k_{z,max}$')
+
+        # Location label angle \theta
+        factor_x = 0.015
+        factor_y = 0.15
+        loc_label_y = abs(KY).max() * factor_y
+        loc_label_x = abs(KX).max() * factor_x
+
+        ax.text(loc_label_x, loc_label_y, r'$\theta$')
+
+        ax.grid(linestyle='--', alpha=0.4)
         ax.legend()
         plt.show(block=False)
 
