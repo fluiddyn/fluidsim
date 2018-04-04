@@ -103,7 +103,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
         if isinstance(obj, dict):
             kwargs = obj
         else:
-            kwargs = {self.key_forced: obj}
+            kwargs = {self.sim.params.forcing.key_forced: obj}
         self.fstate.init_statespect_from(**kwargs)
 
     def compute_forcing_fft_each_time(self):
@@ -113,7 +113,8 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
             kwargs = {key: self.sim.oper.fft(value)
                       for key, value in obj.items()}
         else:
-            kwargs = {self.key_forced: self.sim.oper.fft(obj)}
+            kwargs = {self.sim.params.forcing.key_forced:
+                      self.sim.oper.fft(obj)}
         return kwargs
 
     def compute_forcing_each_time(self):
