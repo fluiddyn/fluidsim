@@ -204,21 +204,19 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             # The 2 * deltakx aims to give some gap between the kxmax and
             # the boundary of the oper_coarse.
             try:
-                params_coarse.oper.nx = ((self.kxmax_forcing +
+                params_coarse.oper.nx = int((self.kxmax_forcing +
                                 2 * self.oper.deltakx) * (params.oper.Lx / pi))
             except AttributeError:
-                pass
-            
+                pass            
             try:
                 params_coarse.oper.ny = n
                 try:
-                    params_coarse.oper.ny = ((self.kymax_forcing +
+                    params_coarse.oper.ny = int((self.kymax_forcing +
                                 2 * self.oper.deltaky) * (params.oper.Ly / pi))
                 except AttributeError:
                     pass
             except AttributeError:
                 pass
-            
             try:
                 params_coarse.oper.nz = n
             except AttributeError:
