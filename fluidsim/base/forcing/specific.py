@@ -50,7 +50,7 @@ from __future__ import print_function
 from builtins import object
 
 from copy import deepcopy
-from math import radians
+from math import radians, pi
 import types
 from warnings import warn
 import numpy as np
@@ -189,25 +189,49 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
         self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
+        try:
+            angle = radians(float(self.params.forcing[self.tag].angle))
+        except AttributeError:
+            pass
+        else:
+            self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
+            self.kymax_forcing = np.cos(angle) * self.kmax_forcing
+
         if mpi.rank == 0:
             params_coarse = deepcopy(params)
+
             params_coarse.oper.nx = n
+            # The 2 * deltakx aims to give some gap between the kxmax and
+            # the boundary of the oper_coarse.
             try:
-                params_coarse.oper.ny = n
+                params_coarse.oper.nx = ((self.kxmax_forcing +
+                                2 * self.oper.deltakx) * (params.oper.Lx / pi))
             except AttributeError:
                 pass
+            
+            try:
+                params_coarse.oper.ny = n
+                try:
+                    params_coarse.oper.ny = ((self.kymax_forcing +
+                                2 * self.oper.deltaky) * (params.oper.Ly / pi))
+                except AttributeError:
+                    pass
+            except AttributeError:
+                pass
+            
             try:
                 params_coarse.oper.nz = n
             except AttributeError:
                 pass
+            
             params_coarse.oper.type_fft = 'sequential'
             # FIXME: Workaround for incorrect forcing
             params_coarse.oper.coef_dealiasing = 1.
-
+            
             self.oper_coarse = sim.oper.__class__(
                 params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
-            print('self.shapeK_loc_coarse', self.shapeK_loc_coarse)
+
             self.COND_NO_F = self._compute_cond_no_forcing()
             
             self.nb_forced_modes = (self.COND_NO_F.size -
@@ -654,9 +678,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         """Computes condition no forcing of the anisotropic case.
         """
         angle = radians(float(self.params.forcing[self.tag].angle))
-
-        
-        
+                
         self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
         self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
 
@@ -703,8 +725,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.set_aspect('equal')
         
         title = (pforcing.type + '; ' + 
-                 r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
-                 r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
+                 r'$nk_{{min}} = {}$; '.format(pforcing.nkmin_forcing) +
+                 r'$nk_{{max}} = {}$; '.format(pforcing.nkmax_forcing) +
                  r'$\theta = {}^\circ$; '.format(pforcing.tcrandom_anisotropic.angle) +
                  r'Forced modes = {}'.format(self.nb_forced_modes))
 
@@ -722,7 +744,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         sep_y = abs(KY).max() * factor
         nb_deltakx = int(sep_x // self.oper.deltakx)
         nb_deltaky = int(sep_y // self.oper.deltaky)
-
+        
         if not nb_deltakx:
             nb_deltakx = 1
         if not nb_deltaky:
@@ -732,6 +754,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             abs(KX).min(), abs(KX).max(), nb_deltakx * self.oper.deltakx)
         yticks = np.arange(
             abs(KY).min(), abs(KY).max(), nb_deltaky * self.oper.deltaky)
+        
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
         
