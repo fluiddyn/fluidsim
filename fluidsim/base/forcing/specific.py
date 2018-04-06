@@ -186,7 +186,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             while 2 * params.forcing.nkmax_forcing > 2**i:
                 i += 1
             n = 2**i
-
+        
         self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
         try:
@@ -204,15 +204,17 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             # The 2 * deltakx aims to give some gap between the kxmax and
             # the boundary of the oper_coarse.
             try:
-                params_coarse.oper.nx = int((self.kxmax_forcing +
-                                2 * self.oper.deltakx) * (params.oper.Lx / pi))
+                params_coarse.oper.nx = fftw_grid_size(int(
+                    (self.kxmax_forcing + 2 * self.oper.deltakx) * (
+                        params.oper.Lx / pi)))
             except AttributeError:
-                pass            
+                pass
             try:
                 params_coarse.oper.ny = n
                 try:
-                    params_coarse.oper.ny = int((self.kymax_forcing +
-                                2 * self.oper.deltaky) * (params.oper.Ly / pi))
+                    params_coarse.oper.ny = fftw_grid_size(int(
+                        (self.kymax_forcing + 2 * self.oper.deltaky) * (
+                            params.oper.Ly / pi)))
                 except AttributeError:
                     pass
             except AttributeError:
@@ -676,12 +678,13 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         """Computes condition no forcing of the anisotropic case.
         """
         angle = radians(float(self.params.forcing[self.tag].angle))
-                
+
+        # kxmax_forcing and kymax_forcing are computed in __init__
         self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
-        self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
+        # self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
 
         self.kymin_forcing = np.cos(angle) * self.kmin_forcing
-        self.kymax_forcing = np.cos(angle) * self.kmax_forcing
+        # self.kymax_forcing = np.cos(angle) * self.kmax_forcing
 
         if self.kxmax_forcing - self.kxmin_forcing < self.oper.deltakx or \
            self.kymax_forcing - self.kymin_forcing < self.oper.deltaky:
@@ -733,28 +736,46 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         ax.set_ylabel(r'$k_z$')
         
         # Parameters figure
-        ax.set_xlim([abs(KX).min(), abs(KX).max()])
-        ax.set_ylim([abs(KY).min(), abs(KY).max()])
+        ax.set_xlim([abs(KX).min(), self.kmax_forcing])
+        ax.set_ylim([abs(KY).min(), self.kmax_forcing])
 
         # Set ticks 10% of the KX.max and KY.max
-        factor = 0.1
-        sep_x = abs(KX).max() * factor
-        sep_y = abs(KY).max() * factor
-        nb_deltakx = int(sep_x // self.oper.deltakx)
-        nb_deltaky = int(sep_y // self.oper.deltaky)
+        # factor = 0.1
+        # sep_x = abs(KX).max() * factor
+        # sep_y = abs(KY).max() * factor
+        # nb_deltakx = int(sep_x // self.oper.deltakx)
+        # nb_deltaky = int(sep_y // self.oper.deltaky)
         
-        if not nb_deltakx:
-            nb_deltakx = 1
-        if not nb_deltaky:
-             nb_deltaky = 1   
+        # if not nb_deltakx:
+        #     nb_deltakx = 1
+        # if not nb_deltaky:
+        #      nb_deltaky = 1   
 
-        xticks = np.arange(
-            abs(KX).min(), abs(KX).max(), nb_deltakx * self.oper.deltakx)
-        yticks = np.arange(
-            abs(KY).min(), abs(KY).max(), nb_deltaky * self.oper.deltaky)
+        # xticks = np.arange(
+        #     abs(KX).min(), abs(KX).max(), nb_deltakx * self.oper.deltakx)
+        # yticks = np.arange(
+        #     abs(KY).min(), abs(KY).max(), nb_deltaky * self.oper.deltaky)
         
+        # ax.set_xticks(xticks)
+        # ax.set_yticks(yticks)
+        
+        xticks = np.arange(
+            abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        yticks = np.arange(
+            abs(KY).min(), abs(KY).max(), self.oper.deltaky)
+
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
+
+        xticks_label = []
+        for i, value in enumerate(xticks):
+            if i % self.oper.deltaky == 0:
+                xticks_label.append(value)
+            else:
+                xticks_label.append('')
+
+        ax.set_xticklabels(xticks_label)
+        ax.set_yticklabels(list(yticks))
         
         ax.add_patch(patches.Rectangle(
             xy=(coord_x, coord_y),
@@ -818,7 +839,10 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         ax.text(loc_label_x, loc_label_y, r'$\theta$')
 
-        ax.grid(linestyle='--', alpha=0.4)
+        # ax.grid(linestyle='--', alpha=0.4)
+        ax.grid(linestyle='--', which='minor', alpha=0.2)
+        ax.grid(linestyle='--', which='major', alpha=0.5)
+        
         ax.legend()
         plt.show(block=False)
 
