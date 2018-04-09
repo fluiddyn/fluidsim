@@ -53,6 +53,7 @@ from copy import deepcopy
 from math import radians, pi
 import types
 from warnings import warn
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -614,9 +615,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             # To plot forcing Vs time for one mode
             self.idx_plot, self.idy_plot = np.argwhere(
                 self.COND_NO_F == False)[0]
-            self.array_f = []
-            self.array_time = []
-            
+            self.path_forcing_time = self.sim.params.path_run + \
+                                     '/forcing_time.txt'
+
             self.F0 = self.compute_forcingc_raw()
             self.F1 = self.compute_forcingc_raw()
 
@@ -626,6 +627,17 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             else:
                 self.period_change_F0F1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
+            
+    def _write_to_forcing_file(self, time, forcing):
+        if not os.path.exists(self.path_forcing_time):
+            with open(self.path_forcing_time, 'w') as f:
+                to_write = '{:.4f}, {:.4f}\n'.format(time, forcing)
+                f.write(to_write)
+        else:
+            with open(self.path_forcing_time, 'r+') as f:
+                f.seek(0, 2) # It goes to the end of the file
+                to_write = '{:.4f}, {:.4f}\n'.format(time, forcing)
+                f.write(to_write)
 
     def forcingc_raw_each_time(self, a_fft):
         """Return a coarse forcing as a linear combination of 2 random arrays
@@ -640,12 +652,12 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             # pa: this del should be useless...
             # del(self.F1)
             self.F1 = self.compute_forcingc_raw()
-
+            
         F_fft = self.forcingc_from_F0F1()
 
-        # Saves forcing and time for plot
-        self.array_f.append(abs(F_fft[self.idx_plot, self.idy_plot]))
-        self.array_time.append(tsim)
+        # Function to save forcing Vs time for the first forced mode
+        # self._write_to_forcing_file(
+        #     tsim, abs(F_fft[self.idx_plot, self.idy_plot]))
 
         return F_fft
 
@@ -664,28 +676,72 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         return F_fft
 
-    def plot_forcing_1mode(self):
-        """Plots forcing versus time for one mode.
+    def plot_forcing_region(self):
+        """Plots the forcing region.
 
-        The mode is the first mode forced of the array SELF.COND_NO_F given by:
-        self.idx, self.idy = np.argwhere(self.COND_NO_F == False)[0]
-
+        # TODO: Use super() to optimize code.
         """
-        forcing_rate = self.params.forcing.forcing_rate
-        array_f = self.array_f
-        array_time = self.array_time
-
+        pforcing = self.params.forcing
+        KX = self.oper_coarse.KX
+        KY = self.oper_coarse.KY
+        
         fig, ax = plt.subplots()
-        ax.set_xlabel('t')
-        ax.set_ylabel('F')
+        ax.set_aspect('equal')
 
-        xticks = np.arange(min(array_time), max(array_time), forcing_rate)
+        title = (self.params.forcing.type + '; ' + 
+                 r'$nk_{{min}} = {}$; '.format(pforcing.nkmin_forcing) +
+                 r'$nk_{{max}} = {}$; '.format(pforcing.nkmax_forcing) +
+                 r'$\theta = {}^\circ$; '.format(pforcing.tcrandom_anisotropic.angle) +
+                 r'Forced modes = {}'.format(self.nb_forced_modes))
+
+        ax.set_xlim([abs(KX).min(), self.kmax_forcing])
+        ax.set_ylim([abs(KY).min(), self.kmax_forcing])
+
+        xticks = np.arange(
+            abs(KX).min(), abs(KX).max(), self.oper.deltakx)
+        yticks = np.arange(
+            abs(KY).min(), abs(KY).max(), self.oper.deltaky)
+
         ax.set_xticks(xticks)
-        ax.grid()
+        ax.set_yticks(yticks)
+
+        xticks_label = []
+        for i, value in enumerate(xticks):
+            if i % self.oper.deltaky == 0:
+                xticks_label.append(value)
+            else:
+                xticks_label.append('')
+
+        ax.set_xticklabels(xticks_label)
+        ax.set_yticklabels(list(yticks))
+
+        # Plot arc kmin and kmax
+        ax.add_patch(patches.Arc(
+            xy=(0,0),
+            width=2 * self.kmin_forcing,
+            height=2 * self.kmin_forcing,
+            angle=0, theta1=0, theta2=90.0,
+            linestyle='-.'))
+        ax.add_patch(patches.Arc(
+            xy=(0,0),
+            width=2 * self.kmax_forcing,
+            height=2 * self.kmax_forcing,
+            angle=0, theta1=0, theta2=90.0,
+            linestyle='-.'))
+
+        # Plot forced modes in red
+        indices_forcing = np.argwhere(self.COND_NO_F == False)
+        for i, index in enumerate(indices_forcing):
+                ax.plot(KX[0, index[1]], KY[index[0], 0],
+                        'ro', label='Forced mode' if i == 0 else "")
+
+        ax.grid(linestyle='--', which='minor', alpha=0.2)
+        ax.grid(linestyle='--', which='major', alpha=0.5)
         
-        plt.plot(array_time, array_f)
-        plt.show()
-        
+        ax.legend()
+        plt.show(block=False)
+        return fig, ax
+
     
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         TimeCorrelatedRandomPseudoSpectral):
@@ -878,4 +934,6 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         
         ax.legend()
         plt.show(block=False)
+
+        return fig, ax
 
