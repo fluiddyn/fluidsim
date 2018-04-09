@@ -611,6 +611,12 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
 
         if mpi.rank == 0:
+            # To plot forcing Vs time for one mode
+            self.idx_plot, self.idy_plot = np.argwhere(
+                self.COND_NO_F == False)[0]
+            self.array_f = []
+            self.array_time = []
+            
             self.F0 = self.compute_forcingc_raw()
             self.F1 = self.compute_forcingc_raw()
 
@@ -636,6 +642,11 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self.F1 = self.compute_forcingc_raw()
 
         F_fft = self.forcingc_from_F0F1()
+
+        # Saves forcing and time for plot
+        self.array_f.append(abs(F_fft[self.idx_plot, self.idy_plot]))
+        self.array_time.append(tsim)
+
         return F_fft
 
     def forcingc_from_F0F1(self):
@@ -653,6 +664,28 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         return F_fft
 
+    def plot_forcing_1mode(self):
+        """Plots forcing versus time for one mode.
+
+        The mode is the first mode forced of the array SELF.COND_NO_F given by:
+        self.idx, self.idy = np.argwhere(self.COND_NO_F == False)[0]
+
+        """
+        forcing_rate = self.params.forcing.forcing_rate
+        array_f = self.array_f
+        array_time = self.array_time
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel('t')
+        ax.set_ylabel('F')
+
+        xticks = np.arange(min(array_time), max(array_time), forcing_rate)
+        ax.set_xticks(xticks)
+        ax.grid()
+        
+        plt.plot(array_time, array_f)
+        plt.show()
+        
     
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         TimeCorrelatedRandomPseudoSpectral):
