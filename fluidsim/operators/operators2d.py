@@ -51,7 +51,8 @@ class OperatorsPseudoSpectral2D(_Operators):
                    'nx': 48,
                    'ny': 48,
                    'Lx': 8,
-                   'Ly': 8}
+                   'Ly': 8,
+                   'NO_SHEAR_MODES': False}
         params._set_child('oper', attribs=attribs)
 
     def __init__(self, params):
@@ -94,6 +95,17 @@ class OperatorsPseudoSpectral2D(_Operators):
         except AttributeError:
             pass
 
+        try:
+            NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES
+        except AttributeError:
+            pass
+        else:
+            if NO_SHEAR_MODES:
+                COND_NOSHEAR = abs(self.KX) == 0.    
+                where_dealiased = np.logical_or(
+                    COND_NOSHEAR, self.where_dealiased)
+                self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
+            
     def dealiasing(self, *args):
         for thing in args:
             if isinstance(thing, SetOfVariables):
