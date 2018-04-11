@@ -163,7 +163,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             'epsilon_ky': epsilon_ky}
 
         if mpi.rank == 0:
-            small_value = 1e-12
+            small_value = 3e-10
             for k, v in dict_results.items():
                 if k.startswith('transfer'):
                     if abs(v.sum()) > small_value:
