@@ -89,7 +89,7 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 is None:
-            lambda0 = oper.Lx / 4.
+            lambda0 = min(oper.Lx, oper.Ly, oper.Lz) / 4.
 
         def H_smooth(x, delta):
             return (1. + np.tanh(2*np.pi*x/delta))/2.
