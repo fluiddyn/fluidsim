@@ -113,13 +113,32 @@ class StateNS2D(StatePseudoSpectral):
         self.state_spect.set_var('rot_fft', rot_fft)
         self.statephys_from_statespect()
 
+    def init_from_uxfft(self, ux_fft):
+        """Initialize the state from the variable `ux_fft`"""
+        uy_fft = self.oper.create_arrayK(value=0.)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        self.init_from_rotfft(rot_fft)
+
+    def init_from_uyfft(self, uy_fft):
+        """Initialize the state from the variable `uy_fft`"""
+        ux_fft = self.oper.create_arrayK(value=0.)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        self.init_from_rotfft(rot_fft)
+        
     def init_statespect_from(self, **kwargs):
         """Initializes *state_spect* using arrays provided as keyword
         arguments.
 
         """
         if len(kwargs) == 1:
-            if 'rot_fft' in kwargs:
-                self.init_from_rotfft(kwargs['rot_fft'])
+            key, arr = kwargs.popitem()
+            if key == 'rot_fft':
+                self.init_from_rotfft(arr)
+            elif key == 'ux_fft':
+                self.init_from_uxfft(arr)
+            elif key == 'uy_fft':
+                self.init_from_uyfft(arr)
+            else:
+                super(StateNS2D, self).init_statespect_from(**kwargs)
         else:
             super(StateNS2D, self).init_statespect_from(**kwargs)

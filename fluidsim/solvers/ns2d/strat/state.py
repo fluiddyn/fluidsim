@@ -160,21 +160,27 @@ class StateNS2DStrat(StateNS2D):
         return rot_fft, b_fft
 
     def init_from_rotfft(self, rot_fft):
-        b_fft = np.zeros(self.oper.shapeK_loc, dtype=np.complex128)
+        """Initialize the state from the variable `rot_fft`."""
+        b_fft = self.oper.create_arrayK(value=0.)
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_statespect_from(self, **kwargs):
         if len(kwargs) == 1:
-            if 'rot_fft' in kwargs:
-                self.init_from_rotfft(kwargs['rot_fft'])
-            elif 'ap_fft' in kwargs:
-                self.init_from_apfft(kwargs['ap_fft'])
+            key, arr = kwargs.popitem()
+            if key == 'rot_fft':
+                self.init_from_rotfft(arr)
+            elif key == 'ap_fft':
+                self.init_from_apfft(arr)
+            elif key == 'ux_fft':
+                self.init_from_uxfft(arr)
+            elif key == 'uy_fft':
+                self.init_from_uyfft(arr)
             else:
-                raise ValueError('init from {} not implemented'.format(kwargs))
+                super(StateNS2D, self).init_statespect_from(**kwargs)
         elif len(kwargs) == 2:
             if 'rot_fft' in kwargs and 'b_fft' in kwargs:
                 self.init_from_rotbfft(kwargs['rot_fft'], kwargs['b_fft'])
             else:
-                raise ValueError('init from {} not implemented'.format(kwargs))
+                super(StateNS2D, self).init_statespect_from(**kwargs)
         else:
             super(StateNS2D, self).init_statespect_from(**kwargs)

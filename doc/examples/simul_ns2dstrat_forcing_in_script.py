@@ -33,6 +33,8 @@ params.init_fields.type = 'noise'
 params.forcing.enable = True
 params.forcing.type = 'in_script_coarse'
 params.forcing.nkmax_forcing = 12
+params.forcing.key_forced = 'rot_fft'
+
 
 params.output.sub_directory = 'examples'
 params.output.periods_print.print_stdout = 0.5
