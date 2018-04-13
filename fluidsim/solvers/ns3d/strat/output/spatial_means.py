@@ -229,7 +229,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         return dict_results
 
-    def plot(self):
+    def plot(self, plot_injection=True):
         dict_results = self.load()
 
         t = dict_results['t']
@@ -266,7 +266,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         if max(eps_hypo) > 0:
             ax1.plot(t, eps_hypo, 'g', linewidth=1)
         
-        if 'PK_tot' in dict_results:
+        if 'PK_tot' in dict_results and plot_injection:
             PK_tot = dict_results['PK_tot']            
             PA_tot = dict_results['PA_tot']
 

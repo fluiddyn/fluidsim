@@ -113,8 +113,8 @@ class Simul(SimulNS2D):
             tendencies_fft = SetOfVariables(like=self.state.state_spect)
         else:
             tendencies_fft = old
-        Frot_fft = tendencies_fft.get_var('rot_fft')
-        Fb_fft = tendencies_fft.get_var('b_fft')
+        f_rot_fft = tendencies_fft.get_var('rot_fft')
+        f_b_fft = tendencies_fft.get_var('b_fft')
 
         if state_spect is None:
             rot_fft = self.state.state_spect.get_var('rot_fft')
@@ -144,24 +144,24 @@ class Simul(SimulNS2D):
         ifft_as_arg(px_b_fft, px_b)
         ifft_as_arg(py_b_fft, py_b)
 
-        Frot, Fb = tendencies_nonlin_ns2dstrat(
+        f_rot, f_b = tendencies_nonlin_ns2dstrat(
             ux, uy, px_rot, py_rot, px_b, py_b, self.params.N)
 
-        fft_as_arg(Fb, Fb_fft)
-        fft_as_arg(Frot, Frot_fft)
+        fft_as_arg(f_b, f_b_fft)
+        fft_as_arg(f_rot, f_rot_fft)
 
-        Frot_fft += px_b_fft
+        f_rot_fft += px_b_fft
 
         oper.dealiasing(tendencies_fft)
 
         # # CHECK NON-LINEAR TRANSFER rot
-        # T_rot = np.real(Frot_fft.conj()*rot_fft + Frot_fft*rot_fft.conj())/2.
+        # T_rot = np.real(f_rot_fft.conj()*rot_fft)
         # print(('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}').format(
         #     self.oper.sum_wavenumbers(T_rot),
         #     self.oper.sum_wavenumbers(abs(T_rot))))
 
         # # CHECK NON-LINEAR TRANSFER b
-        # T_b = np.real(Fb_fft.conj()*b_fft + Fb_fft*b_fft.conj())/2.
+        # T_b = np.real(f_b_fft.conj()*b_fft)
         # print(('sum(T_b) = {0:9.4e} ; sum(abs(T_b)) = {1:9.4e}').format(
         #     self.oper.sum_wavenumbers(T_b),
         #     self.oper.sum_wavenumbers(abs(T_b))))
@@ -170,39 +170,42 @@ class Simul(SimulNS2D):
             tendencies_fft += self.forcing.get_forcing()
 
         # CHECK ENERGY CONSERVATION
-        # Nrot_fft = tendencies_fft.get_var('rot_fft')
-        # Nb_fft = tendencies_fft.get_var('b_fft')
-        # self.check_energy_conservation(rot_fft, b_fft, Nrot_fft, Nb_fft)
+        # self.check_energy_conservation(rot_fft, b_fft, f_rot_fft, f_b_fft)
 
         return tendencies_fft
 
-
-    def check_energy_conservation(self, rot_fft, b_fft, N_rot, N_b):
+    def check_energy_conservation(self, rot_fft, b_fft, f_rot_fft, f_b_fft):
         """ Check energy conservation for the inviscid case. """
         oper = self.oper
         params = self.params
 
         # Compute time derivative kinetic energy
-        division = 1./(oper.KX**2 + oper.KY**2)
-        division[np.where(division == np.inf)] = 0
+        division = 1./oper.K2_not0
+        if  oper.rank == 0:
+            division[0, 0] = 0
 
-        pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * N_rot)
+        pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * f_rot_fft)
         pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.
 
         # Compute time derivative potential energy
-        pt_energyA_fft = (1./(2 * params.N**2)) * np.real(b_fft.conj() * N_b)
+        pt_energyA_fft = (1./(2 * params.N**2)) * np.real(
+            b_fft.conj() * f_b_fft)
 
         # Time derivative total energy
         pt_energy_fft = pt_energyK_fft + pt_energyA_fft
 
         # Check time derivative energy is ~ 0.
-        epsilon = 1e-8
-        pt_energy = self.output.sum_wavenumbers(pt_energy_fft)
-        energy_conserved = np.abs(pt_energy) < epsilon
+        pt_energy = self.oper.sum_wavenumbers(pt_energy_fft)
+
+        ratio = (self.oper.sum_wavenumbers(pt_energy_fft) /
+                 self.oper.sum_wavenumbers(abs(pt_energy_fft)))
+
+        epsilon = 1e-15
+        energy_conserved = ratio < epsilon
         if not energy_conserved:
-            print('Energy conserved = ', energy_conserved)
-            print('pt_energy = {}'.format(
-                np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
+            print('Energy is not conserved!')
+            print('ratio = {}'.format(ratio))
+            raise Exception
 
     def compute_dispersion_relation(self):
         """

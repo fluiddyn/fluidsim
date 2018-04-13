@@ -119,7 +119,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
 
     def compute_forcing_each_time(self):
         """Compute the coarse forcing in real space"""
-        return self.sim.oper.create_arrayX_random()
+        return self.sim.oper.create_arrayX(value=0)
 
     def monkeypatch_compute_forcing_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
@@ -209,7 +209,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
             print('self.shapeK_loc_coarse', self.shapeK_loc_coarse)
             self.COND_NO_F = self._compute_cond_no_forcing()
-            
+
             self.nb_forced_modes = (self.COND_NO_F.size -
                                     np.array(self.COND_NO_F,
                                              dtype=np.int32).sum())
@@ -223,7 +223,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             else:
                 mpi.printby0('To plot the forcing modes, you can use:\n'
                               'sim.forcing.forcing_maker.plot_forcing_region()')
-                
+
             self.ind_forcing = np.logical_not(
                 self.COND_NO_F).flatten().nonzero()[0]
 
@@ -301,7 +301,7 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
 
     def compute_forcingc_each_time(self):
         """Compute the coarse forcing in real space"""
-        return self.oper_coarse.create_arrayX_random()
+        return self.oper_coarse.create_arrayX(value=0)
 
     def monkeypatch_compute_forcingc_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
@@ -380,21 +380,23 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     .. inheritance-diagram:: NormalizedForcing
 
     """
-    tag = 'normalized_forcing'
+    tag = 'normalized'
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
         super(NormalizedForcing, cls)._complete_params_with_default(params)
-        params.forcing._set_child(
-            cls.tag,
-            {'type_normalize': '2nd_degree_eq'})
+        try:
+            params.forcing.normalized
+        except AttributeError:
+            params.forcing._set_child(
+                'normalized', {'type': '2nd_degree_eq', 'which_root': 'first'})
 
     def __init__(self, sim):
         super(NormalizedForcing, self).__init__(sim)
 
-        if self.params.forcing[self.tag].type_normalize == 'particular_k':
+        if self.params.forcing.normalized.type == 'particular_k':
             raise NotImplementedError
 
     def compute(self):
@@ -428,7 +430,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     def normalize_forcingc(self, fvc_fft, vc_fft):
         """Normalize the coarse forcing"""
 
-        type_normalize = self.params.forcing[self.tag].type_normalize
+        type_normalize = self.params.forcing.normalized.type
 
         if type_normalize == '2nd_degree_eq':
             return self.normalize_forcingc_2nd_degree_eq(fvc_fft, vc_fft)
@@ -530,18 +532,52 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
         c = -self.forcing_rate
 
-        Delta = b**2 - 4 * a * c
-        alpha = (np.sqrt(Delta) - b) / (2 * a)
+        alpha = self.coef_normalization_from_abc(a, b, c)
 
         fvc_fft = alpha * fvc_fft
 
         return fvc_fft
 
     def coef_normalization_from_abc(self, a, b, c):
-        """."""
-        Delta = b**2 - 4 * a * c
-        alpha = (np.sqrt(Delta) - b) / (2 * a)
-        return alpha
+        """Compute the roots of a quadratic equation
+
+        Compute the roots given the coefficients `a`,`b` and `c`.
+        Then, select one of the roots based on a criteria and return it.
+
+        Notes
+        -----
+        Set params.forcing.normalized.which_root to choose the root with:
+            
+        - `minabs` : minimum absolute value
+        - `first` : root with positive sign before discriminant
+        - `second` : root with negative sign before discriminant
+        - `positive` : positive root
+
+        """
+        try:
+            alpha1, alpha2 = np.roots([a, b, c])
+        except ValueError:
+            return 0.
+
+        which_root = self.params.forcing.normalized.which_root
+
+        if which_root == 'minabs':
+            if abs(alpha2) < abs(alpha1):
+                return alpha2
+            else:
+                return alpha1
+        elif which_root == 'first':
+            return alpha1
+        elif which_root == 'second':
+            return alpha2
+        elif which_root == 'positive':
+            if alpha2 > 0.:
+                return alpha2
+            else:
+                return alpha1
+        else:
+            raise ValueError(
+                'Not sure how to choose which root to normalize forcing with.')
 
 
 class RandomSimplePseudoSpectral(NormalizedForcing):
@@ -551,16 +587,38 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
     """
     tag = 'random'
 
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        """This static method is used to complete the *params* container.
+        """
+        super(RandomSimplePseudoSpectral,
+              cls)._complete_params_with_default(params)
+
+        try:
+            params.forcing.random
+        except AttributeError:
+            params.forcing._set_child(
+                'random', {'only_positive': False})
+
+    def __init__(self, sim):
+        
+        super(RandomSimplePseudoSpectral, self).__init__(sim)
+
+        if self.params.forcing.random.only_positive:
+            self._min_val = None
+        else:
+            self._min_val = -1
+
     def compute_forcingc_raw(self):
         """Random coarse forcing.
 
         To be called only with proc 0.
         """
-        F_fft = self.oper_coarse.create_arrayK_random()
-        # fftwpy/easypyfft returns F_fft
-        F_fft = self.oper_coarse.project_fft_on_realX(F_fft)
-        F_fft[self.COND_NO_F] = 0.
-        return F_fft
+        f_fft = self.oper_coarse.create_arrayK_random(min_val=self._min_val)
+        # fftwpy/easypyfft returns f_fft
+        f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
+        f_fft[self.COND_NO_F] = 0.
+        return f_fft
 
     def forcingc_raw_each_time(self, a_fft):
         return self.compute_forcingc_raw()
@@ -579,22 +637,31 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         """
         super(TimeCorrelatedRandomPseudoSpectral,
               cls)._complete_params_with_default(params)
-        params.forcing[cls.tag]._set_attrib(
-            'time_correlation', 'based_on_forcing_rate')
+
+        try:
+            params.forcing.tcrandom
+        except AttributeError:
+            params.forcing._set_child(
+                'tcrandom', {'time_correlation': 'based_on_forcing_rate'})
 
     def __init__(self, sim):
 
         super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
 
         if mpi.rank == 0:
-            self.F0 = self.compute_forcingc_raw()
-            self.F1 = self.compute_forcingc_raw()
+            self.forcing0 = self.compute_forcingc_raw()
+            self.forcing1 = self.compute_forcingc_raw()
 
-            time_correlation = self.params.forcing[self.tag].time_correlation
+            pforcing = self.params.forcing
+            try:
+                time_correlation = pforcing[self.tag].time_correlation
+            except AttributeError:
+                time_correlation = pforcing.tcrandom.time_correlation
+
             if time_correlation == 'based_on_forcing_rate':
-                self.period_change_F0F1 = self.forcing_rate**(-1. / 3)
+                self.period_change_f0f1 = self.forcing_rate**(-1. / 3)
             else:
-                self.period_change_F0F1 = time_correlation
+                self.period_change_f0f1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
 
     def forcingc_raw_each_time(self, a_fft):
@@ -604,32 +671,30 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         """
         tsim = self.sim.time_stepping.t
-        if tsim - self.t_last_change >= self.period_change_F0F1:
+        if tsim - self.t_last_change >= self.period_change_f0f1:
             self.t_last_change = tsim
-            self.F0 = self.F1
-            # pa: this del should be useless...
-            # del(self.F1)
-            self.F1 = self.compute_forcingc_raw()
+            self.forcing0 = self.forcing1
+            self.forcing1 = self.compute_forcingc_raw()
 
-        F_fft = self.forcingc_from_F0F1()
-        return F_fft
+        f_fft = self.forcingc_from_f0f1()
+        return f_fft
 
-    def forcingc_from_F0F1(self):
+    def forcingc_from_f0f1(self):
         """Return a coarse forcing as a linear combination of 2 random arrays
 
         """
         tsim = self.sim.time_stepping.t
-        deltat = self.period_change_F0F1
+        deltat = self.period_change_f0f1
         omega = np.pi / deltat
 
-        deltaF = self.F1 - self.F0
+        deltaf = self.forcing1 - self.forcing0
 
-        F_fft = self.F1 - 0.5 * (
-            np.cos((tsim - self.t_last_change) * omega) + 1) * deltaF
+        f_fft = self.forcing1 - 0.5 * (
+            np.cos((tsim - self.t_last_change) * omega) + 1) * deltaf
 
-        return F_fft
+        return f_fft
 
-    
+
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         TimeCorrelatedRandomPseudoSpectral):
     """Random normalized anisotropic forcing.
@@ -646,17 +711,14 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         super(TimeCorrelatedRandomPseudoSpectral,
               cls)._complete_params_with_default(params)
 
-        params.forcing[cls.tag]._set_attribs({
-            'angle': '45',
-            'time_correlation': 'based_on_forcing_rate'})
-        
+        params.forcing._set_child(
+            'tcrandom_anisotropic', {'angle': '45'})
+
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
         angle = radians(float(self.params.forcing[self.tag].angle))
 
-        
-        
         self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
         self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
 
@@ -686,7 +748,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         kxmax_forcing = self.kxmax_forcing
         kymin_forcing = self.kymin_forcing
         kymax_forcing = self.kymax_forcing
-        
+
         # Define forcing region
         coord_x = kxmin_forcing
         coord_y = kymin_forcing
@@ -698,20 +760,22 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         KX = self.oper_coarse.KX
         KY = self.oper_coarse.KY
-        
+
         fig, ax = plt.subplots()
         ax.set_aspect('equal')
-        
-        title = (pforcing.type + '; ' + 
-                 r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
-                 r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
-                 r'$\theta = {}^\circ$; '.format(pforcing.tcrandom_anisotropic.angle) +
-                 r'Forced modes = {}'.format(self.nb_forced_modes))
+
+        title = (
+            pforcing.type + '; ' +
+            r'$nk_{{min}} = {} \delta k_x$; '.format(pforcing.nkmin_forcing) +
+            r'$nk_{{max}} = {} \delta k_z$; '.format(pforcing.nkmax_forcing) +
+            r'$\theta = {}^\circ$; '.format(
+                pforcing.tcrandom_anisotropic.angle) +
+            r'Forced modes = {}'.format(self.nb_forced_modes))
 
         ax.set_title(title)
         ax.set_xlabel(r'$k_x$')
         ax.set_ylabel(r'$k_z$')
-        
+
         # Parameters figure
         ax.set_xlim([abs(KX).min(), abs(KX).max()])
         ax.set_ylim([abs(KY).min(), abs(KY).max()])
@@ -726,7 +790,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         if not nb_deltakx:
             nb_deltakx = 1
         if not nb_deltaky:
-             nb_deltaky = 1   
+             nb_deltaky = 1
 
         xticks = np.arange(
             abs(KX).min(), abs(KX).max(), nb_deltakx * self.oper.deltakx)
@@ -734,7 +798,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             abs(KY).min(), abs(KY).max(), nb_deltaky * self.oper.deltaky)
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
-        
+
         ax.add_patch(patches.Rectangle(
             xy=(coord_x, coord_y),
             width=width,
@@ -799,5 +863,3 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         ax.grid(linestyle='--', alpha=0.4)
         ax.legend()
-        plt.show(block=False)
-
