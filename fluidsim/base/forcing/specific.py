@@ -50,7 +50,7 @@ from __future__ import print_function
 from builtins import object
 
 from copy import deepcopy
-from math import radians
+from math import radians, pi
 import types
 from warnings import warn
 import numpy as np
