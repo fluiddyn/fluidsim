@@ -439,8 +439,17 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
                     self.oper.rank, self.shapeK_loc_coarse,
                     self.oper.shapeK_loc))
 
+        # enstrophy_fft_forcing = np.abs(a_fft)**2 / 2
+        # print('enstrophy_state_before = ', self.sim.oper.sum_wavenumbers(enstrophy_fft_forcing))
+
         if mpi.rank == 0:
             Fa_fft = self.forcingc_raw_each_time(a_fft)
+            # enstrophy_after_fft = abs(Fa_fft)**2 / 2
+            # print('enstrophy_after_force = ', self.sim.oper.sum_wavenumbers(enstrophy_before_fft))
+            # print('diff_enstrophy = ', abs(
+            #     self.sim.oper.sum_wavenumbers(enstrophy_before_fft) - \
+            #     self.sim.oper.sum_wavenumbers(enstrophy_before_fft)))
+
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
@@ -612,20 +621,20 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
 
         if mpi.rank == 0:
-            # To plot forcing Vs time for one mode
-            self.idx_plot, self.idy_plot = np.argwhere(
-                self.COND_NO_F == False)[0]
-            self.path_forcing_time = self.sim.params.path_run + \
-                                     '/forcing_time.txt'
+            # # To plot forcing Vs time for one mode
+            # self.idx_plot, self.idy_plot = np.argwhere(
+            #     self.COND_NO_F == False)[0]
+            # self.path_forcing_time = self.sim.params.path_run + \
+            #                          '/forcing_time.txt'
 
-            self.F0 = self.compute_forcingc_raw()
-            self.F1 = self.compute_forcingc_raw()
+            self.forcing0 = self.compute_forcingc_raw()
+            self.forcing1 = self.compute_forcingc_raw()
 
             time_correlation = self.params.forcing[self.tag].time_correlation
             if time_correlation == 'based_on_forcing_rate':
-                self.period_change_F0F1 = self.forcing_rate**(-1. / 3)
+                self.period_change_f0f1 = self.forcing_rate**(-1. / 3)
             else:
-                self.period_change_F0F1 = time_correlation
+                self.period_change_f0f1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t
             
     def _write_to_forcing_file(self, time, forcing):
@@ -646,14 +655,14 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         """
         tsim = self.sim.time_stepping.t
-        if tsim - self.t_last_change >= self.period_change_F0F1:
+        if tsim - self.t_last_change >= self.period_change_f0f1:
             self.t_last_change = tsim
-            self.F0 = self.F1
+            self.forcing0 = self.forcing1
             # pa: this del should be useless...
-            # del(self.F1)
-            self.F1 = self.compute_forcingc_raw()
+            # del(self.forcing1)
+            self.forcing1 = self.compute_forcingc_raw()
             
-        F_fft = self.forcingc_from_F0F1()
+        F_fft = self.forcingc_from_f0f1()
 
         # Function to save forcing Vs time for the first forced mode
         # self._write_to_forcing_file(
@@ -661,17 +670,17 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         return F_fft
 
-    def forcingc_from_F0F1(self):
+    def forcingc_from_f0f1(self):
         """Return a coarse forcing as a linear combination of 2 random arrays
 
         """
         tsim = self.sim.time_stepping.t
-        deltat = self.period_change_F0F1
+        deltat = self.period_change_f0f1
         omega = np.pi / deltat
 
-        deltaF = self.F1 - self.F0
+        deltaF = self.forcing1 - self.forcing0
 
-        F_fft = self.F1 - 0.5 * (
+        F_fft = self.forcing1 - 0.5 * (
             np.cos((tsim - self.t_last_change) * omega) + 1) * deltaF
 
         return F_fft
