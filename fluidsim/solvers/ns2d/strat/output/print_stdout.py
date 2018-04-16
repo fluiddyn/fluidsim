@@ -26,14 +26,15 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     to print simple info on the current state of the simulation.
 
     """
+
     def __init__(self, output):
         super(PrintStdOutNS2DStrat, self).__init__(output)
-        self.path_memory = self.output.path_run + '/memory_out.txt'
+        self.path_memory = self.output.path_run + "/memory_out.txt"
         if mpi.rank == 0 and self.output._has_to_save:
             if not os.path.exists(self.path_memory):
-                self.file_memory = open(self.path_memory, 'w')
+                self.file_memory = open(self.path_memory, "w")
             else:
-                self.file_memory = open(self.path_memory, 'r+')
+                self.file_memory = open(self.path_memory, "r+")
                 self.file_memory.seek(0, 2)  # go to the end of the file
 
     def _make_str_info(self):
@@ -43,23 +44,26 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         energy = energyK + energyA
         if mpi.rank == 0:
             to_print += (
-                '              energyK = {:9.3e}\n'
-                '              energyA = {:9.3e}\n'
-                '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
-                ''.format(energyK, energyA, energy, energy-self.energy_temp))
+                "              energyK = {:9.3e}\n"
+                "              energyA = {:9.3e}\n"
+                "              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n"
+                "".format(energyK, energyA, energy, energy - self.energy_temp)
+            )
 
             if self.output._has_to_save:
                 memory = get_memory_usage()
                 self._write_memory_txt()
 
                 to_print += (
-                    '              memory  = {:9.3f} Mo.\n'.format(memory))
+                    "              memory  = {:9.3f} Mo.\n".format(memory)
+                )
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '              estimated remaining duration = {:9.3g} s'
-                    ''.format(duration_left))
+                    "              estimated remaining duration = {:9.3g} s"
+                    "".format(duration_left)
+                )
 
         self.energy_temp = energy
         return to_print
@@ -68,33 +72,32 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         """Write memory .txt"""
         it = self.sim.time_stepping.it
         mem = get_memory_usage()
-        self.file_memory.write('{:.3f},{:.3f}\n'.format(it, mem))
+        self.file_memory.write("{:.3f},{:.3f}\n".format(it, mem))
         self.file_memory.flush()
         os.fsync(self.file_memory.fileno())
 
     def plot_memory(self):
         """ Plot memory used from memory_out.txt """
-        with open(self.output.path_run + '/memory_out.txt') as file_memory:
+        with open(self.output.path_run + "/memory_out.txt") as file_memory:
             lines = file_memory.readlines()
 
         lines_it = []
         lines_memory = []
         for il, line in enumerate(lines):
-            lines_it.append(float(line.split(',')[0]))
-            lines_memory.append(float(line.split(',')[1]))
-
+            lines_it.append(float(line.split(",")[0]))
+            lines_memory.append(float(line.split(",")[1]))
 
         fig, ax = self.output.figure_axe()
-        ax.set_xlabel('it')
-        ax.set_ylabel('Memory (Mo)')
+        ax.set_xlabel("it")
+        ax.set_ylabel("Memory (Mo)")
 
-        ax.plot(lines_it, lines_memory, 'k', linewidth=2)
+        ax.plot(lines_it, lines_memory, "k", linewidth=2)
         return fig
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
-        with open(self.output.path_run+'/stdout.txt') as file_means:
+        with open(self.output.path_run + "/stdout.txt") as file_means:
             lines = file_means.readlines()
 
         lines_t = []
@@ -102,13 +105,13 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         lines_EK = []
         lines_EA = []
         for il, line in enumerate(lines):
-            if line.startswith('it ='):
+            if line.startswith("it ="):
                 lines_t.append(line)
-            if line.startswith('              energy  ='):
+            if line.startswith("              energy  ="):
                 lines_E.append(line)
-            if line.startswith('              energyK ='):
+            if line.startswith("              energyK ="):
                 lines_EK.append(line)
-            if line.startswith('              energyA ='):
+            if line.startswith("              energyA ="):
                 lines_EA.append(line)
 
         nt = len(lines_t)
@@ -144,48 +147,50 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
             words = line.split()
             EA[il] = float(words[2])
 
-        dict_results['it'] = it
-        dict_results['t'] = t
-        dict_results['deltat'] = deltat
-        dict_results['E'] = E
-        dict_results['deltaE'] = deltaE
-        dict_results['EK'] = EK
-        dict_results['EA'] = EA
+        dict_results["it"] = it
+        dict_results["t"] = t
+        dict_results["deltat"] = deltat
+        dict_results["E"] = E
+        dict_results["deltaE"] = deltaE
+        dict_results["EK"] = EK
+        dict_results["EA"] = EA
 
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        deltat = dict_results['deltat']
-        E = dict_results['E']
+        t = dict_results["t"]
+        deltat = dict_results["deltat"]
+        E = dict_results["E"]
         #  deltaE = dict_results['deltaE']
-        EK = dict_results['EK']
-        EA = dict_results['EA']
+        EK = dict_results["EK"]
+        EA = dict_results["EA"]
 
         x_left_axe = 0.12
         z_bottom_axe = 0.55
         width_axe = 0.85
         height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('deltat(t)')
+        ax1.set_xlabel("t")
+        ax1.set_ylabel("deltat(t)")
 
-        ax1.set_title('info stdout, solver '+ self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.params.oper.nx))
-        ax1.plot(t, deltat, 'k', linewidth=2)
+        ax1.set_title(
+            "info stdout, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.params.oper.nx)
+        )
+        ax1.plot(t, deltat, "k", linewidth=2)
 
         size_axe[1] = 0.08
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.plot(t, E, 'k', linewidth=2, label='$E$')
+        ax2.set_xlabel("t")
+        ax2.set_ylabel("E(t), deltaE(t)")
+        ax2.plot(t, E, "k", linewidth=2, label="$E$")
         # ax2.plot(t, deltaE, 'b', linewidth=2)
-        ax2.plot(t, EK, 'r', linewidth=2, label='$E_K$')
-        ax2.plot(t, EA, 'g', linewidth=2, label='$E_A$')
+        ax2.plot(t, EK, "r", linewidth=2, label="$E_K$")
+        ax2.plot(t, EA, "g", linewidth=2, label="$E_A$")
         ax2.legend()
         ax2.grid(True)
 

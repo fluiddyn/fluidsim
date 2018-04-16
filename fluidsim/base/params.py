@@ -26,6 +26,7 @@ from fluidsim.base.solvers.info_base import InfoSolverBase
 
 class Parameters(ParamContainer):
     """Contain the parameters."""
+
     def __ior__(self, other):
         """Defines operator `|=`
 
@@ -45,8 +46,8 @@ class Parameters(ParamContainer):
         """
         if not isinstance(other, Parameters):
             raise TypeError(
-                '{}. Can only merge instances of Parameters'.format(
-                    type(other)))
+                "{}. Can only merge instances of Parameters".format(type(other))
+            )
 
         params1 = self
         params2 = other
@@ -55,7 +56,7 @@ class Parameters(ParamContainer):
         diff_attribs = set(params2._key_attribs) - set(params1._key_attribs)
 
         if len(diff_attribs) > 0:
-            print('Add parameter attributes: ', diff_attribs)
+            print("Add parameter attributes: ", diff_attribs)
 
         for attrib in diff_attribs:
             params1._set_attrib(attrib, params2[attrib])
@@ -63,10 +64,11 @@ class Parameters(ParamContainer):
         # Merge childrean
         diff_children = set(params2._tag_children) - set(params1._tag_children)
         internal_attribs = [
-            'attribs', 'children', 'key_attribs', 'tag', 'tag_children']
+            "attribs", "children", "key_attribs", "tag", "tag_children"
+        ]
 
         if len(diff_children) > 0:
-            print('Add parameter children: ', diff_children)
+            print("Add parameter children: ", diff_children)
 
         for child in diff_children:
             child_attribs = params2[child]._make_dict()
@@ -95,7 +97,7 @@ def fix_old_params(params):
         except AttributeError:
             pass
         else:
-            params.forcing._set_attrib('enable', params.FORCING)
+            params.forcing._set_attrib("enable", params.FORCING)
 
 
 def merge_params(to_params, *other_params):
@@ -117,29 +119,29 @@ def merge_params(to_params, *other_params):
     def find_available_fluidfft(dim):
         """Find available FluidFFT implementations."""
         use_mpi = mpi.nb_proc > 1
-        fluidfft = import_module('fluidfft.fft{}d'.format(dim))
+        fluidfft = import_module("fluidfft.fft{}d".format(dim))
         fluidfft_classes = (
-            fluidfft.get_classes_mpi() if use_mpi else
-            fluidfft.get_classes_seq())
+            fluidfft.get_classes_mpi() if use_mpi else fluidfft.get_classes_seq()
+        )
         for k, v in fluidfft_classes.items():
             if v is not None:
                 break
+
         else:
             raise ValueError(
-                'No compatible fluidfft FFT types found for'
-                '{}D, mpi={}'.format(dim, use_mpi))
+                "No compatible fluidfft FFT types found for"
+                "{}D, mpi={}".format(dim, use_mpi)
+            )
 
         return k
 
     # Substitute old FFT types with newer FluidFFT implementations
-    if hasattr(to_params, 'oper') and hasattr(to_params.oper, 'type_fft'):
+    if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
-        if not (method.startswith('fft2d.') or method.startswith('fft3d.')):
-            dim = 3 if hasattr(to_params.oper, 'nz') else 2
+        if not (method.startswith("fft2d.") or method.startswith("fft3d.")):
+            dim = 3 if hasattr(to_params.oper, "nz") else 2
             type_fft = find_available_fluidfft(dim)
-            print(
-                'params.oper.type_fft', to_params.oper.type_fft, '->',
-                type_fft)
+            print("params.oper.type_fft", to_params.oper.type_fft, "->", type_fft)
             to_params.oper.type_fft = type_fft
 
 
@@ -147,27 +149,29 @@ def create_params(input_info_solver):
     """Create a Parameters instance from an InfoSolverBase instance."""
     if isinstance(input_info_solver, InfoSolverBase):
         info_solver = input_info_solver
-    elif hasattr(input_info_solver, 'Simul'):
+    elif hasattr(input_info_solver, "Simul"):
         info_solver = input_info_solver.Simul.create_default_params()
     else:
-        raise ValueError('Can not create params from input input_info_solver.')
+        raise ValueError("Can not create params from input input_info_solver.")
 
-    params = Parameters(tag='params')
+    params = Parameters(tag="params")
     dict_classes = info_solver.import_classes()
 
-    dict_classes['Solver'] = import_class(
-        info_solver.module_name, info_solver.class_name)
+    dict_classes["Solver"] = import_class(
+        info_solver.module_name, info_solver.class_name
+    )
 
     for Class in list(dict_classes.values()):
-        if hasattr(Class, '_complete_params_with_default'):
+        if hasattr(Class, "_complete_params_with_default"):
             try:
                 Class._complete_params_with_default(params)
             except TypeError:
                 try:
                     Class._complete_params_with_default(params, info_solver)
                 except TypeError as e:
-                    e.args += ('for class: ' + repr(Class),)
+                    e.args += ("for class: " + repr(Class),)
                     raise
+
     return params
 
 
@@ -175,8 +179,7 @@ def load_params_simul(path_dir=None):
     """Load the parameters and return a Parameters instance."""
     if path_dir is None:
         path_dir = os.getcwd()
-    return Parameters(
-        path_file=os.path.join(path_dir, 'params_simul.xml'))
+    return Parameters(path_file=os.path.join(path_dir, "params_simul.xml"))
 
 
 def load_info_solver(path_dir=None):
@@ -185,8 +188,7 @@ def load_info_solver(path_dir=None):
     """
     if path_dir is None:
         path_dir = os.getcwd()
-    return InfoSolverBase(
-        path_file=os.path.join(path_dir, 'info_solver.xml'))
+    return InfoSolverBase(path_file=os.path.join(path_dir, "info_solver.xml"))
 
 
 # def load_info_simul(path_dir=None):
@@ -202,11 +204,11 @@ def load_info_solver(path_dir=None):
 #     return info
 
 
-if __name__ == '__main__':
-    info_solver = InfoSolverBase(tag='solver')
+if __name__ == "__main__":
+    info_solver = InfoSolverBase(tag="solver")
 
     info_solver.complete_with_classes()
 
     params = create_params(info_solver)
 
-    # info = create_info_simul(info_solver, params)
+# info = create_info_simul(info_solver, params)

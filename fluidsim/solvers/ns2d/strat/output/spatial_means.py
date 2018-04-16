@@ -41,40 +41,44 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
-        epsK = self.sum_wavenumbers(f_d*2.*energyK_fft)
-        epsK_hypo = self.sum_wavenumbers(f_d_hypo*2.*energyK_fft)
+        epsK = self.sum_wavenumbers(f_d * 2. * energyK_fft)
+        epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2. * energyK_fft)
 
-        epsA = self.sum_wavenumbers(f_d*2.*energyA_fft)
-        epsA_hypo = self.sum_wavenumbers(f_d_hypo*2.*energyA_fft)
+        epsA = self.sum_wavenumbers(f_d * 2. * energyA_fft)
+        epsA_hypo = self.sum_wavenumbers(f_d_hypo * 2. * energyA_fft)
 
-        epsZ = self.sum_wavenumbers(f_d*2.*enstrophy_fft)
-        epsZ_hypo = self.sum_wavenumbers(f_d_hypo*2.*enstrophy_fft)
+        epsZ = self.sum_wavenumbers(f_d * 2. * enstrophy_fft)
+        epsZ_hypo = self.sum_wavenumbers(f_d_hypo * 2. * enstrophy_fft)
 
         # Injection energy if forcing is True
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
-            Frot_fft = self.sim.forcing.get_forcing().get_var('rot_fft')
+            Frot_fft = self.sim.forcing.get_forcing().get_var("rot_fft")
             Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
 
-            rot_fft = self.sim.state.state_spect.get_var('rot_fft')
+            rot_fft = self.sim.state.state_spect.get_var("rot_fft")
 
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
             PZ1_fft = np.real(
-                rot_fft.conj()*Frot_fft +
-                rot_fft*Frot_fft.conj())/2
-            PZ2_fft = (abs(Frot_fft)**2)*deltat/2
+                rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()
+            ) / 2
+            PZ2_fft = (abs(Frot_fft) ** 2) * deltat / 2
 
             PZ1 = self.sum_wavenumbers(PZ1_fft)
             PZ2 = self.sum_wavenumbers(PZ2_fft)
 
-
             PK1_fft = np.real(
-                ux_fft.conj()*Fx_fft +
-                ux_fft*Fx_fft.conj() +
-                uy_fft.conj()*Fy_fft +
-                uy_fft*Fy_fft.conj())/2
-            PK2_fft = (abs(Fx_fft)**2+abs(Fy_fft)**2)*deltat/2
+                ux_fft.conj()
+                * Fx_fft
+                + ux_fft
+                * Fx_fft.conj()
+                + uy_fft.conj()
+                * Fy_fft
+                + uy_fft
+                * Fy_fft.conj()
+            ) / 2
+            PK2_fft = (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2) * deltat / 2
 
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = self.sum_wavenumbers(PK2_fft)
@@ -82,25 +86,36 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write(
-                '####\ntime = {0:7.3f}\n'.format(tsim))
+            self.file.write("####\ntime = {0:7.3f}\n".format(tsim))
             to_print = (
-'E    = {0:11.6e} ; Z         = {1:11.6e} ; E_shear  = {2:11.6e}\n'
-'epsA = {3:11.6e} ; epsA_hypo = {4:11.6e} ; epsA_tot = {5:11.9e} \n'
-'epsK = {6:11.6e} ; epsK_hypo = {7:11.6e} ; epsK_tot = {8:11.6e} \n'
-'epsZ = {9:11.6e} ; epsZ_hypo = {10:11.6e} ; epsZ_tot = {11:11.6e} \n'
-).format(energy, enstrophy, energy_shear,
-         epsA, epsA_hypo, epsA+epsA_hypo,
-         epsK, epsK_hypo, epsK+epsK_hypo,
-         epsZ, epsZ_hypo, epsZ+epsZ_hypo)
+                "E    = {0:11.6e} ; Z         = {1:11.6e} ; E_shear  = {2:11.6e}\n"
+                "epsA = {3:11.6e} ; epsA_hypo = {4:11.6e} ; epsA_tot = {5:11.9e} \n"
+                "epsK = {6:11.6e} ; epsK_hypo = {7:11.6e} ; epsK_tot = {8:11.6e} \n"
+                "epsZ = {9:11.6e} ; epsZ_hypo = {10:11.6e} ; epsZ_tot = {11:11.6e} \n"
+            ).format(
+                energy,
+                enstrophy,
+                energy_shear,
+                epsA,
+                epsA_hypo,
+                epsA + epsA_hypo,
+                epsK,
+                epsK_hypo,
+                epsK + epsK_hypo,
+                epsZ,
+                epsZ_hypo,
+                epsZ + epsZ_hypo,
+            )
             self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
-                PK_tot = PK1+PK2
+                PK_tot = PK1 + PK2
                 to_print = (
-'PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n'
-'PZ1  = {3:11.6e} ; PZ2       = {4:11.6e} ; PZ_tot   = {5:11.6e} \n'
-).format(PK1, PK2, PK1+PK2, PZ1, PZ2, PZ1+PZ2)
+                    "PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n"
+                    "PZ1  = {3:11.6e} ; PZ2       = {4:11.6e} ; PZ_tot   = {5:11.6e} \n"
+                ).format(
+                    PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2
+                )
                 self.file.write(to_print)
 
             self.file.flush()
@@ -108,20 +123,20 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         if self.has_to_plot and mpi.rank == 0:
 
-            self.axe_a.plot(tsim, energy, 'k.')
+            self.axe_a.plot(tsim, energy, "k.")
 
-            self.axe_b.plot(tsim, epsK_tot, 'k.')
+            self.axe_b.plot(tsim, epsK_tot, "k.")
             if self.sim.params.forcing.enable:
-                self.axe_b.plot(tsim, PK_tot, 'm.')
+                self.axe_b.plot(tsim, PK_tot, "m.")
 
-            if (tsim-self.t_last_show >= self.period_show):
+            if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
                 fig = self.axe_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
         """Generates a dictionary with the output values"""
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -135,19 +150,19 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         lines_epsA = []
 
         for il, line in enumerate(lines):
-            if line.startswith('time ='):
+            if line.startswith("time ="):
                 lines_t.append(line)
-            if line.startswith('E    ='):
+            if line.startswith("E    ="):
                 lines_E.append(line)
-            if line.startswith('PK1  ='):
+            if line.startswith("PK1  ="):
                 lines_PK.append(line)
-            if line.startswith('PZ1  ='):
+            if line.startswith("PZ1  ="):
                 lines_PZ.append(line)
-            if line.startswith('epsK ='):
+            if line.startswith("epsK ="):
                 lines_epsK.append(line)
-            if line.startswith('epsZ ='):
+            if line.startswith("epsZ ="):
                 lines_epsZ.append(line)
-            if line.startswith('epsA ='):
+            if line.startswith("epsA ="):
                 lines_epsA.append(line)
 
         nt = len(lines_t)
@@ -216,100 +231,100 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             epsA_hypo[il] = float(words[6])
             epsA_tot[il] = float(words[10])
 
-        dict_results['t'] = t
-        dict_results['E'] = E
-        dict_results['Z'] = Z
-        dict_results['E_shear'] = E_shear
+        dict_results["t"] = t
+        dict_results["E"] = E
+        dict_results["Z"] = Z
+        dict_results["E_shear"] = E_shear
 
-        dict_results['PK1'] = PK1
-        dict_results['PK2'] = PK2
-        dict_results['PK_tot'] = PK_tot
+        dict_results["PK1"] = PK1
+        dict_results["PK2"] = PK2
+        dict_results["PK_tot"] = PK_tot
 
-        dict_results['PZ1'] = PZ1
-        dict_results['PZ2'] = PZ2
-        dict_results['PZ_tot'] = PZ_tot
+        dict_results["PZ1"] = PZ1
+        dict_results["PZ2"] = PZ2
+        dict_results["PZ_tot"] = PZ_tot
 
-        dict_results['epsK'] = epsK
-        dict_results['epsK_hypo'] = epsK_hypo
-        dict_results['epsK_tot'] = epsK_tot
+        dict_results["epsK"] = epsK
+        dict_results["epsK_hypo"] = epsK_hypo
+        dict_results["epsK_tot"] = epsK_tot
 
-        dict_results['epsZ'] = epsZ
-        dict_results['epsZ_hypo'] = epsZ_hypo
-        dict_results['epsZ_tot'] = epsZ_tot
+        dict_results["epsZ"] = epsZ
+        dict_results["epsZ_hypo"] = epsZ_hypo
+        dict_results["epsZ_tot"] = epsZ_tot
 
-        dict_results['epsA'] = epsA
-        dict_results['epsA_hypo'] = epsA_hypo
-        dict_results['epsA_tot'] = epsA_tot
+        dict_results["epsA"] = epsA
+        dict_results["epsA_hypo"] = epsA_hypo
+        dict_results["epsA_tot"] = epsA_tot
 
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        E = dict_results['E']
-        Z = dict_results['Z']
+        t = dict_results["t"]
+        E = dict_results["E"]
+        Z = dict_results["Z"]
 
-        epsK = dict_results['epsK']
-        epsK_hypo = dict_results['epsK_hypo']
-        epsK_tot = dict_results['epsK_tot']
+        epsK = dict_results["epsK"]
+        epsK_hypo = dict_results["epsK_hypo"]
+        epsK_tot = dict_results["epsK_tot"]
 
-        epsZ = dict_results['epsZ']
-        epsZ_hypo = dict_results['epsZ_hypo']
-        epsZ_tot = dict_results['epsZ_tot']
+        epsZ = dict_results["epsZ"]
+        epsZ_hypo = dict_results["epsZ_hypo"]
+        epsZ_tot = dict_results["epsZ_tot"]
 
-        epsA = dict_results['epsA']
-        epsA_hypo = dict_results['epsA_hypo']
-        epsA_tot = dict_results['epsA_tot']
+        epsA = dict_results["epsA"]
+        epsA_hypo = dict_results["epsA_hypo"]
+        epsA_tot = dict_results["epsA_tot"]
 
         width_axe = 0.85
         height_axe = 0.39
         x_left_axe = 0.12
         z_bottom_axe = 0.55
 
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle('Energy and enstrophy')
-        ax1.set_ylabel('$E(t)$')
-        ax1.plot(t, E, 'k', linewidth=2)
+        fig.suptitle("Energy and enstrophy")
+        ax1.set_ylabel("$E(t)$")
+        ax1.plot(t, E, "k", linewidth=2)
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_ylabel('$Z(t)$')
-        ax2.set_xlabel('$t$')
-        ax2.plot(t, Z, 'k', linewidth=2)
+        ax2.set_ylabel("$Z(t)$")
+        ax2.set_xlabel("$t$")
+        ax2.plot(t, Z, "k", linewidth=2)
 
         z_bottom_axe = 0.54
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle('Dissipation of energy and enstrophy')
-        ax1.set_ylabel(r'$\epsilon (t) = \epsilon_K + \epsilon_A$')
+        fig.suptitle("Dissipation of energy and enstrophy")
+        ax1.set_ylabel(r"$\epsilon (t) = \epsilon_K + \epsilon_A$")
 
-
-        ax1.plot(t, epsK+epsA, 'r', label=r'$\epsilon$', linewidth=2)
-        ax1.plot(t, epsK_hypo+epsA_hypo, 'g', label=r'$\epsilon_{hypo}$',
-                 linewidth=2)
-        ax1.plot(t, epsK_tot+epsA_tot, 'k', label=r'$\epsilon_{tot}$',
-                 linewidth=2)
+        ax1.plot(t, epsK + epsA, "r", label=r"$\epsilon$", linewidth=2)
+        ax1.plot(
+            t, epsK_hypo + epsA_hypo, "g", label=r"$\epsilon_{hypo}$", linewidth=2
+        )
+        ax1.plot(
+            t, epsK_tot + epsA_tot, "k", label=r"$\epsilon_{tot}$", linewidth=2
+        )
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('$t$')
-        ax2.set_ylabel(r'$\epsilon_Z(t)$')
+        ax2.set_xlabel("$t$")
+        ax2.set_ylabel(r"$\epsilon_Z(t)$")
 
-        ax2.plot(t, epsZ, 'r', linewidth=2)
-        ax2.plot(t, epsZ_hypo, 'g', linewidth=2)
-        ax2.plot(t, epsZ_tot, 'k', linewidth=2)
+        ax2.plot(t, epsZ, "r", linewidth=2)
+        ax2.plot(t, epsZ_hypo, "g", linewidth=2)
+        ax2.plot(t, epsZ_tot, "k", linewidth=2)
 
         if self.sim.params.forcing.enable:
-            PK_tot = dict_results['PK_tot']
-            PZ_tot = dict_results['PZ_tot']
-            ax1.plot(t, PK_tot, 'c', label='P', linewidth=2)
-            ax2.plot(t, PZ_tot, 'c', label='P', linewidth=2)
-            ax1.set_ylabel('P_E(t), epsK(t)')
-            ax2.set_ylabel('P_Z(t), epsZ(t)')
+            PK_tot = dict_results["PK_tot"]
+            PZ_tot = dict_results["PZ_tot"]
+            ax1.plot(t, PK_tot, "c", label="P", linewidth=2)
+            ax2.plot(t, PZ_tot, "c", label="P", linewidth=2)
+            ax1.set_ylabel("P_E(t), epsK(t)")
+            ax2.set_ylabel("P_Z(t), epsZ(t)")
 
         ax1.legend()

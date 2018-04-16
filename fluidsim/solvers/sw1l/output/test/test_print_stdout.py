@@ -8,24 +8,25 @@ from . import BaseTestCase, mpi
 
 
 class TestPrintStdout(BaseTestCase):
-    _tag = 'print_stdout'
+    _tag = "print_stdout"
 
-    @unittest.skipIf(mpi.nb_proc > 1,
-                     'plot function works sequentially only')
+    @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
     def test_plot_print_stdout(self):
         self._plot()
 
     def test_energy_vs_spatial_means(self):
-        '''Verify energy saved by spatial_means module is the same.'''
+        """Verify energy saved by spatial_means module is the same."""
         dict_spatial_means = self.output.spatial_means.load()
         try:
             self.assertTrue(
-                np.allclose(self.dict_results['E'],
-                            dict_spatial_means['E'], atol=1.e-4))
+                np.allclose(
+                    self.dict_results["E"], dict_spatial_means["E"], atol=1.e-4
+                )
+            )
         except AssertionError:
-            print(self.dict_results['E'], dict_spatial_means['E'])
+            print(self.dict_results["E"], dict_spatial_means["E"])
             raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

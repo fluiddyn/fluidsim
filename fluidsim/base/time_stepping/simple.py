@@ -37,8 +37,8 @@ class ExactLinearCoefs(object):
     def compute(self, dt):
         """Compute the exact coefficients."""
         f_lin = self.freq_lin
-        self.exact = np.exp(-dt*f_lin)
-        self.exact2 = np.exp(-dt/2*f_lin)
+        self.exact = np.exp(-dt * f_lin)
+        self.exact2 = np.exp(-dt / 2 * f_lin)
         self.dt_old = dt
 
     def get_updated_coefs_CLF(self):
@@ -57,6 +57,7 @@ class TimeSteppingSimple(TimeSteppingBase):
     """Time stepping class for pseudo-spectral solvers.
 
     """
+
     def __init__(self, sim):
         super(TimeSteppingSimple, self).__init__(sim)
 
@@ -79,7 +80,8 @@ class TimeSteppingSimple(TimeSteppingBase):
         self._time_step_RK()
         if np.isnan(np.sum(self.sim.state.state_phys[0])):
             raise ValueError(
-                'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
+                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+            )
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.
@@ -131,10 +133,11 @@ class TimeSteppingSimple(TimeSteppingBase):
         state_phys = self.sim.state.state_phys
 
         tendencies_n = tendencies_nonlin()
-        state_phys_n12 = (state_phys + dt/2*tendencies_n)*diss2
+        state_phys_n12 = (state_phys + dt / 2 * tendencies_n) * diss2
         tendencies_phys_n12 = tendencies_nonlin(state_phys_n12)
-        self.sim.state.state_phys = (state_phys*diss +
-                                     dt*diss2*tendencies_phys_n12)
+        self.sim.state.state_phys = (
+            state_phys * diss + dt * diss2 * tendencies_phys_n12
+        )
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
@@ -239,32 +242,28 @@ class TimeSteppingSimple(TimeSteppingBase):
         tendencies_0 = tendencies_nonlin()
 
         # based on approximation 1
-        state_phys_temp = (state_phys +
-                           dt/6*tendencies_0)*diss
-        state_phys_np12_approx1 = (state_phys +
-                                   dt/2*tendencies_0)*diss2
+        state_phys_temp = (state_phys + dt / 6 * tendencies_0) * diss
+        state_phys_np12_approx1 = (state_phys + dt / 2 * tendencies_0) * diss2
 
-        del(tendencies_0)
+        del (tendencies_0)
         tendencies_1 = tendencies_nonlin(state_phys_np12_approx1)
-        del(state_phys_np12_approx1)
+        del (state_phys_np12_approx1)
 
         # based on approximation 2
-        state_phys_temp += dt/3*diss2*tendencies_1
-        state_phys_np12_approx2 = (state_phys*diss2 +
-                                   dt/2*tendencies_1)
+        state_phys_temp += dt / 3 * diss2 * tendencies_1
+        state_phys_np12_approx2 = (state_phys * diss2 + dt / 2 * tendencies_1)
 
-        del(tendencies_1)
+        del (tendencies_1)
         tendencies_2 = tendencies_nonlin(state_phys_np12_approx2)
-        del(state_phys_np12_approx2)
+        del (state_phys_np12_approx2)
 
         # based on approximation 3
-        state_phys_temp += dt/3*diss2*tendencies_2
-        state_phys_np1_approx = (state_phys*diss +
-                                 dt*diss2*tendencies_2)
+        state_phys_temp += dt / 3 * diss2 * tendencies_2
+        state_phys_np1_approx = (state_phys * diss + dt * diss2 * tendencies_2)
 
-        del(tendencies_2)
+        del (tendencies_2)
         tendencies_3 = tendencies_nonlin(state_phys_np1_approx)
-        del(state_phys_np1_approx)
+        del (state_phys_np1_approx)
 
         # result using the 4 approximations
-        self.sim.state.state_phys = state_phys_temp + dt/6*tendencies_3
+        self.sim.state.state_phys = state_phys_temp + dt / 6 * tendencies_3

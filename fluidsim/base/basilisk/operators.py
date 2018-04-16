@@ -19,11 +19,8 @@ class OperatorsBasilisk2D(object):
         """This static method is used to complete the *params* container.
         """
 
-        attribs = {'nx': 48,
-                   'ny': 48,
-                   'Lx': 8,
-                   'Ly': 8}
-        params._set_child('oper', attribs=attribs)
+        attribs = {"nx": 48, "ny": 48, "Lx": 8, "Ly": 8}
+        params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None, SEQUENTIAL=None):
 
@@ -43,9 +40,9 @@ class OperatorsBasilisk2D(object):
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
 
-        return ''
+        return ""
 
     def produce_long_str_describing_oper(self):
         """Produce a string describing the operator."""
 
-        return '2d Basilisk simulation\n'
+        return "2d Basilisk simulation\n"

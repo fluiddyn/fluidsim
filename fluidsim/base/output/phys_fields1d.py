@@ -25,8 +25,8 @@ from .movies import MoviesBase1D
 from .phys_fields import PhysFieldsBase
 
 
-
 class MoviesBasePhysFields1D(MoviesBase1D):
+
     def __init__(self, output, phys_fields):
         self.phys_fields = phys_fields
         super(MoviesBasePhysFields1D, self).__init__(output)
@@ -45,7 +45,7 @@ class PhysFieldsBase1D(PhysFieldsBase):
         if field is None:
             key_field = self.field_to_plot
         elif isinstance(field, np.ndarray):
-            key_field = 'given array'
+            key_field = "given array"
             is_field_ready = True
         elif isinstance(field, basestring):
             key_field = field
@@ -60,7 +60,7 @@ class PhysFieldsBase1D(PhysFieldsBase):
             self.set_of_phys_files.update_times()
             # we have to get the field from a file
             if key_field not in self.sim.state.keys_state_phys:
-                raise ValueError('key not in state.keys_state_phys')
+                raise ValueError("key not in state.keys_state_phys")
 
             field = self.get_field_to_plot(key=key_field, time=time)
 
@@ -68,18 +68,19 @@ class PhysFieldsBase1D(PhysFieldsBase):
             if numfig is None:
                 fig, ax = self.output.figure_axe(size_axe=None)
             else:
-                fig, ax = self.output.figure_axe(numfig=numfig,
-                                                 size_axe=None)
+                fig, ax = self.output.figure_axe(numfig=numfig, size_axe=None)
             xs = self.oper.xs
 
             ax.plot(xs, field)
-            ax.set_xlabel('x')
+            ax.set_xlabel("x")
 
             self._set_title(ax, key_field, time)
 
     def _set_title(self, ax, key, time):
-        title = (key +
-                 ', $t = {0:.3f}$, '.format(time) +
-                 self.output.name_solver +
-                 ', $n_x = {0:d}$'.format(self.params.oper.nx))
+        title = (
+            key
+            + ", $t = {0:.3f}$, ".format(time)
+            + self.output.name_solver
+            + ", $n_x = {0:d}$".format(self.params.oper.nx)
+        )
         ax.set_title(title)

@@ -13,32 +13,47 @@ from fluiddyn.io import stdout_redirected
 
 from ..util import import_module_solver_from_key
 from .util import (
-    modif_params2d, modif_params3d, init_parser_base,
-    parse_args_dim, bench as run_bench, tear_down, ConsoleError)
+    modif_params2d,
+    modif_params3d,
+    init_parser_base,
+    parse_args_dim,
+    bench as run_bench,
+    tear_down,
+    ConsoleError,
+)
 
 
-path_results = '/tmp/fluidsim_bench'
+path_results = "/tmp/fluidsim_bench"
 old_print = print
 print = mpi.printby0
 rank = mpi.rank
 nb_proc = mpi.nb_proc
-description = 'Run benchmarks of FluidSim solvers'
+description = "Run benchmarks of FluidSim solvers"
 
 
 def bench(
-        solver, dim='2d', n0=1024 * 2, n1=None, n2=None, path_dir=None,
-        type_fft=None, raise_error=False, it_end=None):
+    solver,
+    dim="2d",
+    n0=1024 * 2,
+    n1=None,
+    n2=None,
+    path_dir=None,
+    type_fft=None,
+    raise_error=False,
+    it_end=None
+):
     """Instantiate simulation object and run benchmarks."""
 
     def _bench(type_fft):
         Simul = solver.Simul
         params = Simul.create_default_params()
 
-        if dim == '2d':
-            modif_params2d(params, n0, n1, name_run='bench', type_fft=type_fft)
-        elif dim == '3d':
+        if dim == "2d":
+            modif_params2d(params, n0, n1, name_run="bench", type_fft=type_fft)
+        elif dim == "3d":
             modif_params3d(
-                params, n0, n1, n2, name_run='bench', type_fft=type_fft)
+                params, n0, n1, n2, name_run="bench", type_fft=type_fft
+            )
 
         if it_end is not None:
             params.time_stepping.it_end = it_end
@@ -51,15 +66,18 @@ def bench(
         except Exception as e:
             if raise_error:
                 raise
+
             else:
-                print('WARNING: Some error occured while running benchmark'
-                      ' / saving results!')
+                print(
+                    "WARNING: Some error occured while running benchmark"
+                    " / saving results!"
+                )
                 print(e)
         finally:
             tear_down(sim)
             gc.collect()
 
-    if str(type_fft).lower() == 'all':
+    if str(type_fft).lower() == "all":
         d = get_opfft(n0, n1, n2, dim, only_dict=True)
         for type_fft, cls in d.items():
             if cls is not None:
@@ -72,9 +90,9 @@ def bench(
 def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
     """Instantiate FFT operator provided by fluidfft."""
 
-    if n2 is None or dim == '2d':
+    if n2 is None or dim == "2d":
         from fluidfft.fft2d import get_classes_mpi
-    elif isinstance(n2, int) or dim == '3d':
+    elif isinstance(n2, int) or dim == "3d":
         from fluidfft.fft3d import get_classes_mpi
 
     if mpi.rank == 0:
@@ -87,9 +105,10 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
 
     if only_dict:
         return d
+
     else:
         if type_fft not in d:
-            raise ConsoleError('{} not in {}'.format(type_fft, list(d.keys())))
+            raise ConsoleError("{} not in {}".format(type_fft, list(d.keys())))
 
         if n2 is None:
             opfft = d[type_fft](n0, n1)
@@ -100,8 +119,14 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
 
 
 def estimate_shapes_weak_scaling(
-        n0_max, n1_max, n2_max=None, nproc_min=2, nproc_max=None,
-        type_fft=None, show=False):
+    n0_max,
+    n1_max,
+    n2_max=None,
+    nproc_min=2,
+    nproc_max=None,
+    type_fft=None,
+    show=False,
+):
     """Use this function to get a recommendation of shapeX_seq to initialize the
     solver with to perform weak scaling analysis. The objective is to obtain
     shapeK_loc.
@@ -132,14 +157,16 @@ def estimate_shapes_weak_scaling(
     for nproc in nproc_gp:
         divisor = nproc_max // nproc
         if n2_max is None:
-            shapes[str(nproc)] = '{} {}'.format(
-                shapeX_seq[0], shapeX_seq[1] // divisor)
+            shapes[str(nproc)] = "{} {}".format(
+                shapeX_seq[0], shapeX_seq[1] // divisor
+            )
         else:
-            shapes[str(nproc)] = '{} {}'.format(
-                shapeX_seq[0], shapeX_seq[1], shapeX_seq[2] // divisor)
+            shapes[str(nproc)] = "{} {}".format(
+                shapeX_seq[0], shapeX_seq[1], shapeX_seq[2] // divisor
+            )
 
     if show:
-        info._print_heading(['nproc', 'shapeX_seq'], case='lower')
+        info._print_heading(["nproc", "shapeX_seq"], case="lower")
         info._print_dict(shapes)
 
     return shapes
@@ -153,35 +180,51 @@ def print_shape_loc(n0, n1, n2=None, type_fft=None):
     opfft = get_opfft(n0, n1, n2, type_fft=type_fft)
     shapeX_loc = opfft.get_shapeX_loc()
     shapeK_loc = opfft.get_shapeK_loc()
-    print('-' * 8)
-    print('type fft = ', type_fft)
-    old_print('rank {}: shapeX_loc = {}, shapeK_loc = {}'.format(
-        rank, shapeX_loc, shapeK_loc))
+    print("-" * 8)
+    print("type fft = ", type_fft)
+    old_print(
+        "rank {}: shapeX_loc = {}, shapeK_loc = {}".format(
+            rank, shapeX_loc, shapeK_loc
+        )
+    )
 
 
 def init_parser(parser):
     """Initialize argument parser for `fluidsim bench`."""
 
     init_parser_base(parser)
-    parser.add_argument('-o', '--output_dir', default=path_results)
+    parser.add_argument("-o", "--output_dir", default=path_results)
     parser.add_argument(
-        '-t', '--type-fft', default=None,
+        "-t",
+        "--type-fft",
+        default=None,
         help=(
             'specify FFT type key (for eg. "fft2d.mpi_with_fftw1d") or "all";'
-            'if not specified uses the default FFT method in operators'))
+            "if not specified uses the default FFT method in operators"
+        ),
+    )
     parser.add_argument(
-        '-l', '--list-type-fft', action='store_true',
-        help='list FFT types available for the specified shape or dimension')
+        "-l",
+        "--list-type-fft",
+        action="store_true",
+        help="list FFT types available for the specified shape or dimension",
+    )
     parser.add_argument(
-        '-p', '--print-shape-loc', action='store_true',
-        help='mpirun with this option to see how the FFT is initialized')
+        "-p",
+        "--print-shape-loc",
+        action="store_true",
+        help="mpirun with this option to see how the FFT is initialized",
+    )
     parser.add_argument(
-        '-e', '--estimate-shapes', action='store_true',
-        help='estimate shapes to plan weak scaling benchmarks')
+        "-e",
+        "--estimate-shapes",
+        action="store_true",
+        help="estimate shapes to plan weak scaling benchmarks",
+    )
 
     parser.add_argument(
-        '-it', '--it-end', default=None, type=int,
-        help='Number of iterations')
+        "-it", "--it-end", default=None, type=int, help="Number of iterations"
+    )
 
 
 def run(args):
@@ -190,27 +233,40 @@ def run(args):
     args = parse_args_dim(args)
 
     if args.list_type_fft:
-        print('FFT classes available for', args.dim.upper())
+        print("FFT classes available for", args.dim.upper())
         d = get_opfft(args.n0, args.n1, args.n2, dim=args.dim, only_dict=True)
         info._print_dict(d)
     elif args.print_shape_loc:
         if args.type_fft is None:
-            args.type_fft = 'fft2d.mpi_with_fftw1d'
+            args.type_fft = "fft2d.mpi_with_fftw1d"
         print_shape_loc(args.n0, args.n1, args.n2, args.type_fft)
     elif args.estimate_shapes:
         if args.type_fft is None:
-            args.type_fft = 'fft2d.mpi_with_fftw1d'
+            args.type_fft = "fft2d.mpi_with_fftw1d"
         estimate_shapes_weak_scaling(
-            args.n0, args.n1, args.n2, type_fft=args.type_fft, show=True)
+            args.n0, args.n1, args.n2, type_fft=args.type_fft, show=True
+        )
     else:
         # Initialize simulation and run benchmarks
         solver = import_module_solver_from_key(args.solver)
-        if args.dim == '3d':
+        if args.dim == "3d":
             bench(
-                solver, args.dim, args.n0, args.n1, args.n2,
-                path_dir=args.output_dir, type_fft=args.type_fft,
-                it_end=args.it_end)
+                solver,
+                args.dim,
+                args.n0,
+                args.n1,
+                args.n2,
+                path_dir=args.output_dir,
+                type_fft=args.type_fft,
+                it_end=args.it_end,
+            )
         else:
             bench(
-                solver, args.dim, args.n0, args.n1, path_dir=args.output_dir,
-                type_fft=args.type_fft, it_end=args.it_end)
+                solver,
+                args.dim,
+                args.n0,
+                args.n1,
+                path_dir=args.output_dir,
+                type_fft=args.type_fft,
+                it_end=args.it_end,
+            )

@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 import os
 from time import time
+
 try:
     from time import perf_counter as clock
 except ImportError:
@@ -63,19 +64,25 @@ def modif_box_size(params, n0, n1, n2=None):
             params.oper.Lx = params.oper.Lx * nx / ny
 
     if n2 is None:
-        mpi.printby0('nh = ({}, {}); Lh = ({}, {})'.format(
-            n0, n1, params.oper.Ly, params.oper.Lx))
+        mpi.printby0(
+            "nh = ({}, {}); Lh = ({}, {})".format(
+                n0, n1, params.oper.Ly, params.oper.Lx
+            )
+        )
 
     if n2 is not None and n2 != n0:
         params.oper.Lz = params.oper.Lx * nz / nx
 
-        mpi.printby0('n = ({}, {}, {}); L = ({}, {}, {})'.format(
-            n0, n1, n2, params.oper.Lz, params.oper.Ly, params.oper.Lx))
+        mpi.printby0(
+            "n = ({}, {}, {}); L = ({}, {}, {})".format(
+                n0, n1, n2, params.oper.Lz, params.oper.Ly, params.oper.Lx
+            )
+        )
 
 
 def modif_params2d(
-        params, n0=3 * 2**8, n1=None, name_run='profile', type_fft=None,
-        it_end=20):
+    params, n0=3 * 2 ** 8, n1=None, name_run="profile", type_fft=None, it_end=20
+):
     """Modify parameters for 2D benchmarks.
 
     Parameters
@@ -104,12 +111,12 @@ def modif_params2d(
     if type_fft is not None:
         params.oper.type_fft = type_fft
 
-    if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
+    if "FLUIDSIM_NO_FLUIDFFT" not in os.environ:
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
     params.forcing.enable = True
-    params.forcing.type = 'tcrandom'
+    params.forcing.type = "tcrandom"
     params.forcing.nkmax_forcing = 6
     params.forcing.nkmin_forcing = 3
     params.forcing.forcing_rate = 1.
@@ -136,8 +143,8 @@ def modif_params2d(
 
 
 def modif_params3d(
-        params, n0=256, n1=None, n2=None, name_run='profile', type_fft=None,
-        it_end=10):
+    params, n0=256, n1=None, n2=None, name_run="profile", type_fft=None, it_end=10
+):
     """Modify parameters for 3D benchmarks.
 
     Parameters
@@ -172,7 +179,7 @@ def modif_params3d(
     if type_fft is not None:
         params.oper.type_fft = type_fft
 
-    if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
+    if "FLUIDSIM_NO_FLUIDFFT" not in os.environ:
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
@@ -212,15 +219,20 @@ def init_parser_base(parser):
     parser : argparse.ArgumentParser
 
     """
-    parser.add_argument('n0', nargs='?', type=int, default=None)
-    parser.add_argument('n1', nargs='?', type=int, default=None)
-    parser.add_argument('n2', nargs='?', type=int, default=None)
+    parser.add_argument("n0", nargs="?", type=int, default=None)
+    parser.add_argument("n1", nargs="?", type=int, default=None)
+    parser.add_argument("n2", nargs="?", type=int, default=None)
 
     parser.add_argument(
-        '-s', '--solver', type=str, default=None,
-        help='Any of the following solver keys: {}'.format(
-            available_solver_keys()))
-    parser.add_argument('-d', '--dim', default=None)
+        "-s",
+        "--solver",
+        type=str,
+        default=None,
+        help="Any of the following solver keys: {}".format(
+            available_solver_keys()
+        ),
+    )
+    parser.add_argument("-d", "--dim", default=None)
 
 
 def parse_args_dim(args):
@@ -242,32 +254,33 @@ def parse_args_dim(args):
 
     if dim is None:
         if n0 is not None and n1 is not None and n2 is None:
-            dim = '2d'
+            dim = "2d"
         elif n0 is not None and n1 is not None and n2 is not None:
-            dim = '3d'
+            dim = "3d"
         else:
             raise ConsoleError(
-                'Cannot determine which shape you want to use for this bench '
-                "('2d' or '3d')")
+                "Cannot determine which shape you want to use for this bench "
+                "('2d' or '3d')"
+            )
 
-    if dim.lower() in ['3', '3d']:
+    if dim.lower() in ["3", "3d"]:
         if n0 is None:
             n0 = 128
         if n2 is None:
             n2 = n0
-        dim = '3d'
-    elif dim.lower() in ['2', '2d']:
-        dim = '2d'
+        dim = "3d"
+    elif dim.lower() in ["2", "2d"]:
+        dim = "2d"
         if n0 is None:
             n0 = 512
     else:
-        raise ConsoleError('dim should not be {}'.format(dim))
+        raise ConsoleError("dim should not be {}".format(dim))
 
     if n1 is None:
         n1 = n0
 
     if solver is None:
-        solver = 'ns2d' if dim == '2d' else 'ns3d'
+        solver = "ns2d" if dim == "2d" else "ns3d"
 
     args.dim = dim
     args.n0 = n0
@@ -278,7 +291,7 @@ def parse_args_dim(args):
     return args
 
 
-def get_path_file(sim, path_results, name='bench', ext='.json'):
+def get_path_file(sim, path_results, name="bench", ext=".json"):
     """Generate a unique filename from simulation object."""
 
     if not os.path.exists(path_results) and mpi.rank == 0:
@@ -287,11 +300,19 @@ def get_path_file(sim, path_results, name='bench', ext='.json'):
     t_as_str = time_as_str()
     key_solver = sim.info_solver.short_name.lower()
     pid = str(os.getpid())
-    nb_proc = 'np={}'.format(mpi.nb_proc)
-    type_fft = sim.params.oper.type_fft.split('.')[-1].replace('_', '-')
-    nfile = '_'.join([
-        'result', name, key_solver, sim.oper.produce_str_describing_grid(),
-        nb_proc, type_fft, t_as_str + pid]) + ext
+    nb_proc = "np={}".format(mpi.nb_proc)
+    type_fft = sim.params.oper.type_fft.split(".")[-1].replace("_", "-")
+    nfile = "_".join(
+        [
+            "result",
+            name,
+            key_solver,
+            sim.oper.produce_str_describing_grid(),
+            nb_proc,
+            type_fft,
+            t_as_str + pid,
+        ]
+    ) + ext
 
     path = os.path.join(path_results, nfile)
     return path, t_as_str
@@ -309,7 +330,7 @@ def bench(sim, path_results):
 
     """
     path, t_as_str = get_path_file(sim, path_results)
-    print('running a benchmark simulation... ', end='')
+    print("running a benchmark simulation... ", end="")
     with stdout_redirected():
         t0_usr = time()
         t0_sys = clock()
@@ -317,48 +338,53 @@ def bench(sim, path_results):
         t_elapsed_sys = clock() - t0_sys
         t_elapsed_usr = time() - t0_usr
 
-    print('done.\n{} time steps computed in {:.2f} s'.format(
-        sim.time_stepping.it, t_elapsed_usr))
+    print(
+        "done.\n{} time steps computed in {:.2f} s".format(
+            sim.time_stepping.it, t_elapsed_usr
+        )
+    )
 
     if sim.oper.rank != 0:
         return
 
     results = {
-        't_elapsed_usr': t_elapsed_usr,
-        't_elapsed_sys': t_elapsed_sys,
-        'key_solver': sim.info_solver.short_name.lower(),
-        'n0': sim.oper.shapeX_seq[0],
-        'n1': sim.oper.shapeX_seq[1],
-        'n0_loc': sim.oper.shapeX_loc[0],
-        'n1_loc': sim.oper.shapeX_loc[1],
-        'k0_loc': sim.oper.shapeK_loc[0],
-        'k1_loc': sim.oper.shapeK_loc[1],
-        'nb_proc': mpi.nb_proc,
-        'pid': os.getpid(),
-        'time_as_str': t_as_str,
-        'hostname': socket.gethostname(),
-        'nb_iter': sim.params.time_stepping.it_end,
-        'type_fft': sim.oper.type_fft,
+        "t_elapsed_usr": t_elapsed_usr,
+        "t_elapsed_sys": t_elapsed_sys,
+        "key_solver": sim.info_solver.short_name.lower(),
+        "n0": sim.oper.shapeX_seq[0],
+        "n1": sim.oper.shapeX_seq[1],
+        "n0_loc": sim.oper.shapeX_loc[0],
+        "n1_loc": sim.oper.shapeX_loc[1],
+        "k0_loc": sim.oper.shapeK_loc[0],
+        "k1_loc": sim.oper.shapeK_loc[1],
+        "nb_proc": mpi.nb_proc,
+        "pid": os.getpid(),
+        "time_as_str": t_as_str,
+        "hostname": socket.gethostname(),
+        "nb_iter": sim.params.time_stepping.it_end,
+        "type_fft": sim.oper.type_fft,
     }
 
     try:
-        results.update({
-            'n2': sim.oper.shapeX_seq[2],
-            'n2_loc': sim.oper.shapeX_loc[2],
-            'k2_loc': sim.oper.shapeK_loc[2]
-        })
+        results.update(
+            {
+                "n2": sim.oper.shapeX_seq[2],
+                "n2_loc": sim.oper.shapeX_loc[2],
+                "k2_loc": sim.oper.shapeK_loc[2],
+            }
+        )
     except IndexError:
         pass
 
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(results, f, sort_keys=True)
-        f.write('\n')
+        f.write("\n")
 
-    print('results benchmarks saved in\n' + path + '\n')
+    print("results benchmarks saved in\n" + path + "\n")
 
 
 def tear_down(sim):
     """Delete simulation directory."""
     if mpi.rank == 0:
-        print('Cleaning up simulation.')
+        print("Cleaning up simulation.")
         shutil.rmtree(sim.output.path_run)

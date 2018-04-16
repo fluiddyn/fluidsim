@@ -13,25 +13,25 @@ class InfoSolverBasilisk(InfoSolverBase):
 
         super(InfoSolverBasilisk, self)._init_root()
 
-        mod = 'fluidsim.base.basilisk'
+        mod = "fluidsim.base.basilisk"
 
-        self.module_name = mod + '.solver'
-        self.class_name = 'SimulBasilisk'
-        self.short_name = 'basil'
+        self.module_name = mod + ".solver"
+        self.class_name = "SimulBasilisk"
+        self.short_name = "basil"
 
         classes = self.classes
 
-        classes.State.module_name = mod + '.state'
-        classes.State.class_name = 'StateBasilisk'
+        classes.State.module_name = mod + ".state"
+        classes.State.class_name = "StateBasilisk"
 
-        classes.TimeStepping.module_name = mod + '.time_stepping'
-        classes.TimeStepping.class_name = 'TimeSteppingBasilisk'
+        classes.TimeStepping.module_name = mod + ".time_stepping"
+        classes.TimeStepping.class_name = "TimeSteppingBasilisk"
 
-        classes.Operators.module_name = mod + '.operators'
-        classes.Operators.class_name = 'OperatorsBasilisk2D'
+        classes.Operators.module_name = mod + ".operators"
+        classes.Operators.class_name = "OperatorsBasilisk2D"
 
-        classes.Output.module_name = mod + '.output'
-        classes.Output.class_name = 'OutputBasilisk'
+        classes.Output.module_name = mod + ".output"
+        classes.Output.class_name = "OutputBasilisk"
 
 
 class SimulBasilisk(SimulBase):
@@ -46,6 +46,7 @@ class SimulBasilisk(SimulBase):
 
         bas.event(init, t=0.)
 
+
 Simul = SimulBasilisk
 
 if __name__ == "__main__":
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     params.oper.nx = 128
 

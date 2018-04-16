@@ -24,21 +24,22 @@ from fluidsim.solvers.plate2d.solver import InfoSolverPlate2D
 
 
 class InfoSolverPlate2DDiag(InfoSolverPlate2D):
+
     def _init_root(self):
 
         super(InfoSolverPlate2DDiag, self)._init_root()
 
-        self.short_name = 'plate2d.diag'
+        self.short_name = "plate2d.diag"
 
-        package = 'fluidsim.solvers.' + self.short_name
+        package = "fluidsim.solvers." + self.short_name
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StatePlate2DDiag'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StatePlate2DDiag"
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingPlate2DDiag'
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingPlate2DDiag"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -126,7 +127,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'beta': 0.}
+        attribs = {"beta": 0.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -137,10 +138,10 @@ class Simul(SimulBasePseudoSpectral):
             state_spect = self.state.state_spect
 
         # w_fft = state_spect.get_var('w_fft')
-        z_fft = state_spect.get_var('z_fft')
+        z_fft = state_spect.get_var("z_fft")
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
-        chi_fft = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
+        chi_fft = -oper.invlaplacian2_fft(oper.fft2(mamp_zz))
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
 
@@ -154,15 +155,15 @@ class Simul(SimulBasePseudoSpectral):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
-            
-        tendencies_fft.set_var('ap_fft', -Nw_fft)
-        tendencies_fft.set_var('am_fft', Nw_fft)
 
-        tendencies_fft /= -2j*self._tilde_Omega
+        tendencies_fft.set_var("ap_fft", -Nw_fft)
+        tendencies_fft.set_var("am_fft", Nw_fft)
+
+        tendencies_fft /= -2j * self._tilde_Omega
 
         # ratio = self.test_tendencies_nonlin(
         #     tendencies_fft, w_fft, z_fft, chi_fft)
@@ -174,82 +175,82 @@ class Simul(SimulBasePseudoSpectral):
         """Compute the dissipation frequencies with dissipation only for w."""
         f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
         f_d = np.zeros_like(self.state.state_spect, dtype=np.float64)
-        f_d_hypo = np.zeros_like(self.state.state_spect,
-                                 dtype=np.float64)
+        f_d_hypo = np.zeros_like(self.state.state_spect, dtype=np.float64)
         f_d[0] = f_d_w
         f_d_hypo[0] = f_d_hypo_w
         return f_d, f_d_hypo
 
-    # def test_tendencies_nonlin(
-    #         self, tendencies_fft=None,
-    #         w_fft=None, z_fft=None, chi_fft=None):
-    #     r"""Test if the tendencies conserves the total energy.
 
-    #     We consider the conservative Föppl-von Kármán equations
-    #     (without dissipation and forcing) written as
+# def test_tendencies_nonlin(
+#         self, tendencies_fft=None,
+#         w_fft=None, z_fft=None, chi_fft=None):
+#     r"""Test if the tendencies conserves the total energy.
 
-    #     .. math::
+#     We consider the conservative Föppl-von Kármán equations
+#     (without dissipation and forcing) written as
 
-    #        \p_t z = F_z
+#     .. math::
 
-    #        \p_t w = F_w
+#        \p_t z = F_z
 
-    #     We have:
+#        \p_t w = F_w
 
-    #     .. math::
+#     We have:
 
-    #        \p_t E_K(\mathbf{k}) = \mathcal{R} ( \hat F_w \hat w ^* )
+#     .. math::
 
-    #        \p_t E_L(\mathbf{k}) = k^4 \mathcal{R} ( \hat F_z \hat z ^* )
+#        \p_t E_K(\mathbf{k}) = \mathcal{R} ( \hat F_w \hat w ^* )
 
-    #        \p_t E_{NQ}(\mathbf{k}) =
-    #        - \mathcal{R} ( \widehat{\{ F_z, z\}} \hat \chi ^* )
+#        \p_t E_L(\mathbf{k}) = k^4 \mathcal{R} ( \hat F_z \hat z ^* )
 
-    #     Since the total energy is conserved, we should have
+#        \p_t E_{NQ}(\mathbf{k}) =
+#        - \mathcal{R} ( \widehat{\{ F_z, z\}} \hat \chi ^* )
 
-    #     .. math::
+#     Since the total energy is conserved, we should have
 
-    #        \sum_{\mathbf{k}} \p_t E_K(\mathbf{k}) + \p_t E_L(\mathbf{k})
-    #        + \p_t E_{NQ}(\mathbf{k}) = 0
+#     .. math::
 
-    #     This function computes this quantities.
+#        \sum_{\mathbf{k}} \p_t E_K(\mathbf{k}) + \p_t E_L(\mathbf{k})
+#        + \p_t E_{NQ}(\mathbf{k}) = 0
 
-    #     """
+#     This function computes this quantities.
 
-    #     if tendencies_fft is None:
-    #         tendencies_fft = self.tendencies_nonlin()
-    #         w_fft = self.state.state_spect['w_fft']
-    #         z_fft = self.state.state_spect['z_fft']
-    #         chi_fft = self.state.get_var('chi_fft')
+#     """
 
-    #     F_w_fft = tendencies_fft['w_fft']
-    #     F_z_fft = tendencies_fft['z_fft']
+#     if tendencies_fft is None:
+#         tendencies_fft = self.tendencies_nonlin()
+#         w_fft = self.state.state_spect['w_fft']
+#         z_fft = self.state.state_spect['z_fft']
+#         chi_fft = self.state.get_var('chi_fft')
 
-    #     K4 = self.oper.K4
+#     F_w_fft = tendencies_fft['w_fft']
+#     F_z_fft = tendencies_fft['z_fft']
 
-    #     dt_E_K = np.real(F_w_fft * w_fft.conj())
-    #     dt_E_L = K4 * np.real(F_z_fft * z_fft.conj())
+#     K4 = self.oper.K4
 
-    #     tmp = self.oper.monge_ampere_from_fft(F_z_fft, z_fft)
-    #     tmp_fft = self.oper.fft2(tmp)
+#     dt_E_K = np.real(F_w_fft * w_fft.conj())
+#     dt_E_L = K4 * np.real(F_z_fft * z_fft.conj())
 
-    #     dt_E_NQ = - np.real(tmp_fft * chi_fft.conj())
+#     tmp = self.oper.monge_ampere_from_fft(F_z_fft, z_fft)
+#     tmp_fft = self.oper.fft2(tmp)
 
-    #     T = dt_E_K + dt_E_L + dt_E_NQ
+#     dt_E_NQ = - np.real(tmp_fft * chi_fft.conj())
 
-    #     norm = self.oper.sum_wavenumbers(abs(T))
+#     T = dt_E_K + dt_E_L + dt_E_NQ
 
-    #     if norm < 1e-15:
-    #         print('Only zeros in total energy tendency.')
-    #         # print('(K+L)\n', dt_E_K+dt_E_L)
-    #         # print('NQ\n', dt_E_NQ)
-    #         return 0
-    #     else:
-    #         T = T/norm
-    #         # print('ratio array\n', T)
-    #         # print('(K+L)\n', (dt_E_K+dt_E_L)/norm)
-    #         # print('NQ\n', dt_E_NQ/norm)
-    #         return self.oper.sum_wavenumbers(T)
+#     norm = self.oper.sum_wavenumbers(abs(T))
+
+#     if norm < 1e-15:
+#         print('Only zeros in total energy tendency.')
+#         # print('(K+L)\n', dt_E_K+dt_E_L)
+#         # print('NQ\n', dt_E_NQ)
+#         return 0
+#     else:
+#         T = T/norm
+#         # print('ratio array\n', T)
+#         # print('(K+L)\n', (dt_E_K+dt_E_L)/norm)
+#         # print('NQ\n', dt_E_NQ/norm)
+#         return self.oper.sum_wavenumbers(T)
 
 
 if __name__ == "__main__":
@@ -260,30 +261,32 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
-    nh = old_div(192,2)
-    Lh = 2*np.pi
+    nh = old_div(192, 2)
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
     # params.oper.type_fft = 'FFTWPY'
-    params.oper.coef_dealiasing = old_div(2.,3)
+    params.oper.coef_dealiasing = old_div(2., 3)
 
-    delta_x = old_div(params.oper.Lx,params.oper.nx)
-    params.nu_8 = 2.*10e-4*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = old_div(params.oper.Lx, params.oper.nx)
+    params.nu_8 = 2. * 10e-4 * params.forcing.forcing_rate ** (
+        old_div(1., 3)
+    ) * delta_x ** 8
 
-    kmax = np.sqrt(2)*np.pi/delta_x
+    kmax = np.sqrt(2) * np.pi / delta_x
 
     params.time_stepping.USE_CFL = False
-    params.time_stepping.deltat0 = 2*np.pi/kmax**2
+    params.time_stepping.deltat0 = 2 * np.pi / kmax ** 2
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 50.0
     params.time_stepping.it_end = 1
 
     # params.init_fields.type = 'HARMONIC'
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
     params.init_fields.max_velo_noise = 0.001
     # params.init_fields.path_file = (
     #     '/home/users/bonamy2c/Sim_data/PLATE2D_test_L='
@@ -305,7 +308,7 @@ if __name__ == "__main__":
     params.output.period_refresh_plots = 0.5
     params.output.periods_plot.phys_fields = 0.0
 
-    params.output.phys_fields.field_to_plot = 'z'
+    params.output.phys_fields.field_to_plot = "z"
 
     params.output.spectra.HAS_TO_PLOT_SAVED = True
 

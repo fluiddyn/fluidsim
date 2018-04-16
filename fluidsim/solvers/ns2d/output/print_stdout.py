@@ -30,36 +30,38 @@ class PrintStdOutNS2D(PrintStdOutBase):
 
         energy = self.output.compute_energy()
 
-        if hasattr(self, 'energy_tmp'):
-            delta_energy = energy-self.energy_tmp
+        if hasattr(self, "energy_tmp"):
+            delta_energy = energy - self.energy_tmp
         else:
             delta_energy = 0.
 
         if mpi.rank == 0:
             to_print += (
-                '              energy = {:9.3e} ; Delta energy = {:+9.3e}'
-                ''.format(energy, delta_energy))
+                "              energy = {:9.3e} ; Delta energy = {:+9.3e}"
+                "".format(energy, delta_energy)
+            )
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '\n              estimated remaining duration = {:9.3g} s'
-                    ''.format(duration_left))
+                    "\n              estimated remaining duration = {:9.3g} s"
+                    "".format(duration_left)
+                )
 
         self.energy_tmp = energy
         return to_print
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
-        with open(self.output.path_run + '/stdout.txt') as file_means:
+        dict_results = {"name_solver": self.output.name_solver}
+        with open(self.output.path_run + "/stdout.txt") as file_means:
             lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
         for il, line in enumerate(lines):
-            if line[0:4] == 'it =':
+            if line[0:4] == "it =":
                 lines_t.append(line)
-            if line[0:22] == '              energy =':
+            if line[0:22] == "              energy =":
                 lines_E.append(line)
 
         nt = len(lines_t)
@@ -85,43 +87,49 @@ class PrintStdOutNS2D(PrintStdOutBase):
             E[il] = float(words[2])
             deltaE[il] = float(words[7])
 
-        dict_results['it'] = it
-        dict_results['t'] = t
-        dict_results['deltat'] = deltat
-        dict_results['E'] = E
-        dict_results['deltaE'] = deltaE
+        dict_results["it"] = it
+        dict_results["t"] = t
+        dict_results["deltat"] = deltat
+        dict_results["E"] = E
+        dict_results["deltaE"] = deltaE
 
         return dict_results
 
     def plot_deltat(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        deltat = dict_results['deltat']
+        t = dict_results["t"]
+        deltat = dict_results["deltat"]
 
         fig, ax = self.output.figure_axe()
-        ax.set_xlabel('t')
-        ax.set_ylabel('deltat(t)')
+        ax.set_xlabel("t")
+        ax.set_ylabel("deltat(t)")
 
-        ax.set_title('info stdout, solver ' + self.output.name_solver +
-                     ', nh = {0:5d}'.format(self.sim.oper.nx_seq))
-        ax.plot(t, deltat, 'k', linewidth=2)
+        ax.set_title(
+            "info stdout, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.sim.oper.nx_seq)
+        )
+        ax.plot(t, deltat, "k", linewidth=2)
         fig.tight_layout()
 
     def plot_energy(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        E = dict_results['E']
-        deltaE = dict_results['deltaE']
+        t = dict_results["t"]
+        E = dict_results["E"]
+        deltaE = dict_results["deltaE"]
 
         fig, ax = self.output.figure_axe()
 
-        ax.set_title('info stdout, solver ' + self.output.name_solver +
-                     ', nh = {0:5d}'.format(self.sim.oper.nx_seq))
+        ax.set_title(
+            "info stdout, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.sim.oper.nx_seq)
+        )
 
-        ax.set_xlabel('t')
-        ax.set_ylabel('E(t), deltaE(t)')
-        ax.plot(t, E, 'k', linewidth=2)
-        ax.plot(t, deltaE, 'b', linewidth=2)
+        ax.set_xlabel("t")
+        ax.set_ylabel("E(t), deltaE(t)")
+        ax.plot(t, E, "k", linewidth=2)
+        ax.plot(t, deltaE, "b", linewidth=2)
         fig.tight_layout()

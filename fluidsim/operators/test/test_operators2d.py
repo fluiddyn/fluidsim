@@ -16,14 +16,14 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None, coef_dealiasing=2./3):
+def create_oper(type_fft=None, coef_dealiasing=2. / 3):
 
-    params = ParamContainer(tag='params')
+    params = ParamContainer(tag="params")
 
-    params._set_attrib('ONLY_COARSE_OPER', False)
-    params._set_attrib('f', 0)
-    params._set_attrib('c2', 100)
-    params._set_attrib('kd2', 0)
+    params._set_attrib("ONLY_COARSE_OPER", False)
+    params._set_attrib("f", 0)
+    params._set_attrib("c2", 100)
+    params._set_attrib("kd2", 0)
 
     OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
@@ -62,10 +62,11 @@ def compute_increments_dim1_old(var, irx):
 
 
 @unittest.skipIf(
-    NO_PYTHRAN,
-    'Pythran extension fluidsim.operators.util2d_pythran unavailable')
-@unittest.skipIf(sys.platform.startswith('win'), 'Untested on Windows')
+    NO_PYTHRAN, "Pythran extension fluidsim.operators.util2d_pythran unavailable"
+)
+@unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()
@@ -113,6 +114,7 @@ class TestOperators(unittest.TestCase):
 
 
 class TestOperatorsDealiasing(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper(coef_dealiasing=1.)
@@ -130,5 +132,5 @@ class TestOperatorsDealiasing(unittest.TestCase):
         self.assertEqual(sum_var, sum_var_dealiased)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

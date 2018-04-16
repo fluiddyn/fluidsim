@@ -18,36 +18,36 @@ class OutputSW1LExactlinModified(OutputBaseSW1L):
 
         classes = info_solver.classes.Output.classes
 
-        classes.SpatialMeans.class_name = 'SpatialMeansMSW1L'
-        classes.SpectralEnergyBudget.class_name = 'SpectralEnergyBudgetSW1LModified'
+        classes.SpatialMeans.class_name = "SpatialMeansMSW1L"
+        classes.SpectralEnergyBudget.class_name = "SpectralEnergyBudgetSW1LModified"
 
     def compute_energies_fft(self):
-        ux_fft = self.sim.state.get_var('ux_fft')
-        uy_fft = self.sim.state.get_var('uy_fft')
-        eta_fft = self.sim.state.get_var('eta_fft')
-        energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2 / 2
-        energyK_fft = np.abs(ux_fft)**2 / 2 + np.abs(uy_fft)**2 / 2
+        ux_fft = self.sim.state.get_var("ux_fft")
+        uy_fft = self.sim.state.get_var("uy_fft")
+        eta_fft = self.sim.state.get_var("eta_fft")
+        energyA_fft = self.sim.params.c2 * np.abs(eta_fft) ** 2 / 2
+        energyK_fft = np.abs(ux_fft) ** 2 / 2 + np.abs(uy_fft) ** 2 / 2
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        energyKr_fft = np.abs(uxr_fft)**2 / 2 + np.abs(uyr_fft)**2 / 2
+        energyKr_fft = np.abs(uxr_fft) ** 2 / 2 + np.abs(uyr_fft) ** 2 / 2
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
-        ux_fft = self.sim.state.get_var('ux_fft')
-        uy_fft = self.sim.state.get_var('uy_fft')
-        eta_fft = self.sim.state.get_var('eta_fft')
-        energyA_fft = self.sim.params.c2 * np.abs(eta_fft)**2 / 2
-        energyK_fft = np.abs(ux_fft)**2 / 2 + np.abs(uy_fft)**2 / 2
+        ux_fft = self.sim.state.get_var("ux_fft")
+        uy_fft = self.sim.state.get_var("uy_fft")
+        eta_fft = self.sim.state.get_var("eta_fft")
+        energyA_fft = self.sim.params.c2 * np.abs(eta_fft) ** 2 / 2
+        energyK_fft = np.abs(ux_fft) ** 2 / 2 + np.abs(uy_fft) ** 2 / 2
         return energyK_fft, energyA_fft
 
     def compute_PV_fft(self):
         # compute Ertel and Charney (QG) potential vorticity
-        rot = self.sim.state.get_var('rot')
-        eta = self.sim.state.state_phys.get_var('eta')
+        rot = self.sim.state.get_var("rot")
+        eta = self.sim.state.state_phys.get_var("eta")
         ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1. + eta))
-        ux_fft = self.sim.state.get_var('ux_fft')
-        uy_fft = self.sim.state.get_var('uy_fft')
+        ux_fft = self.sim.state.get_var("ux_fft")
+        uy_fft = self.sim.state.get_var("uy_fft")
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        eta_fft = self.sim.state.get_var('eta_fft')
+        eta_fft = self.sim.state.get_var("eta_fft")
         CharneyPV_fft = rot_fft - self.sim.params.f * eta_fft
         return ErtelPV_fft, CharneyPV_fft

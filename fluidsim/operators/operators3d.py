@@ -38,13 +38,12 @@ def dealiasing_variable_numpy(ff_fft, where_dealiased):
     ff_fft[np.nonzero(where_dealiased)] = 0.
 
 
-if hasattr(util3d_pythran, '__pythran__'):
+if hasattr(util3d_pythran, "__pythran__"):
     dealiasing_variable = util3d_pythran.dealiasing_variable
     dealiasing_setofvar = util3d_pythran.dealiasing_setofvar
 else:
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
-
 
 
 class OperatorsPseudoSpectral3D(_Operators):
@@ -73,38 +72,45 @@ class OperatorsPseudoSpectral3D(_Operators):
         """
 
         if nb_proc > 1:
-            type_fft = 'fft3d.mpi_with_fftwmpi3d'
+            type_fft = "fft3d.mpi_with_fftwmpi3d"
         else:
-            type_fft = 'fft3d.with_pyfftw'
+            type_fft = "fft3d.with_pyfftw"
 
-        attribs = {'type_fft': type_fft,
-                   'type_fft2d': 'fft2d.with_pyfftw',
-                   'TRANSPOSED_OK': True,
-                   'coef_dealiasing': 2./3,
-                   'nx': 48,
-                   'ny': 48,
-                   'nz': 48,
-                   'Lx': 2*pi,
-                   'Ly': 2*pi,
-                   'Lz': 2*pi}
-        params._set_child('oper', attribs=attribs)
+        attribs = {
+            "type_fft": type_fft,
+            "type_fft2d": "fft2d.with_pyfftw",
+            "TRANSPOSED_OK": True,
+            "coef_dealiasing": 2. / 3,
+            "nx": 48,
+            "ny": 48,
+            "nz": 48,
+            "Lx": 2 * pi,
+            "Ly": 2 * pi,
+            "Lz": 2 * pi
+        }
+        params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None):
 
         self.params = params
 
         super(OperatorsPseudoSpectral3D, self).__init__(
-            params.oper.nx, params.oper.ny, params.oper.nz,
-            params.oper.Lx, params.oper.Ly, params.oper.Lz,
+            params.oper.nx,
+            params.oper.ny,
+            params.oper.nz,
+            params.oper.Lx,
+            params.oper.Ly,
+            params.oper.Lz,
             fft=params.oper.type_fft,
-            coef_dealiasing=params.oper.coef_dealiasing)
+            coef_dealiasing=params.oper.coef_dealiasing,
+        )
 
         # problem here type_fft
         params2d = deepcopy(params)
         params2d.oper.type_fft = params2d.oper.type_fft2d
         fft = params2d.oper.type_fft
 
-        if any([fft.startswith(s) for s in ['fluidfft.fft2d.', 'fft2d.']]):
+        if any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]]):
             self.oper2d = OpPseudoSpectral2D(params2d)
         else:
             raise ValueError
@@ -115,12 +121,14 @@ class OperatorsPseudoSpectral3D(_Operators):
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
-            self.oper2d, arr2d)
+            self.oper2d, arr2d
+        )
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
-            self.oper2d, arr2d)
+            self.oper2d, arr2d
+        )
 
     def dealiasing(self, *args):
         """Dealiasing of SetOfVariables or np.ndarray"""
@@ -130,8 +138,9 @@ class OperatorsPseudoSpectral3D(_Operators):
             elif isinstance(thing, np.ndarray):
                 dealiasing_variable(thing, self.where_dealiased)
 
-    def put_coarse_array_in_array_fft(self, arr_coarse, arr, oper_coarse,
-                                      shapeK_loc_coarse):
+    def put_coarse_array_in_array_fft(
+        self, arr_coarse, arr, oper_coarse, shapeK_loc_coarse
+    ):
         """Put the values contained in a coarse array in an array.
 
         Both arrays are in Fourier space.
@@ -148,14 +157,15 @@ class OperatorsPseudoSpectral3D(_Operators):
                 else:
                     arr3d_coarse = None
                 self.put_coarse_array_in_array_fft(
-                    arr3d_coarse, arr[ikey], oper_coarse,
-                    shapeK_loc_coarse)
+                    arr3d_coarse, arr[ikey], oper_coarse, shapeK_loc_coarse
+                )
             return
 
         nkzc, nkyc, nkxc = shapeK_loc_coarse
 
         if nb_proc > 1:
             raise NotImplementedError
+
         else:
             nkz, nky, nkx = self.shapeK_seq
             for ikzc in range(nkzc):
@@ -170,6 +180,7 @@ class OperatorsPseudoSpectral3D(_Operators):
         nkzc, nkyc, nkxc = shapeK_loc_coarse
         if nb_proc > 1:
             raise NotImplementedError()
+
         else:
             fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
             nkz, nky, nkx = self.shapeK_seq
@@ -186,7 +197,8 @@ class OperatorsPseudoSpectral3D(_Operators):
 
         """
         return util3d_pythran.urudfft_from_vxvyfft(
-            vx_fft, vy_fft, self.Kx, self.Ky, rank)
+            vx_fft, vy_fft, self.Kx, self.Ky, rank
+        )
 
 
 def _ik_from_ikc(ikc, nkc, nk):
@@ -198,19 +210,20 @@ def _ik_from_ikc(ikc, nkc, nk):
     return ik
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     n = 4
 
     from fluidsim.base.params import Parameters
-    p = Parameters(tag='params', attribs={'ONLY_COARSE_OPER': False})
+
+    p = Parameters(tag="params", attribs={"ONLY_COARSE_OPER": False})
     OperatorsPseudoSpectral3D._complete_params_with_default(p)
 
     p.oper.nx = n
-    p.oper.ny = 2*n
-    p.oper.nz = 4*n
+    p.oper.ny = 2 * n
+    p.oper.nz = 4 * n
 
     # p.oper.type_fft = 'fftwpy'
-    p.oper.type_fft2d = 'fft2d.with_pyfftw'
+    p.oper.type_fft2d = "fft2d.with_pyfftw"
 
     oper = OperatorsPseudoSpectral3D(params=p)
 
@@ -227,5 +240,5 @@ if __name__ == '__main__':
 
     oper.project_perpk3d(field_fft, field_fft, field_fft)
 
-    a2d = np.arange(oper.nx*oper.ny).reshape(oper.oper2d.shapeX_loc)
+    a2d = np.arange(oper.nx * oper.ny).reshape(oper.oper2d.shapeX_loc)
     a3d = oper.build_invariant_arrayX_from_2d_indices12X(a2d)

@@ -27,9 +27,9 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         """This static method is used to complete the *params* container.
         """
         params = OperatorsBase1D._complete_params_with_default(params)
-        params.oper._set_attribs({
-            'type_fft': 'sequential',
-            'coef_dealiasing': 2./3})
+        params.oper._set_attribs(
+            {"type_fft": "sequential", "coef_dealiasing": 2. / 3}
+        )
         return params
 
     def __init__(self, params, SEQUENTIAL=None):
@@ -37,7 +37,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         super().__init__(params)
         # OperatorsBase1D.__init__(self, params)
 
-        assert params.oper.type_fft == 'sequential'
+        assert params.oper.type_fft == "sequential"
         opfft = FFTW1DReal2Complex(params.oper.nx)
         self.fft = opfft.fft
         self.ifft = opfft.ifft
@@ -54,14 +54,14 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         #     list(range(nx//2 + 1)) + list(range(-nx//2 + 1, 0)))
 
         self.coef_dealiasing = params.oper.coef_dealiasing
-        kx_max = self.deltakx * (self.nx//2 + 1)
+        kx_max = self.deltakx * (self.nx // 2 + 1)
         CONDKX = abs(self.kx) > self.coef_dealiasing * kx_max
         self.where_dealiased = np.array(CONDKX, dtype=np.uint8)
         self.indexes_dealiased = np.argwhere(CONDKX)
 
         # for spectra
-        self.nkxE = self.nx//2 + 1
-        self.nkxE2 = (self.nx+1)//2
+        self.nkxE = self.nx // 2 + 1
+        self.nkxE2 = (self.nx + 1) // 2
 
         # print('nkxE, nkxE2', self.nkxE, self.nkxE2)
 
@@ -70,14 +70,17 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         self.nkhE = self.nkxE
 
         self.KX = self.kx
-        self.K2 = self.KX**2
-        self.K4 = self.K2**2
-        self.K8 = self.K4**2
+        self.K2 = self.KX ** 2
+        self.K4 = self.K2 ** 2
+        self.K8 = self.K4 ** 2
         self.K = self.KX
 
     def produce_long_str_describing_oper(self):
-        return super(OperatorsPseudoSpectral1D, self).produce_long_str_describing_oper(
-            'Pseudospectral')
+        return super(
+            OperatorsPseudoSpectral1D, self
+        ).produce_long_str_describing_oper(
+            "Pseudospectral"
+        )
 
     def dealiasing(self, *args):
         for thing in args:

@@ -32,8 +32,7 @@ from fluiddyn.util import mpi
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
-from fluidsim.solvers.ns2d.init_fields import (
-    InitFieldsNoise as InitFieldsNoiseNS2D)
+from fluidsim.solvers.ns2d.init_fields import InitFieldsNoise as InitFieldsNoiseNS2D
 
 from fluidsim.solvers.ns2d.init_fields import InitFieldsJet, InitFieldsDipole
 
@@ -46,14 +45,12 @@ class InitFieldsNoise(InitFieldsNoiseNS2D):
 
 
 class InitFieldsWave(SpecificInitFields):
-    tag = 'wave'
+    tag = "wave"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsWave, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'eta_max': 1.,
-            'ikx': 2})
+        params.init_fields._set_child(cls.tag, attribs={"eta_max": 1., "ikx": 2})
 
     def __call__(self):
         oper = self.sim.oper
@@ -62,7 +59,7 @@ class InitFieldsWave(SpecificInitFields):
         eta_max = self.sim.params.init_fields.wave.eta_max
 
         kx = oper.deltakx * ikx
-        eta_fft = np.zeros_like(self.sim.state.get_var('eta_fft'))
+        eta_fft = np.zeros_like(self.sim.state.get_var("eta_fft"))
         cond = np.logical_and(oper.KX == kx, oper.KY == 0.)
         eta_fft[cond] = eta_max
         oper.project_fft_on_realX(eta_fft)
@@ -89,15 +86,14 @@ class InitFieldsVortexGrid(SpecificInitFields):
       If not specified, follows six-sigma rule based on half vortex spacing
 
     """
-    tag = 'vortex_grid'
+    tag = "vortex_grid"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsVortexGrid, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'omega_max': 1.,
-            'n_vort': 8,
-            'sd': None})
+        params.init_fields._set_child(
+            cls.tag, attribs={"omega_max": 1., "n_vort": 8, "sd": None}
+        )
 
     def __call__(self):
         rot = self.vortex_grid_shape()
@@ -116,13 +112,15 @@ class InitFieldsVortexGrid(SpecificInitFields):
         SD = params.sd
 
         if N_vort % 2 != 0:
-            raise ValueError("Cannot initialize a net circulation free field."
-                             "N_vort should be even.")
+            raise ValueError(
+                "Cannot initialize a net circulation free field."
+                "N_vort should be even."
+            )
 
-        dx_vort = Lx/N_vort
-        dy_vort = Ly/N_vort
-        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort/2.
-        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort/2.
+        dx_vort = Lx / N_vort
+        dy_vort = Ly / N_vort
+        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort / 2.
+        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
         sign_list = self._random_plus_minus_list()
 
         if SD is None:
@@ -132,7 +130,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         amp = params.omega_max
 
         def wz_gaussian(x, y, sign):
-            return sign * amp * np.exp(-(x ** 2 + y ** 2)/ (2 * SD**2))
+            return sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD ** 2))
 
         omega = np.zeros(oper.shapeX_loc)
         for i in range(0, N_vort):
@@ -158,6 +156,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
 
         if mpi.nb_proc > 1:
             from mpi4py.MPI import INT
+
             mpi.comm.Bcast([pm, INT])
 
         return pm
@@ -172,6 +171,11 @@ class InitFieldsSW1L(InitFieldsBase):
 
         InitFieldsBase._complete_info_solver(
             info_solver,
-            classes=[InitFieldsNoise, InitFieldsJet,
-                     InitFieldsDipole, InitFieldsWave,
-                     InitFieldsVortexGrid])
+            classes=[
+                InitFieldsNoise,
+                InitFieldsJet,
+                InitFieldsDipole,
+                InitFieldsWave,
+                InitFieldsVortexGrid,
+            ],
+        )

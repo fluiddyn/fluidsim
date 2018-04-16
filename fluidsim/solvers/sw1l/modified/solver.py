@@ -20,22 +20,23 @@ from fluidsim.solvers.sw1l.solver import Simul as SimulSW1L
 
 class InfoSolverSW1LModified(InfoSolverSW1L):
     """Information about the solver SW1L."""
+
     def _init_root(self, **kargs):
         super(InfoSolverSW1LModified, self)._init_root()
 
-        sw1l = 'fluidsim.solvers.sw1l'
+        sw1l = "fluidsim.solvers.sw1l"
 
-        self.module_name = sw1l+'.modified.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'SW1Lmodif'
+        self.module_name = sw1l + ".modified.solver"
+        self.class_name = "Simul"
+        self.short_name = "SW1Lmodif"
 
         classes = self.classes
 
-        classes.State.module_name = sw1l+'.modified.state'
-        classes.State.class_name = 'StateSW1LModified'
+        classes.State.module_name = sw1l + ".modified.state"
+        classes.State.class_name = "StateSW1LModified"
 
-        classes.Output.module_name = sw1l+'.modified.output'
-        classes.Output.class_name = 'OutputSW1LModified'
+        classes.Output.module_name = sw1l + ".modified.output"
+        classes.Output.class_name = "OutputSW1LModified"
 
 
 class Simul(SimulSW1L):
@@ -54,13 +55,13 @@ class Simul(SimulSW1L):
         else:
             state_phys = self.state.return_statephys_from_statespect(state_spect)
 
-        ux = state_phys.get_var('ux')
-        uy = state_phys.get_var('uy')
+        ux = state_phys.get_var("ux")
+        uy = state_phys.get_var("uy")
         # eta = state_phys.get_var('eta')
 
-        ux_fft = state_spect.get_var('ux_fft')
-        uy_fft = state_spect.get_var('uy_fft')
-        eta_fft = state_spect.get_var('eta_fft')
+        ux_fft = state_spect.get_var("ux_fft")
+        uy_fft = state_spect.get_var("uy_fft")
+        eta_fft = state_spect.get_var("eta_fft")
 
         # compute Fx_fft and Fy_fft
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -75,8 +76,8 @@ class Simul(SimulSW1L):
         dxuy = ifft2(dxuy_fft)
         dyuy = ifft2(dyuy_fft)
 
-        FNLx = -ux_rot*dxux - uy_rot*dyux
-        FNLy = -ux_rot*dxuy - uy_rot*dyuy
+        FNLx = -ux_rot * dxux - uy_rot * dyux
+        FNLy = -ux_rot * dxuy - uy_rot * dyuy
 
         if self.params.beta != 0:
             f = self.params.f + self.params.beta * oper.YY
@@ -86,10 +87,10 @@ class Simul(SimulSW1L):
         FCx = +f * uy
         FCy = -f * ux
 
-        Fgradx_fft, Fgrady_fft = oper.gradfft_from_fft(self.params.c2*eta_fft)
+        Fgradx_fft, Fgrady_fft = oper.gradfft_from_fft(self.params.c2 * eta_fft)
 
-        Fx_fft = fft2(FCx+FNLx) - Fgradx_fft
-        Fy_fft = fft2(FCy+FNLy) - Fgrady_fft
+        Fx_fft = fft2(FCx + FNLx) - Fgradx_fft
+        Fy_fft = fft2(FCy + FNLy) - Fgrady_fft
 
         # compute Feta_fft
         dxeta_fft, dyeta_fft = oper.gradfft_from_fft(eta_fft)
@@ -97,18 +98,18 @@ class Simul(SimulSW1L):
         dyeta = ifft2(dyeta_fft)
 
         div_fft = oper.divfft_from_vecfft(ux_fft, uy_fft)
-        Feta_fft = -fft2(ux_rot*dxeta + uy_rot*dyeta) - div_fft
+        Feta_fft = -fft2(ux_rot * dxeta + uy_rot * dyeta) - div_fft
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        tendencies_fft.set_var('ux_fft', Fx_fft)
-        tendencies_fft.set_var('uy_fft', Fy_fft)
-        tendencies_fft.set_var('eta_fft', Feta_fft)
+        tendencies_fft.set_var("ux_fft", Fx_fft)
+        tendencies_fft.set_var("uy_fft", Fy_fft)
+        tendencies_fft.set_var("eta_fft", Feta_fft)
 
         oper.dealiasing(tendencies_fft)
 
@@ -124,24 +125,26 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 64
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    delta_x = params.oper.Lx / params.oper.nx
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        1. / 3
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 2.
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.forcing.enable = True
-    params.forcing.type = 'waves'
+    params.forcing.type = "waves"
 
     params.output.periods_print.print_stdout = 0.25
 
@@ -154,7 +157,7 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.
 
-    params.output.phys_fields.field_to_plot = 'div'
+    params.output.phys_fields.field_to_plot = "div"
 
     # params.output.spectra.HAS_TO_PLOT_SAVED = True
     # params.output.spatial_means.HAS_TO_PLOT_SAVED = True

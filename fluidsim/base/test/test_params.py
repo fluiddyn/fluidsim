@@ -17,5 +17,5 @@ class TestParameters(unittest.TestCase):
             merge_params(params1, params2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

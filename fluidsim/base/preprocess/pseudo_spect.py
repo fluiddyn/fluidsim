@@ -16,7 +16,7 @@ from .base import PreprocessBase
 
 
 class PreprocessPseudoSpectral(PreprocessBase):
-    _tag = 'pseudo_spectral'
+    _tag = "pseudo_spectral"
 
     def __call__(self):
         """Preprocesses if enabled."""
@@ -24,7 +24,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         super(PreprocessPseudoSpectral, self).__call__()
         if self.params.enable:
             if self.sim.params.forcing.enable:
-                if 'forcing' in self.params.init_field_scale:
+                if "forcing" in self.params.init_field_scale:
                     self.set_forcing_rate()
                     self.normalize_init_fields()
                 else:
@@ -50,14 +50,14 @@ class PreprocessPseudoSpectral(PreprocessBase):
         scale = self.params.init_field_scale
         C = float(self.params.init_field_const)
 
-        if scale == 'energy':
+        if scale == "energy":
             try:
                 Ek, = self.output.compute_quad_energies()
             except:
                 Ek = self.output.compute_energy()
 
-            ux_fft = state.get_var('ux_fft')
-            uy_fft = state.get_var('uy_fft')
+            ux_fft = state.get_var("ux_fft")
+            uy_fft = state.get_var("uy_fft")
 
             if Ek != 0.:
                 ux_fft = (C / Ek) ** 0.5 * ux_fft
@@ -68,31 +68,35 @@ class PreprocessPseudoSpectral(PreprocessBase):
             except AttributeError:
                 rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
                 state.init_statespect_from(rot_fft=rot_fft)
-        elif scale == 'enstrophy':
+        elif scale == "enstrophy":
             omega_0 = self.output.compute_enstrophy()
-            rot_fft = state.get_var('rot_fft')
+            rot_fft = state.get_var("rot_fft")
 
             if omega_0 != 0.:
                 rot_fft = (C / omega_0) ** 0.5 * rot_fft
                 state.init_from_rotfft(rot_fft)
 
-        elif scale == 'enstrophy_forcing':
+        elif scale == "enstrophy_forcing":
             P = self.sim.params.forcing.forcing_rate
             k_f = self.oper.deltak * (
-                (self.sim.params.forcing.nkmax_forcing +
-                 self.sim.params.forcing.nkmin_forcing) // 2)
+                (
+                    self.sim.params.forcing.nkmax_forcing
+                    + self.sim.params.forcing.nkmin_forcing
+                )
+                // 2
+            )
             omega_0 = self.output.compute_enstrophy()
-            rot_fft = state.get_var('rot_fft')
+            rot_fft = state.get_var("rot_fft")
 
             if omega_0 != 0.:
                 C_0 = omega_0 / (P ** (2. / 3) * k_f ** (4. / 3))
                 rot_fft = (C / C_0) ** 0.5 * rot_fft
                 state.init_from_rotfft(rot_fft)
 
-        elif scale == 'unity':
+        elif scale == "unity":
             pass
         else:
-            raise ValueError('Unknown initial fields scaling: ', scale)
+            raise ValueError("Unknown initial fields scaling: ", scale)
 
     def set_viscosity(self):
         """Based on
@@ -129,21 +133,28 @@ class PreprocessPseudoSpectral(PreprocessBase):
         viscosity_scale = params.viscosity_scale
         C = params.viscosity_const
 
-        if viscosity_scale == 'enstrophy':
+        if viscosity_scale == "enstrophy":
             args = [self.output.compute_enstrophy()]
-        elif viscosity_scale == 'energy':
+        elif viscosity_scale == "energy":
             args = [self.output.compute_energy()]
-        elif viscosity_scale == 'enstrophy_forcing':
+        elif viscosity_scale == "enstrophy_forcing":
             args = [
-                self.output.compute_enstrophy(), self.sim.params.forcing.forcing_rate]
-        elif viscosity_scale == 'forcing':
+                self.output.compute_enstrophy(),
+                self.sim.params.forcing.forcing_rate,
+            ]
+        elif viscosity_scale == "forcing":
             args = [self.sim.params.forcing.forcing_rate]
         else:
-            raise ValueError('Unknown viscosity scale: %s' % viscosity_scale)
+            raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
 
         values = calcul_viscosity(
-            C, viscosity_scale, viscosity_type, oper=self.oper, verbose=False,
-            *args)
+            C,
+            viscosity_scale,
+            viscosity_type,
+            oper=self.oper,
+            verbose=False,
+            *args
+        )
         for v in values:
             attr, order, nu = v
             self.sim.params.__setattr__(attr, nu)
@@ -174,25 +185,31 @@ class PreprocessPseudoSpectral(PreprocessBase):
         forcing_scale = params.forcing_scale
         C = float(params.forcing_const)
         # Forcing wavenumber
-        k_f = self.oper.deltak * ((self.sim.params.forcing.nkmax_forcing +
-                                    self.sim.params.forcing.nkmin_forcing) // 2)
+        k_f = self.oper.deltak * (
+            (
+                self.sim.params.forcing.nkmax_forcing
+                + self.sim.params.forcing.nkmin_forcing
+            )
+            // 2
+        )
 
-        if forcing_scale == 'unity':
+        if forcing_scale == "unity":
             self.sim.params.forcing.forcing_rate = C
-        elif forcing_scale == 'energy':
+        elif forcing_scale == "energy":
             energy_0 = self.output.compute_energy()
             self.sim.params.forcing.forcing_rate = C * energy_0 ** 1.5 * k_f
-        elif forcing_scale == 'enstrophy':
+        elif forcing_scale == "enstrophy":
             omega_0 = self.output.compute_enstrophy()
             self.sim.params.forcing.forcing_rate = C * omega_0 ** 1.5 / k_f ** 2
         else:
-            raise ValueError('Unknown forcing scale: %s' % forcing_scale)
+            raise ValueError("Unknown forcing scale: %s" % forcing_scale)
 
         self.sim.forcing.__init__(self.sim)
 
 
 def calcul_viscosity(
-        viscosity_const, viscosity_scale, viscosity_type, *args, **kwargs):
+    viscosity_const, viscosity_scale, viscosity_type, *args, **kwargs
+):
     """Calculates viscosity based on scaling formulae.  Use this function
     to estimate viscosity before runtime.
 
@@ -235,23 +252,28 @@ def calcul_viscosity(
 
 
     """
-    if 'verbose' in kwargs:
-        verbose = kwargs['verbose']
+    if "verbose" in kwargs:
+        verbose = kwargs["verbose"]
     else:
         verbose = True
 
-    if 'oper' in kwargs:
-        oper = kwargs['oper']
+    if "oper" in kwargs:
+        oper = kwargs["oper"]
         coef_dealiasing = oper.coef_dealiasing
-        nk_f = ((oper.params.forcing.nkmax_forcing +
-                 oper.params.forcing.nkmin_forcing) // 2)
+        nk_f = (
+            (
+                oper.params.forcing.nkmax_forcing
+                + oper.params.forcing.nkmin_forcing
+            )
+            // 2
+        )
         delta_x = oper.deltax
         deltak = oper.deltak
     else:
-        nh = kwargs['nh']
-        Lh = kwargs['Lh']
-        coef_dealiasing = kwargs['coef_dealiasing']
-        nk_f = kwargs['nk_f']
+        nh = kwargs["nh"]
+        Lh = kwargs["Lh"]
+        coef_dealiasing = kwargs["coef_dealiasing"]
+        nk_f = kwargs["nk_f"]
         delta_x = Lh / nh
         deltak = 2 * np.pi / Lh
 
@@ -263,30 +285,36 @@ def calcul_viscosity(
     k_f = deltak * nk_f
     large_scale = np.pi / k_f
     if verbose:
-        print('Max. wavenumber =', np.pi / delta_x)
-        print('Max. resolved wavenumber, k_max =', k_max)
-        print('Grid spacing, delta_x =', delta_x)
-        print('\nESTIMATED (P~eps)')
+        print("Max. wavenumber =", np.pi / delta_x)
+        print("Max. resolved wavenumber, k_max =", k_max)
+        print("Grid spacing, delta_x =", delta_x)
+        print("\nESTIMATED (P~eps)")
         print(
-            'Kolmogorov wavenumber, k_d = ', k_max / C, '; k_d / k_f = ',
-            k_max / C / k_f)
+            "Kolmogorov wavenumber, k_d = ",
+            k_max / C,
+            "; k_d / k_f = ",
+            k_max / C / k_f,
+        )
         print(
-            'Kolmogorov length scale, L_d = ', length_scale,
-            '; L_d / L_f = ', length_scale / large_scale)
-        print('Viscosity scale:', viscosity_scale, '=', args)
+            "Kolmogorov length scale, L_d = ",
+            length_scale,
+            "; L_d / L_f = ",
+            length_scale / large_scale,
+        )
+        print("Viscosity scale:", viscosity_scale, "=", args)
 
     if len(args) == 0:
-        raise ValueError('Expected values related to `viscosity_scale` as *args')
+        raise ValueError("Expected values related to `viscosity_scale` as *args")
 
-    if viscosity_scale == 'enstrophy':
+    if viscosity_scale == "enstrophy":
         omega_0 = args[0]
         eta = omega_0 ** 1.5
         time_scale = eta ** (-1. / 3)
-    elif viscosity_scale == 'energy':
+    elif viscosity_scale == "energy":
         energy_0 = args[0]
         epsilon = energy_0 * (1.5) / large_scale
         time_scale = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
-    elif viscosity_scale == 'enstrophy_forcing':
+    elif viscosity_scale == "enstrophy_forcing":
         omega_0 = args[0]
         eta = omega_0 ** 1.5
         t1 = eta ** (-1. / 3)
@@ -294,32 +322,33 @@ def calcul_viscosity(
         epsilon = args[1]
         t2 = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
         time_scale = min(t1, t2)
-    elif viscosity_scale == 'forcing':
+    elif viscosity_scale == "forcing":
         epsilon = args[0]
         time_scale = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
     else:
-        raise ValueError('Unknown viscosity scale: %s' % viscosity_scale)
+        raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
 
     dict_visc = {
-        'laplacian': ['nu_2', 2],
-        'hyper4': ['nu_4', 4],
-        'hyper8': ['nu_8', 8],
-        'hypo': ['nu_m4', -4]
+        "laplacian": ["nu_2", 2],
+        "hyper4": ["nu_4", 4],
+        "hyper8": ["nu_8", 8],
+        "hypo": ["nu_m4", -4],
     }
 
     if verbose:
-        if 'oper' in kwargs:
+        if "oper" in kwargs:
             epsilon = oper.params.forcing.forcing_rate
-        elif 'eps' in kwargs:
-            epsilon = kwargs['eps']
+        elif "eps" in kwargs:
+            epsilon = kwargs["eps"]
         else:
             epsilon = 1.
 
-        print('Dissipation, epsilon =', epsilon)
+        print("Dissipation, epsilon =", epsilon)
         kolmo_len = []
 
     if not any([k in viscosity_type for k in dict_visc]):
-        raise ValueError('Unknown viscosity type: %s' % viscosity_type)
+        raise ValueError("Unknown viscosity type: %s" % viscosity_type)
+
     else:
         for k, v in dict_visc.items():
             if k in viscosity_type:
@@ -328,19 +357,26 @@ def calcul_viscosity(
                 v.append(nu)
                 if verbose:
                     kolmo_len.append(
-                        (nu ** 3 / epsilon) ** (1. / (3 * order - 2)))
+                        (nu ** 3 / epsilon) ** (1. / (3 * order - 2))
+                    )
             else:
                 v.append(0.)
 
     if verbose:
         kolmo_len = np.mean(kolmo_len)
         kolmo_k = np.pi / kolmo_len
-        print('\nCALCULATED (eps={})'.format(epsilon))
+        print("\nCALCULATED (eps={})".format(epsilon))
         print(
-            'Kolmogorov wavenumber, k_d = ', kolmo_k, '; k_d / k_f = ',
-            kolmo_k / k_f)
+            "Kolmogorov wavenumber, k_d = ",
+            kolmo_k,
+            "; k_d / k_f = ",
+            kolmo_k / k_f,
+        )
         print(
-            'Kolmogorov length scale, L_d = ', kolmo_len,
-            '; L_d / L_f = ', kolmo_len / large_scale)
+            "Kolmogorov length scale, L_d = ",
+            kolmo_len,
+            "; L_d / L_f = ",
+            kolmo_len / large_scale,
+        )
 
     return dict_visc.values()

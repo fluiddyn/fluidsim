@@ -14,19 +14,22 @@ class BaseTestCase(unittest.TestCase):
     """ TestCase classes that want to be parametrized should
         inherit from this class.
     """
-    solver = 'sw1l'
-    _tag = ''
+    solver = "sw1l"
+    _tag = ""
 
     @classmethod
     def setUpClass(cls, **kwargs):
-        name_run = '_'.join(('test', cls._tag))
+        name_run = "_".join(("test", cls._tag))
         if len(kwargs) == 0:
             cls.sim = run_mini_simul(
-                cls.solver, nh=16, name_run=name_run, HAS_TO_SAVE=True,
-                forcing_enable=True)
+                cls.solver,
+                nh=16,
+                name_run=name_run,
+                HAS_TO_SAVE=True,
+                forcing_enable=True,
+            )
         else:
-            cls.sim = run_mini_simul(
-                cls.solver, name_run=name_run, **kwargs)
+            cls.sim = run_mini_simul(cls.solver, name_run=name_run, **kwargs)
 
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
@@ -49,15 +52,17 @@ class BaseTestCase(unittest.TestCase):
             try:
                 if hasattr(self.sim.params.output.periods_save, self._tag):
                     delta_t = getattr(
-                        self.sim.params.output.periods_save, self._tag)
+                        self.sim.params.output.periods_save, self._tag
+                    )
                 else:
                     raise TypeError
+
                 module.plot(tmin=0, tmax=tmax, delta_t=delta_t)
             except TypeError:
                 module.plot()
 
             plt.clf()
-            plt.close('all')
+            plt.close("all")
 
     def _online_plot_saving(self, *args):
         module = self.module
@@ -65,4 +70,4 @@ class BaseTestCase(unittest.TestCase):
             module._init_online_plot()
             module._online_plot_saving(*args)
             plt.clf()
-            plt.close('all')
+            plt.close("all")

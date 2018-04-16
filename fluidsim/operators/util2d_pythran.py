@@ -16,6 +16,7 @@ Pythran compatible functions: 2d operators (:mod:`fluidsim.operators.util2d_pyth
 
 # pythran export dealiasing_setofvar(complex128[][][], uint8[][], int, int)
 
+
 def dealiasing_setofvar(setofvar_fft, where, n0, n1):
     """Dealiasing of a setofvar arrays."""
     nk = setofvar_fft.shape[0]
@@ -29,12 +30,14 @@ def dealiasing_setofvar(setofvar_fft, where, n0, n1):
 
 # pythran export laplacian2_fft(complex128[][], float64[][])
 
+
 def laplacian2_fft(a_fft, K4):
     """Compute the Laplacian square."""
     return a_fft * K4
 
 
 # pythran export invlaplacian2_fft(complex128[][], float64[][], int)
+
 
 def invlaplacian2_fft(a_fft, K4_not0, rank):
     """Compute the inverse Laplace square."""
@@ -45,6 +48,7 @@ def invlaplacian2_fft(a_fft, K4_not0, rank):
 
 
 # pythran export compute_increments_dim1(float64[][], int)
+
 
 def compute_increments_dim1(var, irx):
     """Compute the increments of var over the dim 1."""

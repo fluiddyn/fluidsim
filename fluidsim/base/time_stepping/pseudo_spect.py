@@ -51,8 +51,8 @@ class ExactLinearCoefs(object):
     def compute(self, dt):
         """Compute the exact coefficients."""
         f_lin = self.freq_lin
-        self.exact = np.exp(-dt*f_lin)
-        self.exact2 = np.exp(-dt/2*f_lin)
+        self.exact = np.exp(-dt * f_lin)
+        self.exact2 = np.exp(-dt / 2 * f_lin)
         self.dt_old = dt
 
     def get_updated_coefs_CLF(self):
@@ -91,11 +91,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         freq_dissip = f_d + f_d_hypo
 
-        if hasattr(self.sim, 'compute_freq_complex'):
+        if hasattr(self.sim, "compute_freq_complex"):
             freq_complex = self._compute_freq_complex()
             self.freq_lin = freq_dissip + freq_complex
             freq_max = freq_complex.imag.max()
-            self.deltat_max = 0.78*np.pi/freq_max
+            self.deltat_max = 0.78 * np.pi / freq_max
         else:
             self.freq_lin = freq_dissip
 
@@ -103,32 +103,36 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         params_ts = self.params.time_stepping
 
-        if params_ts.type_time_scheme not in ['RK2', 'RK4']:
-            raise ValueError('Problem name time_scheme')
+        if params_ts.type_time_scheme not in ["RK2", "RK4"]:
+            raise ValueError("Problem name time_scheme")
 
         dtype = self.freq_lin.dtype
         if dtype == np.float64:
-            str_type = 'float'
+            str_type = "float"
         elif dtype == np.complex128:
-            str_type = 'complex'
+            str_type = "complex"
         else:
-            raise NotImplementedError('dtype of freq_lin:' + repr(dtype))
+            raise NotImplementedError("dtype of freq_lin:" + repr(dtype))
 
         name_function = (
-            '_time_step_' + params_ts.type_time_scheme +
-            '_state_ndim{}_freqlin_ndim{}_'.format(
-                self.sim.state.state_spect.ndim, self.freq_lin.ndim) +
-            str_type)
+            "_time_step_"
+            + params_ts.type_time_scheme
+            + "_state_ndim{}_freqlin_ndim{}_".format(
+                self.sim.state.state_spect.ndim, self.freq_lin.ndim
+            )
+            + str_type
+        )
 
         if not hasattr(self, name_function):
             warn(
-                'The specialized function ' + name_function +
-                ' is not implemented.')
+                "The specialized function "
+                + name_function
+                + " is not implemented."
+            )
 
-            name_function = '_time_step_' + params_ts.type_time_scheme
+            name_function = "_time_step_" + params_ts.type_time_scheme
 
-        exec('self._time_step_RK = self.' + name_function,
-             globals(), locals())
+        exec("self._time_step_RK = self." + name_function, globals(), locals())
 
     def _compute_freq_complex(self):
         state_spect = self.sim.state.state_spect
@@ -151,7 +155,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
-                'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
+                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+            )
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.
@@ -203,11 +208,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect = self.sim.state.state_spect
 
         tendencies_fft_n = tendencies_nonlin()
-        state_spect_n12 = (state_spect + dt/2*tendencies_fft_n)*diss2
+        state_spect_n12 = (state_spect + dt / 2 * tendencies_fft_n) * diss2
         tendencies_fft_n12 = tendencies_nonlin(
-            state_spect_n12, old=tendencies_fft_n)
-        self.sim.state.state_spect = (state_spect*diss +
-                                    dt*diss2*tendencies_fft_n12)
+            state_spect_n12, old=tendencies_fft_n
+        )
+        self.sim.state.state_spect = (
+            state_spect * diss + dt * diss2 * tendencies_fft_n12
+        )
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
@@ -312,32 +319,37 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_fft_0 = tendencies_nonlin()
 
         # based on approximation 1
-        state_spect_temp = (state_spect +
-                          dt/6*tendencies_fft_0)*diss
-        state_spect_np12_approx1 = (state_spect +
-                                  dt/2*tendencies_fft_0)*diss2
+        state_spect_temp = (state_spect + dt / 6 * tendencies_fft_0) * diss
+        state_spect_np12_approx1 = (
+            state_spect + dt / 2 * tendencies_fft_0
+        ) * diss2
 
         tendencies_fft_1 = tendencies_nonlin(
-            state_spect_np12_approx1, old=tendencies_fft_0)
-        del(state_spect_np12_approx1)
+            state_spect_np12_approx1, old=tendencies_fft_0
+        )
+        del (state_spect_np12_approx1)
 
         # based on approximation 2
-        state_spect_temp += dt/3*diss2*tendencies_fft_1
-        state_spect_np12_approx2 = (state_spect*diss2 +
-                                  dt/2*tendencies_fft_1)
+        state_spect_temp += dt / 3 * diss2 * tendencies_fft_1
+        state_spect_np12_approx2 = (
+            state_spect * diss2 + dt / 2 * tendencies_fft_1
+        )
 
         tendencies_fft_2 = tendencies_nonlin(
-            state_spect_np12_approx2, old=tendencies_fft_1)
-        del(state_spect_np12_approx2)
+            state_spect_np12_approx2, old=tendencies_fft_1
+        )
+        del (state_spect_np12_approx2)
 
         # based on approximation 3
-        state_spect_temp += dt/3*diss2*tendencies_fft_2
-        state_spect_np1_approx = (state_spect*diss +
-                                dt*diss2*tendencies_fft_2)
+        state_spect_temp += dt / 3 * diss2 * tendencies_fft_2
+        state_spect_np1_approx = (
+            state_spect * diss + dt * diss2 * tendencies_fft_2
+        )
 
         tendencies_fft_3 = tendencies_nonlin(
-            state_spect_np1_approx, old=tendencies_fft_2)
-        del(state_spect_np1_approx)
+            state_spect_np1_approx, old=tendencies_fft_2
+        )
+        del (state_spect_np1_approx)
 
         # result using the 4 approximations
-        self.sim.state.state_spect = state_spect_temp + dt/6*tendencies_fft_3
+        self.sim.state.state_spect = state_spect_temp + dt / 6 * tendencies_fft_3

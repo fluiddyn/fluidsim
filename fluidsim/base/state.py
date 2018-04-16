@@ -39,9 +39,12 @@ class StateBase(object):
         This is a static method!
         """
         info_solver.classes.State._set_attribs(
-            {'keys_state_phys': ['X'],
-             'keys_computable': [],
-             'keys_phys_needed': ['X']})
+            {
+                "keys_state_phys": ["X"],
+                "keys_computable": [],
+                "keys_phys_needed": ["X"],
+            }
+        )
 
     def __init__(self, sim, oper=None):
         self.sim = sim
@@ -55,15 +58,16 @@ class StateBase(object):
         self.keys_state_phys = sim.info.solver.classes.State.keys_state_phys
 
         try:
-            self.keys_computable = \
-                sim.info.solver.classes.State.keys_computable
+            self.keys_computable = sim.info.solver.classes.State.keys_computable
         except AttributeError:
             self.keys_computable = []
 
-        self.state_phys = SetOfVariables(keys=self.keys_state_phys,
-                                         shape_variable=self.oper.shapeX_loc,
-                                         dtype=np.float64,
-                                         info='state_phys')
+        self.state_phys = SetOfVariables(
+            keys=self.keys_state_phys,
+            shape_variable=self.oper.shapeX_loc,
+            dtype=np.float64,
+            info="state_phys",
+        )
         self.vars_computed = {}
         self.it_computed = {}
 
@@ -113,8 +117,7 @@ class StateBase(object):
             has atleast one member.
 
         """
-        keys_state = set(
-            self.keys_state_phys + self.keys_computable)
+        keys_state = set(self.keys_state_phys + self.keys_computable)
         keys = set(keys)
         return keys.issubset(keys_state)
 
@@ -133,10 +136,12 @@ class StateBase(object):
         """
         if key in self.keys_state_phys:
             return self.state_phys.get_var(key)
+
         else:
             it = self.sim.time_stepping.it
-            if (key in self.vars_computed and it == self.it_computed[key]):
+            if key in self.vars_computed and it == self.it_computed[key]:
                 return self.vars_computed[key]
+
             else:
                 value = self.compute(key)
                 self.vars_computed[key] = value
@@ -144,8 +149,9 @@ class StateBase(object):
                 return value
 
     def __call__(self, key):
-        raise DeprecationWarning('Do not call a state object. '
-                                 'Instead, use get_var method.')
+        raise DeprecationWarning(
+            "Do not call a state object. " "Instead, use get_var method."
+        )
 
     def __setitem__(self, key, value):
         """General setter function to set the value of a variable
@@ -164,8 +170,10 @@ class StateBase(object):
            Use ``has_vars`` method instead.
 
         """
-        raise DeprecationWarning('Do not call can_this_key_be_obtained. '
-                                 'Instead, use has_vars method.')
+        raise DeprecationWarning(
+            "Do not call can_this_key_be_obtained. "
+            "Instead, use has_vars method."
+        )
 
     def init_statephys_from(self, **kwargs):
         """Initialize `state_phys` from arrays.
@@ -194,7 +202,9 @@ class StateBase(object):
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_phys:
                 raise ValueError(
-                    'Do not know how to initialize with key "{}".'.format(key))
+                    'Do not know how to initialize with key "{}".'.format(key)
+                )
+
             self.state_phys.set_var(key, value)
 
 
@@ -211,6 +221,7 @@ class StatePseudoSpectral(StateBase):
     oper : Optional[operators]
 
     """
+
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.
@@ -220,21 +231,24 @@ class StatePseudoSpectral(StateBase):
 
         StateBase._complete_info_solver(info_solver)
 
-        info_solver.classes.State.keys_state_phys = ['ux', 'uy']
-        info_solver.classes.State.keys_phys_needed = ['ux', 'uy']
+        info_solver.classes.State.keys_state_phys = ["ux", "uy"]
+        info_solver.classes.State.keys_phys_needed = ["ux", "uy"]
 
         info_solver.classes.State._set_attribs(
-            {'keys_state_spect': ['ux_fft', 'uy_fft']})
+            {"keys_state_spect": ["ux_fft", "uy_fft"]}
+        )
 
     def __init__(self, sim, oper=None):
 
         super(StatePseudoSpectral, self).__init__(sim, oper)
 
         self.keys_state_spect = sim.info.solver.classes.State.keys_state_spect
-        self.state_spect = SetOfVariables(keys=self.keys_state_spect,
-                                          shape_variable=self.oper.shapeK_loc,
-                                          dtype=np.complex128,
-                                          info='state_spect')
+        self.state_spect = SetOfVariables(
+            keys=self.keys_state_spect,
+            shape_variable=self.oper.shapeK_loc,
+            dtype=np.complex128,
+            info="state_spect",
+        )
 
     def has_vars(self, *keys):
         """Checks if all of the keys are present in the union of
@@ -256,7 +270,8 @@ class StatePseudoSpectral(StateBase):
 
         """
         keys_state = set(
-            self.keys_state_phys + self.keys_computable + self.keys_state_spect)
+            self.keys_state_phys + self.keys_computable + self.keys_state_spect
+        )
         keys = set(keys)
         return keys.issubset(keys_state)
 
@@ -276,12 +291,15 @@ class StatePseudoSpectral(StateBase):
 
         if key in self.keys_state_spect:
             return self.state_spect.get_var(key)
+
         elif key in self.keys_state_phys:
             return self.state_phys.get_var(key)
+
         else:
             it = self.sim.time_stepping.it
-            if (key in self.vars_computed and it == self.it_computed[key]):
+            if key in self.vars_computed and it == self.it_computed[key]:
                 return self.vars_computed[key]
+
             else:
                 value = self.compute(key)
                 self.vars_computed[key] = value
@@ -298,7 +316,7 @@ class StatePseudoSpectral(StateBase):
         elif key in self.keys_state_phys:
             self.state_phys.set_var(key, value)
         else:
-            raise ValueError('key "'+key+'" is not known')
+            raise ValueError('key "' + key + '" is not known')
 
     def statespect_from_statephys(self):
         """Compute the spectral variables from the physical variables.
@@ -328,9 +346,11 @@ class StatePseudoSpectral(StateBase):
         return state_phys
 
     def can_this_key_be_obtained(self, key):
-        return (key in self.keys_state_phys or
-                key in self.keys_computable or
-                key in self.keys_state_spect)
+        return (
+            key in self.keys_state_phys
+            or key in self.keys_computable
+            or key in self.keys_state_spect
+        )
 
     def init_statespect_from(self, **kwargs):
         """Initialize `state_spect` from arrays.
@@ -360,5 +380,7 @@ class StatePseudoSpectral(StateBase):
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_spect:
                 raise ValueError(
-                    'Do not know how to initialize with key "{}".'.format(key))
+                    'Do not know how to initialize with key "{}".'.format(key)
+                )
+
             self.state_spect.set_var(key, value)

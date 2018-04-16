@@ -12,30 +12,33 @@
 """
 
 from fluidsim.base.sphericalharmo.solver import (
-    InfoSolverSphericalHarmo, SimulSphericalHarmo)
+    InfoSolverSphericalHarmo, SimulSphericalHarmo
+)
 
 from ...ns2d.solver import compute_Frot, SetOfVariables
 
 
 class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
     """Contain the information on a base pseudo-spectral solver."""
+
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
         """
 
         super(InfoSolverSphereNS2D, self)._init_root()
 
-        here = 'fluidsim.solvers.sphere.ns2d'
+        here = "fluidsim.solvers.sphere.ns2d"
 
-        self.module_name = here + '.solver'
-        self.class_name = 'SimulSphereNS2D'
-        self.short_name = 'sphere.ns2d'
+        self.module_name = here + ".solver"
+        self.class_name = "SimulSphereNS2D"
+        self.short_name = "sphere.ns2d"
 
-        # self.classes.State.module_name = here + '.state'
-        # self.classes.State.class_name = 'StateSphericalHarmo'
 
-        # self.classes.Output.module_name = here + '.output'
-        # self.classes.Output.class_name = 'Output'
+# self.classes.State.module_name = here + '.state'
+# self.classes.State.class_name = 'StateSphericalHarmo'
+
+# self.classes.Output.module_name = here + '.output'
+# self.classes.Output.class_name = 'Output'
 
 
 class SimulSphereNS2D(SimulSphericalHarmo):
@@ -91,11 +94,11 @@ class SimulSphereNS2D(SimulSphericalHarmo):
 
         # get or compute rot_sh, ux and uy
         if state_spect is None:
-            rot_sh = self.state.state_spect.get_var('rot_sh')
-            ux = self.state.state_phys.get_var('ux')
-            uy = self.state.state_phys.get_var('uy')
+            rot_sh = self.state.state_spect.get_var("rot_sh")
+            ux = self.state.state_phys.get_var("ux")
+            uy = self.state.state_phys.get_var("uy")
         else:
-            rot_sh = state_spect.get_var('rot_sh')
+            rot_sh = state_spect.get_var("rot_sh")
             ux, uy = oper.vec_from_rotsh(rot_sh)
 
         # "px" like $\partial_x$
@@ -107,16 +110,20 @@ class SimulSphereNS2D(SimulSphericalHarmo):
             tendencies_sh = SetOfVariables(like=self.state.state_spect)
         else:
             tendencies_sh = old
-        Frot_sh = tendencies_sh.get_var('rot_sh')
+        Frot_sh = tendencies_sh.get_var("rot_sh")
         oper.sht_as_arg(Frot, Frot_sh)
 
         # oper.dealiasing(Frot_sh)
 
         import numpy as np
-        T_rot = np.real(Frot_sh.conj()*rot_sh + Frot_sh*rot_sh.conj())/2.
-        print(('sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}'
-              ).format(self.oper.sum_wavenumbers(T_rot),
-                       self.oper.sum_wavenumbers(abs(T_rot))))
+
+        T_rot = np.real(Frot_sh.conj() * rot_sh + Frot_sh * rot_sh.conj()) / 2.
+        print(
+            ("sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}").format(
+                self.oper.sum_wavenumbers(T_rot),
+                self.oper.sum_wavenumbers(abs(T_rot)),
+            )
+        )
 
         if self.params.forcing.enable:
             tendencies_sh += self.forcing.get_forcing()
@@ -130,9 +137,9 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.time_stepping.USE_CFL = True
     params.time_stepping.t_end = 10.

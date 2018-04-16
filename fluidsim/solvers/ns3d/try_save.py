@@ -7,7 +7,7 @@ import fluiddyn as fld
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.short_name_type_run = "test"
 
 n = 64
 L = 2 * np.pi
@@ -17,22 +17,22 @@ params.oper.nz = n
 params.oper.Lx = L
 params.oper.Ly = L
 params.oper.Lz = L
-params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+params.oper.type_fft = "fluidfft.fft3d.mpi_with_fftwmpi3d"
 # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
 # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
 delta_x = old_div(params.oper.Lx, params.oper.nx)
 # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-params.nu_8 = 2. * 10e-1 * delta_x**8
+params.nu_8 = 2. * 10e-1 * delta_x ** 8
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 5.
 params.time_stepping.it_end = 2
 
-params.init_fields.type = 'dipole'
+params.init_fields.type = "dipole"
 
-#params.init_fields.type = 'from_file'
-#params.init_fields.from_file.path = '/home/users/bonamy2c/Sim_data/ns3d_test_L=2pix2pix2pi_64x64x64_2016-07-27_16-45-23/state_phys_t=006.006.hd5' 
+# params.init_fields.type = 'from_file'
+# params.init_fields.from_file.path = '/home/users/bonamy2c/Sim_data/ns3d_test_L=2pix2pix2pi_64x64x64_2016-07-27_16-45-23/state_phys_t=006.006.hd5'
 
 params.forcing.enable = False
 # params.forcing.type = 'random'
@@ -50,9 +50,9 @@ params.output.periods_save.phys_fields = 1.
 
 params.output.ONLINE_PLOT_OK = True
 
-#params.output.spectra.HAS_TO_PLOT_SAVED = True
-#params.output.spatial_means.HAS_TO_PLOT_SAVED = True
-#params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
+# params.output.spectra.HAS_TO_PLOT_SAVED = True
+# params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+# params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
 
 # params.output.phys_fields.field_to_plot = 'rot'
 

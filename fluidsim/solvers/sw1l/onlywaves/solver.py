@@ -14,8 +14,7 @@ import numpy as np
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.solvers.sw1l.exactlin.solver import InfoSolverSW1LExactLin
-from fluidsim.solvers.sw1l.exactlin.solver import \
-    Simul as SimulSW1LExactLin
+from fluidsim.solvers.sw1l.exactlin.solver import Simul as SimulSW1LExactLin
 
 
 from fluiddyn.util import mpi
@@ -23,21 +22,22 @@ from fluiddyn.util import mpi
 
 class InfoSolverSW1LWaves(InfoSolverSW1LExactLin):
     """Information about the solver SW1L."""
+
     def _init_root(self):
         super(InfoSolverSW1LWaves, self)._init_root()
 
-        sw1l = 'fluidsim.solvers.sw1l'
+        sw1l = "fluidsim.solvers.sw1l"
 
-        self.module_name = sw1l + '.onlywaves.solver'
-        self.short_name = 'SW1Lwaves'
+        self.module_name = sw1l + ".onlywaves.solver"
+        self.short_name = "SW1Lwaves"
 
         classes = self.classes
 
-        classes.State.module_name = sw1l + '.onlywaves.state'
-        classes.State.class_name = 'StateSW1LWaves'
+        classes.State.module_name = sw1l + ".onlywaves.state"
+        classes.State.class_name = "StateSW1LWaves"
 
-        classes.Output.module_name = sw1l+'.onlywaves.output'
-        classes.Output.class_name = 'OutputSW1LWaves'
+        classes.Output.module_name = sw1l + ".onlywaves.output"
+        classes.Output.class_name = "OutputSW1LWaves"
 
 
 class Simul(SimulSW1LExactLin):
@@ -53,39 +53,40 @@ class Simul(SimulSW1LExactLin):
             state_phys = self.state.state_phys
             state_spect = self.state.state_spect
         else:
-            state_phys = self.state.return_statephys_from_statespect(
-                state_spect)
+            state_phys = self.state.return_statephys_from_statespect(state_spect)
 
-        ux = state_phys.get_var('ux')
-        uy = state_phys.get_var('uy')
-        eta = state_phys.get_var('eta')
+        ux = state_phys.get_var("ux")
+        uy = state_phys.get_var("uy")
+        eta = state_phys.get_var("eta")
 
         # compute the nonlinear terms for ux, uy and eta
         gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
-            fft2(ux**2+uy**2)/2)
+            fft2(ux ** 2 + uy ** 2) / 2
+        )
 
-        Nx_fft = - gradu2_x_fft
-        Ny_fft = - gradu2_y_fft
+        Nx_fft = -gradu2_x_fft
+        Ny_fft = -gradu2_y_fft
 
         if self.params.f > 0:
             # not very efficient, but simple...
-            rot = self.state.get_var('rot')
-            N1x = +rot*uy
-            N1y = -rot*ux
+            rot = self.state.get_var("rot")
+            N1x = +rot * uy
+            N1y = -rot * ux
 
             Nx_fft += fft2(N1x)
             Ny_fft += fft2(N1y)
 
-        jx_fft = fft2(eta*ux)
-        jy_fft = fft2(eta*uy)
+        jx_fft = fft2(eta * ux)
+        jy_fft = fft2(eta * uy)
         Neta_fft = -oper.divfft_from_vecfft(jx_fft, jy_fft)
 
         # self.verify_tendencies(state_spect, state_phys,
         #                        Nx_fft, Ny_fft, Neta_fft)
 
         # compute the nonlinear terms for q, ap and am
-        (Nq_fft, Np_fft, Nm_fft
-         ) = self.oper.qapamfft_from_uxuyetafft(Nx_fft, Ny_fft, Neta_fft)
+        (Nq_fft, Np_fft, Nm_fft) = self.oper.qapamfft_from_uxuyetafft(
+            Nx_fft, Ny_fft, Neta_fft
+        )
 
         # Np_fft = self.oper.create_arrayK(value=0)
         # Nm_fft = self.oper.create_arrayK(value=0)
@@ -94,12 +95,12 @@ class Simul(SimulSW1LExactLin):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
-        tendencies_fft.set_var('ap_fft', Np_fft)
-        tendencies_fft.set_var('am_fft', Nm_fft)
+        tendencies_fft.set_var("ap_fft", Np_fft)
+        tendencies_fft.set_var("am_fft", Nm_fft)
 
         if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
@@ -109,33 +110,35 @@ class Simul(SimulSW1LExactLin):
     def compute_freq_complex(self, key):
         K2 = self.oper.K2
         # return self.oper.create_arrayK(value=0)
-        if key == 'ap_fft':
-            omega = 1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
-        elif key == 'am_fft':
-            omega = -1.j*np.sqrt(self.params.f**2 + self.params.c2*K2)
+        if key == "ap_fft":
+            omega = 1.j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
+        elif key == "am_fft":
+            omega = -1.j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
         return omega
 
-    def verify_tendencies(self, state_spect, state_phys,
-                          Nx_fft, Ny_fft, Neta_fft):
+    def verify_tendencies(
+        self, state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft
+    ):
         # for verification conservation energy
         # compute the linear terms
         oper = self.oper
-        ux = state_phys.get_var('ux')
-        uy = state_phys.get_var('uy')
-        eta = state_phys.get_var('eta')
+        ux = state_phys.get_var("ux")
+        uy = state_phys.get_var("uy")
+        eta = state_phys.get_var("eta")
 
         # q_fft = self.oper.create_arrayK(value=0)
-        ap_fft = state_spect.get_var('ap_fft')
-        am_fft = state_spect.get_var('am_fft')
+        ap_fft = state_spect.get_var("ap_fft")
+        am_fft = state_spect.get_var("am_fft")
         a_fft = ap_fft + am_fft
         div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
 
         eta_fft = oper.etafft_from_afft(a_fft)
 
         dx_c2eta_fft, dy_c2eta_fft = oper.gradfft_from_fft(
-            self.params.c2*eta_fft)
-        LCx = self.params.f*uy
-        LCy = -self.params.f*ux
+            self.params.c2 * eta_fft
+        )
+        LCx = self.params.f * uy
+        LCy = -self.params.f * ux
         Lx_fft = oper.fft2(LCx) - dx_c2eta_fft
         Ly_fft = oper.fft2(LCy) - dy_c2eta_fft
         Leta_fft = -div_fft
@@ -147,11 +150,13 @@ class Simul(SimulSW1LExactLin):
         oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
 
         # test : ux, uy, eta ---> q, ap, am
-        (Fq_fft, Fp_fft, Fm_fft
-         ) = self.oper.qapamfft_from_uxuyetafft(Fx_fft, Fy_fft, Feta_fft)
+        (Fq_fft, Fp_fft, Fm_fft) = self.oper.qapamfft_from_uxuyetafft(
+            Fx_fft, Fy_fft, Feta_fft
+        )
         # test : q, ap, am ---> ux, uy, eta
-        (Fx2_fft, Fy2_fft, Feta2_fft
-         ) = self.oper.uxuyetafft_from_qapamfft(Fq_fft, Fp_fft, Fm_fft)
+        (Fx2_fft, Fy2_fft, Feta2_fft) = self.oper.uxuyetafft_from_qapamfft(
+            Fq_fft, Fp_fft, Fm_fft
+        )
         print(np.max(abs(Fx2_fft - Fx_fft)))
         print(np.max(abs(Fy2_fft - Fy_fft)))
         print(np.max(abs(Feta2_fft - Feta_fft)))
@@ -159,9 +164,9 @@ class Simul(SimulSW1LExactLin):
         Fy_fft = Fy2_fft
         Feta_fft = Feta2_fft
 
-        (Fq2_fft, Fp2_fft, Fm2_fft
-         ) = self.oper.qapamfft_from_uxuyetafft(
-            Fx2_fft, Fy2_fft, Feta2_fft)
+        (Fq2_fft, Fp2_fft, Fm2_fft) = self.oper.qapamfft_from_uxuyetafft(
+            Fx2_fft, Fy2_fft, Feta2_fft
+        )
         print(np.max(abs(Fq2_fft - Fq_fft)))
         print(np.max(abs(Fp2_fft - Fp_fft)))
         print(np.max(abs(Fm2_fft - Fm_fft)))
@@ -169,11 +174,19 @@ class Simul(SimulSW1LExactLin):
         Fx = oper.ifft2(Fx_fft)
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
-        A = (Feta*(ux**2+uy**2)/2 + (1+eta)*(ux*Fx+uy*Fy) +
-             self.params.c2*eta*Feta)
+        A = (
+            Feta
+            * (ux ** 2 + uy ** 2)
+            / 2
+            + (1 + eta)
+            * (ux * Fx + uy * Fy)
+            + self.params.c2
+            * eta
+            * Feta
+        )
         A_fft = oper.fft2(A)
         if mpi.rank == 0:
-            print('should be zero =', A_fft[0, 0])
+            print("should be zero =", A_fft[0, 0])
 
 
 if __name__ == "__main__":
@@ -182,24 +195,26 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 64
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = params.oper.Lx/params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    delta_x = params.oper.Lx / params.oper.nx
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        1. / 3
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 2.
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.forcing.enable = True
-    params.forcing.type = 'waves'
+    params.forcing.type = "waves"
 
     params.output.periods_print.print_stdout = 0.25
 
@@ -212,7 +227,7 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.
 
-    params.output.phys_fields.field_to_plot = 'div'
+    params.output.phys_fields.field_to_plot = "div"
 
     sim = Simul(params)
 

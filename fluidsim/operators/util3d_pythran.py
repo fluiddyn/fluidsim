@@ -12,6 +12,7 @@ Pythran compatible functions: 3d operators (:mod:`fluidsim.operators.util3d_pyth
 
 # pythran export dealiasing_setofvar(complex128[][][][], uint8[][][])
 
+
 def dealiasing_setofvar(sov, where_dealiased):
     """Dealiasing 3d setofvar object.
 
@@ -37,6 +38,7 @@ def dealiasing_setofvar(sov, where_dealiased):
 
 # pythran export dealiasing_variable(complex128[][][], uint8[][][])
 
+
 def dealiasing_variable(ff_fft, where_dealiased):
     """Dealiasing 3d array"""
     n0, n1, n2 = ff_fft.shape
@@ -47,11 +49,13 @@ def dealiasing_variable(ff_fft, where_dealiased):
                 if where_dealiased[i0, i1, i2]:
                     ff_fft[i0, i1, i2] = 0.
 
+
 # pythran export urudfft_from_vxvyfft(
 #     complex128[][][], complex128[][][], float64[][][], float64[][][], int)
 
+
 def urudfft_from_vxvyfft(vx_fft, vy_fft, kx, ky, rank):
-    k2 = kx**2 + ky**2
+    k2 = kx ** 2 + ky ** 2
     k2[k2 == 0.] = 1e-10
 
     divh_fft = 1j * (kx * vx_fft + ky * vy_fft)

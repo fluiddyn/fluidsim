@@ -26,6 +26,7 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
     Time stepping class for finite-difference solvers.
 
     """
+
     def __init__(self, sim):
         super(TimeSteppingFiniteDiffCrankNicolson, self).__init__(sim)
 
@@ -39,7 +40,8 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
         self._time_step_RK()
         if np.isnan(np.min(self.sim.state.state_phys)):
             raise ValueError(
-                'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
+                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+            )
 
     def _time_step_RK2(self):
         r"""Advance in time the variables with the Runge-Kutta 2 method.
@@ -116,19 +118,19 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
 
         # it seems to work with the basic Newton time stepping:
         tendenciesNL_0 = sim.tendencies_nonlin()
-        rhs_A1dt = self.right_hand_side(sim.state.state_phys,
-                                        tendenciesNL_0, dt)
-        A_A1dt = identity - dt/2*self.L
+        rhs_A1dt = self.right_hand_side(sim.state.state_phys, tendenciesNL_0, dt)
+        A_A1dt = identity - dt / 2 * self.L
         sim.state.state_phys = deepcopy(
-            self.invert_to_get_solution(A_A1dt, rhs_A1dt))
+            self.invert_to_get_solution(A_A1dt, rhs_A1dt)
+        )
 
     def right_hand_side(self, S, N, dt):
-        return S.ravel() + dt/2*self.L.dot(S.flat) + dt*N.ravel()
+        return S.ravel() + dt / 2 * self.L.dot(S.flat) + dt * N.ravel()
 
     def invert_to_get_solution(self, A, b):
         """Solve the linear system :math:`Ax = b`."""
         state_phys = self.sim.state.state_phys
         arr = spsolve(A, b).reshape(state_phys.shape)
-        return SetOfVariables(input_array=arr,
-                              keys=state_phys.keys,
-                              info=state_phys.info)
+        return SetOfVariables(
+            input_array=arr, keys=state_phys.keys, info=state_phys.info
+        )

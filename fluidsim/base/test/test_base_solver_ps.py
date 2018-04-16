@@ -6,7 +6,8 @@ import shutil
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 
 import fluiddyn as fld
 from fluiddyn.io import stdout_redirected
@@ -19,6 +20,7 @@ from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
 
 class TestBaseSolverPS(unittest.TestCase):
+
     def setUp(self, params=None):
         """Should be able to run a base experiment."""
 
@@ -26,10 +28,10 @@ class TestBaseSolverPS(unittest.TestCase):
             params = SimulBasePseudoSpectral.create_default_params()
             params.output.periods_plot.phys_fields = 0.
             params.output.periods_print.print_stdout = 0.
-            params.short_name_type_run = 'test_base_solver_ps'
+            params.short_name_type_run = "test_base_solver_ps"
 
         nh = 8
-        Lh = 2*np.pi
+        Lh = 2 * np.pi
         params.oper.nx = nh
         params.oper.ny = nh
         params.oper.Lx = Lh
@@ -45,7 +47,7 @@ class TestBaseSolverPS(unittest.TestCase):
     def tearDown(self):
         # clean by removing the directory
         if mpi.rank == 0:
-            if hasattr(self, 'sim'):
+            if hasattr(self, "sim"):
                 self.sim.output.print_stdout.close()
                 shutil.rmtree(self.sim.output.path_run)
 
@@ -59,13 +61,14 @@ class TestBaseSolverPS(unittest.TestCase):
 
 class TestOutputPS(TestBaseSolverPS):
     """Test a simulation run with online plotting and stdout printing."""
+
     def setUp(self):
         params = SimulBasePseudoSpectral.create_default_params()
         params.output.periods_plot.phys_fields = 0.2
         params.output.periods_print.print_stdout = 0.2
-        params.short_name_type_run = 'test_output_ps'
+        params.short_name_type_run = "test_output_ps"
         TestBaseSolverPS.setUp(self, params)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

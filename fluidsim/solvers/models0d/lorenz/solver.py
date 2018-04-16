@@ -32,31 +32,35 @@ class StateLorenz(StateBase):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
-        keys = ['X', 'Y', 'Z']
-        info_solver.classes.State._set_attribs({
-            'keys_state_phys': keys,
-            'keys_computable': [],
-            'keys_phys_needed': keys,
-            'keys_linear_eigenmodes': keys})
+        keys = ["X", "Y", "Z"]
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_phys": keys,
+                "keys_computable": [],
+                "keys_phys_needed": keys,
+                "keys_linear_eigenmodes": keys,
+            }
+        )
 
 
 class InfoSolverLorenz(InfoSolverBase):
     """Contain the information on the solver predaprey."""
+
     def _init_root(self):
         super(InfoSolverLorenz, self)._init_root()
 
-        package = 'fluidsim.solvers.models0d.lorenz'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'lorenz'
+        package = "fluidsim.solvers.models0d.lorenz"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "lorenz"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.solver'
-        classes.State.class_name = 'StateLorenz'
+        classes.State.module_name = package + ".solver"
+        classes.State.class_name = "StateLorenz"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
 
 class Simul(SimulBase):
@@ -69,7 +73,7 @@ class Simul(SimulBase):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
-        attribs = {'sigma': 10., 'beta': 8./3, 'rho': 28.}
+        attribs = {"sigma": 10., "beta": 8. / 3, "rho": 28.}
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):
@@ -117,17 +121,17 @@ class Simul(SimulBase):
         if state is None:
             state = self.state.state_phys
 
-        X = state.get_var('X')
-        Y = state.get_var('Y')
-        Z = state.get_var('Z')
+        X = state.get_var("X")
+        Y = state.get_var("Y")
+        Z = state.get_var("Z")
 
         if old is None:
             tendencies = SetOfVariables(like=self.state.state_phys)
         else:
             tendencies = old
-        tendencies.set_var('X', p.sigma * (Y - X))
-        tendencies.set_var('Y', p.rho * X - Y - X * Z)
-        tendencies.set_var('Z', X*Y - p.beta * Z)
+        tendencies.set_var("X", p.sigma * (Y - X))
+        tendencies.set_var("Y", p.rho * X - Y - X * Z)
+        tendencies.set_var("Z", X * Y - p.beta * Z)
 
         if self.params.forcing.enable:
             tendencies += self.forcing.get_forcing()
@@ -147,9 +151,9 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    sim.state.state_phys.set_var('X', sim.Xs0 + 2.)
-    sim.state.state_phys.set_var('Y', sim.Ys0)
-    sim.state.state_phys.set_var('Z', sim.Zs0)
+    sim.state.state_phys.set_var("X", sim.Xs0 + 2.)
+    sim.state.state_phys.set_var("Y", sim.Ys0)
+    sim.state.state_phys.set_var("Z", sim.Zs0)
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()

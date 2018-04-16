@@ -9,8 +9,8 @@ from .util import ConsoleError
 
 
 def compute_name_command(module):
-    name = module.__name__.split('.')[-1]
-    return name.replace('_', '-')
+    name = module.__name__.split(".")[-1]
+    return name.replace("_", "-")
 
 
 def add_subparser(subparsers, module, description=None, subcommand=None):
@@ -21,8 +21,7 @@ def add_subparser(subparsers, module, description=None, subcommand=None):
     if subcommand is None:
         subcommand = compute_name_command(module)
 
-    parser_subcommand = subparsers.add_parser(
-        subcommand, description=description)
+    parser_subcommand = subparsers.add_parser(subcommand, description=description)
     try:
         module.init_parser(parser_subcommand)
     except ConsoleError:
@@ -34,15 +33,15 @@ def add_subparser(subparsers, module, description=None, subcommand=None):
 def get_parser():
     """Defines parser for command `fluidsim` and all its sub-commands."""
     parser = argparse.ArgumentParser(
-        prog='fluidsim',
+        prog="fluidsim",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description='Console utilities for FluidSim')
-    parser.add_argument('-V', '--version',
-                        action='version',
-                        version=__version__)
+        description="Console utilities for FluidSim",
+    )
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     subparsers = parser.add_subparsers(
-        help='see "fluidsim {subcommand} -h" for more details')
+        help='see "fluidsim {subcommand} -h" for more details'
+    )
     for module in (bench, bench_analysis, profile):
         add_subparser(subparsers, module, module.description)
 
@@ -64,9 +63,10 @@ def run():
 
 def _run_from_module(module):
     parser = argparse.ArgumentParser(
-        prog='fluidsim' + compute_name_command(module),
+        prog="fluidsim" + compute_name_command(module),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description=module.description)
+        description=module.description,
+    )
 
     module.init_parser(parser)
     args = parser.parse_args()
@@ -85,5 +85,5 @@ def run_bench_analysis():
     _run_from_module(bench_analysis)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

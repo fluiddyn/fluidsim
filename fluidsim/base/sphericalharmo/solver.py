@@ -13,11 +13,13 @@
 """
 
 from ..solvers.pseudo_spect import (
-    InfoSolverPseudoSpectral, SimulBasePseudoSpectral)
+    InfoSolverPseudoSpectral, SimulBasePseudoSpectral
+)
 
 
 class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
     """Contain the information on a base pseudo-spectral solver."""
+
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
 
@@ -30,21 +32,20 @@ class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
 
         super(InfoSolverSphericalHarmo, self)._init_root()
 
-        here = 'fluidsim.base.sphericalharmo'
+        here = "fluidsim.base.sphericalharmo"
 
-        self.module_name = here + '.solver'
-        self.class_name = 'SimulSphericalHarmo'
-        self.short_name = 'BaseSH'
+        self.module_name = here + ".solver"
+        self.class_name = "SimulSphericalHarmo"
+        self.short_name = "BaseSH"
 
-        self.classes.Operators.module_name = (
-            'fluidsim.operators.sphericalharmo')
-        self.classes.Operators.class_name = 'OperatorsSphericalHarmonics'
+        self.classes.Operators.module_name = ("fluidsim.operators.sphericalharmo")
+        self.classes.Operators.class_name = "OperatorsSphericalHarmonics"
 
-        self.classes.State.module_name = here + '.state'
-        self.classes.State.class_name = 'StateSphericalHarmo'
+        self.classes.State.module_name = here + ".state"
+        self.classes.State.class_name = "StateSphericalHarmo"
 
-        self.classes.Output.module_name = here + '.output'
-        self.classes.Output.class_name = 'Output'
+        self.classes.Output.module_name = here + ".output"
+        self.classes.Output.class_name = "Output"
 
 
 class SimulSphericalHarmo(SimulBasePseudoSpectral):
@@ -58,7 +59,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
     params.time_stepping.USE_CFL = False
     params.time_stepping.t_end = 2.
     params.time_stepping.deltat0 = 0.1

@@ -16,22 +16,21 @@ class OperatorsSphericalHarmonics(EasySHT):
         """This static method is used to complete the *params* container.
         """
 
-        attribs = {'lmax': 15,
-                   'radius': 1.}
-        params._set_child('oper', attribs=attribs)
+        attribs = {"lmax": 15, "radius": 1.}
+        params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None):
 
         if params is None:
-            params = Parameters(tag='params')
+            params = Parameters(tag="params")
             self.__class__._complete_params_with_default(params)
-
 
         lmax = params.oper.lmax
         radius = params.oper.radius
 
         super(OperatorsSphericalHarmonics, self).__init__(
-            lmax=lmax, radius=radius)
+            lmax=lmax, radius=radius
+        )
 
         self._zeros_sh = self.create_array_sh(0.)
 
@@ -42,6 +41,6 @@ class OperatorsSphericalHarmonics(EasySHT):
         return self.uv_from_hdivrotsh(div_sh, self._zeros_sh)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     oper = OperatorsSphericalHarmonics()

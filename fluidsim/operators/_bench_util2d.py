@@ -1,17 +1,15 @@
 
 import perf
 
-name_modules = (
-    'native_openmp', 'native', 'openmp',
-    'simd', 'simple')
+name_modules = ("native_openmp", "native", "openmp", "simd", "simple")
 
 runner = perf.Runner()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     for name in name_modules:
-        name_module = 'util2d_pythran_bench_' + name
+        name_module = "util2d_pythran_bench_" + name
 
         setup = """
 
@@ -24,9 +22,10 @@ n0 = shape[1]
 n1 = shape[2]
 
 setofvars = np.ones(shape, dtype=np.complex128)
-mask = np.ones(shape[1:], dtype=np.uint8)""".format(name_module=name_module)
+mask = np.ones(shape[1:], dtype=np.uint8)""".format(
+            name_module=name_module
+        )
 
         runner.timeit(
-            name,
-            'mod.dealiasing_setofvar(setofvars, mask, n0, n1)',
-            setup=setup)
+            name, "mod.dealiasing_setofvar(setofvars, mask, n0, n1)", setup=setup
+        )

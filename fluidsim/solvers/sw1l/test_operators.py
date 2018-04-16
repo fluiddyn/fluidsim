@@ -11,14 +11,14 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from .operators import OperatorsPseudoSpectralSW1L
 
 
-def create_oper(type_fft=None, coef_dealiasing=2./3):
+def create_oper(type_fft=None, coef_dealiasing=2. / 3):
 
-    params = ParamContainer(tag='params')
+    params = ParamContainer(tag="params")
 
-    params._set_attrib('ONLY_COARSE_OPER', False)
-    params._set_attrib('f', 0)
-    params._set_attrib('c2', 100)
-    params._set_attrib('kd2', 0)
+    params._set_attrib("ONLY_COARSE_OPER", False)
+    params._set_attrib("f", 0)
+    params._set_attrib("c2", 100)
+    params._set_attrib("kd2", 0)
 
     OperatorsPseudoSpectralSW1L._complete_params_with_default(params)
 
@@ -44,8 +44,9 @@ def create_oper(type_fft=None, coef_dealiasing=2./3):
     return oper
 
 
-@unittest.skipIf(sys.platform.startswith('win'), 'Untested on Windows')
+@unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()
@@ -62,14 +63,16 @@ class TestOperators(unittest.TestCase):
             q_fft[0, 0] = ap_fft[0, 0] = am_fft[0, 0] = 0.
 
         ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qapamfft(
-            q_fft, ap_fft, am_fft)
+            q_fft, ap_fft, am_fft
+        )
         q2_fft, ap2_fft, am2_fft = oper.qapamfft_from_uxuyetafft(
-            ux_fft, uy_fft, eta_fft)
+            ux_fft, uy_fft, eta_fft
+        )
 
         np.testing.assert_allclose(q2_fft, q_fft, self.rtol, self.atol)
         np.testing.assert_allclose(ap2_fft, ap_fft, self.rtol, self.atol)
         np.testing.assert_allclose(am2_fft, am_fft, self.rtol, self.atol)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

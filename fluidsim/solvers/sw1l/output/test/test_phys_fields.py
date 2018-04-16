@@ -7,7 +7,7 @@ from . import BaseTestCase, mpi
 
 
 class TestPhysFields(BaseTestCase):
-    _tag = 'phys_fields'
+    _tag = "phys_fields"
 
     @classmethod
     def setUpClass(cls):
@@ -15,11 +15,10 @@ class TestPhysFields(BaseTestCase):
         cls.output = cls.sim.output
         cls.module = getattr(cls.output, cls._tag)
 
-    @unittest.skipIf(mpi.nb_proc > 1,
-                     'plot function works sequentially only')
+    @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
     def test_plot_phys_fields(self):
         self._plot()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

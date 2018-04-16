@@ -15,6 +15,9 @@ clean:
 
 cleanall: clean clean_so
 
+black:
+	black -l 82 fluidsim
+
 tests:
 	fluidsim-test -v
 

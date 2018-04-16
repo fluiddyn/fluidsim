@@ -21,30 +21,32 @@ class PrintStdOutNS3D(PrintStdOutBase):
         energy = self.output.compute_energy()
         if mpi.rank == 0:
             to_print += (
-                '              energy = {:9.3e} ; Delta energy = {:+9.3e}\n'
-                ''.format(energy, energy-self.energy_temp))
+                "              energy = {:9.3e} ; Delta energy = {:+9.3e}\n"
+                "".format(energy, energy - self.energy_temp)
+            )
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '              estimated remaining duration = {:9.3g} s'
-                    ''.format(duration_left))
+                    "              estimated remaining duration = {:9.3g} s"
+                    "".format(duration_left)
+                )
 
         self.energy_temp = energy
         return to_print
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
-        with open(self.output.path_run + '/stdout.txt') as file_means:
+        with open(self.output.path_run + "/stdout.txt") as file_means:
             lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
         for il, line in enumerate(lines):
-            if line[0:4] == 'it =':
+            if line[0:4] == "it =":
                 lines_t.append(line)
-            if line[0:22] == '              energy =':
+            if line[0:22] == "              energy =":
                 lines_E.append(line)
 
         nt = len(lines_t)
@@ -70,41 +72,43 @@ class PrintStdOutNS3D(PrintStdOutBase):
             E[il] = float(words[2])
             deltaE[il] = float(words[7])
 
-        dict_results['it'] = it
-        dict_results['t'] = t
-        dict_results['deltat'] = deltat
-        dict_results['E'] = E
-        dict_results['deltaE'] = deltaE
+        dict_results["it"] = it
+        dict_results["t"] = t
+        dict_results["deltat"] = deltat
+        dict_results["E"] = E
+        dict_results["deltaE"] = deltaE
 
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        deltat = dict_results['deltat']
-        E = dict_results['E']
-        deltaE = dict_results['deltaE']
+        t = dict_results["t"]
+        deltat = dict_results["deltat"]
+        E = dict_results["E"]
+        deltaE = dict_results["deltaE"]
 
         x_left_axe = 0.12
         z_bottom_axe = 0.55
         width_axe = 0.85
         height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('deltat(t)')
+        ax1.set_xlabel("t")
+        ax1.set_ylabel("deltat(t)")
 
-        ax1.set_title('info stdout, solver '+self.output.name_solver +
-                      ', nh = {0:5d}'.format(self.nx))
+        ax1.set_title(
+            "info stdout, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.nx)
+        )
         ax1.hold(True)
-        ax1.plot(t, deltat, 'k', linewidth=2)
+        ax1.plot(t, deltat, "k", linewidth=2)
 
         size_axe[1] = 0.08
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('E(t), deltaE(t)')
+        ax2.set_xlabel("t")
+        ax2.set_ylabel("E(t), deltaE(t)")
         ax2.hold(True)
-        ax2.plot(t, E, 'k', linewidth=2)
-        ax2.plot(t, deltaE, 'b', linewidth=2)
+        ax2.plot(t, E, "k", linewidth=2)
+        ax2.plot(t, deltaE, "b", linewidth=2)

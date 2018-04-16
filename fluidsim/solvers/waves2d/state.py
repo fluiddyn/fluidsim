@@ -21,9 +21,11 @@ class StateWaves(StatePseudoSpectral):
 
         This is a static method!
         """
-        info_solver.classes.State._set_attribs({
-            'keys_state_spect': ['f_fft', 'g_fft'],
-            'keys_state_phys': ['f', 'g'],
-            'keys_computable': [],
-            'keys_phys_needed': ['f', 'g'],
-        })
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_spect": ["f_fft", "g_fft"],
+                "keys_state_phys": ["f", "g"],
+                "keys_computable": [],
+                "keys_phys_needed": ["f", "g"],
+            }
+        )

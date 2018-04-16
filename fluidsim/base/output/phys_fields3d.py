@@ -20,8 +20,7 @@ import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
-from .phys_fields2d import (
-    MoviesBasePhysFields2D, PhysFieldsBase2D)
+from .phys_fields2d import MoviesBasePhysFields2D, PhysFieldsBase2D
 
 
 class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
@@ -29,6 +28,7 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
 
 
 class PhysFieldsBase3D(PhysFieldsBase2D):
+
     def _init_movies(self):
         self.movies = MoviesBasePhysFields3D(self.output, self)
 
@@ -46,10 +46,20 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         self._equation = equation
         self.movies._equation = equation
 
-    def plot(self, field=None, time=None,
-             QUIVER=True, vector='v', equation=None,
-             nb_contours=20, type_plot='contourf', vmin=None, vmax=None,
-             cmap='viridis', numfig=None):
+    def plot(
+        self,
+        field=None,
+        time=None,
+        QUIVER=True,
+        vector="v",
+        equation=None,
+        nb_contours=20,
+        type_plot="contourf",
+        vmin=None,
+        vmax=None,
+        cmap="viridis",
+        numfig=None,
+    ):
         """Plot a field.
 
         Parameters
@@ -82,31 +92,31 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         if equation is not None:
             self.set_equation_crosssection(equation)
         equation = self._equation
-        
+
         is_field_ready = False
 
-        self._has_uxuy = self.sim.state.has_vars('vx', 'vy')
+        self._has_uxuy = self.sim.state.has_vars("vx", "vy")
 
         key_field = None
         if field is None:
             key_field = self.field_to_plot
         elif isinstance(field, np.ndarray):
-            key_field = 'given array'
+            key_field = "given array"
             is_field_ready = True
         elif isinstance(field, basestring):
             key_field = field
 
         assert key_field is not None
 
-        if equation.startswith('iz=') or equation.startswith('z='):
-            vecx = vector + 'x'
-            vecy = vector + 'y'
-        elif equation.startswith('iy=') or equation.startswith('y='):
-            vecx = vector + 'x'
-            vecy = vector + 'z'
-        elif equation.startswith('ix=') or equation.startswith('x='):
-            vecx = vector + 'y'
-            vecy = vector + 'z'
+        if equation.startswith("iz=") or equation.startswith("z="):
+            vecx = vector + "x"
+            vecy = vector + "y"
+        elif equation.startswith("iy=") or equation.startswith("y="):
+            vecx = vector + "x"
+            vecy = vector + "z"
+        elif equation.startswith("ix=") or equation.startswith("x="):
+            vecx = vector + "y"
+            vecy = vector + "z"
         else:
             raise NotImplementedError
 
@@ -118,25 +128,31 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             # we have to get the field from the state
             time = self.sim.time_stepping.t
             field, _ = self.get_field_to_plot_from_state(
-                key_field, equation=equation)
+                key_field, equation=equation
+            )
             if QUIVER:
                 vecx, _ = self.get_field_to_plot_from_state(
-                    vecx, equation=equation)
+                    vecx, equation=equation
+                )
                 vecy, _ = self.get_field_to_plot_from_state(
-                    vecy, equation=equation)
+                    vecy, equation=equation
+                )
         else:
             # we have to get the field from a file
             self.set_of_phys_files.update_times()
             if key_field not in self.sim.state.keys_state_phys:
-                raise ValueError('key not in state.keys_state_phys')
+                raise ValueError("key not in state.keys_state_phys")
 
             field = self.get_field_to_plot(
-                key=key_field, time=time, equation=equation)
+                key=key_field, time=time, equation=equation
+            )
             if QUIVER:
                 vecx = self.get_field_to_plot(
-                    key=vecx, time=time, equation=equation)
+                    key=vecx, time=time, equation=equation
+                )
                 vecy = self.get_field_to_plot(
-                    key=vecy, time=time, equation=equation)
+                    key=vecy, time=time, equation=equation
+                )
 
         if mpi.rank == 0:
             if numfig is None:
@@ -144,13 +160,13 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            if equation.startswith('iz=') or equation.startswith('z='):
+            if equation.startswith("iz=") or equation.startswith("z="):
                 x_seq = self.oper.x_seq
                 y_seq = self.oper.y_seq
-            elif equation.startswith('iy=') or equation.startswith('y='):
+            elif equation.startswith("iy=") or equation.startswith("y="):
                 x_seq = self.oper.x_seq
                 y_seq = self.oper.z_seq
-            elif equation.startswith('ix=') or equation.startswith('x='):
+            elif equation.startswith("ix=") or equation.startswith("x="):
                 x_seq = self.oper.y_seq
                 y_seq = self.oper.z_seq
             else:
@@ -160,19 +176,29 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             try:
                 cmap = plt.get_cmap(cmap)
             except ValueError:
-                print('Use matplotlib >= 1.5.0 for new standard colorschemes.\
-                       Installed matplotlib :' + plt.matplotlib.__version__)
-                cmap = plt.get_cmap('jet')
+                print(
+                    "Use matplotlib >= 1.5.0 for new standard colorschemes.\
+                       Installed matplotlib :"
+                    + plt.matplotlib.__version__
+                )
+                cmap = plt.get_cmap("jet")
 
-            if type_plot == 'contourf':
+            if type_plot == "contourf":
                 contours = ax.contourf(
-                    x_seq, y_seq, field,
-                    nb_contours, vmin=vmin, vmax=vmax, cmap=cmap)
+                    x_seq,
+                    y_seq,
+                    field,
+                    nb_contours,
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=cmap,
+                )
                 fig.colorbar(contours)
                 fig.contours = contours
-            elif type_plot == 'pcolor':
-                pc = ax.pcolormesh(x_seq, y_seq, field,
-                                   vmin=vmin, vmax=vmax, cmap=cmap)
+            elif type_plot == "pcolor":
+                pc = ax.pcolormesh(
+                    x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap
+                )
                 fig.colorbar(pc)
         else:
             ax = None
@@ -183,15 +209,15 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             vmax = None
 
         if mpi.rank == 0:
-            ax.set_xlabel('x')
-            ax.set_ylabel('y')
+            ax.set_xlabel("x")
+            ax.set_ylabel("y")
             self._set_title(ax, key_field, time, vmax)
 
             fig.tight_layout()
             fig.canvas.draw()
             plt.pause(1e-3)
 
-    def _quiver_plot(self, ax, vecx='ux', vecy='uy', XX=None, YY=None):
+    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -201,21 +227,21 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         if isinstance(vecy, basestring):
             vecy = self.get_field_to_plot(vecy)
-            
+
         if XX is None and YY is None:
             equation = self._equation
-            if equation.startswith('iz=') or equation.startswith('z='):
+            if equation.startswith("iz=") or equation.startswith("z="):
                 x_seq = self.oper.x_seq
                 y_seq = self.oper.y_seq
-            elif equation.startswith('iy=') or equation.startswith('y='):
+            elif equation.startswith("iy=") or equation.startswith("y="):
                 x_seq = self.oper.x_seq
                 y_seq = self.oper.z_seq
-            elif equation.startswith('ix=') or equation.startswith('x='):
+            elif equation.startswith("ix=") or equation.startswith("x="):
                 x_seq = self.oper.y_seq
                 y_seq = self.oper.z_seq
             else:
                 raise NotImplementedError
-            
+
             [XX, YY] = np.meshgrid(x_seq, y_seq)
 
         if mpi.rank == 0:
@@ -224,7 +250,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
             #      np.min(np.sqrt(vecx**2 + vecy**2))) /
             #     np.max(np.sqrt(vecx**2 + vecy**2)))
-            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
+            vmax = np.max(np.sqrt(vecx ** 2 + vecy ** 2))
             # Quiver is normalized by the vmax
             # copy to avoid a bug
             skip = self._skip_quiver
@@ -233,7 +259,9 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             quiver = ax.quiver(
                 XX[::skip, ::skip],
                 YY[::skip, ::skip],
-                vecx_c/vmax, vecy_c/vmax)
+                vecx_c / vmax,
+                vecy_c / vmax,
+            )
         else:
             quiver = vmax = None
 

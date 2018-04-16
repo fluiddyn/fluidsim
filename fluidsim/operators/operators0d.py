@@ -23,7 +23,7 @@ class Operators0D(object):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        params._set_child('oper')
+        params._set_child("oper")
 
     def __init__(self, params=None, SEQUENTIAL=None):
 
@@ -33,12 +33,12 @@ class Operators0D(object):
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
 
-        return ''
+        return ""
 
     def produce_long_str_describing_oper(self):
         """Produce a string describing the operator."""
 
-        return '0d simulation\n'
+        return "0d simulation\n"
 
     def gather_Xspace(self, a):
         """Gather an array (mpi), in this case, just return the array."""

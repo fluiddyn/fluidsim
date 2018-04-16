@@ -17,12 +17,14 @@ class StateNS3DBouss(StateNS3D):
 
         This is a static method!
         """
-        keys_state_phys = ['vx', 'vy', 'vz', 'b']
+        keys_state_phys = ["vx", "vy", "vz", "b"]
 
-        info_solver.classes.State._set_attribs({
-            'keys_state_spect': [k + '_fft' for k in keys_state_phys],
-            'keys_state_phys': keys_state_phys,
-            'keys_phys_needed': keys_state_phys,
-            'keys_computable': [],
-            'keys_linear_eigenmodes': ['rot_fft']
-        })
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_spect": [k + "_fft" for k in keys_state_phys],
+                "keys_state_phys": keys_state_phys,
+                "keys_phys_needed": keys_state_phys,
+                "keys_computable": [],
+                "keys_linear_eigenmodes": ["rot_fft"],
+            }
+        )

@@ -23,8 +23,9 @@ from fluiddyn.util import mpi
 from past.utils import old_div
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
-from fluidsim.solvers.ns2d.init_fields import InitFieldsNoise, \
-    InitFieldsJet, InitFieldsDipole
+from fluidsim.solvers.ns2d.init_fields import (
+    InitFieldsNoise, InitFieldsJet, InitFieldsDipole
+)
 
 InitFieldsJetStrat = InitFieldsJet
 InitFieldsDipoleStrat = InitFieldsDipole
@@ -51,15 +52,25 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
             lambda0 = old_div(oper.Lx, 4)
 
         def H_smooth(x, delta):
-            return old_div((1. + np.tanh(2*np.pi*x/delta)), 2)
+            return old_div((1. + np.tanh(2 * np.pi * x / delta)), 2)
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
 
-        ux_fft = (np.random.random(oper.shapeK) +
-                  1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
-        uy_fft = (np.random.random(oper.shapeK) +
-                  1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
+        ux_fft = (
+            np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
+            - 0.5
+            - 0.5j
+        )
+        uy_fft = (
+            np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
+            - 0.5
+            - 0.5j
+        )
 
         if mpi.rank == 0:
             ux_fft[0, 0] = 0.
@@ -68,18 +79,18 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
         oper.projection_perp(ux_fft, uy_fft)
         oper.dealiasing(ux_fft, uy_fft)
 
-        k0 = 2*np.pi/lambda0
-        delta_k0 = 1.*k0
-        ux_fft = ux_fft*H_smooth(k0-oper.K, delta_k0)
-        uy_fft = uy_fft*H_smooth(k0-oper.K, delta_k0)
+        k0 = 2 * np.pi / lambda0
+        delta_k0 = 1. * k0
+        ux_fft = ux_fft * H_smooth(k0 - oper.K, delta_k0)
+        uy_fft = uy_fft * H_smooth(k0 - oper.K, delta_k0)
 
         ux = oper.ifft2(ux_fft)
         uy = oper.ifft2(uy_fft)
-        velo_max = np.sqrt(ux**2+uy**2).max()
+        velo_max = np.sqrt(ux ** 2 + uy ** 2).max()
         if mpi.nb_proc > 1:
             velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-        ux = params.init_fields.noise.velo_max*ux/velo_max
-        uy = params.init_fields.noise.velo_max*uy/velo_max
+        ux = params.init_fields.noise.velo_max * ux / velo_max
+        uy = params.init_fields.noise.velo_max * uy / velo_max
         ux_fft = oper.fft2(ux)
         uy_fft = oper.fft2(uy)
 
@@ -96,18 +107,18 @@ class InitFieldsLinearMode(SpecificInitFields):
     """
     Class to initialize the fields with the linear mode
     """
-    tag = 'linear_mode'
+    tag = "linear_mode"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
         super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'i_mode': (8, 8),
-            'delta_k_adim': 1,
-            'amplitude': 1})
+        params.init_fields._set_child(
+            cls.tag, attribs={"i_mode": (8, 8), "delta_k_adim": 1, "amplitude": 1}
+        )
 
-        params.init_fields.linear_mode._set_doc("""
+        params.init_fields.linear_mode._set_doc(
+            """
         i_mode : tuple
 
           Index of initialized mode.
@@ -120,17 +131,18 @@ class InitFieldsLinearMode(SpecificInitFields):
 
           Amplitude of the initial linear mode
 
-        """)
-
+        """
+        )
 
     def __call__(self):
         if mpi.nb_proc > 1:
             raise NotImplementedError(
-                'Function compute_apfft_ones not implemented in MPI.')
+                "Function compute_apfft_ones not implemented in MPI."
+            )
 
         ap_fft = self.compute_apfft_ones()
         self.sim.state.init_statespect_from(ap_fft=ap_ffr)
-        
+
     def compute_apfft_ones(self):
         """Compute the linear mode apfft"""
 
@@ -139,7 +151,7 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         i_mode = params.init_fields.linear_mode.i_mode
         delta_k_adim = params.init_fields.linear_mode.delta_k_adim
-        amplitude = params.init_fields.linear_mode.amplitude * params.N**2
+        amplitude = params.init_fields.linear_mode.amplitude * params.N ** 2
 
         am_fft = np.zeros(oper.shapeK) + 1j * np.zeros(oper.shapeK)
         am_fft = amplitude * am_fft
@@ -170,5 +182,11 @@ class InitFieldsNS2DStrat(InitFieldsBase):
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
         InitFieldsBase._complete_info_solver(
-            info_solver, classes=[InitFieldsNoiseStrat, InitFieldsJetStrat,
-                                  InitFieldsDipoleStrat, InitFieldsLinearMode])
+            info_solver,
+            classes=[
+                InitFieldsNoiseStrat,
+                InitFieldsJetStrat,
+                InitFieldsDipoleStrat,
+                InitFieldsLinearMode,
+            ],
+        )

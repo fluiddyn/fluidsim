@@ -12,32 +12,34 @@ from past.utils import old_div
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+)
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
+
     def _init_root(self):
 
         super(InfoSolverNS2D, self)._init_root()
 
-        package = 'fluidsim.solvers.ns2d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'NS2D'
+        package = "fluidsim.solvers.ns2d"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "NS2D"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS2D'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateNS2D"
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsNS2D'
+        classes.InitFields.module_name = package + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsNS2D"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingNS2D'
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingNS2D"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -51,7 +53,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'beta': 0.}
+        attribs = {"beta": 0.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -60,11 +62,11 @@ class Simul(SimulBasePseudoSpectral):
         ifft2 = oper.ifft2
 
         if state_spect is None:
-            rot_fft = self.state.state_spect.get_var('rot_fft')
-            ux = self.state.state_phys.get_var('ux')
-            uy = self.state.state_phys.get_var('uy')
+            rot_fft = self.state.state_spect.get_var("rot_fft")
+            ux = self.state.state_phys.get_var("ux")
+            uy = self.state.state_phys.get_var("uy")
         else:
-            rot_fft = state_spect.get_var('rot_fft')
+            rot_fft = state_spect.get_var("rot_fft")
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = ifft2(ux_fft)
             uy = ifft2(uy_fft)
@@ -74,9 +76,9 @@ class Simul(SimulBasePseudoSpectral):
         py_rot = ifft2(py_rot_fft)
 
         if self.params.beta == 0:
-            Frot = -ux*px_rot - uy*py_rot
+            Frot = -ux * px_rot - uy * py_rot
         else:
-            Frot = -ux*px_rot - uy*(py_rot + self.params.beta)
+            Frot = -ux * px_rot - uy * (py_rot + self.params.beta)
 
         Frot_fft = fft2(Frot)
         oper.dealiasing(Frot_fft)
@@ -89,12 +91,12 @@ class Simul(SimulBasePseudoSpectral):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        tendencies_fft.set_var('rot_fft', Frot_fft)
+        tendencies_fft.set_var("rot_fft", Frot_fft)
 
         if self.params.forcing.enable:
             tendencies_fft += self.forcing.get_forcing()
@@ -110,10 +112,10 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 32
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
@@ -121,15 +123,17 @@ if __name__ == "__main__":
 
     # params.oper.type_fft = 'FFTWPY'
 
-    delta_x = old_div(params.oper.Lx,params.oper.nx)
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = old_div(params.oper.Lx, params.oper.nx)
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        old_div(1., 3)
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 1.
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.forcing.enable = True
-    params.forcing.type = 'Random'
+    params.forcing.type = "Random"
     # 'Proportional'
     # params.forcing.type_normalize
 
@@ -150,7 +154,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = "rot"
 
     sim = Simul(params)
 

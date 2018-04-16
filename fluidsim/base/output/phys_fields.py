@@ -32,51 +32,52 @@ from .base import SpecificOutput
 cfg_h5py = h5py.h5.get_config()
 
 if cfg_h5py.mpi:
-    ext = 'h5'
+    ext = "h5"
     h5pack = h5py
 else:
-    ext = 'nc'
+    ext = "nc"
     h5pack = h5netcdf
 
 
 def _create_variable(group, key, field):
-    if ext == 'nc':
+    if ext == "nc":
         if field.ndim == 0:
             dimensions = tuple()
         elif field.ndim == 1:
-            dimensions = ('x',)
+            dimensions = ("x",)
         elif field.ndim == 2:
-            dimensions = ('y', 'x')
+            dimensions = ("y", "x")
         elif field.ndim == 3:
-            dimensions = ('z', 'y', 'x')
+            dimensions = ("z", "y", "x")
         try:
             group.create_variable(key, data=field, dimensions=dimensions)
         except AttributeError:
             raise ValueError(
-                'Error while creating a netCDF4 variable using group'
-                ' of type {} for key {}'.format(
-                    type(group), key))
+                "Error while creating a netCDF4 variable using group"
+                " of type {} for key {}".format(type(group), key)
+            )
+
     else:
         try:
             group.create_dataset(key, data=field)
         except AttributeError:
             raise ValueError(
-                'Error while creating a HDF5 dataset using group'
-                ' of type {} for key {}'.format(
-                    type(group), key))
+                "Error while creating a HDF5 dataset using group"
+                " of type {} for key {}".format(type(group), key)
+            )
 
 
 class PhysFieldsBase(SpecificOutput):
     """Manage the output of physical fields."""
 
-    _tag = 'phys_fields'
+    _tag = "phys_fields"
 
     @staticmethod
     def _complete_params_with_default(params):
-        tag = 'phys_fields'
-        params.output._set_child(tag,
-                                 attribs={'field_to_plot': 'ux',
-                                          'file_with_it': False})
+        tag = "phys_fields"
+        params.output._set_child(
+            tag, attribs={"field_to_plot": "ux", "file_with_it": False}
+        )
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output.periods_plot._set_attrib(tag, 0)
@@ -86,17 +87,18 @@ class PhysFieldsBase(SpecificOutput):
         self.output = output
         self.oper = output.oper
 
-        if hasattr(self, '_init_skip_quiver'):
+        if hasattr(self, "_init_skip_quiver"):
             self._init_skip_quiver()
 
-        if hasattr(self, '_init_movies'):
+        if hasattr(self, "_init_movies"):
             self._init_movies()
             self.animate = self.movies.animate
 
         super(PhysFieldsBase, self).__init__(
             output,
             period_save=params.output.periods_save.phys_fields,
-            period_plot=params.output.periods_plot.phys_fields)
+            period_plot=params.output.periods_plot.phys_fields,
+        )
 
         self.field_to_plot = params.output.phys_fields.field_to_plot
 
@@ -140,11 +142,13 @@ class PhysFieldsBase(SpecificOutput):
     def _online_plot(self):
         """Online plot."""
         tsim = self.sim.time_stepping.t
-        if (tsim - self.t_last_plot >= self.period_plot):
+        if tsim - self.t_last_plot >= self.period_plot:
             self.t_last_plot = tsim
             itsim = self.sim.time_stepping.it
-            self.plot(numfig=itsim,
-                      key_field=self.params.output.phys_fields.field_to_plot)
+            self.plot(
+                numfig=itsim,
+                key_field=self.params.output.phys_fields.field_to_plot,
+            )
 
     def save(self, state_phys=None, params=None, particular_attr=None):
         if state_phys is None:
@@ -159,19 +163,23 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.rank == 0 and not os.path.exists(path_run):
             os.mkdir(path_run)
 
-        if (self.period_save < 0.001 or
-                self.params.output.phys_fields.file_with_it):
-            name_save = 'state_phys_t{:07.3f}_it={}.{}'.format(
-                time, self.sim.time_stepping.it, ext)
+        if (
+            self.period_save < 0.001
+            or self.params.output.phys_fields.file_with_it
+        ):
+            name_save = "state_phys_t{:07.3f}_it={}.{}".format(
+                time, self.sim.time_stepping.it, ext
+            )
         else:
-            name_save = 'state_phys_t{:07.3f}.{}'.format(time, ext)
+            name_save = "state_phys_t{:07.3f}.{}".format(time, ext)
 
         path_file = os.path.join(path_run, name_save)
         if os.path.exists(path_file):
-            name_save = 'state_phys_t{:07.3f}_it={}.{}'.format(
-                time, self.sim.time_stepping.it, ext)
+            name_save = "state_phys_t{:07.3f}_it={}.{}".format(
+                time, self.sim.time_stepping.it, ext
+            )
             path_file = os.path.join(path_run, name_save)
-        to_print = 'save state_phys in file ' + name_save
+        to_print = "save state_phys in file " + name_save
         self.output.print_stdout(to_print)
 
         # FIXME: bad condition below when run sequentially, with MPI enabled h5py
@@ -180,22 +188,22 @@ class PhysFieldsBase(SpecificOutput):
             if mpi.rank == 0:
                 # originally:
                 # f = h5netcdf.File(...
-                f = h5pack.File(path_file, 'w')
+                f = h5pack.File(path_file, "w")
                 group_state_phys = f.create_group("state_phys")
-                group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-                group_state_phys.attrs['name_type_variables'] = state_phys.info
-                group_state_phys.attrs['time'] = time
-                group_state_phys.attrs['it'] = self.sim.time_stepping.it
+                group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
+                group_state_phys.attrs["name_type_variables"] = state_phys.info
+                group_state_phys.attrs["time"] = time
+                group_state_phys.attrs["it"] = self.sim.time_stepping.it
         else:
             # originally:
             # f = h5py.File(...
-            f = h5pack.File(path_file, 'w', driver='mpio', comm=mpi.comm)
+            f = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
             group_state_phys = f.create_group("state_phys")
-            group_state_phys.attrs['what'] = 'obj state_phys for solveq2d'
-            group_state_phys.attrs['name_type_variables'] = state_phys.info
+            group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
+            group_state_phys.attrs["name_type_variables"] = state_phys.info
 
-            group_state_phys.attrs['time'] = time
-            group_state_phys.attrs['it'] = self.sim.time_stepping.it
+            group_state_phys.attrs["time"] = time
+            group_state_phys.attrs["it"] = self.sim.time_stepping.it
 
         if mpi.nb_proc == 1:
             for k in state_phys.keys:
@@ -211,7 +219,8 @@ class PhysFieldsBase(SpecificOutput):
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
                 dset = group_state_phys.create_dataset(
-                    k, self.oper.shapeX_seq, dtype=field_loc.dtype)
+                    k, self.oper.shapeX_seq, dtype=field_loc.dtype
+                )
                 f.atomic = False
                 xstart = self.oper.seq_index_firstK0
                 xend = self.oper.seq_index_firstK0 + self.oper.shapeX_loc[0]
@@ -221,24 +230,30 @@ class PhysFieldsBase(SpecificOutput):
                     dset[xstart:xend, ystart:yend, :] = field_loc
             f.close()
             if mpi.rank == 0:
-                f = h5pack.File(path_file, 'w')
+                f = h5pack.File(path_file, "w")
 
         if mpi.rank == 0:
-            f.attrs['date saving'] = str(datetime.datetime.now()).encode()
-            f.attrs['name_solver'] = self.output.name_solver
-            f.attrs['name_run'] = self.output.name_run
+            f.attrs["date saving"] = str(datetime.datetime.now()).encode()
+            f.attrs["name_solver"] = self.output.name_solver
+            f.attrs["name_run"] = self.output.name_run
             if particular_attr is not None:
-                f.attrs['particular_attr'] = particular_attr
+                f.attrs["particular_attr"] = particular_attr
 
             self.sim.info._save_as_hdf5(hdf5_parent=f)
-            gp_info = f['info_simul']
-            gf_params = gp_info['params']
-            gf_params.attrs['SAVE'] = 1
-            gf_params.attrs['NEW_DIR_RESULTS'] = 1
+            gp_info = f["info_simul"]
+            gf_params = gp_info["params"]
+            gf_params.attrs["SAVE"] = 1
+            gf_params.attrs["NEW_DIR_RESULTS"] = 1
             f.close()
 
-    def get_field_to_plot(self, key=None, time=None, idx_time=None,
-                          equation=None, interpolate_time=True):
+    def get_field_to_plot(
+        self,
+        key=None,
+        time=None,
+        idx_time=None,
+        equation=None,
+        interpolate_time=True,
+    ):
         """Get the field to be plotted in process 0."""
 
         if equation is None:
@@ -247,35 +262,45 @@ class PhysFieldsBase(SpecificOutput):
         if time is None and idx_time is None:
             # we get the field from the state
             field, key = self.get_field_to_plot_from_state(
-                field=key, equation=equation)
+                field=key, equation=equation
+            )
             return field
+
         else:
             return self.set_of_phys_files.get_field_to_plot(
-                time=time, idx_time=idx_time, key=key,
-                equation=equation, interpolate_time=interpolate_time)
+                time=time,
+                idx_time=idx_time,
+                key=key,
+                equation=equation,
+                interpolate_time=interpolate_time,
+            )
 
     def get_field_to_plot_from_state(self, field=None, equation=None):
         """Get the field to be plotted in process 0."""
 
         if field is None:
-            keys_state_phys = \
-                self.sim.info.solver.classes.State['keys_state_phys']
-            keys_computable = \
-                self.sim.info.solver.classes.State['keys_computable']
+            keys_state_phys = self.sim.info.solver.classes.State[
+                "keys_state_phys"
+            ]
+            keys_computable = self.sim.info.solver.classes.State[
+                "keys_computable"
+            ]
             field_to_plot = self.params.output.phys_fields.field_to_plot
-            if (field_to_plot in keys_state_phys or
-                    field_to_plot in keys_computable):
+            if (
+                field_to_plot in keys_state_phys
+                or field_to_plot in keys_computable
+            ):
                 key_field = field_to_plot
             else:
-                if 'q' in keys_state_phys:
-                    key_field = 'q'
-                elif 'rot' in keys_state_phys:
-                    key_field = 'rot'
+                if "q" in keys_state_phys:
+                    key_field = "q"
+                elif "rot" in keys_state_phys:
+                    key_field = "rot"
                 else:
                     key_field = keys_state_phys[0]
             field_loc = self.sim.state.get_var(key_field)
         elif isinstance(field, np.ndarray):
-            key_field = 'given field'
+            key_field = "given field"
             field_loc = field
         else:
             field_loc = self.sim.state.get_var(field)
@@ -288,26 +313,27 @@ class PhysFieldsBase(SpecificOutput):
 
         if equation is None:
             return field, key_field
-        elif equation.startswith('iz='):
-            iz = eval(equation[len('iz='):])
+
+        elif equation.startswith("iz="):
+            iz = eval(equation[len("iz="):])
             field = field[iz, ...]
-        elif equation.startswith('z='):
-            z = eval(equation[len('z='):])
-            iz = abs(self.output.sim.oper.z_seq-z).argmin()
+        elif equation.startswith("z="):
+            z = eval(equation[len("z="):])
+            iz = abs(self.output.sim.oper.z_seq - z).argmin()
             field = field[iz, ...]
-        elif equation.startswith('iy='):
-            iy = eval(equation[len('iy='):])
+        elif equation.startswith("iy="):
+            iy = eval(equation[len("iy="):])
             field = field[:, iy, :]
-        elif equation.startswith('y='):
-            y = eval(equation[len('y='):])
-            iy = abs(self.output.sim.oper.y_seq-y).argmin()
+        elif equation.startswith("y="):
+            y = eval(equation[len("y="):])
+            iy = abs(self.output.sim.oper.y_seq - y).argmin()
             field = field[:, iy, :]
-        elif equation.startswith('ix='):
-            ix = eval(equation[len('ix='):])
+        elif equation.startswith("ix="):
+            ix = eval(equation[len("ix="):])
             field = field[..., ix]
-        elif equation.startswith('x='):
-            x = eval(equation[len('x='):])
-            ix = abs(self.output.sim.oper.x_seq-x).argmin()
+        elif equation.startswith("x="):
+            x = eval(equation[len("x="):])
+            ix = abs(self.output.sim.oper.x_seq - x).argmin()
             field = field[..., ix]
         else:
             raise NotImplementedError
@@ -316,14 +342,14 @@ class PhysFieldsBase(SpecificOutput):
 
 
 def time_from_path(path):
-    '''Regular expression search to extract time from filename.'''
+    """Regular expression search to extract time from filename."""
     filename = os.path.basename(path)
-    pattern = r'''
+    pattern = r"""
         (?!t)     # text after t but exclude it
         [0-9]+    # a couple of digits
         \.        # the decimal point
         [0-9]+    # a couple of digits
-    '''
+    """
     match = re.search(pattern, filename, re.VERBOSE)
     time = float(match.group(0))
     return time
@@ -333,25 +359,32 @@ class SetOfPhysFieldFiles(object):
     """A set of physical field files.
 
     """
+
     def __init__(self, output):
         self.output = output
         self.update_times()
 
     def update_times(self):
         """Initialize the times by globing and analyzing the file names."""
-        path_files = glob(os.path.join(
-            self.output.path_run, 'state_phys*.[hn]*'))
+        path_files = glob(os.path.join(self.output.path_run, "state_phys*.[hn]*"))
 
-        if hasattr(self, 'path_files') and \
-           len(self.path_files) == len(path_files):
+        if (
+            hasattr(self, "path_files")
+            and len(self.path_files) == len(path_files)
+        ):
             return
 
         self.path_files = sorted(path_files)
-        self.times = np.array(
-            [time_from_path(path) for path in self.path_files])
+        self.times = np.array([time_from_path(path) for path in self.path_files])
 
-    def get_field_to_plot(self, time=None, idx_time=None, key=None,
-                          equation=None, interpolate_time=True):
+    def get_field_to_plot(
+        self,
+        time=None,
+        idx_time=None,
+        key=None,
+        equation=None,
+        interpolate_time=True,
+    ):
 
         if time is None and idx_time is None:
             raise ValueError()
@@ -359,7 +392,8 @@ class SetOfPhysFieldFiles(object):
         if not interpolate_time and time is not None:
             idx, time_closest = self.get_closest_time_file(time)
             return self.get_field_to_plot(
-                idx_time=idx, key=key, equation=equation)
+                idx_time=idx, key=key, equation=equation
+            )
 
         if interpolate_time and time is not None:
             # print('time:', time)
@@ -371,7 +405,8 @@ class SetOfPhysFieldFiles(object):
 
             if time == time_closest:
                 return self.get_field_to_plot(
-                    idx_time=idx_closest, key=key, equation=equation)
+                    idx_time=idx_closest, key=key, equation=equation
+                )
 
             if idx_closest == self.times.size - 1:
                 idx0 = idx_closest - 1
@@ -384,50 +419,57 @@ class SetOfPhysFieldFiles(object):
                 idx1 = idx_closest
 
             dt_save = self.times[idx1] - self.times[idx0]
-            weight0 = 1 - np.abs(
-                time - self.times[idx0]) / dt_save
-            weight1 = 1 - np.abs(
-                time - self.times[idx1]) / dt_save
+            weight0 = 1 - np.abs(time - self.times[idx0]) / dt_save
+            weight1 = 1 - np.abs(time - self.times[idx1]) / dt_save
 
             field0 = self.get_field_to_plot(
-                idx_time=idx0, key=key, equation=equation)
+                idx_time=idx0, key=key, equation=equation
+            )
             field1 = self.get_field_to_plot(
-                idx_time=idx1, key=key, equation=equation)
+                idx_time=idx1, key=key, equation=equation
+            )
 
             return field0 * weight0 + field1 * weight1
 
         # print(idx_time, 'Using file', self.path_files[idx_time])
 
         with h5py.File(self.path_files[idx_time]) as f:
-            dset = f['state_phys'][key]
+            dset = f["state_phys"][key]
 
             if equation is None:
                 return dset.value
-            if equation.startswith('iz='):
-                iz = eval(equation[len('iz='):])
+
+            if equation.startswith("iz="):
+                iz = eval(equation[len("iz="):])
                 return dset[iz, ...]
-            elif equation.startswith('z='):
-                z = eval(equation[len('z='):])
-                iz = abs(self.output.sim.oper.z_seq-z).argmin()
+
+            elif equation.startswith("z="):
+                z = eval(equation[len("z="):])
+                iz = abs(self.output.sim.oper.z_seq - z).argmin()
                 return dset[iz, ...]
-            elif equation.startswith('iy='):
-                iy = eval(equation[len('iy='):])
+
+            elif equation.startswith("iy="):
+                iy = eval(equation[len("iy="):])
                 return dset[:, iy, :]
-            elif equation.startswith('y='):
-                y = eval(equation[len('y='):])
-                iy = abs(self.output.sim.oper.y_seq-y).argmin()
+
+            elif equation.startswith("y="):
+                y = eval(equation[len("y="):])
+                iy = abs(self.output.sim.oper.y_seq - y).argmin()
                 return dset[:, iy, :]
-            elif equation.startswith('ix='):
-                ix = eval(equation[len('ix='):])
+
+            elif equation.startswith("ix="):
+                ix = eval(equation[len("ix="):])
                 return dset[..., ix]
-            elif equation.startswith('x='):
-                x = eval(equation[len('x='):])
-                ix = abs(self.output.sim.oper.x_seq-x).argmin()
+
+            elif equation.startswith("x="):
+                x = eval(equation[len("x="):])
+                ix = abs(self.output.sim.oper.x_seq - x).argmin()
                 return dset[..., ix]
+
             else:
                 raise NotImplementedError
 
     def get_closest_time_file(self, time):
-        '''Find the index and value of the closest actual time of the field.'''
+        """Find the index and value of the closest actual time of the field."""
         idx = np.abs(self.times - time).argmin()
         return idx, self.times[idx]

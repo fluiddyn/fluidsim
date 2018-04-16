@@ -5,7 +5,7 @@ from fluidsim.base.basilisk.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = 'test'
+params.short_name_type_run = "test"
 
 params.oper.nx = 128
 

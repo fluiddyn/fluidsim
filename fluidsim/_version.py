@@ -23,14 +23,16 @@ https://github.com/pypa/setuptools_scm#setuptools_scm
 
 try:
     from setuptools_scm import get_version
+
     __version__ = get_version()
 except:
-    __version__ = '0.1.1'
+    __version__ = "0.1.1"
 
 
 try:
     from pyfiglet import figlet_format
-    __about__ = figlet_format('fluidsim v' + __version__, font='big')
+
+    __about__ = figlet_format("fluidsim v" + __version__, font="big")
 except:
     __about__ = r"""
   __ _       _     _     _

@@ -23,11 +23,13 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+)
 
 
 class InfoSolverPlate2D(InfoSolverPseudoSpectral):
     """Contain the information on the solver plate2d."""
+
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
 
@@ -54,27 +56,27 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
 
         super(InfoSolverPlate2D, self)._init_root()
 
-        package = 'fluidsim.solvers.plate2d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'Plate2D'
+        package = "fluidsim.solvers.plate2d"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "Plate2D"
 
         classes = self.classes
 
-        classes.Operators.module_name = package + '.operators'
-        classes.Operators.class_name = 'OperatorsPseudoSpectralPlate2D'
+        classes.Operators.module_name = package + ".operators"
+        classes.Operators.class_name = "OperatorsPseudoSpectralPlate2D"
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StatePlate2D'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StatePlate2D"
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsPlate2D'
+        classes.InitFields.module_name = package + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsPlate2D"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingPlate2D'
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingPlate2D"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -161,7 +163,7 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'beta': 0.}
+        attribs = {"beta": 0.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -173,23 +175,23 @@ class Simul(SimulBasePseudoSpectral):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        w_fft = state_spect.get_var('w_fft')
-        z_fft = state_spect.get_var('z_fft')
+        w_fft = state_spect.get_var("w_fft")
+        z_fft = state_spect.get_var("z_fft")
 
-        F_fft = tendencies_fft.get_var('w_fft')
-        tendencies_fft.set_var('z_fft', w_fft)
+        F_fft = tendencies_fft.get_var("w_fft")
+        tendencies_fft.set_var("z_fft", w_fft)
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
-        chi_fft = - oper.invlaplacian2_fft(oper.fft2(mamp_zz))
+        chi_fft = -oper.invlaplacian2_fft(oper.fft2(mamp_zz))
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
         lap2z_fft = oper.laplacian2_fft(z_fft)
-        F_fft[:] = - lap2z_fft + Nw_fft
+        F_fft[:] = -lap2z_fft + Nw_fft
 
         oper.dealiasing(tendencies_fft)
 
@@ -206,15 +208,14 @@ class Simul(SimulBasePseudoSpectral):
         """Compute the dissipation frequencies with dissipation only for w."""
         f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
         f_d = np.zeros_like(self.state.state_spect, dtype=np.float64)
-        f_d_hypo = np.zeros_like(self.state.state_spect,
-                                 dtype=np.float64)
+        f_d_hypo = np.zeros_like(self.state.state_spect, dtype=np.float64)
         f_d[0] = f_d_w
         f_d_hypo[0] = f_d_hypo_w
         return f_d, f_d_hypo
 
     def test_tendencies_nonlin(
-            self, tendencies_fft=None,
-            w_fft=None, z_fft=None, chi_fft=None):
+        self, tendencies_fft=None, w_fft=None, z_fft=None, chi_fft=None
+    ):
         r"""Test if the tendencies conserves the total energy.
 
         We consider the conservative Föppl-von Kármán equations
@@ -250,12 +251,12 @@ class Simul(SimulBasePseudoSpectral):
 
         if tendencies_fft is None:
             tendencies_fft = self.tendencies_nonlin()
-            w_fft = self.state.state_spect.get_var('w_fft')
-            z_fft = self.state.state_spect.get_var('z_fft')
-            chi_fft = self.state.get_var('chi_fft')
+            w_fft = self.state.state_spect.get_var("w_fft")
+            z_fft = self.state.state_spect.get_var("z_fft")
+            chi_fft = self.state.get_var("chi_fft")
 
-        F_w_fft = tendencies_fft.get_var('w_fft')
-        F_z_fft = tendencies_fft.get_var('z_fft')
+        F_w_fft = tendencies_fft.get_var("w_fft")
+        F_z_fft = tendencies_fft.get_var("z_fft")
 
         K4 = self.oper.K4
 
@@ -265,19 +266,20 @@ class Simul(SimulBasePseudoSpectral):
         tmp = self.oper.monge_ampere_from_fft(F_z_fft, z_fft)
         tmp_fft = self.oper.fft2(tmp)
 
-        dt_E_NQ = - np.real(tmp_fft * chi_fft.conj())
+        dt_E_NQ = -np.real(tmp_fft * chi_fft.conj())
 
         T = dt_E_K + dt_E_L + dt_E_NQ
 
         norm = self.oper.sum_wavenumbers(abs(T))
 
         if norm < 1e-15:
-            print('Only zeros in total energy tendency.')
+            print("Only zeros in total energy tendency.")
             # print('(K+L)\n', dt_E_K+dt_E_L)
             # print('NQ\n', dt_E_NQ)
             return 0
+
         else:
-            T = T/norm
+            T = T / norm
             # print('ratio array\n', T)
             # print('(K+L)\n', (dt_E_K+dt_E_L)/norm)
             # print('NQ\n', dt_E_NQ/norm)
@@ -292,7 +294,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 32
     Lh = 1.
@@ -303,10 +305,10 @@ if __name__ == "__main__":
     params.oper.coef_dealiasing = 2. / 3
 
     delta_x = Lh / nh
-    params.nu_8 = 2e1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
 
-    kmax = np.sqrt(2)*np.pi/delta_x
-    deltat = 2*np.pi/kmax**2/2
+    kmax = np.sqrt(2) * np.pi / delta_x
+    deltat = 2 * np.pi / kmax ** 2 / 2
 
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = deltat
@@ -314,22 +316,22 @@ if __name__ == "__main__":
     params.time_stepping.t_end = 1.
     params.time_stepping.it_end = 10
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
     params.init_fields.noise.velo_max = 1e-6
     # params.init_fields.path_file = ''
 
     params.forcing.enable = True
-    params.forcing.type = 'tcrandom'
+    params.forcing.type = "tcrandom"
     params.forcing.forcing_rate = 1e12
     params.forcing.nkmax_forcing = 5
     params.forcing.nkmin_forcing = 2
-    params.forcing.tcrandom.time_correlation = 100*deltat
+    params.forcing.tcrandom.time_correlation = 100 * deltat
 
     params.output.periods_print.print_stdout = 0.05
 
     params.output.periods_save.phys_fields = 5.
     params.output.periods_save.spectra = 0.05
-    params.output.periods_save.spatial_means = 10*deltat
+    params.output.periods_save.spatial_means = 10 * deltat
     params.output.periods_save.correl_freq = 1
 
     params.output.ONLINE_PLOT_OK = False
@@ -337,7 +339,7 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.1
 
-    params.output.phys_fields.field_to_plot = 'w'
+    params.output.phys_fields.field_to_plot = "w"
 
     params.output.spectra.HAS_TO_PLOT_SAVED = True
 
@@ -348,12 +350,15 @@ if __name__ == "__main__":
     params.output.correl_freq.nb_times_compute = nb_times_compute
     params.output.correl_freq.coef_decimate = 1
     params.output.correl_freq.iomegas1 = np.linspace(
-        1, nb_times_compute/2-1, 6).astype(int)
+        1, nb_times_compute / 2 - 1, 6
+    ).astype(
+        int
+    )
 
     sim = Simul(params)
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
-#    sim.output.phys_fields.plot()
+    #    sim.output.phys_fields.plot()
 
     fld.show()
