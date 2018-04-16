@@ -5,6 +5,7 @@ import numpy as np
 
 from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
+
 class TestNS2DStrat(BaseTestCase):
     solver = 'NS2D.strat'
     _tag = ''
