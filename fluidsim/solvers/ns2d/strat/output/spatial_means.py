@@ -68,7 +68,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             PZ1 = self.sum_wavenumbers(PZ1_fft)
             PZ2 = self.sum_wavenumbers(PZ2_fft)
 
-
             PK1_fft = np.real(
                 ux_fft.conj()
                 * Fx_fft
@@ -270,14 +269,14 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         """
         dict_results = self.load()
 
-        t = dict_results['t']
-        E = dict_results['E']
+        t = dict_results["t"]
+        E = dict_results["E"]
         # bug with the init_fields
         E = E[1:]
         t = t[:-1]
 
-        epsK_tot = dict_results['epsK_tot']
-        epsA_tot = dict_results['epsA_tot']
+        epsK_tot = dict_results["epsK_tot"]
+        epsA_tot = dict_results["epsA_tot"]
         eps_tot = epsK_tot + epsA_tot
         eps_tot = eps_tot[1:]
 
@@ -285,7 +284,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         for index in range(len(dt_E)):
             dt_E[index] = (E[index + 1] - E[index]) / (t[index + 1] - t[index])
 
- 
     def plot(self):
         dict_results = self.load()
 

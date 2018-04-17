@@ -32,7 +32,7 @@ params = Simul.create_default_params()
 
 params.oper.nx = nx = 64
 
-params.oper.ny = ny = nx 
+params.oper.ny = ny = nx
 params.oper.Lx = 2 * pi
 params.oper.Ly = params.oper.Lx * (ny / nx)
 params.oper.coef_dealiasing = 0.66
@@ -40,7 +40,9 @@ params.oper.coef_dealiasing = 0.66
 params.init_fields.type = 'noise'
 
 params.forcing.enable = True
-params.forcing.type = 'tcrandom_anisotropic'
+# params.forcing.type = 'tcrandom_anisotropic'
+params.forcing.type = 'tcrandom'
+
 params.forcing.nkmax_forcing = 8
 params.forcing.nkmin_forcing = 4
 params.forcing.tcrandom.time_correlation = 0.5
@@ -89,5 +91,3 @@ ax.plot(t, PK2, 'g')
 fig.suptitle('E')
 
 plt.show()
-
-

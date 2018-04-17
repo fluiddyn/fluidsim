@@ -52,14 +52,16 @@ class OperatorsPseudoSpectral2D(_Operators):
         else:
             type_fft = "fft2d.with_pyfftw"
 
-        attribs = {'type_fft': type_fft,
-                   'coef_dealiasing': 2./3,
-                   'nx': 48,
-                   'ny': 48,
-                   'Lx': 8,
-                   'Ly': 8,
-                   'NO_SHEAR_MODES': False}
-        params._set_child('oper', attribs=attribs)
+        attribs = {
+            "type_fft": type_fft,
+            "coef_dealiasing": 2. / 3,
+            "nx": 48,
+            "ny": 48,
+            "Lx": 8,
+            "Ly": 8,
+            "NO_SHEAR_MODES": False,
+        }
+        params._set_child("oper", attribs=attribs)
 
     def __init__(self, params):
 
@@ -111,11 +113,12 @@ class OperatorsPseudoSpectral2D(_Operators):
             pass
         else:
             if NO_SHEAR_MODES:
-                COND_NOSHEAR = abs(self.KX) == 0.    
+                COND_NOSHEAR = abs(self.KX) == 0.
                 where_dealiased = np.logical_or(
-                    COND_NOSHEAR, self.where_dealiased)
+                    COND_NOSHEAR, self.where_dealiased
+                )
                 self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
-            
+
     def dealiasing(self, *args):
         for thing in args:
             if isinstance(thing, SetOfVariables):
@@ -226,14 +229,14 @@ class OperatorsPseudoSpectral2D(_Operators):
                 for ikxc in range(nkxc):
                     fc_fft[ikyc, ikxc] = f_fft[iky, ikxc]
 
-            # fc_fft[nkyc//2] *= 2
+        # fc_fft[nkyc//2] *= 2
 
-            # energy_coarse = self.sum_wavenumbers(abs(fc_fft)**2)
-            # energy_global = self.sum_wavenumbers(abs(f_fft)**2)
-            # print('energy_coarse = {}'.format(energy_coarse))
-            # print('energy_global = {}'.format(energy_global))
+        # energy_coarse = self.sum_wavenumbers(abs(fc_fft)**2)
+        # energy_global = self.sum_wavenumbers(abs(f_fft)**2)
+        # print('energy_coarse = {}'.format(energy_coarse))
+        # print('energy_global = {}'.format(energy_global))
 
-            # assert energy_global == energy_coarse
+        # assert energy_global == energy_coarse
 
         return fc_fft
 
@@ -672,13 +675,13 @@ class OperatorsPseudoSpectral2D(_Operators):
                         arr[ikxloc, iky] = fc1D[ikyc]
         else:
             nKy = self.shapeK_seq[0]
-            
-            if any(arr_coarse[nKyc//2] != 0):
-                raise ValueError('any(arr_coarse[nKyc//2] != 0)')
 
-            if any(arr_coarse[:, nKxc-1] != 0):
-                raise ValueError('any(arr_coarse[:, nKxc-1] != 0)')
-            
+            if any(arr_coarse[nKyc // 2] != 0):
+                raise ValueError("any(arr_coarse[nKyc//2] != 0)")
+
+            if any(arr_coarse[:, nKxc - 1] != 0):
+                raise ValueError("any(arr_coarse[:, nKxc-1] != 0)")
+
             for ikyc in range(nKyc):
                 if ikyc <= nKyc / 2.:
                     iky = ikyc
@@ -688,10 +691,10 @@ class OperatorsPseudoSpectral2D(_Operators):
 
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
-            
-            # energy_arr = self.sum_wavenumbers(abs(arr)**2)
-            # energy_array_coarse_after = oper_coarse.sum_wavenumbers(
-            #     abs(arr_coarse)**2)
-            # print('energy_array_coarse_after  = ', energy_array_coarse_after)
-            # print('energy_arr                 = ', energy_arr)
 
+
+# energy_arr = self.sum_wavenumbers(abs(arr)**2)
+# energy_array_coarse_after = oper_coarse.sum_wavenumbers(
+#     abs(arr_coarse)**2)
+# print('energy_array_coarse_after  = ', energy_array_coarse_after)
+# print('energy_arr                 = ', energy_arr)

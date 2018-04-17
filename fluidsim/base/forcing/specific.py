@@ -205,17 +205,23 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             # The 2 * deltakx aims to give some gap between the kxmax and
             # the boundary of the oper_coarse.
             try:
-                params_coarse.oper.nx = fftw_grid_size(int(
-                    (self.kxmax_forcing + 2 * self.oper.deltakx) * (
-                        params.oper.Lx / pi)))
+                params_coarse.oper.nx = fftw_grid_size(
+                    int(
+                        (self.kxmax_forcing + 2 * self.oper.deltakx)
+                        * (params.oper.Lx / pi)
+                    )
+                )
             except AttributeError:
                 pass
             try:
                 params_coarse.oper.ny = n
                 try:
-                    params_coarse.oper.ny = fftw_grid_size(int(
-                        (self.kymax_forcing + 2 * self.oper.deltaky) * (
-                            params.oper.Ly / pi)))
+                    params_coarse.oper.ny = fftw_grid_size(
+                        int(
+                            (self.kymax_forcing + 2 * self.oper.deltaky)
+                            * (params.oper.Ly / pi)
+                        )
+                    )
                 except AttributeError:
                     pass
             except AttributeError:
@@ -269,8 +275,8 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             K = np.sqrt(self.oper_coarse.K2)
         COND_NO_F = np.logical_or(K > self.kmax_forcing, K < self.kmin_forcing)
 
-        COND_NO_F[self.oper_coarse.shapeK_loc[0]//2] = True
-        COND_NO_F[:, self.oper_coarse.shapeK_loc[1]-1] = True
+        COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
+        COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
 
         return COND_NO_F
 
@@ -294,12 +300,15 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         deltat = self.sim.time_stepping.deltat
 
         P_forcing1 = np.real(f_fft.conj() * var_fft)
-        P_forcing2 = abs(f_fft)**2
+        P_forcing2 = abs(f_fft) ** 2
         P_forcing2 = deltat / 2 * self.oper.sum_wavenumbers(P_forcing2)
         P_forcing1 = self.oper.sum_wavenumbers(P_forcing1)
         if mpi.rank == 0:
-            print('P_f = {:9.4e} ; P_1 = {:9.4e}; P_2 = {:9.4e}'.format(
-                P_forcing1 + P_forcing2, P_forcing1, P_forcing2))
+            print(
+                "P_f = {:9.4e} ; P_1 = {:9.4e}; P_2 = {:9.4e}".format(
+                    P_forcing1 + P_forcing2, P_forcing1, P_forcing2
+                )
+            )
 
     def verify_injection_rate_coarse(self, var_fft):
         """Verify injection rate."""
@@ -307,14 +316,16 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         deltat = self.sim.time_stepping.deltat
 
         P_forcing1 = np.real(f_fft.conj() * var_fft)
-        P_forcing2 = abs(f_fft)**2
+        P_forcing2 = abs(f_fft) ** 2
         P_forcing2 = deltat / 2 * self.oper_coarse.sum_wavenumbers(P_forcing2)
         P_forcing1 = self.oper_coarse.sum_wavenumbers(P_forcing1)
         if mpi.rank == 0:
-            print('P_f = {:9.4e} ; P_1 = {:9.4e}; P_2 = {:9.4e} (coarse)'.format(
-                P_forcing1 + P_forcing2, P_forcing1, P_forcing2))
+            print(
+                "P_f = {:9.4e} ; P_1 = {:9.4e}; P_2 = {:9.4e} (coarse)".format(
+                    P_forcing1 + P_forcing2, P_forcing1, P_forcing2
+                )
+            )
 
-            
 
 class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     """Forcing maker for forcing defined by the user in the launching script
@@ -465,9 +476,9 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
             kwargs = {self.key_forced: Fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
-            # print('check forcing injection')
-            # self.verify_injection_rate_coarse(a_fft)
-            
+        # print('check forcing injection')
+        # self.verify_injection_rate_coarse(a_fft)
+
         self.put_forcingc_in_forcing()
 
         # # check...
@@ -586,7 +597,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
 
         deltat = self.sim.time_stepping.deltat
 
-        a = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft)**2)
+        a = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft) ** 2)
         b = oper_c.sum_wavenumbers((vc_fft.conj() * fvc_fft).real)
         c = -self.forcing_rate
 
@@ -686,8 +697,8 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         """
         f_fft = self.oper_coarse.create_arrayK_random(min_val=self._min_val)
         # fftwpy/easypyfft returns f_fft
-        f_fft[self.oper_coarse.shapeK_loc[0]//2] = 0.
-        f_fft[:, self.oper_coarse.shapeK_loc[1]-1] = 0.
+        f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.
+        f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.
         f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         f_fft[self.COND_NO_F] = 0.
         return f_fft
@@ -707,8 +718,11 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        super(TimeCorrelatedRandomPseudoSpectral,
-              cls)._complete_params_with_default(params)
+        super(
+            TimeCorrelatedRandomPseudoSpectral, cls
+        )._complete_params_with_default(
+            params
+        )
 
         try:
             params.forcing.tcrandom
@@ -795,23 +809,28 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         super(TimeCorrelatedRandomPseudoSpectralAnisotropic, self).__init__(sim)
 
         # To plot forcing 1 mode (1k) Vs time
-        if self.params.forcing.tcrandom.time_correlation == 'based_on_forcing_rate':
-            if self.key_forced == 'rot_fft':
-                time_correlation = self.forcing_rate**(-1. / 3)
-            elif self.key_forced == 'ap_fft':
+        if (
+            self.params.forcing.tcrandom.time_correlation
+            == "based_on_forcing_rate"
+        ):
+            if self.key_forced == "rot_fft":
+                time_correlation = self.forcing_rate ** (-1. / 3)
+            elif self.key_forced == "ap_fft":
                 raise NotImplementedError
+
         else:
             time_correlation = self.params.forcing.tcrandom.time_correlation
-        
-        self.t_last_change_1k= 0.0
-        self.period_save_forcing1k = (1/4.) * time_correlation
+
+        self.t_last_change_1k = 0.0
+        self.period_save_forcing1k = (1 / 4.) * time_correlation
         self.forcing_1k = []
         self.time_1k = []
-        
+
     def compute(self):
         Fa_fft = super(
-            TimeCorrelatedRandomPseudoSpectralAnisotropic, self).compute()
-        
+            TimeCorrelatedRandomPseudoSpectralAnisotropic, self
+        ).compute()
+
         # Save forcing first mode forced
         id0, id1 = np.argwhere(self.COND_NO_F == False)[0]
         forcing_1k = Fa_fft[id0, id1].real
@@ -821,7 +840,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             self.forcing_1k.append(forcing_1k)
             self.time_1k.append(self.sim.time_stepping.t)
             self.t_last_change_1k = tsim
-        
+
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
@@ -850,14 +869,14 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         )
 
         COND_NO_F = np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
-        COND_NO_F[self.oper_coarse.shapeK_loc[0]//2] = True
-        COND_NO_F[:, self.oper_coarse.shapeK_loc[1]-1] = True
-        
+        COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
+        COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
+
         return COND_NO_F
 
     def plot_forcing_1mode_time(self):
         """Plots the forcing coherence in time."""
-        
+
     def plot_forcing_region(self):
         """Plots the forcing region"""
         pforcing = self.params.forcing
