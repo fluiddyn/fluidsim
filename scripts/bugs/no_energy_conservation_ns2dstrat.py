@@ -40,17 +40,17 @@ params.oper.coef_dealiasing = 0.66
 params.init_fields.type = 'noise'
 
 params.forcing.enable = True
-# params.forcing.type = 'tcrandom_anisotropic'
-params.forcing.type = 'tcrandom'
+params.forcing.type = 'tcrandom_anisotropic'
+# params.forcing.type = 'tcrandom'
 
 params.forcing.nkmax_forcing = 8
 params.forcing.nkmin_forcing = 4
 params.forcing.tcrandom.time_correlation = 0.5
-params.forcing.random.only_positive = False
-params.forcing.normalized.which_root = 'minabs'
+# params.forcing.random.only_positive = False
+# params.forcing.normalized.which_root = 'minabs'
 params.time_stepping.t_end = 2
-params.time_stepping.USE_CFL = False
-params.time_stepping.deltat0 = 0.005
+# params.time_stepping.USE_CFL = False
+# params.time_stepping.deltat0 = 0.005
 
 params.output.HAS_TO_SAVE = True
 params.output.periods_save.spatial_means = 1e-10

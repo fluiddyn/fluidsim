@@ -202,34 +202,31 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             params_coarse = deepcopy(params)
 
             params_coarse.oper.nx = n
-            # The 2 * deltakx aims to give some gap between the kxmax and
+            # The "+ 1" aims to give some gap between the kxmax and
             # the boundary of the oper_coarse.
             try:
-                params_coarse.oper.nx = fftw_grid_size(
-                    int(
-                        (self.kxmax_forcing + 2 * self.oper.deltakx)
-                        * (params.oper.Lx / pi)
-                    )
+                params_coarse.oper.nx = 2 * fftw_grid_size(
+                    int(self.kxmax_forcing / self.oper.deltakx) + 1
                 )
             except AttributeError:
                 pass
+
             try:
                 params_coarse.oper.ny = n
                 try:
-                    params_coarse.oper.ny = fftw_grid_size(
-                        int(
-                            (self.kymax_forcing + 2 * self.oper.deltaky)
-                            * (params.oper.Ly / pi)
-                        )
+                    params_coarse.oper.ny = 2 * fftw_grid_size(
+                        int(self.kymax_forcing / self.oper.deltaky) + 1
                     )
                 except AttributeError:
                     pass
             except AttributeError:
                 pass
+
             try:
                 params_coarse.oper.nz = n
             except AttributeError:
                 pass
+
             params_coarse.oper.type_fft = "sequential"
             # FIXME: Workaround for incorrect forcing
             params_coarse.oper.coef_dealiasing = 1.
@@ -443,7 +440,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             params.forcing.normalized
         except AttributeError:
             params.forcing._set_child(
-                "normalized", {"type": "2nd_degree_eq", "which_root": "first"}
+                "normalized", {"type": "2nd_degree_eq", "which_root": "minabs"}
             )
 
     def __init__(self, sim):
@@ -621,7 +618,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         Notes
         -----
         Set params.forcing.normalized.which_root to choose the root with:
-            
+
         - `minabs` : minimum absolute value
         - `first` : root with positive sign before discriminant
         - `second` : root with negative sign before discriminant
@@ -880,7 +877,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
     def plot_forcing_region(self):
         """Plots the forcing region"""
         pforcing = self.params.forcing
-        oper = self.oper
+        # oper = self.oper
 
         kxmin_forcing = self.kxmin_forcing
         kxmax_forcing = self.kxmax_forcing
