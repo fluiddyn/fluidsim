@@ -213,52 +213,62 @@ class OperatorsPseudoSpectral2D(_Operators):
                     iky = kynodim + nky
                 for ikxc in range(nkxc):
                     fc_fft[ikyc, ikxc] = f_fft[iky, ikxc]
+
+            # fc_fft[nkyc//2] *= 2
+
+            # energy_coarse = self.sum_wavenumbers(abs(fc_fft)**2)
+            # energy_global = self.sum_wavenumbers(abs(f_fft)**2)
+            # print('energy_coarse = {}'.format(energy_coarse))
+            # print('energy_global = {}'.format(energy_global))
+
+            # assert energy_global == energy_coarse
+
         return fc_fft
 
-    def fft_loc_from_coarse_seq(self, fc_fft, shapeK_loc_coarse):
-        """Return a large field in K space."""
-        nkyc = shapeK_loc_coarse[0]
-        nkxc = shapeK_loc_coarse[1]
+    # def fft_loc_from_coarse_seq(self, fc_fft, shapeK_loc_coarse):
+    #     """Return a large field in K space."""
+    #     nkyc = shapeK_loc_coarse[0]
+    #     nkxc = shapeK_loc_coarse[1]
 
-        if nb_proc > 1:
-            nky = self.shapeK_seq[0]
-            f_fft = self.create_arrayK(value=0.)
-            fc_trans = fc_fft.transpose()
+    #     if nb_proc > 1:
+    #         nky = self.shapeK_seq[0]
+    #         f_fft = self.create_arrayK(value=0.)
+    #         fc_trans = fc_fft.transpose()
 
-            for ikxc in range(nkxc):
-                kx = self.deltakx*ikxc
-                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
-                fc1D = fc_trans[ikxc]
-                if rank_ikx != 0:
-                    # message fc1D
-                    fc1D = np.ascontiguousarray(fc1D)
-                    if rank == 0:
-                        comm.Send(fc1D, dest=rank_ikx, tag=ikxc)
-                    elif rank == rank_ikx:
-                        comm.Recv(fc1D, source=0, tag=ikxc)
-                if rank == rank_ikx:
-                    # copy
-                    for ikyc in range(nkyc):
-                        if ikyc <= nkyc/2:
-                            iky = ikyc
-                        else:
-                            kynodim = ikyc - nkyc
-                            iky = kynodim + nky
-                        f_fft[ikxloc, iky] = fc1D[ikyc]
+    #         for ikxc in range(nkxc):
+    #             kx = self.deltakx*ikxc
+    #             rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
+    #             fc1D = fc_trans[ikxc]
+    #             if rank_ikx != 0:
+    #                 # message fc1D
+    #                 fc1D = np.ascontiguousarray(fc1D)
+    #                 if rank == 0:
+    #                     comm.Send(fc1D, dest=rank_ikx, tag=ikxc)
+    #                 elif rank == rank_ikx:
+    #                     comm.Recv(fc1D, source=0, tag=ikxc)
+    #             if rank == rank_ikx:
+    #                 # copy
+    #                 for ikyc in range(nkyc):
+    #                     if ikyc <= nkyc/2:
+    #                         iky = ikyc
+    #                     else:
+    #                         kynodim = ikyc - nkyc
+    #                         iky = kynodim + nky
+    #                     f_fft[ikxloc, iky] = fc1D[ikyc]
 
-        else:
-            nky = self.shapeK_seq[0]
-            nkx = self.shapeK_seq[1]
-            f_fft = np.zeros([nky, nkx], np.complex128)
-            for ikyc in range(nkyc):
-                if ikyc <= nkyc/2:
-                    iky = ikyc
-                else:
-                    kynodim = ikyc - nkyc
-                    iky = kynodim + nky
-                for ikxc in range(nkxc):
-                    f_fft[iky, ikxc] = fc_fft[ikyc, ikxc]
-        return f_fft
+    #     else:
+    #         nky = self.shapeK_seq[0]
+    #         nkx = self.shapeK_seq[1]
+    #         f_fft = np.zeros([nky, nkx], np.complex128)
+    #         for ikyc in range(nkyc):
+    #             if ikyc <= nkyc/2:
+    #                 iky = ikyc
+    #             else:
+    #                 kynodim = ikyc - nkyc
+    #                 iky = kynodim + nky
+    #             for ikxc in range(nkxc):
+    #                 f_fft[iky, ikxc] = fc_fft[ikyc, ikxc]
+    #     return f_fft
 
     def compute_increments_dim1(self, var, irx):
         """Compute the increments of var over the dim 1."""
@@ -644,12 +654,26 @@ class OperatorsPseudoSpectral2D(_Operators):
                         arr[ikxloc, iky] = fc1D[ikyc]
         else:
             nKy = self.shapeK_seq[0]
+            
+            if any(arr_coarse[nKyc//2] != 0):
+                raise ValueError('any(arr_coarse[nKyc//2] != 0)')
 
+            if any(arr_coarse[:, nKxc-1] != 0):
+                raise ValueError('any(arr_coarse[:, nKxc-1] != 0)')
+            
             for ikyc in range(nKyc):
                 if ikyc <= nKyc / 2.:
                     iky = ikyc
                 else:
                     kynodim = ikyc - nKyc
                     iky = kynodim + nKy
+
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
+            
+            # energy_arr = self.sum_wavenumbers(abs(arr)**2)
+            # energy_array_coarse_after = oper_coarse.sum_wavenumbers(
+            #     abs(arr_coarse)**2)
+            # print('energy_array_coarse_after  = ', energy_array_coarse_after)
+            # print('energy_arr                 = ', energy_arr)
+

@@ -54,6 +54,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             Frot_fft = self.sim.forcing.get_forcing().get_var('rot_fft')
+
             Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
 
             rot_fft = self.sim.state.state_spect.get_var('rot_fft')
@@ -78,7 +79,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = self.sum_wavenumbers(PK2_fft)
-
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
@@ -243,6 +243,33 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         return dict_results
 
+    def plot_time_variation_energy(self):
+        """
+        Checks if dE/dt = energy_injection - energy_dissipation.
+        
+        Note:
+        ----
+        params.output.periods_save.spatial_save = 1e-15
+        params.time_stepping.deltat0
+        """
+        dict_results = self.load()
+
+        t = dict_results['t']
+        E = dict_results['E']
+        # bug with the init_fields
+        E = E[1:]
+        t = t[:-1]
+
+        epsK_tot = dict_results['epsK_tot']
+        epsA_tot = dict_results['epsA_tot']
+        eps_tot = epsK_tot + epsA_tot
+        eps_tot = eps_tot[1:]
+
+        dt_E = np.zeros(shape=len(E) - 1)
+        for index in range(len(dt_E)):
+            dt_E[index] = (E[index + 1] - E[index]) / (t[index + 1] - t[index])
+
+ 
     def plot(self):
         dict_results = self.load()
 

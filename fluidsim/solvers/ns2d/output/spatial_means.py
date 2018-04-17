@@ -45,13 +45,11 @@ class SpatialMeansNS2D(SpatialMeansBase):
             rot_fft = self.sim.state.state_spect.get_var('rot_fft')
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
-            PZ1_fft = np.real(
-                rot_fft.conj()*Frot_fft +
-                rot_fft*Frot_fft.conj())/2
-            PZ2_fft = (abs(Frot_fft)**2)*deltat/2
+            PZ1_fft = np.real(rot_fft.conj()*Frot_fft)
+            PZ2_fft = (abs(Frot_fft)**2)
 
             PZ1 = self.sum_wavenumbers(PZ1_fft)
-            PZ2 = self.sum_wavenumbers(PZ2_fft)
+            PZ2 = deltat / 2 * self.sum_wavenumbers(PZ2_fft)
 
             PK1_fft = np.real(
                 ux_fft.conj()*Fx_fft +
