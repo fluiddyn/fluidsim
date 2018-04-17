@@ -19,14 +19,14 @@ class TestSolverNS2D(unittest.TestCase):
     def tearDown(self):
         # clean by removing the directory
         if mpi.rank == 0:
-            if hasattr(self, 'sim'):
+            if hasattr(self, "sim"):
                 shutil.rmtree(self.sim.output.path_run)
 
     def test_tendency(self):
 
         params = self.Simul.create_default_params()
 
-        params.short_name_type_run = 'test'
+        params.short_name_type_run = "test"
 
         nh = 32
         params.oper.nx = nh
@@ -35,55 +35,56 @@ class TestSolverNS2D(unittest.TestCase):
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2./3
+        params.oper.coef_dealiasing = 2. / 3
         params.nu_8 = 2.
 
         params.time_stepping.t_end = 0.5
 
-        params.init_fields.type = 'noise'
+        params.init_fields.type = "noise"
         params.output.HAS_TO_SAVE = False
 
         with stdout_redirected():
             self.sim = sim = self.Simul(params)
 
-        rot_fft = sim.state.get_var('rot_fft')
+        rot_fft = sim.state.get_var("rot_fft")
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
-        Frot_fft = tend.get_var('rot_fft')
+        Frot_fft = tend.get_var("rot_fft")
 
-        T_rot = np.real(Frot_fft.conj()*rot_fft)
+        T_rot = np.real(Frot_fft.conj() * rot_fft)
 
-        ratio = (sim.oper.sum_wavenumbers(T_rot) /
-                 sim.oper.sum_wavenumbers(abs(T_rot)))
+        ratio = (
+            sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(abs(T_rot))
+        )
 
         self.assertGreater(1e-15, ratio)
 
-        # print ('sum(T_rot) = {0:9.4e} ; '
-        #        'sum(abs(T_rot)) = {1:9.4e}').format(
-        #            sim.oper.sum_wavenumbers(T_rot),
-        #            sim.oper.sum_wavenumbers(abs(T_rot)))
+    # print ('sum(T_rot) = {0:9.4e} ; '
+    #        'sum(abs(T_rot)) = {1:9.4e}').format(
+    #            sim.oper.sum_wavenumbers(T_rot),
+    #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
     def test_forcing_output(self):
 
         params = self.Simul.create_default_params()
 
-        params.short_name_type_run = 'test'
+        params.short_name_type_run = "test"
 
         nh = 16
-        params.oper.nx = 2*nh
+        params.oper.nx = 2 * nh
         params.oper.ny = nh
         Lh = 6.
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2./3
+        params.oper.coef_dealiasing = 2. / 3
         params.nu_8 = 2.
 
         params.time_stepping.t_end = 0.5
 
-        params.init_fields.type = 'noise'
+        params.init_fields.type = "noise"
         params.forcing.enable = True
-        params.forcing.type = 'tcrandom'
+        params.forcing.type = "tcrandom"
 
         # save all outputs!
         periods = params.output.periods_save
@@ -104,7 +105,7 @@ class TestSolverNS2D(unittest.TestCase):
 
                 sim.output.spect_energy_budg.plot()
                 with self.assertRaises(ValueError):
-                    sim.state.get_var('test')
+                    sim.state.get_var("test")
 
                 sim2 = fls.load_sim_for_plot(sim.output.path_run)
                 sim2.output
@@ -114,9 +115,9 @@ class TestSolverNS2D(unittest.TestCase):
                 sim2.output.increments.load_pdf_from_file()
 
             # `compute('q')` two times for better coverage...
-            sim.state.get_var('q')
-            sim.state.get_var('q')
-            sim.state.get_var('div')
+            sim.state.get_var("q")
+            sim.state.get_var("q")
+            sim.state.get_var("div")
 
             path_run = sim.output.path_run
             if mpi.nb_proc > 1:
@@ -128,14 +129,19 @@ class TestSolverNS2D(unittest.TestCase):
 
             if mpi.nb_proc == 1:
                 sim3.output.phys_fields.animate(
-                    'ux', dt_frame_in_sec=1e-6, dt_equations=0.3, repeat=False,
-                    clim=(-1, 1), save_file=False, numfig=1)
-
+                    "ux",
+                    dt_frame_in_sec=1e-6,
+                    dt_equations=0.3,
+                    repeat=False,
+                    clim=(-1, 1),
+                    save_file=False,
+                    numfig=1,
+                )
 
 
 # class TestSolverNS2DFluidfft(TestSolverNS2D):
 #     Simul = Simul2
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

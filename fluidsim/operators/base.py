@@ -22,8 +22,8 @@ class OperatorsBase1D(object):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        attribs = {'nx': 48, 'Lx': 8.}
-        params._set_child('oper', attribs=attribs)
+        attribs = {"nx": 48, "Lx": 8.}
+        params._set_child("oper", attribs=attribs)
         return params
 
     def __init__(self, params=None):
@@ -49,21 +49,24 @@ class OperatorsBase1D(object):
 
     def _str_describing_oper(self):
         if (self.Lx / np.pi).is_integer():
-            str_Lx = repr(int(self.Lx / np.pi)) + 'pi'
+            str_Lx = repr(int(self.Lx / np.pi)) + "pi"
         else:
-            str_Lx = '{:.3f}'.format(self.Lx).rstrip('0')
+            str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
 
         return str_Lx
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
         str_Lx = self._str_describing_oper()
-        return ('{}_S' + str_Lx).format(self.nx)
+        return ("{}_S" + str_Lx).format(self.nx)
 
-    def produce_long_str_describing_oper(self, oper_method='Base'):
+    def produce_long_str_describing_oper(self, oper_method="Base"):
         """Produce a string describing the operator."""
         str_Lx = self._str_describing_oper()
         return (
-            '{} operator 1D,\n'.format(oper_method) +
-            'nx = {0:6d}\n'.format(self.nx) +
-            'Lx = ' + str_Lx + '\n')
+            "{} operator 1D,\n".format(oper_method)
+            + "nx = {0:6d}\n".format(self.nx)
+            + "Lx = "
+            + str_Lx
+            + "\n"
+        )

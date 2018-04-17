@@ -33,5 +33,16 @@ class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
         c2 = float(params.c2)
 
         return util_oper_pythran.qapamfft_from_uxuyetafft(
-            ux_fft, uy_fft, eta_fft, n0, n1, KX, KY, K2,
-            Kappa_over_ic, f, c2, rank)
+            ux_fft,
+            uy_fft,
+            eta_fft,
+            n0,
+            n1,
+            KX,
+            KY,
+            K2,
+            Kappa_over_ic,
+            f,
+            c2,
+            rank,
+        )

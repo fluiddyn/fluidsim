@@ -13,14 +13,14 @@ from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 
 class InitFieldsNoise(SpecificInitFields):
-    tag = 'noise'
+    tag = "noise"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         super(cls, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'velo_max': 1.,
-            'length': 0})
+        params.init_fields._set_child(
+            cls.tag, attribs={"velo_max": 1., "length": 0}
+        )
 
     def __call__(self):
         w_fft, z_fft = self.compute_wz_fft()
@@ -32,18 +32,28 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = oper.Lx/4.
+            lambda0 = oper.Lx / 4.
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2*np.pi*x/delta))/2.
+            return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
 
-        w_fft = (np.random.random(oper.shapeK) +
-                 1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
-        z_fft = (np.random.random(oper.shapeK) +
-                 1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
+        w_fft = (
+            np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
+            - 0.5
+            - 0.5j
+        )
+        z_fft = (
+            np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
+            - 0.5
+            - 0.5j
+        )
 
         if mpi.rank == 0:
             w_fft[0, 0] = 0.
@@ -51,18 +61,18 @@ class InitFieldsNoise(SpecificInitFields):
 
         oper.dealiasing(w_fft, z_fft)
 
-        k0 = 2*np.pi/lambda0
-        delta_k0 = 1.*k0
-        w_fft = w_fft*H_smooth(k0-oper.K, delta_k0)
-        z_fft = z_fft*H_smooth(k0-oper.K, delta_k0)
+        k0 = 2 * np.pi / lambda0
+        delta_k0 = 1. * k0
+        w_fft = w_fft * H_smooth(k0 - oper.K, delta_k0)
+        z_fft = z_fft * H_smooth(k0 - oper.K, delta_k0)
 
         w = oper.ifft2(w_fft)
         z = oper.ifft2(z_fft)
-        velo_max = np.sqrt(w**2+z**2).max()
+        velo_max = np.sqrt(w ** 2 + z ** 2).max()
         if mpi.nb_proc > 1:
             velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-        w = params.init_fields.noise.velo_max*w/velo_max
-        z = params.init_fields.noise.velo_max*z/velo_max
+        w = params.init_fields.noise.velo_max * w / velo_max
+        z = params.init_fields.noise.velo_max * z / velo_max
         w_fft = oper.fft2(w)
         z_fft = oper.fft2(z)
 
@@ -70,7 +80,7 @@ class InitFieldsNoise(SpecificInitFields):
 
 
 class InitFieldsHarmonic(SpecificInitFields):
-    tag = 'harmonic'
+    tag = "harmonic"
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -105,5 +115,5 @@ class InitFieldsPlate2D(InitFieldsBase):
         """Complete the ParamContainer info_solver."""
 
         InitFieldsBase._complete_info_solver(
-            info_solver,
-            classes=[InitFieldsNoise, InitFieldsHarmonic])
+            info_solver, classes=[InitFieldsNoise, InitFieldsHarmonic]
+        )

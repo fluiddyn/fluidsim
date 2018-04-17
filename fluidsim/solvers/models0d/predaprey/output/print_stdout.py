@@ -43,35 +43,42 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
         potential = self.output.compute_potential()
         if mpi.rank == 0:
             to_print += (
-                (' ' * 14) + 'X = {:9.3e} ; Y = {:+9.3e}\n' +
-                (' ' * 14) + 'potential = {:9.3e} ; Delta pot = {:+9.3e}'
-                '\n').format(float(self.sim.state.state_phys.get_var('X')),
-                             float(self.sim.state.state_phys.get_var('Y')),
-                             potential, potential-self.potential_tmp)
+                (" " * 14)
+                + "X = {:9.3e} ; Y = {:+9.3e}\n"
+                + (" " * 14)
+                + "potential = {:9.3e} ; Delta pot = {:+9.3e}"
+                "\n"
+            ).format(
+                float(self.sim.state.state_phys.get_var("X")),
+                float(self.sim.state.state_phys.get_var("Y")),
+                potential,
+                potential - self.potential_tmp,
+            )
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '              estimated remaining duration = {:9.3g} s'
-                    ''.format(duration_left))
+                    "              estimated remaining duration = {:9.3g} s"
+                    "".format(duration_left)
+                )
 
         self.potential_temp = potential
         return to_print
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
-        with open(self.output.path_run + '/stdout.txt') as file_means:
+        dict_results = {"name_solver": self.output.name_solver}
+        with open(self.output.path_run + "/stdout.txt") as file_means:
             lines = file_means.readlines()
 
         lines_t = []
         lines_P = []
         lines_X = []
         for il, line in enumerate(lines):
-            if line.startswith('it ='):
+            if line.startswith("it ="):
                 lines_t.append(line)
-            if line.startswith(' ' * 14 + 'potential ='):
+            if line.startswith(" " * 14 + "potential ="):
                 lines_P.append(line)
-            if line.startswith(' ' * 14 + 'X ='):
+            if line.startswith(" " * 14 + "X ="):
                 lines_X.append(line)
 
         nt = len(lines_t)
@@ -105,78 +112,78 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
             X[il] = float(words[2])
             Y[il] = float(words[6])
 
-        dict_results['it'] = it
-        dict_results['t'] = t
-        dict_results['deltat'] = deltat
-        dict_results['P'] = P
-        dict_results['deltaP'] = deltaP
-        dict_results['X'] = X
-        dict_results['Y'] = Y
+        dict_results["it"] = it
+        dict_results["t"] = t
+        dict_results["deltat"] = deltat
+        dict_results["P"] = P
+        dict_results["deltaP"] = deltaP
+        dict_results["X"] = X
+        dict_results["Y"] = Y
 
         return dict_results
 
     def plot_deltat(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        deltat = dict_results['deltat']
+        t = dict_results["t"]
+        deltat = dict_results["deltat"]
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax.set_xlabel('t')
-        ax.set_ylabel('deltat(t)')
+        ax.set_xlabel("t")
+        ax.set_ylabel("deltat(t)")
 
-        ax.set_title('info stdout, solver '+self.output.name_solver)
-        ax.plot(t, deltat, 'k', linewidth=2)
+        ax.set_title("info stdout, solver " + self.output.name_solver)
+        ax.plot(t, deltat, "k", linewidth=2)
 
     def plot_potential(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        P = dict_results['P']
-        deltaP = dict_results['deltaP']
+        t = dict_results["t"]
+        P = dict_results["P"]
+        deltaP = dict_results["deltaP"]
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax.set_xlabel('t')
-        ax.set_ylabel('P(t), deltaP(t)')
-        ax.plot(t, P, 'k', linewidth=2)
-        ax.plot(t, deltaP, 'b', linewidth=2)
+        ax.set_xlabel("t")
+        ax.set_ylabel("P(t), deltaP(t)")
+        ax.plot(t, P, "k", linewidth=2)
+        ax.plot(t, deltaP, "b", linewidth=2)
 
     def plot_XY_vs_time(self):
         dict_results = self.load()
-        t = dict_results['t']
-        X = dict_results['X']
-        Y = dict_results['Y']
+        t = dict_results["t"]
+        X = dict_results["X"]
+        Y = dict_results["Y"]
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax.set_xlabel('$t$')
-        ax.set_ylabel('$X$, $Y$')
+        ax.set_xlabel("$t$")
+        ax.set_ylabel("$X$, $Y$")
 
-        ax.plot(t, X, 'b', label='$X$, prey')
-        ax.plot(t, Y, 'r', label='$Y$, predator')
+        ax.plot(t, X, "b", label="$X$, prey")
+        ax.plot(t, Y, "r", label="$Y$, predator")
 
-        ax.plot(ax.get_xlim(), [self.sim.Xs] * 2, 'b--')
-        ax.plot(ax.get_xlim(), [self.sim.Ys] * 2, 'r--')
+        ax.plot(ax.get_xlim(), [self.sim.Xs] * 2, "b--")
+        ax.plot(ax.get_xlim(), [self.sim.Ys] * 2, "r--")
         ax.legend()
 
     def plot_XY(self):
         dict_results = self.load()
-        X = dict_results['X']
-        Y = dict_results['Y']
+        X = dict_results["X"]
+        Y = dict_results["Y"]
 
         size_axe = [0.12, 0.12, 0.8, 0.8]
         fig, ax = self.output.figure_axe(size_axe=size_axe)
 
-        ax.set_xlabel('$X$, prey')
-        ax.set_ylabel('$Y$, predator')
+        ax.set_xlabel("$X$, prey")
+        ax.set_ylabel("$Y$, predator")
 
-        ax.plot(X, Y, 'b')
+        ax.plot(X, Y, "b")
 
-        ax.plot(self.sim.Xs, self.sim.Ys, 'bx')
+        ax.plot(self.sim.Xs, self.sim.Ys, "bx")
 
         ax.set_xlim([0, ax.get_xlim()[1]])
         ax.set_ylim([0, ax.get_ylim()[1]])

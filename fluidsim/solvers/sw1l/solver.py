@@ -20,7 +20,8 @@ from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+)
 
 from fluiddyn.util import mpi
 
@@ -29,6 +30,7 @@ from .util_pythran import compute_Frot
 
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
     """Information about the solver SW1L."""
+
     def _init_root(self):
         """The simulation object is instantiated with classes defined in this
         function.
@@ -58,28 +60,28 @@ class InfoSolverSW1L(InfoSolverPseudoSpectral):
         """
         super(InfoSolverSW1L, self)._init_root()
 
-        package = 'fluidsim.solvers.sw1l'
+        package = "fluidsim.solvers.sw1l"
 
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'SW1L'
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "SW1L"
 
         classes = self.classes
 
-        classes.Operators.module_name = package + '.operators'
-        classes.Operators.class_name = 'OperatorsPseudoSpectralSW1L'
+        classes.Operators.module_name = package + ".operators"
+        classes.Operators.class_name = "OperatorsPseudoSpectralSW1L"
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateSW1L'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateSW1L"
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsSW1L'
+        classes.InitFields.module_name = package + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsSW1L"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'OutputSW1L'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "OutputSW1L"
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingSW1L'
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingSW1L"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -114,26 +116,26 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
 
-        attribs = {'f': 0,
-                   'c2': 20,
-                   'kd2': 0,
-                   'beta': 0}
+        attribs = {"f": 0, "c2": 20, "kd2": 0, "beta": 0}
         params._set_attribs(attribs)
 
     def __init__(self, params):
         # Parameter(s) specific to this solver
-        params.kd2 = params.f**2 / params.c2
+        params.kd2 = params.f ** 2 / params.c2
         if params.beta != 0:
             raise NotImplementedError(
-                'Do not use this solver for beta-plane! '
-                'Equations are non-periodic in this formulation.')
+                "Do not use this solver for beta-plane! "
+                "Equations are non-periodic in this formulation."
+            )
 
         super(Simul, self).__init__(params)
 
         if mpi.rank == 0:
             self.output.print_stdout(
-                'c2 = {0:6.5g} ; f = {1:6.5g} ; kd2 = {2:6.5g}'.format(
-                    params.c2, params.f, params.kd2))
+                "c2 = {0:6.5g} ; f = {1:6.5g} ; kd2 = {2:6.5g}".format(
+                    params.c2, params.f, params.kd2
+                )
+            )
 
     def tendencies_nonlin(self, state_spect=None, old=None):
         r"""Compute the nonlinear tendencies.
@@ -185,28 +187,37 @@ class Simul(SimulBasePseudoSpectral):
         else:
             state_phys = self.state.return_statephys_from_statespect(state_spect)
 
-        ux = state_phys.get_var('ux')
-        uy = state_phys.get_var('uy')
-        eta = state_phys.get_var('eta')
-        rot = state_phys.get_var('rot')
+        ux = state_phys.get_var("ux")
+        uy = state_phys.get_var("uy")
+        eta = state_phys.get_var("eta")
+        rot = state_phys.get_var("rot")
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        Fx_fft = tendencies_fft.get_var('ux_fft')
-        Fy_fft = tendencies_fft.get_var('uy_fft')
-        Feta_fft = tendencies_fft.get_var('eta_fft')
+        Fx_fft = tendencies_fft.get_var("ux_fft")
+        Fy_fft = tendencies_fft.get_var("uy_fft")
+        Feta_fft = tendencies_fft.get_var("eta_fft")
 
         compute_tendencies_nonlin_sw1l(
-            rot, ux, uy, eta,
-            Fx_fft, Fy_fft, Feta_fft,
-            self.params.f, self.params.c2,
-            oper.fft2, oper.gradfft_from_fft, oper.dealiasing,
-            oper.divfft_from_vecfft)
+            rot,
+            ux,
+            uy,
+            eta,
+            Fx_fft,
+            Fy_fft,
+            Feta_fft,
+            self.params.f,
+            self.params.c2,
+            oper.fft2,
+            oper.gradfft_from_fft,
+            oper.dealiasing,
+            oper.divfft_from_vecfft,
+        )
 
         oper.dealiasing(tendencies_fft)
 
@@ -227,19 +238,32 @@ class Simul(SimulBasePseudoSpectral):
 #     function_to_be_called_from_python_interpreter -> (
 #         complex128[][], complex128[][]))
 
+
 def compute_tendencies_nonlin_sw1l(
-        rot, ux, uy, eta, Fx_fft, Fy_fft, Feta_fft, f, c2, fft2,
-        gradfft_from_fft, dealiasing, divfft_from_vecfft):
+    rot,
+    ux,
+    uy,
+    eta,
+    Fx_fft,
+    Fy_fft,
+    Feta_fft,
+    f,
+    c2,
+    fft2,
+    gradfft_from_fft,
+    dealiasing,
+    divfft_from_vecfft,
+):
     """Compute nonlinear tendencies for the sw1l model"""
     F1x, F1y = compute_Frot(rot, ux, uy, f)
     gradx_fft, grady_fft = gradfft_from_fft(
-        fft2(c2 * eta + (ux**2 + uy ** 2) / 2.))
+        fft2(c2 * eta + (ux ** 2 + uy ** 2) / 2.)
+    )
     dealiasing(gradx_fft, grady_fft)
     Fx_fft[:] = fft2(F1x) - gradx_fft
     Fy_fft[:] = fft2(F1y) - grady_fft
 
-    Feta_fft[:] = -divfft_from_vecfft(fft2((eta + 1) * ux),
-                                      fft2((eta + 1) * uy))
+    Feta_fft[:] = -divfft_from_vecfft(fft2((eta + 1) * ux), fft2((eta + 1) * uy))
 
 
 if __name__ == "__main__":
@@ -250,7 +274,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 32
     Lh = 2 * np.pi
@@ -260,16 +284,18 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate**(1. / 3) * delta_x**8
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        1. / 3
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 1.
     # params.time_stepping.USE_CFL = False
     # params.time_stepping.deltat0 = 0.01
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.forcing.enable = True
-    params.forcing.type = 'waves'
+    params.forcing.type = "waves"
 
     params.output.periods_print.print_stdout = 0.25
 
@@ -282,12 +308,12 @@ if __name__ == "__main__":
 
     params.output.periods_plot.phys_fields = 0.
 
-    params.output.phys_fields.field_to_plot = 'eta'
+    params.output.phys_fields.field_to_plot = "eta"
 
     sim = Simul(params)
 
-    sim.output.phys_fields.plot(key_field='eta')
+    sim.output.phys_fields.plot(key_field="eta")
     sim.time_stepping.start()
-    sim.output.phys_fields.plot(key_field='eta')
+    sim.output.phys_fields.plot(key_field="eta")
 
     fld.show()

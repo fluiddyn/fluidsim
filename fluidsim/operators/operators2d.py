@@ -19,14 +19,20 @@ from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from . import util2d_pythran
 from .util2d_pythran import (
-    dealiasing_setofvar, laplacian2_fft, invlaplacian2_fft,
-    compute_increments_dim1)
+    dealiasing_setofvar,
+    laplacian2_fft,
+    invlaplacian2_fft,
+    compute_increments_dim1,
+)
 from ..base.setofvariables import SetOfVariables
 
-if not hasattr(util2d_pythran, '__pythran__'):
+if not hasattr(util2d_pythran, "__pythran__"):
     import warnings
-    warnings.warn('util2d_pythran has to be pythranized to be efficient! '
-                  'Install pythran and recompile.')
+
+    warnings.warn(
+        "util2d_pythran has to be pythranized to be efficient! "
+        "Install pythran and recompile."
+    )
 
 nb_proc = mpi.nb_proc
 rank = mpi.rank
@@ -42,9 +48,9 @@ class OperatorsPseudoSpectral2D(_Operators):
         """This static method is used to complete the *params* container.
         """
         if nb_proc > 1:
-            type_fft = 'fft2d.mpi_with_fftw1d'
+            type_fft = "fft2d.mpi_with_fftw1d"
         else:
-            type_fft = 'fft2d.with_pyfftw'
+            type_fft = "fft2d.with_pyfftw"
 
         attribs = {'type_fft': type_fft,
                    'coef_dealiasing': 2./3,
@@ -60,9 +66,13 @@ class OperatorsPseudoSpectral2D(_Operators):
         self.params = params
 
         super(OperatorsPseudoSpectral2D, self).__init__(
-            params.oper.nx, params.oper.ny, params.oper.Lx, params.oper.Ly,
+            params.oper.nx,
+            params.oper.ny,
+            params.oper.Lx,
+            params.oper.Ly,
             fft=params.oper.type_fft,
-            coef_dealiasing=params.oper.coef_dealiasing)
+            coef_dealiasing=params.oper.coef_dealiasing,
+        )
 
         self.Lx = self.lx
         self.Ly = self.ly
@@ -77,8 +87,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         if not self.is_sequential:
             self.iKxloc_start, _ = self.opfft.get_seq_indices_first_K()
-            self.iKxloc_start_rank = np.array(
-                comm.allgather(self.iKxloc_start))
+            self.iKxloc_start_rank = np.array(comm.allgather(self.iKxloc_start))
 
             nkx_loc_rank = np.array(comm.allgather(self.nkx_loc))
             a = nkx_loc_rank
@@ -87,10 +96,11 @@ class OperatorsPseudoSpectral2D(_Operators):
         try:
             # for shallow water models
             self.Kappa2 = self.K2 + self.params.kd2
-            self.Kappa_over_ic = -1.j * np.sqrt(self.Kappa2/self.params.c2)
+            self.Kappa_over_ic = -1.j * np.sqrt(self.Kappa2 / self.params.c2)
             if self.params.f != 0:
-                self.f_over_c2Kappa2 = self.params.f/(
-                    self.params.c2*self.Kappa2)
+                self.f_over_c2Kappa2 = self.params.f / (
+                    self.params.c2 * self.Kappa2
+                )
 
         except AttributeError:
             pass
@@ -109,14 +119,14 @@ class OperatorsPseudoSpectral2D(_Operators):
     def dealiasing(self, *args):
         for thing in args:
             if isinstance(thing, SetOfVariables):
-                dealiasing_setofvar(thing, self.where_dealiased,
-                                    self.nK0_loc, self.nK1_loc)
+                dealiasing_setofvar(
+                    thing, self.where_dealiased, self.nK0_loc, self.nK1_loc
+                )
             elif isinstance(thing, np.ndarray):
                 self.dealiasing_variable(thing)
 
     def dealiasing_setofvar(self, sov):
-        dealiasing_setofvar(sov, self.where_dealiased,
-                            self.nK0_loc, self.nK1_loc)
+        dealiasing_setofvar(sov, self.where_dealiased, self.nK0_loc, self.nK1_loc)
 
     def project_fft_on_realX_seq(self, f_fft):
         """Project the given field in spectral space such as its
@@ -125,10 +135,10 @@ class OperatorsPseudoSpectral2D(_Operators):
         nky_seq = self.shapeK_seq[0]
 
         iky_ky0 = 0
-        iky_kyM = nky_seq//2
+        iky_kyM = nky_seq // 2
         ikx_kx0 = 0
         # ikx_kxM = self.nkx_seq-1
-        ikx_kxM = self.shapeK_seq[1]-1
+        ikx_kxM = self.shapeK_seq[1] - 1
 
         # first, some values have to be real
         f_fft[iky_ky0, ikx_kx0] = f_fft[iky_ky0, ikx_kx0].real
@@ -143,18 +153,18 @@ class OperatorsPseudoSpectral2D(_Operators):
             f_kp_kx0 = f_fft[ikyp, ikx_kx0]
             f_kn_kx0 = f_fft[ikyn, ikx_kx0]
 
-            f_fft[ikyp, ikx_kx0] = (f_kp_kx0+f_kn_kx0.conjugate()
-                                    )/2
-            f_fft[ikyn, ikx_kx0] = ((f_kp_kx0+f_kn_kx0.conjugate()
-                                     )/2).conjugate()
+            f_fft[ikyp, ikx_kx0] = (f_kp_kx0 + f_kn_kx0.conjugate()) / 2
+            f_fft[ikyn, ikx_kx0] = (
+                (f_kp_kx0 + f_kn_kx0.conjugate()) / 2
+            ).conjugate()
 
             f_kp_kxM = f_fft[ikyp, ikx_kxM]
             f_kn_kxM = f_fft[ikyn, ikx_kxM]
 
-            f_fft[ikyp, ikx_kxM] = (f_kp_kxM+f_kn_kxM.conjugate()
-                                    )/2
-            f_fft[ikyn, ikx_kxM] = ((f_kp_kxM+f_kn_kxM.conjugate()
-                                     )/2).conjugate()
+            f_fft[ikyp, ikx_kxM] = (f_kp_kxM + f_kn_kxM.conjugate()) / 2
+            f_fft[ikyn, ikx_kxM] = (
+                (f_kp_kxM + f_kn_kxM.conjugate()) / 2
+            ).conjugate()
         return f_fft
 
     def project_fft_on_realX_slow(self, f_fft):
@@ -174,12 +184,12 @@ class OperatorsPseudoSpectral2D(_Operators):
             f1d_temp = np.empty([nkyc], np.complex128)
 
             for ikxc in range(nkxc):
-                kx = self.deltakx*ikxc
+                kx = self.deltakx * ikxc
                 rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
                 if rank == rank_ikx:
                     # create f1d_temp
                     for ikyc in range(nkyc):
-                        if ikyc <= nkyc/2:
+                        if ikyc <= nkyc / 2:
                             iky = ikyc
                         else:
                             kynodim = ikyc - nkyc
@@ -192,11 +202,13 @@ class OperatorsPseudoSpectral2D(_Operators):
                         # print('f1d_temp', f1d_temp, f1d_temp.dtype)
                         comm.Recv(
                             [f1d_temp, MPI.DOUBLE_COMPLEX],
-                            source=rank_ikx, tag=ikxc)
+                            source=rank_ikx,
+                            tag=ikxc,
+                        )
                     elif rank == rank_ikx:
                         comm.Send(
-                            [f1d_temp, MPI.DOUBLE_COMPLEX],
-                            dest=0, tag=ikxc)
+                            [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ikxc
+                        )
                 if rank == 0:
                     # copy into fc_trans
                     fc_trans[ikxc] = f1d_temp.copy()
@@ -206,7 +218,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             nky = self.shapeK_seq[0]
             fc_fft = np.empty([nkyc, nkxc], np.complex128)
             for ikyc in range(nkyc):
-                if ikyc <= nkyc/2:
+                if ikyc <= nkyc / 2:
                     iky = ikyc
                 else:
                     kynodim = ikyc - nkyc
@@ -284,7 +296,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if nb_proc > 1:
             field_max = comm.allreduce(field_max, op=MPI.MAX)
             field_min = comm.allreduce(field_min, op=MPI.MIN)
-            # field_mean = comm.allreduce(field_min, op=MPI.SUM)/nb_proc
+        # field_mean = comm.allreduce(field_min, op=MPI.SUM)/nb_proc
 
         # rms = np.sqrt(np.mean( (field-field_mean)**2 ))
         # range_min = field_mean - 20*rms
@@ -297,45 +309,53 @@ class OperatorsPseudoSpectral2D(_Operators):
         range_max = field_max
 
         if nb_proc == 1:
-            pdf, bin_edges = np.histogram(field, bins=nb_bins,
-                                          normed=True,
-                                          range=(range_min, range_max))
+            pdf, bin_edges = np.histogram(
+                field, bins=nb_bins, normed=True, range=(range_min, range_max)
+            )
         else:
-            hist, bin_edges = np.histogram(field, bins=nb_bins,
-                                           range=(range_min, range_max))
+            hist, bin_edges = np.histogram(
+                field, bins=nb_bins, range=(range_min, range_max)
+            )
             hist = comm.allreduce(hist, op=MPI.SUM)
-            pdf = hist/((bin_edges[1]-bin_edges[0])*hist.sum())
+            pdf = hist / ((bin_edges[1] - bin_edges[0]) * hist.sum())
         return pdf, bin_edges
 
     def where_is_wavenumber(self, kx_approx, ky_approx):
-        ikx_seq = int(np.round(kx_approx/self.deltakx))
+        ikx_seq = int(np.round(kx_approx / self.deltakx))
         if ikx_seq >= self.nkx_seq:
-            raise ValueError('not good :-) ikx_seq >= self.nkx_seq')
+            raise ValueError("not good :-) ikx_seq >= self.nkx_seq")
 
         if self.is_sequential:
             rank_k = 0
             ikx_loc = ikx_seq
         else:
             if self.SAME_SIZE_IN_ALL_PROC:
-                rank_k = int(np.floor(float(ikx_seq)/self.nkx_loc))
+                rank_k = int(np.floor(float(ikx_seq) / self.nkx_loc))
                 if ikx_seq >= self.nkx_loc * mpi.nb_proc:
                     raise ValueError(
-                        'not good :-) ikx_seq >= self.nkx_loc * mpi.nb_proc\n'
-                        'ikx_seq, self.nkx_loc, mpi.nb_proc = '
-                        '{}, {}, {}'.format(
-                            ikx_seq, self.nkx_loc, mpi.nb_proc))
+                        "not good :-) ikx_seq >= self.nkx_loc * mpi.nb_proc\n"
+                        "ikx_seq, self.nkx_loc, mpi.nb_proc = "
+                        "{}, {}, {}".format(ikx_seq, self.nkx_loc, mpi.nb_proc)
+                    )
+
             else:
                 rank_k = 0
-                while (rank_k < self.nb_proc-1 and
-                       (not (self.iKxloc_start_rank[rank_k] <= ikx_seq and
-                             ikx_seq < self.iKxloc_start_rank[rank_k+1]))):
+                while (
+                    rank_k < self.nb_proc - 1
+                    and (
+                        not (
+                            self.iKxloc_start_rank[rank_k] <= ikx_seq
+                            and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
+                        )
+                    )
+                ):
                     rank_k += 1
 
             ikx_loc = ikx_seq - self.iKxloc_start_rank[rank_k]
 
-        iky_loc = int(np.round(ky_approx/self.deltaky))
+        iky_loc = int(np.round(ky_approx / self.deltaky))
         if iky_loc < 0:
-            iky_loc = self.nky_loc+iky_loc
+            iky_loc = self.nky_loc + iky_loc
 
         if self.is_transposed:
             ik0_loc = ikx_loc
@@ -353,7 +373,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         return ux_fft, uy_fft
 
     def rotfft_from_psifft(self, psi_fft):
-        rot_fft = -self.K2*psi_fft
+        rot_fft = -self.K2 * psi_fft
         return rot_fft
 
     def uxuyetafft_from_qfft(self, q_fft, params=None):
@@ -362,7 +382,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         K2 = self.K2
         K2_not0 = self.K2_not0
-        rot_fft = K2*q_fft/(K2_not0+params.kd2)
+        rot_fft = K2 * q_fft / (K2_not0 + params.kd2)
         if rank == 0:
             rot_fft[0, 0] = 0.
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
@@ -370,7 +390,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
-            eta_fft = -params.f*q_fft/(K2_not0+params.kd2)/params.c2
+            eta_fft = -params.f * q_fft / (K2_not0 + params.kd2) / params.c2
         if rank == 0:
             eta_fft[0, 0] = 0.
         return ux_fft, uy_fft, eta_fft
@@ -385,12 +405,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.f == 0:
             rot_fft = self.create_arrayK(value=0)
         else:
-            rot_fft = params.f*a_fft/(K2_not0+params.kd2)
+            rot_fft = params.f * a_fft / (K2_not0 + params.kd2)
         if rank == 0:
             rot_fft[0, 0] = 0.
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
-        eta_fft = a_fft/(K2_not0+params.kd2)
+        eta_fft = a_fft / (K2_not0 + params.kd2)
         if rank == 0:
             eta_fft[0, 0] = 0.
         return ux_fft, uy_fft, eta_fft
@@ -401,7 +421,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         K2 = self.K2
         K2_not0 = self.K2_not0
-        rot_fft = K2*q_fft/(K2_not0+params.kd2)
+        rot_fft = K2 * q_fft / (K2_not0 + params.kd2)
         if rank == 0:
             rot_fft[0, 0] = 0.
         return rot_fft
@@ -415,19 +435,18 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.f == 0:
             rot_fft = self.create_arrayK(value=0)
         else:
-            rot_fft = params.f*a_fft/(K2_not0+params.kd2)
+            rot_fft = params.f * a_fft / (K2_not0 + params.kd2)
         if rank == 0:
             rot_fft[0, 0] = 0.
         return rot_fft
 
-    def afft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft,
-                             params=None):
+    def afft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
         if params is None:
             params = self.params
         rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-        a_fft = self.K2*eta_fft
+        a_fft = self.K2 * eta_fft
         if params.f != 0:
-            a_fft += params.f/params.c2*rot_fft
+            a_fft += params.f / params.c2 * rot_fft
         return a_fft
 
     def etafft_from_qfft(self, q_fft, params=None):
@@ -438,7 +457,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
-            eta_fft = -params.f/params.c2*q_fft/(K2_not0+params.kd2)
+            eta_fft = -params.f / params.c2 * q_fft / (K2_not0 + params.kd2)
         if rank == 0:
             eta_fft[0, 0] = 0.
         return eta_fft
@@ -448,7 +467,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params is None:
             params = self.params
         K2_not0 = self.K2_not0
-        eta_fft = a_fft/(K2_not0+params.kd2)
+        eta_fft = a_fft / (K2_not0 + params.kd2)
         if rank == 0:
             eta_fft[0, 0] = 0.
         return eta_fft
@@ -459,10 +478,11 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         K2_not0 = self.K2_not0
         if params.f == 0:
-            eta_fft = a_fft/K2_not0
+            eta_fft = a_fft / K2_not0
         else:
-            eta_fft = (a_fft - params.f/params.c2*q_fft)/(
-                K2_not0+params.kd2)
+            eta_fft = (a_fft - params.f / params.c2 * q_fft) / (
+                K2_not0 + params.kd2
+            )
         if rank == 0:
             eta_fft[0, 0] = 0.
         return eta_fft
@@ -472,15 +492,15 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
         div_fft = self.divfft_from_vecfft(ux_fft, uy_fft)
         rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-        q_fft = rot_fft - params.f*eta_fft
-        ageo_fft = params.f/params.c2*rot_fft + self.K2*eta_fft
+        q_fft = rot_fft - params.f * eta_fft
+        ageo_fft = params.f / params.c2 * rot_fft + self.K2 * eta_fft
         return q_fft, div_fft, ageo_fft
 
     def apamfft_from_adfft(self, a_fft, d_fft):
         """Return the eigen modes ap and am."""
         Delta_a_fft = self.Kappa_over_ic * d_fft
-        ap_fft = 0.5*(a_fft + Delta_a_fft)
-        am_fft = 0.5*(a_fft - Delta_a_fft)
+        ap_fft = 0.5 * (a_fft + Delta_a_fft)
+        am_fft = 0.5 * (a_fft - Delta_a_fft)
         return ap_fft, am_fft
 
     def divfft_from_apamfft(self, ap_fft, am_fft):
@@ -498,8 +518,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 if i0 == 0 and i1 == 0 and rank == 0:
                     d_fft[i0, i1] = 0.
                 else:
-                    d_fft[i0, i1] = (
-                        Delta_a_fft[i0, i1]/Kappa_over_ic[i0, i1])
+                    d_fft[i0, i1] = (Delta_a_fft[i0, i1] / Kappa_over_ic[i0, i1])
         return d_fft
 
     def qapamfft_from_etafft(self, eta_fft, params=None):
@@ -526,12 +545,12 @@ class OperatorsPseudoSpectral2D(_Operators):
             ff_fft = f_fft
             for i0 in range(n0):
                 for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1]*ff_fft[i0, i1]
+                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * ff_fft[i0, i1]
         else:
             fc_fft = f_fft
             for i0 in range(n0):
                 for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1]*fc_fft[i0, i1]
+                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * fc_fft[i0, i1]
 
         return px_f_fft
 
@@ -549,12 +568,12 @@ class OperatorsPseudoSpectral2D(_Operators):
             ff_fft = f_fft
             for i0 in range(n0):
                 for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*ff_fft[i0, i1]
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * ff_fft[i0, i1]
         else:
             fc_fft = f_fft
             for i0 in range(n0):
                 for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1]*fc_fft[i0, i1]
+                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * fc_fft[i0, i1]
 
         return py_f_fft
 
@@ -572,10 +591,8 @@ class OperatorsPseudoSpectral2D(_Operators):
         if rank == 0:
             a_fft[0, 0] = 0.
         div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
-        (uxa_fft, uya_fft, etaa_fft
-         ) = self.uxuyetafft_from_afft(a_fft)
-        (uxq_fft, uyq_fft, etaq_fft
-         ) = self.uxuyetafft_from_qfft(q_fft)
+        (uxa_fft, uya_fft, etaa_fft) = self.uxuyetafft_from_afft(a_fft)
+        (uxq_fft, uyq_fft, etaq_fft) = self.uxuyetafft_from_qfft(q_fft)
         uxd_fft, uyd_fft = self.vecfft_from_divfft(div_fft)
         ux_fft = uxa_fft + uxq_fft + uxd_fft
         uy_fft = uya_fft + uyq_fft + uyd_fft
@@ -591,8 +608,9 @@ class OperatorsPseudoSpectral2D(_Operators):
     def invlaplacian2_fft(self, a_fft):
         return invlaplacian2_fft(a_fft, self.K4_not0, rank)
 
-    def put_coarse_array_in_array_fft(self, arr_coarse, arr, oper_coarse,
-                                      shapeK_loc_coarse):
+    def put_coarse_array_in_array_fft(
+        self, arr_coarse, arr, oper_coarse, shapeK_loc_coarse
+    ):
         """Put the values contained in a coarse array in an array.
 
         Both arrays are in Fourier space.
@@ -609,8 +627,8 @@ class OperatorsPseudoSpectral2D(_Operators):
                 else:
                     arr2d_coarse = None
                 self.put_coarse_array_in_array_fft(
-                    arr2d_coarse, arr[ikey], oper_coarse,
-                    shapeK_loc_coarse)
+                    arr2d_coarse, arr[ikey], oper_coarse, shapeK_loc_coarse
+                )
             return
 
         nKyc, nKxc = shapeK_loc_coarse
@@ -618,6 +636,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if mpi.nb_proc > 1:
             if not self.is_transposed:
                 raise NotImplementedError()
+
             nKy = self.shapeK_seq[1]
 
             if mpi.rank == 0:
@@ -625,8 +644,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             for ikxc in range(nKxc):
                 kx = self.deltakx * ikxc
-                rank_ikx, ikxloc, ikyloc = (
-                    self.where_is_wavenumber(kx, 0.))
+                rank_ikx, ikxloc, ikyloc = (self.where_is_wavenumber(kx, 0.))
 
                 if mpi.rank == 0:
                     fc1D = fck_fft[ikxc]
@@ -638,11 +656,11 @@ class OperatorsPseudoSpectral2D(_Operators):
                     if mpi.rank == 0 or mpi.rank == rank_ikx:
                         fc1D = np.ascontiguousarray(fc1D)
                     if mpi.rank == 0:
-                        mpi.comm.Send([fc1D, mpi.MPI.COMPLEX],
-                                      dest=rank_ikx, tag=ikxc)
+                        mpi.comm.Send(
+                            [fc1D, mpi.MPI.COMPLEX], dest=rank_ikx, tag=ikxc
+                        )
                     elif mpi.rank == rank_ikx:
-                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX],
-                                      source=0, tag=ikxc)
+                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX], source=0, tag=ikxc)
                 if mpi.rank == rank_ikx:
                     # copy
                     for ikyc in range(nKyc):

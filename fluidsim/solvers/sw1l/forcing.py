@@ -17,7 +17,8 @@ from fluidsim.base.forcing.specific import (
     InScriptForcingPseudoSpectral,
     Proportional as ProportionalBase,
     TimeCorrelatedRandomPseudoSpectral as TCRandomPS,
-    RandomSimplePseudoSpectral)
+    RandomSimplePseudoSpectral,
+)
 
 
 class ForcingSW1L(ForcingBasePseudoSpectral):
@@ -26,14 +27,20 @@ class ForcingSW1L(ForcingBasePseudoSpectral):
     .. inheritance-diagram:: ForcingSW1L
 
     """
+
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.
 
         This is a static method!
         """
-        classes = [TCRandomPS, RandomSimplePseudoSpectral, Waves,
-                   WavesVortices, Potential]
+        classes = [
+            TCRandomPS,
+            RandomSimplePseudoSpectral,
+            Waves,
+            WavesVortices,
+            Potential,
+        ]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
@@ -42,11 +49,11 @@ class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
     correlation for a certain time interval.
 
     """
-    _key_forced_default = 'q_fft'
+    _key_forced_default = "q_fft"
 
 
 class Proportional(ProportionalBase):
-    _key_forced_default = 'q_fft'
+    _key_forced_default = "q_fft"
 
 
 class Waves(RandomSimplePseudoSpectral):
@@ -54,8 +61,8 @@ class Waves(RandomSimplePseudoSpectral):
     on the K.E and A.P.E thus generated. The forcing is white noise in time.
 
     """
-    tag = 'waves'
-    _key_forced_default = 'a_fft'
+    tag = "waves"
+    _key_forced_default = "a_fft"
 
     def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such that the forcing rate of
@@ -64,22 +71,17 @@ class Waves(RandomSimplePseudoSpectral):
         params = self.params
         deltat = self.sim.time_stepping.deltat
 
-        Fux_fft, Fuy_fft, Feta_fft = \
-            oper_c.uxuyetafft_from_afft(Fa_fft)
-        ux_fft, uy_fft, eta_fft = \
-            oper_c.uxuyetafft_from_afft(a_fft)
+        Fux_fft, Fuy_fft, Feta_fft = oper_c.uxuyetafft_from_afft(Fa_fft)
+        ux_fft, uy_fft, eta_fft = oper_c.uxuyetafft_from_afft(a_fft)
 
         ax = deltat / 2 * oper_c.sum_wavenumbers(abs(Fux_fft) ** 2)
         ay = deltat / 2 * oper_c.sum_wavenumbers(abs(Fuy_fft) ** 2)
         aA = params.c2 * deltat / 2 * oper_c.sum_wavenumbers(abs(Feta_fft) ** 2)
         a = ax + ay + aA
 
-        bx = oper_c.sum_wavenumbers(
-            (ux_fft.conj() * Fux_fft).real)
-        by = oper_c.sum_wavenumbers(
-            (uy_fft.conj() * Fuy_fft).real)
-        bA = params.c2 * oper_c.sum_wavenumbers(
-            (eta_fft.conj() * Feta_fft).real)
+        bx = oper_c.sum_wavenumbers((ux_fft.conj() * Fux_fft).real)
+        by = oper_c.sum_wavenumbers((uy_fft.conj() * Fuy_fft).real)
+        bA = params.c2 * oper_c.sum_wavenumbers((eta_fft.conj() * Feta_fft).real)
         b = bx + by + bA
 
         c = -self.forcing_rate
@@ -95,8 +97,8 @@ class WavesVortices(Waves):
     normalizes the forcing rate based on the K.E and A.P.E thus generated.
 
     """
-    tag = 'waves_vortices'
-    _key_forced_default = ('q_fft', 'a_fft')
+    tag = "waves_vortices"
+    _key_forced_default = ("q_fft", "a_fft")
 
     def __init__(self, sim):
         super(WavesVortices, self).__init__(sim)
@@ -106,8 +108,9 @@ class WavesVortices(Waves):
     def compute(self):
         if not isinstance(self.key_forced, (tuple, list, np.ndarray)):
             raise ValueError(
-                'Expected array-like value for params.forcing.key_forced' +
-                ' = {} : {}'.format(self.key_forced, type(self.key_forced)))
+                "Expected array-like value for params.forcing.key_forced"
+                + " = {} : {}".format(self.key_forced, type(self.key_forced))
+            )
 
         v_fft = dict()
         Fv_fft = dict()
@@ -119,10 +122,11 @@ class WavesVortices(Waves):
                 v_fft[key] = self.sim.state.get_var(key)
 
             v_fft[key] = self.oper.coarse_seq_from_fft_loc(
-                v_fft[key], self.shapeK_loc_coarse)
+                v_fft[key], self.shapeK_loc_coarse
+            )
 
             if mpi.rank == 0:
-                Fv_fft['F' + key] = self.forcingc_raw_each_time()
+                Fv_fft["F" + key] = self.forcingc_raw_each_time()
 
         if mpi.rank == 0:
             kwargs = v_fft
@@ -142,22 +146,17 @@ class WavesVortices(Waves):
         params = self.params
         deltat = self.sim.time_stepping.deltat
 
-        Fux_fft, Fuy_fft, Feta_fft = \
-            oper_c.uxuyetafft_from_qfft(Fq_fft)
-        ux_fft, uy_fft, eta_fft = \
-            oper_c.uxuyetafft_from_qfft(q_fft)
+        Fux_fft, Fuy_fft, Feta_fft = oper_c.uxuyetafft_from_qfft(Fq_fft)
+        ux_fft, uy_fft, eta_fft = oper_c.uxuyetafft_from_qfft(q_fft)
 
         ax = deltat / 2 * oper_c.sum_wavenumbers(abs(Fux_fft) ** 2)
         ay = deltat / 2 * oper_c.sum_wavenumbers(abs(Fuy_fft) ** 2)
         aA = params.c2 * deltat / 2 * oper_c.sum_wavenumbers(abs(Feta_fft) ** 2)
         a = ax + ay + aA
 
-        bx = oper_c.sum_wavenumbers(
-            (ux_fft.conj() * Fux_fft).real)
-        by = oper_c.sum_wavenumbers(
-            (uy_fft.conj() * Fuy_fft).real)
-        bA = params.c2 * oper_c.sum_wavenumbers(
-            (eta_fft.conj() * Feta_fft).real)
+        bx = oper_c.sum_wavenumbers((ux_fft.conj() * Fux_fft).real)
+        by = oper_c.sum_wavenumbers((uy_fft.conj() * Fuy_fft).real)
+        bA = params.c2 * oper_c.sum_wavenumbers((eta_fft.conj() * Feta_fft).real)
         b = bx + by + bA
 
         c = -self.forcing_rate
@@ -165,24 +164,25 @@ class WavesVortices(Waves):
         alpha = self.coef_normalization_from_abc(a, b, c)
         Fq_fft[:] = alpha * Fq_fft
 
-        Fv_fft = {'q_fft': Fq_fft,
-                  'a_fft': Fa_fft}
+        Fv_fft = {"q_fft": Fq_fft, "a_fft": Fa_fft}
 
         return Fv_fft
 
 
 class Potential(Waves):
     """Forces only in A.P.E. and normalize for the desired forcing rate."""
-    tag = 'potential'
-    _key_forced_default = 'eta_fft'
+    tag = "potential"
+    _key_forced_default = "eta_fft"
 
     def normalize_forcingc_2nd_degree_eq(self, Feta_fft, eta_fft):
         """Normalize the forcing Fa_fft such as the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
-        if 'eta_fft' not in self.key_forced:
+        if "eta_fft" not in self.key_forced:
             raise ValueError(
                 "Expected 'eta_fft' in params.forcing.key_forced = {}".format(
-                    self.key_forced))
+                    self.key_forced
+                )
+            )
 
         oper_c = self.oper_coarse
         params = self.params
@@ -190,8 +190,7 @@ class Potential(Waves):
 
         a = params.c2 * deltat / 2 * oper_c.sum_wavenumbers(abs(Feta_fft) ** 2)
 
-        b = params.c2 * oper_c.sum_wavenumbers(
-            (eta_fft.conj() * Feta_fft).real)
+        b = params.c2 * oper_c.sum_wavenumbers((eta_fft.conj() * Feta_fft).real)
 
         c = -self.forcing_rate
 

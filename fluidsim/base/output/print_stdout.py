@@ -14,11 +14,11 @@ class PrintStdOutBase(object):
     stdout and the stdout.txt file, and also to print simple info on
     the current state of the simulation."""
 
-    _tag = 'print_stdout'
+    _tag = "print_stdout"
 
     @staticmethod
     def _complete_params_with_default(params):
-        params.output.periods_print._set_attrib('print_stdout', 1.)
+        params.output.periods_print._set_attrib("print_stdout", 1.)
 
     def __init__(self, output):
         sim = output.sim
@@ -37,13 +37,13 @@ class PrintStdOutBase(object):
 
         self.period_print = params.output.periods_print.print_stdout
 
-        self.path_file = self.output.path_run + '/stdout.txt'
+        self.path_file = self.output.path_run + "/stdout.txt"
 
         if mpi.rank == 0 and self.output._has_to_save:
             if not os.path.exists(self.path_file):
-                self.file = open(self.path_file, 'w')
+                self.file = open(self.path_file, "w")
             else:
-                self.file = open(self.path_file, 'r+')
+                self.file = open(self.path_file, "r+")
                 self.file.seek(0, 2)  # go to the end of the file
 
     def complete_init_with_state(self):
@@ -53,25 +53,25 @@ class PrintStdOutBase(object):
         if self.period_print == 0:
             return
 
-        self.energy_temp = self.energy0+0.
+        self.energy_temp = self.energy0 + 0.
         self.t_last_print_info = -self.period_print
 
         self.print_stdout = self.__call__
 
-    def __call__(self, to_print, end='\n'):
+    def __call__(self, to_print, end="\n"):
         """Print in stdout and if SAVE in the file stdout.txt"""
         if mpi.rank == 0:
             print(to_print, end=end)
             sys.stdout.flush()
             if self.output._has_to_save:
-                self.file.write(to_print+end)
+                self.file.write(to_print + end)
                 self.file.flush()
                 os.fsync(self.file.fileno())
 
     def _online_print(self):
         """Print simple info on the current state of the simulation"""
         tsim = self.sim.time_stepping.t
-        if tsim-self.t_last_print_info >= self.period_print:
+        if tsim - self.t_last_print_info >= self.period_print:
             self._print_info()
             self.t_last_print_info = tsim
 
@@ -79,10 +79,11 @@ class PrintStdOutBase(object):
         self.print_stdout(self._make_str_info())
 
     def _make_str_info(self):
-        return 'it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n'.format(
+        return "it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n".format(
             self.sim.time_stepping.it,
             self.sim.time_stepping.t,
-            self.sim.time_stepping.deltat)
+            self.sim.time_stepping.deltat,
+        )
 
     def _evaluate_duration_left(self):
         """ Computes the remaining time. """
@@ -104,11 +105,11 @@ class PrintStdOutBase(object):
             remaining_simul_time = self.params.time_stepping.t_end - tsim
         else:
             remaining_simul_time = (
-                (self.params.time_stepping.it_end -
-                 self.sim.time_stepping.it) * self.sim.time_stepping.deltat)
+                (self.params.time_stepping.it_end - self.sim.time_stepping.it)
+                * self.sim.time_stepping.deltat
+            )
 
-        return (remaining_simul_time / duration_simul_time *
-                duration_real_word)
+        return (remaining_simul_time / duration_simul_time * duration_real_word)
 
     def close(self):
         try:

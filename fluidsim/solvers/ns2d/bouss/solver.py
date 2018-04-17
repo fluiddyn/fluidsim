@@ -13,40 +13,41 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.solvers.ns2d.solver import \
-    InfoSolverNS2D, Simul as SimulNS2D
+from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
 
 from .util_pythran import tendencies_nonlin_ns2dbouss
 
 
 class InfoSolverNS2DBouss(InfoSolverNS2D):
+
     def _init_root(self):
 
         super(InfoSolverNS2DBouss, self)._init_root()
 
-        package = 'fluidsim.solvers.ns2d.bouss'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'ns2d.bouss'
+        package = "fluidsim.solvers.ns2d.bouss"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "ns2d.bouss"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS2DBouss'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateNS2DBouss"
 
-        # classes.InitFields.module_name = package + '.init_fields'
-        # classes.InitFields.class_name = 'InitFieldsNS2DStrat'
 
-        # classes.Output.module_name = package + '.output'
-        # classes.Output.class_name = 'OutputStrat'
+# classes.InitFields.module_name = package + '.init_fields'
+# classes.InitFields.class_name = 'InitFieldsNS2DStrat'
 
-        # classes.Forcing.module_name = 'fluidsim.solvers.ns2d' + '.forcing'
-        # classes.Forcing.class_name = 'ForcingNS2D'
+# classes.Output.module_name = package + '.output'
+# classes.Output.class_name = 'OutputStrat'
 
-        # classes.TimeStepping.module_name = \
-        #     package + '.time_stepping'
+# classes.Forcing.module_name = 'fluidsim.solvers.ns2d' + '.forcing'
+# classes.Forcing.class_name = 'ForcingNS2D'
 
-        # classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectralStrat'
+# classes.TimeStepping.module_name = \
+#     package + '.time_stepping'
+
+# classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectralStrat'
 
 
 class Simul(SimulNS2D):
@@ -60,7 +61,7 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {'NO_SHEAR_MODES': False}
+        attribs = {"NO_SHEAR_MODES": False}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -113,17 +114,17 @@ class Simul(SimulNS2D):
             tendencies_fft = SetOfVariables(like=self.state.state_spect)
         else:
             tendencies_fft = old
-        Frot_fft = tendencies_fft.get_var('rot_fft')
-        Fb_fft = tendencies_fft.get_var('b_fft')
+        Frot_fft = tendencies_fft.get_var("rot_fft")
+        Fb_fft = tendencies_fft.get_var("b_fft")
 
         if state_spect is None:
-            rot_fft = self.state.state_spect.get_var('rot_fft')
-            b_fft = self.state.state_spect.get_var('b_fft')
-            ux = self.state.state_phys.get_var('ux')
-            uy = self.state.state_phys.get_var('uy')
+            rot_fft = self.state.state_spect.get_var("rot_fft")
+            b_fft = self.state.state_spect.get_var("b_fft")
+            ux = self.state.state_phys.get_var("ux")
+            uy = self.state.state_phys.get_var("uy")
         else:
-            rot_fft = state_spect.get_var('rot_fft')
-            b_fft = state_spect.get_var('b_fft')
+            rot_fft = state_spect.get_var("rot_fft")
+            b_fft = state_spect.get_var("b_fft")
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = self.state.field_tmp0
             uy = self.state.field_tmp1
@@ -144,8 +145,7 @@ class Simul(SimulNS2D):
         ifft_as_arg(px_b_fft, px_b)
         ifft_as_arg(py_b_fft, py_b)
 
-        Frot, Fb = tendencies_nonlin_ns2dbouss(
-            ux, uy, px_rot, py_rot, px_b, py_b)
+        Frot, Fb = tendencies_nonlin_ns2dbouss(ux, uy, px_rot, py_rot, px_b, py_b)
 
         fft_as_arg(Fb, Fb_fft)
         fft_as_arg(Frot, Frot_fft)
@@ -175,44 +175,44 @@ class Simul(SimulNS2D):
         return tendencies_fft
 
 
-    # def check_energy_conservation(self, rot_fft, b_fft, N_rot, N_b):
-    #     """ Check energy conservation for the inviscid case. """
-    #     oper = self.oper
-    #     params = self.params
+# def check_energy_conservation(self, rot_fft, b_fft, N_rot, N_b):
+#     """ Check energy conservation for the inviscid case. """
+#     oper = self.oper
+#     params = self.params
 
-    #     # Compute time derivative kinetic energy
-    #     division = 1./(oper.KX**2 + oper.KY**2)
-    #     division[np.where(division == np.inf)] = 0
+#     # Compute time derivative kinetic energy
+#     division = 1./(oper.KX**2 + oper.KY**2)
+#     division[np.where(division == np.inf)] = 0
 
-    #     pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * N_rot)
-    #     pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.
+#     pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * N_rot)
+#     pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.
 
-    #     # Compute time derivative potential energy
-    #     pt_energyA_fft = (1./(2 * params.N**2)) * np.real(b_fft.conj() * N_b)
+#     # Compute time derivative potential energy
+#     pt_energyA_fft = (1./(2 * params.N**2)) * np.real(b_fft.conj() * N_b)
 
-    #     # Time derivative total energy
-    #     pt_energy_fft = pt_energyK_fft + pt_energyA_fft
+#     # Time derivative total energy
+#     pt_energy_fft = pt_energyK_fft + pt_energyA_fft
 
-    #     # Check time derivative energy is ~ 0.
-    #     epsilon = 1e-8
-    #     pt_energy = self.output.sum_wavenumbers(pt_energy_fft)
-    #     energy_conserved = np.abs(pt_energy) < epsilon
-    #     if not energy_conserved:
-    #         print('Energy conserved = ', energy_conserved)
-    #         print('pt_energy = {}'.format(
-    #             np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
+#     # Check time derivative energy is ~ 0.
+#     epsilon = 1e-8
+#     pt_energy = self.output.sum_wavenumbers(pt_energy_fft)
+#     energy_conserved = np.abs(pt_energy) < epsilon
+#     if not energy_conserved:
+#         print('Energy conserved = ', energy_conserved)
+#         print('pt_energy = {}'.format(
+#             np.abs(self.output.sum_wavenumbers(pt_energy_fft))))
 
-    # def compute_dispersion_relation(self):
-    #     """
-    #     Computes the dispersion relation of internal gravity waves solver 
-    #     ns2d.strat.
+# def compute_dispersion_relation(self):
+#     """
+#     Computes the dispersion relation of internal gravity waves solver
+#     ns2d.strat.
 
-    #     Returns
-    #     -------
-    #     omega_dispersion_relation : arr
-    #       Frequency dispersion relation in rad.
-    #     """
-    #     return self.params.N * (self.oper.KX / self.oper.K_not0)
+#     Returns
+#     -------
+#     omega_dispersion_relation : arr
+#       Frequency dispersion relation in rad.
+#     """
+#     return self.params.N * (self.oper.KX / self.oper.K_not0)
 
 
 if __name__ == "__main__":
@@ -223,17 +223,17 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     params.oper.nx = nx = 64
-    params.oper.ny = nx//2
+    params.oper.ny = nx // 2
     params.oper.Lx = Lx = 2 * pi
-    params.oper.Ly = Lx/2
+    params.oper.Ly = Lx / 2
     params.oper.coef_dealiasing = 0.5
 
     delta_x = Lx / nx
 
-    params.nu_2 = 1.*10e-6
+    params.nu_2 = 1. * 10e-6
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
     params.time_stepping.USE_CFL = True
     params.time_stepping.USE_T_END = True
@@ -242,11 +242,11 @@ if __name__ == "__main__":
     params.time_stepping.t_end = 5.
     # params.time_stepping.it_end = 50
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.forcing.enable = True
     # params.forcing.type = 'tcrandom_anisotropic'
-    params.forcing.type = 'user_defined'
+    params.forcing.type = "user_defined"
 
     # params.forcing.nkmax_forcing = 12
     # params.forcing.nkmin_forcing = 4
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     # 'Proportional'
     # params.forcing.type_normalize
 
-    params.output.sub_directory = 'tests'
+    params.output.sub_directory = "tests"
 
     params.output.periods_print.print_stdout = 0.01
 
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = False
     params.output.increments.HAS_TO_PLOT_SAVED = False
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = "rot"
 
     sim = Simul(params)
 
@@ -283,19 +283,18 @@ if __name__ == "__main__":
 
     forcing_maker = sim.forcing.forcing_maker
     oper = forcing_maker.oper_coarse
-    forcing0 = np.cos(2*np.pi*oper.Y / oper.ly)
-    omega = 2*np.pi
+    forcing0 = np.cos(2 * np.pi * oper.Y / oper.ly)
+    omega = 2 * np.pi
 
     def compute_forcingc_each_time(self):
-        return forcing0 * np.sin(omega*sim.time_stepping.t)
+        return forcing0 * np.sin(omega * sim.time_stepping.t)
 
     forcing_maker.monkeypatch_compute_forcingc_each_time(
-        compute_forcingc_each_time)
-
+        compute_forcingc_each_time
+    )
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()
     sim.output.phys_fields.plot()
 
     fld.show()
-

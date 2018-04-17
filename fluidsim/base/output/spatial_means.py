@@ -11,7 +11,7 @@ from .base import SpecificOutput
 
 
 def inner_prod(a_fft, b_fft):
-    return np.real(a_fft.conj()*b_fft)
+    return np.real(a_fft.conj() * b_fft)
 
 
 class SpatialMeansBase(SpecificOutput):
@@ -23,16 +23,15 @@ class SpatialMeansBase(SpecificOutput):
     functions, this class does nothing.
     """
 
-    _tag = 'spatial_means'
-    _name_file = _tag + '.txt'
+    _tag = "spatial_means"
+    _name_file = _tag + ".txt"
 
     @staticmethod
     def _complete_params_with_default(params):
-        tag = 'spatial_means'
+        tag = "spatial_means"
 
         params.output.periods_save._set_attrib(tag, 0)
-        params.output._set_child(tag,
-                                 attribs={'HAS_TO_PLOT_SAVED': False})
+        params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
 
     def __init__(self, output):
         params = output.sim.params
@@ -47,7 +46,8 @@ class SpatialMeansBase(SpecificOutput):
         super(SpatialMeansBase, self).__init__(
             output,
             period_save=params.output.periods_save.spatial_means,
-            has_to_plot_saved=params.output.spatial_means.HAS_TO_PLOT_SAVED)
+            has_to_plot_saved=params.output.spatial_means.HAS_TO_PLOT_SAVED,
+        )
 
         if self.period_save != 0:
             self._save_one_time()
@@ -56,9 +56,9 @@ class SpatialMeansBase(SpecificOutput):
 
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
-                self.file = open(self.path_file, 'w')
+                self.file = open(self.path_file, "w")
             else:
-                self.file = open(self.path_file, 'r+')
+                self.file = open(self.path_file, "r+")
                 # to go to the end of the file
                 self.file.seek(0, 2)
 
@@ -67,7 +67,7 @@ class SpatialMeansBase(SpecificOutput):
 
     def __call__(self):
         """Save the values at one time. """
-        if (self.sim.time_stepping.t-self.t_last_save >= self.period_save):
+        if self.sim.time_stepping.t - self.t_last_save >= self.period_save:
             self.t_last_save = self.sim.time_stepping.t
             self._save_one_time()
 
@@ -81,23 +81,24 @@ class SpatialMeansBase(SpecificOutput):
             x_left_axe = 0.12
             z_bottom_axe = 0.55
 
-            size_axe = [x_left_axe, z_bottom_axe,
-                        width_axe, height_axe]
-            fig, axe = self.output.figure_axe(size_axe=size_axe,
-                                              numfig=3000000)
+            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3000000)
             self.axe_a = axe
-            axe.set_xlabel('$t$')
-            axe.set_ylabel('$E(t)$')
-            title = ('mean quantities, solver ' + self.output.name_solver +
-                     ', nh = {0:5d}'.format(self.nx))
+            axe.set_xlabel("$t$")
+            axe.set_ylabel("$E(t)$")
+            title = (
+                "mean quantities, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.nx)
+            )
             axe.set_title(title)
 
             z_bottom_axe = 0.08
             size_axe[1] = z_bottom_axe
             axe = fig.add_axes(size_axe)
             self.axe_b = axe
-            axe.set_xlabel('$t$')
-            axe.set_ylabel(r'$\epsilon(t)$')
+            axe.set_xlabel("$t$")
+            axe.set_ylabel(r"$\epsilon(t)$")
 
     def load(self):
         dict_results = {}
@@ -110,19 +111,17 @@ class SpatialMeansBase(SpecificOutput):
         """compute the temporal means."""
         dict_results = self.load()
         if tmax is None:
-            times = dict_results['t']
-            imax_mean = times.size-1
+            times = dict_results["t"]
+            imax_mean = times.size - 1
             tmax = times[imax_mean]
         else:
-            imax_mean = np.argmin(abs(times-tmax))
-        imin_mean = np.argmin(abs(times-tstatio))
+            imax_mean = np.argmin(abs(times - tmax))
+        imin_mean = np.argmin(abs(times - tstatio))
 
         dict_time_means = {}
         for key, value in dict_results.items():
             if isinstance(value, np.ndarray):
-                dict_time_means[key] = np.mean(
-                    value[imin_mean:imax_mean+1]
-                    )
+                dict_time_means[key] = np.mean(value[imin_mean:imax_mean + 1])
         return dict_time_means, dict_results
 
     def _close_file(self):
@@ -133,8 +132,8 @@ class SpatialMeansBase(SpecificOutput):
 
     def time_first_saved(self):
         with open(self.path_file) as file_means:
-            line = ''
-            while not line.startswith('time ='):
+            line = ""
+            while not line.startswith("time ="):
                 line = file_means.readline()
 
         words = line.split()
@@ -147,8 +146,8 @@ class SpatialMeansBase(SpecificOutput):
             nb_caract_to_read = min(nb_caract, 1000)
             file_means.seek(-nb_caract_to_read, 2)
             line = file_means.readline()
-            while line != '':
-                if line.startswith('time ='):
+            while line != "":
+                if line.startswith("time ="):
                     line_time = line
                 line = file_means.readline()
 

@@ -12,17 +12,20 @@ class StateBasilisk(StateBase):
         This is a static method!
         """
         info_solver.classes.State._set_attribs(
-            {'keys_state_phys': ['ux', 'uy', 'rot'],
-             'keys_computable': [],
-             'keys_phys_needed': ['rot']})
+            {
+                "keys_state_phys": ["ux", "uy", "rot"],
+                "keys_computable": [],
+                "keys_phys_needed": ["rot"],
+            }
+        )
 
     def compute(self, key):
 
-        if key == 'ux':
+        if key == "ux":
             scalar = self.sim.basilisk.uf.x
-        elif key == 'uy':
+        elif key == "uy":
             scalar = self.sim.basilisk.uf.y
-        elif key == 'rot':
+        elif key == "rot":
             scalar = self.sim.basilisk.omega
         else:
             raise ValueError('No method to compute key "' + key + '"')

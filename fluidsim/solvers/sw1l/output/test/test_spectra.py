@@ -6,10 +6,9 @@ from . import BaseTestCase, mpi
 
 
 class TestSpectra(BaseTestCase):
-    _tag = 'spectra'
+    _tag = "spectra"
 
-    @unittest.skipIf(mpi.nb_proc > 1,
-                     'plot function works sequentially only')
+    @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
     def test_plot_spectra(self):
         self.module.plot = self.module.plot1d
         self._plot()
@@ -19,15 +18,13 @@ class TestSpectra(BaseTestCase):
 
 
 class TestExactlin(TestSpectra):
-    solver = 'sw1l.exactlin'
+    solver = "sw1l.exactlin"
 
-    @unittest.skipIf(mpi.nb_proc > 1,
-                     'plot function works sequentially only')
+    @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
     def test_plot_spectra(self):
         self.module.plot = self.module.plot2d
         self._plot()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

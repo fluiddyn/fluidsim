@@ -48,37 +48,39 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         """
         super(InfoSolverPseudoSpectral, self)._init_root()
 
-        self.module_name = 'fluidsim.base.solvers.pseudo_spect'
-        self.class_name = 'SimulBasePseudoSpectral'
-        self.short_name = 'BasePS'
+        self.module_name = "fluidsim.base.solvers.pseudo_spect"
+        self.class_name = "SimulBasePseudoSpectral"
+        self.short_name = "BasePS"
 
-        self.classes.State.module_name = 'fluidsim.base.state'
-        self.classes.State.class_name = 'StatePseudoSpectral'
+        self.classes.State.module_name = "fluidsim.base.state"
+        self.classes.State.class_name = "StatePseudoSpectral"
 
-        self.classes.TimeStepping.module_name = \
-            'fluidsim.base.time_stepping.pseudo_spect_cy'
+        self.classes.TimeStepping.module_name = "fluidsim.base.time_stepping.pseudo_spect_cy"
 
-        self.classes.TimeStepping.class_name = 'TimeSteppingPseudoSpectral'
+        self.classes.TimeStepping.class_name = "TimeSteppingPseudoSpectral"
 
-        self.classes.Operators.module_name = 'fluidsim.operators.operators'
-        if 'FLUIDSIM_NO_FLUIDFFT' not in os.environ:
-            self.classes.Operators.module_name += '2d'
+        self.classes.Operators.module_name = "fluidsim.operators.operators"
+        if "FLUIDSIM_NO_FLUIDFFT" not in os.environ:
+            self.classes.Operators.module_name += "2d"
 
-        self.classes.Operators.class_name = 'OperatorsPseudoSpectral2D'
+        self.classes.Operators.class_name = "OperatorsPseudoSpectral2D"
 
-        self.classes.Forcing.class_name = 'ForcingBasePseudoSpectral'
+        self.classes.Forcing.class_name = "ForcingBasePseudoSpectral"
 
-        self.classes.Output.class_name = 'OutputBasePseudoSpectral'
+        self.classes.Output.class_name = "OutputBasePseudoSpectral"
 
         self.classes._set_child(
-            'Preprocess',
-            attribs={'module_name':
-                     'fluidsim.base.preprocess.pseudo_spect',
-                     'class_name': 'PreprocessPseudoSpectral'})
+            "Preprocess",
+            attribs={
+                "module_name": "fluidsim.base.preprocess.pseudo_spect",
+                "class_name": "PreprocessPseudoSpectral",
+            },
+        )
 
 
 class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
     """Contain the information on a base pseudo-spectral 3D solver."""
+
     def _init_root(self):
         """Init. `self` by writting the information on the solver.
 
@@ -91,8 +93,8 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
         super(InfoSolverPseudoSpectral3D, self)._init_root()
 
-        self.classes.Operators.module_name = 'fluidsim.operators.operators3d'
-        self.classes.Operators.class_name = 'OperatorsPseudoSpectral3D'
+        self.classes.Operators.module_name = "fluidsim.operators.operators3d"
+        self.classes.Operators.class_name = "OperatorsPseudoSpectral3D"
 
 
 class SimulBasePseudoSpectral(SimulBase):
@@ -104,9 +106,7 @@ class SimulBasePseudoSpectral(SimulBase):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
 
-        attribs = {'nu_8': 0.,
-                   'nu_4': 0.,
-                   'nu_m4': 0.}
+        attribs = {"nu_8": 0., "nu_4": 0., "nu_m4": 0.}
         params._set_attribs(attribs)
 
     def compute_freq_diss(self):
@@ -144,18 +144,18 @@ class SimulBasePseudoSpectral(SimulBase):
 
         """
         if self.params.nu_2 > 0:
-            f_d = self.params.nu_2*self.oper.K2
+            f_d = self.params.nu_2 * self.oper.K2
         else:
             f_d = np.zeros_like(self.oper.K2)
 
         if self.params.nu_4 > 0.:
-            f_d += self.params.nu_4*self.oper.K4
+            f_d += self.params.nu_4 * self.oper.K4
 
         if self.params.nu_8 > 0.:
-            f_d += self.params.nu_8*self.oper.K8
+            f_d += self.params.nu_8 * self.oper.K8
 
         if self.params.nu_m4 != 0.:
-            f_d_hypo = self.params.nu_m4 / self.oper.K2_not0**2
+            f_d_hypo = self.params.nu_m4 / self.oper.K2_not0 ** 2
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
@@ -187,6 +187,7 @@ class SimulBasePseudoSpectral(SimulBase):
         tendencies.initialize(value=0.)
         return tendencies
 
+
 Simul = SimulBasePseudoSpectral
 
 
@@ -196,21 +197,23 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 16
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        1. / 3
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 5.
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     params.output.periods_plot.phys_fields = 0.
 

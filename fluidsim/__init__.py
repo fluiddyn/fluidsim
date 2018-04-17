@@ -30,16 +30,25 @@ from fluiddyn.io import FLUIDSIM_PATH as path_dir_results
 from .util.util import (
     import_module_solver_from_key,
     import_simul_class_from_key,
-    load_sim_for_plot, load_state_phys_file,
-    modif_resolution_from_dir, modif_resolution_all_dir)
+    load_sim_for_plot,
+    load_state_phys_file,
+    modif_resolution_from_dir,
+    modif_resolution_all_dir,
+)
 
 # clean up
 from . import util
+
 del util
 
 
 __all__ = [
-    '__version__', 'path_dir_results', 'import_module_solver_from_key',
-    'import_simul_class_from_key',
-    'load_sim_for_plot', 'load_state_phys_file',
-    'modif_resolution_from_dir', 'modif_resolution_all_dir']
+    "__version__",
+    "path_dir_results",
+    "import_module_solver_from_key",
+    "import_simul_class_from_key",
+    "load_sim_for_plot",
+    "load_state_phys_file",
+    "modif_resolution_from_dir",
+    "modif_resolution_all_dir",
+]

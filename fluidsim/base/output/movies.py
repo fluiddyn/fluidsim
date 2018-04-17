@@ -43,8 +43,9 @@ class MoviesBase(object):
 
         self._set_font()
 
-    def init_animation(self, key_field, numfig, dt_equations, tmin, tmax,
-                       fig_kw, **kwargs):
+    def init_animation(
+        self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+    ):
         """Initializes animated fig. and list of times of save files to load.
         """
         self._set_key_field(key_field)
@@ -62,8 +63,9 @@ class MoviesBase(object):
             tmin = 0
 
         if tmin > tmax:
-            raise ValueError('Error tmin > tmax. '
-                             'Value tmin should be smaller than tmax')
+            raise ValueError(
+                "Error tmin > tmax. " "Value tmin should be smaller than tmax"
+            )
 
         if dt_equations is None:
             dt_equations = self.params.periods_save.phys_fields
@@ -77,16 +79,15 @@ class MoviesBase(object):
         """
         pass
 
-    def _set_font(self, family='serif', size=12):
+    def _set_font(self, family="serif", size=12):
         """Use to set font attribute. May be either an alias (generic name
         is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
         monospace, a real font name or a list of real font names.
 
         """
-        self.font = {'family': family,
-                     'color': 'black',
-                     'weight': 'normal',
-                     'size': size}
+        self.font = {
+            "family": family, "color": "black", "weight": "normal", "size": size
+        }
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
         """
@@ -97,48 +98,62 @@ class MoviesBase(object):
         field : nd array or string
         """
         raise NotImplementedError(
-            'get_field_to_plot function declaration missing.')
+            "get_field_to_plot function declaration missing."
+        )
 
-    def _init_labels(self, xlabel='x', ylabel='y'):
-        '''Initialize the labels.'''
+    def _init_labels(self, xlabel="x", ylabel="y"):
+        """Initialize the labels."""
         self.ax.set_xlabel(xlabel, fontdict=self.font)
         self.ax.set_ylabel(ylabel, fontdict=self.font)
 
     def _get_axis_data(self):
         """Replace this function to load axis data."""
-        raise NotImplementedError(
-            '_get_axis_data  function declaration missing.')
+        raise NotImplementedError("_get_axis_data  function declaration missing.")
 
     def _set_key_field(self, key_field):
         """
         Defines key_field default.
         """
         # Compute keys of the simulation.
-        keys_state_phys = self.sim.info.solver.classes.State['keys_state_phys']
-        keys_computable = self.sim.info.solver.classes.State['keys_computable']
+        keys_state_phys = self.sim.info.solver.classes.State["keys_state_phys"]
+        keys_computable = self.sim.info.solver.classes.State["keys_computable"]
 
         if key_field is None:
             field_to_plot = self.params.phys_fields.field_to_plot
-            if field_to_plot in keys_state_phys or \
-               field_to_plot in keys_computable:
+            if (
+                field_to_plot in keys_state_phys
+                or field_to_plot in keys_computable
+            ):
                 key_field = field_to_plot
             else:
                 raise ValueError(
-                    'params.output.phys_fields.field_to_plot not '
-                    'in keys_state_phys')
+                    "params.output.phys_fields.field_to_plot not "
+                    "in keys_state_phys"
+                )
+
         else:
-            if (key_field in keys_state_phys or key_field in keys_computable):
+            if key_field in keys_state_phys or key_field in keys_computable:
                 key_field = key_field
 
             else:
-                raise ValueError('key_field not in keys_state_phys')
+                raise ValueError("key_field not in keys_state_phys")
 
         self.key_field = key_field
 
     def animate(
-            self, key_field=None, dt_frame_in_sec=0.3, dt_equations=None,
-            tmin=None, tmax=None, repeat=True, save_file=False, numfig=None,
-            fargs=None, fig_kw=None, **kwargs):
+        self,
+        key_field=None,
+        dt_frame_in_sec=0.3,
+        dt_equations=None,
+        tmin=None,
+        tmax=None,
+        repeat=True,
+        save_file=False,
+        numfig=None,
+        fargs=None,
+        fig_kw=None,
+        **kwargs
+    ):
         """Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
 
@@ -208,7 +223,7 @@ class MoviesBase(object):
 
         """
         if mpi.rank > 0:
-            raise NotImplementedError('Do NOT use this function with MPI !')
+            raise NotImplementedError("Do NOT use this function with MPI !")
 
         if fargs is None:
             fargs = {}
@@ -216,13 +231,16 @@ class MoviesBase(object):
         if fig_kw is None:
             fig_kw = {}
 
-        self.init_animation(key_field, numfig, dt_equations, tmin, tmax,
-                            fig_kw, **kwargs)
+        self.init_animation(
+            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+        )
         if is_run_from_jupyter():
             try:
                 from ipywidgets import interact, widgets
+
                 slider = widgets.IntSlider(
-                    min=tmin, max=tmax, step=dt_equations, value=tmin)
+                    min=tmin, max=tmax, step=dt_equations, value=tmin
+                )
 
                 def widget_update(frame):
                     self.update_animation(frame)
@@ -230,25 +248,32 @@ class MoviesBase(object):
 
                 interact(widget_update, time=slider)
             except ImportError:
-                print('Install jupyter nbextension ipywidgets and enable it:\n'
-                      '  pip install ipywidgets\n'
-                      '  jupyter-nbextension enable --py widgetsnbextension\n'
-                      'Restart the notebook and call the function under the'
-                      'magic:\n'
-                      '  %matplotlib notebook')
+                print(
+                    "Install jupyter nbextension ipywidgets and enable it:\n"
+                    "  pip install ipywidgets\n"
+                    "  jupyter-nbextension enable --py widgetsnbextension\n"
+                    "Restart the notebook and call the function under the"
+                    "magic:\n"
+                    "  %matplotlib notebook"
+                )
         else:
             self._animation = animation.FuncAnimation(
-                self.fig, self.update_animation, len(self.ani_times),
-                fargs=fargs.items(), interval=dt_frame_in_sec * 1000,
-                blit=False, repeat=repeat)
+                self.fig,
+                self.update_animation,
+                len(self.ani_times),
+                fargs=fargs.items(),
+                interval=dt_frame_in_sec * 1000,
+                blit=False,
+                repeat=repeat
+            )
 
         if save_file:
             if not isinstance(save_file, str):
-                save_file = r'~/fluidsim_movie.mp4'
+                save_file = r"~/fluidsim_movie.mp4"
 
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
 
-    def _ani_save(self, path_file, dt_frame_in_sec, codec='ffmpeg', **kwargs):
+    def _ani_save(self, path_file, dt_frame_in_sec, codec="ffmpeg", **kwargs):
         """Saves the animation using `matplotlib.animation.writers`."""
 
         path_file = os.path.expandvars(path_file)
@@ -256,18 +281,20 @@ class MoviesBase(object):
         avail = animation.writers.avail
         if len(avail) == 0:
             raise ValueError(
-                'Please install a codec library. For e.g. ffmpeg, mencoder, '
-                'imagemagick, html')
+                "Please install a codec library. For e.g. ffmpeg, mencoder, "
+                "imagemagick, html"
+            )
+
         elif codec not in avail:
-            print(
-                'Using one of the available codecs: {}'.format(avail.keys()))
+            print("Using one of the available codecs: {}".format(avail.keys()))
             codec = list(avail.keys())[0]
 
         Writer = animation.writers[codec]
 
-        print('Saving movie to ', path_file, '...')
-        writer = Writer(fps=1. / dt_frame_in_sec,
-                        metadata=dict(artist='FluidSim'))
+        print("Saving movie to ", path_file, "...")
+        writer = Writer(
+            fps=1. / dt_frame_in_sec, metadata=dict(artist="FluidSim")
+        )
         # _animation is a FuncAnimation object
         self._animation.save(path_file, writer=writer, dpi=150)
 
@@ -275,27 +302,29 @@ class MoviesBase(object):
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
 
-    def init_animation(self, key_field, numfig, dt_equations, tmin, tmax,
-                       fig_kw, **kwargs):
+    def init_animation(
+        self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+    ):
         """Initializes animated figure."""
 
         super(MoviesBase1D, self).init_animation(
-            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs)
+            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+        )
 
         ax = self.ax
         self._ani_line, = ax.plot([], [])
 
-        if 'xmax' in kwargs:
-            ax.set_xlim(0, kwargs['xmax'])
+        if "xmax" in kwargs:
+            ax.set_xlim(0, kwargs["xmax"])
         else:
             ax.set_xlim(0, self.output.sim.oper.lx)
 
-        if 'ymax' in kwargs:
-            ax.set_ylim(1e-16, kwargs['ymax'])
+        if "ymax" in kwargs:
+            ax.set_ylim(1e-16, kwargs["ymax"])
 
     def update_animation(self, frame, **fargs):
         """Loads contour data and updates figure."""
-        print('update_animation for frame', frame, '       ', end='\r')
+        print("update_animation for frame", frame, "       ", end="\r")
         time = self.ani_times[frame]
         get_field_to_plot = self.phys_fields.get_field_to_plot
         y = get_field_to_plot(time=time, key=self.key_field)
@@ -303,10 +332,11 @@ class MoviesBase1D(MoviesBase):
 
         self._ani_line.set_data(x, y)
         self.ax.set_title(
-            self.key_field +
-            ', $t = {0:.3f}$, '.format(time) +
-            self.output.name_solver +
-            ', $n_x = {0:d}$'.format(self.output.sim.oper.nx_seq))
+            self.key_field
+            + ", $t = {0:.3f}$, ".format(time)
+            + self.output.name_solver
+            + ", $n_x = {0:d}$".format(self.output.sim.oper.nx_seq)
+        )
 
         return self._ani_line
 
@@ -343,23 +373,26 @@ class MoviesBase2D(MoviesBase):
           y-axis data.
 
         """
-        
-        if not hasattr(self, '_equation'):
+
+        if not hasattr(self, "_equation"):
             equation = None
         else:
             equation = self._equation
 
-        if equation is None or \
-           equation.startswith('iz=') or equation.startswith('z='):
+        if (
+            equation is None
+            or equation.startswith("iz=")
+            or equation.startswith("z=")
+        ):
             x = self.oper.x_seq
             y = self.oper.y_seq
-        elif equation.startswith('iy=') or equation.startswith('y='):
+        elif equation.startswith("iy=") or equation.startswith("y="):
             x = self.oper.x_seq
             y = self.oper.z_seq
-        elif equation.startswith('ix=') or equation.startswith('x='):
+        elif equation.startswith("ix=") or equation.startswith("x="):
             x = self.oper.y_seq
             y = self.oper.z_seq
         else:
             raise NotImplementedError
-            
+
         return x, y

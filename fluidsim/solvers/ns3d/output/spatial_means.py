@@ -33,48 +33,56 @@ class SpatialMeansNS3D(SpatialMeansBase):
         energy = nrj_vx + nrj_vy + nrj_vz
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
-        epsK = self.sum_wavenumbers(f_d*2*energy_fft)
-        epsK_hypo = self.sum_wavenumbers(f_d_hypo*2*energy_fft)
-    
+        epsK = self.sum_wavenumbers(f_d * 2 * energy_fft)
+        epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energy_fft)
+
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             forcing_fft = self.sim.forcing.get_forcing()
 
-            fx_fft = forcing_fft.get_var('vx_fft')
-            fy_fft = forcing_fft.get_var('vy_fft')
-            fz_fft = forcing_fft.get_var('vz_fft')
-            
-            vx_fft = self.sim.state.state_spect.get_var('vx_fft')
-            vy_fft = self.sim.state.state_spect.get_var('vy_fft')
-            vz_fft = self.sim.state.state_spect.get_var('vz_fft')
+            fx_fft = forcing_fft.get_var("vx_fft")
+            fy_fft = forcing_fft.get_var("vy_fft")
+            fz_fft = forcing_fft.get_var("vz_fft")
+
+            vx_fft = self.sim.state.state_spect.get_var("vx_fft")
+            vy_fft = self.sim.state.state_spect.get_var("vy_fft")
+            vz_fft = self.sim.state.state_spect.get_var("vz_fft")
 
             PK1_fft = np.real(
-                vx_fft.conj()*fx_fft +
-                vy_fft.conj()*fy_fft + vz_fft.conj()*fz_fft
+                vx_fft.conj()
+                * fx_fft
+                + vy_fft.conj()
+                * fy_fft
+                + vz_fft.conj()
+                * fz_fft
             )
-            PK2_fft = (abs(fx_fft)**2 + abs(fy_fft)**2 +
-                       abs(fz_fft)**2)*deltat/2
+            PK2_fft = (
+                abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2
+            ) * deltat / 2
 
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
 
-            self.file.write(
-                '####\ntime = {:7.3f}\n'.format(tsim))
+            self.file.write("####\ntime = {:7.3f}\n".format(tsim))
             to_print = (
-                'E    = {:11.6e}\n'
-                'Ex   = {:11.6e} ; Ey   = {:11.6e} ; Ez   = {:11.6e}\n'
-                'epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; '
-                'epsK_tot = {:11.6e} \n').format(
-                    energy, nrj_vx, nrj_vy, nrj_vz,
-                    epsK, epsK_hypo, epsK+epsK_hypo,)
+                "E    = {:11.6e}\n"
+                "Ex   = {:11.6e} ; Ey   = {:11.6e} ; Ez   = {:11.6e}\n"
+                "epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; "
+                "epsK_tot = {:11.6e} \n"
+            ).format(
+                energy, nrj_vx, nrj_vy, nrj_vz, epsK, epsK_hypo, epsK + epsK_hypo
+            )
             self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
                 to_print = (
-                    'PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; '
-                    'PK_tot   = {2:11.6e} \n').format(PK1, PK2, PK1+PK2)
+                    "PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; "
+                    "PK_tot   = {2:11.6e} \n"
+                ).format(
+                    PK1, PK2, PK1 + PK2
+                )
                 self.file.write(to_print)
 
             self.file.flush()
@@ -82,19 +90,19 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if self.has_to_plot and mpi.rank == 0:
 
-            self.axe_a.plot(tsim, energy, 'k.')
+            self.axe_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')
             # if self.sim.params.forcing.enable:
             #     self.axe_b.plot(tsim, PK_tot, 'm.')
 
-            if (tsim-self.t_last_show >= self.period_show):
+            if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
                 fig = self.axe_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -106,15 +114,15 @@ class SpatialMeansNS3D(SpatialMeansBase):
         lines_epsK = []
 
         for il, line in enumerate(lines):
-            if line.startswith('time ='):
+            if line.startswith("time ="):
                 lines_t.append(line)
-            if line.startswith('E    ='):
+            if line.startswith("E    ="):
                 lines_E.append(line)
-            if line.startswith('Ex   ='):
+            if line.startswith("Ex   ="):
                 lines_Ex.append(line)
-            if line.startswith('PK1  ='):
+            if line.startswith("PK1  ="):
                 lines_PK.append(line)
-            if line.startswith('epsK ='):
+            if line.startswith("epsK ="):
                 lines_epsK.append(line)
 
         nt = len(lines_t)
@@ -161,54 +169,52 @@ class SpatialMeansNS3D(SpatialMeansBase):
             epsK_hypo[il] = float(words[6])
             epsK_tot[il] = float(words[10])
 
-        dict_results['t'] = t
-        dict_results['E'] = E
+        dict_results["t"] = t
+        dict_results["E"] = E
 
-        dict_results['PK1'] = PK1
-        dict_results['PK2'] = PK2
-        dict_results['PK_tot'] = PK_tot
+        dict_results["PK1"] = PK1
+        dict_results["PK2"] = PK2
+        dict_results["PK_tot"] = PK_tot
 
-        dict_results['epsK'] = epsK
-        dict_results['epsK_hypo'] = epsK_hypo
-        dict_results['epsK_tot'] = epsK_tot
+        dict_results["epsK"] = epsK
+        dict_results["epsK_hypo"] = epsK_hypo
+        dict_results["epsK_tot"] = epsK_tot
 
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        E = dict_results['E']
-        Ex = dict_results['Ex']
-        Ey = dict_results['Ey']
-        Ez = dict_results['Ez']
+        t = dict_results["t"]
+        E = dict_results["E"]
+        Ex = dict_results["Ex"]
+        Ey = dict_results["Ey"]
+        Ez = dict_results["Ez"]
 
-        epsK = dict_results['epsK']
-        epsK_hypo = dict_results['epsK_hypo']
-        epsK_tot = dict_results['epsK_tot']
+        epsK = dict_results["epsK"]
+        epsK_hypo = dict_results["epsK_hypo"]
+        epsK_tot = dict_results["epsK_tot"]
 
         width_axe = 0.85
         height_axe = 0.39
         x_left_axe = 0.12
         z_bottom_axe = 0.55
 
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle('Energy and enstrophy')
-        ax1.set_ylabel('$E(t)$')
-        ax1.plot(t, E, 'k', linewidth=2)
-        ax1.plot(t, Ex, 'b')
-        ax1.plot(t, Ey, 'r')
-        ax1.plot(t, Ez, 'c')
+        fig.suptitle("Energy and enstrophy")
+        ax1.set_ylabel("$E(t)$")
+        ax1.plot(t, E, "k", linewidth=2)
+        ax1.plot(t, Ex, "b")
+        ax1.plot(t, Ey, "r")
+        ax1.plot(t, Ez, "c")
 
         z_bottom_axe = 0.54
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle('Dissipation of energy and enstrophy')
-        ax1.set_ylabel(r'$\epsilon_K(t)$')
+        fig.suptitle("Dissipation of energy and enstrophy")
+        ax1.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax1.plot(t, epsK, 'r', linewidth=2)
-        ax1.plot(t, epsK_hypo, 'g', linewidth=2)
-        ax1.plot(t, epsK_tot, 'k', linewidth=2)
-
+        ax1.plot(t, epsK, "r", linewidth=2)
+        ax1.plot(t, epsK_hypo, "g", linewidth=2)
+        ax1.plot(t, epsK_tot, "k", linewidth=2)

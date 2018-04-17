@@ -22,28 +22,30 @@ from ..solver import InfoSolverNS3D, Simul as SimulNS3D
 
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
+
     def _init_root(self):
 
         super(InfoSolverNS3DStrat, self)._init_root()
 
-        package = 'fluidsim.solvers.ns3d.strat'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'ns3d.strat'
+        package = "fluidsim.solvers.ns3d.strat"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "ns3d.strat"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS3DStrat'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateNS3DStrat"
 
         # classes.InitFields.module_name = package + '.init_fields'
         # classes.InitFields.class_name = 'InitFieldsNS3D'
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
-        # classes.Forcing.module_name = package + '.forcing'
-        # classes.Forcing.class_name = 'ForcingNS3D'
+
+# classes.Forcing.module_name = package + '.forcing'
+# classes.Forcing.class_name = 'ForcingNS3D'
 
 
 class Simul(SimulNS3D):
@@ -101,7 +103,7 @@ class Simul(SimulNS3D):
         """This static method is used to complete the *params* container.
         """
         SimulNS3D._complete_params_with_default(params)
-        attribs = {'N': 1., 'NO_SHEAR_MODES': False}
+        attribs = {"N": 1., "NO_SHEAR_MODES": False}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -115,13 +117,14 @@ class Simul(SimulNS3D):
         else:
             spect_get_var = state_spect.get_var
 
-        vx_fft = spect_get_var('vx_fft')
-        vy_fft = spect_get_var('vy_fft')
-        vz_fft = spect_get_var('vz_fft')
-        b_fft = spect_get_var('b_fft')
-        
+        vx_fft = spect_get_var("vx_fft")
+        vy_fft = spect_get_var("vy_fft")
+        vz_fft = spect_get_var("vz_fft")
+        b_fft = spect_get_var("b_fft")
+
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
-            vx_fft, vy_fft, vz_fft)
+            vx_fft, vy_fft, vz_fft
+        )
 
         if self.params.f is not None:
             self._modif_omegafft_with_f(omegax_fft, omegay_fft, omegaz_fft)
@@ -135,9 +138,9 @@ class Simul(SimulNS3D):
         ifft_as_arg_destroy(omegaz_fft, omegaz)
 
         if state_spect is None:
-            vx = self.state.state_phys.get_var('vx')
-            vy = self.state.state_phys.get_var('vy')
-            vz = self.state.state_phys.get_var('vz')
+            vx = self.state.state_phys.get_var("vx")
+            vy = self.state.state_phys.get_var("vy")
+            vz = self.state.state_phys.get_var("vz")
         else:
             vx = self.state.fields_tmp[0]
             vy = self.state.fields_tmp[1]
@@ -145,19 +148,19 @@ class Simul(SimulNS3D):
             ifft_as_arg(vx_fft, vx)
             ifft_as_arg(vy_fft, vy)
             ifft_as_arg(vz_fft, vz)
-            
+
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        fx_fft = tendencies_fft.get_var('vx_fft')
-        fy_fft = tendencies_fft.get_var('vy_fft')
-        fz_fft = tendencies_fft.get_var('vz_fft')
+        fx_fft = tendencies_fft.get_var("vx_fft")
+        fy_fft = tendencies_fft.get_var("vy_fft")
+        fz_fft = tendencies_fft.get_var("vz_fft")
 
         fft_as_arg(fx, fx_fft)
         fft_as_arg(fy, fy_fft)
@@ -168,15 +171,16 @@ class Simul(SimulNS3D):
         oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
 
         if state_spect is None:
-            b = self.state.state_phys.get_var('b')
+            b = self.state.state_phys.get_var("b")
         else:
             b = self.state.fields_tmp[3]
             ifft_as_arg(b_fft, b)
 
-        fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, b) - \
-                 self.params.N**2 * vz_fft
+        fb_fft = -oper.div_vb_fft_from_vb(
+            vx, vy, vz, b
+        ) - self.params.N ** 2 * vz_fft
 
-        tendencies_fft.set_var('b_fft', fb_fft)
+        tendencies_fft.set_var("b_fft", fb_fft)
 
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
@@ -192,29 +196,29 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     n = 16
-    L = 2*np.pi
+    L = 2 * np.pi
     params.oper.nx = n
     params.oper.ny = n
     params.oper.nz = n
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L
-    params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+    params.oper.type_fft = "fluidfft.fft3d.mpi_with_fftwmpi3d"
     # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     delta_x = params.oper.Lx / params.oper.nx
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_8 = 2.*10e-1*delta_x**8
+    params.nu_8 = 2. * 10e-1 * delta_x ** 8
 
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 6.
     params.time_stepping.it_end = 2
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
     params.init_fields.noise.velo_max = 1.
     params.init_fields.noise.length = 1.
 

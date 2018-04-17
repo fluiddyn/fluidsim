@@ -30,30 +30,34 @@ class StatePredaPrey(StateBase):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
-        info_solver.classes.State._set_attribs({
-            'keys_state_phys': ['X', 'Y'],
-            'keys_computable': [],
-            'keys_phys_needed': ['X', 'Y'],
-            'keys_linear_eigenmodes': ['X', 'Y']})
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_phys": ["X", "Y"],
+                "keys_computable": [],
+                "keys_phys_needed": ["X", "Y"],
+                "keys_linear_eigenmodes": ["X", "Y"],
+            }
+        )
 
 
 class InfoSolverPredaPrey(InfoSolverBase):
     """Contain the information on the solver predaprey."""
+
     def _init_root(self):
         super(InfoSolverPredaPrey, self)._init_root()
 
-        package = 'fluidsim.solvers.models0d.predaprey'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'predaprey'
+        package = "fluidsim.solvers.models0d.predaprey"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "predaprey"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.solver'
-        classes.State.class_name = 'StatePredaPrey'
+        classes.State.module_name = package + ".solver"
+        classes.State.class_name = "StatePredaPrey"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
 
 class Simul(SimulBase):
@@ -66,14 +70,14 @@ class Simul(SimulBase):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
-        attribs = {'A': 1., 'B': 1., 'C': 1., 'D': 0.5}
+        attribs = {"A": 1., "B": 1., "C": 1., "D": 0.5}
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):
         super(Simul, self).__init__(*args, **kargs)
         p = self.params
-        self.Xs = p.C/p.D
-        self.Ys = p.A/p.B
+        self.Xs = p.C / p.D
+        self.Ys = p.A / p.B
 
     def tendencies_nonlin(self, state=None, old=None):
         r"""Compute the nonlinear tendencies.
@@ -113,15 +117,15 @@ class Simul(SimulBase):
         if state is None:
             state = self.state.state_phys
 
-        X = state.get_var('X')
-        Y = state.get_var('Y')
+        X = state.get_var("X")
+        Y = state.get_var("Y")
 
         if old is None:
             tendencies = SetOfVariables(like=self.state.state_phys)
         else:
             tendencies = old
-        tendencies.set_var('X', p.A*X - p.B*X*Y)
-        tendencies.set_var('Y', -p.C*Y + p.D*X*Y)
+        tendencies.set_var("X", p.A * X - p.B * X * Y)
+        tendencies.set_var("Y", -p.C * Y + p.D * X * Y)
 
         if self.params.forcing.enable:
             tendencies += self.forcing.get_forcing()
@@ -141,8 +145,8 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    sim.state.state_phys.set_var('X', 2)
-    sim.state.state_phys.set_var('Y', 1.1)
+    sim.state.state_phys.set_var("X", 2)
+    sim.state.state_phys.set_var("Y", 1.1)
 
     # sim.output.phys_fields.plot()
     sim.time_stepping.start()

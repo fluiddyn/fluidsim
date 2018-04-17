@@ -8,21 +8,22 @@ from fluiddyn.io import stdout_redirected
 
 
 class TestPreprocessPS(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         """Should be able to run a base experiment."""
         cls.params = params = SimulBasePseudoSpectral.create_default_params()
-        params.short_name_type_run = 'test_preprocess_ps'
+        params.short_name_type_run = "test_preprocess_ps"
         nh = 16
         Lh = 2 * np.pi
         params.oper.nx = nh
         params.oper.ny = nh
         params.oper.Lx = Lh
         params.oper.Ly = Lh
-        params.init_fields.type = 'constant'
+        params.init_fields.type = "constant"
         params.preprocess.enable = True
-        params.preprocess.viscosity_type = 'laplacian'
-        params.preprocess.viscosity_scale = 'energy'
+        params.preprocess.viscosity_type = "laplacian"
+        params.preprocess.viscosity_scale = "energy"
 
         with stdout_redirected(), SimulBasePseudoSpectral(params) as sim:
             cls.sim = sim
@@ -41,5 +42,5 @@ class TestPreprocessPS(unittest.TestCase):
         assert np.any(sim.time_stepping.freq_lin > 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

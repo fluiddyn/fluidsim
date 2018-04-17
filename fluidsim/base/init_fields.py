@@ -43,13 +43,17 @@ class InitFieldsBase(object):
           default one (for example with the tag 'noise').
 
         """
-        info_solver.classes.InitFields._set_child('classes')
+        info_solver.classes.InitFields._set_child("classes")
 
         classesXML = info_solver.classes.InitFields.classes
 
-        classes_used = [InitFieldsFromFile, InitFieldsFromSimul,
-                        InitFieldsInScript, InitFieldsConstant,
-                        InitFieldsNoise]
+        classes_used = [
+            InitFieldsFromFile,
+            InitFieldsFromSimul,
+            InitFieldsInScript,
+            InitFieldsConstant,
+            InitFieldsNoise,
+        ]
 
         classes_used = {cls.tag: cls for cls in classes_used}
 
@@ -60,29 +64,30 @@ class InitFieldsBase(object):
         for tag, cls in classes_used.items():
             classesXML._set_child(
                 tag,
-                attribs={'module_name': cls.__module__,
-                         'class_name': cls.__name__})
+                attribs={
+                    "module_name": cls.__module__, "class_name": cls.__name__
+                },
+            )
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container.
         """
-        params._set_child('init_fields', attribs={
-            'type': 'constant',
-            'available_types': []})
+        params._set_child(
+            "init_fields", attribs={"type": "constant", "available_types": []}
+        )
 
         dict_classes = info_solver.classes.InitFields.import_classes()
 
         for Class in list(dict_classes.values()):
-            if hasattr(Class, '_complete_params_with_default'):
+            if hasattr(Class, "_complete_params_with_default"):
                 try:
                     Class._complete_params_with_default(params)
                 except TypeError:
                     try:
-                        Class._complete_params_with_default(
-                            params, info_solver)
+                        Class._complete_params_with_default(params, info_solver)
                     except TypeError as e:
-                        e.args += ('for class: ' + repr(Class),)
+                        e.args += ("for class: " + repr(Class),)
                         raise
 
     def __init__(self, sim):
@@ -96,8 +101,9 @@ class InitFieldsBase(object):
 
         type_init = params.init_fields.type
         if type_init not in params.init_fields.available_types:
-            raise ValueError(type_init +
-                             ' is not an available flow initialization.')
+            raise ValueError(
+                type_init + " is not an available flow initialization."
+            )
 
         dict_classes = sim.info.solver.classes.InitFields.import_classes()
         Class = dict_classes[type_init]
@@ -109,7 +115,7 @@ class InitFieldsBase(object):
 
 
 class SpecificInitFields(object):
-    tag = 'specific'
+    tag = "specific"
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -121,12 +127,12 @@ class SpecificInitFields(object):
 
 class InitFieldsFromFile(SpecificInitFields):
 
-    tag = 'from_file'
+    tag = "from_file"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsFromFile, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={'path': ''})
+        params.init_fields._set_child(cls.tag, attribs={"path": ""})
 
     def __call__(self):
 
@@ -139,30 +145,32 @@ class InitFieldsFromFile(SpecificInitFields):
 
         if mpi.rank == 0:
             try:
-                f = h5py.File(path_file, 'r')
+                f = h5py.File(path_file, "r")
             except:
-                raise ValueError(
-                    'Is file ' + path_file + ' really a hd5 file?')
+                raise ValueError("Is file " + path_file + " really a hd5 file?")
 
-            print('Load state from file:\n[...]' + path_file[-75:])
+            print("Load state from file:\n[...]" + path_file[-75:])
 
             try:
-                group_oper = f['/info_simul/params/oper']
+                group_oper = f["/info_simul/params/oper"]
             except:
                 raise ValueError(
-                    'The file ' + path_file +
-                    ' does not contain a params object')
+                    "The file " + path_file + " does not contain a params object"
+                )
 
             try:
-                group_state_phys = f['/state_phys']
+                group_state_phys = f["/state_phys"]
             except:
-                raise ValueError('The file ' + path_file +
-                                 ' does not contain a state_phys object')
+                raise ValueError(
+                    "The file "
+                    + path_file
+                    + " does not contain a state_phys object"
+                )
 
-            nx_file = group_oper.attrs['nx']
-            ny_file = group_oper.attrs['ny']
-            Lx_file = group_oper.attrs['Lx']
-            Ly_file = group_oper.attrs['Ly']
+            nx_file = group_oper.attrs["nx"]
+            ny_file = group_oper.attrs["ny"]
+            Lx_file = group_oper.attrs["Lx"]
+            Ly_file = group_oper.attrs["Ly"]
 
             if isinstance(nx_file, list):
                 nx_file = nx_file.item()
@@ -172,23 +180,27 @@ class InitFieldsFromFile(SpecificInitFields):
 
             if params.oper.nx != nx_file:
                 raise ValueError(
-                    'this is not a correct state for this simulation\n'
-                    'self.nx != params_file.nx')
+                    "this is not a correct state for this simulation\n"
+                    "self.nx != params_file.nx"
+                )
 
             if params.oper.ny != ny_file:
                 raise ValueError(
-                    'this is not a correct state for this simulation\n'
-                    'self.ny != params_file.ny')
+                    "this is not a correct state for this simulation\n"
+                    "self.ny != params_file.ny"
+                )
 
             if params.oper.Lx != Lx_file:
                 raise ValueError(
-                    'this is not a correct state for this simulation\n'
-                    'self.params.oper.Lx != params_file.Lx')
+                    "this is not a correct state for this simulation\n"
+                    "self.params.oper.Lx != params_file.Lx"
+                )
 
             if params.oper.Ly != Ly_file:
                 raise ValueError(
-                    'this is not a correct state for this simulation\n'
-                    'self.params.oper.Ly != params_file.Ly')
+                    "this is not a correct state for this simulation\n"
+                    "self.params.oper.Ly != params_file.Ly"
+                )
 
             keys_state_phys_file = list(group_state_phys.keys())
         else:
@@ -212,9 +224,9 @@ class InitFieldsFromFile(SpecificInitFields):
             else:
                 state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.))
         if mpi.rank == 0:
-            time = group_state_phys.attrs['time']
+            time = group_state_phys.attrs["time"]
             try:
-                it = group_state_phys.attrs['it']
+                it = group_state_phys.attrs["it"]
             except KeyError:
                 # compatibility with older versions
                 it = 0
@@ -235,7 +247,7 @@ class InitFieldsFromFile(SpecificInitFields):
 
 class InitFieldsFromSimul(SpecificInitFields):
 
-    tag = 'from_simul'
+    tag = "from_simul"
 
     def __call__(self):
         self.sim.init_fields.get_state_from_simul = self._get_state_from_simul
@@ -247,24 +259,28 @@ class InitFieldsFromSimul(SpecificInitFields):
         # It should be done directly in the operators.
 
         if mpi.nb_proc > 1:
-            raise ValueError('BE CARREFUL, THIS WILL BE WRONG !'
-                             '  DO NOT USE THIS METHOD WITH MPI')
+            raise ValueError(
+                "BE CARREFUL, THIS WILL BE WRONG !"
+                "  DO NOT USE THIS METHOD WITH MPI"
+            )
 
         self.sim.time_stepping.t = sim_in.time_stepping.t
 
-        if (self.params.oper.nx == sim_in.params.oper.nx and
-                self.params.oper.ny == sim_in.params.oper.ny):
+        if (
+            self.params.oper.nx == sim_in.params.oper.nx
+            and self.params.oper.ny == sim_in.params.oper.ny
+        ):
             state_spect = deepcopy(sim_in.state.state_spect)
         else:
             # modify resolution
             # state_spect = SetOfVariables('state_spect')
             state_spect = SetOfVariables(like=self.sim.state.state_spect)
             keys_state_spect = sim_in.info.solver.classes.State[
-                'keys_state_spect']
+                "keys_state_spect"
+            ]
             for k in keys_state_spect:
                 field_fft_seq_in = sim_in.state.state_spect[k]
-                field_fft_seq_new_res = \
-                    self.sim.oper.create_arrayK(value=0.)
+                field_fft_seq_new_res = self.sim.oper.create_arrayK(value=0.)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape
                 [nk0_seq_in, nk1_seq_in] = field_fft_seq_in.shape
 
@@ -274,14 +290,17 @@ class InitFieldsFromSimul(SpecificInitFields):
                 # it is a little bit complicate to take into account ky
                 for ik1 in range(nk1_min):
                     field_fft_seq_new_res[0, ik1] = field_fft_seq_in[0, ik1]
-                    field_fft_seq_new_res[nk0_min//2, ik1] = \
-                        field_fft_seq_in[nk0_min//2, ik1]
-                for ik0 in range(1, nk0_min//2):
+                    field_fft_seq_new_res[nk0_min // 2, ik1] = field_fft_seq_in[
+                        nk0_min // 2, ik1
+                    ]
+                for ik0 in range(1, nk0_min // 2):
                     for ik1 in range(nk1_min):
-                        field_fft_seq_new_res[ik0, ik1] = \
-                            field_fft_seq_in[ik0, ik1]
-                        field_fft_seq_new_res[-ik0, ik1] = \
-                            field_fft_seq_in[-ik0, ik1]
+                        field_fft_seq_new_res[ik0, ik1] = field_fft_seq_in[
+                            ik0, ik1
+                        ]
+                        field_fft_seq_new_res[-ik0, ik1] = field_fft_seq_in[
+                            -ik0, ik1
+                        ]
 
                 state_spect[k] = field_fft_seq_new_res
 
@@ -289,61 +308,64 @@ class InitFieldsFromSimul(SpecificInitFields):
             self.sim.state.state_spect = state_spect
         else:  # complicated case... untested solution !
             # state_spect = SetOfVariables('state_spect')
-            raise ValueError('Not yet implemented...')
-            for k in self.sim.info.solver.classes.State['keys_state_spect']:
-                if k in sim_in.info.solver.classes.State['keys_state_spect']:
+            raise ValueError("Not yet implemented...")
+
+            for k in self.sim.info.solver.classes.State["keys_state_spect"]:
+                if k in sim_in.info.solver.classes.State["keys_state_spect"]:
                     self.sim.state.state_spect[k] = state_spect[k]
                 else:
-                    self.sim.state.state_spect[k] = \
-                        self.oper.create_arrayK(value=0.)
+                    self.sim.state.state_spect[k] = self.oper.create_arrayK(
+                        value=0.
+                    )
 
         self.sim.state.statephys_from_statespect()
 
 
 class InitFieldsInScript(SpecificInitFields):
 
-    tag = 'in_script'
+    tag = "in_script"
 
     def __call__(self):
         self.sim.state.is_initialized = False
         self.sim.output.print_stdout(
-            'Manual initialization of the fields is selected. '
-            'Do not forget to initialize them.')
+            "Manual initialization of the fields is selected. "
+            "Do not forget to initialize them."
+        )
 
 
 class InitFieldsConstant(SpecificInitFields):
 
-    tag = 'constant'
+    tag = "constant"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsConstant, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={'value': 1.})
+        params.init_fields._set_child(cls.tag, attribs={"value": 1.})
 
     def __call__(self):
         value = self.sim.params.init_fields.constant.value
         self.sim.state.state_phys.initialize(value)
 
-        if hasattr(self.sim.state, 'statespect_from_statephys'):
+        if hasattr(self.sim.state, "statespect_from_statephys"):
             self.sim.state.statespect_from_statephys()
 
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
-    tag = 'noise'
+    tag = "noise"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'max': 1.})
+        params.init_fields._set_child(cls.tag, attribs={"max": 1.})
 
     def __call__(self):
         state_phys = self.sim.state.state_phys
-        state_phys[...] = self.sim.params.init_fields.noise.max/0.5*(
-            np.random.rand(*state_phys.shape) - 0.5)
+        state_phys[...] = self.sim.params.init_fields.noise.max / 0.5 * (
+            np.random.rand(*state_phys.shape) - 0.5
+        )
 
-        if hasattr(self.sim.state, 'statespect_from_statephys'):
+        if hasattr(self.sim.state, "statespect_from_statephys"):
             self.sim.state.statespect_from_statephys()
             self.sim.state.statephys_from_statespect()

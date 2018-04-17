@@ -38,7 +38,7 @@ class NormalModeBase(object):
         if f == 0:
             self.sigma = ck
         else:
-            self.sigma = np.sqrt(f**2 + (ck)**2)
+            self.sigma = np.sqrt(f ** 2 + (ck) ** 2)
 
         self.bvec_fft = None
         self.it_bvec_fft_computed = -1
@@ -46,17 +46,16 @@ class NormalModeBase(object):
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
             get_var = self.sim.state.get_var
-            if {'ap_fft', 'am_fft'}.issubset(self.sim.state.keys_state_spect):
-                q_fft = get_var('q_fft')
-                ap_fft = get_var('ap_fft')
-                am_fft = get_var('am_fft')
+            if {"ap_fft", "am_fft"}.issubset(self.sim.state.keys_state_spect):
+                q_fft = get_var("q_fft")
+                ap_fft = get_var("ap_fft")
+                am_fft = get_var("am_fft")
                 bvec_fft = self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
             else:
-                ux_fft = get_var('ux_fft')
-                uy_fft = get_var('uy_fft')
-                eta_fft = get_var('eta_fft')
-                bvec_fft = self.bvecfft_from_uxuyetafft(
-                    ux_fft, uy_fft, eta_fft)
+                ux_fft = get_var("ux_fft")
+                uy_fft = get_var("uy_fft")
+                eta_fft = get_var("eta_fft")
+                bvec_fft = self.bvecfft_from_uxuyetafft(ux_fft, uy_fft, eta_fft)
 
             self.bvec_fft = bvec_fft
             self.it_bvec_fft_computed = self.sim.time_stepping.it
@@ -84,7 +83,8 @@ class NormalModeBase(object):
         r""" Compute normal mode vector, :math:`\mathbf{B}` 
         with dimensions of velocity from primitive variables.  """
         q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(
-            ux_fft, uy_fft, eta_fft)
+            ux_fft, uy_fft, eta_fft
+        )
 
         return self.bvecfft_from_qapamfft(q_fft, ap_fft, am_fft)
 
@@ -121,7 +121,8 @@ class NormalModeDecomposition(NormalModeBase):
         c = self.params.c2 ** 0.5
 
         self.qmat = get_qmat(
-            f, c, sigma, oper.KX, oper.KY, oper.K, oper.K2, oper.K_not0)
+            f, c, sigma, oper.KX, oper.KY, oper.K, oper.K2, oper.K_not0
+        )
         # qmat_py = np.array(
         #    [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
         #     [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
@@ -134,35 +135,56 @@ class NormalModeDecomposition(NormalModeBase):
     def normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_spect key specified."""
 
-        if key == 'div_fft':
-            key_modes, normal_mode_vec_fft_x = self.normalmodefft_from_keyfft('px_ux_fft')
-            key_modes, normal_mode_vec_fft_y = self.normalmodefft_from_keyfft('py_uy_fft')
+        if key == "div_fft":
+            key_modes, normal_mode_vec_fft_x = self.normalmodefft_from_keyfft(
+                "px_ux_fft"
+            )
+            key_modes, normal_mode_vec_fft_y = self.normalmodefft_from_keyfft(
+                "py_uy_fft"
+            )
             normal_mode_vec_fft = normal_mode_vec_fft_x + normal_mode_vec_fft_y
         else:
-            key_modes = np.array([['G', 'A', 'a']])
-            row_index = {'ux_fft': 0, 'uy_fft': 1, 'eta_fft': 2,
-                         'px_ux_fft': 0, 'px_uy_fft': 1, 'px_eta_fft': 2,
-                         'py_ux_fft': 0, 'py_uy_fft': 1, 'py_eta_fft': 2}
+            key_modes = np.array([["G", "A", "a"]])
+            row_index = {
+                "ux_fft": 0,
+                "uy_fft": 1,
+                "eta_fft": 2,
+                "px_ux_fft": 0,
+                "px_uy_fft": 1,
+                "px_eta_fft": 2,
+                "py_ux_fft": 0,
+                "py_uy_fft": 1,
+                "py_eta_fft": 2,
+            }
 
             r = row_index[key]
-            normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvec_fft)
-            if 'px' in key:
+            normal_mode_vec_fft = np.einsum(
+                "i...,i...->i...", self.qmat[r], self.bvec_fft
+            )
+            if "px" in key:
                 for r in range(3):
-                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
-            elif 'py' in key:
+                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(
+                        normal_mode_vec_fft[r]
+                    )
+            elif "py" in key:
                 for r in range(3):
-                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
+                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(
+                        normal_mode_vec_fft[r]
+                    )
 
-            if 'eta' in key:
+            if "eta" in key:
                 normal_mode_vec_fft = normal_mode_vec_fft / self.params.c2 ** 0.5
 
         return key_modes, normal_mode_vec_fft
 
     def normalmodephys_from_keyphys(self, key):
         ifft2 = self.oper.ifft2
-        key_modes, normal_mode_vec_fft = self.normalmodefft_from_keyfft(key + '_fft')
-        normal_mode_vec_phys = np.array([ifft2(normal_mode_vec_fft[i])
-                                        for i in range(3)])
+        key_modes, normal_mode_vec_fft = self.normalmodefft_from_keyfft(
+            key + "_fft"
+        )
+        normal_mode_vec_phys = np.array(
+            [ifft2(normal_mode_vec_fft[i]) for i in range(3)]
+        )
 
         return key_modes, normal_mode_vec_phys
 
@@ -177,8 +199,12 @@ class NormalModeDecomposition(NormalModeBase):
                     if k1 in grouping[k2]:
                         k3 = k2
                         break
+
                 if k3 is None:
-                    raise KeyError('Not sure which dyad group ' + k1 + ' belongs to')
+                    raise KeyError(
+                        "Not sure which dyad group " + k1 + " belongs to"
+                    )
+
                 value_dict[k3] += value_matrix[i, j]
 
         new_matrix = np.array([value_dict[k] for k in value_dict.keys()])
@@ -186,10 +212,12 @@ class NormalModeDecomposition(NormalModeBase):
         return new_keys, new_matrix
 
     def dyad_from_keyfft(self, conjugate=False, *keys_state_spect):
-        dyad_group = {'GG': ['GG'],
-                      'AG': ['GA', 'AG'],
-                      'aG': ['Ga', 'aG'],
-                      'AA': ['AA', 'Aa', 'aA', 'aa']}
+        dyad_group = {
+            "GG": ["GG"],
+            "AG": ["GA", "AG"],
+            "aG": ["Ga", "aG"],
+            "AA": ["AA", "Aa", "aA", "aa"],
+        }
         k1, k2 = keys_state_spect
 
         normal_modes = dict()
@@ -207,15 +235,19 @@ class NormalModeDecomposition(NormalModeBase):
         else:
             Ni = normal_modes[k1]
             Nj = normal_modes[k2]
-        dyad_mat_fft = np.einsum('i...,j...->ij...', Ni, Nj)
-        del(normal_modes, Ni, Nj)
-        return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
+        dyad_mat_fft = np.einsum("i...,j...->ij...", Ni, Nj)
+        del (normal_modes, Ni, Nj)
+        return self._group_matrix_using_dict(
+            key_modes_mat, dyad_mat_fft, dyad_group
+        )
 
     def dyad_from_keyphys(self, *keys_state_phys):
-        dyad_group = {'GG': ['GG'],
-                      'AG': ['GA', 'AG'],
-                      'aG': ['Ga', 'aG'],
-                      'AA': ['AA', 'Aa', 'aA', 'aa']}
+        dyad_group = {
+            "GG": ["GG"],
+            "AG": ["GA", "AG"],
+            "aG": ["Ga", "aG"],
+            "AA": ["AA", "Aa", "aA", "aa"],
+        }
         k1, k2 = keys_state_phys
 
         normal_modes = dict()
@@ -226,46 +258,54 @@ class NormalModeDecomposition(NormalModeBase):
             key_modes, normal_modes[k1] = self.normalmodephys_from_keyphys(k1)
             normal_modes[k2] = normal_modes[k1]
         key_modes_mat = np.char.add(key_modes.transpose(), key_modes)
-        dyad_mat_phys = np.einsum('i...,j...->ij...',
-                                  normal_modes[k1],
-                                  normal_modes[k2])
+        dyad_mat_phys = np.einsum(
+            "i...,j...->ij...", normal_modes[k1], normal_modes[k2]
+        )
         del normal_modes
         fft2 = self.oper.fft2
-        dyad_mat_fft = np.array([[fft2(dyad_mat_phys[i, j])
-                                 for j in range(3)]
-                                 for i in range(3)])
+        dyad_mat_fft = np.array(
+            [[fft2(dyad_mat_phys[i, j]) for j in range(3)] for i in range(3)]
+        )
 
         for i in range(3):
             for j in range(3):
                 self.oper.dealiasing(dyad_mat_fft[i, j])
 
         del dyad_mat_phys
-        return self._group_matrix_using_dict(key_modes_mat, dyad_mat_fft, dyad_group)
+        return self._group_matrix_using_dict(
+            key_modes_mat, dyad_mat_fft, dyad_group
+        )
 
     def triad_from_keyfft(self, *keys_state_spect):
-        triad_group = {'GGG': ['GGG'],
-                       'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
-                       'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
-                       'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
-                       'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
+        triad_group = {
+            "GGG": ["GGG"],
+            "AGG": ["AGG", "GAG", "GGA", "aGG", "GaG", "GGa"],
+            "GAAs": ["aaG", "aGa", "Gaa", "AAG", "AGA", "GAA"],
+            "GAAd": ["aAG", "AaG", "aGA", "AGa", "GaA", "GAa"],
+            "AAA": ["AAA", "aaa", "AAa", "AaA", "aAA", "aaA", "aAa", "Aaa"],
+        }
         k1, k2, k3 = keys_state_spect
 
         key_modes_1, normal_modes_1 = self.normalmodefft_from_keyfft(k1)
         key_modes_23, normal_modes_23 = self.dyad_from_keyfft(False, k2, k3)
 
         key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
-        triad_mat = np.einsum('i...,j...->ij...',
-                              normal_modes_1.conj(),
-                              normal_modes_23)
+        triad_mat = np.einsum(
+            "i...,j...->ij...", normal_modes_1.conj(), normal_modes_23
+        )
 
-        return self._group_matrix_using_dict(key_modes_mat, triad_mat, triad_group)
+        return self._group_matrix_using_dict(
+            key_modes_mat, triad_mat, triad_group
+        )
 
     def triad_from_keyfftphys(self, key_state_spect, *keys_state_phys):
-        triad_group = {'GGG': ['GGG'],
-                       'AGG': ['AGG', 'GAG', 'GGA', 'aGG', 'GaG', 'GGa'],
-                       'GAAs': ['aaG', 'aGa', 'Gaa', 'AAG', 'AGA', 'GAA'],
-                       'GAAd': ['aAG', 'AaG', 'aGA', 'AGa', 'GaA', 'GAa'],
-                       'AAA': ['AAA', 'aaa', 'AAa', 'AaA', 'aAA', 'aaA', 'aAa', 'Aaa']}
+        triad_group = {
+            "GGG": ["GGG"],
+            "AGG": ["AGG", "GAG", "GGA", "aGG", "GaG", "GGa"],
+            "GAAs": ["aaG", "aGa", "Gaa", "AAG", "AGA", "GAA"],
+            "GAAd": ["aAG", "AaG", "aGA", "AGa", "GaA", "GAa"],
+            "AAA": ["AAA", "aaa", "AAa", "AaA", "aAA", "aaA", "aAa", "Aaa"],
+        }
         k1 = key_state_spect
         k2, k3 = keys_state_phys
 
@@ -273,15 +313,17 @@ class NormalModeDecomposition(NormalModeBase):
         key_modes_23, normal_modes_23 = self.dyad_from_keyphys(k2, k3)
 
         key_modes_mat = np.char.add(key_modes_1.transpose(), key_modes_23)
-        triad_mat = np.einsum('i...,j...->ij...',
-                              normal_modes_1.conj(),
-                              normal_modes_23)
+        triad_mat = np.einsum(
+            "i...,j...->ij...", normal_modes_1.conj(), normal_modes_23
+        )
 
         return self._group_matrix_using_dict(
-            key_modes_mat, triad_mat, triad_group)
+            key_modes_mat, triad_mat, triad_group
+        )
 
 
 class NormalModeDecompositionModified(NormalModeDecomposition):
+
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
             get_var = self.sim.state.get_var
@@ -295,11 +337,10 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
             #     a_fft = ap_fft + am_fft
             #     bvecrot_fft = self.bvecfft_from_qapamfft(q_fft, a_fft, a_fft)
             # else:
-            rot_fft = self.sim.state.get_var('rot_fft')
+            rot_fft = self.sim.state.get_var("rot_fft")
             uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
-            eta_fft = get_var('eta_fft')
-            bvecrot_fft = self.bvecfft_from_uxuyetafft(
-                uxr_fft, uyr_fft, eta_fft)
+            eta_fft = get_var("eta_fft")
+            bvecrot_fft = self.bvecfft_from_uxuyetafft(uxr_fft, uyr_fft, eta_fft)
 
             self.bvecrot_fft = bvecrot_fft
 
@@ -307,21 +348,37 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
 
     def normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_spect key specified."""
-        if key.endswith('urx_fft') or key.endswith('ury_fft'):
-            row_index = {'urx_fft': 0, 'ury_fft': 1,
-                         'px_urx_fft': 0, 'px_ury_fft': 1,
-                         'py_urx_fft': 0, 'py_ury_fft': 1}
+        if key.endswith("urx_fft") or key.endswith("ury_fft"):
+            row_index = {
+                "urx_fft": 0,
+                "ury_fft": 1,
+                "px_urx_fft": 0,
+                "px_ury_fft": 1,
+                "py_urx_fft": 0,
+                "py_ury_fft": 1,
+            }
 
-            key_modes = np.array([['G', 'A', 'a']])
+            key_modes = np.array([["G", "A", "a"]])
             r = row_index[key]
-            normal_mode_vec_fft = np.einsum('i...,i...->i...', self.qmat[r], self.bvecrot_fft)
-            if 'px' in key:
+            normal_mode_vec_fft = np.einsum(
+                "i...,i...->i...", self.qmat[r], self.bvecrot_fft
+            )
+            if "px" in key:
                 for r in range(3):
-                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(normal_mode_vec_fft[r])
-            elif 'py' in key:
+                    normal_mode_vec_fft[r] = self.oper.pxffft_from_fft(
+                        normal_mode_vec_fft[r]
+                    )
+            elif "py" in key:
                 for r in range(3):
-                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(normal_mode_vec_fft[r])
+                    normal_mode_vec_fft[r] = self.oper.pyffft_from_fft(
+                        normal_mode_vec_fft[r]
+                    )
 
             return key_modes, normal_mode_vec_fft
+
         else:
-            return super(NormalModeDecompositionModified, self).normalmodefft_from_keyfft(key)
+            return super(
+                NormalModeDecompositionModified, self
+            ).normalmodefft_from_keyfft(
+                key
+            )

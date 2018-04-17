@@ -29,31 +29,34 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         spectrumkykx_EA = self.oper.compute_spectrum_kykx(energyA_fft)
 
         # Saves dictionary
-        dict_spectra = {'spectrumkykx_E' : spectrumkykx_E,
-                        'spectrumkykx_EK' : spectrumkykx_EK,
-                        'spectrumkykx_EA' : spectrumkykx_EA}
+        dict_spectra = {
+            "spectrumkykx_E": spectrumkykx_E,
+            "spectrumkykx_EK": spectrumkykx_EK,
+            "spectrumkykx_EA": spectrumkykx_EA,
+        }
 
         return dict_spectra
 
     def _online_plot_saving(self, dict_spectra):
-        raise NotImplementedError('_online_plot_saving in not implemented.')
+        raise NotImplementedError("_online_plot_saving in not implemented.")
 
     def plot(self, tmin=0, tmax=1000):
         """Plots spectrumkykx averaged between tmin and tmax."""
-        
+
         dict_results = self.load_mean(tmin, tmax)
-        kx = dict_results['kxE']
-        ky = dict_results['kyE']
-        spectrumkykx_E = dict_results['spectrumkykx_E']
-        
+        kx = dict_results["kxE"]
+        ky = dict_results["kyE"]
+        spectrumkykx_E = dict_results["spectrumkykx_E"]
+
         fig, ax = self.output.figure_axe()
-        ax.set_xlabel('$k_x$')
-        ax.set_ylabel('$k_z$')
-        
+        ax.set_xlabel("$k_x$")
+        ax.set_ylabel("$k_z$")
+
         KX, KY = np.meshgrid(kx, ky)
-        ax.pcolormesh(KX, KY, spectrumkykx_E,
-                      vmin=spectrumkykx_E.min(), vmax=spectrumkykx_E.max())
-        
-
-
-        
+        ax.pcolormesh(
+            KX,
+            KY,
+            spectrumkykx_E,
+            vmin=spectrumkykx_E.min(),
+            vmax=spectrumkykx_E.max(),
+        )

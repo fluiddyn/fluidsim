@@ -18,7 +18,8 @@ from __future__ import division
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+)
 
 from .util_pythran import compute_Frot
 
@@ -29,6 +30,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
     .. inheritance-diagram:: InfoSolverNS2D
 
     """
+
     def _init_root(self):
         """Init. `self` by writing the information on the solver.
 
@@ -54,24 +56,24 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
         """
         super(InfoSolverNS2D, self)._init_root()
 
-        package = 'fluidsim.solvers.ns2d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'NS2D'
+        package = "fluidsim.solvers.ns2d"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "NS2D"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS2D'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateNS2D"
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsNS2D'
+        classes.InitFields.module_name = package + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsNS2D"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
-        classes.Forcing.module_name = package + '.forcing'
-        classes.Forcing.class_name = 'ForcingNS2D'
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingNS2D"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -86,7 +88,7 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'beta': 0.}
+        attribs = {"beta": 0.}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -131,11 +133,11 @@ class Simul(SimulBasePseudoSpectral):
 
         # get or compute rot_fft, ux and uy
         if state_spect is None:
-            rot_fft = self.state.state_spect.get_var('rot_fft')
-            ux = self.state.state_phys.get_var('ux')
-            uy = self.state.state_phys.get_var('uy')
+            rot_fft = self.state.state_spect.get_var("rot_fft")
+            ux = self.state.state_phys.get_var("ux")
+            uy = self.state.state_phys.get_var("uy")
         else:
-            rot_fft = state_spect.get_var('rot_fft')
+            rot_fft = state_spect.get_var("rot_fft")
             ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
             ux = self.state.field_tmp0
             uy = self.state.field_tmp1
@@ -157,8 +159,8 @@ class Simul(SimulBasePseudoSpectral):
             tendencies_fft = SetOfVariables(like=self.state.state_spect)
         else:
             tendencies_fft = old
-            
-        Frot_fft = tendencies_fft.get_var('rot_fft')
+
+        Frot_fft = tendencies_fft.get_var("rot_fft")
         oper.fft_as_arg(Frot, Frot_fft)
 
         oper.dealiasing(Frot_fft)
@@ -183,7 +185,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     params.oper.nx = params.oper.ny = nh = 32
     params.oper.Lx = params.oper.Ly = Lh = 2 * pi
@@ -191,18 +193,20 @@ if __name__ == "__main__":
 
     delta_x = Lh / nh
 
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        1. / 3
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 10.
 
-    params.init_fields.type = 'dipole'
+    params.init_fields.type = "dipole"
 
     params.forcing.enable = False
-    params.forcing.type = 'random'
+    params.forcing.type = "random"
     # 'Proportional'
     # params.forcing.type_normalize
 
-    params.output.sub_directory = 'tests'
+    params.output.sub_directory = "tests"
 
     # params.output.periods_print.print_stdout = 0.25
 
@@ -221,7 +225,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'rot'
+    params.output.phys_fields.field_to_plot = "rot"
 
     sim = Simul(params)
 

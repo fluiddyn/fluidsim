@@ -43,7 +43,7 @@ import fluiddyn.output
 from .base import OutputBase, OutputBasePseudoSpectral
 
 
-__all__ = ['OutputBase', 'OutputBasePseudoSpectral']
+__all__ = ["OutputBase", "OutputBasePseudoSpectral"]
 
 
 def create_description_xmf_files(path=None):
@@ -53,54 +53,54 @@ def create_description_xmf_files(path=None):
         path = os.getcwd()
 
     if os.path.isdir(path):
-        paths = glob(path + '/state_phys*.nc')
+        paths = glob(path + "/state_phys*.nc")
     else:
         paths = glob(path)
 
     if len(paths) == 0:
-        raise ValueError('No file corresponds to this path.')
+        raise ValueError("No file corresponds to this path.")
 
     for path in paths:
-        path_out = path.split('.nc')[0] + '.xmf'
+        path_out = path.split(".nc")[0] + ".xmf"
 
         base_name = os.path.basename(path)
 
         with h5netcdf.File(path) as f:
             ndim = 3
 
-            nx = f['/info_simul/params/oper'].attrs['nx']
-            Lx = f['/info_simul/params/oper'].attrs['Lx']
-            deltax = Lx/nx
+            nx = f["/info_simul/params/oper"].attrs["nx"]
+            Lx = f["/info_simul/params/oper"].attrs["Lx"]
+            deltax = Lx / nx
             try:
-                ny = f['/info_simul/params/oper'].attrs['ny']
-                Ly = f['/info_simul/params/oper'].attrs['Ly']
-                deltay = Ly/ny
+                ny = f["/info_simul/params/oper"].attrs["ny"]
+                Ly = f["/info_simul/params/oper"].attrs["Ly"]
+                deltay = Ly / ny
             except KeyError:
                 ndim = 1
             try:
-                nz = f['/info_simul/params/oper'].attrs['nz']
-                Lz = f['/info_simul/params/oper'].attrs['Lz']
-                deltaz = Lz/nz
+                nz = f["/info_simul/params/oper"].attrs["nz"]
+                Lz = f["/info_simul/params/oper"].attrs["Lz"]
+                deltaz = Lz / nz
             except KeyError:
                 ndim = 2
 
-            keys = list(f['/state_phys'].keys())
+            keys = list(f["/state_phys"].keys())
 
         if ndim == 1:
-            geometry_type = 'Origin_Dx'
-            dims_data = '{}'.format(nx)
-            origins = '0'
-            deltaxs = '{}'.format(deltax)
+            geometry_type = "Origin_Dx"
+            dims_data = "{}".format(nx)
+            origins = "0"
+            deltaxs = "{}".format(deltax)
         elif ndim == 2:
-            geometry_type = 'Origin_DxDy'
-            dims_data = '{} {}'.format(ny, nx)
-            origins = '0 0'
-            deltaxs = '{} {}'.format(deltay, deltax)
+            geometry_type = "Origin_DxDy"
+            dims_data = "{} {}".format(ny, nx)
+            origins = "0 0"
+            deltaxs = "{} {}".format(deltay, deltax)
         elif ndim == 3:
-            geometry_type = 'Origin_DxDyDz'
-            dims_data = '{} {} {}'.format(nz, ny, nx)
-            origins = '0 0 0'
-            deltaxs = '{} {} {}'.format(deltaz, deltay, deltax)
+            geometry_type = "Origin_DxDyDz"
+            dims_data = "{} {} {}".format(nz, ny, nx)
+            origins = "0 0 0"
+            deltaxs = "{} {} {}".format(deltaz, deltay, deltax)
 
         txt = """<?xml version="1.0" ?>
 <!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
@@ -118,8 +118,13 @@ def create_description_xmf_files(path=None):
         {deltaxs}
         </DataItem>
       </Geometry>
-""".format(ndim=ndim, geometry_type=geometry_type, dims_data=dims_data,
-           origins=origins, deltaxs=deltaxs)
+""".format(
+            ndim=ndim,
+            geometry_type=geometry_type,
+            dims_data=dims_data,
+            origins=origins,
+            deltaxs=deltaxs,
+        )
 
         for key in keys:
             txt += """
@@ -128,14 +133,16 @@ def create_description_xmf_files(path=None):
           {file_name}:/state_phys/{key}
         </DataItem>
       </Attribute>
-""".format(key=key, dims_data=dims_data, file_name=base_name)
+""".format(
+                key=key, dims_data=dims_data, file_name=base_name
+            )
 
         txt += """    </Grid>
   </Domain>
 </Xdmf>
 """
 
-        with open(path_out, 'w') as f:
+        with open(path_out, "w") as f:
             f.write(txt)
 
 
@@ -146,16 +153,16 @@ def create_description_xmf_file(path=None):
         path = os.getcwd()
 
     if os.path.isdir(path):
-        paths = glob(path + '/state_phys*.nc')
+        paths = glob(path + "/state_phys*.nc")
         path_dir = path
     else:
         paths = glob(path)
         path_dir = os.path.dirname(path)
 
     if len(paths) == 0:
-        raise ValueError('No file corresponds to this path.')
+        raise ValueError("No file corresponds to this path.")
 
-    path_out = os.path.join(path_dir, 'states_phys.xmf')
+    path_out = os.path.join(path_dir, "states_phys.xmf")
 
     paths.sort()
     path = paths[0]
@@ -163,54 +170,53 @@ def create_description_xmf_file(path=None):
     with h5netcdf.File(path) as f:
         ndim = 3
 
-        nx = f['/info_simul/params/oper'].attrs['nx']
-        Lx = f['/info_simul/params/oper'].attrs['Lx']
-        deltax = Lx/nx
+        nx = f["/info_simul/params/oper"].attrs["nx"]
+        Lx = f["/info_simul/params/oper"].attrs["Lx"]
+        deltax = Lx / nx
         try:
-            ny = f['/info_simul/params/oper'].attrs['ny']
-            Ly = f['/info_simul/params/oper'].attrs['Ly']
-            deltay = Ly/ny
+            ny = f["/info_simul/params/oper"].attrs["ny"]
+            Ly = f["/info_simul/params/oper"].attrs["Ly"]
+            deltay = Ly / ny
         except KeyError:
             ndim = 1
         try:
-            nz = f['/info_simul/params/oper'].attrs['nz']
-            Lz = f['/info_simul/params/oper'].attrs['Lz']
-            deltaz = Lz/nz
+            nz = f["/info_simul/params/oper"].attrs["nz"]
+            Lz = f["/info_simul/params/oper"].attrs["Lz"]
+            deltaz = Lz / nz
         except KeyError:
             ndim = 2
 
-        keys = list(f['/state_phys'].keys())
+        keys = list(f["/state_phys"].keys())
 
     if ndim == 1:
-        geometry_type = 'Origin_Dx'
-        dims_data = '{}'.format(nx)
-        origins = '0'
-        deltaxs = '{}'.format(deltax)
+        geometry_type = "Origin_Dx"
+        dims_data = "{}".format(nx)
+        origins = "0"
+        deltaxs = "{}".format(deltax)
     elif ndim == 2:
-        geometry_type = 'Origin_DxDy'
-        dims_data = '{} {}'.format(ny, nx)
-        origins = '0 0'
-        deltaxs = '{} {}'.format(deltay, deltax)
+        geometry_type = "Origin_DxDy"
+        dims_data = "{} {}".format(ny, nx)
+        origins = "0 0"
+        deltaxs = "{} {}".format(deltay, deltax)
     elif ndim == 3:
-        geometry_type = 'Origin_DxDyDz'
-        dims_data = '{} {} {}'.format(nz, ny, nx)
-        origins = '0 0 0'
-        deltaxs = '{} {} {}'.format(deltaz, deltay, deltax)
+        geometry_type = "Origin_DxDyDz"
+        dims_data = "{} {} {}".format(nz, ny, nx)
+        origins = "0 0 0"
+        deltaxs = "{} {} {}".format(deltaz, deltay, deltax)
 
     if ndim in (2, 3):
         vectors = []
         if ndim == 2:
-            components = ('x', 'y')
-            for_join = '$0, $1'
+            components = ("x", "y")
+            for_join = "$0, $1"
         elif ndim == 3:
-            components = ('x', 'y', 'z')
-            for_join = '$0, $1, $2'
+            components = ("x", "y", "z")
+            for_join = "$0, $1, $2"
 
         for key in keys:
-            if key.endswith('x'):
+            if key.endswith("x"):
                 vector = key[:-1]
-                vector_components = set(
-                    [vector + compo for compo in components])
+                vector_components = set([vector + compo for compo in components])
                 if vector_components.issubset(set(keys)):
                     vectors.append(vector)
 
@@ -226,7 +232,7 @@ def create_description_xmf_file(path=None):
         base_name = os.path.basename(path)
 
         with h5netcdf.File(path) as f:
-            time = f['state_phys'].attrs['time']
+            time = f["state_phys"].attrs["time"]
 
         txt += """
     <Grid Name="my_uniform_grid" GridType="Uniform">
@@ -241,8 +247,14 @@ def create_description_xmf_file(path=None):
         {deltaxs}
         </DataItem>
       </Geometry>
-""".format(time=float(time), ndim=ndim, geometry_type=geometry_type,
-           dims_data=dims_data, origins=origins, deltaxs=deltaxs)
+""".format(
+            time=float(time),
+            ndim=ndim,
+            geometry_type=geometry_type,
+            dims_data=dims_data,
+            origins=origins,
+            deltaxs=deltaxs,
+        )
 
         for key in keys:
             txt += """
@@ -251,7 +263,9 @@ def create_description_xmf_file(path=None):
           {file_name}:/state_phys/{key}
         </DataItem>
       </Attribute>
-""".format(key=key, dims_data=dims_data, file_name=base_name)
+""".format(
+                key=key, dims_data=dims_data, file_name=base_name
+            )
 
         for vector in vectors:
             txt += """
@@ -269,10 +283,15 @@ def create_description_xmf_file(path=None):
           </DataItem>
         </DataItem>
       </Attribute>
-""".format(vector=vector, dims_data=dims_data, for_join=for_join, ndim=ndim,
-           file_name=base_name)
+""".format(
+                vector=vector,
+                dims_data=dims_data,
+                for_join=for_join,
+                ndim=ndim,
+                file_name=base_name,
+            )
 
-        txt += '    </Grid>'
+        txt += "    </Grid>"
 
     txt += """
     </Grid>
@@ -280,24 +299,31 @@ def create_description_xmf_file(path=None):
 </Xdmf>
 """
 
-    with open(path_out, 'w') as f:
+    with open(path_out, "w") as f:
         f.write(txt)
 
-    print('Creation of the file ' + path_out +
-          '\nOpen it with a Xdmf reader to read the output files.')
+    print(
+        "Creation of the file "
+        + path_out
+        + "\nOpen it with a Xdmf reader to read the output files."
+    )
 
 
 def run():
 
     parser = argparse.ArgumentParser(
-        prog='fluidsim-create-xml-description',
+        prog="fluidsim-create-xml-description",
         description=create_description_xmf_file.__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     parser.add_argument(
-        'str_files', nargs='?', default=os.getcwd(),
-        help='str indicating which file has to be dump.',
-        type=str)
+        "str_files",
+        nargs="?",
+        default=os.getcwd(),
+        help="str indicating which file has to be dump.",
+        type=str,
+    )
 
     args = parser.parse_args()
 

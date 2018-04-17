@@ -16,8 +16,7 @@ import numpy as np
 
 from math import pi
 from fluiddyn.util import mpi
-from fluidsim.base.time_stepping.pseudo_spect_cy import \
-    TimeSteppingPseudoSpectral
+from fluidsim.base.time_stepping.pseudo_spect_cy import TimeSteppingPseudoSpectral
 
 
 class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
@@ -39,48 +38,46 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         self.coef_phase = 1.0
 
         has_vars = self.sim.state.has_vars
-        has_ux = (has_vars('ux') or has_vars('vx'))
-        has_uy = (has_vars('uy') or has_vars('vy'))
-        has_b = has_vars('b')
+        has_ux = (has_vars("ux") or has_vars("vx"))
+        has_uy = (has_vars("uy") or has_vars("vy"))
+        has_b = has_vars("b")
 
         if has_ux and has_uy and has_b:
-            self._compute_time_increment_CLF = \
-                self._compute_time_increment_CFL_uxuyb
+            self._compute_time_increment_CLF = self._compute_time_increment_CFL_uxuyb
 
         # Try to compute deltat_dispersion_relation.
         try:
             self.dispersion_relation = self.sim.compute_dispersion_relation()
         except AttributeError:
-            print('compute_dispersion_relation is not'
-                  'not implemented.')
+            print("compute_dispersion_relation is not" "not implemented.")
             self.deltat_dispersion_relation = 1.
         else:
             freq_disp_relation = self.dispersion_relation.max()
 
             if mpi.nb_proc > 1:
                 freq_disp_relation = mpi.comm.allreduce(
-                    freq_disp_relation, op=mpi.MPI.MAX)
+                    freq_disp_relation, op=mpi.MPI.MAX
+                )
 
             self.deltat_dispersion_relation = (
-                self.coef_deltat_dispersion_relation *
-                (2. * pi / freq_disp_relation))
+                self.coef_deltat_dispersion_relation
+                * (2. * pi / freq_disp_relation)
+            )
 
         # Try to compute deltat_group_vel
         try:
-            freq_group, freq_phase= (
-                self._compute_time_increment_group_and_phase())
+            freq_group, freq_phase = (
+                self._compute_time_increment_group_and_phase()
+            )
         except AttributeError as e:
-            print(
-            '_compute_time_increment_group_and_phase is not implemented', e)
+            print("_compute_time_increment_group_and_phase is not implemented", e)
             self.deltat_group_vel = 1.
             self.deltat_phase_vel = 1.
 
         else:
             if mpi.nb_proc > 1:
-                freq_group = mpi.comm.allreduce(
-                    freq_group, op=mpi.MPI.MAX)
-                freq_phase = mpi.comm.allreduce(
-                    freq_phase, op=mpi.MPI.MAX)
+                freq_group = mpi.comm.allreduce(freq_group, op=mpi.MPI.MAX)
+                freq_phase = mpi.comm.allreduce(freq_phase, op=mpi.MPI.MAX)
 
             self.deltat_group_vel = self.coef_group / freq_group
             self.deltat_phase_vel = self.coef_phase / freq_phase
@@ -92,7 +89,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         """
         Compute time increment of the forcing.
         """
-        return (1. / (self.sim.params.forcing.forcing_rate**(1./3)))
+        return (1. / (self.sim.params.forcing.forcing_rate ** (1. / 3)))
 
     def _compute_time_increment_group_and_phase(self):
         r"""
@@ -107,17 +104,16 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         K_not0 = oper.K_not0
 
         # Group velocity cg
-        cg_kx = (N / K_not0) * (KZ**2 / K_not0**2)
+        cg_kx = (N / K_not0) * (KZ ** 2 / K_not0 ** 2)
         cg_kz = (-N / K_not0) * ((KX / K_not0) * (KZ / K_not0))
         # cg = np.sqrt(cg_kx**2 + cg_kz**2)
         max_cgx = cg_kx.max()
         max_cgz = cg_kz.max()
 
-        freq_group = (max_cgx / oper.deltax +
-                      max_cgz / oper.deltay)
+        freq_group = (max_cgx / oper.deltax + max_cgz / oper.deltay)
 
         # Phase velocity cp
-        cp = N * (KX / K_not0**2)
+        cp = N * (KX / K_not0 ** 2)
         max_cp = cp.max()
 
         freq_phase = max_cp / oper.deltax
@@ -129,13 +125,12 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         Compute time increment with the CFL condition solver ns2d.strat.
         """
         # Compute deltat_CFL at each time step.
-        ux = self.sim.state.get_var('ux')
-        uy = self.sim.state.get_var('uy')
+        ux = self.sim.state.get_var("ux")
+        uy = self.sim.state.get_var("uy")
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        freq_CFL = (max_ux / self.sim.oper.deltax +
-                    max_uy / self.sim.oper.deltay)
+        freq_CFL = (max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay)
 
         if mpi.nb_proc > 1:
             freq_CFL = mpi.comm.allreduce(freq_CFL, op=mpi.MPI.MAX)
@@ -146,14 +141,17 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             deltat_CFL = self.deltat_max
 
         maybe_new_dt = min(
-            deltat_CFL, self.deltat_dispersion_relation,
-            self.deltat_group_vel, self.deltat_phase_vel,
-            self.deltat_max)
+            deltat_CFL,
+            self.deltat_dispersion_relation,
+            self.deltat_group_vel,
+            self.deltat_phase_vel,
+            self.deltat_max,
+        )
 
         if self.params.forcing.enable:
             maybe_new_dt = min(maybe_new_dt, self.deltat_f)
 
-        normalize_diff = abs(self.deltat-maybe_new_dt)/maybe_new_dt
+        normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
 
@@ -176,4 +174,5 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
-                'nan at it = {0}, t = {1:.4f}'.format(self.it, self.t))
+                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+            )

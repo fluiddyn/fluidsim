@@ -27,6 +27,7 @@ from fluidsim.base.output import OutputBasePseudoSpectral
 
 class Output(OutputBasePseudoSpectral):
     """Output for ns2d solver."""
+
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
@@ -35,56 +36,68 @@ class Output(OutputBasePseudoSpectral):
 
         classes = info_solver.classes.Output.classes
 
-        base_name_mod = 'fluidsim.solvers.ns2d.output'
+        base_name_mod = "fluidsim.solvers.ns2d.output"
 
-        classes.PrintStdOut.module_name = base_name_mod + '.print_stdout'
-        classes.PrintStdOut.class_name = 'PrintStdOutNS2D'
+        classes.PrintStdOut.module_name = base_name_mod + ".print_stdout"
+        classes.PrintStdOut.class_name = "PrintStdOutNS2D"
 
-        classes.PhysFields.class_name = 'PhysFieldsBase2D'
+        classes.PhysFields.class_name = "PhysFieldsBase2D"
 
         classes._set_child(
-            'Spectra',
-            attribs={'module_name': base_name_mod + '.spectra',
-                     'class_name': 'SpectraNS2D'})
-        
+            "Spectra",
+            attribs={
+                "module_name": base_name_mod + ".spectra",
+                "class_name": "SpectraNS2D",
+            },
+        )
+
         classes._set_child(
-            'SpectraMultiDim',
-            attribs={'module_name': base_name_mod + '.spectra_multidim',
-                     'class_name': 'SpectraMultiDimNS2D'})
-        
+            "SpectraMultiDim",
+            attribs={
+                "module_name": base_name_mod + ".spectra_multidim",
+                "class_name": "SpectraMultiDimNS2D",
+            },
+        )
+
         classes._set_child(
-            'spatial_means',
-            attribs={'module_name': base_name_mod + '.spatial_means',
-                     'class_name': 'SpatialMeansNS2D'})
+            "spatial_means",
+            attribs={
+                "module_name": base_name_mod + ".spatial_means",
+                "class_name": "SpatialMeansNS2D",
+            },
+        )
 
         attribs = {
-            'module_name': base_name_mod + '.spect_energy_budget',
-            'class_name': 'SpectralEnergyBudgetNS2D'}
-        classes._set_child('spect_energy_budg', attribs=attribs)
+            "module_name": base_name_mod + ".spect_energy_budget",
+            "class_name": "SpectralEnergyBudgetNS2D",
+        }
+        classes._set_child("spect_energy_budg", attribs=attribs)
 
         attribs = {
-            'module_name': 'fluidsim.base.output.increments',
-            'class_name': 'Increments'}
-        classes._set_child('increments', attribs=attribs)
+            "module_name": "fluidsim.base.output.increments",
+            "class_name": "Increments",
+        }
+        classes._set_child("increments", attribs=attribs)
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """Complete the `params` container (static method)."""
         OutputBasePseudoSpectral._complete_params_with_default(
-            params, info_solver)
+            params, info_solver
+        )
 
-        params.output.phys_fields.field_to_plot = 'rot'
+        params.output.phys_fields.field_to_plot = "rot"
 
     def compute_energy_fft(self):
         """Compute energy(k)"""
-        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
+        rot_fft = self.sim.state.state_spect.get_var("rot_fft")
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        return (np.abs(ux_fft)**2+np.abs(uy_fft)**2)/2.
+        return (np.abs(ux_fft) ** 2 + np.abs(uy_fft) ** 2) / 2.
 
     def compute_enstrophy_fft(self):
         """Compute enstrophy(k)"""
-        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
-        return np.abs(rot_fft)**2 / 2.
+        rot_fft = self.sim.state.state_spect.get_var("rot_fft")
+        return np.abs(rot_fft) ** 2 / 2.
 
     def compute_energy(self):
         """Compute the spatially averaged energy."""

@@ -6,8 +6,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
-from fluidsim.base.output.spatial_means import (
-    SpatialMeansBase, inner_prod)
+from fluidsim.base.output.spatial_means import SpatialMeansBase, inner_prod
 
 
 class SpatialMeansMSW1L(SpatialMeansBase):
@@ -32,10 +31,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         self.t_last_save = tsim
 
         if mpi.rank == 0:
-            self.file.write('####\ntime = {0:.6e}\n'.format(tsim))
+            self.file.write("####\ntime = {0:.6e}\n".format(tsim))
 
-        energyK_fft, energyA_fft, energyKr_fft = \
-            self.output.compute_energies_fft()
+        energyK_fft, energyA_fft, energyKr_fft = self.output.compute_energies_fft()
         energyK = self.sum_wavenumbers(energyK_fft)
         energyA = self.sum_wavenumbers(energyA_fft)
         energyKr = self.sum_wavenumbers(energyKr_fft)
@@ -46,10 +44,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         if mpi.rank == 0:
             to_print = (
-                'E      = {0:11.6e} ; CPE        = {1:11.6e} \n'
-                'EK     = {2:11.6e} ; EA         = {3:11.6e} ; '
-                'EKr       = {4:11.6e} \n').format(
-                    energy, CharneyPE, energyK, energyA, energyKr)
+                "E      = {0:11.6e} ; CPE        = {1:11.6e} \n"
+                "EK     = {2:11.6e} ; EA         = {3:11.6e} ; "
+                "EKr       = {4:11.6e} \n"
+            ).format(
+                energy, CharneyPE, energyK, energyA, energyKr
+            )
             self.file.write(to_print)
 
         # Compute and save dissipation rates.
@@ -59,34 +59,36 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         self.treat_conversion()
 
         # Compute and save skewness and kurtosis.
-        eta = self.sim.state.state_phys.get_var('eta')
-        meaneta2 = 2./self.c2*energyA
+        eta = self.sim.state.state_phys.get_var("eta")
+        meaneta2 = 2. / self.c2 * energyA
         if meaneta2 == 0:
             skew_eta = 0.
             kurt_eta = 0.
         else:
-            skew_eta = np.mean(eta**3) / meaneta2**(3. / 2)
-            kurt_eta = np.mean(eta**4) / meaneta2**(2)
+            skew_eta = np.mean(eta ** 3) / meaneta2 ** (3. / 2)
+            kurt_eta = np.mean(eta ** 4) / meaneta2 ** (2)
 
-        ux = self.sim.state.state_phys.get_var('ux')
-        uy = self.sim.state.state_phys.get_var('uy')
+        ux = self.sim.state.state_phys.get_var("ux")
+        uy = self.sim.state.state_phys.get_var("uy")
         ux_fft = self.sim.oper.fft2(ux)
         uy_fft = self.sim.oper.fft2(uy)
         rot_fft = self.sim.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         rot = self.sim.oper.ifft2(rot_fft)
-        meanrot2 = self.sum_wavenumbers(abs(rot_fft)**2)
+        meanrot2 = self.sum_wavenumbers(abs(rot_fft) ** 2)
         if meanrot2 == 0:
             skew_rot = 0.
             kurt_rot = 0.
         else:
-            skew_rot = np.mean(rot**3) / meanrot2**(3. / 2)
-            kurt_rot = np.mean(rot**4) / meanrot2**(2)
+            skew_rot = np.mean(rot ** 3) / meanrot2 ** (3. / 2)
+            kurt_rot = np.mean(rot ** 4) / meanrot2 ** (2)
 
         if mpi.rank == 0:
             to_print = (
-                'eta skew = {0:11.6e} ; kurt = {1:11.6e} \n'
-                'rot skew = {2:11.6e} ; kurt = {3:11.6e} \n').format(
-                skew_eta, kurt_eta, skew_rot, kurt_rot)
+                "eta skew = {0:11.6e} ; kurt = {1:11.6e} \n"
+                "rot skew = {2:11.6e} ; kurt = {3:11.6e} \n"
+            ).format(
+                skew_eta, kurt_eta, skew_rot, kurt_rot
+            )
             self.file.write(to_print)
 
         if self.sim.params.forcing.enable:
@@ -97,11 +99,11 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-            self.axe_a.plot(tsim, energy, 'k.')
-            self.axe_a.plot(tsim, energyK, 'r.')
-            self.axe_a.plot(tsim, energyA, 'b.')
+            self.axe_a.plot(tsim, energy, "k.")
+            self.axe_a.plot(tsim, energyK, "r.")
+            self.axe_a.plot(tsim, energyA, "b.")
 
-            if tsim-self.t_last_show >= self.period_show:
+            if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
                 fig = self.axe_a.get_figure()
                 fig.canvas.draw()
@@ -110,141 +112,153 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         mean_space = self.sim.oper.mean_space
 
         c2 = self.sim.params.c2
-        eta = self.sim.state.get_var('eta')
-        div = self.sim.state.get_var('div')
+        eta = self.sim.state.get_var("eta")
+        div = self.sim.state.get_var("div")
         h = eta + 1
 
-        Conv = c2/2*mean_space(h**2*div)
-        c2eta1d = c2*mean_space(eta*div)
-        c2eta2d = c2*mean_space(eta**2*div)
-        c2eta3d = c2*mean_space(eta**3*div)
+        Conv = c2 / 2 * mean_space(h ** 2 * div)
+        c2eta1d = c2 * mean_space(eta * div)
+        c2eta2d = c2 * mean_space(eta ** 2 * div)
+        c2eta3d = c2 * mean_space(eta ** 3 * div)
 
         if mpi.rank == 0:
             to_print = (
-                'Conv = {0:11.6e} ; c2eta1d = {1:11.6e} ; '
-                'c2eta2d = {2:11.6e} ; c2eta2d = {3:11.6e}\n').format(
-                    Conv, c2eta1d, c2eta2d, c2eta3d)
+                "Conv = {0:11.6e} ; c2eta1d = {1:11.6e} ; "
+                "c2eta2d = {2:11.6e} ; c2eta2d = {3:11.6e}\n"
+            ).format(
+                Conv, c2eta1d, c2eta2d, c2eta3d
+            )
             self.file.write(to_print)
 
-    def treat_dissipation_rates(self, energyK_fft, energyA_fft,
-                                CharneyPE_fft):
+    def treat_dissipation_rates(self, energyK_fft, energyA_fft, CharneyPE_fft):
         """Compute and save dissipation rates."""
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         dict_eps = self.compute_dissipation_rates(
-            f_d, f_d_hypo,
-            energyK_fft, energyA_fft, CharneyPE_fft)
+            f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft
+        )
 
         self.save_dissipation_rates(dict_eps)
 
     def compute_dissipation_rates(
-            self, f_d, f_d_hypo,
-            energyK_fft, energyA_fft, CharneyPE_fft):
+        self, f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft
+    ):
 
-        epsK = self.sum_wavenumbers(f_d*2*energyK_fft)
-        epsK_hypo = self.sum_wavenumbers(f_d_hypo*2*energyK_fft)
-        epsA = self.sum_wavenumbers(f_d*2*energyA_fft)
-        epsA_hypo = self.sum_wavenumbers(f_d_hypo*2*energyA_fft)
-        epsCPE = self.sum_wavenumbers(f_d*2*CharneyPE_fft)
-        epsCPE_hypo = self.sum_wavenumbers(f_d_hypo*2*CharneyPE_fft)
+        epsK = self.sum_wavenumbers(f_d * 2 * energyK_fft)
+        epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energyK_fft)
+        epsA = self.sum_wavenumbers(f_d * 2 * energyA_fft)
+        epsA_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energyA_fft)
+        epsCPE = self.sum_wavenumbers(f_d * 2 * CharneyPE_fft)
+        epsCPE_hypo = self.sum_wavenumbers(f_d_hypo * 2 * CharneyPE_fft)
 
-        dict_eps = {'epsK': epsK,
-                    'epsK_hypo': epsK_hypo,
-                    'epsA': epsA,
-                    'epsA_hypo': epsA_hypo,
-                    'epsCPE': epsCPE,
-                    'epsCPE_hypo': epsCPE_hypo}
+        dict_eps = {
+            "epsK": epsK,
+            "epsK_hypo": epsK_hypo,
+            "epsA": epsA,
+            "epsA_hypo": epsA_hypo,
+            "epsCPE": epsCPE,
+            "epsCPE_hypo": epsCPE_hypo,
+        }
         return dict_eps
 
     def save_dissipation_rates(self, dict_eps):
-        epsK = dict_eps['epsK']
-        epsK_hypo = dict_eps['epsK_hypo']
-        epsA = dict_eps['epsA']
-        epsA_hypo = dict_eps['epsA_hypo']
-        epsCPE = dict_eps['epsCPE']
-        epsCPE_hypo = dict_eps['epsCPE_hypo']
+        epsK = dict_eps["epsK"]
+        epsK_hypo = dict_eps["epsK_hypo"]
+        epsA = dict_eps["epsA"]
+        epsA_hypo = dict_eps["epsA_hypo"]
+        epsCPE = dict_eps["epsCPE"]
+        epsCPE_hypo = dict_eps["epsCPE_hypo"]
 
         if mpi.rank == 0:
-            epsK_tot = epsK+epsK_hypo
-            epsA_tot = epsA+epsA_hypo
+            epsK_tot = epsK + epsK_hypo
+            epsA_tot = epsA + epsA_hypo
 
             to_print = (
-'epsK   = {0:11.6e} ; epsK_hypo  = {1:11.6e} ; epsK_tot  = {2:11.6e} \n'
-'epsA   = {3:11.6e} ; epsA_hypo  = {4:11.6e} ; epsA_tot  = {5:11.6e} \n'
-'epsCPE = {6:11.6e} ; epsCPEhypo = {7:11.6e} ; epsCPEtot = {8:11.6e} \n'
-).format(epsK,   epsK_hypo,   epsK_tot,
-         epsA,   epsA_hypo,   epsA_tot,
-         epsCPE, epsCPE_hypo, epsCPE+epsCPE_hypo)
+                "epsK   = {0:11.6e} ; epsK_hypo  = {1:11.6e} ; epsK_tot  = {2:11.6e} \n"
+                "epsA   = {3:11.6e} ; epsA_hypo  = {4:11.6e} ; epsA_tot  = {5:11.6e} \n"
+                "epsCPE = {6:11.6e} ; epsCPEhypo = {7:11.6e} ; epsCPEtot = {8:11.6e} \n"
+            ).format(
+                epsK,
+                epsK_hypo,
+                epsK_tot,
+                epsA,
+                epsA_hypo,
+                epsA_tot,
+                epsCPE,
+                epsCPE_hypo,
+                epsCPE + epsCPE_hypo,
+            )
             self.file.write(to_print)
 
             if self.has_to_plot:
                 tsim = self.sim.time_stepping.t
-                self.axe_b.plot(tsim, epsK_tot+epsA_tot, 'k.')
+                self.axe_b.plot(tsim, epsK_tot + epsA_tot, "k.")
 
     def get_FxFyFetafft(self):
         forcing = self.sim.forcing
         set_keys = set(self.sim.state.keys_state_spect)
 
-        if {'ux_fft', 'uy_fft', 'eta_fft'} == set_keys:
-            Fx_fft = forcing('ux_fft')
-            Fy_fft = forcing('uy_fft')
-            Feta_fft = forcing('eta_fft')
-        elif {'q_fft', 'ap_fft', 'am_fft'} == set_keys:
-            Fx_fft, Fy_fft, Feta_fft = \
-                self.sim.oper.uxuyetafft_from_qapamfft(forcing('q_fft'),
-                                                       forcing('ap_fft'),
-                                                       forcing('am_fft'))
-        elif {'ap_fft', 'am_fft'} == set_keys:
-            Fx_fft, Fy_fft, Feta_fft = \
-                self.sim.oper.uxuyetafft_from_afft(forcing('ap_fft') +
-                                                   forcing('am_fft'))
+        if {"ux_fft", "uy_fft", "eta_fft"} == set_keys:
+            Fx_fft = forcing("ux_fft")
+            Fy_fft = forcing("uy_fft")
+            Feta_fft = forcing("eta_fft")
+        elif {"q_fft", "ap_fft", "am_fft"} == set_keys:
+            Fx_fft, Fy_fft, Feta_fft = self.sim.oper.uxuyetafft_from_qapamfft(
+                forcing("q_fft"), forcing("ap_fft"), forcing("am_fft")
+            )
+        elif {"ap_fft", "am_fft"} == set_keys:
+            Fx_fft, Fy_fft, Feta_fft = self.sim.oper.uxuyetafft_from_afft(
+                forcing("ap_fft") + forcing("am_fft")
+            )
         else:
             raise NotImplementedError(
-                'Not sure how to estimate forcing rate with '
-                'keys_state_spect = {}'.format(set_keys))
+                "Not sure how to estimate forcing rate with "
+                "keys_state_spect = {}".format(set_keys)
+            )
 
         return Fx_fft, Fy_fft, Feta_fft
 
     def treat_forcing(self):
         """Save forcing injection rates."""
         get_var = self.sim.state.get_var
-        ux_fft = get_var('ux_fft')
-        uy_fft = get_var('uy_fft')
-        eta_fft = get_var('eta_fft')
+        ux_fft = get_var("ux_fft")
+        uy_fft = get_var("uy_fft")
+        eta_fft = get_var("eta_fft")
         Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 
-        PK1_fft = (inner_prod(ux_fft, Fx_fft) +
-                   inner_prod(uy_fft, Fy_fft))
-        PK2_fft = deltat/2*(abs(Fx_fft)**2 + abs(Fy_fft)**2)
+        PK1_fft = (inner_prod(ux_fft, Fx_fft) + inner_prod(uy_fft, Fy_fft))
+        PK2_fft = deltat / 2 * (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2)
 
         PK1 = self.sum_wavenumbers(PK1_fft)
         PK2 = self.sum_wavenumbers(PK2_fft)
 
-        PA1_fft = self.c2*inner_prod(eta_fft, Feta_fft)
-        PA2_fft = deltat/2*self.c2*(abs(Feta_fft)**2)
+        PA1_fft = self.c2 * inner_prod(eta_fft, Feta_fft)
+        PA2_fft = deltat / 2 * self.c2 * (abs(Feta_fft) ** 2)
 
         PA1 = self.sum_wavenumbers(PA1_fft)
         PA2 = self.sum_wavenumbers(PA2_fft)
 
         if mpi.rank == 0:
 
-            PK_tot = PK1+PK2
-            PA_tot = PA1+PA2
+            PK_tot = PK1 + PK2
+            PA_tot = PA1 + PA2
             to_print = (
-'PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n'
-'PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n'
-).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
+                "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
+                "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
+            ).format(
+                PK1, PK2, PK_tot, PA1, PA2, PA_tot
+            )
 
             self.file.write(to_print)
 
         if self.has_to_plot and mpi.rank == 0:
             tsim = self.sim.time_stepping.t
-            self.axe_b.plot(tsim, PK_tot+PA_tot, 'c.')
+            self.axe_b.plot(tsim, PK_tot + PA_tot, "c.")
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -265,27 +279,27 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         lines_Conv = []
 
         for il, line in enumerate(lines):
-            if line[0:6] == 'time =':
+            if line[0:6] == "time =":
                 lines_t.append(line)
-            if line[0:8] == 'E      =':
+            if line[0:8] == "E      =":
                 lines_E.append(line)
-            if line[0:8] == 'EK     =':
+            if line[0:8] == "EK     =":
                 lines_EK.append(line)
-            if line[0:8] == 'epsK   =':
+            if line[0:8] == "epsK   =":
                 lines_epsK.append(line)
-            if line[0:8] == 'epsA   =':
+            if line[0:8] == "epsA   =":
                 lines_epsA.append(line)
-            if line[0:8] == 'epsCPE =':
+            if line[0:8] == "epsCPE =":
                 lines_epsCPE.append(line)
-            if line[0:8] == 'PK1    =':
+            if line[0:8] == "PK1    =":
                 lines_PK.append(line)
-            if line[0:8] == 'PA1    =':
+            if line[0:8] == "PA1    =":
                 lines_PA.append(line)
-            if line.startswith('eta skew ='):
+            if line.startswith("eta skew ="):
                 lines_etaskew.append(line)
-            if line.startswith('rot skew ='):
+            if line.startswith("rot skew ="):
                 lines_rotskew.append(line)
-            if line.startswith('Conv ='):
+            if line.startswith("Conv ="):
                 lines_Conv.append(line)
 
         nt = len(lines_t)
@@ -363,7 +377,6 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             epsCPE_hypo[il] = float(words[6])
             epsCPE_tot[il] = float(words[10])
 
-
             if len(lines_PK) == len(lines_t):
                 line = lines_PK[il]
                 words = line.split()
@@ -396,79 +409,79 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 c2eta2d[il] = float(words[10])
                 c2eta3d[il] = float(words[14])
 
-        dict_results['t'] = t
-        dict_results['E'] = E
-        dict_results['CPE'] = CPE
+        dict_results["t"] = t
+        dict_results["E"] = E
+        dict_results["CPE"] = CPE
 
-        dict_results['EK'] = EK
-        dict_results['EA'] = EA
-        dict_results['EKr'] = EKr
+        dict_results["EK"] = EK
+        dict_results["EA"] = EA
+        dict_results["EKr"] = EKr
 
-        dict_results['epsK'] = epsK
-        dict_results['epsK_hypo'] = epsK_hypo
-        dict_results['epsK_tot'] = epsK_tot
+        dict_results["epsK"] = epsK
+        dict_results["epsK_hypo"] = epsK_hypo
+        dict_results["epsK_tot"] = epsK_tot
 
-        dict_results['epsA'] = epsA
-        dict_results['epsA_hypo'] = epsA_hypo
-        dict_results['epsA_tot'] = epsA_tot
+        dict_results["epsA"] = epsA
+        dict_results["epsA_hypo"] = epsA_hypo
+        dict_results["epsA_tot"] = epsA_tot
 
-        dict_results['epsCPE'] = epsCPE
-        dict_results['epsCPE_hypo'] = epsCPE_hypo
-        dict_results['epsCPE_tot'] = epsCPE_tot
+        dict_results["epsCPE"] = epsCPE
+        dict_results["epsCPE_hypo"] = epsCPE_hypo
+        dict_results["epsCPE_tot"] = epsCPE_tot
 
         if len(lines_PK) == len(lines_t):
-            dict_results['PK1'] = PK1
-            dict_results['PK2'] = PK2
-            dict_results['PK_tot'] = PK_tot
-            dict_results['PA1'] = PA1
-            dict_results['PA2'] = PA2
-            dict_results['PA_tot'] = PA_tot
+            dict_results["PK1"] = PK1
+            dict_results["PK2"] = PK2
+            dict_results["PK_tot"] = PK_tot
+            dict_results["PA1"] = PA1
+            dict_results["PA2"] = PA2
+            dict_results["PA_tot"] = PA_tot
 
         if len(lines_rotskew) == len(lines_t):
-            dict_results['skew_eta'] = skew_eta
-            dict_results['kurt_eta'] = kurt_eta
-            dict_results['skew_rot'] = skew_rot
-            dict_results['kurt_rot'] = kurt_rot
+            dict_results["skew_eta"] = skew_eta
+            dict_results["kurt_eta"] = kurt_eta
+            dict_results["skew_rot"] = skew_rot
+            dict_results["kurt_rot"] = kurt_rot
 
         if len(lines_Conv) == len(lines_t):
-            dict_results['Conv'] = Conv
-            dict_results['c2eta1d'] = c2eta1d
-            dict_results['c2eta2d'] = c2eta2d
-            dict_results['c2eta3d'] = c2eta3d
+            dict_results["Conv"] = Conv
+            dict_results["c2eta1d"] = c2eta1d
+            dict_results["c2eta2d"] = c2eta2d
+            dict_results["c2eta3d"] = c2eta3d
 
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
+        t = dict_results["t"]
 
-        E = dict_results['E']
-        CPE = dict_results['CPE']
+        E = dict_results["E"]
+        CPE = dict_results["CPE"]
 
-        EK = dict_results['EK']
-        EA = dict_results['EA']
-        EKr = dict_results['EKr']
+        EK = dict_results["EK"]
+        EA = dict_results["EA"]
+        EKr = dict_results["EKr"]
 
-        epsK = dict_results['epsK']
-        epsK_hypo = dict_results['epsK_hypo']
-        epsK_tot = dict_results['epsK_tot']
+        epsK = dict_results["epsK"]
+        epsK_hypo = dict_results["epsK_hypo"]
+        epsK_tot = dict_results["epsK_tot"]
 
-        epsA = dict_results['epsA']
-        epsA_hypo = dict_results['epsA_hypo']
-        epsA_tot = dict_results['epsA_tot']
+        epsA = dict_results["epsA"]
+        epsA_hypo = dict_results["epsA_hypo"]
+        epsA_tot = dict_results["epsA_tot"]
 
-        epsE      = epsK      + epsA
+        epsE = epsK + epsA
         epsE_hypo = epsK_hypo + epsA_hypo
-        epsE_tot  = epsK_tot  + epsA_tot
+        epsE_tot = epsK_tot + epsA_tot
 
-        epsCPE = dict_results['epsCPE']
-        epsCPE_hypo = dict_results['epsCPE_hypo']
-        epsCPE_tot = dict_results['epsCPE_tot']
+        epsCPE = dict_results["epsCPE"]
+        epsCPE_hypo = dict_results["epsCPE_hypo"]
+        epsCPE_tot = dict_results["epsCPE_tot"]
 
-        if 'PK_tot' in dict_results:
-            PK_tot = dict_results['PK_tot']
-            PA_tot = dict_results['PA_tot']
+        if "PK_tot" in dict_results:
+            PK_tot = dict_results["PK_tot"]
+            PA_tot = dict_results["PA_tot"]
             P_tot = PK_tot + PA_tot
 
         width_axe = 0.85
@@ -476,81 +489,86 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         x_left_axe = 0.12
         z_bottom_axe = 0.56
 
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('$2E(t)/c^2$')
-        title = ('mean energy, solver ' + self.output.name_solver +
-                 ', nh = {0:5d}'.format(self.nx) +
-                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+        ax1.set_xlabel("t")
+        ax1.set_ylabel("$2E(t)/c^2$")
+        title = (
+            "mean energy, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.nx)
+            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+        )
         ax1.set_title(title)
         norm = self.c2 / 2
-        ax1.plot(t, E / norm, 'k', linewidth=2, label='$E$')
-        ax1.plot(t, EK / norm, 'r', linewidth=1, label='$E_K$')
-        ax1.plot(t, EA / norm, 'b', linewidth=1, label='$E_A$')
-        ax1.plot(t, EKr / norm, 'r--', linewidth=1, label='$E_K^r$')
-        ax1.plot(t, (EK - EKr) / norm, 'r:', linewidth=1, label='$E_K^d$')
+        ax1.plot(t, E / norm, "k", linewidth=2, label="$E$")
+        ax1.plot(t, EK / norm, "r", linewidth=1, label="$E_K$")
+        ax1.plot(t, EA / norm, "b", linewidth=1, label="$E_A$")
+        ax1.plot(t, EKr / norm, "r--", linewidth=1, label="$E_K^r$")
+        ax1.plot(t, (EK - EKr) / norm, "r:", linewidth=1, label="$E_K^d$")
         ax1.legend()
 
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('Charney PE(t)')
-        title = ('mean Charney PE(t)')
+        ax2.set_xlabel("t")
+        ax2.set_ylabel("Charney PE(t)")
+        title = ("mean Charney PE(t)")
         ax2.set_title(title)
-        ax2.plot(t, CPE, 'k', linewidth=2)
+        ax2.plot(t, CPE, "k", linewidth=2)
 
         z_bottom_axe = 0.56
         size_axe[1] = z_bottom_axe
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel(r'$P_E(t)$, $\epsilon(t)$')
-        title = ('forcing and dissipation, solver ' + self.output.name_solver +
-                 ', nh = {0:5d}'.format(self.nx) +
-                 ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+        ax1.set_xlabel("t")
+        ax1.set_ylabel(r"$P_E(t)$, $\epsilon(t)$")
+        title = (
+            "forcing and dissipation, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.nx)
+            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+        )
         ax1.set_title(title)
-        if 'PK_tot' in dict_results:
-            ax1.plot(t, P_tot, 'c', linewidth=2, label='$P_{tot}$')
+        if "PK_tot" in dict_results:
+            ax1.plot(t, P_tot, "c", linewidth=2, label="$P_{tot}$")
 
-        ax1.plot(t, epsE, 'k--', linewidth=2, label=r'$\epsilon$')
-        ax1.plot(t, epsE_hypo, 'g', linewidth=2, label=r'$\epsilon_{hypo}$')
-        ax1.plot(t, epsE_tot, 'k', linewidth=2, label=r'$\epsilon_{tot}$')
+        ax1.plot(t, epsE, "k--", linewidth=2, label=r"$\epsilon$")
+        ax1.plot(t, epsE_hypo, "g", linewidth=2, label=r"$\epsilon_{hypo}$")
+        ax1.plot(t, epsE_tot, "k", linewidth=2, label=r"$\epsilon_{tot}$")
 
         ax1.legend(loc=2)
 
         z_bottom_axe = 0.07
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel(r'$\epsilon$ Charney PE(t)')
-        title = ('dissipation Charney PE')
+        ax2.set_xlabel("t")
+        ax2.set_ylabel(r"$\epsilon$ Charney PE(t)")
+        title = ("dissipation Charney PE")
         ax2.set_title(title)
-        ax2.plot(t, epsCPE, 'k--', linewidth=2)
-        ax2.plot(t, epsCPE_hypo, 'g', linewidth=2)
-        ax2.plot(t, epsCPE_tot, 'r', linewidth=2)
+        ax2.plot(t, epsCPE, "k--", linewidth=2)
+        ax2.plot(t, epsCPE_hypo, "g", linewidth=2)
+        ax2.plot(t, epsCPE_tot, "r", linewidth=2)
 
-#         skew_eta = dict_results['skew_eta']
-#         kurt_eta = dict_results['kurt_eta']
-#         skew_rot = dict_results['skew_rot']
-#         kurt_rot = dict_results['kurt_rot']
+    #         skew_eta = dict_results['skew_eta']
+    #         kurt_eta = dict_results['kurt_eta']
+    #         skew_rot = dict_results['skew_rot']
+    #         kurt_rot = dict_results['kurt_rot']
 
-#         fig, ax1 = self.output.figure_axe()
+    #         fig, ax1 = self.output.figure_axe()
 
-#         title = ('skewness and kurtosis, solver '+self.output.name_solver+
-# ', nh = {0:5d}'.format(self.nx)+
-# ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f)
-# )
-#         ax1.set_title(title)
-#         ax2.set_xlabel('t')
+    #         title = ('skewness and kurtosis, solver '+self.output.name_solver+
+    # ', nh = {0:5d}'.format(self.nx)+
+    # ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f)
+    # )
+    #         ax1.set_title(title)
+    #         ax2.set_xlabel('t')
 
-#         ax1.plot(t, skew_eta, 'b', linewidth=2)
-#         ax1.plot(t, kurt_eta, 'b--', linewidth=2)
-#         ax1.plot(t, skew_rot, 'r', linewidth=2)
-#         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
+    #         ax1.plot(t, skew_eta, 'b', linewidth=2)
+    #         ax1.plot(t, kurt_eta, 'b--', linewidth=2)
+    #         ax1.plot(t, skew_rot, 'r', linewidth=2)
+    #         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
 
-    def plot_rates(self, keys='E'):
+    def plot_rates(self, keys="E"):
         """Plots the time history of the time derivative of a spatial mean,
         and also calculates the average of the same.
 
@@ -574,7 +592,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         """
 
         dict_results = self.load()
-        t = dict_results['t']
+        t = dict_results["t"]
         dt = np.gradient(t, 1.)
 
         fig, axarr = plt.subplots(len(keys), sharex=True)
@@ -582,12 +600,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         for k in keys:
             E = dict_results[k]
             dE_dt = abs(np.gradient(E, 1.) / dt)
-            dE_dt_avg = '{0:11.6e}'.format(dE_dt.mean())
+            dE_dt_avg = "{0:11.6e}".format(dE_dt.mean())
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
-                axarr[i].set_ylabel(r'$\partial_t$' + keys[i])
+                axarr[i].set_ylabel(r"$\partial_t$" + keys[i])
                 axarr[i].legend()
-                #axarr[i].text(0.8, 0.9, 'mean = ' + dE_dt_avg, horizontalalignment='center', verticalalignment='center',)
+            # axarr[i].text(0.8, 0.9, 'mean = ' + dE_dt_avg, horizontalalignment='center', verticalalignment='center',)
             except TypeError:
                 axarr.semilogy(t, dE_dt, label=dE_dt_avg)
                 axarr.set_ylabel(keys)
@@ -595,9 +613,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             i += 1
 
         try:
-            axarr[i-1].set_xlabel('t')
+            axarr[i - 1].set_xlabel("t")
         except TypeError:
-            axarr.set_xlabel('t')
+            axarr.set_xlabel("t")
 
         plt.draw()
 
@@ -611,47 +629,45 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
 
     """
 
-    def treat_dissipation_rates(self, energyK_fft, energyA_fft,
-                                CharneyPE_fft):
+    def treat_dissipation_rates(self, energyK_fft, energyA_fft, CharneyPE_fft):
         """Compute and save dissipation rates."""
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
-        dict_eps = super(
-            SpatialMeansSW1L, self
-        ).compute_dissipation_rates(
-            f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft)
+        dict_eps = super(SpatialMeansSW1L, self).compute_dissipation_rates(
+            f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft
+        )
 
-        (epsKsuppl, epsKsuppl_hypo
-         ) = self.compute_epsK(f_d, f_d_hypo, energyK_fft, dict_eps)
+        (epsKsuppl, epsKsuppl_hypo) = self.compute_epsK(
+            f_d, f_d_hypo, energyK_fft, dict_eps
+        )
 
         super(SpatialMeansSW1L, self).save_dissipation_rates(dict_eps)
 
         if mpi.rank == 0:
-            to_print = (
-                'epsKsup= {0:11.6e} ; epsKshypo  = {1:11.6e} ;\n'
-            ).format(epsKsuppl, epsKsuppl_hypo)
+            to_print = ("epsKsup= {0:11.6e} ; epsKshypo  = {1:11.6e} ;\n").format(
+                epsKsuppl, epsKsuppl_hypo
+            )
             self.file.write(to_print)
 
-    def compute_epsK(self, f_d, f_d_hypo,
-                     energyK_fft, dict_eps):
+    def compute_epsK(self, f_d, f_d_hypo, energyK_fft, dict_eps):
 
-        ux = self.sim.state.state_phys.get_var('ux')
-        uy = self.sim.state.state_phys.get_var('uy')
+        ux = self.sim.state.state_phys.get_var("ux")
+        uy = self.sim.state.state_phys.get_var("uy")
 
-        EKquad = 0.5*(ux**2 + uy**2)
+        EKquad = 0.5 * (ux ** 2 + uy ** 2)
         EKquad_fft = self.sim.oper.fft2(EKquad)
 
-        eta_fft = self.sim.state.get_var('eta_fft')
+        eta_fft = self.sim.state.get_var("eta_fft")
 
-        epsKsuppl = self.sum_wavenumbers(
-            f_d*inner_prod(EKquad_fft, eta_fft))
+        epsKsuppl = self.sum_wavenumbers(f_d * inner_prod(EKquad_fft, eta_fft))
 
         epsKsuppl_hypo = self.sum_wavenumbers(
-            f_d_hypo*inner_prod(EKquad_fft, eta_fft))
+            f_d_hypo * inner_prod(EKquad_fft, eta_fft)
+        )
 
-        dict_eps['epsK'] += epsKsuppl
-        dict_eps['epsK_hypo'] += epsKsuppl_hypo
+        dict_eps["epsK"] += epsKsuppl
+        dict_eps["epsK_hypo"] += epsKsuppl_hypo
 
         return epsKsuppl, epsKsuppl_hypo
 
@@ -665,10 +681,10 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         lines_epsKsuppl = []
 
         for il, line in enumerate(lines):
-            if line.startswith('epsKsup='):
+            if line.startswith("epsKsup="):
                 lines_epsKsuppl.append(line)
 
-        t = dict_results['t']
+        t = dict_results["t"]
         nt = len(t)
         epsKsuppl = np.empty(nt)
         epsKsuppl_hypo = np.empty(nt)
@@ -679,8 +695,8 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             epsKsuppl[il] = float(words[1])
             epsKsuppl_hypo[il] = float(words[5])
 
-        dict_results['epsKsuppl'] = epsKsuppl
-        dict_results['epsKsuppl_hypo'] = epsKsuppl_hypo
+        dict_results["epsKsuppl"] = epsKsuppl
+        dict_results["epsKsuppl_hypo"] = epsKsuppl_hypo
 
         return dict_results
 
@@ -689,15 +705,15 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         Save forcing injection rates.
         """
         get_var = self.sim.state.get_var
-        ux_fft = get_var('ux_fft')
-        uy_fft = get_var('uy_fft')
-        eta_fft = get_var('eta_fft')
+        ux_fft = get_var("ux_fft")
+        uy_fft = get_var("uy_fft")
+        eta_fft = get_var("eta_fft")
 
         Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 
-        PA1_fft = self.c2*inner_prod(eta_fft, Feta_fft)
-        PA2_fft = deltat/2*self.c2*(abs(Feta_fft)**2)
+        PA1_fft = self.c2 * inner_prod(eta_fft, Feta_fft)
+        PA2_fft = deltat / 2 * self.c2 * (abs(Feta_fft) ** 2)
 
         PA1 = self.sum_wavenumbers(PA1_fft)
         PA2 = self.sum_wavenumbers(PA2_fft)
@@ -706,44 +722,50 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         Fy = self.sim.oper.ifft2(Fy_fft)
         Feta = self.sim.oper.ifft2(Feta_fft)
 
-        eta = self.sim.state.state_phys.get_var('eta')
+        eta = self.sim.state.state_phys.get_var("eta")
         h = eta + 1.
 
-        ux = self.sim.state.state_phys.get_var('ux')
-        uy = self.sim.state.state_phys.get_var('uy')
+        ux = self.sim.state.state_phys.get_var("ux")
+        uy = self.sim.state.state_phys.get_var("uy")
 
-        FetaFx_fft = self.sim.oper.fft2(Feta*Fx)
-        FetaFy_fft = self.sim.oper.fft2(Feta*Fy)
+        FetaFx_fft = self.sim.oper.fft2(Feta * Fx)
+        FetaFy_fft = self.sim.oper.fft2(Feta * Fy)
 
-        Jx_fft = self.sim.oper.fft2(h*ux)
-        Jy_fft = self.sim.oper.fft2(h*uy)
+        Jx_fft = self.sim.oper.fft2(h * ux)
+        Jy_fft = self.sim.oper.fft2(h * uy)
 
-        FJx_fft = self.sim.oper.fft2(h*Fx + Feta*ux)
-        FJy_fft = self.sim.oper.fft2(h*Fy + Feta*uy)
+        FJx_fft = self.sim.oper.fft2(h * Fx + Feta * ux)
+        FJy_fft = self.sim.oper.fft2(h * Fy + Feta * uy)
 
-        PK1_fft = 0.5*(inner_prod(Jx_fft, Fx_fft) +
-                       inner_prod(Jy_fft, Fy_fft) +
-                       inner_prod(ux_fft, FJx_fft) +
-                       inner_prod(uy_fft, FJy_fft))
-        PK2_fft = deltat/2*(
-            0.5*(inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft)) +
-            inner_prod(ux_fft, FetaFx_fft) +
-            inner_prod(uy_fft, FetaFy_fft))
+        PK1_fft = 0.5 * (
+            inner_prod(Jx_fft, Fx_fft)
+            + inner_prod(Jy_fft, Fy_fft)
+            + inner_prod(ux_fft, FJx_fft)
+            + inner_prod(uy_fft, FJy_fft)
+        )
+        PK2_fft = deltat / 2 * (
+            0.5
+            * (inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft))
+            + inner_prod(ux_fft, FetaFx_fft)
+            + inner_prod(uy_fft, FetaFy_fft)
+        )
 
         PK1 = self.sum_wavenumbers(PK1_fft)
         PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
 
-            PK_tot = PK1+PK2
-            PA_tot = PA1+PA2
+            PK_tot = PK1 + PK2
+            PA_tot = PA1 + PA2
             to_print = (
-'PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n'
-'PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n'
-).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
+                "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
+                "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
+            ).format(
+                PK1, PK2, PK_tot, PA1, PA2, PA_tot
+            )
 
             self.file.write(to_print)
 
         if self.has_to_plot and mpi.rank == 0:
             tsim = self.sim.time_stepping.t
-            self.axe_b.plot(tsim, PK_tot+PA_tot, 'c.')
+            self.axe_b.plot(tsim, PK_tot + PA_tot, "c.")

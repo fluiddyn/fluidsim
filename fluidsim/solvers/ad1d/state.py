@@ -21,29 +21,31 @@ class StateAD1D(StateBase):
 
         This is a static method!
         """
-        info_solver.classes.State._set_attribs({
-            'keys_state_phys': ['s'],
-            'keys_computable': [],
-            'keys_phys_needed': ['s'],
-            'keys_linear_eigenmodes': ['s']
-        })
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_phys": ["s"],
+                "keys_computable": [],
+                "keys_phys_needed": ["s"],
+                "keys_linear_eigenmodes": ["s"],
+            }
+        )
 
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
-        if (key in self.vars_computed and
-                it == self.it_computed[key]):
+        if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
-        if key == 'dx_s':
-            result = self.oper.grad(self.state_phys.get_var('s'))
+        if key == "dx_s":
+            result = self.oper.grad(self.state_phys.get_var("s"))
 
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
+
             else:
                 if mpi.rank == 0:
-                    print(to_print + '\nreturn an array of zeros.')
+                    print(to_print + "\nreturn an array of zeros.")
 
                 result = self.oper.create_arrayX(value=0.)
 

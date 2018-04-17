@@ -23,8 +23,9 @@ from fluiddyn.util import mpi
 from past.utils import old_div
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
-from fluidsim.solvers.ns2d.init_fields import InitFieldsNoise, \
-    InitFieldsJet, InitFieldsDipole
+from fluidsim.solvers.ns2d.init_fields import (
+    InitFieldsNoise, InitFieldsJet, InitFieldsDipole
+)
 
 InitFieldsJetStrat = InitFieldsJet
 InitFieldsDipoleStrat = InitFieldsDipole
@@ -96,18 +97,18 @@ class InitFieldsLinearMode(SpecificInitFields):
     """
     Class to initialize the fields with the linear mode
     """
-    tag = 'linear_mode'
+    tag = "linear_mode"
 
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
         super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={
-            'i_mode': (8, 8),
-            'delta_k_adim': 1,
-            'amplitude': 1})
+        params.init_fields._set_child(
+            cls.tag, attribs={"i_mode": (8, 8), "delta_k_adim": 1, "amplitude": 1}
+        )
 
-        params.init_fields.linear_mode._set_doc("""
+        params.init_fields.linear_mode._set_doc(
+            """
         i_mode : tuple
 
           Index of initialized mode.
@@ -120,17 +121,18 @@ class InitFieldsLinearMode(SpecificInitFields):
 
           Amplitude of the initial linear mode
 
-        """)
-
+        """
+        )
 
     def __call__(self):
         if mpi.nb_proc > 1:
             raise NotImplementedError(
-                'Function compute_apfft_ones not implemented in MPI.')
+                "Function compute_apfft_ones not implemented in MPI."
+            )
 
         ap_fft = self.compute_apfft_ones()
         self.sim.state.init_statespect_from(ap_fft=ap_ffr)
-        
+
     def compute_apfft_ones(self):
         """Compute the linear mode apfft"""
 
@@ -139,7 +141,7 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         i_mode = params.init_fields.linear_mode.i_mode
         delta_k_adim = params.init_fields.linear_mode.delta_k_adim
-        amplitude = params.init_fields.linear_mode.amplitude * params.N**2
+        amplitude = params.init_fields.linear_mode.amplitude * params.N ** 2
 
         am_fft = np.zeros(oper.shapeK) + 1j * np.zeros(oper.shapeK)
         am_fft = amplitude * am_fft
@@ -170,5 +172,11 @@ class InitFieldsNS2DStrat(InitFieldsBase):
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
         InitFieldsBase._complete_info_solver(
-            info_solver, classes=[InitFieldsJetStrat, InitFieldsNoise,
-                                  InitFieldsDipoleStrat, InitFieldsLinearMode])
+            info_solver,
+            classes=[
+                InitFieldsNoiseStrat,
+                InitFieldsJetStrat,
+                InitFieldsDipoleStrat,
+                InitFieldsLinearMode,
+            ],
+        )

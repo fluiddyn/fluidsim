@@ -18,29 +18,31 @@ from fluidfft.fft3d.operators import vector_product
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D
+)
 
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
+
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()
 
-        package = 'fluidsim.solvers.ns3d'
-        self.module_name = package + '.solver'
-        self.class_name = 'Simul'
-        self.short_name = 'ns3d'
+        package = "fluidsim.solvers.ns3d"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "ns3d"
 
         classes = self.classes
 
-        classes.State.module_name = package + '.state'
-        classes.State.class_name = 'StateNS3D'
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateNS3D"
 
-        classes.InitFields.module_name = package + '.init_fields'
-        classes.InitFields.class_name = 'InitFieldsNS3D'
+        classes.InitFields.module_name = package + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsNS3D"
 
-        classes.Output.module_name = package + '.output'
-        classes.Output.class_name = 'Output'
+        classes.Output.module_name = package + ".output"
+        classes.Output.class_name = "Output"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -98,7 +100,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        params._set_attrib('f', None)
+        params._set_attrib("f", None)
 
     def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
         if rank == 0:
@@ -115,16 +117,17 @@ class Simul(SimulBasePseudoSpectral):
         else:
             spect_get_var = state_spect.get_var
 
-        vx_fft = spect_get_var('vx_fft')
-        vy_fft = spect_get_var('vy_fft')
-        vz_fft = spect_get_var('vz_fft')
+        vx_fft = spect_get_var("vx_fft")
+        vy_fft = spect_get_var("vy_fft")
+        vz_fft = spect_get_var("vz_fft")
 
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
-            vx_fft, vy_fft, vz_fft)
+            vx_fft, vy_fft, vz_fft
+        )
 
         if self.params.f is not None:
             self._modif_omegafft_with_f(omegax_fft, omegay_fft, omegaz_fft)
-        
+
         omegax = self.state.fields_tmp[3]
         omegay = self.state.fields_tmp[4]
         omegaz = self.state.fields_tmp[5]
@@ -134,9 +137,9 @@ class Simul(SimulBasePseudoSpectral):
         ifft_as_arg_destroy(omegaz_fft, omegaz)
 
         if state_spect is None:
-            vx = self.state.state_phys.get_var('vx')
-            vy = self.state.state_phys.get_var('vy')
-            vz = self.state.state_phys.get_var('vz')
+            vx = self.state.state_phys.get_var("vx")
+            vy = self.state.state_phys.get_var("vy")
+            vz = self.state.state_phys.get_var("vz")
         else:
             vx = self.state.fields_tmp[0]
             vy = self.state.fields_tmp[1]
@@ -149,14 +152,14 @@ class Simul(SimulBasePseudoSpectral):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
 
-        fx_fft = tendencies_fft.get_var('vx_fft')
-        fy_fft = tendencies_fft.get_var('vy_fft')
-        fz_fft = tendencies_fft.get_var('vz_fft')
+        fx_fft = tendencies_fft.get_var("vx_fft")
+        fy_fft = tendencies_fft.get_var("vy_fft")
+        fz_fft = tendencies_fft.get_var("vz_fft")
 
         fft_as_arg(fx, fx_fft)
         fft_as_arg(fy, fy_fft)
@@ -178,7 +181,7 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     n = 32
     L = 4
@@ -188,19 +191,19 @@ if __name__ == "__main__":
     params.oper.Lx = L
     params.oper.Ly = L
     params.oper.Lz = L
-    params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
+    params.oper.type_fft = "fluidfft.fft3d.mpi_with_fftwmpi3d"
     # params.oper.type_fft = 'fluidfft.fft3d.with_pyfftw'
     # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 
     delta_x = params.oper.Lx / params.oper.nx
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_8 = 2.*10e-1*delta_x**8
+    params.nu_8 = 2. * 10e-1 * delta_x ** 8
 
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 6.
     # params.time_stepping.it_end = 2
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
     params.init_fields.noise.velo_max = 1.
     params.init_fields.noise.length = 1.
 

@@ -28,12 +28,15 @@ class StateNS2D(StatePseudoSpectral):
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
-        info_solver.classes.State._set_attribs({
-            'keys_state_spect': ['rot_fft'],
-            'keys_state_phys': ['ux', 'uy', 'rot'],
-            'keys_computable': [],
-            'keys_phys_needed': ['rot'],
-            'keys_linear_eigenmodes': ['rot_fft']})
+        info_solver.classes.State._set_attribs(
+            {
+                "keys_state_spect": ["rot_fft"],
+                "keys_state_phys": ["ux", "uy", "rot"],
+                "keys_computable": [],
+                "keys_phys_needed": ["rot"],
+                "keys_linear_eigenmodes": ["rot_fft"],
+            }
+        )
 
     def __init__(self, sim, oper=None):
 
@@ -47,37 +50,37 @@ class StateNS2D(StatePseudoSpectral):
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         """Compute and return a variable"""
         it = self.sim.time_stepping.it
-        if (key in self.vars_computed and it == self.it_computed[key]):
+        if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
-        if key == 'ux_fft':
+        if key == "ux_fft":
             # not efficient!
-            result = self.oper.fft2(self.state_phys.get_var('ux'))
-        elif key == 'uy_fft':
+            result = self.oper.fft2(self.state_phys.get_var("ux"))
+        elif key == "uy_fft":
             # not efficient!
-            result = self.oper.fft2(self.state_phys.get_var('uy'))
-        elif key == 'rot_fft':
-            ux_fft = self.compute('ux_fft')
-            uy_fft = self.compute('uy_fft')
+            result = self.oper.fft2(self.state_phys.get_var("uy"))
+        elif key == "rot_fft":
+            ux_fft = self.compute("ux_fft")
+            uy_fft = self.compute("uy_fft")
             result = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-        elif key == 'div_fft':
-            ux_fft = self.compute('ux_fft')
-            uy_fft = self.compute('uy_fft')
+        elif key == "div_fft":
+            ux_fft = self.compute("ux_fft")
+            uy_fft = self.compute("uy_fft")
             result = self.oper.divfft_from_vecfft(ux_fft, uy_fft)
-        elif key == 'div':
-            div_fft = self.compute('div_fft')
+        elif key == "div":
+            div_fft = self.compute("div_fft")
             result = self.oper.ifft2(div_fft)
-        elif key == 'q':
-            rot = self.get_var('rot')
+        elif key == "q":
+            rot = self.get_var("rot")
             result = rot
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
+
             else:
                 if mpi.rank == 0:
-                    print(to_print +
-                          '\nreturn an array of zeros.')
+                    print(to_print + "\nreturn an array of zeros.")
 
                 result = self.oper.create_arrayX(value=0.)
 
@@ -89,12 +92,12 @@ class StateNS2D(StatePseudoSpectral):
 
     def statephys_from_statespect(self):
         """Compute `state_phys` from `statespect`."""
-        rot_fft = self.state_spect.get_var('rot_fft')
+        rot_fft = self.state_spect.get_var("rot_fft")
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
 
-        rot = self.state_phys.get_var('rot')
-        ux = self.state_phys.get_var('ux')
-        uy = self.state_phys.get_var('uy')
+        rot = self.state_phys.get_var("rot")
+        ux = self.state_phys.get_var("ux")
+        uy = self.state_phys.get_var("uy")
 
         self.oper.ifft_as_arg(rot_fft, rot)
         self.oper.ifft_as_arg(ux_fft, ux)
@@ -103,14 +106,14 @@ class StateNS2D(StatePseudoSpectral):
     def statespect_from_statephys(self):
         """Compute `state_spect` from `state_phys`."""
 
-        rot = self.state_phys.get_var('rot')
-        rot_fft = self.state_spect.get_var('rot_fft')
+        rot = self.state_phys.get_var("rot")
+        rot_fft = self.state_spect.get_var("rot_fft")
         self.oper.fft_as_arg(rot, rot_fft)
 
     def init_from_rotfft(self, rot_fft):
         """Initialize the state from the variable `rot_fft`."""
         self.oper.dealiasing(rot_fft)
-        self.state_spect.set_var('rot_fft', rot_fft)
+        self.state_spect.set_var("rot_fft", rot_fft)
         self.statephys_from_statespect()
 
     def init_from_uxfft(self, ux_fft):
@@ -124,7 +127,7 @@ class StateNS2D(StatePseudoSpectral):
         ux_fft = self.oper.create_arrayK(value=0.)
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         self.init_from_rotfft(rot_fft)
-        
+
     def init_statespect_from(self, **kwargs):
         """Initializes *state_spect* using arrays provided as keyword
         arguments.
@@ -132,11 +135,11 @@ class StateNS2D(StatePseudoSpectral):
         """
         if len(kwargs) == 1:
             key, arr = kwargs.popitem()
-            if key == 'rot_fft':
+            if key == "rot_fft":
                 self.init_from_rotfft(arr)
-            elif key == 'ux_fft':
+            elif key == "ux_fft":
                 self.init_from_uxfft(arr)
-            elif key == 'uy_fft':
+            elif key == "uy_fft":
                 self.init_from_uyfft(arr)
             else:
                 super(StateNS2D, self).init_statespect_from(**kwargs)

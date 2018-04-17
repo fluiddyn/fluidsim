@@ -14,20 +14,21 @@ from fluidsim.base.params import create_params
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral)
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+)
 
 
 info_solver = InfoSolverPseudoSpectral()
 
-package = 'fluidsim.solvers.waves2d'
-info_solver.module_name = package + '.solver'
-info_solver.class_name = 'Simul'
-info_solver.short_name = 'Waves2d'
+package = "fluidsim.solvers.waves2d"
+info_solver.module_name = package + ".solver"
+info_solver.class_name = "Simul"
+info_solver.short_name = "Waves2d"
 
 classes = info_solver.classes
 
-classes.State.module_name = package + '.state'
-classes.State.class_name = 'StateWaves'
+classes.State.module_name = package + ".state"
+classes.State.class_name = "StateWaves"
 
 # classes.InitFields.module_name = package + '.init_fields'
 # classes.InitFields.class_name = 'InitFieldsWaves'
@@ -107,7 +108,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {'c2': 1., 'f': 0}
+        attribs = {"c2": 1., "f": 0}
         params._set_attribs(attribs)
 
     @classmethod
@@ -122,22 +123,23 @@ class Simul(SimulBasePseudoSpectral):
 
         if old is None:
             tendencies_fft = SetOfVariables(
-                like=self.state.state_spect,
-                info='tendencies_nonlin')
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
         else:
             tendencies_fft = old
-            
+
         tendencies_fft[:] = 0.
 
         return tendencies_fft
 
     def compute_freq_complex(self, key):
-        assert key in ['f_fft', 'g_fft'], 'Unexpected key: ' + key
-        if key == 'f_fft':
+        assert key in ["f_fft", "g_fft"], "Unexpected key: " + key
+        if key == "f_fft":
             omega = self.oper.create_arrayK(value=0)
-        elif key == 'g_fft':
-            omega = 1.j*np.sqrt(self.params.f**2 +
-                                self.params.c2*self.oper.K2)
+        elif key == "g_fft":
+            omega = 1.j * np.sqrt(
+                self.params.f ** 2 + self.params.c2 * self.oper.K2
+            )
         return omega
 
 
@@ -150,10 +152,10 @@ if __name__ == "__main__":
 
     params = create_params(info_solver)
 
-    params.short_name_type_run = 'test'
+    params.short_name_type_run = "test"
 
     nh = 32
-    Lh = 2*np.pi
+    Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
@@ -161,13 +163,15 @@ if __name__ == "__main__":
 
     # params.oper.type_fft = 'FFTWPY'
 
-    delta_x = old_div(params.oper.Lx,params.oper.nx)
-    params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(old_div(1.,3))*delta_x**8
+    delta_x = old_div(params.oper.Lx, params.oper.nx)
+    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
+        old_div(1., 3)
+    ) * delta_x ** 8
 
     params.time_stepping.t_end = 1.
     params.time_stepping.USE_CFL = False
 
-    params.init_fields.type = 'noise'
+    params.init_fields.type = "noise"
 
     # params.forcing.enable = True
     # params.forcing.type = 'tcrandom'
@@ -187,7 +191,7 @@ if __name__ == "__main__":
     # params.output.spect_energy_budg.HAS_TO_PLOT_SAVED = True
     # params.output.increments.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = 'f'
+    params.output.phys_fields.field_to_plot = "f"
 
     sim = Simul(params)
 

@@ -23,34 +23,36 @@ class PrintStdOutSW1L(PrintStdOutBase):
         energy = self.output.compute_energy()
         if mpi.rank == 0:
             to_print += (
-                '              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n'
-                '              energyK = {:9.3e} ; energyA      = {:9.3e}\n'
-                ''.format(energy, energy-self.energy_temp, energyK, energyA))
+                "              energy  = {:9.3e} ; Delta energy = {:+9.3e}\n"
+                "              energyK = {:9.3e} ; energyA      = {:9.3e}\n"
+                "".format(energy, energy - self.energy_temp, energyK, energyA)
+            )
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
                 to_print += (
-                    '              estimated remaining duration = {:9.3g} s'
-                    ''.format(duration_left))
+                    "              estimated remaining duration = {:9.3g} s"
+                    "".format(duration_left)
+                )
 
         self.energy_temp = energy
         return to_print
 
     def load(self):
-        dict_results = {'name_solver': self.output.name_solver}
+        dict_results = {"name_solver": self.output.name_solver}
 
-        with open(self.output.path_run + '/stdout.txt') as file_means:
+        with open(self.output.path_run + "/stdout.txt") as file_means:
             lines = file_means.readlines()
 
         lines_t = []
         lines_E = []
         lines_E_KA = []
         for il, line in enumerate(lines):
-            if line[0:4] == 'it =':
+            if line[0:4] == "it =":
                 lines_t.append(line)
-            if line[0:23] == '              energy  =':
+            if line[0:23] == "              energy  =":
                 lines_E.append(line)
-            if line[0:23] == '              energyK =':
+            if line[0:23] == "              energyK =":
                 lines_E_KA.append(line)
         nt = len(lines_t)
         if nt > 1:
@@ -83,53 +85,55 @@ class PrintStdOutSW1L(PrintStdOutBase):
             E_K[il] = float(words[2])
             E_A[il] = float(words[6])
 
-        dict_results['it'] = it
-        dict_results['t'] = t
-        dict_results['deltat'] = deltat
-        dict_results['E'] = E
-        dict_results['deltaE'] = deltaE
-        dict_results['E_K'] = E_K
-        dict_results['E_A'] = E_A
+        dict_results["it"] = it
+        dict_results["t"] = t
+        dict_results["deltat"] = deltat
+        dict_results["E"] = E
+        dict_results["deltaE"] = deltaE
+        dict_results["E_K"] = E_K
+        dict_results["E_A"] = E_A
         return dict_results
 
     def plot(self):
         dict_results = self.load()
 
-        t = dict_results['t']
-        deltat = dict_results['deltat']
-        E = dict_results['E']
-        deltaE = dict_results['deltaE']
-        E_K = dict_results['E_K']
-        E_A = dict_results['E_A']
+        t = dict_results["t"]
+        deltat = dict_results["deltat"]
+        E = dict_results["E"]
+        deltaE = dict_results["deltaE"]
+        E_K = dict_results["E_K"]
+        E_A = dict_results["E_A"]
 
         x_left_axe = 0.12
         z_bottom_axe = 0.55
         width_axe = 0.85
         height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel('t')
-        ax1.set_ylabel('deltat(t)')
-        title = ('info stdout, solver '+self.output.name_solver +
-                 ', nh = {0:5d}'.format(self.nx))
+        ax1.set_xlabel("t")
+        ax1.set_ylabel("deltat(t)")
+        title = (
+            "info stdout, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.nx)
+        )
 
         try:
-            title = title+', c = {0:.4g}, f = {1:.4g}'.format(
-                np.sqrt(self.c2), self.f)
+            title = title + ", c = {0:.4g}, f = {1:.4g}".format(
+                np.sqrt(self.c2), self.f
+            )
         except AttributeError:
             pass
 
         ax1.set_title(title)
-        ax1.plot(t, deltat, 'k', linewidth=2)
+        ax1.plot(t, deltat, "k", linewidth=2)
 
         z_bottom_axe = 0.08
-        size_axe = [x_left_axe, z_bottom_axe,
-                    width_axe, height_axe]
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel('t')
-        ax2.set_ylabel('E(t), deltaE(t)')
-        ax2.plot(t, E, 'k', linewidth=2)
-        ax2.plot(t, E_K, 'r', linewidth=2)
-        ax2.plot(t, E_A, 'b', linewidth=2)
-        ax2.plot(t, deltaE, 'k--', linewidth=2)
+        ax2.set_xlabel("t")
+        ax2.set_ylabel("E(t), deltaE(t)")
+        ax2.plot(t, E, "k", linewidth=2)
+        ax2.plot(t, E_K, "r", linewidth=2)
+        ax2.plot(t, E_A, "b", linewidth=2)
+        ax2.plot(t, deltaE, "k--", linewidth=2)
