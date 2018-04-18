@@ -83,14 +83,14 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write("####\ntime = {:7.3f}\n".format(tsim))
+            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
             to_print = (
-                "E    = {:11.6e}\n"
-                "EA   = {:11.6e} ; EKz   = {:11.6e} ; "
-                "EKhr   = {:11.6e} ; EKhd   = {:11.6e}\n"
-                "epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; "
-                "epsA = {:11.6e} ; epsA_hypo = {:11.6e} ; "
-                "eps_tot = {:11.6e} \n"
+                "E    = {:11.5e}\n"
+                "EA   = {:11.5e} ; EKz   = {:11.5e} ; "
+                "EKhr   = {:11.5e} ; EKhd   = {:11.5e}\n"
+                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; "
+                "epsA = {:11.5e} ; epsA_hypo = {:11.5e} ; "
+                "eps_tot = {:11.5e} \n"
             ).format(
                 energy,
                 nrj_A,
@@ -108,14 +108,14 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             if self.sim.params.forcing.enable:
                 to_print = (
                     (
-                        "PK1  = {:11.6e} ; PK2       = {:11.6e} ; "
-                        "PK_tot   = {:11.6e} \n"
+                        "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
+                        "PK_tot   = {:11.5e} \n"
                     ).format(
                         PK1, PK2, PK1 + PK2
                     )
                     + (
-                        "PA1  = {:11.6e} ; PA2       = {:11.6e} ; "
-                        "PA_tot   = {:11.6e} \n"
+                        "PA1  = {:11.5e} ; PA2       = {:11.5e} ; "
+                        "PA_tot   = {:11.5e} \n"
                     ).format(
                         PA1, PA2, PA1 + PA2
                     )

@@ -70,11 +70,11 @@ class SpatialMeansNS2D(SpatialMeansBase):
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write("####\ntime = {0:7.3f}\n".format(tsim))
+            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
             to_print = (
-                "E    = {0:11.6e} ; Z         = {1:11.6e} \n"
-                "epsK = {2:11.6e} ; epsK_hypo = {3:11.6e} ; epsK_tot = {4:11.6e} \n"
-                "epsZ = {5:11.6e} ; epsZ_hypo = {6:11.6e} ; epsZ_tot = {7:11.6e} \n"
+                "E    = {:11.5e} ; Z         = {:11.5e} \n"
+                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; epsK_tot = {:11.5e} \n"
+                "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
             ).format(
                 energy,
                 enstrophy,
@@ -90,8 +90,8 @@ class SpatialMeansNS2D(SpatialMeansBase):
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
                 to_print = (
-                    "PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n"
-                    "PZ1  = {3:11.6e} ; PZ2       = {4:11.6e} ; PZ_tot   = {5:11.6e} \n"
+                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
+                    "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
                 ).format(
                     PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2
                 )
@@ -147,12 +147,13 @@ class SpatialMeansNS2D(SpatialMeansBase):
         t = np.empty(nt)
         E = np.empty(nt)
         Z = np.empty(nt)
-        PK1 = np.empty(nt)
-        PK2 = np.empty(nt)
-        PK_tot = np.empty(nt)
-        PZ1 = np.empty(nt)
-        PZ2 = np.empty(nt)
-        PZ_tot = np.empty(nt)
+        if self.sim.params.forcing.enable:
+            PK1 = np.empty(nt)
+            PK2 = np.empty(nt)
+            PK_tot = np.empty(nt)
+            PZ1 = np.empty(nt)
+            PZ2 = np.empty(nt)
+            PZ_tot = np.empty(nt)
         epsK = np.empty(nt)
         epsK_hypo = np.empty(nt)
         epsK_tot = np.empty(nt)
@@ -199,13 +200,14 @@ class SpatialMeansNS2D(SpatialMeansBase):
         dict_results["E"] = E
         dict_results["Z"] = Z
 
-        dict_results["PK1"] = PK1
-        dict_results["PK2"] = PK2
-        dict_results["PK_tot"] = PK_tot
+        if self.sim.params.forcing.enable:
+            dict_results["PK1"] = PK1
+            dict_results["PK2"] = PK2
+            dict_results["PK_tot"] = PK_tot
 
-        dict_results["PZ1"] = PZ1
-        dict_results["PZ2"] = PZ2
-        dict_results["PZ_tot"] = PZ_tot
+            dict_results["PZ1"] = PZ1
+            dict_results["PZ2"] = PZ2
+            dict_results["PZ_tot"] = PZ_tot
 
         dict_results["epsK"] = epsK
         dict_results["epsK_hypo"] = epsK_hypo
@@ -225,15 +227,22 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         t = dict_results["t"]
         E = dict_results["E"]
-        PK_tot = dict_results["PK_tot"]
+
         epsK_tot = dict_results["epsK_tot"]
 
-        dt_E = np.diff(E) / np.diff(t)
+        if self.sim.params.forcing.enable:
+            PK_tot = dict_results["PK_tot"]
+            model = PK_tot - epsK_tot
+        else:
+            model = -epsK_tot
+
+        dtE = np.gradient(E, t)
 
         fig, ax = plt.subplots()
         ax.set_xlabel("t")
-        ax.plot(t[:-1], dt_E, label="dE/dt")
-        ax.plot(t, PK_tot - epsK_tot, label="$P_E - \epsilon_E$")
+        ax.plot(t, dtE, label="dE/dt")
+
+        ax.plot(t, model, label=r"$P_E - \epsilon$")
 
         ax.legend()
 
@@ -245,14 +254,20 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         t = dict_results["t"]
         Z = dict_results["Z"]
-        PZ_tot = dict_results["PZ_tot"]
+
         epsZ_tot = dict_results["epsZ_tot"]
 
-        dt_Z = np.diff(Z) / np.diff(t)
+        if self.sim.params.forcing.enable:
+            PZ_tot = dict_results["PZ_tot"]
+            model = PZ_tot - epsZ_tot
+        else:
+            model = -epsZ_tot
+
+        dtZ = np.gradient(Z, t)
 
         fig, ax = plt.subplots()
-        ax.plot(t[:-1], dt_Z, label="dZ/dt")
-        ax.plot(t, PZ_tot - epsZ_tot, label="PZ-epsilonZ")
+        ax.plot(t, dtZ, label="dZ/dt")
+        ax.plot(t, model, label=r"$P_Z-\epsilon_Z$")
 
         ax.legend()
 
