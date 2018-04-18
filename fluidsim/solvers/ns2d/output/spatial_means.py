@@ -12,6 +12,7 @@ from __future__ import division, print_function
 from builtins import range
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 from fluiddyn.util import mpi
@@ -214,6 +215,46 @@ class SpatialMeansNS2D(SpatialMeansBase):
         dict_results["epsZ_hypo"] = epsZ_hypo
         dict_results["epsZ_tot"] = epsZ_tot
         return dict_results
+
+    def plot_dt_energy(self):
+        """
+        Checks if dE/dt = energy_injection - energy_dissipation.
+
+        """
+        dict_results = self.load()
+
+        t = dict_results["t"]
+        E = dict_results["E"]
+        PK_tot = dict_results["PK_tot"]
+        epsK_tot = dict_results["epsK_tot"]
+
+        dt_E = np.diff(E) / np.diff(t)
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel("t")
+        ax.plot(t[:-1], dt_E, label="dE/dt")
+        ax.plot(t, PK_tot - epsK_tot, label="$P_E - \epsilon_E$")
+
+        ax.legend()
+
+    def plot_dt_enstrophy(self):
+        """
+        Checks dZ/dt = enstrophy_injection - enstrophy_dissipation.
+        """
+        dict_results = self.load()
+
+        t = dict_results["t"]
+        Z = dict_results["Z"]
+        PZ_tot = dict_results["PZ_tot"]
+        epsZ_tot = dict_results["epsZ_tot"]
+
+        dt_Z = np.diff(Z) / np.diff(t)
+
+        fig, ax = plt.subplots()
+        ax.plot(t[:-1], dt_Z, label="dZ/dt")
+        ax.plot(t, PZ_tot - epsZ_tot, label="PZ-epsilonZ")
+
+        ax.legend()
 
     def plot(self):
         dict_results = self.load()

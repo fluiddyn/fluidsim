@@ -11,7 +11,7 @@ from __future__ import division, print_function
 
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
@@ -27,16 +27,13 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         # Compute the kinetic, potential energy and enstrophy
         energyK_fft, energyA_fft = self.output.compute_energies_fft()
-        enstrophy_fft = self.output.compute_enstrophy_fft()
-        enstrophy = self.sum_wavenumbers(enstrophy_fft)
         energy_fft = self.output.compute_energy_fft()
         energy = self.sum_wavenumbers(energy_fft)
+        energyK = self.sum_wavenumbers(energyK_fft)
+        energyA = self.sum_wavenumbers(energyA_fft)
 
-        # Compute energy of the shear modes. (Not implemented in MPI)
-        if mpi.nb_proc > 1:
-            energy_shear = np.NaN
-        else:
-            energy_shear = np.sum(energy_fft[:, 0])
+        enstrophy_fft = self.output.compute_enstrophy_fft()
+        enstrophy = self.sum_wavenumbers(enstrophy_fft)
 
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
@@ -54,48 +51,47 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             Frot_fft = self.sim.forcing.get_forcing().get_var("rot_fft")
+            Fb_fft = self.sim.forcing.get_forcing().get_var("b_fft")
             Fx_fft, Fy_fft = self.vecfft_from_rotfft(Frot_fft)
 
             rot_fft = self.sim.state.state_spect.get_var("rot_fft")
+            b_fft = self.sim.state.state_spect.get_var("b_fft")
 
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
-            PZ1_fft = np.real(
-                rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()
-            ) / 2
-            PZ2_fft = (abs(Frot_fft) ** 2) * deltat / 2
+            PZ1_fft = np.real(rot_fft.conj() * Frot_fft)
+            PZ2_fft = (abs(Frot_fft) ** 2)
 
             PZ1 = self.sum_wavenumbers(PZ1_fft)
-            PZ2 = self.sum_wavenumbers(PZ2_fft)
+            PZ2 = deltat / 2 * self.sum_wavenumbers(PZ2_fft)
 
-            PK1_fft = np.real(
-                ux_fft.conj()
-                * Fx_fft
-                + ux_fft
-                * Fx_fft.conj()
-                + uy_fft.conj()
-                * Fy_fft
-                + uy_fft
-                * Fy_fft.conj()
-            ) / 2
-            PK2_fft = (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2) * deltat / 2
+            PK1_fft = np.real(ux_fft.conj() * Fx_fft + uy_fft.conj() * Fy_fft)
+            PK2_fft = (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2)
 
             PK1 = self.sum_wavenumbers(PK1_fft)
-            PK2 = self.sum_wavenumbers(PK2_fft)
+            PK2 = deltat / 2 * self.sum_wavenumbers(PK2_fft)
+
+            PA1_fft = np.real(b_fft.conj() * Fb_fft)
+            PA2_fft = (abs(Fb_fft) ** 2)
+
+            PA1 = self.sum_wavenumbers(PA1_fft)
+            PA2 = deltat / 2 * self.sum_wavenumbers(PA2_fft)
 
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
             self.file.write("####\ntime = {0:7.3f}\n".format(tsim))
             to_print = (
-                "E    = {0:11.6e} ; Z         = {1:11.6e} ; E_shear  = {2:11.6e}\n"
-                "epsA = {3:11.6e} ; epsA_hypo = {4:11.6e} ; epsA_tot = {5:11.9e} \n"
-                "epsK = {6:11.6e} ; epsK_hypo = {7:11.6e} ; epsK_tot = {8:11.6e} \n"
-                "epsZ = {9:11.6e} ; epsZ_hypo = {10:11.6e} ; epsZ_tot = {11:11.6e} \n"
+                "Z    = {:11.6e} \n"
+                "E    = {:11.6e} ; EK         = {:11.6e} ; EA        = {:11.6e} \n"
+                "epsA = {:11.6e} ; epsA_hypo  = {:11.6e} ; epsA_tot  = {:11.9e} \n"
+                "epsK = {:11.6e} ; epsK_hypo  = {:11.6e} ; epsK_tot  = {:11.6e} \n"
+                "epsZ = {:11.6e} ; epsZ_hypo = {:11.6e} ; epsZ_tot = {:11.6e} \n"
             ).format(
-                energy,
                 enstrophy,
-                energy_shear,
+                energy,
+                energyK,
+                energyA,
                 epsA,
                 epsA_hypo,
                 epsA + epsA_hypo,
@@ -111,10 +107,11 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
                 to_print = (
-                    "PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; PK_tot   = {2:11.6e} \n"
-                    "PZ1  = {3:11.6e} ; PZ2       = {4:11.6e} ; PZ_tot   = {5:11.6e} \n"
+                    "PK1  = {:11.6e} ; PK2       = {:11.6e} ; PK_tot   = {:11.6e} \n"
+                    "PA1  = {:11.6e} ; PA2       = {:11.6e} ; PA_tot   = {:11.6e} \n"
+                    "PZ1  = {:11.6e} ; PZ2       = {:11.6e} ; PZ_tot   = {:11.6e} \n"
                 ).format(
-                    PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2
+                    PK1, PK2, PK1 + PK2, PA1, PA2, PA1 + PA2, PZ1, PZ2, PZ1 + PZ2
                 )
                 self.file.write(to_print)
 
@@ -142,8 +139,10 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             lines = file_means.readlines()
 
         lines_t = []
+        lines_Z = []
         lines_E = []
         lines_PK = []
+        lines_PA = []
         lines_PZ = []
         lines_epsK = []
         lines_epsZ = []
@@ -152,10 +151,14 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         for il, line in enumerate(lines):
             if line.startswith("time ="):
                 lines_t.append(line)
+            if line.startswith("Z    ="):
+                lines_Z.append(line)
             if line.startswith("E    ="):
                 lines_E.append(line)
             if line.startswith("PK1  ="):
                 lines_PK.append(line)
+            if line.startswith("PA1  ="):
+                lines_PA.append(line)
             if line.startswith("PZ1  ="):
                 lines_PZ.append(line)
             if line.startswith("epsK ="):
@@ -170,12 +173,16 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             nt -= 1
 
         t = np.empty(nt)
-        E = np.empty(nt)
-        E_shear = np.empty(nt)
         Z = np.empty(nt)
+        E = np.empty(nt)
+        EK = np.empty(nt)
+        EA = np.empty(nt)
         PK1 = np.empty(nt)
         PK2 = np.empty(nt)
         PK_tot = np.empty(nt)
+        PA1 = np.empty(nt)
+        PA2 = np.empty(nt)
+        PA_tot = np.empty(nt)
         PZ1 = np.empty(nt)
         PZ2 = np.empty(nt)
         PZ_tot = np.empty(nt)
@@ -194,11 +201,15 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             words = line.split()
             t[il] = float(words[2])
 
+            line = lines_Z[il]
+            words = line.split()
+            Z[il] = float(words[2])
+
             line = lines_E[il]
             words = line.split()
             E[il] = float(words[2])
-            Z[il] = float(words[6])
-            E_shear[il] = float(words[10])
+            EK[il] = float(words[6])
+            EA[il] = float(words[10])
 
             if self.sim.params.forcing.enable:
                 line = lines_PK[il]
@@ -206,6 +217,12 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 PK1[il] = float(words[2])
                 PK2[il] = float(words[6])
                 PK_tot[il] = float(words[10])
+
+                line = lines_PA[il]
+                words = line.split()
+                PA1[il] = float(words[2])
+                PA2[il] = float(words[6])
+                PA_tot[il] = float(words[10])
 
                 line = lines_PZ[il]
                 words = line.split()
@@ -232,13 +249,19 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             epsA_tot[il] = float(words[10])
 
         dict_results["t"] = t
-        dict_results["E"] = E
         dict_results["Z"] = Z
-        dict_results["E_shear"] = E_shear
+
+        dict_results["E"] = E
+        dict_results["EK"] = EK
+        dict_results["EA"] = EA
 
         dict_results["PK1"] = PK1
         dict_results["PK2"] = PK2
         dict_results["PK_tot"] = PK_tot
+
+        dict_results["PA1"] = PA1
+        dict_results["PA2"] = PA2
+        dict_results["PA_tot"] = PA_tot
 
         dict_results["PZ1"] = PZ1
         dict_results["PZ2"] = PZ2
@@ -258,31 +281,48 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         return dict_results
 
-    def plot_time_variation_energy(self):
+    def plot_dt_energy(self):
         """
         Checks if dE/dt = energy_injection - energy_dissipation.
-        
-        Note:
-        ----
-        params.output.periods_save.spatial_save = 1e-15
-        params.time_stepping.deltat0
+
         """
         dict_results = self.load()
 
         t = dict_results["t"]
         E = dict_results["E"]
-        # bug with the init_fields
-        E = E[1:]
-        t = t[:-1]
+        PK = dict_results["PK_tot"]
+        PA = dict_results["PA_tot"]
+        P = PK + PA
 
         epsK_tot = dict_results["epsK_tot"]
         epsA_tot = dict_results["epsA_tot"]
         eps_tot = epsK_tot + epsA_tot
-        eps_tot = eps_tot[1:]
 
-        dt_E = np.zeros(shape=len(E) - 1)
-        for index in range(len(dt_E)):
-            dt_E[index] = (E[index + 1] - E[index]) / (t[index + 1] - t[index])
+        dt_E = np.diff(E) / np.diff(t)
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel("t")
+        ax.plot(t[:-1], dt_E, label="dE/dt")
+        ax.plot(t, P - eps_tot, label="$P - \epsilon$")
+        ax.plot(t, PA, label="PA")
+        ax.plot(t, PK, label="PK")
+        ax.legend()
+
+    def plot_energy(self):
+        """Plots the energy."""
+        dict_results = self.load()
+
+        t = dict_results["t"]
+        E = dict_results["E"]
+        EK = dict_results["EK"]
+        EA = dict_results["EA"]
+
+        fig, ax = plt.subplots()
+        ax.plot(t, E, label="E")
+        ax.plot(t, EK, label="EK")
+        ax.plot(t, EA, label="EA")
+
+        ax.legend()
 
     def plot(self):
         dict_results = self.load()
