@@ -32,7 +32,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         super(TimeSteppingPseudoSpectralStrat, self)._init_compute_time_step()
 
         # Coefficients dt
-        self.CFL = 1.
         self.coef_deltat_dispersion_relation = 1.0
         self.coef_group = 1.0
         self.coef_phase = 1.0

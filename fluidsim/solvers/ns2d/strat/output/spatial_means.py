@@ -80,13 +80,13 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write("####\ntime = {0:7.3f}\n".format(tsim))
+            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
             to_print = (
-                "Z    = {:11.6e} \n"
-                "E    = {:11.6e} ; EK         = {:11.6e} ; EA        = {:11.6e} \n"
-                "epsA = {:11.6e} ; epsA_hypo  = {:11.6e} ; epsA_tot  = {:11.9e} \n"
-                "epsK = {:11.6e} ; epsK_hypo  = {:11.6e} ; epsK_tot  = {:11.6e} \n"
-                "epsZ = {:11.6e} ; epsZ_hypo = {:11.6e} ; epsZ_tot = {:11.6e} \n"
+                "Z    = {:11.5e} \n"
+                "E    = {:11.5e} ; EK         = {:11.5e} ; EA        = {:11.5e} \n"
+                "epsA = {:11.5e} ; epsA_hypo  = {:11.5e} ; epsA_tot  = {:11.5e} \n"
+                "epsK = {:11.5e} ; epsK_hypo  = {:11.5e} ; epsK_tot  = {:11.5e} \n"
+                "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
             ).format(
                 enstrophy,
                 energy,
@@ -107,9 +107,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
                 to_print = (
-                    "PK1  = {:11.6e} ; PK2       = {:11.6e} ; PK_tot   = {:11.6e} \n"
-                    "PA1  = {:11.6e} ; PA2       = {:11.6e} ; PA_tot   = {:11.6e} \n"
-                    "PZ1  = {:11.6e} ; PZ2       = {:11.6e} ; PZ_tot   = {:11.6e} \n"
+                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
+                    "PA1  = {:11.5e} ; PA2       = {:11.5e} ; PA_tot   = {:11.5e} \n"
+                    "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
                 ).format(
                     PK1, PK2, PK1 + PK2, PA1, PA2, PA1 + PA2, PZ1, PZ2, PZ1 + PZ2
                 )
@@ -141,9 +141,10 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         lines_t = []
         lines_Z = []
         lines_E = []
-        lines_PK = []
-        lines_PA = []
-        lines_PZ = []
+        if self.sim.params.forcing.enable:
+            lines_PK = []
+            lines_PA = []
+            lines_PZ = []
         lines_epsK = []
         lines_epsZ = []
         lines_epsA = []
@@ -155,12 +156,14 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 lines_Z.append(line)
             if line.startswith("E    ="):
                 lines_E.append(line)
-            if line.startswith("PK1  ="):
-                lines_PK.append(line)
-            if line.startswith("PA1  ="):
-                lines_PA.append(line)
-            if line.startswith("PZ1  ="):
-                lines_PZ.append(line)
+
+            if self.sim.params.forcing.enable:
+                if line.startswith("PK1  ="):
+                    lines_PK.append(line)
+                if line.startswith("PA1  ="):
+                    lines_PA.append(line)
+                if line.startswith("PZ1  ="):
+                    lines_PZ.append(line)
             if line.startswith("epsK ="):
                 lines_epsK.append(line)
             if line.startswith("epsZ ="):
@@ -177,15 +180,18 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         E = np.empty(nt)
         EK = np.empty(nt)
         EA = np.empty(nt)
-        PK1 = np.empty(nt)
-        PK2 = np.empty(nt)
-        PK_tot = np.empty(nt)
-        PA1 = np.empty(nt)
-        PA2 = np.empty(nt)
-        PA_tot = np.empty(nt)
-        PZ1 = np.empty(nt)
-        PZ2 = np.empty(nt)
-        PZ_tot = np.empty(nt)
+
+        if self.sim.params.forcing.enable:
+            PK1 = np.empty(nt)
+            PK2 = np.empty(nt)
+            PK_tot = np.empty(nt)
+            PA1 = np.empty(nt)
+            PA2 = np.empty(nt)
+            PA_tot = np.empty(nt)
+            PZ1 = np.empty(nt)
+            PZ2 = np.empty(nt)
+            PZ_tot = np.empty(nt)
+
         epsK = np.empty(nt)
         epsK_hypo = np.empty(nt)
         epsK_tot = np.empty(nt)
@@ -255,17 +261,18 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         dict_results["EK"] = EK
         dict_results["EA"] = EA
 
-        dict_results["PK1"] = PK1
-        dict_results["PK2"] = PK2
-        dict_results["PK_tot"] = PK_tot
+        if self.sim.params.forcing.enable:
+            dict_results["PK1"] = PK1
+            dict_results["PK2"] = PK2
+            dict_results["PK_tot"] = PK_tot
 
-        dict_results["PA1"] = PA1
-        dict_results["PA2"] = PA2
-        dict_results["PA_tot"] = PA_tot
+            dict_results["PA1"] = PA1
+            dict_results["PA2"] = PA2
+            dict_results["PA_tot"] = PA_tot
 
-        dict_results["PZ1"] = PZ1
-        dict_results["PZ2"] = PZ2
-        dict_results["PZ_tot"] = PZ_tot
+            dict_results["PZ1"] = PZ1
+            dict_results["PZ2"] = PZ2
+            dict_results["PZ_tot"] = PZ_tot
 
         dict_results["epsK"] = epsK
         dict_results["epsK_hypo"] = epsK_hypo
@@ -288,24 +295,32 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         """
         dict_results = self.load()
 
-        t = dict_results["t"]
+        times = dict_results["t"]
         E = dict_results["E"]
-        PK = dict_results["PK_tot"]
-        PA = dict_results["PA_tot"]
-        P = PK + PA
 
         epsK_tot = dict_results["epsK_tot"]
         epsA_tot = dict_results["epsA_tot"]
         eps_tot = epsK_tot + epsA_tot
 
-        dt_E = np.diff(E) / np.diff(t)
+        dtE = np.gradient(E, times)
+
+        if self.sim.params.forcing.enable:
+            PK = dict_results["PK_tot"]
+            PA = dict_results["PA_tot"]
+            P = PK + PA
+            model = P - eps_tot
+        else:
+            model = -eps_tot
 
         fig, ax = plt.subplots()
         ax.set_xlabel("t")
-        ax.plot(t[:-1], dt_E, label="dE/dt")
-        ax.plot(t, P - eps_tot, label="$P - \epsilon$")
-        ax.plot(t, PA, label="PA")
-        ax.plot(t, PK, label="PK")
+        ax.plot(times, dtE, label="$dE/dt$")
+        ax.plot(times, model, label=r"$P - \epsilon$")
+
+        if self.sim.params.forcing.enable:
+            ax.plot(times, PA, "b", label="PA")
+            ax.plot(times, PK, "r", label="PK")
+            ax.plot(times, eps_tot, "k:", label=r"$\epsilon$")
         ax.legend()
 
     def plot_energy(self):
@@ -386,12 +401,13 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax2.plot(t, epsZ_tot, "k", linewidth=2)
 
         if self.sim.params.forcing.enable:
-            PK_tot = dict_results["PK_tot"]
-            PA_tot = dict_results["PA_tot"]
+            PK = dict_results["PK_tot"]
+            PA = dict_results["PA_tot"]
+            P = PK + PA
             PZ_tot = dict_results["PZ_tot"]
-            ax1.plot(t, PK_tot + PA_tot, "c", label="P", linewidth=2)
+            ax1.plot(t, P, "c", label="P", linewidth=2)
             ax2.plot(t, PZ_tot, "c", label="P", linewidth=2)
-            ax1.set_ylabel(r"$P_E(t)$, $\epsilon(t)$")
-            ax2.set_ylabel(r"$P_Z(t)$, $\epsilon_Z(t)$")
+            ax1.set_ylabel("P_E(t), epsK(t)")
+            ax2.set_ylabel("P_Z(t), epsZ(t)")
 
         ax1.legend()

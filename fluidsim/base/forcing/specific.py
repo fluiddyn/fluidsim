@@ -50,11 +50,12 @@ from __future__ import print_function
 from builtins import object
 
 from copy import deepcopy
-from warnings import warn
-from math import radians
-
+from math import radians, pi
 import types
+from warnings import warn
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size
@@ -391,8 +392,8 @@ class Proportional(SpecificForcingPseudoSpectral):
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft, self.shapeK_loc_coarse)
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time(a_fft)
-            kwargs = {self.key_forced: Fa_fft}
+            fa_fft = self.forcingc_raw_each_time(a_fft)
+            kwargs = {self.key_forced: fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
@@ -478,25 +479,28 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             )
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time(a_fft)
-            Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
-            kwargs = {self.key_forced: Fa_fft}
+            fa_fft = self.forcingc_raw_each_time(a_fft)
+            fa_fft = self.normalize_forcingc(fa_fft, a_fft)
+            kwargs = {self.key_forced: fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
         # print('check forcing injection')
         # self.verify_injection_rate_coarse(a_fft)
 
         self.put_forcingc_in_forcing()
 
-    # # check...
-    # f_fft = self.forcing_fft.get_var(self.key_forced)
-    # fc_fft = self.oper.coarse_seq_from_fft_loc(
-    #     f_fft, self.shapeK_loc_coarse)
+        # # check...
+        # f_fft = self.forcing_fft.get_var(self.key_forced)
+        # fc_fft = self.oper.coarse_seq_from_fft_loc(
+        #     f_fft, self.shapeK_loc_coarse)
 
-    # if mpi.rank == 0:
-    #     assert np.allclose(Fa_fft, fc_fft)
+        # if mpi.rank == 0:
+        #     assert np.allclose(fa_fft, fc_fft)
 
-    # # verification
-    # self.verify_injection_rate()
+        # # verification
+        # self.verify_injection_rate()
+
+        if mpi.rank == 0:
+            return fa_fft
 
     def normalize_forcingc(self, fvc_fft, vc_fft):
         """Normalize the coarse forcing"""

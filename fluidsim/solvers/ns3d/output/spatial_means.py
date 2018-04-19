@@ -65,12 +65,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write("####\ntime = {:7.3f}\n".format(tsim))
+            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
             to_print = (
-                "E    = {:11.6e}\n"
-                "Ex   = {:11.6e} ; Ey   = {:11.6e} ; Ez   = {:11.6e}\n"
-                "epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; "
-                "epsK_tot = {:11.6e} \n"
+                "E    = {:11.5e}\n"
+                "Ex   = {:11.5e} ; Ey   = {:11.5e} ; Ez   = {:11.5e}\n"
+                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; "
+                "epsK_tot = {:11.5e} \n"
             ).format(
                 energy, nrj_vx, nrj_vy, nrj_vz, epsK, epsK_hypo, epsK + epsK_hypo
             )
@@ -78,8 +78,8 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
             if self.sim.params.forcing.enable:
                 to_print = (
-                    "PK1  = {0:11.6e} ; PK2       = {1:11.6e} ; "
-                    "PK_tot   = {2:11.6e} \n"
+                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
+                    "PK_tot   = {:11.5e} \n"
                 ).format(
                     PK1, PK2, PK1 + PK2
                 )
