@@ -39,8 +39,8 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
         classes.Output.module_name = package + ".output"
         classes.Output.class_name = "OutputStrat"
 
-        classes.Forcing.module_name = package + ".forcing"
-        classes.Forcing.class_name = "ForcingNS2DStrat"
+        classes.Forcing.module_name = "fluidsim.solvers.ns2d" + ".forcing"
+        classes.Forcing.class_name = "ForcingNS2D"
 
         # New class time_stepping for the solver strat.
         classes.TimeStepping.module_name = package + ".time_stepping"

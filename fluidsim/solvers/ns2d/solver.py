@@ -35,13 +35,12 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
         """Init. `self` by writing the information on the solver.
 
         The function `InfoSolverPseudoSpectral._init_root` is
-        called. We keep three classes listed by this function:
+        called. We keep two classes listed by this function:
 
         - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
 
         - :class:`fluidsim.operators.operators2d.OperatorsPseudoSpectral2D`
 
-        - :class:`fluidsim.base.forcing.ForcingBasePseudoSpectral`
 
         The other first-level classes for this solver are:
 
@@ -73,6 +72,9 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
 
         classes.Output.module_name = package + ".output"
         classes.Output.class_name = "Output"
+
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingNS2D"
 
 
 class Simul(SimulBasePseudoSpectral):

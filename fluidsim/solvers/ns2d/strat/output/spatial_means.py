@@ -387,10 +387,11 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         if self.sim.params.forcing.enable:
             PK_tot = dict_results["PK_tot"]
+            PA_tot = dict_results["PA_tot"]
             PZ_tot = dict_results["PZ_tot"]
-            ax1.plot(t, PK_tot, "c", label="P", linewidth=2)
+            ax1.plot(t, PK_tot + PA_tot, "c", label="P", linewidth=2)
             ax2.plot(t, PZ_tot, "c", label="P", linewidth=2)
-            ax1.set_ylabel("P_E(t), epsK(t)")
-            ax2.set_ylabel("P_Z(t), epsZ(t)")
+            ax1.set_ylabel(r"$P_E(t)$, $\epsilon(t)$")
+            ax2.set_ylabel(r"$P_Z(t)$, $\epsilon_Z(t)$")
 
         ax1.legend()

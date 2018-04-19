@@ -1,37 +1,21 @@
-"""Forcing (:mod:`fluidsim.solvers.ns2d.strat.forcing`)
-=================================================
+# -*- coding: utf-8 -*-
+""" Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
+==========================================================
 
 .. autoclass:: ForcingNS2DStrat
    :members:
 
-.. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic
-   :members:
 """
 from __future__ import division
 from __future__ import print_function
 
-from math import radians
+from math import radians, degrees
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from fluidsim.base.forcing import ForcingBasePseudoSpectral
 from fluidsim.base.forcing.specific import TimeCorrelatedRandomPseudoSpectral
-
-
-class ForcingNS2DStrat(ForcingBasePseudoSpectral):
-    """Forcing class for the ns2d strat solver.
-
-    .. inheritance-diagram:: ForcingNS2D
-
-    """
-
-    @staticmethod
-    def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver."""
-        classes = [TimeCorrelatedRandomPseudoSpectralAnisotropic]
-        ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
@@ -54,7 +38,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             params
         )
 
-        params.forcing._set_child("tcrandom_anisotropic", {"angle": "45"})
+        params.forcing._set_child("tcrandom_anisotropic", {"angle": "45°"})
 
     # def __init__(self, sim):
     #     super(TimeCorrelatedRandomPseudoSpectralAnisotropic, self).__init__(sim)
@@ -96,7 +80,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
-        angle = radians(float(self.params.forcing[self.tag].angle))
+        angle = self.angle
 
         self.kxmin_forcing = np.sin(angle) * self.kmin_forcing
         self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
@@ -145,8 +129,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         width = kxmax_forcing - kxmin_forcing
         height = kymax_forcing - kymin_forcing
 
-        theta1 = 90.0 - float(pforcing.tcrandom_anisotropic.angle)
-        theta2 = 90.0
+        theta1 = 90. - degrees(self.angle)
+        theta2 = 90.
 
         KX = self.oper_coarse.KX
         KY = self.oper_coarse.KY
@@ -159,7 +143,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             + "; "
             + r"$nk_{{min}} = {} \delta k_x$; ".format(pforcing.nkmin_forcing)
             + r"$nk_{{max}} = {} \delta k_z$; ".format(pforcing.nkmax_forcing)
-            + r"$\theta = {}^\circ$; ".format(pforcing.tcrandom_anisotropic.angle)
+            + r"$\theta = {:.0f}^\circ$; ".format(degrees(self.angle))
             + r"Forced modes = {}".format(self.nb_forced_modes)
         )
 

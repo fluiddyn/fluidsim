@@ -50,12 +50,11 @@ from __future__ import print_function
 from builtins import object
 
 from copy import deepcopy
-from math import radians, pi
-import types
 from warnings import warn
+from math import radians
+
+import types
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size
@@ -191,10 +190,20 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         self._check_forcing_shape([n], sim.oper.shapeX_seq)
 
         try:
-            angle = radians(float(self.params.forcing[self.tag].angle))
+            angle = self.params.forcing[self.tag].angle
         except AttributeError:
             pass
         else:
+            if isinstance(angle, str):
+                if angle.endswith("°"):
+                    angle = radians(float(angle[:-1]))
+                else:
+                    raise ValueError(
+                        "Angle should be a string with \n"
+                        + "the degree symbol or a float in radians"
+                    )
+
+            self.angle = angle
             self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
             self.kymax_forcing = np.cos(angle) * self.kmax_forcing
 

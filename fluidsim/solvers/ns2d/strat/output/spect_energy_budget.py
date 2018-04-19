@@ -218,6 +218,12 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             dset_transferEA_kx = f["transferEA_kx"].value
             dset_transferEA_ky = f["transferEA_ky"].value
 
+            dset_dissEK_kx = f["dissEK_kx"].value
+            dset_dissEA_kx = f["dissEA_kx"].value
+
+            dset_dissEK_ky = f["dissEK_ky"].value
+            dset_dissEA_ky = f["dissEA_ky"].value
+
         # Average from tmin and tmax for plot
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
@@ -259,12 +265,19 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot + 1].mean(0)
         transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot + 1].mean(0)
 
+        dissEK_kx = dset_dissEK_kx[imin_plot:imax_plot + 1].mean(0)
+        dissEA_kx = dset_dissEA_kx[imin_plot:imax_plot + 1].mean(0)
+
         PiEK_kx = cumsum_inv(transferEK_kx) * self.oper.deltakx
         PiEA_kx = cumsum_inv(transferEA_kx) * self.oper.deltakx
+
+        DissEK_kx = dissEK_kx.cumsum() * self.oper.deltakx
+        DissEA_kx = dissEA_kx.cumsum() * self.oper.deltakx
 
         ax1.plot(kxE, PiEK_kx + PiEA_kx, label=r"$\Pi$")
         ax1.plot(kxE, PiEK_kx, label=r"$\Pi_K$")
         ax1.plot(kxE, PiEA_kx, label=r"$\Pi_A$")
+        ax1.plot(kxE, DissEK_kx + DissEA_kx, label=r"$D$")
         ax1.plot(kxE, kxE * 0., "k--", linewidth=0.8)
         ax1.legend()
 
@@ -285,9 +298,16 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         PiEK_ky = cumsum_inv(transferEK_ky) * self.oper.deltaky
         PiEA_ky = cumsum_inv(transferEA_ky) * self.oper.deltaky
 
+        dissEK_ky = dset_dissEK_ky[imin_plot:imax_plot + 1].mean(0)
+        dissEA_ky = dset_dissEA_ky[imin_plot:imax_plot + 1].mean(0)
+
+        DissEK_ky = dissEK_ky.cumsum() * self.oper.deltaky
+        DissEA_ky = dissEA_ky.cumsum() * self.oper.deltaky
+
         ax2.plot(kyE, PiEK_ky + PiEA_ky, label=r"$\Pi$")
         ax2.plot(kyE, PiEK_ky, label=r"$\Pi_K$")
         ax2.plot(kyE, PiEA_ky, label=r"$\Pi_A$")
+        ax2.plot(kyE, DissEK_ky + DissEA_ky, label=r"$D$")
         ax2.plot(kyE, kyE * 0., "k--", linewidth=0.8)
 
         ax2.legend()
