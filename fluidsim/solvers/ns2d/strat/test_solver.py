@@ -3,10 +3,6 @@ from __future__ import division
 import unittest
 import shutil
 
-import numpy as np
-
-import fluidsim as fls
-
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 

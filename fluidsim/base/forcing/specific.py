@@ -382,8 +382,8 @@ class Proportional(SpecificForcingPseudoSpectral):
         a_fft = self.oper.coarse_seq_from_fft_loc(a_fft, self.shapeK_loc_coarse)
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time(a_fft)
-            kwargs = {self.key_forced: Fa_fft}
+            fa_fft = self.forcingc_raw_each_time(a_fft)
+            kwargs = {self.key_forced: fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
 
         self.put_forcingc_in_forcing()
@@ -469,9 +469,9 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             )
 
         if mpi.rank == 0:
-            Fa_fft = self.forcingc_raw_each_time(a_fft)
-            Fa_fft = self.normalize_forcingc(Fa_fft, a_fft)
-            kwargs = {self.key_forced: Fa_fft}
+            fa_fft = self.forcingc_raw_each_time(a_fft)
+            fa_fft = self.normalize_forcingc(fa_fft, a_fft)
+            kwargs = {self.key_forced: fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
         # print('check forcing injection')
         # self.verify_injection_rate_coarse(a_fft)
@@ -484,12 +484,13 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         #     f_fft, self.shapeK_loc_coarse)
 
         # if mpi.rank == 0:
-        #     assert np.allclose(Fa_fft, fc_fft)
+        #     assert np.allclose(fa_fft, fc_fft)
 
         # # verification
         # self.verify_injection_rate()
 
-        return Fa_fft
+        if mpi.rank == 0:
+            return fa_fft
 
     def normalize_forcingc(self, fvc_fft, vc_fft):
         """Normalize the coarse forcing"""
@@ -824,19 +825,19 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         self.time_1k = []
 
     def compute(self):
-        Fa_fft = super(
+        fa_fft = super(
             TimeCorrelatedRandomPseudoSpectralAnisotropic, self
         ).compute()
-
-        # Save forcing first mode forced
-        id0, id1 = np.argwhere(self.COND_NO_F == False)[0]
-        forcing_1k = Fa_fft[id0, id1].real
-        tsim = self.sim.time_stepping.t
-        # print(tsim)
-        if tsim - self.t_last_change_1k >= self.period_save_forcing1k:
-            self.forcing_1k.append(forcing_1k)
-            self.time_1k.append(self.sim.time_stepping.t)
-            self.t_last_change_1k = tsim
+        if mpi.rank == 0:
+            # Save forcing first mode forced
+            id0, id1 = np.argwhere(self.COND_NO_F == False)[0]
+            forcing_1k = fa_fft[id0, id1].real
+            tsim = self.sim.time_stepping.t
+            # print(tsim)
+            if tsim - self.t_last_change_1k >= self.period_save_forcing1k:
+                self.forcing_1k.append(forcing_1k)
+                self.time_1k.append(self.sim.time_stepping.t)
+                self.t_last_change_1k = tsim
 
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
