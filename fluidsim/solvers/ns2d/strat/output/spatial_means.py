@@ -74,8 +74,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             PA1_fft = np.real(b_fft.conj() * Fb_fft)
             PA2_fft = (abs(Fb_fft) ** 2)
 
-            PA1 = self.sum_wavenumbers(PA1_fft)
-            PA2 = deltat / 2 * self.sum_wavenumbers(PA2_fft)
+            PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N**2
+            PA2 = deltat / 2 / self.params.N**2 * self.sum_wavenumbers(PA2_fft)
 
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
@@ -293,6 +293,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         Checks if dE/dt = energy_injection - energy_dissipation.
 
         """
+        if mpi.rank != 0:
+            return
+
         dict_results = self.load()
 
         times = dict_results["t"]
@@ -314,17 +317,20 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         fig, ax = plt.subplots()
         ax.set_xlabel("t")
-        ax.plot(times, dtE, label="$dE/dt$")
-        ax.plot(times, model, label=r"$P - \epsilon$")
+        ax.plot(times[2:], dtE[2:], label="$dE/dt$")
+        ax.plot(times[1:], model[1:], label=r"$P - \epsilon$")
 
         if self.sim.params.forcing.enable:
-            ax.plot(times, PA, "b", label="PA")
-            ax.plot(times, PK, "r", label="PK")
-            ax.plot(times, eps_tot, "k:", label=r"$\epsilon$")
+            ax.plot(times[1:], PA[1:], "b", label="PA")
+            ax.plot(times[1:], PK[1:], "r", label="PK")
+            ax.plot(times[1:], eps_tot[1:], "k:", label=r"$\epsilon$")
         ax.legend()
 
     def plot_energy(self):
         """Plots the energy."""
+        if mpi.rank != 0:
+            return
+
         dict_results = self.load()
 
         t = dict_results["t"]
@@ -340,6 +346,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax.legend()
 
     def plot(self):
+        if mpi.rank != 0:
+            return
+
         dict_results = self.load()
 
         t = dict_results["t"]

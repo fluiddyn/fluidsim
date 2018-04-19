@@ -28,15 +28,15 @@ from fluidsim.solvers.ns2d.strat.solver import Simul
 
 params = Simul.create_default_params()
 
-params.oper.nx = nx = 64
+params.oper.nx = nx = 128
 
 params.oper.ny = ny = nx
 params.oper.Lx = 2 * pi
 params.oper.Ly = params.oper.Lx * (ny / nx)
 # params.oper.coef_dealiasing = 0.66
 
-params.nu_8 = 1e-7
-
+params.nu_8 = 1e-14
+params.N = 1.2
 params.init_fields.type = 'noise'
 # params.init_fields.noise.velo_max = 1e-10
 
@@ -44,14 +44,14 @@ params.forcing.enable = True
 params.forcing.type = 'tcrandom_anisotropic'
 # params.forcing.type = 'tcrandom'
 
-params.forcing.nkmax_forcing = 8
+params.forcing.nkmax_forcing = 10
 params.forcing.nkmin_forcing = 4
-params.forcing.tcrandom.time_correlation = 0.5
-# params.forcing.key_forced = 'ap_fft'
+params.forcing.tcrandom.time_correlation = 10.
+params.forcing.key_forced = 'ap_fft'
 # params.forcing.normalized.which_root = 'minabs'
 
 params.time_stepping.t_end = 2
-params.time_stepping.cfl_coef = 0.1
+# params.time_stepping.cfl_coef = 0.5
 # params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = 0.02
 
