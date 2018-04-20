@@ -246,6 +246,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         ax.legend()
 
+        fig.tight_layout()
+
+
     def plot_dt_enstrophy(self):
         """
         Checks dZ/dt = enstrophy_injection - enstrophy_dissipation.
@@ -259,17 +262,29 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         if self.sim.params.forcing.enable:
             PZ_tot = dict_results["PZ_tot"]
+            PZ1 = dict_results["PZ1"]
+            PZ2 = dict_results["PZ2"]
             model = PZ_tot - epsZ_tot
         else:
             model = -epsZ_tot
 
         dtZ = np.gradient(Z, t)
 
-        fig, ax = plt.subplots()
+        fig, axes = plt.subplots(2)
+        ax = axes[0]
         ax.plot(t, dtZ, label="dZ/dt")
         ax.plot(t, model, label=r"$P_Z-\epsilon_Z$")
-
         ax.legend()
+
+        ax = axes[1]
+        ax.plot(t, epsZ_tot, label=r"$\epsilon_{Z}$")
+        ax.plot(t, PZ_tot, label=r"$P_{Z}$")
+        ax.plot(t, PZ1, label=r"$P_{Z1}$")
+        ax.plot(t, PZ2, label=r"$P_{Z2}$")
+        ax.legend()
+
+        fig.tight_layout()
+
 
     def plot(self):
         dict_results = self.load()
@@ -278,11 +293,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
         E = dict_results["E"]
         Z = dict_results["Z"]
 
-        epsK = dict_results["epsK"]
         epsK_hypo = dict_results["epsK_hypo"]
         epsK_tot = dict_results["epsK_tot"]
 
-        epsZ = dict_results["epsZ"]
         epsZ_hypo = dict_results["epsZ_hypo"]
         epsZ_tot = dict_results["epsZ_tot"]
 
@@ -295,14 +308,16 @@ class SpatialMeansNS2D(SpatialMeansBase):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         fig.suptitle("Energy and enstrophy")
         ax1.set_ylabel("$E(t)$")
-        ax1.plot(t, E, "k", linewidth=2)
+        ax1.plot(t, E, "k", linewidth=2, label=r"$E$")
+        ax1.legend()
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
         ax2.set_ylabel("$Z(t)$")
         ax2.set_xlabel("$t$")
-        ax2.plot(t, Z, "k", linewidth=2)
+        ax2.plot(t, Z, "k", linewidth=2, label=r"$Z$")
+        ax2.legend()
 
         z_bottom_axe = 0.54
         size_axe[1] = z_bottom_axe
@@ -310,18 +325,17 @@ class SpatialMeansNS2D(SpatialMeansBase):
         fig.suptitle("Dissipation of energy and enstrophy")
         ax1.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax1.plot(t, epsK, "r", linewidth=2)
-        ax1.plot(t, epsK_hypo, "g", linewidth=2)
-        ax1.plot(t, epsK_tot, "k", linewidth=2)
+        ax1.plot(t, epsK_hypo, "g", linewidth=1, label=r"$\epsilon_{hypo}$")
+        ax1.plot(t, epsK_tot, "k", linewidth=2, label=r"$\epsilon$")
+        ax1.legend()
 
         z_bottom_axe = 0.08
         size_axe[1] = z_bottom_axe
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("$t$")
         ax2.set_ylabel(r"$\epsilon_Z(t)$")
-        ax2.plot(t, epsZ, "r", linewidth=2)
-        ax2.plot(t, epsZ_hypo, "g", linewidth=2)
-        ax2.plot(t, epsZ_tot, "k", linewidth=2)
+        ax2.plot(t, epsZ_hypo, "g", linewidth=1, label=r"$\epsilon_{Zhypo}$")
+        ax2.plot(t, epsZ_tot, "k", linewidth=2, label=r"$\epsilon_Z$")
 
         if self.sim.params.forcing.enable:
             PK_tot = dict_results["PK_tot"]
@@ -330,3 +344,5 @@ class SpatialMeansNS2D(SpatialMeansBase):
             ax2.plot(t, PZ_tot, "c", linewidth=2)
             ax1.set_ylabel("P_E(t), epsK(t)")
             ax2.set_ylabel("P_Z(t), epsZ(t)")
+
+        ax2.legend()

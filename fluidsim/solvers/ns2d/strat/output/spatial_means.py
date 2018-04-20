@@ -306,6 +306,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         eps_tot = epsK_tot + epsA_tot
 
         dtE = np.gradient(E, times)
+        dtE = np.diff(E) / np.diff(times)
+        times_dtE = (times[1:] + times[:-1])/2
 
         if self.sim.params.forcing.enable:
             PK = dict_results["PK_tot"]
@@ -315,16 +317,23 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         else:
             model = -eps_tot
 
-        fig, ax = plt.subplots()
-        ax.set_xlabel("t")
-        ax.plot(times[2:], dtE[2:], label="$dE/dt$")
-        ax.plot(times[1:], model[1:], label=r"$P - \epsilon$")
+        fig, axes = plt.subplots(2)
+        ax = axes[0]
+        ax.plot(times_dtE[2:], dtE[2:], label="$dE/dt$")
 
+        times[:-1] += np.diff(times)/2
+        ax.plot(times[1:], model[1:], label=r"$P - \epsilon$")
+        ax.legend()
+
+        ax = axes[1]
         if self.sim.params.forcing.enable:
             ax.plot(times[1:], PA[1:], "b", label="PA")
             ax.plot(times[1:], PK[1:], "r", label="PK")
             ax.plot(times[1:], eps_tot[1:], "k:", label=r"$\epsilon$")
+        ax.set_xlabel("t")
         ax.legend()
+
+        fig.tight_layout()
 
     def plot_energy(self):
         """Plots the energy."""
@@ -344,6 +353,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax.plot(t, EA, label="EA")
 
         ax.legend()
+
+        fig.tight_layout()
 
     def plot(self):
         if mpi.rank != 0:
