@@ -186,6 +186,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params = load_params_simul(path_dir=path_dir)
     params.path_run = path_dir
     params.init_fields.type = "constant"
+    params.init_fields.modif_after_init = False
     params.ONLY_COARSE_OPER = True
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
@@ -265,6 +266,7 @@ def load_state_phys_file(
         params.output.ONLINE_PLOT_OK = False
     params.init_fields.type = "from_file"
     params.init_fields.from_file.path = path_file
+    params.init_fields.modif_after_init = False
     try:
         params.preprocess.enable = False
     except AttributeError:

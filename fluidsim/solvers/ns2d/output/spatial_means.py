@@ -141,8 +141,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 lines_epsZ.append(line)
 
         nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
+        # pa: why ?
+        # if nt > 1:
+        #     nt -= 1
 
         t = np.empty(nt)
         E = np.empty(nt)
@@ -304,7 +305,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         ax0 = axes[0]
         ax0.set_ylabel("$E(t)$")
-        ax0.plot(t, E, "k", linewidth=2, label=r"$E$")
+        ax0.plot(t, E, "k.-", linewidth=2, label=r"$E$")
         ax0.legend()
 
         ax1 = axes[1]

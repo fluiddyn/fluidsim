@@ -421,10 +421,13 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             + self.path_run
         )
         if self._has_to_save:
-            self.phys_fields.save()
+            if hasattr(self.sim, 'forcing'):
+                self.sim.forcing.compute()
+            self.one_time_step()
+            if self.sim.output.phys_fields.t_last_save < self.sim.time_stepping.t:
+                self.phys_fields.save()
         if mpi.rank == 0 and self._has_to_save:
             self.print_stdout.close()
-
             for k in self.params.periods_save._get_key_attribs():
                 period = self.params.periods_save.__dict__[k]
                 if period != 0:

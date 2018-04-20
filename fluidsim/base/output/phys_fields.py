@@ -106,6 +106,7 @@ class PhysFieldsBase(SpecificOutput):
         self._equation = None
 
         if self.period_save == 0 and self.period_plot == 0:
+            self.t_last_save = -np.inf
             return
 
         self.t_last_save = self.sim.time_stepping.t

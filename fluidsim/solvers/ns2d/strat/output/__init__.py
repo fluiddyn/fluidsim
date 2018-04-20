@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Output (:mod:`fluidsim.solvers.ns2d.strat.output`)
 =====================================================
 

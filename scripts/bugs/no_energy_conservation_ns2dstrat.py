@@ -7,7 +7,8 @@
 - Values involving the forcing are completely wrong for t = 0
 
 - big difference between d_t E and P - eps when eps is "large" (see comments in
-  the code).
+  the code). This may be because we do not compute correctly the forcing if the
+  forced scales are dissipative.
 
 - small difference (which tends towards 0 when dt goes to 0 (?)) between d_t E and
   P - eps
@@ -23,7 +24,6 @@ python no_energy_conservation_ns2dstrat.py
 from __future__ import print_function
 
 # import numpy as np
-from math import pi
 import matplotlib.pyplot as plt
 
 # from fluidsim.solvers.ns2d.strat.solver import Simul
@@ -31,15 +31,18 @@ from fluidsim.solvers.ns2d.solver import Simul
 
 params = Simul.create_default_params()
 
-params.oper.nx = nx = 128*2
+# params.oper.nx = nx = 128*2
+# params.oper.ny = ny = nx // 4
 
-params.oper.ny = ny = nx // 4
-params.oper.Lx = 2 * pi
+params.oper.nx = nx = 64
+params.oper.ny = ny = nx
+
+params.oper.Lx = 10.
 params.oper.Ly = params.oper.Lx * (ny / nx)
 # params.oper.coef_dealiasing = 0.5
 
 # it is completely wrong!
-params.nu_8 = 1e-9
+params.nu_8 = 1e-8
 # there is clearly a problem
 # params.nu_8 = 1e-10
 # nearly ok
@@ -47,10 +50,10 @@ params.nu_8 = 1e-9
 # this is ok
 # params.nu_8 = 1e-14
 
-
 # params.N = 3.
 params.init_fields.type = 'noise'
-params.init_fields.noise.velo_max = 1e-10
+params.init_fields.noise.length = 1
+params.init_fields.noise.velo_max = 1e-4
 
 params.forcing.enable = True
 # params.forcing.type = 'tcrandom_anisotropic'

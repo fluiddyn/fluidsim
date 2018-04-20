@@ -16,6 +16,8 @@ Provides:
 
 from builtins import object
 
+import numpy as np
+
 from fluiddyn.util import mpi
 
 from .specific import (
@@ -112,7 +114,10 @@ key_forced: {None} or str
 
         ClassForcing = dict_classes[self.type_forcing]
 
+        self.sim = sim
         self.forcing_maker = ClassForcing(sim)
+
+        self._t_last_computed = -np.inf
 
     def __call__(self, key):
         """Return the variable corresponding to the given key."""
@@ -120,7 +125,10 @@ key_forced: {None} or str
         return forcing.get_var(key)
 
     def compute(self):
-        self.forcing_maker.compute()
+        time = self.sim.time_stepping.t
+        if time > self._t_last_computed:
+            self.forcing_maker.compute()
+            self._t_last_computed = time
 
     def get_forcing(self):
         return self.forcing_maker.forcing_phys
