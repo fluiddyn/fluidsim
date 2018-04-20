@@ -74,7 +74,12 @@ class InitFieldsBase(object):
         """This static method is used to complete the *params* container.
         """
         params._set_child(
-            "init_fields", attribs={"type": "constant", "available_types": []}
+            "init_fields",
+            attribs={
+                "type": "constant",
+                "available_types": [],
+                "modif_after_init": False
+            }
         )
 
         dict_classes = info_solver.classes.InitFields.import_classes()
@@ -110,7 +115,8 @@ class InitFieldsBase(object):
         self._specific_init_fields = Class(sim)
 
     def __call__(self):
-        self.sim.state.is_initialized = True
+        self.sim.state.is_initialized = not bool(
+            self.params.init_fields.modif_after_init)
         self._specific_init_fields()
 
 

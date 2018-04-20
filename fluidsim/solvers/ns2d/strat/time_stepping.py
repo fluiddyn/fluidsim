@@ -42,7 +42,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         has_b = has_vars("b")
 
         if has_ux and has_uy and has_b:
-            self._compute_time_increment_CLF = self._compute_time_increment_CFL_uxuyb
+            self.compute_time_increment_CLF = self._compute_time_increment_CFL_uxuyb
 
         # Try to compute deltat_dispersion_relation.
         try:

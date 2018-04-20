@@ -85,15 +85,15 @@ class TimeSteppingBase(object):
         has_eta = has_vars("eta")
 
         if has_ux and has_uy and has_uz:
-            self._compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyuz
+            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyuz
         elif has_ux and has_uy and has_eta:
-            self._compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyeta
+            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyeta
         elif has_ux and has_uy:
-            self._compute_time_increment_CLF = self._compute_time_increment_CLF_uxuy
+            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuy
         elif has_ux:
-            self._compute_time_increment_CLF = self._compute_time_increment_CLF_ux
+            self.compute_time_increment_CLF = self._compute_time_increment_CLF_ux
         elif hasattr(self.params, "U"):
-            self._compute_time_increment_CLF = self._compute_time_increment_CLF_U
+            self.compute_time_increment_CLF = self._compute_time_increment_CLF_U
         elif params_ts.USE_CFL:
             raise ValueError("params_ts.USE_CFL but no velocity.")
 
@@ -170,7 +170,7 @@ class TimeSteppingBase(object):
     def one_time_step(self):
         """Main time stepping function."""
         if self.params.time_stepping.USE_CFL:
-            self._compute_time_increment_CLF()
+            self.compute_time_increment_CLF()
         if self.sim.is_forcing_enabled:
             self.sim.forcing.compute()
         self.sim.output.one_time_step()

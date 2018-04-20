@@ -338,9 +338,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             and self._has_been_initialized_with_state
         ):
             return
-
         else:
             self._has_been_initialized_with_state = True
+
+        params = self.sim.params
+        # just for the first output
+        if (
+            hasattr(params.time_stepping, "USE_CFL")
+            and params.time_stepping.USE_CFL
+        ):
+            self.sim.time_stepping.compute_time_increment_CLF()
+
+        if hasattr(self.sim, "forcing"):
+            self.sim.forcing.compute()
 
         self.print_stdout("Initialization outputs:")
 

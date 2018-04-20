@@ -299,50 +299,49 @@ class SpatialMeansNS2D(SpatialMeansBase):
         epsZ_hypo = dict_results["epsZ_hypo"]
         epsZ_tot = dict_results["epsZ_tot"]
 
-        width_axe = 0.85
-        height_axe = 0.39
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
-
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig, axes = plt.subplots(2)
         fig.suptitle("Energy and enstrophy")
-        ax1.set_ylabel("$E(t)$")
-        ax1.plot(t, E, "k", linewidth=2, label=r"$E$")
+
+        ax0 = axes[0]
+        ax0.set_ylabel("$E(t)$")
+        ax0.plot(t, E, "k", linewidth=2, label=r"$E$")
+        ax0.legend()
+
+        ax1 = axes[1]
+        ax1.set_ylabel("$Z(t)$")
+        ax1.set_xlabel("$t$")
+        ax1.plot(t, Z, "k", linewidth=2, label=r"$Z$")
         ax1.legend()
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_ylabel("$Z(t)$")
-        ax2.set_xlabel("$t$")
-        ax2.plot(t, Z, "k", linewidth=2, label=r"$Z$")
-        ax2.legend()
-
-        z_bottom_axe = 0.54
-        size_axe[1] = z_bottom_axe
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig, axes = plt.subplots(2)
         fig.suptitle("Dissipation of energy and enstrophy")
-        ax1.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax1.plot(t, epsK_hypo, "g", linewidth=1, label=r"$\epsilon_{hypo}$")
-        ax1.plot(t, epsK_tot, "k", linewidth=2, label=r"$\epsilon$")
-        ax1.legend()
+        ax0 = axes[0]
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel("$t$")
-        ax2.set_ylabel(r"$\epsilon_Z(t)$")
-        ax2.plot(t, epsZ_hypo, "g", linewidth=1, label=r"$\epsilon_{Zhypo}$")
-        ax2.plot(t, epsZ_tot, "k", linewidth=2, label=r"$\epsilon_Z$")
+        ax0.set_ylabel(r"$\epsilon_K(t)$")
+
+        ax0.plot(t, epsK_tot, "k", linewidth=2, label=r"$\epsilon$")
+
+        ax1 = axes[1]
+        ax1.set_xlabel("$t$")
+        ax1.set_ylabel(r"$\epsilon_Z(t)$")
+        ax1.plot(t, epsZ_tot, "k", linewidth=2, label=r"$\epsilon_Z$")
 
         if self.sim.params.forcing.enable:
+            PK1 = dict_results["PK1"]
+            PK2 = dict_results["PK2"]
             PK_tot = dict_results["PK_tot"]
             PZ_tot = dict_results["PZ_tot"]
-            ax1.plot(t, PK_tot, "c", linewidth=2)
-            ax2.plot(t, PZ_tot, "c", linewidth=2)
-            ax1.set_ylabel("P_E(t), epsK(t)")
-            ax2.set_ylabel("P_Z(t), epsZ(t)")
+            ax0.plot(t, PK_tot, "c", linewidth=2, label="$P_K$")
+            ax0.plot(t, PK1, "c--", linewidth=1, label="$P_{K1}$")
+            ax0.plot(t, PK2, "c:", linewidth=1, label="$P_{K2}$")
+            ax1.plot(t, PZ_tot, "c", linewidth=2, label="$P_Z$")
+            ax0.set_ylabel("P_E(t), epsK(t)")
+            ax1.set_ylabel("P_Z(t), epsZ(t)")
 
-        ax2.legend()
+        if self.sim.params.nu_m4 != 0:
+            ax0.plot(t, epsK_hypo, "g", linewidth=1, label=r"$\epsilon_{hypo}$")
+            ax1.plot(t, epsZ_hypo, "g", linewidth=1, label=r"$\epsilon_{Zhypo}$")
+
+        ax0.legend()
+        ax1.legend()

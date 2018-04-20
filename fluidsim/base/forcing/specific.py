@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Forcing schemes (:mod:`fluidsim.base.forcing.specific`)
 ================================================================
 
@@ -50,12 +51,10 @@ from __future__ import print_function
 from builtins import object
 
 from copy import deepcopy
-from math import radians, pi
+from math import radians
 import types
 from warnings import warn
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size

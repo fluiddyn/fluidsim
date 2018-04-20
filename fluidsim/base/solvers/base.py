@@ -138,13 +138,6 @@ class SimulBase(object):
         self.init_fields = InitFields(self)
         self.init_fields()
 
-        # just for the first output
-        if (
-            hasattr(params.time_stepping, "USE_CFL")
-            and params.time_stepping.USE_CFL
-        ):
-            self.time_stepping._compute_time_increment_CLF()
-
         # initialisation forcing
         self.is_forcing_enabled = False
         try:
