@@ -117,7 +117,7 @@ class TestOperatorsDealiasing(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.oper = create_oper(coef_dealiasing=1.)
+        cls.oper = create_oper(coef_dealiasing=False)
 
     def test_dealiasing(self):
         """Test if dealiasing with coef_dealiasing=1.0 keeps the original

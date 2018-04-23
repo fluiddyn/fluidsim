@@ -74,8 +74,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             PA1_fft = np.real(b_fft.conj() * Fb_fft)
             PA2_fft = (abs(Fb_fft) ** 2)
 
-            PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N**2
-            PA2 = deltat / 2 / self.params.N**2 * self.sum_wavenumbers(PA2_fft)
+            PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N ** 2
+            PA2 = deltat / 2 / self.params.N ** 2 * self.sum_wavenumbers(PA2_fft)
 
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
@@ -307,7 +307,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         dtE = np.gradient(E, times)
         dtE = np.diff(E) / np.diff(times)
-        times_dtE = (times[1:] + times[:-1])/2
+        times_dtE = (times[1:] + times[:-1]) / 2
 
         if self.sim.params.forcing.enable:
             PK = dict_results["PK_tot"]
@@ -321,7 +321,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax = axes[0]
         ax.plot(times_dtE[2:], dtE[2:], label="$dE/dt$")
 
-        times[:-1] += np.diff(times)/2
+        times[:-1] += np.diff(times) / 2
         ax.plot(times[1:], model[1:], label=r"$P - \epsilon$")
         ax.legend()
 

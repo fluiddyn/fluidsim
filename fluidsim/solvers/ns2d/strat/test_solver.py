@@ -76,7 +76,7 @@ class TestSolverNS2DStrat(unittest.TestCase):
         params.forcing.nkmin_forcing = 2
         params.forcing.type = "tcrandom_anisotropic"
         params.forcing.tcrandom.time_correlation = 0.2
-        params.forcing.tcrandom_anisotropic.angle = "30°"
+        params.forcing.tcrandom_anisotropic.angle = u"30°"
 
         # save all outputs!
         periods = params.output.periods_save

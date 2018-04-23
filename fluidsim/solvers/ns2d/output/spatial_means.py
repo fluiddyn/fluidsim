@@ -249,7 +249,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         fig.tight_layout()
 
-
     def plot_dt_enstrophy(self):
         """
         Checks dZ/dt = enstrophy_injection - enstrophy_dissipation.
@@ -285,7 +284,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
         ax.legend()
 
         fig.tight_layout()
-
 
     def plot(self):
         dict_results = self.load()

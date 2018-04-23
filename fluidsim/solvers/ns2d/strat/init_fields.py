@@ -20,7 +20,6 @@ from __future__ import print_function
 import numpy as np
 
 from fluiddyn.util import mpi
-from past.utils import old_div
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 from fluidsim.solvers.ns2d.init_fields import (

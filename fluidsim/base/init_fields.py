@@ -78,8 +78,8 @@ class InitFieldsBase(object):
             attribs={
                 "type": "constant",
                 "available_types": [],
-                "modif_after_init": False
-            }
+                "modif_after_init": False,
+            },
         )
 
         dict_classes = info_solver.classes.InitFields.import_classes()
@@ -116,7 +116,8 @@ class InitFieldsBase(object):
 
     def __call__(self):
         self.sim.state.is_initialized = not bool(
-            self.params.init_fields.modif_after_init)
+            self.params.init_fields.modif_after_init
+        )
         self._specific_init_fields()
 
 

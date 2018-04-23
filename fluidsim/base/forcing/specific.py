@@ -48,7 +48,7 @@ Provides:
 from __future__ import division
 from __future__ import print_function
 
-from builtins import object
+from builtins import object, str
 
 from copy import deepcopy
 from math import radians
@@ -150,7 +150,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
         if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
                 "The resolution is too small for the required forcing: "
-                "any{} < {}".format(shape, shape_forcing)
+                "any(np.greater({}, {}))".format(shape_forcing, shape)
             )
 
     def __init__(self, sim):
@@ -195,7 +195,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
             pass
         else:
             if isinstance(angle, str):
-                if angle.endswith("°"):
+                if angle.endswith(u"°"):
                     angle = radians(float(angle[:-1]))
                 else:
                     raise ValueError(
@@ -237,7 +237,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 pass
 
             params_coarse.oper.type_fft = "sequential"
-            # FIXME: Workaround for incorrect forcing
             params_coarse.oper.coef_dealiasing = 1.
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
@@ -351,6 +350,7 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
             else:
                 kwargs = {self.key_forced: obj}
             self.fstate_coarse.init_statespect_from(**kwargs)
+            self.oper_coarse.dealiasing_setofvar(self.fstate_coarse.state_spect)
 
         self.put_forcingc_in_forcing()
 

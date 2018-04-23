@@ -20,6 +20,8 @@ and the main output class for the ns2d.strat solver:
 
 """
 
+from builtins import str
+
 import numpy as np
 
 from math import radians
@@ -31,12 +33,12 @@ class OutputStrat(Output):
     """Output for ns2d.strat solver."""
 
     def __init__(self, sim):
+        self.sim = sim
+        if sim.params.forcing.type.endswith("anisotropic"):
+            self._init_froude_number()
+            self.ratio_omegas = self._compute_ratio_omegas()
 
         super(OutputStrat, self).__init__(sim)
-
-        if self.sim.params.forcing.type.endswith("anisotropic"):
-            self.froude_number = self._compute_froude_number()
-            self.ratio_omegas = self._compute_ratio_omegas()
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -130,11 +132,11 @@ class OutputStrat(Output):
         enstrophy_fft = self.compute_enstrophy_fft()
         return self.sum_wavenumbers(enstrophy_fft)
 
-    def _compute_froude_number(self):
+    def _init_froude_number(self):
         """Compute froude number ONLY for anisotropic forcing."""
         angle = self.sim.params.forcing.tcrandom_anisotropic.angle
         if isinstance(angle, str):
-            if angle.endswith("°"):
+            if angle.endswith(u"°"):
                 angle = radians(float(angle[:-1]))
             else:
                 raise ValueError(
@@ -142,21 +144,20 @@ class OutputStrat(Output):
                     + "the degree symbol or a float in radians"
                 )
 
-        return round(np.sin(angle), 1)
+        self.froude_number = round(np.sin(angle), 1)
 
     def _compute_ratio_omegas(self):
         """Compute ratio omegas; R = N * sin(angle)/P**(1/3.)"""
         P = self.sim.params.forcing.forcing_rate
         N = self.sim.params.N
-        froude_number = self._compute_froude_number()
-        return round(N * froude_number / P ** (1. / 3), 1)
+        return round(N * self.froude_number / P ** (1. / 3), 1)
 
     def _produce_str_describing_attribs_strat(self):
         """
         Produce string describing the parameters froude_number and ratio_omegas.
         #TODO: not the best way to produce string.
         """
-        str_froude_number = str(self._compute_froude_number())
+        str_froude_number = str(self.froude_number)
         str_ratio_omegas = str(self._compute_ratio_omegas())
 
         if "." in str_froude_number:

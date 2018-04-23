@@ -120,6 +120,9 @@ class OperatorsPseudoSpectral2D(_Operators):
                 self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
 
     def dealiasing(self, *args):
+        if not self._has_to_dealiase:
+            return
+
         for thing in args:
             if isinstance(thing, SetOfVariables):
                 dealiasing_setofvar(
@@ -129,7 +132,10 @@ class OperatorsPseudoSpectral2D(_Operators):
                 self.dealiasing_variable(thing)
 
     def dealiasing_setofvar(self, sov):
-        dealiasing_setofvar(sov, self.where_dealiased, self.nK0_loc, self.nK1_loc)
+        if self._has_to_dealiase:
+            dealiasing_setofvar(
+                sov, self.where_dealiased, self.nK0_loc, self.nK1_loc
+            )
 
     def project_fft_on_realX_seq(self, f_fft):
         """Project the given field in spectral space such as its

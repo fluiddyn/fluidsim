@@ -338,6 +338,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             and self._has_been_initialized_with_state
         ):
             return
+
         else:
             self._has_been_initialized_with_state = True
 
@@ -421,7 +422,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             + self.path_run
         )
         if self._has_to_save:
-            if hasattr(self.sim, 'forcing'):
+            if hasattr(self.sim, "forcing"):
                 self.sim.forcing.compute()
             self.one_time_step()
             if self.sim.output.phys_fields.t_last_save < self.sim.time_stepping.t:
