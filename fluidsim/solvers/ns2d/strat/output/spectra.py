@@ -97,7 +97,7 @@ class SpectraNS2DStrat(Spectra):
         tmin=0,
         tmax=1000,
         delta_t=2,
-        coef_compensate_kx=5. / 3,
+        coef_compensate_kx=5./3,
         coef_compensate_kz=3.,
     ):
         """Plot spectra one-dimensional."""
@@ -159,17 +159,32 @@ class SpectraNS2DStrat(Spectra):
         )
         ax1.set_xscale("log")
         ax1.set_yscale("log")
-        ax1.set_ylim(ymin=1e-6, ymax=1e3)
+        # ax1.set_ylim(ymin=1e-6, ymax=1e3)
 
+        # Average in time between tmin and tmax
         E_kx = (dset_spectrum1Dkx_E[imin_plot:imax_plot + 1]).mean(0)
         EK_kx = (dset_spectrum1Dkx_EK[imin_plot:imax_plot + 1]).mean(0)
         EA_kx = (dset_spectrum1Dkx_EA[imin_plot:imax_plot + 1]).mean(0)
 
-        ax1.plot(kx, E_kx * kx ** (coef_compensate_kx), label="E")
-        ax1.plot(kx, EK_kx * kx ** (coef_compensate_kx), label="EK")
-        ax1.plot(kx, EA_kx * kx ** (coef_compensate_kx), label="EA")
+        id_kx_dealiasing = np.argmin(abs(kx - self.sim.oper.kxmax_dealiasing)) - 1
+        id_ky_dealiasing = np.argmin(abs(ky - self.sim.oper.kymax_dealiasing)) - 1
 
-        ax1.legend()
+        # Remove modes dealiased.
+        E_kx_plot = E_kx[:id_kx_dealiasing]
+        EK_kx_plot = EK_kx[:id_kx_dealiasing]
+        EA_kx_plot = EA_kx[:id_kx_dealiasing]
+        kx_plot = kx[:id_kx_dealiasing]
+
+        # Remove shear modes if there is no energy on them.
+        if self.sim.params.oper.NO_SHEAR_MODES:
+            E_kx_plot = E_kx_plot[1:]
+            EK_kx_plot = EK_kx_plot[1:]
+            EA_kx_plot = EA_kx_plot[1:]
+            kx_plot = kx_plot[1:]
+
+        ax1.plot(kx_plot, E_kx_plot * kx_plot**coef_compensate_kx, label="E")
+        ax1.plot(kx_plot, EK_kx_plot * kx_plot**coef_compensate_kx, label="EK")
+        ax1.plot(kx_plot, EA_kx_plot * kx_plot**coef_compensate_kx, label="EA")
 
         # Parameters figure E(k_y)
         fig, ax2 = self.output.figure_axe()
@@ -188,10 +203,38 @@ class SpectraNS2DStrat(Spectra):
         EK_ky = (dset_spectrum1Dky_EK[imin_plot:imax_plot + 1]).mean(0)
         EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot + 1]).mean(0)
 
-        ax2.plot(ky, E_ky * ky ** (coef_compensate_kz), label="E")
-        ax2.plot(ky, EK_ky * ky ** (coef_compensate_kz), label="EK")
-        ax2.plot(ky, EA_ky * ky ** (coef_compensate_kz), label="EA")
+        # Remove modes dealiased.
+        E_ky_plot = E_ky[:id_ky_dealiasing]
+        EK_ky_plot = EK_ky[:id_ky_dealiasing]
+        EA_ky_plot = EA_ky[:id_ky_dealiasing]
+        ky_plot = ky[:id_ky_dealiasing]
 
+        # Remove shear modes if there is no energy on them.
+        if self.sim.params.oper.NO_SHEAR_MODES:
+            E_ky_plot = E_ky_plot[1:]
+            EK_ky_plot = EK_ky_plot[1:]
+            EA_ky_plot = EA_ky_plot[1:]
+            ky_plot = ky_plot[1:]
+
+        ax2.plot(ky_plot, E_ky_plot * ky_plot**coef_compensate_kz, label="E")
+        ax2.plot(ky_plot, EK_ky_plot * ky_plot**coef_compensate_kz, label="EK")
+        ax2.plot(ky_plot, EA_ky_plot * ky_plot**coef_compensate_kz, label="EA")
+
+        # Plot forcing wave-number k_f
+        nkmax = self.sim.params.forcing.nkmax_forcing
+        nkmin = self.sim.params.forcing.nkmin_forcing
+        k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
+        try:
+            angle = self.sim.params.forcing.tcrandom_anisotropic.angle
+        except AttributeError:
+            pass
+        else:
+            k_fx = np.sin(angle) * k_f
+            k_fy = np.cos(angle) * k_f
+            ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")
+            ax2.axvline(x=k_fy, color="k", linestyle=":", label="$k_{f,z}$")
+
+        ax1.legend()
         ax2.legend()
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
