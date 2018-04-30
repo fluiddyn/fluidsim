@@ -121,8 +121,12 @@ class Simul(SimulBasePseudoSpectral):
         vy_fft = spect_get_var("vy_fft")
         vz_fft = spect_get_var("vz_fft")
 
-        omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
-            vx_fft, vy_fft, vz_fft
+        omegax_fft = self.state.fields_spect_tmp[0]
+        omegay_fft = self.state.fields_spect_tmp[1]
+        omegaz_fft = self.state.fields_spect_tmp[2]
+
+        oper.rotfft_from_vecfft_outin(
+             vx_fft, vy_fft, vz_fft, omegax_fft, omegay_fft, omegaz_fft
         )
 
         if self.params.f is not None:

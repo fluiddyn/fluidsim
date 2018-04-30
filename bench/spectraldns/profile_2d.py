@@ -5,22 +5,24 @@ A modified version of ``spectralDNS/demo/TG2D.py``
 
 To run::
 
-  python bench_2d.py --optimization cython NS2D
-
-  mpirun -np 2 python bench_2d.py --optimization cython NS2D
+  python profile_2d.py --optimization cython NS2D
 
 
 To be compared with::
 
-  fluidsim-bench 512 -d 2 -s ns2d -it 10
-  mpirun -np 2 fluidsim-bench 512 -d 2 -s ns2d -it 10
+  fluidsim-profile 512 -d 2 -s ns2d
 
-  fluidsim-bench 1024 -d 2 -s ns2d -it 10
-  mpirun -np 2 fluidsim-bench 1152 -d 2 -s ns2d -it 10
+  fluidsim-profile 1024 -d 2 -s ns2d
+
 
 """
 import time
 import numpy as np
+
+import pstats
+import cProfile
+
+
 from spectralDNS import config, get_solver, solve
 
 # import matplotlib.pyplot as plt
@@ -61,11 +63,12 @@ if __name__ == '__main__':
     Re = 1e4
     U = 2 ** 0.5
     L = 1.
+    dt = 1e-12
     config.update(
         {
             'nu': U * L / Re,
-            'dt': 1e-12,
-            'T': 1e-11,  # Should run 10 iterations
+            'dt': dt,
+            'T': 11 * dt,  # Should run 10 iterations
             'write_result': 100,
             'L': [L, L],
             'M': [10, 10]  # Mesh size is pow(2, M[i]) in direction i
@@ -86,6 +89,13 @@ if __name__ == '__main__':
 
     # Double check benchmark walltime
     start_time = time.time()
-    solve(sol, context)
+    cProfile.runctx('solve(sol, context)',
+                    globals(), locals(), 'profile.pstats')
     end_time = time.time()
     print('Run time: %f' % (end_time - start_time))
+
+    s = pstats.Stats('profile.pstats')
+    s.sort_stats('time').print_stats(12)
+
+    print('you can run:\n'
+          'gprof2dot -f pstats  profile.pstats  | dot -Tpng -o profile.png')

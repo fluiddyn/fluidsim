@@ -42,6 +42,10 @@ class StateNS3D(StatePseudoSpectral):
             np.empty_like(self.state_phys[0]) for n in range(6)
         )
 
+        self.fields_spect_tmp = tuple(
+            np.empty_like(self.state_spect[0]) for n in range(3)
+        )
+
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
         if key in self.vars_computed and it == self.it_computed[key]:

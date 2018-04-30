@@ -140,11 +140,12 @@ if __name__ == "__main__":
     Re = 1e4
     U = 2 ** (1. / 3)
     L = 1.
+    dt = 1e-12
     config.update(
         {
             'nu': U * L / Re,  # Viscosity
-            'dt': 1e-12,       # Time step
-            'T': 1e-11,        # End time
+            'dt': dt,       # Time step
+            'T': 11*dt,        # End time
             'L': [L, L, L],
             'M': [7, 7, 7],    # Mesh size is pow(2, M[i]) in direction i
             #'planner_effort': {'fft': 'FFTW_EXHAUSTIVE'},

@@ -73,16 +73,17 @@ def run_profile(sim, nb_dim=2, path_results=".", plot=False):
 
 
 def profile(
-    solver,
-    dim="2d",
-    n0=1024 * 2,
-    n1=None,
-    n2=None,
-    path_dir=None,
-    type_fft=None,
-    raise_error=False,
-    verbose=False,
-    plot=False
+        solver,
+        dim="2d",
+        n0=1024 * 2,
+        n1=None,
+        n2=None,
+        path_dir=None,
+        type_fft=None,
+        raise_error=False,
+        verbose=False,
+        plot=False,
+        it_end=None,
 ):
     """Instantiate simulation object and run profiles."""
 
@@ -101,10 +102,12 @@ def profile(
         params = Simul.create_default_params()
 
         if dim == "2d":
-            modif_params2d(params, n0, n1, name_run="bench", type_fft=type_fft)
+            modif_params2d(params, n0, n1, name_run="bench", type_fft=type_fft,
+                           it_end=it_end)
         elif dim == "3d":
             modif_params3d(
-                params, n0, n1, n2, name_run="bench", type_fft=type_fft
+                params, n0, n1, n2, name_run="bench", type_fft=type_fft,
+                it_end=it_end
             )
         else:
             raise ValueError("dim has to be in ['2d', '3d']")
@@ -168,7 +171,9 @@ def init_parser(parser):
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-sf", "--stats_file", default=None)
     parser.add_argument("-p", "--plot", action="store_true")
-
+    parser.add_argument(
+        "-it", "--it-end", default=None, type=int, help="Number of iterations"
+    )
 
 def run(args):
     """Run `fluidsim profile` command."""
@@ -197,6 +202,7 @@ def run(args):
         type_fft=args.type_fft,
         verbose=args.verbose,
         plot=args.plot,
+        it_end=args.it_end
     )
 
 

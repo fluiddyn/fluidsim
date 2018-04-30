@@ -9,9 +9,8 @@ To run::
 
 To be compared with::
 
-  cd profiling
-  python simul_profile_ns3d.py
-
+  fluidsim-profile 128 -d 3 -s ns3d -it 10 -v
+  fluidsim-bench 128 -d 3 -s ns3d -it 10
 
 """
 from __future__ import print_function
@@ -60,9 +59,10 @@ def initialize2(solver, context):
 
 
 def energy_fourier(comm, a):
-    N = config.params.N
-    result = 2 * sum(abs(a[..., 1:-1])**2) + \
-        sum(abs(a[..., 0])**2) + sum(abs(a[..., -1])**2)
+    # N = config.params.N
+    result = 2 * sum(abs(a[..., 1:-1])**2) \
+             + sum(abs(a[..., 0])**2) \
+             + sum(abs(a[..., -1])**2)
     result = comm.allreduce(result)
     return result
 
@@ -83,8 +83,8 @@ def update(context):
             params.tstep % params.plot_step == 0 and params.plot_step > 0):
         U = solver.get_velocity(**c)
         curl = solver.get_curl(**c)
-        if params.solver == 'NS':
-            P = solver.get_pressure(**c)
+        # if params.solver == 'NS':
+        #     P = solver.get_pressure(**c)
 
     if plt is not None:
         if params.tstep % params.plot_step == 0 and solver.rank == 0 and params.plot_step > 0:
@@ -103,7 +103,7 @@ def update(context):
             plt.pause(1e-6)
 
     if params.tstep % params.compute_energy == 0:
-        dx, L = params.dx, params.L
+        # dx, L = params.dx, params.L
         ww = solver.comm.reduce(
             sum(curl.astype(float64) * curl.astype(float64)) / prod(params.N) / 2)
         # Compute energy with double precision
@@ -142,11 +142,12 @@ if __name__ == "__main__":
     Re = 1e4
     U = 2 ** (1. / 3)
     L = 1.
+    dt = 1e-12
     config.update(
         {
             'nu': U * L / Re,  # Viscosity
-            'dt': 1e-12,       # Time step
-            'T': 1.05e-11,        # End time
+            'dt': dt,       # Time step
+            'T': 11*dt,        # End time
             'L': [L, L, L],
             'M': [7, 7, 7],    # Mesh size is pow(2, M[i]) in direction i
             #'planner_effort': {'fft': 'FFTW_EXHAUSTIVE'},
@@ -193,6 +194,5 @@ if __name__ == "__main__":
     s = pstats.Stats('profile.pstats')
     s.sort_stats('time').print_stats(12)
 
-    
-    #context.hdf5file._init_h5file(config.params, **context)
-    # context.hdf5file.f.close()
+    print('you can run:\n'
+          'gprof2dot -f pstats  profile.pstats  | dot -Tpng -o profile.png')

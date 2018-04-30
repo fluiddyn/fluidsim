@@ -1,11 +1,16 @@
 """Tiny benchmark of dedalus on the case of biperiodic ns2d
 ===========================================================
 
+To run::
+
+  python ns2d_rot.py
+
+
 To be compared with::
 
-  fluidsim-bench 512 512 -s ns2d -it 10
+  fluidsim-bench 512 -d 2 -s ns2d -it 10
 
-  mpirun -np 2 fluidsim-bench 512 512 -s ns2d -it 10
+  mpirun -np 2 fluidsim-bench 512 -d 2 -s ns2d -it 10
 
 """
 
@@ -16,7 +21,8 @@ from dedalus import public as de
 
 
 lx, ly = (1., 1.)
-nx, ny = (512, 512)
+n = 1024
+nx, ny = (n, n)
 
 # Create bases and domain
 x_basis = de.Fourier('x', nx, interval=(0, lx), dealias=3/2)
@@ -76,7 +82,7 @@ solver.stop_sim_time = np.inf
 solver.stop_wall_time = np.inf
 solver.stop_iteration = 10
 
-print('Starting loop')
+print('Starting main time loop...')
 start_time = time.time()
 
 for it in range(10):
@@ -84,4 +90,4 @@ for it in range(10):
 
 end_time = time.time()
 
-print('Run time: %f' %(end_time-start_time))
+print('Run time for the loop: %f' %(end_time-start_time))
