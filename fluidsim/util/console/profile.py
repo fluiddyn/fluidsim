@@ -172,7 +172,7 @@ def init_parser(parser):
     parser.add_argument("-sf", "--stats_file", default=None)
     parser.add_argument("-p", "--plot", action="store_true")
     parser.add_argument(
-        "-it", "--it-end", default=None, type=int, help="Number of iterations"
+        "-it", "--it-end", default=10, type=int, help="Number of iterations"
     )
 
 def run(args):

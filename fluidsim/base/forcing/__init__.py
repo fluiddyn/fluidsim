@@ -9,6 +9,7 @@ Provides:
 
    base
    specific
+   anisotropic
 
 """
 

@@ -2,8 +2,9 @@
 """ Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
 ==========================================================
 
-.. autoclass:: ForcingNS2DStrat
+.. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic
    :members:
+   :private-members:
 
 """
 from __future__ import division
