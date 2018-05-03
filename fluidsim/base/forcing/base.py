@@ -133,6 +133,12 @@ key_forced: {None} or str
     def get_forcing(self):
         return self.forcing_maker.forcing_phys
 
+    def is_initialized(self):
+        if hasattr(self.forcing_maker, "is_initialized"):
+            return self.forcing_maker.is_initialized
+        else:
+            return True
+
 
 class ForcingBasePseudoSpectral(ForcingBase):
     """Organize the forcing schemes (pseudo-spectra)

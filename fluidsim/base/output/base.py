@@ -296,7 +296,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         if mpi.rank == 0 and is_run_from_ipython():
             plt.ion()
 
-        if self.sim.state.is_initialized:
+        if sim.state.is_initialized:
+            if hasattr(sim, 'forcing') and not sim.forcing.is_initialized():
+                return
             self.init_with_initialized_state()
 
     def _save_info_solver_params_xml(self, replace=False):
@@ -350,7 +352,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         ):
             self.sim.time_stepping.compute_time_increment_CLF()
 
-        if hasattr(self.sim, "forcing"):
+        if hasattr(self.sim, "forcing") and params.output.HAS_TO_SAVE:
             self.sim.forcing.compute()
 
         self.print_stdout("Initialization outputs:")

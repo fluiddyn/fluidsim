@@ -91,6 +91,10 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     """
     tag = "in_script"
 
+    def __init__(self, sim):
+        super(InScriptForcingPseudoSpectral, self).__init__(sim)
+        self.is_initialized = False
+
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
         obj = self.compute_forcing_fft_each_time()
@@ -116,11 +120,12 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     def monkeypatch_compute_forcing_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcing_fft_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
     def monkeypatch_compute_forcing_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcing_each_time = types.MethodType(func, self)
-
+        self.is_initialized = True
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
     """Specific forcing for pseudo-spectra solvers"""
@@ -336,6 +341,10 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     """
     tag = "in_script_coarse"
 
+    def __init__(self, sim):
+        super(InScriptForcingPseudoSpectralCoarse, self).__init__(sim)
+        self.is_initialized = False
+
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
@@ -361,10 +370,12 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     def monkeypatch_compute_forcingc_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcingc_fft_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
     def monkeypatch_compute_forcingc_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcingc_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
 
 class Proportional(SpecificForcingPseudoSpectral):

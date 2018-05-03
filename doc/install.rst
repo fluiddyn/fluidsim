@@ -150,3 +150,22 @@ fluidsim-test -v``). Alternatively, you can also run ``python -m unittest
 discover`` from the root directory or from any of the "test" directories.
 
 
+Environment variables
+---------------------
+
+Fluidsim builds its binaries in parallel. It speedups the build process a lot on
+most computers. However, it can be a very bad idea on computers with not enough
+memory. If you encounter problems, you can force the number of processes used
+during the build using the environment variable ``FLUIDDYN_NUM_PROCS_BUILD``::
+
+   export FLUIDDYN_NUM_PROCS_BUILD=2
+
+Fluidsim is also sensible to the environment variables:
+
+- ``FLUIDSIM_PATH``: path where the simulation results are saved.
+
+  In Unix systems, you can for example put this line in your ``~/.bashrc``::
+
+    export FLUIDSIM_PATH=$HOME/Data
+
+- ``FLUIDDYN_PATH_SCRATCH``: working directory (can be useful on some clusters).

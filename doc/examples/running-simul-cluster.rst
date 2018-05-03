@@ -10,7 +10,6 @@ This script can be launched by the commands ``python simul_ns2d.py``
 (sequential) and ``mpirun -np 4 python simul_ns2d.py`` (parallel on 4
 processes).
 
-To submit the simulation on a cluster (here on one node), just run
-this tiny script:
+To submit the simulation on a cluster (here on one node):
 
 .. literalinclude:: launch_simul.py
