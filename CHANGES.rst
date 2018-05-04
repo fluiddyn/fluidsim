@@ -1,4 +1,12 @@
 
+0.2.0
+-----
+
+- Many bugfixes and nicer code (using the Python code formatter Black).
+- Faster ns3d solver.
+- ns2d.strat + anisotropic forcing (by Miguel Calpe Linares).
+- Nicer forcing parameters.
+
 0.1.1
 -----
 

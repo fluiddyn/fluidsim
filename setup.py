@@ -96,11 +96,11 @@ logger.info('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.2.2', 'future >= 0.16',
+install_requires = ['fluiddyn >= 0.2.3', 'future >= 0.16',
                     'h5py', 'h5netcdf']
 
 if FFTW3:
-    install_requires += ['pyfftw >= 0.10.4', 'fluidfft']
+    install_requires += ['pyfftw >= 0.10.4', 'fluidfft >= 0.2.3']
 
 
 def modification_date(filename):
@@ -191,12 +191,12 @@ setup(name='fluidsim',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Cython',
           'Programming Language :: C',
       ],
+      python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
       packages=find_packages(exclude=['doc', 'examples']),
       install_requires=install_requires,
       extras_require=dict(
