@@ -136,6 +136,7 @@ key_forced: {None} or str
     def is_initialized(self):
         if hasattr(self.forcing_maker, "is_initialized"):
             return self.forcing_maker.is_initialized
+
         else:
             return True
 

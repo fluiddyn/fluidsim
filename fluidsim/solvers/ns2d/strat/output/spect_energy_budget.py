@@ -268,18 +268,26 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEK_kx = dset_dissEK_kx[imin_plot:imax_plot + 1].mean(0)
         dissEA_kx = dset_dissEA_kx[imin_plot:imax_plot + 1].mean(0)
 
-        PiEK_kx = cumsum_inv(transferEK_kx) * self.oper.deltakx
-        PiEA_kx = cumsum_inv(transferEA_kx) * self.oper.deltakx
+        id_kx_dealiasing = np.argmin(kxE - self.sim.oper.kxmax_dealiasing) - 1
+        id_ky_dealiasing = np.argmin(kyE - self.sim.oper.kymax_dealiasing) - 1
 
-        DissEK_kx = dissEK_kx.cumsum() * self.oper.deltakx
-        DissEA_kx = dissEA_kx.cumsum() * self.oper.deltakx
+        transferEK_kx = transferEK_kx[:id_kx_dealiasing]
+        transferEA_kx = transferEA_kx[:id_kx_dealiasing]
+        dissEK_kx = dissEK_kx[:id_kx_dealiasing]
+        dissEA_kx = dissEA_kx[:id_kx_dealiasing]
+        kxE = kxE[:id_kx_dealiasing]
 
-        ax1.plot(kxE, PiEK_kx + PiEA_kx, label=r"$\Pi$")
-        ax1.plot(kxE, PiEK_kx, label=r"$\Pi_K$")
-        ax1.plot(kxE, PiEA_kx, label=r"$\Pi_A$")
-        ax1.plot(kxE, DissEK_kx + DissEA_kx, label=r"$D$")
-        ax1.plot(kxE, kxE * 0., "k--", linewidth=0.8)
-        ax1.legend()
+        PiEK_kx = cumsum_inv(transferEK_kx[1:]) * self.oper.deltakx
+        PiEA_kx = cumsum_inv(transferEA_kx[1:]) * self.oper.deltakx
+
+        DissEK_kx = dissEK_kx[1:].cumsum() * self.oper.deltakx
+        DissEA_kx = dissEA_kx[1:].cumsum() * self.oper.deltakx
+
+        ax1.plot(kxE[1:], PiEK_kx + PiEA_kx, label=r"$\Pi$")
+        ax1.plot(kxE[1:], PiEK_kx, label=r"$\Pi_K$")
+        ax1.plot(kxE[1:], PiEA_kx, label=r"$\Pi_A$")
+        ax1.plot(kxE[1:], DissEK_kx + DissEA_kx, label=r"$D$")
+        ax1.axhline(y=0, color="k", linestyle="--")
 
         # Parameters of the figure
         fig, ax2 = self.output.figure_axe()
@@ -295,19 +303,27 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         transferEK_ky = dset_transferEK_ky[imin_plot:imax_plot + 1].mean(0)
         transferEA_ky = dset_transferEA_ky[imin_plot:imax_plot + 1].mean(0)
-        PiEK_ky = cumsum_inv(transferEK_ky) * self.oper.deltaky
-        PiEA_ky = cumsum_inv(transferEA_ky) * self.oper.deltaky
 
         dissEK_ky = dset_dissEK_ky[imin_plot:imax_plot + 1].mean(0)
         dissEA_ky = dset_dissEA_ky[imin_plot:imax_plot + 1].mean(0)
 
-        DissEK_ky = dissEK_ky.cumsum() * self.oper.deltaky
-        DissEA_ky = dissEA_ky.cumsum() * self.oper.deltaky
+        transferEK_ky = transferEK_ky[:id_ky_dealiasing]
+        transferEA_ky = transferEA_ky[:id_ky_dealiasing]
+        dissEK_ky = dissEK_ky[:id_ky_dealiasing]
+        dissEA_ky = dissEA_ky[:id_ky_dealiasing]
+        kyE = kyE[:id_ky_dealiasing]
 
-        ax2.plot(kyE, PiEK_ky + PiEA_ky, label=r"$\Pi$")
-        ax2.plot(kyE, PiEK_ky, label=r"$\Pi_K$")
-        ax2.plot(kyE, PiEA_ky, label=r"$\Pi_A$")
-        ax2.plot(kyE, DissEK_ky + DissEA_ky, label=r"$D$")
-        ax2.plot(kyE, kyE * 0., "k--", linewidth=0.8)
+        PiEK_ky = cumsum_inv(transferEK_ky[1:]) * self.oper.deltaky
+        PiEA_ky = cumsum_inv(transferEA_ky[1:]) * self.oper.deltaky
 
+        DissEK_ky = dissEK_ky[1:].cumsum() * self.oper.deltaky
+        DissEA_ky = dissEA_ky[1:].cumsum() * self.oper.deltaky
+
+        ax2.plot(kyE[1:], PiEK_ky + PiEA_ky, label=r"$\Pi$")
+        ax2.plot(kyE[1:], PiEK_ky, label=r"$\Pi_K$")
+        ax2.plot(kyE[1:], PiEA_ky, label=r"$\Pi_A$")
+        ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, label=r"$D$")
+        ax2.axhline(y=0, color="k", linestyle="--")
+
+        ax1.legend()
         ax2.legend()

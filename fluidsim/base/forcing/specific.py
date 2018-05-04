@@ -127,6 +127,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
         self.compute_forcing_each_time = types.MethodType(func, self)
         self.is_initialized = True
 
+
 class SpecificForcingPseudoSpectral(SpecificForcing):
     """Specific forcing for pseudo-spectra solvers"""
 

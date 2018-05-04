@@ -126,7 +126,7 @@ class Simul(SimulBasePseudoSpectral):
         omegaz_fft = self.state.fields_spect_tmp[2]
 
         oper.rotfft_from_vecfft_outin(
-             vx_fft, vy_fft, vz_fft, omegax_fft, omegay_fft, omegaz_fft
+            vx_fft, vy_fft, vz_fft, omegax_fft, omegay_fft, omegaz_fft
         )
 
         if self.params.f is not None:

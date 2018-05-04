@@ -297,8 +297,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             plt.ion()
 
         if sim.state.is_initialized:
-            if hasattr(sim, 'forcing') and not sim.forcing.is_initialized():
+            if hasattr(sim, "forcing") and not sim.forcing.is_initialized():
                 return
+
             self.init_with_initialized_state()
 
     def _save_info_solver_params_xml(self, replace=False):
