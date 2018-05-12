@@ -176,12 +176,12 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         EKz = np.empty(nt)
         EKhr = np.empty(nt)
         EKhd = np.empty(nt)
-        PK1 = np.empty(nt)
-        PK2 = np.empty(nt)
-        PK_tot = np.empty(nt)
-        PA1 = np.empty(nt)
-        PA2 = np.empty(nt)
-        PA_tot = np.empty(nt)
+        PK1 = np.zeros(nt)
+        PK2 = np.zeros(nt)
+        PK_tot = np.zeros(nt)
+        PA1 = np.zeros(nt)
+        PA2 = np.zeros(nt)
+        PA_tot = np.zeros(nt)
         epsK = np.empty(nt)
         epsK_hypo = np.empty(nt)
         epsA = np.empty(nt)
@@ -265,29 +265,33 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         epsA_hypo = dict_results["epsA_hypo"]
         eps_tot = dict_results["eps_tot"]
 
-        fig, ax1 = self.output.figure_axe()
+        fig, ax = self.output.figure_axe()
         fig.suptitle("Energy")
-        ax1.set_ylabel("$E(t)$")
-        ax1.plot(t, E, "k", linewidth=2)
-        ax1.plot(t, EA, "b")
-        ax1.plot(t, EK, "r")
-        ax1.plot(t, EKhr, "r:")
+        ax.set_ylabel("$E(t)$")
+        ax.plot(t, E, "k", linewidth=2, label='$E$')
+        ax.plot(t, EA, "b", label='$E_A$')
+        ax.plot(t, EK, "r", label='$E_K$')
+        ax.plot(t, EKhr, "r:", label='$E_{Khr}$')
 
-        fig, ax1 = self.output.figure_axe()
+        ax.legend()
+
+        fig, ax = self.output.figure_axe()
         fig.suptitle("Dissipation of energy")
-        ax1.set_ylabel(r"$\epsilon_K(t)$")
+        ax.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax1.plot(t, epsK, "r", linewidth=1)
-        ax1.plot(t, epsA, "b", linewidth=1)
-        ax1.plot(t, eps_tot, "k", linewidth=2)
+        ax.plot(t, epsK, "r", linewidth=1, label=r'$\epsilon_K$')
+        ax.plot(t, epsA, "b", linewidth=1, label=r'$\epsilon_A$')
+        ax.plot(t, eps_tot, "k", linewidth=2, label=r'$\epsilon$')
 
         eps_hypo = epsK_hypo + epsA_hypo
         if max(eps_hypo) > 0:
-            ax1.plot(t, eps_hypo, "g", linewidth=1)
+            ax.plot(t, eps_hypo, "g", linewidth=1)
 
         if "PK_tot" in dict_results and plot_injection:
             PK_tot = dict_results["PK_tot"]
             PA_tot = dict_results["PA_tot"]
 
-            ax1.plot(t, PK_tot, "r--")
-            ax1.plot(t, PA_tot, "b--")
+            ax.plot(t, PK_tot, "r--", label=r'$P_K$')
+            ax.plot(t, PA_tot, "b--", label=r'$P_A$')
+
+        ax.legend()

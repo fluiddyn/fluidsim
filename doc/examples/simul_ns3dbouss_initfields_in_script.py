@@ -18,9 +18,9 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'examples'
 
-nx = 48
-ny = 64
-nz = 96
+nx = 48//2
+ny = 64//2
+nz = 96//2
 Lx = 3
 params.oper.nx = nx
 params.oper.ny = ny
@@ -79,6 +79,8 @@ params.init_fields.type = 'in_script'
 params.output.periods_print.print_stdout = 1e-1
 
 params.output.periods_save.phys_fields = 0.5
+params.output.periods_save.spatial_means = 0.1
+
 
 sim = Simul(params)
 

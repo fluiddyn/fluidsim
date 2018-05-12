@@ -127,7 +127,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             warn(
                 "The specialized function "
                 + name_function
-                + " is not implemented."
+                + " is not implemented (solver {}).".format(
+                    self.sim.info_solver.short_name)
             )
 
             name_function = "_time_step_" + params_ts.type_time_scheme

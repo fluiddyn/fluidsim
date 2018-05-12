@@ -18,7 +18,7 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'examples'
 
-nx = 144
+nx = 144//2
 ny = nx
 nz = nx//2
 lz = 2
@@ -66,7 +66,7 @@ params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 # printby0(f'nu_8 = {params.nu_8:.3e}')
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 10.
+params.time_stepping.t_end = 4.
 params.time_stepping.deltat_max = 0.01
 
 params.init_fields.type = 'in_script'
@@ -77,6 +77,7 @@ params.forcing.type = 'in_script'
 params.output.periods_print.print_stdout = 1e-1
 
 params.output.periods_save.phys_fields = 0.5
+params.output.periods_save.spatial_means = 0.05
 
 sim = Simul(params)
 

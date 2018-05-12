@@ -38,6 +38,9 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
         classes.State.module_name = package + ".state"
         classes.State.class_name = "StateNS3D"
 
+        classes.TimeStepping.module_name = package + ".time_stepping"
+        classes.TimeStepping.class_name = "TimeSteppingPseudoSpectralNS3D"
+
         classes.InitFields.module_name = package + ".init_fields"
         classes.InitFields.class_name = "InitFieldsNS3D"
 
