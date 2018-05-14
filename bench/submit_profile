@@ -10,21 +10,14 @@ Examples
 """
 import os
 from itertools import product
-from util import get_parser, parser_to_params, init_cluster, submit
+from util import get_parser, parser_to_params, init_cluster, submit, Cluster, cluster_type
 import fluidsim
-
-if os.getenv('SNIC_RESOURCE') is not None:
-    from fluiddyn.clusters.snic import ClusterSNIC as Cluster
-    cluster_type = 'snic'
-else:
-    from fluiddyn.clusters.local import ClusterLocal as Cluster
-    cluster_type = 'local'
 
 
 parser = get_parser(
     'submit_profile', 'Generic script to submit profiles', __doc__)
 if cluster_type == 'snic':
-    parser.set_defaults(n0=1024, n1=1024, nz=240)  # or 1344 1344 672
+    parser.set_defaults(n0=1152, n1=1152, nz=1152)  # or 1344 1344 672
 else:
     parser.set_defaults(n0=64, n1=64, nz=8)
 
