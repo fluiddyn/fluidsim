@@ -6,3 +6,16 @@ fluidsim.solvers.sw1l.output = True
 fluidsim.solvers.ns2d.strat = True
 fluidsim.solvers.ns2d.bouss = True
 
+[environ]
+## Uncomment and specify the following options to modify compilation of
+## extensions.
+
+## To modify compiler used to build Cython extensions:
+# MPICXX =
+# LDSHARED =
+
+## To modify target architecture while building Pythran extensions
+## Useful when cross-compiling. See whether it is required by comparing:
+## 	gcc -march=native -Q --help=target
+## 	gcc -march=$CARCH -Q --help=target
+# CARCH =

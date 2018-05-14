@@ -39,6 +39,9 @@ from config import (
 time_start = time()
 config = get_config()
 
+# handle environ (variables) in config
+if 'environ' in config:
+    os.environ.update(config['environ'])
 monkeypatch_parallel_build()
 
 logger.info('Running fluidsim setup.py on platform ' + sys.platform)
@@ -135,7 +138,9 @@ def make_pythran_extensions(modules):
             )
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...
-            pext.extra_compile_args.extend(['-O3', '-march=native'])
+            compile_arch = os.getenv('CARCH', 'native')
+            pext.extra_compile_args.extend(['-O3',
+                                            '-march={}'.format(compile_arch)])
             # pext.extra_link_args.extend(['-fopenmp'])
             extensions.append(pext)
     return extensions

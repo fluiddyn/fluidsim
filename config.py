@@ -175,6 +175,9 @@ def get_default_config():
         'fluidsim.solvers.ns2d.bouss')
     for excluded in exclude_pythran:
         config.set(section, excluded, 'True')
+
+    config.add_section('environ')
+
     return config
 
 
@@ -222,9 +225,12 @@ def get_config():
         section_dict = {}
         config_dict[section] = section_dict
         for option in config.options(section):
-            value = config.get(section, option)
-            if value.lower() == 'false':
-                value = False
+            if section == 'environ':
+                option = option.upper()
+                value = config.get(section, option)
+            else:
+                value = config.getboolean(section, option)
+
             section_dict[option] = value
 
     return config_dict
