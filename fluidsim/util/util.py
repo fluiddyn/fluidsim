@@ -184,6 +184,10 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
     params = load_params_simul(path_dir=path_dir)
+
+    if merge_missing_params:
+        merge_params(params, solver.Simul.create_default_params())
+
     params.path_run = path_dir
     params.init_fields.type = "constant"
     params.init_fields.modif_after_init = False
@@ -201,9 +205,6 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
         pass
 
     fix_old_params(params)
-
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
     return sim
@@ -263,6 +264,9 @@ def load_state_phys_file(
     with _h5py.File(path_file, "r") as f:
         params = Parameters(hdf5_object=f["info_simul"]["params"])
 
+    if merge_missing_params:
+        merge_params(params, solver.Simul.create_default_params())
+
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
     if modif_save_params:
@@ -277,9 +281,6 @@ def load_state_phys_file(
         pass
 
     fix_old_params(params)
-
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
     return sim
