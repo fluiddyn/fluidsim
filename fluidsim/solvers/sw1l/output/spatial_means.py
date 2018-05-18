@@ -253,12 +253,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
     def load(self):
         dict_results = {"name_solver": self.output.name_solver}
-        return self._load_from_path(self.path_file, dict_results)
+        return self._load(self.path_file, dict_results)
 
     @staticmethod
     def _load(path_file, dict_results={}):
-        if not path_file.endswith(_name_file):
-            path_file = os.join(path_file, _name_file)
+        if not path_file.endswith(SpatialMeansMSW1L._name_file):
+            path_file = os.path.join(path_file, SpatialMeansMSW1L._name_file)
 
         with open(path_file) as file_means:
             lines = file_means.readlines()
