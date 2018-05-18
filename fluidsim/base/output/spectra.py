@@ -115,7 +115,8 @@ class Spectra(SpecificOutput):
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1D):
                 dict_arrays_1time = {
-                    "kxE": self.sim.oper.kxE, "kyE": self.sim.oper.kyE
+                    "kxE": self.sim.oper.kxE,
+                    "kyE": self.sim.oper.kyE,
                 }
                 self._create_file_from_dict_arrays(
                     self.path_file1D, dict_spectra1D, dict_arrays_1time
@@ -202,16 +203,14 @@ class Spectra(SpecificOutput):
             + (
                 "tmin = {0:8.6g} ; tmax = {1:8.6g}"
                 "imin = {2:8d} ; imax = {3:8d}"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
-            )
+            ).format(tmin, tmax, imin_plot, imax_plot)
         )
 
         dict_results = {"kh": kh}
         for key in list(f.keys()):
             if key.startswith("spectr"):
                 dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
+                spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                 dict_results[key] = spect
         return dict_results
 
@@ -243,16 +242,14 @@ class Spectra(SpecificOutput):
             + (
                 "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
                 "imin = {2:8d} ; imax = {3:8d}\n"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
-            )
+            ).format(tmin, tmax, imin_plot, imax_plot)
         )
 
         dict_results = {"kh": kh}
         for key in list(f.keys()):
             if key.startswith("spectr"):
                 dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
+                spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                 dict_results[key] = spect
         return dict_results
 

@@ -61,7 +61,7 @@ class Output(OutputBasePseudoSpectral):
         return (
             0.5 * np.abs(vx_fft) ** 2,
             0.5 * np.abs(vy_fft) ** 2,
-            0.5 * np.abs(vz_fft) ** 2
+            0.5 * np.abs(vz_fft) ** 2,
         )
 
     def compute_energy_fft(self):

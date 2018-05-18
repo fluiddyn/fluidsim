@@ -14,5 +14,7 @@ class Output(OutputBasePseudoSpectral):
 
         classes = info_solver.classes.Output.classes
 
-        classes.PhysFields.module_name = "fluidsim.base.sphericalharmo.phys_fields"
+        classes.PhysFields.module_name = (
+            "fluidsim.base.sphericalharmo.phys_fields"
+        )
         classes.PhysFields.class_name = "PhysFieldsSphericalHarmo"

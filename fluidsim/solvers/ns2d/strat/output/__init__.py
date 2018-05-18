@@ -161,23 +161,15 @@ class OutputStrat(Output):
         str_ratio_omegas = str(self._compute_ratio_omegas())
 
         if "." in str_froude_number:
-            str_froude_number = str_froude_number.split(".")[
-                0
-            ] + str_froude_number.split(
-                "."
-            )[
-                1
-            ]
+            str_froude_number = (
+                str_froude_number.split(".")[0] + str_froude_number.split(".")[1]
+            )
         if str_froude_number.endswith("0"):
             str_froude_number = str_froude_number[:-1]
         if "." in str_ratio_omegas:
-            str_ratio_omegas = str_ratio_omegas.split(".")[
-                0
-            ] + str_ratio_omegas.split(
-                "."
-            )[
-                1
-            ]
+            str_ratio_omegas = (
+                str_ratio_omegas.split(".")[0] + str_ratio_omegas.split(".")[1]
+            )
         if str_ratio_omegas.endswith("0"):
             str_ratio_omegas = str_ratio_omegas[:-1]
 
@@ -187,7 +179,9 @@ class OutputStrat(Output):
         """Creates new name_run for the simulation."""
         list_for_name_run = super(OutputStrat, self)._create_list_for_name_run()
         if self.sim.params.forcing.type.endswith("anisotropic"):
-            str_describing_attribs_strat = self._produce_str_describing_attribs_strat()
+            str_describing_attribs_strat = (
+                self._produce_str_describing_attribs_strat()
+            )
             if len(str_describing_attribs_strat) > 0:
                 list_for_name_run.append(str_describing_attribs_strat)
         return list_for_name_run

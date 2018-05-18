@@ -105,11 +105,10 @@ class PrintStdOutBase(object):
             remaining_simul_time = self.params.time_stepping.t_end - tsim
         else:
             remaining_simul_time = (
-                (self.params.time_stepping.it_end - self.sim.time_stepping.it)
-                * self.sim.time_stepping.deltat
-            )
+                self.params.time_stepping.it_end - self.sim.time_stepping.it
+            ) * self.sim.time_stepping.deltat
 
-        return (remaining_simul_time / duration_simul_time * duration_real_word)
+        return remaining_simul_time / duration_simul_time * duration_real_word
 
     def close(self):
         try:

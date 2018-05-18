@@ -87,10 +87,8 @@ class Simul(SimulBase):
         """Compute the linear operator as a matrix."""
 
         return (
-            self.params.nu_2
-            * (self.oper.sparse_pxx)
-            - self.params.U
-            * self.oper.sparse_px
+            self.params.nu_2 * (self.oper.sparse_pxx)
+            - self.params.U * self.oper.sparse_px
         )
 
 

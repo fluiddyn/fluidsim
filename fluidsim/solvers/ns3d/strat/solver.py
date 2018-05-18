@@ -176,9 +176,9 @@ class Simul(SimulNS3D):
             b = self.state.fields_tmp[3]
             ifft_as_arg(b_fft, b)
 
-        fb_fft = -oper.div_vb_fft_from_vb(
-            vx, vy, vz, b
-        ) - self.params.N ** 2 * vz_fft
+        fb_fft = (
+            -oper.div_vb_fft_from_vb(vx, vy, vz, b) - self.params.N ** 2 * vz_fft
+        )
 
         tendencies_fft.set_var("b_fft", fb_fft)
 

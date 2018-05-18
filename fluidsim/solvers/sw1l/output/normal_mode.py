@@ -379,6 +379,4 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
         else:
             return super(
                 NormalModeDecompositionModified, self
-            ).normalmodefft_from_keyfft(
-                key
-            )
+            ).normalmodefft_from_keyfft(key)

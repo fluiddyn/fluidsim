@@ -12,7 +12,8 @@
 """
 
 from fluidsim.base.sphericalharmo.solver import (
-    InfoSolverSphericalHarmo, SimulSphericalHarmo
+    InfoSolverSphericalHarmo,
+    SimulSphericalHarmo,
 )
 
 from ...ns2d.solver import compute_Frot, SetOfVariables

@@ -163,14 +163,15 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         """Compute K.E. and A.P.E."""
         energyK_fft, energyA_fft = self.compute_energiesKA_fft()
         return (
-            self.sum_wavenumbers(energyK_fft), self.sum_wavenumbers(energyA_fft)
+            self.sum_wavenumbers(energyK_fft),
+            self.sum_wavenumbers(energyA_fft),
         )
 
     def compute_energy(self):
         """Compute total energy by summing K.E. and A.P.E."""
         energyK_fft, energyA_fft = self.compute_energiesKA_fft()
-        return (
-            self.sum_wavenumbers(energyK_fft) + self.sum_wavenumbers(energyA_fft)
+        return self.sum_wavenumbers(energyK_fft) + self.sum_wavenumbers(
+            energyA_fft
         )
 
     def compute_enstrophy(self):
@@ -198,24 +199,16 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
         ugx_fft, ugy_fft, etag_fft = self.oper.uxuyetafft_from_qfft(q_fft)
         energy_glin_fft = 0.5 * (
-            np.abs(ugx_fft)
-            ** 2
-            + np.abs(ugy_fft)
-            ** 2
-            + self.sim.params.c2
-            * np.abs(etag_fft)
-            ** 2
+            np.abs(ugx_fft) ** 2
+            + np.abs(ugy_fft) ** 2
+            + self.sim.params.c2 * np.abs(etag_fft) ** 2
         )
 
         uax_fft, uay_fft, etaa_fft = self.oper.uxuyetafft_from_afft(ageo_fft)
         energy_alin_fft = 0.5 * (
-            np.abs(uax_fft)
-            ** 2
-            + np.abs(uay_fft)
-            ** 2
-            + self.sim.params.c2
-            * np.abs(etaa_fft)
-            ** 2
+            np.abs(uax_fft) ** 2
+            + np.abs(uay_fft) ** 2
+            + self.sim.params.c2 * np.abs(etaa_fft) ** 2
         )
 
         return energy_glin_fft, energy_dlin_fft, energy_alin_fft
@@ -239,17 +232,17 @@ class OutputSW1L(OutputBaseSW1L):
         Jy_fft = get_var("Jy_fft")
         ux_fft = get_var("ux_fft")
         uy_fft = get_var("uy_fft")
-        energyK_fft = np.real(
-            Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft
-        ) / 2.
+        energyK_fft = (
+            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.
+        )
 
         rot_fft = get_var("rot_fft")
         uxr_fft, uyr_fft = self.oper.vecfft_from_rotfft(rot_fft)
         rotJ_fft = self.oper.rotfft_from_vecfft(Jx_fft, Jy_fft)
         Jxr_fft, Jyr_fft = self.oper.vecfft_from_rotfft(rotJ_fft)
-        energyKr_fft = np.real(
-            Jxr_fft.conj() * uxr_fft + Jyr_fft.conj() * uyr_fft
-        ) / 2.
+        energyKr_fft = (
+            np.real(Jxr_fft.conj() * uxr_fft + Jyr_fft.conj() * uyr_fft) / 2.
+        )
         return energyK_fft, energyA_fft, energyKr_fft
 
     def compute_energiesKA_fft(self):
@@ -261,8 +254,8 @@ class OutputSW1L(OutputBaseSW1L):
         Jy_fft = get_var("Jy_fft")
         ux_fft = get_var("ux_fft")
         uy_fft = get_var("uy_fft")
-        energyK_fft = np.real(
-            Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft
-        ) / 2.
+        energyK_fft = (
+            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.
+        )
 
         return energyK_fft, energyA_fft

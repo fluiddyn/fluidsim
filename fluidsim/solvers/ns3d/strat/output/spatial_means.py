@@ -60,14 +60,11 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             b_fft = get_var("b_fft")
 
             PK1_fft = np.real(
-                vx_fft.conj()
-                * fx_fft
-                + vy_fft.conj()
-                * fy_fft
-                + vz_fft.conj()
-                * fz_fft
+                vx_fft.conj() * fx_fft
+                + vy_fft.conj() * fy_fft
+                + vz_fft.conj() * fz_fft
             )
-            PK2_fft = (abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2)
+            PK2_fft = abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2
 
             PK1 = self.sum_wavenumbers(np.ascontiguousarray(PK1_fft))
             PK2 = self.sum_wavenumbers(PK2_fft) * deltat / 2
@@ -107,18 +104,13 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
             if self.sim.params.forcing.enable:
                 to_print = (
-                    (
-                        "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
-                        "PK_tot   = {:11.5e} \n"
-                    ).format(
-                        PK1, PK2, PK1 + PK2
-                    )
-                    + (
-                        "PA1  = {:11.5e} ; PA2       = {:11.5e} ; "
-                        "PA_tot   = {:11.5e} \n"
-                    ).format(
-                        PA1, PA2, PA1 + PA2
-                    )
+                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
+                    "PK_tot   = {:11.5e} \n"
+                ).format(PK1, PK2, PK1 + PK2) + (
+                    "PA1  = {:11.5e} ; PA2       = {:11.5e} ; "
+                    "PA_tot   = {:11.5e} \n"
+                ).format(
+                    PA1, PA2, PA1 + PA2
                 )
 
                 self.file.write(to_print)
@@ -268,10 +260,10 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         fig, ax = self.output.figure_axe()
         fig.suptitle("Energy")
         ax.set_ylabel("$E(t)$")
-        ax.plot(t, E, "k", linewidth=2, label='$E$')
-        ax.plot(t, EA, "b", label='$E_A$')
-        ax.plot(t, EK, "r", label='$E_K$')
-        ax.plot(t, EKhr, "r:", label='$E_{Khr}$')
+        ax.plot(t, E, "k", linewidth=2, label="$E$")
+        ax.plot(t, EA, "b", label="$E_A$")
+        ax.plot(t, EK, "r", label="$E_K$")
+        ax.plot(t, EKhr, "r:", label="$E_{Khr}$")
 
         ax.legend()
 
@@ -279,9 +271,9 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         fig.suptitle("Dissipation of energy")
         ax.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax.plot(t, epsK, "r", linewidth=1, label=r'$\epsilon_K$')
-        ax.plot(t, epsA, "b", linewidth=1, label=r'$\epsilon_A$')
-        ax.plot(t, eps_tot, "k", linewidth=2, label=r'$\epsilon$')
+        ax.plot(t, epsK, "r", linewidth=1, label=r"$\epsilon_K$")
+        ax.plot(t, epsA, "b", linewidth=1, label=r"$\epsilon_A$")
+        ax.plot(t, eps_tot, "k", linewidth=2, label=r"$\epsilon$")
 
         eps_hypo = epsK_hypo + epsA_hypo
         if max(eps_hypo) > 0:
@@ -291,7 +283,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             PK_tot = dict_results["PK_tot"]
             PA_tot = dict_results["PA_tot"]
 
-            ax.plot(t, PK_tot, "r--", label=r'$P_K$')
-            ax.plot(t, PA_tot, "b--", label=r'$P_A$')
+            ax.plot(t, PK_tot, "r--", label=r"$P_K$")
+            ax.plot(t, PA_tot, "b--", label=r"$P_A$")
 
         ax.legend()

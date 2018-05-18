@@ -23,7 +23,8 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral,
 )
 
 
@@ -351,9 +352,7 @@ if __name__ == "__main__":
     params.output.correl_freq.coef_decimate = 1
     params.output.correl_freq.iomegas1 = np.linspace(
         1, nb_times_compute / 2 - 1, 6
-    ).astype(
-        int
-    )
+    ).astype(int)
 
     sim = Simul(params)
 

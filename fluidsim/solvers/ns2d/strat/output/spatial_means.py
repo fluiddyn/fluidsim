@@ -60,19 +60,19 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
             PZ1_fft = np.real(rot_fft.conj() * Frot_fft)
-            PZ2_fft = (abs(Frot_fft) ** 2)
+            PZ2_fft = abs(Frot_fft) ** 2
 
             PZ1 = self.sum_wavenumbers(PZ1_fft)
             PZ2 = deltat / 2 * self.sum_wavenumbers(PZ2_fft)
 
             PK1_fft = np.real(ux_fft.conj() * Fx_fft + uy_fft.conj() * Fy_fft)
-            PK2_fft = (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2)
+            PK2_fft = abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2
 
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = deltat / 2 * self.sum_wavenumbers(PK2_fft)
 
             PA1_fft = np.real(b_fft.conj() * Fb_fft)
-            PA2_fft = (abs(Fb_fft) ** 2)
+            PA2_fft = abs(Fb_fft) ** 2
 
             PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N ** 2
             PA2 = deltat / 2 / self.params.N ** 2 * self.sum_wavenumbers(PA2_fft)

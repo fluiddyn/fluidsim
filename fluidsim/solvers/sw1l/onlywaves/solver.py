@@ -175,14 +175,9 @@ class Simul(SimulSW1LExactLin):
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
         A = (
-            Feta
-            * (ux ** 2 + uy ** 2)
-            / 2
-            + (1 + eta)
-            * (ux * Fx + uy * Fy)
-            + self.params.c2
-            * eta
-            * Feta
+            Feta * (ux ** 2 + uy ** 2) / 2
+            + (1 + eta) * (ux * Fx + uy * Fy)
+            + self.params.c2 * eta * Feta
         )
         A_fft = oper.fft2(A)
         if mpi.rank == 0:
@@ -205,9 +200,9 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 2.
 

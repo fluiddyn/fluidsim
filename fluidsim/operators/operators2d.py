@@ -349,13 +349,10 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             else:
                 rank_k = 0
-                while (
-                    rank_k < self.nb_proc - 1
-                    and (
-                        not (
-                            self.iKxloc_start_rank[rank_k] <= ikx_seq
-                            and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
-                        )
+                while rank_k < self.nb_proc - 1 and (
+                    not (
+                        self.iKxloc_start_rank[rank_k] <= ikx_seq
+                        and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
                     )
                 ):
                     rank_k += 1
@@ -527,7 +524,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 if i0 == 0 and i1 == 0 and rank == 0:
                     d_fft[i0, i1] = 0.
                 else:
-                    d_fft[i0, i1] = (Delta_a_fft[i0, i1] / Kappa_over_ic[i0, i1])
+                    d_fft[i0, i1] = Delta_a_fft[i0, i1] / Kappa_over_ic[i0, i1]
         return d_fft
 
     def qapamfft_from_etafft(self, eta_fft, params=None):
@@ -653,7 +650,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             for ikxc in range(nKxc):
                 kx = self.deltakx * ikxc
-                rank_ikx, ikxloc, ikyloc = (self.where_is_wavenumber(kx, 0.))
+                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
 
                 if mpi.rank == 0:
                     fc1D = fck_fft[ikxc]

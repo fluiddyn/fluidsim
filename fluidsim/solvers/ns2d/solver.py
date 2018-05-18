@@ -18,7 +18,8 @@ from __future__ import division
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral,
 )
 
 from .util_pythran import compute_Frot
@@ -194,9 +195,9 @@ if __name__ == "__main__":
 
     delta_x = Lh / nh
 
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 10.
 

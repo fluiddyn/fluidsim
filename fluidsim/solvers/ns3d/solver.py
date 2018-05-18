@@ -18,7 +18,8 @@ from fluidfft.fft3d.operators import vector_product
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral3D,
 )
 
 

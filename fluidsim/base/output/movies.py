@@ -86,7 +86,10 @@ class MoviesBase(object):
 
         """
         self.font = {
-            "family": family, "color": "black", "weight": "normal", "size": size
+            "family": family,
+            "color": "black",
+            "weight": "normal",
+            "size": size,
         }
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
@@ -264,7 +267,7 @@ class MoviesBase(object):
                 fargs=fargs.items(),
                 interval=dt_frame_in_sec * 1000,
                 blit=False,
-                repeat=repeat
+                repeat=repeat,
             )
 
         if save_file:

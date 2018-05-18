@@ -15,7 +15,8 @@ import h5py
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.spect_energy_budget import (
-    SpectralEnergyBudgetBase, cumsum_inv
+    SpectralEnergyBudgetBase,
+    cumsum_inv,
 )
 
 
@@ -71,9 +72,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         # Energy budget terms. Nonlinear transfer terms, exchange kinetic and
         # potential energy B, dissipation terms.
-        transferZ_fft = np.real(
-            rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()
-        ) / 2.
+        transferZ_fft = (
+            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.
+        )
         transferEKu_fft = np.real(ux_fft.conj() * Fx_fft)
         transferEKv_fft = np.real(uy_fft.conj() * Fy_fft)
         B_fft = np.real(uy_fft.conj() * b_fft)
@@ -91,14 +92,10 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEK_fft = np.real(
             freq_diss_EK
             * (
-                ux_fft.conj()
-                * ux_fft
-                + ux_fft
-                * ux_fft.conj()
-                + uy_fft.conj()
-                * uy_fft
-                + uy_fft
-                * uy_fft.conj()
+                ux_fft.conj() * ux_fft
+                + ux_fft * ux_fft.conj()
+                + uy_fft.conj() * uy_fft
+                + uy_fft * uy_fft.conj()
             )
             / 2.
         )
@@ -109,16 +106,15 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 freq_diss_EK * (b_fft.conj() * b_fft)
             )
 
-        transferEK_fft = np.real(
-            ux_fft.conj()
-            * Fx_fft
-            + ux_fft
-            * Fx_fft.conj()
-            + uy_fft.conj()
-            * Fy_fft
-            + uy_fft
-            * Fy_fft.conj()
-        ) / 2.
+        transferEK_fft = (
+            np.real(
+                ux_fft.conj() * Fx_fft
+                + ux_fft * Fx_fft.conj()
+                + uy_fft.conj() * Fy_fft
+                + uy_fft * Fy_fft.conj()
+            )
+            / 2.
+        )
 
         # Transfer spectrum 1D Kinetic energy, potential energy and exchange
         # energy
@@ -262,11 +258,11 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             + ", nh = {0:5d}".format(self.nx)
         )
 
-        transferEK_kx = dset_transferEK_kx[imin_plot:imax_plot + 1].mean(0)
-        transferEA_kx = dset_transferEA_kx[imin_plot:imax_plot + 1].mean(0)
+        transferEK_kx = dset_transferEK_kx[imin_plot : imax_plot + 1].mean(0)
+        transferEA_kx = dset_transferEA_kx[imin_plot : imax_plot + 1].mean(0)
 
-        dissEK_kx = dset_dissEK_kx[imin_plot:imax_plot + 1].mean(0)
-        dissEA_kx = dset_dissEA_kx[imin_plot:imax_plot + 1].mean(0)
+        dissEK_kx = dset_dissEK_kx[imin_plot : imax_plot + 1].mean(0)
+        dissEA_kx = dset_dissEA_kx[imin_plot : imax_plot + 1].mean(0)
 
         id_kx_dealiasing = np.argmin(kxE - self.sim.oper.kxmax_dealiasing) - 1
         id_ky_dealiasing = np.argmin(kyE - self.sim.oper.kymax_dealiasing) - 1
@@ -301,11 +297,11 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             + ", nh = {0:5d}".format(self.nx)
         )
 
-        transferEK_ky = dset_transferEK_ky[imin_plot:imax_plot + 1].mean(0)
-        transferEA_ky = dset_transferEA_ky[imin_plot:imax_plot + 1].mean(0)
+        transferEK_ky = dset_transferEK_ky[imin_plot : imax_plot + 1].mean(0)
+        transferEA_ky = dset_transferEA_ky[imin_plot : imax_plot + 1].mean(0)
 
-        dissEK_ky = dset_dissEK_ky[imin_plot:imax_plot + 1].mean(0)
-        dissEA_ky = dset_dissEA_ky[imin_plot:imax_plot + 1].mean(0)
+        dissEK_ky = dset_dissEK_ky[imin_plot : imax_plot + 1].mean(0)
+        dissEA_ky = dset_dissEA_ky[imin_plot : imax_plot + 1].mean(0)
 
         transferEK_ky = transferEK_ky[:id_ky_dealiasing]
         transferEA_ky = transferEA_ky[:id_ky_dealiasing]

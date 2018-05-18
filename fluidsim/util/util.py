@@ -31,7 +31,11 @@ from fluiddyn.util import mpi
 from fluidsim import path_dir_results, solvers
 
 from fluidsim.base.params import (
-    load_info_solver, load_params_simul, Parameters, merge_params, fix_old_params
+    load_info_solver,
+    load_params_simul,
+    Parameters,
+    merge_params,
+    fix_old_params,
 )
 
 
@@ -153,7 +157,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
     times = _np.empty([nb_files])
     for ii, name in enumerate(name_files):
-        times[ii] = float(name[ind_start_time:ind_start_time + 7])
+        times[ii] = float(name[ind_start_time : ind_start_time + 7])
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()

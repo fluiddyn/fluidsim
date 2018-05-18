@@ -60,7 +60,7 @@ class SpectraPlate2D(Spectra):
             spectrum2D_EK = dict_spectra2D["spectrum2D_EK"]
             spectrum2D_EL = dict_spectra2D["spectrum2D_EL"]
             spectrum2D_EE = dict_spectra2D["spectrum2D_EE"]
-            spectrum2D_Etot = (spectrum2D_EK + spectrum2D_EL + spectrum2D_EE)
+            spectrum2D_Etot = spectrum2D_EK + spectrum2D_EL + spectrum2D_EE
             khE = self.oper.khE
             coef_norm = khE ** (3.)
             self.axe.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
@@ -139,16 +139,14 @@ class SpectraPlate2D(Spectra):
         coef_norm = kh ** (coef_compensate)
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                EK = (dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it])
+                EK = dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it]
                 EK[EK < 10e-16] = 0.
                 ax1.plot(kh, EK * coef_norm, "r", linewidth=1)
 
         EK = (
-            dset_spectrum1Dkx_EK[imin_plot:imax_plot + 1]
-            + dset_spectrum1Dky_EK[imin_plot:imax_plot + 1]
-        ).mean(
-            0
-        )
+            dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]
+            + dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]
+        ).mean(0)
 
         ax1.plot(kh, kh ** (-3) * coef_norm, "k", linewidth=1)
         ax1.plot(
@@ -233,11 +231,11 @@ class SpectraPlate2D(Spectra):
                 ax1.plot(kh, EL * coef_norm, "b--", linewidth=1)
                 ax1.plot(kh, EE * coef_norm, "y--", linewidth=1)
 
-        EK = dset_spectrum_EK[imin_plot:imax_plot + 1].mean(0)
+        EK = dset_spectrum_EK[imin_plot : imax_plot + 1].mean(0)
         EK[EK < 10e-16] = 0.
-        EL = dset_spectrum_EL[imin_plot:imax_plot + 1].mean(0)
+        EL = dset_spectrum_EL[imin_plot : imax_plot + 1].mean(0)
         EL[EK < 10e-16] = 0.
-        EE = dset_spectrum_EE[imin_plot:imax_plot + 1].mean(0)
+        EE = dset_spectrum_EE[imin_plot : imax_plot + 1].mean(0)
         EE[EK < 10e-16] = 0.
 
         ax1.plot(kh, EK * coef_norm, "r-", linewidth=2)

@@ -64,7 +64,11 @@ class Parameters(ParamContainer):
         # Merge childrean
         diff_children = set(params2._tag_children) - set(params1._tag_children)
         internal_attribs = [
-            "attribs", "children", "key_attribs", "tag", "tag_children"
+            "attribs",
+            "children",
+            "key_attribs",
+            "tag",
+            "tag_children",
         ]
 
         if len(diff_children) > 0:

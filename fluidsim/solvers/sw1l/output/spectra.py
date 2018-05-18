@@ -83,7 +83,9 @@ class SpectraSW1L(Spectra):
         return dict_spectra1D, dict_spectra2D
 
     def compute_lin_spectra(self):
-        energy_glin_fft, energy_dlin_fft, energy_alin_fft = self.output.compute_lin_energies_fft()
+        energy_glin_fft, energy_dlin_fft, energy_alin_fft = (
+            self.output.compute_lin_energies_fft()
+        )
 
         spectrum1Dkx_Eglin, spectrum1Dky_Eglin = self.spectra1D_from_fft(
             energy_glin_fft
@@ -177,12 +179,9 @@ class SpectraSW1L(Spectra):
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = (
-            "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
-                tmin, tmax, delta_t
-            )
-            + " coef_compensate={0:.3f})".format(coef_compensate)
-        )
+        to_print = "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+            tmin, tmax, delta_t
+        ) + " coef_compensate={0:.3f})".format(coef_compensate)
         print(to_print)
 
         to_print = """plot 1D spectra
@@ -211,13 +210,13 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
 
         if delta_t != 0.:
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                E_K = (dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it])
+                E_K = dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it]
                 # E_K[E_K<min_to_plot] = 0.
-                E_A = (dset_spectrum1Dkx_EA[it] + dset_spectrum1Dky_EA[it])
+                E_A = dset_spectrum1Dkx_EA[it] + dset_spectrum1Dky_EA[it]
                 # E_A[E_A<min_to_plot] = 0.
                 E_tot = E_K + E_A
 
-                E_Kr = (dset_spectrum1Dkx_EKr[it] + dset_spectrum1Dky_EKr[it])
+                E_Kr = dset_spectrum1Dkx_EKr[it] + dset_spectrum1Dky_EKr[it]
                 # E_Kr[E_Kr<min_to_plot] = 0.
                 E_Kd = E_K - E_Kr
 
@@ -228,18 +227,14 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         # ax1.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
 
         E_K = (
-            dset_spectrum1Dkx_EK[imin_plot:imax_plot + 1]
-            + dset_spectrum1Dky_EK[imin_plot:imax_plot + 1]
-        ).mean(
-            0
-        )
+            dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]
+            + dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]
+        ).mean(0)
 
         E_A = (
-            dset_spectrum1Dkx_EA[imin_plot:imax_plot + 1]
-            + dset_spectrum1Dky_EA[imin_plot:imax_plot + 1]
-        ).mean(
-            0
-        )
+            dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]
+            + dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]
+        ).mean(0)
 
         ax1.plot(kh, E_K * coef_norm, "r", linewidth=2)
         ax1.plot(kh, E_A * coef_norm, "b", linewidth=2)
@@ -284,12 +279,9 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = (
-            "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
-                tmin, tmax, delta_t
-            )
-            + " coef_compensate={0:.3f})".format(coef_compensate)
-        )
+        to_print = "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+            tmin, tmax, delta_t
+        ) + " coef_compensate={0:.3f})".format(coef_compensate)
         print(to_print)
 
         to_print = """plot 2D spectra
@@ -322,9 +314,9 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
                     dset[dset < 10e-16] = machine_zero
                     ax1.plot(kh, dset * coef_norm, c, linewidth=1)
 
-        EK = dset_spectrumEK[imin_plot:imax_plot + 1].mean(0)
-        EA = dset_spectrumEA[imin_plot:imax_plot + 1].mean(0)
-        EKr = dset_spectrumEKr[imin_plot:imax_plot + 1].mean(0)
+        EK = dset_spectrumEK[imin_plot : imax_plot + 1].mean(0)
+        EA = dset_spectrumEA[imin_plot : imax_plot + 1].mean(0)
+        EKr = dset_spectrumEKr[imin_plot : imax_plot + 1].mean(0)
 
         EK[abs(EK) < 10e-16] = machine_zero
         EA[abs(EA) < 10e-16] = machine_zero
@@ -372,7 +364,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
             postxt,
             postxt ** (-5. / 3 + coef_compensate),
             r"$k^{-5/3}$",
-            fontdict=font
+            fontdict=font,
         )
         ax1.legend()
 
@@ -380,22 +372,25 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         machine_zero = 1e-15
         if self.sim.info.solver.short_name.startswith("SW1L"):
             dset_spectrumEdlin = f["spectrum2D_Edlin"]
-            Edlin = dset_spectrumEdlin[imin_plot:imax_plot + 1].mean(
-                0
-            ) + machine_zero
+            Edlin = (
+                dset_spectrumEdlin[imin_plot : imax_plot + 1].mean(0)
+                + machine_zero
+            )
             ax1.plot(kh, Edlin * coef_norm, "c", linewidth=1, label="$E_{D}$")
 
         if self.params.f != 0:
             dset_spectrumEglin = f["spectrum2D_Eglin"]
-            Eglin = dset_spectrumEglin[imin_plot:imax_plot + 1].mean(
-                0
-            ) + machine_zero
+            Eglin = (
+                dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
+                + machine_zero
+            )
             ax1.plot(kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{G}$")
 
             dset_spectrumEalin = f["spectrum2D_Ealin"]
-            Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(
-                0
-            ) + machine_zero
+            Ealin = (
+                dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
+                + machine_zero
+            )
             ax1.plot(kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{A}$")
 
     def _get_field_to_plot(self, idx, key_field=None, f=None):
@@ -432,7 +427,9 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         super(SpectraSW1LNormalMode, self).__init__(output)
 
     def compute_lin_spectra(self):
-        energy_glin_fft, energy_aplin_fft, energy_amlin_fft = self.norm_mode.compute_qapam_energies_fft()
+        energy_glin_fft, energy_aplin_fft, energy_amlin_fft = (
+            self.norm_mode.compute_qapam_energies_fft()
+        )
 
         energy_alin_fft = energy_aplin_fft + energy_amlin_fft
         spectrum1Dkx_Eglin, spectrum1Dky_Eglin = self.spectra1D_from_fft(
@@ -486,18 +483,20 @@ class SpectraSW1LNormalMode(SpectraSW1L):
                 dset_spectrumEalin = f["spectrum2D_Ealin"]
 
             if "Ealin" in keys:
-                Ealin = dset_spectrumEalin[imin_plot:imax_plot + 1].mean(
-                    0
-                ) + machine_zero
+                Ealin = (
+                    dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
+                    + machine_zero
+                )
                 ax1.plot(
                     kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{AGEO}$"
                 )
 
             if "Eglin" in keys:
                 dset_spectrumEglin = f["spectrum2D_Eglin"]
-                Eglin = dset_spectrumEglin[imin_plot:imax_plot + 1].mean(
-                    0
-                ) + machine_zero
+                Eglin = (
+                    dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
+                    + machine_zero
+                )
                 ax1.plot(
                     kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{GEO}$"
                 )

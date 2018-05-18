@@ -273,9 +273,12 @@ if __name__ == "__main__":
     params.oper.coef_dealiasing = old_div(2., 3)
 
     delta_x = old_div(params.oper.Lx, params.oper.nx)
-    params.nu_8 = 2. * 10e-4 * params.forcing.forcing_rate ** (
-        old_div(1., 3)
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2.
+        * 10e-4
+        * params.forcing.forcing_rate ** (old_div(1., 3))
+        * delta_x ** 8
+    )
 
     kmax = np.sqrt(2) * np.pi / delta_x
 

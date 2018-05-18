@@ -85,11 +85,17 @@ class TimeSteppingBase(object):
         has_eta = has_vars("eta")
 
         if has_ux and has_uy and has_uz:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyuz
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuyuz
+            )
         elif has_ux and has_uy and has_eta:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyeta
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuyeta
+            )
         elif has_ux and has_uy:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuy
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuy
+            )
         elif has_ux:
             self.compute_time_increment_CLF = self._compute_time_increment_CLF_ux
         elif hasattr(self.params, "U"):
@@ -190,12 +196,9 @@ class TimeSteppingBase(object):
             max_uy = abs(uy).max()
             max_uz = abs(uz).max()
             tmp = (
-                max_ux
-                / self.sim.oper.deltax
-                + max_uy
-                / self.sim.oper.deltay
-                + max_uz
-                / self.sim.oper.deltaz
+                max_ux / self.sim.oper.deltax
+                + max_uy / self.sim.oper.deltay
+                + max_uz / self.sim.oper.deltaz
             )
         else:
             tmp = 0.
@@ -226,7 +229,7 @@ class TimeSteppingBase(object):
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        tmp = (max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay)
+        tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
 
         self._compute_time_increment_CLF_from_tmp(tmp)
 
@@ -256,9 +259,9 @@ class TimeSteppingBase(object):
         else:
             deltat_CFL = self.deltat_max
 
-        deltat_wave = self.CFL * min(
-            self.sim.oper.deltax, self.sim.oper.deltay
-        ) / c
+        deltat_wave = (
+            self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
+        )
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt
 

@@ -251,7 +251,7 @@ class TimeSteppingSimple(TimeSteppingBase):
 
         # based on approximation 2
         state_phys_temp += dt / 3 * diss2 * tendencies_1
-        state_phys_np12_approx2 = (state_phys * diss2 + dt / 2 * tendencies_1)
+        state_phys_np12_approx2 = state_phys * diss2 + dt / 2 * tendencies_1
 
         del (tendencies_1)
         tendencies_2 = tendencies_nonlin(state_phys_np12_approx2)
@@ -259,7 +259,7 @@ class TimeSteppingSimple(TimeSteppingBase):
 
         # based on approximation 3
         state_phys_temp += dt / 3 * diss2 * tendencies_2
-        state_phys_np1_approx = (state_phys * diss + dt * diss2 * tendencies_2)
+        state_phys_np1_approx = state_phys * diss + dt * diss2 * tendencies_2
 
         del (tendencies_2)
         tendencies_3 = tendencies_nonlin(state_phys_np1_approx)

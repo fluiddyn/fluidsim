@@ -65,7 +65,8 @@ class InitFieldsBase(object):
             classesXML._set_child(
                 tag,
                 attribs={
-                    "module_name": cls.__module__, "class_name": cls.__name__
+                    "module_name": cls.__module__,
+                    "class_name": cls.__name__,
                 },
             )
 
@@ -369,8 +370,10 @@ class InitFieldsNoise(SpecificInitFields):
 
     def __call__(self):
         state_phys = self.sim.state.state_phys
-        state_phys[...] = self.sim.params.init_fields.noise.max / 0.5 * (
-            np.random.rand(*state_phys.shape) - 0.5
+        state_phys[...] = (
+            self.sim.params.init_fields.noise.max
+            / 0.5
+            * (np.random.rand(*state_phys.shape) - 0.5)
         )
 
         if hasattr(self.sim.state, "statespect_from_statephys"):

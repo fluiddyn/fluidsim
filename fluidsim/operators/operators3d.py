@@ -86,7 +86,7 @@ class OperatorsPseudoSpectral3D(_Operators):
             "nz": 48,
             "Lx": 2 * pi,
             "Ly": 2 * pi,
-            "Lz": 2 * pi
+            "Lz": 2 * pi,
         }
         params._set_child("oper", attribs=attribs)
 

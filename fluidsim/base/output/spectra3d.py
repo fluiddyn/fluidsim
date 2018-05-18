@@ -201,16 +201,14 @@ class Spectra(SpecificOutput):
             + (
                 "tmin = {0:8.6g} ; tmax = {1:8.6g}"
                 "imin = {2:8d} ; imax = {3:8d}"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
-            )
+            ).format(tmin, tmax, imin_plot, imax_plot)
         )
 
         dict_results = {"k": k3d}
         for key in list(f.keys()):
             if key.startswith("spectr"):
                 dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
+                spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                 dict_results[key] = spect
         return dict_results
 
@@ -242,15 +240,13 @@ class Spectra(SpecificOutput):
             + (
                 "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
                 "imin = {2:8d} ; imax = {3:8d}\n"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
-            )
+            ).format(tmin, tmax, imin_plot, imax_plot)
         )
 
         for key in list(f.keys()):
             if key.startswith("spectr"):
                 dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
+                spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                 dict_results[key] = spect
         return dict_results
 

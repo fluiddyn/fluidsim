@@ -8,7 +8,9 @@ import h5py
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.spect_energy_budget import (
-    SpectralEnergyBudgetBase, cumsum_inv, inner_prod
+    SpectralEnergyBudgetBase,
+    cumsum_inv,
+    inner_prod,
 )
 
 from .normal_mode import NormalModeDecomposition, NormalModeDecompositionModified
@@ -146,13 +148,15 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         px_EP_fft, py_EP_fft = oper.gradfft_from_fft(EP_fft)
         del (EP_fft)
 
-        convK_fft = 1. / 2 * (
-            -inner_prod(ux_fft, px_EP_fft)
-            - inner_prod(uy_fft, py_EP_fft)
-            - self.c2
-            * inner_prod(Jx_fft, px_h_fft)
-            - self.c2
-            * inner_prod(Jy_fft, py_h_fft)
+        convK_fft = (
+            1.
+            / 2
+            * (
+                -inner_prod(ux_fft, px_EP_fft)
+                - inner_prod(uy_fft, py_EP_fft)
+                - self.c2 * inner_prod(Jx_fft, px_h_fft)
+                - self.c2 * inner_prod(Jy_fft, py_h_fft)
+            )
         )
         del (px_h_fft, py_h_fft, px_EP_fft, py_EP_fft)
         convK2D = self.spectrum2D_from_fft(convK_fft)
@@ -188,8 +192,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             urx, ury, udx, udy, div, ury_fft, ury
         )
 
-        transferErrr_fft = (
-            inner_prod(urx_fft, Fxrr_fft) + inner_prod(ury_fft, Fyrr_fft)
+        transferErrr_fft = inner_prod(urx_fft, Fxrr_fft) + inner_prod(
+            ury_fft, Fyrr_fft
         )
         transfer2D_Errr = self.spectrum2D_from_fft(transferErrr_fft)
         del (transferErrr_fft)
@@ -200,8 +204,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # np.sum(abs(transfer2D_Errr)))
         # )
 
-        transferEdrd_fft = (
-            inner_prod(udx_fft, Fxrd_fft) + inner_prod(udy_fft, Fyrd_fft)
+        transferEdrd_fft = inner_prod(udx_fft, Fxrd_fft) + inner_prod(
+            udy_fft, Fyrd_fft
         )
         transfer2D_Edrd = self.spectrum2D_from_fft(transferEdrd_fft)
         del (transferEdrd_fft)
@@ -211,7 +215,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # np.sum(transfer2D_Edrd),
         # np.sum(abs(transfer2D_Edrd)))
         # )
-        Clfromqq = (inner_prod(udx_fft, Fxrr_fft) + inner_prod(udy_fft, Fyrr_fft))
+        Clfromqq = inner_prod(udx_fft, Fxrr_fft) + inner_prod(udy_fft, Fyrr_fft)
         transferEdrr_rrd_fft = (
             Clfromqq
             + inner_prod(urx_fft, Fxrd_fft)
@@ -228,8 +232,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # np.sum(abs(transfer2D_Edrr_rrd)))
         # )
 
-        transferErdr_fft = (
-            inner_prod(urx_fft, Fxdr_fft) + inner_prod(ury_fft, Fydr_fft)
+        transferErdr_fft = inner_prod(urx_fft, Fxdr_fft) + inner_prod(
+            ury_fft, Fydr_fft
         )
         transfer2D_Erdr = self.spectrum2D_from_fft(transferErdr_fft)
         del (transferErdr_fft)
@@ -240,8 +244,8 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # np.sum(abs(transfer2D_Erdr)))
         # )
 
-        transferEddd_fft = (
-            inner_prod(udx_fft, Fxdd_fft) + inner_prod(udy_fft, Fydd_fft)
+        transferEddd_fft = inner_prod(udx_fft, Fxdd_fft) + inner_prod(
+            udy_fft, Fydd_fft
         )
         transfer2D_Eddd = self.spectrum2D_from_fft(transferEddd_fft)
         del (transferEddd_fft)
@@ -252,7 +256,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # np.sum(abs(transfer2D_Eddd)))
         # )
 
-        Cqfromll = (inner_prod(urx_fft, Fxdd_fft) + inner_prod(ury_fft, Fydd_fft))
+        Cqfromll = inner_prod(urx_fft, Fxdd_fft) + inner_prod(ury_fft, Fydd_fft)
         transferEddr_rdd_fft = (
             Cqfromll
             + inner_prod(udx_fft, Fxdr_fft)
@@ -592,7 +596,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("$k_h$")
         ax2.set_ylabel("transfers")
-        title = ("Charney PE flux")
+        title = "Charney PE flux"
         ax2.set_title(title)
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
@@ -702,8 +706,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         Fxrd_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, udx_fft)
         Fyrd_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, udy_fft)
 
-        transferErrr_fft = (
-            inner_prod(urx_fft, Fxrr_fft) + inner_prod(ury_fft, Fyrr_fft)
+        transferErrr_fft = inner_prod(urx_fft, Fxrr_fft) + inner_prod(
+            ury_fft, Fyrr_fft
         )
         transfer2D_Errr = self.spectrum2D_from_fft(transferErrr_fft)
         del (transferErrr_fft)
@@ -714,8 +718,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         # np.sum(abs(transfer2D_Errr)))
         # )
 
-        transferEdrd_fft = (
-            inner_prod(udx_fft, Fxrd_fft) + inner_prod(udy_fft, Fyrd_fft)
+        transferEdrd_fft = inner_prod(udx_fft, Fxrd_fft) + inner_prod(
+            udy_fft, Fyrd_fft
         )
         transfer2D_Edrd = self.spectrum2D_from_fft(transferEdrd_fft)
         del (transferEdrd_fft)
@@ -726,7 +730,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         # np.sum(abs(transfer2D_Edrd)))
         # )
 
-        Clfromqq = (inner_prod(udx_fft, Fxrr_fft) + inner_prod(udy_fft, Fyrr_fft))
+        Clfromqq = inner_prod(udx_fft, Fxrr_fft) + inner_prod(udy_fft, Fyrr_fft)
         transferEdrr_rrd_fft = (
             Clfromqq
             + inner_prod(urx_fft, Fxrd_fft)
@@ -886,7 +890,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("$k_h$")
         ax2.set_ylabel("transfers")
-        title = ("Charney PE flux")
+        title = "Charney PE flux"
         ax2.set_title(title)
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
@@ -924,7 +928,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             "eeu": ["px_eta_fft", "eta", "ux"],  # Quad. A.P.E. transfer terms
             "eev": ["py_eta_fft", "eta", "uy"],
             "uud": [
-                "ux_fft", "ux", "div"
+                "ux_fft",
+                "ux",
+                "div",
             ],  # NonQuad. K.E. - Quad K.E. transfer terms
             "vvd": ["uy_fft", "uy", "div"],
             "dee": ["div_fft", "eta", "eta"],
@@ -939,7 +945,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             "eev": 0.5 * c2,
             "uud": -0.5,
             "vvd": -0.5,
-            "dee": 0.25 * c2
+            "dee": 0.25 * c2,
         }
 
         return keys, coeff
@@ -1030,7 +1036,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         uy_divM = oper.fft2(uy * divM)
         oper.dealiasing(ux_divM, uy_divM)
 
-        u_u_divM = (inner_prod(ux_fft, ux_divM) + inner_prod(uy_fft, uy_divM))
+        u_u_divM = inner_prod(ux_fft, ux_divM) + inner_prod(uy_fft, uy_divM)
         Tnq_fft = 0.5 * np.real(M_udu + u_udM - u_u_divM)
         del (M_udu, u_udM, divM, ux_divM, uy_divM, u_u_divM)
 
@@ -1173,14 +1179,11 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         )
         print(to_print)
 
-        to_print = (
-            "plot fluxes 2D"
-            + (
-                ", tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-                + ", imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-            ).format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
+        to_print = "plot fluxes 2D" + (
+            ", tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
+            + ", imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
+        ).format(
+            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
         )
         print(to_print)
 
@@ -1275,12 +1278,11 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         # .. TODO: Normalize with energy??
         exchange_GG = f["Cq_GG"][imin_plot:imax_plot].mean(0)
-        exchange_AG = (
-            f["Cq_AG"][imin_plot:imax_plot].mean(0)
-            + f["Cq_aG"][imin_plot:imax_plot].mean(0)
-        )
+        exchange_AG = f["Cq_AG"][imin_plot:imax_plot].mean(0) + f["Cq_aG"][
+            imin_plot:imax_plot
+        ].mean(0)
         exchange_AA = f["Cq_AA"][imin_plot:imax_plot].mean(0)
-        exchange_mean = (exchange_GG + exchange_AG + exchange_AA)
+        exchange_mean = exchange_GG + exchange_AG + exchange_AA
 
         Cflux_GG = cumsum_inv(exchange_GG) * self.oper.deltak
         Cflux_AG = cumsum_inv(exchange_AG) * self.oper.deltak
@@ -1334,7 +1336,12 @@ class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
         }
 
         coeff = {
-            "uuu": -1., "uvu": -1., "vuv": -1., "vvv": -1., "eeu": -c2, "eev": -c2
+            "uuu": -1.,
+            "uvu": -1.,
+            "vuv": -1.,
+            "vvv": -1.,
+            "eeu": -c2,
+            "eev": -c2,
         }
 
         return keys, coeff

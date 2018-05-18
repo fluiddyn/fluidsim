@@ -61,7 +61,11 @@ class SpatialMeansPlate2D(SpatialMeansBase):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
         (
-            Ek_fft, El_fft, Ee_fft, conversion_k_to_l_fft, conversion_l_to_e_fft
+            Ek_fft,
+            El_fft,
+            Ee_fft,
+            conversion_k_to_l_fft,
+            conversion_l_to_e_fft,
         ) = self.output.compute_energies_conversion_fft()
 
         energy_k = self.sum_wavenumbers(Ek_fft)
@@ -90,9 +94,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             Fz_fft = forcing_fft.get_var("z_fft")
             assert np.allclose(
                 abs(Fz_fft).max(), 0.
-            ), "abs(Fz_fft).max(): {}".format(
-                abs(Fz_fft).max()
-            )
+            ), "abs(Fz_fft).max(): {}".format(abs(Fz_fft).max())
 
             P1_fft = np.real(w_fft.conj() * Fw_fft)
             P2_fft = (abs(Fw_fft) ** 2) * deltat / 2
@@ -127,9 +129,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             if self.sim.params.forcing.enable:
                 to_print = (
                     "P1 = {:11.6e} ; P2 = {:11.6e} ; P_tot = {:11.6e} \n"
-                ).format(
-                    P1, P2, P1 + P2
-                )
+                ).format(P1, P2, P1 + P2)
                 self.file.write(to_print)
 
             self.file.flush()

@@ -52,11 +52,8 @@ class InitFieldsDipole(SpecificInitFields):
         omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (
-                2
-                * np.exp(-(XX ** 2 + (YY - (b / 2.)) ** 2))
-                - 2
-                * np.exp(-(XX ** 2 + (YY + (b / 2.)) ** 2))
+            return 2 * np.exp(-(XX ** 2 + (YY - (b / 2.)) ** 2)) - 2 * np.exp(
+                -(XX ** 2 + (YY + (b / 2.)) ** 2)
             )
 
         XX = oper.oper2d.XX
@@ -64,18 +61,12 @@ class InitFieldsDipole(SpecificInitFields):
 
         for ip in range(-1, 2):
             for jp in range(-1, 2):
-                XX_s = (
-                    np.cos(theta)
-                    * (XX - xs - ip * oper.Lx)
-                    + np.sin(theta)
-                    * (YY - ys - jp * oper.Ly)
-                )
-                YY_s = (
-                    np.cos(theta)
-                    * (YY - ys - jp * oper.Ly)
-                    - np.sin(theta)
-                    * (XX - xs - ip * oper.Lx)
-                )
+                XX_s = np.cos(theta) * (XX - xs - ip * oper.Lx) + np.sin(
+                    theta
+                ) * (YY - ys - jp * oper.Ly)
+                YY_s = np.cos(theta) * (YY - ys - jp * oper.Ly) - np.sin(
+                    theta
+                ) * (XX - xs - ip * oper.Lx)
                 omega += wz_2LO(XX_s, YY_s, b)
         return omega
 
@@ -150,8 +141,7 @@ class InitFieldsNoise(SpecificInitFields):
             vv_fft.append(
                 (
                     np.random.random(oper.shapeK)
-                    + 1j
-                    * np.random.random(oper.shapeK)
+                    + 1j * np.random.random(oper.shapeK)
                     - 0.5
                     - 0.5j
                 )

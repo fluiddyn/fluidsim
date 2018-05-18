@@ -97,7 +97,7 @@ def compute_correl2_seq(q_fftt, iomegas1, nb_omegas, nb_xs_seq):
     for io3 in range(nb_omegas):
         for io4 in range(io3 + 1):
             for ix in range(nx):
-                corr2[io3, io4] += (q_fftt[ix, io3] * q_fftt_conj[ix, io4])
+                corr2[io3, io4] += q_fftt[ix, io3] * q_fftt_conj[ix, io4]
             corr2[io4, io3] = np.conj(corr2[io3, io4])
 
     return corr2

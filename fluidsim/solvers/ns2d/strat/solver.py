@@ -198,10 +198,9 @@ class Simul(SimulNS2D):
         # Check time derivative energy is ~ 0.
         pt_energy = self.oper.sum_wavenumbers(pt_energy_fft)
 
-        ratio = (
-            self.oper.sum_wavenumbers(pt_energy_fft)
-            / self.oper.sum_wavenumbers(abs(pt_energy_fft))
-        )
+        ratio = self.oper.sum_wavenumbers(
+            pt_energy_fft
+        ) / self.oper.sum_wavenumbers(abs(pt_energy_fft))
 
         epsilon = 1e-15
         energy_conserved = ratio < epsilon

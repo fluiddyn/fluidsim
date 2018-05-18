@@ -55,7 +55,9 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.classes.State.module_name = "fluidsim.base.state"
         self.classes.State.class_name = "StatePseudoSpectral"
 
-        self.classes.TimeStepping.module_name = "fluidsim.base.time_stepping.pseudo_spect_cy"
+        self.classes.TimeStepping.module_name = (
+            "fluidsim.base.time_stepping.pseudo_spect_cy"
+        )
 
         self.classes.TimeStepping.class_name = "TimeSteppingPseudoSpectral"
 
@@ -207,9 +209,9 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 5.
 

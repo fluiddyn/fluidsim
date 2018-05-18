@@ -83,7 +83,7 @@ def profile(
     raise_error=False,
     verbose=False,
     plot=False,
-    it_end=None
+    it_end=None,
 ):
     """Instantiate simulation object and run profiles."""
 
@@ -284,6 +284,11 @@ def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
     if "startangle" not in kwargs:
         kwargs["startangle"] = 0
 
+    for label, perc in zip(labels, percentages):
+        print(
+            "(label, perc) = ({:40s} {:4.2f} %)".format(repr(label) + ",", perc)
+        )
+
     pie = ax.pie(percentages, labels=labels, autopct="%1.1f%%", **kwargs)
     ax.axis("equal")
 
@@ -392,18 +397,25 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
 
     for k in keys:
         t = times[k]
-        print(
-            "time {:10s}: {:5.01f} % ({:4.02f} s)".format(
-                k, t / total_time * 100, t
+        if t > 0:
+            print(
+                "time {:10s}: {:5.02f} % ({:4.02f} s)".format(
+                    k, t / total_time * 100, t
+                )
             )
-        )
 
     print(
-        "-"
-        * 24
-        + "\n{:15s}  {:5.01f} %".format(
+        "-" * 24
+        + "\n{:15s}  {:5.02f} %".format(
             "", sum([t for t in times.values()]) / total_time * 100
         )
+    )
+
+    del times[".py"]
+    time_in_not_py = sum([t for t in times.values()])
+    print(
+        "In not Python functions:\n{:15s}".format("")
+        + "  {:5.02f} %".format(time_in_not_py / total_time * 100)
     )
 
     if plot:

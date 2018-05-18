@@ -63,7 +63,9 @@ class TimeSignalsK(SpecificOutput):
         """
         params = self.params
         self.nb_shells = params.output.time_signals_fft.nb_shells_time_sigK
-        self.nb_k_per_shell = params.output.time_signals_fft.nb_k_per_shell_time_sigK
+        self.nb_k_per_shell = (
+            params.output.time_signals_fft.nb_k_per_shell_time_sigK
+        )
         self.nb_k_tot = self.nb_shells * self.nb_k_per_shell
 
         i_shift = 3
@@ -100,14 +102,10 @@ class TimeSignalsK(SpecificOutput):
             for ikps in range(self.nb_k_per_shell):
                 kx_array_ik_approx[
                     ishell * self.nb_shells + ikps
-                ] = kh_s * np.cos(
-                    angle
-                )
+                ] = kh_s * np.cos(angle)
                 ky_array_ik_approx[
                     ishell * self.nb_shells + ikps
-                ] = kh_s * np.sin(
-                    angle
-                )
+                ] = kh_s * np.sin(angle)
                 angle += delta_angle
 
         self.ik0_array_ik = np.empty([self.nb_k_tot], dtype=np.int32)
@@ -251,10 +249,8 @@ class TimeSignalsK(SpecificOutput):
                     eta_1k = data[2]
 
             if mpi.rank == 0:
-                q_1k, d_1k, a_1k = (
-                    self.output.linear_eigenmode_from_values_1k(
-                        ux_1k, uy_1k, eta_1k, kx_ik, ky_ik
-                    )
+                q_1k, d_1k, a_1k = self.output.linear_eigenmode_from_values_1k(
+                    ux_1k, uy_1k, eta_1k, kx_ik, ky_ik
                 )
                 q_array_ik[ik] = q_1k
                 d_array_ik[ik] = d_1k
@@ -300,7 +296,9 @@ class TimeSignalsK(SpecificOutput):
                 dset_temp = f[key]
                 dict_results[key] = dset_temp[...]
 
-            keys_linear_eigenmodes = self.sim.info.solver.classes.State.keys_linear_eigenmodes
+            keys_linear_eigenmodes = (
+                self.sim.info.solver.classes.State.keys_linear_eigenmodes
+            )
 
             for key in keys_linear_eigenmodes:
                 dset_temp = f[key[:-3] + "array_ik"]
@@ -367,16 +365,18 @@ class TimeSignalsK(SpecificOutput):
         spect = np.zeros([self.nt // 2 + 1])
         while it0 + self.nt < Nt:
             nb_spectra += 1
-            sig = sig_long[it0:it0 + self.nt]
+            sig = sig_long[it0 : it0 + self.nt]
             spect_raw = (
                 abs(self.opfft1d.fft(self.hann * sig)) ** 2 / 2 / self.deltaomega
             )
-            spect += spect_raw[:self.nt // 2 + 1]
+            spect += spect_raw[: self.nt // 2 + 1]
             if self.nt % 2 == 0:
-                spect[1:self.nt // 2] += spect_raw[self.nt - 1:self.nt // 2:-1]
+                spect[1 : self.nt // 2] += spect_raw[
+                    self.nt - 1 : self.nt // 2 : -1
+                ]
             else:
-                spect[1:self.nt // 2 + 1] += spect_raw[
-                    self.nt - 1:self.nt // 2:-1
+                spect[1 : self.nt // 2 + 1] += spect_raw[
+                    self.nt - 1 : self.nt // 2 : -1
                 ]
             it0 += stepit0
 

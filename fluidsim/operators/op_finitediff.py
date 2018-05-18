@@ -57,9 +57,7 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
     def produce_long_str_describing_oper(self):
         return super(
             OperatorFiniteDiff1DPeriodic, self
-        ).produce_long_str_describing_oper(
-            "Finite difference"
-        )
+        ).produce_long_str_describing_oper("Finite difference")
 
 
 class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):

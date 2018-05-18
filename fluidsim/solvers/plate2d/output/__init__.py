@@ -88,7 +88,7 @@ class Output(OutputBasePseudoSpectral):
         list_for_name_run = super(Output, self)._create_list_for_name_run()
 
         if self.sim.params.forcing.enable:
-            str_P = ("P{:5.0e}".format(self.sim.params.forcing.forcing_rate))
+            str_P = "P{:5.0e}".format(self.sim.params.forcing.forcing_rate)
             str_P = str_P.replace("+", "")
             list_for_name_run.insert(2, str_P)
 
@@ -114,7 +114,11 @@ class Output(OutputBasePseudoSpectral):
         )
 
         return (
-            Ek_fft, El_fft, Ee_fft, conversion_k_to_l_fft, conversion_l_to_e_fft
+            Ek_fft,
+            El_fft,
+            Ee_fft,
+            conversion_k_to_l_fft,
+            conversion_l_to_e_fft,
         )
 
     def compute_energies_fft(self):

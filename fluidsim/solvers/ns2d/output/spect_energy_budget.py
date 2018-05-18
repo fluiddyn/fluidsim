@@ -15,7 +15,8 @@ import h5py
 
 
 from fluidsim.base.output.spect_energy_budget import (
-    SpectralEnergyBudgetBase, cumsum_inv
+    SpectralEnergyBudgetBase,
+    cumsum_inv,
 )
 
 
@@ -56,23 +57,22 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         Fy_fft = oper.fft2(Fy)
         oper.dealiasing(Fy_fft)
 
-        transferZ_fft = np.real(
-            rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()
-        ) / 2.
+        transferZ_fft = (
+            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.
+        )
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
         #                self.sum_wavenumbers(abs(transferZ_fft)))
 
-        transferE_fft = np.real(
-            ux_fft.conj()
-            * Fx_fft
-            + ux_fft
-            * Fx_fft.conj()
-            + uy_fft.conj()
-            * Fy_fft
-            + uy_fft
-            * Fy_fft.conj()
-        ) / 2.
+        transferE_fft = (
+            np.real(
+                ux_fft.conj() * Fx_fft
+                + ux_fft * Fx_fft.conj()
+                + uy_fft.conj() * Fy_fft
+                + uy_fft * Fy_fft.conj()
+            )
+            / 2.
+        )
         # print ('sum(transferE) = {0:9.4e} ; sum(abs(transferE)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferE_fft),
         #                self.sum_wavenumbers(abs(transferE_fft)))
@@ -81,7 +81,8 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         transfer2D_Z = self.spectrum2D_from_fft(transferZ_fft)
 
         dict_results = {
-            "transfer2D_E": transfer2D_E, "transfer2D_Z": transfer2D_Z
+            "transfer2D_E": transfer2D_E,
+            "transfer2D_Z": transfer2D_Z,
         }
         return dict_results
 

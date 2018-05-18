@@ -160,7 +160,7 @@ class SpatioTempSpectra(SpecificOutput):
             # print('#save_period')
             self.it_last_run = itsim
             field = self.sim.state.state_phys.get_var(self.key_quantity)
-            field_decimate = field[::self.coef_decimate, ::self.coef_decimate]
+            field_decimate = field[:: self.coef_decimate, :: self.coef_decimate]
             field_fft = self.oper_fft2.fft2d(field_decimate)
             self.spatio_temp[self.nb_times_in_spatio_temp, :, :] = field_fft
             self.nb_times_in_spatio_temp += 1
@@ -217,8 +217,8 @@ class SpatioTempSpectra(SpecificOutput):
         # We multiply by 2 and 2 because there are only omega>=0 and kx>=0.
         # We divide by two because the energy at the zero modes shoud be
         # counted only once.
-        E_kx_omega = 2. * 2. * energy_fft.sum(ky_axis) / (
-            delta_kx * self.delta_omega
+        E_kx_omega = (
+            2. * 2. * energy_fft.sum(ky_axis) / (delta_kx * self.delta_omega)
         )
 
         E_kx_omega[0, :] = E_kx_omega[0, :] / 2.
