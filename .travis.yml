@@ -6,13 +6,20 @@ python:
   - 3.5
 
 env:
-  - TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9 
-  - TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+  - TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
+  - TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
 
 addons:
   apt:
     sources: ubuntu-toolchain-r-test
-    packages: [gcc-4.9, g++-4.9, libfftw3-dev, libfftw3-mpi-dev, libhdf5-openmpi-dev, openmpi-bin]  # , libopenblas-dev]
+    packages:
+	- gcc-6
+	- g++-6
+	- libfftw3-dev
+	- libfftw3-mpi-dev
+	- libhdf5-openmpi-dev
+	- openmpi-bin
+	# - libopenblas-dev
 
 matrix:
   fast_finish: true
@@ -30,7 +37,7 @@ matrix:
 
   exclude:
     - python: 3.5
-      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
 
 before_cache:
   - |
