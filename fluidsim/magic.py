@@ -8,12 +8,7 @@
 """
 from __future__ import print_function
 
-from IPython.core.magic import (
-    Magics,
-    magics_class,
-    line_magic,
-    line_cell_magic,
-)
+from IPython.core.magic import Magics, magics_class, line_magic, line_cell_magic
 from IPython.core import magic_arguments
 
 from pprint import pprint
@@ -27,9 +22,9 @@ from fluidsim.util.util import (
 
 @magics_class
 class FluidsimMagics(Magics):
-    """FluidsimMagics simplifies the create_default_params and instantiation
-    steps for initializing a solver. It creates `params` and `sim` as a
-    variables within the magic, unless explicitly demanded.
+    """Magics simplifies the instantiation steps for a Simul object. It
+    creates `params` and `sim` as a variables within the magic, unless
+    explicitly demanded to be shared in the user namespace.
 
     It can be loaded in IPython or Jupyter as
 
@@ -69,7 +64,11 @@ class FluidsimMagics(Magics):
     Reset `sim` and `params`.
     >>> %fluidsim_reset
 
+    Quick reference
+    >>> %fluidsim_help
+
     """
+
     def __init__(self, shell):
         """ Init the FluidsimMagic with an empty Simul. """
         super(FluidsimMagics, self).__init__(shell)
@@ -81,13 +80,13 @@ class FluidsimMagics(Magics):
         if self.params is None:
             self.Simul = Simul = import_simul_class_from_key(line)
             self.params = Simul.create_default_params()
-            print("Created default parameters for", line, "= params")
+            print("Created default parameters for", line, "-> params")
 
     def init_simul(self, line):
         if self.sim is None:
             self.sim = self.Simul(self.params)
         else:
-            print("Using existing `sim` of", type(self.sim))
+            print("Using existing", type(self.sim), "instance -> sim")
 
     def is_inexistent(self, varname):
         user_ns = self.shell.user_ns
@@ -107,8 +106,8 @@ class FluidsimMagics(Magics):
             del self.shell.user_ns["params"]
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('solver', nargs='?', default='')
-    @magic_arguments.argument('-u', '--user-namespace', action='store_true')
+    @magic_arguments.argument("solver", nargs="?", default="")
+    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
     @line_cell_magic
     def fluidsim(self, line, cell=None):
         args = magic_arguments.parse_argstring(self.fluidsim, line)
@@ -116,12 +115,14 @@ class FluidsimMagics(Magics):
         if args.solver == "" and cell is None:
             print("Available solvers:")
             pprint(available_solver_keys(), indent=4, compact=True)
+            print("\nInitialized:")
+            pprint(dict(params=type(self.params), sim=type(self.sim)), indent=4)
         elif args.solver != "" and cell is None:
             self.init_params(args.solver)
         elif cell is not None:
             self.init_params(args.solver)
             params = self.params
-            if 'sim' in cell:
+            if "sim" in cell:
                 self.init_simul(args.solver)
                 sim = self.sim
 
@@ -129,10 +130,14 @@ class FluidsimMagics(Magics):
             self.populate_userns()
 
         if cell is not None:
-            return eval(cell)
+            try:
+                return eval(cell)
+            except SyntaxError:
+                # To handle assignment statements
+                exec(cell, self.shell.user_ns, locals())
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('-u', '--user-namespace', action='store_true')
+    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
     @line_magic
     def fluidsim_reset(self, line):
         self.sim = None
@@ -140,12 +145,12 @@ class FluidsimMagics(Magics):
 
         args = magic_arguments.parse_argstring(self.fluidsim_reset, line)
         if args.user_namespace:
-            unpopulate_userns()
+            self.unpopulate_userns()
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('-u', '--user-namespace', action='store_true')
-    @magic_arguments.argument('-s', '--state-phys', action='store_true')
-    @magic_arguments.argument('-m', '--merge-missing-params', action='store_true')
+    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
+    @magic_arguments.argument("-s", "--state-phys", action="store_true")
+    @magic_arguments.argument("-m", "--merge-missing-params", action="store_true")
     @line_magic
     def fluidsim_load(self, line):
         args = magic_arguments.parse_argstring(self.fluidsim_load, line)
@@ -157,6 +162,10 @@ class FluidsimMagics(Magics):
         self.Simul = type(self.sim)
         if args.user_namespace:
             self.populate_userns()
+
+    @line_magic
+    def fluidsim_help(self, line):
+        print(4 * ' ' + self.__doc__)
 
 def load_ipython_extension(ipython):
     """Load the extension in IPython."""
