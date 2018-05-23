@@ -20,6 +20,7 @@ The package is organised in four sub-packages:
    base
    operators
    solvers
+   magic
 
 """
 
