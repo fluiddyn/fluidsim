@@ -62,7 +62,7 @@ it_end: int
 USE_CFL: bool (default False)
 
     If True, use an adaptive time step computed in particular with a
-    Courant–Friedrichs–Lewy (CFL) condition.
+    Courant-Friedrichs-Lewy (CFL) condition.
 
 type_time_scheme: str (default "RK4")
 
