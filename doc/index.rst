@@ -70,6 +70,7 @@ Modules Reference
    fluidsim.operators
    fluidsim.solvers
    fluidsim.util
+   fluidsim.magic
 
 
 More

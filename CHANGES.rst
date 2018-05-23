@@ -1,6 +1,12 @@
 
-0.2.0
------
+0.2.1 (not yet released)
+------------------------
+
+- IPython magic commands (by Ashwin Vishnu).
+- Bugfix divergence-free flow and time_stepping in ns3d solvers.
+
+0.2.0 (2018/05/05)
+------------------
 
 - Many bugfixes and nicer code (using the Python code formatter Black).
 - Faster ns3d solver.

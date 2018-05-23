@@ -14,6 +14,7 @@ from __future__ import print_function
 from builtins import object
 
 from signal import signal
+from warnings import warn
 from math import pi
 
 from fluiddyn.util import mpi
@@ -96,7 +97,10 @@ cfl_coef: float (default None)
             print("signal {} received.".format(signal_number))
             self._has_to_stop = True
 
-        signal(12, handler_signals)
+        try:
+            signal(12, handler_signals)
+        except ValueError:
+            warn("Cannot handle signals - is multithreading on?")
 
     def _init_compute_time_step(self):
 

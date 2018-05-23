@@ -1,14 +1,13 @@
 """Numerical simulations (:mod:`fluidsim`)
-================================================
+==========================================
 
 .. _simul:
 
-The package :mod:`fluidsim` **will** provide an object-oriented
-toolkit for doing numerical simulations of different equations
-(incompressible Navier-Stokes, shallow-water, primitive equations,
-with and without the quasi-geostrophic limit, adjoin equations, ...)
-with different simple methods (pseudo-spectral, finite differences)
-and geometries (1D, 2D and 3D periodic, 1 inhomogeneous direction,
+The package :mod:`fluidsim` provides an object-oriented toolkit for doing
+numerical simulations of different equations (incompressible Navier-Stokes,
+shallow-water, primitive equations, with and without the quasi-geostrophic limit,
+adjoin equations, ...)  with different simple methods (pseudo-spectral, finite
+differences) and geometries (1D, 2D and 3D periodic, 1 inhomogeneous direction,
 ...).
 
 The package is organised in four sub-packages:
@@ -20,6 +19,7 @@ The package is organised in four sub-packages:
    base
    operators
    solvers
+   magic
 
 """
 
