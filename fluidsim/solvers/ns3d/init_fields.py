@@ -83,6 +83,18 @@ class InitFieldsNoise(SpecificInitFields):
         params.init_fields._set_child(
             cls.tag, attribs={"velo_max": 1., "length": None}
         )
+        params.init_fields.noise._set_doc(
+            """
+velo_max: float (default 1.)
+
+    Maximum velocity.
+
+length: float (default 0.)
+
+    The smallest (cutoff) scale in the noise.
+
+"""
+        )
 
     def __call__(self):
         vx_fft, vy_fft, vz_fft = self.compute_vv_fft()
@@ -134,7 +146,7 @@ class InitFieldsNoise(SpecificInitFields):
             return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
 
         # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42)  # this does not work for MPI...
+        np.random.seed(42 + mpi.rank)
 
         vv_fft = []
         for ii in range(3):

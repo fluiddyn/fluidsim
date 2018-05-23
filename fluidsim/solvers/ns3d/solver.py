@@ -11,6 +11,8 @@
 """
 from __future__ import division
 
+import sys
+
 from fluiddyn.util.mpi import rank
 
 from fluidfft.fft3d.operators import vector_product
@@ -105,6 +107,14 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         params._set_attrib("f", None)
+        params._set_doc(
+            params._doc
+            + """
+f: float (default None)
+
+    Coriolis parameter (effect of the system rotation).
+"""
+        )
 
     def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
         if rank == 0:
@@ -181,9 +191,20 @@ class Simul(SimulBasePseudoSpectral):
         return tendencies_fft
 
 
-if __name__ == "__main__":
+if "sphinx" in sys.modules:
+    params = Simul.create_default_params()
 
-    import numpy as np
+    __doc__ += (
+        "Default parameters\n"
+        "------------------\n"
+        ".. code-block:: xml\n\n    "
+        + "\n    ".join(params.__str__().split("\n\n", 1)[1].split("\n"))
+        + "\n"
+        + params._get_formatted_docs()
+    )
+
+
+if __name__ == "__main__":
 
     import fluiddyn as fld
 

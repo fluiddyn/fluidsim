@@ -1,7 +1,6 @@
 """Initialisation of the fields (:mod:`fluidsim.base.init_fields`)
 ========================================================================
 
-
 Provides:
 
 .. autoclass:: InitFieldsBase
@@ -83,6 +82,26 @@ class InitFieldsBase(object):
             },
         )
 
+        params.init_fields._set_doc(
+            """
+
+See :mod:`fluidsim.base.init_fields`.
+
+type: str (default constant)
+
+    Name of the initialization method.
+
+available_types: list
+
+    Actually not a parameter; just a hint to set `type`.
+
+modif_after_init: bool (default False)
+
+    Used internally when reloading some simulations.
+
+"""
+        )
+
         dict_classes = info_solver.classes.InitFields.import_classes()
 
         for Class in list(dict_classes.values()):
@@ -141,6 +160,11 @@ class InitFieldsFromFile(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(InitFieldsFromFile, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"path": ""})
+        params.init_fields.from_file._set_doc(
+            """
+path: str
+"""
+        )
 
     def __call__(self):
 
@@ -349,6 +373,11 @@ class InitFieldsConstant(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(InitFieldsConstant, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"value": 1.})
+        params.init_fields.constant._set_doc(
+            """
+value: float (default 1.)
+"""
+        )
 
     def __call__(self):
         value = self.sim.params.init_fields.constant.value
@@ -367,6 +396,11 @@ class InitFieldsNoise(SpecificInitFields):
         """Complete the `params` container (class method)."""
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"max": 1.})
+        params.init_fields.noise._set_doc(
+            """
+max: float (default 1.)
+"""
+        )
 
     def __call__(self):
         state_phys = self.sim.state.state_phys

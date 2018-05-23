@@ -79,7 +79,6 @@ class OperatorsPseudoSpectral3D(_Operators):
         attribs = {
             "type_fft": type_fft,
             "type_fft2d": "fft2d.with_pyfftw",
-            "TRANSPOSED_OK": True,
             "coef_dealiasing": 2. / 3,
             "nx": 48,
             "ny": 48,
@@ -89,6 +88,43 @@ class OperatorsPseudoSpectral3D(_Operators):
             "Lz": 2 * pi,
         }
         params._set_child("oper", attribs=attribs)
+        params.oper._set_doc(
+            """
+
+See the `documentation of fluidfft <http://fluidfft.readthedocs.io>`_ (in
+particular of the `3d operator class
+<http://fluidfft.readthedocs.io/en/latest/generated/fluidfft.fft3d.operators.html>`_).
+
+type_fft: str
+
+    Method for the FFT (as defined by fluidfft).
+
+type_fft2d: str
+
+    Method for the 2d FFT.
+
+coef_dealiasing: float
+
+    dealiasing coefficient.
+
+nx: int
+
+    Number of points over the x-axis (last dimension in the physical space).
+
+ny: int
+
+    Number of points over the y-axis (second dimension in the physical space).
+
+nz: int
+
+    Number of points over the z-axis (first dimension in the physical space).
+
+Lx, Ly and Lz: float
+
+    Length of the edges of the numerical domain.
+
+"""
+        )
 
     def __init__(self, params=None):
 

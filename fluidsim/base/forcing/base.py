@@ -66,6 +66,8 @@ class ForcingBase(object):
         params.forcing._set_doc(
             """
 
+See :mod:`fluidsim.base.forcing`.
+
 type : str
 
   Type of forcing.
@@ -76,7 +78,7 @@ available_types : list
 
 forcing_rate : float
 
-  Forcing (energy? depends on the solver) injection rate.
+  Forcing injection rate.
 
 key_forced: {None} or str
 

@@ -286,7 +286,7 @@ def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
 
     for label, perc in zip(labels, percentages):
         print(
-            "(label, perc) = ({:40s} {:4.2f} %)".format(repr(label) + ",", perc)
+            "(label, perc) = ({:40s} {:5.2f} %)".format(repr(label) + ",", perc)
         )
 
     pie = ax.pie(percentages, labels=labels, autopct="%1.1f%%", **kwargs)
@@ -399,7 +399,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
         t = times[k]
         if t > 0:
             print(
-                "time {:10s}: {:5.02f} % ({:4.02f} s)".format(
+                "time {:10s}: {:5.03f} % ({:4.02f} s)".format(
                     k, t / total_time * 100, t
                 )
             )

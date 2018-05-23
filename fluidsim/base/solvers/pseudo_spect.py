@@ -111,6 +111,26 @@ class SimulBasePseudoSpectral(SimulBase):
         attribs = {"nu_8": 0., "nu_4": 0., "nu_m4": 0.}
         params._set_attribs(attribs)
 
+        params._set_doc(
+            params._doc
+            + """
+nu_8: float
+
+    Hyper-viscous coefficient of order 8. Also used in the method
+    compute_freq_diss.
+
+nu_4: float
+
+    Hyper-viscous coefficient of order 4.
+
+nu_m4: float
+
+    Hypo-viscous coefficient of order -4. Hypo-viscosity affect more the large
+    scales.
+
+"""
+        )
+
     def compute_freq_diss(self):
         r"""Compute the dissipation frequency.
 

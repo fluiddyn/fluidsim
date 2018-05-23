@@ -34,12 +34,25 @@ class InitFieldsNoise(SpecificInitFields):
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
 
         params.init_fields._set_child(
-            cls.tag, attribs={"velo_max": 1., "length": 0}
+            cls.tag, attribs={"velo_max": 1., "length": 0.}
+        )
+
+        params.init_fields.noise._set_doc(
+            """
+velo_max: float (default 1.)
+
+    Maximum velocity.
+
+length: float (default 0.)
+
+    The smallest (cutoff) scale in the noise.
+
+"""
         )
 
     def __call__(self):
         rot_fft, ux_fft, uy_fft = self.compute_rotuxuy_fft()
-        energy_fft = 0.5 * (np.abs(ux_fft) ** 2 + np.abs(uy_fft) ** 2)
+        # energy_fft = 0.5 * (np.abs(ux_fft) ** 2 + np.abs(uy_fft) ** 2)
         self.sim.state.init_from_rotfft(rot_fft)
 
     def compute_rotuxuy_fft(self):
@@ -55,7 +68,7 @@ class InitFieldsNoise(SpecificInitFields):
             return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
 
         # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42)  # this does not work for MPI...
+        np.random.seed(42 + mpi.rank)
 
         ux_fft = (
             np.random.random(oper.shapeK)

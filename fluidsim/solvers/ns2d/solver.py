@@ -15,6 +15,8 @@ This module provides two classes defining the pseudo-spectral solver
 """
 from __future__ import division
 
+import sys
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
@@ -177,6 +179,19 @@ class Simul(SimulBasePseudoSpectral):
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
+
+
+if "sphinx" in sys.modules:
+    params = Simul.create_default_params()
+
+    __doc__ += (
+        "Default parameters\n"
+        "------------------\n"
+        ".. code-block:: xml\n\n    "
+        + "\n    ".join(params.__str__().split("\n\n", 1)[1].split("\n"))
+        + "\n"
+        + params._get_formatted_docs()
+    )
 
 
 if __name__ == "__main__":

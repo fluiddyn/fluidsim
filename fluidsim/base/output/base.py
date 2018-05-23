@@ -70,16 +70,56 @@ class OutputBase(object):
         """This static method is used to complete the *params* container.
         """
         attribs = {
-            "period_refresh_plots": 1,
             "ONLINE_PLOT_OK": True,
+            "period_refresh_plots": 1,
             "HAS_TO_SAVE": True,
             "sub_directory": "",
         }
         params._set_child("output", attribs=attribs)
 
+        params.output._set_doc(
+            """
+
+See :mod:`fluidsim.output.base`
+
+ONLINE_PLOT_OK: bool (default: True)
+
+    If True, the online plots are enabled.
+
+period_refresh_plots: float (default: 1)
+
+    Period of refreshment of the online plots.
+
+HAS_TO_SAVE: bool (default: True)
+
+    If False, nothing new is saved in the directory of the simulation.
+
+sub_directory: str (default: "")
+
+    A name of a subdirectory where the directory of the simulation is saved.
+"""
+        )
+
         params.output._set_child("periods_save")
+        params.output.periods_save._set_doc(
+            """
+Periods (float, in equation time) to set when the specific outputs are saved.
+"""
+        )
         params.output._set_child("periods_print")
+        params.output.periods_print._set_doc(
+            """
+Periods (float, in equation time) to set when the printing specific outputs are
+called.
+"""
+        )
         params.output._set_child("periods_plot")
+        params.output.periods_plot._set_doc(
+            """
+Periods (float, in equation time) to set when the plots of the specific outputs
+are called.
+"""
+        )
 
         dict_classes = info_solver.classes.Output.import_classes()
         for Class in list(dict_classes.values()):

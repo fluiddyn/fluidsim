@@ -41,6 +41,48 @@ class TimeSteppingBase(object):
         }
         params._set_child("time_stepping", attribs=attribs)
 
+        params.time_stepping._set_doc(
+            """
+
+See :mod:`fluidsim.base.time_stepping.base`.
+
+USE_T_END: bool (default True)
+
+    If True, time step until t > t_end. If False, time step until it >= it_end.
+
+t_end: float
+
+    See documentation USE_T_END.
+
+it_end: int
+
+    If USE_T_END is False, number of time steps.
+
+USE_CFL: bool (default False)
+
+    If True, use an adaptive time step computed in particular with a
+    Courant–Friedrichs–Lewy (CFL) condition.
+
+type_time_scheme: str (default "RK4")
+
+    Type of time scheme. Can be in ("RK2", "RK4").
+
+deltat0: float (default 0.2)
+
+    If USE_CFL is False, value of the time step.
+
+deltat_max: float (default 0.2)
+
+    Maximum value of the time step (useful when USE_CFL is True).
+
+cfl_coef: float (default None)
+
+    If not None, clf_coef used in the CFL condition. If None, the value is choosen
+    taking into account the time scheme.
+
+"""
+        )
+
     def __init__(self, sim):
         self.params = sim.params
         self.sim = sim
