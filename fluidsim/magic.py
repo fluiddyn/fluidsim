@@ -8,10 +8,13 @@
 """
 from __future__ import print_function
 
-from IPython.core.magic import Magics, magics_class, line_magic, line_cell_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core import magic_arguments
 
 from pprint import pprint
+
+from fluiddyn.io.query import query_yes_no
+
 from fluidsim.util.util import (
     available_solver_keys,
     import_simul_class_from_key,
@@ -22,9 +25,7 @@ from fluidsim.util.util import (
 
 @magics_class
 class FluidsimMagics(Magics):
-    """Magics simplifies the instantiation steps for a Simul object. It
-    creates `params` and `sim` as a variables within the magic, unless
-    explicitly demanded to be shared in the user namespace.
+    """Magics simplifies the instantiation steps for a Simul object.
 
     It can be loaded in IPython or Jupyter as
 
@@ -32,150 +33,125 @@ class FluidsimMagics(Magics):
 
     Examples
     --------
-    List all available solvers
 
-    >>> %fluidsim
+    - Magic command %fluidsim
 
-    Create default parameters for a solver as variable `params`.
+    %fluidsim creates the variables `params` and `Simul` for a particular solver.
+
+    Create default parameters for a solver:
 
     >>> %fluidsim ns2d
 
-    Create default parameters available in the user namespace as well.
+    If a variable `params` already exists, you will be ask if you really want to
+    overwrite it. To skip this question:
 
-    >>> %fluidsim ns2d -u
+    >>> %fluidsim ns2d -f
 
-    Instantiate simulation with default parameters or with a preexisting
-    `params` instance in the current namespace.
+    List all available solvers and initialized simulation:
 
-    >>> %%fluidsim ns2d
-    ... sim.time_stepping_start()
+    >>> %fluidsim
 
-    Modify parameters.
+    - Magic command %fluidsim_load
 
-    >>> %%fluidsim
-    ... params.forcing.enabled = True
+    %fluidsim_load creates the variables `sim`, `params` and `Simul` from an
+    existing simulation.
 
-    Execute code with `sim`.
-
-    >>> %%fluidsim
-    ... sim.info
-
-    Load existing simulation excluding state_phys files.
+    Load existing simulation excluding state_phys files:
 
     >>> %fluidsim_load
 
-    Load existing simulation all options: user namespace, with state_phys
-    files, merging parameters
+    Load existing simulation all options: force overwrite, with state_phys
+    files, merging parameters:
 
-    >>> %fluidsim_load -u -a -m
+    >>> %fluidsim_load -f -a -m
 
-    Reset `sim` and `params`.
+    - Other fluidsim magic commands
 
-    >>> %fluidsim_reset
-
-    Quick reference
+    Quick reference (print this help message):
 
     >>> %fluidsim_help
 
+    Delete the objects `sim` and `params`:
+
+    >>> %fluidsim_reset
+
     """
-
-    def __init__(self, shell):
-        """ Init the FluidsimMagic with an empty Simul. """
-        super(FluidsimMagics, self).__init__(shell)
-        self.sim = None
-        self.params = None
-        self.Simul = None
-
-    def init_params(self, line):
-        if self.params is None:
-            self.Simul = Simul = import_simul_class_from_key(line)
-            self.params = Simul.create_default_params()
-            print("Created default parameters for", line, "-> params")
-
-    def init_simul(self, line):
-        if self.sim is None:
-            self.sim = self.Simul(self.params)
-        else:
-            print("Using existing", type(self.sim), "instance -> sim")
-
-    def is_inexistent(self, varname):
+    def is_defined(self, varname):
         user_ns = self.shell.user_ns
-        return varname not in user_ns or user_ns[varname] is None
-
-    def populate_userns(self):
-        if self.is_inexistent("sim"):
-            self.shell.user_ns["sim"] = self.sim
-        if self.is_inexistent("params"):
-            self.shell.user_ns["params"] = self.params
-
-    def unpopulate_userns(self):
-        if not self.is_inexistent("sim"):
-            del self.shell.user_ns["sim"]
-
-        if not self.is_inexistent("params"):
-            del self.shell.user_ns["params"]
+        return varname in user_ns and user_ns[varname] is not None
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument("solver", nargs="?", default="")
-    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
-    @line_cell_magic
-    def fluidsim(self, line, cell=None):
+    @magic_arguments.argument("-f", "--force-overwrite", action="store_true")
+    @line_magic
+    def fluidsim(self, line):
         args = magic_arguments.parse_argstring(self.fluidsim, line)
 
-        if args.solver == "" and cell is None:
+        if args.solver == "":
             print("Available solvers:")
             pprint(available_solver_keys(), indent=4, compact=True)
-            print("\nInitialized:")
-            pprint(dict(params=type(self.params), sim=type(self.sim)), indent=4)
-        elif args.solver != "" and cell is None:
-            self.init_params(args.solver)
-        elif cell is not None:
-            self.init_params(args.solver)
-            params = self.params
-            if "sim" in cell:
-                self.init_simul(args.solver)
-                sim = self.sim
 
-        if args.user_namespace:
-            self.populate_userns()
+            if self.is_defined("params") or self.is_defined("Simul"):
+                print("\nInitialized:")
+                user_ns = self.shell.user_ns
+                pprint(dict(params=type(user_ns["params"]),
+                            sim=type(user_ns["sim"])),
+                       indent=4)
+            return
 
-        if cell is not None:
-            try:
-                return eval(cell)
-            except SyntaxError:
-                # To handle assignment statements
-                exec(cell, self.shell.user_ns, locals())
+        if (not args.force_overwrite
+            and (self.is_defined("params") or self.is_defined("Simul"))):
+            if not query_yes_no(
+                    "At least one of the variables `params` or `Simul` is defined"
+                    " in your user namespace. Do you really want to overwrite "
+                    "them?"):
+                return
 
-    @magic_arguments.magic_arguments()
-    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
-    @line_magic
-    def fluidsim_reset(self, line):
-        self.sim = None
-        self.params = None
-
-        args = magic_arguments.parse_argstring(self.fluidsim_reset, line)
-        if args.user_namespace:
-            self.unpopulate_userns()
+        user_ns = self.shell.user_ns
+        Simul = import_simul_class_from_key(args.solver)
+        params = Simul.create_default_params()
+        print("Created default parameters for", line, "-> params")
+        user_ns["Simul"] = Simul
+        user_ns["params"] = params
 
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument("-u", "--user-namespace", action="store_true")
+    @magic_arguments.argument("-f", "--force-overwrite", action="store_true")
     @magic_arguments.argument("-s", "--state-phys", action="store_true")
     @magic_arguments.argument("-m", "--merge-missing-params", action="store_true")
     @line_magic
     def fluidsim_load(self, line):
         args = magic_arguments.parse_argstring(self.fluidsim_load, line)
+
+        if (not args.force_overwrite
+            and (self.is_defined("sim"))):
+            if not query_yes_no(
+                    "The variables `sim` is defined in your user namespace. "
+                    "Do you really want to overwrite it?"):
+                return
+
         if args.state_phys:
-            self.sim = load_state_phys_file(None, args.merge_missing_params)
+            sim = load_state_phys_file(None, args.merge_missing_params)
         else:
-            self.sim = load_sim_for_plot(None, args.merge_missing_params)
-        self.params = self.sim.params
-        self.Simul = type(self.sim)
-        if args.user_namespace:
-            self.populate_userns()
+            sim = load_sim_for_plot(None, args.merge_missing_params)
+
+        user_ns = self.shell.user_ns
+        user_ns["Simul"] = type(sim)
+        user_ns["params"] = sim.params
+        user_ns["sim"] = sim
+
+    @magic_arguments.magic_arguments()
+    @line_magic
+    def fluidsim_reset(self, line):
+        if self.is_defined("sim"):
+            del self.shell.user_ns["sim"]
+
+        if self.is_defined("params"):
+            del self.shell.user_ns["params"]
 
     @line_magic
     def fluidsim_help(self, line):
         print(4 * ' ' + self.__doc__)
+
 
 def load_ipython_extension(ipython):
     """Load the extension in IPython."""
