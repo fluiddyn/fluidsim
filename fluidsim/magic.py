@@ -63,7 +63,7 @@ class FluidsimMagics(Magics):
     Load existing simulation all options: force overwrite, with state_phys
     files, merging parameters:
 
-    >>> %fluidsim_load -f -a -m
+    >>> %fluidsim_load -f -s -m
 
     - Other fluidsim magic commands
 
@@ -91,11 +91,11 @@ class FluidsimMagics(Magics):
             print("Available solvers:")
             pprint(available_solver_keys(), indent=4, compact=True)
 
-            if self.is_defined("params") or self.is_defined("Simul"):
+            if self.is_defined("params") and self.is_defined("sim"):
                 print("\nInitialized:")
                 user_ns = self.shell.user_ns
                 pprint(dict(params=type(user_ns["params"]),
-                            sim=type(user_ns["sim"])),
+                            Simul=type(user_ns["sim"])),
                        indent=4)
             return
 
@@ -110,7 +110,8 @@ class FluidsimMagics(Magics):
         user_ns = self.shell.user_ns
         Simul = import_simul_class_from_key(args.solver)
         params = Simul.create_default_params()
-        print("Created default parameters for", line, "-> params")
+        print("Created Simul class and default parameters for", line,
+              "-> Simul, params")
         user_ns["Simul"] = Simul
         user_ns["params"] = params
 
@@ -142,11 +143,9 @@ class FluidsimMagics(Magics):
     @magic_arguments.magic_arguments()
     @line_magic
     def fluidsim_reset(self, line):
-        if self.is_defined("sim"):
-            del self.shell.user_ns["sim"]
-
-        if self.is_defined("params"):
-            del self.shell.user_ns["params"]
+        for varname in ("sim", "params", "Simul"):
+            if self.is_defined(varname):
+                del self.shell.user_ns[varname]
 
     @line_magic
     def fluidsim_help(self, line):

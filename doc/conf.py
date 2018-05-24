@@ -19,6 +19,10 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
+from fluiddoc import mock_modules
+
+mock_modules(('scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.fftpack'))
+
 from fluiddoc.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()
 
