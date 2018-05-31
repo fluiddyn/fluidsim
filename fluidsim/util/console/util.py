@@ -115,6 +115,9 @@ def modif_params2d(
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
+    if "noise" in params.init_fields.available_types:
+        params.init_fields.type = "noise"
+
     # params.forcing.enable = True
     # params.forcing.type = "tcrandom"
     # params.forcing.nkmax_forcing = 6
@@ -200,6 +203,9 @@ def modif_params3d(
         params.N = 1.
     except AttributeError:
         pass
+
+    if "noise" in params.init_fields.available_types:
+        params.init_fields.type = "noise"
 
     params.time_stepping.deltat0 = 1.e-4
     params.time_stepping.USE_CFL = False
