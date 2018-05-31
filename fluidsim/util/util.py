@@ -186,7 +186,6 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params = load_params_simul(path_dir=path_dir)
     params.path_run = path_dir
     params.init_fields.type = "constant"
-    params.init_fields.modif_after_init = False
     params.ONLY_COARSE_OPER = True
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
@@ -200,7 +199,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
 
     if merge_missing_params:
         merge_params(params, solver.Simul.create_default_params())
-
+    params.init_fields.modif_after_init = False
     sim = solver.Simul(params)
     return sim
 

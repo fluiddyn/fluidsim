@@ -225,10 +225,11 @@ class SpectraNS2DStrat(Spectra):
         nkmin = self.sim.params.forcing.nkmin_forcing
         k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
         try:
-            angle = self.sim.params.forcing.tcrandom_anisotropic.angle
+            angle = self.sim.forcing_maker.angle
         except AttributeError:
             pass
         else:
+            print("angle = ", angle)
             k_fx = np.sin(angle) * k_f
             k_fy = np.cos(angle) * k_f
             ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")

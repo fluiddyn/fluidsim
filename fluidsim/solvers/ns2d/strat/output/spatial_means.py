@@ -13,6 +13,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+from math import pi
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.spatial_means import SpatialMeansBase
@@ -305,7 +306,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         epsA_tot = dict_results["epsA_tot"]
         eps_tot = epsK_tot + epsA_tot
 
-        dtE = np.gradient(E, times)
         dtE = np.diff(E) / np.diff(times)
         times_dtE = (times[1:] + times[:-1]) / 2
 
@@ -319,7 +319,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         fig, axes = plt.subplots(2)
         ax = axes[0]
-        ax.plot(times_dtE[2:], dtE[2:], label="$dE/dt$")
+        ax.plot(times_dtE, dtE, label="$dE/dt$")
 
         times[:-1] += np.diff(times) / 2
         ax.plot(times[1:], model[1:], label=r"$P - \epsilon$")
@@ -327,9 +327,10 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         ax = axes[1]
         if self.sim.params.forcing.enable:
-            ax.plot(times[1:], PA[1:], "b", label="PA")
-            ax.plot(times[1:], PK[1:], "r", label="PK")
-            ax.plot(times[1:], eps_tot[1:], "k:", label=r"$\epsilon$")
+            ax.plot(times, PA + PK, "k", label="P")
+            ax.plot(times, PA, "b", label="PA")
+            ax.plot(times, PK, "r", label="PK")
+            ax.plot(times, eps_tot, "k:", label=r"$\epsilon$")
         ax.set_xlabel("t")
         ax.legend()
 
@@ -339,7 +340,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         """Plots the energy."""
         if mpi.rank != 0:
             return
-
+        pforcing = self.params.forcing
         dict_results = self.load()
 
         t = dict_results["t"]
@@ -347,10 +348,24 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         EK = dict_results["EK"]
         EA = dict_results["EA"]
 
+        # Computation forcing wave-number k_f
+        nkmax = pforcing.nkmax_forcing
+        nkmin = pforcing.nkmin_forcing
+        k_f = ((nkmax + nkmin) / 2) * max(
+            2 * pi / self.sim.params.oper.Lx, 2 * pi / self.sim.params.oper.Ly)
+
+        # Normalization by E_f
+        if pforcing.key_forced == "ap_fft":
+            E_f = pforcing.forcing_rate ** (2. / 7) * ( 2 * pi / k_f)**(10./7)
+        else:
+            raise NotImplementedError("Computation E_f not implemented.")
+
         fig, ax = plt.subplots()
-        ax.plot(t, E, label="E")
-        ax.plot(t, EK, label="EK")
-        ax.plot(t, EA, label="EA")
+        ax.set_xlabel(r"$t/t_f$")
+        ax.set_ylabel(r"$E/E_f$")
+        ax.plot(t[1:], E[1:] / E_f, label="E", color="b")
+        ax.plot(t[1:], EK[1:] / E_f, label="EK", color="r")
+        ax.plot(t[1:], EA[1:] / E_f, label="EA", color="g")
 
         ax.legend()
 
