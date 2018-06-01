@@ -42,6 +42,7 @@ class InitFieldsDipole(SpecificInitFields):
 
         fields = {"vx_fft": vx_fft, "vy_fft": vy_fft}
         self.sim.state.init_statespect_from(**fields)
+        self.sim.state.statephys_from_statespect()
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
@@ -132,6 +133,7 @@ length: float (default 0.)
                 fields[key] = (velo_max / value_max) * field_fft
 
         self.sim.state.init_statespect_from(**fields)
+        self.sim.state.statephys_from_statespect()
 
     def compute_vv_fft(self):
 
@@ -148,16 +150,11 @@ length: float (default 0.)
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42 + mpi.rank)
 
+        vv = [np.random.random(oper.shapeX_loc) - 0.5 for i in range(3)]
+
         vv_fft = []
-        for ii in range(3):
-            vv_fft.append(
-                (
-                    np.random.random(oper.shapeK)
-                    + 1j * np.random.random(oper.shapeK)
-                    - 0.5
-                    - 0.5j
-                )
-            )
+        for ii, vi in enumerate(vv):
+            vv_fft.append(oper.fft(vi))
 
             if mpi.rank == 0:
                 vv_fft[ii][0, 0, 0] = 0.
