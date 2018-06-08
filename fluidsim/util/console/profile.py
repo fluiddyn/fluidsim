@@ -239,13 +239,16 @@ def _compute_shorter_name(key, kind):
     return key
 
 
-def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
+def plot_pie(times, long_functions, ax=None, times_descending=False,
+             for_latex=False, **kwargs):
     """Plot a pie chart """
     percentages = []
     labels = []
     for k, v in long_functions.items():
         percentages.append(v["percentage"])
         name = _compute_shorter_name(k, v["kind"])
+        if for_latex:
+            name = name.replace("_", r"\_")
         labels.append(name)
 
     percentages.append(100 - sum(percentages))
@@ -405,7 +408,8 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
             )
 
     print(
-        "-" * 24
+        "-"
+        * 24
         + "\n{:15s}  {:5.02f} %".format(
             "", sum([t for t in times.values()]) / total_time * 100
         )
