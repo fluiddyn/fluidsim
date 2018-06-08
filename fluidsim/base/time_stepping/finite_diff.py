@@ -22,10 +22,14 @@ from .base import TimeSteppingBase
 
 
 class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
+    """Time stepping class for finite-difference solvers.
     """
-    Time stepping class for finite-difference solvers.
-
-    """
+    @staticmethod
+    def _complete_params_with_default(params):
+        """This static method is used to complete the *params* container.
+        """
+        TimeSteppingBase._complete_params_with_default()
+        params.time_stepping.type_time_scheme = "RK2"
 
     def __init__(self, sim):
         super(TimeSteppingFiniteDiffCrankNicolson, self).__init__(sim)
