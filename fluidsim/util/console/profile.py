@@ -248,7 +248,7 @@ def plot_pie(times, long_functions, ax=None, times_descending=False,
         percentages.append(v["percentage"])
         name = _compute_shorter_name(k, v["kind"])
         if for_latex:
-            name = name.replace("_", r"\_")
+            name = r'\texttt{' + name.replace("_", r"\_") + r'}'
         labels.append(name)
 
     percentages.append(100 - sum(percentages))
@@ -292,7 +292,8 @@ def plot_pie(times, long_functions, ax=None, times_descending=False,
             "(label, perc) = ({:40s} {:5.2f} %)".format(repr(label) + ",", perc)
         )
 
-    pie = ax.pie(percentages, labels=labels, autopct="%1.1f%%", **kwargs)
+    autopct = "%1.1f\\%%" if for_latex else "%1.1f%%"
+    pie = ax.pie(percentages, labels=labels, autopct=autopct, **kwargs)
     ax.axis("equal")
 
     return pie

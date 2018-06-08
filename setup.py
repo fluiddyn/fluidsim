@@ -25,11 +25,18 @@ except ImportError:
 
 
 try:
-    from pythran.dist import PythranExtension
+    from pythran.dist import PythranExtension, build_ext as pythran_build_ext
     use_pythran = True
 except ImportError:
+    pythran_build_ext = object
     use_pythran = False
 
+
+class fluidsim_build_ext(build_ext, pythran_build_ext):
+    pass
+
+
+#  fluidsim_build_ext = pythran_build_ext
 
 import numpy as np
 
@@ -42,6 +49,7 @@ config = get_config()
 # handle environ (variables) in config
 if 'environ' in config:
     os.environ.update(config['environ'])
+
 monkeypatch_parallel_build()
 
 logger.info('Running fluidsim setup.py on platform ' + sys.platform)
@@ -207,7 +215,7 @@ setup(name='fluidsim',
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),
-      cmdclass={"build_ext": build_ext},
+      cmdclass={"build_ext": fluidsim_build_ext},
       ext_modules=ext_modules,
       entry_points={'console_scripts': console_scripts})
 
