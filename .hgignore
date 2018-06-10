@@ -59,6 +59,9 @@ bench/results_bench/*.json
 bench/oar_launcher_*
 bench/OAR.fluidsim_bench*
 
+bench/FourierFlows/statprof/*
+
+
 **/OAR.*.stdout
 **/OAR.*.stderr
 **/oar_launcher_*
