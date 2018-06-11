@@ -26,7 +26,6 @@ from fluidsim.base.state import StateBase
 
 
 class StatePredaPrey(StateBase):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the `info_solver` container (static method)."""
@@ -64,6 +63,7 @@ class Simul(SimulBase):
     """Solve the Lotka-Volterra equations.
 
     """
+
     InfoSolver = InfoSolverPredaPrey
 
     @staticmethod

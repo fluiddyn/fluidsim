@@ -42,6 +42,7 @@ class InfoSolverSW1LExactLin(InfoSolverSW1L):
 
 class Simul(SimulSW1L):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
+
     InfoSolver = InfoSolverSW1LExactLin
 
     def __init__(self, params):

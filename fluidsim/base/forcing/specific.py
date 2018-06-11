@@ -59,6 +59,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 class SpecificForcing(object):
     """Base class for specific forcing"""
+
     tag = "specific"
 
     @classmethod
@@ -89,6 +90,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     .. inheritance-diagram:: InScriptForcingPseudoSpectral
 
     """
+
     tag = "in_script"
 
     def __init__(self, sim):
@@ -340,6 +342,7 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
 
     """
+
     tag = "in_script_coarse"
 
     def __init__(self, sim):
@@ -446,6 +449,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     .. inheritance-diagram:: NormalizedForcing
 
     """
+
     tag = "normalized"
 
     @classmethod
@@ -679,6 +683,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
     .. inheritance-diagram:: RandomSimplePseudoSpectral
     """
+
     tag = "random"
 
     @classmethod
@@ -725,6 +730,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
     .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectral
     """
+
     tag = "tcrandom"
 
     @classmethod

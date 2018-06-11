@@ -421,7 +421,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
 
 
 class SpectraSW1LNormalMode(SpectraSW1L):
-
     def __init__(self, output):
         self.norm_mode = NormalModeBase(output)
         super(SpectraSW1LNormalMode, self).__init__(output)

@@ -50,6 +50,7 @@ class SimulBase(object):
         Information about the particular solver.
 
     """
+
     InfoSolver = InfoSolverBase
 
     @staticmethod

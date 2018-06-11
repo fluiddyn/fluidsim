@@ -5,7 +5,6 @@ from ...output import Output as OutputNS3D
 
 
 class Output(OutputNS3D):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""

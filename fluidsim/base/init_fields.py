@@ -389,6 +389,7 @@ value: float (default 1.)
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod

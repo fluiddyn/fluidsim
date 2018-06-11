@@ -28,6 +28,7 @@ print = mpi.printby0
 
 class ConsoleError(ValueError):
     """Distinguish errors from console utilities."""
+
     pass
 
 

@@ -99,6 +99,7 @@ class InitFieldsLinearMode(SpecificInitFields):
     """
     Class to initialize the fields with the linear mode
     """
+
     tag = "linear_mode"
 
     @classmethod

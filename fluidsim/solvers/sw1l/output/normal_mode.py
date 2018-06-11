@@ -25,7 +25,6 @@ from .util_pythran import get_qmat
 
 
 class NormalModeBase(object):
-
     def __init__(self, output):
         self.sim = output.sim
         self.params = output.sim.params
@@ -111,7 +110,6 @@ class NormalModeBase(object):
 
 
 class NormalModeDecomposition(NormalModeBase):
-
     def __init__(self, output):
         super(NormalModeDecomposition, self).__init__(output)
         oper = self.oper
@@ -323,7 +321,6 @@ class NormalModeDecomposition(NormalModeBase):
 
 
 class NormalModeDecompositionModified(NormalModeDecomposition):
-
     def compute(self):
         if self.it_bvec_fft_computed != self.sim.time_stepping.it:
             get_var = self.sim.state.get_var

@@ -86,6 +86,7 @@ class Simul(SimulBasePseudoSpectral):
     .. inheritance-diagram:: Simul
 
     """
+
     InfoSolver = InfoSolverNS2D
 
     @staticmethod

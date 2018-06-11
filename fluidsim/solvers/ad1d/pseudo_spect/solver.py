@@ -18,7 +18,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 
 class InfoSolverAD1DPseudoSpect(InfoSolverPseudoSpectral):
-
     def _init_root(self):
         super(InfoSolverAD1DPseudoSpect, self)._init_root()
 

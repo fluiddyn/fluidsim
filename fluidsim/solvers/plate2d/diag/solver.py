@@ -24,7 +24,6 @@ from fluidsim.solvers.plate2d.solver import InfoSolverPlate2D
 
 
 class InfoSolverPlate2DDiag(InfoSolverPlate2D):
-
     def _init_root(self):
 
         super(InfoSolverPlate2DDiag, self)._init_root()

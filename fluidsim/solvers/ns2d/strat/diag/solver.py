@@ -18,7 +18,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
-
     def _init_root(self):
 
         super(InfoSolverNS2D, self)._init_root()
@@ -47,6 +46,7 @@ class Simul(SimulBasePseudoSpectral):
     """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
 
     """
+
     InfoSolver = InfoSolverNS2D
 
     @staticmethod

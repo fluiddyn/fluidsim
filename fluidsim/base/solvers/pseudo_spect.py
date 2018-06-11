@@ -101,6 +101,7 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
 class SimulBasePseudoSpectral(SimulBase):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverPseudoSpectral
 
     @staticmethod

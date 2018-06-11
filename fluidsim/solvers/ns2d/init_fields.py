@@ -26,6 +26,7 @@ from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod
@@ -112,6 +113,7 @@ length: float (default 0.)
 
 class InitFieldsJet(SpecificInitFields):
     """Initialize the state with a jet."""
+
     tag = "jet"
 
     @classmethod
@@ -147,6 +149,7 @@ class InitFieldsJet(SpecificInitFields):
 
 class InitFieldsDipole(SpecificInitFields):
     """Initialize the state with a dipole."""
+
     tag = "dipole"
 
     @classmethod

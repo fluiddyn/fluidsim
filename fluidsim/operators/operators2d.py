@@ -42,7 +42,6 @@ if nb_proc > 1:
 
 
 class OperatorsPseudoSpectral2D(_Operators):
-
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.

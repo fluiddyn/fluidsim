@@ -76,6 +76,7 @@ class FluidsimMagics(Magics):
     >>> %fluidsim_reset
 
     """
+
     def is_defined(self, varname):
         user_ns = self.shell.user_ns
         return varname in user_ns and user_ns[varname] is not None
@@ -94,24 +95,32 @@ class FluidsimMagics(Magics):
             if self.is_defined("params") and self.is_defined("sim"):
                 print("\nInitialized:")
                 user_ns = self.shell.user_ns
-                pprint(dict(params=type(user_ns["params"]),
-                            Simul=type(user_ns["sim"])),
-                       indent=4)
+                pprint(
+                    dict(
+                        params=type(user_ns["params"]), Simul=type(user_ns["sim"])
+                    ),
+                    indent=4,
+                )
             return
 
-        if (not args.force_overwrite
-            and (self.is_defined("params") or self.is_defined("Simul"))):
+        if not args.force_overwrite and (
+            self.is_defined("params") or self.is_defined("Simul")
+        ):
             if not query_yes_no(
-                    "At least one of the variables `params` or `Simul` is defined"
-                    " in your user namespace. Do you really want to overwrite "
-                    "them?"):
+                "At least one of the variables `params` or `Simul` is defined"
+                " in your user namespace. Do you really want to overwrite "
+                "them?"
+            ):
                 return
 
         user_ns = self.shell.user_ns
         Simul = import_simul_class_from_key(args.solver)
         params = Simul.create_default_params()
-        print("Created Simul class and default parameters for", line,
-              "-> Simul, params")
+        print(
+            "Created Simul class and default parameters for",
+            line,
+            "-> Simul, params",
+        )
         user_ns["Simul"] = Simul
         user_ns["params"] = params
 
@@ -123,11 +132,11 @@ class FluidsimMagics(Magics):
     def fluidsim_load(self, line):
         args = magic_arguments.parse_argstring(self.fluidsim_load, line)
 
-        if (not args.force_overwrite
-            and (self.is_defined("sim"))):
+        if not args.force_overwrite and (self.is_defined("sim")):
             if not query_yes_no(
-                    "The variables `sim` is defined in your user namespace. "
-                    "Do you really want to overwrite it?"):
+                "The variables `sim` is defined in your user namespace. "
+                "Do you really want to overwrite it?"
+            ):
                 return
 
         if args.state_phys:
@@ -149,7 +158,7 @@ class FluidsimMagics(Magics):
 
     @line_magic
     def fluidsim_help(self, line):
-        print(4 * ' ' + self.__doc__)
+        print(4 * " " + self.__doc__)
 
 
 def load_ipython_extension(ipython):

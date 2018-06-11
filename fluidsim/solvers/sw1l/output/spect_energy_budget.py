@@ -908,7 +908,6 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
 
 
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
-
     def __init__(self, output, norm_mode=None):
         if norm_mode is None:
             self.norm_mode = NormalModeDecomposition(output)
@@ -1319,7 +1318,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
 
 class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
-
     def __init__(self, output):
         norm_mode = NormalModeDecompositionModified(output)
         super(SpectralEnergyBudgetSW1LModified, self).__init__(output, norm_mode)

@@ -46,7 +46,6 @@ def create_oper(type_fft=None, coef_dealiasing=2. / 3):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()

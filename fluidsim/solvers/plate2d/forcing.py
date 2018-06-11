@@ -15,7 +15,6 @@ from fluidsim.base.forcing.specific import (
 
 
 class ForcingPlate2D(ForcingBasePseudoSpectral):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.

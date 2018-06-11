@@ -40,7 +40,6 @@ from fluidsim.solvers.ns2d.init_fields import InitFieldsJet, InitFieldsDipole
 
 
 class InitFieldsNoise(InitFieldsNoiseNS2D):
-
     def __call__(self):
         rot_fft, ux_fft, uy_fft = self.compute_rotuxuy_fft()
         self.sim.state.init_from_uxuyfft(ux_fft, uy_fft)
@@ -88,6 +87,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
       If not specified, follows six-sigma rule based on half vortex spacing
 
     """
+
     tag = "vortex_grid"
 
     @classmethod

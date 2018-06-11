@@ -6,7 +6,6 @@ from fluidsim.base.output import OutputBase
 
 
 class Output(OutputBase):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.

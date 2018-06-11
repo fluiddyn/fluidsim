@@ -14,7 +14,6 @@ from fluidsim.base.solvers.base import SimulBase as Simul
 
 
 class TestBaseSolver(unittest.TestCase):
-
     def setUp(self):
         params = Simul.create_default_params()
 

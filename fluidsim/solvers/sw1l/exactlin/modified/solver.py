@@ -39,6 +39,7 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
 
 class Simul(SimulSW1LExactLin):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
+
     InfoSolver = InfoSolverSW1LExactLinModified
 
     def tendencies_nonlin(self, state_spect=None, old=None):

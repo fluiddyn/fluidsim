@@ -10,7 +10,6 @@ from fluidsim.base.params import Parameters
 
 
 class OperatorsSphericalHarmonics(EasySHT):
-
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.

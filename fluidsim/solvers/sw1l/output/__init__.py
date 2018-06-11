@@ -24,7 +24,6 @@ from .util_pythran import linear_eigenmode_from_values_1k
 
 
 class OutputBaseSW1L(OutputBasePseudoSpectral):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer *info_solver* with child classes to be
@@ -215,7 +214,6 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
 
 class OutputSW1L(OutputBaseSW1L):
-
     def compute_energies_fft(self):
         r"""Compute kinetic, available potential and rotational kinetic energies
         in the spectral space.

@@ -44,6 +44,7 @@ class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
 
 class SimulSphereNS2D(SimulSphericalHarmo):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverSphereNS2D
 
     # @staticmethod

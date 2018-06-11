@@ -13,6 +13,7 @@ from fluidsim.base.output.base import SpecificOutput
 class ProbaDensityFunc(SpecificOutput):
     """Handle the saving and plotting of pdf of the turbulent kinetic energy.
     """
+
     _tag = "pdf"
     _name_file = _tag + ".h5"
 

@@ -66,7 +66,6 @@ def compute_increments_dim1_old(var, irx):
 )
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()
@@ -114,7 +113,6 @@ class TestOperators(unittest.TestCase):
 
 
 class TestOperatorsDealiasing(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper(coef_dealiasing=False)

@@ -1,7 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping.finite_diff`)
 =======================================================================
 
-
 Provides:
 
 .. autoclass:: TimeSteppingFiniteDiffCrankNicolson
@@ -10,11 +9,11 @@ Provides:
 
 """
 
+from copy import deepcopy
+
 import numpy as np
 import scipy.sparse as sparse
 from scipy.sparse.linalg import spsolve
-
-from copy import deepcopy
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -24,11 +23,12 @@ from .base import TimeSteppingBase
 class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
     """Time stepping class for finite-difference solvers.
     """
+
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        TimeSteppingBase._complete_params_with_default()
+        TimeSteppingBase._complete_params_with_default(params)
         params.time_stepping.type_time_scheme = "RK2"
 
     def __init__(self, sim):

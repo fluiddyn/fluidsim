@@ -6,6 +6,7 @@ import shutil
 
 try:
     import pulp
+
     pulp_installed = True
 except ImportError:
     pulp_installed = False
@@ -58,8 +59,9 @@ class TestSolverNS2DStrat(unittest.TestCase):
 
         sim.check_energy_conservation(rot_fft, b_fft, f_rot_fft, f_b_fft)
 
-    @unittest.skipIf(not pulp_installed,
-                     "ImportError pulp (install with `pip install pulp`)")
+    @unittest.skipIf(
+        not pulp_installed, "ImportError pulp (install with `pip install pulp`)"
+    )
     def test_forcing_output(self):
 
         params = self.Simul.create_default_params()

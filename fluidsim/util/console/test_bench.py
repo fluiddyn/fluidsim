@@ -17,6 +17,7 @@ path_tmp = "/tmp/fluidsim_test_bench"
 
 class TestBench(unittest.TestCase):
     """Test benchmarking."""
+
     n0 = 24
 
     def test2d(self):

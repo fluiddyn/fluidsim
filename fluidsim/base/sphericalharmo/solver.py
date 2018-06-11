@@ -51,6 +51,7 @@ class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
 
 class SimulSphericalHarmo(SimulBasePseudoSpectral):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverSphericalHarmo
 
 

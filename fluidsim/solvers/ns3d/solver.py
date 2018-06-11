@@ -26,7 +26,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
-
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()

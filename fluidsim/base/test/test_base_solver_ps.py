@@ -20,7 +20,6 @@ from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
 
 class TestBaseSolverPS(unittest.TestCase):
-
     def setUp(self, params=None):
         """Should be able to run a base experiment."""
 

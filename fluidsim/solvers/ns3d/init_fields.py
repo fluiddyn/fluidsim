@@ -74,6 +74,7 @@ class InitFieldsDipole(SpecificInitFields):
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod

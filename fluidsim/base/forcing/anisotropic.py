@@ -27,6 +27,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
     .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectralAnisotropic
 
     """
+
     tag = "tcrandom_anisotropic"
 
     @classmethod

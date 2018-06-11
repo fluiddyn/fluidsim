@@ -250,7 +250,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
 
 class PhysFieldsBase2D(PhysFieldsBase):
-
     def _init_movies(self):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 

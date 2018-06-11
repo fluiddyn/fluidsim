@@ -12,7 +12,6 @@ from .movies import MoviesBase1D
 
 
 class MoviesSpectra(MoviesBase1D):
-
     def __init__(self, output, spectra):
         self.spectra = spectra
         super(MoviesSpectra, self).__init__(output)

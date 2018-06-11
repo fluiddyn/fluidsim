@@ -512,7 +512,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
 
 class OutputBasePseudoSpectral(OutputBase):
-
     def init_with_oper_and_state(self):
 
         oper = self.oper

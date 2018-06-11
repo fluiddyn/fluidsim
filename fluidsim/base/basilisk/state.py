@@ -4,7 +4,6 @@ from ..state import StateBase
 
 
 class StateBasilisk(StateBase):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver.
