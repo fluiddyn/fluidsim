@@ -10,7 +10,6 @@ from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
 
-
 try:
     from Cython.Distutils.extension import Extension
     from Cython.Distutils import build_ext
@@ -23,25 +22,26 @@ except ImportError:
     has_cython = False
     ext_source = 'c'
 
-
 try:
-    from pythran.dist import PythranExtension, build_ext as pythran_build_ext
+    from pythran.dist import PythranExtension
     use_pythran = True
 except ImportError:
-    pythran_build_ext = object
     use_pythran = False
-
-
-class fluidsim_build_ext(build_ext, pythran_build_ext):
-    pass
-
-
-#  fluidsim_build_ext = pythran_build_ext
 
 import numpy as np
 
 from config import (
     MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger)
+
+if use_pythran:
+    try:
+        from pythran.dist import PythranBuildExt
+
+        class fluidsim_build_ext(build_ext, PythranBuildExt):
+            pass
+    except ImportError:
+        fluidsim_build_ext = build_ext
+
 
 time_start = time()
 config = get_config()
@@ -142,7 +142,7 @@ def make_pythran_extensions(modules):
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
             pext = PythranExtension(
-                mod, [py_file],  # extra_compile_args=['-O3', '-fopenmp']
+                mod, [py_file], extra_compile_args=['-O3']
             )
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...

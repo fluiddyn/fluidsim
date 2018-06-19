@@ -17,21 +17,25 @@ import os
 import sys
 import subprocess
 import shlex
+from ctypes.util import find_library
 
 import multiprocessing
 from distutils.ccompiler import CCompiler
+
 try:
     from Cython.Distutils import build_ext
+    from Cython.Distutils.extension import Extension
 except ImportError:
     from distutils.command.build_ext import build_ext
+    from setuptools import Extension
 
 try:
     from concurrent.futures import ThreadPoolExecutor as Pool
-    PARALLEL_COMPILE = True
 except ImportError:
     #  pip install futures  # to use concurrent.futures Python 2.7 backport
     from multiprocessing.pool import ThreadPool as Pool
-    PARALLEL_COMPILE = True
+
+PARALLEL_COMPILE = True
 
 try:  # python 3
     from configparser import ConfigParser
@@ -40,15 +44,18 @@ except ImportError:  # python 2.7
 
 try:
     import colorlog as logging
+
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.ColoredFormatter(
-        '%(log_color)s%(levelname)s: %(message)s'))
+    handler.setFormatter(
+        logging.ColoredFormatter("%(log_color)s%(levelname)s: %(message)s")
+    )
 except ImportError:
     import logging
+
     handler = logging.StreamHandler()
 
 
-logger = logging.getLogger('fluidsim')
+logger = logging.getLogger("fluidsim")
 logger.addHandler(handler)
 logger.setLevel(20)
 
@@ -65,23 +72,27 @@ def check_avail_library(library_name):
     bool
 
     """
-    try:
-        libraries = subprocess.check_output(shlex.split('/sbin/ldconfig -p'))
-    except subprocess.CalledProcessError:
-        libraries = []
+    if find_library(library_name) is not None:
+        return True
+    elif sys.platform != "win32":
+        try:
+            libraries = subprocess.check_output(shlex.split("/sbin/ldconfig -p"))
+        except subprocess.CalledProcessError:
+            libraries = []
 
-    if sys.platform != 'win32':
-        library_name = 'lib' + library_name
+            library_name = "lib" + library_name
 
-    try:
-        library_name = library_name.encode('utf8')
-    except AttributeError:
-        pass
+        try:
+            library_name = library_name.encode("utf8")
+        except AttributeError:
+            pass
 
-    return library_name in libraries
+        return library_name in libraries
+    else:
+        return False
 
 
-on_rtd = os.environ.get('READTHEDOCS')
+on_rtd = os.environ.get("READTHEDOCS")
 
 
 if on_rtd:
@@ -91,14 +102,16 @@ else:
         import mpi4py
     except ImportError:
         MPI4PY = False
-        logger.info('ImportError of mpi4py: no mpi extensions will be built.')
+        logger.info("ImportError of mpi4py: no mpi extensions will be built.")
     else:
         MPI4PY = True
-        CC = os.getenv('CC', 'mpicc')
-        logger.info('Compiling Cython extensions with the compiler/wrapper: ' + CC)
+        CC = os.getenv("CC", "mpicc")
+        logger.info(
+            "Compiling Cython extensions with the compiler/wrapper: " + CC
+        )
 
 
-FFTW3 = check_avail_library('fftw3')
+FFTW3 = check_avail_library("fftw3")
 
 
 def build_extensions(self):
@@ -108,7 +121,7 @@ def build_extensions(self):
     """
     self.check_extensions_list(self.extensions)
     try:
-        self.compiler.compiler_so.remove('-Wstrict-prototypes')
+        self.compiler.compiler_so.remove("-Wstrict-prototypes")
     except (AttributeError, ValueError):
         pass
 
@@ -119,28 +132,52 @@ def build_extensions(self):
             pass
 
     try:
-        num_jobs = int(os.environ['FLUIDDYN_NUM_PROCS_BUILD'])
+        num_jobs = int(os.environ["FLUIDDYN_NUM_PROCS_BUILD"])
     except KeyError:
         try:
             num_jobs = os.cpu_count()
         except AttributeError:
             num_jobs = multiprocessing.cpu_count()
 
-    pool = Pool(num_jobs)
-    pool.map(self.build_extension, self.extensions)
-    try:
-        pool.shutdown()
-    except AttributeError:
-        pool.close()
-        pool.join()
+    cython_extensions = []
+    pythran_extensions = []
+    for ext in self.extensions:
+        if isinstance(ext, Extension):
+            cython_extensions.append(ext)
+        else:
+            pythran_extensions.append(ext)
+
+    def names(exts):
+        return [ext.name for ext in exts]
+
+    with Pool(num_jobs) as pool:
+        logger.info("Start build_extension: {}".format(names(cython_extensions)))
+        pool.map(self.build_extension, cython_extensions)
+
+    logger.info("Stop build_extension: {}".format(names(cython_extensions)))
+
+    with Pool(num_jobs) as pool:
+        logger.info("Start build_extension: {}".format(names(pythran_extensions)))
+        pool.map(self.build_extension, pythran_extensions)
+
+    logger.info("Stop build_extension: {}".format(names(pythran_extensions)))
 
 
-def compile(self, sources, output_dir=None, macros=None,
-            include_dirs=None, debug=0, extra_preargs=None,
-            extra_postargs=None, depends=None):
-    '''Function to monkey-patch distutils.ccompiler.CCompiler'''
+def compile(
+    self,
+    sources,
+    output_dir=None,
+    macros=None,
+    include_dirs=None,
+    debug=0,
+    extra_preargs=None,
+    extra_postargs=None,
+    depends=None,
+):
+    """Function to monkey-patch distutils.ccompiler.CCompiler"""
     macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
-        output_dir, macros, include_dirs, sources, depends, extra_postargs)
+        output_dir, macros, include_dirs, sources, depends, extra_postargs
+    )
     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
 
     for obj in objects:
@@ -155,7 +192,7 @@ def compile(self, sources, output_dir=None, macros=None,
 
 
 def monkeypatch_parallel_build():
-    '''Monkey-patch to compile in parallel.'''
+    """Monkey-patch to compile in parallel."""
     if PARALLEL_COMPILE:
         build_ext.build_extensions = build_extensions
         CCompiler.compile = compile
@@ -164,19 +201,20 @@ def monkeypatch_parallel_build():
 def get_default_config():
     """Generate default configuration."""
     config = ConfigParser()
-    section = 'exclude_pythran'
+    section = "exclude_pythran"
     config.add_section(section)
     exclude_pythran = (
-        'fluidsim.solvers.plate2d',
-        'fluidsim.solvers.plate2d.output',
-        'fluidsim.solvers.sw1l',
-        'fluidsim.solvers.sw1l.output',
-        'fluidsim.solvers.ns2d.strat',
-        'fluidsim.solvers.ns2d.bouss')
+        "fluidsim.solvers.plate2d",
+        "fluidsim.solvers.plate2d.output",
+        "fluidsim.solvers.sw1l",
+        "fluidsim.solvers.sw1l.output",
+        "fluidsim.solvers.ns2d.strat",
+        "fluidsim.solvers.ns2d.bouss",
+    )
     for excluded in exclude_pythran:
-        config.set(section, excluded, 'True')
+        config.set(section, excluded, "True")
 
-    config.add_section('environ')
+    config.add_section("environ")
 
     return config
 
@@ -186,7 +224,7 @@ def make_site_cfg_default_file():
 
     config = get_default_config()
 
-    with open('site.cfg.default', 'w') as configfile:
+    with open("site.cfg.default", "w") as configfile:
         config.write(configfile)
 
 
@@ -205,19 +243,22 @@ def get_config():
     """
     config = get_default_config()
 
-    user_dir = '~user' if sys.platform == 'win32' else '~'
-    configfile_user = os.path.expanduser(os.path.join(
-        user_dir, '.fluidsim-site.cfg'))
+    user_dir = "~user" if sys.platform == "win32" else "~"
+    configfile_user = os.path.expanduser(
+        os.path.join(user_dir, ".fluidsim-site.cfg")
+    )
 
-    for configfile in ('site.cfg', configfile_user):
+    for configfile in ("site.cfg", configfile_user):
         if os.path.exists(configfile):
-            logger.info('Parsing ' + configfile)
+            logger.info("Parsing " + configfile)
             config.read(configfile)
             break
     else:
-        logger.info('Using default configuration.')
-        logger.info('Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg '
-                    'to specify site specific libraries.')
+        logger.info("Using default configuration.")
+        logger.info(
+            "Copy site.cfg.default -> site.cfg or $HOME/.fluidsim-site.cfg "
+            "to specify site specific libraries."
+        )
 
     config_dict = {}
     for section in config.sections():
@@ -225,7 +266,7 @@ def get_config():
         section_dict = {}
         config_dict[section] = section_dict
         for option in config.options(section):
-            if section == 'environ':
+            if section == "environ":
                 option = option.upper()
                 value = config.get(section, option)
             else:
@@ -236,5 +277,5 @@ def get_config():
     return config_dict
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     make_site_cfg_default_file()
