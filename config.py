@@ -28,15 +28,6 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     from setuptools import Extension
-
-try:
-    from concurrent.futures import ThreadPoolExecutor as Pool
-except ImportError:
-    #  pip install futures  # to use concurrent.futures Python 2.7 backport
-    from multiprocessing.pool import ThreadPool as Pool
-
-PARALLEL_COMPILE = True
-
 try:  # python 3
     from configparser import ConfigParser
 except ImportError:  # python 2.7
@@ -60,6 +51,27 @@ logger.addHandler(handler)
 logger.setLevel(20)
 
 
+try:
+    from concurrent.futures import ThreadPoolExecutor as Pool
+except ImportError:
+    from multiprocessing.pool import ThreadPool as LegacyPool
+
+    class Pool(LegacyPool):
+        def __enter__(self, *args):
+            return self
+
+        def __exit(self, *args):
+            self.close()
+            self.join()
+
+    logger.warn("Falling back to multiprocessing.pool.ThreadPool\n"
+                "    pip install futures\n"
+                "to use concurrent.futures Python 2.7 backport.\n"
+    )
+
+PARALLEL_COMPILE = True
+
+
 def check_avail_library(library_name):
     """Check if a shared library is available.
 
@@ -74,7 +86,7 @@ def check_avail_library(library_name):
     """
     if find_library(library_name) is not None:
         return True
-    elif sys.platform != "win32":
+    elif sys.platform.startswith("linux"):
         try:
             libraries = subprocess.check_output(shlex.split("/sbin/ldconfig -p"))
         except subprocess.CalledProcessError:
