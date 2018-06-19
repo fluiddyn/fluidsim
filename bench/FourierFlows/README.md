@@ -19,6 +19,17 @@ See https://github.com/FourierFlows/FourierFlows.jl
   julia profilingFourierFlows.jl
   ```
 
+  To be compared to:
+  ```
+  export OMP_NUM_THREADS=1
+  fluidsim-bench 1024 -d 2 -s ns2d -it 10
+  mpirun -np 4 fluidsim-bench 1024 -d 2 -s ns2d -it 10
+
+  fluidsim-profile 1024 -d 2 -s ns2d -it 10 -v
+
+  ```
+
+
 ## About the profiling
 
 "From what I understand the code spends ~59% of it’s time doing FFT’s (that’s what
