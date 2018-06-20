@@ -241,6 +241,28 @@ def make_site_cfg_default_file():
 
     with open("site.cfg.default", "w") as configfile:
         config.write(configfile)
+        configfile.write(
+            """
+## Uncomment and specify the following options to modify compilation of
+## extensions.
+
+## To modify compiler used to build Cython extensions:
+# MPICXX =
+# CC =
+# LDSHARED =
+
+## To modify compiler used to build Pythran extensions (or alternatively,
+## set ~/.pythranrc. A word of caution --- the pythranrc approach may result in
+## race condition for setting and unsetting compilers for pythran > 0.8.6):
+# CXX =
+
+## To modify target architecture while building Pythran extensions
+## Useful when cross-compiling. See whether it is required by comparing:
+## 	gcc -march=native -Q --help=target
+## 	gcc -march=$CARCH -Q --help=target
+# CARCH =
+"""
+        )
 
 
 def get_config():

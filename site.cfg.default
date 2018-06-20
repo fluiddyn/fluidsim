@@ -7,6 +7,8 @@ fluidsim.solvers.ns2d.strat = True
 fluidsim.solvers.ns2d.bouss = True
 
 [environ]
+
+
 ## Uncomment and specify the following options to modify compilation of
 ## extensions.
 
