@@ -59,7 +59,7 @@ before_script:
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
-      wget https://bitbucket.org/fluiddyn/fluidfft/raw/default/site.cfg.files/site.cfg.travis -O $HOME/.fluidfft-site.cfg
+      wget https://bitbucket.org/fluiddyn/fluidfft/raw/default/site.cfg.files/site.cfg.travis_$TRAVIS_OS_NAME -O $HOME/.fluidfft-site.cfg
 
 script:
     - travis_wait 30 tox -vv
