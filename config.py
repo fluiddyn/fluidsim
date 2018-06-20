@@ -56,17 +56,20 @@ try:
 except ImportError:
     from multiprocessing.pool import ThreadPool as LegacyPool
 
+    # To ensure the with statement works. Required for some older 2.7.x releases
     class Pool(LegacyPool):
-        def __enter__(self, *args):
+
+        def __enter__(self):
             return self
 
-        def __exit(self, *args):
+        def __exit__(self, *args):
             self.close()
             self.join()
 
-    logger.warn("Falling back to multiprocessing.pool.ThreadPool\n"
-                "    pip install futures\n"
-                "to use concurrent.futures Python 2.7 backport.\n"
+    logger.warn(
+        "Falling back to multiprocessing.pool.ThreadPool\n"
+        "    pip install futures\n"
+        "to use concurrent.futures Python 2.7 backport.\n"
     )
 
 PARALLEL_COMPILE = True
