@@ -63,7 +63,7 @@ before_script:
 
 script:
     - set -o pipefail
-    - tox -vv | fluidicat
+    - tox -vv | fluidicat --every 1 --wait 300
 
 notifications:
   email: false
