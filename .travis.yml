@@ -62,8 +62,7 @@ before_script:
       wget https://bitbucket.org/fluiddyn/fluidfft/raw/default/site.cfg.files/site.cfg.travis_$TRAVIS_OS_NAME -O $HOME/.fluidfft-site.cfg
 
 script:
-    - set -o pipefail
-    - tox -vv | fluidicat --every 1 --wait 300
+    - travis_wait 50 tox -vv
 
 notifications:
   email: false
