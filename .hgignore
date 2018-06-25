@@ -13,6 +13,8 @@ __pycache__
 \#*\#
 .spyderworkspace
 .spyderproject
+.vscode/
+.venv/
 
 bench/launcher_*
 bench/SLURM*

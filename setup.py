@@ -41,6 +41,8 @@ if use_pythran:
             pass
     except ImportError:
         fluidsim_build_ext = build_ext
+else:
+    fluidsim_build_ext = build_ext
 
 
 time_start = time()

@@ -28,15 +28,6 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     from setuptools import Extension
-
-try:
-    from concurrent.futures import ThreadPoolExecutor as Pool
-except ImportError:
-    #  pip install futures  # to use concurrent.futures Python 2.7 backport
-    from multiprocessing.pool import ThreadPool as Pool
-
-PARALLEL_COMPILE = True
-
 try:  # python 3
     from configparser import ConfigParser
 except ImportError:  # python 2.7
@@ -60,6 +51,30 @@ logger.addHandler(handler)
 logger.setLevel(20)
 
 
+try:
+    from concurrent.futures import ThreadPoolExecutor as Pool
+except ImportError:
+    from multiprocessing.pool import ThreadPool as LegacyPool
+
+    # To ensure the with statement works. Required for some older 2.7.x releases
+    class Pool(LegacyPool):
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.close()
+            self.join()
+
+    logger.warn(
+        "Falling back to multiprocessing.pool.ThreadPool\n"
+        "    pip install futures\n"
+        "to use concurrent.futures Python 2.7 backport.\n"
+    )
+
+PARALLEL_COMPILE = True
+
+
 def check_avail_library(library_name):
     """Check if a shared library is available.
 
@@ -74,7 +89,7 @@ def check_avail_library(library_name):
     """
     if find_library(library_name) is not None:
         return True
-    elif sys.platform != "win32":
+    elif sys.platform.startswith("linux"):
         try:
             libraries = subprocess.check_output(shlex.split("/sbin/ldconfig -p"))
         except subprocess.CalledProcessError:
@@ -226,6 +241,28 @@ def make_site_cfg_default_file():
 
     with open("site.cfg.default", "w") as configfile:
         config.write(configfile)
+        configfile.write(
+            """
+## Uncomment and specify the following options to modify compilation of
+## extensions.
+
+## To modify compiler used to build Cython extensions:
+# MPICXX =
+# CC =
+# LDSHARED =
+
+## To modify compiler used to build Pythran extensions (or alternatively,
+## set ~/.pythranrc. A word of caution --- the pythranrc approach may result in
+## race condition for setting and unsetting compilers for pythran > 0.8.6):
+# CXX =
+
+## To modify target architecture while building Pythran extensions
+## Useful when cross-compiling. See whether it is required by comparing:
+## 	gcc -march=native -Q --help=target
+## 	gcc -march=$CARCH -Q --help=target
+# CARCH =
+"""
+        )
 
 
 def get_config():
