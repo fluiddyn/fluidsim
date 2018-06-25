@@ -51,9 +51,9 @@ class Increments(SpecificOutput):
 
         if os.path.exists(self.path_file):
             if mpi.rank == 0:
-                with h5py.File(self.path_file, "r") as f:
-                    self.rxs = f["rxs"][...]
-                    self.nbins = f["nbins"][...]
+                with h5py.File(self.path_file, "r") as h5file:
+                    self.rxs = h5file["rxs"][...]
+                    self.nbins = h5file["nbins"][...]
             if mpi.nb_proc > 1:
                 self.rxs = mpi.comm.bcast(self.rxs)
                 self.nbins = mpi.comm.bcast(self.nbins)
@@ -124,48 +124,45 @@ class Increments(SpecificOutput):
 
     def load(self):
         """load the saved pdf and return a dictionary."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
+        with h5py.File(self.path_file, "r") as h5file:
+            times = h5file["times"][...]
 
-        list_base_keys = [
-            "pdf_delta_",
-            "valmin_",
-            "valmax_",
-            # 'struc_func_'
-        ]
+            list_base_keys = [
+                "pdf_delta_",
+                "valmin_",
+                "valmax_",
+                # 'struc_func_'
+            ]
 
-        dict_results = {"times": times}
-        for key in self.keys_vars_to_compute:
-            for base_key in list_base_keys:
-                dset_pdf = f[base_key + key]
-                result = dset_pdf[...]
-                dict_results[base_key + key] = result
+            dict_results = {"times": times}
+            for key in self.keys_vars_to_compute:
+                for base_key in list_base_keys:
+                    result = h5file[base_key + key][...]
+                    dict_results[base_key + key] = result
 
         return dict_results
 
     def plot(self, tmin=0, tmax=None, delta_t=2, order=2, yscale="log"):
         """Plot some structure functions."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        # nt = len(times)
+        with h5py.File(self.path_file, "r") as h5file:
+            times = h5file["times"][...]
+            # nt = len(times)
 
-        if tmax is None:
-            tmax = times.max()
+            if tmax is None:
+                tmax = times.max()
 
-        rxs = f["rxs"][...]
+            rxs = h5file["rxs"][...]
 
-        oper = f["/info_simul/params/oper"]
-        nx = oper.attrs["nx"]
-        Lx = oper.attrs["Lx"]
+            oper = h5file["/info_simul/params/oper"]
+            nx = oper.attrs["nx"]
+            Lx = oper.attrs["Lx"]
         deltax = Lx / nx
 
         rxs = np.array(rxs, dtype=np.float64) * deltax
 
-        # orders = f['orders'][...]
-        # dset_struc_func_ux = f['struc_func_ux']
-        # dset_struc_func_uy = f['struc_func_uy']
+        # orders = h5file['orders'][...]
+        # dset_struc_func_ux = h5file['struc_func_ux']
+        # dset_struc_func_uy = h5file['struc_func_uy']
 
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
@@ -348,89 +345,88 @@ class Increments(SpecificOutput):
         self, tmin=0, tmax=None, key_var="ux", irx_to_plot=None
     ):
         """Plot some pdf."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        nt = len(times)
+        with h5py.File(self.path_file, "r") as h5file:
+            times = h5file["times"][...]
+            nt = len(times)
 
-        if tmax is None:
-            tmax = times.max()
+            if tmax is None:
+                tmax = times.max()
 
-        rxs = f["rxs"][...]
+            rxs = h5file["rxs"][...]
 
-        oper = f["/info_simul/params/oper"]
-        nx = oper.attrs["nx"]
-        Lx = oper.attrs["Lx"]
+            oper = h5file["/info_simul/params/oper"]
+            nx = oper.attrs["nx"]
+            Lx = oper.attrs["Lx"]
 
-        deltax = Lx / nx
+            deltax = Lx / nx
 
-        rxs = np.array(rxs, dtype=np.float64) * deltax
+            rxs = np.array(rxs, dtype=np.float64) * deltax
 
-        # orders = f['orders'][...]
+            # orders = h5file['orders'][...]
 
-        # delta_t_save = np.mean(times[1:]-times[0:-1])
-        # delta_t = delta_t_save
+            # delta_t_save = np.mean(times[1:]-times[0:-1])
+            # delta_t = delta_t_save
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        # tmin_plot = times[imin_plot]
-        # tmax_plot = times[imax_plot]
+            # tmin_plot = times[imin_plot]
+            # tmax_plot = times[imax_plot]
 
-        #         to_print = '''load pdf of the increments
-        # tmin = {0:8.6g} ; tmax = {1:8.6g}
-        # imin = {2:8d} ; imax = {3:8d}'''.format(
-        # tmin_plot, tmax_plot,
-        # imin_plot, imax_plot)
-        #         print(to_print)
+            #         to_print = '''load pdf of the increments
+            # tmin = {0:8.6g} ; tmax = {1:8.6g}
+            # imin = {2:8d} ; imax = {3:8d}'''.format(
+            # tmin_plot, tmax_plot,
+            # imin_plot, imax_plot)
+            #         print(to_print)
 
-        if irx_to_plot is None:
-            irx_to_plot = np.arange(rxs.size)
+            if irx_to_plot is None:
+                irx_to_plot = np.arange(rxs.size)
 
-        nb_rx_to_plot = irx_to_plot.size
+            nb_rx_to_plot = irx_to_plot.size
 
-        # print 'irx_to_plot', irx_to_plot
-        # print 'self.rxs[irx_to_plot]', self.rxs[irx_to_plot]
+            # print 'irx_to_plot', irx_to_plot
+            # print 'self.rxs[irx_to_plot]', self.rxs[irx_to_plot]
 
-        pdf_timemean = np.zeros([nb_rx_to_plot, self.nbins])
-        values_inc_timemean = np.zeros([nb_rx_to_plot, self.nbins])
+            pdf_timemean = np.zeros([nb_rx_to_plot, self.nbins])
+            values_inc_timemean = np.zeros([nb_rx_to_plot, self.nbins])
 
-        valmin_timemean = np.zeros([nb_rx_to_plot])
-        valmax_timemean = np.zeros([nb_rx_to_plot])
-        nb_timemean = 0
+            valmin_timemean = np.zeros([nb_rx_to_plot])
+            valmax_timemean = np.zeros([nb_rx_to_plot])
+            nb_timemean = 0
 
-        for it in range(imin_plot, imax_plot + 1):
-            nb_timemean += 1
-            valmin = f["valmin_" + key_var][it]
-            valmax = f["valmax_" + key_var][it]
+            for it in range(imin_plot, imax_plot + 1):
+                nb_timemean += 1
+                valmin = h5file["valmin_" + key_var][it]
+                valmax = h5file["valmax_" + key_var][it]
 
-            for irxp, irx in enumerate(irx_to_plot):
-                valmin_timemean[irxp] += valmin[irx]
-                valmax_timemean[irxp] += valmax[irx]
+                for irxp, irx in enumerate(irx_to_plot):
+                    valmin_timemean[irxp] += valmin[irx]
+                    valmax_timemean[irxp] += valmax[irx]
 
-        valmin_timemean /= nb_timemean
-        valmax_timemean /= nb_timemean
-
-        for irxp, irx in enumerate(irx_to_plot):
-            values_inc_timemean[irxp] = self.compute_values_inc(
-                valmin_timemean[irxp], valmax_timemean[irxp]
-            )
-
-        nt = 0
-        for it in range(imin_plot, imax_plot + 1):
-            nt += 1
-            pdf_dvar2D = f["pdf_delta_" + key_var][it]
-            pdf_dvar2D = pdf_dvar2D.reshape([self.nrx, self.nbins])
-            valmin = f["valmin_" + key_var][it]
-            valmax = f["valmax_" + key_var][it]
+            valmin_timemean /= nb_timemean
+            valmax_timemean /= nb_timemean
 
             for irxp, irx in enumerate(irx_to_plot):
-                pdf_dvar = pdf_dvar2D[irx]
-                values_inc = self.compute_values_inc(valmin[irx], valmax[irx])
-
-                pdf_timemean[irxp] += np.interp(
-                    values_inc_timemean[irxp], values_inc, pdf_dvar
+                values_inc_timemean[irxp] = self.compute_values_inc(
+                    valmin_timemean[irxp], valmax_timemean[irxp]
                 )
+
+            nt = 0
+            for it in range(imin_plot, imax_plot + 1):
+                nt += 1
+                pdf_dvar2D = h5file["pdf_delta_" + key_var][it]
+                pdf_dvar2D = pdf_dvar2D.reshape([self.nrx, self.nbins])
+                valmin = h5file["valmin_" + key_var][it]
+                valmax = h5file["valmax_" + key_var][it]
+
+                for irxp, irx in enumerate(irx_to_plot):
+                    pdf_dvar = pdf_dvar2D[irx]
+                    values_inc = self.compute_values_inc(valmin[irx], valmax[irx])
+
+                    pdf_timemean[irxp] += np.interp(
+                        values_inc_timemean[irxp], values_inc, pdf_dvar
+                    )
 
         pdf_timemean /= nt
 
@@ -543,26 +539,25 @@ class IncrementsSW1L(Increments):
 
     def plot(self, tmin=0, tmax=None, delta_t=2, order=2, yscale="log"):
         """Plot some structure functions."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        # nt = len(times)
+        with h5py.File(self.path_file, "r") as h5file:
+            times = h5file["times"][...]
+            # nt = len(times)
 
-        if tmax is None:
-            tmax = times.max()
+            if tmax is None:
+                tmax = times.max()
 
-        rxs = f["rxs"][...]
+            rxs = h5file["rxs"][...]
 
-        oper = f["/info_simul/params/oper"]
-        nx = oper.attrs["nx"]
-        Lx = oper.attrs["Lx"]
-        deltax = Lx / nx
+            oper = h5file["/info_simul/params/oper"]
+            nx = oper.attrs["nx"]
+            Lx = oper.attrs["Lx"]
+            deltax = Lx / nx
 
         rxs = np.array(rxs, dtype=np.float64) * deltax
 
-        # orders = f['orders'][...]
-        # dset_struc_func_ux = f['struc_func_ux']
-        # dset_struc_func_uy = f['struc_func_uy']
+        # orders = h5file['orders'][...]
+        # dset_struc_func_ux = h5file['struc_func_ux']
+        # dset_struc_func_uy = h5file['struc_func_uy']
 
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
@@ -734,50 +729,59 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
 
     def plot_Kolmo(self, tmin=0, tmax=None):
         """Plot quantities appearing in the Kolmogorov law."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
+        with h5py.File(self.path_file, "r") as h5file:
+            times = h5file["times"][...]
 
-        if tmax is None:
-            tmax = times.max()
+            if tmax is None:
+                tmax = times.max()
 
-        rxs = f["rxs"][...]
+            rxs = h5file["rxs"][...]
 
-        oper = f["/info_simul/params/oper"]
-        nx = oper.attrs["nx"]
-        Lx = oper.attrs["Lx"]
-        deltax = Lx / nx
+            oper = h5file["/info_simul/params/oper"]
+            nx = oper.attrs["nx"]
+            Lx = oper.attrs["Lx"]
+            deltax = Lx / nx
 
-        rxs = np.array(rxs, dtype=np.float64) * deltax
+            rxs = np.array(rxs, dtype=np.float64) * deltax
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
+            tmin_plot = times[imin_plot]
+            tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1})".format(tmin, tmax)
-        print(to_print)
+            to_print = "plot(tmin={0}, tmax={1})".format(tmin, tmax)
+            print(to_print)
 
-        to_print = """plot structure functions
-tmin = {0:8.6g} ; tmax = {1:8.6g}
-imin = {2:8d} ; imax = {3:8d}""".format(
-            tmin_plot, tmax_plot, imin_plot, imax_plot
-        )
-        print(to_print)
+            to_print = """plot structure functions
+    tmin = {0:8.6g} ; tmax = {1:8.6g}
+    imin = {2:8d} ; imax = {3:8d}""".format(
+                tmin_plot, tmax_plot, imin_plot, imax_plot
+            )
+            print(to_print)
 
-        # dset_struc_func_ux = f['struc_func_ux']
-        # struc_func_ux = dset_struc_func_ux[imin_plot:imax_plot+1].mean(0)
-        # struc_func_ux = struc_func_ux.reshape([self.norders, self.nrx])
-        # order = 3
-        # iorder = self.iorder_from_order(order)
-        # S_ux3 = struc_func_ux[iorder]
+            # dset_struc_func_ux = h5file['struc_func_ux']
+            # struc_func_ux = dset_struc_func_ux[imin_plot:imax_plot+1].mean(0)
+            # struc_func_ux = struc_func_ux.reshape([self.norders, self.nrx])
+            # order = 3
+            # iorder = self.iorder_from_order(order)
+            # S_ux3 = struc_func_ux[iorder]
 
-        S_uL2JL = f["struc_func_uL2JL"][imin_plot : imax_plot + 1].mean(0)
-        S_uT2JL = f["struc_func_uT2JL"][imin_plot : imax_plot + 1].mean(0)
-        S_c2h2uL = f["struc_func_c2h2uL"][imin_plot : imax_plot + 1].mean(0)
-        S_Kolmo = f["struc_func_Kolmo"][imin_plot : imax_plot + 1].mean(0)
-        S_uT2uL = f["struc_func_uT2uL"][imin_plot : imax_plot + 1].mean(0)
+            S_uL2JL = h5file["struc_func_uL2JL"][imin_plot : imax_plot + 1].mean(
+                0
+            )
+            S_uT2JL = h5file["struc_func_uT2JL"][imin_plot : imax_plot + 1].mean(
+                0
+            )
+            S_c2h2uL = h5file["struc_func_c2h2uL"][
+                imin_plot : imax_plot + 1
+            ].mean(0)
+            S_Kolmo = h5file["struc_func_Kolmo"][imin_plot : imax_plot + 1].mean(
+                0
+            )
+            S_uT2uL = h5file["struc_func_uT2uL"][imin_plot : imax_plot + 1].mean(
+                0
+            )
 
         S_Kolmo_theo = -4 * rxs
 
