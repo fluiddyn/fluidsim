@@ -246,7 +246,7 @@ path: str
                 if mpi.rank == 0:
                     field_seq = group_state_phys[k][...]
                 else:
-                    field_seq = self.sim.oper.create_arrayX()
+                    field_seq = None
 
                 if mpi.nb_proc > 1:
                     field_loc = self.sim.oper.scatter_Xspace(field_seq)

@@ -59,11 +59,6 @@ class TestSolverNS2D(unittest.TestCase):
 
         self.assertGreater(1e-15, ratio)
 
-    # print ('sum(T_rot) = {0:9.4e} ; '
-    #        'sum(abs(T_rot)) = {1:9.4e}').format(
-    #            sim.oper.sum_wavenumbers(T_rot),
-    #            sim.oper.sum_wavenumbers(abs(T_rot)))
-
     def test_forcing_output(self):
 
         params = self.Simul.create_default_params()
