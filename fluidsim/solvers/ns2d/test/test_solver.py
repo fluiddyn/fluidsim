@@ -64,6 +64,7 @@ class TestSolverNS2D(unittest.TestCase):
     #            sim.oper.sum_wavenumbers(T_rot),
     #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
+    @unittest.skipIf(mpi.nb_proc > 1, "Stalls with MPI. See bb-10")
     def test_forcing_output(self):
 
         params = self.Simul.create_default_params()
