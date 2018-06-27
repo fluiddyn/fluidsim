@@ -17,10 +17,11 @@ import time
 
 import matplotlib
 from importlib import import_module
-from fluiddyn.util import mpi
-
 
 matplotlib.use("agg")
+
+
+from fluiddyn.util import mpi
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):
@@ -78,10 +79,15 @@ def _mname(obj):
 def _run(tests, verbose=False):
     """Run a set of tests using unittest."""
 
-    if verbose:
-        testRunner = TimeLoggingTestRunner(verbosity=1)
+    if mpi.rank == 0:
+        verbosity = 2
     else:
-        testRunner = unittest.runner.TextTestRunner(verbosity=1)
+        verbosity = 0
+
+    if verbose:
+        testRunner = TimeLoggingTestRunner(verbosity=verbosity)
+    else:
+        testRunner = unittest.runner.TextTestRunner(verbosity=verbosity)
 
     result = testRunner.run(tests)
     if verbose:
