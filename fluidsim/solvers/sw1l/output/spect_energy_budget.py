@@ -424,195 +424,197 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
-        f = h5py.File(self.path_file, "r")
+        with h5py.File(self.path_file, "r") as h5file:
 
-        dset_times = f["times"]
-        times = dset_times[...]
-        # nt = len(times)
+            dset_times = h5file["times"]
+            times = dset_times[...]
+            # nt = len(times)
 
-        dset_khE = f["khE"]
-        khE = dset_khE[...]
+            dset_khE = h5file["khE"]
+            khE = dset_khE[...]
 
-        dset_transfer2D_EKr = f["transfer2D_EKr"]
-        dset_transfer2D_EKd = f["transfer2D_EKd"]
-        dset_transfer2D_EAr = f["transfer2D_EAr"]
-        dset_transfer2D_EAd = f["transfer2D_EAd"]
-        dset_transfer2D_EPd = f["transfer2D_EPd"]
-        dset_convP2D = f["convP2D"]
-        dset_convK2D = f["convK2D"]
-        dset_transfer2D_CPE = f["transfer2D_CPE"]
+            dset_transfer2D_EKr = h5file["transfer2D_EKr"]
+            dset_transfer2D_EKd = h5file["transfer2D_EKd"]
+            dset_transfer2D_EAr = h5file["transfer2D_EAr"]
+            dset_transfer2D_EAd = h5file["transfer2D_EAd"]
+            dset_transfer2D_EPd = h5file["transfer2D_EPd"]
+            dset_convP2D = h5file["convP2D"]
+            dset_convK2D = h5file["convK2D"]
+            dset_transfer2D_CPE = h5file["transfer2D_CPE"]
 
-        delta_t_save = np.mean(times[1:] - times[0:-1])
-        delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
-            delta_i_plot = 1
-        delta_t = delta_i_plot * delta_t_save
+            delta_t_save = np.mean(times[1:] - times[0:-1])
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
+            if delta_i_plot == 0 and delta_t != 0.:
+                delta_i_plot = 1
+            delta_t = delta_i_plot * delta_t_save
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
+            tmin_plot = times[imin_plot]
+            tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
+            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+                tmin, tmax, delta_t
+            )
+            print(to_print)
 
-        to_print = """plot fluxes 2D
-tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
-            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-        )
-        print(to_print)
+            to_print = """plot fluxes 2D
+    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
+    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+            )
+            print(to_print)
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.36
-        width_axe = 0.85
-        height_axe = 0.57
+            x_left_axe = 0.12
+            z_bottom_axe = 0.36
+            width_axe = 0.85
+            height_axe = 0.57
 
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel("$k_h$")
-        ax1.set_ylabel("transfers")
-        title = (
-            "energy flux, solver "
-            + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.set_title(title)
-        ax1.set_xscale("log")
-        ax1.set_yscale("linear")
+            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+            fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+            ax1.set_xlabel("$k_h$")
+            ax1.set_ylabel("transfers")
+            title = (
+                "energy flux, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.nx)
+                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            )
+            ax1.set_title(title)
+            ax1.set_xscale("log")
+            ax1.set_yscale("linear")
 
-        khE = khE + 1
+            khE = khE + 1
 
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot, delta_i_plot):
-                transferEKr = dset_transfer2D_EKr[it]
-                transferEAr = dset_transfer2D_EAr[it]
-                PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
-                PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
-                PiE = PiEKr + PiEAr
-                ax1.plot(khE, PiE, "k", linewidth=1)
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot, delta_i_plot):
+                    transferEKr = dset_transfer2D_EKr[it]
+                    transferEAr = dset_transfer2D_EAr[it]
+                    PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
+                    PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
+                    PiE = PiEKr + PiEAr
+                    ax1.plot(khE, PiE, "k", linewidth=1)
 
-                convK = dset_convK2D[it]
-                CCK = cumsum_inv(convK) * self.oper.deltak
-                ax1.plot(khE, CCK, "y", linewidth=1)
+                    convK = dset_convK2D[it]
+                    CCK = cumsum_inv(convK) * self.oper.deltak
+                    ax1.plot(khE, CCK, "y", linewidth=1)
 
-                convP = dset_convP2D[it]
-                CCP = cumsum_inv(convP) * self.oper.deltak
-                ax1.plot(khE, CCP, "y--", linewidth=1)
+                    convP = dset_convP2D[it]
+                    CCP = cumsum_inv(convP) * self.oper.deltak
+                    ax1.plot(khE, CCP, "y--", linewidth=1)
 
-        # print(convK.sum()*self.oper.deltak,
-        #       convP.sum()*self.oper.deltak,
-        #       CCP[0], CCK[0])
+            # print(convK.sum()*self.oper.deltak,
+            #       convP.sum()*self.oper.deltak,
+            #       CCP[0], CCK[0])
 
-        transferEKr = dset_transfer2D_EKr[imin_plot:imax_plot].mean(0)
-        transferEKd = dset_transfer2D_EKd[imin_plot:imax_plot].mean(0)
-        transferEAr = dset_transfer2D_EAr[imin_plot:imax_plot].mean(0)
-        transferEAd = dset_transfer2D_EAd[imin_plot:imax_plot].mean(0)
-        transferEPd = dset_transfer2D_EPd[imin_plot:imax_plot].mean(0)
+            transferEKr = dset_transfer2D_EKr[imin_plot:imax_plot].mean(0)
+            transferEKd = dset_transfer2D_EKd[imin_plot:imax_plot].mean(0)
+            transferEAr = dset_transfer2D_EAr[imin_plot:imax_plot].mean(0)
+            transferEAd = dset_transfer2D_EAd[imin_plot:imax_plot].mean(0)
+            transferEPd = dset_transfer2D_EPd[imin_plot:imax_plot].mean(0)
 
-        PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
-        PiEKd = cumsum_inv(transferEKd) * self.oper.deltak
-        PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
-        PiEAd = cumsum_inv(transferEAd) * self.oper.deltak
-        PiEPd = cumsum_inv(transferEPd) * self.oper.deltak
+            PiEKr = cumsum_inv(transferEKr) * self.oper.deltak
+            PiEKd = cumsum_inv(transferEKd) * self.oper.deltak
+            PiEAr = cumsum_inv(transferEAr) * self.oper.deltak
+            PiEAd = cumsum_inv(transferEAd) * self.oper.deltak
+            PiEPd = cumsum_inv(transferEPd) * self.oper.deltak
 
-        PiEK = PiEKr + PiEKd
-        PiEA = PiEAr + PiEAd
-        PiE = PiEK + PiEA
+            PiEK = PiEKr + PiEKd
+            PiEA = PiEAr + PiEAd
+            PiE = PiEK + PiEA
 
-        ax1.plot(khE, PiE, "k", linewidth=2)
-        ax1.plot(khE, PiEK, "r", linewidth=2)
-        ax1.plot(khE, PiEA, "b", linewidth=2)
+            ax1.plot(khE, PiE, "k", linewidth=2)
+            ax1.plot(khE, PiEK, "r", linewidth=2)
+            ax1.plot(khE, PiEA, "b", linewidth=2)
 
-        ax1.plot(khE, PiEKr, "r--", linewidth=2)
-        ax1.plot(khE, PiEKd, "r:", linewidth=2)
+            ax1.plot(khE, PiEKr, "r--", linewidth=2)
+            ax1.plot(khE, PiEKd, "r:", linewidth=2)
 
-        ax1.plot(khE, PiEAr, "b--", linewidth=2)
-        ax1.plot(khE, PiEAd, "b:", linewidth=2)
-        ax1.plot(khE, PiEPd, "c:", linewidth=1)
+            ax1.plot(khE, PiEAr, "b--", linewidth=2)
+            ax1.plot(khE, PiEAd, "b:", linewidth=2)
+            ax1.plot(khE, PiEPd, "c:", linewidth=1)
 
-        convP = dset_convP2D[imin_plot:imax_plot].mean(0)
-        convK = dset_convK2D[imin_plot:imax_plot].mean(0)
+            convP = dset_convP2D[imin_plot:imax_plot].mean(0)
+            convK = dset_convK2D[imin_plot:imax_plot].mean(0)
 
-        CCP = cumsum_inv(convP) * self.oper.deltak
-        CCK = cumsum_inv(convK) * self.oper.deltak
+            CCP = cumsum_inv(convP) * self.oper.deltak
+            CCK = cumsum_inv(convK) * self.oper.deltak
 
-        ax1.plot(khE, CCP, "y--", linewidth=2)
-        ax1.plot(khE, CCK, "y", linewidth=2)
+            ax1.plot(khE, CCP, "y--", linewidth=2)
+            ax1.plot(khE, CCK, "y", linewidth=2)
 
-        #         print(convK.sum()*self.oper.deltak,
-        #               convP.sum()*self.oper.deltak,
-        #               CCP[0], CCK[0],
-        #               CCP[1], CCK[1]
-        # )
+            #         print(convK.sum()*self.oper.deltak,
+            #               convP.sum()*self.oper.deltak,
+            #               CCP[0], CCK[0],
+            #               CCP[1], CCK[1]
+            # )
 
-        dset_transfer2D_Errr = f["transfer2D_Errr"]
-        dset_transfer2D_Edrd = f["transfer2D_Edrd"]
-        dset_transfer2D_Edrr_rrd = f["transfer2D_Edrr_rrd"]
+            dset_transfer2D_Errr = h5file["transfer2D_Errr"]
+            dset_transfer2D_Edrd = h5file["transfer2D_Edrd"]
+            dset_transfer2D_Edrr_rrd = h5file["transfer2D_Edrr_rrd"]
 
-        transferEdrr_rrd = dset_transfer2D_Edrr_rrd[imin_plot:imax_plot].mean(0)
-        transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
-        transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
+            transferEdrr_rrd = dset_transfer2D_Edrr_rrd[imin_plot:imax_plot].mean(
+                0
+            )
+            transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
+            transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
 
-        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
-        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
-        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
+            Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
+            Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
+            Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
 
-        ax1.plot(khE, Pi_drr_rrd, "m:", linewidth=1)
-        ax1.plot(khE, Pi_rrr, "m--", linewidth=1)
-        ax1.plot(khE, Pi_drd, "m-.", linewidth=1)
+            ax1.plot(khE, Pi_drr_rrd, "m:", linewidth=1)
+            ax1.plot(khE, Pi_rrr, "m--", linewidth=1)
+            ax1.plot(khE, Pi_drd, "m-.", linewidth=1)
 
-        dset_transfer2D_Eddd = f["transfer2D_Eddd"]
-        dset_transfer2D_Erdr = f["transfer2D_Erdr"]
-        dset_transfer2D_Eddr_rdd = f["transfer2D_Eddr_rdd"]
-        dset_transfer2D_Eudeu = f["transfer2D_Eudeu"]
+            dset_transfer2D_Eddd = h5file["transfer2D_Eddd"]
+            dset_transfer2D_Erdr = h5file["transfer2D_Erdr"]
+            dset_transfer2D_Eddr_rdd = h5file["transfer2D_Eddr_rdd"]
+            dset_transfer2D_Eudeu = h5file["transfer2D_Eudeu"]
 
-        transferEddr_rdd = dset_transfer2D_Eddr_rdd[imin_plot:imax_plot].mean(0)
-        transferEddd = dset_transfer2D_Eddd[imin_plot:imax_plot].mean(0)
-        transferErdr = dset_transfer2D_Erdr[imin_plot:imax_plot].mean(0)
+            transferEddr_rdd = dset_transfer2D_Eddr_rdd[imin_plot:imax_plot].mean(
+                0
+            )
+            transferEddd = dset_transfer2D_Eddd[imin_plot:imax_plot].mean(0)
+            transferErdr = dset_transfer2D_Erdr[imin_plot:imax_plot].mean(0)
 
-        transferEudeu = dset_transfer2D_Eudeu[imin_plot:imax_plot].mean(0)
+            transferEudeu = dset_transfer2D_Eudeu[imin_plot:imax_plot].mean(0)
 
-        Pi_ddr_rdd = cumsum_inv(transferEddr_rdd) * self.oper.deltak
-        Pi_ddd = cumsum_inv(transferEddd) * self.oper.deltak
-        Pi_rdr = cumsum_inv(transferErdr) * self.oper.deltak
+            Pi_ddr_rdd = cumsum_inv(transferEddr_rdd) * self.oper.deltak
+            Pi_ddd = cumsum_inv(transferEddd) * self.oper.deltak
+            Pi_rdr = cumsum_inv(transferErdr) * self.oper.deltak
 
-        Pi_udeu = cumsum_inv(transferEudeu) * self.oper.deltak
+            Pi_udeu = cumsum_inv(transferEudeu) * self.oper.deltak
 
-        ax1.plot(khE, Pi_ddr_rdd, "c:", linewidth=1)
-        ax1.plot(khE, Pi_ddd, "c--", linewidth=1)
-        ax1.plot(khE, Pi_rdr, "c-.", linewidth=1)
+            ax1.plot(khE, Pi_ddr_rdd, "c:", linewidth=1)
+            ax1.plot(khE, Pi_ddd, "c--", linewidth=1)
+            ax1.plot(khE, Pi_rdr, "c-.", linewidth=1)
 
-        ax1.plot(khE, Pi_udeu, "g", linewidth=1)
+            ax1.plot(khE, Pi_udeu, "g", linewidth=1)
 
-        z_bottom_axe = 0.07
-        height_axe = 0.17
-        size_axe[1] = z_bottom_axe
-        size_axe[3] = height_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel("$k_h$")
-        ax2.set_ylabel("transfers")
-        title = "Charney PE flux"
-        ax2.set_title(title)
-        ax2.set_xscale("log")
-        ax2.set_yscale("linear")
+            z_bottom_axe = 0.07
+            height_axe = 0.17
+            size_axe[1] = z_bottom_axe
+            size_axe[3] = height_axe
+            ax2 = fig.add_axes(size_axe)
+            ax2.set_xlabel("$k_h$")
+            ax2.set_ylabel("transfers")
+            title = "Charney PE flux"
+            ax2.set_title(title)
+            ax2.set_xscale("log")
+            ax2.set_yscale("linear")
 
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                transferCPE = dset_transfer2D_CPE[it]
-                PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
-                ax2.plot(khE, PiCPE, "g", linewidth=1)
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot + 1, delta_i_plot):
+                    transferCPE = dset_transfer2D_CPE[it]
+                    PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
+                    ax2.plot(khE, PiCPE, "g", linewidth=1)
 
-        transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
-        PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
+            transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
+            PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
 
         ax2.plot(khE, PiCPE, "m", linewidth=2)
-
-        f.close()
 
     def _checksum_stdout(self, debug=False, **kwargs):
         if debug is True:
@@ -664,8 +666,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             ugx_fft, ugy_fft, etag_fft = self.oper.uxuyetafft_from_qfft(q_fft)
             uax_fft, uay_fft, etaa_fft = self.oper.uxuyetafft_from_afft(a_fft)
             # velocity influenced by linear terms
-            u_infl_lin_x = udx_fft + uax_fft
-            u_infl_lin_y = udy_fft + uay_fft
+            # u_infl_lin_x = udx_fft + uax_fft
+            # u_infl_lin_y = udy_fft + uay_fft
 
         # compute flux of Charney PE
         Fq_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, q_fft)
@@ -786,123 +788,125 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
-        f = h5py.File(self.path_file, "r")
+        with h5py.File(self.path_file, "r") as h5file:
 
-        dset_times = f["times"]
-        dset_khE = f["khE"]
-        khE = dset_khE[...]
-        # khE = khE+khE[1]
+            dset_times = h5file["times"]
+            dset_khE = h5file["khE"]
+            khE = dset_khE[...]
+            # khE = khE+khE[1]
 
-        dset_transfer2D_EK = f["transfer2D_EK"]
-        dset_transfer2D_Errr = f["transfer2D_Errr"]
-        dset_transfer2D_Edrd = f["transfer2D_Edrd"]
-        dset_transfer2D_Edrr_rrd = f["transfer2D_Edrr_rrd"]
-        dset_transfer2D_EA = f["transfer2D_EA"]
-        dset_convA2D = f["convA2D"]
-        dset_transfer2D_CPE = f["transfer2D_CPE"]
+            dset_transfer2D_EK = h5file["transfer2D_EK"]
+            dset_transfer2D_Errr = h5file["transfer2D_Errr"]
+            dset_transfer2D_Edrd = h5file["transfer2D_Edrd"]
+            dset_transfer2D_Edrr_rrd = h5file["transfer2D_Edrr_rrd"]
+            dset_transfer2D_EA = h5file["transfer2D_EA"]
+            dset_convA2D = h5file["convA2D"]
+            dset_transfer2D_CPE = h5file["transfer2D_CPE"]
 
-        times = dset_times[...]
-        nt = len(times)
+            times = dset_times[...]
+            # nt = len(times)
 
-        delta_t_save = np.mean(times[1:] - times[0:-1])
-        delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
-            delta_i_plot = 1
-        delta_t = delta_i_plot * delta_t_save
+            delta_t_save = np.mean(times[1:] - times[0:-1])
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
+            if delta_i_plot == 0 and delta_t != 0.:
+                delta_i_plot = 1
+            delta_t = delta_i_plot * delta_t_save
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
+            tmin_plot = times[imin_plot]
+            tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
+            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+                tmin, tmax, delta_t
+            )
+            print(to_print)
 
-        to_print = """plot fluxes 2D
-tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
-            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-        )
-        print(to_print)
+            to_print = """plot fluxes 2D
+    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
+    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+            )
+            print(to_print)
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.36
-        width_axe = 0.85
-        height_axe = 0.57
+            x_left_axe = 0.12
+            z_bottom_axe = 0.36
+            width_axe = 0.85
+            height_axe = 0.57
 
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel("$k_h$")
-        ax1.set_ylabel("transfers")
-        title = (
-            "energy flux, solver "
-            + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.set_title(title)
-        ax1.set_xscale("log")
-        ax1.set_yscale("linear")
+            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+            fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+            ax1.set_xlabel("$k_h$")
+            ax1.set_ylabel("transfers")
+            title = (
+                "energy flux, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.nx)
+                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            )
+            ax1.set_title(title)
+            ax1.set_xscale("log")
+            ax1.set_yscale("linear")
 
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot, delta_i_plot):
-                transferEK = dset_transfer2D_EK[it]
-                transferEA = dset_transfer2D_EA[it]
-                PiEK = cumsum_inv(transferEK) * self.oper.deltak
-                PiEA = cumsum_inv(transferEA) * self.oper.deltak
-                PiE = PiEK + PiEA
-                ax1.plot(khE, PiE, "k", linewidth=1)
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot, delta_i_plot):
+                    transferEK = dset_transfer2D_EK[it]
+                    transferEA = dset_transfer2D_EA[it]
+                    PiEK = cumsum_inv(transferEK) * self.oper.deltak
+                    PiEA = cumsum_inv(transferEA) * self.oper.deltak
+                    PiE = PiEK + PiEA
+                    ax1.plot(khE, PiE, "k", linewidth=1)
 
-        transferEK = dset_transfer2D_EK[imin_plot:imax_plot].mean(0)
-        transferEA = dset_transfer2D_EA[imin_plot:imax_plot].mean(0)
-        PiEK = cumsum_inv(transferEK) * self.oper.deltak
-        PiEA = cumsum_inv(transferEA) * self.oper.deltak
-        PiE = PiEK + PiEA
+            transferEK = dset_transfer2D_EK[imin_plot:imax_plot].mean(0)
+            transferEA = dset_transfer2D_EA[imin_plot:imax_plot].mean(0)
+            PiEK = cumsum_inv(transferEK) * self.oper.deltak
+            PiEA = cumsum_inv(transferEA) * self.oper.deltak
+            PiE = PiEK + PiEA
 
-        ax1.plot(khE, PiE, "k", linewidth=2)
-        ax1.plot(khE, PiEK, "r", linewidth=2)
-        ax1.plot(khE, PiEA, "b", linewidth=2)
+            ax1.plot(khE, PiE, "k", linewidth=2)
+            ax1.plot(khE, PiEK, "r", linewidth=2)
+            ax1.plot(khE, PiEA, "b", linewidth=2)
 
-        transferEdrr_rrd = dset_transfer2D_Edrr_rrd[imin_plot:imax_plot].mean(0)
-        transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
-        transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
+            transferEdrr_rrd = dset_transfer2D_Edrr_rrd[imin_plot:imax_plot].mean(
+                0
+            )
+            transferErrr = dset_transfer2D_Errr[imin_plot:imax_plot].mean(0)
+            transferEdrd = dset_transfer2D_Edrd[imin_plot:imax_plot].mean(0)
 
-        Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
-        Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
-        Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
+            Pi_drr_rrd = cumsum_inv(transferEdrr_rrd) * self.oper.deltak
+            Pi_rrr = cumsum_inv(transferErrr) * self.oper.deltak
+            Pi_drd = cumsum_inv(transferEdrd) * self.oper.deltak
 
-        ax1.plot(khE, Pi_drr_rrd, "m:", linewidth=1)
-        ax1.plot(khE, Pi_rrr, "m--", linewidth=1)
-        ax1.plot(khE, Pi_drd, "m-.", linewidth=1)
+            ax1.plot(khE, Pi_drr_rrd, "m:", linewidth=1)
+            ax1.plot(khE, Pi_rrr, "m--", linewidth=1)
+            ax1.plot(khE, Pi_drd, "m-.", linewidth=1)
 
-        convA2D = dset_convA2D[imin_plot:imax_plot].mean(0)
-        CCA = cumsum_inv(convA2D) * self.oper.deltak
+            convA2D = dset_convA2D[imin_plot:imax_plot].mean(0)
+            CCA = cumsum_inv(convA2D) * self.oper.deltak
 
-        ax1.plot(khE + khE[1], CCA, "y", linewidth=2)
+            ax1.plot(khE + khE[1], CCA, "y", linewidth=2)
 
-        z_bottom_axe = 0.07
-        height_axe = 0.17
-        size_axe[1] = z_bottom_axe
-        size_axe[3] = height_axe
-        ax2 = fig.add_axes(size_axe)
-        ax2.set_xlabel("$k_h$")
-        ax2.set_ylabel("transfers")
-        title = "Charney PE flux"
-        ax2.set_title(title)
-        ax2.set_xscale("log")
-        ax2.set_yscale("linear")
+            z_bottom_axe = 0.07
+            height_axe = 0.17
+            size_axe[1] = z_bottom_axe
+            size_axe[3] = height_axe
+            ax2 = fig.add_axes(size_axe)
+            ax2.set_xlabel("$k_h$")
+            ax2.set_ylabel("transfers")
+            title = "Charney PE flux"
+            ax2.set_title(title)
+            ax2.set_xscale("log")
+            ax2.set_yscale("linear")
 
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                transferCPE = dset_transfer2D_CPE[it]
-                PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
-                ax2.plot(khE, PiCPE, "g", linewidth=1)
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot + 1, delta_i_plot):
+                    transferCPE = dset_transfer2D_CPE[it]
+                    PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
+                    ax2.plot(khE, PiCPE, "g", linewidth=1)
 
-        transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
-        PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
+            transferCPE = dset_transfer2D_CPE[imin_plot:imax_plot].mean(0)
+            PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
 
         ax2.plot(khE, PiCPE, "m", linewidth=2)
 
@@ -956,7 +960,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         get_var = self.sim.state.get_var
         ux_fft = get_var("ux_fft")
         uy_fft = get_var("uy_fft")
-        eta_fft = get_var("eta_fft")
+        # eta_fft = get_var("eta_fft")
         c2 = self.params.c2
 
         ux = self.sim.state.state_phys.get_var("ux")
@@ -1079,7 +1083,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def _online_plot_saving(self, dict_results):
 
-        Tens = dict_results["Tens"]
+        # Tens = dict_results["Tens"]
         Tq_GGG = dict_results["Tq_GGG"]
         Tq_AGG = dict_results["Tq_AGG"]
         Tq_GAAs = dict_results["Tq_GAAs"]
@@ -1093,7 +1097,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         Cq_tot = Cq_GG + Cq_AG + Cq_AA
 
         khE = self.oper.khE
-        Piens = cumsum_inv(Tens) * self.oper.deltak
+        # Piens = cumsum_inv(Tens) * self.oper.deltak
         Pi_tot = cumsum_inv(Tq_tot) * self.oper.deltak
         Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltak
         Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltak
@@ -1154,147 +1158,149 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
 
-        f = h5py.File(self.path_file, "r")
+        with h5py.File(self.path_file, "r") as h5file:
 
-        dset_times = f["times"]
-        dset_khE = f["khE"]
-        khE = dset_khE[...] + 0.1  # Offset for semilog plots
-        times = dset_times[...]
+            dset_times = h5file["times"]
+            dset_khE = h5file["khE"]
+            khE = dset_khE[...] + 0.1  # Offset for semilog plots
+            times = dset_times[...]
 
-        delta_t_save = np.mean(times[1:] - times[0:-1])
-        delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
-            delta_i_plot = 1
-        delta_t = delta_i_plot * delta_t_save
+            delta_t_save = np.mean(times[1:] - times[0:-1])
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
+            if delta_i_plot == 0 and delta_t != 0.:
+                delta_i_plot = 1
+            delta_t = delta_i_plot * delta_t_save
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
+            tmin_plot = times[imin_plot]
+            tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
+            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+                tmin, tmax, delta_t
+            )
+            print(to_print)
 
-        to_print = "plot fluxes 2D" + (
-            ", tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-            + ", imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-        ).format(
-            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-        )
-        print(to_print)
+            to_print = "plot fluxes 2D" + (
+                ", tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
+                + ", imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
+            ).format(
+                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+            )
+            print(to_print)
 
-        # -------------------------
-        #  Transfer terms
-        # -------------------------
-        x_left_axe = 0.12
-        z_bottom_axe = 0.46
-        width_axe = 0.85
-        height_axe = 0.47
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig1, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig2, ax2 = self.output.figure_axe(size_axe=size_axe)
+            # -------------------------
+            #  Transfer terms
+            # -------------------------
+            x_left_axe = 0.12
+            z_bottom_axe = 0.46
+            width_axe = 0.85
+            height_axe = 0.47
+            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+            fig1, ax1 = self.output.figure_axe(size_axe=size_axe)
+            fig2, ax2 = self.output.figure_axe(size_axe=size_axe)
 
-        ax1.set_xlabel("$k_h$")
-        ax1.set_ylabel(r"Transfer fluxes, $\Pi(k_h)$")
+            ax1.set_xlabel("$k_h$")
+            ax1.set_ylabel(r"Transfer fluxes, $\Pi(k_h)$")
 
-        z_bottom_axe = 0.07
-        height_axe = 0.27
-        size_axe[1] = z_bottom_axe
-        size_axe[3] = height_axe
-        ax11 = fig1.add_axes(size_axe)
-        ax11.set_xlabel("$k_h$")
-        ax11.set_ylabel("Transfer terms, $T(k_h)$")
+            z_bottom_axe = 0.07
+            height_axe = 0.27
+            size_axe[1] = z_bottom_axe
+            size_axe[3] = height_axe
+            ax11 = fig1.add_axes(size_axe)
+            ax11.set_xlabel("$k_h$")
+            ax11.set_ylabel("Transfer terms, $T(k_h)$")
 
-        title = (
-            "Spectral Energy Budget, solver "
-            + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.set_title(title)
-        ax1.set_xscale("log")
-        ax1.axhline()
-        ax11.set_title(title)
-        ax11.set_xscale("log")
-        ax11.axhline()
+            title = (
+                "Spectral Energy Budget, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.nx)
+                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            )
+            ax1.set_title(title)
+            ax1.set_xscale("log")
+            ax1.axhline()
+            ax11.set_title(title)
+            ax11.set_xscale("log")
+            ax11.axhline()
 
-        P = self.sim.params.forcing.forcing_rate
-        norm = 1 if P == 0 else P
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot, delta_i_plot):
-                transferEtot = 0.
-                for key in ["GGG", "AGG", "GAAs", "GAAd", "AAA"]:
-                    transferEtot += f["Tq_" + key][it]
-                PiEtot = cumsum_inv(transferEtot) * self.oper.deltak / norm
-                ax1.plot(khE, PiEtot, "k", linewidth=1)
+            P = self.sim.params.forcing.forcing_rate
+            norm = 1 if P == 0 else P
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot, delta_i_plot):
+                    transferEtot = 0.
+                    for key in ["GGG", "AGG", "GAAs", "GAAd", "AAA"]:
+                        transferEtot += h5file["Tq_" + key][it]
+                    PiEtot = cumsum_inv(transferEtot) * self.oper.deltak / norm
+                    ax1.plot(khE, PiEtot, "k", linewidth=1)
 
-        Tq_GGG = f["Tq_GGG"][imin_plot:imax_plot].mean(0) / norm
-        Tq_AGG = f["Tq_AGG"][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAs = f["Tq_GAAs"][imin_plot:imax_plot].mean(0) / norm
-        Tq_GAAd = f["Tq_GAAd"][imin_plot:imax_plot].mean(0) / norm
-        Tq_AAA = f["Tq_AAA"][imin_plot:imax_plot].mean(0) / norm
-        Tnq = f["Tnq"][imin_plot:imax_plot].mean(0) / norm
-        Tens = f["Tens"][imin_plot:imax_plot].mean(0) / norm
-        Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
+            Tq_GGG = h5file["Tq_GGG"][imin_plot:imax_plot].mean(0) / norm
+            Tq_AGG = h5file["Tq_AGG"][imin_plot:imax_plot].mean(0) / norm
+            Tq_GAAs = h5file["Tq_GAAs"][imin_plot:imax_plot].mean(0) / norm
+            Tq_GAAd = h5file["Tq_GAAd"][imin_plot:imax_plot].mean(0) / norm
+            Tq_AAA = h5file["Tq_AAA"][imin_plot:imax_plot].mean(0) / norm
+            Tnq = h5file["Tnq"][imin_plot:imax_plot].mean(0) / norm
+            Tens = h5file["Tens"][imin_plot:imax_plot].mean(0) / norm
+            Tq_tot = Tq_GGG + Tq_AGG + Tq_GAAs + Tq_GAAd + Tq_AAA
 
-        Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltak
-        Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltak
-        Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltak
-        Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltak
-        Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltak
-        Pi_nq = cumsum_inv(Tnq) * self.oper.deltak
-        Pi_ens = cumsum_inv(Tens) * self.oper.deltak
-        Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
+            Pi_GGG = cumsum_inv(Tq_GGG) * self.oper.deltak
+            Pi_AGG = cumsum_inv(Tq_AGG) * self.oper.deltak
+            Pi_GAAs = cumsum_inv(Tq_GAAs) * self.oper.deltak
+            Pi_GAAd = cumsum_inv(Tq_GAAd) * self.oper.deltak
+            Pi_AAA = cumsum_inv(Tq_AAA) * self.oper.deltak
+            Pi_nq = cumsum_inv(Tnq) * self.oper.deltak
+            Pi_ens = cumsum_inv(Tens) * self.oper.deltak
+            Pi_tot = Pi_GGG + Pi_AGG + Pi_GAAs + Pi_GAAd + Pi_AAA
 
-        ax1.plot(khE, Pi_GGG, "g--", linewidth=2, label=r"$\Pi_{GGG}$")
-        ax1.plot(khE, Pi_AGG, "m--", linewidth=2, label=r"$\Pi_{GGA}$")
-        # ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
-        # ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
-        ax1.plot(khE, Pi_GAAs + Pi_GAAd, "r", linewidth=2, label=r"$\Pi_{GAA}$")
-        ax1.plot(khE, Pi_AAA, "y--", linewidth=2, label=r"$\Pi_{AAA}$")
-        ax1.plot(khE, Pi_nq, "k--", linewidth=1, label=r"$\Pi^{NQ}$")
-        ax1.plot(khE, Pi_tot, "k", linewidth=3, label=r"$\Pi_{tot}$")
-        ax1.legend()
+            ax1.plot(khE, Pi_GGG, "g--", linewidth=2, label=r"$\Pi_{GGG}$")
+            ax1.plot(khE, Pi_AGG, "m--", linewidth=2, label=r"$\Pi_{GGA}$")
+            # ax1.plot(khE, Pi_GAAs, 'r:', linewidth=2, label=r'$\Pi_{G\pm\pm}$')
+            # ax1.plot(khE, Pi_GAAd, 'b:', linewidth=2, label=r'$\Pi_{G\pm\mp}$')
+            ax1.plot(
+                khE, Pi_GAAs + Pi_GAAd, "r", linewidth=2, label=r"$\Pi_{GAA}$"
+            )
+            ax1.plot(khE, Pi_AAA, "y--", linewidth=2, label=r"$\Pi_{AAA}$")
+            ax1.plot(khE, Pi_nq, "k--", linewidth=1, label=r"$\Pi^{NQ}$")
+            ax1.plot(khE, Pi_tot, "k", linewidth=3, label=r"$\Pi_{tot}$")
+            ax1.legend()
 
-        ax11.plot(khE, Tq_GGG, "g--", linewidth=2, label=r"$T_{GGG}$")
-        ax11.plot(khE, Tq_AGG, "m--", linewidth=2, label=r"$T_{GGA}$")
-        ax11.plot(khE, Tq_GAAs, "r:", linewidth=2, label=r"$T_{G\pm\pm}$")
-        ax11.plot(khE, Tq_GAAd, "b:", linewidth=2, label=r"$T_{G\pm\mp}$")
-        ax11.plot(khE, Tq_AAA, "y--", linewidth=2, label=r"$T_{AAA}$")
-        ax11.plot(khE, Tnq, "k--", linewidth=2, label=r"$T^{NQ}$")
-        ax11.plot(khE, Tq_tot, "k", linewidth=3, label=r"$T_{tot}$")
-        ax11.legend()
-        # -------------------------
-        # Quadratic exchange terms
-        # -------------------------
-        ax2.set_xlabel(r"$k_h$")
-        ax2.set_ylabel(r"Exchange fluxes, $\Sigma C$")
-        ax2.set_xscale("log")
-        ax2.axhline()
+            ax11.plot(khE, Tq_GGG, "g--", linewidth=2, label=r"$T_{GGG}$")
+            ax11.plot(khE, Tq_AGG, "m--", linewidth=2, label=r"$T_{GGA}$")
+            ax11.plot(khE, Tq_GAAs, "r:", linewidth=2, label=r"$T_{G\pm\pm}$")
+            ax11.plot(khE, Tq_GAAd, "b:", linewidth=2, label=r"$T_{G\pm\mp}$")
+            ax11.plot(khE, Tq_AAA, "y--", linewidth=2, label=r"$T_{AAA}$")
+            ax11.plot(khE, Tnq, "k--", linewidth=2, label=r"$T^{NQ}$")
+            ax11.plot(khE, Tq_tot, "k", linewidth=3, label=r"$T_{tot}$")
+            ax11.legend()
+            # -------------------------
+            # Quadratic exchange terms
+            # -------------------------
+            ax2.set_xlabel(r"$k_h$")
+            ax2.set_ylabel(r"Exchange fluxes, $\Sigma C$")
+            ax2.set_xscale("log")
+            ax2.axhline()
 
-        # .. TODO: Normalize with energy??
-        exchange_GG = f["Cq_GG"][imin_plot:imax_plot].mean(0)
-        exchange_AG = f["Cq_AG"][imin_plot:imax_plot].mean(0) + f["Cq_aG"][
-            imin_plot:imax_plot
-        ].mean(0)
-        exchange_AA = f["Cq_AA"][imin_plot:imax_plot].mean(0)
-        exchange_mean = exchange_GG + exchange_AG + exchange_AA
+            # .. TODO: Normalize with energy??
+            exchange_GG = h5file["Cq_GG"][imin_plot:imax_plot].mean(0)
+            exchange_AG = h5file["Cq_AG"][imin_plot:imax_plot].mean(0) + h5file[
+                "Cq_aG"
+            ][imin_plot:imax_plot].mean(0)
+            exchange_AA = h5file["Cq_AA"][imin_plot:imax_plot].mean(0)
+            exchange_mean = exchange_GG + exchange_AG + exchange_AA
 
-        Cflux_GG = cumsum_inv(exchange_GG) * self.oper.deltak
-        Cflux_AG = cumsum_inv(exchange_AG) * self.oper.deltak
-        Cflux_AA = cumsum_inv(exchange_AA) * self.oper.deltak
-        Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltak
+            Cflux_GG = cumsum_inv(exchange_GG) * self.oper.deltak
+            Cflux_AG = cumsum_inv(exchange_AG) * self.oper.deltak
+            Cflux_AA = cumsum_inv(exchange_AA) * self.oper.deltak
+            Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltak
 
-        if delta_t != 0.:
-            for it in range(imin_plot, imax_plot, delta_i_plot):
-                exchangetot = 0.
-                for key in ["GG", "AG", "aG", "AA"]:
-                    exchangetot += f["Cq_" + key][it]
-                Cfluxtot = cumsum_inv(exchangetot) * self.oper.deltak
-                ax2.plot(khE, Cfluxtot, "k", linewidth=1)
+            if delta_t != 0.:
+                for it in range(imin_plot, imax_plot, delta_i_plot):
+                    exchangetot = 0.
+                    for key in ["GG", "AG", "aG", "AA"]:
+                        exchangetot += h5file["Cq_" + key][it]
+                    Cfluxtot = cumsum_inv(exchangetot) * self.oper.deltak
+                    ax2.plot(khE, Cfluxtot, "k", linewidth=1)
 
         ax2.plot(khE, Cflux_mean, "k", linewidth=4, label=r"$\Sigma C_{tot}$")
         ax2.plot(khE, Cflux_GG, "g:", linewidth=2, label=r"$\Sigma C_{GG}$")
@@ -1313,8 +1319,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
         fig1.canvas.draw()
         fig2.canvas.draw()
-
-        f.close()
 
 
 class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
