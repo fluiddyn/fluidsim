@@ -323,7 +323,9 @@ class SpectraSW1L(Spectra):
             EKd = EK - EKr + machine_zero
 
             if "Etot" in keys:
-                ax1.plot(kh, E_tot * coef_norm, "k", linewidth=3, label="$E_{tot}$")
+                ax1.plot(
+                    kh, E_tot * coef_norm, "k", linewidth=3, label="$E_{tot}$"
+                )
 
             if "EK" in keys:
                 ax1.plot(kh, EK * coef_norm, "r", linewidth=2, label="$E_{K}$")
@@ -333,7 +335,9 @@ class SpectraSW1L(Spectra):
                 ax1.plot(kh, EA * coef_norm, "b", linewidth=2, label="$E_{A}$")
 
             if "EKr" in keys:
-                ax1.plot(kh, EKr * coef_norm, "r--", linewidth=2, label="$E_{Kr}$")
+                ax1.plot(
+                    kh, EKr * coef_norm, "r--", linewidth=2, label="$E_{Kr}$"
+                )
 
             if "EKd" in keys:
                 ax1.plot(kh, EKd * coef_norm, "r:", linewidth=2, label="$E_{Kd}$")

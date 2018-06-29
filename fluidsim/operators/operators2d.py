@@ -46,13 +46,8 @@ class OperatorsPseudoSpectral2D(_Operators):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        if nb_proc > 1:
-            type_fft = "fft2d.mpi_with_fftw1d"
-        else:
-            type_fft = "fft2d.with_pyfftw"
-
         attribs = {
-            "type_fft": type_fft,
+            "type_fft": "default",
             "coef_dealiasing": 2. / 3,
             "nx": 48,
             "ny": 48,

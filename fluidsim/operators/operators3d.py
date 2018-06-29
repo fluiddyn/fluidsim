@@ -71,14 +71,9 @@ class OperatorsPseudoSpectral3D(_Operators):
         """This static method is used to complete the *params* container.
         """
 
-        if nb_proc > 1:
-            type_fft = "fft3d.mpi_with_fftwmpi3d"
-        else:
-            type_fft = "fft3d.with_pyfftw"
-
         attribs = {
-            "type_fft": type_fft,
-            "type_fft2d": "fft2d.with_pyfftw",
+            "type_fft": "default",
+            "type_fft2d": "default",
             "coef_dealiasing": 2. / 3,
             "nx": 48,
             "ny": 48,
@@ -146,7 +141,11 @@ Lx, Ly and Lz: float
         params2d.oper.type_fft = params2d.oper.type_fft2d
         fft = params2d.oper.type_fft
 
-        if any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]]):
+        if (
+            any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]])
+            or fft == "default"
+            or fft is None
+        ):
             self.oper2d = OpPseudoSpectral2D(params2d)
         else:
             raise ValueError
