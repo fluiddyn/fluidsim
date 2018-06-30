@@ -70,7 +70,6 @@ class OperatorsPseudoSpectral3D(_Operators):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-        # Let fluidfft decide which FFT class to instantiate
         attribs = {
             "type_fft": "default",
             "type_fft2d": "default",
@@ -135,8 +134,6 @@ Lx, Ly and Lz: float
             fft=params.oper.type_fft,
             coef_dealiasing=params.oper.coef_dealiasing,
         )
-        #  if params.oper.type_fft == "default":
-        #      params.oper.type_fft = self.type_fft
 
         # problem here type_fft
         params2d = deepcopy(params)
