@@ -142,8 +142,11 @@ def merge_params(to_params, *other_params):
     # Substitute old FFT types with newer FluidFFT implementations
     if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
-        if method is not None and not (
-            method.startswith("fft2d.") or method.startswith("fft3d.")
+        if method is not None and not any(
+            [
+                method.startswith(prefix)
+                for prefix in ("fft2d.", "fft3d.", "fluidfft.")
+            ]
         ):
             dim = 3 if hasattr(to_params.oper, "nz") else 2
             type_fft = find_available_fluidfft(dim)
