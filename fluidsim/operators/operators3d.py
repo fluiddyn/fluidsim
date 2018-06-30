@@ -71,10 +71,9 @@ class OperatorsPseudoSpectral3D(_Operators):
         """This static method is used to complete the *params* container.
         """
         # Let fluidfft decide which FFT class to instantiate
-        type_fft = None
         attribs = {
-            "type_fft": type_fft,
-            "type_fft2d": "fft2d.with_pyfftw",
+            "type_fft": "default",
+            "type_fft2d": "default",
             "coef_dealiasing": 2. / 3,
             "nx": 48,
             "ny": 48,
@@ -136,15 +135,19 @@ Lx, Ly and Lz: float
             fft=params.oper.type_fft,
             coef_dealiasing=params.oper.coef_dealiasing,
         )
-        if params.oper.type_fft is None:
-            params.oper.type_fft = self.type_fft
+        #  if params.oper.type_fft == "default":
+        #      params.oper.type_fft = self.type_fft
 
         # problem here type_fft
         params2d = deepcopy(params)
         params2d.oper.type_fft = params2d.oper.type_fft2d
         fft = params2d.oper.type_fft
 
-        if any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]]):
+        if (
+            any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]])
+            or fft == "default"
+            or fft is None
+        ):
             self.oper2d = OpPseudoSpectral2D(params2d)
         else:
             raise ValueError

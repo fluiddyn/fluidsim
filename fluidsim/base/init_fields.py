@@ -177,21 +177,21 @@ path: str
 
         if mpi.rank == 0:
             try:
-                f = h5py.File(path_file, "r")
+                h5file = h5py.File(path_file, "r")
             except:
                 raise ValueError("Is file " + path_file + " really a hd5 file?")
 
             print("Load state from file:\n[...]" + path_file[-75:])
 
             try:
-                group_oper = f["/info_simul/params/oper"]
+                group_oper = h5file["/info_simul/params/oper"]
             except:
                 raise ValueError(
                     "The file " + path_file + " does not contain a params object"
                 )
 
             try:
-                group_state_phys = f["/state_phys"]
+                group_state_phys = h5file["/state_phys"]
             except:
                 raise ValueError(
                     "The file "
@@ -262,7 +262,7 @@ path: str
             except KeyError:
                 # compatibility with older versions
                 it = 0
-            f.close()
+            h5file.close()
         else:
             time = 0.
             it = 0

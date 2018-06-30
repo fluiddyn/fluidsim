@@ -59,7 +59,6 @@ class TestSolverNS2D(unittest.TestCase):
 
         self.assertGreater(1e-15, ratio)
 
-    @unittest.skipIf(mpi.nb_proc > 1, "Stalls with MPI. See bb-10")
     def test_forcing_output(self):
 
         params = self.Simul.create_default_params()
