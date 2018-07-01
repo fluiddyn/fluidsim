@@ -41,15 +41,9 @@ dist*
 
 *.so
 
-*fftw2Dmpi_cylib.c
-*fftw2Dmpi_ccylib.c
 *.o
 
-*setofvariables.c
-*operators.c
-*cyfunc.c
-
-*cy.c
+**/time_stepping/*cy.c
 
 scripts\Experiments\path_working_exp.txt
 
