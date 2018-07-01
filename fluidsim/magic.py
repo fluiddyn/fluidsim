@@ -77,6 +77,10 @@ class FluidsimMagics(Magics):
 
     """
 
+    def __init__(self, shell, package_solvers):
+        super(FluidsimMagics, self).__init__(shell)
+        self.package = package_solvers
+
     def is_defined(self, varname):
         user_ns = self.shell.user_ns
         return varname in user_ns and user_ns[varname] is not None
@@ -90,7 +94,7 @@ class FluidsimMagics(Magics):
 
         if args.solver == "":
             print("Available solvers:")
-            pprint(available_solver_keys(), indent=4, compact=True)
+            pprint(available_solver_keys(self.package), indent=4, compact=True)
 
             if self.is_defined("params") and self.is_defined("sim"):
                 print("\nInitialized:")
@@ -114,7 +118,7 @@ class FluidsimMagics(Magics):
                 return
 
         user_ns = self.shell.user_ns
-        Simul = import_simul_class_from_key(args.solver)
+        Simul = import_simul_class_from_key(args.solver, self.package)
         params = Simul.create_default_params()
         print(
             "Created Simul class and default parameters for",
@@ -163,4 +167,5 @@ class FluidsimMagics(Magics):
 
 def load_ipython_extension(ipython):
     """Load the extension in IPython."""
-    ipython.register_magics(FluidsimMagics)
+    fluidsim_magics = FluidsimMagics(ipython, "fluidsim.solvers")
+    ipython.register_magics(fluidsim_magics)
