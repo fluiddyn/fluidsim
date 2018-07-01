@@ -26,7 +26,7 @@ try:
 
     __version__ = get_version()
 except:
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
 
 
 try:

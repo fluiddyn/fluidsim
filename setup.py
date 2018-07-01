@@ -113,7 +113,7 @@ install_requires = ['fluiddyn >= 0.2.3', 'future >= 0.16',
                     'h5py', 'h5netcdf']
 
 if FFTW3:
-    install_requires += ['pyfftw >= 0.10.4', 'fluidfft >= 0.2.3']
+    install_requires += ['pyfftw >= 0.10.4', 'fluidfft >= 0.2.4']
 
 
 def modification_date(filename):
