@@ -11,6 +11,7 @@ clean_pyc:
 	find fluidsim -name "__pycache__" -type d | xargs rm -rf
 
 cleanpythran:
+	find fluidsim -name "*pythran*.cpp" -delete
 	find fluidsim -name "*pythran*.so" -delete
 
 clean:
