@@ -16,10 +16,10 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 from fluidsim.solvers.sw1l.solver import InfoSolverSW1L
-from fluidsim.solvers.sw1l.solver import Simul as SimulSW1L
+from fluidsim.solvers.sw1l.solver import Simul as SimulSW1L, SimulBasePseudoSpectral
 
 from fluidsim.solvers.ns2d.util_pythran import compute_Frot
-from util_pythran import compute_Fdiv
+from fluidsim.solvers.sw1l.betaplane.util_pythran import compute_Fdiv
 
 
 
@@ -41,10 +41,25 @@ class InfoSolverSW1LBetaPlane(InfoSolverSW1L):
         classes.State.class_name = "StateSW1LBetaPlane"
 
 
-class Simul(SimulSW1L):
+class Simul(SimulSW1L, SimulBasePseudoSpectral):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
 
     InfoSolver = InfoSolverSW1LBetaPlane
+
+    def __init__(self, params):
+        # Parameter(s) specific to this solver
+        params.kd2 = params.f ** 2 / params.c2
+
+        # super(Simul, self).__init__(params)
+        SimulBasePseudoSpectral.__init__(self, params)
+
+        if mpi.rank == 0:
+            self.output.print_stdout(
+                "c2 = {0:6.5g} ; f = {1:6.5g} ; beta = {2:6.5g} ; kd2 = {3:6.5g}".format(
+                    params.c2, params.f, params.beta, params.kd2
+                )
+            )
+
 
     def tendencies_nonlin(self, state_spect=None, old=None):
         # the operator and the fast Fourier transform
@@ -88,23 +103,23 @@ class Simul(SimulSW1L):
         py_rot = self.state.field_tmp3
         ifft_as_arg(px_rot_fft, px_rot)
         ifft_as_arg(py_rot_fft, py_rot)
-        
+
         px_div_fft, py_div_fft = oper.gradfft_from_fft(div_fft)
         px_div = self.state.field_tmp4
         py_div = self.state.field_tmp5
         ifft_as_arg(px_div_fft, px_div)
         ifft_as_arg(py_div_fft, py_div)
-        
+
         f = float(self.params.f)
         beta = float(self.params.beta)
         Frot = compute_Frot(ux, uy, px_rot, py_rot, beta)
         Fdiv = compute_Fdiv(ux, uy, px_div, py_div, beta)
-        Fdiv -= self.params.c2 * oper.laplacian_fft(eta_fft)
+        Fdiv -= oper.ifft(self.params.c2 * oper.laplacian_fft(eta_fft))
         if f != 0:
             Frot -= f * div
             Fdiv += f * rot
 
-    
+
         if old is None:
             tendencies_fft = SetOfVariables(like=self.state.state_spect)
         else:
@@ -130,44 +145,64 @@ class Simul(SimulSW1L):
 if __name__ == "__main__":
 
     import fluiddyn as fld
+    # To be compared with ns2d solver with beta term
+    # from fluidsim.solvers.ns2d.solver import Simul
 
     params = Simul.create_default_params()
 
     params.short_name_type_run = "test"
+    params.output.sub_directory = "test"
 
-    nh = 64
+    nh = 144
     Lh = 2 * np.pi
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = (
-        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
-    )
+    P = 1.
+    # params.f = 0
+    # k_beta = 4.8
+    # params.beta = (k_beta ** 5 * P) ** (1. / 3)
+    params.beta = 1.5
 
-    params.time_stepping.t_end = 50.
+    # delta_x = params.oper.Lx / params.oper.nx
+    #    params.nu_8 = (
+    #        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    #    )
+
+    params.time_stepping.t_end = 25.
 
     params.init_fields.type = "constant"
-    params.init_fields.constant.value = 1.
-    
+    params.init_fields.constant.value = 0.
 
     params.forcing.enable = True
-    params.forcing.type = "potential"
+    params.forcing.type = "tcrandom"
+    params.forcing.forcing_rate = 1.
+    params.forcing.nkmin_forcing = 10
+    params.forcing.nkmax_forcing = 14
+    params.forcing.key_forced = "q_fft"
+    
+    params.preprocess.enable = True
+    params.preprocess.forcing_const = P
+    # params.preprocess.forcing_scale = "enstrophy"
+    params.preprocess.viscosity_const = 0.4
+    params.preprocess.viscosity_type = "hyper8"
+    params.preprocess.viscosity_scale = "forcing"
 
-    params.output.periods_print.print_stdout = 0.25
 
-#    params.output.periods_save.phys_fields = 1.
-#    params.output.periods_save.spectra = 0.5
-#    params.output.periods_save.spect_energy_budg = 0.5
-#    params.output.periods_save.increments = 0.5
-#    params.output.periods_save.pdf = 0.5
-#    params.output.periods_save.time_signals_fft = False
+    params.output.periods_print.print_stdout = 0.5
+    params.output.periods_save.spatial_means = 0.5
+    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.spectra = 5
+
 
     params.output.periods_plot.phys_fields = 1.
+    params.output.spatial_means.HAS_TO_PLOT_SAVED = True
+    params.output.spectra.HAS_TO_PLOT_SAVED = True
 
-    params.output.phys_fields.field_to_plot = "ux"
+
+    params.output.phys_fields.field_to_plot = "rot"
 
     sim = Simul(params)
     # sim.output.phys_fields.plot()

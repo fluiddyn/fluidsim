@@ -15,12 +15,14 @@ import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidsim.base.state import StatePseudoSpectral
+from fluidsim.base.state import StatePseudoSpectral as StateBase
 
 from fluiddyn.util import mpi
 
+# from ..state import StateSW1L as StateBase
 
-class StateSW1LBetaPlane(StatePseudoSpectral):
+
+class StateSW1LBetaPlane(StateBase):
     """
     The class :class:`StateSW1LBetaPlane` contains the variables corresponding
     to the state and handles the access to other fields for the solver
@@ -85,13 +87,18 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
             rot_fft = self.state_spect.get_var("rot_fft")
             result = self.oper.ifft2(rot_fft)
         elif key == "div":
-            div_fft = self.state_spect.gget_var("div_fft")
+            div_fft = self.state_spect.get_var("div_fft")
             result = self.oper.ifft2(div_fft)
         elif key == "q":
             rot = self.compute("rot")
             eta = self.state_phys.get_var("eta")
             uy = self.state_phys.get_var("uy")
             result = rot - self.params.f * eta + self.params.beta * uy
+        elif key == "q_fft":
+            rot_fft = self.state_spect.get_var("rot_fft")
+            eta_fft = self.state_spect.get_var("eta_fft")
+            uy_fft = self.compute("uy_fft")
+            result = rot_fft - self.params.f * eta_fft + self.params.beta * uy_fft
         elif key == "ux_fft":
             rot_fft = self.state_spect.get_var("rot_fft")
             div_fft = self.state_spect.get_var("div_fft")
@@ -111,8 +118,8 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
                 self.it_computed[key2] = it
 
         elif key == "uy_fft":
-            rot_fft = self.compute("rot_fft")
-            div_fft = self.compute("div_fft")
+            rot_fft = self.state_spect.get_var("rot_fft")
+            div_fft = self.state_spect.get_var("div_fft")
             urx_fft, ury_fft = self.oper.vecfft_from_rotfft(rot_fft)
             udx_fft, udy_fft = self.oper.vecfft_from_divfft(div_fft)
             uy_fft = ury_fft + udy_fft
@@ -129,9 +136,10 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
 
         else:
             warn("Using super methods for computing {}".format(key))
-            result = super(StateSW1LBetaPlane, self).compute(
-                key, SAVE_IN_DICT=SAVE_IN_DICT, RAISE_ERROR=RAISE_ERROR
-            )
+            #  result = super(StateSW1LBetaPlane, self).compute(
+            #      key, SAVE_IN_DICT=SAVE_IN_DICT, RAISE_ERROR=RAISE_ERROR
+            #  )
+            result = super(StateSW1LBetaPlane, self).compute(key)
             SAVE_IN_DICT = False
 
         if SAVE_IN_DICT:
@@ -190,10 +198,11 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
 
     def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
         """Self explanatory."""
-        raise NotImplementedError
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        div_fft = self.oper.divfft_from_vecfft(ux_fft, uy_fft)
         state_spect = self.state_spect
-        state_spect.set_var("ux_fft", ux_fft)
-        state_spect.set_var("uy_fft", uy_fft)
+        state_spect.set_var("rot_fft", rot_fft)
+        state_spect.set_var("div_fft", div_fft)
         state_spect.set_var("eta_fft", eta_fft)
 
         self.oper.dealiasing(state_spect)
@@ -209,6 +218,7 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
 
     def init_from_qfft(self, q_fft):
         """Initialize from potential vorticity."""
+        # TODO: check if the oper functions are fine with beta term
         rot_fft = self.oper.rotfft_from_qfft(q_fft)
         ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
         eta_fft = self.oper.etafft_from_qfft(q_fft)
@@ -260,6 +270,26 @@ class StateSW1LBetaPlane(StatePseudoSpectral):
         state_phys.set_var("ux", ux)
         state_phys.set_var("uy", uy)
         state_phys.set_var("eta", eta)
+
+    def init_statespect_from(self, **kwargs):
+        """Initializes *state_spect* using arrays provided as keyword
+        arguments.
+
+        """
+        if len(kwargs) == 1:
+            key_fft, value = list(kwargs.items())[0]
+            try:
+                init_from_keyfft = self.__getattribute__(
+                    "init_from_" + key_fft.replace("_", "")
+                )
+                init_from_keyfft(value)
+            except AttributeError:
+                super(StateSW1LBetaPlane, self).init_statespect_from(**kwargs)
+        elif len(kwargs) == 2:
+            if "q_fft" in kwargs and "a_fft" in kwargs:
+                self.init_from_qafft(**kwargs)
+        else:
+            super(StateSW1LBetaPlane, self).init_statespect_from(**kwargs)
 
     def _etafft_no_div(self, ux, uy, rot):
         raise NotImplementedError  # Check Poisson equation with beta term
