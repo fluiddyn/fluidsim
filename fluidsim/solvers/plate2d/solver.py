@@ -188,10 +188,10 @@ class Simul(SimulBasePseudoSpectral):
         tendencies_fft.set_var("z_fft", w_fft)
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
-        chi_fft = -oper.invlaplacian2_fft(oper.fft2(mamp_zz))
+        chi_fft = -oper.invlaplacian_fft(oper.fft2(mamp_zz), order=4)
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
-        lap2z_fft = oper.laplacian2_fft(z_fft)
+        lap2z_fft = oper.laplacian_fft(z_fft, order=4)
         F_fft[:] = -lap2z_fft + Nw_fft
 
         oper.dealiasing(tendencies_fft)
