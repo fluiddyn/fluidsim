@@ -119,20 +119,6 @@ class PhysFieldsBase(SpecificOutput):
     def _init_online_plot(self):
         pass
 
-    def _init_skip_quiver(self):
-        # 4% of the Lx it is a great separation between vector arrows.
-        try:
-            delta_quiver = 0.04 * self.oper.Lx
-        except AttributeError:
-            skip = 1
-        else:
-            skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
-            skip = int(np.round(skip))
-            if skip < 1:
-                skip = 1
-        self._skip_quiver = skip
-        return skip
-
     def _online_save(self):
         """Online save."""
         tsim = self.sim.time_stepping.t
