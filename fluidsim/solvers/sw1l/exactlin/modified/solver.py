@@ -39,6 +39,7 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
 
 class Simul(SimulSW1LExactLin):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
+
     InfoSolver = InfoSolverSW1LExactLinModified
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -137,9 +138,9 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 2.
 

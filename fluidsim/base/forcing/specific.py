@@ -40,10 +40,6 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic
-   :members:
-   :private-members:
-
 """
 from __future__ import division
 from __future__ import print_function
@@ -63,6 +59,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 class SpecificForcing(object):
     """Base class for specific forcing"""
+
     tag = "specific"
 
     @classmethod
@@ -93,7 +90,12 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     .. inheritance-diagram:: InScriptForcingPseudoSpectral
 
     """
+
     tag = "in_script"
+
+    def __init__(self, sim):
+        super(InScriptForcingPseudoSpectral, self).__init__(sim)
+        self.is_initialized = False
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
@@ -120,10 +122,12 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     def monkeypatch_compute_forcing_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcing_fft_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
     def monkeypatch_compute_forcing_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcing_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
 
 class SpecificForcingPseudoSpectral(SpecificForcing):
@@ -260,9 +264,9 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                     "sim.forcing.forcing_maker.plot_forcing_region()"
                 )
 
-            self.ind_forcing = np.logical_not(self.COND_NO_F).flatten().nonzero()[
-                0
-            ]
+            self.ind_forcing = (
+                np.logical_not(self.COND_NO_F).flatten().nonzero()[0]
+            )
 
             self.fstate_coarse = sim.state.__class__(sim, oper=self.oper_coarse)
         else:
@@ -338,7 +342,12 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
 
     """
+
     tag = "in_script_coarse"
+
+    def __init__(self, sim):
+        super(InScriptForcingPseudoSpectralCoarse, self).__init__(sim)
+        self.is_initialized = False
 
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
@@ -365,10 +374,12 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
     def monkeypatch_compute_forcingc_fft_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcingc_fft_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
     def monkeypatch_compute_forcingc_each_time(self, func):
         """Replace the method by a user-defined method"""
         self.compute_forcingc_each_time = types.MethodType(func, self)
+        self.is_initialized = True
 
 
 class Proportional(SpecificForcingPseudoSpectral):
@@ -438,6 +449,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
     .. inheritance-diagram:: NormalizedForcing
 
     """
+
     tag = "normalized"
 
     @classmethod
@@ -558,18 +570,16 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         ik1_part = ikx_part
 
         P_forcing2_part = np.real(
-            fvc_fft[ik0_part, ik1_part].conj()
-            * vc_fft[ik0_part, ik1_part]
-            + fvc_fft[ik0_part, ik1_part]
-            * vc_fft[ik0_part, ik1_part].conj()
+            fvc_fft[ik0_part, ik1_part].conj() * vc_fft[ik0_part, ik1_part]
+            + fvc_fft[ik0_part, ik1_part] * vc_fft[ik0_part, ik1_part].conj()
         )
 
         if ikx_part == 0:
             P_forcing2_part = P_forcing2_part / 2.
         P_forcing2_other = P_forcing2 - P_forcing2_part
-        fvc_fft[ik0_part, ik1_part] = -P_forcing2_other / vc_fft[
-            ik0_part, ik1_part
-        ].real
+        fvc_fft[ik0_part, ik1_part] = (
+            -P_forcing2_other / vc_fft[ik0_part, ik1_part].real
+        )
 
         if ikx_part != 0:
             fvc_fft[ik0_part, ik1_part] = fvc_fft[ik0_part, ik1_part] / 2.
@@ -673,6 +683,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
     .. inheritance-diagram:: RandomSimplePseudoSpectral
     """
+
     tag = "random"
 
     @classmethod
@@ -719,6 +730,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
     .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectral
     """
+
     tag = "tcrandom"
 
     @classmethod
@@ -727,9 +739,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         """
         super(
             TimeCorrelatedRandomPseudoSpectral, cls
-        )._complete_params_with_default(
-            params
-        )
+        )._complete_params_with_default(params)
 
         try:
             params.forcing.tcrandom
@@ -783,8 +793,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         deltaf = self.forcing1 - self.forcing0
 
-        f_fft = self.forcing1 - 0.5 * (
-            np.cos((tsim - self.t_last_change) * omega) + 1
-        ) * deltaf
+        f_fft = (
+            self.forcing1
+            - 0.5 * (np.cos((tsim - self.t_last_change) * omega) + 1) * deltaf
+        )
 
         return f_fft

@@ -12,7 +12,8 @@
 """
 
 from fluidsim.base.sphericalharmo.solver import (
-    InfoSolverSphericalHarmo, SimulSphericalHarmo
+    InfoSolverSphericalHarmo,
+    SimulSphericalHarmo,
 )
 
 from ...ns2d.solver import compute_Frot, SetOfVariables
@@ -43,6 +44,7 @@ class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
 
 class SimulSphereNS2D(SimulSphericalHarmo):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverSphereNS2D
 
     # @staticmethod

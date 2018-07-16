@@ -100,9 +100,9 @@ def plot_scaling(
     )
 
     if name_dir is None:
-        name_dir = os.path.basename(os.path.abspath(path_dir)).replace(
-            "_", " "
-        ).upper()
+        name_dir = (
+            os.path.basename(os.path.abspath(path_dir)).replace("_", " ").upper()
+        )
 
     df = load_bench(path_dir, solver, hostname)
     exit_if_empty(df, input_params)
@@ -215,7 +215,7 @@ def plot_scaling(
             nb_proc_min_filter,
             name_min_filter,
             key_min_filter,
-            t_min_filter * 1000
+            t_min_filter * 1000,
         )
     )
 

@@ -13,6 +13,11 @@ Dependencies
 
 - Numpy
 
+- `fluiddyn <http://fluiddyn.readthedocs.io>`_
+
+  The base package of the FluidDyn project is a pure Python package that will be
+  installed automatically so you should not need to worry about this dependency.
+
 - `fluidfft <http://fluidfft.readthedocs.io>`_
 
   fluidsim needs fluidfft. If you don't install it before carefully, it will be
@@ -20,6 +25,22 @@ Dependencies
   (using for example MPI with 2D decomposition or GPU with CUDA). If you are
   not too concerned about performance, no problem. Otherwise, install fluidfft
   as explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__.
+
+- h5py (optionally, with MPI support, but only if you know what you do)
+
+  .. warning::
+
+    Prebuilt installations (for eg. via h5py wheels) may lack MPI support.
+    Most of the time, this is what you want.  However, you can install h5py
+    from source and link it to a hdf5 built with MPI support, as follows:
+
+    .. code:: bash
+
+       $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
+       $ python -c 'import h5py; h5py.run_tests()'
+
+    See the `h5py documentation
+    <http://docs.h5py.org/en/latest/build.html>`_ for more details.
 
 - A C++11 compiler (for example GCC 4.9 or clang)
 
@@ -54,24 +75,11 @@ Dependencies
         CXX=clang++
         CC=clang
 
-- h5py (optionally, with MPI support, but only if you know what you do)
-
-  .. warning::
-
-    Prebuilt installations (for eg. via h5py wheels) may lack MPI support.
-    Most of the time, this is what you want.  However, you can install h5py
-    from source and link it to a hdf5 built with MPI support, as follows:
-
-    .. code:: bash
-
-       $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
-       $ python -c 'import h5py; h5py.run_tests()'
-
-    See the `h5py documentation
-    <http://docs.h5py.org/en/latest/build.html>`_ for more details.
-
 - Optionally (for MPI runs), `mpi4py <http://mpi4py.scipy.org>`_ (which depends
   on a MPI implementation).
+
+- Optionally (for some command-line tools), `Pandas
+  <https://pandas.pydata.org/>`_.
 
 Basic installation with pip
 ---------------------------
@@ -150,3 +158,22 @@ fluidsim-test -v``). Alternatively, you can also run ``python -m unittest
 discover`` from the root directory or from any of the "test" directories.
 
 
+Environment variables
+---------------------
+
+Fluidsim builds its binaries in parallel. It speedups the build process a lot on
+most computers. However, it can be a very bad idea on computers with not enough
+memory. If you encounter problems, you can force the number of processes used
+during the build using the environment variable ``FLUIDDYN_NUM_PROCS_BUILD``::
+
+   export FLUIDDYN_NUM_PROCS_BUILD=2
+
+Fluidsim is also sensible to the environment variables:
+
+- ``FLUIDSIM_PATH``: path where the simulation results are saved.
+
+  In Unix systems, you can for example put this line in your ``~/.bashrc``::
+
+    export FLUIDSIM_PATH=$HOME/Data
+
+- ``FLUIDDYN_PATH_SCRATCH``: working directory (can be useful on some clusters).

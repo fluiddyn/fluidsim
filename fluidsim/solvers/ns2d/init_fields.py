@@ -26,6 +26,7 @@ from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod
@@ -34,12 +35,25 @@ class InitFieldsNoise(SpecificInitFields):
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
 
         params.init_fields._set_child(
-            cls.tag, attribs={"velo_max": 1., "length": 0}
+            cls.tag, attribs={"velo_max": 1., "length": 0.}
+        )
+
+        params.init_fields.noise._set_doc(
+            """
+velo_max: float (default 1.)
+
+    Maximum velocity.
+
+length: float (default 0.)
+
+    The smallest (cutoff) scale in the noise.
+
+"""
         )
 
     def __call__(self):
         rot_fft, ux_fft, uy_fft = self.compute_rotuxuy_fft()
-        energy_fft = 0.5 * (np.abs(ux_fft) ** 2 + np.abs(uy_fft) ** 2)
+        # energy_fft = 0.5 * (np.abs(ux_fft) ** 2 + np.abs(uy_fft) ** 2)
         self.sim.state.init_from_rotfft(rot_fft)
 
     def compute_rotuxuy_fft(self):
@@ -55,19 +69,17 @@ class InitFieldsNoise(SpecificInitFields):
             return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
 
         # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42)  # this does not work for MPI...
+        np.random.seed(42 + mpi.rank)
 
         ux_fft = (
             np.random.random(oper.shapeK)
-            + 1j
-            * np.random.random(oper.shapeK)
+            + 1j * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )
         uy_fft = (
             np.random.random(oper.shapeK)
-            + 1j
-            * np.random.random(oper.shapeK)
+            + 1j * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )
@@ -101,6 +113,7 @@ class InitFieldsNoise(SpecificInitFields):
 
 class InitFieldsJet(SpecificInitFields):
     """Initialize the state with a jet."""
+
     tag = "jet"
 
     @classmethod
@@ -136,6 +149,7 @@ class InitFieldsJet(SpecificInitFields):
 
 class InitFieldsDipole(SpecificInitFields):
     """Initialize the state with a dipole."""
+
     tag = "dipole"
 
     @classmethod
@@ -159,27 +173,18 @@ class InitFieldsDipole(SpecificInitFields):
         omega = np.zeros(oper.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (
-                2
-                * np.exp(-(XX ** 2 + (YY - b / 2.) ** 2))
-                - 2
-                * np.exp(-(XX ** 2 + (YY + b / 2.) ** 2))
+            return 2 * np.exp(-(XX ** 2 + (YY - b / 2.) ** 2)) - 2 * np.exp(
+                -(XX ** 2 + (YY + b / 2.) ** 2)
             )
 
         for ip in range(-1, 2):
             for jp in range(-1, 2):
-                XX_s = (
-                    np.cos(theta)
-                    * (oper.XX - xs - ip * oper.Lx)
-                    + np.sin(theta)
-                    * (oper.YY - ys - jp * oper.Ly)
-                )
-                YY_s = (
-                    np.cos(theta)
-                    * (oper.YY - ys - jp * oper.Ly)
-                    - np.sin(theta)
-                    * (oper.XX - xs - ip * oper.Lx)
-                )
+                XX_s = np.cos(theta) * (oper.XX - xs - ip * oper.Lx) + np.sin(
+                    theta
+                ) * (oper.YY - ys - jp * oper.Ly)
+                YY_s = np.cos(theta) * (oper.YY - ys - jp * oper.Ly) - np.sin(
+                    theta
+                ) * (oper.XX - xs - ip * oper.Lx)
                 omega = omega + wz_2LO(XX_s, YY_s, b)
         return omega
 

@@ -25,7 +25,6 @@ from .base import OperatorsBase1D
 
 
 class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
-
     def __init__(self, params=None):
         super(OperatorFiniteDiff1DPeriodic, self).__init__(params)
         nx = self.nx
@@ -57,13 +56,10 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
     def produce_long_str_describing_oper(self):
         return super(
             OperatorFiniteDiff1DPeriodic, self
-        ).produce_long_str_describing_oper(
-            "Finite difference"
-        )
+        ).produce_long_str_describing_oper("Finite difference")
 
 
 class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
-
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.

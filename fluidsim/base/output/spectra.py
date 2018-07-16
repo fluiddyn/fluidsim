@@ -12,7 +12,6 @@ from .movies import MoviesBase1D
 
 
 class MoviesSpectra(MoviesBase1D):
-
     def __init__(self, output, spectra):
         self.spectra = spectra
         super(MoviesSpectra, self).__init__(output)
@@ -115,7 +114,8 @@ class Spectra(SpecificOutput):
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1D):
                 dict_arrays_1time = {
-                    "kxE": self.sim.oper.kxE, "kyE": self.sim.oper.kyE
+                    "kxE": self.sim.oper.kxE,
+                    "kyE": self.sim.oper.kyE,
                 }
                 self._create_file_from_dict_arrays(
                     self.path_file1D, dict_spectra1D, dict_arrays_1time
@@ -177,83 +177,79 @@ class Spectra(SpecificOutput):
         pass
 
     def load2d_mean(self, tmin=None, tmax=None):
-        f = h5py.File(self.path_file2D, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        nt = len(times)
+        with h5py.File(self.path_file2D, "r") as f:
+            dset_times = f["times"]
+            times = dset_times[...]
+            nt = len(times)
 
-        kh = f["khE"][...]
+            kh = f["khE"][...]
 
-        if tmin is None:
-            imin_plot = 0
-        else:
-            imin_plot = np.argmin(abs(times - tmin))
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
 
-        if tmax is None:
-            imax_plot = nt - 1
-        else:
-            imax_plot = np.argmin(abs(times - tmax))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
 
-        tmin = times[imin_plot]
-        tmax = times[imax_plot]
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
 
-        print(
-            "compute mean of 2D spectra\n"
-            + (
-                "tmin = {0:8.6g} ; tmax = {1:8.6g}"
-                "imin = {2:8d} ; imax = {3:8d}"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
+            print(
+                "compute mean of 2D spectra\n"
+                + (
+                    "tmin = {0:8.6g} ; tmax = {1:8.6g}"
+                    "imin = {2:8d} ; imax = {3:8d}"
+                ).format(tmin, tmax, imin_plot, imax_plot)
             )
-        )
 
-        dict_results = {"kh": kh}
-        for key in list(f.keys()):
-            if key.startswith("spectr"):
-                dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
-                dict_results[key] = spect
+            dict_results = {"kh": kh}
+            for key in list(f.keys()):
+                if key.startswith("spectr"):
+                    dset_key = f[key]
+                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    dict_results[key] = spect
         return dict_results
 
     def load1d_mean(self, tmin=None, tmax=None):
-        f = h5py.File(self.path_file1D, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        nt = len(times)
+        with h5py.File(self.path_file1D, "r") as f:
+            dset_times = f["times"]
+            times = dset_times[...]
+            nt = len(times)
 
-        kx = f["kxE"][...]
-        # ky = f['kyE'][...]
-        kh = kx
+            kx = f["kxE"][...]
+            # ky = f['kyE'][...]
+            kh = kx
 
-        if tmin is None:
-            imin_plot = 0
-        else:
-            imin_plot = np.argmin(abs(times - tmin))
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
 
-        if tmax is None:
-            imax_plot = nt - 1
-        else:
-            imax_plot = np.argmin(abs(times - tmax))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
 
-        tmin = times[imin_plot]
-        tmax = times[imax_plot]
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
 
-        print(
-            "compute mean of 1D spectra"
-            + (
-                "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
-                "imin = {2:8d} ; imax = {3:8d}\n"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
+            print(
+                "compute mean of 1D spectra"
+                + (
+                    "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
+                    "imin = {2:8d} ; imax = {3:8d}\n"
+                ).format(tmin, tmax, imin_plot, imax_plot)
             )
-        )
 
-        dict_results = {"kh": kh}
-        for key in list(f.keys()):
-            if key.startswith("spectr"):
-                dset_key = f[key]
-                spect = dset_key[imin_plot:imax_plot + 1].mean(0)
-                dict_results[key] = spect
+            dict_results = {"kh": kh}
+            for key in list(f.keys()):
+                if key.startswith("spectr"):
+                    dset_key = f[key]
+                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    dict_results[key] = spect
         return dict_results
 
     def plot1d(self):

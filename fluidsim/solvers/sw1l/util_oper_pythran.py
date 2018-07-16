@@ -37,8 +37,13 @@ def qapamfft_from_uxuyetafft(
                         K2[i0, i1] * eta_fft[i0, i1] + f_over_c2 * rot_fft
                     )
 
-                    Deltaa_over2_fft = 0.5j * Kappa_over_ic[i0, i1] * (
-                        KX[i0, i1] * ux_fft[i0, i1] + KY[i0, i1] * uy_fft[i0, i1]
+                    Deltaa_over2_fft = (
+                        0.5j
+                        * Kappa_over_ic[i0, i1]
+                        * (
+                            KX[i0, i1] * ux_fft[i0, i1]
+                            + KY[i0, i1] * uy_fft[i0, i1]
+                        )
                     )
 
                     ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft
@@ -58,8 +63,13 @@ def qapamfft_from_uxuyetafft(
 
                     a_over2_fft = 0.5 * K2[i0, i1] * eta_fft[i0, i1]
 
-                    Deltaa_over2_fft = 0.5j * Kappa_over_ic[i0, i1] * (
-                        KX[i0, i1] * ux_fft[i0, i1] + KY[i0, i1] * uy_fft[i0, i1]
+                    Deltaa_over2_fft = (
+                        0.5j
+                        * Kappa_over_ic[i0, i1]
+                        * (
+                            KX[i0, i1] * ux_fft[i0, i1]
+                            + KY[i0, i1] * uy_fft[i0, i1]
+                        )
                     )
 
                     ap_fft[i0, i1] = a_over2_fft + Deltaa_over2_fft

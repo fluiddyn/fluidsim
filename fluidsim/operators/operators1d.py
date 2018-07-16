@@ -48,7 +48,6 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         self.shapeK = self.shapeK_loc = opfft.shapeK
         self.deltakx = 2 * np.pi / self.Lx
         self.nkx = self.shapeK[0]
-        nx = params.oper.nx
         self.kx = self.deltax * np.arange(self.nkx)
         # self.kx = kx = self.deltax * np.array(
         #     list(range(nx//2 + 1)) + list(range(-nx//2 + 1, 0)))
@@ -78,9 +77,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
     def produce_long_str_describing_oper(self):
         return super(
             OperatorsPseudoSpectral1D, self
-        ).produce_long_str_describing_oper(
-            "Pseudospectral"
-        )
+        ).produce_long_str_describing_oper("Pseudospectral")
 
     def dealiasing(self, *args):
         for thing in args:

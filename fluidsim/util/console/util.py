@@ -28,6 +28,7 @@ print = mpi.printby0
 
 class ConsoleError(ValueError):
     """Distinguish errors from console utilities."""
+
     pass
 
 
@@ -115,11 +116,14 @@ def modif_params2d(
         # params.oper.type_fft = 'fft2d.mpi_with_fftwmpi2d'
         pass
 
-    params.forcing.enable = True
-    params.forcing.type = "tcrandom"
-    params.forcing.nkmax_forcing = 6
-    params.forcing.nkmin_forcing = 3
-    params.forcing.forcing_rate = 1.
+    if "noise" in params.init_fields.available_types:
+        params.init_fields.type = "noise"
+
+    # params.forcing.enable = True
+    # params.forcing.type = "tcrandom"
+    # params.forcing.nkmax_forcing = 6
+    # params.forcing.nkmin_forcing = 3
+    # params.forcing.forcing_rate = 1.
 
     params.nu_8 = 1.
     try:
@@ -200,6 +204,9 @@ def modif_params3d(
         params.N = 1.
     except AttributeError:
         pass
+
+    if "noise" in params.init_fields.available_types:
+        params.init_fields.type = "noise"
 
     params.time_stepping.deltat0 = 1.e-4
     params.time_stepping.USE_CFL = False
@@ -302,17 +309,20 @@ def get_path_file(sim, path_results, name="bench", ext=".json"):
     pid = str(os.getpid())
     nb_proc = "np={}".format(mpi.nb_proc)
     type_fft = sim.params.oper.type_fft.split(".")[-1].replace("_", "-")
-    nfile = "_".join(
-        [
-            "result",
-            name,
-            key_solver,
-            sim.oper.produce_str_describing_grid(),
-            nb_proc,
-            type_fft,
-            t_as_str + pid,
-        ]
-    ) + ext
+    nfile = (
+        "_".join(
+            [
+                "result",
+                name,
+                key_solver,
+                sim.oper.produce_str_describing_grid(),
+                nb_proc,
+                type_fft,
+                t_as_str + pid,
+            ]
+        )
+        + ext
+    )
 
     path = os.path.join(path_results, nfile)
     return path, t_as_str

@@ -5,15 +5,18 @@ A modified version of ``spectralDNS/demo/TG2D.py``
 
 To run::
 
-  python bench_2d.py NS2D
+  python bench_2d.py --optimization cython NS2D
 
-  mpirun -np 2 python bench_2d.py NS2D
+  mpirun -np 2 python bench_2d.py --optimization cython NS2D
+
 
 To be compared with::
 
-  fluidsim-bench 512 512 -s ns2d -it 10
+  fluidsim-bench 512 -d 2 -s ns2d -it 10
+  mpirun -np 2 fluidsim-bench 512 -d 2 -s ns2d -it 10
 
-  mpirun -np 2 fluidsim-bench 512 512 -s ns2d -it 10
+  fluidsim-bench 1024 -d 2 -s ns2d -it 10
+  mpirun -np 2 fluidsim-bench 1152 -d 2 -s ns2d -it 10
 
 """
 import time
@@ -65,12 +68,14 @@ if __name__ == '__main__':
             'T': 1e-11,  # Should run 10 iterations
             'write_result': 100,
             'L': [L, L],
-            'M': [9, 9]  # Mesh size is pow(2, M[i]) in direction i
+            'M': [10, 10]  # Mesh size is pow(2, M[i]) in direction i
+            # 2**9 == 512
         }, 'doublyperiodic'
     )
 
+    # required to allow overloading through commandline
     config.doublyperiodic.add_argument(
-        "--plot_result", type=int, default=10)  # required to allow overloading through commandline
+        "--plot_result", type=int, default=10)
     if plt is None:
         sol = get_solver(mesh="doublyperiodic")
     else:

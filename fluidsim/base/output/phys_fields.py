@@ -119,20 +119,6 @@ class PhysFieldsBase(SpecificOutput):
     def _init_online_plot(self):
         pass
 
-    def _init_skip_quiver(self):
-        # 4% of the Lx it is a great separation between vector arrows.
-        try:
-            delta_quiver = 0.04 * self.oper.Lx
-        except AttributeError:
-            skip = 1
-        else:
-            skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
-            skip = int(np.round(skip))
-            if skip < 1:
-                skip = 1
-        self._skip_quiver = skip
-        return skip
-
     def _online_save(self):
         """Online save."""
         tsim = self.sim.time_stepping.t
@@ -188,18 +174,18 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
                 # originally:
-                # f = h5netcdf.File(...
-                f = h5pack.File(path_file, "w")
-                group_state_phys = f.create_group("state_phys")
+                # h5file = h5netcdf.File(...
+                h5file = h5pack.File(path_file, "w")
+                group_state_phys = h5file.create_group("state_phys")
                 group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
                 group_state_phys.attrs["name_type_variables"] = state_phys.info
                 group_state_phys.attrs["time"] = time
                 group_state_phys.attrs["it"] = self.sim.time_stepping.it
         else:
             # originally:
-            # f = h5py.File(...
-            f = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
-            group_state_phys = f.create_group("state_phys")
+            # h5file = h5py.File(...
+            h5file = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
+            group_state_phys = h5file.create_group("state_phys")
             group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
             group_state_phys.attrs["name_type_variables"] = state_phys.info
 
@@ -222,30 +208,30 @@ class PhysFieldsBase(SpecificOutput):
                 dset = group_state_phys.create_dataset(
                     k, self.oper.shapeX_seq, dtype=field_loc.dtype
                 )
-                f.atomic = False
+                h5file.atomic = False
                 xstart = self.oper.seq_index_firstK0
                 xend = self.oper.seq_index_firstK0 + self.oper.shapeX_loc[0]
                 ystart = self.oper.seq_index_firstK1
                 yend = self.oper.seq_index_firstK1 + self.oper.shapeX_loc[1]
                 with dset.collective:
                     dset[xstart:xend, ystart:yend, :] = field_loc
-            f.close()
+            h5file.close()
             if mpi.rank == 0:
-                f = h5pack.File(path_file, "w")
+                h5file = h5pack.File(path_file, "w")
 
         if mpi.rank == 0:
-            f.attrs["date saving"] = str(datetime.datetime.now()).encode()
-            f.attrs["name_solver"] = self.output.name_solver
-            f.attrs["name_run"] = self.output.name_run
+            h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
+            h5file.attrs["name_solver"] = self.output.name_solver
+            h5file.attrs["name_run"] = self.output.name_run
             if particular_attr is not None:
-                f.attrs["particular_attr"] = particular_attr
+                h5file.attrs["particular_attr"] = particular_attr
 
-            self.sim.info._save_as_hdf5(hdf5_parent=f)
-            gp_info = f["info_simul"]
+            self.sim.info._save_as_hdf5(hdf5_parent=h5file)
+            gp_info = h5file["info_simul"]
             gf_params = gp_info["params"]
             gf_params.attrs["SAVE"] = 1
             gf_params.attrs["NEW_DIR_RESULTS"] = 1
-            f.close()
+            h5file.close()
 
     def get_field_to_plot(
         self,
@@ -316,24 +302,24 @@ class PhysFieldsBase(SpecificOutput):
             return field, key_field
 
         elif equation.startswith("iz="):
-            iz = eval(equation[len("iz="):])
+            iz = eval(equation[len("iz=") :])
             field = field[iz, ...]
         elif equation.startswith("z="):
-            z = eval(equation[len("z="):])
+            z = eval(equation[len("z=") :])
             iz = abs(self.output.sim.oper.z_seq - z).argmin()
             field = field[iz, ...]
         elif equation.startswith("iy="):
-            iy = eval(equation[len("iy="):])
+            iy = eval(equation[len("iy=") :])
             field = field[:, iy, :]
         elif equation.startswith("y="):
-            y = eval(equation[len("y="):])
+            y = eval(equation[len("y=") :])
             iy = abs(self.output.sim.oper.y_seq - y).argmin()
             field = field[:, iy, :]
         elif equation.startswith("ix="):
-            ix = eval(equation[len("ix="):])
+            ix = eval(equation[len("ix=") :])
             field = field[..., ix]
         elif equation.startswith("x="):
-            x = eval(equation[len("x="):])
+            x = eval(equation[len("x=") :])
             ix = abs(self.output.sim.oper.x_seq - x).argmin()
             field = field[..., ix]
         else:
@@ -369,9 +355,8 @@ class SetOfPhysFieldFiles(object):
         """Initialize the times by globing and analyzing the file names."""
         path_files = glob(os.path.join(self.output.path_run, "state_phys*.[hn]*"))
 
-        if (
-            hasattr(self, "path_files")
-            and len(self.path_files) == len(path_files)
+        if hasattr(self, "path_files") and len(self.path_files) == len(
+            path_files
         ):
             return
 
@@ -441,29 +426,29 @@ class SetOfPhysFieldFiles(object):
                 return dset.value
 
             if equation.startswith("iz="):
-                iz = eval(equation[len("iz="):])
+                iz = eval(equation[len("iz=") :])
                 return dset[iz, ...]
 
             elif equation.startswith("z="):
-                z = eval(equation[len("z="):])
+                z = eval(equation[len("z=") :])
                 iz = abs(self.output.sim.oper.z_seq - z).argmin()
                 return dset[iz, ...]
 
             elif equation.startswith("iy="):
-                iy = eval(equation[len("iy="):])
+                iy = eval(equation[len("iy=") :])
                 return dset[:, iy, :]
 
             elif equation.startswith("y="):
-                y = eval(equation[len("y="):])
+                y = eval(equation[len("y=") :])
                 iy = abs(self.output.sim.oper.y_seq - y).argmin()
                 return dset[:, iy, :]
 
             elif equation.startswith("ix="):
-                ix = eval(equation[len("ix="):])
+                ix = eval(equation[len("ix=") :])
                 return dset[..., ix]
 
             elif equation.startswith("x="):
-                x = eval(equation[len("x="):])
+                x = eval(equation[len("x=") :])
                 ix = abs(self.output.sim.oper.x_seq - x).argmin()
                 return dset[..., ix]
 

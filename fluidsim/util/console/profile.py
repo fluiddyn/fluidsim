@@ -82,7 +82,8 @@ def profile(
     type_fft=None,
     raise_error=False,
     verbose=False,
-    plot=False
+    plot=False,
+    it_end=None,
 ):
     """Instantiate simulation object and run profiles."""
 
@@ -101,10 +102,18 @@ def profile(
         params = Simul.create_default_params()
 
         if dim == "2d":
-            modif_params2d(params, n0, n1, name_run="bench", type_fft=type_fft)
+            modif_params2d(
+                params, n0, n1, name_run="bench", type_fft=type_fft, it_end=it_end
+            )
         elif dim == "3d":
             modif_params3d(
-                params, n0, n1, n2, name_run="bench", type_fft=type_fft
+                params,
+                n0,
+                n1,
+                n2,
+                name_run="bench",
+                type_fft=type_fft,
+                it_end=it_end,
             )
         else:
             raise ValueError("dim has to be in ['2d', '3d']")
@@ -168,6 +177,9 @@ def init_parser(parser):
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-sf", "--stats_file", default=None)
     parser.add_argument("-p", "--plot", action="store_true")
+    parser.add_argument(
+        "-it", "--it-end", default=10, type=int, help="Number of iterations"
+    )
 
 
 def run(args):
@@ -197,6 +209,7 @@ def run(args):
         type_fft=args.type_fft,
         verbose=args.verbose,
         plot=args.plot,
+        it_end=args.it_end,
     )
 
 
@@ -226,13 +239,22 @@ def _compute_shorter_name(key, kind):
     return key
 
 
-def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
+def plot_pie(
+    times,
+    long_functions,
+    ax=None,
+    times_descending=False,
+    for_latex=False,
+    **kwargs
+):
     """Plot a pie chart """
     percentages = []
     labels = []
     for k, v in long_functions.items():
         percentages.append(v["percentage"])
         name = _compute_shorter_name(k, v["kind"])
+        if for_latex:
+            name = r"\texttt{" + name.replace("_", r"\_") + r"}"
         labels.append(name)
 
     percentages.append(100 - sum(percentages))
@@ -271,7 +293,13 @@ def plot_pie(times, long_functions, ax=None, times_descending=False, **kwargs):
     if "startangle" not in kwargs:
         kwargs["startangle"] = 0
 
-    pie = ax.pie(percentages, labels=labels, autopct="%1.1f%%", **kwargs)
+    for label, perc in zip(labels, percentages):
+        print(
+            "(label, perc) = ({:40s} {:5.2f} %)".format(repr(label) + ",", perc)
+        )
+
+    autopct = "%1.1f\\%%" if for_latex else "%1.1f%%"
+    pie = ax.pie(percentages, labels=labels, autopct=autopct, **kwargs)
     ax.axis("equal")
 
     return pie
@@ -379,18 +407,25 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
 
     for k in keys:
         t = times[k]
-        print(
-            "time {:10s}: {:5.01f} % ({:4.02f} s)".format(
-                k, t / total_time * 100, t
+        if t > 0:
+            print(
+                "time {:10s}: {:5.03f} % ({:4.02f} s)".format(
+                    k, t / total_time * 100, t
+                )
             )
-        )
 
     print(
-        "-"
-        * 24
-        + "\n{:15s}  {:5.01f} %".format(
+        "-" * 24
+        + "\n{:15s}  {:5.02f} %".format(
             "", sum([t for t in times.values()]) / total_time * 100
         )
+    )
+
+    del times[".py"]
+    time_in_not_py = sum([t for t in times.values()])
+    print(
+        "In not Python functions:\n{:15s}".format("")
+        + "  {:5.02f} %".format(time_in_not_py / total_time * 100)
     )
 
     if plot:

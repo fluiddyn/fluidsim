@@ -42,14 +42,18 @@ class StateNS3D(StatePseudoSpectral):
             np.empty_like(self.state_phys[0]) for n in range(6)
         )
 
+        self.fields_spect_tmp = tuple(
+            np.empty_like(self.state_spect[0]) for n in range(3)
+        )
+
     def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
         it = self.sim.time_stepping.it
         if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
         if key == "rotz":
-            vx_fft = self("vx_fft")
-            vy_fft = self("vy_fft")
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
             rotz_fft = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
             result = self.oper.ifft3d(rotz_fft)
         else:

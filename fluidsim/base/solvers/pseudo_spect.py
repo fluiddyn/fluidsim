@@ -55,7 +55,9 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.classes.State.module_name = "fluidsim.base.state"
         self.classes.State.class_name = "StatePseudoSpectral"
 
-        self.classes.TimeStepping.module_name = "fluidsim.base.time_stepping.pseudo_spect_cy"
+        self.classes.TimeStepping.module_name = (
+            "fluidsim.base.time_stepping.pseudo_spect_cy"
+        )
 
         self.classes.TimeStepping.class_name = "TimeSteppingPseudoSpectral"
 
@@ -99,6 +101,7 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
 class SimulBasePseudoSpectral(SimulBase):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverPseudoSpectral
 
     @staticmethod
@@ -108,6 +111,26 @@ class SimulBasePseudoSpectral(SimulBase):
 
         attribs = {"nu_8": 0., "nu_4": 0., "nu_m4": 0.}
         params._set_attribs(attribs)
+
+        params._set_doc(
+            params._doc
+            + """
+nu_8: float
+
+    Hyper-viscous coefficient of order 8. Also used in the method
+    compute_freq_diss.
+
+nu_4: float
+
+    Hyper-viscous coefficient of order 4.
+
+nu_m4: float
+
+    Hypo-viscous coefficient of order -4. Hypo-viscosity affect more the large
+    scales.
+
+"""
+        )
 
     def compute_freq_diss(self):
         r"""Compute the dissipation frequency.
@@ -207,9 +230,9 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 5.
 

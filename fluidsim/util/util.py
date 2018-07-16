@@ -31,12 +31,17 @@ from fluiddyn.util import mpi
 from fluidsim import path_dir_results, solvers
 
 from fluidsim.base.params import (
-    load_info_solver, load_params_simul, Parameters, merge_params, fix_old_params
+    load_info_solver,
+    load_params_simul,
+    Parameters,
+    merge_params,
+    fix_old_params,
 )
 
 
-def available_solver_keys():
-    """Inspects the subpackage `fluidsim.solvers` for all available
+
+def available_solver_keys(package=solvers):
+    """Inspects a package or a subpackage for all available
     solvers.
 
     Returns
@@ -44,7 +49,10 @@ def available_solver_keys():
     list
 
     """
-    top = _os.path.split(inspect.getfile(solvers))[0]
+    if isinstance(package, str):
+        package = import_module(package)
+
+    top = _os.path.split(inspect.getfile(package))[0]
     top = _os.path.abspath(top) + _os.sep
     keys = list()
     for dirpath, dirname, filenames in _os.walk(top):
@@ -57,25 +65,26 @@ def available_solver_keys():
     return sorted(keys)
 
 
-def module_solver_from_key(key=None):
+def module_solver_from_key(key=None, package="fluidsim.solvers"):
     """Return the string corresponding to a module solver."""
     key = key.lower()
-    keys = available_solver_keys()
+    keys = available_solver_keys(package)
 
     if key in keys:
         part_path = key
     else:
         raise ValueError(
-            "You have to give a proper solver key, name solver given: " + key
+            "You have to give a proper solver key, name solver given: "
+            "{}. Expected one of: {}".format(key, keys)
         )
 
-    base_solvers = "fluidsim.solvers"
+    base_solvers = package
     module_solver = base_solvers + "." + part_path + ".solver"
 
     return module_solver
 
 
-def import_module_solver_from_key(key=None):
+def import_module_solver_from_key(key=None, package="fluidsim.solvers"):
     """Import and reload the solver.
 
     Parameters
@@ -85,14 +94,14 @@ def import_module_solver_from_key(key=None):
         The short name of a solver.
 
     """
-    return import_module(module_solver_from_key(key))
+    return import_module(module_solver_from_key(key, package))
 
 
-def get_dim_from_solver_key(key):
+def get_dim_from_solver_key(key, package="fluidsim.solvers"):
     """Try to guess the dimension from the solver key (via the operator name).
 
     """
-    cls = import_simul_class_from_key(key)
+    cls = import_simul_class_from_key(key, package)
     info = cls.InfoSolver()
     for dim in range(4):
         if str(dim) in info.classes.Operators.class_name:
@@ -104,7 +113,7 @@ def get_dim_from_solver_key(key):
     )
 
 
-def import_simul_class_from_key(key):
+def import_simul_class_from_key(key, package="fluidsim.solvers"):
     """Import and reload a simul class.
 
     Parameters
@@ -114,7 +123,7 @@ def import_simul_class_from_key(key):
         The short name of a solver.
 
     """
-    solver = import_module(module_solver_from_key(key))
+    solver = import_module(module_solver_from_key(key, package))
     return solver.Simul
 
 
@@ -131,9 +140,9 @@ def pathdir_from_namedir(name_dir=None):
 class ModulesSolvers(dict):
     """Dictionary to gather imported solvers."""
 
-    def __init__(self, names_solvers):
+    def __init__(self, names_solvers, package="fluidsim.solvers"):
         for key in names_solvers:
-            self[key] = import_module_solver_from_key(key)
+            self[key] = import_module_solver_from_key(key, package)
 
 
 def name_file_from_time_approx(path_dir, t_approx=None):
@@ -153,7 +162,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
     times = _np.empty([nb_files])
     for ii, name in enumerate(name_files):
-        times[ii] = float(name[ind_start_time:ind_start_time + 7])
+        times[ii] = float(name[ind_start_time : ind_start_time + 7])
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()
@@ -184,12 +193,21 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
     params = load_params_simul(path_dir=path_dir)
+
+    if merge_missing_params:
+        merge_params(params, solver.Simul.create_default_params())
+
     params.path_run = path_dir
     params.init_fields.type = "constant"
+    params.init_fields.modif_after_init = False
     params.ONLY_COARSE_OPER = True
     params.NEW_DIR_RESULTS = False
     params.output.HAS_TO_SAVE = False
     params.output.ONLINE_PLOT_OK = False
+
+    if params.forcing.type.startswith("in_script"):
+        params.forcing.enable = False
+
     try:
         params.preprocess.enable = False
     except AttributeError:
@@ -197,9 +215,6 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
 
     fix_old_params(params)
 
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
-    params.init_fields.modif_after_init = False
     sim = solver.Simul(params)
     return sim
 
@@ -258,6 +273,9 @@ def load_state_phys_file(
     with _h5py.File(path_file, "r") as f:
         params = Parameters(hdf5_object=f["info_simul"]["params"])
 
+    if merge_missing_params:
+        merge_params(params, solver.Simul.create_default_params())
+
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
     if modif_save_params:
@@ -272,9 +290,6 @@ def load_state_phys_file(
         pass
 
     fix_old_params(params)
-
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
 
     sim = solver.Simul(params)
     return sim

@@ -14,7 +14,8 @@ from fluidsim.base.params import create_params
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral,
 )
 
 
@@ -164,9 +165,12 @@ if __name__ == "__main__":
     # params.oper.type_fft = 'FFTWPY'
 
     delta_x = old_div(params.oper.Lx, params.oper.nx)
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        old_div(1., 3)
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2.
+        * 10e-1
+        * params.forcing.forcing_rate ** (old_div(1., 3))
+        * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 1.
     params.time_stepping.USE_CFL = False

@@ -16,7 +16,6 @@ from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 
 
 class InfoSolverAD1D(InfoSolverFiniteDiff):
-
     def _init_root(self):
 
         super(InfoSolverAD1D, self)._init_root()
@@ -87,10 +86,8 @@ class Simul(SimulBase):
         """Compute the linear operator as a matrix."""
 
         return (
-            self.params.nu_2
-            * (self.oper.sparse_pxx)
-            - self.params.U
-            * self.oper.sparse_px
+            self.params.nu_2 * (self.oper.sparse_pxx)
+            - self.params.U * self.oper.sparse_px
         )
 
 

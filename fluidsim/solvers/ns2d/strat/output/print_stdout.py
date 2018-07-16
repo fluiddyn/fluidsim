@@ -54,9 +54,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 memory = get_memory_usage()
                 self._write_memory_txt()
 
-                to_print += (
-                    "              memory  = {:9.3f} Mo.\n".format(memory)
-                )
+                to_print += "              memory  = {:9.3f} Mo.\n".format(memory)
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:

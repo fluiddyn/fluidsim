@@ -13,6 +13,9 @@ __pycache__
 \#*\#
 .spyderworkspace
 .spyderproject
+.vscode/
+.venv/
+.pytest_cache/
 
 bench/launcher_*
 bench/SLURM*
@@ -38,15 +41,9 @@ dist*
 
 *.so
 
-*fftw2Dmpi_cylib.c
-*fftw2Dmpi_ccylib.c
 *.o
 
-*setofvariables.c
-*operators.c
-*cyfunc.c
-
-*cy.c
+**/time_stepping/*cy.c
 
 scripts\Experiments\path_working_exp.txt
 
@@ -58,6 +55,9 @@ scripts\Experiments\path_working_exp.txt
 bench/results_bench/*.json
 bench/oar_launcher_*
 bench/OAR.fluidsim_bench*
+
+bench/FourierFlows/statprof/*
+
 
 **/OAR.*.stdout
 **/OAR.*.stderr

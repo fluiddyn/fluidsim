@@ -46,7 +46,8 @@ class SpectraMultiDim(SpecificOutput):
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
                 dict_arrays_1time = {
-                    "kxE": self.sim.oper.kxE, "kyE": self.sim.oper.kyE
+                    "kxE": self.sim.oper.kxE,
+                    "kyE": self.sim.oper.kyE,
                 }
                 self._create_file_from_dict_arrays(
                     self.path_file, dict_spectra, dict_arrays_1time
@@ -131,15 +132,13 @@ class SpectraMultiDim(SpecificOutput):
             + (
                 "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
                 "imin = {2:8d} ; imax = {3:8d}"
-            ).format(
-                tmin, tmax, imin_plot, imax_plot
-            )
+            ).format(tmin, tmax, imin_plot, imax_plot)
         )
 
         for key in dict_results.keys():
             if key.startswith("spectr"):
                 spect = dict_results[key]
-                spect_averaged = spect[imin_plot:imax_plot + 1].mean(0)
+                spect_averaged = spect[imin_plot : imax_plot + 1].mean(0)
                 dict_results[key] = spect_averaged
 
         return dict_results

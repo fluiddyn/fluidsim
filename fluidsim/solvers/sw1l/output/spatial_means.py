@@ -33,7 +33,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         if mpi.rank == 0:
             self.file.write("####\ntime = {0:.6e}\n".format(tsim))
 
-        energyK_fft, energyA_fft, energyKr_fft = self.output.compute_energies_fft()
+        energyK_fft, energyA_fft, energyKr_fft = (
+            self.output.compute_energies_fft()
+        )
         energyK = self.sum_wavenumbers(energyK_fft)
         energyA = self.sum_wavenumbers(energyA_fft)
         energyKr = self.sum_wavenumbers(energyKr_fft)
@@ -47,9 +49,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 "E      = {0:11.6e} ; CPE        = {1:11.6e} \n"
                 "EK     = {2:11.6e} ; EA         = {3:11.6e} ; "
                 "EKr       = {4:11.6e} \n"
-            ).format(
-                energy, CharneyPE, energyK, energyA, energyKr
-            )
+            ).format(energy, CharneyPE, energyK, energyA, energyKr)
             self.file.write(to_print)
 
         # Compute and save dissipation rates.
@@ -86,9 +86,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "eta skew = {0:11.6e} ; kurt = {1:11.6e} \n"
                 "rot skew = {2:11.6e} ; kurt = {3:11.6e} \n"
-            ).format(
-                skew_eta, kurt_eta, skew_rot, kurt_rot
-            )
+            ).format(skew_eta, kurt_eta, skew_rot, kurt_rot)
             self.file.write(to_print)
 
         if self.sim.params.forcing.enable:
@@ -125,9 +123,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "Conv = {0:11.6e} ; c2eta1d = {1:11.6e} ; "
                 "c2eta2d = {2:11.6e} ; c2eta2d = {3:11.6e}\n"
-            ).format(
-                Conv, c2eta1d, c2eta2d, c2eta3d
-            )
+            ).format(Conv, c2eta1d, c2eta2d, c2eta3d)
             self.file.write(to_print)
 
     def treat_dissipation_rates(self, energyK_fft, energyA_fft, CharneyPE_fft):
@@ -228,7 +224,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         Fx_fft, Fy_fft, Feta_fft = self.get_FxFyFetafft()
         deltat = self.sim.time_stepping.deltat
 
-        PK1_fft = (inner_prod(ux_fft, Fx_fft) + inner_prod(uy_fft, Fy_fft))
+        PK1_fft = inner_prod(ux_fft, Fx_fft) + inner_prod(uy_fft, Fy_fft)
         PK2_fft = deltat / 2 * (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2)
 
         PK1 = self.sum_wavenumbers(PK1_fft)
@@ -247,9 +243,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
                 "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
-            ).format(
-                PK1, PK2, PK_tot, PA1, PA2, PA_tot
-            )
+            ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
 
             self.file.write(to_print)
 
@@ -259,8 +253,14 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
     def load(self):
         dict_results = {"name_solver": self.output.name_solver}
+        return self._load(self.path_file, dict_results)
 
-        with open(self.path_file) as file_means:
+    @staticmethod
+    def _load(path_file, dict_results={}):
+        if not path_file.endswith(SpatialMeansMSW1L._name_file):
+            path_file = os.path.join(path_file, SpatialMeansMSW1L._name_file)
+
+        with open(path_file) as file_means:
             lines = file_means.readlines()
 
         lines_t = []
@@ -513,7 +513,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel("Charney PE(t)")
-        title = ("mean Charney PE(t)")
+        title = "mean Charney PE(t)"
         ax2.set_title(title)
         ax2.plot(t, CPE, "k", linewidth=2)
 
@@ -543,7 +543,7 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel(r"$\epsilon$ Charney PE(t)")
-        title = ("dissipation Charney PE")
+        title = "dissipation Charney PE"
         ax2.set_title(title)
         ax2.plot(t, epsCPE, "k--", linewidth=2)
         ax2.plot(t, epsCPE_hypo, "g", linewidth=2)
@@ -743,11 +743,14 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             + inner_prod(ux_fft, FJx_fft)
             + inner_prod(uy_fft, FJy_fft)
         )
-        PK2_fft = deltat / 2 * (
-            0.5
-            * (inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft))
-            + inner_prod(ux_fft, FetaFx_fft)
-            + inner_prod(uy_fft, FetaFy_fft)
+        PK2_fft = (
+            deltat
+            / 2
+            * (
+                0.5 * (inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft))
+                + inner_prod(ux_fft, FetaFx_fft)
+                + inner_prod(uy_fft, FetaFy_fft)
+            )
         )
 
         PK1 = self.sum_wavenumbers(PK1_fft)
@@ -760,9 +763,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             to_print = (
                 "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
                 "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
-            ).format(
-                PK1, PK2, PK_tot, PA1, PA2, PA_tot
-            )
+            ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
 
             self.file.write(to_print)
 

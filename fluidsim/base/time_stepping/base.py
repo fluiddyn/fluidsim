@@ -14,6 +14,7 @@ from __future__ import print_function
 from builtins import object
 
 from signal import signal
+from warnings import warn
 from math import pi
 
 from fluiddyn.util import mpi
@@ -41,6 +42,48 @@ class TimeSteppingBase(object):
         }
         params._set_child("time_stepping", attribs=attribs)
 
+        params.time_stepping._set_doc(
+            """
+
+See :mod:`fluidsim.base.time_stepping.base`.
+
+USE_T_END: bool (default True)
+
+    If True, time step until t > t_end. If False, time step until it >= it_end.
+
+t_end: float
+
+    See documentation USE_T_END.
+
+it_end: int
+
+    If USE_T_END is False, number of time steps.
+
+USE_CFL: bool (default False)
+
+    If True, use an adaptive time step computed in particular with a
+    Courant-Friedrichs-Lewy (CFL) condition.
+
+type_time_scheme: str (default "RK4")
+
+    Type of time scheme. Can be in ("RK2", "RK4").
+
+deltat0: float (default 0.2)
+
+    If USE_CFL is False, value of the time step.
+
+deltat_max: float (default 0.2)
+
+    Maximum value of the time step (useful when USE_CFL is True).
+
+cfl_coef: float (default None)
+
+    If not None, clf_coef used in the CFL condition. If None, the value is choosen
+    taking into account the time scheme.
+
+"""
+        )
+
     def __init__(self, sim):
         self.params = sim.params
         self.sim = sim
@@ -54,7 +97,10 @@ class TimeSteppingBase(object):
             print("signal {} received.".format(signal_number))
             self._has_to_stop = True
 
-        signal(12, handler_signals)
+        try:
+            signal(12, handler_signals)
+        except ValueError:
+            warn("Cannot handle signals - is multithreading on?")
 
     def _init_compute_time_step(self):
 
@@ -85,11 +131,17 @@ class TimeSteppingBase(object):
         has_eta = has_vars("eta")
 
         if has_ux and has_uy and has_uz:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyuz
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuyuz
+            )
         elif has_ux and has_uy and has_eta:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuyeta
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuyeta
+            )
         elif has_ux and has_uy:
-            self.compute_time_increment_CLF = self._compute_time_increment_CLF_uxuy
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CLF_uxuy
+            )
         elif has_ux:
             self.compute_time_increment_CLF = self._compute_time_increment_CLF_ux
         elif hasattr(self.params, "U"):
@@ -190,12 +242,9 @@ class TimeSteppingBase(object):
             max_uy = abs(uy).max()
             max_uz = abs(uz).max()
             tmp = (
-                max_ux
-                / self.sim.oper.deltax
-                + max_uy
-                / self.sim.oper.deltay
-                + max_uz
-                / self.sim.oper.deltaz
+                max_ux / self.sim.oper.deltax
+                + max_uy / self.sim.oper.deltay
+                + max_uz / self.sim.oper.deltaz
             )
         else:
             tmp = 0.
@@ -226,7 +275,7 @@ class TimeSteppingBase(object):
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        tmp = (max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay)
+        tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
 
         self._compute_time_increment_CLF_from_tmp(tmp)
 
@@ -256,9 +305,9 @@ class TimeSteppingBase(object):
         else:
             deltat_CFL = self.deltat_max
 
-        deltat_wave = self.CFL * min(
-            self.sim.oper.deltax, self.sim.oper.deltay
-        ) / c
+        deltat_wave = (
+            self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
+        )
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt
 

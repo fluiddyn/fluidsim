@@ -19,6 +19,10 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
+from fluiddoc import mock_modules
+
+mock_modules(('scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.fftpack'))
+
 from fluiddoc.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()
 
@@ -46,7 +50,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode', 'sphinx.ext.autosummary',
     'numpydoc',
-    'mathmacro',
+    'fluiddoc.mathmacro',
     'sphinx.ext.inheritance_diagram'
 ]
 

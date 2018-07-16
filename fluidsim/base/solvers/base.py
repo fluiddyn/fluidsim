@@ -50,6 +50,7 @@ class SimulBase(object):
         Information about the particular solver.
 
     """
+
     InfoSolver = InfoSolverBase
 
     @staticmethod
@@ -63,6 +64,31 @@ class SimulBase(object):
             "nu_2": 0.,
         }
         params._set_attribs(attribs)
+        params._set_doc(
+            """
+short_name_type_run: str
+
+    A short name of the simulation used to create the directory name.
+
+NEW_DIR_RESULTS: bool
+
+    To be used only when loading a simulation. If True (default), a new directory
+    is created to contain the results of the simulation. If False, the results of
+    the simulation are appended in the old directory.
+
+ONLY_COARSE_OPER: bool
+
+    To be used only when loading a simulation. If True (not default), the operator
+    is created with a very small resolution. It is very fast but then it can not
+    be used to process data.
+
+nu_2: float (default = 0.)
+
+    Viscosity coefficient. Used in particular in the method
+    :func:`fluidsim.base.solvers.pseudo_spect.SimulBasePseudoSpectral.compute_freq_diss`).
+
+"""
+        )
 
     @classmethod
     def create_default_params(cls):
@@ -79,7 +105,7 @@ class SimulBase(object):
 
     def __exit__(self, *args):
         if not self._end_of_simul:
-            total_time_simul = (time() - self.time_stepping._time_beginning_simul)
+            total_time_simul = time() - self.time_stepping._time_beginning_simul
             self.time_stepping.time_simul_in_sec = total_time_simul
             self.output.end_of_simul(total_time_simul)
             self._end_of_simul = True

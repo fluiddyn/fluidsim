@@ -61,14 +61,9 @@ class TestSW1L(TestSolver):
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
         A = (
-            Feta
-            * (ux ** 2 + uy ** 2)
-            / 2
-            + (1 + eta)
-            * (ux * Fx + uy * Fy)
-            + self.sim.params.c2
-            * eta
-            * Feta
+            Feta * (ux ** 2 + uy ** 2) / 2
+            + (1 + eta) * (ux * Fx + uy * Fy)
+            + self.sim.params.c2 * eta * Feta
         )
 
         A_fft = oper.fft2(A)
@@ -126,7 +121,7 @@ class TestSW1LModify(TestSW1L):
         Fx = oper.ifft2(Fx_fft)
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
-        A = ((ux * Fx + uy * Fy) + self.sim.params.c2 * eta * Feta)
+        A = (ux * Fx + uy * Fy) + self.sim.params.c2 * eta * Feta
 
         A_fft = oper.fft2(A)
         if mpi.rank == 0:

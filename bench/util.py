@@ -6,12 +6,22 @@ from fluidsim.util.util import available_solver_keys
 import numpy as np
 
 
+if os.getenv('SNIC_RESOURCE') is not None:
+    # from fluiddyn.clusters.snic import ClusterSNIC as Cluster
+    from fluiddyn.clusters.snic import Beskow36 as Cluster
+    cluster_type = 'snic'
+else:
+    from fluiddyn.clusters.local import ClusterLocal as Cluster
+    cluster_type = 'local'
+
+
 def create_common_params(n0, n1=None, n2=None):
     params = Parameters('submit')
     params._set_attrib('weak', False)
     params._set_attrib('dry_run', False)
     params._set_attrib('mode', '')
     params._set_attrib('dim', 3)
+    params._set_attrib('shape', '')
     params._set_attrib('output_dir', '')
 
     if n1 is None:
@@ -21,10 +31,11 @@ def create_common_params(n0, n1=None, n2=None):
         shape='{} {}'.format(n0, n1), time='00:20:00',
         solver='ns2d',
         fft_seq=['fft2d.with_fftw1d',
-                 'fft2d.with_fftw2d'],
+                'fft2d.with_fftw2d'],
         fft=['fft2d.mpi_with_fftw1d',
              'fft2d.mpi_with_fftwmpi2d'],
-        nb_cores=np.logspace(1, 10, 10, base=2, dtype=int), nodes=[]))
+        nb_cores=np.array([2, 4, 8, 16, 32]),
+        nodes=[]))
 
     if n2 is None:
         n2 = n0
@@ -37,7 +48,7 @@ def create_common_params(n0, n1=None, n2=None):
              'fft3d.mpi_with_fftwmpi3d',
              'fft3d.mpi_with_p3dfft',
              'fft3d.mpi_with_pfft'],
-        nb_cores=np.logspace(1, 10, 10, base=2, dtype=int),
+        nb_cores=np.array([2, 4, 8, 16, 32]),
         nodes=[]))
     return params
 
@@ -103,6 +114,7 @@ def parser_to_params(parser):
     params.dim = args.dim
     params.dry_run = args.dry_run
     params.mode = args.mode
+    params.shape = params_dim.shape.replace(' ', 'x')
     return params, params_dim
 
 
@@ -110,13 +122,14 @@ def init_cluster(params, Cluster, prefix='snic', subdir='benchmarks'):
 
     cluster = Cluster()
     if cluster.name_cluster == 'beskow':
-        cluster.default_project = '2016-34-10'
+        cluster.default_project = '2017-12-20'
+        cluster.nb_cores_per_node = 32
     else:
-        cluster.default_project = 'SNIC2016-34-10'
+        cluster.default_project = 'SNIC2017-12-20'
 
     output_dir = params.output_dir = os.path.abspath(
-        './../doc/{}/{}_{}_{}d'.format(
-            subdir, prefix, cluster.name_cluster, params.dim))
+        './../../fluidsim-bench-results/{}/{}_{}'.format(
+            subdir, cluster.name_cluster, params.shape))
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -133,8 +146,9 @@ def submit(
         nb_cores_per_node = cluster.nb_cores_per_node
 
     nb_mpi = nb_cores_per_node * nb_nodes
-    cmd = 'fluidsim {} -s {} {} -t {} -o {}'.format(
-        cmd, params_dim.solver, params_dim.shape, fft, params.output_dir)
+    nb_iterations = 20
+    cmd = 'fluidsim {} -s {} {} -t {} -it {} -o {}'.format(
+        cmd, params_dim.solver, params_dim.shape, fft, nb_iterations, params.output_dir)
     if params.dry_run:
         print('np =', nb_mpi, end=' ')
         print(cmd)
@@ -146,4 +160,4 @@ def submit(
             nb_cores_per_node=nb_cores_per_node,
             walltime=params_dim.time,
             nb_mpi_processes=nb_mpi, omp_num_threads=1,
-            ask=False, bash=False, interactive=True, retain_script=False)
+            ask=False, bash=False, interactive=True, retain_script=True)

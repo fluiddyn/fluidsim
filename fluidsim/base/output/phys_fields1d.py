@@ -26,7 +26,6 @@ from .phys_fields import PhysFieldsBase
 
 
 class MoviesBasePhysFields1D(MoviesBase1D):
-
     def __init__(self, output, phys_fields):
         self.phys_fields = phys_fields
         super(MoviesBasePhysFields1D, self).__init__(output)
@@ -34,7 +33,6 @@ class MoviesBasePhysFields1D(MoviesBase1D):
 
 
 class PhysFieldsBase1D(PhysFieldsBase):
-
     def _init_movies(self):
         self.movies = MoviesBasePhysFields1D(self.output, self)
 

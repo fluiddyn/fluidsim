@@ -70,25 +70,55 @@ class OperatorsPseudoSpectral3D(_Operators):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
-
-        if nb_proc > 1:
-            type_fft = "fft3d.mpi_with_fftwmpi3d"
-        else:
-            type_fft = "fft3d.with_pyfftw"
-
         attribs = {
-            "type_fft": type_fft,
-            "type_fft2d": "fft2d.with_pyfftw",
-            "TRANSPOSED_OK": True,
+            "type_fft": "default",
+            "type_fft2d": "default",
             "coef_dealiasing": 2. / 3,
             "nx": 48,
             "ny": 48,
             "nz": 48,
             "Lx": 2 * pi,
             "Ly": 2 * pi,
-            "Lz": 2 * pi
+            "Lz": 2 * pi,
         }
         params._set_child("oper", attribs=attribs)
+        params.oper._set_doc(
+            """
+
+See the `documentation of fluidfft <http://fluidfft.readthedocs.io>`_ (in
+particular of the `3d operator class
+<http://fluidfft.readthedocs.io/en/latest/generated/fluidfft.fft3d.operators.html>`_).
+
+type_fft: str
+
+    Method for the FFT (as defined by fluidfft).
+
+type_fft2d: str
+
+    Method for the 2d FFT.
+
+coef_dealiasing: float
+
+    dealiasing coefficient.
+
+nx: int
+
+    Number of points over the x-axis (last dimension in the physical space).
+
+ny: int
+
+    Number of points over the y-axis (second dimension in the physical space).
+
+nz: int
+
+    Number of points over the z-axis (first dimension in the physical space).
+
+Lx, Ly and Lz: float
+
+    Length of the edges of the numerical domain.
+
+"""
+        )
 
     def __init__(self, params=None):
 
@@ -110,7 +140,11 @@ class OperatorsPseudoSpectral3D(_Operators):
         params2d.oper.type_fft = params2d.oper.type_fft2d
         fft = params2d.oper.type_fft
 
-        if any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]]):
+        if (
+            any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]])
+            or fft == "default"
+            or fft is None
+        ):
             self.oper2d = OpPseudoSpectral2D(params2d)
         else:
             raise ValueError

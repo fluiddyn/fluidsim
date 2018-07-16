@@ -156,6 +156,20 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             )
             self._im_inset = ax2.plot([0], [0], color="red")
 
+    def _init_skip_quiver(self):
+        # 4% of the Lx it is a great separation between vector arrows.
+        try:
+            delta_quiver = 0.04 * self.oper.Lx
+        except AttributeError:
+            skip = 1
+        else:
+            skip = (self.oper.nx_seq / self.oper.Lx) * delta_quiver
+            skip = int(np.round(skip))
+            if skip < 1:
+                skip = 1
+        self._skip_quiver = skip
+        return skip
+
     def _get_axis_data(self, shape=None):
         """Get 1D arrays for setting the axes."""
 
@@ -250,7 +264,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
 
 class PhysFieldsBase2D(PhysFieldsBase):
-
     def _init_movies(self):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 

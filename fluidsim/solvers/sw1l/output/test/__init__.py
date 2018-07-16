@@ -14,6 +14,7 @@ class BaseTestCase(unittest.TestCase):
     """ TestCase classes that want to be parametrized should
         inherit from this class.
     """
+
     solver = "sw1l"
     _tag = ""
 

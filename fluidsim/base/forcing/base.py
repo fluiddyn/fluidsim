@@ -43,7 +43,8 @@ class ForcingBase(object):
                 classesXML._set_child(
                     cls.tag,
                     attribs={
-                        "module_name": cls.__module__, "class_name": cls.__name__
+                        "module_name": cls.__module__,
+                        "class_name": cls.__name__,
                     },
                 )
 
@@ -65,6 +66,8 @@ class ForcingBase(object):
         params.forcing._set_doc(
             """
 
+See :mod:`fluidsim.base.forcing`.
+
 type : str
 
   Type of forcing.
@@ -75,7 +78,7 @@ available_types : list
 
 forcing_rate : float
 
-  Forcing (energy? depends on the solver) injection rate.
+  Forcing injection rate.
 
 key_forced: {None} or str
 
@@ -132,6 +135,13 @@ key_forced: {None} or str
 
     def get_forcing(self):
         return self.forcing_maker.forcing_phys
+
+    def is_initialized(self):
+        if hasattr(self.forcing_maker, "is_initialized"):
+            return self.forcing_maker.is_initialized
+
+        else:
+            return True
 
 
 class ForcingBasePseudoSpectral(ForcingBase):

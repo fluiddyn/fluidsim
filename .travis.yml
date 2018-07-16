@@ -4,16 +4,22 @@ python:
   - 3.6
   - 2.7
   - 3.5
-  - 3.4
 
 env:
-  - TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9 
-  - TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+  - TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
+  - TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
 
 addons:
   apt:
     sources: ubuntu-toolchain-r-test
-    packages: [gcc-4.9, g++-4.9, libfftw3-dev, libfftw3-mpi-dev, libhdf5-openmpi-dev, openmpi-bin]  # , libopenblas-dev]
+    packages:
+      - gcc-6
+      - g++-6
+      - libfftw3-dev
+      - libfftw3-mpi-dev
+      - libhdf5-openmpi-dev
+      - openmpi-bin
+      - libopenblas-dev
 
 matrix:
   fast_finish: true
@@ -31,9 +37,7 @@ matrix:
 
   exclude:
     - python: 3.5
-      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
-    - python: 3.4
-      env: TOXENV=py-pythran,codecov-travis OMPI_CC=/usr/bin/gcc-4.9 OMPI_CXX=/usr/bin/g++-4.9
+      env: TOXENV=py,codecov-travis OMPI_CC=/usr/bin/gcc-6 OMPI_CXX=/usr/bin/g++-6
 
 before_cache:
   - |
@@ -46,8 +50,8 @@ cache:
         # - $TRAVIS_BUILD_DIR/.tox
 
 install:
-    - pip install -U pip "setuptools<=36.6.0" wheel six colorlog
-    - pip install -U tox-pipenv coverage
+    - pip install -U pip setuptools wheel six colorlog
+    - pip install -U tox-pipenv coverage fluiddevops
     - pip install -U numpy cython mako mpi4py  # To be removed when pip==10 is out and this step can be bootstrapped
 
 before_script:
@@ -55,10 +59,11 @@ before_script:
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
       echo '[pythran]\ncomplex_hook = True' > $HOME/.pythranrc
-      wget https://bitbucket.org/fluiddyn/fluidfft/raw/default/site.cfg.files/site.cfg.travis -O $HOME/.fluidfft-site.cfg
+      wget https://bitbucket.org/fluiddyn/fluidfft/raw/default/site.cfg.files/site.cfg.travis_$TRAVIS_OS_NAME -O $HOME/.fluidfft-site.cfg
 
 script:
-    - travis_wait 30 tox -vv
+    - set -o pipefail
+    - tox -vv | fluidicat --every 1 --wait 300
 
 notifications:
   email: false

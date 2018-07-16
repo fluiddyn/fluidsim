@@ -127,7 +127,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             warn(
                 "The specialized function "
                 + name_function
-                + " is not implemented."
+                + " is not implemented (solver {}).".format(
+                    self.sim.info_solver.short_name
+                )
             )
 
             name_function = "_time_step_" + params_ts.type_time_scheme
@@ -331,9 +333,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         # based on approximation 2
         state_spect_temp += dt / 3 * diss2 * tendencies_fft_1
-        state_spect_np12_approx2 = (
-            state_spect * diss2 + dt / 2 * tendencies_fft_1
-        )
+        state_spect_np12_approx2 = state_spect * diss2 + dt / 2 * tendencies_fft_1
 
         tendencies_fft_2 = tendencies_nonlin(
             state_spect_np12_approx2, old=tendencies_fft_1

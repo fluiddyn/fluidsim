@@ -42,6 +42,7 @@ class InitFieldsDipole(SpecificInitFields):
 
         fields = {"vx_fft": vx_fft, "vy_fft": vy_fft}
         self.sim.state.init_statespect_from(**fields)
+        self.sim.state.statephys_from_statespect()
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
@@ -52,11 +53,8 @@ class InitFieldsDipole(SpecificInitFields):
         omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return (
-                2
-                * np.exp(-(XX ** 2 + (YY - (b / 2.)) ** 2))
-                - 2
-                * np.exp(-(XX ** 2 + (YY + (b / 2.)) ** 2))
+            return 2 * np.exp(-(XX ** 2 + (YY - (b / 2.)) ** 2)) - 2 * np.exp(
+                -(XX ** 2 + (YY + (b / 2.)) ** 2)
             )
 
         XX = oper.oper2d.XX
@@ -64,24 +62,19 @@ class InitFieldsDipole(SpecificInitFields):
 
         for ip in range(-1, 2):
             for jp in range(-1, 2):
-                XX_s = (
-                    np.cos(theta)
-                    * (XX - xs - ip * oper.Lx)
-                    + np.sin(theta)
-                    * (YY - ys - jp * oper.Ly)
-                )
-                YY_s = (
-                    np.cos(theta)
-                    * (YY - ys - jp * oper.Ly)
-                    - np.sin(theta)
-                    * (XX - xs - ip * oper.Lx)
-                )
+                XX_s = np.cos(theta) * (XX - xs - ip * oper.Lx) + np.sin(
+                    theta
+                ) * (YY - ys - jp * oper.Ly)
+                YY_s = np.cos(theta) * (YY - ys - jp * oper.Ly) - np.sin(
+                    theta
+                ) * (XX - xs - ip * oper.Lx)
                 omega += wz_2LO(XX_s, YY_s, b)
         return omega
 
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod
@@ -91,6 +84,18 @@ class InitFieldsNoise(SpecificInitFields):
 
         params.init_fields._set_child(
             cls.tag, attribs={"velo_max": 1., "length": None}
+        )
+        params.init_fields.noise._set_doc(
+            """
+velo_max: float (default 1.)
+
+    Maximum velocity.
+
+length: float (default 0.)
+
+    The smallest (cutoff) scale in the noise.
+
+"""
         )
 
     def __call__(self):
@@ -129,6 +134,7 @@ class InitFieldsNoise(SpecificInitFields):
                 fields[key] = (velo_max / value_max) * field_fft
 
         self.sim.state.init_statespect_from(**fields)
+        self.sim.state.statephys_from_statespect()
 
     def compute_vv_fft(self):
 
@@ -143,19 +149,13 @@ class InitFieldsNoise(SpecificInitFields):
             return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
 
         # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42)  # this does not work for MPI...
+        np.random.seed(42 + mpi.rank)
+
+        vv = [np.random.random(oper.shapeX_loc) - 0.5 for i in range(3)]
 
         vv_fft = []
-        for ii in range(3):
-            vv_fft.append(
-                (
-                    np.random.random(oper.shapeK)
-                    + 1j
-                    * np.random.random(oper.shapeK)
-                    - 0.5
-                    - 0.5j
-                )
-            )
+        for ii, vi in enumerate(vv):
+            vv_fft.append(oper.fft(vi))
 
             if mpi.rank == 0:
                 vv_fft[ii][0, 0, 0] = 0.

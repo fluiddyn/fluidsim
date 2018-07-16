@@ -1,7 +1,7 @@
 """
 Module where the version is written.
 
-It is executed in setup.py and imported in fluiddyn/__init__.py.
+It is executed in setup.py and imported in fluidsim/__init__.py.
 
 See:
 
@@ -26,7 +26,7 @@ try:
 
     __version__ = get_version()
 except:
-    __version__ = "0.1.1"
+    __version__ = "0.2.2"
 
 
 try:

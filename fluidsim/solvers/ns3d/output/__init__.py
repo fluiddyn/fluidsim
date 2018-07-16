@@ -7,7 +7,6 @@ from fluidsim.base.output import OutputBasePseudoSpectral
 
 
 class Output(OutputBasePseudoSpectral):
-
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""
@@ -61,7 +60,7 @@ class Output(OutputBasePseudoSpectral):
         return (
             0.5 * np.abs(vx_fft) ** 2,
             0.5 * np.abs(vy_fft) ** 2,
-            0.5 * np.abs(vz_fft) ** 2
+            0.5 * np.abs(vz_fft) ** 2,
         )
 
     def compute_energy_fft(self):

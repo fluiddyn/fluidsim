@@ -15,10 +15,13 @@ This module provides two classes defining the pseudo-spectral solver
 """
 from __future__ import division
 
+import sys
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral,
 )
 
 from .util_pythran import compute_Frot
@@ -83,6 +86,7 @@ class Simul(SimulBasePseudoSpectral):
     .. inheritance-diagram:: Simul
 
     """
+
     InfoSolver = InfoSolverNS2D
 
     @staticmethod
@@ -178,6 +182,19 @@ class Simul(SimulBasePseudoSpectral):
         return tendencies_fft
 
 
+if "sphinx" in sys.modules:
+    params = Simul.create_default_params()
+
+    __doc__ += (
+        "Default parameters\n"
+        "------------------\n"
+        ".. code-block:: xml\n\n    "
+        + "\n    ".join(params.__str__().split("\n\n", 1)[1].split("\n"))
+        + "\n"
+        + params._get_formatted_docs()
+    )
+
+
 if __name__ == "__main__":
 
     from math import pi
@@ -194,9 +211,9 @@ if __name__ == "__main__":
 
     delta_x = Lh / nh
 
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 10.
 

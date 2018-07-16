@@ -49,6 +49,7 @@ class TimeCorrelatedRandomPseudoSpectral(TCRandomPS):
     correlation for a certain time interval.
 
     """
+
     _key_forced_default = "q_fft"
 
 
@@ -61,6 +62,7 @@ class Waves(RandomSimplePseudoSpectral):
     on the K.E and A.P.E thus generated. The forcing is white noise in time.
 
     """
+
     tag = "waves"
     _key_forced_default = "a_fft"
 
@@ -97,6 +99,7 @@ class WavesVortices(Waves):
     normalizes the forcing rate based on the K.E and A.P.E thus generated.
 
     """
+
     tag = "waves_vortices"
     _key_forced_default = ("q_fft", "a_fft")
 
@@ -171,6 +174,7 @@ class WavesVortices(Waves):
 
 class Potential(Waves):
     """Forces only in A.P.E. and normalize for the desired forcing rate."""
+
     tag = "potential"
     _key_forced_default = "eta_fft"
 

@@ -53,16 +53,11 @@ class TestSolverNS2D(unittest.TestCase):
 
         T_rot = np.real(Frot_fft.conj() * rot_fft)
 
-        ratio = (
-            sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(abs(T_rot))
+        ratio = sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(
+            abs(T_rot)
         )
 
         self.assertGreater(1e-15, ratio)
-
-    # print ('sum(T_rot) = {0:9.4e} ; '
-    #        'sum(abs(T_rot)) = {1:9.4e}').format(
-    #            sim.oper.sum_wavenumbers(T_rot),
-    #            sim.oper.sum_wavenumbers(abs(T_rot)))
 
     def test_forcing_output(self):
 

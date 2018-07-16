@@ -261,12 +261,8 @@ def calcul_viscosity(
         oper = kwargs["oper"]
         coef_dealiasing = oper.coef_dealiasing
         nk_f = (
-            (
-                oper.params.forcing.nkmax_forcing
-                + oper.params.forcing.nkmin_forcing
-            )
-            // 2
-        )
+            oper.params.forcing.nkmax_forcing + oper.params.forcing.nkmin_forcing
+        ) // 2
         delta_x = oper.deltax
         deltak = oper.deltak
     else:

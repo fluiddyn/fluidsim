@@ -19,7 +19,9 @@ class OutputSW1LExactlinModified(OutputBaseSW1L):
         classes = info_solver.classes.Output.classes
 
         classes.SpatialMeans.class_name = "SpatialMeansMSW1L"
-        classes.SpectralEnergyBudget.class_name = "SpectralEnergyBudgetSW1LModified"
+        classes.SpectralEnergyBudget.class_name = (
+            "SpectralEnergyBudgetSW1LModified"
+        )
 
     def compute_energies_fft(self):
         ux_fft = self.sim.state.get_var("ux_fft")

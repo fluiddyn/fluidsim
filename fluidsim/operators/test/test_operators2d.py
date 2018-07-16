@@ -57,7 +57,7 @@ def compute_increments_dim1_old(var, irx):
     inc_var = np.empty([n0, n1new])
     for i0 in range(n0):
         for i1 in range(n1new):
-            inc_var[i0, i1] = (var[i0, i1 + irx] - var[i0, i1])
+            inc_var[i0, i1] = var[i0, i1 + irx] - var[i0, i1]
     return inc_var
 
 
@@ -66,7 +66,6 @@ def compute_increments_dim1_old(var, irx):
 )
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()
@@ -114,7 +113,6 @@ class TestOperators(unittest.TestCase):
 
 
 class TestOperatorsDealiasing(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper(coef_dealiasing=False)

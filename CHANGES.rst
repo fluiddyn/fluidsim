@@ -1,4 +1,23 @@
 
+0.2.2 (2018-07-01)
+------------------
+
+- Let fluidfft decides which FFT class to use (dependency fluidfft >= 0.2.4)
+
+0.2.1 (2018-05-24)
+------------------
+
+- IPython magic commands (by Ashwin Vishnu).
+- Bugfix divergence-free flow and time_stepping in ns3d solvers.
+
+0.2.0 (2018-05-04)
+------------------
+
+- Many bugfixes and nicer code (using the Python code formatter Black).
+- Faster ns3d solver.
+- ns2d.strat + anisotropic forcing (by Miguel Calpe Linares).
+- Nicer forcing parameters.
+
 0.1.1
 -----
 

@@ -47,21 +47,20 @@ class SpatialMeansNS2D(SpatialMeansBase):
             ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
             PZ1_fft = np.real(rot_fft.conj() * Frot_fft)
-            PZ2_fft = (abs(Frot_fft) ** 2)
+            PZ2_fft = abs(Frot_fft) ** 2
 
             PZ1 = self.sum_wavenumbers(PZ1_fft)
             PZ2 = deltat / 2 * self.sum_wavenumbers(PZ2_fft)
 
-            PK1_fft = np.real(
-                ux_fft.conj()
-                * Fx_fft
-                + ux_fft
-                * Fx_fft.conj()
-                + uy_fft.conj()
-                * Fy_fft
-                + uy_fft
-                * Fy_fft.conj()
-            ) / 2
+            PK1_fft = (
+                np.real(
+                    ux_fft.conj() * Fx_fft
+                    + ux_fft * Fx_fft.conj()
+                    + uy_fft.conj() * Fy_fft
+                    + uy_fft * Fy_fft.conj()
+                )
+                / 2
+            )
             PK2_fft = (abs(Fx_fft) ** 2 + abs(Fy_fft) ** 2) * deltat / 2
 
             PK1 = self.sum_wavenumbers(PK1_fft)
@@ -92,9 +91,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 to_print = (
                     "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
                     "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
-                ).format(
-                    PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2
-                )
+                ).format(PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2)
                 self.file.write(to_print)
 
             self.file.flush()

@@ -13,7 +13,8 @@
 """
 
 from ..solvers.pseudo_spect import (
-    InfoSolverPseudoSpectral, SimulBasePseudoSpectral
+    InfoSolverPseudoSpectral,
+    SimulBasePseudoSpectral,
 )
 
 
@@ -38,7 +39,7 @@ class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
         self.class_name = "SimulSphericalHarmo"
         self.short_name = "BaseSH"
 
-        self.classes.Operators.module_name = ("fluidsim.operators.sphericalharmo")
+        self.classes.Operators.module_name = "fluidsim.operators.sphericalharmo"
         self.classes.Operators.class_name = "OperatorsSphericalHarmonics"
 
         self.classes.State.module_name = here + ".state"
@@ -50,6 +51,7 @@ class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
 
 class SimulSphericalHarmo(SimulBasePseudoSpectral):
     """Pseudo-spectral base solver."""
+
     InfoSolver = InfoSolverSphericalHarmo
 
 

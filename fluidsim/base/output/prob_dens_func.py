@@ -13,6 +13,7 @@ from fluidsim.base.output.base import SpecificOutput
 class ProbaDensityFunc(SpecificOutput):
     """Handle the saving and plotting of pdf of the turbulent kinetic energy.
     """
+
     _tag = "pdf"
     _name_file = _tag + ".h5"
 
@@ -79,93 +80,92 @@ class ProbaDensityFunc(SpecificOutput):
 
     def load(self):
         """load the saved pdf and return a dictionary."""
-        f = h5py.File(self.path_file, "r")
-        # dset_times = f['times']
-        # times = dset_times[...]
-        # nt = len(times)
+        with h5py.File(self.path_file, "r") as h5file:
 
-        dset_pdf_eta = f["pdf_eta"]
-        dset_bin_edges_eta = f["bin_edges_eta"]
+            dset_pdf_eta = h5file["pdf_eta"]
+            dset_bin_edges_eta = h5file["bin_edges_eta"]
 
-        pdf_eta = dset_pdf_eta[...]
-        bin_edges_eta = dset_bin_edges_eta[...]
+            pdf_eta = dset_pdf_eta[...]
+            bin_edges_eta = dset_bin_edges_eta[...]
 
-        dset_pdf_u = f["pdf_u"]
-        dset_bin_edges_u = f["bin_edges_u"]
+            dset_pdf_u = h5file["pdf_u"]
+            dset_bin_edges_u = h5file["bin_edges_u"]
 
-        pdf_u = dset_pdf_u[...]
-        bin_edges_u = dset_bin_edges_u[...]
+            pdf_u = dset_pdf_u[...]
+            bin_edges_u = dset_bin_edges_u[...]
 
-        dict_pdf = {
-            "pdf_eta": pdf_eta,
-            "bin_edges_eta": bin_edges_eta,
-            "pdf_u": pdf_u,
-            "bin_edges_u": bin_edges_u,
-        }
+            dict_pdf = {
+                "pdf_eta": pdf_eta,
+                "bin_edges_eta": bin_edges_eta,
+                "pdf_u": pdf_u,
+                "bin_edges_u": bin_edges_u,
+            }
         return dict_pdf
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         """Plot some pdf."""
-        f = h5py.File(self.path_file, "r")
-        dset_times = f["times"]
-        times = dset_times[...]
-        # nt = len(times)
+        with h5py.File(self.path_file, "r") as h5file:
+            dset_times = h5file["times"]
+            times = dset_times[...]
+            # nt = len(times)
 
-        dset_pdf_eta = f["pdf_eta"]
-        dset_bin_edges_eta = f["bin_edges_eta"]
-        dset_pdf_u = f["pdf_u"]
-        dset_bin_edges_u = f["bin_edges_u"]
+            dset_pdf_eta = h5file["pdf_eta"]
+            dset_bin_edges_eta = h5file["bin_edges_eta"]
+            dset_pdf_u = h5file["pdf_u"]
+            dset_bin_edges_u = h5file["bin_edges_u"]
 
-        delta_t_save = np.mean(times[1:] - times[0:-1])
-        delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
-        if delta_i_plot == 0:
-            delta_i_plot = 1
-        delta_t = delta_i_plot * delta_t_save
+            delta_t_save = np.mean(times[1:] - times[0:-1])
+            delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
+            if delta_i_plot == 0:
+                delta_i_plot = 1
+            delta_t = delta_i_plot * delta_t_save
 
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
 
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
+            tmin_plot = times[imin_plot]
+            tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
+            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+                tmin, tmax, delta_t
+            )
+            print(to_print)
 
-        to_print = (
-            "plot pdf eta\n"
-            "tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-            "imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-        ).format(
-            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-        )
-        print(to_print)
+            to_print = (
+                "plot pdf eta\n"
+                "tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
+                "imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
+            ).format(
+                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+            )
+            print(to_print)
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.56
-        width_axe = 0.85
-        height_axe = 0.37
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        ax1.set_xlabel(r"$\eta$")
-        ax1.set_ylabel("PDF")
-        ax1.set_title(
-            "PDF, solver "
-            + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.hold(True)
-        ax1.set_xscale("linear")
-        ax1.set_yscale("linear")
+            x_left_axe = 0.12
+            z_bottom_axe = 0.56
+            width_axe = 0.85
+            height_axe = 0.37
+            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+            fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+            ax1.set_xlabel(r"$\eta$")
+            ax1.set_ylabel("PDF")
+            ax1.set_title(
+                "PDF, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.nx)
+                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            )
+            ax1.hold(True)
+            ax1.set_xscale("linear")
+            ax1.set_yscale("linear")
 
-        for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-            pdf_eta = dset_pdf_eta[it]
-            bin_edges_eta = dset_bin_edges_eta[it]
+            for it in range(imin_plot, imax_plot + 1, delta_i_plot):
+                pdf_eta = dset_pdf_eta[it]
+                bin_edges_eta = dset_bin_edges_eta[it]
 
-            bin_edges_eta = old_div((bin_edges_eta[:-1] + bin_edges_eta[1:]), 2)
-            ax1.plot(bin_edges_eta, pdf_eta, "c", linewidth=1)
+                bin_edges_eta = old_div(
+                    (bin_edges_eta[:-1] + bin_edges_eta[1:]), 2
+                )
+                ax1.plot(bin_edges_eta, pdf_eta, "c", linewidth=1)
 
         z_bottom_axe = 0.09
         size_axe[1] = z_bottom_axe

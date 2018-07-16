@@ -11,6 +11,8 @@
 """
 from __future__ import division
 
+import sys
+
 from fluiddyn.util.mpi import rank
 
 from fluidfft.fft3d.operators import vector_product
@@ -18,12 +20,12 @@ from fluidfft.fft3d.operators import vector_product
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D
+    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral3D,
 )
 
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
-
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()
@@ -37,6 +39,9 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
 
         classes.State.module_name = package + ".state"
         classes.State.class_name = "StateNS3D"
+
+        classes.TimeStepping.module_name = package + ".time_stepping"
+        classes.TimeStepping.class_name = "TimeSteppingPseudoSpectralNS3D"
 
         classes.InitFields.module_name = package + ".init_fields"
         classes.InitFields.class_name = "InitFieldsNS3D"
@@ -101,6 +106,14 @@ class Simul(SimulBasePseudoSpectral):
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
         params._set_attrib("f", None)
+        params._set_doc(
+            params._doc
+            + """
+f: float (default None)
+
+    Coriolis parameter (effect of the system rotation).
+"""
+        )
 
     def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
         if rank == 0:
@@ -121,8 +134,12 @@ class Simul(SimulBasePseudoSpectral):
         vy_fft = spect_get_var("vy_fft")
         vz_fft = spect_get_var("vz_fft")
 
-        omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
-            vx_fft, vy_fft, vz_fft
+        omegax_fft = self.state.fields_spect_tmp[0]
+        omegay_fft = self.state.fields_spect_tmp[1]
+        omegaz_fft = self.state.fields_spect_tmp[2]
+
+        oper.rotfft_from_vecfft_outin(
+            vx_fft, vy_fft, vz_fft, omegax_fft, omegay_fft, omegaz_fft
         )
 
         if self.params.f is not None:
@@ -173,9 +190,20 @@ class Simul(SimulBasePseudoSpectral):
         return tendencies_fft
 
 
-if __name__ == "__main__":
+if "sphinx" in sys.modules:
+    params = Simul.create_default_params()
 
-    import numpy as np
+    __doc__ += (
+        "Default parameters\n"
+        "------------------\n"
+        ".. code-block:: xml\n\n    "
+        + "\n    ".join(params.__str__().split("\n\n", 1)[1].split("\n"))
+        + "\n"
+        + params._get_formatted_docs()
+    )
+
+
+if __name__ == "__main__":
 
     import fluiddyn as fld
 

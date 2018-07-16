@@ -121,7 +121,7 @@ class SpatialMeansBase(SpecificOutput):
         dict_time_means = {}
         for key, value in dict_results.items():
             if isinstance(value, np.ndarray):
-                dict_time_means[key] = np.mean(value[imin_mean:imax_mean + 1])
+                dict_time_means[key] = np.mean(value[imin_mean : imax_mean + 1])
         return dict_time_means, dict_results
 
     def _close_file(self):

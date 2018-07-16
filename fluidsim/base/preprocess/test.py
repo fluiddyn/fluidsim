@@ -8,7 +8,6 @@ from fluiddyn.io import stdout_redirected
 
 
 class TestPreprocessPS(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         """Should be able to run a base experiment."""

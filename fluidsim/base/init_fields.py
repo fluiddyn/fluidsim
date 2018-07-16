@@ -1,7 +1,6 @@
 """Initialisation of the fields (:mod:`fluidsim.base.init_fields`)
 ========================================================================
 
-
 Provides:
 
 .. autoclass:: InitFieldsBase
@@ -65,7 +64,8 @@ class InitFieldsBase(object):
             classesXML._set_child(
                 tag,
                 attribs={
-                    "module_name": cls.__module__, "class_name": cls.__name__
+                    "module_name": cls.__module__,
+                    "class_name": cls.__name__,
                 },
             )
 
@@ -80,6 +80,26 @@ class InitFieldsBase(object):
                 "available_types": [],
                 "modif_after_init": False,
             },
+        )
+
+        params.init_fields._set_doc(
+            """
+
+See :mod:`fluidsim.base.init_fields`.
+
+type: str (default constant)
+
+    Name of the initialization method.
+
+available_types: list
+
+    Actually not a parameter; just a hint to set `type`.
+
+modif_after_init: bool (default False)
+
+    Used internally when reloading some simulations.
+
+"""
         )
 
         dict_classes = info_solver.classes.InitFields.import_classes()
@@ -140,6 +160,11 @@ class InitFieldsFromFile(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(InitFieldsFromFile, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"path": ""})
+        params.init_fields.from_file._set_doc(
+            """
+path: str
+"""
+        )
 
     def __call__(self):
 
@@ -152,21 +177,21 @@ class InitFieldsFromFile(SpecificInitFields):
 
         if mpi.rank == 0:
             try:
-                f = h5py.File(path_file, "r")
+                h5file = h5py.File(path_file, "r")
             except:
                 raise ValueError("Is file " + path_file + " really a hd5 file?")
 
             print("Load state from file:\n[...]" + path_file[-75:])
 
             try:
-                group_oper = f["/info_simul/params/oper"]
+                group_oper = h5file["/info_simul/params/oper"]
             except:
                 raise ValueError(
                     "The file " + path_file + " does not contain a params object"
                 )
 
             try:
-                group_state_phys = f["/state_phys"]
+                group_state_phys = h5file["/state_phys"]
             except:
                 raise ValueError(
                     "The file "
@@ -221,7 +246,7 @@ class InitFieldsFromFile(SpecificInitFields):
                 if mpi.rank == 0:
                     field_seq = group_state_phys[k][...]
                 else:
-                    field_seq = self.sim.oper.create_arrayX()
+                    field_seq = None
 
                 if mpi.nb_proc > 1:
                     field_loc = self.sim.oper.scatter_Xspace(field_seq)
@@ -237,7 +262,7 @@ class InitFieldsFromFile(SpecificInitFields):
             except KeyError:
                 # compatibility with older versions
                 it = 0
-            f.close()
+            h5file.close()
         else:
             time = 0.
             it = 0
@@ -356,6 +381,11 @@ class InitFieldsConstant(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(InitFieldsConstant, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"value": 1.})
+        params.init_fields.constant._set_doc(
+            """
+value: float (default 1.)
+"""
+        )
 
     def __call__(self):
         value = self.sim.params.init_fields.constant.value
@@ -367,6 +397,7 @@ class InitFieldsConstant(SpecificInitFields):
 
 class InitFieldsNoise(SpecificInitFields):
     """Initialize the state with noise."""
+
     tag = "noise"
 
     @classmethod
@@ -374,11 +405,18 @@ class InitFieldsNoise(SpecificInitFields):
         """Complete the `params` container (class method)."""
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"max": 1.})
+        params.init_fields.noise._set_doc(
+            """
+max: float (default 1.)
+"""
+        )
 
     def __call__(self):
         state_phys = self.sim.state.state_phys
-        state_phys[...] = self.sim.params.init_fields.noise.max / 0.5 * (
-            np.random.rand(*state_phys.shape) - 0.5
+        state_phys[...] = (
+            self.sim.params.init_fields.noise.max
+            / 0.5
+            * (np.random.rand(*state_phys.shape) - 0.5)
         )
 
         if hasattr(self.sim.state, "statespect_from_statephys"):

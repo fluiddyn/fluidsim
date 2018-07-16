@@ -10,7 +10,6 @@ from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
 
-
 try:
     from Cython.Distutils.extension import Extension
     from Cython.Distutils import build_ext
@@ -23,21 +22,35 @@ except ImportError:
     has_cython = False
     ext_source = 'c'
 
-
 try:
     from pythran.dist import PythranExtension
     use_pythran = True
 except ImportError:
     use_pythran = False
 
-
 import numpy as np
 
 from config import (
     MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger)
 
+if use_pythran:
+    try:
+        from pythran.dist import PythranBuildExt
+
+        class fluidsim_build_ext(build_ext, PythranBuildExt):
+            pass
+    except ImportError:
+        fluidsim_build_ext = build_ext
+else:
+    fluidsim_build_ext = build_ext
+
+
 time_start = time()
 config = get_config()
+
+# handle environ (variables) in config
+if 'environ' in config:
+    os.environ.update(config['environ'])
 
 monkeypatch_parallel_build()
 
@@ -96,11 +109,11 @@ logger.info('The following extensions could be built if necessary:\n' +
       ''.join([ext.name + '\n' for ext in ext_modules]))
 
 
-install_requires = ['fluiddyn >= 0.2.2', 'future >= 0.16',
+install_requires = ['fluiddyn >= 0.2.3', 'future >= 0.16',
                     'h5py', 'h5netcdf']
 
 if FFTW3:
-    install_requires += ['pyfftw >= 0.10.4', 'fluidfft']
+    install_requires += ['pyfftw >= 0.10.4', 'fluidfft >= 0.2.4']
 
 
 def modification_date(filename):
@@ -131,11 +144,13 @@ def make_pythran_extensions(modules):
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
             pext = PythranExtension(
-                mod, [py_file],  # extra_compile_args=['-O3', '-fopenmp']
+                mod, [py_file], extra_compile_args=['-O3']
             )
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...
-            pext.extra_compile_args.extend(['-O3', '-march=native'])
+            compile_arch = os.getenv('CARCH', 'native')
+            pext.extra_compile_args.extend(['-O3',
+                                            '-march={}'.format(compile_arch)])
             # pext.extra_link_args.extend(['-fopenmp'])
             extensions.append(pext)
     return extensions
@@ -191,18 +206,18 @@ setup(name='fluidsim',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Cython',
           'Programming Language :: C',
       ],
+      python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
       packages=find_packages(exclude=['doc', 'examples']),
       install_requires=install_requires,
       extras_require=dict(
           doc=['Sphinx>=1.1', 'numpydoc'],
           parallel=['mpi4py']),
-      cmdclass={"build_ext": build_ext},
+      cmdclass={"build_ext": fluidsim_build_ext},
       ext_modules=ext_modules,
       entry_points={'console_scripts': console_scripts})
 

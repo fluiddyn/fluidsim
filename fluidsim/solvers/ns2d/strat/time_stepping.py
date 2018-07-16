@@ -37,12 +37,14 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         self.coef_phase = 1.0
 
         has_vars = self.sim.state.has_vars
-        has_ux = (has_vars("ux") or has_vars("vx"))
-        has_uy = (has_vars("uy") or has_vars("vy"))
+        has_ux = has_vars("ux") or has_vars("vx")
+        has_uy = has_vars("uy") or has_vars("vy")
         has_b = has_vars("b")
 
         if has_ux and has_uy and has_b:
-            self.compute_time_increment_CLF = self._compute_time_increment_CFL_uxuyb
+            self.compute_time_increment_CLF = (
+                self._compute_time_increment_CFL_uxuyb
+            )
 
         # Try to compute deltat_dispersion_relation.
         try:
@@ -88,7 +90,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         """
         Compute time increment of the forcing.
         """
-        return (1. / (self.sim.params.forcing.forcing_rate ** (1. / 3)))
+        return 1. / (self.sim.params.forcing.forcing_rate ** (1. / 3))
 
     def _compute_time_increment_group_and_phase(self):
         r"""
@@ -109,7 +111,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         max_cgx = cg_kx.max()
         max_cgz = cg_kz.max()
 
-        freq_group = (max_cgx / oper.deltax + max_cgz / oper.deltay)
+        freq_group = max_cgx / oper.deltax + max_cgz / oper.deltay
 
         # Phase velocity cp
         cp = N * (KX / K_not0 ** 2)
@@ -129,7 +131,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        freq_CFL = (max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay)
+        freq_CFL = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
 
         if mpi.nb_proc > 1:
             freq_CFL = mpi.comm.allreduce(freq_CFL, op=mpi.MPI.MAX)

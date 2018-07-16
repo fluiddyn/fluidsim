@@ -10,15 +10,8 @@ Examples
 """
 import os
 import numpy as np
-from util import get_parser, parser_to_params, init_cluster, submit
+from util import get_parser, parser_to_params, init_cluster, submit, Cluster
 import fluidsim
-
-if os.getenv('SNIC_RESOURCE') is not None:
-    from fluiddyn.clusters.snic import ClusterSNIC as Cluster
-    cluster_type = 'snic'
-else:
-    from fluiddyn.clusters.local import ClusterLocal as Cluster
-    cluster_type = 'local'
 
 
 parser = get_parser(

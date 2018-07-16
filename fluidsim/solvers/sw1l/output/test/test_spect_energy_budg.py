@@ -83,8 +83,7 @@ class TestSW1L(BaseTestCase):
         energy_UU = (
             inner_prod(ux_fft, ux_fft)
             + inner_prod(uy_fft, uy_fft)
-            + inner_prod(eta_fft, eta_fft)
-            * c2
+            + inner_prod(eta_fft, eta_fft) * c2
         )
         energy_BB = (
             inner_prod(b0_fft, b0_fft)
@@ -184,13 +183,10 @@ class TestSW1L(BaseTestCase):
         ux = sim.state.state_phys.get_var("ux")
         uy = sim.state.state_phys.get_var("uy")
         eta = sim.state.state_phys.get_var("eta")
-        TKq_exact = (
-            inner_prod(
-                ux_fft, module.fnonlinfft_from_uxuy_funcfft(ux, uy, ux_fft)
-            )
-            + inner_prod(
-                uy_fft, module.fnonlinfft_from_uxuy_funcfft(ux, uy, uy_fft)
-            )
+        TKq_exact = inner_prod(
+            ux_fft, module.fnonlinfft_from_uxuy_funcfft(ux, uy, ux_fft)
+        ) + inner_prod(
+            uy_fft, module.fnonlinfft_from_uxuy_funcfft(ux, uy, uy_fft)
         )
 
         if include_non_quad_terms:
@@ -224,9 +220,9 @@ class TestSW1L(BaseTestCase):
 
         if debug:
             Tq_abs_error = np.absolute(Tq_tot_modes - Tq_tot_exact)
-            Tq_rel_error = Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[
-                Tq_tot_exact > 0
-            ]
+            Tq_rel_error = (
+                Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[Tq_tot_exact > 0]
+            )
             msg = "abs. error max: {}, min: {}; ".format(
                 Tq_abs_error.max(), Tq_abs_error[Tq_abs_error > 0].min()
             )
@@ -332,13 +328,10 @@ class TestExmod(TestSW1L):
         urx_fft, ury_fft = sim.oper.vecfft_from_rotfft(rot_fft)
         urx = sim.oper.ifft2(urx_fft)
         ury = sim.oper.ifft2(ury_fft)
-        TKq_exact = (
-            inner_prod(
-                ux_fft, module.fnonlinfft_from_uxuy_funcfft(urx, ury, ux_fft)
-            )
-            + inner_prod(
-                uy_fft, module.fnonlinfft_from_uxuy_funcfft(urx, ury, uy_fft)
-            )
+        TKq_exact = inner_prod(
+            ux_fft, module.fnonlinfft_from_uxuy_funcfft(urx, ury, ux_fft)
+        ) + inner_prod(
+            uy_fft, module.fnonlinfft_from_uxuy_funcfft(urx, ury, uy_fft)
         )
         TPq_exact = sim.params.c2 * (
             inner_prod(
@@ -350,9 +343,9 @@ class TestExmod(TestSW1L):
 
         if debug:
             Tq_abs_error = np.absolute(Tq_tot_modes - Tq_tot_exact)
-            Tq_rel_error = Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[
-                Tq_tot_exact > 0
-            ]
+            Tq_rel_error = (
+                Tq_abs_error[Tq_tot_exact > 0] / Tq_tot_exact[Tq_tot_exact > 0]
+            )
             msg = "abs. error max: {}, min: {}; ".format(
                 Tq_abs_error.max(), Tq_abs_error[Tq_abs_error > 0].min()
             )

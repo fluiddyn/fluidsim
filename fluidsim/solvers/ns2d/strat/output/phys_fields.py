@@ -28,8 +28,8 @@ class PhysFields2DStrat(PhysFieldsBase2D):
                 + ", $t = {0:.3f}$".format(self.ani_times[frame])
             )
         else:
-            title = (
-                self.key_field + ", $t = {0:.3f}$".format(self.ani_times[frame])
+            title = self.key_field + ", $t = {0:.3f}$".format(
+                self.ani_times[frame]
             )
 
         self.ax.set_title(title)

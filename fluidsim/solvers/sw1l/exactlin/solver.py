@@ -42,6 +42,7 @@ class InfoSolverSW1LExactLin(InfoSolverSW1L):
 
 class Simul(SimulSW1L):
     """A solver of the shallow-water 1 layer equations (SW1L)"""
+
     InfoSolver = InfoSolverSW1LExactLin
 
     def __init__(self, params):
@@ -134,7 +135,7 @@ class Simul(SimulSW1L):
         a_fft = ap_fft + am_fft
         div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
 
-        eta_fft = (oper.etafft_from_qfft(q_fft) + oper.etafft_from_afft(a_fft))
+        eta_fft = oper.etafft_from_qfft(q_fft) + oper.etafft_from_afft(a_fft)
 
         dx_c2eta_fft, dy_c2eta_fft = oper.gradfft_from_fft(
             self.params.c2 * eta_fft
@@ -177,14 +178,9 @@ class Simul(SimulSW1L):
         Fy = oper.ifft2(Fy_fft)
         Feta = oper.ifft2(Feta_fft)
         A = (
-            Feta
-            * (ux ** 2 + uy ** 2)
-            / 2
-            + (1 + eta)
-            * (ux * Fx + uy * Fy)
-            + self.params.c2
-            * eta
-            * Feta
+            Feta * (ux ** 2 + uy ** 2) / 2
+            + (1 + eta) * (ux * Fx + uy * Fy)
+            + self.params.c2 * eta * Feta
         )
         A_fft = oper.fft2(A)
         if mpi.rank == 0:
@@ -207,9 +203,9 @@ if __name__ == "__main__":
     params.oper.Ly = Lh
 
     delta_x = params.oper.Lx / params.oper.nx
-    params.nu_8 = 2. * 10e-1 * params.forcing.forcing_rate ** (
-        1. / 3
-    ) * delta_x ** 8
+    params.nu_8 = (
+        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    )
 
     params.time_stepping.t_end = 2.
 
