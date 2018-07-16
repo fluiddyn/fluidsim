@@ -72,7 +72,8 @@ except ImportError:
         "to use concurrent.futures Python 2.7 backport.\n"
     )
 
-PARALLEL_COMPILE = True
+DEBUG = os.environ.get('FLUIDDYN_DEBUG', False)
+PARALLEL_COMPILE = not DEBUG
 
 
 def check_avail_library(library_name):
