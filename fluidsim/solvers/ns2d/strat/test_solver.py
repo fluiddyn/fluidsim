@@ -83,6 +83,10 @@ class TestSolverNS2DStrat(unittest.TestCase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+        params.output.periods_save.spatio_temporal_spectra = 1
+        params.output.spatio_temporal_spectra.size_max_file = 0.01
+        params.time_stepping.USE_CFL = False
+
         with stdout_redirected():
             self.sim = sim = self.Simul(params)
             sim.time_stepping.start()

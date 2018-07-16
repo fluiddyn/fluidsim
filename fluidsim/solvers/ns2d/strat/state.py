@@ -61,9 +61,15 @@ class StateNS2DStrat(StateNS2D):
             return self.vars_computed[key]
 
         if key == "ux_fft":
-            result = self.oper.fft2(self.state_phys.get_var("ux"))
+            rot_fft = self.state_spect.get_var("rot_fft")
+            ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+            result = ux_fft
+            # result = self.oper.fft2(self.state_phys.get_var("ux"))
         elif key == "uy_fft":
-            result = self.oper.fft2(self.state_phys.get_var("uy"))
+            rot_fft = self.state_spect.get_var("rot_fft")
+            ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+            result = uy_fft
+            # result = self.oper.fft2(self.state_phys.get_var("uy"))
         elif key == "div_fft":
             ux_fft = self.compute("ux_fft")
             uy_fft = self.compute("uy_fft")
@@ -72,17 +78,30 @@ class StateNS2DStrat(StateNS2D):
             div_fft = self.compute("div_fft")
             result = self.oper.ifft2(div_fft)
         elif key == "ap_fft":
-            uy_fft = self.oper.fft2(self.state_phys.get_var("uy"))
+            rot_fft = self.state_spect.get_var("rot_fft")
+            ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+            # print("ux_fft ap fft", ux_fft)
+            # uy_fft = self.oper.fft2(self.state_phys.get_var("uy"))
             b_fft = self.state_spect.get_var("b_fft")
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
             result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
         elif key == "am_fft":
-            uy_fft = self.oper.fft2(self.state_phys.get_var("uy"))
+            rot_fft = self.state_spect.get_var("rot_fft")
+            # print("rot_fft", rot_fft)
+            ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+            # print("ux_fft am fft", ux_fft)
+            # print("uy_fft", uy_fft)
+            # uy_fft = self.oper.fft2(self.state_phys.get_var("uy"))
             b_fft = self.state_spect.get_var("b_fft")
+            # print("b_fft", b_fft)
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
+            # print("omega_k", omega_k)
+            # print("1j * omega_k * b_fft", 1j * omega_k * b_fft)
+            # print("(N ** 2) * uy_fft", (N ** 2) * uy_fft)
             result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
+            # result = np.zeros(self.oper.shapeK, dtype="complex")
         elif key == "ap":
             ap_fft = self.compute("ap_fft")
             result = self.oper.ifft(ap_fft)
@@ -115,6 +134,7 @@ class StateNS2DStrat(StateNS2D):
 
         rot = self.state_phys.get_var("rot")
         ux = self.state_phys.get_var("ux")
+
         uy = self.state_phys.get_var("uy")
         b = self.state_phys.get_var("b")
 
@@ -150,12 +170,19 @@ class StateNS2DStrat(StateNS2D):
         rot_fft, b_fft = self._compute_state_from_apfft(ap_fft)
         self.init_from_rotbfft(rot_fft, b_fft)
 
-    def _compute_state_from_apfft(self, ap_fft):
-        """
-        Computes rot_fft and b_fft from linear mode ap_fft.
-        """
-        am_fft = np.zeros(self.oper.shapeK) + 1j * np.zeros(self.oper.shapeK)
+    def init_from_amfft(self, am_fft):
+        """Initialize the state from the linear mode am_fft. """
+        rot_fft, b_fft = self._compute_state_from_amfft(am_fft)
+        self.init_from_rotbfft(rot_fft, b_fft)
 
+    def _compute_state_from_amfft(self, am_fft):
+        """
+        Computes rot_fft and b_fft from linear mode am_fft.
+        """
+        # Create array linear mode am_fft
+        ap_fft = np.zeros(self.oper.shapeK, dtype="complex")
+
+        # Compute rot_fft and b_fft from ap_fft
         uy_fft = (1. / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
@@ -165,8 +192,30 @@ class StateNS2DStrat(StateNS2D):
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
-        b_fft = np.zeros_like(am_fft)
-        b_fft[cond] = (1. / (2j * omega_k[cond])) * (ap_fft[cond] + am_fft[cond])
+        b_fft = np.zeros(self.oper.shapeK, dtype="complex")
+        b_fft[cond] = (1. / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        return rot_fft, b_fft
+
+    def _compute_state_from_apfft(self, ap_fft):
+        """
+        Computes rot_fft and b_fft from linear mode ap_fft.
+        """
+        # Create array linear mode am_fft
+        am_fft = np.zeros(self.oper.shapeK, dtype="complex")
+
+        # Compute rot_fft and b_fft from ap_fft
+        uy_fft = (1. / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
+        cond = self.oper.KX != 0
+        division = np.zeros_like(self.oper.KY)
+        division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
+        ux_fft = -1 * division * uy_fft
+
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+
+        omega_k = self.params.N * self.oper.KX / self.oper.K_not0
+        b_fft = np.zeros(self.oper.shapeK, dtype="complex")
+        b_fft[cond] = (1. / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+
         return rot_fft, b_fft
 
     def init_from_rotfft(self, rot_fft):
@@ -181,6 +230,8 @@ class StateNS2DStrat(StateNS2D):
                 self.init_from_rotfft(arr)
             elif key == "ap_fft":
                 self.init_from_apfft(arr)
+            elif key == "am_fft":
+                self.init_from_amfft(arr)
             elif key == "ux_fft":
                 self.init_from_uxfft(arr)
             elif key == "uy_fft":

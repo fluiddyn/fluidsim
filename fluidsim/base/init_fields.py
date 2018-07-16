@@ -256,11 +256,16 @@ class InitFieldsFromSimul(SpecificInitFields):
 
     tag = "from_simul"
 
+    # @classmethod
+    # def _complete_params_with_default(cls, params):
+    #     super(InitFieldsFromSimul, cls)._complete_params_with_default(params)
+
     def __call__(self):
+        # params = self.sim.params
         self.sim.init_fields.get_state_from_simul = self._get_state_from_simul
 
     def _get_state_from_simul(self, sim_in):
-
+        # params = self.sim.params
         # Warning: this function is for 2d pseudo-spectral solver!
         # We have to write something more general.
         # It should be done directly in the operators.
@@ -274,8 +279,8 @@ class InitFieldsFromSimul(SpecificInitFields):
         self.sim.time_stepping.t = sim_in.time_stepping.t
 
         if (
-            self.params.oper.nx == sim_in.params.oper.nx
-            and self.params.oper.ny == sim_in.params.oper.ny
+            self.sim.params.oper.nx == sim_in.params.oper.nx
+            and self.sim.params.oper.ny == sim_in.params.oper.ny
         ):
             state_spect = deepcopy(sim_in.state.state_spect)
         else:
@@ -285,7 +290,10 @@ class InitFieldsFromSimul(SpecificInitFields):
             keys_state_spect = sim_in.info.solver.classes.State[
                 "keys_state_spect"
             ]
-            for k in keys_state_spect:
+            for k, v in enumerate(keys_state_spect):
+                # print("sim_in.state.state_spect", sim_in.state.state_spect)
+                # print("k", k)
+
                 field_fft_seq_in = sim_in.state.state_spect[k]
                 field_fft_seq_new_res = self.sim.oper.create_arrayK(value=0.)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape

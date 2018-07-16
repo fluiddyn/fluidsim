@@ -17,6 +17,7 @@
 
 from __future__ import print_function
 
+import random
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -104,66 +105,96 @@ class InitFieldsLinearMode(SpecificInitFields):
         """Complete the `params` container (class method)."""
         super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
         params.init_fields._set_child(
-            cls.tag, attribs={"i_mode": (8, 8), "delta_k_adim": 1, "amplitude": 1}
+            cls.tag, attribs={"i_mode": (8, 8), "delta_k_adim": 1, "amplitude": 1,
+                              "eigenmode" : "ap_fft"}
         )
 
         params.init_fields.linear_mode._set_doc(
             """
         i_mode : tuple
 
-          Index of initialized mode.
+            Index of initialized mode (kx, kz).
 
-         delta_k_adim : int
+        delta_k_adim : int
 
-          Size of the initialization region.
+            Size (in modes) of the initialized region.
+            Example:
+             delta_k_adim = 1 : 1 mode initialized
+             delta_k_adim = 2 : 4 modes initialized
 
         amplitude : float
 
           Amplitude of the initial linear mode
 
+        eigenmode : str
+
+          Which eigenmode (ap_fft or am_fft)
+
         """
         )
 
     def __call__(self):
-        if mpi.nb_proc > 1:
-            raise NotImplementedError(
-                "Function compute_apfft_ones not implemented in MPI."
-            )
-
-        ap_fft = self.compute_apfft_ones()
-        self.sim.state.init_statespect_from(ap_fft=ap_ffr)
-
-    def compute_apfft_ones(self):
-        """Compute the linear mode apfft"""
 
         params = self.sim.params
+
+        linear_mode = self.put_ones_linear_mode()
+
+        eigenmode = self.sim.params.init_fields.linear_mode.eigenmode
+
+        if eigenmode == "ap_fft":
+            print("hello")
+            self.sim.state.init_statespect_from(ap_fft=linear_mode)
+        elif eigenmode == "am_fft":
+            print("Is here?")
+            self.sim.state.init_statespect_from(am_fft=linear_mode)
+        else:
+            raise ValueError("eigenmode should be ap_fft or am_fft.")
+
+    def put_ones_linear_mode(self):
+        """Put ones in the linear mode ap_fft or am_fft"""
+
         oper = self.sim.oper
+        params = self.sim.params
 
         i_mode = params.init_fields.linear_mode.i_mode
         delta_k_adim = params.init_fields.linear_mode.delta_k_adim
         amplitude = params.init_fields.linear_mode.amplitude * params.N ** 2
 
-        am_fft = np.zeros(oper.shapeK) + 1j * np.zeros(oper.shapeK)
-        am_fft = amplitude * am_fft
-        ap_fft = am_fft.copy()
+        # Define linear mode to put energy
+        linear_mode = np.zeros(oper.shapeK, dtype="complex")
 
-        # Define contour delta_k_adim
-        # region [epsx_min: epsx_max, epsy_min, epsymax]
-        epsx_min = i_mode[0] - delta_k_adim
-        epsy_min = i_mode[1] - delta_k_adim
+        # Define grid of indices (sequential or parallel)
+        if mpi.nb_proc > 1:
+            ikx_mode = np.arange(
+                oper.kx_loc[0] / oper.deltakx, (oper.kx_loc[-1] + \
+                oper.deltakx) / oper.deltakx,
+                dtype=int)
+            iky_mode = np.arange(0, oper.shapeK[1], dtype=int)
 
-        epsx_max = i_mode[0] + delta_k_adim + 1
-        epsy_max = i_mode[1] + delta_k_adim + 1
+            iKY, iKX = np.meshgrid(iky_mode, ikx_mode)
 
-        if epsx_min < 0:
-            epsx_min = 0
-        if epsy_min < 0:
-            epsy_min = 0
+        else:
+            ikx_mode = np.arange(0, oper.shapeK[0])
+            iky_mode = np.arange(0, oper.shapeK[1])
 
-        ap_fft[epsx_min:epsx_max, epsy_min:epsy_max] = 1. + 0j
-        ap_fft = amplitude * ap_fft
-        return ap_fft
+            iKX, iKY = np.meshgrid(ikx_mode, iky_mode)
 
+        # Condition to put energy
+        cond_x = np.logical_and(
+                iKX >= i_mode[0], iKX <= i_mode[0] + delta_k_adim - 1)
+
+        cond_y = np.logical_and(
+                iKY >= i_mode[1], iKY <= i_mode[1] + delta_k_adim - 1)
+
+        COND = np.logical_and(cond_x, cond_y)
+
+        indices_cond = np.argwhere(COND == True)
+
+        for index in indices_cond:
+            linear_mode[tuple(index)] = random.random() + 0j
+
+        # print("linear_mode{}", linear_mode)
+        return amplitude * linear_mode
 
 class InitFieldsNS2DStrat(InitFieldsBase):
     """Initialize the state for the solver ns2d.strat."""
