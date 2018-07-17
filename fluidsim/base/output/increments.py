@@ -33,7 +33,7 @@ class Increments(SpecificOutput):
         self.nx = params.oper.nx
 
         self.nrx = min(self.nx // 16, 128)
-        self.nrx = max(self.nrx, self.nx // 2)
+        self.nrx = int(max(self.nrx, self.nx // 2))
         rmin = 1
         rmax = int(0.8 * self.nx)
         delta_logr = np.log(rmax / rmin) / (self.nrx - 1)

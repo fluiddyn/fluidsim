@@ -36,6 +36,8 @@ from .util.util import (
     modif_resolution_all_dir,
 )
 
+from .base.params import load_params_simul
+
 # clean up
 from . import util
 
@@ -51,4 +53,5 @@ __all__ = [
     "load_state_phys_file",
     "modif_resolution_from_dir",
     "modif_resolution_all_dir",
+    "load_params_simul"
 ]

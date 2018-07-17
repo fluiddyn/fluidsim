@@ -192,7 +192,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     """
     path_dir = pathdir_from_namedir(path_dir)
     solver = _import_solver_from_path(path_dir)
-    params = load_params_simul(path_dir=path_dir)
+    params = load_params_simul(path_dir)
 
     if merge_missing_params:
         merge_params(params, solver.Simul.create_default_params())
@@ -220,7 +220,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
 
 
 def _import_solver_from_path(path_dir):
-    info_solver = load_info_solver(path_dir=path_dir)
+    info_solver = load_info_solver(path_dir)
     solver = import_module(info_solver.module_name)
     return solver
 
