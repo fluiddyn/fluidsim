@@ -14,8 +14,11 @@ Provides:
 from __future__ import division, print_function
 
 import os
+from glob import glob
 from importlib import import_module
 from builtins import map
+
+import h5py
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util import import_class
@@ -184,11 +187,39 @@ def create_params(input_info_solver):
     return params
 
 
-def load_params_simul(path_dir=None):
+def load_params_simul(path=None):
     """Load the parameters and return a Parameters instance."""
-    if path_dir is None:
-        path_dir = os.getcwd()
-    return Parameters(path_file=os.path.join(path_dir, "params_simul.xml"))
+    if path is None:
+        path = os.getcwd()
+
+    path_xml = None
+    if os.path.isdir(path):
+        path_xml = os.path.join(path, "params_simul.xml")
+    elif path.endswith(".xml"):
+        if not os.path.exists(path):
+            raise ValueError("The file " + path + "does not exists.")
+        path_xml = path
+
+    if path_xml is not None and os.path.exists(path_xml):
+        return Parameters(path_file=path_xml)
+
+    if os.path.isfile(path):
+        paths = [path]
+    else:
+        paths = glob(os.path.join(path, "state_*"))
+    if paths:
+        path = sorted(paths)[0]
+
+        if len(path) > 100:
+            str_path = "[...]" + path[-100:]
+        else:
+            str_path = path
+
+        print("load params from file\n" + str_path)
+        with h5py.File(path) as h5file:
+            return Parameters(hdf5_object=h5file["/info_simul/params"])
+    else:
+        return ValueError
 
 
 def load_info_solver(path_dir=None):
@@ -197,21 +228,25 @@ def load_info_solver(path_dir=None):
     """
     if path_dir is None:
         path_dir = os.getcwd()
-    return InfoSolverBase(path_file=os.path.join(path_dir, "info_solver.xml"))
 
+    path_info_solver = os.path.join(path_dir, "info_solver.xml")
+    if os.path.exists(path_info_solver):
+        return Parameters(path_file=path_info_solver)
 
-# def load_info_simul(path_dir=None):
-#     """Load the data and gather them in a ParamContainer instance."""
+    paths = glob(os.path.join(path_dir, "state_*"))
+    if paths:
+        path = sorted(paths)[0]
 
-#     if path_dir is None:
-#         path_dir = os.getcwd()
-#     info_solver = load_info_solver(path_dir=path_dir)
-#     params = load_params_simul(path_dir=path_dir)
-#     info = ParamContainer(tag='info_simul')
-#     info._set_as_child(info_solver)
-#     info._set_as_child(params)
-#     return info
+        if len(path) > 100:
+            str_path = "[...]" + path[-100:]
+        else:
+            str_path = path
 
+        print("load params from file\n" + str_path)
+        with h5py.File(path) as h5file:
+            return Parameters(hdf5_object=h5file["/info_simul/solver"])
+    else:
+        return ValueError
 
 if __name__ == "__main__":
     info_solver = InfoSolverBase(tag="solver")

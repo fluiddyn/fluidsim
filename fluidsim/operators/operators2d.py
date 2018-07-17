@@ -61,6 +61,20 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         self.params = params
 
+        nx = int(params.oper.nx)
+        ny = int(params.oper.ny)
+
+        if params.oper.nx != nx:
+            raise ValueError("params.oper.nx != int(params.oper.nx); "
+                             "({})".format(params.oper.nx))
+
+        if params.oper.ny != ny:
+            raise ValueError("params.oper.ny != int(params.oper.ny); "
+                             "({})".format(params.oper.ny))
+
+        params.oper.nx = nx
+        params.oper.ny = ny
+
         super(OperatorsPseudoSpectral2D, self).__init__(
             params.oper.nx,
             params.oper.ny,

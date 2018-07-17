@@ -166,7 +166,7 @@ are called.
             if self._has_to_save:
                 if mpi.rank == 0:
                     try:
-                        params_dir = load_params_simul(path_dir=self.path_run)
+                        params_dir = load_params_simul(self.path_run)
                     except:
                         raise ValueError(
                             "Strange, no info_simul.h5 in self.path_run"
