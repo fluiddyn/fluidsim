@@ -306,6 +306,32 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         return dict_results
 
+    def plot_energy_shear_modes(self):
+        """
+        Plots energy shear modes and total energy.
+
+        """
+        if mpi.rank != 0:
+            return
+
+        dict_results = self.load()
+
+        times = dict_results["t"]
+        E = dict_results["E"]
+        E_shear_modes = dict_results["E_shear"]
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel("Times")
+        ax.set_ylabel("Energy")
+
+        ax.plot(times, E, label=r"$E_{total}$")
+        ax.plot(times, E_shear_modes, label=r"$E_{shear}$")
+        ax.plot(times, E - E_shear_modes, label=r"$E_{total} - E_{shear}$")
+
+        ax.legend()
+
+        fig.tight_layout()
+
     def plot_dt_energy(self):
         """
         Checks if dE/dt = energy_injection - energy_dissipation.
