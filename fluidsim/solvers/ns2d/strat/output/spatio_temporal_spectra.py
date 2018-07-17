@@ -141,16 +141,9 @@ class SpatioTempSpectra(SpecificOutput):
         # Create empty array with times
         self.times_arr = np.empty([self.nb_arr_in_file])
 
-        # Check:
         if params.time_stepping.USE_CFL and params.output.periods_save.spatio_temporal_spectra > 0:
             raise ValueError("To compute the spatio temporal: \n" +
                              "USE_CFL = FALSE and periods_save.spatio_temporal_spectra > 0")
-
-        # Check: time step should be constant.
-        if params.time_stepping.USE_CFL:
-            print("warning: Frequency spectra is not computed." + \
-                  "params.time_stepping.USE_CFL should be FALSE")
-            self.periods_save = 0
 
         # Create directory to save files
         if mpi.rank == 0:

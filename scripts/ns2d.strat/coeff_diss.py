@@ -6,6 +6,11 @@ Computes the optimal dissipation coefficient.
 
 Solver ns2d.strat
 
+# To do by hand:
+1. Go to directory of the first simulation
+2. `from fluidsim.util.util import modif_resolution_from_dir`
+3. `modif_resolution_from_dir(coef_modif_resol=3/2)`
+4. Change path in `coeff_diss.py`
 """
 
 from __future__ import print_function
@@ -25,8 +30,6 @@ from fluidsim.solvers.ns2d.strat.solver import Simul
 from fluiddyn.util import mpi
 
 from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
-
-min_factor = 0.7
 
 def load_mean_spect_energy_budg(sim, tmin=0, tmax=1000):
     """
@@ -135,12 +138,15 @@ def normalization_initialized_field(sim, coef_norm=1e-4):
 #################################################
 ### Parameters script ###
 # Parameters simulations
-gamma = 0.5
+gamma = 1.
 F = np.sin(pi / 4) # F = omega_l / N
 sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
 nu_8 = 1e-16
 
 coef_modif_resol = 3 / 2
+
+NO_SHEAR_MODES = False
+min_factor = 0.7
 
 # Notation for gamma
 gamma_not = str(gamma)
@@ -171,7 +177,7 @@ PLOT_FIGURES = PLOT_FIGURES and mpi.rank == 0
 
 if len(paths_sim) == 0:
 
-    params =  make_parameters_simulation(gamma, F, sigma, nu_8, t_end=8., NO_SHEAR_MODES=True)
+    params =  make_parameters_simulation(gamma, F, sigma, nu_8, t_end=8., NO_SHEAR_MODES=NO_SHEAR_MODES)
     sim = Simul(params)
 
     # Normalization of the field and start
@@ -436,7 +442,6 @@ if len(paths_sim) == 0:
 
 else:
     plt.close("all")
-    # Bug nan at initialization 2nd time.
 
     sim = load_sim_for_plot(paths_sim[-1])
 
@@ -589,7 +594,8 @@ else:
                 if diff_x > nb_wavenumbers_x and diff_y > nb_wavenumbers_y:
                     print("diff_target = ", diff_target)
                     print("p", p)
-                    factor = max(((nb_wavenumbers_y  / 2) / diff_target) ** (0.2), min_factor)
+                    # factor = max(((nb_wavenumbers_y  / 2) / diff_target) ** (0.2), min_factor)
+                    factor = ((nb_wavenumbers_y  / 2) / diff_target) ** (1. / p)
                     print("factor = ", factor)
 
                     p += 1

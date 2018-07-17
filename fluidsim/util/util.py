@@ -320,8 +320,8 @@ def modif_resolution_from_dir(
     sim = load_state_phys_file(name_dir, t_approx)
 
     params2 = _deepcopy(sim.params)
-    params2.oper.nx = sim.params.oper.nx * coef_modif_resol
-    params2.oper.ny = sim.params.oper.ny * coef_modif_resol
+    params2.oper.nx = int(sim.params.oper.nx * coef_modif_resol)
+    params2.oper.ny = int(sim.params.oper.ny * coef_modif_resol)
     params2.init_fields.type = "from_simul"
 
     sim2 = solver.Simul(params2)
