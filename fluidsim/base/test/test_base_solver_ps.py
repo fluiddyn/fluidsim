@@ -64,6 +64,7 @@ class TestBaseSolverPS(unittest.TestCase):
         """Should be able to run a base experiment."""
         with stdout_redirected():
             self.sim.time_stepping.start()
+            load_params_simul(self.sim.output.path_run + "/params_simul.xml")
 
         fld.show()
 
@@ -72,9 +73,8 @@ class TestBaseSolverPS(unittest.TestCase):
 
         with stdout_redirected():
             modif_resolution_from_dir(
-                self.sim.output.path_run, coef_modif_resol=3/2, PLOT=False
+                self.sim.output.path_run, coef_modif_resol=3./2, PLOT=False
             )
-            load_params_simul(self.sim.output.path_run + "/params_simul.xml")
             path_new = os.path.join(self.sim.output.path_run, "State_phys_12x12")
             os.chdir(path_new)
             load_params_simul()

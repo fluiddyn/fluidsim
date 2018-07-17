@@ -189,37 +189,46 @@ def create_params(input_info_solver):
 
 def load_params_simul(path=None):
     """Load the parameters and return a Parameters instance."""
-    if path is None:
-        path = os.getcwd()
-
-    path_xml = None
-    if os.path.isdir(path):
-        path_xml = os.path.join(path, "params_simul.xml")
-    elif path.endswith(".xml"):
-        if not os.path.exists(path):
-            raise ValueError("The file " + path + "does not exists.")
-        path_xml = path
-
-    if path_xml is not None and os.path.exists(path_xml):
-        return Parameters(path_file=path_xml)
-
-    if os.path.isfile(path):
-        paths = [path]
+    if mpi.rank > 0:
+        params = None
+        params = mpi.comm.bcast(params, root=0)
     else:
-        paths = glob(os.path.join(path, "state_*"))
-    if paths:
-        path = sorted(paths)[0]
+        if path is None:
+            path = os.getcwd()
 
-        if len(path) > 100:
-            str_path = "[...]" + path[-100:]
+        path_xml = None
+        if os.path.isdir(path):
+            path_xml = os.path.join(path, "params_simul.xml")
+        elif path.endswith(".xml"):
+            if not os.path.exists(path):
+                raise ValueError("The file " + path + "does not exists.")
+            path_xml = path
+
+        if path_xml is not None and os.path.exists(path_xml):
+            params = Parameters(path_file=path_xml)
         else:
-            str_path = path
+            if os.path.isfile(path):
+                paths = [path]
+            else:
+                paths = glob(os.path.join(path, "state_*"))
+            if paths:
+                path = sorted(paths)[0]
 
-        print("load params from file\n" + str_path)
-        with h5py.File(path) as h5file:
-            return Parameters(hdf5_object=h5file["/info_simul/params"])
-    else:
-        return ValueError
+                if len(path) > 100:
+                    str_path = "[...]" + path[-100:]
+                else:
+                    str_path = path
+
+                print("load params from file\n" + str_path)
+                with h5py.File(path) as h5file:
+                    params = Parameters(hdf5_object=h5file["/info_simul/params"])
+            else:
+                raise ValueError
+
+        if mpi.nb_proc > 1:
+            params = mpi.comm.bcast(params, root=0)
+    return params
+
 
 
 def load_info_solver(path_dir=None):
