@@ -134,7 +134,6 @@ class StateNS2DStrat(StateNS2D):
 
         rot = self.state_phys.get_var("rot")
         ux = self.state_phys.get_var("ux")
-
         uy = self.state_phys.get_var("uy")
         b = self.state_phys.get_var("b")
 

@@ -281,16 +281,11 @@ class InitFieldsFromSimul(SpecificInitFields):
 
     tag = "from_simul"
 
-    # @classmethod
-    # def _complete_params_with_default(cls, params):
-    #     super(InitFieldsFromSimul, cls)._complete_params_with_default(params)
-
     def __call__(self):
-        # params = self.sim.params
         self.sim.init_fields.get_state_from_simul = self._get_state_from_simul
 
     def _get_state_from_simul(self, sim_in):
-        # params = self.sim.params
+
         # Warning: this function is for 2d pseudo-spectral solver!
         # We have to write something more general.
         # It should be done directly in the operators.
@@ -301,26 +296,24 @@ class InitFieldsFromSimul(SpecificInitFields):
                 "  DO NOT USE THIS METHOD WITH MPI"
             )
 
-        self.sim.time_stepping.t = sim_in.time_stepping.t
+        sim = self.sim
+        sim.time_stepping.t = sim_in.time_stepping.t
 
         if (
-            self.sim.params.oper.nx == sim_in.params.oper.nx
-            and self.sim.params.oper.ny == sim_in.params.oper.ny
+            sim.params.oper.nx == sim_in.params.oper.nx
+            and sim.params.oper.ny == sim_in.params.oper.ny
         ):
             state_spect = deepcopy(sim_in.state.state_spect)
         else:
             # modify resolution
-            # state_spect = SetOfVariables('state_spect')
-            state_spect = SetOfVariables(like=self.sim.state.state_spect)
+            state_spect = SetOfVariables(like=sim.state.state_spect)
             keys_state_spect = sim_in.info.solver.classes.State[
                 "keys_state_spect"
             ]
-            for k, v in enumerate(keys_state_spect):
-                # print("sim_in.state.state_spect", sim_in.state.state_spect)
-                # print("k", k)
+            for index_key in range(len(keys_state_spect)):
 
-                field_fft_seq_in = sim_in.state.state_spect[k]
-                field_fft_seq_new_res = self.sim.oper.create_arrayK(value=0.)
+                field_fft_seq_in = sim_in.state.state_spect[index_key]
+                field_fft_seq_new_res = sim.oper.create_arrayK(value=0.)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape
                 [nk0_seq_in, nk1_seq_in] = field_fft_seq_in.shape
 
@@ -342,23 +335,23 @@ class InitFieldsFromSimul(SpecificInitFields):
                             -ik0, ik1
                         ]
 
-                state_spect[k] = field_fft_seq_new_res
+                state_spect[index_key] = field_fft_seq_new_res
 
-        if self.sim.output.name_solver == sim_in.output.name_solver:
-            self.sim.state.state_spect = state_spect
+        if sim.output.name_solver == sim_in.output.name_solver:
+            sim.state.state_spect = state_spect
         else:  # complicated case... untested solution !
             # state_spect = SetOfVariables('state_spect')
             raise ValueError("Not yet implemented...")
 
-            for k in self.sim.info.solver.classes.State["keys_state_spect"]:
+            for k in sim.info.solver.classes.State["keys_state_spect"]:
                 if k in sim_in.info.solver.classes.State["keys_state_spect"]:
-                    self.sim.state.state_spect[k] = state_spect[k]
+                    sim.state.state_spect[k] = state_spect[k]
                 else:
-                    self.sim.state.state_spect[k] = self.oper.create_arrayK(
+                    sim.state.state_spect[k] = self.oper.create_arrayK(
                         value=0.
                     )
 
-        self.sim.state.statephys_from_statespect()
+        sim.state.statephys_from_statespect()
 
 
 class InitFieldsInScript(SpecificInitFields):
