@@ -187,11 +187,10 @@ def create_params(input_info_solver):
     return params
 
 
-def load_params_simul(path=None):
+def load_params_simul(path=None, only_mpi_rank0=True):
     """Load the parameters and return a Parameters instance."""
-    if mpi.rank > 0:
+    if mpi.rank > 0 and not only_mpi_rank0:
         params = None
-        params = mpi.comm.bcast(params, root=0)
     else:
         if path is None:
             path = os.getcwd()
@@ -225,8 +224,8 @@ def load_params_simul(path=None):
             else:
                 raise ValueError
 
-        if mpi.nb_proc > 1:
-            params = mpi.comm.bcast(params, root=0)
+    if mpi.nb_proc > 1 and not only_mpi_rank0:
+        params = mpi.comm.bcast(params, root=0)
     return params
 
 
