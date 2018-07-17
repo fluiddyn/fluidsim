@@ -36,6 +36,13 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         enstrophy_fft = self.output.compute_enstrophy_fft()
         enstrophy = self.sum_wavenumbers(enstrophy_fft)
 
+        # Compute energy shear modes
+        COND_SHEAR_MODES = abs(self.sim.oper.KX) == 0.
+        energy_shear_modes = np.sum(energy_fft[COND_SHEAR_MODES])
+        if mpi.nb_proc > 1:
+            energy_shear_modes = mpi.comm.reduce(
+                energy_shear_modes, op=mpi.MPI.SUM, root=0)
+
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
@@ -88,6 +95,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 "epsA = {:11.5e} ; epsA_hypo  = {:11.5e} ; epsA_tot  = {:11.5e} \n"
                 "epsK = {:11.5e} ; epsK_hypo  = {:11.5e} ; epsK_tot  = {:11.5e} \n"
                 "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
+                "E_shear = {:11.5e} \n"
             ).format(
                 enstrophy,
                 energy,
@@ -102,6 +110,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 epsZ,
                 epsZ_hypo,
                 epsZ + epsZ_hypo,
+                energy_shear_modes
             )
             self.file.write(to_print)
 
@@ -149,6 +158,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         lines_epsK = []
         lines_epsZ = []
         lines_epsA = []
+        lines_E_shear = []
 
         for il, line in enumerate(lines):
             if line.startswith("time ="):
@@ -171,7 +181,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 lines_epsZ.append(line)
             if line.startswith("epsA ="):
                 lines_epsA.append(line)
-
+            if line.startswith("E_shear ="):
+                lines_E_shear.append(line)
         nt = len(lines_t)
         if nt > 1:
             nt -= 1
@@ -202,6 +213,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         epsA = np.empty(nt)
         epsA_hypo = np.empty(nt)
         epsA_tot = np.empty(nt)
+        E_shear = np.empty(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -255,6 +267,10 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             epsA_hypo[il] = float(words[6])
             epsA_tot[il] = float(words[10])
 
+            line = lines_E_shear[il]
+            words = line.split()
+            E_shear[il] = float(words[2])
+
         dict_results["t"] = t
         dict_results["Z"] = Z
 
@@ -286,6 +302,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         dict_results["epsA"] = epsA
         dict_results["epsA_hypo"] = epsA_hypo
         dict_results["epsA_tot"] = epsA_tot
+        dict_results["E_shear"] = E_shear
 
         return dict_results
 
