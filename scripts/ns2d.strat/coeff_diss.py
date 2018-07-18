@@ -1,3 +1,4 @@
+
 """
 coeff_diss.py
 =============
@@ -33,19 +34,17 @@ from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
 ### PARAMETERS ###
 
 # CONDITIONS
-nb_wavenumbers_y = 14
+nb_wavenumbers_y = 16
 threshold_ratio = 1e1
 min_factor = 0.7
 
 # SIMULATION
-gamma = 0.2
+gamma = 1.
 F = np.sin(pi / 4) # F = omega_l / N
 sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
 nu_8 = 1e-16
 NO_SHEAR_MODES = False
 t_end = 8.
-
-coef_modif_resol = 3 / 2
 
 PLOT_FIGURES = True
 ###################
@@ -201,8 +200,8 @@ def modify_factor(sim):
     return params, nu_8_old
 
 
-def write_to_file(path_file, to_print, mode="a"):
-    with open(path_file, mode) as f:
+def write_to_file(path, to_print, mode="a"):
+    with open(path, mode) as f:
         f.write(to_print)
 
 def make_float_value_for_path(value):
@@ -275,7 +274,7 @@ if mpi.rank == 0 and not os.path.exists(path):
 paths_sim = sorted(glob(os.path.join(path, "NS*")))
 
 # Write in .txt file
-path_file = os.path.join(path, "results.txt")
+path_file_write = os.path.join(path, "results.txt")
 
 PLOT_FIGURES = PLOT_FIGURES and mpi.rank == 0
 
@@ -399,7 +398,6 @@ while True:
         # send factor and should_I_stop
         factor = mpi.comm.bcast(factor, root=0)
         should_I_stop = mpi.comm.bcast(should_I_stop, root=0)
-        print("rank {} ; factor {}".format(mpi.comm.Get_rank(), factor))
 
     if should_I_stop:
         break
@@ -463,10 +461,13 @@ if mpi.rank == 0:
         to_print = ("gamma,nx,nu8 \n")
         to_print += ("{},{},{} \n".format(
             gamma, sim.params.oper.nx, params.nu_8))
+        mode_write = "w"
+
     else:
         to_print = ("{},{},{} \n".format(
             gamma, sim.params.oper.nx, params.nu_8))
+        mode_write = "a"
 
-    write_to_file(path_file, to_print, mode="a")
+    write_to_file(path_file_write, to_print, mode=mode_write)
 
     shutil.move(sim.params.path_run, path)
