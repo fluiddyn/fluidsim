@@ -229,7 +229,6 @@ def load_params_simul(path=None, only_mpi_rank0=True):
     return params
 
 
-
 def load_info_solver(path_dir=None):
     """Load the solver information, return an InfoSolverBase instance.
 
@@ -255,6 +254,7 @@ def load_info_solver(path_dir=None):
             return Parameters(hdf5_object=h5file["/info_simul/solver"])
     else:
         return ValueError
+
 
 if __name__ == "__main__":
     info_solver = InfoSolverBase(tag="solver")

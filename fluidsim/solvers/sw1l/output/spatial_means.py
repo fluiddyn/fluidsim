@@ -1,10 +1,11 @@
 from __future__ import division
 
 from builtins import range
-from past.utils import old_div
 import os
+
 import numpy as np
 import matplotlib.pyplot as plt
+
 from fluiddyn.util import mpi
 from fluidsim.base.output.spatial_means import SpatialMeansBase, inner_prod
 
@@ -107,17 +108,17 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 fig.canvas.draw()
 
     def treat_conversion(self):
-        mean_space = self.sim.oper.mean_space
+        mean_global = self.sim.oper.mean_global
 
         c2 = self.sim.params.c2
         eta = self.sim.state.get_var("eta")
         div = self.sim.state.get_var("div")
         h = eta + 1
 
-        Conv = c2 / 2 * mean_space(h ** 2 * div)
-        c2eta1d = c2 * mean_space(eta * div)
-        c2eta2d = c2 * mean_space(eta ** 2 * div)
-        c2eta3d = c2 * mean_space(eta ** 3 * div)
+        Conv = c2 / 2 * mean_global(h ** 2 * div)
+        c2eta1d = c2 * mean_global(eta * div)
+        c2eta2d = c2 * mean_global(eta ** 2 * div)
+        c2eta3d = c2 * mean_global(eta ** 3 * div)
 
         if mpi.rank == 0:
             to_print = (

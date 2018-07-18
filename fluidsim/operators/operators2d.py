@@ -65,12 +65,16 @@ class OperatorsPseudoSpectral2D(_Operators):
         ny = int(params.oper.ny)
 
         if params.oper.nx != nx:
-            raise ValueError("params.oper.nx != int(params.oper.nx); "
-                             "({})".format(params.oper.nx))
+            raise ValueError(
+                "params.oper.nx != int(params.oper.nx); "
+                "({})".format(params.oper.nx)
+            )
 
         if params.oper.ny != ny:
-            raise ValueError("params.oper.ny != int(params.oper.ny); "
-                             "({})".format(params.oper.ny))
+            raise ValueError(
+                "params.oper.ny != int(params.oper.ny); "
+                "({})".format(params.oper.ny)
+            )
 
         params.oper.nx = nx
         params.oper.ny = ny
@@ -590,14 +594,6 @@ class OperatorsPseudoSpectral2D(_Operators):
                     py_f_fft[i0, i1] = 1j * KY[i0, i1] * fc_fft[i0, i1]
 
         return py_f_fft
-
-    def mean_space(self, field):
-
-        mean_field = np.mean(field)
-        if not self.is_sequential:
-            mean_field = self.comm.allreduce(mean_field, op=MPI.SUM)
-            mean_field /= nb_proc
-        return mean_field
 
     def uxuyetafft_from_qapamfft(self, q_fft, ap_fft, am_fft):
         """q, ap, am (fft) ---> ux, uy, eta (fft)"""

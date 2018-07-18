@@ -41,7 +41,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         energy_shear_modes = np.sum(energy_fft[COND_SHEAR_MODES])
         if mpi.nb_proc > 1:
             energy_shear_modes = mpi.comm.reduce(
-                energy_shear_modes, op=mpi.MPI.SUM, root=0)
+                energy_shear_modes, op=mpi.MPI.SUM, root=0
+            )
 
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
@@ -110,7 +111,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 epsZ,
                 epsZ_hypo,
                 epsZ + epsZ_hypo,
-                energy_shear_modes
+                energy_shear_modes,
             )
             self.file.write(to_print)
 
@@ -395,11 +396,12 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         nkmax = pforcing.nkmax_forcing
         nkmin = pforcing.nkmin_forcing
         k_f = ((nkmax + nkmin) / 2) * max(
-            2 * pi / self.sim.params.oper.Lx, 2 * pi / self.sim.params.oper.Ly)
+            2 * pi / self.sim.params.oper.Lx, 2 * pi / self.sim.params.oper.Ly
+        )
 
         # Normalization by E_f
         if pforcing.key_forced == "ap_fft":
-            E_f = pforcing.forcing_rate ** (2. / 7) * ( 2 * pi / k_f)**(10./7)
+            E_f = pforcing.forcing_rate ** (2. / 7) * (2 * pi / k_f) ** (10. / 7)
         else:
             raise NotImplementedError("Computation E_f not implemented.")
 

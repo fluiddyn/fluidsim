@@ -108,8 +108,13 @@ class InitFieldsLinearMode(SpecificInitFields):
         """Complete the `params` container (class method)."""
         super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
         params.init_fields._set_child(
-            cls.tag, attribs={"i_mode": (8, 8), "delta_k_adim": 1, "amplitude": 1,
-                              "eigenmode" : "ap_fft"}
+            cls.tag,
+            attribs={
+                "i_mode": (8, 8),
+                "delta_k_adim": 1,
+                "amplitude": 1,
+                "eigenmode": "ap_fft",
+            },
         )
 
         params.init_fields.linear_mode._set_doc(
@@ -169,9 +174,10 @@ class InitFieldsLinearMode(SpecificInitFields):
         # Define grid of indices (sequential or parallel)
         if mpi.nb_proc > 1:
             ikx_mode = np.arange(
-                oper.kx_loc[0] / oper.deltakx, (oper.kx_loc[-1] + \
-                oper.deltakx) / oper.deltakx,
-                dtype=int)
+                oper.kx_loc[0] / oper.deltakx,
+                (oper.kx_loc[-1] + oper.deltakx) / oper.deltakx,
+                dtype=int,
+            )
             iky_mode = np.arange(0, oper.shapeK[1], dtype=int)
 
             iKY, iKX = np.meshgrid(iky_mode, ikx_mode)
@@ -184,10 +190,12 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         # Condition to put energy
         cond_x = np.logical_and(
-                iKX >= i_mode[0], iKX <= i_mode[0] + delta_k_adim - 1)
+            iKX >= i_mode[0], iKX <= i_mode[0] + delta_k_adim - 1
+        )
 
         cond_y = np.logical_and(
-                iKY >= i_mode[1], iKY <= i_mode[1] + delta_k_adim - 1)
+            iKY >= i_mode[1], iKY <= i_mode[1] + delta_k_adim - 1
+        )
 
         COND = np.logical_and(cond_x, cond_y)
 
@@ -198,6 +206,7 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         # print("linear_mode{}", linear_mode)
         return amplitude * linear_mode
+
 
 class InitFieldsNS2DStrat(InitFieldsBase):
     """Initialize the state for the solver ns2d.strat."""
