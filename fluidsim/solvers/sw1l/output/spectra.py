@@ -181,7 +181,9 @@ class SpectraSW1L(Spectra):
 
             to_print = "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
                 tmin, tmax, delta_t
-            ) + " coef_compensate={0:.3f})".format(coef_compensate)
+            ) + " coef_compensate={0:.3f})".format(
+                coef_compensate
+            )
             print(to_print)
 
             to_print = """plot 1D spectra
@@ -227,14 +229,18 @@ class SpectraSW1L(Spectra):
             # ax1.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
 
             E_K = (
-                dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]
-                + dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]
-            ).mean(0)
+                dset_spectrum1Dkx_EK[imin_plot:imax_plot + 1]
+                + dset_spectrum1Dky_EK[imin_plot:imax_plot + 1]
+            ).mean(
+                0
+            )
 
             E_A = (
-                dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]
-                + dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]
-            ).mean(0)
+                dset_spectrum1Dkx_EA[imin_plot:imax_plot + 1]
+                + dset_spectrum1Dky_EA[imin_plot:imax_plot + 1]
+            ).mean(
+                0
+            )
 
         ax1.plot(kh, E_K * coef_norm, "r", linewidth=2)
         ax1.plot(kh, E_A * coef_norm, "b", linewidth=2)
@@ -278,7 +284,9 @@ class SpectraSW1L(Spectra):
 
             to_print = "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
                 tmin, tmax, delta_t
-            ) + " coef_compensate={0:.3f})".format(coef_compensate)
+            ) + " coef_compensate={0:.3f})".format(
+                coef_compensate
+            )
             print(to_print)
 
             to_print = """plot 2D spectra
@@ -311,9 +319,9 @@ class SpectraSW1L(Spectra):
                         dset[dset < 10e-16] = machine_zero
                         ax1.plot(kh, dset * coef_norm, c, linewidth=1)
 
-            EK = dset_spectrumEK[imin_plot : imax_plot + 1].mean(0)
-            EA = dset_spectrumEA[imin_plot : imax_plot + 1].mean(0)
-            EKr = dset_spectrumEKr[imin_plot : imax_plot + 1].mean(0)
+            EK = dset_spectrumEK[imin_plot:imax_plot + 1].mean(0)
+            EA = dset_spectrumEA[imin_plot:imax_plot + 1].mean(0)
+            EKr = dset_spectrumEKr[imin_plot:imax_plot + 1].mean(0)
 
             EK[abs(EK) < 10e-16] = machine_zero
             EA[abs(EA) < 10e-16] = machine_zero
@@ -365,7 +373,7 @@ class SpectraSW1L(Spectra):
             postxt,
             postxt ** (-5. / 3 + coef_compensate),
             r"$k^{-5/3}$",
-            fontdict=font,
+            fontdict=font
         )
         ax1.legend()
 
@@ -376,23 +384,20 @@ class SpectraSW1L(Spectra):
         if self.sim.info.solver.short_name.startswith("SW1L"):
             dset_spectrumEdlin = h5file["spectrum2D_Edlin"]
             Edlin = (
-                dset_spectrumEdlin[imin_plot : imax_plot + 1].mean(0)
-                + machine_zero
+                dset_spectrumEdlin[imin_plot:imax_plot + 1].mean(0) + machine_zero
             )
             ax1.plot(kh, Edlin * coef_norm, "c", linewidth=1, label="$E_{D}$")
 
         if self.params.f != 0:
             dset_spectrumEglin = h5file["spectrum2D_Eglin"]
             Eglin = (
-                dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
-                + machine_zero
+                dset_spectrumEglin[imin_plot:imax_plot + 1].mean(0) + machine_zero
             )
             ax1.plot(kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{G}$")
 
             dset_spectrumEalin = h5file["spectrum2D_Ealin"]
             Ealin = (
-                dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
-                + machine_zero
+                dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0) + machine_zero
             )
             ax1.plot(kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{A}$")
 
@@ -424,6 +429,7 @@ class SpectraSW1L(Spectra):
 
 
 class SpectraSW1LNormalMode(SpectraSW1L):
+
     def __init__(self, output):
         self.norm_mode = NormalModeBase(output)
         super(SpectraSW1LNormalMode, self).__init__(output)
@@ -486,7 +492,7 @@ class SpectraSW1LNormalMode(SpectraSW1L):
 
             if "Ealin" in keys:
                 Ealin = (
-                    dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
+                    dset_spectrumEalin[imin_plot:imax_plot + 1].mean(0)
                     + machine_zero
                 )
                 ax1.plot(
@@ -496,7 +502,7 @@ class SpectraSW1LNormalMode(SpectraSW1L):
             if "Eglin" in keys:
                 dset_spectrumEglin = h5file["spectrum2D_Eglin"]
                 Eglin = (
-                    dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
+                    dset_spectrumEglin[imin_plot:imax_plot + 1].mean(0)
                     + machine_zero
                 )
                 ax1.plot(

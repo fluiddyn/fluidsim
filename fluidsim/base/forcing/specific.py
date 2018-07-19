@@ -570,8 +570,10 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         ik1_part = ikx_part
 
         P_forcing2_part = np.real(
-            fvc_fft[ik0_part, ik1_part].conj() * vc_fft[ik0_part, ik1_part]
-            + fvc_fft[ik0_part, ik1_part] * vc_fft[ik0_part, ik1_part].conj()
+            fvc_fft[ik0_part, ik1_part].conj()
+            * vc_fft[ik0_part, ik1_part]
+            + fvc_fft[ik0_part, ik1_part]
+            * vc_fft[ik0_part, ik1_part].conj()
         )
 
         if ikx_part == 0:
@@ -739,7 +741,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         """
         super(
             TimeCorrelatedRandomPseudoSpectral, cls
-        )._complete_params_with_default(params)
+        )._complete_params_with_default(
+            params
+        )
 
         try:
             params.forcing.tcrandom
@@ -795,7 +799,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         f_fft = (
             self.forcing1
-            - 0.5 * (np.cos((tsim - self.t_last_change) * omega) + 1) * deltaf
+            - 0.5
+            * (np.cos((tsim - self.t_last_change) * omega) + 1)
+            * deltaf
         )
 
         return f_fft

@@ -40,7 +40,7 @@ def bench(
     path_dir=None,
     type_fft=None,
     raise_error=False,
-    it_end=None,
+    it_end=None
 ):
     """Instantiate simulation object and run benchmarks."""
 

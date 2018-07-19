@@ -42,10 +42,7 @@ class SpectraNS3D(Spectra):
         s_vz = self.oper.compute_3dspectrum(nrj_vz_fft)
 
         dict_spectra3d = {
-            "vx": s_vx,
-            "vy": s_vy,
-            "vz": s_vz,
-            "E": s_vx + s_vy + s_vy,
+            "vx": s_vx, "vy": s_vy, "vz": s_vz, "E": s_vx + s_vy + s_vy
         }
         dict_spectra3d = {"spectra_" + k: v for k, v in dict_spectra3d.items()}
 
@@ -128,7 +125,7 @@ class SpectraNS3D(Spectra):
                     spectrum[spectrum < 10e-16] = 0.
                     ax.plot(ks, spectrum * coef_norm)
 
-            spectra = dset_spectra_E[imin_plot : imax_plot + 1]
+            spectra = dset_spectra_E[imin_plot:imax_plot + 1]
         spectrum = spectra.mean(0)
         ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
 
@@ -216,7 +213,7 @@ class SpectraNS3D(Spectra):
                     EK[EK < 10e-16] = 0.
                     ax1.plot(ks, EK * coef_norm, "k", linewidth=1)
 
-            EK = dset_spectrum[imin_plot : imax_plot + 1].mean(0)
+            EK = dset_spectrum[imin_plot:imax_plot + 1].mean(0)
         EK[EK < 10e-16] = 0.
         ax1.plot(ks, EK * coef_norm, "k", linewidth=2)
 

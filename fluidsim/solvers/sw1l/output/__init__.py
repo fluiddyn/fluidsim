@@ -24,6 +24,7 @@ from .util_pythran import linear_eigenmode_from_values_1k
 
 
 class OutputBaseSW1L(OutputBasePseudoSpectral):
+
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer *info_solver* with child classes to be
@@ -162,8 +163,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         """Compute K.E. and A.P.E."""
         energyK_fft, energyA_fft = self.compute_energiesKA_fft()
         return (
-            self.sum_wavenumbers(energyK_fft),
-            self.sum_wavenumbers(energyA_fft),
+            self.sum_wavenumbers(energyK_fft), self.sum_wavenumbers(energyA_fft)
         )
 
     def compute_energy(self):
@@ -198,22 +198,31 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
 
         ugx_fft, ugy_fft, etag_fft = self.oper.uxuyetafft_from_qfft(q_fft)
         energy_glin_fft = 0.5 * (
-            np.abs(ugx_fft) ** 2
-            + np.abs(ugy_fft) ** 2
-            + self.sim.params.c2 * np.abs(etag_fft) ** 2
+            np.abs(ugx_fft)
+            ** 2
+            + np.abs(ugy_fft)
+            ** 2
+            + self.sim.params.c2
+            * np.abs(etag_fft)
+            ** 2
         )
 
         uax_fft, uay_fft, etaa_fft = self.oper.uxuyetafft_from_afft(ageo_fft)
         energy_alin_fft = 0.5 * (
-            np.abs(uax_fft) ** 2
-            + np.abs(uay_fft) ** 2
-            + self.sim.params.c2 * np.abs(etaa_fft) ** 2
+            np.abs(uax_fft)
+            ** 2
+            + np.abs(uay_fft)
+            ** 2
+            + self.sim.params.c2
+            * np.abs(etaa_fft)
+            ** 2
         )
 
         return energy_glin_fft, energy_dlin_fft, energy_alin_fft
 
 
 class OutputSW1L(OutputBaseSW1L):
+
     def compute_energies_fft(self):
         r"""Compute kinetic, available potential and rotational kinetic energies
         in the spectral space.

@@ -73,13 +73,15 @@ length: float (default 0.)
 
         ux_fft = (
             np.random.random(oper.shapeK)
-            + 1j * np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )
         uy_fft = (
             np.random.random(oper.shapeK)
-            + 1j * np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )
@@ -181,10 +183,14 @@ class InitFieldsDipole(SpecificInitFields):
             for jp in range(-1, 2):
                 XX_s = np.cos(theta) * (oper.XX - xs - ip * oper.Lx) + np.sin(
                     theta
-                ) * (oper.YY - ys - jp * oper.Ly)
+                ) * (
+                    oper.YY - ys - jp * oper.Ly
+                )
                 YY_s = np.cos(theta) * (oper.YY - ys - jp * oper.Ly) - np.sin(
                     theta
-                ) * (oper.XX - xs - ip * oper.Lx)
+                ) * (
+                    oper.XX - xs - ip * oper.Lx
+                )
                 omega = omega + wz_2LO(XX_s, YY_s, b)
         return omega
 

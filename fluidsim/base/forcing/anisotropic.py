@@ -36,7 +36,9 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         """
         super(
             TimeCorrelatedRandomPseudoSpectral, cls
-        )._complete_params_with_default(params)
+        )._complete_params_with_default(
+            params
+        )
 
         params.forcing._set_child("tcrandom_anisotropic", {"angle": "45°"})
 
@@ -190,7 +192,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
                 height=abs(KX).max() * 0.5,
                 angle=0,
                 theta1=theta1,
-                theta2=theta2,
+                theta2=theta2
             )
         )
 
@@ -203,7 +205,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
                 angle=0,
                 theta1=0,
                 theta2=90.0,
-                linestyle="-.",
+                linestyle="-."
             )
         )
         ax.add_patch(
@@ -214,7 +216,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
                 angle=0,
                 theta1=0,
                 theta2=90.0,
-                linestyle="-.",
+                linestyle="-."
             )
         )
 

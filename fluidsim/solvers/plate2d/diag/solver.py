@@ -24,6 +24,7 @@ from fluidsim.solvers.plate2d.solver import InfoSolverPlate2D
 
 
 class InfoSolverPlate2DDiag(InfoSolverPlate2D):
+
     def _init_root(self):
 
         super(InfoSolverPlate2DDiag, self)._init_root()
@@ -275,8 +276,10 @@ if __name__ == "__main__":
     params.nu_8 = (
         2.
         * 10e-4
-        * params.forcing.forcing_rate ** (old_div(1., 3))
-        * delta_x ** 8
+        * params.forcing.forcing_rate
+        ** (old_div(1., 3))
+        * delta_x
+        ** 8
     )
 
     kmax = np.sqrt(2) * np.pi / delta_x

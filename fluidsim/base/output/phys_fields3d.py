@@ -28,6 +28,7 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
 
 
 class PhysFieldsBase3D(PhysFieldsBase2D):
+
     def __init__(self, output):
         super(PhysFieldsBase3D, self).__init__(output)
         self.set_equation_crosssection("iz=0")

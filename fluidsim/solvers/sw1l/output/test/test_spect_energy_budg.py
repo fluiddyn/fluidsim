@@ -83,7 +83,8 @@ class TestSW1L(BaseTestCase):
         energy_UU = (
             inner_prod(ux_fft, ux_fft)
             + inner_prod(uy_fft, uy_fft)
-            + inner_prod(eta_fft, eta_fft) * c2
+            + inner_prod(eta_fft, eta_fft)
+            * c2
         )
         energy_BB = (
             inner_prod(b0_fft, b0_fft)

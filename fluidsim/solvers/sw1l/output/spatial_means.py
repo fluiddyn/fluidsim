@@ -50,7 +50,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
                 "E      = {0:11.6e} ; CPE        = {1:11.6e} \n"
                 "EK     = {2:11.6e} ; EA         = {3:11.6e} ; "
                 "EKr       = {4:11.6e} \n"
-            ).format(energy, CharneyPE, energyK, energyA, energyKr)
+            ).format(
+                energy, CharneyPE, energyK, energyA, energyKr
+            )
             self.file.write(to_print)
 
         # Compute and save dissipation rates.
@@ -87,7 +89,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "eta skew = {0:11.6e} ; kurt = {1:11.6e} \n"
                 "rot skew = {2:11.6e} ; kurt = {3:11.6e} \n"
-            ).format(skew_eta, kurt_eta, skew_rot, kurt_rot)
+            ).format(
+                skew_eta, kurt_eta, skew_rot, kurt_rot
+            )
             self.file.write(to_print)
 
         if self.sim.params.forcing.enable:
@@ -124,7 +128,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "Conv = {0:11.6e} ; c2eta1d = {1:11.6e} ; "
                 "c2eta2d = {2:11.6e} ; c2eta2d = {3:11.6e}\n"
-            ).format(Conv, c2eta1d, c2eta2d, c2eta3d)
+            ).format(
+                Conv, c2eta1d, c2eta2d, c2eta3d
+            )
             self.file.write(to_print)
 
     def treat_dissipation_rates(self, energyK_fft, energyA_fft, CharneyPE_fft):
@@ -244,7 +250,9 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             to_print = (
                 "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
                 "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
-            ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
+            ).format(
+                PK1, PK2, PK_tot, PA1, PA2, PA_tot
+            )
 
             self.file.write(to_print)
 
@@ -748,7 +756,8 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             deltat
             / 2
             * (
-                0.5 * (inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft))
+                0.5
+                * (inner_prod(Fx_fft, FJx_fft) + inner_prod(Fy_fft, FJy_fft))
                 + inner_prod(ux_fft, FetaFx_fft)
                 + inner_prod(uy_fft, FetaFy_fft)
             )
@@ -764,7 +773,9 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
             to_print = (
                 "PK1    = {0:11.6e} ; PK2        = {1:11.6e} ; PK_tot    = {2:11.6e} \n"
                 "PA1    = {3:11.6e} ; PA2        = {4:11.6e} ; PA_tot    = {5:11.6e} \n"
-            ).format(PK1, PK2, PK_tot, PA1, PA2, PA_tot)
+            ).format(
+                PK1, PK2, PK_tot, PA1, PA2, PA_tot
+            )
 
             self.file.write(to_print)
 

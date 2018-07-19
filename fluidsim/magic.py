@@ -107,8 +107,9 @@ class FluidsimMagics(Magics):
                 )
             return
 
-        if not args.force_overwrite and (
-            self.is_defined("params") or self.is_defined("Simul")
+        if (
+            not args.force_overwrite
+            and (self.is_defined("params") or self.is_defined("Simul"))
         ):
             if not query_yes_no(
                 "At least one of the variables `params` or `Simul` is defined"

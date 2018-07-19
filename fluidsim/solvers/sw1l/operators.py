@@ -15,6 +15,7 @@ from . import util_oper_pythran
 
 
 class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
+
     def qapamfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
         """ux, uy, eta (fft) ---> q, ap, am (fft)"""
 

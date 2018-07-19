@@ -194,7 +194,7 @@ class CorrelationsFreq(SpecificOutput):
         if itsim - self.it_last_run >= periods_save - 1:
             self.it_last_run = itsim
             field = self.sim.state.state_phys.get_var(self.key_quantity)
-            field = field[:: self.coef_decimate, :: self.coef_decimate]
+            field = field[::self.coef_decimate, ::self.coef_decimate]
             self.spatio_temp[:, self.nb_times_in_spatio_temp] = field.reshape(
                 [field.size]
             )
@@ -220,9 +220,12 @@ class CorrelationsFreq(SpecificOutput):
                     self.nb_means_times += 1
 
                     if (
-                        self.nb_means_times % 128 == 0
-                        or np.log(self.nb_means_times) / np.log(2) % 1 == 0
-                    ) and self.nb_means_times != 1:
+                        (
+                            self.nb_means_times % 128 == 0
+                            or np.log(self.nb_means_times) / np.log(2) % 1 == 0
+                        )
+                        and self.nb_means_times != 1
+                    ):
 
                         correlations = {
                             "corr4": self.corr4,
@@ -446,8 +449,8 @@ class CorrelationsFreq(SpecificOutput):
                 np.mean(
                     corr4[
                         i1,
-                        io3 - delta_io : io3 + delta_io + 1,
-                        io4 - delta_io : io4 + delta_io + 1,
+                        io3 - delta_io:io3 + delta_io + 1,
+                        io4 - delta_io:io4 + delta_io + 1,
                     ]
                 )
             )
@@ -456,8 +459,8 @@ class CorrelationsFreq(SpecificOutput):
             corr4_mini = corr4[
                 :,
                 i1,
-                io3 - delta_io : io3 + delta_io + 1,
-                io4 - delta_io : io4 + delta_io + 1,
+                io3 - delta_io:io3 + delta_io + 1,
+                io4 - delta_io:io4 + delta_io + 1,
             ]
             return np.abs(corr4_mini.mean(1).mean(1))
 
@@ -632,8 +635,8 @@ class CorrelationsFreq(SpecificOutput):
                             np.mean(
                                 corr4_nb[
                                     i1,
-                                    2 * io1 - ws : 2 * io1 + ws + 1,
-                                    2 * io1 - ws : 2 * io1 + ws + 1,
+                                    2 * io1 - ws:2 * io1 + ws + 1,
+                                    2 * io1 - ws:2 * io1 + ws + 1
                                 ]
                             )
                         )

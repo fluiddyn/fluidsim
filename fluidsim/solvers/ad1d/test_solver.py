@@ -19,6 +19,7 @@ from fluidsim.solvers.ad1d.solver import Simul
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
 class TestSolverAD1D(unittest.TestCase):
+
     def setUp(self):
         # RuntimeWarnings are very common when numpy installed and numpy
         # used to build scipy don't match.

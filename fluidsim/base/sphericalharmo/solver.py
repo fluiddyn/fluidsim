@@ -13,8 +13,7 @@
 """
 
 from ..solvers.pseudo_spect import (
-    InfoSolverPseudoSpectral,
-    SimulBasePseudoSpectral,
+    InfoSolverPseudoSpectral, SimulBasePseudoSpectral
 )
 
 

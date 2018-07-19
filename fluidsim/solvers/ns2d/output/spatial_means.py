@@ -54,10 +54,14 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
             PK1_fft = (
                 np.real(
-                    ux_fft.conj() * Fx_fft
-                    + ux_fft * Fx_fft.conj()
-                    + uy_fft.conj() * Fy_fft
-                    + uy_fft * Fy_fft.conj()
+                    ux_fft.conj()
+                    * Fx_fft
+                    + ux_fft
+                    * Fx_fft.conj()
+                    + uy_fft.conj()
+                    * Fy_fft
+                    + uy_fft
+                    * Fy_fft.conj()
                 )
                 / 2
             )
@@ -91,7 +95,9 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 to_print = (
                     "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
                     "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2)
+                ).format(
+                    PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2
+                )
                 self.file.write(to_print)
 
             self.file.flush()

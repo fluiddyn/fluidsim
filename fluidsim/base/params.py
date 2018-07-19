@@ -67,11 +67,7 @@ class Parameters(ParamContainer):
         # Merge childrean
         diff_children = set(params2._tag_children) - set(params1._tag_children)
         internal_attribs = [
-            "attribs",
-            "children",
-            "key_attribs",
-            "tag",
-            "tag_children",
+            "attribs", "children", "key_attribs", "tag", "tag_children"
         ]
 
         if len(diff_children) > 0:
@@ -145,11 +141,14 @@ def merge_params(to_params, *other_params):
     # Substitute old FFT types with newer FluidFFT implementations
     if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
-        if method != "default" and not any(
-            [
-                method.startswith(prefix)
-                for prefix in ("fft2d.", "fft3d.", "fluidfft.")
-            ]
+        if (
+            method != "default"
+            and not any(
+                [
+                    method.startswith(prefix)
+                    for prefix in ("fft2d.", "fft3d.", "fluidfft.")
+                ]
+            )
         ):
             dim = 3 if hasattr(to_params.oper, "nz") else 2
             type_fft = find_available_fluidfft(dim)
@@ -201,6 +200,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
         elif path.endswith(".xml"):
             if not os.path.exists(path):
                 raise ValueError("The file " + path + "does not exists.")
+
             path_xml = path
 
         if path_xml is not None and os.path.exists(path_xml):
@@ -252,6 +252,7 @@ def load_info_solver(path_dir=None):
         print("load params from file\n" + str_path)
         with h5py.File(path) as h5file:
             return Parameters(hdf5_object=h5file["/info_simul/solver"])
+
     else:
         return ValueError
 

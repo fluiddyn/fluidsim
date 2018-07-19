@@ -26,6 +26,7 @@ from fluidsim.base.params import load_info_solver
 
 
 class TestBaseSolverPS(unittest.TestCase):
+
     def setUp(self, params=None):
         """Should be able to run a TestBaseSolverPS simulation."""
 

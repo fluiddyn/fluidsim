@@ -34,12 +34,12 @@ from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
 ### PARAMETERS ###
 
 # CONDITIONS
-nb_wavenumbers_y = 16
+nb_wavenumbers_y = 14
 threshold_ratio = 1e1
 min_factor = 0.7
 
 # SIMULATION
-gamma = 1.
+gamma = 1.5
 F = np.sin(pi / 4) # F = omega_l / N
 sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
 nu_8 = 1e-16
@@ -263,7 +263,7 @@ def check_dissipation():
 gamma_not = make_float_value_for_path(gamma)
 
 # Create directory in path
-path_root = Path("/fsnet/project/meige/2015/15DELDUCA/DataSim")
+path_root = Path("/fsnet/project/meige/2015/15DELDUCA/DataSim/Coef_Diss")
 name_directory = "Coef_Diss_gamma{}".format(gamma_not)
 path = path_root / name_directory
 

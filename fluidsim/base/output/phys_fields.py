@@ -302,24 +302,24 @@ class PhysFieldsBase(SpecificOutput):
             return field, key_field
 
         elif equation.startswith("iz="):
-            iz = eval(equation[len("iz=") :])
+            iz = eval(equation[len("iz="):])
             field = field[iz, ...]
         elif equation.startswith("z="):
-            z = eval(equation[len("z=") :])
+            z = eval(equation[len("z="):])
             iz = abs(self.output.sim.oper.z_seq - z).argmin()
             field = field[iz, ...]
         elif equation.startswith("iy="):
-            iy = eval(equation[len("iy=") :])
+            iy = eval(equation[len("iy="):])
             field = field[:, iy, :]
         elif equation.startswith("y="):
-            y = eval(equation[len("y=") :])
+            y = eval(equation[len("y="):])
             iy = abs(self.output.sim.oper.y_seq - y).argmin()
             field = field[:, iy, :]
         elif equation.startswith("ix="):
-            ix = eval(equation[len("ix=") :])
+            ix = eval(equation[len("ix="):])
             field = field[..., ix]
         elif equation.startswith("x="):
-            x = eval(equation[len("x=") :])
+            x = eval(equation[len("x="):])
             ix = abs(self.output.sim.oper.x_seq - x).argmin()
             field = field[..., ix]
         else:
@@ -355,8 +355,9 @@ class SetOfPhysFieldFiles(object):
         """Initialize the times by globing and analyzing the file names."""
         path_files = glob(os.path.join(self.output.path_run, "state_phys*.[hn]*"))
 
-        if hasattr(self, "path_files") and len(self.path_files) == len(
-            path_files
+        if (
+            hasattr(self, "path_files")
+            and len(self.path_files) == len(path_files)
         ):
             return
 
@@ -426,29 +427,29 @@ class SetOfPhysFieldFiles(object):
                 return dset.value
 
             if equation.startswith("iz="):
-                iz = eval(equation[len("iz=") :])
+                iz = eval(equation[len("iz="):])
                 return dset[iz, ...]
 
             elif equation.startswith("z="):
-                z = eval(equation[len("z=") :])
+                z = eval(equation[len("z="):])
                 iz = abs(self.output.sim.oper.z_seq - z).argmin()
                 return dset[iz, ...]
 
             elif equation.startswith("iy="):
-                iy = eval(equation[len("iy=") :])
+                iy = eval(equation[len("iy="):])
                 return dset[:, iy, :]
 
             elif equation.startswith("y="):
-                y = eval(equation[len("y=") :])
+                y = eval(equation[len("y="):])
                 iy = abs(self.output.sim.oper.y_seq - y).argmin()
                 return dset[:, iy, :]
 
             elif equation.startswith("ix="):
-                ix = eval(equation[len("ix=") :])
+                ix = eval(equation[len("ix="):])
                 return dset[..., ix]
 
             elif equation.startswith("x="):
-                x = eval(equation[len("x=") :])
+                x = eval(equation[len("x="):])
                 ix = abs(self.output.sim.oper.x_seq - x).argmin()
                 return dset[..., ix]
 

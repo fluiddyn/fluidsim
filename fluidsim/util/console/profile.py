@@ -83,7 +83,7 @@ def profile(
     raise_error=False,
     verbose=False,
     plot=False,
-    it_end=None,
+    it_end=None
 ):
     """Instantiate simulation object and run profiles."""
 
@@ -415,7 +415,8 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
             )
 
     print(
-        "-" * 24
+        "-"
+        * 24
         + "\n{:15s}  {:5.02f} %".format(
             "", sum([t for t in times.values()]) / total_time * 100
         )

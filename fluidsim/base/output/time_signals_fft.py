@@ -102,10 +102,14 @@ class TimeSignalsK(SpecificOutput):
             for ikps in range(self.nb_k_per_shell):
                 kx_array_ik_approx[
                     ishell * self.nb_shells + ikps
-                ] = kh_s * np.cos(angle)
+                ] = kh_s * np.cos(
+                    angle
+                )
                 ky_array_ik_approx[
                     ishell * self.nb_shells + ikps
-                ] = kh_s * np.sin(angle)
+                ] = kh_s * np.sin(
+                    angle
+                )
                 angle += delta_angle
 
         self.ik0_array_ik = np.empty([self.nb_k_tot], dtype=np.int32)
@@ -365,18 +369,16 @@ class TimeSignalsK(SpecificOutput):
         spect = np.zeros([self.nt // 2 + 1])
         while it0 + self.nt < Nt:
             nb_spectra += 1
-            sig = sig_long[it0 : it0 + self.nt]
+            sig = sig_long[it0:it0 + self.nt]
             spect_raw = (
                 abs(self.opfft1d.fft(self.hann * sig)) ** 2 / 2 / self.deltaomega
             )
-            spect += spect_raw[: self.nt // 2 + 1]
+            spect += spect_raw[:self.nt // 2 + 1]
             if self.nt % 2 == 0:
-                spect[1 : self.nt // 2] += spect_raw[
-                    self.nt - 1 : self.nt // 2 : -1
-                ]
+                spect[1:self.nt // 2] += spect_raw[self.nt - 1:self.nt // 2:-1]
             else:
-                spect[1 : self.nt // 2 + 1] += spect_raw[
-                    self.nt - 1 : self.nt // 2 : -1
+                spect[1:self.nt // 2 + 1] += spect_raw[
+                    self.nt - 1:self.nt // 2:-1
                 ]
             it0 += stepit0
 

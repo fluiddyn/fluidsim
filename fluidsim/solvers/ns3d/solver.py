@@ -20,12 +20,12 @@ from fluidfft.fft3d.operators import vector_product
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral,
-    InfoSolverPseudoSpectral3D,
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral3D
 )
 
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
+
     def _init_root(self):
 
         super(InfoSolverNS3D, self)._init_root()

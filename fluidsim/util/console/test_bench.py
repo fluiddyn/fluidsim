@@ -32,7 +32,7 @@ class TestBench(unittest.TestCase):
                 n1=n0,
                 n2=None,
                 path_dir=path_tmp,
-                raise_error=True,
+                raise_error=True
             )
 
             # Can plot only parallel benchmarks
@@ -44,7 +44,7 @@ class TestBench(unittest.TestCase):
                     2 * n0,
                     n0,
                     show=False,
-                    type_plot="weak",
+                    type_plot="weak"
                 )
 
     def test3d(self):

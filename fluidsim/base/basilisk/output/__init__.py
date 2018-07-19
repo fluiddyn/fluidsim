@@ -4,6 +4,7 @@ from ...output.base import OutputBase  # , SpecificOutput
 
 
 class OutputBasilisk(OutputBase):
+
     @staticmethod
     def _complete_info_solver(info_solver):
 

@@ -293,8 +293,14 @@ class StateSW1L(StatePseudoSpectral):
 
         eta_fft = old_div(
             (
-                1.j * self.oper.KX * tempx_fft / K2_not0
-                + 1.j * self.oper.KY * tempy_fft / K2_not0
+                1.j
+                * self.oper.KX
+                * tempx_fft
+                / K2_not0
+                + 1.j
+                * self.oper.KY
+                * tempy_fft
+                / K2_not0
                 - old_div(uu2_fft, 2)
             ),
             self.params.c2,

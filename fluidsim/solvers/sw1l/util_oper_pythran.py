@@ -41,8 +41,10 @@ def qapamfft_from_uxuyetafft(
                         0.5j
                         * Kappa_over_ic[i0, i1]
                         * (
-                            KX[i0, i1] * ux_fft[i0, i1]
-                            + KY[i0, i1] * uy_fft[i0, i1]
+                            KX[i0, i1]
+                            * ux_fft[i0, i1]
+                            + KY[i0, i1]
+                            * uy_fft[i0, i1]
                         )
                     )
 
@@ -67,8 +69,10 @@ def qapamfft_from_uxuyetafft(
                         0.5j
                         * Kappa_over_ic[i0, i1]
                         * (
-                            KX[i0, i1] * ux_fft[i0, i1]
-                            + KY[i0, i1] * uy_fft[i0, i1]
+                            KX[i0, i1]
+                            * ux_fft[i0, i1]
+                            + KY[i0, i1]
+                            * uy_fft[i0, i1]
                         )
                     )
 

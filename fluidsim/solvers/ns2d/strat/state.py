@@ -64,12 +64,12 @@ class StateNS2DStrat(StateNS2D):
             rot_fft = self.state_spect.get_var("rot_fft")
             ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
             result = ux_fft
-            # result = self.oper.fft2(self.state_phys.get_var("ux"))
+        # result = self.oper.fft2(self.state_phys.get_var("ux"))
         elif key == "uy_fft":
             rot_fft = self.state_spect.get_var("rot_fft")
             ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
             result = uy_fft
-            # result = self.oper.fft2(self.state_phys.get_var("uy"))
+        # result = self.oper.fft2(self.state_phys.get_var("uy"))
         elif key == "div_fft":
             ux_fft = self.compute("ux_fft")
             uy_fft = self.compute("uy_fft")
@@ -101,7 +101,7 @@ class StateNS2DStrat(StateNS2D):
             # print("1j * omega_k * b_fft", 1j * omega_k * b_fft)
             # print("(N ** 2) * uy_fft", (N ** 2) * uy_fft)
             result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
-            # result = np.zeros(self.oper.shapeK, dtype="complex")
+        # result = np.zeros(self.oper.shapeK, dtype="complex")
         elif key == "ap":
             ap_fft = self.compute("ap_fft")
             result = self.oper.ifft(ap_fft)

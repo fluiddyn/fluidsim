@@ -124,6 +124,7 @@ class SpatioTempSpectra(SpecificOutput):
         # Check: self.nb_arr_in_file should be > 0
         if self.nb_arr_in_file <= 0 and self.periods_save > 0:
             raise ValueError("The size of the file should be larger.")
+
         else:
             self.spatio_temp = np.empty(
                 [self.nb_arr_in_file, n0, n1 // 2], dtype=complex
@@ -134,11 +135,11 @@ class SpatioTempSpectra(SpecificOutput):
                 [2, self.nb_arr_in_file, n0, n1 // 2], dtype=complex
             )
 
-            # self.spatio_temp_ap = np.empty(
-            #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
+        # self.spatio_temp_ap = np.empty(
+        #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
 
-            # self.spatio_temp_am = np.empty(
-            #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
+        # self.spatio_temp_am = np.empty(
+        #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
 
         # Convert time_start to it_start
         self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
@@ -230,7 +231,7 @@ class SpatioTempSpectra(SpecificOutput):
                         dtype=complex,
                     )
 
-                    # print("field_seq shape", field_seq.shape)
+                # print("field_seq shape", field_seq.shape)
 
                 if mpi.nb_proc > 1:
                     mpi.comm.Gather(field, field_seq, root=0)
@@ -272,15 +273,15 @@ class SpatioTempSpectra(SpecificOutput):
                 # Decimation of the field
                 if mpi.rank == 0:
                     field_decimate = field[
-                        :: self.spatial_decimate, :: self.spatial_decimate
+                        ::self.spatial_decimate, ::self.spatial_decimate
                     ]
 
                     field_ap_decimate = field_ap[
-                        :: self.spatial_decimate, :: self.spatial_decimate
+                        ::self.spatial_decimate, ::self.spatial_decimate
                     ]
 
                     field_am_decimate = field_am[
-                        :: self.spatial_decimate, :: self.spatial_decimate
+                        ::self.spatial_decimate, ::self.spatial_decimate
                     ]
 
                     self.spatio_temp[

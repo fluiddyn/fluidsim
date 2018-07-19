@@ -5,6 +5,7 @@ from fluidsim.base.time_stepping.pseudo_spect_cy import TimeSteppingPseudoSpectr
 
 
 class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):
+
     def one_time_step_computation(self):
         """One time step"""
         state_spect = self.sim.state.state_spect

@@ -49,9 +49,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             vz_fft = self.sim.state.state_spect.get_var("vz_fft")
 
             PK1_fft = np.real(
-                vx_fft.conj() * fx_fft
-                + vy_fft.conj() * fy_fft
-                + vz_fft.conj() * fz_fft
+                vx_fft.conj()
+                * fx_fft
+                + vy_fft.conj()
+                * fy_fft
+                + vz_fft.conj()
+                * fz_fft
             )
             PK2_fft = (
                 (abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2)
@@ -79,7 +82,9 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 to_print = (
                     "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
                     "PK_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2)
+                ).format(
+                    PK1, PK2, PK1 + PK2
+                )
                 self.file.write(to_print)
 
             self.file.flush()

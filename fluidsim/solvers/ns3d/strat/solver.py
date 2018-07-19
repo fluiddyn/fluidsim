@@ -22,6 +22,7 @@ from ..solver import InfoSolverNS3D, Simul as SimulNS3D
 
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
+
     def _init_root(self):
 
         super(InfoSolverNS3DStrat, self)._init_root()

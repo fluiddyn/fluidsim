@@ -17,16 +17,18 @@ def get_qmat(f, c, sigma, KX, KY, K, K2, K_not0):
             [
                 -1j * 2. ** 0.5 * ck * KY,
                 +1j * f * KY + KX * sigma,
-                +1j * f * KY - KX * sigma,
+                +1j * f * KY - KX * sigma
             ],
             [
                 +1j * 2. ** 0.5 * ck * KX,
                 -1j * f * KX + KY * sigma,
-                -1j * f * KX - KY * sigma,
+                -1j * f * KX - KY * sigma
             ],
-            [2. ** 0.5 * f * K, c * K2, c * K2],
+            [2. ** 0.5 * f * K, c * K2, c * K2]
         ]
-    ) / (2. ** 0.5 * sigma * K_not0)
+    ) / (
+        2. ** 0.5 * sigma * K_not0
+    )
     return qmat
 
 

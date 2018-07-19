@@ -12,6 +12,7 @@ from .movies import MoviesBase1D
 
 
 class MoviesSpectra(MoviesBase1D):
+
     def __init__(self, output, spectra):
         self.spectra = spectra
         super(MoviesSpectra, self).__init__(output)
@@ -199,14 +200,16 @@ class Spectra(SpecificOutput):
                 + (
                     "tmin = {0:8.6g} ; tmax = {1:8.6g}"
                     "imin = {2:8d} ; imax = {3:8d}"
-                ).format(tmin, tmax, imin_plot, imax_plot)
+                ).format(
+                    tmin, tmax, imin_plot, imax_plot
+                )
             )
 
             dict_results = {"k": k3d}
             for key in list(h5file.keys()):
                 if key.startswith("spectr"):
                     dset_key = h5file[key]
-                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    spect = dset_key[imin_plot:imax_plot + 1].mean(0)
                     dict_results[key] = spect
         return dict_results
 
@@ -237,13 +240,15 @@ class Spectra(SpecificOutput):
                 + (
                     "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
                     "imin = {2:8d} ; imax = {3:8d}\n"
-                ).format(tmin, tmax, imin_plot, imax_plot)
+                ).format(
+                    tmin, tmax, imin_plot, imax_plot
+                )
             )
 
             for key in list(h5file.keys()):
                 if key.startswith("spectr"):
                     dset_key = h5file[key]
-                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    spect = dset_key[imin_plot:imax_plot + 1].mean(0)
                     dict_results[key] = spect
         return dict_results
 

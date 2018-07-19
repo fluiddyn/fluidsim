@@ -250,6 +250,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
 
 class PhysFieldsBase2D(PhysFieldsBase):
+
     def _init_skip_quiver(self):
         # 4% of the Lx it is a great separation between vector arrows.
         try:

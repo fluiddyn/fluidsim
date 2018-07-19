@@ -242,9 +242,12 @@ cfl_coef: float (default None)
             max_uy = abs(uy).max()
             max_uz = abs(uz).max()
             tmp = (
-                max_ux / self.sim.oper.deltax
-                + max_uy / self.sim.oper.deltay
-                + max_uz / self.sim.oper.deltaz
+                max_ux
+                / self.sim.oper.deltax
+                + max_uy
+                / self.sim.oper.deltay
+                + max_uz
+                / self.sim.oper.deltaz
             )
         else:
             tmp = 0.

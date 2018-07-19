@@ -63,14 +63,18 @@ class StateSW1LExactLin(StateSW1L):
             a_fft = self.compute("a_fft")
             result = self.oper.rotfft_from_qfft(
                 q_fft
-            ) + self.oper.rotfft_from_afft(a_fft)
+            ) + self.oper.rotfft_from_afft(
+                a_fft
+            )
 
         elif key == "eta_fft":
             q_fft = self.state_spect.get_var("q_fft")
             a_fft = self.compute("a_fft")
             result = self.oper.etafft_from_qfft(
                 q_fft
-            ) + self.oper.etafft_from_afft(a_fft)
+            ) + self.oper.etafft_from_afft(
+                a_fft
+            )
 
         elif key == "ux_fft":
             rot_fft = self.compute("rot_fft")

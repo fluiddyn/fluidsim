@@ -8,6 +8,7 @@ import basilisk.stream as basilisk
 
 
 class InfoSolverBasilisk(InfoSolverBase):
+
     def _init_root(self):
 
         super(InfoSolverBasilisk, self)._init_root()

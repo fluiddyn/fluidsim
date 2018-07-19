@@ -42,6 +42,7 @@ if nb_proc > 1:
 
 
 class OperatorsPseudoSpectral2D(_Operators):
+
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
@@ -361,10 +362,13 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             else:
                 rank_k = 0
-                while rank_k < self.nb_proc - 1 and (
-                    not (
-                        self.iKxloc_start_rank[rank_k] <= ikx_seq
-                        and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
+                while (
+                    rank_k < self.nb_proc - 1
+                    and (
+                        not (
+                            self.iKxloc_start_rank[rank_k] <= ikx_seq
+                            and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
+                        )
                     )
                 ):
                     rank_k += 1

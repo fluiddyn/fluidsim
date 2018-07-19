@@ -42,13 +42,15 @@ class InitFieldsNoise(SpecificInitFields):
 
         w_fft = (
             np.random.random(oper.shapeK)
-            + 1j * np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )
         z_fft = (
             np.random.random(oper.shapeK)
-            + 1j * np.random.random(oper.shapeK)
+            + 1j
+            * np.random.random(oper.shapeK)
             - 0.5
             - 0.5j
         )

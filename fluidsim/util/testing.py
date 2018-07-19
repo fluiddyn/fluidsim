@@ -25,6 +25,7 @@ from fluiddyn.util import mpi
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):
+
     def __init__(self, *args, **kwargs):
         super(TimeLoggingTestResult, self).__init__(*args, **kwargs)
         self.test_timings = []
@@ -44,6 +45,7 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 
 
 class TimeLoggingTestRunner(unittest.TextTestRunner):
+
     def __init__(self, slow_test_threshold=0.3, *args, **kwargs):
         self.slow_test_threshold = slow_test_threshold
         return super(TimeLoggingTestRunner, self).__init__(

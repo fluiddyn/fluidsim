@@ -20,8 +20,7 @@ from __future__ import division
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral,
-    InfoSolverPseudoSpectral,
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
 )
 
 from fluiddyn.util import mpi

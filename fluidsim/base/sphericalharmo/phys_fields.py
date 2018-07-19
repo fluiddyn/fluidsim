@@ -4,6 +4,7 @@ from ..output.phys_fields2d import PhysFieldsBase2D
 
 
 class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
+
     def _set_title(self, ax, key, time, vmax=None):
         title = (
             key

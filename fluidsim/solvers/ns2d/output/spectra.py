@@ -26,8 +26,7 @@ class SpectraNS2D(Spectra):
         # compute the spectra 1D
         spectrum1Dkx_E, spectrum1Dky_E = self.spectra1D_from_fft(energy_fft)
         dict_spectra1D = {
-            "spectrum1Dkx_E": spectrum1Dkx_E,
-            "spectrum1Dky_E": spectrum1Dky_E,
+            "spectrum1Dkx_E": spectrum1Dkx_E, "spectrum1Dky_E": spectrum1Dky_E
         }
         # compute the spectra 2D
         spectrum2D_E = self.spectrum2D_from_fft(energy_fft)
@@ -125,9 +124,9 @@ class SpectraNS2D(Spectra):
                     EK[EK < 10e-16] = 0.
                     ax1.plot(kh, EK * coef_norm, "k", linewidth=2)
 
-            EK = dset_spectrum1Dkx[imin_plot : imax_plot + 1]
+            EK = dset_spectrum1Dkx[imin_plot:imax_plot + 1]
             if is_asym:
-                EK += dset_spectrum1Dky[imin_plot : imax_plot + 1]
+                EK += dset_spectrum1Dky[imin_plot:imax_plot + 1]
 
         EK = EK.mean(0)
 
@@ -198,7 +197,7 @@ class SpectraNS2D(Spectra):
                     EK[EK < 10e-16] = 0.
                     ax1.plot(kh, EK * coef_norm, "k", linewidth=1)
 
-            EK = dset_spectrum[imin_plot : imax_plot + 1].mean(0)
+            EK = dset_spectrum[imin_plot:imax_plot + 1].mean(0)
             EK[EK < 10e-16] = 0.
             ax1.plot(kh, EK * coef_norm, "k", linewidth=2)
 

@@ -26,8 +26,7 @@ class PreprocessBase(object):
                 classesXML._set_child(
                     cls.tag,
                     attribs={
-                        "module_name": cls.__module__,
-                        "class_name": cls.__name__,
+                        "module_name": cls.__module__, "class_name": cls.__name__
                     },
                 )
 

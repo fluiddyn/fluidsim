@@ -64,10 +64,14 @@ class InitFieldsDipole(SpecificInitFields):
             for jp in range(-1, 2):
                 XX_s = np.cos(theta) * (XX - xs - ip * oper.Lx) + np.sin(
                     theta
-                ) * (YY - ys - jp * oper.Ly)
+                ) * (
+                    YY - ys - jp * oper.Ly
+                )
                 YY_s = np.cos(theta) * (YY - ys - jp * oper.Ly) - np.sin(
                     theta
-                ) * (XX - xs - ip * oper.Lx)
+                ) * (
+                    XX - xs - ip * oper.Lx
+                )
                 omega += wz_2LO(XX_s, YY_s, b)
         return omega
 

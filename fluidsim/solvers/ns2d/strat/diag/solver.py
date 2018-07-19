@@ -12,12 +12,12 @@ from past.utils import old_div
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral,
-    InfoSolverPseudoSpectral,
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
 )
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
+
     def _init_root(self):
 
         super(InfoSolverNS2D, self)._init_root()
@@ -128,8 +128,10 @@ if __name__ == "__main__":
     params.nu_8 = (
         2.
         * 10e-1
-        * params.forcing.forcing_rate ** (old_div(1., 3))
-        * delta_x ** 8
+        * params.forcing.forcing_rate
+        ** (old_div(1., 3))
+        * delta_x
+        ** 8
     )
 
     params.time_stepping.t_end = 1.

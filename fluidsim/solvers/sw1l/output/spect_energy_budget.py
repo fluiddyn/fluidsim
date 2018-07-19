@@ -8,9 +8,7 @@ import h5py
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.spect_energy_budget import (
-    SpectralEnergyBudgetBase,
-    cumsum_inv,
-    inner_prod,
+    SpectralEnergyBudgetBase, cumsum_inv, inner_prod
 )
 
 from .normal_mode import NormalModeDecomposition, NormalModeDecompositionModified
@@ -154,8 +152,10 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             * (
                 -inner_prod(ux_fft, px_EP_fft)
                 - inner_prod(uy_fft, py_EP_fft)
-                - self.c2 * inner_prod(Jx_fft, px_h_fft)
-                - self.c2 * inner_prod(Jy_fft, py_h_fft)
+                - self.c2
+                * inner_prod(Jx_fft, px_h_fft)
+                - self.c2
+                * inner_prod(Jy_fft, py_h_fft)
             )
         )
         del (px_h_fft, py_h_fft, px_EP_fft, py_EP_fft)
@@ -665,9 +665,9 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         if self.params.f != 0:
             ugx_fft, ugy_fft, etag_fft = self.oper.uxuyetafft_from_qfft(q_fft)
             uax_fft, uay_fft, etaa_fft = self.oper.uxuyetafft_from_afft(a_fft)
-            # velocity influenced by linear terms
-            # u_infl_lin_x = udx_fft + uax_fft
-            # u_infl_lin_y = udy_fft + uay_fft
+        # velocity influenced by linear terms
+        # u_infl_lin_x = udx_fft + uax_fft
+        # u_infl_lin_y = udy_fft + uay_fft
 
         # compute flux of Charney PE
         Fq_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, q_fft)
@@ -912,6 +912,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 
 
 class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
+
     def __init__(self, output, norm_mode=None):
         if norm_mode is None:
             self.norm_mode = NormalModeDecomposition(output)
@@ -931,9 +932,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             "eeu": ["px_eta_fft", "eta", "ux"],  # Quad. A.P.E. transfer terms
             "eev": ["py_eta_fft", "eta", "uy"],
             "uud": [
-                "ux_fft",
-                "ux",
-                "div",
+                "ux_fft", "ux", "div"
             ],  # NonQuad. K.E. - Quad K.E. transfer terms
             "vvd": ["uy_fft", "uy", "div"],
             "dee": ["div_fft", "eta", "eta"],
@@ -948,7 +947,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             "eev": 0.5 * c2,
             "uud": -0.5,
             "vvd": -0.5,
-            "dee": 0.25 * c2,
+            "dee": 0.25 * c2
         }
 
         return keys, coeff
@@ -1285,7 +1284,11 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             exchange_GG = h5file["Cq_GG"][imin_plot:imax_plot].mean(0)
             exchange_AG = h5file["Cq_AG"][imin_plot:imax_plot].mean(0) + h5file[
                 "Cq_aG"
-            ][imin_plot:imax_plot].mean(0)
+            ][
+                imin_plot:imax_plot
+            ].mean(
+                0
+            )
             exchange_AA = h5file["Cq_AA"][imin_plot:imax_plot].mean(0)
             exchange_mean = exchange_GG + exchange_AG + exchange_AA
 
@@ -1322,6 +1325,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
 
 class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
+
     def __init__(self, output):
         norm_mode = NormalModeDecompositionModified(output)
         super(SpectralEnergyBudgetSW1LModified, self).__init__(output, norm_mode)
@@ -1338,12 +1342,7 @@ class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
         }
 
         coeff = {
-            "uuu": -1.,
-            "uvu": -1.,
-            "vuv": -1.,
-            "vvv": -1.,
-            "eeu": -c2,
-            "eev": -c2,
+            "uuu": -1., "uvu": -1., "vuv": -1., "vvv": -1., "eeu": -c2, "eev": -c2
         }
 
         return keys, coeff

@@ -169,9 +169,9 @@ class SpectraNS2DStrat(Spectra):
             # ax1.set_ylim(ymin=1e-6, ymax=1e3)
 
             # Average in time between tmin and tmax
-            E_kx = (dset_spectrum1Dkx_E[imin_plot : imax_plot + 1]).mean(0)
-            EK_kx = (dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]).mean(0)
-            EA_kx = (dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]).mean(0)
+            E_kx = (dset_spectrum1Dkx_E[imin_plot:imax_plot + 1]).mean(0)
+            EK_kx = (dset_spectrum1Dkx_EK[imin_plot:imax_plot + 1]).mean(0)
+            EA_kx = (dset_spectrum1Dkx_EA[imin_plot:imax_plot + 1]).mean(0)
 
             id_kx_dealiasing = (
                 np.argmin(abs(kx - self.sim.oper.kxmax_dealiasing)) - 1
@@ -218,9 +218,9 @@ class SpectraNS2DStrat(Spectra):
             ax2.set_xscale("log")
             ax2.set_yscale("log")
 
-            E_ky = (dset_spectrum1Dky_E[imin_plot : imax_plot + 1]).mean(0)
-            EK_ky = (dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]).mean(0)
-            EA_ky = (dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]).mean(0)
+            E_ky = (dset_spectrum1Dky_E[imin_plot:imax_plot + 1]).mean(0)
+            EK_ky = (dset_spectrum1Dky_EK[imin_plot:imax_plot + 1]).mean(0)
+            EA_ky = (dset_spectrum1Dky_EA[imin_plot:imax_plot + 1]).mean(0)
 
         # Remove modes dealiased.
         E_ky_plot = E_ky[:id_ky_dealiasing]
@@ -315,9 +315,9 @@ class SpectraNS2DStrat(Spectra):
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
-            E = dset_spectrum_E[imin_plot : imax_plot + 1].mean(0)
-            EK = dset_spectrum_EK[imin_plot : imax_plot + 1].mean(0)
-            EA = dset_spectrum_EA[imin_plot : imax_plot + 1].mean(0)
+            E = dset_spectrum_E[imin_plot:imax_plot + 1].mean(0)
+            EK = dset_spectrum_EK[imin_plot:imax_plot + 1].mean(0)
+            EA = dset_spectrum_EA[imin_plot:imax_plot + 1].mean(0)
 
         ax1.plot(kh, E, label="E")
         ax1.plot(kh, EK, label="EK")

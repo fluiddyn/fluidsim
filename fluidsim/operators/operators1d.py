@@ -77,7 +77,9 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
     def produce_long_str_describing_oper(self):
         return super(
             OperatorsPseudoSpectral1D, self
-        ).produce_long_str_describing_oper("Pseudospectral")
+        ).produce_long_str_describing_oper(
+            "Pseudospectral"
+        )
 
     def dealiasing(self, *args):
         for thing in args:

@@ -59,8 +59,7 @@ class InfoSolverBase(ParamContainer):
         self.classes._set_child(
             "State",
             attribs={
-                "module_name": "fluidsim.base.state",
-                "class_name": "StateBase",
+                "module_name": "fluidsim.base.state", "class_name": "StateBase"
             },
         )
 

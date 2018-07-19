@@ -215,7 +215,7 @@ def plot_scaling(
             nb_proc_min_filter,
             name_min_filter,
             key_min_filter,
-            t_min_filter * 1000,
+            t_min_filter * 1000
         )
     )
 

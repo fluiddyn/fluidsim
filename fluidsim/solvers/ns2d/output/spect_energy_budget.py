@@ -15,8 +15,7 @@ import h5py
 
 
 from fluidsim.base.output.spect_energy_budget import (
-    SpectralEnergyBudgetBase,
-    cumsum_inv,
+    SpectralEnergyBudgetBase, cumsum_inv
 )
 
 
@@ -66,10 +65,14 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
         transferE_fft = (
             np.real(
-                ux_fft.conj() * Fx_fft
-                + ux_fft * Fx_fft.conj()
-                + uy_fft.conj() * Fy_fft
-                + uy_fft * Fy_fft.conj()
+                ux_fft.conj()
+                * Fx_fft
+                + ux_fft
+                * Fx_fft.conj()
+                + uy_fft.conj()
+                * Fy_fft
+                + uy_fft
+                * Fy_fft.conj()
             )
             / 2.
         )
@@ -81,8 +84,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         transfer2D_Z = self.spectrum2D_from_fft(transferZ_fft)
 
         dict_results = {
-            "transfer2D_E": transfer2D_E,
-            "transfer2D_Z": transfer2D_Z,
+            "transfer2D_E": transfer2D_E, "transfer2D_Z": transfer2D_Z
         }
         return dict_results
 

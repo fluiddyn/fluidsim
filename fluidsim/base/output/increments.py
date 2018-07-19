@@ -438,9 +438,7 @@ class Increments(SpecificOutput):
         nb_rx_to_plot = irx_to_plot.size
 
         (
-            pdf_timemean,
-            values_inc_timemean,
-            nb_rx_to_plot,
+            pdf_timemean, values_inc_timemean, nb_rx_to_plot
         ) = self.load_pdf_from_file(
             tmin=tmin, tmax=tmax, key_var=key_var, irx_to_plot=irx_to_plot
         )
@@ -474,7 +472,7 @@ class Increments(SpecificOutput):
                 val_inc,
                 pdf_timemean[irxp] * val_inc ** order,
                 colors[irxp] + "x-",
-                linewidth=1,
+                linewidth=1
             )
 
 
@@ -767,21 +765,13 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
             # iorder = self.iorder_from_order(order)
             # S_ux3 = struc_func_ux[iorder]
 
-            S_uL2JL = h5file["struc_func_uL2JL"][imin_plot : imax_plot + 1].mean(
+            S_uL2JL = h5file["struc_func_uL2JL"][imin_plot:imax_plot + 1].mean(0)
+            S_uT2JL = h5file["struc_func_uT2JL"][imin_plot:imax_plot + 1].mean(0)
+            S_c2h2uL = h5file["struc_func_c2h2uL"][imin_plot:imax_plot + 1].mean(
                 0
             )
-            S_uT2JL = h5file["struc_func_uT2JL"][imin_plot : imax_plot + 1].mean(
-                0
-            )
-            S_c2h2uL = h5file["struc_func_c2h2uL"][
-                imin_plot : imax_plot + 1
-            ].mean(0)
-            S_Kolmo = h5file["struc_func_Kolmo"][imin_plot : imax_plot + 1].mean(
-                0
-            )
-            S_uT2uL = h5file["struc_func_uT2uL"][imin_plot : imax_plot + 1].mean(
-                0
-            )
+            S_Kolmo = h5file["struc_func_Kolmo"][imin_plot:imax_plot + 1].mean(0)
+            S_uT2uL = h5file["struc_func_uT2uL"][imin_plot:imax_plot + 1].mean(0)
 
         S_Kolmo_theo = -4 * rxs
 
@@ -821,7 +811,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
             rxs[cond],
             1.e0 * rxs[cond] ** 3 / S_Kolmo_theo[cond],
             "k",
-            linewidth=2,
+            linewidth=2
         )
 
         ax1.plot(rxs, np.ones(rxs.shape), "k:", linewidth=1)

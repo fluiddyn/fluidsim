@@ -12,12 +12,12 @@ Provides:
 """
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
-    SimulBasePseudoSpectral,
-    InfoSolverPseudoSpectral,
+    SimulBasePseudoSpectral, InfoSolverPseudoSpectral
 )
 
 
 class InfoSolverAD1DPseudoSpect(InfoSolverPseudoSpectral):
+
     def _init_root(self):
         super(InfoSolverAD1DPseudoSpect, self)._init_root()
 

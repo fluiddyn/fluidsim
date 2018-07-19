@@ -27,6 +27,7 @@ path_dir = "/tmp/tmp_test_fluidsim_profile_dir_pid{}".format(pid)
 
 
 class TestsProfile(unittest.TestCase):
+
     @classmethod
     def tearDownClass(cls):
         if mpi.rank == 0:

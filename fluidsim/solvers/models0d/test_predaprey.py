@@ -13,6 +13,7 @@ from .predaprey.solver import Simul
 
 
 class TestLorenz(unittest.TestCase):
+
     def tearDown(self):
         # clean by removing the directory
         if mpi.rank == 0:

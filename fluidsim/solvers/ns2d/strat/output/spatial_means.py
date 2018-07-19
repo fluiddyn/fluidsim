@@ -384,6 +384,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         """Plots the energy."""
         if mpi.rank != 0:
             return
+
         pforcing = self.params.forcing
         dict_results = self.load()
 
