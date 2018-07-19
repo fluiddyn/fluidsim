@@ -39,7 +39,7 @@ threshold_ratio = 1e1
 min_factor = 0.7
 
 # SIMULATION
-gamma = 1.5
+gamma = 0.2
 F = np.sin(pi / 4) # F = omega_l / N
 sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
 nu_8 = 1e-16
