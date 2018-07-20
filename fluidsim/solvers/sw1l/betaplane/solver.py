@@ -50,7 +50,6 @@ class Simul(SimulSW1L, SimulBasePseudoSpectral):
         # Parameter(s) specific to this solver
         params.kd2 = params.f ** 2 / params.c2
 
-        # super(Simul, self).__init__(params)
         SimulBasePseudoSpectral.__init__(self, params)
 
         if mpi.rank == 0:
@@ -79,10 +78,7 @@ class Simul(SimulSW1L, SimulBasePseudoSpectral):
             rot_fft = state_spect.get_var("rot_fft")
             div_fft = state_spect.get_var("div_fft")
             eta_fft = state_spect.get_var("eta_fft")
-            urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)
-            udx_fft, udy_fft = oper.vecfft_from_divfft(div_fft)
-            ux_fft = urx_fft + udx_fft
-            uy_fft = ury_fft + udy_fft
+            ux_fft, uy_fft = oper.vecfft_from_rotdivfft(rot_fft, div_fft)
             if mpi.rank == 0:
                 ux_fft[0, 0] = 0. + 0j  # TODO: Is it OK?
                 uy_fft[0, 0] = 0. + 0j  # TODO: Is it OK?
@@ -114,7 +110,7 @@ class Simul(SimulSW1L, SimulBasePseudoSpectral):
         beta = float(self.params.beta)
         Frot = compute_Frot(ux, uy, px_rot, py_rot, beta)
         Fdiv = compute_Fdiv(ux, uy, px_div, py_div, beta)
-        Fdiv -= oper.ifft(self.params.c2 * oper.laplacian_fft(eta_fft))
+        Fdiv += oper.ifft(self.params.c2 * oper.laplacian_fft(eta_fft, negative=True))
         if f != 0:
             Frot -= f * div
             Fdiv += f * rot
@@ -164,7 +160,8 @@ if __name__ == "__main__":
     # params.f = 0
     # k_beta = 4.8
     # params.beta = (k_beta ** 5 * P) ** (1. / 3)
-    params.beta = 1.5
+    params.beta = 1.
+    params.c2 = 5
 
     # delta_x = params.oper.Lx / params.oper.nx
     #    params.nu_8 = (
@@ -177,11 +174,11 @@ if __name__ == "__main__":
     params.init_fields.constant.value = 0.
 
     params.forcing.enable = True
-    params.forcing.type = "tcrandom"
-    params.forcing.forcing_rate = 1.
+    params.forcing.type = "random"
+    params.forcing.forcing_rate = 0.0
     params.forcing.nkmin_forcing = 10
     params.forcing.nkmax_forcing = 14
-    params.forcing.key_forced = "q_fft"
+    params.forcing.key_forced = "eta_fft"
     
     params.preprocess.enable = True
     params.preprocess.forcing_const = P
@@ -202,7 +199,7 @@ if __name__ == "__main__":
     params.output.spectra.HAS_TO_PLOT_SAVED = True
 
 
-    params.output.phys_fields.field_to_plot = "rot"
+    params.output.phys_fields.field_to_plot = "ux"
 
     sim = Simul(params)
     # sim.output.phys_fields.plot()

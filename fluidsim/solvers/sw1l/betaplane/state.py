@@ -13,7 +13,7 @@ Provides:
 from warnings import warn
 import numpy as np
 
-from fluidsim.base.setofvariables import SetOfVariables
+# from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.state import StatePseudoSpectral as StateBase
 
@@ -173,10 +173,7 @@ class StateSW1LBetaPlane(StateBase):
 
         rot_fft = self.state_spect.get_var("rot_fft")
         div_fft = self.state_spect.get_var("div_fft")
-        urx_fft, ury_fft = self.oper.vecfft_from_rotfft(rot_fft)
-        udx_fft, udy_fft = self.oper.vecfft_from_divfft(div_fft)
-        ux_fft = urx_fft + udx_fft
-        uy_fft = ury_fft + udy_fft
+        ux_fft, uy_fft = self.oper.vecfft_from_rotdivfft(rot_fft, div_fft)
 
         ux = self.state_phys.get_var("ux")
         uy = self.state_phys.get_var("uy")
@@ -213,8 +210,22 @@ class StateSW1LBetaPlane(StateBase):
         state_spect = self.state_spect
         state_spect.set_var("rot_fft", rot_fft)
         state_spect.set_var("div_fft", np.zeros_like(rot_fft))
+        ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
+        ux = self.oper.ifft(ux_fft)
+        uy = self.oper.ifft(uy_fft)
+        rot = self.oper.ifft(rot_fft)
+        state_spect.set_var(
+            "eta_fft",
+            self._etafft_no_div(ux, uy, rot)
+        )
+
+    def init_from_etafft(self, eta_fft):
+        """Initializes with rotational velocities computed from vorticity."""
+        state_spect = self.state_spect
+        # state_spect.set_var("rot_fft", rot_fft)
+        # state_spect.set_var("div_fft", div_fft)
+        raise NotImplementedError
         state_spect.set_var("eta_fft", eta_fft)
-        self.init_from_uxuyfft(ux_fft, uy_fft)
 
     def init_from_qfft(self, q_fft):
         """Initialize from potential vorticity."""
@@ -292,8 +303,8 @@ class StateSW1LBetaPlane(StateBase):
             super(StateSW1LBetaPlane, self).init_statespect_from(**kwargs)
 
     def _etafft_no_div(self, ux, uy, rot):
-        raise NotImplementedError  # Check Poisson equation with beta term
-        K2_not0 = self.oper.K2_not0
+        raise NotImplementedError  # FIXME: Check Poisson equation with beta term
+        oper = self.oper
         rot_abs = rot + self.params.f
 
         tempx_fft = -self.oper.fft2(rot_abs * uy)
@@ -302,8 +313,8 @@ class StateSW1LBetaPlane(StateBase):
         uu2_fft = self.oper.fft2(ux ** 2 + uy ** 2)
 
         eta_fft = ((
-                1.j * self.oper.KX * tempx_fft / K2_not0
-                + 1.j * self.oper.KY * tempy_fft / K2_not0
+                oper.invlaplacian_fft(
+                        oper.divfft_from_vecfft(tempx_fft, tempy_fft), negative=True)
                 - (uu2_fft / 2)
             ) /
             self.params.c2
