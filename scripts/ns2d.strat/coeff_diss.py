@@ -34,7 +34,7 @@ from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
 ### PARAMETERS ###
 
 # CONDITIONS
-nb_wavenumbers_y = 14
+nb_wavenumbers_y = 16
 threshold_ratio = 1e1
 min_factor = 0.7
 
@@ -263,9 +263,9 @@ def check_dissipation():
 gamma_not = make_float_value_for_path(gamma)
 
 # Create directory in path
-path_root = Path("/fsnet/project/meige/2015/15DELDUCA/DataSim/Coef_Diss")
+path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim/Coef_Diss"
 name_directory = "Coef_Diss_gamma{}".format(gamma_not)
-path = path_root / name_directory
+path = os.path.join(path_root, name_directory)
 
 if mpi.rank == 0 and not os.path.exists(path):
     os.mkdir(path)
@@ -277,6 +277,12 @@ paths_sim = sorted(glob(os.path.join(path, "NS*")))
 path_file_write = os.path.join(path, "results.txt")
 
 PLOT_FIGURES = PLOT_FIGURES and mpi.rank == 0
+
+# Write temporal results in .txt file
+path_file_write2 = os.path.join(path, "results_check_nu8.txt")
+if mpi.rank == 0:
+    if os.path.exists(path_file_write2):
+        os.remove(path_file_write2)
 
 if len(paths_sim) == 0:
     # Make FIRST SIMULATION
@@ -327,6 +333,17 @@ energies = []
 viscosities = []
 energies.append(energy)
 viscosities.append(sim.params.nu_8)
+
+# Write results into temporal file
+if mpi.rank == 0:
+    to_print = ("####\n"
+                "t = {:.4e} \n"
+                "E = {:.4e} \n"
+                "nu8 = {:.4e} \n"
+                "factor = {:.4e} \n").format(
+                    time_total, energy, sim.params.nu_8, 1)
+
+    write_to_file(path_file_write2, to_print, mode="w")
 
 # Compute the data spectra energy budget
 kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
@@ -427,9 +444,20 @@ while True:
         viscosities.append(sim.params.nu_8)
 
         # Computes new index k_max_dissipation
-        kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
+        kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(
+            sim, tmin=2., tmax=1000)
         idx_diss_max, idy_diss_max = _compute_ikdiss(dissE_kx, dissE_ky)
         idx_dealiasing,  idy_dealiasing = _compute_ikmax(kxE, kyE)
+
+        # Write results into temporal file
+        to_print = ("####\n"
+                    "t = {:.4e} \n"
+                    "E = {:.4e} \n"
+                    "nu8 = {:.4e} \n"
+                    "factor = {:.4e} \n").format(
+                        time_total, energy, sim.params.nu_8, factor)
+
+        write_to_file(path_file_write2, to_print, mode="a")
 
     if PLOT_FIGURES:
         ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
