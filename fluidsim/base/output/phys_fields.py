@@ -93,6 +93,7 @@ class PhysFieldsBase(SpecificOutput):
         if hasattr(self, "_init_movies"):
             self._init_movies()
             self.animate = self.movies.animate
+            self.interact = self.movies.interact
 
         super(PhysFieldsBase, self).__init__(
             output,
