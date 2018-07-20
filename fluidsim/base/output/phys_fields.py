@@ -103,7 +103,7 @@ class PhysFieldsBase(SpecificOutput):
 
         self.field_to_plot = params.output.phys_fields.field_to_plot
 
-        self.set_of_phys_files = SetOfPhysFieldFiles(self.output)
+        self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
         self._equation = None
 
         if self.period_save == 0 and self.period_plot == 0:
@@ -348,13 +348,14 @@ class SetOfPhysFieldFiles(object):
 
     """
 
-    def __init__(self, output):
+    def __init__(self, path_dir=os.curdir, output=None):
         self.output = output
+        self.path_dir = path_dir if output is None else output.path_run
         self.update_times()
 
     def update_times(self):
         """Initialize the times by globing and analyzing the file names."""
-        path_files = glob(os.path.join(self.output.path_run, "state_phys*.[hn]*"))
+        path_files = glob(os.path.join(self.path_dir, "state_phys*.[hn]*"))
 
         if hasattr(self, "path_files") and len(self.path_files) == len(
             path_files
