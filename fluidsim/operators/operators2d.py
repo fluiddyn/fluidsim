@@ -41,7 +41,6 @@ if nb_proc > 1:
 
 
 class OperatorsPseudoSpectral2D(_Operators):
-
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
@@ -65,12 +64,16 @@ class OperatorsPseudoSpectral2D(_Operators):
         ny = int(params.oper.ny)
 
         if params.oper.nx != nx:
-            raise ValueError("params.oper.nx != int(params.oper.nx); "
-                             "({})".format(params.oper.nx))
+            raise ValueError(
+                "params.oper.nx != int(params.oper.nx); "
+                "({})".format(params.oper.nx)
+            )
 
         if params.oper.ny != ny:
-            raise ValueError("params.oper.ny != int(params.oper.ny); "
-                             "({})".format(params.oper.ny))
+            raise ValueError(
+                "params.oper.ny != int(params.oper.ny); "
+                "({})".format(params.oper.ny)
+            )
 
         params.oper.nx = nx
         params.oper.ny = ny
@@ -354,13 +357,10 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             else:
                 rank_k = 0
-                while (
-                    rank_k < self.nb_proc - 1
-                    and (
-                        not (
-                            self.iKxloc_start_rank[rank_k] <= ikx_seq
-                            and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
-                        )
+                while rank_k < self.nb_proc - 1 and (
+                    not (
+                        self.iKxloc_start_rank[rank_k] <= ikx_seq
+                        and ikx_seq < self.iKxloc_start_rank[rank_k + 1]
                     )
                 ):
                     rank_k += 1
@@ -469,8 +469,8 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
-            eta_fft = -params.f / params.c2 * invlaplacian_fft(
-                q_fft, Kappa2_not0, rank
+            eta_fft = (
+                -params.f / params.c2 * invlaplacian_fft(q_fft, Kappa2_not0, rank)
             )
         return eta_fft
 
@@ -497,9 +497,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             eta_fft = invlaplacian_fft(a_fft, self.K2_not0, rank)
         else:
             eta_fft = invlaplacian_fft(
-                (a_fft - params.f / params.c2 * q_fft),
-                Kappa2_not0,
-                rank,
+                (a_fft - params.f / params.c2 * q_fft), Kappa2_not0, rank
             )
         return eta_fft
 

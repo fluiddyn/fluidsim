@@ -53,5 +53,5 @@ __all__ = [
     "load_state_phys_file",
     "modif_resolution_from_dir",
     "modif_resolution_all_dir",
-    "load_params_simul"
+    "load_params_simul",
 ]

@@ -39,7 +39,6 @@ from fluidsim.base.params import (
 )
 
 
-
 def available_solver_keys(package=solvers):
     """Inspects a package or a subpackage for all available
     solvers.

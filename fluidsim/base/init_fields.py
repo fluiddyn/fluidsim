@@ -347,9 +347,7 @@ class InitFieldsFromSimul(SpecificInitFields):
                 if k in sim_in.info.solver.classes.State["keys_state_spect"]:
                     sim.state.state_spect[k] = state_spect[k]
                 else:
-                    sim.state.state_spect[k] = self.oper.create_arrayK(
-                        value=0.
-                    )
+                    sim.state.state_spect[k] = self.oper.create_arrayK(value=0.)
 
         sim.state.statephys_from_statespect()
 

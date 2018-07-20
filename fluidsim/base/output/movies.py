@@ -312,7 +312,9 @@ class MoviesBase(object):
         try:
             from ipywidgets import interact, widgets
         except ImportError:
-            raise ImportError("See fluidsim.base.output.movies.interact docstring.")
+            raise ImportError(
+                "See fluidsim.base.output.movies.interact docstring."
+            )
 
         if not is_run_from_jupyter():
             raise ValueError("Works only inside Jupyter.")
@@ -328,8 +330,10 @@ class MoviesBase(object):
             dt_equations = self.ani_times[1] - self.ani_times[0]
 
         slider = widgets.FloatSlider(
-            min=float(tmin), max=float(tmax), step=float(dt_equations),
-            value=float(tmin)
+            min=float(tmin),
+            max=float(tmax),
+            step=float(dt_equations),
+            value=float(tmin),
         )
 
         def widget_update(time):

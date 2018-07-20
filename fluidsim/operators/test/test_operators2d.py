@@ -102,8 +102,8 @@ class TestOperators(unittest.TestCase):
 
         np.testing.assert_equal(oper.K2 * ff_fft, lap_fft)
         np.testing.assert_allclose(
-            ff_fft / oper.K2_not0, invlap_fft, self.rtol, self.atol)
-
+            ff_fft / oper.K2_not0, invlap_fft, self.rtol, self.atol
+        )
 
     def test_compute_increments_dim1(self):
         """Test computing increments of var over the dim 1."""
