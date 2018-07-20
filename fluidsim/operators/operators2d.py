@@ -394,8 +394,11 @@ class OperatorsPseudoSpectral2D(_Operators):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
 
-        ilq_fft = invlaplacian_fft(q_fft, self.Kappa2_not0, rank)
+        ilq_fft = invlaplacian_fft(q_fft, Kappa2_not0, rank)
         rot_fft = laplacian_fft(ilq_fft, self.K2)
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
@@ -424,9 +427,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
 
         rot_fft = laplacian_fft(
-            invlaplacian_fft(q_fft, self.Kappa2_not0, rank), self.K2
+            invlaplacian_fft(q_fft, Kappa2_not0, rank), self.K2
         )
         return rot_fft
 
@@ -456,12 +462,15 @@ class OperatorsPseudoSpectral2D(_Operators):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
 
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
             eta_fft = -params.f / params.c2 * invlaplacian_fft(
-                q_fft, self.Kappa2_not0, rank
+                q_fft, Kappa2_not0, rank
             )
         return eta_fft
 
@@ -469,21 +478,27 @@ class OperatorsPseudoSpectral2D(_Operators):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
 
-        eta_fft = invlaplacian_fft(a_fft, self.Kappa2_not0, rank)
+        eta_fft = invlaplacian_fft(a_fft, Kappa2_not0, rank)
         return eta_fft
 
     def etafft_from_aqfft(self, a_fft, q_fft, params=None):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
-        K2_not0 = self.K2_not0
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
         if params.f == 0:
-            eta_fft = invlaplacian_fft(a_fft, K2_not0, rank)
+            eta_fft = invlaplacian_fft(a_fft, self.K2_not0, rank)
         else:
             eta_fft = invlaplacian_fft(
                 (a_fft - params.f / params.c2 * q_fft),
-                self.Kappa2_not0,
+                Kappa2_not0,
                 rank,
             )
         return eta_fft
