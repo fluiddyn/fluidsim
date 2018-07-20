@@ -45,3 +45,12 @@ class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
             c2,
             rank,
         )
+
+    def vecfft_from_rotdivfft(self, rot_fft, div_fft):
+        """Inverse of the Helmholtz decomposition."""
+        # TODO: Pythranize
+        urx_fft, ury_fft = self.vecfft_from_rotfft(rot_fft)
+        udx_fft, udy_fft = self.vecfft_from_divfft(div_fft)
+        ux_fft = urx_fft + udx_fft
+        uy_fft = ury_fft + udy_fft
+        return ux_fft, uy_fft

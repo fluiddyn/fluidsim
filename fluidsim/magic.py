@@ -132,6 +132,7 @@ class FluidsimMagics(Magics):
     @magic_arguments.argument("-f", "--force-overwrite", action="store_true")
     @magic_arguments.argument("-s", "--state-phys", action="store_true")
     @magic_arguments.argument("-m", "--merge-missing-params", action="store_true")
+    @magic_arguments.argument("path", nargs="?", default=None)
     @line_magic
     def fluidsim_load(self, line):
         args = magic_arguments.parse_argstring(self.fluidsim_load, line)
@@ -144,9 +145,9 @@ class FluidsimMagics(Magics):
                 return
 
         if args.state_phys:
-            sim = load_state_phys_file(None, args.merge_missing_params)
+            sim = load_state_phys_file(args.path, args.merge_missing_params)
         else:
-            sim = load_sim_for_plot(None, args.merge_missing_params)
+            sim = load_sim_for_plot(args.path, args.merge_missing_params)
 
         user_ns = self.shell.user_ns
         user_ns["Simul"] = type(sim)

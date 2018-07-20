@@ -85,17 +85,25 @@ class TestOperators(unittest.TestCase):
 
         np.testing.assert_allclose(rot2_fft, rot_fft, self.rtol, self.atol)
 
-    def test_laplacian2(self):
+    def test_laplacian(self):
         oper = self.oper
         ff = oper.create_arrayX_random()
         ff_fft = oper.fft2(ff)
         if mpi.rank == 0:
             ff_fft[0, 0] = 0.
 
-        lap_fft = oper.laplacian2_fft(ff_fft)
-        ff_fft_back = oper.invlaplacian2_fft(lap_fft)
+        lap_fft = oper.laplacian_fft(ff_fft, order=4)
+        ff_fft_back = oper.invlaplacian_fft(lap_fft, order=4)
 
         np.testing.assert_allclose(ff_fft, ff_fft_back, self.rtol, self.atol)
+
+        lap_fft = oper.laplacian_fft(ff_fft, order=2, negative=True)
+        invlap_fft = oper.invlaplacian_fft(ff_fft, order=2, negative=True)
+
+        np.testing.assert_equal(oper.K2 * ff_fft, lap_fft)
+        np.testing.assert_allclose(
+            ff_fft / oper.K2_not0, invlap_fft, self.rtol, self.atol
+        )
 
     def test_compute_increments_dim1(self):
         """Test computing increments of var over the dim 1."""
