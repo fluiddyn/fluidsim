@@ -20,7 +20,7 @@ import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pathlib import Path
+
 from math import pi
 from glob import glob
 from copy import deepcopy as _deepcopy
@@ -46,7 +46,7 @@ nu_8 = 1e-16
 NO_SHEAR_MODES = False
 t_end = 8.
 
-PLOT_FIGURES = True
+PLOT_FIGURES = False
 ###################
 
 def load_mean_spect_energy_budg(sim, tmin=0, tmax=1000):
@@ -245,7 +245,7 @@ def check_dissipation():
             ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
             if (ratio / injection_energy_0) < 0.5 and \
                abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
-                print(f"Stationarity is reached.\n nu_8 = {params.nu_8}")
+                print("Stationarity is reached.\n nu_8 = {}".format(params.nu_8))
                 factor = 1.
                 should_I_stop = True
             else:
