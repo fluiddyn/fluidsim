@@ -92,8 +92,8 @@ class TestOperators(unittest.TestCase):
         if mpi.rank == 0:
             ff_fft[0, 0] = 0.
 
-        lap_fft = oper.laplacian2_fft(ff_fft)
-        ff_fft_back = oper.invlaplacian2_fft(lap_fft)
+        lap_fft = oper.laplacian_fft(ff_fft)
+        ff_fft_back = oper.invlaplacian_fft(lap_fft)
 
         np.testing.assert_allclose(ff_fft, ff_fft_back, self.rtol, self.atol)
 

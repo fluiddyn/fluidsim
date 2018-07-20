@@ -223,6 +223,7 @@ def get_default_config():
         "fluidsim.solvers.plate2d",
         "fluidsim.solvers.plate2d.output",
         "fluidsim.solvers.sw1l",
+        "fluidsim.solvers.sw1l.betaplane",
         "fluidsim.solvers.sw1l.output",
         "fluidsim.solvers.ns2d.strat",
         "fluidsim.solvers.ns2d.bouss",
