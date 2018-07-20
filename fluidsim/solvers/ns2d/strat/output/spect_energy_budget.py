@@ -328,5 +328,19 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, label=r"$D$")
         ax2.axhline(y=0, color="k", linestyle="--")
 
+        # Plot forcing wave-number k_f
+        nkmax = self.sim.params.forcing.nkmax_forcing
+        nkmin = self.sim.params.forcing.nkmin_forcing
+        k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
+        try:
+            angle = self.sim.forcing.forcing_maker.angle
+        except AttributeError:
+            pass
+        else:
+            k_fx = np.sin(angle) * k_f
+            k_fy = np.cos(angle) * k_f
+            ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")
+            ax2.axvline(x=k_fy, color="k", linestyle=":", label="$k_{f,z}$")
+
         ax1.legend()
         ax2.legend()
