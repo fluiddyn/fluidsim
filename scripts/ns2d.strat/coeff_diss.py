@@ -19,6 +19,7 @@ import h5py
 import shutil
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 
 from math import pi
@@ -32,6 +33,10 @@ from fluiddyn.util import mpi
 from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
 
 ### PARAMETERS ###
+parser = argparse.ArgumentParser()
+parser.add_argument("gamma", type=float)
+args = parser.parse_args()
+
 
 # CONDITIONS
 nb_wavenumbers_y = 16
@@ -39,7 +44,7 @@ threshold_ratio = 1e1
 min_factor = 0.7
 
 # SIMULATION
-gamma = 0.2
+gamma = args.gamma
 F = np.sin(pi / 4) # F = omega_l / N
 sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
 nu_8 = 1e-16

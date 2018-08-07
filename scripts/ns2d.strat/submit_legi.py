@@ -1,15 +1,23 @@
+import argparse
 from fluiddyn.clusters.legi import Calcul
+
+# To launch script (for gamma = 0.2):
+# python submit_legi.py 0.2
+
+parser = argparse.ArgumentParser()
+parser.add_argument("gamma", type=float)
+args = parser.parse_args()
 
 cluster = Calcul()
 cluster.commands_setting_env.append(
     'export FLUIDSIM_PATH="/fsnet/project/meige/2015/15DELDUCA/DataSim"')
 
-name_run_root = "find_coeff_nu8"
+name_run_root = "find_coeff_nu8_gamma={}".format(args.gamma)
 
-walltime = '12:00:00'
+walltime = '24:00:00'
 nb_proc = 8
 
-command_to_submit = "python coeff_diss.py"
+command_to_submit = "python coeff_diss.py {}".format(args.gamma)
 
 cluster.submit_command(
     command_to_submit,
