@@ -48,6 +48,8 @@ periodic space:
 
   * 2d Föppl-von Kármán equations (elastic thin plate).
 
+Being a framework, Fluidsim can easily be extended in other packages (for example
+`fluidsim_ocean <https://bitbucket.org/fluiddyn/fluidsim_ocean>`_).
 
 User Guide
 ----------
