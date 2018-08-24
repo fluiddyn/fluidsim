@@ -59,7 +59,7 @@ class OperatorsPseudoSpectral2D(_Operators):
     def __init__(self, params):
 
         self.params = params
-
+        self.axes = ("y", "x")
         nx = int(params.oper.nx)
         ny = int(params.oper.ny)
 

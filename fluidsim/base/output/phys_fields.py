@@ -224,6 +224,7 @@ class PhysFieldsBase(SpecificOutput):
             h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
             h5file.attrs["name_solver"] = self.output.name_solver
             h5file.attrs["name_run"] = self.output.name_run
+            h5file.attrs["axes"] = np.array(self.oper.axes, dtype="|S9")
             if particular_attr is not None:
                 h5file.attrs["particular_attr"] = particular_attr
 

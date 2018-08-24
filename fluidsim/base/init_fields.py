@@ -13,11 +13,12 @@ from __future__ import print_function
 
 from builtins import range
 from builtins import object
-
+import os
 from copy import deepcopy
 
 import numpy as np
 import h5py
+import h5netcdf
 
 from fluiddyn.util import mpi
 
@@ -177,9 +178,14 @@ path: str
 
         if mpi.rank == 0:
             try:
-                h5file = h5py.File(path_file, "r")
+                if os.path.splitext(path_file)[1] == ".nc":
+                    h5file = h5netcdf.File(path_file, "r")
+                else:
+                    h5file = h5py.File(path_file, "r")
             except:
-                raise ValueError("Is file " + path_file + " really a hd5 file?")
+                raise ValueError(
+                    "Is file " + path_file + " really a netCDF4/HDF5 file?"
+                )
 
             print("Load state from file:\n[...]" + path_file[-75:])
 
@@ -199,40 +205,68 @@ path: str
                     + " does not contain a state_phys object"
                 )
 
-            nx_file = group_oper.attrs["nx"]
-            ny_file = group_oper.attrs["ny"]
-            Lx_file = group_oper.attrs["Lx"]
-            Ly_file = group_oper.attrs["Ly"]
+            try:
+                axes = h5file.attrs["axes"]
+                for r in axes:
+                    # for example r can be: 'z', 'y', 'x'
+                    r = r.decode("utf-8")
+                    nr = "n{}".format(r)
+                    nr_file = group_oper.attrs[nr]
+                    if params.oper[nr] != nr_file:
+                        raise ValueError(
+                            "this is not a correct state for this simulation\n"
+                            "self.{0} != params_file.{0}".format(nr)
+                        )
+                    Lr = "L{}".format(r)
+                    try:
+                        Lr_file = group_oper.attrs[Lr]
+                    except KeyError:
+                        # Length may not be a parameter for eg: sphericalharmo
+                        continue
+                    else:
+                        if params.oper[Lr] != Lr_file:
+                            raise ValueError(
+                                "this is not a correct state for this simulation\n"
+                                "self.params.oper.{0} != params_file.{0}".format(
+                                    Lr
+                                )
+                            )
+            except KeyError:
+                # Legacy purposes: 2D specific
+                nx_file = group_oper.attrs["nx"]
+                ny_file = group_oper.attrs["ny"]
+                Lx_file = group_oper.attrs["Lx"]
+                Ly_file = group_oper.attrs["Ly"]
 
-            if isinstance(nx_file, list):
-                nx_file = nx_file.item()
-                ny_file = ny_file.item()
-                Lx_file = Lx_file.item()
-                Ly_file = Ly_file.item()
+                if isinstance(nx_file, list):
+                    nx_file = nx_file.item()
+                    ny_file = ny_file.item()
+                    Lx_file = Lx_file.item()
+                    Ly_file = Ly_file.item()
 
-            if params.oper.nx != nx_file:
-                raise ValueError(
-                    "this is not a correct state for this simulation\n"
-                    "self.nx != params_file.nx"
-                )
+                if params.oper.nx != nx_file:
+                    raise ValueError(
+                        "this is not a correct state for this simulation\n"
+                        "self.nx != params_file.nx"
+                    )
 
-            if params.oper.ny != ny_file:
-                raise ValueError(
-                    "this is not a correct state for this simulation\n"
-                    "self.ny != params_file.ny"
-                )
+                if params.oper.ny != ny_file:
+                    raise ValueError(
+                        "this is not a correct state for this simulation\n"
+                        "self.ny != params_file.ny"
+                    )
 
-            if params.oper.Lx != Lx_file:
-                raise ValueError(
-                    "this is not a correct state for this simulation\n"
-                    "self.params.oper.Lx != params_file.Lx"
-                )
+                if params.oper.Lx != Lx_file:
+                    raise ValueError(
+                        "this is not a correct state for this simulation\n"
+                        "self.params.oper.Lx != params_file.Lx"
+                    )
 
-            if params.oper.Ly != Ly_file:
-                raise ValueError(
-                    "this is not a correct state for this simulation\n"
-                    "self.params.oper.Ly != params_file.Ly"
-                )
+                if params.oper.Ly != Ly_file:
+                    raise ValueError(
+                        "this is not a correct state for this simulation\n"
+                        "self.params.oper.Ly != params_file.Ly"
+                    )
 
             keys_state_phys_file = list(group_state_phys.keys())
         else:

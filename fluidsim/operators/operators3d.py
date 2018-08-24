@@ -123,7 +123,7 @@ Lx, Ly and Lz: float
     def __init__(self, params=None):
 
         self.params = params
-
+        self.axes = ("z", "y", "x")
         super(OperatorsPseudoSpectral3D, self).__init__(
             params.oper.nx,
             params.oper.ny,

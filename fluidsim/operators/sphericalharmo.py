@@ -15,20 +15,22 @@ class OperatorsSphericalHarmonics(EasySHT):
         """This static method is used to complete the *params* container.
         """
 
-        attribs = {"lmax": 15, "radius": 1.}
+        attribs = {"lmax": 15, "radius": 1., "nlat": 24, "nlon": 48}
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None):
-
+        self.axes = ("lat", "lon")
         if params is None:
             params = Parameters(tag="params")
             self.__class__._complete_params_with_default(params)
 
         lmax = params.oper.lmax
         radius = params.oper.radius
+        nlat = params.oper.nlat
+        nlon = params.oper.nlon
 
         super(OperatorsSphericalHarmonics, self).__init__(
-            lmax=lmax, radius=radius
+            lmax=lmax, radius=radius, nlat=nlat, nlon=nlon
         )
 
         self._zeros_sh = self.create_array_sh(0.)
