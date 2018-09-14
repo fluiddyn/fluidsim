@@ -204,15 +204,15 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params.output.HAS_TO_SAVE = False
     params.output.ONLINE_PLOT_OK = False
 
-    params.forcing.enable = False
-
     try:
         params.preprocess.enable = False
     except AttributeError:
         pass
 
     fix_old_params(params)
+    params.forcing.enable = False
 
+    print(params.forcing)
     sim = solver.Simul(params)
     return sim
 
