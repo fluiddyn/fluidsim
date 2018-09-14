@@ -135,9 +135,12 @@ class TestOperatorCoarse(unittest.TestCase):
 
         """
         oper = self.oper
-        assert oper.params.oper.nx == oper.nx != self.nh
-        assert oper.params.oper.ny == oper.ny != self.nh
 
+        # Assert params are intact but the operator is initialized coarse
+        self.assertEqual(oper.params.oper.nx, self.nh)
+        self.assertEqual(oper.params.oper.ny, self.nh)
+        self.assertNotEqual(oper.nx, self.nh)
+        self.assertNotEqual(oper.ny, self.nh)
 
 class TestOperatorsDealiasing(unittest.TestCase):
     @classmethod

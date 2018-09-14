@@ -65,7 +65,7 @@ class Parameters(ParamContainer):
         for attrib in diff_attribs:
             params1._set_attrib(attrib, params2[attrib])
 
-        # Merge childrean
+        # Merge children
         diff_children = set(params2._tag_children) - set(params1._tag_children)
         internal_attribs = [
             "attribs",
@@ -124,25 +124,6 @@ def merge_params(to_params, *other_params):
     for other in other_params:
         to_params |= other
 
-    def find_available_fluidfft(dim):
-        """Find available FluidFFT implementations."""
-        use_mpi = mpi.nb_proc > 1
-        fluidfft = import_module("fluidfft.fft{}d".format(dim))
-        fluidfft_classes = (
-            fluidfft.get_classes_mpi() if use_mpi else fluidfft.get_classes_seq()
-        )
-        for k, v in fluidfft_classes.items():
-            if v is not None:
-                break
-
-        else:
-            raise ValueError(
-                "No compatible fluidfft FFT types found for"
-                "{}D, mpi={}".format(dim, use_mpi)
-            )
-
-        return k
-
     # Substitute old FFT types with newer FluidFFT implementations
     if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
@@ -152,8 +133,7 @@ def merge_params(to_params, *other_params):
                 for prefix in ("fft2d.", "fft3d.", "fluidfft.")
             ]
         ):
-            dim = 3 if hasattr(to_params.oper, "nz") else 2
-            type_fft = find_available_fluidfft(dim)
+            type_fft = "default"
             print("params.oper.type_fft", to_params.oper.type_fft, "->", type_fft)
             to_params.oper.type_fft = type_fft
 
