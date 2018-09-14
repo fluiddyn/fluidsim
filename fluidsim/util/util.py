@@ -204,8 +204,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params.output.HAS_TO_SAVE = False
     params.output.ONLINE_PLOT_OK = False
 
-    if params.forcing.type.startswith("in_script"):
-        params.forcing.enable = False
+    params.forcing.enable = False
 
     try:
         params.preprocess.enable = False
