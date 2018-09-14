@@ -60,6 +60,10 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         self.params = params
 
+        if params.ONLY_COARSE_OPER:
+            params.oper.nx = 4
+            params.oper.ny = 4
+
         nx = int(params.oper.nx)
         ny = int(params.oper.ny)
 

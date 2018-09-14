@@ -124,6 +124,11 @@ Lx, Ly and Lz: float
 
         self.params = params
 
+        if params.ONLY_COARSE_OPER:
+            params.oper.nx = 4
+            params.oper.ny = 4
+            params.oper.nz = 4
+
         super(OperatorsPseudoSpectral3D, self).__init__(
             params.oper.nx,
             params.oper.ny,

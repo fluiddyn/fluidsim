@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 import os
 from glob import glob
+from warnings import warn
 from importlib import import_module
 from builtins import map
 
@@ -218,7 +219,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
                 else:
                     str_path = path
 
-                print("load params from file\n" + str_path)
+                warn("Loading params from file\n" + str_path)
                 with h5py.File(path) as h5file:
                     params = Parameters(hdf5_object=h5file["/info_simul/params"])
             else:

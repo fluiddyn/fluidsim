@@ -151,6 +151,7 @@ def collect_tests(verbose, *modules):
     """
     suite = unittest.TestSuite()
     for module in modules:
+        module = module.replace(os.path.sep, ".")
         module = import_module(module)
         tests = unittest.defaultTestLoader.loadTestsFromModule(module)
         suite.addTests(tests)

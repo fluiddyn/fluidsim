@@ -131,7 +131,8 @@ nu_2: float (default = 0.)
         dict_classes = self.info_solver.import_classes()
 
         if not isinstance(params, Parameters):
-            raise TypeError("params should be a Parameters instance.")
+            raise TypeError(
+                "params should be a Parameters instance, not %s" % type(params))
 
         self.params = params
         self.info = create_info_simul(self.info_solver, params)
