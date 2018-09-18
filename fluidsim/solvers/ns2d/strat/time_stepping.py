@@ -41,9 +41,13 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # Coefficients dt
         self.coef_deltat_dispersion_relation = 1.0
 
-        if self.params.time_stepping.cfl_coef_group:
+        try:
             self.coef_group = self.params.time_stepping.cfl_coef_group
-        else:
+        except AttributeError:
+            print("self.params.time_stepping.cfl_coef_group not in params")
+            self.coef_group = 1.0
+
+        if not self.coef_group:
             self.coef_group = 1.0
 
         self.coef_phase = 1.0
