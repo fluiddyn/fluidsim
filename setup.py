@@ -1,8 +1,10 @@
 
-from __future__ import print_function
-
 import os
 import sys
+
+if sys.version_info[:2] < (3, 5):
+    raise RuntimeError("Python version >= 3.6 required.")
+
 from time import time
 from runpy import run_path
 from datetime import datetime
