@@ -64,7 +64,7 @@ class Parameters(ParamContainer):
         for attrib in diff_attribs:
             params1._set_attrib(attrib, params2[attrib])
 
-        # Merge childrean
+        # Merge children
         diff_children = set(params2._tag_children) - set(params1._tag_children)
         internal_attribs = [
             "attribs",
@@ -79,12 +79,12 @@ class Parameters(ParamContainer):
 
         for child in diff_children:
             child_attribs = params2[child]._make_dict()
-            # Clean up intenal attributes from dictionary
+            # Clean up internal attributes from dictionary
             list(map(child_attribs.__delitem__, internal_attribs))
 
             params1._set_child(child, child_attribs)
 
-        # Recurse
+        # Recursive
         for child in params2._tag_children:
             params1[child] |= params2[child]
 

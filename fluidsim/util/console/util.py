@@ -309,7 +309,7 @@ def get_path_file(sim, path_results, name="bench", ext=".json"):
     pid = str(os.getpid())
     nb_proc = "np={}".format(mpi.nb_proc)
     type_fft = sim.params.oper.type_fft.split(".")[-1].replace("_", "-")
-    nfile = (
+    name_file = (
         "_".join(
             [
                 "result",
@@ -324,7 +324,7 @@ def get_path_file(sim, path_results, name="bench", ext=".json"):
         + ext
     )
 
-    path = os.path.join(path_results, nfile)
+    path = os.path.join(path_results, name_file)
     return path, t_as_str
 
 
