@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 import os
 from glob import glob
+from warnings import warn
 from importlib import import_module
 from builtins import map
 
@@ -123,25 +124,6 @@ def merge_params(to_params, *other_params):
     for other in other_params:
         to_params |= other
 
-    def find_available_fluidfft(dim):
-        """Find available FluidFFT implementations."""
-        use_mpi = mpi.nb_proc > 1
-        fluidfft = import_module("fluidfft.fft{}d".format(dim))
-        fluidfft_classes = (
-            fluidfft.get_classes_mpi() if use_mpi else fluidfft.get_classes_seq()
-        )
-        for k, v in fluidfft_classes.items():
-            if v is not None:
-                break
-
-        else:
-            raise ValueError(
-                "No compatible fluidfft FFT types found for"
-                "{}D, mpi={}".format(dim, use_mpi)
-            )
-
-        return k
-
     # Substitute old FFT types with newer FluidFFT implementations
     if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
@@ -151,8 +133,7 @@ def merge_params(to_params, *other_params):
                 for prefix in ("fft2d.", "fft3d.", "fluidfft.")
             ]
         ):
-            dim = 3 if hasattr(to_params.oper, "nz") else 2
-            type_fft = find_available_fluidfft(dim)
+            type_fft = "default"
             print("params.oper.type_fft", to_params.oper.type_fft, "->", type_fft)
             to_params.oper.type_fft = type_fft
 
@@ -218,7 +199,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
                 else:
                     str_path = path
 
-                print("load params from file\n" + str_path)
+                warn("Loading params from file\n" + str_path)
                 with h5py.File(path) as h5file:
                     params = Parameters(hdf5_object=h5file["/info_simul/params"])
             else:

@@ -60,7 +60,7 @@ class Increments(SpecificOutput):
 
         self.nrx = self.rxs.size
         dict_arrays_1time = {"rxs": self.rxs, "nbins": self.nbins}
-
+        self._bins = np.arange(0.5, self.nbins, dtype=float) / self.nbins
         self.keys_vars_to_compute = list(output.sim.state.state_phys.keys)
 
         super(Increments, self).__init__(
@@ -118,9 +118,7 @@ class Increments(SpecificOutput):
         return dict_results
 
     def compute_values_inc(self, valmin, valmax):
-        return valmin + (valmax - valmin) / self.nbins * np.arange(
-            0.5, self.nbins
-        )
+        return valmin + (valmax - valmin) * self._bins
 
     def load(self):
         """load the saved pdf and return a dictionary."""

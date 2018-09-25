@@ -16,18 +16,21 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None, coef_dealiasing=2. / 3):
+def create_oper(type_fft=None, coef_dealiasing=2. / 3, **kwargs):
 
     params = ParamContainer(tag="params")
 
-    params._set_attrib("ONLY_COARSE_OPER", False)
+    params._set_attrib(
+        "ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
 
     OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
-    if mpi.nb_proc == 1:
+    if "nh" in kwargs:
+        nh = kwargs["nh"]
+    elif mpi.nb_proc == 1:
         nh = 9
     else:
         nh = 8
@@ -119,6 +122,25 @@ class TestOperators(unittest.TestCase):
         for irx in [n1, n1 // 2, 0]:
             assert_increments_equal(irx)
 
+
+class TestOperatorCoarse(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.nh = 12
+        cls.oper = create_oper(ONLY_COARSE_OPER=True, nh=cls.nh)
+
+    def test_oper_coarse(self):
+        """Test coarse operator parameters which, by default, initializes
+        `nh=4`.
+
+        """
+        oper = self.oper
+
+        # Assert params are intact but the operator is initialized coarse
+        self.assertEqual(oper.params.oper.nx, self.nh)
+        self.assertEqual(oper.params.oper.ny, self.nh)
+        self.assertNotEqual(oper.nx, self.nh)
+        self.assertNotEqual(oper.ny, self.nh)
 
 class TestOperatorsDealiasing(unittest.TestCase):
     @classmethod

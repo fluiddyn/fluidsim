@@ -78,9 +78,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         params.oper.nx = nx
         params.oper.ny = ny
 
+        if params.ONLY_COARSE_OPER:
+            nx = ny = 4
+
         super(OperatorsPseudoSpectral2D, self).__init__(
-            params.oper.nx,
-            params.oper.ny,
+            nx,
+            ny,
             params.oper.Lx,
             params.oper.Ly,
             fft=params.oper.type_fft,
