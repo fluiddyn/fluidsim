@@ -20,8 +20,7 @@ def create_oper(type_fft=None, coef_dealiasing=2. / 3, **kwargs):
 
     params = ParamContainer(tag="params")
 
-    params._set_attrib(
-        "ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
+    params._set_attrib("ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
@@ -141,6 +140,7 @@ class TestOperatorCoarse(unittest.TestCase):
         self.assertEqual(oper.params.oper.ny, self.nh)
         self.assertNotEqual(oper.nx, self.nh)
         self.assertNotEqual(oper.ny, self.nh)
+
 
 class TestOperatorsDealiasing(unittest.TestCase):
     @classmethod

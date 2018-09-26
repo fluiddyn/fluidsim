@@ -206,16 +206,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
-        tendencies_nonlin = self.sim.tendencies_nonlin
+        compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
-        tendencies_fft_n = tendencies_nonlin()
-        state_spect_n12 = (state_spect + dt / 2 * tendencies_fft_n) * diss2
-        tendencies_fft_n12 = tendencies_nonlin(
-            state_spect_n12, old=tendencies_fft_n
-        )
+        tendencies_n = compute_tendencies()
+        state_spect_n12 = (state_spect + dt / 2 * tendencies_n) * diss2
+        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
         self.sim.state.state_spect = (
-            state_spect * diss + dt * diss2 * tendencies_fft_n12
+            state_spect * diss + dt * diss2 * tendencies_n12
         )
 
     def _time_step_RK4(self):
@@ -315,41 +313,37 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
-        tendencies_nonlin = self.sim.tendencies_nonlin
+        compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
-        tendencies_fft_0 = tendencies_nonlin()
+        tendencies_0 = compute_tendencies()
 
         # based on approximation 1
-        state_spect_temp = (state_spect + dt / 6 * tendencies_fft_0) * diss
-        state_spect_np12_approx1 = (
-            state_spect + dt / 2 * tendencies_fft_0
-        ) * diss2
+        state_spect_temp = (state_spect + dt / 6 * tendencies_0) * diss
+        state_spect_np12_approx1 = (state_spect + dt / 2 * tendencies_0) * diss2
 
-        tendencies_fft_1 = tendencies_nonlin(
-            state_spect_np12_approx1, old=tendencies_fft_0
+        tendencies_1 = compute_tendencies(
+            state_spect_np12_approx1, old=tendencies_0
         )
         del (state_spect_np12_approx1)
 
         # based on approximation 2
-        state_spect_temp += dt / 3 * diss2 * tendencies_fft_1
-        state_spect_np12_approx2 = state_spect * diss2 + dt / 2 * tendencies_fft_1
+        state_spect_temp += dt / 3 * diss2 * tendencies_1
+        state_spect_np12_approx2 = state_spect * diss2 + dt / 2 * tendencies_1
 
-        tendencies_fft_2 = tendencies_nonlin(
-            state_spect_np12_approx2, old=tendencies_fft_1
+        tendencies_2 = compute_tendencies(
+            state_spect_np12_approx2, old=tendencies_1
         )
         del (state_spect_np12_approx2)
 
         # based on approximation 3
-        state_spect_temp += dt / 3 * diss2 * tendencies_fft_2
-        state_spect_np1_approx = (
-            state_spect * diss + dt * diss2 * tendencies_fft_2
-        )
+        state_spect_temp += dt / 3 * diss2 * tendencies_2
+        state_spect_np1_approx = state_spect * diss + dt * diss2 * tendencies_2
 
-        tendencies_fft_3 = tendencies_nonlin(
-            state_spect_np1_approx, old=tendencies_fft_2
+        tendencies_3 = compute_tendencies(
+            state_spect_np1_approx, old=tendencies_2
         )
         del (state_spect_np1_approx)
 
         # result using the 4 approximations
-        self.sim.state.state_spect = state_spect_temp + dt / 6 * tendencies_fft_3
+        self.sim.state.state_spect = state_spect_temp + dt / 6 * tendencies_3

@@ -132,7 +132,8 @@ nu_2: float (default = 0.)
 
         if not isinstance(params, Parameters):
             raise TypeError(
-                "params should be a Parameters instance, not %s" % type(params))
+                "params should be a Parameters instance, not %s" % type(params)
+            )
 
         self.params = params
         self.info = create_info_simul(self.info_solver, params)
