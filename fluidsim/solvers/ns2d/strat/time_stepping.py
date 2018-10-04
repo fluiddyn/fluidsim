@@ -166,12 +166,19 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # )
 
         # Removed phase velocity (considered not relevant)
-        maybe_new_dt = min(
-            deltat_CFL,
-            self.deltat_dispersion_relation,
-            self.deltat_group_vel,
-            self.deltat_max,
-        )
+        if not self.coef_group:
+            maybe_new_dt = min(
+                deltat_CFL,
+                self.deltat_dispersion_relation,
+                self.deltat_max,
+            )
+        else:
+            maybe_new_dt = min(
+                deltat_CFL,
+                self.deltat_dispersion_relation,
+                self.deltat_group_vel,
+                self.deltat_max,
+            )
 
 
         if self.params.forcing.enable:
