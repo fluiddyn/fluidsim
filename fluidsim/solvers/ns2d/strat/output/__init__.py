@@ -158,8 +158,9 @@ class OutputStrat(Output):
         params = self.sim.params
 
         omega_l = params.N * self.froude_number
-        if params.forcing.key_forced is None:
-            omega_af = params.forcing.forcing_rate ** (1. / 3)
+        if params.forcing.key_forced is None or \
+           params.forcing.key_forced == "rot_fft":
+            omega_af = (2 * np.pi) * params.forcing.forcing_rate ** (1. / 3)
         elif params.forcing.key_forced == "ap_fft":
             nkmax_forcing = params.forcing.nkmax_forcing
             nkmin_forcing = params.forcing.nkmin_forcing
