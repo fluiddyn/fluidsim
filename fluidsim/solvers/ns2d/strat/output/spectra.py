@@ -95,7 +95,7 @@ class SpectraNS2DStrat(Spectra):
     def plot1d(
         self,
         tmin=0,
-        tmax=1000,
+        tmax=None,
         delta_t=2,
         coef_compensate_kx=5. / 3,
         coef_compensate_kz=3.,
@@ -111,6 +111,9 @@ class SpectraNS2DStrat(Spectra):
             times = dset_times.value
             kx = dset_kxE.value
             ky = dset_kyE.value
+
+            if tmax is None:
+                tmax = np.max(times)
 
             # Open data set 1D spectra
             dset_spectrum1Dkx_EA = h5file["spectrum1Dkx_EA"]

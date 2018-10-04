@@ -207,7 +207,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
-    def plot(self, tmin=0, tmax=1000, delta_t=2):
+    def plot(self, tmin=0, tmax=None, delta_t=2):
         """Plot the energy budget."""
 
         # Load data from file
@@ -226,6 +226,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
             dset_dissEK_ky = f["dissEK_ky"].value
             dset_dissEA_ky = f["dissEA_ky"].value
+
+        if tmax is None:
+            tmax = np.max(times)
 
         # Average from tmin and tmax for plot
         delta_t_save = np.mean(times[1:] - times[0:-1])
