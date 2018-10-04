@@ -376,3 +376,122 @@ class SpatioTempSpectra(SpecificOutput):
                 / self.duration_file
             ),
         )
+
+    def plot_frequency_spectra_individual_mode(self, mode):
+        """
+        Plot frequency spectra from individual Fourier mode.
+
+        It plots the frequency spectra of the last file.
+
+        Parameters
+        ----------
+        mode : tuple
+          Mode to plot (kx , kz)
+        """
+        # Define path file. It is the last file.
+        path_file = glob(os.path.join(self.path_dir, "spatio_temp_it=*"))[0]
+        print("File to plot is {} ...".format(os.path.basename(path_file)))
+        print("kx_user = {:.3f} ; kz_user = {:.3f}".format(mode[0], mode[1]))
+
+        # Load frequency spectra
+        with h5py.File(path_file, "r") as f:
+            if "temp_spectrum" in f.keys():
+                temp_spectrum = f["temp_spectrum"].value
+                omegas = f["omegas"].value
+            else:
+                raise ValueError("temp_spectrum not in f.keys(). "
+                                 "It needs to be computed.")
+
+        # Define index with spatial decimation
+        idx_mode = np.argmin(abs(self.sim.oper.kx[::self.spatial_decimate] - mode[0]))
+        idz_mode = np.argmin(abs(self.sim.oper.ky[::self.spatial_decimate] - mode[1]))
+        print("kx_plot = {:.3f} ; kz_plot = {:.3f}".format(
+            self.sim.oper.kx[::self.spatial_decimate][idx_mode],
+            self.sim.oper.ky[::self.spatial_decimate][idz_mode]))
+        print("ikx_mode = {} ; idz_mode = {}".format(idx_mode, idz_mode))
+
+        # Compute omega dispersion relation mode
+        kx_mode = self.sim.oper.kx[::self.spatial_decimate][idx_mode]
+        kz_mode = self.sim.oper.ky[::self.spatial_decimate][idz_mode]
+        f_iw = (1 / (2 * pi)) * self.sim.params.N * (
+            kx_mode / np.sqrt(kx_mode**2 + kz_mode**2))
+
+        # Plot omega +
+        fig1, ax1 = plt.subplots()
+        ax1.set_xlabel(r"$\omega / \omega_{i\omega}$")
+        ax1.set_ylabel(r"$F(\omega)$")
+        ax1.set_title("$\omega_+ ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
+            self.sim.oper.kx[::self.spatial_decimate][idx_mode],
+            self.sim.oper.ky[::self.spatial_decimate][idz_mode]))
+
+        ax1.loglog(omegas[0:len(omegas)//2] / f_iw,
+                   temp_spectrum[0, 0:len(omegas)//2, idz_mode, idx_mode])
+        ax1.axvline(x=f_iw/f_iw, color="k", linestyle="--")
+
+        # Plot omega -
+        fig2, ax2 = plt.subplots()
+        ax2.set_xlabel(r"$\omega / \omega_{i\omega}$")
+        ax2.set_ylabel(r"$F(\omega)$")
+        ax2.set_title("$\omega_- ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
+            self.sim.oper.kx[::self.spatial_decimate][idx_mode],
+            self.sim.oper.ky[::self.spatial_decimate][idz_mode]))
+
+        ax2.loglog(-1 * omegas[len(omegas)//2 + 1:] / f_iw,
+                   temp_spectrum[0, len(omegas)//2 + 1:, idz_mode, idx_mode])
+        ax2.axvline(x=f_iw/f_iw, color="k", linestyle="--")
+
+        # print("omegas = ", omegas)
+        # print("kx_decimate = ", self.sim.oper.kx[::self.spatial_decimate])
+        # print("kz_decimate = ", self.sim.oper.ky[::self.spatial_decimate])
+
+        # print("kx_decimate.shape = ", self.sim.oper.kx[::self.spatial_decimate].shape)
+        # print("kz_decimate.shape = ", self.sim.oper.ky[::self.spatial_decimate].shape)
+
+        # sin_arr = np.empty(
+        #     shape=(self.sim.oper.kx[::self.spatial_decimate].shape[0],
+        #            self.sim.oper.ky[::self.spatial_decimate].shape[0]))
+        # for i_row, value in enumerate(self.sim.oper.kx[::self.spatial_decimate]):
+        #     sin_arr[i_row, :] = value / np.sqrt(value**2 +self.sim.oper.ky[::self.spatial_decimate]**2)
+
+        # sin_arr = np.transpose(sin_arr)
+        # unique = np.unique(sin_arr)
+
+        # # Create 2D array shape omega and sinus theta
+        # k_sin_arr = np.empty(shape=(len(omegas), unique.shape[0] - 1))
+        # print("k_sin_arr shape", k_sin_arr.shape)
+
+        # # Loop in unique values of sinus theta
+        # for idx_unique, value in enumerate(unique[:-1]):
+        #     indices = np.argwhere(sin_arr==value)
+        #     print("indices = ", indices)
+        #     # same_sin = np.empty(shape=(len(omegas), len(indices)))
+        #     same_sin = np.empty(shape=(len(omegas), 2))
+
+        #     for i_column, idx in enumerate(indices[0:2]):
+        #         same_sin[:, i_column] = temp_spectrum[0, :, idx[0], idx[1]]
+
+        #     k_sin_arr[:, idx_unique] = np.mean(same_sin, axis=1)
+
+        # print("unique = ", unique)
+        # print("unique_shape = ", unique.shape)
+        # print("k_sin_arr = ", k_sin_arr)
+        # print("k_sin_arr_shape = ", k_sin_arr.shape)
+
+        # # Plot
+        # fig3, ax3 = plt.subplots()
+        # # ax3.set_yscale("log")
+        # ax3.set_xlabel(r"sin $\theta$")
+        # ax3.set_ylabel("$\omega$")
+        # ax3.set_title(r"F(sin $\theta$, $\omega$)")
+        # SINUS, OMEGA = np.meshgrid(unique[:-1], omegas)
+        # print("OMEGA", OMEGA)
+        # print("SINUS", SINUS)
+        # ax3.pcolormesh(SINUS, OMEGA, k_sin_arr,
+        #                vmin=np.min(k_sin_arr), vmax=np.max(k_sin_arr)/1e16,
+        #                cmap="hsv")
+
+
+
+
+        # ax3.plot([0,0.2], [0,  - 0.2 * self.sim.params.N / (2 * np.pi)],
+        #          color="k", linewidth=4)
