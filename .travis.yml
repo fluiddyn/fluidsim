@@ -44,7 +44,7 @@ cache:
         # - $TRAVIS_BUILD_DIR/.tox
 
 install:
-    - pip install -U pip setuptools wheel six colorlog
+    - pip install -U pip==18.0 setuptools wheel six colorlog
     - pip install -U tox-pipenv coverage fluiddevops
     - pip install -U numpy cython mako mpi4py fluidpythran  # To be removed when pip==10 is out and this step can be bootstrapped
 
