@@ -14,7 +14,7 @@ pipelines:
             caches:
               - pip
             script:
-              - pip install -U tox fluidpythran --user
+              - pip install -U tox --user
               - tox -e py36,codecov
     dev:
       - parallel:
@@ -23,5 +23,5 @@ pipelines:
             caches:
               - pip
             script:
-              - pip install -U tox fluidpythran --user
+              - pip install -U tox --user
               - tox -e py36,codecov

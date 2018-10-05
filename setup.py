@@ -30,6 +30,7 @@ try:
 except ImportError:
     use_pythran = False
 
+
 import numpy as np
 
 f"In >=2018, you should use a Python supporting f-strings!"
@@ -126,7 +127,7 @@ install_requires = [
 ]
 
 if FFTW3:
-    install_requires += ["pyfftw >= 0.10.4", "fluidfft >= 0.2.4"]
+    install_requires += ["pyfftw >= 0.10.4", "fluidfft >= 0.2.6"]
 
 
 def modification_date(filename):
