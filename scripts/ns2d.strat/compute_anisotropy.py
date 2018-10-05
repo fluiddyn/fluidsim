@@ -11,6 +11,8 @@ from glob import glob
 import h5py
 import numpy as np
 
+from fluidsim import load_params_simul
+
 def _compute_array_times_from_path(path_simulation):
     """
     Compute array with times from path simulation.
@@ -55,28 +57,35 @@ def compute_anisotropy(path_simulation, tmin=None):
 
     print("Compute anisotropy nx = {} and gamma {}..".format(res_out, gamma_out))
 
-    # Compute index start average time imin.
-    times = _compute_array_times_from_path(path_simulation)
-    dt_state_phys = np.median(np.diff(times))
+    # Load data energy spectra file.
+    with h5py.File(path_simulation + "/spectra1D.h5", "r") as f:
+        kx = f["kxE"].value
+        times = f["times"].value
+        spectrumkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
+        spectrumkx_EK = f["spectrum1Dkx_EK"].value
+        spectrumkx_EK_uy = f["spectrum1Dkx_EK_uy"].value
+        dt_state_phys = np.median(np.diff(times))
 
+    # Compute start time average itmin
+    dt = np.median(np.diff(times))
     if not tmin:
         nb_files = 10
-        tmin = np.max(times) - (nb_files * dt_state_phys)
-    imin = np.argmin(abs(times - tmin))
+        tmin = np.max(times) - (nb_files * dt)
+    itmin = np.argmin(abs(times - tmin))
 
-    # Compute anisotropy
-    anisotropies = []
-    for path in glob(path_simulation + "/state_phys_t*")[imin:]:
-        with h5py.File(path, "r") as f:
-            ux = f["state_phys"]["ux"].value
-            uz = f["state_phys"]["uy"].value
-        anisotropies.append(np.mean(ux**2 / (ux**2 + uz**2)))
+    # Compute delta_kx
+    params = load_params_simul(path_simulation)
+    delta_kx = 2 * np.pi / params.oper.Lx
 
-    return np.mean(anisotropies)
+    # Compute spatial averaged energy from spectra
+    EK_ux = np.sum(np.mean(spectrumkx_EK_ux[itmin:,:], axis=0) * delta_kx)
+    EK = np.sum(np.mean(spectrumkx_EK[itmin:,:], axis=0) * delta_kx)
+
+    return EK_ux / EK
 
 if __name__ == "__main__":
-   path_simulation = ("/fsnet/project/meige/2015/15DELDUCA/DataSim/" +
-                      "sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-08-14_10-01-22")
+    path_simulation = ("/fsnet/project/meige/2015/15DELDUCA/DataSim/" +
+                    "sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma05_2018-08-14_10-01-22")
 
-   anisotropy = compute_anisotropy(path_simulation)
-   print("anisotropy = {}".format(anisotropy))
+    anisotropy = compute_anisotropy(path_simulation)
+    print("anisotropy = {}".format(anisotropy))
