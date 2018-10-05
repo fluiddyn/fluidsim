@@ -141,7 +141,7 @@ class Simul(SimulBasePseudoSpectral):
         z_fft = state_spect.get_var("z_fft")
 
         mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
-        chi_fft = -oper.invlaplacian2_fft(oper.fft2(mamp_zz))
+        chi_fft = -oper.invlaplacian_fft(oper.fft2(mamp_zz), order=4)
         mamp_zchi = oper.monge_ampere_from_fft(z_fft, chi_fft)
         Nw_fft = oper.fft2(mamp_zchi)
 

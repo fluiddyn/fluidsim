@@ -20,6 +20,9 @@ description = "Plot results of benchmarks"
 def load_bench(path_dir, solver, hostname="any"):
     """Load benchmarks results saved as JSON files."""
 
+    if solver.startswith("fluidsim"):
+        solver = solver.split(".", 1)[1]
+
     dicts = []
     for path in glob(path_dir + "/result_bench_{}*.json".format(solver)):
         with open(path) as f:

@@ -16,13 +16,6 @@ pipelines:
             script:
               - pip install -U tox --user
               - tox -e py36,codecov
-        - step:
-            image: fluiddyn/python2-stable
-            caches:
-              - pip
-            script:
-              - pip install -U tox --user
-              - tox -e py27,codecov
     dev:
       - parallel:
         - step:
@@ -32,10 +25,3 @@ pipelines:
             script:
               - pip install -U tox --user
               - tox -e py36,codecov
-        - step:
-            image: fluiddyn/python2-stable
-            caches:
-              - pip
-            script:
-              - pip install -U tox --user
-              - tox -e py27,codecov

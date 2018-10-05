@@ -38,7 +38,7 @@ nb_proc = mpi.nb_proc
 description = "Profile time-elapsed in various function calls"
 
 
-def run_profile(sim, nb_dim=2, path_results=".", plot=False):
+def run_profile(sim, nb_dim=2, path_results=".", plot=False, verbose=True):
     """Profile a simulation run and save the results in `profile.pstats`
 
     Parameters
@@ -53,18 +53,22 @@ def run_profile(sim, nb_dim=2, path_results=".", plot=False):
     """
     path, t_as_str = get_path_file(sim, path_results, "profile", ".pstats")
     t0 = time()
-    cProfile.runctx("sim.time_stepping.start()", globals(), locals(), path)
+    with stdout_redirected(not verbose):
+        cProfile.runctx("sim.time_stepping.start()", globals(), locals(), path)
     t_end = time()
 
     if sim.oper.rank == 0:
         times = analyze_stats(path, nb_dim, plot)
-
-        print("\nelapsed time = {:.3f} s".format(t_end - t0))
-
+        print(f"\nelapsed time = {t_end - t0:.3f} s")
+        name_solver = sim.__module__.rsplit(".", maxsplit=1)[0]
+        print(
+            f"To display the results:\nfluidsim-profile -p -sf {path} -s {name_solver}"
+        )
         print(
             "\nwith gprof2dot and graphviz (command dot):\n"
-            "gprof2dot -f pstats {} | dot -Tpng -o profile.png".format(path)
+            f"gprof2dot -f pstats {path} | dot -Tpng -o profile.png"
         )
+
     else:
         # Retain only rank 0 profiles
         os.remove(path)
@@ -120,20 +124,11 @@ def profile(
 
         nb_dim = int(dim[0])
 
-        with stdout_redirected():
+        with stdout_redirected(not verbose):
             sim = Simul(params)
 
         try:
-            if verbose:
-                run_profile(sim, nb_dim, path_dir)
-            else:
-                with stdout_redirected():
-                    path = run_profile(sim, nb_dim, path_dir)
-
-                print(
-                    "To display the results:\n" "fluidsim-profile -p -sf " + path
-                )
-
+            run_profile(sim, nb_dim, path_dir, verbose=verbose)
         except Exception as e:
             if raise_error:
                 raise
@@ -185,7 +180,7 @@ def init_parser(parser):
 def run(args):
     """Run `fluidsim profile` command."""
 
-    if args.stats_file is not None:
+    if args.stats_file is not None and args.solver is None:
         # get solver from name... Not clean at all...
         tmp = os.path.split(args.stats_file)[-1]
         args.solver = tmp.split("result_profile_")[-1].split("_")[0]
@@ -245,7 +240,7 @@ def plot_pie(
     ax=None,
     times_descending=False,
     for_latex=False,
-    **kwargs
+    **kwargs,
 ):
     """Plot a pie chart """
     percentages = []

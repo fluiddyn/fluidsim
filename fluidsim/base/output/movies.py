@@ -86,7 +86,10 @@ class MoviesBase(object):
 
         """
         self.font = {
-            "family": family, "color": "black", "weight": "normal", "size": size
+            "family": family,
+            "color": "black",
+            "weight": "normal",
+            "size": size,
         }
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
@@ -150,8 +153,8 @@ class MoviesBase(object):
         repeat=True,
         save_file=False,
         numfig=None,
-        fargs=None,
-        fig_kw=None,
+        fargs={},
+        fig_kw={},
         **kwargs
     ):
         """Load the key field from multiple save files and display as
@@ -225,53 +228,120 @@ class MoviesBase(object):
         if mpi.rank > 0:
             raise NotImplementedError("Do NOT use this function with MPI !")
 
-        if fargs is None:
-            fargs = {}
-
-        if fig_kw is None:
-            fig_kw = {}
-
         self.init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
-        if is_run_from_jupyter():
-            try:
-                from ipywidgets import interact, widgets
-
-                slider = widgets.IntSlider(
-                    min=tmin, max=tmax, step=dt_equations, value=tmin
-                )
-
-                def widget_update(frame):
-                    self.update_animation(frame)
-                    self.fig.canvas.draw()
-
-                interact(widget_update, time=slider)
-            except ImportError:
-                print(
-                    "Install jupyter nbextension ipywidgets and enable it:\n"
-                    "  pip install ipywidgets\n"
-                    "  jupyter-nbextension enable --py widgetsnbextension\n"
-                    "Restart the notebook and call the function under the"
-                    "magic:\n"
-                    "  %matplotlib notebook"
-                )
-        else:
-            self._animation = animation.FuncAnimation(
-                self.fig,
-                self.update_animation,
-                len(self.ani_times),
-                fargs=fargs.items(),
-                interval=dt_frame_in_sec * 1000,
-                blit=False,
-                repeat=repeat
-            )
+        self._animation = animation.FuncAnimation(
+            self.fig,
+            self.update_animation,
+            len(self.ani_times),
+            fargs=fargs.items(),
+            interval=dt_frame_in_sec * 1000,
+            blit=False,
+            repeat=repeat,
+        )
 
         if save_file:
             if not isinstance(save_file, str):
                 save_file = r"~/fluidsim_movie.mp4"
 
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
+
+    def interact(
+        self,
+        key_field=None,
+        dt_frame_in_sec=0.3,
+        dt_equations=None,
+        tmin=None,
+        tmax=None,
+        fig_kw={},
+        **kwargs
+    ):
+        """Launches an interactive plot.
+
+        Parameters
+        ----------
+        key_field : str
+            Specifies which field to animate
+        dt_frame_in_sec : float
+            Interval between animated frames in seconds
+        dt_equations : float
+            Approx. interval between saved files to load in simulation time
+            units
+        tmax : float
+            Animate till time `tmax`.
+        fig_kw : dict
+            Dictionary of arguments for arguments for the figure.
+
+        Other Parameters
+        ----------------
+        All `kwargs` are passed on to `init_animation` and `_ani_save`
+
+        xmax : float
+            Set x-axis limit for 1D animated plots
+        ymax : float
+            Set y-axis limit for 1D animated plots
+        clim : tuple
+            Set colorbar limits for 2D animated plots
+        step : int
+            Set step value to get a coarse 2D field
+        QUIVER : bool
+            Set quiver on or off on top of 2D pcolor plots
+
+        Notes
+        -----
+        Installation instructions for notebook::
+
+          pip install ipywidgets
+          jupyter nbextension enable --py widgetsnbextension
+
+        Restart the notebook and call the function using::
+
+          >>> %matplotlib notebook
+
+        For JupyterLab::
+
+          pip install ipywidgets ipympl
+          jupyter labextension install @jupyter-widgets/jupyterlab-manager
+
+        Restart JupyterLab and call the function using::
+
+          >>> %matplotlib widget
+
+        """
+        try:
+            from ipywidgets import interact, widgets
+        except ImportError:
+            raise ImportError(
+                "See fluidsim.base.output.movies.interact docstring."
+            )
+
+        if not is_run_from_jupyter():
+            raise ValueError("Works only inside Jupyter.")
+
+        self.init_animation(
+            key_field, 0, dt_equations, tmin, tmax, fig_kw, **kwargs
+        )
+        if tmin is None:
+            tmin = self.ani_times[0]
+        if tmax is None:
+            tmax = self.ani_times[-1]
+        if dt_equations is None:
+            dt_equations = self.ani_times[1] - self.ani_times[0]
+
+        slider = widgets.FloatSlider(
+            min=float(tmin),
+            max=float(tmax),
+            step=float(dt_equations),
+            value=float(tmin),
+        )
+
+        def widget_update(time):
+            frame = np.argmin(abs(self.ani_times - time))
+            self.update_animation(frame)
+            self.fig.canvas.draw()
+
+        interact(widget_update, time=slider)
 
     def _ani_save(self, path_file, dt_frame_in_sec, codec="ffmpeg", **kwargs):
         """Saves the animation using `matplotlib.animation.writers`."""

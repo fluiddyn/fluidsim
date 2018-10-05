@@ -16,18 +16,20 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None, coef_dealiasing=2. / 3):
+def create_oper(type_fft=None, coef_dealiasing=2. / 3, **kwargs):
 
     params = ParamContainer(tag="params")
 
-    params._set_attrib("ONLY_COARSE_OPER", False)
+    params._set_attrib("ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
 
     OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
-    if mpi.nb_proc == 1:
+    if "nh" in kwargs:
+        nh = kwargs["nh"]
+    elif mpi.nb_proc == 1:
         nh = 9
     else:
         nh = 8
@@ -86,17 +88,25 @@ class TestOperators(unittest.TestCase):
 
         np.testing.assert_allclose(rot2_fft, rot_fft, self.rtol, self.atol)
 
-    def test_laplacian2(self):
+    def test_laplacian(self):
         oper = self.oper
         ff = oper.create_arrayX_random()
         ff_fft = oper.fft2(ff)
         if mpi.rank == 0:
             ff_fft[0, 0] = 0.
 
-        lap_fft = oper.laplacian2_fft(ff_fft)
-        ff_fft_back = oper.invlaplacian2_fft(lap_fft)
+        lap_fft = oper.laplacian_fft(ff_fft, order=4)
+        ff_fft_back = oper.invlaplacian_fft(lap_fft, order=4)
 
         np.testing.assert_allclose(ff_fft, ff_fft_back, self.rtol, self.atol)
+
+        lap_fft = oper.laplacian_fft(ff_fft, order=2, negative=True)
+        invlap_fft = oper.invlaplacian_fft(ff_fft, order=2, negative=True)
+
+        np.testing.assert_equal(oper.K2 * ff_fft, lap_fft)
+        np.testing.assert_allclose(
+            ff_fft / oper.K2_not0, invlap_fft, self.rtol, self.atol
+        )
 
     def test_compute_increments_dim1(self):
         """Test computing increments of var over the dim 1."""
@@ -111,6 +121,26 @@ class TestOperators(unittest.TestCase):
         n1 = oper.shapeX[1]
         for irx in [n1, n1 // 2, 0]:
             assert_increments_equal(irx)
+
+
+class TestOperatorCoarse(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.nh = 12
+        cls.oper = create_oper(ONLY_COARSE_OPER=True, nh=cls.nh)
+
+    def test_oper_coarse(self):
+        """Test coarse operator parameters which, by default, initializes
+        `nh=4`.
+
+        """
+        oper = self.oper
+
+        # Assert params are intact but the operator is initialized coarse
+        self.assertEqual(oper.params.oper.nx, self.nh)
+        self.assertEqual(oper.params.oper.ny, self.nh)
+        self.assertNotEqual(oper.nx, self.nh)
+        self.assertNotEqual(oper.ny, self.nh)
 
 
 class TestOperatorsDealiasing(unittest.TestCase):

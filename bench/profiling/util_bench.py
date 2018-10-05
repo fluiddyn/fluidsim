@@ -17,7 +17,7 @@ def modif_params_profile2d(params, nh=3**2*2**7):
     params.oper.ny = nh
 
     # params.oper.type_fft = 'fft2d.mpi_with_fftw1d'
-    params.oper.type_fft = 'fft2d.with_cufft'
+    # params.oper.type_fft = 'fft2d.with_cufft'
 
     params.forcing.enable = True
     params.forcing.type = 'tcrandom'

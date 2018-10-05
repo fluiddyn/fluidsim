@@ -10,6 +10,7 @@ Provides
 """
 
 from builtins import range
+from warnings import warn
 
 import numpy as np
 
@@ -20,16 +21,14 @@ from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 from . import util2d_pythran
 from .util2d_pythran import (
     dealiasing_setofvar,
-    laplacian2_fft,
-    invlaplacian2_fft,
+    laplacian_fft,
+    invlaplacian_fft,
     compute_increments_dim1,
 )
 from ..base.setofvariables import SetOfVariables
 
 if not hasattr(util2d_pythran, "__pythran__"):
-    import warnings
-
-    warnings.warn(
+    warn(
         "util2d_pythran has to be pythranized to be efficient! "
         "Install pythran and recompile."
     )
@@ -80,9 +79,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         params.oper.nx = nx
         params.oper.ny = ny
 
+        if params.ONLY_COARSE_OPER:
+            nx = ny = 4
+
         super(OperatorsPseudoSpectral2D, self).__init__(
-            params.oper.nx,
-            params.oper.ny,
+            nx,
+            ny,
             params.oper.Lx,
             params.oper.Ly,
             fft=params.oper.type_fft,
@@ -110,12 +112,9 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         try:
             # for shallow water models
-            self.Kappa2 = self.K2 + self.params.kd2
-            self.Kappa_over_ic = -1.j * np.sqrt(self.Kappa2 / self.params.c2)
-            if self.params.f != 0:
-                self.f_over_c2Kappa2 = self.params.f / (
-                    self.params.c2 * self.Kappa2
-                )
+            Kappa2 = self.K2 + self.params.kd2
+            self.Kappa2_not0 = self.K2_not0 + self.params.kd2
+            self.Kappa_over_ic = -1.j * np.sqrt(Kappa2 / self.params.c2)
 
         except AttributeError:
             pass
@@ -395,79 +394,74 @@ class OperatorsPseudoSpectral2D(_Operators):
         return ux_fft, uy_fft
 
     def rotfft_from_psifft(self, psi_fft):
-        rot_fft = -self.K2 * psi_fft
+        rot_fft = self.laplacian_fft(psi_fft)  # -K2 * psi_fft
         return rot_fft
 
     def uxuyetafft_from_qfft(self, q_fft, params=None):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
-        K2 = self.K2
-        K2_not0 = self.K2_not0
-        rot_fft = K2 * q_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            rot_fft[0, 0] = 0.
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
+        ilq_fft = invlaplacian_fft(q_fft, Kappa2_not0, rank)
+        rot_fft = laplacian_fft(ilq_fft, self.K2)
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
-            eta_fft = -params.f * q_fft / (K2_not0 + params.kd2) / params.c2
-        if rank == 0:
-            eta_fft[0, 0] = 0.
+            eta_fft = -params.f * ilq_fft / params.c2
         return ux_fft, uy_fft, eta_fft
 
     def uxuyetafft_from_afft(self, a_fft, params=None):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
-        # K2 = self.K2
-        K2_not0 = self.K2_not0
 
+        eta_fft = self.etafft_from_afft(a_fft, params)
         if params.f == 0:
             rot_fft = self.create_arrayK(value=0)
         else:
-            rot_fft = params.f * a_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            rot_fft[0, 0] = 0.
+            rot_fft = params.f * eta_fft
+
         ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
 
-        eta_fft = a_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            eta_fft[0, 0] = 0.
         return ux_fft, uy_fft, eta_fft
 
     def rotfft_from_qfft(self, q_fft, params=None):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
-        K2 = self.K2
-        K2_not0 = self.K2_not0
-        rot_fft = K2 * q_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            rot_fft[0, 0] = 0.
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
+        rot_fft = laplacian_fft(
+            invlaplacian_fft(q_fft, Kappa2_not0, rank), self.K2
+        )
         return rot_fft
 
     def rotfft_from_afft(self, a_fft, params=None):
         """Compute ux, uy and eta in Fourier space."""
         if params is None:
             params = self.params
-        # K2 = self.K2
-        K2_not0 = self.K2_not0
+
         if params.f == 0:
             rot_fft = self.create_arrayK(value=0)
         else:
-            rot_fft = params.f * a_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            rot_fft[0, 0] = 0.
+            rot_fft = params.f * self.etafft_from_afft(a_fft, params)
+
         return rot_fft
 
     def afft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
         if params is None:
             params = self.params
-        rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-        a_fft = self.K2 * eta_fft
+
+        a_fft = laplacian_fft(eta_fft, self.K2)
         if params.f != 0:
+            rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
             a_fft += params.f / params.c2 * rot_fft
         return a_fft
 
@@ -475,38 +469,43 @@ class OperatorsPseudoSpectral2D(_Operators):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
-        K2_not0 = self.K2_not0
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
         if params.f == 0:
             eta_fft = self.create_arrayK(value=0)
         else:
-            eta_fft = -params.f / params.c2 * q_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            eta_fft[0, 0] = 0.
+            eta_fft = (
+                -params.f / params.c2 * invlaplacian_fft(q_fft, Kappa2_not0, rank)
+            )
         return eta_fft
 
     def etafft_from_afft(self, a_fft, params=None):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
-        K2_not0 = self.K2_not0
-        eta_fft = a_fft / (K2_not0 + params.kd2)
-        if rank == 0:
-            eta_fft[0, 0] = 0.
+            Kappa2_not0 = self.Kappa2_not0
+        else:
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
+        eta_fft = invlaplacian_fft(a_fft, Kappa2_not0, rank)
         return eta_fft
 
     def etafft_from_aqfft(self, a_fft, q_fft, params=None):
         """Compute eta in Fourier space."""
         if params is None:
             params = self.params
-        K2_not0 = self.K2_not0
-        if params.f == 0:
-            eta_fft = a_fft / K2_not0
+            Kappa2_not0 = self.Kappa2_not0
         else:
-            eta_fft = (a_fft - params.f / params.c2 * q_fft) / (
-                K2_not0 + params.kd2
+            Kappa2_not0 = self.K2_not0 + params.kd2
+
+        if params.f == 0:
+            eta_fft = invlaplacian_fft(a_fft, self.K2_not0, rank)
+        else:
+            eta_fft = invlaplacian_fft(
+                (a_fft - params.f / params.c2 * q_fft), Kappa2_not0, rank
             )
-        if rank == 0:
-            eta_fft[0, 0] = 0.
         return eta_fft
 
     def qdafft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
@@ -515,7 +514,9 @@ class OperatorsPseudoSpectral2D(_Operators):
         div_fft = self.divfft_from_vecfft(ux_fft, uy_fft)
         rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
         q_fft = rot_fft - params.f * eta_fft
-        ageo_fft = params.f / params.c2 * rot_fft + self.K2 * eta_fft
+        ageo_fft = params.f / params.c2 * rot_fft + laplacian_fft(
+            eta_fft, self.K2
+        )
         return q_fft, div_fft, ageo_fft
 
     def apamfft_from_adfft(self, a_fft, d_fft):
@@ -549,7 +550,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             params = self.params
 
         q_fft = -params.f * eta_fft
-        ap_fft = 0.5 * self.K2 * eta_fft
+        ap_fft = 0.5 * laplacian_fft(eta_fft, self.K2)
         am_fft = ap_fft.copy()
         return q_fft, ap_fft, am_fft
 
@@ -617,10 +618,68 @@ class OperatorsPseudoSpectral2D(_Operators):
         return ux_fft, uy_fft, eta_fft
 
     def laplacian2_fft(self, a_fft):
-        return laplacian2_fft(a_fft, self.K4)
+        warn("Use oper.laplacian_fft instead.", PendingDeprecationWarning)
+        return laplacian_fft(a_fft, self.K4)
 
     def invlaplacian2_fft(self, a_fft):
-        return invlaplacian2_fft(a_fft, self.K4_not0, rank)
+        warn("Use oper.invlaplacian_fft instead.", PendingDeprecationWarning)
+        return invlaplacian_fft(a_fft, self.K4_not0, rank)
+
+    def laplacian_fft(self, a_fft, order=2, negative=False):
+        r"""Compute the n-th order Laplacian, :math:`\nabla^{n} \hat{a}`
+
+        Parameters
+        ----------
+        a_fft : ndarray
+
+        order: int, {2, 4, 8}, optional
+            Order of the Laplacian operator
+
+        negative: bool, optional
+            Negative of the result.
+
+        """
+        sign = 1j ** order
+        if sign.imag != 0:
+            raise ValueError("Order={} should be even!".format(order))
+
+        if negative:
+            sign *= -1
+        Kn = getattr(self, "K{}".format(int(order)))
+
+        # Avoid unnecessary multiplication by unity
+        if sign == 1:
+            return laplacian_fft(a_fft, Kn)
+        else:
+            return sign * laplacian_fft(a_fft, Kn)
+
+    def invlaplacian_fft(self, a_fft, order=2, negative=False):
+        r"""Compute the n-th order inverse Laplacian, :math:`\nabla^{-n} \hat{a}`
+
+        Parameters
+        ----------
+        a_fft : ndarray
+
+        order: int, {2, 4, 8}, optional
+            Order of the inverse Laplacian operator.
+
+        negative: bool, optional
+            Negative of the result.
+
+        """
+        sign = 1. / 1j ** order
+        if sign.imag != 0:
+            raise ValueError("Order={} should be even!".format(order))
+
+        if negative:
+            sign *= -1
+        Kn_not0 = getattr(self, "K{}_not0".format(int(order)))
+
+        # Avoid unnecessary multiplication by unity
+        if sign == 1:
+            return invlaplacian_fft(a_fft, Kn_not0, rank)
+        else:
+            return sign * invlaplacian_fft(a_fft, Kn_not0, rank)
 
     def put_coarse_array_in_array_fft(
         self, arr_coarse, arr, oper_coarse, shapeK_loc_coarse

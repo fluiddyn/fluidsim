@@ -103,7 +103,7 @@ class Output(OutputBasePseudoSpectral):
         Ek_fft = 0.5 * np.abs(w_fft) ** 2
         El_fft = np.abs(0.5 * K4 * np.abs(z_fft) ** 2)
         Ee_fft = np.abs(
-            0.25 * self.sim.oper.laplacian2_fft(np.abs(chi_fft) ** 2 + 0j)
+            0.25 * self.sim.oper.laplacian_fft(np.abs(chi_fft) ** 2 + 0j, order=4)
         )
 
         conversion_k_to_l_fft = np.real(K4 * w_fft * z_fft.conj())
@@ -123,10 +123,10 @@ class Output(OutputBasePseudoSpectral):
         chi_fft = self.sim.state.get_var("chi_fft")
         Ek_fft = 0.5 * np.abs(w_fft) ** 2
         El_fft = np.abs(
-            0.5 * self.sim.oper.laplacian2_fft(np.abs(z_fft) ** 2 + 0j)
+            0.5 * self.sim.oper.laplacian_fft(np.abs(z_fft) ** 2 + 0j, order=4)
         )
         Ee_fft = np.abs(
-            0.25 * self.sim.oper.laplacian2_fft(np.abs(chi_fft) ** 2 + 0j)
+            0.25 * self.sim.oper.laplacian_fft(np.abs(chi_fft) ** 2 + 0j, order=4)
         )
         return Ek_fft, El_fft, Ee_fft
 

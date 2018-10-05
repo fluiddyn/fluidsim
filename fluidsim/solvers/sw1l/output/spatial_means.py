@@ -214,6 +214,11 @@ class SpatialMeansMSW1L(SpatialMeansBase):
             Fx_fft, Fy_fft, Feta_fft = self.sim.oper.uxuyetafft_from_afft(
                 forcing("ap_fft") + forcing("am_fft")
             )
+        elif {"div_fft", "eta_fft", "rot_fft"} == set_keys:
+            Fx_fft, Fy_fft = self.sim.oper.vecfft_from_rotdivfft(
+                forcing("rot_fft"), forcing("div_fft")
+            )
+            Feta_fft = forcing("eta_fft")
         else:
             raise NotImplementedError(
                 "Not sure how to estimate forcing rate with "
