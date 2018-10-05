@@ -20,9 +20,8 @@ Provides:
 
 """
 
-from builtins import object
-
 from warnings import warn
+import os
 
 import numpy as np
 
@@ -112,6 +111,19 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if params_ts.type_time_scheme not in ["RK2", "RK4"]:
             raise ValueError("Problem name time_scheme")
 
+        self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+
+        if params_ts.type_time_scheme == "RK4":
+            self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
+
+        if os.environ.get("FLUIDSIM_USE_FLUIDPYTHRAN", False):
+            if params_ts.type_time_scheme == "RK2":
+                time_step_RK = self._time_step_RK2_fluidpythran
+            else:
+                time_step_RK = self._time_step_RK4_fluidpythran
+            self._time_step_RK = time_step_RK
+            return
+
         dtype = self.freq_lin.dtype
         if dtype == np.float64:
             str_type = "float"
@@ -141,9 +153,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             name_function = "_time_step_" + params_ts.type_time_scheme
 
         exec("self._time_step_RK = self." + name_function, globals(), locals())
-
-        self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
-        self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
 
     def _compute_freq_complex(self):
         state_spect = self.sim.state.state_spect
@@ -261,6 +270,24 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float64[][] diss2;
             #     float dt
             # )
+
+            # pythran block (
+            #     complex128[][][] state_spect_n12, state_spect, tendencies_n;
+            #     complex128[][][] diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect_n12, state_spect, tendencies_n;
+            #     float64[][][] diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][][] state_spect_n12, state_spect, tendencies_n;
+            #     float64[][][] diss2;
+            #     float dt
+            # )
             state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
 
         tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
@@ -271,6 +298,24 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             # pythran block (
             #     complex128[][][] state_spect, tendencies_n12;
             #     float64[][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, tendencies_n12;
+            #     complex128[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, tendencies_n12;
+            #     float64[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][][] state_spect, tendencies_n12;
+            #     float64[][][] diss, diss2;
             #     float dt
             # )
             state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
@@ -429,6 +474,27 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float64[][] diss, diss2;
             #     float dt
             # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      tendencies_0, state_spect_np12_approx1;
+            #     complex128[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      tendencies_0, state_spect_np12_approx1;
+            #     float64[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][][] state_spect, state_spect_tmp,
+            #                      tendencies_0, state_spect_np12_approx1;
+            #     float64[][][] diss, diss2;
+            #     float dt
+            # )
             state_spect_tmp[:] = (state_spect + dt / 6 * tendencies_0) * diss
             state_spect_np12_approx1[:] = (
                 state_spect + dt / 2 * tendencies_0
@@ -449,6 +515,27 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     complex128[][][] state_spect, state_spect_tmp,
             #                      state_spect_np12_approx2, tendencies_1;
             #     float64[][] diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np12_approx2, tendencies_1;
+            #     complex128[][][] diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np12_approx2, tendencies_1;
+            #     float64[][][] diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][][] state_spect, state_spect_tmp,
+            #                      state_spect_np12_approx2, tendencies_1;
+            #     float64[][][] diss2;
             #     float dt
             # )
             state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
@@ -473,6 +560,27 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float64[][] diss, diss2;
             #     float dt
             # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np1_approx, tendencies_2;
+            #     complex128[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np1_approx, tendencies_2;
+            #     float64[][][] diss, diss2;
+            #     float dt
+            # )
+
+            # pythran block (
+            #     complex128[][][][] state_spect, state_spect_tmp,
+            #                      state_spect_np1_approx, tendencies_2;
+            #     float64[][][] diss, diss2;
+            #     float dt
+            # )
             state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
             state_spect_np1_approx[:] = (
                 state_spect * diss + dt * diss2 * tendencies_2
@@ -483,5 +591,16 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
         del state_spect_np1_approx
 
-        # result using the 4 approximations
-        self.sim.state.state_spect = state_spect_tmp + dt / 6 * tendencies_3
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk4_step3")
+        else:
+            # result using the 4 approximations
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp, tendencies_3;
+            #     float dt
+            # )
+            # pythran block (
+            #     complex128[][][][] state_spect, state_spect_tmp, tendencies_3;
+            #     float dt
+            # )
+            state_spect[:] = state_spect_tmp + dt / 6 * tendencies_3

@@ -50,13 +50,10 @@ else:
 
 here = Path(__file__).parent.absolute()
 
-try:
-    from fluidpythran.files_maker import create_pythran_files
-except ImportError:
-    pass
-else:
-    paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
-    create_pythran_files([here / path for path in paths])
+from fluidpythran.files_maker import create_pythran_files
+
+paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
+create_pythran_files([here / path for path in paths])
 
 time_start = time()
 config = get_config()
