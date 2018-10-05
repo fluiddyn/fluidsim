@@ -26,11 +26,13 @@ from warnings import warn
 
 import numpy as np
 
-from fluidsim.base.setofvariables import SetOfVariables
+from fluidpythran import FluidPythran
 
 from .base import TimeSteppingBase
 
 from .rk_pythran import step0_RK2_pythran, step1_RK2_pythran
+
+fp = FluidPythran()
 
 
 class ExactLinearCoefs(object):
@@ -140,6 +142,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         exec("self._time_step_RK = self." + name_function, globals(), locals())
 
+        self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+        self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
+
     def _compute_freq_complex(self):
         state_spect = self.sim.state.state_spect
         freq_complex = np.empty_like(state_spect)
@@ -236,6 +241,39 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
         # state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
         step1_RK2_pythran(state_spect, tendencies_n12, diss, diss2, dt)
+
+    def _time_step_RK2_fluidpythran(self):
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_n = compute_tendencies()
+
+        state_spect_n12 = self._state_spect_tmp
+
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk2_step0")
+        else:
+            # pythran block (
+            #     complex128[][][] state_spect_n12, state_spect, tendencies_n;
+            #     float64[][] diss2;
+            #     float dt
+            # )
+            state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
+
+        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
+
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk2_step1")
+        else:
+            # pythran block (
+            #     complex128[][][] state_spect, tendencies_n12;
+            #     float64[][] diss, diss2;
+            #     float dt
+            # )
+            state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
@@ -340,31 +378,105 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_0 = compute_tendencies()
 
         # based on approximation 1
-        state_spect_temp = (state_spect + dt / 6 * tendencies_0) * diss
+        state_spec_tmp = (state_spect + dt / 6 * tendencies_0) * diss
         state_spect_np12_approx1 = (state_spect + dt / 2 * tendencies_0) * diss2
 
         tendencies_1 = compute_tendencies(
             state_spect_np12_approx1, old=tendencies_0
         )
-        del (state_spect_np12_approx1)
+        del state_spect_np12_approx1
 
         # based on approximation 2
-        state_spect_temp += dt / 3 * diss2 * tendencies_1
+        state_spec_tmp += dt / 3 * diss2 * tendencies_1
         state_spect_np12_approx2 = state_spect * diss2 + dt / 2 * tendencies_1
 
         tendencies_2 = compute_tendencies(
             state_spect_np12_approx2, old=tendencies_1
         )
-        del (state_spect_np12_approx2)
+        del state_spect_np12_approx2
 
         # based on approximation 3
-        state_spect_temp += dt / 3 * diss2 * tendencies_2
+        state_spec_tmp += dt / 3 * diss2 * tendencies_2
         state_spect_np1_approx = state_spect * diss + dt * diss2 * tendencies_2
 
         tendencies_3 = compute_tendencies(
             state_spect_np1_approx, old=tendencies_2
         )
-        del (state_spect_np1_approx)
+        del state_spect_np1_approx
 
         # result using the 4 approximations
-        self.sim.state.state_spect = state_spect_temp + dt / 6 * tendencies_3
+        self.sim.state.state_spect = state_spec_tmp + dt / 6 * tendencies_3
+
+
+    def _time_step_RK4_fluidpythran(self):
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_0 = compute_tendencies()
+        state_spect_tmp = self._state_spect_tmp
+        state_spect_tmp1 = self._state_spect_tmp1
+        state_spect_np12_approx1 = state_spect_tmp1
+
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk4_step0")
+        else:
+            # based on approximation 0
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      tendencies_0, state_spect_np12_approx1;
+            #     float64[][] diss, diss2;
+            #     float dt
+            # )
+            state_spect_tmp[:] = (state_spect + dt / 6 * tendencies_0) * diss
+            state_spect_np12_approx1[:] = (state_spect + dt / 2 * tendencies_0) * diss2
+
+        tendencies_1 = compute_tendencies(
+            state_spect_np12_approx1, old=tendencies_0
+        )
+        del state_spect_np12_approx1
+
+        state_spect_np12_approx2 = state_spect_tmp1
+
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk4_step1")
+        else:
+            # based on approximation 1
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np12_approx2, tendencies_1;
+            #     float64[][] diss2;
+            #     float dt
+            # )
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
+            state_spect_np12_approx2[:] = state_spect * diss2 + dt / 2 * tendencies_1
+
+        tendencies_2 = compute_tendencies(
+            state_spect_np12_approx2, old=tendencies_1
+        )
+        del state_spect_np12_approx2
+
+        state_spect_np1_approx = state_spect_tmp1
+
+        if fp.is_pythranized:
+            fp.use_pythranized_block("rk4_step2")
+        else:
+            # based on approximation 2
+            # pythran block (
+            #     complex128[][][] state_spect, state_spect_tmp,
+            #                      state_spect_np1_approx, tendencies_2;
+            #     float64[][] diss, diss2;
+            #     float dt
+            # )
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
+            state_spect_np1_approx[:] = state_spect * diss + dt * diss2 * tendencies_2
+
+        tendencies_3 = compute_tendencies(
+            state_spect_np1_approx, old=tendencies_2
+        )
+        del state_spect_np1_approx
+
+        # result using the 4 approximations
+        self.sim.state.state_spect = state_spect_tmp + dt / 6 * tendencies_3

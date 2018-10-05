@@ -20,20 +20,13 @@ https://github.com/pypa/setuptools_scm#setuptools_scm
 
 """
 
-
-try:
-    from setuptools_scm import get_version
-
-    __version__ = get_version()
-except:
-    __version__ = "0.2.2.post0"
-
+__version__ = "0.2.2.post0"
 
 try:
     from pyfiglet import figlet_format
 
-    __about__ = figlet_format("fluidsim v" + __version__, font="big")
-except:
+    __about__ = figlet_format("fluidsim", font="big")
+except ImportError:
     __about__ = r"""
   __ _       _     _     _
  / _| |     (_)   | |   (_)
@@ -41,5 +34,6 @@ except:
 |  _| | | | | |/ _` / __| | '_ ` _ \
 | | | | |_| | | (_| \__ \ | | | | | |
 |_| |_|\__,_|_|\__,_|___/_|_| |_| |_|
-
 """
+
+__about__ = __about__.rstrip() + f"\n\n{22 * ' '} v. {__version__}\n"
