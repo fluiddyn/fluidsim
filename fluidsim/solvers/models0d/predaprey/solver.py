@@ -70,7 +70,7 @@ class Simul(SimulBase):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
-        attribs = {"A": 1., "B": 1., "C": 1., "D": 0.5}
+        attribs = {"A": 1.0, "B": 1.0, "C": 1.0, "D": 0.5}
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):

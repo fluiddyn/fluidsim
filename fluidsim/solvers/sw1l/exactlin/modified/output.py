@@ -46,7 +46,7 @@ class OutputSW1LExactlinModified(OutputBaseSW1L):
         # compute Ertel and Charney (QG) potential vorticity
         rot = self.sim.state.get_var("rot")
         eta = self.sim.state.state_phys.get_var("eta")
-        ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1. + eta))
+        ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1.0 + eta))
         ux_fft = self.sim.state.get_var("ux_fft")
         uy_fft = self.sim.state.get_var("uy_fft")
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)

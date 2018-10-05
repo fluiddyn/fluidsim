@@ -1,4 +1,3 @@
-
 import unittest
 import shutil
 import warnings
@@ -33,12 +32,12 @@ class TestSolverAD1D(unittest.TestCase):
         )
         params = Simul.create_default_params()
 
-        params.U = 1.
+        params.U = 1.0
 
         params.short_name_type_run = "test"
 
         params.oper.nx = 40
-        params.oper.Lx = 1.
+        params.oper.Lx = 1.0
 
         params.time_stepping.type_time_scheme = "RK2"
 
@@ -53,7 +52,7 @@ class TestSolverAD1D(unittest.TestCase):
 
         params.output.periods_save.phys_fields = 0.5
 
-        params.output.periods_plot.phys_fields = 0.
+        params.output.periods_plot.phys_fields = 0.0
 
         params.output.phys_fields.field_to_plot = "s"
 

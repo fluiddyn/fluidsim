@@ -125,7 +125,7 @@ class SpectraNS3D(Spectra):
             if delta_t is not None:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     spectrum = dset_spectra_E[it]
-                    spectrum[spectrum < 10e-16] = 0.
+                    spectrum[spectrum < 10e-16] = 0.0
                     ax.plot(ks, spectrum * coef_norm)
 
             spectra = dset_spectra_E[imin_plot : imax_plot + 1]
@@ -137,7 +137,7 @@ class SpectraNS3D(Spectra):
             ax.plot(ks[1:], to_plot[1:], "k--")
 
         if coef_plot_k53 is not None:
-            to_plot = coef_plot_k53 * ks_no0 ** (-5. / 3) * coef_norm
+            to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
             ax.plot(ks[1:], to_plot[1:], "k-.")
 
         if xlim is not None:
@@ -167,7 +167,7 @@ class SpectraNS3D(Spectra):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -210,18 +210,18 @@ class SpectraNS3D(Spectra):
 
             coef_norm = ks_no0 ** coef_compensate
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     EK = dset_spectrum[it]
-                    EK[EK < 10e-16] = 0.
+                    EK[EK < 10e-16] = 0.0
                     ax1.plot(ks, EK * coef_norm, "k", linewidth=1)
 
             EK = dset_spectrum[imin_plot : imax_plot + 1].mean(0)
-        EK[EK < 10e-16] = 0.
+        EK[EK < 10e-16] = 0.0
         ax1.plot(ks, EK * coef_norm, "k", linewidth=2)
 
         if coef_plot_k3 is not None:
             ax1.plot(ks, coef_plot_k3 * ks_no0 ** (-3) * coef_norm, "k--")
 
         if coef_plot_k53 is not None:
-            ax1.plot(ks, coef_plot_k53 * ks_no0 ** (-5. / 3) * coef_norm, "k-.")
+            ax1.plot(ks, coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm, "k-.")

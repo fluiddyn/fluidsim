@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     params.short_name_type_run = "test"
     params.time_stepping.USE_CFL = False
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 2.0
     params.time_stepping.deltat0 = 0.1
 
     sim = Simul(params)

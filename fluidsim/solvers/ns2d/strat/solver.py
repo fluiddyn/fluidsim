@@ -59,7 +59,7 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {"N": 1., "NO_SHEAR_MODES": False}
+        attribs = {"N": 1.0, "NO_SHEAR_MODES": False}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -180,15 +180,15 @@ class Simul(SimulNS2D):
         params = self.params
 
         # Compute time derivative kinetic energy
-        division = 1. / oper.K2_not0
+        division = 1.0 / oper.K2_not0
         if oper.rank == 0:
             division[0, 0] = 0
 
         pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * f_rot_fft)
-        pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.
+        pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.0
 
         # Compute time derivative potential energy
-        pt_energyA_fft = (1. / (2 * params.N ** 2)) * np.real(
+        pt_energyA_fft = (1.0 / (2 * params.N ** 2)) * np.real(
             b_fft.conj() * f_b_fft
         )
 
@@ -240,14 +240,14 @@ if __name__ == "__main__":
 
     delta_x = Lx / nx
 
-    params.nu_2 = 1. * 10e-6
+    params.nu_2 = 1.0 * 10e-6
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.N = 1.  # Brunt Vaisala frequency
+    params.N = 1.0  # Brunt Vaisala frequency
     params.time_stepping.USE_CFL = True
     params.time_stepping.USE_T_END = True
     # params.time_stepping.deltat0 = 0.1
     # Period of time of the simulation
-    params.time_stepping.t_end = 5.
+    params.time_stepping.t_end = 5.0
     # params.time_stepping.it_end = 50
 
     params.init_fields.type = "noise"
@@ -267,13 +267,13 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.01
 
-    params.output.periods_save.phys_fields = 2.
+    params.output.periods_save.phys_fields = 2.0
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
-    params.output.periods_save.spect_energy_budg = 1.
-    params.output.periods_save.increments = 1.
+    params.output.periods_save.spect_energy_budg = 1.0
+    params.output.periods_save.increments = 1.0
 
-    params.output.periods_plot.phys_fields = 5.
+    params.output.periods_plot.phys_fields = 5.0
 
     params.output.ONLINE_PLOT_OK = True
 

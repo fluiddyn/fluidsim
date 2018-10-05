@@ -111,9 +111,9 @@ class Simul(SimulSW1LExactLin):
         K2 = self.oper.K2
         # return self.oper.create_arrayK(value=0)
         if key == "ap_fft":
-            omega = 1.j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
+            omega = 1.0j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
         elif key == "am_fft":
-            omega = -1.j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
+            omega = -1.0j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
         return omega
 
     def verify_tendencies(
@@ -201,10 +201,10 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
     )
 
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 2.0
 
     params.init_fields.type = "noise"
 
@@ -213,14 +213,14 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 1.0
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.periods_save.increments = 0.5
     params.output.periods_save.pdf = 0.5
     params.output.periods_save.time_signals_fft = False
 
-    params.output.periods_plot.phys_fields = 0.
+    params.output.periods_plot.phys_fields = 0.0
 
     params.output.phys_fields.field_to_plot = "div"
 

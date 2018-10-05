@@ -1,4 +1,3 @@
-
 from __future__ import division, print_function
 
 import os
@@ -107,7 +106,7 @@ class SpatialMeansBase(SpecificOutput):
     def plot(self):
         pass
 
-    def compute_time_means(self, tstatio=0., tmax=None):
+    def compute_time_means(self, tstatio=0.0, tmax=None):
         """compute the temporal means."""
         dict_results = self.load()
         if tmax is None:

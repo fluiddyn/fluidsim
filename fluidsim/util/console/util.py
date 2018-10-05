@@ -125,19 +125,19 @@ def modif_params2d(
     # params.forcing.nkmin_forcing = 3
     # params.forcing.forcing_rate = 1.
 
-    params.nu_8 = 1.
+    params.nu_8 = 1.0
     try:
-        params.f = 1.
-        params.c2 = 200.
+        params.f = 1.0
+        params.c2 = 200.0
     except AttributeError:
         pass
 
     try:
-        params.N = 1.
+        params.N = 1.0
     except AttributeError:
         pass
 
-    params.time_stepping.deltat0 = 1.e-6
+    params.time_stepping.deltat0 = 1.0e-6
     params.time_stepping.USE_CFL = False
     params.time_stepping.it_end = it_end
     params.time_stepping.USE_T_END = False
@@ -193,22 +193,22 @@ def modif_params3d(
     # params.forcing.nkmin_forcing = 4
     # params.forcing.forcing_rate = 1.
 
-    params.nu_8 = 1.
+    params.nu_8 = 1.0
     try:
-        params.f = 1.
-        params.c2 = 200.
+        params.f = 1.0
+        params.c2 = 200.0
     except AttributeError:
         pass
 
     try:
-        params.N = 1.
+        params.N = 1.0
     except AttributeError:
         pass
 
     if "noise" in params.init_fields.available_types:
         params.init_fields.type = "noise"
 
-    params.time_stepping.deltat0 = 1.e-4
+    params.time_stepping.deltat0 = 1.0e-4
     params.time_stepping.USE_CFL = False
     params.time_stepping.it_end = it_end
     params.time_stepping.USE_T_END = False

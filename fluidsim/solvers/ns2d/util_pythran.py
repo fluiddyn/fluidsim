@@ -1,5 +1,3 @@
-
-
 # pythran export compute_Frot(
 #     float64[][], float64[][], float64[][], float64[][], float)
 

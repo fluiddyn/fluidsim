@@ -109,7 +109,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {"c2": 1., "f": 0}
+        attribs = {"c2": 1.0, "f": 0}
         params._set_attribs(attribs)
 
     @classmethod
@@ -129,7 +129,7 @@ class Simul(SimulBasePseudoSpectral):
         else:
             tendencies_fft = old
 
-        tendencies_fft[:] = 0.
+        tendencies_fft[:] = 0.0
 
         return tendencies_fft
 
@@ -138,7 +138,7 @@ class Simul(SimulBasePseudoSpectral):
         if key == "f_fft":
             omega = self.oper.create_arrayK(value=0)
         elif key == "g_fft":
-            omega = 1.j * np.sqrt(
+            omega = 1.0j * np.sqrt(
                 self.params.f ** 2 + self.params.c2 * self.oper.K2
             )
         return omega
@@ -166,13 +166,13 @@ if __name__ == "__main__":
 
     delta_x = old_div(params.oper.Lx, params.oper.nx)
     params.nu_8 = (
-        2.
+        2.0
         * 10e-1
-        * params.forcing.forcing_rate ** (old_div(1., 3))
+        * params.forcing.forcing_rate ** (old_div(1.0, 3))
         * delta_x ** 8
     )
 
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 1.0
     params.time_stepping.USE_CFL = False
 
     params.init_fields.type = "noise"

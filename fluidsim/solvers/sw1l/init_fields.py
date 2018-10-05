@@ -33,7 +33,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 from fluidsim.solvers.ns2d.init_fields import (
-    InitFieldsNoise as InitFieldsNoiseNS2D
+    InitFieldsNoise as InitFieldsNoiseNS2D,
 )
 
 from fluidsim.solvers.ns2d.init_fields import InitFieldsJet, InitFieldsDipole
@@ -51,7 +51,7 @@ class InitFieldsWave(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsWave, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={"eta_max": 1., "ikx": 2})
+        params.init_fields._set_child(cls.tag, attribs={"eta_max": 1.0, "ikx": 2})
 
     def __call__(self):
         oper = self.sim.oper
@@ -61,7 +61,7 @@ class InitFieldsWave(SpecificInitFields):
 
         kx = oper.deltakx * ikx
         eta_fft = np.zeros_like(self.sim.state.get_var("eta_fft"))
-        cond = np.logical_and(oper.KX == kx, oper.KY == 0.)
+        cond = np.logical_and(oper.KX == kx, oper.KY == 0.0)
         eta_fft[cond] = eta_max
         oper.project_fft_on_realX(eta_fft)
 
@@ -94,7 +94,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(InitFieldsVortexGrid, cls)._complete_params_with_default(params)
         params.init_fields._set_child(
-            cls.tag, attribs={"omega_max": 1., "n_vort": 8, "sd": None}
+            cls.tag, attribs={"omega_max": 1.0, "n_vort": 8, "sd": None}
         )
 
     def __call__(self):
@@ -121,12 +121,12 @@ class InitFieldsVortexGrid(SpecificInitFields):
 
         dx_vort = Lx / N_vort
         dy_vort = Ly / N_vort
-        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort / 2.
-        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.
+        x_vort = np.linspace(0, Lx, N_vort + 1) + dx_vort / 2.0
+        y_vort = np.linspace(0, Ly, N_vort + 1) + dy_vort / 2.0
         sign_list = self._random_plus_minus_list()
 
         if SD is None:
-            SD = min(dx_vort, dy_vort) / 12.
+            SD = min(dx_vort, dy_vort) / 12.0
             params.sd = SD
 
         amp = params.omega_max

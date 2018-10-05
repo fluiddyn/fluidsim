@@ -541,7 +541,7 @@ class SetOfDirResults(object):
         if len(self.paths) == 1:
             path = self.paths[0]
         else:
-            t_s = -1.
+            t_s = -1.0
             for path_temp in self.paths:
                 t_s_temp, t_e = times_start_end_from_path(path_temp)
                 if t_s_temp > t_s:

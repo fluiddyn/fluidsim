@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from fluidsim.solvers.ns3d.output.spectra import SpectraNS3D

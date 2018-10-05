@@ -16,7 +16,7 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None, coef_dealiasing=2. / 3, **kwargs):
+def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
 
     params = ParamContainer(tag="params")
 
@@ -36,7 +36,7 @@ def create_oper(type_fft=None, coef_dealiasing=2. / 3, **kwargs):
 
     params.oper.nx = nh
     params.oper.ny = nh
-    Lh = 6.
+    Lh = 6.0
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
@@ -80,7 +80,7 @@ class TestOperators(unittest.TestCase):
         rot = oper.create_arrayX_random()
         rot_fft = oper.fft2(rot)
         if mpi.rank == 0:
-            rot_fft[0, 0] = 0.
+            rot_fft[0, 0] = 0.0
 
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
         rot2_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -92,7 +92,7 @@ class TestOperators(unittest.TestCase):
         ff = oper.create_arrayX_random()
         ff_fft = oper.fft2(ff)
         if mpi.rank == 0:
-            ff_fft[0, 0] = 0.
+            ff_fft[0, 0] = 0.0
 
         lap_fft = oper.laplacian_fft(ff_fft, order=4)
         ff_fft_back = oper.invlaplacian_fft(lap_fft, order=4)
@@ -153,7 +153,7 @@ class TestOperatorsDealiasing(unittest.TestCase):
 
         """
         oper = self.oper
-        var_fft = oper.create_arrayK(1.)
+        var_fft = oper.create_arrayK(1.0)
         sum_var = var_fft.sum()
         oper.dealiasing(var_fft)
         sum_var_dealiased = var_fft.sum()

@@ -73,7 +73,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         # Energy budget terms. Nonlinear transfer terms, exchange kinetic and
         # potential energy B, dissipation terms.
         transferZ_fft = (
-            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.
+            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.0
         )
         transferEKu_fft = np.real(ux_fft.conj() * Fx_fft)
         transferEKv_fft = np.real(uy_fft.conj() * Fy_fft)
@@ -97,7 +97,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 + uy_fft.conj() * uy_fft
                 + uy_fft * uy_fft.conj()
             )
-            / 2.
+            / 2.0
         )
         if self.params.N == 0:
             dissEA_fft = np.zeros_like(dissEK_fft)
@@ -113,7 +113,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 + uy_fft.conj() * Fy_fft
                 + uy_fft * Fy_fft.conj()
             )
-            / 2.
+            / 2.0
         )
 
         # Transfer spectrum 1D Kinetic energy, potential energy and exchange
@@ -200,7 +200,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
-    def plot(self, tmin=0, tmax=1000, delta_t=2):
+    def plot(self, tmin=0, tmax=None, delta_t=2):
         """Plot the energy budget."""
 
         # Load data from file
@@ -220,11 +220,14 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             dset_dissEK_ky = f["dissEK_ky"].value
             dset_dissEA_ky = f["dissEA_ky"].value
 
+        if tmax is None:
+            tmax = np.max(times)
+
         # Average from tmin and tmax for plot
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
 
-        if delta_i_plot == 0 and delta_t != 0.:
+        if delta_i_plot == 0 and delta_t != 0.0:
             delta_i_plot = 1
         delta_t = delta_i_plot * delta_t_save
 
@@ -320,6 +323,20 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.plot(kyE[1:], PiEA_ky, label=r"$\Pi_A$")
         ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, label=r"$D$")
         ax2.axhline(y=0, color="k", linestyle="--")
+
+        # Plot forcing wave-number k_f
+        nkmax = self.sim.params.forcing.nkmax_forcing
+        nkmin = self.sim.params.forcing.nkmin_forcing
+        k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
+        try:
+            angle = self.sim.forcing.forcing_maker.angle
+        except AttributeError:
+            pass
+        else:
+            k_fx = np.sin(angle) * k_f
+            k_fy = np.cos(angle) * k_f
+            ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")
+            ax2.axvline(x=k_fy, color="k", linestyle=":", label="$k_{f,z}$")
 
         ax1.legend()
         ax2.legend()

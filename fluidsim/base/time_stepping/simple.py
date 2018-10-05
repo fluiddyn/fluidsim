@@ -29,7 +29,7 @@ class ExactLinearCoefs(object):
 
         if sim.params.time_stepping.USE_CFL:
             self.get_updated_coefs = self.get_updated_coefs_CLF
-            self.dt_old = 0.
+            self.dt_old = 0.0
         else:
             self.compute(time_stepping.deltat)
             self.get_updated_coefs = self.get_coefs
@@ -67,7 +67,7 @@ class TimeSteppingSimple(TimeSteppingBase):
         self._init_time_scheme()
 
     def _init_freq_lin(self):
-        self.freq_lin = 0.
+        self.freq_lin = 0.0
 
     def _init_exact_linear_coef(self):
         self.exact_linear_coefs = ExactLinearCoefs(self)

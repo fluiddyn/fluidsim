@@ -74,7 +74,7 @@ class NormalModeBase(object):
         am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * K)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.is_sequential:
-            bvec_fft[:, 0, 0] = 0.
+            bvec_fft[:, 0, 0] = 0.0
 
         return bvec_fft
 
@@ -128,7 +128,7 @@ class NormalModeDecomposition(NormalModeBase):
         # np.testing.assert_allclose(qmat_py, self.qmat, rtol=1e-14)
 
         if mpi.rank == 0 or oper.is_sequential:
-            self.qmat[:, :, 0, 0] = 0.
+            self.qmat[:, :, 0, 0] = 0.0
 
     def normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_spect key specified."""
@@ -187,7 +187,7 @@ class NormalModeDecomposition(NormalModeBase):
         return key_modes, normal_mode_vec_phys
 
     def _group_matrix_using_dict(self, key_matrix, value_matrix, grouping):
-        value_dict = dict.fromkeys(grouping, 0.)
+        value_dict = dict.fromkeys(grouping, 0.0)
         n1, n2 = key_matrix.shape
         for i in range(n1):
             for j in range(n2):

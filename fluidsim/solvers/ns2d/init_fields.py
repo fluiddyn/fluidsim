@@ -35,7 +35,7 @@ class InitFieldsNoise(SpecificInitFields):
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
 
         params.init_fields._set_child(
-            cls.tag, attribs={"velo_max": 1., "length": 0.}
+            cls.tag, attribs={"velo_max": 1.0, "length": 0.0}
         )
 
         params.init_fields.noise._set_doc(
@@ -63,10 +63,10 @@ length: float (default 0.)
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = min(oper.Lx, oper.Ly) / 4.
+            lambda0 = min(oper.Lx, oper.Ly) / 4.0
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
+            return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42 + mpi.rank)
@@ -85,14 +85,14 @@ length: float (default 0.)
         )
 
         if mpi.rank == 0:
-            ux_fft[0, 0] = 0.
-            uy_fft[0, 0] = 0.
+            ux_fft[0, 0] = 0.0
+            uy_fft[0, 0] = 0.0
 
         oper.projection_perp(ux_fft, uy_fft)
         oper.dealiasing(ux_fft, uy_fft)
 
         k0 = 2 * np.pi / lambda0
-        delta_k0 = 1. * k0
+        delta_k0 = 1.0 * k0
         ux_fft = ux_fft * H_smooth(k0 - oper.K, delta_k0)
         uy_fft = uy_fft * H_smooth(k0 - oper.K, delta_k0)
 
@@ -127,22 +127,22 @@ class InitFieldsJet(SpecificInitFields):
         oper = self.sim.oper
         rot = self.vorticity_jet()
         rot_fft = oper.fft2(rot)
-        rot_fft[oper.K == 0] = 0.
+        rot_fft[oper.K == 0] = 0.0
         self.sim.state.init_from_rotfft(rot_fft)
 
     def vorticity_jet(self):
         oper = self.sim.oper
         Ly = oper.Ly
         a = 0.5
-        b = Ly / 2.
-        omega0 = 2.
+        b = Ly / 2.0
+        omega0 = 2.0
         omega = omega0 * (
-            np.exp(-((oper.YY - Ly / 2. + b / 2.) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2. - b / 2.) / a) ** 2)
-            + np.exp(-((oper.YY - Ly / 2. + b / 2. + Ly) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2. - b / 2. + Ly) / a) ** 2)
-            + np.exp(-((oper.YY - Ly / 2. + b / 2. - Ly) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2. - b / 2. - Ly) / a) ** 2)
+            np.exp(-((oper.YY - Ly / 2.0 + b / 2.0) / a) ** 2)
+            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0) / a) ** 2)
+            + np.exp(-((oper.YY - Ly / 2.0 + b / 2.0 + Ly) / a) ** 2)
+            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0 + Ly) / a) ** 2)
+            + np.exp(-((oper.YY - Ly / 2.0 + b / 2.0 - Ly) / a) ** 2)
+            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0 - Ly) / a) ** 2)
         )
         return omega
 
@@ -166,15 +166,15 @@ class InitFieldsDipole(SpecificInitFields):
 
     def vorticity_shape_1dipole(self):
         oper = self.sim.oper
-        xs = oper.Lx / 2.
-        ys = oper.Ly / 2.
+        xs = oper.Lx / 2.0
+        ys = oper.Ly / 2.0
         theta = np.pi / 2.3
         b = 2.5
         omega = np.zeros(oper.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return 2 * np.exp(-(XX ** 2 + (YY - b / 2.) ** 2)) - 2 * np.exp(
-                -(XX ** 2 + (YY + b / 2.) ** 2)
+            return 2 * np.exp(-(XX ** 2 + (YY - b / 2.0) ** 2)) - 2 * np.exp(
+                -(XX ** 2 + (YY + b / 2.0) ** 2)
             )
 
         for ip in range(-1, 2):

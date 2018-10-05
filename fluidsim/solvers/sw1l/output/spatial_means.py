@@ -61,12 +61,12 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         # Compute and save skewness and kurtosis.
         eta = self.sim.state.state_phys.get_var("eta")
-        meaneta2 = 2. / self.c2 * energyA
+        meaneta2 = 2.0 / self.c2 * energyA
         if meaneta2 == 0:
-            skew_eta = 0.
-            kurt_eta = 0.
+            skew_eta = 0.0
+            kurt_eta = 0.0
         else:
-            skew_eta = np.mean(eta ** 3) / meaneta2 ** (3. / 2)
+            skew_eta = np.mean(eta ** 3) / meaneta2 ** (3.0 / 2)
             kurt_eta = np.mean(eta ** 4) / meaneta2 ** (2)
 
         ux = self.sim.state.state_phys.get_var("ux")
@@ -77,10 +77,10 @@ class SpatialMeansMSW1L(SpatialMeansBase):
         rot = self.sim.oper.ifft2(rot_fft)
         meanrot2 = self.sum_wavenumbers(abs(rot_fft) ** 2)
         if meanrot2 == 0:
-            skew_rot = 0.
-            kurt_rot = 0.
+            skew_rot = 0.0
+            kurt_rot = 0.0
         else:
-            skew_rot = np.mean(rot ** 3) / meanrot2 ** (3. / 2)
+            skew_rot = np.mean(rot ** 3) / meanrot2 ** (3.0 / 2)
             kurt_rot = np.mean(rot ** 4) / meanrot2 ** (2)
 
         if mpi.rank == 0:
@@ -599,13 +599,13 @@ class SpatialMeansMSW1L(SpatialMeansBase):
 
         dict_results = self.load()
         t = dict_results["t"]
-        dt = np.gradient(t, 1.)
+        dt = np.gradient(t, 1.0)
 
         fig, axarr = plt.subplots(len(keys), sharex=True)
         i = 0
         for k in keys:
             E = dict_results[k]
-            dE_dt = abs(np.gradient(E, 1.) / dt)
+            dE_dt = abs(np.gradient(E, 1.0) / dt)
             dE_dt_avg = "{0:11.6e}".format(dE_dt.mean())
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
@@ -729,7 +729,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         Feta = self.sim.oper.ifft2(Feta_fft)
 
         eta = self.sim.state.state_phys.get_var("eta")
-        h = eta + 1.
+        h = eta + 1.0
 
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")

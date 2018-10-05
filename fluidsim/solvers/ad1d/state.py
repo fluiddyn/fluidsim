@@ -47,7 +47,7 @@ class StateAD1D(StateBase):
                 if mpi.rank == 0:
                     print(to_print + "\nreturn an array of zeros.")
 
-                result = self.oper.create_arrayX(value=0.)
+                result = self.oper.create_arrayX(value=0.0)
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result

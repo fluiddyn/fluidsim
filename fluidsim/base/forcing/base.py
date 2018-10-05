@@ -58,7 +58,7 @@ class ForcingBase(object):
                 "enable": False,
                 "type": "",
                 "available_types": [],
-                "forcing_rate": 1.,
+                "forcing_rate": 1.0,
                 "key_forced": None,
             },
         )

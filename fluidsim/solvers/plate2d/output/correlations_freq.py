@@ -211,10 +211,10 @@ class CorrelationsFreq(SpecificOutput):
                 )
 
                 if mpi.rank == 0:
-                    self.corr4 = (1. / (self.nb_means_times + 1)) * (
+                    self.corr4 = (1.0 / (self.nb_means_times + 1)) * (
                         self.nb_means_times * self.corr4 + new_corr4
                     )
-                    self.corr2 = (1. / (self.nb_means_times + 1)) * (
+                    self.corr2 = (1.0 / (self.nb_means_times + 1)) * (
                         self.nb_means_times * self.corr2 + new_corr2
                     )
                     self.nb_means_times += 1

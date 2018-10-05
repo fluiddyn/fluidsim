@@ -363,7 +363,7 @@ class MoviesBase(object):
 
         print("Saving movie to ", path_file, "...")
         writer = Writer(
-            fps=1. / dt_frame_in_sec, metadata=dict(artist="FluidSim")
+            fps=1.0 / dt_frame_in_sec, metadata=dict(artist="FluidSim")
         )
         # _animation is a FuncAnimation object
         self._animation.save(path_file, writer=writer, dpi=150)

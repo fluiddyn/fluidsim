@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from fluidsim.base.time_stepping.pseudo_spect_cy import TimeSteppingPseudoSpectral

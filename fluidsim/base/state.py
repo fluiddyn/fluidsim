@@ -197,7 +197,7 @@ class StateBase(object):
            init_statespect_from(ux=ux, uy=uy, eta=eta)
 
         """
-        self.state_phys[:] = 0.
+        self.state_phys[:] = 0.0
 
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_phys:
@@ -375,7 +375,7 @@ class StatePseudoSpectral(StateBase):
            init_statespect_from(ux_fft=ux_fft, uy_fft=uy_fft, eta_fft=eta_fft)
 
         """
-        self.state_spect[:] = 0.
+        self.state_spect[:] = 0.0
 
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_spect:

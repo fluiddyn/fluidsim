@@ -93,7 +93,7 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {"beta": 0.}
+        attribs = {"beta": 0.0}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -212,10 +212,10 @@ if __name__ == "__main__":
     delta_x = Lh / nh
 
     params.nu_8 = (
-        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
     )
 
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 10.0
 
     params.init_fields.type = "dipole"
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
     # params.output.periods_print.print_stdout = 0.25
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 1.0
     params.output.periods_save.spectra = 0.5
     params.output.periods_save.spatial_means = 0.05
     # params.output.periods_save.spect_energy_budg = 0.5

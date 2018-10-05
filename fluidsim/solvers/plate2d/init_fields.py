@@ -19,7 +19,7 @@ class InitFieldsNoise(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(cls, cls)._complete_params_with_default(params)
         params.init_fields._set_child(
-            cls.tag, attribs={"velo_max": 1., "length": 0}
+            cls.tag, attribs={"velo_max": 1.0, "length": 0}
         )
 
     def __call__(self):
@@ -32,10 +32,10 @@ class InitFieldsNoise(SpecificInitFields):
 
         lambda0 = params.init_fields.noise.length
         if lambda0 == 0:
-            lambda0 = oper.Lx / 4.
+            lambda0 = oper.Lx / 4.0
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
+            return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42)  # this does not work for MPI...
@@ -54,13 +54,13 @@ class InitFieldsNoise(SpecificInitFields):
         )
 
         if mpi.rank == 0:
-            w_fft[0, 0] = 0.
-            z_fft[0, 0] = 0.
+            w_fft[0, 0] = 0.0
+            z_fft[0, 0] = 0.0
 
         oper.dealiasing(w_fft, z_fft)
 
         k0 = 2 * np.pi / lambda0
-        delta_k0 = 1. * k0
+        delta_k0 = 1.0 * k0
         w_fft = w_fft * H_smooth(k0 - oper.K, delta_k0)
         z_fft = z_fft * H_smooth(k0 - oper.K, delta_k0)
 
@@ -93,8 +93,8 @@ class InitFieldsHarmonic(SpecificInitFields):
 
         w_fft = np.zeros(oper.shapeK_loc, dtype=np.complex128)
         z_fft = np.zeros(oper.shapeK_loc, dtype=np.complex128)
-        w_fft[20, 25] = 1.
-        z_fft[20, 25] = 1.
+        w_fft[20, 25] = 1.0
+        z_fft[20, 25] = 1.0
 
         w = oper.ifft2(w_fft)
         z = oper.ifft2(z_fft)

@@ -64,12 +64,12 @@ class StateNS2DStrat(StateNS2D):
             rot_fft = self.state_spect.get_var("rot_fft")
             ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
             result = ux_fft
-            # result = self.oper.fft2(self.state_phys.get_var("ux"))
+        # result = self.oper.fft2(self.state_phys.get_var("ux"))
         elif key == "uy_fft":
             rot_fft = self.state_spect.get_var("rot_fft")
             ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
             result = uy_fft
-            # result = self.oper.fft2(self.state_phys.get_var("uy"))
+        # result = self.oper.fft2(self.state_phys.get_var("uy"))
         elif key == "div_fft":
             ux_fft = self.compute("ux_fft")
             uy_fft = self.compute("uy_fft")
@@ -101,7 +101,7 @@ class StateNS2DStrat(StateNS2D):
             # print("1j * omega_k * b_fft", 1j * omega_k * b_fft)
             # print("(N ** 2) * uy_fft", (N ** 2) * uy_fft)
             result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
-            # result = np.zeros(self.oper.shapeK, dtype="complex")
+        # result = np.zeros(self.oper.shapeK, dtype="complex")
         elif key == "ap":
             ap_fft = self.compute("ap_fft")
             result = self.oper.ifft(ap_fft)
@@ -118,7 +118,7 @@ class StateNS2DStrat(StateNS2D):
                 if mpi.rank == 0:
                     print(to_print + "\nreturn an array of zeros.")
 
-                result = self.oper.create_arrayX(value=0.)
+                result = self.oper.create_arrayX(value=0.0)
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result
@@ -182,7 +182,7 @@ class StateNS2DStrat(StateNS2D):
         ap_fft = np.zeros(self.oper.shapeK, dtype="complex")
 
         # Compute rot_fft and b_fft from ap_fft
-        uy_fft = (1. / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
+        uy_fft = (1.0 / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
@@ -192,7 +192,7 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1. / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
         return rot_fft, b_fft
 
     def _compute_state_from_apfft(self, ap_fft):
@@ -203,7 +203,7 @@ class StateNS2DStrat(StateNS2D):
         am_fft = np.zeros(self.oper.shapeK, dtype="complex")
 
         # Compute rot_fft and b_fft from ap_fft
-        uy_fft = (1. / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
+        uy_fft = (1.0 / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
@@ -213,13 +213,13 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1. / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
 
         return rot_fft, b_fft
 
     def init_from_rotfft(self, rot_fft):
         """Initialize the state from the variable `rot_fft`."""
-        b_fft = self.oper.create_arrayK(value=0.)
+        b_fft = self.oper.create_arrayK(value=0.0)
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_statespect_from(self, **kwargs):

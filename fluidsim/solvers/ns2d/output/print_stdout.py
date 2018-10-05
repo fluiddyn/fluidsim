@@ -33,7 +33,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         if hasattr(self, "energy_tmp"):
             delta_energy = energy - self.energy_tmp
         else:
-            delta_energy = 0.
+            delta_energy = 0.0
 
         if mpi.rank == 0:
             to_print += (

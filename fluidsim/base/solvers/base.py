@@ -61,7 +61,7 @@ class SimulBase(object):
             "NEW_DIR_RESULTS": True,
             "ONLY_COARSE_OPER": False,
             # Physical parameters:
-            "nu_2": 0.,
+            "nu_2": 0.0,
         }
         params._set_attribs(attribs)
         params._set_doc(
@@ -198,7 +198,7 @@ nu_2: float (default = 0.)
             )
         else:
             tendencies = old
-        tendencies.initialize(value=0.)
+        tendencies.initialize(value=0.0)
         return tendencies
 
 
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
     params.short_name_type_run = "test"
     params.time_stepping.USE_CFL = False
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 2.0
     params.time_stepping.deltat0 = 0.1
 
     sim = Simul(params)

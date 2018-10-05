@@ -31,12 +31,12 @@ class TestSolverNS2D(unittest.TestCase):
         nh = 32
         params.oper.nx = nh
         params.oper.ny = nh
-        Lh = 6.
+        Lh = 6.0
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2. / 3
-        params.nu_8 = 2.
+        params.oper.coef_dealiasing = 2.0 / 3
+        params.nu_8 = 2.0
 
         params.time_stepping.t_end = 0.5
 
@@ -68,12 +68,12 @@ class TestSolverNS2D(unittest.TestCase):
         nh = 16
         params.oper.nx = 2 * nh
         params.oper.ny = nh
-        Lh = 6.
+        Lh = 6.0
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2. / 3
-        params.nu_8 = 2.
+        params.oper.coef_dealiasing = 2.0 / 3
+        params.nu_8 = 2.0
 
         params.time_stepping.t_end = 0.5
 

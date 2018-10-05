@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from ...output import Output as OutputNS3D

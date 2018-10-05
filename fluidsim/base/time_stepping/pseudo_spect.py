@@ -49,7 +49,7 @@ class ExactLinearCoefs(object):
 
         if sim.params.time_stepping.USE_CFL:
             self.get_updated_coefs = self.get_updated_coefs_CLF
-            self.dt_old = 0.
+            self.dt_old = 0.0
         else:
             self.compute(time_stepping.deltat)
             self.get_updated_coefs = self.get_coefs
@@ -407,7 +407,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # result using the 4 approximations
         self.sim.state.state_spect = state_spec_tmp + dt / 6 * tendencies_3
 
-
     def _time_step_RK4_fluidpythran(self):
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
@@ -431,7 +430,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float dt
             # )
             state_spect_tmp[:] = (state_spect + dt / 6 * tendencies_0) * diss
-            state_spect_np12_approx1[:] = (state_spect + dt / 2 * tendencies_0) * diss2
+            state_spect_np12_approx1[:] = (
+                state_spect + dt / 2 * tendencies_0
+            ) * diss2
 
         tendencies_1 = compute_tendencies(
             state_spect_np12_approx1, old=tendencies_0
@@ -451,7 +452,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float dt
             # )
             state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
-            state_spect_np12_approx2[:] = state_spect * diss2 + dt / 2 * tendencies_1
+            state_spect_np12_approx2[:] = (
+                state_spect * diss2 + dt / 2 * tendencies_1
+            )
 
         tendencies_2 = compute_tendencies(
             state_spect_np12_approx2, old=tendencies_1
@@ -471,7 +474,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float dt
             # )
             state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
-            state_spect_np1_approx[:] = state_spect * diss + dt * diss2 * tendencies_2
+            state_spect_np1_approx[:] = (
+                state_spect * diss + dt * diss2 * tendencies_2
+            )
 
         tendencies_3 = compute_tendencies(
             state_spect_np1_approx, old=tendencies_2

@@ -318,7 +318,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
     if nb_dim not in (2, 3):
         raise NotImplementedError
 
-    total_time = 0.
+    total_time = 0.0
     for key, value in stats.stats.items():
         time = value[2]
         total_time += time
@@ -327,7 +327,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
 
     key_fft = "fft{}d".format(nb_dim)
     kinds = _kinds + (key_fft,)
-    times = {k: 0. for k in kinds}
+    times = {k: 0.0 for k in kinds}
 
     for key, value in stats.stats.items():
         name = key[2]

@@ -25,12 +25,12 @@ class TestSolverPlate2D(unittest.TestCase):
         nh = 32
         params.oper.nx = nh
         params.oper.ny = nh
-        Lh = 6.
+        Lh = 6.0
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.oper.coef_dealiasing = 2. / 3
-        params.nu_8 = 2.
+        params.oper.coef_dealiasing = 2.0 / 3
+        params.nu_8 = 2.0
 
         params.time_stepping.USE_CFL = False
         params.time_stepping.deltat0 = 0.005
@@ -56,12 +56,12 @@ class TestSolverPlate2D(unittest.TestCase):
         params.short_name_type_run = "test"
 
         nh = 24
-        Lh = 1.
+        Lh = 1.0
         params.oper.nx = nh
         params.oper.ny = nh
         params.oper.Lx = Lh
         params.oper.Ly = Lh
-        params.oper.coef_dealiasing = 2. / 3
+        params.oper.coef_dealiasing = 2.0 / 3
 
         delta_x = Lh / nh
 
@@ -83,11 +83,13 @@ class TestSolverPlate2D(unittest.TestCase):
         params.forcing.nkmin_forcing = 2
         params.forcing.tcrandom.time_correlation = 100 * deltat
 
-        params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+        params.nu_8 = (
+            2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        )
 
         params.output.periods_print.print_stdout = 0.05
 
-        params.output.periods_save.phys_fields = 5.
+        params.output.periods_save.phys_fields = 5.0
         params.output.periods_save.spectra = 0.05
         params.output.periods_save.spatial_means = 10 * deltat
         params.output.periods_save.correl_freq = 1

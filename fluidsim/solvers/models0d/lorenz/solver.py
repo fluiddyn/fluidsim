@@ -73,7 +73,7 @@ class Simul(SimulBase):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
-        attribs = {"sigma": 10., "beta": 8. / 3, "rho": 28.}
+        attribs = {"sigma": 10.0, "beta": 8.0 / 3, "rho": 28.0}
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):
@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    sim.state.state_phys.set_var("X", sim.Xs0 + 2.)
+    sim.state.state_phys.set_var("X", sim.Xs0 + 2.0)
     sim.state.state_phys.set_var("Y", sim.Ys0)
     sim.state.state_phys.set_var("Z", sim.Zs0)
 

@@ -1,5 +1,3 @@
-
-
 from fluidsim.base.output import OutputBasePseudoSpectral
 
 

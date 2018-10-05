@@ -59,7 +59,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             ux_fft = state.get_var("ux_fft")
             uy_fft = state.get_var("uy_fft")
 
-            if Ek != 0.:
+            if Ek != 0.0:
                 ux_fft = (C / Ek) ** 0.5 * ux_fft
                 uy_fft = (C / Ek) ** 0.5 * uy_fft
 
@@ -72,7 +72,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             omega_0 = self.output.compute_enstrophy()
             rot_fft = state.get_var("rot_fft")
 
-            if omega_0 != 0.:
+            if omega_0 != 0.0:
                 rot_fft = (C / omega_0) ** 0.5 * rot_fft
                 state.init_from_rotfft(rot_fft)
 
@@ -88,8 +88,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
             omega_0 = self.output.compute_enstrophy()
             rot_fft = state.get_var("rot_fft")
 
-            if omega_0 != 0.:
-                C_0 = omega_0 / (P ** (2. / 3) * k_f ** (4. / 3))
+            if omega_0 != 0.0:
+                C_0 = omega_0 / (P ** (2.0 / 3) * k_f ** (4.0 / 3))
                 rot_fft = (C / C_0) ** 0.5 * rot_fft
                 state.init_from_rotfft(rot_fft)
 
@@ -305,22 +305,22 @@ def calcul_viscosity(
     if viscosity_scale == "enstrophy":
         omega_0 = args[0]
         eta = omega_0 ** 1.5
-        time_scale = eta ** (-1. / 3)
+        time_scale = eta ** (-1.0 / 3)
     elif viscosity_scale == "energy":
         energy_0 = args[0]
         epsilon = energy_0 * (1.5) / large_scale
-        time_scale = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
+        time_scale = epsilon ** (-1.0 / 3) * length_scale ** (2.0 / 3)
     elif viscosity_scale == "enstrophy_forcing":
         omega_0 = args[0]
         eta = omega_0 ** 1.5
-        t1 = eta ** (-1. / 3)
+        t1 = eta ** (-1.0 / 3)
         # Energy dissipation rate
         epsilon = args[1]
-        t2 = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
+        t2 = epsilon ** (-1.0 / 3) * length_scale ** (2.0 / 3)
         time_scale = min(t1, t2)
     elif viscosity_scale == "forcing":
         epsilon = args[0]
-        time_scale = epsilon ** (-1. / 3) * length_scale ** (2. / 3)
+        time_scale = epsilon ** (-1.0 / 3) * length_scale ** (2.0 / 3)
     else:
         raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
 
@@ -337,7 +337,7 @@ def calcul_viscosity(
         elif "eps" in kwargs:
             epsilon = kwargs["eps"]
         else:
-            epsilon = 1.
+            epsilon = 1.0
 
         print("Dissipation, epsilon =", epsilon)
         kolmo_len = []
@@ -353,10 +353,10 @@ def calcul_viscosity(
                 v.append(nu)
                 if verbose:
                     kolmo_len.append(
-                        (nu ** 3 / epsilon) ** (1. / (3 * order - 2))
+                        (nu ** 3 / epsilon) ** (1.0 / (3 * order - 2))
                     )
             else:
-                v.append(0.)
+                v.append(0.0)
 
     if verbose:
         kolmo_len = np.mean(kolmo_len)

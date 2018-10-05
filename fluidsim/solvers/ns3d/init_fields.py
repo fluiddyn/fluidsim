@@ -46,15 +46,15 @@ class InitFieldsDipole(SpecificInitFields):
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
-        xs = oper.Lx / 2.
-        ys = oper.Ly / 2.
+        xs = oper.Lx / 2.0
+        ys = oper.Ly / 2.0
         theta = np.pi / 2.3
         b = 2.5
         omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return 2 * np.exp(-(XX ** 2 + (YY - (b / 2.)) ** 2)) - 2 * np.exp(
-                -(XX ** 2 + (YY + (b / 2.)) ** 2)
+            return 2 * np.exp(-(XX ** 2 + (YY - (b / 2.0)) ** 2)) - 2 * np.exp(
+                -(XX ** 2 + (YY + (b / 2.0)) ** 2)
             )
 
         XX = oper.oper2d.XX
@@ -83,7 +83,7 @@ class InitFieldsNoise(SpecificInitFields):
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
 
         params.init_fields._set_child(
-            cls.tag, attribs={"velo_max": 1., "length": None}
+            cls.tag, attribs={"velo_max": 1.0, "length": None}
         )
         params.init_fields.noise._set_doc(
             """
@@ -106,13 +106,13 @@ length: float (default 0.)
 
         lambda0 = params.init_fields.noise.length
         if lambda0 is None:
-            lambda0 = min(oper.Lx, oper.Ly, oper.Lz) / 4.
+            lambda0 = min(oper.Lx, oper.Ly, oper.Lz) / 4.0
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
+            return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
 
         k0 = 2 * np.pi / lambda0
-        delta_k0 = 1. * k0
+        delta_k0 = 1.0 * k0
 
         K = np.sqrt(oper.K2)
         velo_max = params.init_fields.noise.velo_max
@@ -122,7 +122,7 @@ length: float (default 0.)
                 field = np.random.random(oper.shapeX_loc)
                 field_fft = oper.fft(field)
                 if mpi.rank == 0:
-                    field_fft[0, 0, 0] = 0.
+                    field_fft[0, 0, 0] = 0.0
 
                 field_fft *= H_smooth(k0 - K, delta_k0)
                 oper.ifft_as_arg(field_fft, field)
@@ -143,10 +143,10 @@ length: float (default 0.)
 
         lambda0 = params.init_fields.noise.length
         if lambda0 is None:
-            lambda0 = oper.Lx / 4.
+            lambda0 = oper.Lx / 4.0
 
         def H_smooth(x, delta):
-            return (1. + np.tanh(2 * np.pi * x / delta)) / 2.
+            return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
 
         # to compute always the same field... (for 1 resolution...)
         np.random.seed(42 + mpi.rank)
@@ -158,13 +158,13 @@ length: float (default 0.)
             vv_fft.append(oper.fft(vi))
 
             if mpi.rank == 0:
-                vv_fft[ii][0, 0, 0] = 0.
+                vv_fft[ii][0, 0, 0] = 0.0
 
         oper.project_perpk3d(*vv_fft)
         oper.dealiasing(*vv_fft)
 
         k0 = 2 * np.pi / lambda0
-        delta_k0 = 1. * k0
+        delta_k0 = 1.0 * k0
 
         K = np.sqrt(oper.K2)
 

@@ -28,7 +28,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         """
         params = OperatorsBase1D._complete_params_with_default(params)
         params.oper._set_attribs(
-            {"type_fft": "sequential", "coef_dealiasing": 2. / 3}
+            {"type_fft": "sequential", "coef_dealiasing": 2.0 / 3}
         )
         return params
 
@@ -87,7 +87,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
                 self.dealiasing_variable(thing)
 
     def dealiasing_variable(self, f_fft):
-        f_fft[self.where_dealiased] = 0.
+        f_fft[self.where_dealiased] = 0.0
 
     def dealiasing_setofvar(self, sov):
         for ik in range(sov.nvar):

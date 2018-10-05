@@ -25,7 +25,7 @@ def dealiasing_setofvar(setofvar_fft, where, n0, n1):
         for i1 in range(n1):
             if where[i0, i1]:
                 for ik in range(nk):
-                    setofvar_fft[ik, i0, i1] = 0.
+                    setofvar_fft[ik, i0, i1] = 0.0
 
 
 # pythran export laplacian_fft(complex128[][], float64[][])
@@ -43,7 +43,7 @@ def invlaplacian_fft(a_fft, Kn_not0, rank):
     """Compute the n-th order inverse Laplacian."""
     invlap_afft = a_fft / Kn_not0
     if rank == 0:
-        invlap_afft[0, 0] = 0.
+        invlap_afft[0, 0] = 0.0
     return invlap_afft
 
 

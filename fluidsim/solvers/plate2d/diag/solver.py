@@ -126,7 +126,7 @@ class Simul(SimulBasePseudoSpectral):
         """This static method is used to complete the *params* container.
         """
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {"beta": 0.}
+        attribs = {"beta": 0.0}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -269,13 +269,13 @@ if __name__ == "__main__":
     params.oper.Lx = Lh
     params.oper.Ly = Lh
     # params.oper.type_fft = 'FFTWPY'
-    params.oper.coef_dealiasing = old_div(2., 3)
+    params.oper.coef_dealiasing = old_div(2.0, 3)
 
     delta_x = old_div(params.oper.Lx, params.oper.nx)
     params.nu_8 = (
-        2.
+        2.0
         * 10e-4
-        * params.forcing.forcing_rate ** (old_div(1., 3))
+        * params.forcing.forcing_rate ** (old_div(1.0, 3))
         * delta_x ** 8
     )
 
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     #     '2pix2pi_256x256_2015-03-04_22-36-37/state_phys_t=000.100.hd5')
 
     params.forcing.enable = True
-    params.forcing.forcing_rate = 100.
+    params.forcing.forcing_rate = 100.0
     # params.forcing.nkmax_forcing = 5
     # params.forcing.nkmin_forcing = 4
 

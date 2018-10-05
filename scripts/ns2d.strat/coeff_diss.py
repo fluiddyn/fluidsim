@@ -1,3 +1,4 @@
+
 """
 coeff_diss.py
 =============
@@ -13,13 +14,13 @@ Solver ns2d.strat
 4. Change path in `coeff_diss.py`
 """
 
-from __future__ import print_function
-
 import os
 import h5py
 import shutil
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
+
 
 from math import pi
 from glob import glob
@@ -31,12 +32,34 @@ from fluiddyn.util import mpi
 
 from ns2dstrat_lmode import make_parameters_simulation, modify_parameters
 
+### PARAMETERS ###
+parser = argparse.ArgumentParser()
+parser.add_argument("gamma", type=float)
+args = parser.parse_args()
+
+
+# CONDITIONS
+nb_wavenumbers_y = 16
+threshold_ratio = 1e1
+min_factor = 0.7
+
+# SIMULATION
+gamma = args.gamma
+F = np.sin(pi / 4) # F = omega_l / N
+sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
+nu_8 = 1e-16
+NO_SHEAR_MODES = False
+t_end = 8.
+
+PLOT_FIGURES = False
+###################
+
 def load_mean_spect_energy_budg(sim, tmin=0, tmax=1000):
     """
     Loads data spect_energy_budget.
     It computes the mean between tmin and tmax.
     """
-    print("path_file", sim.output.spect_energy_budg.path_file)
+
     with h5py.File(sim.output.spect_energy_budg.path_file, "r") as f:
         times = f["times"].value
         kxE = f["kxE"].value
@@ -133,327 +156,164 @@ def normalization_initialized_field(sim, coef_norm=1e-4):
         pass
     return sim
 
+def _compute_ikdiss(dissE_kx, dissE_ky):
+    idx_diss_max = np.argmax(abs(dissE_kx))
+    idy_diss_max = np.argmax(abs(dissE_ky))
 
+    return idx_diss_max, idy_diss_max
 
-#################################################
-### Parameters script ###
-# Parameters simulations
-gamma = 1.
-F = np.sin(pi / 4) # F = omega_l / N
-sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
-nu_8 = 1e-16
+def _compute_ikmax(kxE, kyE):
+    idx_dealiasing = np.argmin(abs(kxE - sim.oper.kxmax_dealiasing))
+    idy_dealiasing = np.argmin(abs(kyE - sim.oper.kymax_dealiasing))
 
-coef_modif_resol = 3 / 2
+    return idx_dealiasing, idy_dealiasing
 
-NO_SHEAR_MODES = False
-min_factor = 0.7
+def compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky):
+    idx_diss_max, idy_diss_max = _compute_ikdiss(dissE_kx, dissE_ky)
+    idx_dealiasing, idy_dealiasing = _compute_ikmax(kxE, kyE)
 
-# Notation for gamma
-gamma_not = str(gamma)
-if "." in gamma_not:
-    gamma_not = gamma_not.split(".")[0] + "_" + gamma_not.split(".")[1]
-
-# Create directory in DataSim
-path_root_dir = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
-path_dir = os.path.join(path_root_dir, "Coef_Diss_gamma{}".format(gamma_not))
-if mpi.rank == 0 and  not os.path.exists(path_dir):
-    os.mkdir(path_dir)
-
-# Check list simulations in directory
-paths_sim = sorted(glob(os.path.join(path_dir, "NS*")))
-
-# Write in .txt file
-path_file = os.path.join(path_dir, "results.txt")
-
-# import sys
-# sys.exit()
-
-# paths_sim = []
-# resolutions = []
-# dissipations = []
-
-PLOT_FIGURES = True
-PLOT_FIGURES = PLOT_FIGURES and mpi.rank == 0
-
-if len(paths_sim) == 0:
-
-    params =  make_parameters_simulation(gamma, F, sigma, nu_8, t_end=8., NO_SHEAR_MODES=NO_SHEAR_MODES)
-    sim = Simul(params)
-
-    # Normalization of the field and start
-    sim = normalization_initialized_field(sim)
-
-    sim.time_stepping.start()
-
-    # Parameters condition
-    nb_wavenumbers_y = 8
-    nb_wavenumbers_x = nb_wavenumbers_y * (sim.params.oper.nx // sim.params.oper.ny)
-
-    # Creation time and energy array
-    time_total = 0
-    energies = []
-    viscosities = []
-
-    time_total += sim.time_stepping.t
-
-    dict_spatial = sim.output.spatial_means.load()
-    energy = dict_spatial["E"]
-    energy = np.mean(energy[len(energy) // 2:])
-    energies.append(energy)
-    viscosities.append(sim.params.nu_8)
-
-    # Compute injection of energy begin simulation
-    pe_k = dict_spatial["PK_tot"]
-    pe_a = dict_spatial["PA_tot"]
-    pe_tot = pe_k + pe_a
-    print("pe_tot", pe_tot[2])
-
-    injection_energy_0 = pe_tot[2]
-
-    # Compute the data spectra energy budget
-    kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
-
-    # Loads the spectral energy budget
-    kxmax_dealiasing = sim.oper.kxmax_dealiasing
-    kymax_dealiasing = sim.oper.kymax_dealiasing
-
-    # Computes index kmax_dealiasing & kmax_dissipation
-    idx_dealiasing = np.argmin(abs(kxE - kxmax_dealiasing))
-    idy_dealiasing = np.argmin(abs(kyE - kymax_dealiasing))
-
-    # Compute difference
-    diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
-
-    #
     idx_target = idx_dealiasing - (nb_wavenumbers_x - 1)
     idy_target = idy_dealiasing - (nb_wavenumbers_y - 1)
 
+    delta_ikx = idx_target - idx_diss_max
+    delta_iky = idy_target - idy_diss_max
 
-    # Plot dissipation
-    if PLOT_FIGURES:
-        plt.ion()
-        fig, ax = plt.subplots()
-        ax.set_title("$D(k_y)$")
-        ax.set_xlabel("$k_y$")
-        ax.set_ylabel("$D(k_y)$")
-        ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-            sim.params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-        ax.plot(kymax_dealiasing, 0, 'xr')
-        ax.axvline(x=sim.oper.deltaky * idy_target, color="k")
+    return idx_target, idy_target, delta_ikx, delta_iky
 
-        fig2, ax2 = plt.subplots()
-        ax2.set_title("$D(k_x)$")
-        ax2.set_xlabel("$k_x$")
-        ax2.set_ylabel("$D(k_x)$")
-        ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-            sim.params.nu_8, abs(idx_diss_max - idx_dealiasing)))
-        ax2.plot(kxmax_dealiasing, 0, 'xr')
-        ax2.axvline(x=sim.oper.deltakx * idx_target, color="k")
+def compute_energy_spatial(sim):
+    """ Compute energy without energy in shear modes """
+    dict_spatial = sim.output.spatial_means.load()
+    E = dict_spatial["E"] - dict_spatial["E_shear"]
+    t = dict_spatial["t"]
 
-        ax.legend()
-        ax2.legend()
+    PK_tot = dict_spatial["PK_tot"]
+    PA_tot = dict_spatial["PA_tot"]
+    P_tot = PK_tot + PA_tot
+    return E, t, P_tot
 
-        fig.canvas.draw()
-        fig2.canvas.draw()
+def modify_factor(sim):
+    params = _deepcopy(sim.params)
 
-        plt.pause(1e-3)
+    nu_8_old = params.nu_8
+    params_old = sim.params
+    sim_old = sim
 
-        # Dissipation vs time
-        fig3, ax3 = plt.subplots()
-        ax3.set_xlabel("times")
-        ax3.set_ylabel(r"$\nu_8$")
+    params.nu_8 = params.nu_8 * factor
+    params.init_fields.type = 'in_script'
+    params.time_stepping.t_end = t_end
 
-        ax3.plot(time_total, viscosities[-1], '.')
-
-        # Energy Vs time
-        fig4, ax4 = plt.subplots()
-        ax4.plot(time_total, energy, '.')
-        ax4.set_xlabel("times")
-        ax4.set_ylabel("Energy")
-
-        # Factor Vs time
-        fig5, ax5 = plt.subplots()
-        ax5.plot(time_total, 1, '.')
-        ax5.set_xlabel("times")
-        ax5.set_ylabel("Factor")
+    return params, nu_8_old
 
 
-    it = 0
-    p = 1
-    # Check ...
-    while True:
+def write_to_file(path, to_print, mode="a"):
+    with open(path, mode) as f:
+        f.write(to_print)
 
-        if mpi.rank == 0:
-            # Define conditions
-            diff_x = abs(idx_dealiasing - idx_diss_max)
-            diff_y = abs(idy_dealiasing - idy_diss_max)
-            print("diff_x", diff_x)
-            print("diff_y", diff_y)
+def make_float_value_for_path(value):
+    value_not = str(value)
+    if "." in value_not:
+        return value_not.split(".")[0] + "_" + value_not.split(".")[1]
+    else:
+        return value_not
 
-            ratio_x = dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1]
-            ratio_y = dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1]
+def check_dissipation():
+    ratio_x = dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1]
+    ratio_y = dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1]
 
-            cond_ratio_x = ratio_x > 1e1
-            cond_ratio_y = ratio_y > 1e1
-            print("cond_ratio_x", ratio_x)
-            print("cond_ratio_y", ratio_y)
+    idx_target, idy_target, delta_ikx, delta_iky = compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky)
 
-            diff_x_target = abs(idx_target - idx_diss_max)
-            diff_y_target = abs(idy_target - idy_diss_max)
-            diff_target = max(diff_x_target, diff_y_target)
+    if time_total > 1000:
+        print(
+            "The stationarity has not " + \
+            "reached after {} simulations.".format(it))
+        should_I_stop = "non_stationarity"
 
-            if time_total > 1000:
-                print(
-                    "The stationarity has not " + \
-                    "reached after {} simulations.".format(it_))
-                break
-            # Check ratio D(k_peak) / D(k_max - 1)
-            if cond_ratio_x and cond_ratio_y:
+    if ratio_x > threshold_ratio and ratio_y > threshold_ratio:
 
-                # Check differences
-                if diff_x > nb_wavenumbers_x and diff_y > nb_wavenumbers_y:
-                    print("diff_target = ", diff_target)
-                    print("p", p)
-                    factor = max(((nb_wavenumbers_y  / 2) / diff_target) ** (0.2), min_factor)
-                    print("factor = ", factor)
+        if delta_ikx > 0 and delta_iky > 0:
 
-                    p += 1
-                    should_I_stop = False
-                else:
-                    print("Checking stationarity... with nu8 = {}".format(params_old.nu_8))
-                    dict_spatial = sim.output.spatial_means.load()
-                    E = dict_spatial["E"]
-                    t = dict_spatial["t"]
-                    ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
-                    print("ratio_energy = ", ratio)
-                    print("injection_energy_0 = ", injection_energy_0)
-
-                    print("nu_8_old", nu_8_old)
-                    print("nu_8", params.nu_8)
-                    print("abs(nu_8_old - nu_8) = ", abs(nu_8_old - params.nu_8))
-                    print("abs(nu_8_old - nu_8) / nu_8 = ", abs(nu_8_old - params.nu_8) / params.nu_8)
-                    if (ratio / injection_energy_0) < 0.5 and \
-                       abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
-
-                        print(f"Stationarity is reached.\n nu_8 = {params.nu_8}")
-                        # sim.output.phys_fields.plot()
-                        should_I_stop = True
-                        # break
-                    else:
-                        should_I_stop = False
-
-                    factor = 1.
-
+            if delta_ikx > delta_iky:
+                print("limited by y")
+                norm = idy_dealiasing
+                delta_ikmin = delta_iky + nb_wavenumbers_y // 4
             else:
+                print("limited by x")
+                norm = idx_dealiasing
+                delta_ikmin = delta_ikx + nb_wavenumbers_x // 4
 
-                factor = 1 + (1 / min(ratio_x, ratio_y))
-                print("factor = ", factor)
-                p += 1
-                should_I_stop = False
+            factor = max((1 - (delta_ikmin / norm)) ** 1.5, 0.5)
+            should_I_stop = False
 
-            # Print values...
-            print("params.nu_8", sim.params.nu_8)
-            print("abs(idx_dealiasing - idx_diss_max)", diff_x)
-            print("abs(idy_dealiasing - idy_diss_max)", diff_y)
-            print("cond_ratio_x", dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1])
-            print("cond_ratio_y", dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1])
         else:
-            factor = None
-            should_I_stop = None
+            print("Checking stationarity... with nu8 = {}".format(nu_8_old))
+            E, t, P_tot = compute_energy_spatial(sim)
+            ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
+            if (ratio / injection_energy_0) < 0.5 and \
+               abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
+                print("Stationarity is reached.\n nu_8 = {}".format(params.nu_8))
+                factor = 1.
+                should_I_stop = True
+            else:
+                should_I_stop = False
+                factor = 1.
+    else:
 
-        if mpi.nb_proc > 1:
-            # send factor and should_I_stop
-            factor = mpi.comm.bcast(factor, root=0)
-            should_I_stop = mpi.comm.bcast(should_I_stop, root=0)
-            print("rank {} ; factor {}".format(mpi.comm.Get_rank(), factor))
+        factor = 1 + (1 / min(ratio_x, ratio_y))
+        should_I_stop = False
 
-        if should_I_stop:
-           break
+    return factor, should_I_stop
 
-        it += 1
-        # Modification parameters
-        params = _deepcopy(sim.params)
+#################################################
 
-        nu_8_old = params.nu_8
-        params_old = sim.params
-        sim_old = sim
+gamma_not = make_float_value_for_path(gamma)
 
-        params.nu_8 = params.nu_8 * factor
-        params.init_fields.type = 'in_script'
-        params.time_stepping.t_end = 8.
+# Create directory in path
+path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim/Coef_Diss"
+name_directory = "Coef_Diss_gamma{}".format(gamma_not)
+path = os.path.join(path_root, name_directory)
 
-        # Create new object simulation
-        rot_fft, b_fft = get_state_from_sim(sim)
-        sim = Simul(params)
-        sim.state.init_statespect_from(rot_fft=rot_fft, b_fft=b_fft)
-        sim.state.statephys_from_statespect()
-        sim.time_stepping.start()
+if mpi.rank == 0 and not os.path.exists(path):
+    os.mkdir(path)
 
-        # Add values to time array and energy array
-        time_total += sim.time_stepping.t
-        dict_spatial = sim.output.spatial_means.load()
-        energy = dict_spatial["E"]
-        energy = np.mean(energy[len(energy) // 2:])
-        energies.append(energy)
-        viscosities.append(sim.params.nu_8)
+# Check list simulations in directory
+paths_sim = sorted(glob(os.path.join(path, "NS*")))
 
-        # Computes new index k_max_dissipation
-        kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(
-            sim, tmin=2, tmax=1000)
+# Write in .txt file
+path_file_write = os.path.join(path, "results.txt")
 
-        diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
+PLOT_FIGURES = PLOT_FIGURES and mpi.rank == 0
 
-        if PLOT_FIGURES:
-            ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-                params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-            ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-                params.nu_8, abs(idx_diss_max - idx_dealiasing)))
+# Write temporal results in .txt file
+path_file_write2 = os.path.join(path, "results_check_nu8.txt")
+if mpi.rank == 0:
+    if os.path.exists(path_file_write2):
+        os.remove(path_file_write2)
 
-            fig.canvas.draw()
-            fig2.canvas.draw()
-
-            plt.pause(1e-4)
-
-            ax3.plot(time_total, viscosities[-1], "x")
-            ax3.autoscale()
-            fig3.canvas.draw()
-
-            ax4.plot(time_total, energy, "x")
-            ax4.autoscale()
-            fig4.canvas.draw()
-
-            ax5.plot(time_total, factor, 'x')
-            ax5.autoscale()
-            fig5.canvas.draw()
-
-            plt.pause(1e-4)
-    if mpi.rank == 0:
-        with open(path_file, "w") as f:
-            to_print = ("resolution = {} \n"
-                        "nu8 = {} \n".format(
-                            sim.params.oper.nx,
-                            params.nu_8))
-
-            f.write(to_print)
-
-        shutil.move(sim.params.path_run, path_dir)
-
-
-
+if len(paths_sim) == 0:
+    # Make FIRST SIMULATION
+    params =  make_parameters_simulation(gamma, F, sigma, nu_8, t_end=t_end, NO_SHEAR_MODES=NO_SHEAR_MODES)
+    sim = Simul(params)
+    sim = normalization_initialized_field(sim)
+    sim.time_stepping.start()
 else:
-    plt.close("all")
+    # Look for path largest resolution
+    new_file = glob(paths_sim[-1] + "/State_phys*")[-1]
+    path_file = glob(new_file + "/state_phys*")[0]
+
+    # Compute resolution from path
+    res_str = os.path.basename(new_file).split("_")[-1]
 
     sim = load_sim_for_plot(paths_sim[-1])
 
     params = _deepcopy(sim.params)
 
-    params.oper.nx = int(params.oper.nx * coef_modif_resol)
-    params.oper.ny = int(params.oper.ny * coef_modif_resol)
+    params.oper.nx = int(res_str.split("x")[0])
+    params.oper.ny = int(res_str.split("x")[1])
 
     params.init_fields.type = "from_file"
-    params.init_fields.from_file.path = paths_sim[-1] + "/State_phys_360x90/state_phys_t008.002_it=0.nc"
+    params.init_fields.from_file.path = path_file
 
-    params.time_stepping.t_end += 8.
+    params.time_stepping.t_end += t_end
 
     params.NEW_DIR_RESULTS = True
 
@@ -462,508 +322,185 @@ else:
     sim = Simul(params)
     sim.time_stepping.start()
 
-    # Parameters condition
-    nb_wavenumbers_y = 8
-    nb_wavenumbers_x = nb_wavenumbers_y * (sim.params.oper.nx // sim.params.oper.ny)
 
-    # Creation time and energy array
-    time_total = 0
-    time_total += sim.time_stepping.t
+# Parameters condition
+nb_wavenumbers_x = nb_wavenumbers_y * (sim.params.oper.nx // sim.params.oper.ny)
 
-    energies = []
-    viscosities = []
+# Creation time and energy array
+time_total = 0
+time_total += sim.time_stepping.t
 
-    dict_spatial = sim.output.spatial_means.load()
-    energy = dict_spatial["E"]
-    energy = np.mean(energy[len(energy) // 2:])
-    energies.append(energy)
-    viscosities.append(sim.params.nu_8)
+energy, t, P_tot = compute_energy_spatial(sim)
+energy = np.mean(energy[len(energy) // 2:])
+injection_energy_0 = P_tot[2]
 
-    # Compute injection of energy begin simulation
-    pe_k = dict_spatial["PK_tot"]
-    pe_a = dict_spatial["PA_tot"]
-    pe_tot = pe_k + pe_a
-    print("pe_tot", pe_tot[2])
+energies = []
+viscosities = []
+energies.append(energy)
+viscosities.append(sim.params.nu_8)
 
-    injection_energy_0 = pe_tot[2]
+# Write results into temporal file
+if mpi.rank == 0:
+    to_print = ("####\n"
+                "t = {:.4e} \n"
+                "E = {:.4e} \n"
+                "nu8 = {:.4e} \n"
+                "factor = {:.4e} \n").format(
+                    time_total, energy, sim.params.nu_8, 1)
 
-    # Compute the data spectra energy budget
-    kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
-    print("kxE", kxE)
-    # Save nu_8 sim0 :
-    nu8_old = sim.params.nu_8
+    write_to_file(path_file_write2, to_print, mode="w")
 
-    # Loads the spectral energy budget
-    kxmax_dealiasing = sim.oper.kxmax_dealiasing
-    kymax_dealiasing = sim.oper.kymax_dealiasing
-    print("kxmax_dealiasing", kxmax_dealiasing)
-    # Computes index kmax_dealiasing & kmax_dissipation
-    idx_dealiasing = np.argmin(abs(kxE - kxmax_dealiasing))
-    idy_dealiasing = np.argmin(abs(kyE - kymax_dealiasing))
+# Compute the data spectra energy budget
+kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
+idx_diss_max, idy_diss_max = _compute_ikdiss(dissE_kx, dissE_ky)
+idx_dealiasing,  idy_dealiasing = _compute_ikmax(kxE, kyE)
+idx_target, idy_target, delta_ikx, delta_iky = compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky)
 
-    # Compute difference
-    diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
+# Plot dissipation
+if PLOT_FIGURES:
+    plt.ion()
+    fig, ax = plt.subplots()
+    ax.set_title("$D(k_y)$")
+    ax.set_xlabel("$k_y$")
+    ax.set_ylabel("$D(k_y)$")
+    ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
+        sim.params.nu_8, abs(idy_diss_max - idy_dealiasing)))
+    ax.plot(sim.oper.kymax_dealiasing, 0, 'xr')
+    ax.axvline(x=sim.oper.deltaky * idy_target, color="k")
 
-    #
-    idx_target = idx_dealiasing - (nb_wavenumbers_x - 1)
-    idy_target = idy_dealiasing - (nb_wavenumbers_y - 1)
+    fig2, ax2 = plt.subplots()
+    ax2.set_title("$D(k_x)$")
+    ax2.set_xlabel("$k_x$")
+    ax2.set_ylabel("$D(k_x)$")
+    ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
+        sim.params.nu_8, abs(idx_diss_max - idx_dealiasing)))
+    ax2.plot(sim.oper.kxmax_dealiasing, 0, 'xr')
+    ax2.axvline(x=sim.oper.deltakx * idx_target, color="k")
+
+    ax.legend()
+    ax2.legend()
+
+    fig.canvas.draw()
+    fig2.canvas.draw()
+
+    plt.pause(1e-3)
+
+    # Dissipation vs time
+    fig3, ax3 = plt.subplots()
+    ax3.set_xlabel("times")
+    ax3.set_ylabel(r"$\nu_8$")
+
+    ax3.plot(time_total, viscosities[-1], '.')
+
+    # Energy Vs time
+    fig4, ax4 = plt.subplots()
+    ax4.plot(time_total, energy, '.')
+    ax4.set_xlabel("times")
+    ax4.set_ylabel("Energy")
+
+    # Factor Vs time
+    fig5, ax5 = plt.subplots()
+    ax5.plot(time_total, 1, '.')
+    ax5.set_xlabel("times")
+    ax5.set_ylabel("Factor")
+
+
+it = 0
+p = 1
+# Check ...
+while True:
+
+    if mpi.rank == 0:
+        factor, should_I_stop = check_dissipation()
+    else:
+        factor = None
+        should_I_stop = None
+
+    if mpi.nb_proc > 1:
+        # send factor and should_I_stop
+        factor = mpi.comm.bcast(factor, root=0)
+        should_I_stop = mpi.comm.bcast(should_I_stop, root=0)
+
+    if should_I_stop:
+        break
+
+    if mpi.rank == 0:
+        print("factor = ", factor)
+        print("nu_8 OLD = ", sim.params.nu_8)
+        print("nu_8 NEW = ", sim.params.nu_8 * factor)
+
+    it += 1
+    # Modification parameters
+    params, nu_8_old = modify_factor(sim)
+
+    # Create new object simulation
+    rot_fft, b_fft = get_state_from_sim(sim)
+    sim = Simul(params)
+    sim.state.init_statespect_from(rot_fft=rot_fft, b_fft=b_fft)
+    sim.state.statephys_from_statespect()
+    sim.time_stepping.start()
+
+    if mpi.rank == 0:
+        # Add values to time array and energy array
+        time_total += sim.time_stepping.t
+        energy, t, P_tot = compute_energy_spatial(sim)
+        energy = np.mean(energy[len(energy) // 2:])
+        energies.append(energy)
+        viscosities.append(sim.params.nu_8)
+
+        # Computes new index k_max_dissipation
+        kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(
+            sim, tmin=2., tmax=1000)
+        idx_diss_max, idy_diss_max = _compute_ikdiss(dissE_kx, dissE_ky)
+        idx_dealiasing,  idy_dealiasing = _compute_ikmax(kxE, kyE)
+
+        # Write results into temporal file
+        to_print = ("####\n"
+                    "t = {:.4e} \n"
+                    "E = {:.4e} \n"
+                    "nu8 = {:.4e} \n"
+                    "factor = {:.4e} \n").format(
+                        time_total, energy, sim.params.nu_8, factor)
+
+        write_to_file(path_file_write2, to_print, mode="a")
 
     if PLOT_FIGURES:
-        # Plot dissipation
-        plt.ion()
-        fig, ax = plt.subplots()
-        ax.set_title("$D(k_y)$")
-        ax.set_xlabel("$k_y$")
-        ax.set_ylabel("$D(k_y)$")
         ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-            sim.params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-        ax.plot(kymax_dealiasing, 0, 'xr')
-        ax.axvline(x=sim.oper.deltaky * idy_target, color="k")
-
-        fig2, ax2 = plt.subplots()
-        ax2.set_title("$D(k_x)$")
-        ax2.set_xlabel("$k_x$")
-        ax2.set_ylabel("$D(k_x)$")
+            params.nu_8, abs(idy_diss_max - idy_dealiasing)))
         ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-            sim.params.nu_8, abs(idx_diss_max - idx_dealiasing)))
-        ax2.plot(kxmax_dealiasing, 0, 'xr')
-        ax2.axvline(x=sim.oper.deltakx * idx_target, color="k")
-
-        ax.legend()
-        ax2.legend()
+            params.nu_8, abs(idx_diss_max - idx_dealiasing)))
 
         fig.canvas.draw()
         fig2.canvas.draw()
 
-        plt.pause(1e-3)
+        plt.pause(1e-4)
 
-        # Dissipation vs time
-        fig3, ax3 = plt.subplots()
-        ax3.set_xlabel("times")
-        ax3.set_ylabel(r"$\nu_8$")
+        ax3.plot(time_total, viscosities[-1], "x")
+        ax3.autoscale()
+        fig3.canvas.draw()
 
-        ax3.plot(time_total, viscosities[-1], '.')
+        ax4.plot(time_total, energy, "x")
+        ax4.autoscale()
+        fig4.canvas.draw()
 
-        # Energy Vs time
-        fig4, ax4 = plt.subplots()
-        ax4.plot(time_total, energy, '.')
-        ax4.set_xlabel("times")
-        ax4.set_ylabel("Energy")
+        ax5.plot(time_total, factor, 'x')
+        ax5.autoscale()
+        fig5.canvas.draw()
 
-        # Factor Vs time
-        fig5, ax5 = plt.subplots()
-        ax5.plot(time_total, 1, '.')
-        ax5.set_xlabel("times")
-        ax5.set_ylabel("Factor")
+        plt.pause(1e-4)
 
+if mpi.rank == 0:
+    if len(paths_sim) == 0:
+        to_print = ("gamma,nx,nu8 \n")
+        to_print += ("{},{},{} \n".format(
+            gamma, sim.params.oper.nx, params.nu_8))
+        mode_write = "w"
 
-    it = 0
-    p = 1
-    # Check ...
-    while True:
+    else:
+        to_print = ("{},{},{} \n".format(
+            gamma, sim.params.oper.nx, params.nu_8))
+        mode_write = "a"
 
-        if mpi.rank == 0:
+    write_to_file(path_file_write, to_print, mode=mode_write)
 
-            # Define conditions
-            diff_x = abs(idx_dealiasing - idx_diss_max)
-            diff_y = abs(idy_dealiasing - idy_diss_max)
-            print("diff_x", diff_x)
-            print("diff_y", diff_y)
-
-            ratio_x = dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1]
-            ratio_y = dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1]
-
-            cond_ratio_x = ratio_x > 1e1
-            cond_ratio_y = ratio_y > 1e1
-            print("cond_ratio_x", ratio_x)
-            print("cond_ratio_y", ratio_y)
-
-            diff_x_target = abs(idx_target - idx_diss_max)
-            diff_y_target = abs(idy_target - idy_diss_max)
-            diff_target = max(diff_x_target, diff_y_target)
-
-            if time_total > 1000:
-                print(
-                    "The stationarity has not " + \
-                    "reached after {} simulations.".format(it))
-                break
-            # Check ratio D(k_peak) / D(k_max - 1)
-            if cond_ratio_x and cond_ratio_y:
-
-                # Check differences
-                if diff_x > nb_wavenumbers_x and diff_y > nb_wavenumbers_y:
-                    print("diff_target = ", diff_target)
-                    print("p", p)
-                    # factor = max(((nb_wavenumbers_y  / 2) / diff_target) ** (0.2), min_factor)
-                    factor = ((nb_wavenumbers_y  / 2) / diff_target) ** (1. / p)
-                    print("factor = ", factor)
-
-                    p += 1
-                    should_I_stop = False
-                else:
-                    print("Checking stationarity... with nu8 = {}".format(params_old.nu_8))
-                    dict_spatial = sim.output.spatial_means.load()
-                    E = dict_spatial["E"]
-                    t = dict_spatial["t"]
-                    ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
-                    print("ratio_energy = ", ratio)
-                    print("injection_energy_0 = ", injection_energy_0)
-
-                    print("nu_8_old", nu_8_old)
-                    print("nu_8", params.nu_8)
-                    print("abs(nu_8_old - nu_8) = ", abs(nu_8_old - params.nu_8))
-                    print("abs(nu_8_old - nu_8) / nu_8 = ", abs(nu_8_old - params.nu_8) / params.nu_8)
-                    if (ratio / injection_energy_0) < 0.5 and \
-                       abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
-
-                        print(f"Stationarity is reached.\n nu_8 = {params.nu_8}")
-                        should_I_stop = True
-                        # sim.output.phys_fields.plot()
-                        # break
-                    else:
-                        should_I_stop = False
-
-                    factor = 1.
-
-
-            else:
-
-                factor = 1 + (1 / min(ratio_x, ratio_y))
-                print("factor = ", factor)
-                p += 1
-                should_I_stop = False
-
-            # Print values...
-            print("params.nu_8", sim.params.nu_8)
-            print("abs(idx_dealiasing - idx_diss_max)", diff_x)
-            print("abs(idy_dealiasing - idy_diss_max)", diff_y)
-            print("cond_ratio_x", dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1])
-            print("cond_ratio_y", dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1])
-
-        else:
-            factor = None
-            should_I_stop = None
-
-            if mpi.nb_proc > 1:
-                # send factor and should_I_stop
-                factor = mpi.comm.bcast(factor, root=0)
-                should_I_stop = mpi.comm.bcast(should_I_stop, root=0)
-
-        if should_I_stop:
-           break
-
-        it += 1
-        # Modification parameters
-        params = _deepcopy(sim.params)
-
-        nu_8_old = params.nu_8
-        params_old = sim.params
-        sim_old = sim
-
-        params.nu_8 = params.nu_8 * factor
-        params.init_fields.type = 'in_script'
-        params.time_stepping.t_end = 8.
-
-        # Create new object simulation
-        rot_fft, b_fft = get_state_from_sim(sim)
-        sim = Simul(params)
-        sim.state.init_statespect_from(rot_fft=rot_fft, b_fft=b_fft)
-        sim.state.statephys_from_statespect()
-        sim.time_stepping.start()
-
-        if mpi.rank == 0:
-
-            # Add values to time array and energy array
-            time_total += sim.time_stepping.t
-            dict_spatial = sim.output.spatial_means.load()
-            energy = dict_spatial["E"]
-            energy = np.mean(energy[len(energy) // 2:])
-            energies.append(energy)
-            viscosities.append(sim.params.nu_8)
-
-            # Computes new index k_max_dissipation
-            kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(
-                sim, tmin=2, tmax=1000)
-
-            diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
-
-        if PLOT_FIGURES:
-
-            ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-                params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-            ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-                params.nu_8, abs(idx_diss_max - idx_dealiasing)))
-
-            fig.canvas.draw()
-            fig2.canvas.draw()
-
-            plt.pause(1e-4)
-
-            ax3.plot(time_total, viscosities[-1], "x")
-            ax3.autoscale()
-            fig3.canvas.draw()
-
-            ax4.plot(time_total, energy, "x")
-            ax4.autoscale()
-            fig4.canvas.draw()
-
-            ax5.plot(time_total, factor, 'x')
-            ax5.autoscale()
-            fig5.canvas.draw()
-
-            plt.pause(1e-4)
-    if mpi.rank == 0:
-        with open(path_file, "r+") as f:
-            to_print = ("resolution = {} \n"
-                        "nu8 = {} \n".format(
-                            sim.params.oper.nx,
-                            params.nu_8))
-
-            f.write(to_print)
-
-        shutil.move(sim.params.path_run, path_dir)
-
-    # modif_resolution (in util)
-    # pass
-
-
-
-
-##### SAVE #####
-# nb_wavenumbers_y = 8
-# nb_wavenumbers_x = nb_wavenumbers_y * (params.oper.nx // params.oper.ny)
-
-# # Creation time and energy array
-# time_total = 0
-# energies = []
-# viscosities = []
-
-# sim.time_stepping.start()
-
-# time_total += sim.time_stepping.t
-
-# dict_spatial = sim.output.spatial_means.load()
-# energy = dict_spatial["E"]
-# energy = np.mean(energy[len(energy) // 2:])
-# energies.append(energy)
-# viscosities.append(sim.params.nu_8)
-
-# # Compute injection of energy begin simulation
-# pe_k = dict_spatial["PK_tot"]
-# pe_a = dict_spatial["PA_tot"]
-# pe_tot = pe_k + pe_a
-# print("pe_tot", pe_tot[2])
-
-# injection_energy_0 = pe_tot[2]
-
-# # Compute the data spectra energy budget
-# kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(sim, tmin=2., tmax=1000)
-
-# # Save nu_8 sim0 :
-# nu8_old = sim.params.nu_8
-
-# # Loads the spectral energy budget
-# kxmax_dealiasing = sim.oper.kxmax_dealiasing
-# kymax_dealiasing = sim.oper.kymax_dealiasing
-
-# # Computes index kmax_dealiasing & kmax_dissipation
-# idx_dealiasing = np.argmin(abs(kxE - kxmax_dealiasing))
-# idy_dealiasing = np.argmin(abs(kyE - kymax_dealiasing))
-
-# # Compute difference
-# diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
-
-# #
-# idx_target = idx_dealiasing - (nb_wavenumbers_x - 1)
-# idy_target = idy_dealiasing - (nb_wavenumbers_y - 1)
-
-
-# # Plot dissipation
-# plt.ion()
-# fig, ax = plt.subplots()
-# ax.set_title("$D(k_y)$")
-# ax.set_xlabel("$k_y$")
-# ax.set_ylabel("$D(k_y)$")
-# ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-#     sim.params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-# ax.plot(kymax_dealiasing, 0, 'xr')
-# ax.axvline(x=sim.oper.ky[idy_target], color="k")
-
-# fig2, ax2 = plt.subplots()
-# ax2.set_title("$D(k_x)$")
-# ax2.set_xlabel("$k_x$")
-# ax2.set_ylabel("$D(k_x)$")
-# ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-#     sim.params.nu_8, abs(idx_diss_max - idx_dealiasing)))
-# ax2.plot(kxmax_dealiasing, 0, 'xr')
-# ax2.axvline(x=sim.oper.kx[idx_target], color="k")
-
-
-# ax.legend()
-# ax2.legend()
-
-# fig.canvas.draw()
-# fig2.canvas.draw()
-
-# plt.pause(1e-3)
-
-
-# # Dissipation vs time
-# fig3, ax3 = plt.subplots()
-# ax3.set_xlabel("times")
-# ax3.set_ylabel(r"$\nu_8$")
-
-# ax3.plot(time_total, viscosities[-1], '.')
-
-# # Energy Vs time
-# fig4, ax4 = plt.subplots()
-# ax4.plot(time_total, energy, '.')
-# ax4.set_xlabel("times")
-# ax4.set_ylabel("Energy")
-
-# # Factor Vs time
-# fig5, ax5 = plt.subplots()
-# ax5.plot(time_total, 1, '.')
-# ax5.set_xlabel("times")
-# ax5.set_ylabel("Factor")
-
-
-# it = 0
-# p = 1
-# # Check ...
-# while True:
-
-#     # Define conditions
-#     diff_x = abs(idx_dealiasing - idx_diss_max)
-#     diff_y = abs(idy_dealiasing - idy_diss_max)
-#     print("diff_x", diff_x)
-#     print("diff_y", diff_y)
-
-#     ratio_x = dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1]
-#     ratio_y = dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1]
-
-#     cond_ratio_x = ratio_x > 1e1
-#     cond_ratio_y = ratio_y > 1e1
-#     print("cond_ratio_x", ratio_x)
-#     print("cond_ratio_y", ratio_y)
-
-#     diff_x_target = abs(idx_target - idx_diss_max)
-#     diff_y_target = abs(idy_target - idy_diss_max)
-#     diff_target = max(diff_x_target, diff_y_target)
-
-#     if time_total > 1000:
-#         print(
-#             "The stationarity has not " + \
-#             "reached after {} simulations.".format(it_))
-#         break
-
-#     # Check ratio D(k_peak) / D(k_max - 1)
-#     if cond_ratio_x and cond_ratio_y:
-
-#         # Check differences
-#         if diff_x > nb_wavenumbers_x and diff_y > nb_wavenumbers_y:
-#             print("diff_target = ", diff_target)
-#             print("p", p)
-#             factor = ((nb_wavenumbers_y  / 2) / diff_target) ** (0.1 / p)
-#             print("factor = ", factor)
-
-#             p += 1
-#         else:
-#             print("Checking stationarity... with nu8 = {}".format(params_old.nu_8))
-#             dict_spatial = sim.output.spatial_means.load()
-#             E = dict_spatial["E"]
-#             t = dict_spatial["t"]
-#             ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
-#             print("ratio_energy = ", ratio)
-#             print("injection_energy_0 = ", injection_energy_0)
-
-#             print("nu_8_old", nu_8_old)
-#             print("nu_8", params.nu_8)
-#             print("abs(nu_8_old - nu_8) = ", abs(nu_8_old - params.nu_8))
-#             print("abs(nu_8_old - nu_8) / nu_8 = ", abs(nu_8_old - params.nu_8) / params.nu_8)
-#             if (ratio / injection_energy_0) < 0.5 and \
-#                abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
-
-#                 print(f"Stationarity is reached.\n nu_8 = {params.nu_8}")
-#                 sim.output.phys_fields.plot()
-#                 break
-
-#             factor = 1.
-
-#     else:
-
-#         factor = 1 + (1 / min(ratio_x, ratio_y))
-#         print("factor = ", factor)
-#         p += 1
-
-#     # Print values...
-#     print("params.nu_8", sim.params.nu_8)
-#     print("abs(idx_dealiasing - idx_diss_max)", diff_x)
-#     print("abs(idy_dealiasing - idy_diss_max)", diff_y)
-#     print("cond_ratio_x", dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1])
-#     print("cond_ratio_y", dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1])
-
-#     it += 1
-#     # Modification parameters
-#     params = _deepcopy(sim.params)
-
-#     nu_8_old = params.nu_8
-#     params_old = sim.params
-#     sim_old = sim
-
-#     params.nu_8 = params.nu_8 * factor
-#     params.init_fields.type = 'in_script'
-#     params.time_stepping.t_end = 8.
-
-#     # Create new object simulation
-#     rot_fft, b_fft = get_state_from_sim(sim)
-#     sim = Simul(params)
-#     sim.state.init_statespect_from(rot_fft=rot_fft, b_fft=b_fft)
-#     sim.state.statephys_from_statespect()
-#     sim.time_stepping.start()
-
-#     # Add values to time array and energy array
-#     time_total += sim.time_stepping.t
-#     dict_spatial = sim.output.spatial_means.load()
-#     energy = dict_spatial["E"]
-#     energy = np.mean(energy[len(energy) // 2:])
-#     energies.append(energy)
-#     viscosities.append(sim.params.nu_8)
-
-
-#     # Computes new index k_max_dissipation
-#     kxE, kyE, dissE_kx, dissE_ky = load_mean_spect_energy_budg(
-#         sim, tmin=2, tmax=1000)
-
-#     diff, idx_diss_max, idy_diss_max = compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky)
-
-#     ax.plot(kyE, dissE_ky, label="nu8 = {:.2e}, diff = {}".format(
-#         params.nu_8, abs(idy_diss_max - idy_dealiasing)))
-#     ax2.plot(kxE, dissE_kx, label="nu8 = {:.2e}, diff = {}".format(
-#         params.nu_8, abs(idx_diss_max - idx_dealiasing)))
-
-#     # ax.legend()
-#     # ax2.legend()
-
-#     fig.canvas.draw()
-#     fig2.canvas.draw()
-
-#     plt.pause(1e-4)
-
-#     # its.append(it)
-#     # viscosities.append(params.nu_8)
-#     # line.set_data(its, viscosities)
-
-#     ax3.plot(time_total, viscosities[-1], "x")
-#     ax3.autoscale()
-#     fig3.canvas.draw()
-
-#     ax4.plot(time_total, energy, "x")
-#     ax4.autoscale()
-#     fig4.canvas.draw()
-
-#     ax5.plot(time_total, factor, 'x')
-#     ax5.autoscale()
-#     fig5.canvas.draw()
-
-#     plt.pause(1e-4)
+    shutil.move(sim.params.path_run, path)

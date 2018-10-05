@@ -129,7 +129,7 @@ class SpectraSW1L(Spectra):
             spectrum2D_E = spectrum2D_EK + spectrum2D_EA
             spectrum2D_EKd = spectrum2D_EK - spectrum2D_EKr
             khE = self.oper.khE
-            coef_norm = khE ** (3.)
+            coef_norm = khE ** (3.0)
             self.axe.loglog(khE, spectrum2D_E * coef_norm, "k")
             self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r")
             self.axe.loglog(khE, spectrum2D_EA * coef_norm, "b")
@@ -169,7 +169,7 @@ class SpectraSW1L(Spectra):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -208,7 +208,7 @@ class SpectraSW1L(Spectra):
 
             # min_to_plot = 1e-16
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     E_K = dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it]
                     # E_K[E_K<min_to_plot] = 0.
@@ -242,7 +242,7 @@ class SpectraSW1L(Spectra):
         kh_pos = kh[kh > 0]
         coef_norm = coef_norm[kh > 0]
         ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
-        ax1.plot(kh_pos, kh_pos ** (-5. / 3) * coef_norm, "k-.", linewidth=1)
+        ax1.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
 
     def plot2d(
         self,
@@ -266,7 +266,7 @@ class SpectraSW1L(Spectra):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -304,7 +304,7 @@ class SpectraSW1L(Spectra):
             coef_norm = kh ** coef_compensate
 
             machine_zero = 1e-15
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     for k, c in zip(keys, colors):
                         dset = self._get_field_to_plot(it, k, h5file)
@@ -351,7 +351,7 @@ class SpectraSW1L(Spectra):
         coef_norm = coef_norm[kh > 0]
         ax1.plot(kh_pos, kh_pos ** (-2) * coef_norm, "k-", linewidth=1)
         ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
-        ax1.plot(kh_pos, kh_pos ** (-5. / 3) * coef_norm, "k-.", linewidth=1)
+        ax1.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
 
         font = {"family": "serif", "weight": "normal", "size": 16}
         postxt = kh.max()
@@ -363,7 +363,7 @@ class SpectraSW1L(Spectra):
         )
         ax1.text(
             postxt,
-            postxt ** (-5. / 3 + coef_compensate),
+            postxt ** (-5.0 / 3 + coef_compensate),
             r"$k^{-5/3}$",
             fontdict=font,
         )

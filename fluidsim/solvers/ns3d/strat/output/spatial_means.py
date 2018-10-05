@@ -23,7 +23,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
     """Spatial means output."""
 
     def __init__(self, output):
-        self.one_over_N2 = 1. / output.sim.params.N ** 2
+        self.one_over_N2 = 1.0 / output.sim.params.N ** 2
         super(SpatialMeansNS3DStrat, self).__init__(output)
 
     def _save_one_time(self):

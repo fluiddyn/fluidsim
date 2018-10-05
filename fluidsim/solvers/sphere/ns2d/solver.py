@@ -119,7 +119,7 @@ class SimulSphereNS2D(SimulSphericalHarmo):
 
         import numpy as np
 
-        T_rot = np.real(Frot_sh.conj() * rot_sh + Frot_sh * rot_sh.conj()) / 2.
+        T_rot = np.real(Frot_sh.conj() * rot_sh + Frot_sh * rot_sh.conj()) / 2.0
         print(
             ("sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}").format(
                 self.oper.sum_wavenumbers(T_rot),
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     params.init_fields.type = "noise"
 
     params.time_stepping.USE_CFL = True
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 10.0
     # params.time_stepping.deltat0 = 0.1
 
     params.output.periods_save.phys_fields = 0.25

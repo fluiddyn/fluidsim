@@ -20,7 +20,7 @@ class TestPrintStdout(BaseTestCase):
         try:
             self.assertTrue(
                 np.allclose(
-                    self.dict_results["E"], dict_spatial_means["E"], atol=1.e-4
+                    self.dict_results["E"], dict_spatial_means["E"], atol=1.0e-4
                 )
             )
         except AssertionError:

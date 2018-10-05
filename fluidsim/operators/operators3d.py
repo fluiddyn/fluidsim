@@ -31,11 +31,11 @@ from . import util3d_pythran
 
 def dealiasing_setofvar_numpy(sov, where_dealiased):
     for i in range(sov.shape[0]):
-        sov[i][np.nonzero(where_dealiased)] = 0.
+        sov[i][np.nonzero(where_dealiased)] = 0.0
 
 
 def dealiasing_variable_numpy(ff_fft, where_dealiased):
-    ff_fft[np.nonzero(where_dealiased)] = 0.
+    ff_fft[np.nonzero(where_dealiased)] = 0.0
 
 
 if hasattr(util3d_pythran, "__pythran__"):
@@ -73,7 +73,7 @@ class OperatorsPseudoSpectral3D(_Operators):
         attribs = {
             "type_fft": "default",
             "type_fft2d": "default",
-            "coef_dealiasing": 2. / 3,
+            "coef_dealiasing": 2.0 / 3,
             "nx": 48,
             "ny": 48,
             "nz": 48,
@@ -247,7 +247,7 @@ Lx, Ly and Lz: float
 
 
 def _ik_from_ikc(ikc, nkc, nk):
-    if ikc <= nkc / 2.:
+    if ikc <= nkc / 2.0:
         ik = ikc
     else:
         knodim = ikc - nkc

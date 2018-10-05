@@ -182,6 +182,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
         elif path.endswith(".xml"):
             if not os.path.exists(path):
                 raise ValueError("The file " + path + "does not exists.")
+
             path_xml = path
 
         if path_xml is not None and os.path.exists(path_xml):
@@ -233,6 +234,7 @@ def load_info_solver(path_dir=None):
         print("load params from file\n" + str_path)
         with h5py.File(path) as h5file:
             return Parameters(hdf5_object=h5file["/info_simul/solver"])
+
     else:
         return ValueError
 

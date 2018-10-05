@@ -33,7 +33,7 @@ def dealiasing_setofvar(sov, where_dealiased):
             for i2 in range(n2):
                 if where_dealiased[i0, i1, i2]:
                     for ik in range(nk):
-                        sov[ik, i0, i1, i2] = 0.
+                        sov[ik, i0, i1, i2] = 0.0
 
 
 # pythran export dealiasing_variable(complex128[][][], uint8[][][])
@@ -47,7 +47,7 @@ def dealiasing_variable(ff_fft, where_dealiased):
         for i1 in range(n1):
             for i2 in range(n2):
                 if where_dealiased[i0, i1, i2]:
-                    ff_fft[i0, i1, i2] = 0.
+                    ff_fft[i0, i1, i2] = 0.0
 
 
 # pythran export urudfft_from_vxvyfft(
@@ -56,7 +56,7 @@ def dealiasing_variable(ff_fft, where_dealiased):
 
 def urudfft_from_vxvyfft(vx_fft, vy_fft, kx, ky, rank):
     k2 = kx ** 2 + ky ** 2
-    k2[k2 == 0.] = 1e-10
+    k2[k2 == 0.0] = 1e-10
 
     divh_fft = 1j * (kx * vx_fft + ky * vy_fft)
     urx_fft = vx_fft - divh_fft * kx / k2

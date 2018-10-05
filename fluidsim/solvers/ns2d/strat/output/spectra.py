@@ -80,7 +80,7 @@ class SpectraNS2DStrat(Spectra):
             spectrum2D_EA = dict_spectra2D["spectrum2D_EA"]
             spectrum2D = spectrum2D_EK + spectrum2D_EA
             khE = self.oper.khE
-            coef_norm = khE ** (3.)
+            coef_norm = khE ** (3.0)
             self.axe.loglog(khE, spectrum2D * coef_norm, "k")
             lin_inf, lin_sup = self.axe.get_ylim()
             if lin_inf < 10e-6:
@@ -95,10 +95,10 @@ class SpectraNS2DStrat(Spectra):
     def plot1d(
         self,
         tmin=0,
-        tmax=1000,
+        tmax=None,
         delta_t=2,
-        coef_compensate_kx=5. / 3,
-        coef_compensate_kz=3.,
+        coef_compensate_kx=5.0 / 3,
+        coef_compensate_kz=3.0,
     ):
         """Plot spectra one-dimensional."""
 
@@ -111,6 +111,9 @@ class SpectraNS2DStrat(Spectra):
             times = dset_times.value
             kx = dset_kxE.value
             ky = dset_kyE.value
+
+            if tmax is None:
+                tmax = np.max(times)
 
             # Open data set 1D spectra
             dset_spectrum1Dkx_EA = h5file["spectrum1Dkx_EA"]
@@ -272,7 +275,7 @@ class SpectraNS2DStrat(Spectra):
             # Compute average from tmin and tmax for plot
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 

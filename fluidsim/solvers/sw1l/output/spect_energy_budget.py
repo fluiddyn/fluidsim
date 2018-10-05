@@ -36,7 +36,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")
         eta = self.sim.state.state_phys.get_var("eta")
-        h = 1. + eta
+        h = 1.0 + eta
 
         Jx = h * ux
         Jy = h * uy
@@ -50,7 +50,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         eta_fft = get_var("eta_fft")
         h_fft = eta_fft.copy()
         if mpi.rank == 0:
-            h_fft[0, 0] = 1.
+            h_fft[0, 0] = 1.0
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)
@@ -138,7 +138,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         # )
 
         hdiv_fft = oper.fft2(h * div)
-        convP_fft = self.c2 / 2. * inner_prod(h_fft, hdiv_fft)
+        convP_fft = self.c2 / 2.0 * inner_prod(h_fft, hdiv_fft)
         convP2D = self.spectrum2D_from_fft(convP_fft)
         del (convP_fft, h_fft, hdiv_fft)
 
@@ -149,7 +149,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         del (EP_fft)
 
         convK_fft = (
-            1.
+            1.0
             / 2
             * (
                 -inner_prod(ux_fft, px_EP_fft)
@@ -444,7 +444,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -487,7 +487,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
             khE = khE + 1
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
                     transferEKr = dset_transfer2D_EKr[it]
                     transferEAr = dset_transfer2D_EAr[it]
@@ -605,7 +605,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             ax2.set_xscale("log")
             ax2.set_yscale("linear")
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     transferCPE = dset_transfer2D_CPE[it]
                     PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
@@ -665,9 +665,9 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
         if self.params.f != 0:
             ugx_fft, ugy_fft, etag_fft = self.oper.uxuyetafft_from_qfft(q_fft)
             uax_fft, uay_fft, etaa_fft = self.oper.uxuyetafft_from_afft(a_fft)
-            # velocity influenced by linear terms
-            # u_infl_lin_x = udx_fft + uax_fft
-            # u_infl_lin_y = udy_fft + uay_fft
+        # velocity influenced by linear terms
+        # u_infl_lin_x = udx_fft + uax_fft
+        # u_infl_lin_y = udy_fft + uay_fft
 
         # compute flux of Charney PE
         Fq_fft = self.fnonlinfft_from_uxuy_funcfft(urx, ury, q_fft)
@@ -808,7 +808,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -849,7 +849,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
                     transferEK = dset_transfer2D_EK[it]
                     transferEA = dset_transfer2D_EA[it]
@@ -899,7 +899,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LWaves):
             ax2.set_xscale("log")
             ax2.set_yscale("linear")
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     transferCPE = dset_transfer2D_CPE[it]
                     PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
@@ -940,10 +940,10 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
         }  # NonQuad. K.E. - Quad A.P.E. transfer terms
 
         coeff = {
-            "uuu": -1.,
-            "uvu": -1.,
-            "vuv": -1.,
-            "vvv": -1.,
+            "uuu": -1.0,
+            "uvu": -1.0,
+            "vuv": -1.0,
+            "vvv": -1.0,
             "eeu": 0.5 * c2,
             "eev": 0.5 * c2,
             "uud": -0.5,
@@ -984,7 +984,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
                 *Tq_keys[key]
             )
 
-        Tq_fft = dict.fromkeys(triad_key_modes[0], 0.)
+        Tq_fft = dict.fromkeys(triad_key_modes[0], 0.0)
         n_modes = triad_key_modes[0].shape[0]
         for i in range(n_modes):  # GGG, GGA etc.
             k = triad_key_modes[0][i]
@@ -1004,7 +1004,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             )
 
         Cq_coeff = {"ue": -c2, "ve": -c2}
-        Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.)
+        Cq_fft = dict.fromkeys(dyad_key_modes[0], 0.0)
         n_modes = dyad_key_modes[0].shape[0]
         for i in range(n_modes):  # GG, AG, aG, AA
             k = dyad_key_modes[0][i]
@@ -1167,7 +1167,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -1227,9 +1227,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
 
             P = self.sim.params.forcing.forcing_rate
             norm = 1 if P == 0 else P
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
-                    transferEtot = 0.
+                    transferEtot = 0.0
                     for key in ["GGG", "AGG", "GAAs", "GAAd", "AAA"]:
                         transferEtot += h5file["Tq_" + key][it]
                     PiEtot = cumsum_inv(transferEtot) * self.oper.deltak / norm
@@ -1294,9 +1294,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LWaves):
             Cflux_AA = cumsum_inv(exchange_AA) * self.oper.deltak
             Cflux_mean = cumsum_inv(exchange_mean) * self.oper.deltak
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
-                    exchangetot = 0.
+                    exchangetot = 0.0
                     for key in ["GG", "AG", "aG", "AA"]:
                         exchangetot += h5file["Cq_" + key][it]
                     Cfluxtot = cumsum_inv(exchangetot) * self.oper.deltak
@@ -1338,10 +1338,10 @@ class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
         }
 
         coeff = {
-            "uuu": -1.,
-            "uvu": -1.,
-            "vuv": -1.,
-            "vvv": -1.,
+            "uuu": -1.0,
+            "uvu": -1.0,
+            "vuv": -1.0,
+            "vvv": -1.0,
             "eeu": -c2,
             "eev": -c2,
         }

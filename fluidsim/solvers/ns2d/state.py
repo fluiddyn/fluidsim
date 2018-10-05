@@ -82,7 +82,7 @@ class StateNS2D(StatePseudoSpectral):
                 if mpi.rank == 0:
                     print(to_print + "\nreturn an array of zeros.")
 
-                result = self.oper.create_arrayX(value=0.)
+                result = self.oper.create_arrayX(value=0.0)
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result
@@ -118,13 +118,13 @@ class StateNS2D(StatePseudoSpectral):
 
     def init_from_uxfft(self, ux_fft):
         """Initialize the state from the variable `ux_fft`"""
-        uy_fft = self.oper.create_arrayK(value=0.)
+        uy_fft = self.oper.create_arrayK(value=0.0)
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         self.init_from_rotfft(rot_fft)
 
     def init_from_uyfft(self, uy_fft):
         """Initialize the state from the variable `uy_fft`"""
-        ux_fft = self.oper.create_arrayK(value=0.)
+        ux_fft = self.oper.create_arrayK(value=0.0)
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
         self.init_from_rotfft(rot_fft)
 

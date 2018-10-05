@@ -1,5 +1,3 @@
-
-
 # pythran export tendencies_nonlin_ns2dstrat(
 #     float64[][], float64[][], float64[][], float64[][],
 #     float64[][], float64[][], float)

@@ -62,7 +62,7 @@ class SpectraPlate2D(Spectra):
             spectrum2D_EE = dict_spectra2D["spectrum2D_EE"]
             spectrum2D_Etot = spectrum2D_EK + spectrum2D_EL + spectrum2D_EE
             khE = self.oper.khE
-            coef_norm = khE ** (3.)
+            coef_norm = khE ** (3.0)
             self.axe.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
             self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r--")
             self.axe.loglog(khE, spectrum2D_EL * coef_norm, "b--")
@@ -142,10 +142,10 @@ class SpectraPlate2D(Spectra):
             ax1.set_yscale("log")
 
             coef_norm = kh ** (coef_compensate)
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     EK = dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it]
-                    EK[EK < 10e-16] = 0.
+                    EK[EK < 10e-16] = 0.0
                     ax1.plot(kh, EK * coef_norm, "r", linewidth=1)
 
             EK = (
@@ -178,7 +178,7 @@ class SpectraPlate2D(Spectra):
             else:
                 delta_t_save = np.mean(times[1:] - times[0:-1])
                 delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
-                if delta_i_plot == 0 and delta_t != 0.:
+                if delta_i_plot == 0 and delta_t != 0.0:
                     delta_i_plot = 1
                 delta_t = delta_i_plot * delta_t_save
 
@@ -224,14 +224,14 @@ class SpectraPlate2D(Spectra):
 
             coef_norm = kh ** coef_compensate
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     EK = dset_spectrum_EK[it]
-                    EK[EK < 10e-16] = 0.
+                    EK[EK < 10e-16] = 0.0
                     EL = dset_spectrum_EL[it]
-                    EL[EL < 10e-16] = 0.
+                    EL[EL < 10e-16] = 0.0
                     EE = dset_spectrum_EE[it]
-                    EE[EE < 10e-16] = 0.
+                    EE[EE < 10e-16] = 0.0
                     Etot = EK + EL + EE
 
                     # print(Etot)
@@ -242,11 +242,11 @@ class SpectraPlate2D(Spectra):
                     ax1.plot(kh, EE * coef_norm, "y--", linewidth=1)
 
             EK = dset_spectrum_EK[imin_plot : imax_plot + 1].mean(0)
-            EK[EK < 10e-16] = 0.
+            EK[EK < 10e-16] = 0.0
             EL = dset_spectrum_EL[imin_plot : imax_plot + 1].mean(0)
-            EL[EK < 10e-16] = 0.
+            EL[EK < 10e-16] = 0.0
             EE = dset_spectrum_EE[imin_plot : imax_plot + 1].mean(0)
-            EE[EK < 10e-16] = 0.
+            EE[EK < 10e-16] = 0.0
 
         ax1.plot(kh, EK * coef_norm, "r-", linewidth=2)
         ax1.plot(kh, EL * coef_norm, "b-", linewidth=2)
@@ -254,5 +254,5 @@ class SpectraPlate2D(Spectra):
 
         ax1.plot(kh, kh ** (-3) * coef_norm, "k:", linewidth=1)
         ax1.plot(
-            kh, 0.01 * kh ** (old_div(-5., 3)) * coef_norm, "k-.", linewidth=1
+            kh, 0.01 * kh ** (old_div(-5.0, 3)) * coef_norm, "k-.", linewidth=1
         )

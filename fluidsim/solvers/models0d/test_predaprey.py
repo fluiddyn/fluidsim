@@ -1,4 +1,3 @@
-
 import unittest
 import shutil
 
@@ -33,8 +32,8 @@ class TestLorenz(unittest.TestCase):
         with stdout_redirected():
             sim = Simul(params)
 
-        sim.state.state_phys.set_var("X", sim.Xs + 2.)
-        sim.state.state_phys.set_var("Y", sim.Ys + 1.)
+        sim.state.state_phys.set_var("X", sim.Xs + 2.0)
+        sim.state.state_phys.set_var("Y", sim.Ys + 1.0)
 
         with stdout_redirected():
             sim.time_stepping.start()

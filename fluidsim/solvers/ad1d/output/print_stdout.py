@@ -1,4 +1,3 @@
-
 from fluidsim.solvers.ns2d.output.print_stdout import PrintStdOutNS2D
 
 

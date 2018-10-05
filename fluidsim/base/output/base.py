@@ -251,11 +251,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         if not self.params.ONLINE_PLOT_OK:
             for k in self.params.periods_plot._get_key_attribs():
-                self.params.periods_plot[k] = 0.
+                self.params.periods_plot[k] = 0.0
 
         if not self._has_to_save:
             for k in self.params.periods_save._get_key_attribs():
-                self.params.periods_save[k] = 0.
+                self.params.periods_save[k] = 0.0
 
     def _init_name_run(self):
         """Initialize the run name"""
@@ -498,14 +498,14 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         pass
 
     def compute_energy(self):
-        return 0.
+        return 0.0
 
     def print_size_in_Mo(self, arr, string=None):
         if string is None:
             string = "Size of ndarray (equiv. seq.)"
         else:
             string = "Size of " + string + " (equiv. seq.)"
-        mem = arr.nbytes * 1.e-6
+        mem = arr.nbytes * 1.0e-6
         if mpi.nb_proc > 1:
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
         self.print_stdout(string.ljust(30) + ": {0} Mo".format(mem))
@@ -520,11 +520,11 @@ class OutputBasePseudoSpectral(OutputBase):
 
     def compute_energy_fft(self):
         """Compute energy(k)"""
-        energy_fft = 0.
+        energy_fft = 0.0
         for k in self.sim.state.keys_state_spect:
             energy_fft += (
                 np.abs(self.sim.state.state_spect.get_var(k)) ** 2
-            ) / 2.
+            ) / 2.0
 
         return energy_fft
 
@@ -569,7 +569,7 @@ class SpecificOutput(object):
                 self.has_to_plot = False
 
         self.period_show = params.output.period_refresh_plots
-        self.t_last_show = 0.
+        self.t_last_show = 0.0
 
         self._init_path_files()
 
@@ -577,9 +577,9 @@ class SpecificOutput(object):
             self._init_online_plot()
 
         if not output._has_to_save:
-            self.period_save = 0.
+            self.period_save = 0.0
 
-        if self.period_save != 0.:
+        if self.period_save != 0.0:
             self._init_files(dict_arrays_1time)
 
     def _init_path_files(self):

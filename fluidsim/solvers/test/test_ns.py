@@ -30,18 +30,18 @@ def run_mini_simul(
 
     params.oper.nx = nh
     params.oper.ny = nh
-    Lh = 6.
+    Lh = 6.0
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    params.oper.coef_dealiasing = 2. / 3
+    params.oper.coef_dealiasing = 2.0 / 3
 
     if dissipation_enable:
-        params.nu_8 = 2.
+        params.nu_8 = 2.0
 
     try:
-        params.f = 1.
-        params.c2 = 200.
+        params.f = 1.0
+        params.c2 = 200.0
     except AttributeError:
         pass
 
@@ -118,7 +118,7 @@ class TestSolver(unittest.TestCase):
         Frot_fft = tendencies_fft.get_var("rot_fft")
         rot_fft = state_spect.get_var("rot_fft")
 
-        T_rot = (Frot_fft.conj() * rot_fft + Frot_fft * rot_fft.conj()).real / 2.
+        T_rot = (Frot_fft.conj() * rot_fft + Frot_fft * rot_fft.conj()).real / 2.0
         sum_T = oper.sum_wavenumbers(T_rot)
         self.assertZero(sum_T, zero_places)
 
@@ -149,7 +149,7 @@ class TestNS2DStrat(TestSolver):
         b_fft = state_spect.get_var("b_fft")
 
         transferEK = np.real(ux_fft.conj() * Fx_fft + uy_fft.conj() * Fy_fft)
-        transferEA = (1. / self.sim.params.N ** 2) * np.real(
+        transferEA = (1.0 / self.sim.params.N ** 2) * np.real(
             b_fft.conj() * Fb_fft
         )
 
