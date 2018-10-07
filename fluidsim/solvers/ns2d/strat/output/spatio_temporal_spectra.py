@@ -11,10 +11,6 @@ Provides:
 
 """
 
-from __future__ import division, print_function
-
-from builtins import range
-
 import os
 import sys
 import time
@@ -432,7 +428,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax1.set_xlabel(r"$\omega / \omega_{i\omega}$")
         ax1.set_ylabel(r"$F(\omega)$")
         ax1.set_title(
-            "$\omega_+ ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
+            r"$\omega_+ ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
                 self.sim.oper.ky[:: self.spatial_decimate][idz_mode],
             )
@@ -449,7 +445,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax2.set_xlabel(r"$\omega / \omega_{i\omega}$")
         ax2.set_ylabel(r"$F(\omega)$")
         ax2.set_title(
-            "$\omega_- ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
+            r"$\omega_- ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
                 self.sim.oper.ky[:: self.spatial_decimate][idz_mode],
             )

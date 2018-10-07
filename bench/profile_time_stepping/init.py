@@ -28,6 +28,8 @@ sim = Simul(params)
 print("used time stepping func:\n", sim.time_stepping._time_step_RK)
 
 """
+# cython
+%timeit sim.time_stepping._time_step_RK()
 # numpy
 %timeit sim.time_stepping._time_step_RK2()
 # pythran

@@ -51,10 +51,10 @@ else:
 
 here = Path(__file__).parent.absolute()
 
-from fluidpythran.files_maker import create_pythran_files
+from fluidpythran.files_maker import make_pythran_files
 
 paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
-create_pythran_files([here / path for path in paths])
+make_pythran_files([here / path for path in paths])
 
 time_start = time()
 config = get_config()
@@ -123,7 +123,7 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran",
+    "fluidpythran >= 0.0.3",
 ]
 
 if FFTW3:
@@ -181,10 +181,11 @@ def make_pythran_extensions(modules):
 if use_pythran:
     ext_names = []
     for root, dirs, files in os.walk("fluidsim"):
+        path_dir = Path(root)
         for name in files:
             if (
                 name.endswith("_pythran.py")
-                or name.startswith("_pythran")
+                or path_dir.name == "_pythran"
                 and name.endswith(".py")
             ):
                 path = os.path.join(root, name)
@@ -233,15 +234,13 @@ setup(
         # ensure that you indicate whether you support Python 2,
         # Python 3 or both.
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Cython",
         "Programming Language :: C",
     ],
-    python_requires=">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*",
+    python_requires=">=3.6",
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,
     extras_require=dict(doc=["Sphinx>=1.1", "numpydoc"], parallel=["mpi4py"]),
