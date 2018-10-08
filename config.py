@@ -58,7 +58,6 @@ except ImportError:
 
     # To ensure the with statement works. Required for some older 2.7.x releases
     class Pool(LegacyPool):
-
         def __enter__(self):
             return self
 
@@ -72,7 +71,7 @@ except ImportError:
         "to use concurrent.futures Python 2.7 backport.\n"
     )
 
-DEBUG = os.environ.get('FLUIDDYN_DEBUG', False)
+DEBUG = os.environ.get("FLUIDDYN_DEBUG", False)
 PARALLEL_COMPILE = not DEBUG
 
 
