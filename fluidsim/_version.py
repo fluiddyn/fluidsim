@@ -20,7 +20,7 @@ https://github.com/pypa/setuptools_scm#setuptools_scm
 
 """
 
-__version__ = "0.2.2.post0"
+__version__ = "0.2.3"
 
 try:
     from pyfiglet import figlet_format
@@ -36,4 +36,4 @@ except ImportError:
 |_| |_|\__,_|_|\__,_|___/_|_| |_| |_|
 """
 
-__about__ = __about__.rstrip() + f"\n\n{22 * ' '} v. {__version__}\n"
+__about__ = __about__.rstrip() + f"\n\n{28 * ' '} v. {__version__}\n"
