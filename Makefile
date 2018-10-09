@@ -44,7 +44,7 @@ _report_coverage:
 coverage: _tests_coverage _report_coverage
 
 lint:
-	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim
+	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero
 
 install:
 	python setup.py install

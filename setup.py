@@ -127,10 +127,7 @@ install_requires = [
 ]
 
 if FFTW3:
-    if not os.environ.get("FLUIDSIM_WITHOUT_PYFFTW", False):
-        install_requires.append("pyfftw >= 0.10.4")
-
-    install_requires.append("fluidfft >= 0.2.6")
+    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.6"])
 
 
 def modification_date(filename):
