@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 from builtins import object
@@ -18,7 +17,7 @@ class PrintStdOutBase(object):
 
     @staticmethod
     def _complete_params_with_default(params):
-        params.output.periods_print._set_attrib("print_stdout", 1.)
+        params.output.periods_print._set_attrib("print_stdout", 1.0)
 
     def __init__(self, output):
         sim = output.sim
@@ -53,7 +52,7 @@ class PrintStdOutBase(object):
         if self.period_print == 0:
             return
 
-        self.energy_temp = self.energy0 + 0.
+        self.energy_temp = self.energy0 + 0.0
         self.t_last_print_info = -self.period_print
 
         self.print_stdout = self.__call__

@@ -11,7 +11,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from .operators import OperatorsPseudoSpectralSW1L
 
 
-def create_oper(type_fft=None, coef_dealiasing=2. / 3):
+def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
 
     params = ParamContainer(tag="params")
 
@@ -29,7 +29,7 @@ def create_oper(type_fft=None, coef_dealiasing=2. / 3):
 
     params.oper.nx = nh
     params.oper.ny = nh
-    Lh = 6.
+    Lh = 6.0
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
@@ -59,7 +59,7 @@ class TestOperators(unittest.TestCase):
         ap_fft = oper.create_arrayK_random()
         am_fft = oper.create_arrayK_random()
         if mpi.rank == 0:
-            q_fft[0, 0] = ap_fft[0, 0] = am_fft[0, 0] = 0.
+            q_fft[0, 0] = ap_fft[0, 0] = am_fft[0, 0] = 0.0
 
         ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qapamfft(
             q_fft, ap_fft, am_fft

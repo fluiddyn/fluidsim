@@ -216,6 +216,6 @@ if __name__ == "__main__":
     nx = 3
     ny = 3
     oper = OperatorFiniteDiff2DPeriodic(
-        [ny, nx], [old_div(nx, 2.), old_div(ny, 2.)]
+        [ny, nx], [old_div(nx, 2.0), old_div(ny, 2.0)]
     )
     a = np.arange(nx * ny).reshape([ny, nx])

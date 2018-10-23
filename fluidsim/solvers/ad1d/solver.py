@@ -65,14 +65,14 @@ class Simul(SimulBase):
         """This static method is used to complete the *params* container.
         """
         SimulBase._complete_params_with_default(params)
-        attribs = {"U": 1.}
+        attribs = {"U": 1.0}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_phys=None, old=None):
         """Compute the "nonlinear" tendencies."""
         if old is None:
             tendencies = SetOfVariables(
-                like=self.state.state_phys, info="tendencies", value=0.
+                like=self.state.state_phys, info="tendencies", value=0.0
             )
         else:
             tendencies = old
@@ -97,12 +97,12 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    params.U = 1.
+    params.U = 1.0
 
     params.short_name_type_run = "test"
 
     params.oper.nx = 200
-    params.oper.Lx = 1.
+    params.oper.Lx = 1.0
 
     # params.oper.type_fft = 'FFTWPY'
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     params.output.periods_save.phys_fields = 0.5
 
-    params.output.periods_plot.phys_fields = 0.
+    params.output.periods_plot.phys_fields = 0.0
 
     params.output.phys_fields.field_to_plot = "s"
 

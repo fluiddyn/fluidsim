@@ -1,4 +1,3 @@
-
 import perf
 
 name_modules = ("native_openmp", "native", "openmp", "simd", "simple")

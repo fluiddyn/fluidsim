@@ -16,7 +16,7 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: SpecificForcingPseudoSpectral
+.. autoclass:: SpecificForcingPseudoSpectralCoarse
    :members:
    :private-members:
 
@@ -79,9 +79,21 @@ class SpecificForcingPseudoSpectralSimple(SpecificForcing):
     tag = "pseudo_spectral"
 
     def __init__(self, sim):
-        super(SpecificForcingPseudoSpectralSimple, self).__init__(sim)
+        super().__init__(sim)
         self.fstate = sim.state.__class__(sim, oper=self.sim.oper)
         self.forcing_fft = self.fstate.state_spect
+
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+        obj = self.compute_forcing_fft_each_time()
+        if isinstance(obj, dict):
+            kwargs = obj
+        else:
+            kwargs = {self.sim.params.forcing.key_forced: obj}
+        self.fstate.init_statespect_from(**kwargs)
+
+    def compute_forcing_fft_each_time(self):
+        raise NotImplementedError
 
 
 class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
@@ -94,17 +106,8 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
     tag = "in_script"
 
     def __init__(self, sim):
-        super(InScriptForcingPseudoSpectral, self).__init__(sim)
+        super().__init__(sim)
         self.is_initialized = False
-
-    def compute(self):
-        """compute a forcing normalize with a 2nd degree eq."""
-        obj = self.compute_forcing_fft_each_time()
-        if isinstance(obj, dict):
-            kwargs = obj
-        else:
-            kwargs = {self.sim.params.forcing.key_forced: obj}
-        self.fstate.init_statespect_from(**kwargs)
 
     def compute_forcing_fft_each_time(self):
         """Compute the coarse forcing in Fourier space"""
@@ -130,7 +133,7 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
         self.is_initialized = True
 
 
-class SpecificForcingPseudoSpectral(SpecificForcing):
+class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
     """Specific forcing for pseudo-spectra solvers"""
 
     tag = "pseudo_spectral"
@@ -159,12 +162,12 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
 
     def __init__(self, sim):
 
-        super(SpecificForcingPseudoSpectral, self).__init__(sim)
+        super().__init__(sim)
 
         params = sim.params
 
         self.forcing_fft = SetOfVariables(
-            like=sim.state.state_spect, info="forcing_fft", value=0.
+            like=sim.state.state_spect, info="forcing_fft", value=0.0
         )
 
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
@@ -241,7 +244,7 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 pass
 
             params_coarse.oper.type_fft = "sequential"
-            params_coarse.oper.coef_dealiasing = 1.
+            params_coarse.oper.coef_dealiasing = 1.0
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
@@ -335,20 +338,6 @@ class SpecificForcingPseudoSpectral(SpecificForcing):
                 )
             )
 
-
-class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
-    """Forcing maker for forcing defined by the user in the launching script
-
-    .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
-
-    """
-
-    tag = "in_script_coarse"
-
-    def __init__(self, sim):
-        super(InScriptForcingPseudoSpectralCoarse, self).__init__(sim)
-        self.is_initialized = False
-
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
@@ -362,6 +351,23 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
             self.oper_coarse.dealiasing_setofvar(self.fstate_coarse.state_spect)
 
         self.put_forcingc_in_forcing()
+
+    def compute_forcingc_fft_each_time(self):
+        raise NotImplementedError
+
+
+class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectralCoarse):
+    """Forcing maker for forcing defined by the user in the launching script
+
+    .. inheritance-diagram:: InScriptForcingPseudoSpectralCoarse
+
+    """
+
+    tag = "in_script_coarse"
+
+    def __init__(self, sim):
+        super().__init__(sim)
+        self.is_initialized = False
 
     def compute_forcingc_fft_each_time(self):
         """Compute the coarse forcing in Fourier space"""
@@ -382,7 +388,7 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectral):
         self.is_initialized = True
 
 
-class Proportional(SpecificForcingPseudoSpectral):
+class Proportional(SpecificForcingPseudoSpectralCoarse):
     """Specific forcing proportional to the forced variable
 
     .. inheritance-diagram:: Proportional
@@ -417,9 +423,9 @@ class Proportional(SpecificForcingPseudoSpectral):
         To be called only with proc 0.
         """
         fvc_fft = vc_fft.copy()
-        fvc_fft[self.COND_NO_F] = 0.
+        fvc_fft[self.COND_NO_F] = 0.0
 
-        Z_fft = abs(fvc_fft) ** 2 / 2.
+        Z_fft = abs(fvc_fft) ** 2 / 2.0
 
         # # possibly "kill" the largest mode
         # nb_kill = 0
@@ -437,13 +443,13 @@ class Proportional(SpecificForcingPseudoSpectral):
 
         Z = self.oper_coarse.sum_wavenumbers(Z_fft)
         deltat = self.sim.time_stepping.deltat
-        alpha = (np.sqrt(1 + deltat * self.forcing_rate / Z) - 1.) / deltat
+        alpha = (np.sqrt(1 + deltat * self.forcing_rate / Z) - 1.0) / deltat
         fvc_fft = alpha * fvc_fft
 
         return fvc_fft
 
 
-class NormalizedForcing(SpecificForcingPseudoSpectral):
+class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
     """Specific forcing normalized to keep constant injection
 
     .. inheritance-diagram:: NormalizedForcing
@@ -465,7 +471,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             )
 
     def __init__(self, sim):
-        super(NormalizedForcing, self).__init__(sim)
+        super().__init__(sim)
 
         if self.params.forcing.normalized.type == "particular_k":
             raise NotImplementedError
@@ -575,14 +581,14 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         )
 
         if ikx_part == 0:
-            P_forcing2_part = P_forcing2_part / 2.
+            P_forcing2_part = P_forcing2_part / 2.0
         P_forcing2_other = P_forcing2 - P_forcing2_part
         fvc_fft[ik0_part, ik1_part] = (
             -P_forcing2_other / vc_fft[ik0_part, ik1_part].real
         )
 
         if ikx_part != 0:
-            fvc_fft[ik0_part, ik1_part] = fvc_fft[ik0_part, ik1_part] / 2.
+            fvc_fft[ik0_part, ik1_part] = fvc_fft[ik0_part, ik1_part] / 2.0
 
         oper_c.project_fft_on_realX(fvc_fft)
 
@@ -648,7 +654,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
         try:
             alpha1, alpha2 = np.roots([a, b, c])
         except ValueError:
-            return 0.
+            return 0.0
 
         which_root = self.params.forcing.normalized.which_root
 
@@ -666,7 +672,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectral):
             return alpha2
 
         elif which_root == "positive":
-            if alpha2 > 0.:
+            if alpha2 > 0.0:
                 return alpha2
 
             else:
@@ -701,7 +707,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
     def __init__(self, sim):
 
-        super(RandomSimplePseudoSpectral, self).__init__(sim)
+        super().__init__(sim)
 
         if self.params.forcing.random.only_positive:
             self._min_val = None
@@ -715,10 +721,10 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         """
         f_fft = self.oper_coarse.create_arrayK_random(min_val=self._min_val)
         # fftwpy/easypyfft returns f_fft
-        f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.
-        f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.
+        f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.0
+        f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.0
         f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
-        f_fft[self.COND_NO_F] = 0.
+        f_fft[self.COND_NO_F] = 0.0
         return f_fft
 
     def forcingc_raw_each_time(self, a_fft):
@@ -750,7 +756,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
     def __init__(self, sim):
 
-        super(TimeCorrelatedRandomPseudoSpectral, self).__init__(sim)
+        super().__init__(sim)
 
         if mpi.rank == 0:
             self.forcing0 = self.compute_forcingc_raw()
@@ -763,7 +769,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 time_correlation = pforcing.tcrandom.time_correlation
 
             if time_correlation == "based_on_forcing_rate":
-                self.period_change_f0f1 = self.forcing_rate ** (-1. / 3)
+                self.period_change_f0f1 = self.forcing_rate ** (-1.0 / 3)
             else:
                 self.period_change_f0f1 = time_correlation
             self.t_last_change = self.sim.time_stepping.t

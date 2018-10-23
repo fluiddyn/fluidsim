@@ -109,7 +109,7 @@ class SimulBasePseudoSpectral(SimulBase):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
 
-        attribs = {"nu_8": 0., "nu_4": 0., "nu_m4": 0.}
+        attribs = {"nu_8": 0.0, "nu_4": 0.0, "nu_m4": 0.0}
         params._set_attribs(attribs)
 
         params._set_doc(
@@ -171,19 +171,19 @@ nu_m4: float
         else:
             f_d = np.zeros_like(self.oper.K2)
 
-        if self.params.nu_4 > 0.:
+        if self.params.nu_4 > 0.0:
             f_d += self.params.nu_4 * self.oper.K4
 
-        if self.params.nu_8 > 0.:
+        if self.params.nu_8 > 0.0:
             f_d += self.params.nu_8 * self.oper.K8
 
-        if self.params.nu_m4 != 0.:
+        if self.params.nu_m4 != 0.0:
             f_d_hypo = self.params.nu_m4 / self.oper.K2_not0 ** 2
             # mode K2 = 0 !
             if mpi.rank == 0:
                 f_d_hypo[0, 0] = f_d_hypo[0, 1]
 
-            f_d_hypo[self.oper.K <= 20] = 0.
+            f_d_hypo[self.oper.K <= 20] = 0.0
 
         else:
             f_d_hypo = np.zeros_like(f_d)
@@ -207,7 +207,7 @@ nu_m4: float
         else:
             tendencies = old
 
-        tendencies.initialize(value=0.)
+        tendencies.initialize(value=0.0)
         return tendencies
 
 
@@ -231,17 +231,17 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
     )
 
-    params.time_stepping.t_end = 5.
+    params.time_stepping.t_end = 5.0
 
     params.init_fields.type = "noise"
 
-    params.output.periods_plot.phys_fields = 0.
+    params.output.periods_plot.phys_fields = 0.0
 
     params.output.periods_print.print_stdout = 0.25
-    params.output.periods_save.phys_fields = 2.
+    params.output.periods_save.phys_fields = 2.0
 
     sim = Simul(params)
 

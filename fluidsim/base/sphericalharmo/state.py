@@ -54,9 +54,9 @@ class StateSphericalHarmo(StatePseudoSpectral):
         elif key == "uy_sh":
             result = self.oper.sht(self.state_phys.get_var("uy"))
         elif key == "div_sh":
-            result = self.oper.create_array_sh(0.)
+            result = self.oper.create_array_sh(0.0)
         elif key == "div":
-            result = self.oper.create_array_spat(0.)
+            result = self.oper.create_array_spat(0.0)
         elif key == "q":
             rot = self.state_phys.get_var("rot")
             result = rot
@@ -68,7 +68,7 @@ class StateSphericalHarmo(StatePseudoSpectral):
             else:
                 print(to_print + "\nreturn an array of zeros.")
 
-                result = self.oper.create_arrayX(value=0.)
+                result = self.oper.create_arrayX(value=0.0)
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result

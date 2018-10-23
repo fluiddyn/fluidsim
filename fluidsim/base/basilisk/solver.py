@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 from fluidsim.base.solvers.base import SimulBase
@@ -43,7 +42,7 @@ class SimulBasilisk(SimulBase):
         def init(i, t):
             bas.omega.f = bas.noise
 
-        bas.event(init, t=0.)
+        bas.event(init, t=0.0)
 
 
 Simul = SimulBasilisk

@@ -1,4 +1,3 @@
-
 import unittest
 import shutil
 
@@ -33,7 +32,7 @@ class TestLorenz(unittest.TestCase):
         with stdout_redirected():
             sim = Simul(params)
 
-        sim.state.state_phys.set_var("X", sim.Xs0 + 2.)
+        sim.state.state_phys.set_var("X", sim.Xs0 + 2.0)
         sim.state.state_phys.set_var("Y", sim.Ys0)
         sim.state.state_phys.set_var("Z", sim.Zs0)
 

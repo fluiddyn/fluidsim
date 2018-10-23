@@ -150,21 +150,42 @@ class OutputStrat(Output):
                     + "the degree symbol or a float in radians"
                 )
 
-        self.froude_number = round(np.sin(angle), 1)
+        # self.froude_number = round(np.sin(angle), 1)
+        self.froude_number = np.sin(angle)
 
     def _compute_ratio_omegas(self):
-        """Compute ratio omegas; R = N * sin(angle)/P**(1/3.)"""
-        P = self.sim.params.forcing.forcing_rate
-        N = self.sim.params.N
-        return round(N * self.froude_number / P ** (1. / 3), 1)
+        """Compute ratio omegas; gamma = \omega_l / \omega_{af}"""
+        params = self.sim.params
+
+        omega_l = params.N * self.froude_number
+        if (
+            params.forcing.key_forced is None
+            or params.forcing.key_forced == "rot_fft"
+        ):
+            omega_af = (2 * np.pi) * params.forcing.forcing_rate ** (1.0 / 3)
+        elif params.forcing.key_forced == "ap_fft":
+            nkmax_forcing = params.forcing.nkmax_forcing
+            nkmin_forcing = params.forcing.nkmin_forcing
+
+            deltak = max(2 * np.pi / params.oper.Lx, 2 * np.pi / params.oper.Ly)
+            k_f = ((nkmax_forcing + nkmin_forcing) / 2) * deltak
+            omega_af = (
+                2
+                * np.pi
+                / params.forcing.forcing_rate ** (1.0 / 7)
+                * ((2 * np.pi / k_f) ** (2.0 / 7))
+            )
+        else:
+            raise ValueError("params.forcing.key_forced is not known.")
+        return omega_l / omega_af
 
     def _produce_str_describing_attribs_strat(self):
         """
         Produce string describing the parameters froude_number and ratio_omegas.
         #TODO: not the best way to produce string.
         """
-        str_froude_number = str(self.froude_number)
-        str_ratio_omegas = str(self._compute_ratio_omegas())
+        str_froude_number = str(round(self.froude_number, 1))
+        str_ratio_omegas = str(round(self._compute_ratio_omegas(), 1))
 
         if "." in str_froude_number:
             str_froude_number = (

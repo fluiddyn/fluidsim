@@ -79,7 +79,7 @@ class TestSW1L(BaseTestCase):
         b0_fft = module.norm_mode.bvec_fft[0]
         bp_fft = module.norm_mode.bvec_fft[1]
         bm_fft = module.norm_mode.bvec_fft[2]
-        ux_fft[0, 0] = uy_fft[0, 0] = eta_fft[0, 0] = 0.
+        ux_fft[0, 0] = uy_fft[0, 0] = eta_fft[0, 0] = 0.0
         energy_UU = (
             inner_prod(ux_fft, ux_fft)
             + inner_prod(uy_fft, uy_fft)
@@ -122,13 +122,13 @@ class TestSW1L(BaseTestCase):
         key_modes, py_ux_fft_modes = module.norm_mode.normalmodefft_from_keyfft(
             "py_ux_fft"
         )
-        ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0.
+        ux_fft2 = uy_fft2 = eta_fft2 = py_ux_fft2 = 0.0
         for mode in range(3):
             ux_fft2 += ux_fft_modes[mode]
             uy_fft2 += uy_fft_modes[mode]
             eta_fft2 += eta_fft_modes[mode]
             py_ux_fft2 += py_ux_fft_modes[mode]
-        ux_fft[0, 0] = uy_fft[0, 0] = eta_fft[0, 0] = py_ux_fft[0, 0] = 0.
+        ux_fft[0, 0] = uy_fft[0, 0] = eta_fft[0, 0] = py_ux_fft[0, 0] = 0.0
         atol = 1e-15
         rtol = 1e-14
         np.testing.assert_allclose(ux_fft2, ux_fft, rtol, atol)
@@ -145,7 +145,7 @@ class TestSW1L(BaseTestCase):
             self.solver + " does not use normal mode spect_energy_budg",
         )
 
-        Cq_tot_modes = 0.
+        Cq_tot_modes = 0.0
         for k in self.exchange_keys:
             Cq_tot_modes += self.dict_results[k]
 
@@ -172,7 +172,7 @@ class TestSW1L(BaseTestCase):
                 self.solver + "does not use normal mode spect_energy_budg",
             )
 
-        Tq_tot_modes = 0.
+        Tq_tot_modes = 0.0
         for k in self.transfer_keys:
             Tq_tot_modes += self.dict_results[k]
 
@@ -204,8 +204,8 @@ class TestSW1L(BaseTestCase):
             TPdiv_exact = 0.25 * sim.params.c2 * inner_prod(div_fft, etaeta_fft)
             TPq_exact_coef = -0.5 * sim.params.c2
         else:
-            TKdiv_exact = 0.
-            TPdiv_exact = 0.
+            TKdiv_exact = 0.0
+            TPdiv_exact = 0.0
             TPq_exact_coef = -sim.params.c2
 
         etaux_fft = sim.oper.fft2(eta * ux)
@@ -315,7 +315,7 @@ class TestExmod(TestSW1L):
                 self.solver + "does not use normal mode spect_energy_budg",
             )
 
-        Tq_tot_modes = 0.
+        Tq_tot_modes = 0.0
         for k in self.transfer_keys:
             Tq_tot_modes += self.dict_results[k]
 

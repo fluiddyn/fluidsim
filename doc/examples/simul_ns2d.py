@@ -4,8 +4,6 @@ from fluidsim.solvers.ns2d.solver import Simul
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'examples'
-
 params.oper.nx = params.oper.ny = nh = 32
 params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 

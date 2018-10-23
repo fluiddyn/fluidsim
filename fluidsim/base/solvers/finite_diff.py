@@ -1,4 +1,3 @@
-
 from fluidsim.base.solvers.base import InfoSolverBase
 
 

@@ -258,7 +258,7 @@ def compute_tendencies_nonlin_sw1l(
     """Compute nonlinear tendencies for the sw1l model"""
     F1x, F1y = compute_Frot(rot, ux, uy, f)
     gradx_fft, grady_fft = gradfft_from_fft(
-        fft2(c2 * eta + (ux ** 2 + uy ** 2) / 2.)
+        fft2(c2 * eta + (ux ** 2 + uy ** 2) / 2.0)
     )
     dealiasing(gradx_fft, grady_fft)
     Fx_fft[:] = fft2(F1x) - gradx_fft
@@ -286,10 +286,10 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2. * 10e-1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
     )
 
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 1.0
     # params.time_stepping.USE_CFL = False
     # params.time_stepping.deltat0 = 0.01
 
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     params.output.periods_save.pdf = 0.5
     params.output.periods_save.time_signals_fft = True
 
-    params.output.periods_plot.phys_fields = 0.
+    params.output.periods_plot.phys_fields = 0.0
 
     params.output.phys_fields.field_to_plot = "eta"
 

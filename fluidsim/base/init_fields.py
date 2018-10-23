@@ -288,7 +288,7 @@ path: str
                     field_loc = field_seq
                 state_phys.set_var(k, field_loc)
             else:
-                state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.))
+                state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.0))
         if mpi.rank == 0:
             time = group_state_phys.attrs["time"]
             try:
@@ -298,7 +298,7 @@ path: str
                 it = 0
             h5file.close()
         else:
-            time = 0.
+            time = 0.0
             it = 0
 
         if mpi.nb_proc > 1:
@@ -347,7 +347,7 @@ class InitFieldsFromSimul(SpecificInitFields):
             for index_key in range(len(keys_state_spect)):
 
                 field_fft_seq_in = sim_in.state.state_spect[index_key]
-                field_fft_seq_new_res = sim.oper.create_arrayK(value=0.)
+                field_fft_seq_new_res = sim.oper.create_arrayK(value=0.0)
                 [nk0_seq, nk1_seq] = field_fft_seq_new_res.shape
                 [nk0_seq_in, nk1_seq_in] = field_fft_seq_in.shape
 
@@ -381,7 +381,7 @@ class InitFieldsFromSimul(SpecificInitFields):
                 if k in sim_in.info.solver.classes.State["keys_state_spect"]:
                     sim.state.state_spect[k] = state_spect[k]
                 else:
-                    sim.state.state_spect[k] = self.oper.create_arrayK(value=0.)
+                    sim.state.state_spect[k] = self.oper.create_arrayK(value=0.0)
 
         sim.state.statephys_from_statespect()
 
@@ -405,7 +405,7 @@ class InitFieldsConstant(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         super(InitFieldsConstant, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={"value": 1.})
+        params.init_fields._set_child(cls.tag, attribs={"value": 1.0})
         params.init_fields.constant._set_doc(
             """
 value: float (default 1.)
@@ -429,7 +429,7 @@ class InitFieldsNoise(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
         super(InitFieldsNoise, cls)._complete_params_with_default(params)
-        params.init_fields._set_child(cls.tag, attribs={"max": 1.})
+        params.init_fields._set_child(cls.tag, attribs={"max": 1.0})
         params.init_fields.noise._set_doc(
             """
 max: float (default 1.)

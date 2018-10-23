@@ -102,7 +102,7 @@ class Simul(SimulNS3D):
         """This static method is used to complete the *params* container.
         """
         SimulNS3D._complete_params_with_default(params)
-        attribs = {"N": 1., "NO_SHEAR_MODES": False}
+        attribs = {"N": 1.0, "NO_SHEAR_MODES": False}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -211,15 +211,15 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_8 = 2. * 10e-1 * delta_x ** 8
+    params.nu_8 = 2.0 * 10e-1 * delta_x ** 8
 
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 6.
+    params.time_stepping.t_end = 6.0
     params.time_stepping.it_end = 2
 
     params.init_fields.type = "noise"
-    params.init_fields.noise.velo_max = 1.
-    params.init_fields.noise.length = 1.
+    params.init_fields.noise.velo_max = 1.0
+    params.init_fields.noise.length = 1.0
 
     # params.forcing.enable = False
     # params.forcing.type = 'random'
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.00000000001
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 1.0
     # params.output.periods_save.spectra = 0.5
     # params.output.periods_save.spatial_means = 0.05
     # params.output.periods_save.spect_energy_budg = 0.5

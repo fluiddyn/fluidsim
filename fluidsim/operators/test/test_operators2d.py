@@ -16,25 +16,27 @@ else:
     NO_PYTHRAN = False
 
 
-def create_oper(type_fft=None, coef_dealiasing=2. / 3):
+def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
 
     params = ParamContainer(tag="params")
 
-    params._set_attrib("ONLY_COARSE_OPER", False)
+    params._set_attrib("ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
 
     OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
-    if mpi.nb_proc == 1:
+    if "nh" in kwargs:
+        nh = kwargs["nh"]
+    elif mpi.nb_proc == 1:
         nh = 9
     else:
         nh = 8
 
     params.oper.nx = nh
     params.oper.ny = nh
-    Lh = 6.
+    Lh = 6.0
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
@@ -78,7 +80,7 @@ class TestOperators(unittest.TestCase):
         rot = oper.create_arrayX_random()
         rot_fft = oper.fft2(rot)
         if mpi.rank == 0:
-            rot_fft[0, 0] = 0.
+            rot_fft[0, 0] = 0.0
 
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
         rot2_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
@@ -90,7 +92,7 @@ class TestOperators(unittest.TestCase):
         ff = oper.create_arrayX_random()
         ff_fft = oper.fft2(ff)
         if mpi.rank == 0:
-            ff_fft[0, 0] = 0.
+            ff_fft[0, 0] = 0.0
 
         lap_fft = oper.laplacian_fft(ff_fft, order=4)
         ff_fft_back = oper.invlaplacian_fft(lap_fft, order=4)
@@ -120,6 +122,26 @@ class TestOperators(unittest.TestCase):
             assert_increments_equal(irx)
 
 
+class TestOperatorCoarse(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.nh = 12
+        cls.oper = create_oper(ONLY_COARSE_OPER=True, nh=cls.nh)
+
+    def test_oper_coarse(self):
+        """Test coarse operator parameters which, by default, initializes
+        `nh=4`.
+
+        """
+        oper = self.oper
+
+        # Assert params are intact but the operator is initialized coarse
+        self.assertEqual(oper.params.oper.nx, self.nh)
+        self.assertEqual(oper.params.oper.ny, self.nh)
+        self.assertNotEqual(oper.nx, self.nh)
+        self.assertNotEqual(oper.ny, self.nh)
+
+
 class TestOperatorsDealiasing(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -131,7 +153,7 @@ class TestOperatorsDealiasing(unittest.TestCase):
 
         """
         oper = self.oper
-        var_fft = oper.create_arrayK(1.)
+        var_fft = oper.create_arrayK(1.0)
         sum_var = var_fft.sum()
         oper.dealiasing(var_fft)
         sum_var_dealiased = var_fft.sum()

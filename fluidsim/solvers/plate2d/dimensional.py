@@ -46,7 +46,7 @@ class Converter(object):
 
     """
 
-    def __init__(self, C, h, L=1., sigma=0.):
+    def __init__(self, C, h, L=1.0, sigma=0.0):
         self.C = C
         self.h = h
         self.L = L

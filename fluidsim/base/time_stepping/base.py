@@ -32,7 +32,7 @@ class TimeSteppingBase(object):
         """
         attribs = {
             "USE_T_END": True,
-            "t_end": 10.,
+            "t_end": 10.0,
             "it_end": 10,
             "USE_CFL": False,
             "type_time_scheme": "RK4",
@@ -247,7 +247,7 @@ cfl_coef: float (default None)
                 + max_uz / self.sim.oper.deltaz
             )
         else:
-            tmp = 0.
+            tmp = 0.0
 
         self._compute_time_increment_CLF_from_tmp(tmp)
 

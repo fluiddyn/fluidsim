@@ -164,7 +164,7 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        attribs = {"beta": 0.}
+        attribs = {"beta": 0.0}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -298,15 +298,15 @@ if __name__ == "__main__":
     params.short_name_type_run = "test"
 
     nh = 32
-    Lh = 1.
+    Lh = 1.0
     params.oper.nx = nh
     params.oper.ny = nh
     params.oper.Lx = Lh
     params.oper.Ly = Lh
-    params.oper.coef_dealiasing = 2. / 3
+    params.oper.coef_dealiasing = 2.0 / 3
 
     delta_x = Lh / nh
-    params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1. / 3) * delta_x ** 8
+    params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
 
     kmax = np.sqrt(2) * np.pi / delta_x
     deltat = 2 * np.pi / kmax ** 2 / 2
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = deltat
     params.time_stepping.USE_T_END = False
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 1.0
     params.time_stepping.it_end = 10
 
     params.init_fields.type = "noise"
@@ -330,7 +330,7 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.05
 
-    params.output.periods_save.phys_fields = 5.
+    params.output.periods_save.phys_fields = 5.0
     params.output.periods_save.spectra = 0.05
     params.output.periods_save.spatial_means = 10 * deltat
     params.output.periods_save.correl_freq = 1

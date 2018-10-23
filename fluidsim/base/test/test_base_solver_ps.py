@@ -1,5 +1,3 @@
-
-
 import unittest
 import shutil
 from glob import glob
@@ -33,8 +31,8 @@ class TestBaseSolverPS(unittest.TestCase):
 
         if params is None:
             params = SimulBasePseudoSpectral.create_default_params()
-            params.output.periods_plot.phys_fields = 0.
-            params.output.periods_print.print_stdout = 0.
+            params.output.periods_plot.phys_fields = 0.0
+            params.output.periods_print.print_stdout = 0.0
             params.short_name_type_run = "test_base_solver_ps"
 
         nh = 8
@@ -44,7 +42,7 @@ class TestBaseSolverPS(unittest.TestCase):
         params.oper.Lx = Lh
         params.oper.Ly = Lh
 
-        params.nu_2 = 1.
+        params.nu_2 = 1.0
 
         params.time_stepping.t_end = 0.4
 
@@ -76,7 +74,7 @@ class TestBaseSolverPS(unittest.TestCase):
 
         with stdout_redirected():
             modif_resolution_from_dir(
-                self.sim.output.path_run, coef_modif_resol=3. / 2, PLOT=False
+                self.sim.output.path_run, coef_modif_resol=3.0 / 2, PLOT=False
             )
             path_new = os.path.join(self.sim.output.path_run, "State_phys_12x12")
             os.chdir(path_new)

@@ -47,7 +47,7 @@ class Simul(SimulBasePseudoSpectral):
     @staticmethod
     def _complete_params_with_default(params):
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        params._set_attrib("U", 1.)
+        params._set_attrib("U", 1.0)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
 
@@ -58,13 +58,13 @@ class Simul(SimulBasePseudoSpectral):
         else:
             tendencies_fft = old
 
-        tendencies_fft[:] = 0.
+        tendencies_fft[:] = 0.0
 
         return tendencies_fft
 
     def compute_freq_complex(self, key):
         assert key == "s_fft"
-        omega = 1.j * self.params.U * self.oper.KX
+        omega = 1.0j * self.params.U * self.oper.KX
         return omega
 
 
@@ -74,14 +74,14 @@ if __name__ == "__main__":
     params = Simul.create_default_params()
     params.output.sub_directory = "examples"
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 1.0
     params.short_name_type_run = "test"
     params.oper.Lx = 10
     params.oper.nx = 256
     params.nu_2 = 1e-3
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 1e-3
-    params.time_stepping.t_end = 1.
+    params.time_stepping.t_end = 1.0
     params.time_stepping.type_time_scheme = "RK2"
     params.init_fields.type = "in_script"
 

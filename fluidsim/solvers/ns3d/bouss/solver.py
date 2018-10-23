@@ -210,7 +210,7 @@ if __name__ == "__main__":
     params.nu_8 = 2e-6
 
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 10.0
 
     params.init_fields.type = "in_script"
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
 
     params.output.periods_print.print_stdout = 0.00000000001
 
-    params.output.periods_save.phys_fields = 1.
+    params.output.periods_save.phys_fields = 1.0
     # params.output.periods_save.spectra = 0.5
     # params.output.periods_save.spatial_means = 0.05
     # params.output.periods_save.spect_energy_budg = 0.5
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     X, Y, Z = sim.oper.get_XYZ_loc()
 
-    x0 = y0 = z0 = L / 2.
+    x0 = y0 = z0 = L / 2.0
     R2 = (X - x0) ** 2 + (Y - y0) ** 2 + (Z - z0) ** 2
     r0 = 0.5
     b = -np.exp(-R2 / r0 ** 2)

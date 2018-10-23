@@ -47,7 +47,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         """
         attribs = {
             "type_fft": "default",
-            "coef_dealiasing": 2. / 3,
+            "coef_dealiasing": 2.0 / 3,
             "nx": 48,
             "ny": 48,
             "Lx": 8,
@@ -78,9 +78,12 @@ class OperatorsPseudoSpectral2D(_Operators):
         params.oper.nx = nx
         params.oper.ny = ny
 
+        if params.ONLY_COARSE_OPER:
+            nx = ny = 4
+
         super(OperatorsPseudoSpectral2D, self).__init__(
-            params.oper.nx,
-            params.oper.ny,
+            nx,
+            ny,
             params.oper.Lx,
             params.oper.Ly,
             fft=params.oper.type_fft,
@@ -110,7 +113,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             # for shallow water models
             Kappa2 = self.K2 + self.params.kd2
             self.Kappa2_not0 = self.K2_not0 + self.params.kd2
-            self.Kappa_over_ic = -1.j * np.sqrt(Kappa2 / self.params.c2)
+            self.Kappa_over_ic = -1.0j * np.sqrt(Kappa2 / self.params.c2)
 
         except AttributeError:
             pass
@@ -121,7 +124,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             pass
         else:
             if NO_SHEAR_MODES:
-                COND_NOSHEAR = abs(self.KX) == 0.
+                COND_NOSHEAR = abs(self.KX) == 0.0
                 where_dealiased = np.logical_or(
                     COND_NOSHEAR, self.where_dealiased
                 )
@@ -202,7 +205,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             for ikxc in range(nkxc):
                 kx = self.deltakx * ikxc
-                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
+                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.0)
                 if rank == rank_ikx:
                     # create f1d_temp
                     for ikyc in range(nkyc):
@@ -327,7 +330,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         if nb_proc == 1:
             pdf, bin_edges = np.histogram(
-                field, bins=nb_bins, normed=True, range=(range_min, range_max)
+                field, bins=nb_bins, density=True, range=(range_min, range_max)
             )
         else:
             hist, bin_edges = np.histogram(
@@ -532,7 +535,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         for i0 in range(n0):
             for i1 in range(n1):
                 if i0 == 0 and i1 == 0 and rank == 0:
-                    d_fft[i0, i1] = 0.
+                    d_fft[i0, i1] = 0.0
                 else:
                     d_fft[i0, i1] = Delta_a_fft[i0, i1] / Kappa_over_ic[i0, i1]
         return d_fft
@@ -597,7 +600,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         """q, ap, am (fft) ---> ux, uy, eta (fft)"""
         a_fft = ap_fft + am_fft
         if rank == 0:
-            a_fft[0, 0] = 0.
+            a_fft[0, 0] = 0.0
         div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
         (uxa_fft, uya_fft, etaa_fft) = self.uxuyetafft_from_afft(a_fft)
         (uxq_fft, uyq_fft, etaq_fft) = self.uxuyetafft_from_qfft(q_fft)
@@ -660,7 +663,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             Negative of the result.
 
         """
-        sign = 1. / 1j ** order
+        sign = 1.0 / 1j ** order
         if sign.imag != 0:
             raise ValueError("Order={} should be even!".format(order))
 
@@ -710,7 +713,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
             for ikxc in range(nKxc):
                 kx = self.deltakx * ikxc
-                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.)
+                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.0)
 
                 if mpi.rank == 0:
                     fc1D = fck_fft[ikxc]
@@ -730,7 +733,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 if mpi.rank == rank_ikx:
                     # copy
                     for ikyc in range(nKyc):
-                        if ikyc <= nKyc / 2.:
+                        if ikyc <= nKyc / 2.0:
                             iky = ikyc
                         else:
                             kynodim = ikyc - nKyc
@@ -746,7 +749,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 raise ValueError("any(arr_coarse[:, nKxc-1] != 0)")
 
             for ikyc in range(nKyc):
-                if ikyc <= nKyc / 2.:
+                if ikyc <= nKyc / 2.0:
                     iky = ikyc
                 else:
                     kynodim = ikyc - nKyc

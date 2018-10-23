@@ -64,9 +64,21 @@ def available_solver_keys(package=solvers):
     return sorted(keys)
 
 
-def module_solver_from_key(key=None, package="fluidsim.solvers"):
+def _get_key_package(key, package):
+    """Compute (key, package) from (key, package) with default value"""
+    if package is None:
+        if key.startswith("fluidsim"):
+            package, key = key.split(".", 1)
+        else:
+            package = "fluidsim.solvers"
+    return key, package
+
+
+def module_solver_from_key(key=None, package=None):
     """Return the string corresponding to a module solver."""
     key = key.lower()
+    key, package = _get_key_package(key, package)
+
     keys = available_solver_keys(package)
 
     if key in keys:
@@ -83,7 +95,7 @@ def module_solver_from_key(key=None, package="fluidsim.solvers"):
     return module_solver
 
 
-def import_module_solver_from_key(key=None, package="fluidsim.solvers"):
+def import_module_solver_from_key(key=None, package=None):
     """Import and reload the solver.
 
     Parameters
@@ -93,26 +105,33 @@ def import_module_solver_from_key(key=None, package="fluidsim.solvers"):
         The short name of a solver.
 
     """
+    key, package = _get_key_package(key, package)
+
     return import_module(module_solver_from_key(key, package))
 
 
-def get_dim_from_solver_key(key, package="fluidsim.solvers"):
+def get_dim_from_solver_key(key, package=None):
     """Try to guess the dimension from the solver key (via the operator name).
 
     """
     cls = import_simul_class_from_key(key, package)
     info = cls.InfoSolver()
+    class_name = info.classes.Operators.class_name
+
+    # special cases:
+    if class_name == "OperatorsPseudoSpectralSW1L":
+        return "2"
+
     for dim in range(4):
-        if str(dim) in info.classes.Operators.class_name:
+        if str(dim) in class_name:
             return str(dim)
 
     raise NotImplementedError(
-        "Cannot deduce dimension of the solver from the name "
-        + info.classes.Operators.class_name
+        "Cannot deduce dimension of the solver from the name " + class_name
     )
 
 
-def import_simul_class_from_key(key, package="fluidsim.solvers"):
+def import_simul_class_from_key(key, package=None):
     """Import and reload a simul class.
 
     Parameters
@@ -139,7 +158,7 @@ def pathdir_from_namedir(name_dir=None):
 class ModulesSolvers(dict):
     """Dictionary to gather imported solvers."""
 
-    def __init__(self, names_solvers, package="fluidsim.solvers"):
+    def __init__(self, names_solvers, package=None):
         for key in names_solvers:
             self[key] = import_module_solver_from_key(key, package)
 
@@ -204,15 +223,13 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     params.output.HAS_TO_SAVE = False
     params.output.ONLINE_PLOT_OK = False
 
-    if params.forcing.type.startswith("in_script"):
-        params.forcing.enable = False
-
     try:
         params.preprocess.enable = False
     except AttributeError:
         pass
 
     fix_old_params(params)
+    params.forcing.enable = False
 
     sim = solver.Simul(params)
     return sim
@@ -361,7 +378,7 @@ def times_start_end_from_path(path):
         words = line.split()
         t_s = float(words[6])
 
-        # in order to get the informations at the end of the file,
+        # in order to get the information at the end of the file,
         # we do not want to read the full file...
         file_stdout.seek(0, 2)  # go to the end
         nb_caract = file_stdout.tell()
@@ -524,7 +541,7 @@ class SetOfDirResults(object):
         if len(self.paths) == 1:
             path = self.paths[0]
         else:
-            t_s = -1.
+            t_s = -1.0
             for path_temp in self.paths:
                 t_s_temp, t_e = times_start_end_from_path(path_temp)
                 if t_s_temp > t_s:

@@ -124,10 +124,21 @@ Lx, Ly and Lz: float
 
         self.params = params
         self.axes = ("z", "y", "x")
+        if params.ONLY_COARSE_OPER:
+            nx = ny = nz = 4
+            # Unchanged, but type cast into integers
+            params.oper.nx = int(params.oper.nx)
+            params.oper.ny = int(params.oper.ny)
+            params.oper.nz = int(params.oper.nz)
+        else:
+            nx = params.oper.nx = int(params.oper.nx)
+            ny = params.oper.ny = int(params.oper.ny)
+            nz = params.oper.nz = int(params.oper.nz)
+
         super(OperatorsPseudoSpectral3D, self).__init__(
-            params.oper.nx,
-            params.oper.ny,
-            params.oper.nz,
+            nx,
+            ny,
+            nz,
             params.oper.Lx,
             params.oper.Ly,
             params.oper.Lz,
@@ -236,7 +247,7 @@ Lx, Ly and Lz: float
 
 
 def _ik_from_ikc(ikc, nkc, nk):
-    if ikc <= nkc / 2.:
+    if ikc <= nkc / 2.0:
         ik = ikc
     else:
         knodim = ikc - nkc

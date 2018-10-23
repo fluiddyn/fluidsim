@@ -1,5 +1,3 @@
-
-
 from __future__ import division, print_function
 
 from builtins import range
@@ -60,7 +58,7 @@ class Increments(SpecificOutput):
 
         self.nrx = self.rxs.size
         dict_arrays_1time = {"rxs": self.rxs, "nbins": self.nbins}
-
+        self._bins = np.arange(0.5, self.nbins, dtype=float) / self.nbins
         self.keys_vars_to_compute = list(output.sim.state.state_phys.keys)
 
         super(Increments, self).__init__(
@@ -118,9 +116,7 @@ class Increments(SpecificOutput):
         return dict_results
 
     def compute_values_inc(self, valmin, valmax):
-        return valmin + (valmax - valmin) / self.nbins * np.arange(
-            0.5, self.nbins
-        )
+        return valmin + (valmax - valmin) * self._bins
 
     def load(self):
         """load the saved pdf and return a dictionary."""
@@ -166,7 +162,7 @@ class Increments(SpecificOutput):
 
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
+        if delta_i_plot == 0 and delta_t != 0.0:
             delta_i_plot = 1
         delta_t = delta_i_plot * delta_t_save
 
@@ -263,11 +259,11 @@ class Increments(SpecificOutput):
 
         cond = rxs < 6 * deltax
         ax1.plot(
-            rxs[cond], 1.e4 * rxs[cond] ** (order) / norm[cond], "k", linewidth=2
+            rxs[cond], 1.0e4 * rxs[cond] ** (order) / norm[cond], "k", linewidth=2
         )
         ax1.plot(rxs, rxs ** (order / 3) / norm, "--k", linewidth=2)
 
-        ax1.plot(rxs, 1.e0 * rxs ** (1) / norm, ":k", linewidth=2)
+        ax1.plot(rxs, 1.0e0 * rxs ** (1) / norm, ":k", linewidth=2)
 
         z_bottom_axe = 0.09
         size_axe[1] = z_bottom_axe
@@ -561,7 +557,7 @@ class IncrementsSW1L(Increments):
 
         delta_t_save = np.mean(times[1:] - times[0:-1])
         delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0 and delta_t != 0.:
+        if delta_i_plot == 0 and delta_t != 0.0:
             delta_i_plot = 1
         delta_t = delta_i_plot * delta_t_save
 
@@ -663,11 +659,11 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
 
         cond = rxs < 6 * deltax
         ax1.plot(
-            rxs[cond], 1.e4 * rxs[cond] ** (order) / norm[cond], "k", linewidth=2
+            rxs[cond], 1.0e4 * rxs[cond] ** (order) / norm[cond], "k", linewidth=2
         )
         ax1.plot(rxs, rxs ** (order / 3) / norm, "--k", linewidth=2)
 
-        ax1.plot(rxs, 1.e0 * rxs ** (1) / norm, ":k", linewidth=2)
+        ax1.plot(rxs, 1.0e0 * rxs ** (1) / norm, ":k", linewidth=2)
 
         z_bottom_axe = 0.09
         size_axe[1] = z_bottom_axe
@@ -819,7 +815,7 @@ imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
         cond = rxs < 6 * deltax
         ax1.plot(
             rxs[cond],
-            1.e0 * rxs[cond] ** 3 / S_Kolmo_theo[cond],
+            1.0e0 * rxs[cond] ** 3 / S_Kolmo_theo[cond],
             "k",
             linewidth=2,
         )

@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 
 from fluidsim.base.basilisk.solver import Simul

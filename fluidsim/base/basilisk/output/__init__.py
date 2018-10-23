@@ -1,5 +1,3 @@
-
-
 from ...output.base import OutputBase  # , SpecificOutput
 
 

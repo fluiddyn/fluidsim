@@ -129,8 +129,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         width = kxmax_forcing - kxmin_forcing
         height = kymax_forcing - kymin_forcing
 
-        theta1 = 90. - degrees(self.angle)
-        theta2 = 90.
+        theta1 = 90.0 - degrees(self.angle)
+        theta2 = 90.0
 
         KX = self.oper_coarse.KX
         KY = self.oper_coarse.KY

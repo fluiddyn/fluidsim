@@ -60,7 +60,6 @@ def make_parameters_simulation(gamma, F, sigma, nu_8, t_end=10, NO_SHEAR_MODES=F
     k_f = ((nkmax_forcing + nkmin_forcing) / 2) * max(2 * pi / Lx, 2 * pi / Lz)
     forcing_rate = (1 / tau_af**7) * ((2 * pi) / k_f)**2
     omega_af = 2 * pi / tau_af
-
     params.N = (gamma / F) * omega_af
     params.nu_8 = nu_8
 
@@ -93,7 +92,7 @@ if __name__ == "__main__":
 
     ##### PARAMETERS #####
     ######################
-    gamma = 0 # gamma = omega_l / omega_af
+    gamma = 0.2 # gamma = omega_l / omega_af
     F = np.sin(pi / 4) # F = omega_l / N
     sigma = 1 # sigma = omega_l / (pi * f_cf); f_cf freq time correlation forcing in s-1
     nu_8 = 1e-15
@@ -102,14 +101,6 @@ if __name__ == "__main__":
 
     # Start simulation
     sim = Simul(params)
-
-    # Date 13/07/2018
-    # gammas = [0.2, 0]
-    # for gamma in gammas:
-    #     params = make_parameters_simulation(gamma, F, sigma, nu_8, t_end=100.)
-    #     sim = Simul(params)
-    #     print("sim.params.N", sim.params.N)
-
 
     #####################################
     # START NORMALIZATION INITIALIZATION (if nx != nz)
@@ -154,6 +145,5 @@ if __name__ == "__main__":
         sim.state.statephys_from_statespect()
         # END NORMALIZATION INITIALIZATION
         ###################################
-
 
     sim.time_stepping.start()

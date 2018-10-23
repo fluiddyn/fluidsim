@@ -41,7 +41,7 @@ class TestSW1L(TestSolver):
             )
             q_fft = self.sim.state.get_var("q_fft")
 
-        T_q = (Fq_fft.conj() * q_fft + Fq_fft * q_fft.conj()).real / 2.
+        T_q = (Fq_fft.conj() * q_fft + Fq_fft * q_fft.conj()).real / 2.0
         sum_T = oper.sum_wavenumbers(T_q)
         self.assertZero(sum_T, 5, warn=False)
 
@@ -84,7 +84,7 @@ class TestSW1LExactLin(TestSW1L):
         try:
             Fq_fft = tendencies_fft.get_var("q_fft")
         except ValueError:
-            Fq_fft = self.sim.oper.create_arrayK(value=0.j)
+            Fq_fft = self.sim.oper.create_arrayK(value=0.0j)
 
         return self.sim.oper.uxuyetafft_from_qapamfft(Fq_fft, Fap_fft, Fam_fft)
 

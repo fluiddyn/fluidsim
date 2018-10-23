@@ -58,7 +58,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         oper.dealiasing(Fy_fft)
 
         transferZ_fft = (
-            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.
+            np.real(rot_fft.conj() * Frot_fft + rot_fft * Frot_fft.conj()) / 2.0
         )
         # print ('sum(transferZ) = {0:9.4e} ; sum(abs(transferZ)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferZ_fft),
@@ -71,7 +71,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
                 + uy_fft.conj() * Fy_fft
                 + uy_fft * Fy_fft.conj()
             )
-            / 2.
+            / 2.0
         )
         # print ('sum(transferE) = {0:9.4e} ; sum(abs(transferE)) = {1:9.4e}'
         #       ).format(self.sum_wavenumbers(transferE_fft),
@@ -113,7 +113,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
 
-            if delta_i_plot == 0 and delta_t != 0.:
+            if delta_i_plot == 0 and delta_t != 0.0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
 
@@ -146,7 +146,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
 
-            if delta_t != 0.:
+            if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
 
                     transferE = dset_transferE[it]

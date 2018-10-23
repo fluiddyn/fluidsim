@@ -22,10 +22,10 @@ params.oper.type_fft = "fluidfft.fft3d.mpi_with_fftwmpi3d"
 
 delta_x = old_div(params.oper.Lx, params.oper.nx)
 # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-params.nu_8 = 2. * 10e-1 * delta_x ** 8
+params.nu_8 = 2.0 * 10e-1 * delta_x ** 8
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 7.
+params.time_stepping.t_end = 7.0
 params.time_stepping.it_end = 2
 
 # params.init_fields.type = 'dipole'
@@ -40,7 +40,7 @@ params.forcing.enable = False
 
 params.output.periods_print.print_stdout = 0.00000000001
 
-params.output.periods_save.phys_fields = 1.
+params.output.periods_save.phys_fields = 1.0
 # params.output.periods_save.spectra = 0.5
 # params.output.periods_save.spatial_means = 0.05
 # params.output.periods_save.spect_energy_budg = 0.5

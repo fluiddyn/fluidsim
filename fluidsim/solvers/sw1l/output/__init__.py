@@ -119,7 +119,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
     def compute_enstrophy_fft(self):
         r"""Calculate enstrophy from vorticity in the spectral space."""
         rot_fft = self.sim.state.get_var("rot_fft")
-        return np.abs(rot_fft) ** 2 / 2.
+        return np.abs(rot_fft) ** 2 / 2.0
 
     def compute_PV_fft(self):
         r"""Compute Ertel and Charney (QG) potential vorticity.
@@ -131,7 +131,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         get_var = self.sim.state.get_var
         rot = get_var("rot")
         eta = self.sim.state.state_phys.get_var("eta")
-        ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1. + eta))
+        ErtelPV_fft = self.oper.fft2((self.sim.params.f + rot) / (1.0 + eta))
         rot_fft = get_var("rot_fft")
         eta_fft = get_var("eta_fft")
         CharneyPV_fft = rot_fft - self.sim.params.f * eta_fft
@@ -140,14 +140,14 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
     def compute_PE_fft(self):
         """Compute Ertel and Charney (QG) potential enstrophy."""
         ErtelPV_fft, CharneyPV_fft = self.compute_PV_fft()
-        return (abs(ErtelPV_fft) ** 2 / 2., abs(CharneyPV_fft) ** 2 / 2.)
+        return (abs(ErtelPV_fft) ** 2 / 2.0, abs(CharneyPV_fft) ** 2 / 2.0)
 
     def compute_CharneyPE_fft(self):
         """Compute Charney (QG) potential enstrophy."""
         rot_fft = self.sim.state.get_var("rot_fft")
         eta_fft = self.sim.state.get_var("eta_fft")
         CharneyPV_fft = rot_fft - self.sim.params.f * eta_fft
-        return abs(CharneyPV_fft) ** 2 / 2.
+        return abs(CharneyPV_fft) ** 2 / 2.0
 
     def compute_energies(self):
         """Compute kinetic, available potential and rotational kinetic energies."""
@@ -231,7 +231,7 @@ class OutputSW1L(OutputBaseSW1L):
         ux_fft = get_var("ux_fft")
         uy_fft = get_var("uy_fft")
         energyK_fft = (
-            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.
+            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.0
         )
 
         rot_fft = get_var("rot_fft")
@@ -239,7 +239,7 @@ class OutputSW1L(OutputBaseSW1L):
         rotJ_fft = self.oper.rotfft_from_vecfft(Jx_fft, Jy_fft)
         Jxr_fft, Jyr_fft = self.oper.vecfft_from_rotfft(rotJ_fft)
         energyKr_fft = (
-            np.real(Jxr_fft.conj() * uxr_fft + Jyr_fft.conj() * uyr_fft) / 2.
+            np.real(Jxr_fft.conj() * uxr_fft + Jyr_fft.conj() * uyr_fft) / 2.0
         )
         return energyK_fft, energyA_fft, energyKr_fft
 
@@ -253,7 +253,7 @@ class OutputSW1L(OutputBaseSW1L):
         ux_fft = get_var("ux_fft")
         uy_fft = get_var("uy_fft")
         energyK_fft = (
-            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.
+            np.real(Jx_fft.conj() * ux_fft + Jy_fft.conj() * uy_fft) / 2.0
         )
 
         return energyK_fft, energyA_fft

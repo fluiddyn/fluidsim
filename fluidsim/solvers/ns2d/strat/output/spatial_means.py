@@ -37,7 +37,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         enstrophy = self.sum_wavenumbers(enstrophy_fft)
 
         # Compute energy shear modes
-        COND_SHEAR_MODES = abs(self.sim.oper.KX) == 0.
+        COND_SHEAR_MODES = abs(self.sim.oper.KX) == 0.0
         energy_shear_modes = np.sum(energy_fft[COND_SHEAR_MODES])
         if mpi.nb_proc > 1:
             energy_shear_modes = mpi.comm.reduce(
@@ -47,14 +47,14 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         # Dissipation rate kinetic and potential energy (kappa = viscosity)
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
-        epsK = self.sum_wavenumbers(f_d * 2. * energyK_fft)
-        epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2. * energyK_fft)
+        epsK = self.sum_wavenumbers(f_d * 2.0 * energyK_fft)
+        epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2.0 * energyK_fft)
 
-        epsA = self.sum_wavenumbers(f_d * 2. * energyA_fft)
-        epsA_hypo = self.sum_wavenumbers(f_d_hypo * 2. * energyA_fft)
+        epsA = self.sum_wavenumbers(f_d * 2.0 * energyA_fft)
+        epsA_hypo = self.sum_wavenumbers(f_d_hypo * 2.0 * energyA_fft)
 
-        epsZ = self.sum_wavenumbers(f_d * 2. * enstrophy_fft)
-        epsZ_hypo = self.sum_wavenumbers(f_d_hypo * 2. * enstrophy_fft)
+        epsZ = self.sum_wavenumbers(f_d * 2.0 * enstrophy_fft)
+        epsZ_hypo = self.sum_wavenumbers(f_d_hypo * 2.0 * enstrophy_fft)
 
         # Injection energy if forcing is True
         if self.sim.params.forcing.enable:
@@ -384,6 +384,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         """Plots the energy."""
         if mpi.rank != 0:
             return
+
         pforcing = self.params.forcing
         dict_results = self.load()
 
@@ -401,7 +402,9 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         # Normalization by E_f
         if pforcing.key_forced == "ap_fft":
-            E_f = pforcing.forcing_rate ** (2. / 7) * (2 * pi / k_f) ** (10. / 7)
+            E_f = pforcing.forcing_rate ** (2.0 / 7) * (2 * pi / k_f) ** (
+                10.0 / 7
+            )
         else:
             raise NotImplementedError("Computation E_f not implemented.")
 

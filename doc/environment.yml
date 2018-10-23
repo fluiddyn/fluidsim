@@ -7,14 +7,14 @@ dependencies:
   - pandas
   - cython
   - h5py
-  - sphinx>=1.7.7
-  - numpydoc
   - jupyter
   - matplotlib
   - fftw
   - pyfftw
   - mako
   - pip:
+    - sphinx
+    - numpydoc
     - sphinx_rtd_theme
     - hg+https://bitbucket.org/fluiddyn/fluiddyn#egg=fluiddyn
     - hg+https://bitbucket.org/fluiddyn/fluidfft#egg=fluidfft

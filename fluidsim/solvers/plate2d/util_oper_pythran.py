@@ -1,5 +1,3 @@
-
-
 # pythran export monge_ampere_step0(
 #     complex128[][], complex128[][],
 #     float64[][], float64[][], float64[][])

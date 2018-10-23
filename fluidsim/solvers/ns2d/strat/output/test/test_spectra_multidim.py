@@ -21,7 +21,7 @@ class TestSpectraMultiDim(TestNS2DStrat):
         rot_fft = state_spect.get_var("rot_fft")
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
         b_fft = state_spect.get_var("b_fft")
-        energyK_fft = (1. / 2) * (
+        energyK_fft = (1.0 / 2) * (
             np.abs(ux_fft.conj() * ux_fft) + np.abs(uy_fft.conj() * uy_fft)
         )
 
@@ -32,7 +32,7 @@ class TestSpectraMultiDim(TestNS2DStrat):
 
         # Check potential energy EA
         try:
-            energyA_fft = (1. / 2) * (
+            energyA_fft = (1.0 / 2) * (
                 (np.abs(b_fft.conj() * b_fft) / sim.params.N ** 2)
             )
         except ZeroDivisionError:
@@ -65,7 +65,7 @@ class TestSpectraMultiDim(TestNS2DStrat):
         rot_fft = state_spect.get_var("rot_fft")
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
         b_fft = state_spect.get_var("b_fft")
-        energyK_fft = (1. / 2) * (
+        energyK_fft = (1.0 / 2) * (
             np.abs(ux_fft.conj() * ux_fft) + np.abs(uy_fft.conj() * uy_fft)
         )
 
@@ -92,7 +92,7 @@ class TestSpectraMultiDim(TestNS2DStrat):
 
         # Check potential energy EA
         try:
-            energyA_fft = (1. / 2) * (
+            energyA_fft = (1.0 / 2) * (
                 (np.abs(b_fft.conj() * b_fft) / sim.params.N ** 2)
             )
         except ZeroDivisionError:

@@ -163,7 +163,7 @@ class TimeSignalsK(SpecificOutput):
 
             self.period_save = np.pi / (8 * self.omega_array_ik.max())
         else:
-            self.period_save = 0.
+            self.period_save = 0.0
 
         if mpi.nb_proc > 1:
             self.period_save = mpi.comm.bcast(self.period_save)
@@ -358,7 +358,7 @@ class TimeSignalsK(SpecificOutput):
     def time_spectrum(self, sig_long):
 
         Nt = sig_long.size
-        stepit0 = int(np.fix(self.nt / 2.))
+        stepit0 = int(np.fix(self.nt / 2.0))
 
         nb_spectra = 0
         it0 = 0

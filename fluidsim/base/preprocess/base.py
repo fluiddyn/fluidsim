@@ -38,12 +38,12 @@ class PreprocessBase(object):
         attribs = {
             "enable": False,
             "init_field_scale": "unity",
-            "init_field_const": 1.,
+            "init_field_const": 1.0,
             "viscosity_type": "laplacian",
             "viscosity_scale": "enstrophy_forcing",
-            "viscosity_const": 1.,
+            "viscosity_const": 1.0,
             "forcing_scale": "unity",
-            "forcing_const": 1.,
+            "forcing_const": 1.0,
         }
 
         params._set_child("preprocess", attribs=attribs)

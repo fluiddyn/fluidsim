@@ -21,7 +21,7 @@ class TestSpectra(TestNS2DStrat):
         b_fft = state_spect.get_var("b_fft")
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
 
-        energyK_fft = (1. / 2) * (
+        energyK_fft = (1.0 / 2) * (
             np.abs(ux_fft.conj() * ux_fft) + np.abs(uy_fft.conj() * uy_fft)
         )
         spectrum1DEK_kx, spectrum1DEK_ky = oper.spectra1D_from_fft(energyK_fft)
@@ -30,7 +30,7 @@ class TestSpectra(TestNS2DStrat):
         self.assertAlmostEqual(spectrum1DEK_ky.sum() * oper.deltaky, energyK)
 
         try:
-            energyA_fft = (1. / 2) * (
+            energyA_fft = (1.0 / 2) * (
                 (np.abs(b_fft.conj() * b_fft) / sim.params.N ** 2)
             )
         except ZeroDivisionError:
