@@ -24,33 +24,33 @@ from dedalus import public as de
 
 
 lx, ly = (1., 1.)
-n = 512
+n = 341
+dealias = 512/341
 nx, ny = (n, n)
 
 # Create bases and domain
-x_basis = de.Fourier('x', nx, interval=(0, lx), dealias=3/2)
-y_basis = de.Fourier('y', ny, interval=(0, ly), dealias=3/2)
+x_basis = de.Fourier('x', nx, interval=(0, lx), dealias=dealias)
+y_basis = de.Fourier('y', ny, interval=(0, ly), dealias=dealias)
 domain = de.Domain([x_basis, y_basis], grid_dtype=np.float64)
 
 # Stream function-vorticity formulation
-variables = ['rot', 'psi', 'u', 'v', 'rotx', 'roty']
+variables = ['psi']
 problem = de.IVP(domain, variables=variables)
 
 Reynolds = 1e4
 problem.parameters['Re'] = Reynolds
-
+problem.substitutions['u'] = "dy(psi)"
+problem.substitutions['v'] = "-dx(psi)"
+problem.substitutions['rot'] = "- dx(dx(psi)) - dy(dy(psi))"
+problem.substitutions['rotx'] = "dx(rot)"
+problem.substitutions['roty'] = "dy(rot)"
 problem.add_equation(
     'dt(rot) - (1/Re)*(dx(rotx) + dy(roty)) = - u*rotx - v*roty',
     condition="(nx != 0) or (ny != 0)")
 problem.add_equation("psi = 0", condition="(nx == 0) and (ny == 0)")
-problem.add_equation('dx(dx(psi)) + dy(dy(psi)) + rot = 0')
 
 # with first-order reduction equations...
 # problem.add_equation('rot + dy(u) - dx(v) = 0')
-problem.add_equation('rotx - dx(rot) = 0')
-problem.add_equation('roty - dy(rot) = 0')
-problem.add_equation('v + dx(psi) = 0')
-problem.add_equation('u - dy(psi) = 0')
 
 ts = de.timesteppers.RK443
 # we could be faster "per time step" with SBDF3 but to be fair we need to use RK4
@@ -60,12 +60,7 @@ solver = problem.build_solver(ts)
 
 x = domain.grid(0)
 y = domain.grid(1)
-rot = solver.state['rot']
 psi = solver.state['psi']
-u = solver.state['u']
-v = solver.state['v']
-rotx = solver.state['rotx']
-roty = solver.state['roty']
 
 # Initial conditions
 
@@ -75,9 +70,12 @@ roty = solver.state['roty']
 # rot.differentiate('x', out=rotx)
 # rot.differentiate('y', out=roty)
 
+rot = domain.new_field()
 rot['g'] = gausspulse(np.sqrt((x - 0.5)**2 + (y - 0.5)**2), fc=1)
-rot.differentiate('x', out=rotx)
-rot.differentiate('y', out=roty)
+kx = domain.elements(0)
+ky = domain.elements(1)
+k2 = kx**2 + ky**2
+psi['c'][k2 != 0] = rot['c'][k2 != 0] / k2[k2 != 0]
 
 # psi['g'] = 10 * y
 # psi.differentiate('y', out=u)
