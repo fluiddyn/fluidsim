@@ -330,7 +330,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         if nb_proc == 1:
             pdf, bin_edges = np.histogram(
-                field, bins=nb_bins, normed=True, range=(range_min, range_max)
+                field, bins=nb_bins, density=True, range=(range_min, range_max)
             )
         else:
             hist, bin_edges = np.histogram(
