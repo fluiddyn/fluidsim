@@ -24,7 +24,7 @@ from fluidsim.base.solvers.pseudo_spect import (
     InfoSolverPseudoSpectral,
 )
 
-from .util_pythran import compute_Frot
+from fluidsim.solvers.ns2d.util_pythran import compute_Frot
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):

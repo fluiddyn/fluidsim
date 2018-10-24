@@ -28,6 +28,7 @@ class Operators0D(object):
     def __init__(self, params=None, SEQUENTIAL=None):
 
         self.params = params
+        self.axes = tuple()
         self.shapeX_seq = self.shapeX_loc = []
 
     def produce_str_describing_oper(self):

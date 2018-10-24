@@ -178,7 +178,7 @@ class PhysFieldsBase(SpecificOutput):
                 # h5file = h5netcdf.File(...
                 h5file = h5pack.File(path_file, "w")
                 group_state_phys = h5file.create_group("state_phys")
-                group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
+                group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
                 group_state_phys.attrs["name_type_variables"] = state_phys.info
                 group_state_phys.attrs["time"] = time
                 group_state_phys.attrs["it"] = self.sim.time_stepping.it
@@ -187,7 +187,7 @@ class PhysFieldsBase(SpecificOutput):
             # h5file = h5py.File(...
             h5file = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
             group_state_phys = h5file.create_group("state_phys")
-            group_state_phys.attrs["what"] = "obj state_phys for solveq2d"
+            group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
             group_state_phys.attrs["name_type_variables"] = state_phys.info
 
             group_state_phys.attrs["time"] = time
@@ -204,18 +204,24 @@ class PhysFieldsBase(SpecificOutput):
                 if mpi.rank == 0:
                     _create_variable(group_state_phys, k, field_seq)
         else:
+            h5file.atomic = False
+            xstart, ystart = self.oper.seq_indices_first_X
+            xend = xstart + self.oper.shapeX_loc[0]
+            yend = ystart + self.oper.shapeX_loc[1]
             for k in state_phys.keys:
                 field_loc = state_phys.get_var(k)
                 dset = group_state_phys.create_dataset(
                     k, self.oper.shapeX_seq, dtype=field_loc.dtype
                 )
-                h5file.atomic = False
-                xstart = self.oper.seq_index_firstK0
-                xend = self.oper.seq_index_firstK0 + self.oper.shapeX_loc[0]
-                ystart = self.oper.seq_index_firstK1
-                yend = self.oper.seq_index_firstK1 + self.oper.shapeX_loc[1]
                 with dset.collective:
-                    dset[xstart:xend, ystart:yend, :] = field_loc
+                    if field_loc.ndim == 2:
+                        dset[xstart:xend, ystart:yend] = field_loc
+                    elif field_loc.ndim == 3:
+                        dset[xstart:xend, ystart:yend, :] = field_loc
+                    else:
+                        raise NotImplementedError(
+                            "Unsupported number of dimensions"
+                        )
             h5file.close()
             if mpi.rank == 0:
                 h5file = h5pack.File(path_file, "w")
@@ -224,6 +230,7 @@ class PhysFieldsBase(SpecificOutput):
             h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
             h5file.attrs["name_solver"] = self.output.name_solver
             h5file.attrs["name_run"] = self.output.name_run
+            h5file.attrs["axes"] = np.array(self.oper.axes, dtype="|S9")
             if particular_attr is not None:
                 h5file.attrs["particular_attr"] = particular_attr
 
