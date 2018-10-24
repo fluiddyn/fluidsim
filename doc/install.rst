@@ -39,6 +39,14 @@ Dependencies
        $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
        $ python -c 'import h5py; h5py.run_tests()'
 
+    In some cases you need to set C_INCLUDE_PATH variable before h5py
+    installation. For example on debian stretch : 
+
+    .. code:: bash
+
+       $ export C_INCLUDE_PATH=/usr/include/openmpi/
+       $ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
+
     See the `h5py documentation
     <http://docs.h5py.org/en/latest/build.html>`_ for more details.
 
