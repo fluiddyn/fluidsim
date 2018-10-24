@@ -205,7 +205,6 @@ class PhysFieldsBase(SpecificOutput):
                     _create_variable(group_state_phys, k, field_seq)
         else:
             h5file.atomic = False
-            mpi.comm.Barrier()
             xstart, ystart = self.oper.seq_indices_first_X
             xend = xstart + self.oper.shapeX_loc[0]
             yend = ystart + self.oper.shapeX_loc[1]
@@ -223,10 +222,6 @@ class PhysFieldsBase(SpecificOutput):
                         raise NotImplementedError(
                             "Unsupported number of dimensions"
                         )
-                print(
-                    f"{mpi.rank} writing {k} x={xstart}:{xend}, y={ystart}:{yend}, {field_loc.shape}"
-                )
-                mpi.comm.Barrier()
             h5file.close()
             if mpi.rank == 0:
                 h5file = h5pack.File(path_file, "w")
