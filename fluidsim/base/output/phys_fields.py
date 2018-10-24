@@ -205,7 +205,10 @@ class PhysFieldsBase(SpecificOutput):
                     _create_variable(group_state_phys, k, field_seq)
         else:
             h5file.atomic = False
-            xstart, ystart = self.oper.seq_indices_first_X
+            if len(self.oper.shapeX_loc) == 2:
+                xstart, ystart = self.oper.seq_indices_first_X
+            if len(self.oper.shapeX_loc) == 3:
+                xstart, ystart, zstart = self.oper.seq_indices_first_X
             xend = xstart + self.oper.shapeX_loc[0]
             yend = ystart + self.oper.shapeX_loc[1]
             for k in state_phys.keys:
@@ -224,7 +227,7 @@ class PhysFieldsBase(SpecificOutput):
                         )
             h5file.close()
             if mpi.rank == 0:
-                h5file = h5pack.File(path_file, "w")
+                h5file = h5pack.File(path_file, "r+")
 
         if mpi.rank == 0:
             h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
