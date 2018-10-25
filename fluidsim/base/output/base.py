@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 import fluiddyn
 from fluiddyn.util import mpi
 from fluiddyn.util import is_run_from_ipython, time_as_str, print_memory_usage
-from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH
+from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, Path
 
 import fluidsim
 from fluidsim.util.util import load_params_simul
@@ -358,8 +358,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 + ".\n\nIt should not be modified "
                 "(except for adding xml comments)."
             )
-            info_solver_xml_path = self.path_run + "/info_solver.xml"
-            params_xml_path = self.path_run + "/params_simul.xml"
+            path_run = Path(self.path_run)
+            info_solver_xml_path = path_run / "info_solver.xml"
+            params_xml_path = path_run / "params_simul.xml"
 
             # save info on the run
             if replace:
