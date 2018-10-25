@@ -22,6 +22,8 @@ https://github.com/pypa/setuptools_scm#setuptools_scm
 
 __version__ = "0.2.3"
 
+__all__ = ["__version__", "get_local_version", "__about__"]
+
 try:
     from pyfiglet import figlet_format
 
@@ -37,3 +39,21 @@ except ImportError:
 """
 
 __about__ = __about__.rstrip() + f"\n\n{28 * ' '} v. {__version__}\n"
+
+_loc_version = None
+
+
+def get_local_version():
+    """Get a long "local" version."""
+
+    global _loc_version
+
+    if _loc_version is None:
+        from setuptools_scm import get_version
+
+        try:
+            _loc_version = get_version(root="..", relative_to=__file__)
+        except LookupError:
+            _loc_version = __version__
+
+    return _loc_version

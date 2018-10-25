@@ -25,7 +25,7 @@ The package is organised in four sub-packages:
 
 from pathlib import Path
 
-from ._version import __version__
+from ._version import __version__, get_local_version
 
 from fluiddyn.io import FLUIDSIM_PATH
 
@@ -52,6 +52,7 @@ del util
 
 __all__ = [
     "__version__",
+    "get_local_version",
     "path_dir_results",
     "import_module_solver_from_key",
     "import_simul_class_from_key",

@@ -124,6 +124,7 @@ install_requires = [
     "h5py",
     "h5netcdf",
     "fluidpythran >= 0.0.3",
+    "setuptools_scm",
 ]
 
 if FFTW3:
