@@ -23,9 +23,14 @@ The package is organised in four sub-packages:
 
 """
 
+from pathlib import Path
+
 from ._version import __version__
 
-from fluiddyn.io import FLUIDSIM_PATH as path_dir_results
+from fluiddyn.io import FLUIDSIM_PATH
+
+# has to be done before importing util
+path_dir_results = Path(FLUIDSIM_PATH)
 
 from .util.util import (
     import_module_solver_from_key,
@@ -34,6 +39,7 @@ from .util.util import (
     load_state_phys_file,
     modif_resolution_from_dir,
     modif_resolution_all_dir,
+    load_for_restart,
 )
 
 from .base.params import load_params_simul
@@ -54,4 +60,5 @@ __all__ = [
     "modif_resolution_from_dir",
     "modif_resolution_all_dir",
     "load_params_simul",
+    "load_for_restart",
 ]

@@ -7,13 +7,11 @@
 
 """
 
-from __future__ import division, print_function
-
-from builtins import object
 import os as _os
 import glob as _glob
 from copy import deepcopy as _deepcopy
 import inspect
+from pathlib import Path
 
 import numpy as _np
 import h5py as _h5py
@@ -151,7 +149,7 @@ def pathdir_from_namedir(name_dir=None):
         return _os.getcwd()
 
     if name_dir[0] != "/" and name_dir[0] != "~":
-        name_dir = path_dir_results + "/" + name_dir
+        name_dir = str(path_dir_results / name_dir)
     return _os.path.expanduser(name_dir)
 
 
@@ -278,37 +276,73 @@ def load_state_phys_file(
 
     """
 
-    path_dir = pathdir_from_namedir(name_dir)
+    params, Simul = load_for_restart(name_dir, t_approx, merge_missing_params)
 
+    if modif_save_params:
+        params.output.HAS_TO_SAVE = False
+        params.output.ONLINE_PLOT_OK = False
+
+    sim = Simul(params)
+    return sim
+
+
+def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
+    """Load params and Simul for a restart.
+
+    Parameters
+    ----------
+
+    name_dir : str (optional)
+
+      Name of the directory of the simulation. If nothing is given, we load the
+      data in the current directory.
+
+    t_approx : number (optional)
+
+      Approximate time of the file to be loaded.
+
+    merge_missing_params : bool (optional, default == False)
+
+      Can be used to load old simulations carried out with an old fluidsim
+      version.
+
+    """
+
+    if isinstance(name_dir, Path):
+        name_dir = str(name_dir)
+
+    path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
 
     # choose the file with the time closer to t_approx
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = _os.path.join(path_dir, name_file)
 
-    with _h5py.File(path_file, "r") as f:
-        params = Parameters(hdf5_object=f["info_simul"]["params"])
+    if mpi.rank > 0:
+        params = None
+    else:
+        with _h5py.File(path_file, "r") as f:
+            params = Parameters(hdf5_object=f["info_simul"]["params"])
 
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
+        if merge_missing_params:
+            merge_params(params, solver.Simul.create_default_params())
 
-    params.path_run = path_dir
-    params.NEW_DIR_RESULTS = False
-    if modif_save_params:
-        params.output.HAS_TO_SAVE = False
-        params.output.ONLINE_PLOT_OK = False
-    params.init_fields.type = "from_file"
-    params.init_fields.from_file.path = path_file
-    params.init_fields.modif_after_init = False
-    try:
-        params.preprocess.enable = False
-    except AttributeError:
-        pass
+        params.path_run = path_dir
+        params.NEW_DIR_RESULTS = False
+        params.init_fields.type = "from_file"
+        params.init_fields.from_file.path = path_file
+        params.init_fields.modif_after_init = False
+        try:
+            params.preprocess.enable = False
+        except AttributeError:
+            pass
 
-    fix_old_params(params)
+        fix_old_params(params)
 
-    sim = solver.Simul(params)
-    return sim
+    if mpi.nb_proc > 1:
+        params = mpi.comm.bcast(params, root=0)
+
+    return params, solver.Simul
 
 
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
