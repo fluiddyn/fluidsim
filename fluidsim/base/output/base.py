@@ -349,7 +349,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             " the Python program FluidDyn "
             + fluiddyn.__version__
             + " and FluidSim "
-            + fluidsim.__version__
+            + fluidsim.get_local_version()
             + ".\n\nIt should not be modified "
             "(except for adding xml comments)."
         )
