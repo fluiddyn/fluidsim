@@ -344,23 +344,23 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def _save_info_solver_params_xml(self, replace=False):
         """Save files with information on the solver and on the run."""
-        comment = (
-            "This file has been created by"
-            " the Python program FluidDyn "
-            + fluiddyn.__version__
-            + " and FluidSim "
-            + fluidsim.get_local_version()
-            + ".\n\nIt should not be modified "
-            "(except for adding xml comments)."
-        )
-        info_solver_xml_path = self.path_run + "/info_solver.xml"
-        params_xml_path = self.path_run + "/params_simul.xml"
-
         if (
             mpi.rank == 0
             and self._has_to_save
             and self.sim.params.NEW_DIR_RESULTS
         ):
+            comment = (
+                "This file has been created by"
+                " the Python program FluidDyn "
+                + fluiddyn.__version__
+                + " and FluidSim "
+                + fluidsim.get_local_version()
+                + ".\n\nIt should not be modified "
+                "(except for adding xml comments)."
+            )
+            info_solver_xml_path = self.path_run + "/info_solver.xml"
+            params_xml_path = self.path_run + "/params_simul.xml"
+
             # save info on the run
             if replace:
                 os.remove(info_solver_xml_path)
