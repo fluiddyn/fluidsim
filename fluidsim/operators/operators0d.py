@@ -9,9 +9,7 @@ Provides
 
 """
 
-from __future__ import division
-
-from builtins import object
+from fluiddyn.util import mpi
 
 
 class Operators0D(object):
@@ -26,6 +24,8 @@ class Operators0D(object):
         params._set_child("oper")
 
     def __init__(self, params=None, SEQUENTIAL=None):
+        if mpi.nb_proc > 1:
+            raise ValueError
 
         self.params = params
         self.axes = tuple()
