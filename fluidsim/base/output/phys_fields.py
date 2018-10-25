@@ -205,10 +205,13 @@ class PhysFieldsBase(SpecificOutput):
                     _create_variable(group_state_phys, k, field_seq)
         else:
             h5file.atomic = False
-            if len(self.oper.shapeX_loc) == 2:
+            ndim = len(self.oper.shapeX_loc)
+            if ndim == 2:
                 xstart, ystart = self.oper.seq_indices_first_X
-            if len(self.oper.shapeX_loc) == 3:
+            elif ndim == 3:
                 xstart, ystart, zstart = self.oper.seq_indices_first_X
+            else:
+                raise NotImplementedError
             xend = xstart + self.oper.shapeX_loc[0]
             yend = ystart + self.oper.shapeX_loc[1]
             for k in state_phys.keys:
