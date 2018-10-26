@@ -147,7 +147,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         else:
             raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
 
-        values = calcul_viscosity(
+        result = calcul_viscosity(
             C,
             viscosity_scale,
             viscosity_type,
@@ -155,7 +155,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             verbose=False,
             *args,
         )
-        for v in values:
+        for v in result.values():
             attr, order, nu = v
             self.sim.params.__setattr__(attr, nu)
 
