@@ -4,15 +4,16 @@ channels:
 
 dependencies:
   - python=3.6
-  - pandas
-  - cython
+  - blas=*=openblas
   - h5py
-  - jupyter
-  - matplotlib
   - fftw
   - pyfftw
+  - cython
   - mako
   - pip:
+    - pandas
+    - matplotlib
+    - jupyter
     - sphinx
     - numpydoc
     - sphinx_rtd_theme
