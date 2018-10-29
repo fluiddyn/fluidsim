@@ -11,12 +11,9 @@ Provides:
 
 """
 
-from __future__ import division, print_function
-
 import os
 from glob import glob
-from importlib import import_module
-from builtins import map
+from pathlib import Path
 
 import h5py
 
@@ -217,25 +214,31 @@ def load_info_solver(path_dir=None):
     if path_dir is None:
         path_dir = os.getcwd()
 
-    path_info_solver = os.path.join(path_dir, "info_solver.xml")
-    if os.path.exists(path_info_solver):
-        return Parameters(path_file=path_info_solver)
+    if not isinstance(path_dir, Path):
+        path_dir = Path(path_dir)
 
-    paths = glob(os.path.join(path_dir, "state_*"))
-    if paths:
-        path = sorted(paths)[0]
+    if not path_dir.is_dir():
+        raise ValueError(str(path_dir) + " is not a directory")
 
-        if len(path) > 100:
-            str_path = "[...]" + path[-100:]
-        else:
-            str_path = path
+    path_info_solver = path_dir / "info_solver.xml"
+    if path_info_solver.exists():
+        return Parameters(path_file=str(path_info_solver))
 
-        print("load params from file\n" + str_path)
-        with h5py.File(path) as h5file:
-            return Parameters(hdf5_object=h5file["/info_simul/solver"])
+    paths = path_dir.glob("state_*")
 
+    if not paths:
+        raise ValueError("No result files in dir " + str(path_dir))
+
+    path = str(sorted(paths)[0])
+
+    if len(path) > 100:
+        str_path = "[...]" + path[-100:]
     else:
-        return ValueError
+        str_path = path
+
+    print("load params from file\n" + str_path)
+    with h5py.File(path) as h5file:
+        return Parameters(hdf5_object=h5file["/info_simul/solver"])
 
 
 if __name__ == "__main__":

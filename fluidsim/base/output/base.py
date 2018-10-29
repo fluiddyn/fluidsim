@@ -152,7 +152,7 @@ are called.
 
         if not params.NEW_DIR_RESULTS:
             try:
-                self.path_run = params.path_run
+                self.path_run = str(params.path_run)
             except AttributeError:
                 params.NEW_DIR_RESULTS = True
                 print(

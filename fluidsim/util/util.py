@@ -144,13 +144,25 @@ def import_simul_class_from_key(key, package=None):
 
 
 def pathdir_from_namedir(name_dir=None):
-    """Return the path if a result directory."""
+    """Return the path of a result directory."""
     if name_dir is None:
         return _os.getcwd()
 
-    if name_dir[0] != "/" and name_dir[0] != "~":
-        name_dir = str(path_dir_results / name_dir)
-    return _os.path.expanduser(name_dir)
+    if not isinstance(name_dir, Path):
+        name_dir = Path(name_dir)
+
+    name_dir = name_dir.expanduser()
+
+    if name_dir.is_dir():
+        return name_dir.absolute()
+
+    if not name_dir.is_absolute():
+        name_dir = path_dir_results / name_dir
+
+    if not name_dir.is_dir():
+        raise ValueError(str(name_dir) + " is not a directory")
+
+    return name_dir
 
 
 class ModulesSolvers(dict):
@@ -165,12 +177,15 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
     """
-    path_files = _glob.glob(path_dir + "/state_phys_t*")
+    if not isinstance(path_dir, Path):
+        path_dir = Path(path_dir)
+
+    path_files = tuple(path_dir.glob("state_phys_t*"))
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
-        raise ValueError("No state file in the dir\n" + path_dir)
+        raise ValueError("No state file in the dir\n" + str(path_dir))
 
-    name_files = [_os.path.split(path)[-1] for path in path_files]
+    name_files = [path.name for path in path_files]
     if "state_phys_t=" in name_files[0]:
         ind_start_time = len("state_phys_t=")
     else:
@@ -182,7 +197,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()
-    name_file = _os.path.split(path_files[i_file])[-1]
+    name_file = path_files[i_file].name
     return name_file
 
 
@@ -348,7 +363,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
     """Save files with a modified resolution."""
     path_base = pathdir_from_namedir(dir_base)
-    list_dir_results = _glob.glob(path_base + "/SE2D*")
+    list_dir_results = list(path_base.glob("SE2D*"))
     for path_dir in list_dir_results:
         modif_resolution_from_dir(
             name_dir=path_dir,
@@ -379,7 +394,7 @@ def modif_resolution_from_dir(
 
     print(sim2.params.path_run)
 
-    sim2.output.path_run = path_dir + "/State_phys_{0}x{1}".format(
+    sim2.output.path_run = str(path_dir) + "/State_phys_{0}x{1}".format(
         sim2.params.oper.nx, sim2.params.oper.ny
     )
     print("Save file in directory\n" + sim2.output.path_run)
@@ -442,7 +457,7 @@ class SetOfDirResults(object):
     def __init__(self, arg):
         if isinstance(arg, str):
             dir_base = pathdir_from_namedir(arg)
-            paths_results = _glob.glob(dir_base + "/SE2D_*")
+            paths_results = tuple(dir_base.glob("SE2D_*"))
             if len(paths_results) == 0:
                 print("No result directory in the directory\n" + dir_base)
         else:
