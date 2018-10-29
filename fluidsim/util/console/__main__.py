@@ -3,7 +3,7 @@
 
 """
 import argparse
-from fluidsim import __version__
+from fluidsim import __version__, get_local_version
 from . import bench, bench_analysis, profile
 from .util import ConsoleError
 
@@ -30,6 +30,14 @@ def add_subparser(subparsers, module, description=None, subcommand=None):
     parser_subcommand.set_defaults(func=module.run)
 
 
+def print_verbose_version(args):
+    """Prints verbose version including local SCM version if it exists."""
+    print("fluidsim", __version__)
+    local_version = get_local_version()
+    if local_version != __version__:
+        print("local version:", get_local_version())
+
+
 def get_parser():
     """Defines parser for command `fluidsim` and all its sub-commands."""
     parser = argparse.ArgumentParser(
@@ -37,13 +45,20 @@ def get_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Console utilities for FluidSim",
     )
-    parser.add_argument("-V", "--version", action="version", version=__version__)
+    parser.add_argument(
+        "-V", "--version", action="version", version=f"%(prog)s {__version__}"
+    )
 
     subparsers = parser.add_subparsers(
         help='see "fluidsim {subcommand} -h" for more details'
     )
     for module in (bench, bench_analysis, profile):
         add_subparser(subparsers, module, module.description)
+
+    parser_version = subparsers.add_parser(
+        "version", description=print_verbose_version.__doc__
+    )
+    parser_version.set_defaults(func=print_verbose_version)
 
     return parser
 
