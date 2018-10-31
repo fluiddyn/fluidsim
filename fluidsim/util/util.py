@@ -7,6 +7,7 @@
 
 """
 
+from typing import Union
 import os as _os
 import glob as _glob
 from copy import deepcopy as _deepcopy
@@ -143,7 +144,7 @@ def import_simul_class_from_key(key, package=None):
     return solver.Simul
 
 
-def pathdir_from_namedir(name_dir=None):
+def pathdir_from_namedir(name_dir: Union[str, Path, None]=None):
     """Return the path of a result directory."""
     if name_dir is None:
         return _os.getcwd()
