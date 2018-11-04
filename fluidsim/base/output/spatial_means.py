@@ -103,6 +103,23 @@ class SpatialMeansBase(SpecificOutput):
         dict_results = {}
         return dict_results
 
+    def load_dataset(self, dims=("t",)):
+        """Loads results as a xarray dataset."""
+        dict_results = self.load()
+        # NOTE: format specified in
+        # http://xarray.pydata.org/en/stable/generated/xarray.Dataset.from_dict.html
+        dset = {"coords": {}, "attrs": {}, "dims": dims, "data_vars": {}}
+        for key, value in dict_results.items():
+            if isinstance(value, np.ndarray):
+                target = "coords" if key in dims else "data_vars"
+                dset[target].update({key: {"dims": dims, "data": value}})
+            else:
+                dset["attrs"].update({key: value})
+
+        from xarray import Dataset
+
+        return Dataset.from_dict(dset)
+
     def plot(self):
         pass
 
