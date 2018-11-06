@@ -102,10 +102,12 @@ def _run(tests, verbose=False):
     return result
 
 
-def import_test_module(module_name:str):
+def import_test_module(module_name: str):
     """Smarter import handling common mistakes with warnings."""
     if not module_name.startswith("fluidsim"):
-        warn(f"Assuming you forgot to add fluidsim in front of module name: {module_name}")
+        warn(
+            f"Assuming you forgot to add fluidsim in front of module name: {module_name}"
+        )
         module_name = ".".join(("fluidsim", module_name))
 
     try:

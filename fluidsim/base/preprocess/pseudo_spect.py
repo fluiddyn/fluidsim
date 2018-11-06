@@ -356,7 +356,7 @@ def calcul_viscosity(
 
     if verbose:
         length_scale = np.mean(kolmo_len)
-        k_diss = 1. / length_scale
+        k_diss = 1.0 / length_scale
         print("\nCALCULATED (eps={})".format(epsilon))
         print(
             f"Dissipation wavenumber, k_d = {k_diss}; k_d / k_f = {k_diss / k_f}"
