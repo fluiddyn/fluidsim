@@ -479,17 +479,20 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     if hasattr(self.__dict__[k], "_close_file"):
                         self.__dict__[k]._close_file()
 
-        if not self.path_run.startswith(FLUIDSIM_PATH) and mpi.rank == 0:
+        if not self.path_run.startswith(FLUIDSIM_PATH):
             path_base = FLUIDSIM_PATH
             if len(self.params.sub_directory) > 0:
                 path_base = os.path.join(path_base, self.params.sub_directory)
 
-            if not os.path.exists(path_base):
-                os.makedirs(path_base)
-
             new_path_run = os.path.join(path_base, self.sim.name_run)
-            shutil.move(self.path_run, path_base)
-            print("move result directory in directory:\n" + new_path_run)
+
+            if mpi.rank == 0:
+                if not os.path.exists(path_base):
+                    os.makedirs(path_base)
+
+                shutil.move(self.path_run, path_base)
+                print("move result directory in directory:\n" + new_path_run)
+
             self.path_run = new_path_run
             for spec_output in list(self.__dict__.values()):
                 if isinstance(spec_output, SpecificOutput):
@@ -497,6 +500,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         spec_output._init_path_files()
                     except AttributeError:
                         pass
+
+            if mpi.nb_proc > 1:
+                mpi.comm.barrier()
 
     def compute_energy(self):
         return 0.0

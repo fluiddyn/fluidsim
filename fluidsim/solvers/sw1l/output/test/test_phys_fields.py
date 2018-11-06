@@ -3,7 +3,7 @@ from __future__ import print_function
 import unittest
 
 from fluidsim.solvers.test.test_ns import run_mini_simul
-from . import BaseTestCase, mpi
+from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
 class TestPhysFields(BaseTestCase):

@@ -82,7 +82,7 @@ class SpatialMeansBase(SpecificOutput):
             z_bottom_axe = 0.55
 
             size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3000000)
+            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3_000_000)
             self.axe_a = axe
             axe.set_xlabel("$t$")
             axe.set_ylabel("$E(t)$")
@@ -134,7 +134,7 @@ class SpatialMeansBase(SpecificOutput):
         dict_time_means = {}
         for key, value in dict_results.items():
             if isinstance(value, np.ndarray):
-                dict_time_means[key] = np.mean(value[imin_mean : imax_mean])
+                dict_time_means[key] = np.mean(value[imin_mean:imax_mean])
         return dict_time_means, dict_results
 
     def _close_file(self):
@@ -174,17 +174,27 @@ class SpatialMeansJSON(SpatialMeansBase):
     _name_file = _tag + ".json"
 
     def _save_one_time(self, result: Dict[str, float], delimiter: str = "\n"):
-        json.dump(result, self.file)
-        self.file.write(delimiter)
+        if mpi.rank == 0:
+            json.dump(result, self.file)
+            self.file.write(delimiter)
+
         super()._save_one_time()
 
     def _file_exists(self):
         return self.path_file.endswith(".json") and os.path.exists(self.path_file)
 
     def load(self):
+        if not os.path.exists(self.path_file):
+            raise FileNotFoundError(
+                f"Spatial means file is missing: {self.path_file}"
+            )
+
         import pandas as pd
 
-        df = pd.read_json(self.path_file, orient="records", lines=True)
+        try:
+            df = pd.read_json(self.path_file, orient="records", lines=True)
+        except ValueError:
+            raise ValueError(f"Error reading spatial means file {self.path_file}")
         return df
 
     def load_dataset(self, dims=("t",)):

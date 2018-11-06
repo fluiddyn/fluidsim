@@ -24,7 +24,8 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
-        self._result = {}
+        if mpi.rank == 0:
+            self._result = {}
 
         super().__init__(output)
 
@@ -270,7 +271,13 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         else:
             dict_results = {"name_solver": self.output.name_solver}
             path_file = self.path_file.replace(".json", ".txt")
-            return _old_load_txt(path_file, dict_results)
+            if os.path.exists(path_file):
+                return _old_load_txt(path_file, dict_results)
+            else:
+                raise FileNotFoundError(
+                    f"Neither {self.path_file} nor {os.path.basename(path_file)}"
+                    "exists"
+                )
 
     def plot(self):
         dict_results = self.load()

@@ -56,8 +56,9 @@ def load_txt(path_file, dict_results={}):
             lines_epsKsuppl.append(line)
 
     nt = len(lines_t)
-    if nt > 1:
-        nt -= 1
+    # NOTE: unnecessary removal of last record
+    #  if nt > 1:
+    #      nt -= 1
 
     t = np.empty(nt)
 
