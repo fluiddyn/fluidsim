@@ -125,6 +125,7 @@ install_requires = [
     "h5netcdf",
     "fluidpythran >= 0.0.3",
     "setuptools_scm",
+    "xarray"
 ]
 
 if FFTW3:

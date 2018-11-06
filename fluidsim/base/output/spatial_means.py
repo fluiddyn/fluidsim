@@ -5,6 +5,8 @@ import numpy as np
 import json
 from typing import Dict
 
+import pandas as pd
+import xarray as xr
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
@@ -117,9 +119,7 @@ class SpatialMeansBase(SpecificOutput):
             else:
                 dset["attrs"].update({key: value})
 
-        from xarray import Dataset
-
-        return Dataset.from_dict(dset)
+        return xr.Dataset.from_dict(dset)
 
     def plot(self):
         pass
@@ -189,8 +189,6 @@ class SpatialMeansJSON(SpatialMeansBase):
                 f"Spatial means file is missing: {self.path_file}"
             )
 
-        import pandas as pd
-
         try:
             df = pd.read_json(self.path_file, orient="records", lines=True)
         except ValueError:
@@ -204,9 +202,7 @@ class SpatialMeansJSON(SpatialMeansBase):
         else:
             df.index = df[dims[0]]
 
-            from xarray import Dataset
-
-            return Dataset.from_dataframe(df)
+            return xr.Dataset.from_dataframe(df)
 
     def compute_time_means(self, tstatio=0.0, tmax=None):
         """compute the temporal means."""
