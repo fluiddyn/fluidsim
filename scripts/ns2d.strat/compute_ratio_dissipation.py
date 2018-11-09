@@ -54,4 +54,17 @@ def compute_ratio_dissipation(path_simulation, tmin=None):
             params.forcing.nkmax_forcing * max(delta_kx, delta_kz))
     ik_fx = np.argmin(abs(kx - k_fx ))
 
-    return D_kx[ik_fx] / D_kx[-1]
+    ratio_dissipation_old = D_kx[ik_fx] / D_kx[-1]
+
+    # Compute wave-number for 1/2 dissipation
+    ik_half = np.argmin(abs(D_kx - (D_kx[-1] / 2)))
+
+    return D_kx[ik_half] / D_kx[ik_fx]
+
+if __name__ == "__main__":
+    path_simulation = "/fsnet/project/meige/2015/15DELDUCA/DataSim/" + \
+                      "sim960_no_shear_modes/" + \
+                      "NS2D.strat_960x240_S2pix1.571_F07_gamma02_2018-08-10_14-45-06"
+
+    ratio = compute_ratio_dissipation(path_simulation, tmin=None)
+    print(f"Ratio between ik_half / ik_fx = {ratio}")

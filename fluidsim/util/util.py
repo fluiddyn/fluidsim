@@ -292,6 +292,9 @@ def load_state_phys_file(
     if merge_missing_params:
         merge_params(params, solver.Simul.create_default_params())
 
+    if hasattr(params, "ONLY_COARSE_OPER") and params.ONLY_COARSE_OPER:
+        params.ONLY_COARSE_OPER = False
+
     params.path_run = path_dir
     params.NEW_DIR_RESULTS = False
     if modif_save_params:

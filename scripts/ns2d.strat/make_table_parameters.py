@@ -13,8 +13,8 @@ from glob import glob
 from fluidsim import load_sim_for_plot
 
 # Argparse arguments
-nx = 1920
-MAKE_TABLE = False
+nx = 3840
+MAKE_TABLE = True
 
 # Parameters script
 n_files_tmean = 100
@@ -24,6 +24,8 @@ path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
 
 if nx == 1920:
     directory = "sim1920_no_shear_modes"
+elif nx == 3840:
+    directory = "sim3840_modif_res_no_shear_modes"
 
 path_simulations = sorted(glob(os.path.join(path_root, directory, "NS2D*")))
 
@@ -62,12 +64,13 @@ for path in path_simulations:
 
     with h5py.File(path_spectra, "r") as f:
         times_spectra = f["times"].value
-        kx = f["kyE"].value
+        kx = f["kxE"].value
         spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
 
     spectrum1Dkx_EK_ux = np.mean(spectrum1Dkx_EK_ux[-100:, :], axis=0)
     ## Remove modes with dealiasing
-    ikxmax = np.argmin(abs(kx - sim.oper.kxmax_dealiasing))
+    kxmax_dealiasing = sim.params.oper.coef_dealiasing * np.max(abs(kx))
+    ikxmax = np.argmin(abs(kx - kxmax_dealiasing))
     kx = kx[:ikxmax]
     spectrum1Dkx_EK_ux = spectrum1Dkx_EK_ux[:ikxmax]
     delta_kx = sim.oper.deltakx
