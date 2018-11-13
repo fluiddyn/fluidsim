@@ -24,7 +24,6 @@ from glob import glob
 from scipy import signal
 
 from fluiddyn.util import mpi
-from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 from fluidsim.base.output.base import SpecificOutput
 
 # Notes
