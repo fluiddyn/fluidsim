@@ -86,11 +86,11 @@ class OutputStrat(Output):
         }
         classes._set_child("spatio_temporal_spectra", attribs=attribs)
 
-        attribs = {
-            "module_name": base_name_mod + ".frequency_spectra",
-            "class_name": "FrequencySpectra",
-        }
-        classes._set_child("frequency_spectra", attribs=attribs)
+        # attribs = {
+        #     "module_name": base_name_mod + ".frequency_spectra",
+        #     "class_name": "FrequencySpectra",
+        # }
+        # classes._set_child("frequency_spectra", attribs=attribs)
 
     def compute_energies_fft(self):
         """Compute the kinetic and potential energy (k)"""
@@ -218,3 +218,14 @@ class OutputStrat(Output):
             if len(str_describing_attribs_strat) > 0:
                 list_for_name_run.append(str_describing_attribs_strat)
         return list_for_name_run
+
+    def plot_summary(self, field="b", time_phys=None, tmin=None, tmax=None):
+        """
+        Plots summary of all outputs of a simulation.
+        """
+
+        self.phys_fields.plot(field=field, time=time_phys, QUIVER=False)
+        self.print_stdout.plot()
+        self.spatial_means.plot()
+        self.spectra.plot1d(tmin=tmin, tmax=tmax)
+        self.spect_energy_budg.plot(tmin=tmin, tmax=tmax)
