@@ -112,6 +112,8 @@ class SpectraNS2DStrat(Spectra):
             kx = dset_kxE.value
             ky = dset_kyE.value
 
+            if tmin is None:
+                tmin = 0
             if tmax is None:
                 tmax = np.max(times)
 

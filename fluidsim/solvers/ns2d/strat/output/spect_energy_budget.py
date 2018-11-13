@@ -220,6 +220,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             dset_dissEK_ky = f["dissEK_ky"].value
             dset_dissEA_ky = f["dissEA_ky"].value
 
+        if tmin is None:
+            tmin = 0
+
         if tmax is None:
             tmax = np.max(times)
 
