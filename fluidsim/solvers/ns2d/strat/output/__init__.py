@@ -86,6 +86,12 @@ class OutputStrat(Output):
         }
         classes._set_child("spatio_temporal_spectra", attribs=attribs)
 
+        attribs = {
+            "module_name": base_name_mod + ".frequency_spectra",
+            "class_name": "FrequencySpectra",
+        }
+        classes._set_child("frequency_spectra", attribs=attribs)
+
     def compute_energies_fft(self):
         """Compute the kinetic and potential energy (k)"""
         rot_fft = self.sim.state.state_spect.get_var("rot_fft")
