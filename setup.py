@@ -51,7 +51,7 @@ else:
 
 here = Path(__file__).parent.absolute()
 
-from fluidpythran.files_maker import make_pythran_files
+from fluidpythran.dist import make_pythran_files
 
 paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
 make_pythran_files([here / path for path in paths])
