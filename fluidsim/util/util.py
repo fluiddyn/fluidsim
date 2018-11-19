@@ -7,13 +7,12 @@
 
 """
 
-from __future__ import division, print_function
-
-from builtins import object
+from typing import Union
 import os as _os
 import glob as _glob
 from copy import deepcopy as _deepcopy
 import inspect
+from pathlib import Path
 
 import numpy as _np
 import h5py as _h5py
@@ -145,14 +144,26 @@ def import_simul_class_from_key(key, package=None):
     return solver.Simul
 
 
-def pathdir_from_namedir(name_dir=None):
-    """Return the path if a result directory."""
+def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
+    """Return the path of a result directory."""
     if name_dir is None:
         return _os.getcwd()
 
-    if name_dir[0] != "/" and name_dir[0] != "~":
-        name_dir = path_dir_results + "/" + name_dir
-    return _os.path.expanduser(name_dir)
+    if not isinstance(name_dir, Path):
+        name_dir = Path(name_dir)
+
+    name_dir = name_dir.expanduser()
+
+    if name_dir.is_dir():
+        return name_dir.absolute()
+
+    if not name_dir.is_absolute():
+        name_dir = path_dir_results / name_dir
+
+    if not name_dir.is_dir():
+        raise ValueError(str(name_dir) + " is not a directory")
+
+    return name_dir
 
 
 class ModulesSolvers(dict):
@@ -167,12 +178,15 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
     """
-    path_files = _glob.glob(path_dir + "/state_phys_t*")
+    if not isinstance(path_dir, Path):
+        path_dir = Path(path_dir)
+
+    path_files = tuple(path_dir.glob("state_phys_t*"))
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
-        raise ValueError("No state file in the dir\n" + path_dir)
+        raise ValueError("No state file in the dir\n" + str(path_dir))
 
-    name_files = [_os.path.split(path)[-1] for path in path_files]
+    name_files = [path.name for path in path_files]
     if "state_phys_t=" in name_files[0]:
         ind_start_time = len("state_phys_t=")
     else:
@@ -184,7 +198,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()
-    name_file = _os.path.split(path_files[i_file])[-1]
+    name_file = path_files[i_file].name
     return name_file
 
 
@@ -278,46 +292,79 @@ def load_state_phys_file(
 
     """
 
-    path_dir = pathdir_from_namedir(name_dir)
+    params, Simul = load_for_restart(name_dir, t_approx, merge_missing_params)
 
+    if modif_save_params:
+        params.output.HAS_TO_SAVE = False
+        params.output.ONLINE_PLOT_OK = False
+
+    sim = Simul(params)
+    return sim
+
+
+def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
+    """Load params and Simul for a restart.
+
+    Parameters
+    ----------
+
+    name_dir : str (optional)
+
+      Name of the directory of the simulation. If nothing is given, we load the
+      data in the current directory.
+
+    t_approx : number (optional)
+
+      Approximate time of the file to be loaded.
+
+    merge_missing_params : bool (optional, default == False)
+
+      Can be used to load old simulations carried out with an old fluidsim
+      version.
+
+    """
+
+    if isinstance(name_dir, Path):
+        name_dir = str(name_dir)
+
+    path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
 
     # choose the file with the time closer to t_approx
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = _os.path.join(path_dir, name_file)
 
-    with _h5py.File(path_file, "r") as f:
-        params = Parameters(hdf5_object=f["info_simul"]["params"])
+    if mpi.rank > 0:
+        params = None
+    else:
+        with _h5py.File(path_file, "r") as f:
+            params = Parameters(hdf5_object=f["info_simul"]["params"])
 
-    if merge_missing_params:
-        merge_params(params, solver.Simul.create_default_params())
+        if merge_missing_params:
+            merge_params(params, solver.Simul.create_default_params())
 
-    if hasattr(params, "ONLY_COARSE_OPER") and params.ONLY_COARSE_OPER:
-        params.ONLY_COARSE_OPER = False
+        params.path_run = path_dir
+        params.NEW_DIR_RESULTS = False
+        params.init_fields.type = "from_file"
+        params.init_fields.from_file.path = path_file
+        params.init_fields.modif_after_init = False
+        try:
+            params.preprocess.enable = False
+        except AttributeError:
+            pass
 
-    params.path_run = path_dir
-    params.NEW_DIR_RESULTS = False
-    if modif_save_params:
-        params.output.HAS_TO_SAVE = False
-        params.output.ONLINE_PLOT_OK = False
-    params.init_fields.type = "from_file"
-    params.init_fields.from_file.path = path_file
-    params.init_fields.modif_after_init = False
-    try:
-        params.preprocess.enable = False
-    except AttributeError:
-        pass
+        fix_old_params(params)
 
-    fix_old_params(params)
+    if mpi.nb_proc > 1:
+        params = mpi.comm.bcast(params, root=0)
 
-    sim = solver.Simul(params)
-    return sim
+    return params, solver.Simul
 
 
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
     """Save files with a modified resolution."""
     path_base = pathdir_from_namedir(dir_base)
-    list_dir_results = _glob.glob(path_base + "/SE2D*")
+    list_dir_results = list(path_base.glob("SE2D*"))
     for path_dir in list_dir_results:
         modif_resolution_from_dir(
             name_dir=path_dir,
@@ -348,7 +395,7 @@ def modif_resolution_from_dir(
 
     print(sim2.params.path_run)
 
-    sim2.output.path_run = path_dir + "/State_phys_{0}x{1}".format(
+    sim2.output.path_run = str(path_dir) + "/State_phys_{0}x{1}".format(
         sim2.params.oper.nx, sim2.params.oper.ny
     )
     print("Save file in directory\n" + sim2.output.path_run)
@@ -411,7 +458,7 @@ class SetOfDirResults(object):
     def __init__(self, arg):
         if isinstance(arg, str):
             dir_base = pathdir_from_namedir(arg)
-            paths_results = _glob.glob(dir_base + "/SE2D_*")
+            paths_results = tuple(dir_base.glob("SE2D_*"))
             if len(paths_results) == 0:
                 print("No result directory in the directory\n" + dir_base)
         else:

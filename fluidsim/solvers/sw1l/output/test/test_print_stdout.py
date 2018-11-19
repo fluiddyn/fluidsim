@@ -3,8 +3,8 @@ from __future__ import print_function
 import unittest
 
 import numpy as np
-
-from . import BaseTestCase, mpi
+from numpy.testing import assert_array_almost_equal
+from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
 class TestPrintStdout(BaseTestCase):
@@ -16,16 +16,15 @@ class TestPrintStdout(BaseTestCase):
 
     def test_energy_vs_spatial_means(self):
         """Verify energy saved by spatial_means module is the same."""
-        dict_spatial_means = self.output.spatial_means.load()
-        try:
-            self.assertTrue(
-                np.allclose(
-                    self.dict_results["E"], dict_spatial_means["E"], atol=1.0e-4
-                )
-            )
-        except AssertionError:
-            print(self.dict_results["E"], dict_spatial_means["E"])
-            raise
+        if mpi.nb_proc > 1:
+            mpi.comm.barrier()
+        df = self.output.spatial_means.load()
+
+        # ignore last row to be comparable to print_stdout
+        imax = -1 if len(df) > 1 else None
+        assert_array_almost_equal(
+            self.dict_results["E"], df.E[:imax].values, decimal=4
+        )
 
 
 if __name__ == "__main__":

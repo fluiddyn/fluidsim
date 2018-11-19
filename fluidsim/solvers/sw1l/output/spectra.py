@@ -1,8 +1,7 @@
-from __future__ import division
-from __future__ import print_function
-from builtins import range
+from typing import List, Optional
+import functools
 import h5py
-
+import matplotlib as mpl
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -145,7 +144,16 @@ class SpectraSW1L(Spectra):
                 "of the spectra for this case"
             )
 
-    def plot1d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
+    def plot1d(
+        self,
+        tmin: float = 0,
+        tmax: float = 1000,
+        delta_t: float = 2,
+        coef_compensate: float = 3,
+        coef_norm: Optional[np.ndarray] = None,
+        ax: Optional[mpl.axes.Axes] = None,
+        help_lines: bool = True,
+    ):
 
         with h5py.File(self.path_file1D, "r") as h5file:
             dset_times = h5file["times"]
@@ -181,7 +189,7 @@ class SpectraSW1L(Spectra):
 
             to_print = "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
                 tmin, tmax, delta_t
-            ) + " coef_compensate={0:.3f})".format(coef_compensate)
+            )
             print(to_print)
 
             to_print = """plot 1D spectra
@@ -191,20 +199,23 @@ class SpectraSW1L(Spectra):
             )
             print(to_print)
 
-            fig, ax1 = self.output.figure_axe()
-            ax1.set_xlabel("$k_h$")
-            ax1.set_ylabel("1D spectra")
+            if ax is None:
+                fig, ax = self.output.figure_axe()
+
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("1D spectra")
             title = (
                 "1D spectra, solver "
                 + self.output.name_solver
                 + ", nh = {0:5d}".format(self.nx)
                 + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
             )
-            ax1.set_title(title)
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
+            ax.set_title(title)
+            ax.set_xscale("log")
+            ax.set_yscale("log")
 
-            coef_norm = kh ** (coef_compensate)
+            if coef_norm is None:
+                coef_norm = kh ** (coef_compensate)
 
             # min_to_plot = 1e-16
 
@@ -220,11 +231,11 @@ class SpectraSW1L(Spectra):
                     # E_Kr[E_Kr<min_to_plot] = 0.
                     # E_Kd = E_K - E_Kr
 
-                    ax1.plot(kh, E_tot * coef_norm, "k", linewidth=2)
-                    ax1.plot(kh, E_K * coef_norm, "r", linewidth=1)
-                    ax1.plot(kh, E_A * coef_norm, "b", linewidth=1)
-            # ax1.plot(kh, E_Kr*coef_norm, 'r--', linewidth=1)
-            # ax1.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
+                    ax.plot(kh, E_tot * coef_norm, "k", linewidth=2)
+                    ax.plot(kh, E_K * coef_norm, "r", linewidth=1)
+                    ax.plot(kh, E_A * coef_norm, "b", linewidth=1)
+            # ax.plot(kh, E_Kr*coef_norm, 'r--', linewidth=1)
+            # ax.plot(kh, E_Kd*coef_norm, 'r:', linewidth=1)
 
             E_K = (
                 dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]
@@ -236,29 +247,34 @@ class SpectraSW1L(Spectra):
                 + dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]
             ).mean(0)
 
-        ax1.plot(kh, E_K * coef_norm, "r", linewidth=2)
-        ax1.plot(kh, E_A * coef_norm, "b", linewidth=2)
+        ax.plot(kh, E_K * coef_norm, "r", linewidth=2)
+        ax.plot(kh, E_A * coef_norm, "b", linewidth=2)
 
-        kh_pos = kh[kh > 0]
-        coef_norm = coef_norm[kh > 0]
-        ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
-        ax1.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
+        if help_lines:
+            kh_pos = kh[kh > 0]
+            coef_norm = coef_norm[kh > 0]
+            ax.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
+            ax.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
 
     def plot2d(
         self,
-        tmin=0,
-        tmax=1000,
-        delta_t=2,
-        coef_compensate=0,
-        keys=["Etot", "EK", "EA", "EKr", "EKd"],
-        colors=["k", "r", "b", "r--", "r:"],
+        tmin: float = 0,
+        tmax: float = 1000,
+        delta_t: float = 2,
+        coef_compensate: float = 3,
+        coef_norm: Optional[np.ndarray] = None,
+        keys: List[str] = ["Etot", "EK", "EA", "EKr", "EKd"],
+        colors: List[str] = ["k", "r", "b", "r--", "r:"],
+        kh_norm: float = 1,
+        ax: Optional[mpl.axes.Axes] = None,
+        help_lines: bool = True,
     ):
 
         with h5py.File(self.path_file2D, "r") as h5file:
             times = h5file["times"][...]
 
             dset_khE = h5file["khE"]
-            kh = dset_khE[...]
+            kh = dset_khE[...] / kh_norm
 
             dset_spectrumEK = h5file["spectrum2D_EK"]
             dset_spectrumEA = h5file["spectrum2D_EA"]
@@ -278,7 +294,7 @@ class SpectraSW1L(Spectra):
 
             to_print = "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
                 tmin, tmax, delta_t
-            ) + " coef_compensate={0:.3f})".format(coef_compensate)
+            )
             print(to_print)
 
             to_print = """plot 2D spectra
@@ -288,20 +304,23 @@ class SpectraSW1L(Spectra):
             )
             print(to_print)
 
-            fig, ax1 = self.output.figure_axe()
-            ax1.set_xlabel("$k_h$")
-            ax1.set_ylabel("2D spectra")
+            if ax is None:
+                fig, ax = self.output.figure_axe()
+
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("2D spectra")
             title = (
                 "2D spectra, solver "
                 + self.output.name_solver
                 + ", nh = {0:5d}".format(self.nx)
                 + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
             )
-            ax1.set_title(title)
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
+            ax.set_title(title)
+            ax.set_xscale("log")
+            ax.set_yscale("log")
 
-            coef_norm = kh ** coef_compensate
+            if coef_norm is None:
+                coef_norm = kh ** coef_compensate
 
             machine_zero = 1e-15
             if delta_t != 0.0:
@@ -309,7 +328,7 @@ class SpectraSW1L(Spectra):
                     for k, c in zip(keys, colors):
                         dset = self._get_field_to_plot(it, k, h5file)
                         dset[dset < 10e-16] = machine_zero
-                        ax1.plot(kh, dset * coef_norm, c, linewidth=1)
+                        ax.plot(kh, dset * coef_norm, c, linewidth=1)
 
             EK = dset_spectrumEK[imin_plot : imax_plot + 1].mean(0)
             EA = dset_spectrumEA[imin_plot : imax_plot + 1].mean(0)
@@ -323,54 +342,80 @@ class SpectraSW1L(Spectra):
             EKd = EK - EKr + machine_zero
 
             if "Etot" in keys:
-                ax1.plot(
-                    kh, E_tot * coef_norm, "k", linewidth=3, label="$E_{tot}$"
+                ax.plot(
+                    kh,
+                    E_tot * coef_norm,
+                    colors[0],
+                    linewidth=2,
+                    label="$E_{tot}$",
                 )
 
             if "EK" in keys:
-                ax1.plot(kh, EK * coef_norm, "r", linewidth=2, label="$E_{K}$")
-                ax1.plot(kh, -EK * coef_norm, "k-", linewidth=2)
+                ax.plot(kh, EK * coef_norm, "r", linewidth=1, label="$E_{K}$")
+                ax.plot(kh, -EK * coef_norm, "k-", linewidth=1)
 
             if "EA" in keys:
-                ax1.plot(kh, EA * coef_norm, "b", linewidth=2, label="$E_{A}$")
+                ax.plot(kh, EA * coef_norm, "b", linewidth=1, label="$E_{A}$")
 
             if "EKr" in keys:
-                ax1.plot(
-                    kh, EKr * coef_norm, "r--", linewidth=2, label="$E_{Kr}$"
-                )
+                ax.plot(kh, EKr * coef_norm, "r--", linewidth=1, label="$E_{Kr}$")
 
             if "EKd" in keys:
-                ax1.plot(kh, EKd * coef_norm, "r:", linewidth=2, label="$E_{Kd}$")
-                ax1.plot(kh, -EKd * coef_norm, "k:", linewidth=2)
+                ax.plot(kh, EKd * coef_norm, "r:", linewidth=1, label="$E_{Kd}$")
+                ax.plot(kh, -EKd * coef_norm, "k:", linewidth=1)
 
             self._plot2d_lin_spectra(
-                h5file, ax1, imin_plot, imax_plot, kh, coef_norm, keys
+                h5file, ax, imin_plot, imax_plot, kh, coef_norm, keys
             )
 
-        kh_pos = kh[kh > 0]
-        coef_norm = coef_norm[kh > 0]
-        ax1.plot(kh_pos, kh_pos ** (-2) * coef_norm, "k-", linewidth=1)
-        ax1.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
-        ax1.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
+        if help_lines:
+            kh_pos = kh[kh > 0]
+            coef_norm = coef_norm[kh > 0]
+            ax.plot(kh_pos, kh_pos ** (-2) * coef_norm, "k-", linewidth=1)
+            ax.plot(kh_pos, kh_pos ** (-3) * coef_norm, "k--", linewidth=1)
+            ax.plot(kh_pos, kh_pos ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)
 
-        font = {"family": "serif", "weight": "normal", "size": 16}
-        postxt = kh.max()
-        ax1.text(
-            postxt, postxt ** (-2 + coef_compensate), r"$k^{-2}$", fontdict=font
+            postxt = kh.max()
+            ax.text(postxt, postxt ** (-2 + coef_compensate), r"$k^{-2}$")
+            ax.text(postxt, postxt ** (-3 + coef_compensate), r"$k^{-3}$")
+            ax.text(postxt, postxt ** (-5.0 / 3 + coef_compensate), r"$k^{-5/3}$")
+
+        ax.legend()
+
+    def plot_diss(
+        self,
+        tmin=0,
+        tmax=1000,
+        delta_t=2,
+        keys=["Dtot", "DK", "DA", "DKr", "DKd"],
+        colors=["k", "r", "b", "r--", "r:"],
+        kh_norm=1,
+        ax=None,
+    ):
+        """Plot the dissipation spectra."""
+
+        def get_nu(o):
+            return getattr(self.sim.params, f"nu_{o}")
+
+        for order in [2, 4, 8]:
+            nu = get_nu(order)
+            if nu > 0:
+                break
+        else:
+            raise ValueError("Viscosity is zero?")
+
+        with h5py.File(self.path_file2D, "r") as h5file:
+            dset_khE = h5file["khE"]
+            kh = dset_khE[...]
+
+        coef_norm = 2 * nu * kh ** order
+        keys = ["E" + k.lstrip("D") for k in keys]
+        self.plot2d(
+            tmin, tmax, delta_t, 0, coef_norm, keys, colors, kh_norm, ax, False
         )
-        ax1.text(
-            postxt, postxt ** (-3 + coef_compensate), r"$k^{-3}$", fontdict=font
-        )
-        ax1.text(
-            postxt,
-            postxt ** (-5.0 / 3 + coef_compensate),
-            r"$k^{-5/3}$",
-            fontdict=font,
-        )
-        ax1.legend()
 
     def _plot2d_lin_spectra(
-        self, h5file, ax1, imin_plot, imax_plot, kh, coef_norm
+        self, h5file, ax, imin_plot, imax_plot, kh, coef_norm, keys
     ):
         machine_zero = 1e-15
         if self.sim.info.solver.short_name.startswith("SW1L"):
@@ -379,7 +424,7 @@ class SpectraSW1L(Spectra):
                 dset_spectrumEdlin[imin_plot : imax_plot + 1].mean(0)
                 + machine_zero
             )
-            ax1.plot(kh, Edlin * coef_norm, "c", linewidth=1, label="$E_{D}$")
+            ax.plot(kh, Edlin * coef_norm, "c", linewidth=1, label="$E_{D}$")
 
         if self.params.f != 0:
             dset_spectrumEglin = h5file["spectrum2D_Eglin"]
@@ -387,14 +432,14 @@ class SpectraSW1L(Spectra):
                 dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
                 + machine_zero
             )
-            ax1.plot(kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{G}$")
+            ax.plot(kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{G}$")
 
             dset_spectrumEalin = h5file["spectrum2D_Ealin"]
             Ealin = (
                 dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
                 + machine_zero
             )
-            ax1.plot(kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{A}$")
+            ax.plot(kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{A}$")
 
     def _get_field_to_plot(self, idx, key_field=None, h5file=None):
         if key_field is None:
@@ -463,17 +508,30 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         tmin=0,
         tmax=1000,
         delta_t=2,
-        coef_compensate=0,
+        coef_compensate=3,
+        coef_norm=None,
         keys=["Etot", "EK", "Eglin", "Ealin"],
         colors=["k", "r", "g", "y"],
+        kh_norm=1,
+        ax=None,
+        help_lines=True,
     ):
-
-        super(SpectraSW1LNormalMode, self).plot2d(
-            tmin, tmax, delta_t, coef_compensate, keys, colors
+        # Ideally functool.partialmethod would suffice, but issues due to mixing args and kwargs
+        super().plot2d(
+            tmin,
+            tmax,
+            delta_t,
+            coef_compensate,
+            coef_norm,
+            keys,
+            colors,
+            kh_norm,
+            ax,
+            help_lines,
         )
 
     def _plot2d_lin_spectra(
-        self, h5file, ax1, imin_plot, imax_plot, kh, coef_norm, keys
+        self, h5file, ax, imin_plot, imax_plot, kh, coef_norm, keys
     ):
         machine_zero = 1e-15
         if self.sim.info.solver.short_name.startswith("SW1L"):
@@ -489,7 +547,7 @@ class SpectraSW1LNormalMode(SpectraSW1L):
                     dset_spectrumEalin[imin_plot : imax_plot + 1].mean(0)
                     + machine_zero
                 )
-                ax1.plot(
+                ax.plot(
                     kh, Ealin * coef_norm, "y", linewidth=1, label="$E_{AGEO}$"
                 )
 
@@ -499,6 +557,6 @@ class SpectraSW1LNormalMode(SpectraSW1L):
                     dset_spectrumEglin[imin_plot : imax_plot + 1].mean(0)
                     + machine_zero
                 )
-                ax1.plot(
+                ax.plot(
                     kh, Eglin * coef_norm, "g", linewidth=1, label="$E_{GEO}$"
                 )

@@ -37,6 +37,7 @@ class OperatorsBase1D(object):
 
         """
         self.params = params
+        self.axes = ("x",)
 
         self.nx = nx = int(params.oper.nx)
         self.lx = self.Lx = Lx = float(params.oper.Lx)

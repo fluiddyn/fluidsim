@@ -280,7 +280,7 @@ numpydoc_show_class_members = False
 
 autosummary_generate = True
 
-autodoc_default_flags = ['show-inheritance']
+autodoc_default_options = {"show-inheritance": None}
 autodoc_member_order = 'bysource'
 
 todo_include_todos = True

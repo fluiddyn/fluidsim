@@ -3,7 +3,7 @@ from __future__ import print_function
 import unittest
 
 from fluidsim.solvers.test.test_ns import run_mini_simul
-from . import BaseTestCase, mpi
+from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
 class TestSpatialMeans(BaseTestCase):
@@ -22,9 +22,11 @@ class TestSpatialMeansForced(TestSpatialMeans):
         cls.sim = run_mini_simul(
             cls.solver, HAS_TO_SAVE=True, forcing_enable=True
         )
+
         cls.output = cls.sim.output
         cls.module = module = getattr(cls.output, cls._tag)
         cls.dict_results = module.load()
+        module.load_dataset()
 
 
 if __name__ == "__main__":

@@ -2,8 +2,11 @@ from __future__ import division, print_function
 
 import os
 import numpy as np
+import json
+from typing import Dict
 
-
+import pandas as pd
+import xarray as xr
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
@@ -42,7 +45,7 @@ class SpatialMeansBase(SpecificOutput):
         except AttributeError:
             pass
 
-        super(SpatialMeansBase, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.spatial_means,
             has_to_plot_saved=params.output.spatial_means.HAS_TO_PLOT_SAVED,
@@ -59,7 +62,7 @@ class SpatialMeansBase(SpecificOutput):
             else:
                 self.file = open(self.path_file, "r+")
                 # to go to the end of the file
-                self.file.seek(0, 2)
+                self.file.seek(0, os.SEEK_END)
 
     def _online_save(self):
         self()
@@ -70,7 +73,7 @@ class SpatialMeansBase(SpecificOutput):
             self.t_last_save = self.sim.time_stepping.t
             self._save_one_time()
 
-    def _save_one_time(self):
+    def _save_one_time(self, *args):
         self.t_last_save = self.sim.time_stepping.t
 
     def _init_online_plot(self):
@@ -81,7 +84,7 @@ class SpatialMeansBase(SpecificOutput):
             z_bottom_axe = 0.55
 
             size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3000000)
+            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3_000_000)
             self.axe_a = axe
             axe.set_xlabel("$t$")
             axe.set_ylabel("$E(t)$")
@@ -103,24 +106,35 @@ class SpatialMeansBase(SpecificOutput):
         dict_results = {}
         return dict_results
 
+    def load_dataset(self, dims=("t",)):
+        """Loads results as a xarray dataset."""
+        dict_results = self.load()
+        # NOTE: format specified in
+        # http://xarray.pydata.org/en/stable/generated/xarray.Dataset.from_dict.html
+        dset = {"coords": {}, "attrs": {}, "dims": dims, "data_vars": {}}
+        for key, value in dict_results.items():
+            if isinstance(value, np.ndarray):
+                target = "coords" if key in dims else "data_vars"
+                dset[target].update({key: {"dims": dims, "data": value}})
+            else:
+                dset["attrs"].update({key: value})
+
+        return xr.Dataset.from_dict(dset)
+
     def plot(self):
         pass
 
     def compute_time_means(self, tstatio=0.0, tmax=None):
         """compute the temporal means."""
         dict_results = self.load()
-        if tmax is None:
-            times = dict_results["t"]
-            imax_mean = times.size - 1
-            tmax = times[imax_mean]
-        else:
-            imax_mean = np.argmin(abs(times - tmax))
+        times = dict_results["t"]
         imin_mean = np.argmin(abs(times - tstatio))
+        imax_mean = None if tmax is None else np.argmin(abs(times - tmax)) + 1
 
         dict_time_means = {}
         for key, value in dict_results.items():
             if isinstance(value, np.ndarray):
-                dict_time_means[key] = np.mean(value[imin_mean : imax_mean + 1])
+                dict_time_means[key] = np.mean(value[imin_mean:imax_mean])
         return dict_time_means, dict_results
 
     def _close_file(self):
@@ -129,7 +143,7 @@ class SpatialMeansBase(SpecificOutput):
         except AttributeError:
             pass
 
-    def time_first_saved(self):
+    def time_first_saved(self) -> float:
         with open(self.path_file) as file_means:
             line = ""
             while not line.startswith("time ="):
@@ -138,17 +152,95 @@ class SpatialMeansBase(SpecificOutput):
         words = line.split()
         return float(words[2])
 
-    def time_last_saved(self):
-        with open(self.path_file) as file_means:
-            file_means.seek(0, 2)  # go to the end
-            nb_caract = file_means.tell()
-            nb_caract_to_read = min(nb_caract, 1000)
-            file_means.seek(-nb_caract_to_read, 2)
+    def time_last_saved(self) -> float:
+        with open(self.path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
             line = file_means.readline()
-            while line != "":
-                if line.startswith("time ="):
+            while line != b"":
+                if line.startswith(b"time ="):
                     line_time = line
                 line = file_means.readline()
 
         words = line_time.split()
         return float(words[2])
+
+
+class SpatialMeansJSON(SpatialMeansBase):
+    """Save and load as line-delimited JSON."""
+
+    _tag = "spatial_means"
+    _name_file = _tag + ".json"
+
+    def _save_one_time(self, result: Dict[str, float], delimiter: str = "\n"):
+        if mpi.rank == 0:
+            json.dump(result, self.file)
+            self.file.write(delimiter)
+
+        super()._save_one_time()
+
+    def _file_exists(self):
+        return self.path_file.endswith(".json") and os.path.exists(self.path_file)
+
+    def load(self):
+        if not os.path.exists(self.path_file):
+            raise FileNotFoundError(
+                f"Spatial means file is missing: {self.path_file}"
+            )
+
+        try:
+            df = pd.read_json(self.path_file, orient="records", lines=True)
+        except ValueError:
+            raise ValueError(f"Error reading spatial means file {self.path_file}")
+        return df
+
+    def load_dataset(self, dims=("t",)):
+        df = self.load()
+        if isinstance(df, dict):
+            return super().load_dataset(dims)
+        else:
+            df.index = df[dims[0]]
+
+            return xr.Dataset.from_dataframe(df)
+
+    def compute_time_means(self, tstatio=0.0, tmax=None):
+        """compute the temporal means."""
+        if not self._file_exists():
+            return super().compute_time_means(tstatio, tmax)
+
+        df = self.load()
+        times = df.t
+        imin_mean = abs(times - tstatio).idxmin()
+        imax_mean = None if tmax is None else (abs(times - tmax)).idxmin() + 1
+
+        df_mean = df.iloc[imin_mean:imax_mean].mean()
+        return df_mean, df
+
+    def time_first_saved(self) -> float:
+        if not self._file_exists():
+            self.path_file = self.path_file.replace(".json", ".txt")
+            return super().time_first_saved()
+
+        with open(self.path_file) as file_means:
+            line = file_means.readline()
+
+        result = json.loads(line)
+        return result["t"]
+
+    def time_last_saved(self) -> float:
+        if not self._file_exists():
+            self.path_file = self.path_file.replace(".json", ".txt")
+            return super().time_last_saved()
+
+        with open(self.path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
+            line = file_means.readline()
+            while line != b"":
+                line_prev = line
+                line = file_means.readline()
+
+        result = json.loads(line_prev)
+        return result["t"]

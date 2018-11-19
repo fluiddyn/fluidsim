@@ -16,6 +16,7 @@ __pycache__
 .vscode/
 .venv/
 .pytest_cache/
+.mypy_cache/
 
 bench/launcher_*
 bench/SLURM*

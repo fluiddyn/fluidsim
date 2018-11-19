@@ -50,6 +50,7 @@ def run_mini_simul(
     params.init_fields.type = init_fields
 
     if HAS_TO_SAVE:
+        params.output.sub_directory = "unittests"
         params.output.periods_save.spectra = 0.25
         params.output.periods_save.spatial_means = periods_save_spatial_means
         params.output.periods_save.spect_energy_budg = 0.25

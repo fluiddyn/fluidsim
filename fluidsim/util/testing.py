@@ -14,6 +14,7 @@ import inspect
 import unittest
 import argparse
 import time
+from warnings import warn
 
 import matplotlib
 from importlib import import_module
@@ -101,6 +102,24 @@ def _run(tests, verbose=False):
     return result
 
 
+def import_test_module(module_name: str):
+    """Smarter import handling common mistakes with warnings."""
+    if not module_name.startswith("fluidsim"):
+        warn(
+            f"Assuming you forgot to add fluidsim in front of module name: {module_name}"
+        )
+        module_name = ".".join(("fluidsim", module_name))
+
+    try:
+        module = import_module(module_name)
+    except ModuleNotFoundError:
+        module_name = ".".join(module_name.split(".")[:-1])
+        warn(f"Module not found. Attempting {module_name} instead")
+        module = import_module(module_name)
+    finally:
+        return module
+
+
 def discover_tests(module_name="fluidsim", start_dir=None, verbose=False):
     """Discovers all tests under a module or directory.
     Similar to `python -m unittest discover`.
@@ -122,7 +141,7 @@ def discover_tests(module_name="fluidsim", start_dir=None, verbose=False):
 
     """
     if start_dir is None:
-        module = import_module(module_name)
+        module = import_test_module(module_name)
         path_src = inspect.getfile(module)
         start_dir = os.path.dirname(path_src)
 
@@ -152,7 +171,7 @@ def collect_tests(verbose, *modules):
     suite = unittest.TestSuite()
     for module in modules:
         module = module.replace(os.path.sep, ".")
-        module = import_module(module)
+        module = import_test_module(module)
         tests = unittest.defaultTestLoader.loadTestsFromModule(module)
         suite.addTests(tests)
 

@@ -147,15 +147,15 @@ class PreprocessPseudoSpectral(PreprocessBase):
         else:
             raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
 
-        values = calcul_viscosity(
+        result = calcul_viscosity(
             C,
             viscosity_scale,
             viscosity_type,
             oper=self.oper,
             verbose=False,
-            *args
+            *args,
         )
-        for v in values:
+        for v in result.values():
             attr, order, nu = v
             self.sim.params.__setattr__(attr, nu)
 
@@ -280,22 +280,18 @@ def calcul_viscosity(
     length_scale = C * np.pi / k_max
     k_f = deltak * nk_f
     large_scale = np.pi / k_f
+
+    k_diss = k_max / C / np.pi
     if verbose:
         print("Max. wavenumber =", np.pi / delta_x)
         print("Max. resolved wavenumber, k_max =", k_max)
         print("Grid spacing, delta_x =", delta_x)
         print("\nESTIMATED (P~eps)")
         print(
-            "Kolmogorov wavenumber, k_d = ",
-            k_max / C,
-            "; k_d / k_f = ",
-            k_max / C / k_f,
+            f"Dissipation wavenumber, k_d = {k_diss}; k_d / k_f = {k_diss / k_f}"
         )
         print(
-            "Kolmogorov length scale, L_d = ",
-            length_scale,
-            "; L_d / L_f = ",
-            length_scale / large_scale,
+            f"Dissipation length scale, L_d = {length_scale}; L_d / L_f = {length_scale / large_scale}"
         )
         print("Viscosity scale:", viscosity_scale, "=", args)
 
@@ -359,20 +355,14 @@ def calcul_viscosity(
                 v.append(0.0)
 
     if verbose:
-        kolmo_len = np.mean(kolmo_len)
-        kolmo_k = np.pi / kolmo_len
+        length_scale = np.mean(kolmo_len)
+        k_diss = 1.0 / length_scale
         print("\nCALCULATED (eps={})".format(epsilon))
         print(
-            "Kolmogorov wavenumber, k_d = ",
-            kolmo_k,
-            "; k_d / k_f = ",
-            kolmo_k / k_f,
+            f"Dissipation wavenumber, k_d = {k_diss}; k_d / k_f = {k_diss / k_f}"
         )
         print(
-            "Kolmogorov length scale, L_d = ",
-            kolmo_len,
-            "; L_d / L_f = ",
-            kolmo_len / large_scale,
+            f"Dissipation length scale, L_d = {length_scale}; L_d / L_f = {length_scale / large_scale}"
         )
 
-    return dict_visc.values()
+    return dict_visc

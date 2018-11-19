@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 
-from . import BaseTestCase, mpi
+from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi
 
 
 class TestSpectra(BaseTestCase):

@@ -16,7 +16,7 @@ from fluidsim.base.sphericalharmo.solver import (
     SimulSphericalHarmo,
 )
 
-from ...ns2d.solver import compute_Frot, SetOfVariables
+from fluidsim.solvers.ns2d.solver import compute_Frot, SetOfVariables
 
 
 class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
@@ -106,7 +106,7 @@ class SimulSphereNS2D(SimulSphericalHarmo):
         # "px" like $\partial_x$
         px_rot, py_rot = oper.gradf_from_fsh(rot_sh)
 
-        Frot = compute_Frot(ux, uy, px_rot, py_rot, beta=0)
+        Frot = compute_Frot(ux, uy, px_rot, py_rot, beta=0.0)
 
         if old is None:
             tendencies_sh = SetOfVariables(like=self.state.state_spect)

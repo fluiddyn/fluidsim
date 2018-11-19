@@ -14,14 +14,5 @@ pipelines:
             caches:
               - pip
             script:
-              - pip install -U tox fluidpythran --user
-              - tox -e py36,codecov
-    dev:
-      - parallel:
-        - step:
-            image: fluiddyn/python3-stable
-            caches:
-              - pip
-            script:
-              - pip install -U tox fluidpythran --user
+              - pip install -U tox "fluidpythran>=0.0.6" --user
               - tox -e py36,codecov

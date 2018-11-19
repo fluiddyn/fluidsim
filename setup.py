@@ -123,7 +123,9 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran >= 0.0.3",
+    "fluidpythran >= 0.0.6",
+    "setuptools_scm",
+    "xarray"
 ]
 
 if FFTW3:

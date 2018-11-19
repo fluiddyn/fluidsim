@@ -123,7 +123,7 @@ Lx, Ly and Lz: float
     def __init__(self, params=None):
 
         self.params = params
-
+        self.axes = ("z", "y", "x")
         if params.ONLY_COARSE_OPER:
             nx = ny = nz = 4
             # Unchanged, but type cast into integers
