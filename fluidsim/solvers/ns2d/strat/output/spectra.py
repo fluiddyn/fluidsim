@@ -179,10 +179,10 @@ class SpectraNS2DStrat(Spectra):
             EA_kx = (dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]).mean(0)
 
             id_kx_dealiasing = (
-                np.argmin(abs(kx - self.sim.oper.kxmax_dealiasing)) - 1
+                np.argmin(abs(kx - (kx.max() * self.sim.oper.coef_dealiasing))) - 1
             )
             id_ky_dealiasing = (
-                np.argmin(abs(ky - self.sim.oper.kymax_dealiasing)) - 1
+                np.argmin(abs(ky - (ky.max() * self.sim.oper.coef_dealiasing))) - 1
             )
 
             # Remove modes dealiased.
