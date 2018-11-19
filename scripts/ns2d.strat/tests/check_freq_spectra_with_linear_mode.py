@@ -39,7 +39,7 @@ def _create_object_params():
     params.oper.Lx = params.oper.Ly = 2 * pi
 
     # Forcing parameters
-    params.forcing.enable = True
+    params.forcing.enable = False
     params.forcing.type = 'tcrandom_anisotropic'
 
     try:
@@ -98,6 +98,7 @@ if __name__ == '__main__':
     params.output.HAS_TO_SAVE = True
     params.output.periods_print.print_stdout = 1.
     params.output.periods_save.phys_fields = 2e-1
+
     params.output.periods_save.spatial_means = 0.0005
 
     params.output.periods_save.frequency_spectra = 1
@@ -140,17 +141,18 @@ if __name__ == '__main__':
 
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
-        ax.set_xlabel(r"$\omega$", fontsize=16)
+        ax.set_xlabel(r"$\omega / \omega_{th}$", fontsize=16)
         ax.set_ylabel(r"F($\omega$)", fontsize=16)
 
-        # For 10 conductivity probes
-        for i in range(0,10):
-            ax.loglog(omegas, freq_spectrum[0, :, 1, i])
+        # # For 10 conductivity probes
+        # for i in range(0,10):
+        #     ax.loglog(omegas/omega_n, freq_spectrum[0, :, 1, i])
 
-        ax.axvline(x=omega_n, label="$\omega_{th}$", c="k")
+        ax.semilogy(omegas/omega_n, freq_spectrum[0, :, 1, 4])
+        ax.axvline(x=omega_n / omega_n, label="$\omega_{th}$", c="k")
 
         # Set text
-        ax.text(2e-1, 1e3,
+        ax.text(5e-2, 1e3,
                 r"$\omega_{th} = N \sin(arctan \left( \frac{k_x}{k_z} \right))$",
                 fontsize=16)
 

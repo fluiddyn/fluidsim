@@ -10,12 +10,15 @@ import matplotlib.pyplot as plt
 
 from glob import glob
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from compute_anisotropy import compute_anisotropy
-from compute_ratio_dissipation import compute_ratio_dissipation
-from compute_reynolds_froude import compute_buoyancy_reynolds
+# from compute_anisotropy import compute_anisotropy
+# from compute_ratio_dissipation import compute_ratio_dissipation
+# from compute_reynolds_froude import compute_buoyancy_reynolds
+
 from compute_length_scales import compute_length_scales
 from fluiddyn.output.rcparams import set_rcparams
 from fluidsim import load_params_simul
+from flow_features import get_features_from_sim, _get_resolution_from_dir
+
 def _get_resolution_from_dir(path_simulation):
     return path_simulation.split("NS2D.strat_")[1].split("x")[0]
 def _get_gamma_str_from_path(path_simulation):
@@ -35,7 +38,7 @@ directories = ["sim960_no_shear_modes",
 #                "sim1920_no_shear_modes",
 #                "sim1920_modif_res_no_shear_modes"]
 
-# directories = ["sim960_no_shear_modes"]
+# directories = ["sim960_no_shear_modes"]
 paths_simulations = []
 for directory in directories:
     paths_simulations += sorted(glob(os.path.join(path_root, directory, "NS2D*")))
@@ -67,9 +70,11 @@ for path in paths_simulations:
     if gamma_str.startswith("2"):
         continue
     else:
-        F_h, Re_8, R_b = compute_buoyancy_reynolds(path)
-        anisotropy = compute_anisotropy(path)
-        dissipation = compute_ratio_dissipation(path)
+        # F_h, Re_8, R_b = compute_buoyancy_reynolds(path)
+        # anisotropy = compute_anisotropy(path)
+        # dissipation = compute_ratio_dissipation(path)
+
+        anisotropy, dissipation, F_h, Re_8, R_b = get_features_from_sim(path)
         res = _get_resolution_from_dir(path)
         lx, lz = compute_length_scales(path)
 

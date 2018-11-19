@@ -33,9 +33,14 @@ def _compute_array_times_from_path(path_simulation):
             continue
     return np.asarray(times_phys_files)
 
+
 def compute_anisotropy(path_simulation, tmin=None):
     """
     It computes the anisotropy of a simulation.
+
+    The anisotropy is defined as:
+
+    ::math EK_ux / EK
 
     Parameters
     ----------

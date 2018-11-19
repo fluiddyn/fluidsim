@@ -22,8 +22,6 @@ def compute_length_scales(path_simulation, tmin=None):
     else:
         gamma_out = float(gamma_str)
 
-    print("Compute dissipation nx = {} and gamma {}..".format(res_out, gamma_out))
-
     # Load object parameters
     params = load_params_simul(path_simulation)
 

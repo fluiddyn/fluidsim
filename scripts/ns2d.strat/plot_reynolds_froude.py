@@ -19,6 +19,7 @@ from fluiddyn.output.rcparams import set_rcparams
 
 def _get_resolution_from_dir(path_simulation):
     return path_simulation.split("NS2D.strat_")[1].split("x")[0]
+
 def _get_gamma_str_from_path(path_simulation):
     return path_simulation.split("_gamma")[1].split("_")[0]
 
@@ -26,13 +27,13 @@ SAVE = False
 
 # Create path simulations
 path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
-directories = ["sim960_no_shear_modes",
-               "sim960_no_shear_modes_transitory",
-               "sim1920_no_shear_modes",
-               "sim1920_modif_res_no_shear_modes",
-               "sim3840_modif_res_no_shear_modes"]
+# directories = ["sim960_no_shear_modes",
+#                "sim960_no_shear_modes_transitory",
+#                "sim1920_no_shear_modes",
+#                "sim1920_modif_res_no_shear_modes",
+#                "sim3840_modif_res_no_shear_modes"]
 
-# directories = ["sim960_no_shear_modes"]
+directories = ["sim960_no_shear_modes"]
 
 
 paths_simulations = []

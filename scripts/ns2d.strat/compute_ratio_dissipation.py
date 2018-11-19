@@ -52,14 +52,15 @@ def compute_ratio_dissipation(path_simulation, tmin=None):
     # Compute k_fx
     k_fx = (np.sin(params.forcing.tcrandom_anisotropic.angle) *
             params.forcing.nkmax_forcing * max(delta_kx, delta_kz))
-    ik_fx = np.argmin(abs(kx - k_fx ))
+    ik_fx = np.argmin(abs(kx - k_fx))
 
     ratio_dissipation_old = D_kx[ik_fx] / D_kx[-1]
 
     # Compute wave-number for 1/2 dissipation
     ik_half = np.argmin(abs(D_kx - (D_kx[-1] / 2)))
 
-    return D_kx[ik_half] / D_kx[ik_fx]
+    # return D_kx[ik_half] / D_kx[ik_fx]
+    return kx[ik_half] / k_fx
 
 if __name__ == "__main__":
     path_simulation = "/fsnet/project/meige/2015/15DELDUCA/DataSim/" + \
