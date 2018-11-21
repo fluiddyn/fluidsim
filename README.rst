@@ -1,8 +1,11 @@
-========
-FluidSim
-========
+======
+|logo|
+======
 
 |release| |docs| |coverage| |travis|
+
+.. |logo| image:: https://bitbucket.org/fluiddyn/fluidsim/raw/default/doc/logo.svg
+   :alt: FluidSim
 
 .. |release| image:: https://badge.fury.io/py/fluidsim.svg
    :target: https://pypi.python.org/pypi/fluidsim/
