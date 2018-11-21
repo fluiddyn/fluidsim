@@ -298,6 +298,8 @@ def load_state_phys_file(
         params.output.HAS_TO_SAVE = False
         params.output.ONLINE_PLOT_OK = False
 
+    params.ONLY_COARSE_OPER = False
+
     sim = Simul(params)
     return sim
 
