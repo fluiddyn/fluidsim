@@ -293,7 +293,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         # Parameters of the figure
         fig, ax2 = self.output.figure_axe()
-        ax2.set_xlabel("$k_y$")
+        ax2.set_xlabel("$k_z$")
         ax2.set_ylabel(r"$\Pi$")
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
