@@ -270,7 +270,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_n12 = self._state_spect_tmp
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk2_step0")
         else:
             # pythran block (
@@ -288,7 +288,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk2_step1")
         else:
             # pythran block (
@@ -449,7 +449,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_tmp1 = self._state_spect_tmp1
         state_spect_np12_approx1 = state_spect_tmp1
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk4_step0")
         else:
             # based on approximation 0
@@ -479,7 +479,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_np12_approx2 = state_spect_tmp1
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk4_step1")
         else:
             # based on approximation 1
@@ -509,7 +509,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_np1_approx = state_spect_tmp1
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk4_step2")
         else:
             # based on approximation 2
@@ -537,7 +537,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
         del state_spect_np1_approx
 
-        if fp.is_pythranized:
+        if fp.is_transpiled:
             fp.use_pythranized_block("rk4_step3")
         else:
             # result using the 4 approximations
