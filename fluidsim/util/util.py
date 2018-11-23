@@ -324,9 +324,6 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
     """
 
-    if isinstance(name_dir, Path):
-        name_dir = str(name_dir)
-
     path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
 
