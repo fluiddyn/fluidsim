@@ -1,2 +1,2 @@
 [build-system]
-requires = ["setuptools", "wheel", "numpy", "fluidpythran>=0.1.0"]
+requires = ["setuptools", "wheel", "numpy", "fluidpythran>=0.1.0.post0"]

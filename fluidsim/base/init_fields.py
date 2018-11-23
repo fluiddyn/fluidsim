@@ -305,8 +305,9 @@ path: str
             time = mpi.comm.bcast(time)
             it = mpi.comm.bcast(it)
 
-        self.sim.state.statespect_from_statephys()
-        self.sim.state.statephys_from_statespect()
+        if hasattr(self.sim.state, "statespect_from_statephys"):
+            self.sim.state.statespect_from_statephys()
+            self.sim.state.statephys_from_statespect()
         self.sim.time_stepping.t = time
         self.sim.time_stepping.it = it
 

@@ -123,7 +123,7 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran >= 0.1.0",
+    "fluidpythran >= 0.1.0.post0",
     "setuptools_scm",
     "xarray"
 ]
@@ -208,6 +208,7 @@ for command in ["profile", "bench", "bench-analysis"]:
         + " = fluidsim.util.console.__main__:run_"
         + command.replace("-", "_")
     )
+
 
 
 setup(
