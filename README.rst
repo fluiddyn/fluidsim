@@ -26,8 +26,8 @@
    :target: https://travis-ci.org/fluiddyn/fluidsim
    :alt: Travis CI status
 
-.. |binder| image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?filepath=doc%2Fipynb
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?urlpath=lab/tree/doc/ipynb
    :alt: Binder notebook
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
@@ -41,11 +41,11 @@ time-consuming tasks are performed by optimized compiled functions.
 
 Getting started
 ---------------
-To try Fluidsim without installation: |binder|
+To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluiddyn [--user]
+  pip install fluiddyn fluidpythran [--user]
   pip install fluidsim [--user]
 
 Add ``--user`` flag if you are installing without setting up a virtual
@@ -58,10 +58,10 @@ To take full advantage of fluidsim, consider installing the following
 (optional) dependencies and configurations before installing fluidsim. Click on
 the links to know more:
 
-1. FFT libraries such as MPI-enabled FFTW (for 2D and 3D solvers) and P3DFFT,
+1. OpenMPI or equivalent
+2. FFT libraries such as MPI-enabled FFTW (for 2D and 3D solvers) and P3DFFT,
    PFFT (for 3D solvers) either using a package manager or `from source
    <https://fluidfft.readthedocs.io/en/latest/install/fft_libs.html>`__
-2. OpenMPI or equivalent
 3. Python packages ``fluiddyn mako cython pyfftw pythran mpi4py``
 4. `A C++11 compiler and BLAS
    libraries <https://github.com/serge-sans-paille/pythran#installation>`__ and
@@ -84,15 +84,15 @@ found `here
 
 You can get the source code from `Bitbucket
 <https://bitbucket.org/fluiddyn/fluidsim>`__ or from `the Python
-Package Index <https://pypi.python.org/pypi/fluidsim/>`__.  The development
-mode is often useful if you intend to modify fluidsim . From the root
-directory::
+Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
+The development mode is often useful if you intend to modify fluidsim . From
+the root directory::
 
   python setup.py develop
 
 Tests
 -----
-After installing FluidSim run the tests to ensure everything works::
+After installing fluidsim run the tests to ensure everything works::
 
   fluidsim-test
   mpirun -np 2 fluidsim-test

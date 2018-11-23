@@ -1,3 +1,6 @@
+sudo: required
+dist: xenial
+# See https://github.com/travis-ci/travis-ci/issues/9069
 language: python
 
 python:
