@@ -85,7 +85,8 @@ class StateNS2DStrat(StateNS2D):
             b_fft = self.state_spect.get_var("b_fft")
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-            result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
+            # result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
+            result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
         elif key == "am_fft":
             rot_fft = self.state_spect.get_var("rot_fft")
             # print("rot_fft", rot_fft)
@@ -100,7 +101,8 @@ class StateNS2DStrat(StateNS2D):
             # print("omega_k", omega_k)
             # print("1j * omega_k * b_fft", 1j * omega_k * b_fft)
             # print("(N ** 2) * uy_fft", (N ** 2) * uy_fft)
-            result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
+            # result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
+            result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
         # result = np.zeros(self.oper.shapeK, dtype="complex")
         elif key == "ap":
             ap_fft = self.compute("ap_fft")
@@ -192,7 +194,8 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        # b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        b_fft[cond] = (- 1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
         return rot_fft, b_fft
 
     def _compute_state_from_apfft(self, ap_fft):
@@ -213,7 +216,8 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        # b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        b_fft[cond] = (- 1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
 
         return rot_fft, b_fft
 
