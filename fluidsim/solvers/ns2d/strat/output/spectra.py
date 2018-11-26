@@ -97,11 +97,10 @@ class SpectraNS2DStrat(Spectra):
         tmin=0,
         tmax=None,
         delta_t=2,
-        coef_compensate_kx=5.0 / 3,
+        coef_compensate_kx=5/3,
         coef_compensate_kz=3.0,
     ):
         """Plot spectra one-dimensional."""
-
         with h5py.File(self.path_file1D, "r") as h5file:
 
             # Open data from file
@@ -208,12 +207,28 @@ class SpectraNS2DStrat(Spectra):
                 kx_plot, EA_kx_plot * kx_plot ** coef_compensate_kx, label="EA"
             )
 
+            # Plot scaling lines
+            ax1.plot(kx_plot[50:], 1e0 * kx_plot[50:]**(-3) * kx_plot[50:] ** coef_compensate_kx,
+                     color="k",
+                     linestyle="--",
+                     linewidth=1,
+                     label=r"$k_x^{-3}$")
+            ax1.plot(kx_plot[50:], 1e-2 * kx_plot[50:]**(-2) * kx_plot[50:] ** coef_compensate_kx,
+                     color="k",
+                     linestyle="-.",
+                     linewidth=1,
+                     label=r"$k_x^{-2}$")
+
+            # Set limits axis y
+            ymin = E_kx_plot[0:50] * kx_plot[0:50] ** coef_compensate_kx
+            ymax = E_kx_plot * kx_plot ** coef_compensate_kx
+            ax1.set_ylim(ymin=1e-1 * ymin.min(), ymax=ymax.max())
+
             # Parameters figure E(k_y)
             fig, ax2 = self.output.figure_axe()
             ax2.set_xlabel(r"$k_z$")
             ax2.set_ylabel(
-                r"$E(k_z)k_z^{{{}}}$".format(round(coef_compensate_kz, 2))
-            )
+                r"$E(k_z)k_z^{{{}}}$".format(coef_compensate_kz))
             ax2.set_title(
                 "1D spectra, solver "
                 + self.output.name_solver
@@ -243,6 +258,18 @@ class SpectraNS2DStrat(Spectra):
         ax2.plot(ky_plot, E_ky_plot * ky_plot ** coef_compensate_kz, label="E")
         ax2.plot(ky_plot, EK_ky_plot * ky_plot ** coef_compensate_kz, label="EK")
         ax2.plot(ky_plot, EA_ky_plot * ky_plot ** coef_compensate_kz, label="EA")
+
+        # Plot scaling lines
+        ax2.plot(ky_plot[50:], 1e-2 * ky_plot[50:]**(-5/3) * ky_plot[50:] ** coef_compensate_kz,
+                 color="k",
+                 linestyle="--",
+                 linewidth=1,
+                 label=r"$k_x^{-5/3}$")
+        ax2.plot(ky_plot[50:], 1e-2 * ky_plot[50:]**(-2) * ky_plot[50:] ** coef_compensate_kz,
+                 color="k",
+                 linestyle="-.",
+                 linewidth=1,
+                 label=r"$k_x^{-2}$")
 
         # Plot forcing wave-number k_f
         nkmax = self.sim.params.forcing.nkmax_forcing
