@@ -1,8 +1,8 @@
 """
-plot_vertical_scale.py
-=======================
+plot_vertical_scale_godoy.py
+=============================
 
-Plots vertical scale.
+Plots vertical scale with Godoy scaling.
 """
 
 import os
@@ -40,7 +40,7 @@ reynolds8 = []
 anisotropies = []
 dissipations = []
 markers = []
-lzs_billant = []
+lzs_godoy = []
 
 for path in paths_simulations:
     anisotropy, ratio_diss, F_h, Re_8, R_b, l_x, l_z = get_features_from_sim(path)
@@ -73,20 +73,21 @@ for path in paths_simulations:
     # Load parameters
     params = load_params_simul(path)
 
-    lzs_billant.append(l_z * params.N / np.mean(ux_rms))
+    compensate_godoy = l_x / (Re_8**(1/8))
+    lzs_godoy.append(l_z / compensate_godoy)
 
 # Parameters figures
 set_rcparams(fontsize=14, for_article=True)
 fig, ax = plt.subplots()
 ax.set_xlabel(r"$\mathcal{R}_8$", fontsize=18)
-ax.set_ylabel(r"$l_z N / U$", fontsize=18)
+ax.set_ylabel(r"$l_z Re_8^{1/8} / l_x$", fontsize=18)
 ax.set_xscale("log")
 ax.set_yscale("linear")
 ax.set_xlim([1e-10, 1e8])
 ax.set_ylim([0, 1.2e1])
 
 # Plot...
-for _f, _r, _a, _d, _m, _l in zip(froudes, reynoldsb, anisotropies, dissipations, markers, lzs_billant):
+for _f, _r, _a, _d, _m, _l in zip(froudes, reynoldsb, anisotropies, dissipations, markers, lzs_godoy):
             scatter = ax.scatter(_r, _l, s=100, c=_d, vmin=0, vmax=1, marker=_m, alpha=0.7)
 
 # Plot horizontal line
@@ -117,10 +118,10 @@ ax.legend(handles=[blue_star, red_square, purple_triangle, diamond],
           handletextpad=0.1,
           fontsize=14)
 
-SAVE = False
+SAVE = True
 if SAVE:
     path_save = "/fsnet/project/meige/2015/15DELDUCA/notebooks/figures/" + \
-                "vertical_length_scale.png"
+                "vertical_length_scale_godoy.png"
     fig.savefig(path_save, format="png", bbox_inches="tight")
 
 plt.show()
