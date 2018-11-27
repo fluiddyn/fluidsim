@@ -37,6 +37,7 @@ doc/ipynb/*.rst
 build/*
 dist/*.tar.gz
 dist*
+.eggs/*
 .tox/*
 .coverage/*
 

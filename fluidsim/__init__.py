@@ -30,7 +30,11 @@ from ._version import __version__, get_local_version
 from fluiddyn.io import FLUIDSIM_PATH
 
 # has to be done before importing util
-path_dir_results = Path(FLUIDSIM_PATH)
+try:
+    path_dir_results = Path(FLUIDSIM_PATH)
+except TypeError:
+    # to be able to import for fluidpythran
+    path_dir_results = None
 
 from .util.util import (
     import_module_solver_from_key,
