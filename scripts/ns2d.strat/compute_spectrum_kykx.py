@@ -14,7 +14,8 @@ from math import pi
 from fluidsim import load_state_phys_file
 
 # rot_fft tmin=200
-# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-56-33"
+path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-56-33"
+# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing2/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-28_08-57-58"
 
 # rot_fft kz_negative
 # path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-56-59"
@@ -23,7 +24,7 @@ from fluidsim import load_state_phys_file
 # path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-57-14"
 
 ## ap_fft kz tmin= 200
-path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-57-25"
+# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing/NS2D.strat_1920x480_S2pix1.571_F07_gamma1_2018-11-26_15-57-25"
 
 # Create list path files
 paths_files = glob(os.path.join(path, "state_phys*"))
@@ -34,8 +35,8 @@ for path_file in paths_files:
     times.append(float(path_file.split("_t")[1].split(".nc")[0]))
 
 times = np.asarray(times)
-tmin = 100
-tmax = 102
+tmin = 0
+tmax = 0.2
 itmin = np.argmin(abs(times - tmin))
 itmax = np.argmin(abs(times - tmax))
 
@@ -102,14 +103,14 @@ ax1.set_ylim([-sim.params.oper.coef_dealiasing * kz.max(),
 data = abs(ux_fft_arr)**2 + abs(uz_fft_arr)**2
 data = abs(b_fft_arr)**2
 data = abs(ap_fft_arr)**2
-data = abs(am_fft_arr)**2
+# data = abs(am_fft_arr)**2
 
 ax1.pcolormesh(
     KX[0:KZ.shape[0]//2, 0:KX.shape[1]//2],
     KZ[0:KZ.shape[0]//2, 0:KX.shape[1]//2],
     data[0:KZ.shape[0]//2, 0:KX.shape[1]//2],
     vmin=0,
-    vmax=1e6
+    vmax=1e7
 )
 
 ax1.pcolormesh(
@@ -117,7 +118,7 @@ ax1.pcolormesh(
     KZ[KZ.shape[0]//2:, KX.shape[1]//2:],
     data[KZ.shape[0]//2:, KX.shape[1]//2:],
     vmin=0,
-    vmax=1e6
+    vmax=1e7
 )
 
 ax1.pcolormesh(
@@ -125,7 +126,7 @@ ax1.pcolormesh(
     KZ[KZ.shape[0]//2:, 0:KX.shape[1]//2],
     data[KZ.shape[0]//2:, 0:KX.shape[1]//2],
     vmin=0,
-    vmax=1e6
+    vmax=1e7
 )
 
 ax1.pcolormesh(
@@ -133,54 +134,8 @@ ax1.pcolormesh(
     KZ[0:KZ.shape[0]//2, KX.shape[1]//2:],
     data[0:KZ.shape[0]//2, KX.shape[1]//2:],
     vmin=0,
-    vmax=1e6
+    vmax=1e7
 )
-
-
-# ax1.imshow(data, vmin=0, vmax=1e6)
-# ax1.contourf(data)
-# ax1.pcolormesh(
-#     data,
-#     vmin=0,
-#     vmax=1e6
-# )
-
-# # Parameters figure
-# fig2, ax2 = plt.subplots()
-# ax2.set_xlabel("$k_x$")
-# ax2.set_ylabel("$k_z$")
-# ax2.set_title("abs(b_fft_arr)**2")
-# ax2.set_xlim([-sim.params.oper.coef_dealiasing * kx.max(),
-#              sim.params.oper.coef_dealiasing * kx.max()])
-# ax2.set_ylim([-sim.params.oper.coef_dealiasing * kz.max(),
-#              sim.params.oper.coef_dealiasing * kz.max()])
-
-# data = abs(b_fft_arr)**2
-# ax2.pcolormesh(
-#     KX, KZ,
-#     data,
-#     vmin=0,
-#     vmax=1e6
-# )
-
-
-# # Parameters figure
-# fig3, ax3 = plt.subplots()
-# ax3.set_xlabel("$k_x$")
-# ax3.set_ylabel("$k_z$")
-# ax3.set_title("abs(ap_fft_arr)**2")
-# ax3.set_xlim([-sim.params.oper.coef_dealiasing * kx.max(),
-#              sim.params.oper.coef_dealiasing * kx.max()])
-# ax3.set_ylim([-sim.params.oper.coef_dealiasing * kz.max(),
-#              sim.params.oper.coef_dealiasing * kz.max()])
-
-# data = abs(ap_fft_arr)**2
-# ax3.pcolormesh(
-#     KX, KZ,
-#     data,
-#     vmin=0,
-#     vmax=1e6
-# )
 
 
 plt.show()
