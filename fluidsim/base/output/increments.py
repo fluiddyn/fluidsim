@@ -1,14 +1,35 @@
-from __future__ import division, print_function
-
-from builtins import range
 import h5py
 import os
 import numpy as np
 
+# pythran import numpy as np
+
+from fluidpythran import pythran_def, Array
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
-from .util_pythran import strfunc_from_pdf
+
+A = Array[float, "2d"]
+# pythran def strfunc_from_pdf(
+#     int32[], float64[][], float64[][], float, bool)
+
+
+@pythran_def
+def strfunc_from_pdf(
+    rxs: A, pdf: A, values: A, order: float, absolute: bool = False
+):
+    """Compute structure function of specified order from pdf for increments
+    module.
+
+    """
+    S_order = np.empty(rxs.shape)
+    if absolute:
+        values = abs(values)
+    for irx in range(rxs.size):
+        deltainc = abs(values[irx, 1] - values[irx, 0])
+        S_order[irx] = deltainc * np.sum(pdf[irx] * values[irx] ** order)
+
+    return S_order
 
 
 class Increments(SpecificOutput):

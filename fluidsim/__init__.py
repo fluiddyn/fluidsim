@@ -24,6 +24,31 @@ The package is organised in four sub-packages:
 """
 
 from pathlib import Path
+import os
+import sys
+
+if any(
+    any(test_tool in arg for arg in sys.argv)
+    for test_tool in ("pytest", "unittest")
+):
+    print(
+        "Fluidsim guesses that it is tested so it"
+        " loads the Agg Matplotlib backend."
+    )
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    def _show(*args, **kwargs):
+        pass
+
+    plt.show = _show
+
+    if "FLUID_COMPILE_CACHEDJIT" not in os.environ:
+        from fluidpythran import set_compile_cachedjit
+
+        set_compile_cachedjit(False)
 
 from ._version import __version__, get_local_version
 

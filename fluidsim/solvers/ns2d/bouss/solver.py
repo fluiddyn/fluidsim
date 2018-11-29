@@ -6,16 +6,24 @@
    :private-members:
 
 """
-
-from __future__ import division
-
 import numpy as np
 
-from fluidsim.base.setofvariables import SetOfVariables
+from fluidpythran import cachedjit, Array
 
+from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
 
-from .util_pythran import tendencies_nonlin_ns2dbouss
+
+AF = Array[np.float64, "2d"]
+
+
+@cachedjit
+def tendencies_nonlin_ns2dbouss(
+    ux: AF, uy: AF, px_rot: AF, py_rot: AF, px_b: AF, py_b: AF
+):
+    Frot = -ux * px_rot - uy * py_rot + px_b
+    Fb = -ux * px_b - uy * py_b
+    return Frot, Fb
 
 
 class InfoSolverNS2DBouss(InfoSolverNS2D):

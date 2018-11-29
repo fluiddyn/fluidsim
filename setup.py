@@ -53,16 +53,20 @@ here = Path(__file__).parent.absolute()
 
 from fluidpythran.dist import make_pythran_files
 
-paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
+paths = [
+    "fluidsim/base/time_stepping/pseudo_spect.py",
+    "fluidsim/base/output/increments.py",
+]
 make_pythran_files(
     [here / path for path in paths],
     mocked_modules=(
         "psutil",
+        "h5py",
         "fluiddyn",
         "fluiddyn.io",
         "fluiddyn.util",
         "fluiddyn.util.paramcontainer",
-        "h5py",
+        "fluiddyn.output",
     ),
 )
 
@@ -133,7 +137,7 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran >= 0.1.1",
+    "fluidpythran>=0.1.2",
     "setuptools_scm",
     "xarray",
 ]
@@ -148,9 +152,7 @@ def modification_date(filename):
 
 
 def make_pythran_extensions(modules):
-    exclude_pythran = tuple(
-        key for key, value in config["exclude_pythran"].items() if value
-    )
+    exclude_pythran = tuple()
     if len(exclude_pythran) > 0:
         logger.info(
             "Pythran files in the packages "

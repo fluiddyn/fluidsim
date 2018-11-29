@@ -11,8 +11,6 @@ FFTW3 : bool
 
 """
 
-from __future__ import print_function
-
 import os
 import sys
 import subprocess
@@ -28,10 +26,9 @@ try:
 except ImportError:
     from distutils.command.build_ext import build_ext
     from setuptools import Extension
-try:  # python 3
-    from configparser import ConfigParser
-except ImportError:  # python 2.7
-    from ConfigParser import ConfigParser
+
+from configparser import ConfigParser
+
 
 try:
     import colorlog as logging
@@ -222,19 +219,6 @@ def monkeypatch_parallel_build():
 def get_default_config():
     """Generate default configuration."""
     config = ConfigParser()
-    section = "exclude_pythran"
-    config.add_section(section)
-    exclude_pythran = (
-        "fluidsim.solvers.plate2d",
-        "fluidsim.solvers.plate2d.output",
-        "fluidsim.solvers.sw1l",
-        "fluidsim.solvers.sw1l.output",
-        "fluidsim.solvers.ns2d.strat",
-        "fluidsim.solvers.ns2d.bouss",
-    )
-    for excluded in exclude_pythran:
-        config.set(section, excluded, "True")
-
     config.add_section("environ")
 
     return config
