@@ -1,3 +1,15 @@
+"""State of the variables (:mod:`fluidsim.base.basilisk.state`)
+===============================================================
+
+Provides:
+
+.. autoclass:: StateBasilisk
+   :members:
+   :private-members:
+
+"""
+
+
 from ..state import StateBase
 
 
@@ -17,7 +29,7 @@ class StateBasilisk(StateBase):
         )
 
     def compute(self, key):
-
+        """Compute scalar fields such a component of the velocity or vorticity."""
         if key == "ux":
             scalar = self.sim.basilisk.uf.x
         elif key == "uy":

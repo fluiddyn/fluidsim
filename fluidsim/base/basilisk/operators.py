@@ -1,3 +1,13 @@
+"""Operators for Basilisk (:mod:`fluidsim.base.basilisk.operators`)
+===================================================================
+
+Provides:
+
+.. autoclass:: OperatorsBasilisk2D
+   :members:
+   :private-members:
+
+"""
 from __future__ import division
 
 from builtins import object

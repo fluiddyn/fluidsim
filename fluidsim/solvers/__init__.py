@@ -18,4 +18,29 @@ example, :mod:`fluidsim.solvers.ns2d.strat` or
    sphere
    models0d
 
+Provides:
+
+.. autosummary::
+   :toctree:
+
+   pkgload
+
 """
+import numpy as _np
+
+
+def pkgload():
+    """Populate ``fluidsim.solvers`` package namespace with the solvers for easier
+    import.
+
+    """
+    from ..util.util import available_solver_keys
+    solvers = available_solver_keys()
+
+    solver_pkgs = (f"fluidsim.solvers.{solver}"
+                   for solver in solvers)
+    solver_modules = (f"fluidsim.solvers.{solver}.solver"
+                      for solver in solvers)
+
+    _np.pkgload(*solver_pkgs)
+    _np.pkgload(*solver_modules)

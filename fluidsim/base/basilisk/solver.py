@@ -1,3 +1,17 @@
+"""Basilisk solver (:mod:`fluidsim.base.basilisk.solver`)
+=========================================================
+
+Provides:
+
+.. autoclass:: InfoSolverBasilisk
+   :members:
+   :private-members:
+
+.. autoclass:: SimulBasilisk
+   :members:
+   :private-members:
+
+"""
 from __future__ import print_function
 
 from fluidsim.base.solvers.base import SimulBase
@@ -7,6 +21,7 @@ import basilisk.stream as basilisk
 
 
 class InfoSolverBasilisk(InfoSolverBase):
+    """Contain the information on a Basilisk solver."""
     def _init_root(self):
 
         super(InfoSolverBasilisk, self)._init_root()
@@ -33,9 +48,11 @@ class InfoSolverBasilisk(InfoSolverBase):
 
 
 class SimulBasilisk(SimulBase):
+    """A solver for Basilisk."""
     InfoSolver = InfoSolverBasilisk
 
     def __init__(self, params):
+        """Initialize parameters, state fields, and event loop."""
         bas = self.basilisk = basilisk
         super(SimulBasilisk, self).__init__(params)
 
