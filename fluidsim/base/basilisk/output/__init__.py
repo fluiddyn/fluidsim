@@ -1,3 +1,14 @@
+"""Module to generate output from Basilisk (:mod:`fluidsim.base.basilisk.output`)
+==================================================================================
+
+Provides:
+
+.. autoclass:: OutputBasilisk
+   :members:
+   :private-members:
+
+"""
+
 from ...output.base import OutputBase  # , SpecificOutput
 
 
