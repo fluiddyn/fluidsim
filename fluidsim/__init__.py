@@ -29,11 +29,13 @@ import sys
 
 if any(
     any(test_tool in arg for arg in sys.argv)
-    for test_tool in ("pytest", "unittest")
+    for test_tool in ("pytest", "unittest", "fluidsim-test")
 ):
-    print(
-        "Fluidsim guesses that it is tested so it"
-        " loads the Agg Matplotlib backend."
+    from fluiddyn.util import mpi
+
+    mpi.printby0(
+        "Fluidsim guesses that it is tested so it "
+        "loads the Agg Matplotlib backend."
     )
     import matplotlib
 
@@ -46,6 +48,7 @@ if any(
     plt.show = _show
 
     if "FLUID_COMPILE_CACHEDJIT" not in os.environ:
+        mpi.printby0("Compilation of cachedjit functions disabled.")
         from fluidpythran import set_compile_cachedjit
 
         set_compile_cachedjit(False)
