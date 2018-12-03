@@ -18,6 +18,7 @@ from copy import deepcopy
 
 import numpy as np
 
+from fluidpythran import pythran_def, Array, FluidPythran
 from fluiddyn.util.mpi import nb_proc, rank
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -26,24 +27,76 @@ from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 
-from . import util3d_pythran
+fp = FluidPythran()
+
+Asov = Array[np.complex128, "4d"]
+Aui8 = Array[np.uint8, "3d"]
+Ac = Array[np.complex128, "3d"]
+Af = Array[np.float64, "3d"]
+
+@pythran_def
+def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
+    """Dealiasing 3d setofvar object.
+
+    Parameters
+    ----------
+
+    sov : 4d ndarray
+        A set of variables array.
+
+    where_dealiased : 3d ndarray
+        A 3d array of "booleans" (actually uint8).
+
+    """
+    nk, n0, n1, n2 = sov.shape
+
+    for i0 in range(n0):
+        for i1 in range(n1):
+            for i2 in range(n2):
+                if where_dealiased[i0, i1, i2]:
+                    for ik in range(nk):
+                        sov[ik, i0, i1, i2] = 0.0
 
 
-def dealiasing_setofvar_numpy(sov, where_dealiased):
+@pythran_def
+def dealiasing_variable(ff_fft: Ac, where_dealiased: Aui8):
+    """Dealiasing 3d array"""
+    n0, n1, n2 = ff_fft.shape
+
+    for i0 in range(n0):
+        for i1 in range(n1):
+            for i2 in range(n2):
+                if where_dealiased[i0, i1, i2]:
+                    ff_fft[i0, i1, i2] = 0.0
+
+
+def dealiasing_setofvar_numpy(sov: Asov, where_dealiased: Aui8):
     for i in range(sov.shape[0]):
         sov[i][np.nonzero(where_dealiased)] = 0.0
 
 
-def dealiasing_variable_numpy(ff_fft, where_dealiased):
+def dealiasing_variable_numpy(ff_fft: Ac, where_dealiased: Aui8):
     ff_fft[np.nonzero(where_dealiased)] = 0.0
 
 
-if hasattr(util3d_pythran, "__pythran__"):
-    dealiasing_variable = util3d_pythran.dealiasing_variable
-    dealiasing_setofvar = util3d_pythran.dealiasing_setofvar
-else:
+if not fp.is_transpiling and not fp.is_compiled:
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
+
+
+@pythran_def
+def urudfft_from_vxvyfft(vx_fft: Ac, vy_fft: Ac, kx: Af, ky: Af, rank: int):
+    k2 = kx ** 2 + ky ** 2
+    k2[k2 == 0.0] = 1e-10
+
+    divh_fft = 1j * (kx * vx_fft + ky * vy_fft)
+    urx_fft = vx_fft - divh_fft * kx / k2
+    ury_fft = vy_fft - divh_fft * ky / k2
+
+    udx_fft = vx_fft - urx_fft
+    udy_fft = vy_fft - ury_fft
+
+    return urx_fft, ury_fft, udx_fft, udy_fft
 
 
 class OperatorsPseudoSpectral3D(_Operators):
@@ -241,7 +294,7 @@ Lx, Ly and Lz: float
         """Compute toroidal and poloidal horizontal velocities
 
         """
-        return util3d_pythran.urudfft_from_vxvyfft(
+        return urudfft_from_vxvyfft(
             vx_fft, vy_fft, self.Kx, self.Ky, rank
         )
 

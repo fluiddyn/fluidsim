@@ -29,8 +29,6 @@ from fluidpythran import FluidPythran, Type, NDim, Array
 
 from .base import TimeSteppingBase
 
-from .rk_pythran import step0_RK2_pythran, step1_RK2_pythran
-
 fp = FluidPythran()
 
 T = Type(np.complex128)
@@ -241,23 +239,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         self.sim.state.state_spect = (
             state_spect * diss + dt * diss2 * tendencies_n12
         )
-
-    def _time_step_RK2_pythran(self):
-        dt = self.deltat
-        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-
-        compute_tendencies = self.sim.tendencies_nonlin
-        state_spect = self.sim.state.state_spect
-
-        tendencies_n = compute_tendencies()
-
-        state_spect_n12 = self._state_spect_tmp
-        # state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
-        step0_RK2_pythran(state_spect_n12, state_spect, tendencies_n, diss2, dt)
-
-        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
-        # state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
-        step1_RK2_pythran(state_spect, tendencies_n12, diss, diss2, dt)
 
     def _time_step_RK2_fluidpythran(self):
         dt = self.deltat

@@ -56,6 +56,9 @@ from fluidpythran.dist import make_pythran_files
 paths = [
     "fluidsim/base/time_stepping/pseudo_spect.py",
     "fluidsim/base/output/increments.py",
+    "fluidsim/operators/operators2d.py",
+    "fluidsim/operators/operators3d.py",
+    "fluidsim/solvers/ns2d/solver.py",
 ]
 make_pythran_files(
     [here / path for path in paths],
@@ -199,7 +202,7 @@ if use_pythran:
         for name in files:
             if (
                 name.endswith("_pythran.py")
-                or path_dir.name == "_pythran"
+                or path_dir.name == "__pythran__"
                 and name.endswith(".py")
             ):
                 path = os.path.join(root, name)

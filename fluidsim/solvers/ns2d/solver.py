@@ -13,9 +13,12 @@ This module provides two classes defining the pseudo-spectral solver
    :private-members:
 
 """
-from __future__ import division
 
 import sys
+
+import numpy as np
+
+from fluidpythran import pythran_def, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -24,7 +27,16 @@ from fluidsim.base.solvers.pseudo_spect import (
     InfoSolverPseudoSpectral,
 )
 
-from fluidsim.solvers.ns2d.util_pythran import compute_Frot
+Af = Array[np.float64, "2d"]
+
+
+@pythran_def
+def compute_Frot(ux: Af, uy: Af, px_rot: Af, py_rot: Af, beta: float = 0):
+    if beta == 0:
+        return -ux * px_rot - uy * py_rot
+
+    else:
+        return -ux * px_rot - uy * (py_rot + beta)
 
 
 class InfoSolverNS2D(InfoSolverPseudoSpectral):
