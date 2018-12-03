@@ -119,17 +119,17 @@ logger.info(
 )
 
 install_requires = [
-    "fluiddyn >= 0.2.3",
+    "fluiddyn >= 0.2.5.post1",
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran >= 0.0.6",
+    "fluidpythran >= 0.1.0.post0",
     "setuptools_scm",
     "xarray"
 ]
 
 if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.6"])
+    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
 
 
 def modification_date(filename):
@@ -208,6 +208,7 @@ for command in ["profile", "bench", "bench-analysis"]:
         + " = fluidsim.util.console.__main__:run_"
         + command.replace("-", "_")
     )
+
 
 
 setup(

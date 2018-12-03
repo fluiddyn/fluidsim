@@ -14,5 +14,5 @@ pipelines:
             caches:
               - pip
             script:
-              - pip install -U tox "fluidpythran>=0.0.8" --user
+              - pip install -U tox "fluidpythran>=0.1.0.post0" --user
               - tox -e py36,codecov

@@ -194,7 +194,10 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
     times = _np.empty([nb_files])
     for ii, name in enumerate(name_files):
-        times[ii] = float(name[ind_start_time : ind_start_time + 7])
+        tmp = ".".join(name[ind_start_time:].split(".")[:2])
+        if "_" in tmp:
+            tmp = tmp[:tmp.index("_")]
+        times[ii] = float(tmp)
     if t_approx is None:
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()
@@ -325,9 +328,6 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
       version.
 
     """
-
-    if isinstance(name_dir, Path):
-        name_dir = str(name_dir)
 
     path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
