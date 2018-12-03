@@ -54,7 +54,17 @@ here = Path(__file__).parent.absolute()
 from fluidpythran.dist import make_pythran_files
 
 paths = ["fluidsim/base/time_stepping/pseudo_spect.py"]
-make_pythran_files([here / path for path in paths])
+make_pythran_files(
+    [here / path for path in paths],
+    mocked_modules=(
+        "psutil",
+        "fluiddyn",
+        "fluiddyn.io",
+        "fluiddyn.util",
+        "fluiddyn.util.paramcontainer",
+        "h5py",
+    ),
+)
 
 time_start = time()
 config = get_config()
@@ -123,9 +133,9 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran >= 0.1.0.post0",
+    "fluidpythran >= 0.1.1",
     "setuptools_scm",
-    "xarray"
+    "xarray",
 ]
 
 if FFTW3:
@@ -208,7 +218,6 @@ for command in ["profile", "bench", "bench-analysis"]:
         + " = fluidsim.util.console.__main__:run_"
         + command.replace("-", "_")
     )
-
 
 
 setup(

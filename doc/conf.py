@@ -21,7 +21,8 @@ plt.ioff()
 
 from fluiddoc import mock_modules
 
-mock_modules(('scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.fftpack'))
+mock_modules(('scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.fftpack',
+              'basilisk', 'basilisk.stream',))
 
 from fluiddoc.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()

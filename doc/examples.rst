@@ -11,3 +11,4 @@ Examples
    examples/init-fields-in-script-3d
    examples/forcing-in-script
    examples/static-layers
+   examples/running-third-party-basilisk

@@ -20,6 +20,7 @@ The package is organised in four sub-packages:
    operators
    solvers
    magic
+   pkgload
 
 """
 
@@ -30,9 +31,14 @@ from ._version import __version__, get_local_version
 from fluiddyn.io import FLUIDSIM_PATH
 
 # has to be done before importing util
-path_dir_results = Path(FLUIDSIM_PATH)
+try:
+    path_dir_results = Path(FLUIDSIM_PATH)
+except TypeError:
+    # to be able to import for fluidpythran
+    path_dir_results = None
 
 from .util.util import (
+    available_solver_keys,
     import_module_solver_from_key,
     import_simul_class_from_key,
     load_sim_for_plot,
@@ -44,8 +50,10 @@ from .util.util import (
 
 from .base.params import load_params_simul
 
+
 # clean up
 from . import util
+
 
 del util
 

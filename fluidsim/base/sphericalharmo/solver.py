@@ -1,7 +1,7 @@
-"""Base solver (:mod:`fluidsim.base.solvers.spherical_harmo`)
-=============================================================
+"""Base solver (:mod:`fluidsim.base.solvers.sphericalharmo`)
+============================================================
 
-.. autoclass:: InfoSolver
+.. autoclass:: InfoSolverSphericalHarmo
    :members:
    :private-members:
 

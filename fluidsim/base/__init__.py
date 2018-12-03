@@ -16,5 +16,13 @@ Provides:
    output
    forcing
    preprocess
+   sphericalharmo
+
+Third party solver interfaces:
+
+.. autosummary::
+   :toctree:
+
+   basilisk
 
 """

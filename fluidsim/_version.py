@@ -53,7 +53,7 @@ def get_local_version():
 
         try:
             _loc_version = get_version(root="..", relative_to=__file__)
-        except LookupError:
+        except (LookupError, AssertionError):
             _loc_version = __version__
 
     return _loc_version
