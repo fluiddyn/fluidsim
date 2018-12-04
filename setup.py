@@ -70,6 +70,8 @@ make_pythran_files(
         "fluiddyn.util",
         "fluiddyn.util.paramcontainer",
         "fluiddyn.output",
+        "fluidfft.fft2d.operators",
+        "fluidfft.fft3d.operators",
     ),
 )
 
