@@ -73,8 +73,13 @@ def compute_increments_dim1(var: Af, irx: int):
     return inc_var
 
 
-nb_proc = mpi.nb_proc
-rank = mpi.rank
+if not fp.is_transpiling:
+    nb_proc = mpi.nb_proc
+    rank = mpi.rank
+else:
+    nb_proc = 1
+    rank = 0
+
 if nb_proc > 1:
     MPI = mpi.MPI
     comm = mpi.comm
