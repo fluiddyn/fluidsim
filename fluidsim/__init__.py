@@ -27,6 +27,11 @@ from pathlib import Path
 import os
 import sys
 
+if "FLUIDSIM_PATH" in os.environ:
+    os.environ["FLUIDPYTHRAN_DIR"] = str(
+        Path(os.environ["FLUIDSIM_PATH"] / ".fluidpythran")
+    )
+
 if any(
     any(test_tool in arg for arg in sys.argv)
     for test_tool in ("pytest", "unittest", "fluidsim-test")
