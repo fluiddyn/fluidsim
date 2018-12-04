@@ -196,7 +196,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     for ii, name in enumerate(name_files):
         tmp = ".".join(name[ind_start_time:].split(".")[:2])
         if "_" in tmp:
-            tmp = tmp[:tmp.index("_")]
+            tmp = tmp[: tmp.index("_")]
         times[ii] = float(tmp)
     if t_approx is None:
         t_approx = times.max()

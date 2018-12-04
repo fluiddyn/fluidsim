@@ -25,6 +25,39 @@ The package is organised in four sub-packages:
 """
 
 from pathlib import Path
+import os
+import sys
+
+if "FLUIDSIM_PATH" in os.environ:
+    os.environ["FLUIDPYTHRAN_DIR"] = str(
+        Path(os.environ["FLUIDSIM_PATH"] / ".fluidpythran")
+    )
+
+if any(
+    any(test_tool in arg for arg in sys.argv)
+    for test_tool in ("pytest", "unittest", "fluidsim-test")
+):
+    from fluiddyn.util import mpi
+
+    mpi.printby0(
+        "Fluidsim guesses that it is tested so it "
+        "loads the Agg Matplotlib backend."
+    )
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    def _show(*args, **kwargs):
+        pass
+
+    plt.show = _show
+
+    if "FLUID_COMPILE_CACHEDJIT" not in os.environ:
+        mpi.printby0("Compilation of cachedjit functions disabled.")
+        from fluidpythran import set_compile_cachedjit
+
+        set_compile_cachedjit(False)
 
 from ._version import __version__, get_local_version
 

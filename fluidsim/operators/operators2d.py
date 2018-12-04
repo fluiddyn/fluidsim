@@ -14,24 +14,62 @@ from warnings import warn
 
 import numpy as np
 
+from fluidpythran import pythran_def, Array, FluidPythran
+
 from fluiddyn.util import mpi
 
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
-from . import util2d_pythran
-from .util2d_pythran import (
-    dealiasing_setofvar,
-    laplacian_fft,
-    invlaplacian_fft,
-    compute_increments_dim1,
-)
 from ..base.setofvariables import SetOfVariables
 
-if not hasattr(util2d_pythran, "__pythran__"):
+fp = FluidPythran()
+
+if not fp.is_transpiling and not fp.is_compiled:
     warn(
-        "util2d_pythran has to be pythranized to be efficient! "
+        "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."
     )
+
+
+Af = Array[np.float64, "2d"]
+Ac = Array[np.complex128, "2d"]
+
+
+@pythran_def
+def dealiasing_setofvar(setofvar_fft: "complex128[][][]", where: "uint8[][]", n0: int, n1: int):
+    """Dealiasing of a setofvar arrays."""
+    nk = setofvar_fft.shape[0]
+
+    for i0 in range(n0):
+        for i1 in range(n1):
+            if where[i0, i1]:
+                for ik in range(nk):
+                    setofvar_fft[ik, i0, i1] = 0.0
+
+
+@pythran_def
+def laplacian_fft(a_fft: Ac, Kn: Af):
+    """Compute the n-th order Laplacian."""
+    return a_fft * Kn
+
+
+@pythran_def
+def invlaplacian_fft(a_fft: Ac, Kn_not0: Af, rank: int):
+    """Compute the n-th order inverse Laplacian."""
+    invlap_afft = a_fft / Kn_not0
+    if rank == 0:
+        invlap_afft[0, 0] = 0.0
+    return invlap_afft
+
+
+@pythran_def
+def compute_increments_dim1(var: Af, irx: int):
+    """Compute the increments of var over the dim 1."""
+    n1 = var.shape[1]
+    n1new = n1 - irx
+    inc_var = var[:, irx:n1] - var[:, 0:n1new]
+    return inc_var
+
 
 nb_proc = mpi.nb_proc
 rank = mpi.rank

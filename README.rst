@@ -45,7 +45,7 @@ To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluiddyn fluidpythran [--user]
+  pip install fluiddyn [--user]
   pip install fluidsim [--user]
 
 Add ``--user`` flag if you are installing without setting up a virtual
@@ -66,7 +66,7 @@ the links to know more:
 4. `A C++11 compiler and BLAS
    libraries <https://github.com/serge-sans-paille/pythran#installation>`__ and
    `configure
-   <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__ 
+   <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
    ``~/.pythranrc`` to customize compilation of Pythran extensions
 5. `Configure
    <https://fluidfft.readthedocs.io/en/latest/install.html#basic-installation-with-pip>`__
@@ -130,4 +130,3 @@ FluidDyn is distributed under the CeCILL_ License, a GPL compatible
 french license.
 
 .. _CeCILL: http://www.cecill.info/index.en.html
-

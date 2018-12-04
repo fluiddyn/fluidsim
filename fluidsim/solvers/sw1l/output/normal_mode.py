@@ -20,8 +20,48 @@ Provides:
 
 import numpy as np
 
+# pythran import numpy as np
+
+from fluidpythran import cachedjit, Array
+
 from fluiddyn.util import mpi
-from .util_pythran import get_qmat
+
+
+AF = Array[float, "2d"]
+
+
+@cachedjit
+def get_qmat(
+    f: "float or int",
+    c: "float or int",
+    sigma: AF,
+    KX: AF,
+    KY: AF,
+    K: AF,
+    K2: AF,
+    K_not0: AF,
+):
+    """Compute Q matrix to transform q, ap, am (fft) -> b0, b+, b- (fft) with
+    dimensions of velocity.
+
+    """
+    ck = c * K_not0
+    qmat = np.array(
+        [
+            [
+                -1j * 2.0 ** 0.5 * ck * KY,
+                +1j * f * KY + KX * sigma,
+                +1j * f * KY - KX * sigma,
+            ],
+            [
+                +1j * 2.0 ** 0.5 * ck * KX,
+                -1j * f * KX + KY * sigma,
+                -1j * f * KX - KY * sigma,
+            ],
+            [2.0 ** 0.5 * f * K, c * K2, c * K2],
+        ]
+    ) / (2.0 ** 0.5 * sigma * K_not0)
+    return qmat
 
 
 class NormalModeBase(object):
@@ -79,7 +119,7 @@ class NormalModeBase(object):
         return bvec_fft
 
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        r""" Compute normal mode vector, :math:`\mathbf{B}` 
+        r""" Compute normal mode vector, :math:`\mathbf{B}`
         with dimensions of velocity from primitive variables.  """
         q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft

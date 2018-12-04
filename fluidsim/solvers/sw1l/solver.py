@@ -16,7 +16,9 @@ variables, i.e. the horizontal velocities and surface dispacement.
 
 
 """
-from __future__ import division
+
+from fluidpythran import cachedjit, Array
+from fluiddyn.util import mpi
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
@@ -24,9 +26,21 @@ from fluidsim.base.solvers.pseudo_spect import (
     InfoSolverPseudoSpectral,
 )
 
-from fluiddyn.util import mpi
+A = Array[float, "2d"]
 
-from .util_pythran import compute_Frot
+
+@cachedjit
+def compute_Frot(rot: A, ux: A, uy: A, f: "float or int"):
+    """Compute cross-product of absolute potential vorticity with velocity."""
+    if f != 0:
+        rot_abs = rot + f
+    else:
+        rot_abs = rot
+
+    F1x = rot_abs * uy
+    F1y = -rot_abs * ux
+
+    return F1x, F1y
 
 
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
