@@ -34,6 +34,7 @@ Aui8 = Array[np.uint8, "3d"]
 Ac = Array[np.complex128, "3d"]
 Af = Array[np.float64, "3d"]
 
+
 @pythran_def
 def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
     """Dealiasing 3d setofvar object.
@@ -294,9 +295,7 @@ Lx, Ly and Lz: float
         """Compute toroidal and poloidal horizontal velocities
 
         """
-        return urudfft_from_vxvyfft(
-            vx_fft, vy_fft, self.Kx, self.Ky, rank
-        )
+        return urudfft_from_vxvyfft(vx_fft, vy_fft, self.Kx, self.Ky, rank)
 
 
 def _ik_from_ikc(ikc, nkc, nk):

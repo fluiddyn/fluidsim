@@ -467,9 +467,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
 
         ax1.plot(t, epsK + epsA, "r", label=r"$\epsilon$", linewidth=2)
         ax1.plot(
-            t, epsK_hypo + epsA_hypo, "g", label=r"$\epsilon_{hypo}$", linewidth=2
-        )
-        ax1.plot(
             t, epsK_tot + epsA_tot, "k", label=r"$\epsilon_{tot}$", linewidth=2
         )
 
@@ -480,8 +477,18 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         ax2.set_ylabel(r"$\epsilon_Z(t)$")
 
         ax2.plot(t, epsZ, "r", linewidth=2)
-        ax2.plot(t, epsZ_hypo, "g", linewidth=2)
         ax2.plot(t, epsZ_tot, "k", linewidth=2)
+
+        # If true hypo-viscosity...
+        if self.sim.params.nu_m4:
+            ax1.plot(
+                t,
+                epsK_hypo + epsA_hypo,
+                color="g",
+                label=r"$\epsilon_{hypo}$",
+                linewidth=2,
+            )
+            ax2.plot(t, epsZ_hypo, "g", linewidth=2)
 
         if self.sim.params.forcing.enable:
             PK = dict_results["PK_tot"]

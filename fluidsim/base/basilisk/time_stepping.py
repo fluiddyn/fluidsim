@@ -21,6 +21,7 @@ class TimeSteppingBasilisk(object):
     """Time stepping class to handle Basilisk's event loop and FluidSim output.
 
     """
+
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.

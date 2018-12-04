@@ -123,11 +123,15 @@ def merge_params(to_params, *other_params):
     # Substitute old FFT types with newer FluidFFT implementations
     if hasattr(to_params, "oper") and hasattr(to_params.oper, "type_fft"):
         method = to_params.oper.type_fft
-        if method != "default" and not any(
-            [
-                method.startswith(prefix)
-                for prefix in ("fft2d.", "fft3d.", "fluidfft.")
-            ]
+        if (
+            not method
+            or method != "default"
+            and not any(
+                [
+                    method.startswith(prefix)
+                    for prefix in ("fft2d.", "fft3d.", "fluidfft.")
+                ]
+            )
         ):
             type_fft = "default"
             print("params.oper.type_fft", to_params.oper.type_fft, "->", type_fft)

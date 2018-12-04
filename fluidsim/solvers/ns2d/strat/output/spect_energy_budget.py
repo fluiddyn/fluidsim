@@ -220,6 +220,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             dset_dissEK_ky = f["dissEK_ky"].value
             dset_dissEA_ky = f["dissEA_ky"].value
 
+        if tmin is None:
+            tmin = 0
+
         if tmax is None:
             tmax = np.max(times)
 
@@ -290,7 +293,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         # Parameters of the figure
         fig, ax2 = self.output.figure_axe()
-        ax2.set_xlabel("$k_y$")
+        ax2.set_xlabel("$k_z$")
         ax2.set_ylabel(r"$\Pi$")
         ax2.set_xscale("log")
         ax2.set_yscale("linear")

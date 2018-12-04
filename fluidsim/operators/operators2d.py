@@ -36,7 +36,9 @@ Ac = Array[np.complex128, "2d"]
 
 
 @pythran_def
-def dealiasing_setofvar(setofvar_fft: "complex128[][][]", where: "uint8[][]", n0: int, n1: int):
+def dealiasing_setofvar(
+    setofvar_fft: "complex128[][][]", where: "uint8[][]", n0: int, n1: int
+):
     """Dealiasing of a setofvar arrays."""
     nk = setofvar_fft.shape[0]
 

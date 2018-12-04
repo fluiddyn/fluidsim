@@ -35,12 +35,11 @@ def pkgload():
 
     """
     from ..util.util import available_solver_keys
+
     solvers = available_solver_keys()
 
-    solver_pkgs = (f"fluidsim.solvers.{solver}"
-                   for solver in solvers)
-    solver_modules = (f"fluidsim.solvers.{solver}.solver"
-                      for solver in solvers)
+    solver_pkgs = (f"fluidsim.solvers.{solver}" for solver in solvers)
+    solver_modules = (f"fluidsim.solvers.{solver}.solver" for solver in solvers)
 
     _np.pkgload(*solver_pkgs)
     _np.pkgload(*solver_modules)

@@ -38,44 +38,9 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             TimeCorrelatedRandomPseudoSpectral, cls
         )._complete_params_with_default(params)
 
-        params.forcing._set_child("tcrandom_anisotropic", {"angle": "45°"})
-
-    # def __init__(self, sim):
-    #     super(TimeCorrelatedRandomPseudoSpectralAnisotropic, self).__init__(sim)
-
-    #     # To plot forcing 1 mode (1k) Vs time
-    #     if (
-    #         self.params.forcing.tcrandom.time_correlation
-    #         == "based_on_forcing_rate"
-    #     ):
-    #         if self.key_forced == "rot_fft":
-    #             time_correlation = self.forcing_rate ** (-1. / 3)
-    #         elif self.key_forced == "ap_fft":
-    #             raise NotImplementedError
-
-    #     else:
-    #         time_correlation = self.params.forcing.tcrandom.time_correlation
-
-    #     self.t_last_change_1k = 0.0
-    #     self.period_save_forcing1k = (1 / 4.) * time_correlation
-    #     self.forcing_1k = []
-    #     self.time_1k = []
-
-    # def compute(self):
-    #     F_fft = super(
-    #         TimeCorrelatedRandomPseudoSpectralAnisotropic, self
-    #     ).compute()
-    #     print('Fa_fft', Fa_fft)
-
-    # # Save forcing first mode forced
-    # id0, id1 = np.argwhere(self.COND_NO_F == False)[0]
-    # forcing_1k = Fa_fft[id0, id1].real
-    # tsim = self.sim.time_stepping.t
-    # # print(tsim)
-    # if tsim - self.t_last_change_1k >= self.period_save_forcing1k:
-    #     self.forcing_1k.append(forcing_1k)
-    #     self.time_1k.append(self.sim.time_stepping.t)
-    #     self.t_last_change_1k = tsim
+        params.forcing._set_child(
+            "tcrandom_anisotropic", {"angle": "45°", "kz_negative_enable": False}
+        )
 
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
@@ -104,10 +69,18 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             self.oper_coarse.KY < self.kymin_forcing,
         )
 
+        if self.params.forcing.tcrandom_anisotropic.kz_negative_enable:
+            COND_NO_F_KY = np.logical_and(
+                COND_NO_F_KY,
+                np.logical_or(
+                    self.oper_coarse.KY < -self.kymax_forcing,
+                    self.oper_coarse.KY > -self.kymin_forcing,
+                ),
+            )
+
         COND_NO_F = np.logical_or(COND_NO_F_KX, COND_NO_F_KY)
         COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
         COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
-
         return COND_NO_F
 
     def plot_forcing_1mode_time(self):
