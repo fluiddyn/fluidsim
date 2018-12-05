@@ -151,7 +151,7 @@ install_requires = [
 ]
 
 if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
+    install_requires.extend(["pyfftw >= 0.10.4, != 0.11.1", "fluidfft >= 0.2.7"])
 
 
 def modification_date(filename):
