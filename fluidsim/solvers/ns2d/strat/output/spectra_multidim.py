@@ -74,6 +74,7 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         """
 
         oper = self.sim.params.oper
+        pforcing = self.sim.params.forcing
 
         # Load data
         with h5py.File(self.path_file, "r") as f:
@@ -123,11 +124,15 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         if xlim:
             ikx = np.argmin(abs(kx - xlim))
             ax.set_xlim([0, kx[ikx] - self.sim.oper.deltakx])
+        else:
+            ikx = np.argmin(abs(kx - kx.max()))
 
         if zlim:
             ikz = np.argmin(abs(kz - zlim))
             ikz_negative = np.argmin(abs(kz + zlim))
             ax.set_ylim([kz[ikz_negative], kz[ikz] - self.sim.oper.deltaky])
+        else:
+            ikz = np.argmin(abs(kz - kz.max()))
 
         # Modify grid
         kz_modified = np.empty_like(kz)
@@ -153,21 +158,27 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         # Create a Rectangle patch
         deltak = max(self.sim.oper.deltakx, self.sim.oper.deltaky)
 
-        angle = self.sim.params.forcing.tcrandom_anisotropic.angle
+        if isinstance(pforcing.tcrandom_anisotropic.angle, str):
+            from math import radians
+            angle = radians(
+                float((pforcing.tcrandom_anisotropic.angle).split("°")[0]))
+        else:
+            angle = pforcing.tcrandom_anisotropic.angle
 
-        x_rect = np.sin(angle) * deltak * self.sim.params.forcing.nkmin_forcing
 
-        z_rect = np.cos(angle) * deltak * self.sim.params.forcing.nkmin_forcing
+        x_rect = np.sin(angle) * deltak * pforcing.nkmin_forcing
 
-        width = abs(x_rect - np.sin(angle) * deltak * self.sim.params.forcing.nkmax_forcing)
+        z_rect = np.cos(angle) * deltak * pforcing.nkmin_forcing
 
-        height = abs(z_rect - np.cos(angle) * deltak * self.sim.params.forcing.nkmax_forcing)
+        width = abs(x_rect - np.sin(angle) * deltak * pforcing.nkmax_forcing)
+
+        height = abs(z_rect - np.cos(angle) * deltak * pforcing.nkmax_forcing)
 
         rect1 = patches.Rectangle((x_rect,z_rect),width,height,linewidth=1,edgecolor='r',facecolor='none')
 
         ax.add_patch(rect1)
 
-        if self.sim.params.forcing.tcrandom_anisotropic.kz_negative_enable:
+        if pforcing.tcrandom_anisotropic.kz_negative_enable:
             rect2 = patches.Rectangle(
                 (x_rect,-(z_rect + height)), width, height, linewidth=1,
                 edgecolor='r',facecolor='none')
@@ -178,8 +189,8 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         ax.add_patch(
             patches.Arc(
                 xy=(0, 0),
-                width=2 * self.sim.params.forcing.nkmin_forcing * deltak,
-                height=2 * self.sim.params.forcing.nkmin_forcing * deltak,
+                width=2 * pforcing.nkmin_forcing * deltak,
+                height=2 * pforcing.nkmin_forcing * deltak,
                 angle=0,
                 theta1=-90.,
                 theta2=90.,
@@ -190,8 +201,8 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         ax.add_patch(
             patches.Arc(
                 xy=(0, 0),
-                width=2 * self.sim.params.forcing.nkmax_forcing * deltak,
-                height=2 * self.sim.params.forcing.nkmax_forcing * deltak,
+                width=2 * pforcing.nkmax_forcing * deltak,
+                height=2 * pforcing.nkmax_forcing * deltak,
                 angle=0,
                 theta1=-90,
                 theta2=90.,
