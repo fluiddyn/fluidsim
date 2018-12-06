@@ -145,7 +145,7 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran>=0.1.2",
+    "fluidpythran>=0.1.3",
     "setuptools_scm",
     "xarray",
 ]

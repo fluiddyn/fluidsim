@@ -50,7 +50,7 @@ cache:
 install:
     - pip install -U pip setuptools wheel six colorlog
     - pip install -U pipenv tox-pipenv coverage fluiddevops
-    - pip install -U numpy cython mako mpi4py fluidpythran  # To be removed when pip==10 is out and this step can be bootstrapped
+    - pip install -U numpy cython mako mpi4py "fluidpythran>=0.1.3"  # To be removed when pip==10 is out and this step can be bootstrapped
 
 before_script:
     - |
