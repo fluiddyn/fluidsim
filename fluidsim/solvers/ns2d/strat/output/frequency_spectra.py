@@ -47,7 +47,7 @@ class FrequencySpectra(SpecificOutput):
                 "time_start": 1,
                 "time_decimate": 1,
                 "spatial_decimate": 2,
-                "size_max_file": 0.1,
+                "size_max_file": 1e-2,
             },
         )
 
@@ -166,61 +166,49 @@ class FrequencySpectra(SpecificOutput):
             if itsim - self.it_last_run >= self.time_decimate:
                 self.it_last_run = itsim
 
-                # Save the field to self.temp_array_new
+                # Compute linear mode in physical space
                 field_ap = self.sim.state.compute("ap")
                 field_am = self.sim.state.compute("am")
 
                 field_ap_seq = None
                 field_am_seq = None
 
-                field = self.sim.state.compute("ap")
-                field_seq = None
-                # print("rank = {} ; kx_loc = {}".format(mpi.comm.Get_rank(), self.sim.oper.kx_loc))
                 # Create empty array in process 0.
                 if mpi.rank == 0:
                     field_ap_seq = np.empty(
-                        (self.sim.params.oper.nx, self.sim.params.oper.ny),
+                        (self.sim.params.oper.ny, self.sim.params.oper.nx),
                         dtype=float,
                     )
 
                     field_am_seq = np.empty(
-                        (self.sim.params.oper.nx, self.sim.params.oper.ny),
+                        (self.sim.params.oper.ny, self.sim.params.oper.nx),
                         dtype=float,
                     )
 
-                    field_seq = np.empty(
-                        (self.sim.params.oper.nx, self.sim.params.oper.ny),
-                        dtype=float,
-                    )
-
+                # Gather in process 0 the fields from other processes.
                 if mpi.nb_proc > 1:
-                    mpi.comm.Gather(field, field_seq, root=0)
-
                     mpi.comm.Gather(field_ap, field_ap_seq, root=0)
-
                     mpi.comm.Gather(field_am, field_am_seq, root=0)
 
-                    # Transpose of the array.
                     if mpi.rank == 0:
-                        field = np.transpose(field_seq)
+                        field_ap = field_ap_seq
+                        field_am = field_am_seq
 
-                        field_ap = np.transpose(field_ap_seq)
-                        field_am = np.transpose(field_am_seq)
+                #### Tests
+                # if mpi.nb_proc > 1:
+                #     if mpi.rank == 0:
+                #         print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap))
+                #         print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap.shape))
+                #         import sys
+                #         sys.exit()
                 # else:
-                #     # I remove the last kx to be coherent with arrays in MPI.
-                #     # Consequences: Remove energy in last kx ONLY for computing
-                #     # the frequency spectra
-                #     field = field[:, :-1]
-
-                #     field_ap = field_ap[:, :-1]
-                #     field_am = field_am[:, :-1]
+                #     print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap))
+                #     print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap.shape))
+                #     import sys
+                #     sys.exit()
 
                 # Decimation of the field
                 if mpi.rank == 0:
-                    field_decimate = field[
-                        :: self.spatial_decimate, :: self.spatial_decimate
-                    ]
-
                     field_ap_decimate = field_ap[
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
@@ -229,10 +217,12 @@ class FrequencySpectra(SpecificOutput):
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    self.temp_array[
-                        self.nb_times_in_temp_array, :, :
-                    ] = field_decimate
+                    # print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap_decimate))
+                    # print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap_decimate.shape))
+                    # import sys
+                    # sys.exit()
 
+                    # Add to the array temp_array_new
                     self.temp_array_new[
                         0, self.nb_times_in_temp_array, :, :
                     ] = field_ap_decimate
