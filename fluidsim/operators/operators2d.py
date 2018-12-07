@@ -9,15 +9,12 @@ Provides
 
 """
 
-from builtins import range
 from warnings import warn
 
 import numpy as np
 
-from fluidpythran import pythran_def, Array, FluidPythran
-
+from fluidpythran import boost, Array, FluidPythran
 from fluiddyn.util import mpi
-
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from ..base.setofvariables import SetOfVariables
@@ -29,33 +26,21 @@ if not fp.is_transpiling and not fp.is_compiled:
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."
     )
+elif fp.is_transpiling:
+    _Operators = object
 
 
 Af = Array[np.float64, "2d"]
 Ac = Array[np.complex128, "2d"]
 
 
-@pythran_def
-def dealiasing_setofvar(
-    setofvar_fft: "complex128[][][]", where: "uint8[][]", n0: int, n1: int
-):
-    """Dealiasing of a setofvar arrays."""
-    nk = setofvar_fft.shape[0]
-
-    for i0 in range(n0):
-        for i1 in range(n1):
-            if where[i0, i1]:
-                for ik in range(nk):
-                    setofvar_fft[ik, i0, i1] = 0.0
-
-
-@pythran_def
+@boost
 def laplacian_fft(a_fft: Ac, Kn: Af):
     """Compute the n-th order Laplacian."""
     return a_fft * Kn
 
 
-@pythran_def
+@boost
 def invlaplacian_fft(a_fft: Ac, Kn_not0: Af, rank: int):
     """Compute the n-th order inverse Laplacian."""
     invlap_afft = a_fft / Kn_not0
@@ -64,7 +49,7 @@ def invlaplacian_fft(a_fft: Ac, Kn_not0: Af, rank: int):
     return invlap_afft
 
 
-@pythran_def
+@boost
 def compute_increments_dim1(var: Af, irx: int):
     """Compute the increments of var over the dim 1."""
     n1 = var.shape[1]
@@ -85,7 +70,12 @@ if nb_proc > 1:
     comm = mpi.comm
 
 
+@boost
 class OperatorsPseudoSpectral2D(_Operators):
+
+    _has_to_dealiase: bool
+    where_dealiased: "uint8[:, :]"
+
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
@@ -181,17 +171,21 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         for thing in args:
             if isinstance(thing, SetOfVariables):
-                dealiasing_setofvar(
-                    thing, self.where_dealiased, self.nK0_loc, self.nK1_loc
-                )
+                self.dealiasing_setofvar(thing)
             elif isinstance(thing, np.ndarray):
                 self.dealiasing_variable(thing)
 
-    def dealiasing_setofvar(self, sov):
+    @boost
+    def dealiasing_setofvar(self, sov: "complex128[][][]"):
+        """Dealiasing of a setofvar arrays."""
         if self._has_to_dealiase:
-            dealiasing_setofvar(
-                sov, self.where_dealiased, self.nK0_loc, self.nK1_loc
-            )
+            nk, n0, n1 = sov.shape
+
+            for i0 in range(n0):
+                for i1 in range(n1):
+                    if self.where_dealiased[i0, i1]:
+                        for ik in range(nk):
+                            sov[ik, i0, i1] = 0.0
 
     def project_fft_on_realX_seq(self, f_fft):
         """Project the given field in spectral space such as its

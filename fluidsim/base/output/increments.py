@@ -4,7 +4,7 @@ import numpy as np
 
 # pythran import numpy as np
 
-from fluidpythran import pythran_def, Array
+from fluidpythran import boost, Array
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
@@ -14,7 +14,7 @@ A = Array[float, "2d"]
 #     int32[], float64[][], float64[][], float, bool)
 
 
-@pythran_def
+@boost
 def strfunc_from_pdf(
     rxs: A, pdf: A, values: A, order: float, absolute: bool = False
 ):

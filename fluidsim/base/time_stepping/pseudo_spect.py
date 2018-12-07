@@ -31,9 +31,8 @@ from .base import TimeSteppingBase
 
 fp = FluidPythran()
 
-T = Type(np.complex128)
 N = NDim(3, 4)
-A = Array[T, N]
+A = Array[np.complex128, N]
 
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N]

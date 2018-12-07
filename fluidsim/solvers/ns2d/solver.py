@@ -18,7 +18,7 @@ import sys
 
 import numpy as np
 
-from fluidpythran import pythran_def, Array
+from fluidpythran import boost, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -30,7 +30,7 @@ from fluidsim.base.solvers.pseudo_spect import (
 Af = Array[np.float64, "2d"]
 
 
-@pythran_def
+@boost
 def compute_Frot(ux: Af, uy: Af, px_rot: Af, py_rot: Af, beta: float = 0):
     if beta == 0:
         return -ux * px_rot - uy * py_rot

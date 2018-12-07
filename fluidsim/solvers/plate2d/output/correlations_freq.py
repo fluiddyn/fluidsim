@@ -11,22 +11,19 @@ Provides:
 
 """
 
-from __future__ import division, print_function
-
-from builtins import str
-from builtins import range
 import os
-import numpy as np
 
-# pythran import numpy as np
+import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
 from fluidpythran import cachedjit
 from fluiddyn.util import mpi
+from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 
 from fluidsim.base.output.base import SpecificOutput
-from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
+
+# pythran import numpy as np
 
 
 @cachedjit
@@ -131,9 +128,7 @@ def compute_correl2_seq(
 
 
 def compute_correl4(q_fftt, iomegas1, nb_omegas, nb_xs_seq):
-
     corr4 = compute_correl4_seq(q_fftt, iomegas1, nb_omegas, nb_xs_seq)
-
     if mpi.nb_proc > 1:
         # reduce SUM for mean:
         corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)

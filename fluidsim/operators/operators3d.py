@@ -9,21 +9,16 @@ Provides
 
 """
 
-from __future__ import division
-
-from builtins import range
-
 from math import pi
 from copy import deepcopy
 
 import numpy as np
 
-from fluidpythran import pythran_def, Array, FluidPythran
+from fluidpythran import boost, Array, FluidPythran
 from fluiddyn.util.mpi import nb_proc, rank
+from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 from fluidsim.base.setofvariables import SetOfVariables
-
-from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 
@@ -35,7 +30,7 @@ Ac = Array[np.complex128, "3d"]
 Af = Array[np.float64, "3d"]
 
 
-@pythran_def
+@boost
 def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
     """Dealiasing 3d setofvar object.
 
@@ -59,7 +54,7 @@ def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
                         sov[ik, i0, i1, i2] = 0.0
 
 
-@pythran_def
+@boost
 def dealiasing_variable(ff_fft: Ac, where_dealiased: Aui8):
     """Dealiasing 3d array"""
     n0, n1, n2 = ff_fft.shape
@@ -81,25 +76,14 @@ def dealiasing_variable_numpy(ff_fft: Ac, where_dealiased: Aui8):
 
 
 if not fp.is_transpiling and not fp.is_compiled:
+    # for example if Pythran is not available
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
+elif fp.is_transpiling:
+    _Operators = object
 
 
-@pythran_def
-def urudfft_from_vxvyfft(vx_fft: Ac, vy_fft: Ac, kx: Af, ky: Af, rank: int):
-    k2 = kx ** 2 + ky ** 2
-    k2[k2 == 0.0] = 1e-10
-
-    divh_fft = 1j * (kx * vx_fft + ky * vy_fft)
-    urx_fft = vx_fft - divh_fft * kx / k2
-    ury_fft = vy_fft - divh_fft * ky / k2
-
-    udx_fft = vx_fft - urx_fft
-    udy_fft = vy_fft - ury_fft
-
-    return urx_fft, ury_fft, udx_fft, udy_fft
-
-
+@boost
 class OperatorsPseudoSpectral3D(_Operators):
     """Provides fast Fourier transform functions and 3D operators.
 
@@ -119,6 +103,10 @@ class OperatorsPseudoSpectral3D(_Operators):
     - build_invariant_arrayK_from_2d_indices12X
 
     """
+
+    Kx: Af
+    Ky: Af
+    K2: Af
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -291,11 +279,23 @@ Lx, Ly and Lz: float
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
         return fc_fft
 
-    def urudfft_from_vxvyfft(self, vx_fft, vy_fft):
+    @boost
+    def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
         """Compute toroidal and poloidal horizontal velocities
 
         """
-        return urudfft_from_vxvyfft(vx_fft, vy_fft, self.Kx, self.Ky, rank)
+
+        k2 = self.K2.copy()
+        k2[k2 == 0.0] = 1e-10
+
+        divh_fft = 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
+        urx_fft = vx_fft - divh_fft * self.Kx / k2
+        ury_fft = vy_fft - divh_fft * self.Ky / k2
+
+        udx_fft = vx_fft - urx_fft
+        udy_fft = vy_fft - ury_fft
+
+        return urx_fft, ury_fft, udx_fft, udy_fft
 
 
 def _ik_from_ikc(ikc, nkc, nk):
