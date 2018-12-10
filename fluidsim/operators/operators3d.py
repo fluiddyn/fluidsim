@@ -106,7 +106,7 @@ class OperatorsPseudoSpectral3D(_Operators):
 
     Kx: Af
     Ky: Af
-    K2: Af
+    inv_Ksquare_nozero: Af
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -285,12 +285,9 @@ Lx, Ly and Lz: float
 
         """
 
-        k2 = self.K2.copy()
-        k2[k2 == 0.0] = 1e-10
-
         divh_fft = 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
-        urx_fft = vx_fft - divh_fft * self.Kx / k2
-        ury_fft = vy_fft - divh_fft * self.Ky / k2
+        urx_fft = vx_fft - divh_fft * self.Kx * self.inv_Ksquare_nozero
+        ury_fft = vy_fft - divh_fft * self.Ky * self.inv_Ksquare_nozero
 
         udx_fft = vx_fft - urx_fft
         udy_fft = vy_fft - ury_fft
