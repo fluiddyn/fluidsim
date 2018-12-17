@@ -42,60 +42,6 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
 
     """
 
-
-# def compute_rotuxuy_fft(self):
-#     """
-#     Compute the rot_fft, ux_fft and uy_fft from a random noise field.
-#     """
-#     params = self.sim.params
-#     oper = self.sim.oper
-
-#     lambda0 = params.init_fields.noise.length
-#     if lambda0 == 0:
-#         lambda0 = old_div(oper.Lx, 4)
-
-#     def H_smooth(x, delta):
-#         return old_div((1. + np.tanh(2*np.pi*x/delta)), 2)
-
-#     # to compute always the same field... (for 1 resolution...)
-#     np.random.seed(42)  # this does not work for MPI...
-
-#     ux_fft = (np.random.random(oper.shapeK) +
-#               1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
-#     uy_fft = (np.random.random(oper.shapeK) +
-#               1j*np.random.random(oper.shapeK) - 0.5 - 0.5j)
-
-#     if mpi.rank == 0:
-#         ux_fft[0, 0] = 0.
-#         uy_fft[0, 0] = 0.
-
-#     oper.projection_perp(ux_fft, uy_fft)
-#     oper.dealiasing(ux_fft, uy_fft)
-
-#     k0 = 2*np.pi/lambda0
-#     delta_k0 = 1.*k0
-#     ux_fft = ux_fft*H_smooth(k0-oper.K, delta_k0)
-#     uy_fft = uy_fft*H_smooth(k0-oper.K, delta_k0)
-
-#     ux = oper.ifft2(ux_fft)
-#     uy = oper.ifft2(uy_fft)
-#     velo_max = np.sqrt(ux**2+uy**2).max()
-#     if mpi.nb_proc > 1:
-#         velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
-#     ux = params.init_fields.noise.velo_max*ux/velo_max
-#     uy = params.init_fields.noise.velo_max*uy/velo_max
-#     ux_fft = oper.fft2(ux)
-#     uy_fft = oper.fft2(uy)
-
-#     # if NO_SHEAR_MODES --> No energy in shear modes!
-#     if self.sim.params.NO_SHEAR_MODES:
-#         ux_fft[:, 0] = 0
-#         uy_fft[:, 0] = 0
-
-#     rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
-#     return rot_fft, ux_fft, uy_fft
-
-
 class InitFieldsLinearMode(SpecificInitFields):
     """
     Class to initialize the fields with the linear mode
@@ -202,9 +148,9 @@ class InitFieldsLinearMode(SpecificInitFields):
         indices_cond = np.argwhere(COND == True)
 
         for index in indices_cond:
-            linear_mode[tuple(index)] = random.random() + 0j
+            linear_mode[tuple(index)] = 1.0 + 0j
+            # linear_mode[tuple(index)] = random.random() + 0j
 
-        # print("linear_mode{}", linear_mode)
         return amplitude * linear_mode
 
 
