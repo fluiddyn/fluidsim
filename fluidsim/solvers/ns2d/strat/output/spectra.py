@@ -273,7 +273,7 @@ class SpectraNS2DStrat(Spectra):
             color="k",
             linestyle="--",
             linewidth=1,
-            label=r"$k_x^{-5/3}$",
+            label=r"$k_z^{-5/3}$",
         )
         ax2.plot(
             ky_plot[50:],
@@ -281,7 +281,7 @@ class SpectraNS2DStrat(Spectra):
             color="k",
             linestyle="-.",
             linewidth=1,
-            label=r"$k_x^{-2}$",
+            label=r"$k_z^{-2}$",
         )
 
         # Plot forcing wave-number k_f
