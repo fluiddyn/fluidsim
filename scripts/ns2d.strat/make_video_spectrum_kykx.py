@@ -14,23 +14,23 @@ from fluidsim import load_state_phys_file
 
 ### Path simulation
 # Forcing ap_fft, two quadrants
-path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-29"
+# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-29"
 
 # Forcing ap_fft, one quadrants
 path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_16-04-25"
 
 # forcing rot_fft, two quadrants
-path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-35"
+# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-35"
 
 # rot_fft, one quadrant
-path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-38"
+# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-38"
 
 ### Parameters
-skip = 1
+skip = 2
 tmin = 2
-tmax = 50
+tmax = 500
 scale = "log" # can be "linear"
-SAVE = True
+SAVE = False
 
 # Load object simulation
 sim = load_state_phys_file(path)
@@ -90,7 +90,7 @@ ax.set_aspect("equal")
 
 ax1 = fig.add_subplot(122)
 ax1.set_xlabel(r"$t / \tau_{{af}}$", fontsize=14)
-ax1.set_ylabel(r"$<E_a> / (P_a^6 l_f^2)^{1/7}$", fontsize=14)
+ax1.set_ylabel(r"$<E_a> / (P_a^2 l_f^{10})^{1/7}$", fontsize=14)
 
 ax2 = fig.add_subplot(223)
 ax2.set_xlabel(r"$k_x$", fontsize=14)
@@ -99,12 +99,16 @@ ax2.set_aspect("equal")
 
 # Cmpute mean dissipation
 dict_spatial = sim.output.spatial_means.load()
+times_spatial = dict_spatial["t"]
+itmin_spatial = np.argmin(abs(times_spatial - 500))
 eps = dict_spatial["epsK_tot"] + dict_spatial["epsA_tot"]
+eps = eps[itmin_spatial:].mean(0)
 
 # Compute energy forcing
 forcing_rate = pforcing.forcing_rate
 l_f = 2 * np.pi / (pforcing.nkmax_forcing * sim.oper.deltaky)
-energy_f = 100 * (forcing_rate ** 6 * l_f**2)**(1/7)
+# energy_f = 100 * (forcing_rate ** 6 * l_f**2)**(1/7)
+energy_f = ((forcing_rate ** 2) * (l_f**10))**(1/7)
 
 # Compute energy
 energies_ap = np.empty_like(times)
@@ -141,10 +145,12 @@ ikz_text = np.argmin(abs(kz - kz[ikz] * 0.7))
 
 # Plot first figure
 
-ax.plot(kx, 1e-0 * sim.params.N * (kx / eps[-1])**(1/3), color="white")
+ax.plot(kx, 1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
+ax.plot(kx, -1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
 ax.text(kx[ikx_text], kz[ikz_text], "\hat{a}_+", color="white", fontsize=15)
 
-ax2.plot(kx, 1e-0 * sim.params.N * (kx / eps[-1])**(1/3), color="white")
+ax2.plot(kx, 1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
+ax2.plot(kx, -1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
 ax2.text(kx[ikx_text], kz[ikz_text], "\hat{a}_-", color="white", fontsize=15)
 
 if scale == "linear":
@@ -161,7 +167,7 @@ _im_inset = ax1.plot(times[0], energies_ap[0], color="red", label=r"$\hat{a}_+$"
 _im_inset3 = ax1.plot(times[0], energies_am[0], color="blue", label=r"$\hat{a}_-$")
 ax1.legend(fontsize=14)
 cbar_ax = fig.add_axes([0.38, 0.15, 0.01, 0.7])
-colorbar = fig.colorbar(_im, cax=cbar_ax, format="%.2e")
+colorbar = fig.colorbar(_im, cax=cbar_ax, format="%.1f")
 # colorbar.ax.ticklabel_format(style="sci")
 
 # ax1.plot(times[0:2], energies_ap[0:2], color="red")
@@ -207,7 +213,7 @@ ani = animation.FuncAnimation(
     fig, _update, len(times), interval=1000, repeat=True)
 
 if SAVE:
-    ani.save("/home/users/calpelin7m/spectrumkykx_{}_kznegative_{}.mp4".format(
+    ani.save("/home/users/calpelin7m/Phd/Movies_spectrakzkx/spectrumkykx_{}_kznegative_{}.mp4".format(
         sim.params.forcing.key_forced,
         bool(sim.params.forcing.tcrandom_anisotropic.kz_negative_enable)),
              writer="ffmpeg"
