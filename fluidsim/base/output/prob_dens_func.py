@@ -1,8 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-
-from builtins import range
-from past.utils import old_div
 import h5py
 import numpy as np
 
@@ -12,6 +7,11 @@ from fluidsim.base.output.base import SpecificOutput
 
 class ProbaDensityFunc(SpecificOutput):
     """Handle the saving and plotting of pdf of the turbulent kinetic energy.
+
+    .. todo::
+
+        Rewrite / move this class to as the code is specifically designed for sw1l solvers.
+
     """
 
     _tag = "pdf"
@@ -104,6 +104,32 @@ class ProbaDensityFunc(SpecificOutput):
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         """Plot some pdf."""
+        x_left_axe = 0.12
+        z_bottom_axe = 0.56
+        width_axe = 0.85
+        height_axe = 0.37
+        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
+        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        ax1.set_xlabel(r"$\eta$")
+        ax1.set_ylabel("PDF")
+        ax1.set_title(
+            "PDF, solver "
+            + self.output.name_solver
+            + ", nh = {0:5d}".format(self.nx)
+            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+        )
+        ax1.set_xscale("linear")
+        ax1.set_yscale("linear")
+
+        z_bottom_axe = 0.09
+        size_axe[1] = z_bottom_axe
+        ax2 = fig.add_axes(size_axe)
+
+        ax2.set_xlabel("$ |\\mathbf{u}-\\langle \\mathbf{u} \\rangle | $")
+        ax2.set_ylabel("PDF")
+        ax2.set_xscale("linear")
+        ax2.set_yscale("linear")
+
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
             times = dset_times[...]
@@ -115,7 +141,7 @@ class ProbaDensityFunc(SpecificOutput):
             dset_bin_edges_u = h5file["bin_edges_u"]
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
-            delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
             if delta_i_plot == 0:
                 delta_i_plot = 1
             delta_t = delta_i_plot * delta_t_save
@@ -140,46 +166,16 @@ class ProbaDensityFunc(SpecificOutput):
             )
             print(to_print)
 
-            x_left_axe = 0.12
-            z_bottom_axe = 0.56
-            width_axe = 0.85
-            height_axe = 0.37
-            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-            fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-            ax1.set_xlabel(r"$\eta$")
-            ax1.set_ylabel("PDF")
-            ax1.set_title(
-                "PDF, solver "
-                + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            ax1.hold(True)
-            ax1.set_xscale("linear")
-            ax1.set_yscale("linear")
 
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 pdf_eta = dset_pdf_eta[it]
                 bin_edges_eta = dset_bin_edges_eta[it]
 
-                bin_edges_eta = old_div(
-                    (bin_edges_eta[:-1] + bin_edges_eta[1:]), 2
-                )
+                bin_edges_eta = (bin_edges_eta[:-1] + bin_edges_eta[1:]) / 2
                 ax1.plot(bin_edges_eta, pdf_eta, "c", linewidth=1)
 
-        z_bottom_axe = 0.09
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
+                pdf_u = dset_pdf_u[it]
+                bin_edges_u = dset_bin_edges_u[it]
 
-        ax2.set_xlabel("$ |\\mathbf{u}-\\langle \\mathbf{u} \\rangle | $")
-        ax2.set_ylabel("PDF")
-        ax2.hold(True)
-        ax2.set_xscale("linear")
-        ax2.set_yscale("linear")
-
-        for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-            pdf_u = dset_pdf_u[it]
-            bin_edges_u = dset_bin_edges_u[it]
-
-            bin_edges_u = old_div((bin_edges_u[:-1] + bin_edges_u[1:]), 2)
-            ax2.plot(bin_edges_u, pdf_u, "r", linewidth=1)
+                bin_edges_u = (bin_edges_u[:-1] + bin_edges_u[1:]) /  2
+                ax2.plot(bin_edges_u, pdf_u, "r", linewidth=1)
