@@ -13,11 +13,6 @@ Provides:
 
 """
 
-from __future__ import division
-from __future__ import print_function
-
-from past.builtins import basestring
-
 import os
 
 import numpy as np
@@ -384,7 +379,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         elif isinstance(field, np.ndarray):
             key_field = "given array"
             is_field_ready = True
-        elif isinstance(field, basestring):
+        elif isinstance(field, str):
             key_field = field
 
         assert key_field is not None
@@ -468,10 +463,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
         object corresponding to a 2D contour plot.
 
         """
-        if isinstance(vecx, basestring):
+        if isinstance(vecx, str):
             vecx = self.get_field_to_plot(vecx)
 
-        if isinstance(vecy, basestring):
+        if isinstance(vecy, str):
             vecy = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:

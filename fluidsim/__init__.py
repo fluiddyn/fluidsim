@@ -35,7 +35,7 @@ if "FLUIDSIM_PATH" in os.environ:
 
 if any(
     any(test_tool in arg for arg in sys.argv)
-    for test_tool in ("pytest", "unittest", "fluidsim-test")
+    for test_tool in ("pytest", "unittest", "fluidsim-test", "coverage")
 ):
     from fluiddyn.util import mpi
 

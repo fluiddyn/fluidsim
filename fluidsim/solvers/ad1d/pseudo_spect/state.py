@@ -1,8 +1,6 @@
 """State for the AD1D solver (:mod:`fluidsim.solvers.ad1d.pseudo_spect.state`)
 ==============================================================================
 """
-from __future__ import print_function
-
 
 from fluidsim.base.state import StatePseudoSpectral
 

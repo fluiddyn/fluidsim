@@ -12,7 +12,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import print_function
 
 from fluidsim.base.solvers.base import SimulBase
 from fluidsim.base.solvers.info_base import InfoSolverBase

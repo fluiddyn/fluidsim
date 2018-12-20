@@ -8,8 +8,6 @@ water (Saint Venant) equations for which the advection is only
 due to the rotational velocity.
 """
 
-from __future__ import division, print_function
-
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables

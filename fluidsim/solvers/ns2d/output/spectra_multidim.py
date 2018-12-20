@@ -6,8 +6,6 @@
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
 
 from fluidsim.base.output.spectra_multidim import SpectraMultiDim
 

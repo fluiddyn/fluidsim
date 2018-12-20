@@ -30,7 +30,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import division
 
 import os
 from glob import glob

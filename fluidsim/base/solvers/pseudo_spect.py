@@ -17,7 +17,6 @@ pseudo-spectral solvers.
    :private-members:
 
 """
-from __future__ import division
 
 import os
 

@@ -41,10 +41,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
-
-from builtins import object, str
 
 from copy import deepcopy
 from math import radians

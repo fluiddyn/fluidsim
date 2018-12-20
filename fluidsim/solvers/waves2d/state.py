@@ -1,8 +1,6 @@
 """State for the Waves solver (:mod:`fluidsim.solvers.waves2d.state`)
 =======================================================================
 """
-from __future__ import print_function
-
 
 from fluidsim.base.state import StatePseudoSpectral
 
