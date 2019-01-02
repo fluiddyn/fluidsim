@@ -64,10 +64,13 @@ ipython
 
 # in ipython:
 
-from fluidsim import load_state_phys_file
-sim = load_state_phys_file()
+from fluidsim import load_sim_for_plot
+sim = load_sim_for_plot()
+
 sim.output.phys_fields.set_equation_crosssection(f'x={{sim.oper.Lx/4}}')
 sim.output.phys_fields.animate('vx')
+
+sim.output.phys_fields.plot(field="vx", time=10)
 
 sim.output.spatial_means.plot()
 sim.output.spectra.plot1d(tmin=12, tmax=16, coef_compensate=5/3)

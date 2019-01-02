@@ -131,6 +131,18 @@ class TestSolverNS2D(unittest.TestCase):
                     numfig=1,
                 )
 
+                sim4 = fls.load_sim_for_plot(path_run)
+                sim4.output.phys_fields.animate(
+                    "ux",
+                    dt_frame_in_sec=1e-6,
+                    dt_equations=0.3,
+                    repeat=False,
+                    clim=(-1, 1),
+                    save_file=False,
+                    numfig=1,
+                )
+                sim4.output.phys_fields.plot()
+
 
 # class TestSolverNS2DFluidfft(TestSolverNS2D):
 #     Simul = Simul2

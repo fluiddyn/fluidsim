@@ -95,10 +95,10 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
                 data = f["spectrumkykx_EA"]
             elif key == "ap_fft" or not key:
                 data = f["spectrumkykx_ap"]
-                text_plot = "$\hat{a}_+$"
+                text_plot = r"$\hat{a}_+$"
             elif key == "am_fft":
                 data = f["spectrumkykx_am"]
-                text_plot = "$\hat{a}_-$"
+                text_plot = r"$\hat{a}_-$"
             else:
                 raise ValueError("Key unknown.")
 

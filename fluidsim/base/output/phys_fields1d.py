@@ -14,8 +14,6 @@ Provides:
 
 """
 
-from past.builtins import basestring
-
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -45,7 +43,7 @@ class PhysFieldsBase1D(PhysFieldsBase):
         elif isinstance(field, np.ndarray):
             key_field = "given array"
             is_field_ready = True
-        elif isinstance(field, basestring):
+        elif isinstance(field, str):
             key_field = field
 
         assert key_field is not None

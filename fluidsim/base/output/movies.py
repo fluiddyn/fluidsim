@@ -451,14 +451,14 @@ class MoviesBase2D(MoviesBase):
             or equation.startswith("iz=")
             or equation.startswith("z=")
         ):
-            x = self.oper.x_seq
-            y = self.oper.y_seq
+            x = self.oper.get_grid1d_seq("x")
+            y = self.oper.get_grid1d_seq("y")
         elif equation.startswith("iy=") or equation.startswith("y="):
-            x = self.oper.x_seq
-            y = self.oper.z_seq
+            x = self.oper.get_grid1d_seq("x")
+            y = self.oper.get_grid1d_seq("z")
         elif equation.startswith("ix=") or equation.startswith("x="):
-            x = self.oper.y_seq
-            y = self.oper.z_seq
+            x = self.oper.get_grid1d_seq("y")
+            y = self.oper.get_grid1d_seq("z")
         else:
             raise NotImplementedError
 

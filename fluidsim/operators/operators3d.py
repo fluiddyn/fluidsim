@@ -166,16 +166,17 @@ Lx, Ly and Lz: float
 
         self.params = params
         self.axes = ("z", "y", "x")
+
+        params.oper.nx = int(params.oper.nx)
+        params.oper.ny = int(params.oper.ny)
+        params.oper.nz = int(params.oper.nz)
+
         if params.ONLY_COARSE_OPER:
             nx = ny = nz = 4
-            # Unchanged, but type cast into integers
-            params.oper.nx = int(params.oper.nx)
-            params.oper.ny = int(params.oper.ny)
-            params.oper.nz = int(params.oper.nz)
         else:
-            nx = params.oper.nx = int(params.oper.nx)
-            ny = params.oper.ny = int(params.oper.ny)
-            nz = params.oper.nz = int(params.oper.nz)
+            nx = params.oper.nx
+            ny = params.oper.ny
+            nz = params.oper.nz
 
         super(OperatorsPseudoSpectral3D, self).__init__(
             nx,
@@ -293,6 +294,18 @@ Lx, Ly and Lz: float
         udy_fft = vy_fft - ury_fft
 
         return urx_fft, ury_fft, udx_fft, udy_fft
+
+    def get_grid1d_seq(self, axe="x"):
+
+        if axe not in ("x", "y", "z"):
+            raise ValueError
+
+        if self.params.ONLY_COARSE_OPER:
+            number_points = getattr(self.params.oper, "n" + axe)
+            length = getattr(self, "L" + axe)
+            return np.linspace(0, length, number_points)
+        else:
+            return getattr(self, axe + "_seq")
 
 
 def _ik_from_ikc(ikc, nkc, nk):

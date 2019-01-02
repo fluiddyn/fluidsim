@@ -797,6 +797,18 @@ class OperatorsPseudoSpectral2D(_Operators):
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
 
+    def get_grid1d_seq(self, axe="x"):
+
+        if axe not in ("x", "y"):
+            raise ValueError
+
+        if self.params.ONLY_COARSE_OPER:
+            number_points = getattr(self.params.oper, "n" + axe)
+            length = getattr(self, "L" + axe)
+            return np.linspace(0, length, number_points)
+        else:
+            return getattr(self, axe + "_seq")
+
 
 # energy_arr = self.sum_wavenumbers(abs(arr)**2)
 # energy_array_coarse_after = oper_coarse.sum_wavenumbers(
