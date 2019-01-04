@@ -2,6 +2,7 @@ import unittest
 import shutil
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import fluidsim as fls
 
@@ -107,6 +108,17 @@ class TestSolverNS2D(unittest.TestCase):
                 sim2.output.increments.plot()
                 sim2.output.increments.load_pdf_from_file()
 
+                sim2.output.phys_fields.animate(
+                    "ux",
+                    dt_frame_in_sec=1e-6,
+                    dt_equations=0.3,
+                    repeat=False,
+                    clim=(-1, 1),
+                    save_file=False,
+                    numfig=1,
+                )
+                sim2.output.phys_fields.plot()
+
             # `compute('q')` two times for better coverage...
             sim.state.get_var("q")
             sim.state.get_var("q")
@@ -130,22 +142,7 @@ class TestSolverNS2D(unittest.TestCase):
                     save_file=False,
                     numfig=1,
                 )
-
-                sim4 = fls.load_sim_for_plot(path_run)
-                sim4.output.phys_fields.animate(
-                    "ux",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
-                sim4.output.phys_fields.plot()
-
-
-# class TestSolverNS2DFluidfft(TestSolverNS2D):
-#     Simul = Simul2
+        plt.close("all")
 
 
 if __name__ == "__main__":

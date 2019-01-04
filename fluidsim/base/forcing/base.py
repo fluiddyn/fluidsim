@@ -118,7 +118,10 @@ key_forced: {None} or str
         ClassForcing = dict_classes[self.type_forcing]
 
         self.sim = sim
-        self.forcing_maker = ClassForcing(sim)
+        if not sim.params.ONLY_COARSE_OPER:
+            self.forcing_maker = ClassForcing(sim)
+        else:
+            self.forcing_maker = None
 
         self._t_last_computed = -np.inf
 

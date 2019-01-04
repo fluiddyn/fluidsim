@@ -21,7 +21,7 @@ params.init_fields.type = "in_script"
 
 params.time_stepping.t_end = 20.0 * L / V0
 
-nx = 128//4
+nx = 128 // 4
 params.oper.nx = params.oper.ny = params.oper.nz = nx
 lx = params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
 

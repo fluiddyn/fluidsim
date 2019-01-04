@@ -18,10 +18,11 @@ from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from ..base.setofvariables import SetOfVariables
+from .. import _is_testing
 
 fp = FluidPythran()
 
-if not fp.is_transpiling and not fp.is_compiled:
+if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
     warn(
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."

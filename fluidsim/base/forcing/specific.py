@@ -85,6 +85,8 @@ class SpecificForcingPseudoSpectralSimple(SpecificForcing):
         if isinstance(obj, dict):
             kwargs = obj
         else:
+            if self.sim.params.forcing.key_forced is None:
+                raise ValueError("params.forcing.key_forced must be initialized.")
             kwargs = {self.sim.params.forcing.key_forced: obj}
         self.fstate.init_statespect_from(**kwargs)
 
@@ -111,6 +113,8 @@ class InScriptForcingPseudoSpectral(SpecificForcingPseudoSpectralSimple):
         if isinstance(obj, dict):
             kwargs = {key: self.sim.oper.fft(value) for key, value in obj.items()}
         else:
+            if self.sim.params.forcing.key_forced is None:
+                raise ValueError("params.forcing.key_forced must be initialized.")
             kwargs = {self.sim.params.forcing.key_forced: self.sim.oper.fft(obj)}
         return kwargs
 

@@ -44,10 +44,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             vy_fft = self.sim.state.state_spect.get_var("vy_fft")
             vz_fft = self.sim.state.state_spect.get_var("vz_fft")
 
-            PK1_fft = np.real(
-                vx_fft.conj() * fx_fft
-                + vy_fft.conj() * fy_fft
-                + vz_fft.conj() * fz_fft
+            PK1_fft = np.ascontiguousarray(
+                np.real(
+                    vx_fft.conj() * fx_fft
+                    + vy_fft.conj() * fy_fft
+                    + vz_fft.conj() * fz_fft
+                )
             )
             PK2_fft = (
                 (abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2)

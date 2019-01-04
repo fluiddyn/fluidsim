@@ -33,10 +33,13 @@ if "FLUIDSIM_PATH" in os.environ:
         Path(os.environ["FLUIDSIM_PATH"]) / ".fluidpythran"
     )
 
+_is_testing = False
+
 if any(
     any(test_tool in arg for arg in sys.argv)
     for test_tool in ("pytest", "unittest", "fluidsim-test", "coverage")
 ):
+    _is_testing = True
     from fluiddyn.util import mpi
 
     mpi.printby0(

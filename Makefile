@@ -45,6 +45,11 @@ _report_coverage:
 
 coverage: _tests_coverage _report_coverage
 
+coverage_short:
+	mkdir -p .coverage
+	FLUIDPYTHRAN_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
+	make _report_coverage
+
 lint:
 	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero
 
