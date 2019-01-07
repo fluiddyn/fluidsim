@@ -1,9 +1,6 @@
-from __future__ import print_function
-
 import unittest
 import numpy as np
 
-from fluidsim.solvers.test.test_ns import run_mini_simul
 from fluidsim.solvers.ns2d.strat.output.test import TestNS2DStrat, mpi
 
 

@@ -9,8 +9,6 @@ Provides
 
 """
 
-from __future__ import division
-
 import numpy as np
 from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 from .base import OperatorsBase1D

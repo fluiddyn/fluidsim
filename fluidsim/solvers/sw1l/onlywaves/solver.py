@@ -7,8 +7,6 @@ This class is a solver of the 1 layer shallow water (Saint Venant)
 equations with zeros QG PV.
 """
 
-from __future__ import division, print_function
-
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables

@@ -16,25 +16,25 @@ from fluidsim.solvers.ns3d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'examples'
+params.output.sub_directory = "examples"
 
-nx = 48//2
-ny = 64//2
-nz = 96//2
+nx = 48 // 2
+ny = 64 // 2
+nz = 96 // 2
 Lx = 3
 params.oper.nx = nx
 params.oper.ny = ny
 params.oper.nz = nz
 params.oper.Lx = Lx
-params.oper.Ly = Ly = Lx/nx*ny
-params.oper.Lz = Lz = Lx/nx*nz
-fft = 'fftwmpi3d'
+params.oper.Ly = Ly = Lx / nx * ny
+params.oper.Lz = Lz = Lx / nx * nz
+fft = "fftwmpi3d"
 # fft = 'fftw1d'
 # fft = 'pfft'
 # fft = 'p3dfft'
 
 # for sequential runs, just comment these 2 lines
-params.oper.type_fft = 'fluidfft.fft3d.mpi_with_' + fft
+params.oper.type_fft = "fluidfft.fft3d.mpi_with_" + fft
 params.short_name_type_run = fft
 
 
@@ -62,19 +62,19 @@ where $C$ is a constant of order 1.
 
 """
 n = 8
-C = 1.
-dx = Lx/nx
+C = 1.0
+dx = Lx / nx
 B = 1
 D = 1
-eps = 1e-2*B**(3/2)*D**(1/2)
-params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
+eps = 1e-2 * B ** (3 / 2) * D ** (1 / 2)
+params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
-printby0(f'nu_8 = {params.nu_8:.3e}')
+printby0(f"nu_8 = {params.nu_8:.3e}")
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 10.
+params.time_stepping.t_end = 10.0
 
-params.init_fields.type = 'in_script'
+params.init_fields.type = "in_script"
 
 params.output.periods_print.print_stdout = 1e-1
 
@@ -86,18 +86,19 @@ sim = Simul(params)
 
 # here we have to initialize the flow fields
 
-variables = {k: 1e-2 * sim.oper.create_arrayX_random()
-             for k in ('vx', 'vy', 'vz')}
+variables = {
+    k: 1e-2 * sim.oper.create_arrayX_random() for k in ("vx", "vy", "vz")
+}
 
 X, Y, Z = sim.oper.get_XYZ_loc()
 
-x0 = Lx/2.
-y0 = Ly/2.
-z0 = Lz/2.
-R2 = (X-x0)**2 + (Y-y0)**2 + (Z-z0)**2
+x0 = Lx / 2.0
+y0 = Ly / 2.0
+z0 = Lz / 2.0
+R2 = (X - x0) ** 2 + (Y - y0) ** 2 + (Z - z0) ** 2
 r0 = 0.5
-b = -0.5*(1-np.tanh((R2 - r0**2)/0.2**2))
-variables['b'] = b
+b = -0.5 * (1 - np.tanh((R2 - r0 ** 2) / 0.2 ** 2))
+variables["b"] = b
 
 sim.state.init_statephys_from(**variables)
 
@@ -106,9 +107,11 @@ sim.state.statephys_from_statespect()
 
 sim.time_stepping.start()
 
-printby0(f"""
+printby0(
+    f"""
 To visualize the output with Paraview, create a file states_phys.xmf with:
 
 fluidsim-create-xml-description {sim.output.path_run}
 
-""")
+"""
+)

@@ -3,10 +3,7 @@ SW1L forcing (:mod:`fluidsim.solvers.sw1l.forcing`)
 ===================================================
 
 """
-from __future__ import division
-from __future__ import print_function
 
-from builtins import object
 import numpy as np
 
 from fluiddyn.util import mpi

@@ -19,7 +19,6 @@ To get the bugs
 python wrong_output_it0_initfield.py
 
 """
-from __future__ import print_function
 
 import matplotlib.pyplot as plt
 

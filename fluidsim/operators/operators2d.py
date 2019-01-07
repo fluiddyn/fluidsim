@@ -18,10 +18,11 @@ from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from ..base.setofvariables import SetOfVariables
+from .. import _is_testing
 
 fp = FluidPythran()
 
-if not fp.is_transpiling and not fp.is_compiled:
+if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
     warn(
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."
@@ -796,6 +797,18 @@ class OperatorsPseudoSpectral2D(_Operators):
 
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
+
+    def get_grid1d_seq(self, axe="x"):
+
+        if axe not in ("x", "y"):
+            raise ValueError
+
+        if self.params.ONLY_COARSE_OPER:
+            number_points = getattr(self.params.oper, "n" + axe)
+            length = getattr(self, "L" + axe)
+            return np.linspace(0, length, number_points)
+        else:
+            return getattr(self, axe + "_seq")
 
 
 # energy_arr = self.sum_wavenumbers(abs(arr)**2)

@@ -21,7 +21,6 @@ Same behaviour with fluiddyn/fluidsim
 python no_energy_conservation_ns2dstrat.py
 
 """
-from __future__ import print_function
 
 # import numpy as np
 import matplotlib.pyplot as plt

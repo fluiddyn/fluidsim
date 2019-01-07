@@ -8,7 +8,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import print_function
 
 from fluidsim.base.output.phys_fields2d import PhysFieldsBase2D
 

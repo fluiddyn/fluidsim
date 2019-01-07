@@ -7,9 +7,6 @@
 
 """
 
-from __future__ import print_function, division
-
-from builtins import range
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D

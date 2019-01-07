@@ -4,7 +4,6 @@ Plate2d InitFields (:mod:`fluidsim.solvers.plate2d.init_fields`)
 
 
 """
-from __future__ import division
 
 import numpy as np
 

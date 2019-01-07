@@ -1,6 +1,3 @@
-from __future__ import print_function
-
-from builtins import object
 from time import time
 import os
 import sys
