@@ -51,9 +51,9 @@ class InfoSolverSphereSW1L(InfoSolverSphericalHarmo):
         self.class_name = "SimulSphereSW1L"
         self.short_name = "sphere.sw1l"
 
+        self.classes.State.module_name = here + ".state"
+        self.classes.State.class_name = "StateSphericalHarmoSW1L"
 
-        self.classes.State.module_name = here + '.state'
-        self.classes.State.class_name = 'StateSphericalHarmoSW1L'
 
 # self.classes.Output.module_name = here + '.output'
 # self.classes.Output.class_name = 'Output'
@@ -71,7 +71,7 @@ class SimulSphereSW1L(SimulSphericalHarmo):
         """
         SimulSphericalHarmo._complete_params_with_default(params)
 
-        attribs = {'c2': 20}
+        attribs = {"c2": 20}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -141,12 +141,10 @@ class SimulSphereSW1L(SimulSphericalHarmo):
 
         # TODO: Pythranize: laplacian
         # Subtract laplacian of total energy K.E. + A.P.E from divergence tendency
-        Fdiv_sh += oper.K2 * oper.sht(0.5 * (ux**2 + uy**2) + c2 * eta)
+        Fdiv_sh += oper.K2 * oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta)
 
         # Calculate Feta_sh = \nabla.(hu) = \nabla.((1 + \eta)u)
-        oper.divrotsh_from_vec(
-            -(eta + 1) * ux, -(eta + 1) * uy, Feta_sh
-        )
+        oper.divrotsh_from_vec(-(eta + 1) * ux, -(eta + 1) * uy, Feta_sh)
 
         # oper.dealiasing(tendencies_sh)
 

@@ -28,10 +28,10 @@ params = Simul.create_default_params()
 # Grid
 N = 256
 params.oper.lmax = N // 3
-params.oper.nlat = N // 2 
+params.oper.nlat = N // 2
 params.oper.nlon = N
 
-hour = 60**2
+hour = 60 ** 2
 params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = dt = 10  # 150 seconds for 3rd order AB scheme
 params.time_stepping.t_end = 150 * hour
@@ -44,18 +44,18 @@ hbar = 10.e3  # depth of troposphere
 params.c2 = g * hbar  # wave speed squared
 
 # Viscosity
-efold = 3.0 * hour    # efolding timescale at ntrunc for hyperdiffusion
+efold = 3.0 * hour  # efolding timescale at ntrunc for hyperdiffusion
 params.nu_8 = params.oper.radius / efold
 
 # I/O
-params.init_fields.type = 'in_script'
-params.output.sub_directory = 'examples'
+params.init_fields.type = "in_script"
+params.output.sub_directory = "examples"
 params.output.periods_print.print_stdout = hour
 # params.output.periods_save.phys_fields = hour
 # params.output.periods_save.spatial_means = 0.1
 params.output.ONLINE_PLOT_OK = True
 params.output.periods_plot.phys_fields = hour
-params.output.phys_fields.field_to_plot = 'rot'
+params.output.phys_fields.field_to_plot = "rot"
 
 sim = Simul(params)
 
@@ -64,21 +64,23 @@ umax = 80.  # jet speed amplitude, m/s
 oper = sim.oper
 
 # Lat-Lon in radians
-lons1r = (oper.lons)
-lats1r = (oper.lats)
-LONS = (oper.LONS - np.pi)
-LATS = (oper.LATS)
+lons1r = oper.lons
+lats1r = oper.lats
+LONS = oper.LONS - np.pi
+LATS = oper.LATS
 
 # Initial fields: a zonal jet
-phi0 = np.pi/7.
-phi1 = 0.5*np.pi - phi0
-phi2 = 0.25*np.pi
+phi0 = np.pi / 7.
+phi1 = 0.5 * np.pi - phi0
+phi2 = 0.25 * np.pi
+
 
 def ux_from_lats(phi):
-    en = np.exp(-4.0/(phi1-phi0)**2)
-    u1 = (umax/en) * np.exp(1. / ((phi - phi0) * (phi - phi1)))
+    en = np.exp(-4.0 / (phi1 - phi0) ** 2)
+    u1 = (umax / en) * np.exp(1. / ((phi - phi0) * (phi - phi1)))
     u0 = np.zeros_like(phi, np.float)
     return np.where(np.logical_and(phi < phi1, phi > phi0), u1, u0)
+
 
 ug = ux_from_lats(lats1r)
 ug.shape = (oper.nlat, 1)
@@ -89,13 +91,16 @@ def integrand_gh(phi, a, omega):
     """The balance equation (3) in Galewsky et al."""
     ux_phi = ux_from_lats(phi)
     f = 2 * omega * np.sin(phi)
-    return a * ux_phi * (f + np.tan(phi)  / a * ux_phi)
+    return a * ux_phi * (f + np.tan(phi) / a * ux_phi)
 
 
 def integrate_gh(lower, upper):
     """Integrate the ``integrand_gh`` function from lower to upper limit."""
     return integrate.quad(
-        integrand_gh, lower, upper, (params.oper.radius, params.oper.omega),
+        integrand_gh,
+        lower,
+        upper,
+        (params.oper.radius, params.oper.omega),
         #  maxiter=100
     )
 
@@ -110,9 +115,7 @@ def h_from_eta(eta):
 
 
 phi_lower = lats1r.min()
-gh1 = np.array(
-    [integrate_gh(phi_lower, float(phi)) for phi in lats1r]
-)
+gh1 = np.array([integrate_gh(phi_lower, float(phi)) for phi in lats1r])
 
 gh1_error = gh1[:, 1]
 h = hbar - gh1[:, 0] / g
@@ -123,10 +126,15 @@ etag.shape = (oper.nlat, 1)
 eta = etag * oper.create_array_spat(value=1.)  # broadcast to shape (nlats,nlons)
 
 # Height perturbation.
-alpha = 1./3.
-beta = 1./15.
-hamp = 120.         # amplitude of height perturbation to zonal jet
-hbump = hamp*np.cos(LATS)*np.exp(-(LONS/alpha)**2)*np.exp(-((phi2-LATS)/beta)**2)
+alpha = 1. / 3.
+beta = 1. / 15.
+hamp = 120.  # amplitude of height perturbation to zonal jet
+hbump = (
+    hamp
+    * np.cos(LATS)
+    * np.exp(-(LONS / alpha) ** 2)
+    * np.exp(-((phi2 - LATS) / beta) ** 2)
+)
 eta += g * hbump / params.c2
 
 sim.state.init_from_uxuyeta(ux, 0, eta)
@@ -142,18 +150,19 @@ sim.output.init_with_initialized_state()
 
 
 def visualize_fields2d():
-    sim.output.phys_fields.plot('rot')
-    sim.output.phys_fields.plot('div')
-    sim.output.phys_fields.plot('eta')
+    sim.output.phys_fields.plot("rot")
+    sim.output.phys_fields.plot("div")
+    sim.output.phys_fields.plot("eta")
 
 
 def visualize_fields1d():
     """Verify if the initialization corresponds to Fig. 1 in Galewsky et al."""
     import matplotlib.pyplot as plt
+
     lats1d = np.degrees(lats1r)
 
     fig, axes = plt.subplots(1, 3, figsize=(9, 5), sharey=True)
-    ax0,ax1,ax2 = axes.ravel()
+    ax0, ax1, ax2 = axes.ravel()
     ax0.set_ylim(20, 70)
     ax0.set_ylabel("latitude (degrees)")
 
@@ -174,9 +183,7 @@ def visualize_fields1d():
     ax2.set_xlabel("longitude (degrees)")
 
 
-
 if __name__ == "__main__":
     # visualize_fields1d()
     # visualize_fields2d()
     sim.time_stepping.start()
-

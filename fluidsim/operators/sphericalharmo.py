@@ -8,6 +8,7 @@ from pyshtools.constant import Earth
 
 from fluidsht.sht2d.operators import OperatorsSphereHarmo2D as _Operator
 from fluidsht.compat import cached_property
+
 # from fluiddyn.calcul.sphericalharmo import EasySHT as _Operator
 
 from fluidsim.base.params import Parameters
@@ -27,9 +28,11 @@ class OperatorsSphericalHarmonics(_Operator):
         """
 
         attribs = {
-            "lmax": 15, "nlat": None, "nlon": None,
-            'omega': Earth.omega_wgs84.value,
-            'radius': Earth.r3_wgs84.value,
+            "lmax": 15,
+            "nlat": None,
+            "nlon": None,
+            "omega": Earth.omega_wgs84.value,
+            "radius": Earth.r3_wgs84.value,
         }
         params._set_child("oper", attribs=attribs)
 
@@ -62,10 +65,11 @@ class OperatorsSphericalHarmonics(_Operator):
 
         # TODO: implement
         # if self.params.ONLY_COARSE_OPER:
-            # set_grid based on params.nlat and params.nlon and other flags
-            # rebuild lats and lons
+        # set_grid based on params.nlat and params.nlon and other flags
+        # rebuild lats and lons
         # else:
         return getattr(self, axe + "s")
+
 
 if __name__ == "__main__":
 

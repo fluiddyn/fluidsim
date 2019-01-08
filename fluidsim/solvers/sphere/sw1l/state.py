@@ -60,7 +60,7 @@ class StateSphericalHarmoSW1L(StatePseudoSpectral):
         elif key == "q":
             rot = self.state_phys.get_var("rot")
             eta = self.state_phys.get_var("eta")
-            result = rot - self.oper.f_radial *  eta
+            result = rot - self.oper.f_radial * eta
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:

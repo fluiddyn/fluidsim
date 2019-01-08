@@ -28,7 +28,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 from fluidsim.solvers.ns2d.init_fields import (
-    InitFieldsNoise as InitFieldsNoiseNS2D,
+    InitFieldsNoise as InitFieldsNoiseNS2D
 )
 
 from fluidsim.solvers.ns2d.init_fields import InitFieldsJet, InitFieldsDipole

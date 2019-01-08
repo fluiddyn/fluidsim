@@ -201,7 +201,8 @@ class SpatialMeansJSON(SpatialMeansBase):
 
             raise IOError(
                 f"Error reading spatial means file {self.path_file} in\n\tline"
-                f"number {line_nb}:\n\t{line}")
+                f"number {line_nb}:\n\t{line}"
+            )
 
     def load_dataset(self, dims=("t",)):
         df = self.load()

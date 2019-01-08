@@ -166,7 +166,6 @@ class ProbaDensityFunc(SpecificOutput):
             )
             print(to_print)
 
-
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 pdf_eta = dset_pdf_eta[it]
                 bin_edges_eta = dset_bin_edges_eta[it]
@@ -177,5 +176,5 @@ class ProbaDensityFunc(SpecificOutput):
                 pdf_u = dset_pdf_u[it]
                 bin_edges_u = dset_bin_edges_u[it]
 
-                bin_edges_u = (bin_edges_u[:-1] + bin_edges_u[1:]) /  2
+                bin_edges_u = (bin_edges_u[:-1] + bin_edges_u[1:]) / 2
                 ax2.plot(bin_edges_u, pdf_u, "r", linewidth=1)

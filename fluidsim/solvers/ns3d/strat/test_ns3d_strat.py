@@ -69,10 +69,11 @@ class TestSolverNS3DStrat(TestSolverBase):
             X, Y, Z = oper.get_XYZ_loc()
 
             def compute_forcing_fft_each_time(self):
-                return {'vx_fft': oper.create_arrayK(value=0)}
+                return {"vx_fft": oper.create_arrayK(value=0)}
 
             sim.forcing.forcing_maker.monkeypatch_compute_forcing_fft_each_time(
-                compute_forcing_fft_each_time)
+                compute_forcing_fft_each_time
+            )
 
             sim.time_stepping.start()
 

@@ -285,7 +285,7 @@ cfl_coef: float (default None)
         try:
             f = params.f
         except AttributeError:
-            # For spherical solvers, trying to use the dispersion relation for 
+            # For spherical solvers, trying to use the dispersion relation for
             # Poincare waves can give absurd phase speeds due to earth radius
             # coming in the relation for wavenumbers kh_l = l * (l + 1) / r
             # f = params.omega
@@ -299,7 +299,6 @@ cfl_coef: float (default None)
             k_min = 2 * pi / Lh
 
             cph = (f ** 2 / k_min ** 2 + params.c2) ** 0.5
-
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
