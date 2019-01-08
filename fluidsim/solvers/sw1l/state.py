@@ -6,8 +6,6 @@
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
 
 from past.utils import old_div
 import numpy as np
@@ -137,35 +135,19 @@ class StateSW1L(StatePseudoSpectral):
         self.oper.fft_as_arg(uy, uy_fft)
         self.oper.fft_as_arg(eta, eta_fft)
 
-    def statephys_from_statespect(self):
+    def statephys_from_statespect(self, state_spect=None, state_phys=None):
         """Compute the state in physical space."""
-        ifft_as_arg = self.oper.ifft_as_arg
-        ux_fft = self.state_spect.get_var("ux_fft")
-        uy_fft = self.state_spect.get_var("uy_fft")
-        eta_fft = self.state_spect.get_var("eta_fft")
-        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-
-        ux = self.state_phys.get_var("ux")
-        uy = self.state_phys.get_var("uy")
-        eta = self.state_phys.get_var("eta")
-        rot = self.state_phys.get_var("rot")
-
-        ifft_as_arg(ux_fft, ux)
-        ifft_as_arg(uy_fft, uy)
-        ifft_as_arg(eta_fft, eta)
-        ifft_as_arg(rot_fft, rot)
-
-    def return_statephys_from_statespect(self, state_spect=None):
-        """Return the state in physical space."""
         ifft_as_arg = self.oper.ifft_as_arg
         if state_spect is None:
             state_spect = self.state_spect
+
+        if state_phys is None:
+            state_phys = self.state_phys
+
         ux_fft = state_spect.get_var("ux_fft")
         uy_fft = state_spect.get_var("uy_fft")
         eta_fft = state_spect.get_var("eta_fft")
         rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
-
-        state_phys = SetOfVariables(like=self.state_phys)
 
         ux = state_phys.get_var("ux")
         uy = state_phys.get_var("uy")
@@ -177,6 +159,13 @@ class StateSW1L(StatePseudoSpectral):
         ifft_as_arg(eta_fft, eta)
         ifft_as_arg(rot_fft, rot)
 
+    def return_statephys_from_statespect(self, state_spect=None):
+        """Return the state in physical space as a new object separate from
+        ``self.state_phys``.
+
+        """
+        state_phys = SetOfVariables(like=self.state_phys)
+        self.statephys_from_statespect(state_spect, state_phys)
         return state_phys
 
     def init_statespect_from(self, **kwargs):

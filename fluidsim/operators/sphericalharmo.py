@@ -3,19 +3,34 @@
 
 
 """
+import numpy as np
+from pyshtools.constant import Earth
 
-from fluiddyn.calcul.sphericalharmo import EasySHT
+from fluidsht.sht2d.operators import OperatorsSphereHarmo2D as _Operator
+from fluidsht.compat import cached_property
+# from fluiddyn.calcul.sphericalharmo import EasySHT as _Operator
 
 from fluidsim.base.params import Parameters
 
 
-class OperatorsSphericalHarmonics(EasySHT):
+class OperatorsSphericalHarmonics(_Operator):
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
+        f"""This static method is used to complete the *params* container.
+        Default parameters
+
+        - omega (solid body rotation speed)
+        - radius (of the sphere)
+
+        are initialized as per *{Earth.r3_wgs84.reference}*
+
         """
 
-        attribs = {"lmax": 15, "radius": 1.0, "nlat": 24, "nlon": 48}
+        attribs = {
+            "lmax": 15, "nlat": None, "nlon": None,
+            'omega': Earth.omega_wgs84.value,
+            'radius': Earth.r3_wgs84.value,
+        }
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None):
@@ -24,23 +39,33 @@ class OperatorsSphericalHarmonics(EasySHT):
             params = Parameters(tag="params")
             self.__class__._complete_params_with_default(params)
 
-        lmax = params.oper.lmax
-        radius = params.oper.radius
-        nlat = params.oper.nlat
-        nlon = params.oper.nlon
-
-        super(OperatorsSphericalHarmonics, self).__init__(
-            lmax=lmax, radius=radius, nlat=nlat, nlon=nlon
+        self.params = params = params.oper
+        super().__init__(
+            lmax=params.lmax,
+            nlat=params.nlat,
+            nlon=params.nlon,
+            radius=params.radius,
         )
 
-        self._zeros_sh = self.create_array_sh(0.0)
+    @cached_property
+    def f_radial(self):
+        r"""The vertical / radial component of the solid body rotation vector
+        pointed along axis of rotation. Useful for calculation of coriolis
+        term where :math:`f = 2 \Omega \sin \theta`.
 
-    def vec_from_rotsh(self, rot_sh):
-        return self.uv_from_hdivrotsh(self._zeros_sh, rot_sh)
+        """
+        return 2.0 * self.params.omega * np.sin(self.LATS)
 
-    def vec_from_divsh(self, div_sh):
-        return self.uv_from_hdivrotsh(div_sh, self._zeros_sh)
+    def get_grid1d_seq(self, axe="lat"):
+        if axe not in self.axes:
+            raise ValueError
 
+        # TODO: implement
+        # if self.params.ONLY_COARSE_OPER:
+            # set_grid based on params.nlat and params.nlon and other flags
+            # rebuild lats and lons
+        # else:
+        return getattr(self, axe + "s")
 
 if __name__ == "__main__":
 

@@ -8,10 +8,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
-
-from builtins import object
 
 from signal import signal
 from warnings import warn
@@ -286,12 +282,24 @@ cfl_coef: float (default None)
         uy = self.sim.state.get_var("uy")
 
         params = self.sim.params
-        f = params.f
-        c = params.c2 ** 0.5
-        if f != 0:
+        try:
+            f = params.f
+        except AttributeError:
+            # For spherical solvers, trying to use the dispersion relation for 
+            # Poincare waves can give absurd phase speeds due to earth radius
+            # coming in the relation for wavenumbers kh_l = l * (l + 1) / r
+            # f = params.omega
+            f = 0
+
+        # Phase speed of the fastest wave from dispersion relation
+        if f == 0:
+            cph = params.c2 ** 0.5
+        else:
             Lh = max(params.oper.Lx, params.oper.Ly)
             k_min = 2 * pi / Lh
-            c = (f ** 2 / k_min ** 2 + c ** 2) ** 0.5
+
+            cph = (f ** 2 / k_min ** 2 + params.c2) ** 0.5
+
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
@@ -306,7 +314,7 @@ cfl_coef: float (default None)
             deltat_CFL = self.deltat_max
 
         deltat_wave = (
-            self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / c
+            self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / cph
         )
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt

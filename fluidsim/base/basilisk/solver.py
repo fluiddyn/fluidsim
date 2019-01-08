@@ -12,7 +12,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import print_function
 
 from fluidsim.base.solvers.base import SimulBase
 from fluidsim.base.solvers.info_base import InfoSolverBase
@@ -22,7 +21,6 @@ import basilisk.stream as basilisk
 
 class InfoSolverBasilisk(InfoSolverBase):
     """Contain the information on a Basilisk solver."""
-
     def _init_root(self):
 
         super(InfoSolverBasilisk, self)._init_root()
@@ -50,7 +48,6 @@ class InfoSolverBasilisk(InfoSolverBase):
 
 class SimulBasilisk(SimulBase):
     """A solver for Basilisk."""
-
     InfoSolver = InfoSolverBasilisk
 
     def __init__(self, params):

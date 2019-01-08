@@ -265,7 +265,11 @@ setup(
     python_requires=">=3.6",
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,
-    extras_require=dict(doc=["Sphinx>=1.1", "numpydoc"], parallel=["mpi4py"]),
+    extras_require=dict(
+        doc=["Sphinx>=1.1", "numpydoc"],
+        parallel=["mpi4py"],
+        sphere=["fluidsht"],
+    ),
     cmdclass={"build_ext": fluidsim_build_ext},
     ext_modules=ext_modules,
     entry_points={"console_scripts": console_scripts},

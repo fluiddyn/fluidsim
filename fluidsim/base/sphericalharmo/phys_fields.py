@@ -1,7 +1,36 @@
-from ..output.phys_fields2d import PhysFieldsBase2D
+from warnings import warn
+from ..output.phys_fields2d import PhysFieldsBase2D, MoviesBasePhysFields2D
+
+
+class Movies2DSphericalHarmo(MoviesBasePhysFields2D):
+    """Base class defining most functions for movies for 2D spherical data."""
+
+    def _get_axis_data(self, shape=None):
+        """Get axis data.
+
+        Returns
+        -------
+
+        lons : array
+          x-axis data.
+
+        lats : array
+          y-axis data.
+
+        """
+        if shape:
+            warn("_get_axis_data: shape parameter ignored.")
+
+        x = self.oper.get_grid1d_seq("lon")
+        y = self.oper.get_grid1d_seq("lat")
+
+        return x, y
 
 
 class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
+    def _init_movies(self):
+        self.movies = Movies2DSphericalHarmo(self.output, self)
+
     def _set_title(self, ax, key, time, vmax=None):
         title = (
             key
