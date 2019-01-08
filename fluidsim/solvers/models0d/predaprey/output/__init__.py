@@ -15,7 +15,6 @@ and the main output class for this solver:
    :private-members:
 
 """
-from __future__ import division
 
 from math import log
 

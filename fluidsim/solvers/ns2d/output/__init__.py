@@ -18,7 +18,6 @@ and the main output class for the ns2d solver:
    :private-members:
 
 """
-from __future__ import division
 
 import numpy as np
 

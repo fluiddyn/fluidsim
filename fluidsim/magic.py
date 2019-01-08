@@ -6,7 +6,6 @@
    :private-members:
 
 """
-from __future__ import print_function
 
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core import magic_arguments

@@ -13,7 +13,6 @@ To be compared with::
   fluidsim-bench 128 -d 3 -s ns3d -it 10
 
 """
-from __future__ import print_function
 import time
 import numpy as np
 from numpy import zeros, sum, float64, sin, cos, prod, asscalar

@@ -17,8 +17,6 @@ This module provides classes to solve the Lorenz model.
 
 """
 
-from __future__ import division
-
 from math import sqrt
 
 from fluidsim.base.setofvariables import SetOfVariables

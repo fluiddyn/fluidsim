@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import unittest
 
 from fluidsim.solvers.sw1l.output.test import BaseTestCase, mpi

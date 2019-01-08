@@ -1,5 +1,3 @@
-from __future__ import division
-from builtins import range
 import h5py
 
 import os

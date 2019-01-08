@@ -1,6 +1,3 @@
-from __future__ import print_function, division
-
-from builtins import range
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
@@ -99,15 +96,13 @@ class PrintStdOutNS3D(PrintStdOutBase):
         ax1.set_title(
             "info stdout, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + ", nx = {0:5d}".format(self.params.oper.nx)
         )
-        ax1.hold(True)
         ax1.plot(t, deltat, "k", linewidth=2)
 
         size_axe[1] = 0.08
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel("E(t), deltaE(t)")
-        ax2.hold(True)
         ax2.plot(t, E, "k", linewidth=2)
         ax2.plot(t, deltaE, "b", linewidth=2)

@@ -1,6 +1,3 @@
-from __future__ import division
-
-
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
@@ -68,6 +65,5 @@ class Output(OutputBasePseudoSpectral):
         return nrj_x_fft + nrj_y_fft + nrj_z_fft
 
     def compute_energy(self):
-        print("compute_energy, ns3d")
         energy_fft = self.compute_energy_fft()
         return self.sum_wavenumbers(energy_fft)

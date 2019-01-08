@@ -32,7 +32,8 @@ tests_mpi:
 _tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m fluidsim.util.testing -v
-	mpirun -np 2 coverage run -p -m fluidsim.util.testing -v
+	FLUIDPYTHRAN_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
+	FLUIDPYTHRAN_NO_REPLACE=1 mpirun -np 2 coverage run -p -m fluidsim.util.testing -v
 
 _report_coverage:
 	coverage combine
@@ -43,6 +44,11 @@ _report_coverage:
 	@echo "file://${PWD}/.coverage/index.html"
 
 coverage: _tests_coverage _report_coverage
+
+coverage_short:
+	mkdir -p .coverage
+	FLUIDPYTHRAN_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
+	make _report_coverage
 
 lint:
 	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero

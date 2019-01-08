@@ -7,12 +7,8 @@
 
 """
 
-from __future__ import division, print_function
-
-from builtins import range
 import os
 import numpy as np
-
 
 from fluiddyn.util import mpi
 
@@ -48,10 +44,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             vy_fft = self.sim.state.state_spect.get_var("vy_fft")
             vz_fft = self.sim.state.state_spect.get_var("vz_fft")
 
-            PK1_fft = np.real(
-                vx_fft.conj() * fx_fft
-                + vy_fft.conj() * fy_fft
-                + vz_fft.conj() * fz_fft
+            PK1_fft = np.ascontiguousarray(
+                np.real(
+                    vx_fft.conj() * fx_fft
+                    + vy_fft.conj() * fy_fft
+                    + vz_fft.conj() * fz_fft
+                )
             )
             PK2_fft = (
                 (abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2)
@@ -168,6 +166,9 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         dict_results["t"] = t
         dict_results["E"] = E
+        dict_results["Ex"] = Ex
+        dict_results["Ey"] = Ey
+        dict_results["Ez"] = Ez
 
         dict_results["PK1"] = PK1
         dict_results["PK2"] = PK2
@@ -192,26 +193,19 @@ class SpatialMeansNS3D(SpatialMeansBase):
         epsK_hypo = dict_results["epsK_hypo"]
         epsK_tot = dict_results["epsK_tot"]
 
-        width_axe = 0.85
-        height_axe = 0.39
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
-
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig, ax = self.output.figure_axe()
         fig.suptitle("Energy and enstrophy")
-        ax1.set_ylabel("$E(t)$")
-        ax1.plot(t, E, "k", linewidth=2)
-        ax1.plot(t, Ex, "b")
-        ax1.plot(t, Ey, "r")
-        ax1.plot(t, Ez, "c")
+        ax.set_ylabel("$E(t)$")
+        ax.plot(t, E, "k", linewidth=2)
+        ax.plot(t, Ex, "b")
+        ax.plot(t, Ey, "r")
+        ax.plot(t, Ez, "c")
 
-        z_bottom_axe = 0.54
-        size_axe[1] = z_bottom_axe
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig, ax = self.output.figure_axe()
         fig.suptitle("Dissipation of energy and enstrophy")
-        ax1.set_ylabel(r"$\epsilon_K(t)$")
+        ax.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax1.plot(t, epsK, "r", linewidth=2)
-        ax1.plot(t, epsK_hypo, "g", linewidth=2)
-        ax1.plot(t, epsK_tot, "k", linewidth=2)
+        ax.plot(t, epsK, "r", linewidth=2)
+        if self.sim.params.nu_m4 != 0:
+            ax.plot(t, epsK_hypo, "g", linewidth=2)
+        ax.plot(t, epsK_tot, "k", linewidth=2)

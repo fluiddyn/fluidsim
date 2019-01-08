@@ -12,7 +12,6 @@
    :private-members:
 
 """
-from __future__ import division
 
 from fluidfft.fft3d.operators import vector_product
 
