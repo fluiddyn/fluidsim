@@ -25,7 +25,7 @@ class StatePlate2D(StatePseudoSpectral):
             {
                 "keys_state_spect": ["w_fft", "z_fft"],
                 "keys_state_phys": ["w", "z"],
-                "keys_computable": [],
+                "keys_computable": ["chi_fft", "chi", "Nw_fft", "lapz_fft"],
                 "keys_phys_needed": ["w", "z"],
                 "keys_linear_eigenmodes": [],
             }
@@ -37,11 +37,7 @@ class StatePlate2D(StatePseudoSpectral):
         if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
-        if key == "w_fft":
-            result = oper.fft2(self.state_phys.get_var("w"))
-        elif key == "z_fft":
-            result = oper.fft2(self.state_phys.get_var("z"))
-        elif key == "chi_fft":
+        if key == "chi_fft":
             z_fft = self.state_spect.get_var("z_fft")
             mamp_zz = oper.monge_ampere_from_fft(z_fft, z_fft)
             result = oper.invlaplacian_fft(
@@ -56,7 +52,7 @@ class StatePlate2D(StatePseudoSpectral):
             )
             result = oper.fft2(mamp_zchi)
         elif key == "lapz_fft":
-            z_fft = self.compute("z_fft")
+            z_fft = self.state_spect.get_var("z_fft")
             result = oper.laplacian_fft(z_fft, order=4)
         else:
             to_print = 'Do not know how to compute "' + key + '".'

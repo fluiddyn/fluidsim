@@ -365,7 +365,7 @@ class CorrelationsFreq(SpecificOutput):
                         io2 = -io2
                     elif io2 >= nb_omegas:
                         io2 = 2 * nb_omegas - 1 - io2
-                    corr[i1, io3, io4] = corr4[i1, io3, io4] / np.sqrt(
+                    corr[i1, io3, io4] = abs(corr4[i1, io3, io4]) / np.sqrt(
                         abs(
                             corr2[io1, io1]
                             * corr2[io3, io3]
@@ -387,16 +387,15 @@ class CorrelationsFreq(SpecificOutput):
         self.ax = ax
         ax.set_xlabel("Omega")
         ax.set_ylabel("Omega")
-        pc = ax.pcolormesh(fx, fy, abs(corr[4, :, :]))
+        pc = ax.pcolormesh(fx, fy, abs(corr[0, :, :]))
         fig.colorbar(pc)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
         self.ax1 = ax1
         ax1.set_xlabel("Omega")
         ax1.set_ylabel("Omega")
-        pc1 = ax1.pcolormesh(fx, fy, corr[3, :, :])
+        pc1 = ax1.pcolormesh(fx, fy, corr[1, :, :])
         fig1.colorbar(pc1)
-        ax1.hold(True)
 
     def compute_corr4_norm(self, it=-1):
 
@@ -447,89 +446,89 @@ class CorrelationsFreq(SpecificOutput):
 
         return norm, corr_norm, cum_norm, nb_means
 
-    def _compute_correl4(self, q_fftt):
-        r"""Compute the correlations 4.
+    # def _compute_correl4(self, q_fftt):
+    #     r"""Compute the correlations 4.
 
-        .. math::
-           C_4(\omega_1, \omega_2, \omega_3, \omega_4) =
-           \langle
-           \tilde w(\omega_1, \mathbf{x})
-           \tilde w(\omega_2, \mathbf{x})
-           \tilde w(\omega_3, \mathbf{x})^*
-           \tilde w(\omega_4, \mathbf{x})^*
-           \rangle_\mathbf{x},
+    #     .. math::
+    #        C_4(\omega_1, \omega_2, \omega_3, \omega_4) =
+    #        \langle
+    #        \tilde w(\omega_1, \mathbf{x})
+    #        \tilde w(\omega_2, \mathbf{x})
+    #        \tilde w(\omega_3, \mathbf{x})^*
+    #        \tilde w(\omega_4, \mathbf{x})^*
+    #        \rangle_\mathbf{x},
 
-        where
+    #     where
 
-        .. math::
-           \omega_2 = \omega_3 + \omega_4 - \omega_1
+    #     .. math::
+    #        \omega_2 = \omega_3 + \omega_4 - \omega_1
 
-        and :math:`\omega_1 > 0`, :math:`\omega_3 > 0` and
+    #     and :math:`\omega_1 > 0`, :math:`\omega_3 > 0` and
 
-        :math:`\omega_4 > 0`. Thus, this function produces an array
-        :math:`C_4(\omega_1, \omega_3, \omega_4)`.
+    #     :math:`\omega_4 > 0`. Thus, this function produces an array
+    #     :math:`C_4(\omega_1, \omega_3, \omega_4)`.
 
-        """
+    #     """
 
-        q_fftt_conj = q_fftt.conj()
-        nb_omegas = self.nb_omegas
+    #     q_fftt_conj = q_fftt.conj()
+    #     nb_omegas = self.nb_omegas
 
-        corr4 = np.empty([len(self.iomegas1), nb_omegas, nb_omegas])
-        for i1, io1 in enumerate(self.iomegas1):
-            # this loop could be parallelized (OMP)
-            for io3 in range(nb_omegas):
-                # we use the symmetry omega_3 <--> omega_4
-                for io4 in range(io3 + 1):
-                    tmp = (
-                        q_fftt[:, io1] * q_fftt_conj[:, io3] * q_fftt_conj[:, io4]
-                    )
-                    io2 = io3 + io4 - io1
-                    if io2 < 0:
-                        io2 = -io2
-                        corr4[i1, io3, io4] = np.sum(tmp * q_fftt_conj[:, io2])
-                    elif io2 >= nb_omegas:
-                        io2 = 2 * nb_omegas - 1 - io2
-                        corr4[i1, io3, io4] = np.sum(tmp * q_fftt_conj[:, io2])
-                    else:
-                        corr4[i1, io3, io4] = np.sum(tmp * q_fftt[:, io2])
-                    # symmetry omega_3 <--> omega_4:
-                    corr4[i1, io4, io3] = corr4[i1, io3, io4]
+    #     corr4 = np.empty([len(self.iomegas1), nb_omegas, nb_omegas])
+    #     for i1, io1 in enumerate(self.iomegas1):
+    #         # this loop could be parallelized (OMP)
+    #         for io3 in range(nb_omegas):
+    #             # we use the symmetry omega_3 <--> omega_4
+    #             for io4 in range(io3 + 1):
+    #                 tmp = (
+    #                     q_fftt[:, io1] * q_fftt_conj[:, io3] * q_fftt_conj[:, io4]
+    #                 )
+    #                 io2 = io3 + io4 - io1
+    #                 if io2 < 0:
+    #                     io2 = -io2
+    #                     corr4[i1, io3, io4] = np.sum(tmp * q_fftt_conj[:, io2])
+    #                 elif io2 >= nb_omegas:
+    #                     io2 = 2 * nb_omegas - 1 - io2
+    #                     corr4[i1, io3, io4] = np.sum(tmp * q_fftt_conj[:, io2])
+    #                 else:
+    #                     corr4[i1, io3, io4] = np.sum(tmp * q_fftt[:, io2])
+    #                 # symmetry omega_3 <--> omega_4:
+    #                 corr4[i1, io4, io3] = corr4[i1, io3, io4]
 
-        if mpi.nb_proc > 1:
-            # reduce SUM for mean:
-            corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
+    #     if mpi.nb_proc > 1:
+    #         # reduce SUM for mean:
+    #         corr4 = mpi.comm.reduce(corr4, op=mpi.MPI.SUM, root=0)
 
-        if mpi.rank == 0:
-            corr4 /= self.nb_xs_seq
-            return corr4
+    #     if mpi.rank == 0:
+    #         corr4 /= self.nb_xs_seq
+    #         return corr4
 
-    def _compute_correl2(self, q_fftt):
-        r"""Compute the correlations 2.
+    # def _compute_correl2(self, q_fftt):
+    #     r"""Compute the correlations 2.
 
-        .. math::
-           C_2(\omega_1, \omega_2) =
-           \langle
-           \tilde w(\omega_1, \mathbf{x})
-           \tilde w(\omega_2, \mathbf{x})^*
-           \rangle_\mathbf{x}.
+    #     .. math::
+    #        C_2(\omega_1, \omega_2) =
+    #        \langle
+    #        \tilde w(\omega_1, \mathbf{x})
+    #        \tilde w(\omega_2, \mathbf{x})^*
+    #        \rangle_\mathbf{x}.
 
-        """
-        nb_omegas = self.nb_omegas
-        corr2 = np.empty([nb_omegas, nb_omegas])
+    #     """
+    #     nb_omegas = self.nb_omegas
+    #     corr2 = np.empty([nb_omegas, nb_omegas])
 
-        q_fftt_conj = q_fftt.conj()
-        for io3 in range(nb_omegas):
-            for io4 in range(io3 + 1):
-                corr2[io3, io4] = np.sum(q_fftt[:, io3] * q_fftt_conj[:, io4])
-                corr2[io4, io3] = corr2[io3, io4].conj()
+    #     q_fftt_conj = q_fftt.conj()
+    #     for io3 in range(nb_omegas):
+    #         for io4 in range(io3 + 1):
+    #             corr2[io3, io4] = np.sum(q_fftt[:, io3] * q_fftt_conj[:, io4])
+    #             corr2[io4, io3] = corr2[io3, io4].conj()
 
-        if mpi.nb_proc > 1:
-            # reduce SUM for mean:
-            corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
+    #     if mpi.nb_proc > 1:
+    #         # reduce SUM for mean:
+    #         corr2 = mpi.comm.reduce(corr2, op=mpi.MPI.SUM, root=0)
 
-        if mpi.rank == 0:
-            corr2 /= self.nb_xs_seq
-            return corr2
+    #     if mpi.rank == 0:
+    #         corr2 /= self.nb_xs_seq
+    #         return corr2
 
     def _compute_norm_pick_corr4_from_corr4(self, corr4, i1=0, delta_io=10):
         io1 = self.iomegas1[i1]

@@ -28,24 +28,16 @@ class StateAD1D(StateBase):
             }
         )
 
-    def compute(self, key, SAVE_IN_DICT=True, RAISE_ERROR=True):
+    def compute(self, key, SAVE_IN_DICT=True):
         it = self.sim.time_stepping.it
         if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
         if key == "dx_s":
-            result = self.oper.grad(self.state_phys.get_var("s"))
+            result = self.oper.px(self.state_phys.get_var("s"))
 
         else:
-            to_print = 'Do not know how to compute "' + key + '".'
-            if RAISE_ERROR:
-                raise ValueError(to_print)
-
-            else:
-                if mpi.rank == 0:
-                    print(to_print + "\nreturn an array of zeros.")
-
-                result = self.oper.create_arrayX(value=0.0)
+            raise ValueError('Do not know how to compute "' + key + '".')
 
         if SAVE_IN_DICT:
             self.vars_computed[key] = result

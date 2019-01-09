@@ -10,7 +10,6 @@ Provides:
 
 """
 
-from past.utils import old_div
 import h5py
 
 import numpy as np
@@ -83,6 +82,9 @@ class SpectraPlate2D(Spectra):
             # dset_kyE = h5file['kyE']
             kh = dset_kxE[...]
 
+            kh_not0 = kh.copy()
+            kh_not0[kh_not0 == 0] = 1e-15
+
             dset_spectrum1Dkx_EK = h5file["spectrum1Dkx_EK"]
             dset_spectrum1Dky_EK = h5file["spectrum1Dky_EK"]
             # dset_spectrum1Dkx_EL = h5file['spectrum1Dkx_EL']
@@ -93,7 +95,7 @@ class SpectraPlate2D(Spectra):
             times = dset_times[...]
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
-            delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
             delta_t = delta_t_save * delta_i_plot
             if delta_i_plot == 0:
                 delta_i_plot = 1
@@ -132,13 +134,12 @@ class SpectraPlate2D(Spectra):
             ax1.set_title(
                 "1D spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + ", nh = {:5d}".format(self.nx)
             )
-            ax1.hold(True)
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
-            coef_norm = kh ** (coef_compensate)
+            coef_norm = kh_not0 ** (coef_compensate)
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                     EK = dset_spectrum1Dkx_EK[it] + dset_spectrum1Dky_EK[it]
@@ -150,10 +151,8 @@ class SpectraPlate2D(Spectra):
                 + dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]
             ).mean(0)
 
-        ax1.plot(kh, kh ** (-3) * coef_norm, "k", linewidth=1)
-        ax1.plot(
-            kh, 0.01 * kh ** (old_div(-5, 3)) * coef_norm, "k--", linewidth=1
-        )
+        ax1.plot(kh, kh_not0 ** (-3) * coef_norm, "k", linewidth=1)
+        ax1.plot(kh, 0.01 * kh_not0 ** (-5 / 3) * coef_norm, "k--", linewidth=1)
 
     def plot2d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
         with h5py.File(self.path_file2D, "r") as h5file:
@@ -166,6 +165,9 @@ class SpectraPlate2D(Spectra):
 
             kh = h5file["khE"][...]
 
+            kh_not0 = kh.copy()
+            kh_not0[kh_not0 == 0] = 1e-15
+
             dset_spectrum_EK = h5file["spectrum2D_EK"]
             dset_spectrum_EL = h5file["spectrum2D_EL"]
             dset_spectrum_EE = h5file["spectrum2D_EE"]
@@ -174,7 +176,7 @@ class SpectraPlate2D(Spectra):
                 imin_plot = imax_plot = 0
             else:
                 delta_t_save = np.mean(times[1:] - times[0:-1])
-                delta_i_plot = int(np.round(old_div(delta_t, delta_t_save)))
+                delta_i_plot = int(np.round(delta_t / delta_t_save))
                 if delta_i_plot == 0 and delta_t != 0.0:
                     delta_i_plot = 1
                 delta_t = delta_i_plot * delta_t_save
@@ -215,11 +217,10 @@ class SpectraPlate2D(Spectra):
                 + self.output.name_solver
                 + ", nh = {0:5d}".format(self.nx)
             )
-            ax1.hold(True)
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
-            coef_norm = kh ** coef_compensate
+            coef_norm = kh_not0 ** coef_compensate
 
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
@@ -249,7 +250,5 @@ class SpectraPlate2D(Spectra):
         ax1.plot(kh, EL * coef_norm, "b-", linewidth=2)
         ax1.plot(kh, EE * coef_norm, "y-", linewidth=2)
 
-        ax1.plot(kh, kh ** (-3) * coef_norm, "k:", linewidth=1)
-        ax1.plot(
-            kh, 0.01 * kh ** (old_div(-5.0, 3)) * coef_norm, "k-.", linewidth=1
-        )
+        ax1.plot(kh, kh_not0 ** (-3) * coef_norm, "k:", linewidth=1)
+        ax1.plot(kh, 0.01 * kh_not0 ** (-5.0 / 3) * coef_norm, "k-.", linewidth=1)

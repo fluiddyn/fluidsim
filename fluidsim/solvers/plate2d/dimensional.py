@@ -3,7 +3,6 @@
 """Plate2d solver (:mod:`fluidsim.solvers.plate2d.dimensional`)
 ================================================================
 
-
 Provides:
 
 .. autoclass:: Converter
@@ -12,7 +11,6 @@ Provides:
 
 """
 
-from past.utils import old_div
 import numpy as np
 
 
@@ -48,14 +46,14 @@ class Converter(object):
         self.L = L
         self.sigma = sigma
 
-        self.tilde_T = old_div(L ** 2, np.sqrt(C))
-        self.tilde_Z = old_div(h, np.sqrt(6 * (1 - sigma)))
+        self.tilde_T = L ** 2 / np.sqrt(C)
+        self.tilde_Z = h / np.sqrt(6 * (1 - sigma))
         self.tilde_L = L
-        self.tilde_nu4 = old_div(L ** 4, self.tilde_T)
+        self.tilde_nu4 = L ** 4 / self.tilde_T
 
     def compute_time_adim(self, t):
         """Compute the dimensional time."""
-        return old_div(t, self.tilde_T)
+        return t / self.tilde_T
 
     def compute_time_dim(self, t):
         """Compute the adimensional time."""
@@ -63,7 +61,7 @@ class Converter(object):
 
     def compute_z_adim(self, z):
         """Compute the dimensional deformation."""
-        return old_div(z, self.tilde_Z)
+        return z / self.tilde_Z
 
     def compute_z_dim(self, z):
         """Compute the adimensional deformation."""
@@ -79,7 +77,7 @@ class Converter(object):
 
     def compute_nu4_adim(self, nu4):
         """Compute the dimensional hyper-viscosity."""
-        return old_div(nu4, self.tilde_nu4)
+        return nu4 / self.tilde_nu4
 
     def compute_nu4_dim(self, nu4):
         """Compute the adimensional hyper-viscosity."""

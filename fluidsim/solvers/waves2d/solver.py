@@ -6,9 +6,7 @@
    :private-members:
 
 """
-from __future__ import division
 
-from past.utils import old_div
 import numpy as np
 from fluidsim.base.params import create_params
 from fluidsim.base.setofvariables import SetOfVariables
@@ -146,12 +144,9 @@ class Simul(SimulBasePseudoSpectral):
 
 if __name__ == "__main__":
 
-    import numpy as np
-
     import fluiddyn as fld
-    from fluidsim.base.params import create_params
 
-    params = create_params(info_solver)
+    params = Simul.create_default_params()
 
     params.short_name_type_run = "test"
 
@@ -164,12 +159,9 @@ if __name__ == "__main__":
 
     # params.oper.type_fft = 'FFTWPY'
 
-    delta_x = old_div(params.oper.Lx, params.oper.nx)
+    delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2.0
-        * 10e-1
-        * params.forcing.forcing_rate ** (old_div(1.0, 3))
-        * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1 / 3) * delta_x ** 8
     )
 
     params.time_stepping.t_end = 1.0

@@ -74,6 +74,7 @@ class TestInitInScript(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
+        params.output.HAS_TO_SAVE = False
         params.init_fields.type = "in_script"
 
     def test_init_in_script(self):

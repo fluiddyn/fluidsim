@@ -81,14 +81,14 @@ class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
         )
 
 
-def monge_ampere_from_fft_numpy(a_fft, b_fft, KX, KY, ifft2):
+# def monge_ampere_from_fft_numpy(a_fft, b_fft, KX, KY, ifft2):
 
-    pxx_a = -ifft2(a_fft * KX ** 2)
-    pyy_a = -ifft2(a_fft * KY ** 2)
-    pxy_a = -ifft2(a_fft * KX * KY)
+#     pxx_a = -ifft2(a_fft * KX ** 2)
+#     pyy_a = -ifft2(a_fft * KY ** 2)
+#     pxy_a = -ifft2(a_fft * KX * KY)
 
-    pxx_b = -ifft2(b_fft * KX ** 2)
-    pyy_b = -ifft2(b_fft * KY ** 2)
-    pxy_b = -ifft2(b_fft * KX * KY)
+#     pxx_b = -ifft2(b_fft * KX ** 2)
+#     pyy_b = -ifft2(b_fft * KY ** 2)
+#     pxy_b = -ifft2(b_fft * KX * KY)
 
-    return pxx_a * pyy_b + pyy_a * pxx_b - 2 * pxy_a * pxy_b
+#     return pxx_a * pyy_b + pyy_a * pxx_b - 2 * pxy_a * pxy_b

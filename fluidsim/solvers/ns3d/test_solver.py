@@ -1,5 +1,4 @@
 import unittest
-import shutil
 import sys
 
 import numpy as np
@@ -14,22 +13,11 @@ from fluidsim.solvers.ns3d.solver import Simul
 
 from fluidsim.base.output import run
 
+from fluidsim.test import TestSimul
 
-class TestSimulBase(unittest.TestCase):
+
+class TestSimulBase(TestSimul):
     Simul = Simul
-
-    @classmethod
-    def setUpClass(cls):
-        cls.init_params()
-        with stdout_redirected():
-            cls.sim = sim = cls.Simul(cls.params)
-
-    @classmethod
-    def tearDownClass(cls):
-        # clean by removing the directory
-        if mpi.rank == 0:
-            if hasattr(cls, "sim"):
-                shutil.rmtree(cls.sim.output.path_run, ignore_errors=True)
 
     @classmethod
     def init_params(cls):
@@ -37,7 +25,7 @@ class TestSimulBase(unittest.TestCase):
         params = cls.params = cls.Simul.create_default_params()
 
         params.short_name_type_run = "test"
-
+        params.output.sub_directory = "unittests"
         nx = 32
         params.oper.nx = nx
         params.oper.ny = nx
@@ -51,7 +39,7 @@ class TestSimulBase(unittest.TestCase):
         params.oper.coef_dealiasing = 2.0 / 3
         params.nu_8 = 2.0
 
-        params.time_stepping.t_end = 0.5
+        params.time_stepping.t_end = 0.2
 
         return params
 
@@ -97,7 +85,7 @@ class TestOutput(TestSimulBase):
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:
-            periods[key] = 0.2
+            periods[key] = 0.1
 
     def test_output(self):
 
@@ -105,16 +93,33 @@ class TestOutput(TestSimulBase):
             sim = self.sim
             sim.time_stepping.start()
 
-            # compute twice for better coverage
-            sim.state.compute("rotz")
-            sim.state.compute("rotz")
+        if mpi.nb_proc == 1:
 
-            sim.output.phys_fields._get_grid1d("iz=0")
-            sim.output.phys_fields._get_grid1d("iy=0")
+            phys_fields = sim.output.phys_fields
+            phys_fields.plot(equation=f"iz=0", numfig=1000)
 
+            phys_fields.get_field_to_plot_from_state()
+            phys_fields.get_field_to_plot_from_state(sim.state.get_var("vx"))
+            phys_fields.get_field_to_plot_from_state("vx", "x=0")
+            phys_fields.get_field_to_plot_from_state("vx", "ix=0")
+            phys_fields.get_field_to_plot_from_state("vx", "y=0")
+            phys_fields.get_field_to_plot_from_state("vx", "iy=0")
+            phys_fields.get_field_to_plot_from_state("vx", "z=0")
+
+        # compute twice for better coverage
+        sim.state.compute("rotz")
+        sim.state.compute("rotz")
+
+        sim.output.phys_fields._get_grid1d("iz=0")
+        sim.output.phys_fields._get_grid1d("iy=0")
+
+        path_run = sim.output.path_run
+        if mpi.nb_proc > 1:
+            path_run = mpi.comm.bcast(path_run)
+
+        with stdout_redirected():
             if mpi.nb_proc == 1:
-
-                sim2 = fls.load_sim_for_plot(sim.output.path_run)
+                sim2 = fls.load_sim_for_plot(path_run)
                 sim2.output.print_stdout.load()
                 sim2.output.print_stdout.plot()
                 sim2.output.spatial_means.load()
@@ -148,21 +153,6 @@ class TestOutput(TestSimulBase):
                     field="vx", time=10, equation=f"z={sim.oper.Lz/4}"
                 )
 
-                phys_fields = sim.output.phys_fields
-                phys_fields.plot(equation=f"iz=0", numfig=1000)
-
-                phys_fields.get_field_to_plot_from_state()
-                phys_fields.get_field_to_plot_from_state(sim.state.get_var("vx"))
-                phys_fields.get_field_to_plot_from_state("vx", "x=0")
-                phys_fields.get_field_to_plot_from_state("vx", "ix=0")
-                phys_fields.get_field_to_plot_from_state("vx", "y=0")
-                phys_fields.get_field_to_plot_from_state("vx", "iy=0")
-                phys_fields.get_field_to_plot_from_state("vx", "z=0")
-
-            path_run = sim.output.path_run
-            if mpi.nb_proc > 1:
-                path_run = mpi.comm.bcast(path_run)
-
             sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
             sim3.params.time_stepping.t_end += 0.2
             sim3.time_stepping.start()
@@ -187,6 +177,7 @@ class TestInitInScript(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
+        params.output.HAS_TO_SAVE = False
         params.init_fields.type = "in_script"
 
     def test_init_in_script(self):
