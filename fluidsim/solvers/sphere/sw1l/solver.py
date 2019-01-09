@@ -16,11 +16,7 @@ from fluidsim.base.sphericalharmo.solver import (
     SimulSphericalHarmo,
 )
 
-from fluidsim.solvers.sw1l.solver import (
-    compute_Frot,
-    SetOfVariables,
-    compute_tendencies_nonlin_sw1l,
-)
+from fluidsim.base.setofvariables import SetOfVariables
 
 
 Af = "float64[:, :]"
@@ -66,7 +62,7 @@ class SimulSphereSW1L(SimulSphericalHarmo):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """Complete the `params` container (static method). 
+        """Complete the `params` container (static method).
 
         """
         SimulSphericalHarmo._complete_params_with_default(params)
@@ -83,13 +79,19 @@ class SimulSphereSW1L(SimulSphericalHarmo):
         state_spect : :class:`fluidsim.base.setofvariables.SetOfVariables`
             optional
 
-            Array containing the state, i.e. the vorticity, in Fourier
-            space.  If `state_spect`, the variables vorticity and the
-            velocity are computed from it, otherwise, they are taken
-            from the global state of the simulation, `self.state`.
+            Array containing the state, i.e. the vorticity, the divergence
+            and displacement in the spectral space. If ``state_spect`` is
+            provided, the variables in the physical space are computed from
+            it, otherwise, they are taken from the global state of the
+            simulation, ``self.state.state_phys``.
 
-            These two possibilities are used during the Runge-Kutta
-            time-stepping.
+            These two possibilities are used during the time-stepping.
+
+        old : :class:`fluidsim.base.setofvariables.SetOfVariables`
+            optional
+
+            Array containing the previous ``tendencies_sh``. This array is
+            reused to save memory and improve performance.
 
         Returns
         -------
@@ -102,15 +104,27 @@ class SimulSphereSW1L(SimulSphericalHarmo):
 
         .. |p| mathmacro:: \partial
 
-        The 2D Navier-Stokes equation can be written
+        The 1-layer shallow water equations are solved in the
+        vector-invariant form (see section 2.2.6 Vallis 2nd edition).
 
-        .. math:: \p_t \hat\zeta = \hat N(\zeta) - \sigma(k) \hat \zeta,
+        .. math::
 
-        This function compute the nonlinear term ("tendencies")
-        :math:`N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla} \zeta`.
+            \p_t \hat\zeta = \hat N_\zeta - \sigma(k) \hat \zeta,
+            \p_t \hat\delta = \hat N_\delta - \sigma(k) \hat \delta,
+            \p_t \hat\eta = \hat N_\eta - \sigma(k) \hat \eta,
+
+        This function computes the nonlinear term ("tendencies"). The algorithm is
+        as follows,
+
+        - Compute :math:`N_u` and :math:`N_v`, the tendencies for the velocities.
+        - Take divergence and curl of the above to obtain
+          :math:`N_\zeta, N_\delta`.
+        - Subtract laplacian of total energy K.E. + hydrostatic pressure from
+          :math:`N_\delta`.
+        - Compute :math:`N_\eta = -\nabla.((\eta + 1)\mathbf{u})`
 
         """
-        # the operator and the fast Fourier transform
+        # the spherical harmonics operator
         oper = self.oper
 
         if state_spect is None:
@@ -135,13 +149,16 @@ class SimulSphereSW1L(SimulSphericalHarmo):
         Feta_sh = tendencies_sh.get_var("eta_sh")
         c2 = self.params.c2
 
-        # Absolute vorticity
+        # Absolute vorticity x Velocity
         Fux, Fuy = compute_Frot(rot, ux, uy, oper.f_radial)
         oper.divrotsh_from_vec(Fux, Fuy, Fdiv_sh, Frot_sh)
 
-        # TODO: Pythranize: laplacian
-        # Subtract laplacian of total energy K.E. + A.P.E from divergence tendency
-        Fdiv_sh += oper.K2 * oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta)
+        # Subtract laplacian of K.E. + hydrostatic pressure term from
+        # divergence tendency
+        Fdiv_sh += oper.laplacian_sh(
+            oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta),
+            negative=True,
+        )
 
         # Calculate Feta_sh = \nabla.(hu) = \nabla.((1 + \eta)u)
         oper.divrotsh_from_vec(-(eta + 1) * ux, -(eta + 1) * uy, Feta_sh)

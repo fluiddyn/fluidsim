@@ -8,7 +8,6 @@ Provides:
    :private-members:
 
 """
-import numpy as np
 from fluidsim.base.state import StatePseudoSpectral
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -53,8 +52,6 @@ class StateSphericalHarmoSW1L(StatePseudoSpectral):
             result = self.oper.sht(self.state_phys.get_var("ux"))
         elif key == "uy_sh":
             result = self.oper.sht(self.state_phys.get_var("uy"))
-        elif key == "rot":
-            result = self.oper.isht(self.state_spect.get_var("rot_sh"))
         elif key == "div":
             result = self.oper.isht(self.state_spect.get_var("div_sh"))
         elif key == "q":
@@ -65,7 +62,6 @@ class StateSphericalHarmoSW1L(StatePseudoSpectral):
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
-
             else:
                 print(to_print + "\nreturn an array of zeros.")
 
