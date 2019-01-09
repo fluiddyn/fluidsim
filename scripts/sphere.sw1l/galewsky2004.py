@@ -52,6 +52,7 @@ params.init_fields.type = "in_script"
 params.output.sub_directory = "examples"
 params.output.periods_print.print_stdout = hour
 # params.output.periods_save.phys_fields = hour
+# TODO: save energy, enstrophy, q, u_rms, rot_rms?
 # params.output.periods_save.spatial_means = 0.1
 params.output.ONLINE_PLOT_OK = True
 params.output.periods_plot.phys_fields = hour
