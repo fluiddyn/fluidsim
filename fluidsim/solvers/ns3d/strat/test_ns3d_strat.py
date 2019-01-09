@@ -8,23 +8,25 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver import TestSolverBase
+from ..test_solver import TestSimulBase as _Base
 
 from .solver import Simul
 
 
-class TestSolverNS3DStrat(TestSolverBase):
+class TestSimulBase(_Base):
     Simul = Simul
 
-    def test_tendency(self):
 
-        params = self.get_params()
-
+class TestTendency(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "noise"
         params.output.HAS_TO_SAVE = False
 
-        with stdout_redirected():
-            self.sim = sim = self.Simul(params)
+    def test_tendency(self):
+
+        sim = self.sim
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
 
@@ -48,9 +50,11 @@ class TestSolverNS3DStrat(TestSolverBase):
 
         self.assertGreater(1e-15, abs(ratio))
 
-    def test_output(self):
 
-        params = self.get_params()
+class TestOutput(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
 
         params.init_fields.type = "dipole"
 
@@ -62,8 +66,10 @@ class TestSolverNS3DStrat(TestSolverBase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+    def test_output(self):
+
         with stdout_redirected():
-            self.sim = sim = self.Simul(params)
+            sim = self.sim
 
             oper = sim.oper
             X, Y, Z = oper.get_XYZ_loc()
@@ -113,17 +119,16 @@ class TestSolverNS3DStrat(TestSolverBase):
 
         plt.close("all")
 
-    def test_init_in_script(self):
 
-        params = self.get_params()
-
+class TestInitInScript(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "in_script"
 
-        with stdout_redirected():
-            self.sim = sim = Simul(params)
-
+    def test_init_in_script(self):
         # here we have to initialize the flow fields
-
+        sim = self.sim
         variables = {
             k: 1e-2 * sim.oper.create_arrayX_random() for k in ("vx", "vy", "vz")
         }

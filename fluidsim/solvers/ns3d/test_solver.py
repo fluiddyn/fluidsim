@@ -15,18 +15,26 @@ from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim.base.output import run
 
 
-class TestSolverBase(unittest.TestCase):
+class TestSimulBase(unittest.TestCase):
     Simul = Simul
 
-    def tearDown(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.init_params()
+        with stdout_redirected():
+            cls.sim = sim = cls.Simul(cls.params)
+
+    @classmethod
+    def tearDownClass(cls):
         # clean by removing the directory
         if mpi.rank == 0:
-            if hasattr(self, "sim"):
-                shutil.rmtree(self.sim.output.path_run)
+            if hasattr(cls, "sim"):
+                shutil.rmtree(cls.sim.output.path_run, ignore_errors=True)
 
-    def get_params(self):
+    @classmethod
+    def init_params(cls):
 
-        params = self.Simul.create_default_params()
+        params = cls.params = cls.Simul.create_default_params()
 
         params.short_name_type_run = "test"
 
@@ -48,17 +56,17 @@ class TestSolverBase(unittest.TestCase):
         return params
 
 
-class TestSolverNS3D(TestSolverBase):
-    def test_tendency(self):
-
-        params = self.get_params()
+class TestTendency(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
 
         params.init_fields.type = "noise"
         params.output.HAS_TO_SAVE = False
 
-        with stdout_redirected():
-            self.sim = sim = self.Simul(params)
+    def test_tendency(self):
 
+        sim = self.sim
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
 
         T_tot = np.ascontiguousarray(sim.oper.create_arrayK(value=0.0).real)
@@ -75,10 +83,11 @@ class TestSolverNS3D(TestSolverBase):
 
         self.assertGreater(1e-15, abs(ratio))
 
-    def test_output(self):
 
-        params = self.get_params()
-
+class TestOutput(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "dipole"
 
         params.forcing.enable = True
@@ -90,13 +99,18 @@ class TestSolverNS3D(TestSolverBase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+    def test_output(self):
+
         with stdout_redirected():
-            self.sim = sim = self.Simul(params)
+            sim = self.sim
             sim.time_stepping.start()
 
             # compute twice for better coverage
             sim.state.compute("rotz")
             sim.state.compute("rotz")
+
+            sim.output.phys_fields._get_grid1d("iz=0")
+            sim.output.phys_fields._get_grid1d("iy=0")
 
             if mpi.nb_proc == 1:
 
@@ -130,7 +144,20 @@ class TestSolverNS3D(TestSolverBase):
                 )
                 sim2.output.phys_fields.animate("vx")
 
-                sim2.output.phys_fields.plot(field="vx", time=10)
+                sim2.output.phys_fields.plot(
+                    field="vx", time=10, equation=f"z={sim.oper.Lz/4}"
+                )
+
+                phys_fields = sim.output.phys_fields
+                phys_fields.plot(equation=f"iz=0", numfig=1000)
+
+                phys_fields.get_field_to_plot_from_state()
+                phys_fields.get_field_to_plot_from_state(sim.state.get_var("vx"))
+                phys_fields.get_field_to_plot_from_state("vx", "x=0")
+                phys_fields.get_field_to_plot_from_state("vx", "ix=0")
+                phys_fields.get_field_to_plot_from_state("vx", "y=0")
+                phys_fields.get_field_to_plot_from_state("vx", "iy=0")
+                phys_fields.get_field_to_plot_from_state("vx", "z=0")
 
             path_run = sim.output.path_run
             if mpi.nb_proc > 1:
@@ -155,14 +182,16 @@ class TestSolverNS3D(TestSolverBase):
                 run()
         plt.close("all")
 
-    def test_init_in_script(self):
 
-        params = self.get_params()
-
+class TestInitInScript(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "in_script"
 
-        with stdout_redirected():
-            self.sim = sim = Simul(params)
+    def test_init_in_script(self):
+
+        sim = self.sim
 
         # here we have to initialize the flow fields
 

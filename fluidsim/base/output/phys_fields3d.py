@@ -141,19 +141,13 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
 
-        if time is None and not is_field_ready:
+        if (
+            time is None
+            and not is_field_ready
+            and not self.sim.params.ONLY_COARSE_OPER
+        ):
             # we have to get the field from the state
             time = self.sim.time_stepping.t
-            field, _ = self.get_field_to_plot_from_state(
-                key_field, equation=equation
-            )
-            if QUIVER:
-                vecx, _ = self.get_field_to_plot_from_state(
-                    vecx, equation=equation
-                )
-                vecy, _ = self.get_field_to_plot_from_state(
-                    vecy, equation=equation
-                )
         else:
             # we have to get the field from a file
             self.set_of_phys_files.update_times()
@@ -163,6 +157,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                     f"({self.sim.state.keys_state_phys})"
                 )
 
+        if not is_field_ready:
             field = self.get_field_to_plot(
                 key=key_field, time=time, equation=equation
             )

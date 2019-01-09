@@ -258,7 +258,7 @@ class PhysFieldsBase(SpecificOutput):
 
         if (
             not self.sim.params.ONLY_COARSE_OPER
-            and time is None
+            and (time is None or time == self.sim.time_stepping.t)
             and idx_time is None
         ):
             # we get the field from the state
@@ -398,8 +398,6 @@ class SetOfPhysFieldFiles:
             )
 
         if interpolate_time and time is not None:
-            # print('time:', time)
-
             if self.times.min() > time > self.times.max():
                 raise ValueError()
 

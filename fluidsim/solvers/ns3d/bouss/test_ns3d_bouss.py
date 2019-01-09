@@ -7,18 +7,19 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver import TestSolverBase
+from ..test_solver import TestSimulBase as _Base
 
 from .solver import Simul
 
 
-class TestSolverNS3DBouss(TestSolverBase):
+class TestSimulBase(_Base):
     Simul = Simul
 
-    def test_output(self):
 
-        params = self.get_params()
-
+class TestOutput(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "dipole"
 
         # save all outputs!
@@ -26,8 +27,10 @@ class TestSolverNS3DBouss(TestSolverBase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+    def test_output(self):
+
+        sim = self.sim
         with stdout_redirected():
-            self.sim = sim = self.Simul(params)
             sim.time_stepping.start()
 
             if mpi.nb_proc == 1:
@@ -66,15 +69,15 @@ class TestSolverNS3DBouss(TestSolverBase):
 
         plt.close("all")
 
-    def test_init_in_script(self):
 
-        params = self.get_params()
-
+class TestInitInScript(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
         params.init_fields.type = "in_script"
 
-        with stdout_redirected():
-            self.sim = sim = Simul(params)
-
+    def test_init_in_script(self):
+        sim = self.sim
         # here we have to initialize the flow fields
 
         variables = {

@@ -8,7 +8,7 @@
 
 from fluidsim.base.forcing import ForcingBasePseudoSpectral
 from fluidsim.base.forcing.anisotropic import (
-    TimeCorrelatedRandomPseudoSpectralAnisotropic
+    TimeCorrelatedRandomPseudoSpectralAnisotropic,
 )
 
 

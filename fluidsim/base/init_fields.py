@@ -371,14 +371,13 @@ class InitFieldsFromSimul(SpecificInitFields):
         if sim.output.name_solver == sim_in.output.name_solver:
             sim.state.state_spect = state_spect
         else:  # complicated case... untested solution !
+            raise NotImplementedError
             # state_spect = SetOfVariables('state_spect')
-            raise ValueError("Not yet implemented...")
-
-            for k in sim.info.solver.classes.State["keys_state_spect"]:
-                if k in sim_in.info.solver.classes.State["keys_state_spect"]:
-                    sim.state.state_spect[k] = state_spect[k]
-                else:
-                    sim.state.state_spect[k] = self.oper.create_arrayK(value=0.0)
+            # for k in sim.info.solver.classes.State["keys_state_spect"]:
+            #     if k in sim_in.info.solver.classes.State["keys_state_spect"]:
+            #         sim.state.state_spect[k] = state_spect[k]
+            #     else:
+            #         sim.state.state_spect[k] = self.oper.create_arrayK(value=0.0)
 
         sim.state.statephys_from_statespect()
 
