@@ -89,8 +89,8 @@ class TestOutput(TestSimulBase):
 
     def test_output(self):
 
+        sim = self.sim
         with stdout_redirected():
-            sim = self.sim
             sim.time_stepping.start()
 
         if mpi.nb_proc == 1:
