@@ -6,8 +6,9 @@
 import numpy as np
 from pyshtools.constant import Earth
 
+from fluiddyn.util.compat import cached_property
+
 from fluidsht.sht2d.operators import OperatorsSphereHarmo2D as _Operator
-from fluidsht.compat import cached_property
 
 # from fluiddyn.calcul.sphericalharmo import EasySHT as _Operator
 

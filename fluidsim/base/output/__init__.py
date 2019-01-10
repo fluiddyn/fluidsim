@@ -35,7 +35,7 @@ import os
 from glob import glob
 import argparse
 
-import h5netcdf
+import h5py
 
 import fluiddyn.output
 
@@ -61,21 +61,21 @@ def create_description_xmf_file(path=None):
         path = os.getcwd()
 
     if os.path.isdir(path):
-        paths = glob(path + "/state_phys*.nc")
+        paths = glob(path + "/state_phys*.[hn][5c]")
         path_dir = path
     else:
         paths = glob(path)
         path_dir = os.path.dirname(path)
 
     if len(paths) == 0:
-        raise ValueError("No file corresponds to this path.")
+        raise ValueError(f"No file corresponds to this path {path}.")
 
     path_out = os.path.join(path_dir, "states_phys.xmf")
 
     paths.sort()
     path = paths[0]
 
-    with h5netcdf.File(path) as f:
+    with h5py.File(path) as f:
         ndim = 3
 
         nx = f["/info_simul/params/oper"].attrs["nx"]
@@ -139,7 +139,7 @@ def create_description_xmf_file(path=None):
     for path in paths:
         base_name = os.path.basename(path)
 
-        with h5netcdf.File(path) as f:
+        with h5py.File(path) as f:
             time = f["state_phys"].attrs["time"]
 
         txt += """

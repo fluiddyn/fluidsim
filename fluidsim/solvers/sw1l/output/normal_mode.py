@@ -20,7 +20,7 @@ Provides:
 
 import numpy as np
 
-from fluidsht.compat import cached_property
+from fluiddyn.util.compat import cached_property
 from fluiddyn.util import mpi
 
 
