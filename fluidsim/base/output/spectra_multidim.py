@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 
 import numpy as np
@@ -97,7 +95,7 @@ class SpectraMultiDim(SpecificOutput):
                 + ", nh = {0:5d}".format(self.nx)
             )
 
-    def _online_plot_saving(self):
+    def _online_plot_saving(self, arg):
         pass
 
     def load_mean(self, tmin=None, tmax=None):

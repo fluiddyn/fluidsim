@@ -6,7 +6,6 @@
    :private-members:
 
 """
-from __future__ import print_function
 
 import h5py
 
@@ -229,8 +228,9 @@ class SpectraNS2DStrat(Spectra):
 
             # Set limits axis y
             ymin = E_kx_plot[0:50] * kx_plot[0:50] ** coef_compensate_kx
+            ymin = ymin[ymin > 0]
             ymax = E_kx_plot * kx_plot ** coef_compensate_kx
-            ax1.set_ylim(ymin=1e-1 * ymin.min(), ymax=ymax.max())
+            ax1.set_ylim((1e-1 * ymin.min(), ymax.max()))
 
             # Parameters figure E(k_y)
             fig, ax2 = self.output.figure_axe()

@@ -6,8 +6,8 @@
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
+
+import numpy as np
 
 from fluidsim.base.output.spectra_multidim import SpectraMultiDim
 
@@ -30,7 +30,7 @@ class SpectraMultiDimNS2D(SpectraMultiDim):
     def online_plot_saving(self, dict_spectra):
         raise NotImplementedError("Online plot saving is not implemented.")
 
-    def plot(self):
+    def plot(self, tmin=None, tmax=None):
         """Plots spectrumkykx averaged between tmin and tmax."""
 
         dict_results = self.load_mean(tmin, tmax)

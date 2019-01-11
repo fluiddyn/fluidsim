@@ -1,36 +1,26 @@
-# -*- coding: utf-8 -*-
-from __future__ import division
-
 import unittest
-import shutil
 
-try:
-    import pulp
+import numpy as np
+import matplotlib.pyplot as plt
 
-    pulp_installed = True
-except ImportError:
-    pulp_installed = False
+import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
 from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
+from fluidsim.test import TestSimul
 
 
-class TestSolverNS2DStrat(unittest.TestCase):
+class TestSimulBase(TestSimul):
     Simul = Simul
 
-    def tearDown(self):
-        # clean by removing the directory
-        if mpi.rank == 0:
-            if hasattr(self, "sim"):
-                shutil.rmtree(self.sim.output.path_run)
+    @classmethod
+    def init_params(cls):
 
-    def test_tendency(self):
-
-        params = self.Simul.create_default_params()
-
+        params = cls.params = cls.Simul.create_default_params()
         params.short_name_type_run = "test"
+        params.output.sub_directory = "unittests"
 
         nh = 32
         params.oper.nx = nh
@@ -45,86 +35,182 @@ class TestSolverNS2DStrat(unittest.TestCase):
         params.time_stepping.t_end = 0.5
 
         params.init_fields.type = "noise"
+
+        return params
+
+
+class TestSolverNS2DTendency(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+
         params.output.HAS_TO_SAVE = False
 
-        with stdout_redirected():
-            self.sim = sim = self.Simul(params)
+    def test_tendency(self):
+        sim = self.sim
 
         rot_fft = sim.state.get_var("rot_fft")
         b_fft = sim.state.get_var("b_fft")
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
-        f_rot_fft = tend.get_var("rot_fft")
-        f_b_fft = tend.get_var("b_fft")
+        Frot_fft = tend.get_var("rot_fft")
+        Fb_fft = tend.get_var("b_fft")
 
-        sim.check_energy_conservation(rot_fft, b_fft, f_rot_fft, f_b_fft)
+        T_rot = np.real(Frot_fft.conj() * rot_fft)
+        T_b = np.real(b_fft.conj() * b_fft)
 
-    @unittest.skipIf(
-        not pulp_installed, "ImportError pulp (install with `pip install pulp`)"
-    )
-    def test_forcing_output(self):
+        ratio_rot = sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(
+            abs(T_rot)
+        )
 
-        params = self.Simul.create_default_params()
+        ratio_b = sim.oper.sum_wavenumbers(T_b) / sim.oper.sum_wavenumbers(
+            abs(T_b)
+        )
 
-        params.short_name_type_run = "test"
+        self.assertGreater(1e-15, ratio_rot)
+        # self.assertGreater(1e-15, ratio_b)
+        # Bug b_fft is a field of zeros!!!!
+        # init_fields = noise gives energy only to rot
 
-        nh = 48
-        params.oper.nx = 2 * nh
-        params.oper.ny = nh
-        lh = 6.0
-        params.oper.Lx = lh
-        params.oper.Ly = lh
 
-        params.oper.coef_dealiasing = 2.0 / 3
-        params.nu_8 = 2.0
+class TestForcingOutput(TestSimulBase):
+    @classmethod
+    def init_params(self):
 
-        params.time_stepping.t_end = 0.5
-
-        params.init_fields.type = "noise"
+        params = super().init_params()
         params.forcing.enable = True
-        params.forcing.nkmax_forcing = 20
-        params.forcing.nkmin_forcing = 2
+        # params.forcing.type = "tcrandom"
+        # Forcing also linear mode!!!
         params.forcing.type = "tcrandom_anisotropic"
-        params.forcing.tcrandom.time_correlation = 0.2
-        params.forcing.tcrandom_anisotropic.angle = u"30°"
+        params.forcing.nkmin_forcing = 4
+        params.forcing.nkmax_forcing = 6
+
 
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:
             periods[key] = 0.2
 
-        params.output.periods_save.spatio_temporal_spectra = 1
-        params.output.spatio_temporal_spectra.size_max_file = 0.01
+        params.output.ONLINE_PLOT_OK = True
+        params.output.periods_print.print_stdout = 0.2
+        params.output.periods_plot.phys_fields = 0.2
+
+        params.output.increments.HAS_TO_PLOT_SAVED = True
+
+        # Time stepping parameters
         params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 2
+        params.time_stepping.deltat0 = 0.1
+
+
+        # Spatio-temporal spectra
+        params.output.spatio_temporal_spectra.size_max_file = 0.01
+        params.output.spatio_temporal_spectra.time_decimate = 1
+        params.output.spatio_temporal_spectra.spatial_decimate = 1
+
+        for tag in params.output._tag_children:
+            if tag.startswith("periods"):
+                continue
+            child = params.output[tag]
+            if hasattr(child, "HAS_TO_PLOT_SAVED"):
+                child["HAS_TO_PLOT_SAVED"] = True
+
+    def test_forcing_output(self):
+
+        sim = self.sim
 
         with stdout_redirected():
-            self.sim = sim = self.Simul(params)
             sim.time_stepping.start()
+
+            sim.state.compute("rot_fft")
+            sim.state.compute("rot_fft")
+
+            with self.assertRaises(ValueError):
+                sim.state.compute("abc")
+            sim.state.compute("abc", RAISE_ERROR=False)
+
+            ux_fft = sim.state.compute("ux_fft")
+            uy_fft = sim.state.compute("uy_fft")
+
+            sim.state.init_statespect_from(ux_fft=ux_fft)
+            sim.state.init_statespect_from(uy_fft=uy_fft)
 
             if mpi.nb_proc == 1:
                 sim.output.spectra.plot1d()
                 sim.output.spectra.plot2d()
 
+                sim.output.spatial_means.plot()
+                sim.output.spatial_means.plot_energy()
+                sim.output.spatial_means.plot_dt_energy()
+                sim.output.spatial_means.plot_energy_shear_modes()
 
-# sim.output.spatial_means.plot()
-# sim.output.print_stdout.plot_energy()
-# sim.output.print_stdout.plot_deltat()
+                sim.output.spatial_means.compute_time_means()
+                sim.output.spatial_means.load_dataset()
+                sim.output.spatial_means.time_first_saved()
+                sim.output.spatial_means.time_last_saved()
 
-# sim.output.spect_energy_budg.plot()
-# with self.assertRaises(ValueError):
-#     sim.state.get_var('test')
+                sim.output.print_stdout.plot()
 
-# sim2 = fls.load_sim_for_plot(sim.output.path_run)
-# sim2.output
+                sim.output.spectra_multidim.plot()
 
-# sim2.output.increments.load()
-# sim2.output.increments.plot()
-# sim2.output.increments.load_pdf_from_file()
+                sim.output.spect_energy_budg.plot()
+                with self.assertRaises(ValueError):
+                    sim.state.get_var("test")
+
+                sim2 = fls.load_sim_for_plot(sim.output.path_run)
+                sim2.output
+
+                sim2.output.increments.load()
+                sim2.output.increments.plot()
+                sim2.output.increments.load_pdf_from_file()
+
+                sim2.output.phys_fields.animate(
+                    "ux",
+                    dt_frame_in_sec=1e-6,
+                    dt_equations=0.3,
+                    repeat=False,
+                    clim=(-1, 1),
+                    save_file=False,
+                    numfig=1,
+                )
+                sim2.output.phys_fields.plot()
+
+            # `compute('q')` two times for better coverage...
+            sim.state.get_var("q")
+            sim.state.get_var("q")
+            sim.state.get_var("div")
+
+            path_run = sim.output.path_run
+            if mpi.nb_proc > 1:
+                path_run = mpi.comm.bcast(path_run)
+
+            sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+            sim3.params.time_stepping.t_end += 0.2
+            sim3.time_stepping.start()
+
+            if mpi.nb_proc == 1:
+                sim3.output.phys_fields.animate(
+                    "ux",
+                    dt_frame_in_sec=1e-6,
+                    dt_equations=0.3,
+                    repeat=False,
+                    clim=(-1, 1),
+                    save_file=False,
+                    numfig=1,
+                )
+        plt.close("all")
 
 
-# class TestSolverNS2DFluidfft(TestSolverNS2D):
-#     Simul = Simul2
+class TestSolverNS2DInitLinearMode(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.init_fields.type = "linear_mode"
+        params.output.HAS_TO_SAVE = False
 
+    def test_init_linear_mode(self):
+        pass
 
 if __name__ == "__main__":
     unittest.main()

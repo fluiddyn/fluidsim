@@ -13,10 +13,6 @@ Provides:
    :private-members:
 
 """
-from __future__ import division
-from __future__ import print_function
-from builtins import range
-from past.utils import old_div
 
 import numpy as np
 import scipy.sparse as sparse
@@ -35,14 +31,14 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
             diagonals=[-np.ones(nx - 1), np.ones(nx - 1), -1, 1],
             offsets=[-1, 1, nx - 1, -(nx - 1)],
         )
-        self.sparse_px = old_div(self.sparse_px, (2 * dx))
+        self.sparse_px = self.sparse_px / (2 * dx)
 
         self.sparse_pxx = sparse.diags(
             diagonals=[np.ones(nx - 1), -2 * np.ones(nx), np.ones(nx - 1), 1, 1],
             offsets=[-1, 0, 1, nx - 1, -(nx - 1)],
         )
 
-        self.sparse_pxx = old_div(self.sparse_pxx, dx ** 2)
+        self.sparse_pxx = self.sparse_pxx / dx ** 2
 
     def px(self, a):
         return self.sparse_px.dot(a.flat)
@@ -87,8 +83,8 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         self.size = size
         self.lx = self.Lx = Lx
         self.ly = self.Ly = Ly
-        self.deltax = old_div(Lx, nx)
-        self.deltay = old_div(Ly, ny)
+        self.deltax = Lx / nx
+        self.deltay = Ly / ny
         dx = self.deltax
         dy = self.deltay
 
@@ -107,7 +103,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = old_div(np.array([1, -1]), (2 * dx))
+        values = np.array([1, -1]) / (2 * dx)
         self.sparse_px = self._create_sparse(values, func_i1_mat)
 
         def func_i1_mat(i0_mat, iv):
@@ -124,7 +120,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = old_div(np.array([-2, 1, 1]), dx ** 2)
+        values = np.array([-2, 1, 1]) / dx ** 2
         self.sparse_pxx = self._create_sparse(values, func_i1_mat)
 
         def func_i1_mat(i0_mat, iv):
@@ -139,7 +135,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = old_div(np.array([1, -1]), (2 * dy))
+        values = np.array([1, -1]) / (2 * dy)
         self.sparse_py = self._create_sparse(values, func_i1_mat)
 
         def func_i1_mat(i0_mat, iv):
@@ -156,7 +152,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = old_div(np.array([-2, 1, 1]), dx ** 2)
+        values = np.array([-2, 1, 1]) / dx ** 2
         self.sparse_pyy = self._create_sparse(values, func_i1_mat)
 
     def _create_sparse(self, values, func_i1_mat):
@@ -181,24 +177,24 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""
-        if (old_div(self.Lx, np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx, np.pi))) + "pi"
+        if (self.Lx / np.pi).is_integer():
+            str_Lx = repr(int(self.Lx // np.pi)) + "pi"
         else:
             str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
-        if (old_div(self.Ly, np.pi)).is_integer():
-            str_Ly = repr(int(old_div(self.Ly, np.pi))) + "pi"
+        if (self.Ly / np.pi).is_integer():
+            str_Ly = repr(int(self.Ly // np.pi)) + "pi"
         else:
             str_Ly = "{:.3f}".format(self.Ly).rstrip("0")
         return ("L=" + str_Lx + "x" + str_Ly + "_{}x{}").format(self.nx, self.ny)
 
     def produce_long_str_describing_oper(self):
         """Produce a string describing the operator."""
-        if (old_div(self.Lx, np.pi)).is_integer():
-            str_Lx = repr(int(old_div(self.Lx, np.pi))) + "pi"
+        if (self.Lx / np.pi).is_integer():
+            str_Lx = repr(int(self.Lx // np.pi)) + "pi"
         else:
             str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
-        if (old_div(self.Ly, np.pi)).is_integer():
-            str_Ly = repr(int(old_div(self.Ly, np.pi))) + "pi"
+        if (self.Ly / np.pi).is_integer():
+            str_Ly = repr(int(self.Ly // np.pi)) + "pi"
         else:
             str_Ly = "{:.3f}".format(self.Ly).rstrip("0")
         return (
@@ -215,7 +211,5 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 if __name__ == "__main__":
     nx = 3
     ny = 3
-    oper = OperatorFiniteDiff2DPeriodic(
-        [ny, nx], [old_div(nx, 2.0), old_div(ny, 2.0)]
-    )
+    oper = OperatorFiniteDiff2DPeriodic([ny, nx], [nx / 2.0, ny / 2.0])
     a = np.arange(nx * ny).reshape([ny, nx])

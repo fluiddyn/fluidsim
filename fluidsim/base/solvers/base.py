@@ -14,7 +14,6 @@ Provides:
 """
 from time import time
 
-from builtins import object
 from warnings import warn
 import numpy as np
 
@@ -26,7 +25,7 @@ from fluidsim.base.params import Parameters, create_params
 from fluidsim.base.solvers.info_base import InfoSolverBase, create_info_simul
 
 
-class SimulBase(object):
+class SimulBase:
     """Represent a solver.
 
     This is the main base class which is inherited by the other

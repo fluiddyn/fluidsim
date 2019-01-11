@@ -508,3 +508,16 @@ class SpatioTempSpectra(SpecificOutput):
 
         # ax3.plot([0,0.2], [0,  - 0.2 * self.sim.params.N / (2 * np.pi)],
         #          color="k", linewidth=4)
+
+
+    def _init_online_plot(self):
+        if mpi.rank == 0:
+            fig, axe = self.output.figure_axe(numfig=1000000)
+            self.axe = axe
+            axe.set_xlabel("$k_h$")
+            axe.set_ylabel("$E(k_h)$")
+            axe.set_title(
+                "spectra, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.params.oper.nx)
+            )

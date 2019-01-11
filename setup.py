@@ -69,7 +69,12 @@ make_pythran_files(
         "fluiddyn.io",
         "fluiddyn.util",
         "fluiddyn.util.paramcontainer",
+        "fluiddyn.util.mpi",
         "fluiddyn.output",
+        "fluiddyn.calcul",
+        "fluiddyn.calcul.setofvariables",
+        "fluidfft.fft2d.operators",
+        "fluidfft.fft3d.operators",
     ),
 )
 
@@ -140,13 +145,13 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran>=0.1.2",
+    "fluidpythran>=0.1.4",
     "setuptools_scm",
     "xarray",
 ]
 
 if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
+    install_requires.extend(["pyfftw >= 0.10.4, != 0.11.1", "fluidfft >= 0.2.7"])
 
 
 def modification_date(filename):
@@ -260,7 +265,11 @@ setup(
     python_requires=">=3.6",
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,
-    extras_require=dict(doc=["Sphinx>=1.1", "numpydoc"], parallel=["mpi4py"]),
+    extras_require=dict(
+        doc=["Sphinx>=1.1", "numpydoc"],
+        parallel=["mpi4py"],
+        sphere=["fluidsht"],
+    ),
     cmdclass={"build_ext": fluidsim_build_ext},
     ext_modules=ext_modules,
     entry_points={"console_scripts": console_scripts},

@@ -70,6 +70,13 @@ class StateNS2DStrat(StateNS2D):
             ux_fft, uy_fft = self.oper.vecfft_from_rotfft(rot_fft)
             result = uy_fft
         # result = self.oper.fft2(self.state_phys.get_var("uy"))
+        elif key == "rot_fft":
+            ux_fft = self.compute("ux_fft")
+            uy_fft = self.compute("uy_fft")
+            result = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        elif key == "q":
+            rot = self.get_var("rot")
+            result = rot
         elif key == "div_fft":
             ux_fft = self.compute("ux_fft")
             uy_fft = self.compute("uy_fft")

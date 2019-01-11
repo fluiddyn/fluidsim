@@ -13,8 +13,6 @@ Provides:
 
 """
 
-from builtins import str
-
 import re
 import os
 import datetime
@@ -258,7 +256,11 @@ class PhysFieldsBase(SpecificOutput):
         if equation is None:
             equation = self._equation
 
-        if time is None and idx_time is None:
+        if (
+            not self.sim.params.ONLY_COARSE_OPER
+            and (time is None or time == self.sim.time_stepping.t)
+            and idx_time is None
+        ):
             # we get the field from the state
             field, key = self.get_field_to_plot_from_state(
                 field=key, equation=equation
@@ -318,21 +320,21 @@ class PhysFieldsBase(SpecificOutput):
             field = field[iz, ...]
         elif equation.startswith("z="):
             z = eval(equation[len("z=") :])
-            iz = abs(self.output.sim.oper.z_seq - z).argmin()
+            iz = abs(self.output.sim.oper.get_grid1d_seq("z") - z).argmin()
             field = field[iz, ...]
         elif equation.startswith("iy="):
             iy = eval(equation[len("iy=") :])
             field = field[:, iy, :]
         elif equation.startswith("y="):
             y = eval(equation[len("y=") :])
-            iy = abs(self.output.sim.oper.y_seq - y).argmin()
+            iy = abs(self.output.sim.oper.get_grid1d_seq("y") - y).argmin()
             field = field[:, iy, :]
         elif equation.startswith("ix="):
             ix = eval(equation[len("ix=") :])
             field = field[..., ix]
         elif equation.startswith("x="):
             x = eval(equation[len("x=") :])
-            ix = abs(self.output.sim.oper.x_seq - x).argmin()
+            ix = abs(self.output.sim.oper.get_grid1d_seq("x") - x).argmin()
             field = field[..., ix]
         else:
             raise NotImplementedError
@@ -354,7 +356,7 @@ def time_from_path(path):
     return time
 
 
-class SetOfPhysFieldFiles(object):
+class SetOfPhysFieldFiles:
     """A set of physical field files.
 
     """
@@ -386,7 +388,8 @@ class SetOfPhysFieldFiles(object):
     ):
 
         if time is None and idx_time is None:
-            raise ValueError()
+            self.update_times()
+            time = self.times[-1]
 
         if not interpolate_time and time is not None:
             idx, time_closest = self.get_closest_time_file(time)
@@ -395,8 +398,6 @@ class SetOfPhysFieldFiles(object):
             )
 
         if interpolate_time and time is not None:
-            # print('time:', time)
-
             if self.times.min() > time > self.times.max():
                 raise ValueError()
 
@@ -444,7 +445,7 @@ class SetOfPhysFieldFiles(object):
 
             elif equation.startswith("z="):
                 z = eval(equation[len("z=") :])
-                iz = abs(self.output.sim.oper.z_seq - z).argmin()
+                iz = abs(self.output.sim.oper.get_grid1d_seq("z") - z).argmin()
                 return dset[iz, ...]
 
             elif equation.startswith("iy="):
@@ -453,7 +454,7 @@ class SetOfPhysFieldFiles(object):
 
             elif equation.startswith("y="):
                 y = eval(equation[len("y=") :])
-                iy = abs(self.output.sim.oper.y_seq - y).argmin()
+                iy = abs(self.output.sim.oper.get_grid1d_seq("y") - y).argmin()
                 return dset[:, iy, :]
 
             elif equation.startswith("ix="):
@@ -462,7 +463,7 @@ class SetOfPhysFieldFiles(object):
 
             elif equation.startswith("x="):
                 x = eval(equation[len("x=") :])
-                ix = abs(self.output.sim.oper.x_seq - x).argmin()
+                ix = abs(self.output.sim.oper.get_grid1d_seq("x") - x).argmin()
                 return dset[..., ix]
 
             else:

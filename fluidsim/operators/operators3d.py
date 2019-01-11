@@ -9,23 +9,19 @@ Provides
 
 """
 
-from __future__ import division
-
-from builtins import range
-
 from math import pi
 from copy import deepcopy
 
 import numpy as np
 
-from fluidpythran import pythran_def, Array, FluidPythran
+from fluidpythran import boost, Array, FluidPythran
 from fluiddyn.util.mpi import nb_proc, rank
+from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 from fluidsim.base.setofvariables import SetOfVariables
 
-from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
-
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
+from .. import _is_testing
 
 fp = FluidPythran()
 
@@ -35,7 +31,7 @@ Ac = Array[np.complex128, "3d"]
 Af = Array[np.float64, "3d"]
 
 
-@pythran_def
+@boost
 def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
     """Dealiasing 3d setofvar object.
 
@@ -59,7 +55,7 @@ def dealiasing_setofvar(sov: Asov, where_dealiased: Aui8):
                         sov[ik, i0, i1, i2] = 0.0
 
 
-@pythran_def
+@boost
 def dealiasing_variable(ff_fft: Ac, where_dealiased: Aui8):
     """Dealiasing 3d array"""
     n0, n1, n2 = ff_fft.shape
@@ -80,26 +76,15 @@ def dealiasing_variable_numpy(ff_fft: Ac, where_dealiased: Aui8):
     ff_fft[np.nonzero(where_dealiased)] = 0.0
 
 
-if not fp.is_transpiling and not fp.is_compiled:
+if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
+    # for example if Pythran is not available
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
+elif fp.is_transpiling:
+    _Operators = object
 
 
-@pythran_def
-def urudfft_from_vxvyfft(vx_fft: Ac, vy_fft: Ac, kx: Af, ky: Af, rank: int):
-    k2 = kx ** 2 + ky ** 2
-    k2[k2 == 0.0] = 1e-10
-
-    divh_fft = 1j * (kx * vx_fft + ky * vy_fft)
-    urx_fft = vx_fft - divh_fft * kx / k2
-    ury_fft = vy_fft - divh_fft * ky / k2
-
-    udx_fft = vx_fft - urx_fft
-    udy_fft = vy_fft - ury_fft
-
-    return urx_fft, ury_fft, udx_fft, udy_fft
-
-
+@boost
 class OperatorsPseudoSpectral3D(_Operators):
     """Provides fast Fourier transform functions and 3D operators.
 
@@ -120,13 +105,17 @@ class OperatorsPseudoSpectral3D(_Operators):
 
     """
 
+    Kx: Af
+    Ky: Af
+    inv_K_square_nozero: Af
+
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
         """
         attribs = {
             "type_fft": "default",
-            "type_fft2d": "default",
+            "type_fft2d": "sequential",
             "coef_dealiasing": 2.0 / 3,
             "nx": 48,
             "ny": 48,
@@ -178,16 +167,17 @@ Lx, Ly and Lz: float
 
         self.params = params
         self.axes = ("z", "y", "x")
+
+        params.oper.nx = int(params.oper.nx)
+        params.oper.ny = int(params.oper.ny)
+        params.oper.nz = int(params.oper.nz)
+
         if params.ONLY_COARSE_OPER:
             nx = ny = nz = 4
-            # Unchanged, but type cast into integers
-            params.oper.nx = int(params.oper.nx)
-            params.oper.ny = int(params.oper.ny)
-            params.oper.nz = int(params.oper.nz)
         else:
-            nx = params.oper.nx = int(params.oper.nx)
-            ny = params.oper.ny = int(params.oper.ny)
-            nz = params.oper.nz = int(params.oper.nz)
+            nx = params.oper.nx
+            ny = params.oper.ny
+            nz = params.oper.nz
 
         super(OperatorsPseudoSpectral3D, self).__init__(
             nx,
@@ -207,7 +197,7 @@ Lx, Ly and Lz: float
 
         if (
             any([fft.startswith(s) for s in ["fluidfft.fft2d.", "fft2d."]])
-            or fft == "default"
+            or fft in ("default", "sequential")
             or fft is None
         ):
             self.oper2d = OpPseudoSpectral2D(params2d)
@@ -291,11 +281,32 @@ Lx, Ly and Lz: float
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
         return fc_fft
 
-    def urudfft_from_vxvyfft(self, vx_fft, vy_fft):
+    @boost
+    def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
         """Compute toroidal and poloidal horizontal velocities
 
         """
-        return urudfft_from_vxvyfft(vx_fft, vy_fft, self.Kx, self.Ky, rank)
+
+        divh_fft = 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
+        urx_fft = vx_fft - divh_fft * self.Kx * self.inv_K_square_nozero
+        ury_fft = vy_fft - divh_fft * self.Ky * self.inv_K_square_nozero
+
+        udx_fft = vx_fft - urx_fft
+        udy_fft = vy_fft - ury_fft
+
+        return urx_fft, ury_fft, udx_fft, udy_fft
+
+    def get_grid1d_seq(self, axe="x"):
+
+        if axe not in ("x", "y", "z"):
+            raise ValueError
+
+        if self.params.ONLY_COARSE_OPER:
+            number_points = getattr(self.params.oper, "n" + axe)
+            length = getattr(self, "L" + axe)
+            return np.linspace(0, length, number_points)
+        else:
+            return getattr(self, axe + "_seq")
 
 
 def _ik_from_ikc(ikc, nkc, nk):

@@ -7,8 +7,6 @@
 
 """
 
-from __future__ import division, print_function
-
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -406,7 +404,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 10.0 / 7
             )
         else:
-            raise NotImplementedError("Computation E_f not implemented.")
+            E_f = pforcing.forcing_rate ** (2./3) * (2 * pi / k_f) ** 2
 
         fig, ax = plt.subplots()
         ax.set_xlabel(r"$t/t_f$")

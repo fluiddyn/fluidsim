@@ -246,7 +246,6 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
         pass
 
     fix_old_params(params)
-    params.forcing.enable = False
 
     sim = solver.Simul(params)
     return sim

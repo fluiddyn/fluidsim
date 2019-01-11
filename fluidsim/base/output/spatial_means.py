@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import os
 import numpy as np
 import json
@@ -191,9 +189,20 @@ class SpatialMeansJSON(SpatialMeansBase):
 
         try:
             df = pd.read_json(self.path_file, orient="records", lines=True)
+            return df
         except ValueError:
-            raise ValueError(f"Error reading spatial means file {self.path_file}")
-        return df
+            with open(self.path_file) as fp:
+                for line_nb, line in enumerate(fp):
+                    line_nb += 1
+                    try:
+                        json.loads(line)
+                    except json.JSONDecodeError:
+                        break
+
+            raise IOError(
+                f"Error reading spatial means file {self.path_file} in\n\tline"
+                f"number {line_nb}:\n\t{line}"
+            )
 
     def load_dataset(self, dims=("t",)):
         df = self.load()

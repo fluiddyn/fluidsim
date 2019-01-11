@@ -17,10 +17,6 @@ Provides:
 
 """
 
-from __future__ import print_function
-
-from builtins import str
-from builtins import object
 import datetime
 import os
 import shutil
@@ -461,9 +457,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def end_of_simul(self, total_time):
         self.print_stdout(
-            "Computation completed in {0:8.6g} s\n".format(total_time)
-            + "path_run =\n"
-            + self.path_run
+            f"Computation completed in {total_time:8.6g} s\n"
+            "path_run =\n" + self.path_run
         )
         if self._has_to_save:
             if hasattr(self.sim, "forcing"):

@@ -294,3 +294,16 @@ class FrequencySpectra(SpecificOutput):
             # Flush buffer and sleep time
             sys.stdout.flush()
             time.sleep(0.2)
+
+
+    def _init_online_plot(self):
+        if mpi.rank == 0:
+            fig, axe = self.output.figure_axe(numfig=1000000)
+            self.axe = axe
+            axe.set_xlabel("$k_h$")
+            axe.set_ylabel("$E(k_h)$")
+            axe.set_title(
+                "spectra, solver "
+                + self.output.name_solver
+                + ", nh = {0:5d}".format(self.params.oper.nx)
+            )

@@ -13,8 +13,6 @@ Provides:
 
 """
 
-from past.builtins import basestring
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -48,6 +46,22 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         """
         self._equation = equation
         self.movies._equation = equation
+
+    def _get_grid1d(self, equation):
+
+        if equation.startswith("iz=") or equation.startswith("z="):
+            x_seq = self.oper.get_grid1d_seq("x")
+            y_seq = self.oper.get_grid1d_seq("y")
+        elif equation.startswith("iy=") or equation.startswith("y="):
+            x_seq = self.oper.get_grid1d_seq("x")
+            y_seq = self.oper.get_grid1d_seq("z")
+        elif equation.startswith("ix=") or equation.startswith("x="):
+            x_seq = self.oper.get_grid1d_seq("y")
+            y_seq = self.oper.get_grid1d_seq("z")
+        else:
+            raise NotImplementedError
+
+        return x_seq, y_seq
 
     def plot(
         self,
@@ -106,7 +120,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         elif isinstance(field, np.ndarray):
             key_field = "given array"
             is_field_ready = True
-        elif isinstance(field, basestring):
+        elif isinstance(field, str):
             key_field = field
 
         assert key_field is not None
@@ -127,25 +141,23 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
 
-        if time is None and not is_field_ready:
+        if (
+            time is None
+            and not is_field_ready
+            and not self.sim.params.ONLY_COARSE_OPER
+        ):
             # we have to get the field from the state
             time = self.sim.time_stepping.t
-            field, _ = self.get_field_to_plot_from_state(
-                key_field, equation=equation
-            )
-            if QUIVER:
-                vecx, _ = self.get_field_to_plot_from_state(
-                    vecx, equation=equation
-                )
-                vecy, _ = self.get_field_to_plot_from_state(
-                    vecy, equation=equation
-                )
         else:
             # we have to get the field from a file
             self.set_of_phys_files.update_times()
             if key_field not in self.sim.state.keys_state_phys:
-                raise ValueError("key not in state.keys_state_phys")
+                raise ValueError(
+                    f'key "{key_field}" not in state.keys_state_phys '
+                    f"({self.sim.state.keys_state_phys})"
+                )
 
+        if not is_field_ready:
             field = self.get_field_to_plot(
                 key=key_field, time=time, equation=equation
             )
@@ -163,17 +175,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            if equation.startswith("iz=") or equation.startswith("z="):
-                x_seq = self.oper.x_seq
-                y_seq = self.oper.y_seq
-            elif equation.startswith("iy=") or equation.startswith("y="):
-                x_seq = self.oper.x_seq
-                y_seq = self.oper.z_seq
-            elif equation.startswith("ix=") or equation.startswith("x="):
-                x_seq = self.oper.y_seq
-                y_seq = self.oper.z_seq
-            else:
-                raise NotImplementedError
+            x_seq, y_seq = self._get_grid1d(equation)
 
             [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
@@ -225,25 +227,16 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         object corresponding to a 2D contour plot.
 
         """
-        if isinstance(vecx, basestring):
+        if isinstance(vecx, str):
             vecx = self.get_field_to_plot(vecx)
 
-        if isinstance(vecy, basestring):
+        if isinstance(vecy, str):
             vecy = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
             equation = self._equation
-            if equation.startswith("iz=") or equation.startswith("z="):
-                x_seq = self.oper.x_seq
-                y_seq = self.oper.y_seq
-            elif equation.startswith("iy=") or equation.startswith("y="):
-                x_seq = self.oper.x_seq
-                y_seq = self.oper.z_seq
-            elif equation.startswith("ix=") or equation.startswith("x="):
-                x_seq = self.oper.y_seq
-                y_seq = self.oper.z_seq
-            else:
-                raise NotImplementedError
+
+            x_seq, y_seq = self._get_grid1d(equation)
 
             [XX, YY] = np.meshgrid(x_seq, y_seq)
 

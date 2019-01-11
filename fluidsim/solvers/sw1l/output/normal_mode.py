@@ -20,48 +20,8 @@ Provides:
 
 import numpy as np
 
-# pythran import numpy as np
-
-from fluidpythran import cachedjit, Array
-
+from fluiddyn.util.compat import cached_property
 from fluiddyn.util import mpi
-
-
-AF = Array[float, "2d"]
-
-
-@cachedjit
-def get_qmat(
-    f: "float or int",
-    c: "float or int",
-    sigma: AF,
-    KX: AF,
-    KY: AF,
-    K: AF,
-    K2: AF,
-    K_not0: AF,
-):
-    """Compute Q matrix to transform q, ap, am (fft) -> b0, b+, b- (fft) with
-    dimensions of velocity.
-
-    """
-    ck = c * K_not0
-    qmat = np.array(
-        [
-            [
-                -1j * 2.0 ** 0.5 * ck * KY,
-                +1j * f * KY + KX * sigma,
-                +1j * f * KY - KX * sigma,
-            ],
-            [
-                +1j * 2.0 ** 0.5 * ck * KX,
-                -1j * f * KX + KY * sigma,
-                -1j * f * KX - KY * sigma,
-            ],
-            [2.0 ** 0.5 * f * K, c * K2, c * K2],
-        ]
-    ) / (2.0 ** 0.5 * sigma * K_not0)
-    return qmat
 
 
 class NormalModeBase(object):
@@ -152,23 +112,45 @@ class NormalModeBase(object):
 class NormalModeDecomposition(NormalModeBase):
     def __init__(self, output):
         super(NormalModeDecomposition, self).__init__(output)
+
+    @cached_property
+    def qmat(self):
+        """Compute Q matrix to transform q, ap, am (fft) -> b0, b+, b- (fft) with
+        dimensions of velocity.
+
+        """
         oper = self.oper
         sigma = self.sigma
 
         f = float(self.params.f)
         c = self.params.c2 ** 0.5
+        KX = oper.KX
+        KY = oper.KY
+        K = oper.K
+        K2 = oper.K2
+        K_not0 = oper.K_not0
+        ck = c * K_not0
 
-        self.qmat = get_qmat(
-            f, c, sigma, oper.KX, oper.KY, oper.K, oper.K2, oper.K_not0
-        )
-        # qmat_py = np.array(
-        #    [[-1j * 2. ** 0.5 * ck * KY, +1j * f * KY + KX * sigma, +1j * f * KY - KX * sigma],
-        #     [+1j * 2. ** 0.5 * ck * KX, -1j * f * KX + KY * sigma, -1j * f * KX - KY * sigma],
-        #     [2. ** 0.5 * f * K, c * K2, c * K2]]) / (2. ** 0.5 * sigma * oper.K_not0)
-        # np.testing.assert_allclose(qmat_py, self.qmat, rtol=1e-14)
+        qmat = np.array(
+            [
+                [
+                    -1j * 2.0 ** 0.5 * ck * KY,
+                    +1j * f * KY + KX * sigma,
+                    +1j * f * KY - KX * sigma,
+                ],
+                [
+                    +1j * 2.0 ** 0.5 * ck * KX,
+                    -1j * f * KX + KY * sigma,
+                    -1j * f * KX - KY * sigma,
+                ],
+                [2.0 ** 0.5 * f * K, c * K2, c * K2],
+            ]
+        ) / (2.0 ** 0.5 * sigma * K_not0)
 
         if mpi.rank == 0 or oper.is_sequential:
-            self.qmat[:, :, 0, 0] = 0.0
+            qmat[:, :, 0, 0] = 0.0
+
+        return qmat
 
     def normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_spect key specified."""

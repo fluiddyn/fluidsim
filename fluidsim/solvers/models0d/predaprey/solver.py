@@ -17,8 +17,6 @@ This module provides classes to solve the Lotka-Volterra equations.
 
 """
 
-from __future__ import division
-
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.base import InfoSolverBase, SimulBase

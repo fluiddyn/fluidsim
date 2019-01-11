@@ -272,7 +272,7 @@ def compute_tendencies_nonlin_sw1l(
     """Compute nonlinear tendencies for the sw1l model"""
     F1x, F1y = compute_Frot(rot, ux, uy, f)
     gradx_fft, grady_fft = gradfft_from_fft(
-        fft2(c2 * eta + (ux ** 2 + uy ** 2) / 2.0)
+        fft2(c2 * eta + 0.5 * (ux ** 2 + uy ** 2))
     )
     dealiasing(gradx_fft, grady_fft)
     Fx_fft[:] = fft2(F1x) - gradx_fft

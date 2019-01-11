@@ -1,4 +1,3 @@
-from __future__ import division
 from past.utils import old_div
 from fluidsim.solvers.ns3d.solver import Simul
 import numpy as np

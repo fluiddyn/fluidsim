@@ -1,5 +1,4 @@
 import unittest
-import shutil
 import warnings
 
 try:
@@ -15,10 +14,18 @@ from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ad1d.solver import Simul
 
+from fluidsim.test import TestSimul
+
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
-class TestSolverAD1D(unittest.TestCase):
-    def setUp(self):
+class TestSolverAD1D(TestSimul):
+
+    Simul = Simul
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
         # RuntimeWarnings are very common when numpy installed and numpy
         # used to build scipy don't match.
         # See:
@@ -30,7 +37,15 @@ class TestSolverAD1D(unittest.TestCase):
         warnings.filterwarnings(
             "ignore", "^numpy.dtype size changed", RuntimeWarning
         )
-        params = Simul.create_default_params()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        warnings.resetwarnings()
+
+    @classmethod
+    def init_params(cls):
+        params = cls.params = cls.Simul.create_default_params()
 
         params.U = 1.0
 
@@ -49,30 +64,43 @@ class TestSolverAD1D(unittest.TestCase):
         params.init_fields.type = "gaussian"
 
         params.output.periods_print.print_stdout = 0.25
-
         params.output.periods_save.phys_fields = 0.5
-
         params.output.periods_plot.phys_fields = 0.0
-
         params.output.phys_fields.field_to_plot = "s"
-
-        with stdout_redirected():
-            self.sim = Simul(params)
-
-    def tearDown(self):
-        # clean by removing the directory
-        if mpi.rank == 0:
-            if hasattr(self, "sim"):
-                shutil.rmtree(self.sim.output.path_run)
-
-        warnings.resetwarnings()
 
     @unittest.skipIf(
         mpi.nb_proc > 1, "MPI not implemented, for eg. sim.oper.gather_Xspace"
     )
     def test_simul(self):
+        sim = self.sim
         with stdout_redirected():
-            self.sim.time_stepping.start()
+            sim.time_stepping.start()
+
+        sim.state.compute("dx_s")
+        dx_s = sim.state.compute("dx_s")
+
+        with self.assertRaises(ValueError):
+            sim.state.compute("bar")
+
+        sim.oper.identity()
+        sim.oper.pxx(dx_s)
+
+
+@unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
+class TestInitAD1D(TestSimul):
+    Simul = Simul
+
+    @classmethod
+    def init_params(cls):
+        params = cls.params = cls.Simul.create_default_params()
+        params.output.HAS_TO_SAVE = False
+        params.init_fields.type = "cos"
+
+    @unittest.skipIf(
+        mpi.nb_proc > 1, "MPI not implemented, for eg. sim.oper.gather_Xspace"
+    )
+    def test_init(self):
+        """Only test the initialization"""
 
 
 if __name__ == "__main__":

@@ -7,9 +7,6 @@
 
 """
 
-from __future__ import print_function, division
-
-from builtins import range
 import numpy as np
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
