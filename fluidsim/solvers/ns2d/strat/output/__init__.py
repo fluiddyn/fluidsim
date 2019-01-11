@@ -20,8 +20,6 @@ and the main output class for the ns2d.strat solver:
 
 """
 
-from builtins import str
-
 import numpy as np
 
 from math import radians

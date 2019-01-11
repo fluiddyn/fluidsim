@@ -195,7 +195,6 @@ class Simul(SimulNS2D):
             division[0, 0] = 0
 
         pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * f_rot_fft)
-        pt_energyK_fft[np.isinf(pt_energyK_fft)] = 0.0
 
         # Compute time derivative potential energy
         pt_energyA_fft = (1.0 / (2 * params.N ** 2)) * np.real(
@@ -207,17 +206,15 @@ class Simul(SimulNS2D):
 
         # Check time derivative energy is ~ 0.
         pt_energy = self.oper.sum_wavenumbers(pt_energy_fft)
-
-        ratio = self.oper.sum_wavenumbers(
-            pt_energy_fft
-        ) / self.oper.sum_wavenumbers(abs(pt_energy_fft))
+        ratio = pt_energy / self.oper.sum_wavenumbers(abs(pt_energy_fft))
 
         epsilon = 1e-15
         energy_conserved = ratio < epsilon
         if not energy_conserved:
             print("Energy is not conserved!")
             print("ratio = {}".format(ratio))
-            raise Exception
+            return False
+        return True
 
     def compute_dispersion_relation(self):
         """

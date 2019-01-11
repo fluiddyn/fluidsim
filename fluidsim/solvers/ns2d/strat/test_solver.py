@@ -43,34 +43,63 @@ class TestSolverNS2DTendency(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
-
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 2
+        params.time_stepping.deltat0 = 0.1
         params.output.HAS_TO_SAVE = False
 
-    def test_tendency(self):
+    def _test_tendency(self):
         sim = self.sim
 
         rot_fft = sim.state.get_var("rot_fft")
         b_fft = sim.state.get_var("b_fft")
+
+        assert not np.any(b_fft)
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
         Frot_fft = tend.get_var("rot_fft")
         Fb_fft = tend.get_var("b_fft")
 
         T_rot = np.real(Frot_fft.conj() * rot_fft)
-        T_b = np.real(b_fft.conj() * b_fft)
 
-        ratio_rot = sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(
+        ratio = sim.oper.sum_wavenumbers(T_rot) / sim.oper.sum_wavenumbers(
             abs(T_rot)
         )
 
-        ratio_b = sim.oper.sum_wavenumbers(T_b) / sim.oper.sum_wavenumbers(
-            abs(T_b)
-        )
+        self.assertGreater(1e-15, ratio)
 
-        self.assertGreater(1e-15, ratio_rot)
-        # self.assertGreater(1e-15, ratio_b)
-        # Bug b_fft is a field of zeros!!!!
         # init_fields = noise gives energy only to rot
+        with stdout_redirected():
+            sim.time_stepping.start()
+
+        rot_fft = sim.state.get_var("rot_fft")
+        b_fft = sim.state.get_var("b_fft")
+
+        # init_fields = noise gives energy only to rot
+        assert np.any(b_fft)
+
+        tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
+        Frot_fft = tend.get_var("rot_fft")
+        Fb_fft = tend.get_var("b_fft")
+
+        assert sim.check_energy_conservation(rot_fft, b_fft, Frot_fft, Fb_fft)
+
+
+class TestForcingLinearMode(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+
+        params.forcing.type = "tcrandom_anisotropic"
+        params.forcing.nkmin_forcing = 4
+        params.forcing.nkmax_forcing = 6
+        params.forcing.key_forced = "ap_fft"
+
+    def _test_forcing_linear_mode(self):
+        sim = self.sim
+        with stdout_redirected():
+            sim.time_stepping.start()
 
 
 class TestForcingOutput(TestSimulBase):
@@ -78,13 +107,19 @@ class TestForcingOutput(TestSimulBase):
     def init_params(self):
 
         params = super().init_params()
+
+        # Time stepping parameters
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 2
+        params.time_stepping.deltat0 = 0.1
+
         params.forcing.enable = True
         # params.forcing.type = "tcrandom"
         # Forcing also linear mode!!!
         params.forcing.type = "tcrandom_anisotropic"
         params.forcing.nkmin_forcing = 4
         params.forcing.nkmax_forcing = 6
-
 
         # save all outputs!
         periods = params.output.periods_save
@@ -95,19 +130,16 @@ class TestForcingOutput(TestSimulBase):
         params.output.periods_print.print_stdout = 0.2
         params.output.periods_plot.phys_fields = 0.2
 
-        params.output.increments.HAS_TO_PLOT_SAVED = True
-
-        # Time stepping parameters
-        params.time_stepping.USE_CFL = False
-        params.time_stepping.USE_T_END = False
-        params.time_stepping.it_end = 2
-        params.time_stepping.deltat0 = 0.1
-
-
         # Spatio-temporal spectra
-        params.output.spatio_temporal_spectra.size_max_file = 0.01
+        params.output.spatio_temporal_spectra.size_max_file = 0.02
         params.output.spatio_temporal_spectra.time_decimate = 1
         params.output.spatio_temporal_spectra.spatial_decimate = 1
+        params.output.spatio_temporal_spectra.time_start = 0
+
+        params.output.frequency_spectra.size_max_file = 0.004
+        params.output.frequency_spectra.time_start = 0
+        params.output.frequency_spectra.time_decimate = 1
+        params.output.frequency_spectra.spatial_decimate = 2
 
         for tag in params.output._tag_children:
             if tag.startswith("periods"):
@@ -136,25 +168,33 @@ class TestForcingOutput(TestSimulBase):
             sim.state.init_statespect_from(ux_fft=ux_fft)
             sim.state.init_statespect_from(uy_fft=uy_fft)
 
+            sim.output.compute_enstrophy()
+
             if mpi.nb_proc == 1:
-                sim.output.spectra.plot1d()
+
+                spatio_temporal_spectra = sim.output.spatio_temporal_spectra
+                spatio_temporal_spectra.compute_frequency_spectra()
+                spatio_temporal_spectra.print_info_frequency_spectra()
+                spatio_temporal_spectra.plot_frequency_spectra_individual_mode((1, 1))
+
+                sim.output.frequency_spectra.compute_frequency_spectra()
+
+                sim.output.plot_summary()
+
                 sim.output.spectra.plot2d()
 
-                sim.output.spatial_means.plot()
                 sim.output.spatial_means.plot_energy()
                 sim.output.spatial_means.plot_dt_energy()
                 sim.output.spatial_means.plot_energy_shear_modes()
 
+                plt.close("all")
                 sim.output.spatial_means.compute_time_means()
                 sim.output.spatial_means.load_dataset()
                 sim.output.spatial_means.time_first_saved()
                 sim.output.spatial_means.time_last_saved()
 
-                sim.output.print_stdout.plot()
-
                 sim.output.spectra_multidim.plot()
 
-                sim.output.spect_energy_budg.plot()
                 with self.assertRaises(ValueError):
                     sim.state.get_var("test")
 
@@ -209,7 +249,7 @@ class TestSolverNS2DInitLinearMode(TestSimulBase):
         params.init_fields.type = "linear_mode"
         params.output.HAS_TO_SAVE = False
 
-    def test_init_linear_mode(self):
+    def _test_init_linear_mode(self):
         pass
 
 if __name__ == "__main__":
