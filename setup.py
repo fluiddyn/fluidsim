@@ -65,6 +65,8 @@ make_pythran_files(
     mocked_modules=(
         "psutil",
         "h5py",
+        "matplotlib",
+        "matplotlib.pyplot",
         "fluiddyn",
         "fluiddyn.io",
         "fluiddyn.util",
