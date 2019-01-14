@@ -76,24 +76,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         self.periods_save = params.output.periods_save.spatio_temporal_spectra
 
-        # Dimensions spatial array with decimation
-        # if mpi.rank == 0:
-        # n0 = len(
-        #     list(range(0, output.sim.oper.shapeX[0], self.spatial_decimate))
-        # )
-
-        # n1 = len(
-        #     list(range(0, output.sim.oper.shapeX[1], self.spatial_decimate))
-        # )
-
         n0 = len(list(range(0, params.oper.ny, self.spatial_decimate)))
 
         n1 = len(list(range(0, params.oper.nx, self.spatial_decimate)))
-
-        # print(output.sim.oper.shapeX)
-        # print("n0", n0)
-        # print("n1", n1)
-        # print(params.oper.nx)
 
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
@@ -121,21 +106,10 @@ class SpatioTempSpectra(SpecificOutput):
             raise ValueError("The size of the file should be larger.")
 
         else:
-            self.spatio_temp = np.empty(
-                [self.nb_arr_in_file, n0, n1 // 2], dtype=complex
-            )
-
             # Array 4D (2 keys, times, n0, n1)
             self.spatio_temp_new = np.empty(
-                [2, self.nb_arr_in_file, n0, n1 // 2], dtype=complex
+                [2, self.nb_arr_in_file, n0, n1 // 2 + 1], dtype=complex
             )
-
-        # self.spatio_temp_ap = np.empty(
-        #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
-
-        # self.spatio_temp_am = np.empty(
-        #     [self.nb_arr_in_file, n0, n1 // 2], dtype=complex)
-
         # Convert time_start to it_start
         self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
 
@@ -189,6 +163,7 @@ class SpatioTempSpectra(SpecificOutput):
 
     def _online_save(self):
         """Computes and saves the values at one time."""
+        oper = self.sim.oper
         if self.periods_save == 0:
             pass
         else:
@@ -203,92 +178,57 @@ class SpatioTempSpectra(SpecificOutput):
                 field_ap = self.sim.state.compute("ap_fft")
                 field_am = self.sim.state.compute("am_fft")
 
-                field_ap_seq = None
-                field_am_seq = None
-
-                field = self.sim.state.compute("ap_fft")
-                field_seq = None
-                # print("rank = {} ; kx_loc = {}".format(mpi.comm.Get_rank(), self.sim.oper.kx_loc))
-                # Create empty array in process 0.
-                if mpi.rank == 0:
-                    field_ap_seq = np.empty(
-                        (self.sim.params.oper.nx // 2, self.sim.params.oper.ny),
-                        dtype=complex,
-                    )
-
-                    field_am_seq = np.empty(
-                        (self.sim.params.oper.nx // 2, self.sim.params.oper.ny),
-                        dtype=complex,
-                    )
-
-                    field_seq = np.empty(
-                        (self.sim.params.oper.nx // 2, self.sim.params.oper.ny),
-                        dtype=complex,
-                    )
-
-                # print("field_seq shape", field_seq.shape)
-
                 if mpi.nb_proc > 1:
-                    mpi.comm.Gather(field, field_seq, root=0)
-
-                    mpi.comm.Gather(field_ap, field_ap_seq, root=0)
-
-                    mpi.comm.Gather(field_am, field_am_seq, root=0)
-
-                    # Create empty array.
-                    # This array will receive the arrays from other processors.
-                    # field_seq = np.empty(
-                    #     (self.sim.params.oper.nx // 2, self.sim.params.oper.ny),
-                    #     dtype=complex)
-
-                    # Computes the index start and end for each processor.
-                    # SOLVE WITH INDEXES!!!
-                    # ik0_start = int(self.sim.oper.kx_loc[0])
-                    # print("######## ik0_start ###############", ik0_start)
-                    # ik0_end = int(ik0_start + self.sim.oper.nkx_loc)
-
-                    # Fill the empty array with the arrays of each processor.
-                    # field_seq[ik0_start:ik0_end, :] = field
-
-                    # Transpose of the array.
+                    # Create big array
                     if mpi.rank == 0:
-                        field = np.transpose(field_seq)
+                        field_ap_seq = oper.create_arrayK(shape="seq")
+                        field_am_seq = oper.create_arrayK(shape="seq")
+                    else:
+                        field_ap_seq = None
+                        field_am_seq = None
 
-                        field_ap = np.transpose(field_ap_seq)
-                        field_am = np.transpose(field_am_seq)
+                    # Define size of each array
+                    sendcounts = np.array(mpi.comm.gather(field_ap.size, root=0))
+
+                    # Send array each process to root (process 0)
+                    mpi.comm.Gatherv(
+                        sendbuf=field_ap,
+                        recvbuf=(field_ap_seq, sendcounts),
+                        root=0)
+                    mpi.comm.Gatherv(
+                        sendbuf=field_am,
+                        recvbuf=(field_am_seq, sendcounts),
+                        root=0)
+
                 else:
-                    # I remove the last kx to be coherent with arrays in MPI.
-                    # Consequences: Remove energy in last kx ONLY for computing
-                    # the frequency spectra
-                    field = field[:, :-1]
+                    field_ap_seq = field_ap
+                    field_am_seq = field_am
 
-                    field_ap = field_ap[:, :-1]
-                    field_am = field_am[:, :-1]
-
-                # Decimation of the field
+                # Decimate with process 0
                 if mpi.rank == 0:
-                    field_decimate = field[
+                    field_ap_decimate = field_ap_seq[
+                        :: self.spatial_decimate, :: self.spatial_decimate
+                    ]
+                    field_am_decimate = field_am_seq[
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    field_ap_decimate = field_ap[
-                        :: self.spatial_decimate, :: self.spatial_decimate
-                    ]
+                    if mpi.nb_proc > 1:
+                        self.spatio_temp_new[
+                            0, self.nb_times_in_spatio_temp, :, :
+                        ] = np.transpose(field_ap_decimate)
+                        self.spatio_temp_new[
+                            1, self.nb_times_in_spatio_temp, :, :
+                        ] = np.transpose(field_am_decimate)
 
-                    field_am_decimate = field_am[
-                        :: self.spatial_decimate, :: self.spatial_decimate
-                    ]
+                    else:
+                        self.spatio_temp_new[
+                            0, self.nb_times_in_spatio_temp, :, :
+                        ] = field_ap_decimate
 
-                    self.spatio_temp[
-                        self.nb_times_in_spatio_temp, :, :
-                    ] = field_decimate
-
-                    self.spatio_temp_new[
-                        0, self.nb_times_in_spatio_temp, :, :
-                    ] = field_ap_decimate
-                    self.spatio_temp_new[
-                        1, self.nb_times_in_spatio_temp, :, :
-                    ] = field_am_decimate
+                        self.spatio_temp_new[
+                            1, self.nb_times_in_spatio_temp, :, :
+                        ] = field_am_decimate
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_spatio_temp] = (
@@ -299,7 +239,6 @@ class SpatioTempSpectra(SpecificOutput):
                 if self.nb_times_in_spatio_temp == self.nb_arr_in_file - 1:
                     if mpi.rank == 0:
                         print("Saving spatio_temporal data...")
-                    # self._write_to_file(self.spatio_temp, self.times_arr)
                     self._write_to_file(self.spatio_temp_new, self.times_arr)
 
                     self.nb_times_in_spatio_temp = 0
@@ -455,60 +394,6 @@ class SpatioTempSpectra(SpecificOutput):
             temp_spectrum[0, len(omegas) // 2 + 1 :, idz_mode, idx_mode],
         )
         ax2.axvline(x=f_iw / f_iw, color="k", linestyle="--")
-
-        # print("omegas = ", omegas)
-        # print("kx_decimate = ", self.sim.oper.kx[::self.spatial_decimate])
-        # print("kz_decimate = ", self.sim.oper.ky[::self.spatial_decimate])
-
-        # print("kx_decimate.shape = ", self.sim.oper.kx[::self.spatial_decimate].shape)
-        # print("kz_decimate.shape = ", self.sim.oper.ky[::self.spatial_decimate].shape)
-
-        # sin_arr = np.empty(
-        #     shape=(self.sim.oper.kx[::self.spatial_decimate].shape[0],
-        #            self.sim.oper.ky[::self.spatial_decimate].shape[0]))
-        # for i_row, value in enumerate(self.sim.oper.kx[::self.spatial_decimate]):
-        #     sin_arr[i_row, :] = value / np.sqrt(value**2 +self.sim.oper.ky[::self.spatial_decimate]**2)
-
-        # sin_arr = np.transpose(sin_arr)
-        # unique = np.unique(sin_arr)
-
-        # # Create 2D array shape omega and sinus theta
-        # k_sin_arr = np.empty(shape=(len(omegas), unique.shape[0] - 1))
-        # print("k_sin_arr shape", k_sin_arr.shape)
-
-        # # Loop in unique values of sinus theta
-        # for idx_unique, value in enumerate(unique[:-1]):
-        #     indices = np.argwhere(sin_arr==value)
-        #     print("indices = ", indices)
-        #     # same_sin = np.empty(shape=(len(omegas), len(indices)))
-        #     same_sin = np.empty(shape=(len(omegas), 2))
-
-        #     for i_column, idx in enumerate(indices[0:2]):
-        #         same_sin[:, i_column] = temp_spectrum[0, :, idx[0], idx[1]]
-
-        #     k_sin_arr[:, idx_unique] = np.mean(same_sin, axis=1)
-
-        # print("unique = ", unique)
-        # print("unique_shape = ", unique.shape)
-        # print("k_sin_arr = ", k_sin_arr)
-        # print("k_sin_arr_shape = ", k_sin_arr.shape)
-
-        # # Plot
-        # fig3, ax3 = plt.subplots()
-        # # ax3.set_yscale("log")
-        # ax3.set_xlabel(r"sin $\theta$")
-        # ax3.set_ylabel("$\omega$")
-        # ax3.set_title(r"F(sin $\theta$, $\omega$)")
-        # SINUS, OMEGA = np.meshgrid(unique[:-1], omegas)
-        # print("OMEGA", OMEGA)
-        # print("SINUS", SINUS)
-        # ax3.pcolormesh(SINUS, OMEGA, k_sin_arr,
-        #                vmin=np.min(k_sin_arr), vmax=np.max(k_sin_arr)/1e16,
-        #                cmap="hsv")
-
-        # ax3.plot([0,0.2], [0,  - 0.2 * self.sim.params.N / (2 * np.pi)],
-        #          color="k", linewidth=4)
-
 
     def _init_online_plot(self):
         if mpi.rank == 0:
