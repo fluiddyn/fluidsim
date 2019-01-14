@@ -156,6 +156,7 @@ class FrequencySpectra(SpecificOutput):
 
     def _online_save(self):
         """Computes and saves the values at one time."""
+        oper = self.sim.oper
         if self.periods_save == 0:
             pass
         else:
@@ -170,47 +171,57 @@ class FrequencySpectra(SpecificOutput):
                 field_ap = self.sim.state.compute("ap")
                 field_am = self.sim.state.compute("am")
 
-                field_ap_seq = None
-                field_am_seq = None
-
-                # Create empty array in process 0.
-                if mpi.rank == 0:
-                    field_ap_seq = np.empty(
-                        (self.sim.params.oper.ny, self.sim.params.oper.nx),
-                        dtype=float,
-                    )
-
-                    field_am_seq = np.empty(
-                        (self.sim.params.oper.ny, self.sim.params.oper.nx),
-                        dtype=float,
-                    )
-
-                # Gather in process 0 the fields from other processes.
                 if mpi.nb_proc > 1:
-                    mpi.comm.Gather(field_ap, field_ap_seq, root=0)
-                    mpi.comm.Gather(field_am, field_am_seq, root=0)
-
+                    # Create big array
                     if mpi.rank == 0:
-                        field_ap = field_ap_seq
-                        field_am = field_am_seq
+                        field_ap_seq = oper.create_arrayX(shape="seq")
+                        field_am_seq = oper.create_arrayX(shape="seq")
+                    else:
+                        field_ap_seq = None
+                        field_am_seq = None
 
-                # Decimation of the field
+                    # Define size of each array
+                    sendcounts = np.array(mpi.comm.gather(field_ap.size, root=0))
+
+                    # Send array each process to root (process 0)
+                    mpi.comm.Gatherv(
+                        sendbuf=field_ap,
+                        recvbuf=(field_ap_seq, sendcounts),
+                        root=0)
+                    mpi.comm.Gatherv(
+                        sendbuf=field_am,
+                        recvbuf=(field_am_seq, sendcounts),
+                        root=0)
+
+                else:
+                    field_ap_seq = field_ap
+                    field_am_seq = field_am
+
+                # Decimate with process 0
                 if mpi.rank == 0:
-                    field_ap_decimate = field_ap[
+                    field_ap_decimate = field_ap_seq[
+                        :: self.spatial_decimate, :: self.spatial_decimate
+                    ]
+                    field_am_decimate = field_am_seq[
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    field_am_decimate = field_am[
-                        :: self.spatial_decimate, :: self.spatial_decimate
-                    ]
+                    if mpi.nb_proc > 1:
+                        self.temp_array_new[
+                            0, self.nb_times_in_temp_array, :, :
+                        ] = np.transpose(field_ap_decimate)
 
-                    # Add to the array temp_array_new
-                    self.temp_array_new[
-                        0, self.nb_times_in_temp_array, :, :
-                    ] = field_ap_decimate
-                    self.temp_array_new[
-                        1, self.nb_times_in_temp_array, :, :
-                    ] = field_am_decimate
+                        self.temp_array_new[
+                            1, self.nb_times_in_temp_array, :, :
+                        ] = np.transpose(field_am_decimate)
+
+                    else:
+                        self.temp_array_new[
+                            0, self.nb_times_in_temp_array, :, :
+                        ] = field_ap_decimate
+                        self.temp_array_new[
+                            1, self.nb_times_in_temp_array, :, :
+                        ] = field_am_decimate
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_temp_array] = (
