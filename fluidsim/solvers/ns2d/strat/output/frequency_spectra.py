@@ -194,19 +194,6 @@ class FrequencySpectra(SpecificOutput):
                         field_ap = field_ap_seq
                         field_am = field_am_seq
 
-                #### Tests
-                # if mpi.nb_proc > 1:
-                #     if mpi.rank == 0:
-                #         print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap))
-                #         print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap.shape))
-                #         import sys
-                #         sys.exit()
-                # else:
-                #     print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap))
-                #     print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap.shape))
-                #     import sys
-                #     sys.exit()
-
                 # Decimation of the field
                 if mpi.rank == 0:
                     field_ap_decimate = field_ap[
@@ -216,11 +203,6 @@ class FrequencySpectra(SpecificOutput):
                     field_am_decimate = field_am[
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
-
-                    # print("rank {}, field_ap_seq{}".format(mpi.rank, field_ap_decimate))
-                    # print("rank {}, field_ap_seq.shape{}".format(mpi.rank, field_ap_decimate.shape))
-                    # import sys
-                    # sys.exit()
 
                     # Add to the array temp_array_new
                     self.temp_array_new[
