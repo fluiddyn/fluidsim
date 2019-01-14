@@ -14,5 +14,5 @@ pipelines:
             caches:
               - pip
             script:
-              - pip install -U tox fluidpythran --user
+              - pip install -U pip tox fluidpythran numpy --user
               - tox -e py36,codecov
