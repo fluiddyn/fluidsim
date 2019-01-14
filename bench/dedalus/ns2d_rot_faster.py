@@ -24,8 +24,13 @@ from dedalus import public as de
 
 
 lx, ly = (1., 1.)
-n = 341
-dealias = 512/341
+
+nx = 512*2
+
+coef_dealias = 2/3
+
+n = int(coef_dealias * nx)
+dealias = nx/n
 nx, ny = (n, n)
 
 # Create bases and domain
