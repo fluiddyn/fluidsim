@@ -22,9 +22,9 @@ class TestSimulBase(TestSimul):
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
 
-        nh = 32
-        params.oper.nx = nh
-        params.oper.ny = nh
+        nh = 64
+        params.oper.nx = nh = 64
+        params.oper.ny = nh // 2
         Lh = 6.0
         params.oper.Lx = Lh
         params.oper.Ly = Lh
@@ -152,7 +152,7 @@ class TestForcingOutput(TestSimulBase):
 
         sim = self.sim
 
-        with stdout_redirected():
+        with stdout_redirected(0):
             sim.time_stepping.start()
 
             sim.state.compute("rot_fft")
@@ -171,11 +171,6 @@ class TestForcingOutput(TestSimulBase):
             sim.output.compute_enstrophy()
 
             if mpi.nb_proc == 1:
-
-                spatio_temporal_spectra = sim.output.spatio_temporal_spectra
-                spatio_temporal_spectra.compute_frequency_spectra()
-                spatio_temporal_spectra.print_info_frequency_spectra()
-                spatio_temporal_spectra.plot_frequency_spectra_individual_mode((1, 1))
 
                 sim.output.frequency_spectra.compute_frequency_spectra()
 
@@ -200,6 +195,11 @@ class TestForcingOutput(TestSimulBase):
 
                 sim2 = fls.load_sim_for_plot(sim.output.path_run)
                 sim2.output
+
+                spatio_temporal_spectra = sim2.output.spatio_temporal_spectra
+                spatio_temporal_spectra.compute_frequency_spectra()
+                spatio_temporal_spectra.print_info_frequency_spectra()
+                spatio_temporal_spectra.plot_frequency_spectra_individual_mode((1, 1))
 
                 sim2.output.increments.load()
                 sim2.output.increments.plot()

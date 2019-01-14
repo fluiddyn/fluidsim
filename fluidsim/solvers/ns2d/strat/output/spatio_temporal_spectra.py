@@ -76,13 +76,14 @@ class SpatioTempSpectra(SpecificOutput):
 
         self.periods_save = params.output.periods_save.spatio_temporal_spectra
 
-        n0 = len(list(range(0, params.oper.ny, self.spatial_decimate)))
+        nK0, nK1 = self.sim.oper.shapeK_seq
+        nK0_dec = len(list(range(0, nK0, self.spatial_decimate)))
+        nK1_dec = len(list(range(0, nK1, self.spatial_decimate)))
 
-        n1 = len(list(range(0, params.oper.nx, self.spatial_decimate)))
 
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
-        nb_bytes = np.empty([n0, n1 // 2], dtype=complex).nbytes
+        nb_bytes = np.empty([nK0, nK1], dtype=complex).nbytes
         self.nb_arr_in_file = int(self.size_max_file * (1024 ** 2) // nb_bytes)
         if mpi.rank == 0:
             print("nb_arr_in_file", self.nb_arr_in_file)
@@ -108,7 +109,7 @@ class SpatioTempSpectra(SpecificOutput):
         else:
             # Array 4D (2 keys, times, n0, n1)
             self.spatio_temp_new = np.empty(
-                [2, self.nb_arr_in_file, n0, n1 // 2 + 1], dtype=complex
+                [2, self.nb_arr_in_file, nK0, nK1], dtype=complex
             )
         # Convert time_start to it_start
         self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
@@ -213,20 +214,10 @@ class SpatioTempSpectra(SpecificOutput):
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    if mpi.nb_proc > 1:
-                        self.spatio_temp_new[
-                            0, self.nb_times_in_spatio_temp, :, :
-                        ] = np.transpose(field_ap_decimate)
-                        self.spatio_temp_new[
-                            1, self.nb_times_in_spatio_temp, :, :
-                        ] = np.transpose(field_am_decimate)
-
-                    else:
-                        self.spatio_temp_new[
+                    self.spatio_temp_new[
                             0, self.nb_times_in_spatio_temp, :, :
                         ] = field_ap_decimate
-
-                        self.spatio_temp_new[
+                    self.spatio_temp_new[
                             1, self.nb_times_in_spatio_temp, :, :
                         ] = field_am_decimate
 
