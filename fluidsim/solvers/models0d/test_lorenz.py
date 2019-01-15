@@ -1,11 +1,10 @@
 import unittest
 
-from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 
 from .lorenz.solver import Simul
 
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
@@ -31,8 +30,7 @@ class TestLorenz(TestSimul):
         sim.state.state_phys.set_var("Y", sim.Ys0)
         sim.state.state_phys.set_var("Z", sim.Zs0)
 
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
         sim.output.print_stdout.plot_deltat()
         sim.output.print_stdout.plot_XYZ()

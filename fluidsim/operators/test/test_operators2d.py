@@ -2,9 +2,11 @@ import unittest
 import numpy as np
 import sys
 
-from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
+
+from fluidsim.util.testing import TestCase
+
 
 try:
     from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
@@ -43,8 +45,7 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
 
     params.oper.coef_dealiasing = coef_dealiasing
 
-    with stdout_redirected():
-        oper = OperatorsPseudoSpectral2D(params=params)
+    oper = OperatorsPseudoSpectral2D(params=params)
 
     return oper
 
@@ -65,7 +66,7 @@ def compute_increments_dim1_old(var, irx):
     NO_PYTHRAN, "Pythran extension fluidsim.operators.util2d_pythran unavailable"
 )
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
-class TestOperators(unittest.TestCase):
+class TestOperators(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper()
@@ -120,7 +121,7 @@ class TestOperators(unittest.TestCase):
             assert_increments_equal(irx)
 
 
-class TestOperatorCoarse(unittest.TestCase):
+class TestOperatorCoarse(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.nh = 12
@@ -140,7 +141,7 @@ class TestOperatorCoarse(unittest.TestCase):
         self.assertNotEqual(oper.ny, self.nh)
 
 
-class TestOperatorsDealiasing(unittest.TestCase):
+class TestOperatorsDealiasing(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.oper = create_oper(coef_dealiasing=False)

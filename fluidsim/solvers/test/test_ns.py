@@ -5,7 +5,10 @@ import numpy as np
 
 import fluidsim
 from fluiddyn.util import mpi
+
 from fluiddyn.io import stdout_redirected
+
+from fluidsim.util.testing import TestCase
 
 
 def run_mini_simul(
@@ -76,7 +79,7 @@ def run_mini_simul(
     return sim
 
 
-class TestSolver(unittest.TestCase):
+class TestSolver(TestCase):
     solver = "NS2D"
     options = {"HAS_TO_SAVE": False, "forcing_enable": False}
     zero = 1e-15
@@ -120,41 +123,6 @@ class TestSolver(unittest.TestCase):
         T_rot = (Frot_fft.conj() * rot_fft + Frot_fft * rot_fft.conj()).real / 2.0
         sum_T = oper.sum_wavenumbers(T_rot)
         self.assertZero(sum_T, zero_places)
-
-
-class TestNS2DStrat(TestSolver):
-    solver = "NS2D.strat"
-    options = {"HAS_TO_SAVE": False, "forcing_enable": False}
-
-    def test_enstrophy_conservation(self):
-        # This solver does not solve for vertical component of vorticity
-        pass
-
-    def test_energy_conservation(self):
-        """Verify that the energy growth rate due to nonlinear tendencies
-        (advection term) must be zero.
-
-        """
-        self.sim.params.forcing.enable = False
-        tendencies_fft = self.sim.tendencies_nonlin()
-
-        oper = self.sim.oper
-        state_spect = self.sim.state.state_spect
-        Frot_fft = tendencies_fft.get_var("rot_fft")
-        rot_fft = state_spect.get_var("rot_fft")
-        Fx_fft, Fy_fft = oper.vecfft_from_rotfft(Frot_fft)
-        Fb_fft = tendencies_fft.get_var("b_fft")
-        ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-        b_fft = state_spect.get_var("b_fft")
-
-        transferEK = np.real(ux_fft.conj() * Fx_fft + uy_fft.conj() * Fy_fft)
-        transferEA = (1.0 / self.sim.params.N ** 2) * np.real(
-            b_fft.conj() * Fb_fft
-        )
-
-        T_tot = transferEK + transferEA
-        sum_T = oper.sum_wavenumbers(T_tot)
-        self.assertZero(sum_T)
 
 
 if __name__ == "__main__":

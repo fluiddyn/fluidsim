@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.solver import Simul
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 class TestSimulBase(TestSimul):
@@ -92,60 +91,59 @@ class TestForcingOutput(TestSimulBase):
 
         sim = self.sim
 
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
-            sim.state.compute("rot_fft")
-            sim.state.compute("rot_fft")
+        sim.state.compute("rot_fft")
+        sim.state.compute("rot_fft")
 
+        with self.assertRaises(ValueError):
+            sim.state.compute("abc")
+        sim.state.compute("abc", RAISE_ERROR=False)
+
+        ux_fft = sim.state.compute("ux_fft")
+        uy_fft = sim.state.compute("uy_fft")
+
+        sim.state.init_statespect_from(ux_fft=ux_fft)
+        sim.state.init_statespect_from(uy_fft=uy_fft)
+
+        if mpi.nb_proc == 1:
+            sim.output.spectra.plot1d()
+            sim.output.spectra.plot2d()
+
+            sim.output.spatial_means.plot()
+            sim.output.spatial_means.plot_dt_energy()
+            sim.output.spatial_means.plot_dt_enstrophy()
+            sim.output.spatial_means.compute_time_means()
+            sim.output.spatial_means.load_dataset()
+            sim.output.spatial_means.time_first_saved()
+            sim.output.spatial_means.time_last_saved()
+
+            sim.output.print_stdout.plot_energy()
+            sim.output.print_stdout.plot_deltat()
+
+            sim.output.spectra_multidim.plot()
+
+            sim.output.spect_energy_budg.plot()
             with self.assertRaises(ValueError):
-                sim.state.compute("abc")
-            sim.state.compute("abc", RAISE_ERROR=False)
+                sim.state.get_var("test")
 
-            ux_fft = sim.state.compute("ux_fft")
-            uy_fft = sim.state.compute("uy_fft")
+            sim2 = fls.load_sim_for_plot(sim.output.path_run)
+            sim2.output
 
-            sim.state.init_statespect_from(ux_fft=ux_fft)
-            sim.state.init_statespect_from(uy_fft=uy_fft)
+            sim2.output.increments.load()
+            sim2.output.increments.plot()
+            sim2.output.increments.load_pdf_from_file()
 
-            if mpi.nb_proc == 1:
-                sim.output.spectra.plot1d()
-                sim.output.spectra.plot2d()
-
-                sim.output.spatial_means.plot()
-                sim.output.spatial_means.plot_dt_energy()
-                sim.output.spatial_means.plot_dt_enstrophy()
-                sim.output.spatial_means.compute_time_means()
-                sim.output.spatial_means.load_dataset()
-                sim.output.spatial_means.time_first_saved()
-                sim.output.spatial_means.time_last_saved()
-
-                sim.output.print_stdout.plot_energy()
-                sim.output.print_stdout.plot_deltat()
-
-                sim.output.spectra_multidim.plot()
-
-                sim.output.spect_energy_budg.plot()
-                with self.assertRaises(ValueError):
-                    sim.state.get_var("test")
-
-                sim2 = fls.load_sim_for_plot(sim.output.path_run)
-                sim2.output
-
-                sim2.output.increments.load()
-                sim2.output.increments.plot()
-                sim2.output.increments.load_pdf_from_file()
-
-                sim2.output.phys_fields.animate(
-                    "ux",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
-                sim2.output.phys_fields.plot()
+            sim2.output.phys_fields.animate(
+                "ux",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=False,
+                numfig=1,
+            )
+            sim2.output.phys_fields.plot()
 
             # `compute('q')` two times for better coverage...
             sim.state.get_var("q")

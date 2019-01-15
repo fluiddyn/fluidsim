@@ -1,6 +1,5 @@
-from fluiddyn.io import stdout_redirected
 
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 from fluidsim.solvers.waves2d.solver import Simul
 
 
@@ -52,5 +51,4 @@ class TestOutput(TestSimulBase):
 
     def test_output(self):
         sim = self.sim
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()

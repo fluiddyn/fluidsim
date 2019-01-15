@@ -10,11 +10,10 @@ except ImportError:
 
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ad1d.solver import Simul
 
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
@@ -73,8 +72,7 @@ class TestSolverAD1D(TestSimul):
     )
     def test_simul(self):
         sim = self.sim
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
         sim.state.compute("dx_s")
         dx_s = sim.state.compute("dx_s")

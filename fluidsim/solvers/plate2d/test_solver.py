@@ -3,11 +3,10 @@ import unittest
 import numpy as np
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.plate2d.solver import Simul
 
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 class TestSimulBase(TestSimul):
@@ -108,8 +107,7 @@ class TestSolverPlate2DOutput(TestSimulBase):
 
         sim = self.sim
 
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
         sim.output.correl_freq.compute_corr4_norm()
 
@@ -135,9 +133,8 @@ class TestSolverPlate2DOutput(TestSimulBase):
 
         sim.output.spatial_means.plot(with_dtE=True)
 
-        with stdout_redirected():
-            sim.output.spectra.plot1d()
-            sim.output.spectra.plot2d()
+        sim.output.spectra.plot1d()
+        sim.output.spectra.plot2d()
 
 
 if __name__ == "__main__":

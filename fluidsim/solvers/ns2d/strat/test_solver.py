@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 class TestSimulBase(TestSimul):
@@ -46,10 +45,10 @@ class TestSolverNS2DTendency(TestSimulBase):
         params.time_stepping.USE_CFL = False
         params.time_stepping.USE_T_END = False
         params.time_stepping.it_end = 2
-        params.time_stepping.deltat0 = 0.1
+        params.time_stepping.deltat0 = 0.02
         params.output.HAS_TO_SAVE = False
 
-    def _test_tendency(self):
+    def test_tendency(self):
         sim = self.sim
 
         rot_fft = sim.state.get_var("rot_fft")
@@ -70,8 +69,7 @@ class TestSolverNS2DTendency(TestSimulBase):
         self.assertGreater(1e-15, ratio)
 
         # init_fields = noise gives energy only to rot
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
         rot_fft = sim.state.get_var("rot_fft")
         b_fft = sim.state.get_var("b_fft")
@@ -96,10 +94,9 @@ class TestForcingLinearMode(TestSimulBase):
         params.forcing.nkmax_forcing = 6
         params.forcing.key_forced = "ap_fft"
 
-    def _test_forcing_linear_mode(self):
+    def test_forcing_linear_mode(self):
         sim = self.sim
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
 
 class TestForcingOutput(TestSimulBase):
@@ -152,93 +149,94 @@ class TestForcingOutput(TestSimulBase):
 
         sim = self.sim
 
-        with stdout_redirected(0):
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
-            sim.state.compute("rot_fft")
-            sim.state.compute("rot_fft")
+        sim.state.compute("rot_fft")
+        sim.state.compute("rot_fft")
+
+        with self.assertRaises(ValueError):
+            sim.state.compute("abc")
+        sim.state.compute("abc", RAISE_ERROR=False)
+
+        ux_fft = sim.state.compute("ux_fft")
+        uy_fft = sim.state.compute("uy_fft")
+
+        sim.state.init_statespect_from(ux_fft=ux_fft)
+        sim.state.init_statespect_from(uy_fft=uy_fft)
+
+        sim.output.compute_enstrophy()
+
+        if mpi.nb_proc == 1:
+
+            plt.close("all")
+
+            sim.output.frequency_spectra.compute_frequency_spectra()
+
+            sim.output.plot_summary()
+
+            sim.output.spectra.plot2d()
+
+            sim.output.spatial_means.plot_energy()
+            sim.output.spatial_means.plot_dt_energy()
+            sim.output.spatial_means.plot_energy_shear_modes()
+
+            plt.close("all")
+            sim.output.spatial_means.compute_time_means()
+            sim.output.spatial_means.load_dataset()
+            sim.output.spatial_means.time_first_saved()
+            sim.output.spatial_means.time_last_saved()
+
+            sim.output.spectra_multidim.plot()
 
             with self.assertRaises(ValueError):
-                sim.state.compute("abc")
-            sim.state.compute("abc", RAISE_ERROR=False)
+                sim.state.get_var("test")
 
-            ux_fft = sim.state.compute("ux_fft")
-            uy_fft = sim.state.compute("uy_fft")
+            sim2 = fls.load_sim_for_plot(sim.output.path_run)
+            sim2.output
 
-            sim.state.init_statespect_from(ux_fft=ux_fft)
-            sim.state.init_statespect_from(uy_fft=uy_fft)
+            spatio_temporal_spectra = sim2.output.spatio_temporal_spectra
+            spatio_temporal_spectra.compute_frequency_spectra()
+            spatio_temporal_spectra.print_info_frequency_spectra()
+            spatio_temporal_spectra.plot_frequency_spectra_individual_mode((1, 1))
 
-            sim.output.compute_enstrophy()
+            sim2.output.increments.load()
+            sim2.output.increments.plot()
+            sim2.output.increments.load_pdf_from_file()
 
-            if mpi.nb_proc == 1:
+            sim2.output.phys_fields.animate(
+                "ux",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=False,
+                numfig=1,
+            )
+            sim2.output.phys_fields.plot()
 
-                sim.output.frequency_spectra.compute_frequency_spectra()
+        # `compute('q')` two times for better coverage...
+        sim.state.get_var("q")
+        sim.state.get_var("q")
+        sim.state.get_var("div")
 
-                sim.output.plot_summary()
+        path_run = sim.output.path_run
+        if mpi.nb_proc > 1:
+            path_run = mpi.comm.bcast(path_run)
 
-                sim.output.spectra.plot2d()
+        sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+        sim3.params.time_stepping.t_end += 0.2
+        sim3.time_stepping.start()
 
-                sim.output.spatial_means.plot_energy()
-                sim.output.spatial_means.plot_dt_energy()
-                sim.output.spatial_means.plot_energy_shear_modes()
-
-                plt.close("all")
-                sim.output.spatial_means.compute_time_means()
-                sim.output.spatial_means.load_dataset()
-                sim.output.spatial_means.time_first_saved()
-                sim.output.spatial_means.time_last_saved()
-
-                sim.output.spectra_multidim.plot()
-
-                with self.assertRaises(ValueError):
-                    sim.state.get_var("test")
-
-                sim2 = fls.load_sim_for_plot(sim.output.path_run)
-                sim2.output
-
-                spatio_temporal_spectra = sim2.output.spatio_temporal_spectra
-                spatio_temporal_spectra.compute_frequency_spectra()
-                spatio_temporal_spectra.print_info_frequency_spectra()
-                spatio_temporal_spectra.plot_frequency_spectra_individual_mode((1, 1))
-
-                sim2.output.increments.load()
-                sim2.output.increments.plot()
-                sim2.output.increments.load_pdf_from_file()
-
-                sim2.output.phys_fields.animate(
-                    "ux",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
-                sim2.output.phys_fields.plot()
-
-            # `compute('q')` two times for better coverage...
-            sim.state.get_var("q")
-            sim.state.get_var("q")
-            sim.state.get_var("div")
-
-            path_run = sim.output.path_run
-            if mpi.nb_proc > 1:
-                path_run = mpi.comm.bcast(path_run)
-
-            sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
-            sim3.params.time_stepping.t_end += 0.2
-            sim3.time_stepping.start()
-
-            if mpi.nb_proc == 1:
-                sim3.output.phys_fields.animate(
-                    "ux",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
+        if mpi.nb_proc == 1:
+            sim3.output.phys_fields.animate(
+                "ux",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=False,
+                numfig=1,
+            )
         plt.close("all")
 
 
@@ -249,8 +247,9 @@ class TestSolverNS2DInitLinearMode(TestSimulBase):
         params.init_fields.type = "linear_mode"
         params.output.HAS_TO_SAVE = False
 
-    def _test_init_linear_mode(self):
+    def test_init_linear_mode(self):
         pass
+
 
 if __name__ == "__main__":
     unittest.main()

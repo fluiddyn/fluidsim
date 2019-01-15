@@ -1,14 +1,15 @@
-import unittest
+
 from shutil import rmtree
 
 import matplotlib.pyplot as plt
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 from fluidsim.solvers.test.test_ns import run_mini_simul
 
+from fluidsim.util.testing import TestCase
 
-class BaseTestCase(unittest.TestCase):
+
+class BaseTestCase(TestCase):
     """ TestCase classes that want to be parametrized should
         inherit from this class.
     """
@@ -47,21 +48,20 @@ class BaseTestCase(unittest.TestCase):
         module = self.module
 
         tmax = self.sim.params.time_stepping.t_end
-        with stdout_redirected():
-            try:
-                if hasattr(self.sim.params.output.periods_save, self._tag):
-                    delta_t = getattr(
-                        self.sim.params.output.periods_save, self._tag
-                    )
-                else:
-                    raise TypeError
+        try:
+            if hasattr(self.sim.params.output.periods_save, self._tag):
+                delta_t = getattr(
+                    self.sim.params.output.periods_save, self._tag
+                )
+            else:
+                raise TypeError
 
-                module.plot(tmin=0, tmax=tmax, delta_t=delta_t)
-            except TypeError:
-                module.plot()
+            module.plot(tmin=0, tmax=tmax, delta_t=delta_t)
+        except TypeError:
+            module.plot()
 
-            plt.clf()
-            plt.close("all")
+        plt.clf()
+        plt.close("all")
 
     def _online_plot_saving(self, *args):
         module = self.module
