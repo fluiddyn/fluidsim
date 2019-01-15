@@ -270,7 +270,7 @@ setup(
     extras_require=dict(
         doc=["Sphinx>=1.1", "numpydoc"],
         parallel=["mpi4py"],
-        sphere=["fluidsht"],
+        sphere=["fluidsht>=0.0.2a0"],
     ),
     cmdclass={"build_ext": fluidsim_build_ext},
     ext_modules=ext_modules,
