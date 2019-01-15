@@ -208,7 +208,7 @@ class Simul(SimulNS2D):
         pt_energy = self.oper.sum_wavenumbers(pt_energy_fft)
         ratio = pt_energy / self.oper.sum_wavenumbers(abs(pt_energy_fft))
 
-        epsilon = 1e-15
+        epsilon = 1e-14
         energy_conserved = ratio < epsilon
         if not energy_conserved:
             print("Energy is not conserved!")
