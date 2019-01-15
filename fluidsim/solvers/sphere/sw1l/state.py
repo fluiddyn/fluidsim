@@ -3,7 +3,7 @@
 
 Provides:
 
-.. autoclass:: StateSphericalHarmo
+.. autoclass:: StateSphericalHarmoSW1L
    :members:
    :private-members:
 

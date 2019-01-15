@@ -1,5 +1,5 @@
-"""1-layer Shallow-Water solvers over a sphere (:mod:`fluidsim.solvers.sw1l`)
-=============================================================================
+"""1-layer Shallow-Water solvers over a sphere (:mod:`fluidsim.solvers.sphere.sw1l`)
+====================================================================================
 
 Provides
 
