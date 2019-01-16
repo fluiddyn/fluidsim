@@ -25,7 +25,10 @@ from fluiddyn.util import mpi
 class TestCase(unittest.TestCase):
 
     # True except if pytest is used...
-    has_to_redirect_stdout = not any("pytest" in arg for arg in sys.argv)
+    has_to_redirect_stdout = not any(
+        any(test_tool in arg for arg in sys.argv)
+        for test_tool in ("pytest", "py.test")
+    )
 
     def run(self, result=None):
         with stdout_redirected(self.has_to_redirect_stdout):

@@ -36,10 +36,10 @@ class TestsProfile(TestCase):
         run_profile()
 
         if mpi.nb_proc == 1:
-            paths = glob(path_dir + "/*")
-            path = paths[0]
             command = "fluidsim-profile -p -sf"
             args = command.split()
+            paths = glob(path_dir + "/*")
+            path = paths[0]
             args.append(path)
             sys.argv = args
             run_profile()

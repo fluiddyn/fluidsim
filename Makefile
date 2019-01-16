@@ -1,7 +1,8 @@
-
-
 develop:
 	python setup.py develop
+
+develop_pip:
+	pip install -v -e .
 
 clean_so:
 	find fluidsim -name "*.so" -delete
