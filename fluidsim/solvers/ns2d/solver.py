@@ -18,7 +18,7 @@ import sys
 
 import numpy as np
 
-from fluidpythran import boost, Array
+from transonic import boost, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 

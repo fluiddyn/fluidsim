@@ -12,9 +12,9 @@ Provides
 import numpy as np
 from fluiddyn.util.compat import cached_property
 
-# pythran import numpy as np
+# transonic import numpy as np
 
-from fluidpythran import cachedjit, Array
+from transonic import jit, Array
 
 from fluidsim.operators.operators2d import (
     OperatorsPseudoSpectral2D,
@@ -27,7 +27,7 @@ AC = Array[np.complex128, "2d"]
 AF = Array[np.float64, "2d"]
 
 
-@cachedjit
+@jit
 def _qapamfft_from_uxuyetafft(
     ux_fft: AC,
     uy_fft: AC,
@@ -111,11 +111,10 @@ def _qapamfft_from_uxuyetafft(
 
 
 class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
-
     @cached_property
     def Kappa2_not0(self):
         return self.K2_not0 + self.params.kd2
-    
+
     @cached_property
     def Kappa_over_ic(self):
         Kappa2 = self.K2 + self.params.kd2

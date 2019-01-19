@@ -17,16 +17,16 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
-from fluidpythran import cachedjit
+from transonic import jit
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 
 from fluidsim.base.output.base import SpecificOutput
 
-# pythran import numpy as np
+# transonic import numpy as np
 
 
-@cachedjit
+@jit
 def compute_correl4_seq(
     q_fftt: "complex128[][]", iomegas1: "int32[]", nb_omegas: int, nb_xs_seq: int
 ):
@@ -96,7 +96,7 @@ def compute_correl4_seq(
     return corr4
 
 
-@cachedjit
+@jit
 def compute_correl2_seq(
     q_fftt: "complex128[][]", iomegas1: "int32[]", nb_omegas: int, nb_xs_seq: int
 ):

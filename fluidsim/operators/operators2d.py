@@ -13,21 +13,21 @@ from warnings import warn
 
 import numpy as np
 
-from fluidpythran import boost, Array, FluidPythran
+from transonic import boost, Array, Transonic
 from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from ..base.setofvariables import SetOfVariables
 from .. import _is_testing
 
-fp = FluidPythran()
+ts = Transonic()
 
-if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
+if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     warn(
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."
     )
-elif fp.is_transpiling:
+elif ts.is_transpiling:
     _Operators = object
 
 
@@ -59,7 +59,7 @@ def compute_increments_dim1(var: Af, irx: int):
     return inc_var
 
 
-if not fp.is_transpiling:
+if not ts.is_transpiling:
     nb_proc = mpi.nb_proc
     rank = mpi.rank
 else:

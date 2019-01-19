@@ -2,15 +2,15 @@ import h5py
 import os
 import numpy as np
 
-# pythran import numpy as np
+# transonic import numpy as np
 
-from fluidpythran import boost, Array
+from transonic import boost, Array
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
 
 A = Array[float, "2d"]
-# pythran def strfunc_from_pdf(
+# transonic def strfunc_from_pdf(
 #     int32[], float64[][], float64[][], float, bool)
 
 

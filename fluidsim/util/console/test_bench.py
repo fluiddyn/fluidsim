@@ -36,13 +36,7 @@ class TestBench(TestCase):
         # Can plot only parallel benchmarks
         if mpi.rank == 0 and mpi.nb_proc == 0:
             plot_scaling(
-                path_tmp,
-                "ns2d",
-                "any",
-                2 * n0,
-                n0,
-                show=False,
-                type_plot="weak",
+                path_tmp, "ns2d", "any", 2 * n0, n0, show=False, type_plot="weak"
             )
 
     def test3d(self):

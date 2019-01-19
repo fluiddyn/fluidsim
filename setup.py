@@ -51,34 +51,36 @@ else:
 
 here = Path(__file__).parent.absolute()
 
-from fluidpythran.dist import make_pythran_files
+if "egg_info" not in sys.argv:
 
-paths = [
-    "fluidsim/base/time_stepping/pseudo_spect.py",
-    "fluidsim/base/output/increments.py",
-    "fluidsim/operators/operators2d.py",
-    "fluidsim/operators/operators3d.py",
-    "fluidsim/solvers/ns2d/solver.py",
-]
-make_pythran_files(
-    [here / path for path in paths],
-    mocked_modules=(
-        "psutil",
-        "h5py",
-        "matplotlib",
-        "matplotlib.pyplot",
-        "fluiddyn",
-        "fluiddyn.io",
-        "fluiddyn.util",
-        "fluiddyn.util.paramcontainer",
-        "fluiddyn.util.mpi",
-        "fluiddyn.output",
-        "fluiddyn.calcul",
-        "fluiddyn.calcul.setofvariables",
-        "fluidfft.fft2d.operators",
-        "fluidfft.fft3d.operators",
-    ),
-)
+    from transonic.dist import make_backend_files
+
+    paths = [
+        "fluidsim/base/time_stepping/pseudo_spect.py",
+        "fluidsim/base/output/increments.py",
+        "fluidsim/operators/operators2d.py",
+        "fluidsim/operators/operators3d.py",
+        "fluidsim/solvers/ns2d/solver.py",
+    ]
+    make_backend_files(
+        [here / path for path in paths],
+        mocked_modules=(
+            "psutil",
+            "h5py",
+            "matplotlib",
+            "matplotlib.pyplot",
+            "fluiddyn",
+            "fluiddyn.io",
+            "fluiddyn.util",
+            "fluiddyn.util.paramcontainer",
+            "fluiddyn.util.mpi",
+            "fluiddyn.output",
+            "fluiddyn.calcul",
+            "fluiddyn.calcul.setofvariables",
+            "fluidfft.fft2d.operators",
+            "fluidfft.fft3d.operators",
+        ),
+    )
 
 time_start = time()
 config = get_config()
@@ -147,7 +149,7 @@ install_requires = [
     "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran>=0.1.4",
+    "transonic>=0.1.8",
     "setuptools_scm",
     "xarray",
 ]

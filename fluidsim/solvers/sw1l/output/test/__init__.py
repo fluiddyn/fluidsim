@@ -1,4 +1,3 @@
-
 from shutil import rmtree
 
 import matplotlib.pyplot as plt
@@ -50,9 +49,7 @@ class BaseTestCase(TestCase):
         tmax = self.sim.params.time_stepping.t_end
         try:
             if hasattr(self.sim.params.output.periods_save, self._tag):
-                delta_t = getattr(
-                    self.sim.params.output.periods_save, self._tag
-                )
+                delta_t = getattr(self.sim.params.output.periods_save, self._tag)
             else:
                 raise TypeError
 

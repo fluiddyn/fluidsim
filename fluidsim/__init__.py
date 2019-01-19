@@ -29,8 +29,8 @@ import os
 import sys
 
 if "FLUIDSIM_PATH" in os.environ:
-    os.environ["FLUIDPYTHRAN_DIR"] = str(
-        Path(os.environ["FLUIDSIM_PATH"]) / ".fluidpythran"
+    os.environ["TRANSONIC_DIR"] = str(
+        Path(os.environ["FLUIDSIM_PATH"]) / ".transonic"
     )
 
 _is_testing = False
@@ -57,10 +57,10 @@ if any(
     plt.show = _show
 
     if "FLUID_COMPILE_CACHEDJIT" not in os.environ:
-        mpi.printby0("Compilation of cachedjit functions disabled.")
-        from fluidpythran import set_compile_cachedjit
+        mpi.printby0("Compilation of jit functions disabled.")
+        from transonic import set_compile_jit
 
-        set_compile_cachedjit(False)
+        set_compile_jit(False)
 
 from ._version import __version__, get_local_version
 
@@ -70,7 +70,7 @@ from fluiddyn.io import FLUIDSIM_PATH
 try:
     path_dir_results = Path(FLUIDSIM_PATH)
 except TypeError:
-    # to be able to import for fluidpythran
+    # to be able to import for transonic
     path_dir_results = None
 
 from .util.util import (

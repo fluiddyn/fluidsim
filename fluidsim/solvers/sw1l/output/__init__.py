@@ -18,12 +18,12 @@
 
 import numpy as np
 
-from fluidpythran import cachedjit
+from transonic import jit
 
 from fluidsim.base.output import OutputBasePseudoSpectral
 
 
-@cachedjit
+@jit
 def linear_eigenmode_from_values_1k(
     ux_fft: np.complex128,
     uy_fft: np.complex128,
