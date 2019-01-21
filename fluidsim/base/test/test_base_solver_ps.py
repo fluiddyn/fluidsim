@@ -49,13 +49,13 @@ class TestBaseSolverPS(TestSimul):
         params.nu_2 = 1.0
 
         params.time_stepping.t_end = 0.4
+        params.time_stepping.type_time_scheme = "RK2"
 
     def test_simul(self):
         """Should be able to run a base experiment."""
         self.sim.time_stepping.start()
         load_params_simul(
-            self.sim.output.path_run + "/params_simul.xml",
-            only_mpi_rank0=False,
+            self.sim.output.path_run + "/params_simul.xml", only_mpi_rank0=False
         )
 
         fld.show()

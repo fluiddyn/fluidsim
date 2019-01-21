@@ -1,4 +1,3 @@
-
 from fluidsim.util.testing import TestSimul
 from fluidsim.solvers.waves2d.solver import Simul
 

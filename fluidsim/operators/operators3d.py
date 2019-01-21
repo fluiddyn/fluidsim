@@ -14,7 +14,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from fluidpythran import boost, Array, FluidPythran
+from transonic import boost, Array, Transonic
 from fluiddyn.util.mpi import nb_proc, rank
 from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
@@ -23,7 +23,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 from .. import _is_testing
 
-fp = FluidPythran()
+ts = Transonic()
 
 Asov = Array[np.complex128, "4d"]
 Aui8 = Array[np.uint8, "3d"]
@@ -76,11 +76,11 @@ def dealiasing_variable_numpy(ff_fft: Ac, where_dealiased: Aui8):
     ff_fft[np.nonzero(where_dealiased)] = 0.0
 
 
-if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
+if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     # for example if Pythran is not available
     dealiasing_variable = dealiasing_variable_numpy
     dealiasing_setofvar = dealiasing_setofvar_numpy
-elif fp.is_transpiling:
+elif ts.is_transpiling:
     _Operators = object
 
 

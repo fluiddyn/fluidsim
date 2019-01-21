@@ -109,9 +109,7 @@ class TestOutput(TestSimulBase):
             coef_plot_k53=1.0,
         )
 
-        sim2.output.phys_fields.set_equation_crosssection(
-            f"x={sim.oper.Lx/4}"
-        )
+        sim2.output.phys_fields.set_equation_crosssection(f"x={sim.oper.Lx/4}")
         sim2.output.phys_fields.animate("vx")
 
         sim2.output.phys_fields.plot(field="vx", time=10)

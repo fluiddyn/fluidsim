@@ -10,7 +10,7 @@
    :private-members:
 
 """
-from fluidpythran import cachedjit
+from transonic import jit
 from fluidsim.base.sphericalharmo.solver import (
     InfoSolverSphericalHarmo,
     SimulSphericalHarmo,
@@ -22,7 +22,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 Af = "float64[:, :]"
 
 
-@cachedjit
+@jit
 def compute_Frot(rot: Af, ux: Af, uy: Af, f_radial: Af):
     """Compute cross-product of absolute potential vorticity with velocity."""
     rot_abs = rot + f_radial
@@ -50,8 +50,8 @@ class InfoSolverSphereSW1L(InfoSolverSphericalHarmo):
         self.classes.State.module_name = here + ".state"
         self.classes.State.class_name = "StateSphericalHarmoSW1L"
 
-        self.classes.Output.module_name = here + '.output'
-        self.classes.Output.class_name = 'Output'
+        self.classes.Output.module_name = here + ".output"
+        self.classes.Output.class_name = "Output"
 
 
 class SimulSphereSW1L(SimulSphericalHarmo):
@@ -155,8 +155,7 @@ class SimulSphereSW1L(SimulSphericalHarmo):
         # Subtract laplacian of K.E. + hydrostatic pressure term from
         # divergence tendency
         Fdiv_sh += oper.laplacian_sh(
-            oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta),
-            negative=True,
+            oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta), negative=True
         )
 
         # Calculate Feta_sh = \nabla.(hu) = \nabla.((1 + \eta)u)

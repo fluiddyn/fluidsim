@@ -33,8 +33,8 @@ tests_mpi:
 _tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m fluidsim.util.testing -v
-	FLUIDPYTHRAN_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
-	FLUIDPYTHRAN_NO_REPLACE=1 mpirun -np 2 coverage run -p -m fluidsim.util.testing -v
+	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
+	TRANSONIC_NO_REPLACE=1 mpirun -np 2 coverage run -p -m fluidsim.util.testing -v
 
 _report_coverage:
 	coverage combine
@@ -48,7 +48,7 @@ coverage: _tests_coverage _report_coverage
 
 coverage_short:
 	mkdir -p .coverage
-	FLUIDPYTHRAN_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
+	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
 	make _report_coverage
 
 lint:

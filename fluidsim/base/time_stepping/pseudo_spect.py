@@ -25,11 +25,13 @@ import os
 
 import numpy as np
 
-from fluidpythran import FluidPythran, Type, NDim, Array
+from transonic import Transonic, Type, NDim, Array
 
 from .base import TimeSteppingBase
 
-fp = FluidPythran()
+from ... import _is_testing
+
+ts = Transonic()
 
 N = NDim(3, 4)
 A = Array[np.complex128, N]
@@ -37,6 +39,12 @@ A = Array[np.complex128, N]
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N]
 A2 = Array[T, N - 1]
+
+
+use_cython = os.environ.get("FLUIDSIM_TIMESTEPPING_CYTHON", False)
+
+if not ts.is_compiled and not _is_testing:
+    use_cython = True
 
 
 class ExactLinearCoefs(object):
@@ -121,11 +129,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if params_ts.type_time_scheme == "RK4":
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
 
-        if os.environ.get("FLUIDSIM_USE_FLUIDPYTHRAN", False):
+        if not use_cython:
             if params_ts.type_time_scheme == "RK2":
-                time_step_RK = self._time_step_RK2_fluidpythran
+                time_step_RK = self._time_step_RK2
             else:
-                time_step_RK = self._time_step_RK4_fluidpythran
+                time_step_RK = self._time_step_RK4
             self._time_step_RK = time_step_RK
             return
 
@@ -233,32 +241,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect = self.sim.state.state_spect
 
         tendencies_n = compute_tendencies()
-        state_spect_n12 = (state_spect + dt / 2 * tendencies_n) * diss2
-        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
-        self.sim.state.state_spect = (
-            state_spect * diss + dt * diss2 * tendencies_n12
-        )
-
-    def _time_step_RK2_fluidpythran(self):
-        dt = self.deltat
-        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-
-        compute_tendencies = self.sim.tendencies_nonlin
-        state_spect = self.sim.state.state_spect
-
-        tendencies_n = compute_tendencies()
 
         state_spect_n12 = self._state_spect_tmp
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk2_step0")
+        if ts.is_transpiled:
+            ts.use_block("rk2_step0")
         else:
-            # pythran block (
+            # transonic block (
             #     A state_spect_n12, state_spect, tendencies_n;
             #     A1 diss2;
             #     float dt
             # )
-            # pythran block (
+            # transonic block (
             #     A state_spect_n12, state_spect, tendencies_n;
             #     A2 diss2;
             #     float dt
@@ -268,16 +262,16 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk2_step1")
+        if ts.is_transpiled:
+            ts.use_block("rk2_step1")
         else:
-            # pythran block (
+            # transonic block (
             #     A state_spect, tendencies_n12;
             #     A1 diss, diss2;
             #     float dt
             # )
 
-            # pythran block (
+            # transonic block (
             #     A state_spect, tendencies_n12;
             #     A2 diss, diss2;
             #     float dt
@@ -378,46 +372,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              + \frac{1}{2} N(S_{A3dt})\right].
 
         """
-
-        dt = self.deltat
-        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-
-        compute_tendencies = self.sim.tendencies_nonlin
-        state_spect = self.sim.state.state_spect
-
-        tendencies_0 = compute_tendencies()
-
-        # based on approximation 1
-        state_spec_tmp = (state_spect + dt / 6 * tendencies_0) * diss
-        state_spect_np12_approx1 = (state_spect + dt / 2 * tendencies_0) * diss2
-
-        tendencies_1 = compute_tendencies(
-            state_spect_np12_approx1, old=tendencies_0
-        )
-        del state_spect_np12_approx1
-
-        # based on approximation 2
-        state_spec_tmp += dt / 3 * diss2 * tendencies_1
-        state_spect_np12_approx2 = state_spect * diss2 + dt / 2 * tendencies_1
-
-        tendencies_2 = compute_tendencies(
-            state_spect_np12_approx2, old=tendencies_1
-        )
-        del state_spect_np12_approx2
-
-        # based on approximation 3
-        state_spec_tmp += dt / 3 * diss2 * tendencies_2
-        state_spect_np1_approx = state_spect * diss + dt * diss2 * tendencies_2
-
-        tendencies_3 = compute_tendencies(
-            state_spect_np1_approx, old=tendencies_2
-        )
-        del state_spect_np1_approx
-
-        # result using the 4 approximations
-        self.sim.state.state_spect = state_spec_tmp + dt / 6 * tendencies_3
-
-    def _time_step_RK4_fluidpythran(self):
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
@@ -429,18 +383,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_tmp1 = self._state_spect_tmp1
         state_spect_np12_approx1 = state_spect_tmp1
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk4_step0")
+        if ts.is_transpiled:
+            ts.use_block("rk4_step0")
         else:
             # based on approximation 0
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       tendencies_0, state_spect_np12_approx1;
             #     A1 diss, diss2;
             #     float dt
             # )
 
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       tendencies_0, state_spect_np12_approx1;
             #     A2 diss, diss2;
@@ -459,18 +413,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_np12_approx2 = state_spect_tmp1
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk4_step1")
+        if ts.is_transpiled:
+            ts.use_block("rk4_step1")
         else:
             # based on approximation 1
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       state_spect_np12_approx2, tendencies_1;
             #     A1 diss2;
             #     float dt
             # )
 
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       state_spect_np12_approx2, tendencies_1;
             #     A2 diss2;
@@ -489,18 +443,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_np1_approx = state_spect_tmp1
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk4_step2")
+        if ts.is_transpiled:
+            ts.use_block("rk4_step2")
         else:
             # based on approximation 2
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       state_spect_np1_approx, tendencies_2;
             #     A1 diss, diss2;
             #     float dt
             # )
 
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp,
             #       state_spect_np1_approx, tendencies_2;
             #     A2 diss, diss2;
@@ -517,11 +471,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
         del state_spect_np1_approx
 
-        if fp.is_transpiled:
-            fp.use_pythranized_block("rk4_step3")
+        if ts.is_transpiled:
+            ts.use_block("rk4_step3")
         else:
             # result using the 4 approximations
-            # pythran block (
+            # transonic block (
             #     A state_spect, state_spect_tmp, tendencies_3;
             #     float dt
             # )

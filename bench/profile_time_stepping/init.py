@@ -34,8 +34,8 @@ print("used time stepping func:\n", sim.time_stepping._time_step_RK)
 %timeit sim.time_stepping._time_step_RK2()
 # pythran
 %timeit sim.time_stepping._time_step_RK2_pythran()
-# fluidpythran
-%timeit sim.time_stepping._time_step_RK2_fluidpythran()
+# transonic
+%timeit sim.time_stepping._time_step_RK2_transonic()
 
 108 ms ± 292 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 94.1 ms ± 449 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
@@ -45,8 +45,8 @@ print("used time stepping func:\n", sim.time_stepping._time_step_RK)
 %timeit sim.time_stepping._time_step_RK()
 # numpy
 %timeit sim.time_stepping._time_step_RK4()
-# fluidpythran
-%timeit sim.time_stepping._time_step_RK4_fluidpythran()
+# transonic
+%timeit sim.time_stepping._time_step_RK4_transonic()
 
 243 ms ± 6.93 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 263 ms ± 5.38 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)

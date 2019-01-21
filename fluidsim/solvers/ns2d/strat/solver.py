@@ -9,7 +9,7 @@
 
 import numpy as np
 
-from fluidpythran import cachedjit, Array
+from transonic import jit, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -18,7 +18,7 @@ from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
 AF = Array[np.float64, "2d"]
 
 
-@cachedjit
+@jit
 def tendencies_nonlin_ns2dstrat(
     ux: AF, uy: AF, px_rot: AF, py_rot: AF, px_b: AF, py_b: AF, N: float
 ):
