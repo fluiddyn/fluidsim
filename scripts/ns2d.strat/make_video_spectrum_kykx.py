@@ -1,44 +1,65 @@
 """
 make_video_spectrum_kykx.py
 ===========================
-"""
+Last modification : 17/01/2019
 
-import os
+Makes animation energy spectra (kx, ky) evolution in time.
+
+The two keys plotted are ap_fft and am_fft
+"""
+from pathlib import Path
+
 import h5py
 import numpy as np
+import argparse
 import matplotlib.pyplot as plt
 
 from matplotlib import animation
 from fluidsim import load_state_phys_file
 
+# Parameters
+key = "ap_fft"
+kz_negative_enable = True
+SAVE = True
 
-### Path simulation
-# Forcing ap_fft, two quadrants
-# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-29"
+# Create path with pathlib package.
+root_dir = Path(
+    "/fsnet/project/meige/2015/15DELDUCA/DataSim") / \
+    "isotropy_forcing_multidim"
 
-# Forcing ap_fft, one quadrants
-path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_16-04-25"
+list_simulations = [item for item in root_dir.glob("NS2D*")]
 
-# forcing rot_fft, two quadrants
-# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-35"
+index = None
+if key == "ap_fft":
+    if kz_negative_enable:
+        index = 0
+    elif not kz_negative_enable:
+        index = 3
 
-# rot_fft, one quadrant
-# path = "/fsnet/project/meige/2015/15DELDUCA/DataSim/isotropy_forcing_multidim/NS2D.strat_960x240_S2pix1.571_F07_gamma1_2018-12-03_15-54-38"
+elif key == "rot_fft":
+    if kz_negative_enable:
+        index = 1
+    elif not kz_negative_enable:
+        index = 2
+
+if not index in np.arange(len(list_simulations)):
+    raise ValueError("index should be defined.")
+
+path = list_simulations[index]
 
 ### Parameters
 skip = 2
-tmin = 2
-tmax = 500
+tmin = 4
+tmax = 400
 scale = "log" # can be "linear"
-SAVE = False
 
 # Load object simulation
-sim = load_state_phys_file(path)
+sim = load_state_phys_file(path.as_posix(), merge_missing_params=True)
 poper = sim.params.oper
 pforcing = sim.params.forcing
 
 # Load data
-with h5py.File(path + "/spectra_multidim.h5", "r") as f:
+with h5py.File((path / "spectra_multidim.h5").as_posix(), "r") as f:
 
     times = f["times"].value
     itmin = np.argmin(abs(times - tmin))

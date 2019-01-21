@@ -83,7 +83,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
-        nb_bytes = np.empty([nK0, nK1], dtype=complex).nbytes
+        nb_bytes = np.empty([nK0_dec, nK1_dec], dtype=complex).nbytes
         self.nb_arr_in_file = int(self.size_max_file * (1024 ** 2) // nb_bytes)
         if mpi.rank == 0:
             print("nb_arr_in_file", self.nb_arr_in_file)
@@ -109,7 +109,7 @@ class SpatioTempSpectra(SpecificOutput):
         else:
             # Array 4D (2 keys, times, n0, n1)
             self.spatio_temp_new = np.empty(
-                [2, self.nb_arr_in_file, nK0, nK1], dtype=complex
+                [2, self.nb_arr_in_file, nK0_dec, nK1_dec], dtype=complex
             )
         # Convert time_start to it_start
         self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
