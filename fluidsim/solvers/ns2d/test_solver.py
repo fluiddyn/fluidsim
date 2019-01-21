@@ -170,6 +170,20 @@ class TestForcingOutput(TestSimulBase):
                 )
         plt.close("all")
 
+        # test_enstrophy_conservation
+        # Verify that the enstrophy growth rate due to nonlinear tendencies
+        # (advection term) must be zero.
+        self.sim.params.forcing.enable = False
+        tendencies_fft = self.sim.tendencies_nonlin()
+        state_spect = self.sim.state.state_spect
+        oper = self.sim.oper
+        Frot_fft = tendencies_fft.get_var("rot_fft")
+        rot_fft = state_spect.get_var("rot_fft")
+
+        T_rot = (Frot_fft.conj() * rot_fft + Frot_fft * rot_fft.conj()).real / 2.0
+        sum_T = oper.sum_wavenumbers(T_rot)
+        self.assertAlmostEqual(sum_T, 0, places=14)
+
 
 class TestSolverNS2DInitJet(TestSimulBase):
     @classmethod

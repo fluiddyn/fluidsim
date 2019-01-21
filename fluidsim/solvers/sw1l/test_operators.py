@@ -7,7 +7,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidsim.util.testing import TestCase
 
-from .operators import OperatorsPseudoSpectralSW1L
+from fluidsim.solvers.sw1l.operators import OperatorsPseudoSpectralSW1L
 
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):

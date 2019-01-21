@@ -271,6 +271,7 @@ setup(
         doc=["Sphinx>=1.1", "numpydoc"],
         parallel=["mpi4py"],
         sphere=["fluidsht>=0.0.2a0"],
+        test=["pytest", "pytest-cov"],
     ),
     cmdclass={"build_ext": fluidsim_build_ext},
     ext_modules=ext_modules,

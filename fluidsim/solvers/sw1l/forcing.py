@@ -126,7 +126,7 @@ class WavesVortices(Waves):
             )
 
             if mpi.rank == 0:
-                Fv_fft["F" + key] = self.forcingc_raw_each_time()
+                Fv_fft["F" + key] = self.forcingc_raw_each_time(key)
 
         if mpi.rank == 0:
             kwargs = v_fft
