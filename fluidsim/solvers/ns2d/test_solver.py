@@ -61,6 +61,31 @@ class TestSolverNS2DTendency(TestSimulBase):
         self.assertGreater(1e-15, ratio)
 
 
+class TestForcingProportional(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "proportional"
+
+    def test_proportional(self):
+        self.sim.time_stepping.start()
+        self.sim.forcing.forcing_maker.verify_injection_rate()
+        self.sim.forcing.forcing_maker.verify_injection_rate_coarse()
+
+
+class TestForcing(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.type = "particular_k"
+
+    def test_(self):
+        self.sim.time_stepping.start()
+
+
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):

@@ -83,6 +83,9 @@ class TestSolverAD1D(TestSimul):
         sim.oper.identity()
         sim.oper.pxx(dx_s)
 
+        sim.output.phys_fields.plot()
+        sim.output.phys_fields.plot(field="s", time=10)
+
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
 class TestInitAD1D(TestSimul):

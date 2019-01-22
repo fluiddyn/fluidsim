@@ -44,7 +44,7 @@ class InfoSolverLorenz(InfoSolverBase):
     """Contain the information on the solver predaprey."""
 
     def _init_root(self):
-        super(InfoSolverLorenz, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.models0d.lorenz"
         self.module_name = package + ".solver"
@@ -61,7 +61,7 @@ class InfoSolverLorenz(InfoSolverBase):
 
 
 class Simul(SimulBase):
-    """Solve the Lotka-Volterra equations.
+    """Solve the Lorenz equations.
 
     """
 
@@ -75,7 +75,7 @@ class Simul(SimulBase):
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):
-        super(Simul, self).__init__(*args, **kargs)
+        super().__init__(*args, **kargs)
         p = self.params
         Zs = self.Zs0 = self.Zs1 = p.rho - 1
         self.Xs0 = self.Ys0 = sqrt(p.beta * Zs)
@@ -132,6 +132,8 @@ class Simul(SimulBase):
         tendencies.set_var("Z", X * Y - p.beta * Z)
 
         if self.params.forcing.enable:
+            # TODO: Not implemented, but would be nice to study small perturbations
+            # cf: Vallis 2nd edition 11.4
             tendencies += self.forcing.get_forcing()
 
         return tendencies
@@ -143,7 +145,7 @@ if __name__ == "__main__":
     params = Simul.create_default_params()
 
     params.time_stepping.deltat0 = 0.02
-    params.time_stepping.t_end = 20
+    params.time_stepping.t_end = 40
 
     params.output.periods_print.print_stdout = 0.01
 
@@ -153,6 +155,6 @@ if __name__ == "__main__":
     sim.state.state_phys.set_var("Y", sim.Ys0)
     sim.state.state_phys.set_var("Z", sim.Zs0)
 
-    # sim.output.phys_fields.plot()
+    # sim.output.print_stdout.plot_XYZ()
     sim.time_stepping.start()
     fld.show()

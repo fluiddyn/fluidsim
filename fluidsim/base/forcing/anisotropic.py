@@ -40,6 +40,12 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             "tcrandom_anisotropic", {"angle": "45°", "kz_negative_enable": False}
         )
 
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        if self.params.forcing.normalized.type == "particular_k":
+            raise NotImplementedError
+
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case.
         """
@@ -81,8 +87,8 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
         return COND_NO_F
 
-    def plot_forcing_1mode_time(self):
-        """Plots the forcing coherence in time."""
+    # def plot_forcing_1mode_time(self):
+    #     """Plots the forcing coherence in time."""
 
     def plot_forcing_region(self):
         """Plots the forcing region"""

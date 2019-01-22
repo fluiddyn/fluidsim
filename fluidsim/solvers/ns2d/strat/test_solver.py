@@ -89,6 +89,7 @@ class TestForcingLinearMode(TestSimulBase):
     def init_params(self):
         params = super().init_params()
 
+        params.forcing.enable = True
         params.forcing.type = "tcrandom_anisotropic"
         params.forcing.nkmin_forcing = 4
         params.forcing.nkmax_forcing = 6
@@ -97,6 +98,8 @@ class TestForcingLinearMode(TestSimulBase):
     def test_forcing_linear_mode(self):
         sim = self.sim
         sim.time_stepping.start()
+        if mpi.nb_proc == 1:
+            sim.forcing.forcing_maker.plot_forcing_region()
 
 
 class TestForcingOutput(TestSimulBase):

@@ -141,7 +141,14 @@ def import_simul_class_from_key(key, package=None):
 
 
 def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
-    """Return the path of a result directory."""
+    """Return the path of a result directory.
+
+    name_dir: str, optional
+
+      Can be an absolute path, a relative path, or even simply just
+      the name of the directory under $FLUIDSIM_PATH.
+
+    """
     if name_dir is None:
         return os.getcwd()
 
@@ -173,11 +180,16 @@ class ModulesSolvers(dict):
 def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
+    .. todo::
+
+        Can be elegantly implemented using regex as done in
+        ``fluidsim.base.output.phys_fields.time_from_path``
+
     """
     if not isinstance(path_dir, Path):
         path_dir = Path(path_dir)
 
-    path_files = tuple(path_dir.glob("state_phys_t*"))
+    path_files = sorted(tuple(path_dir.glob("state_phys_t*")))
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
         raise ValueError("No state file in the dir\n" + str(path_dir))
@@ -201,7 +213,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     return name_file
 
 
-def load_sim_for_plot(path_dir=None, merge_missing_params=False):
+def load_sim_for_plot(name_dir=None, merge_missing_params=False):
     """Create a object Simul from a dir result.
 
     Creating simulation objects with this function should be fast because the
@@ -211,9 +223,12 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
     Parameters
     ----------
 
-    path_dir : str (optional)
+    name_dir : str (optional)
 
-      Path of the directory of the simulation.
+      Name of the directory of the simulation. If nothing is given, we load the
+      data in the current directory.
+      Can be an absolute path, a relative path, or even simply just
+      the name of the directory under $FLUIDSIM_PATH.
 
     merge_missing_params : bool (optional, default == False)
 
@@ -221,7 +236,7 @@ def load_sim_for_plot(path_dir=None, merge_missing_params=False):
       version.
 
     """
-    path_dir = pathdir_from_namedir(path_dir)
+    path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
     params = load_params_simul(path_dir)
 
@@ -271,6 +286,8 @@ def load_state_phys_file(
 
       Name of the directory of the simulation. If nothing is given, we load the
       data in the current directory.
+      Can be an absolute path, a relative path, or even simply just
+      the name of the directory under $FLUIDSIM_PATH.
 
     t_approx : number (optional)
 
@@ -312,6 +329,8 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
       Name of the directory of the simulation. If nothing is given, we load the
       data in the current directory.
+      Can be an absolute path, a relative path, or even simply just
+      the name of the directory under $FLUIDSIM_PATH.
 
     t_approx : number (optional)
 
