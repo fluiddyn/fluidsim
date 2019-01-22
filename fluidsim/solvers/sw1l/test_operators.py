@@ -5,7 +5,7 @@ import sys
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidsim.util.testing import TestCase
+from fluidsim.util.testing import TestCase, stdout_redirected
 
 from fluidsim.solvers.sw1l.operators import OperatorsPseudoSpectralSW1L
 
@@ -46,7 +46,8 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
 class TestOperators(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.oper = create_oper()
+        with stdout_redirected(cls.has_to_redirect_stdout):
+            cls.oper = create_oper()
         cls.rtol = 1e-15
         cls.atol = 1e-14  # Absolute tolerance for double precision FFT
 

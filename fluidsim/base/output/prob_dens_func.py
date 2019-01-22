@@ -140,7 +140,11 @@ class ProbaDensityFunc(SpecificOutput):
             dset_pdf_u = h5file["pdf_u"]
             dset_bin_edges_u = h5file["bin_edges_u"]
 
-            delta_t_save = np.mean(times[1:] - times[0:-1])
+            if len(times) > 1:
+                delta_t_save = np.mean(times[1:] - times[0:-1])
+            else:
+                delta_t_save = delta_t
+
             delta_i_plot = int(np.round(delta_t / delta_t_save))
             if delta_i_plot == 0:
                 delta_i_plot = 1

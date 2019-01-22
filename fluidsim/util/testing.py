@@ -70,14 +70,15 @@ class TestSimulConserve(TestSimul):
     within the ``setUpClass`` method.
 
     """
+
     zero = 1e-14
 
     @classmethod
     def setUpClass(cls):
         cls.init_params()
-        with cls.Simul(cls.params) as sim, stdout_redirected(
-            cls.has_to_redirect_stdout
-        ):
+        with stdout_redirected(cls.has_to_redirect_stdout), cls.Simul(
+            cls.params
+        ) as sim:
             cls.sim = sim
             sim.time_stepping.start()
 
@@ -103,11 +104,12 @@ class TestSimulConserve(TestSimul):
 
 class TestSimulConserveOutput(TestSimulConserve):
     """A test case with methods to easily test for the output modules."""
-    def get_module_from_str(self, module):
+
+    def get_sim_output_attr_from_str(self, module):
         return getattr(self.sim.output, module)
 
-    def get_results(self, module_str):
-        module = self.get_module_from_str(module_str)
+    def get_results(self, name):
+        module = self.get_sim_output_attr_from_str(name)
         for method_str in ("compute", "load_dataset", "load"):
             try:
                 method = getattr(module, method_str)
@@ -118,11 +120,12 @@ class TestSimulConserveOutput(TestSimulConserve):
         return results
 
     @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
-    def plot(self, module_str):
+    def plot(self, name):
         """Test if plot methods work."""
         import matplotlib.pyplot as plt
-        module = self.get_module_from_str(module_str)
-        module.plot()
+
+        attr = self.get_sim_output_attr_from_str(name)
+        attr.plot()
         plt.close("all")
 
 
@@ -224,7 +227,7 @@ def import_test_module(module_name: str):
         module = import_module(module_name)
     except ModuleNotFoundError:
         module_name = ".".join(module_name.split(".")[:-1])
-        warn(f"Module not found. Attempting {module_name} instead")
+        # warn(f"Module not found. Attempting {module_name} instead")
         module = import_module(module_name)
     finally:
         return module

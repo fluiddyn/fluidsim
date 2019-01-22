@@ -13,6 +13,8 @@ import fluiddyn.output
 from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 from fluidsim import modif_resolution_from_dir, load_params_simul
 
+from fluidsim.util import times_start_end_from_path
+
 from fluidsim.base.params import load_info_solver
 
 from fluidsim.util.testing import TestSimul
@@ -64,8 +66,11 @@ class TestBaseSolverPS(TestSimul):
             return
 
         modif_resolution_from_dir(
-            self.sim.output.path_run, coef_modif_resol=3.0 / 2, PLOT=False
+            self.sim.output.path_run, coef_modif_resol=3.0 / 2, PLOT=True
         )
+
+        times_start_end_from_path(self.sim.output.path_run)
+
         path_new = os.path.join(self.sim.output.path_run, "State_phys_12x12")
         os.chdir(path_new)
         load_params_simul()

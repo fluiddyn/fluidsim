@@ -109,6 +109,8 @@ class TestForcingOutput(TestSimulBase):
         if mpi.nb_proc == 1:
             sim.output.spectra.plot1d()
             sim.output.spectra.plot2d()
+            sim.output.spectra.load2d_mean()
+            sim.output.spectra.load1d_mean()
 
             sim.output.spatial_means.plot()
             sim.output.spatial_means.plot_dt_energy()
@@ -133,6 +135,7 @@ class TestForcingOutput(TestSimulBase):
             sim2.output.increments.load()
             sim2.output.increments.plot()
             sim2.output.increments.load_pdf_from_file()
+            sim2.output.increments.plot_pdf()
 
             sim2.output.phys_fields.animate(
                 "ux",

@@ -106,10 +106,18 @@ class TestSimulSW1LModified(TestSimulConserveOutput):
 
     def test_state_compute(self):
         for key in (
-            "ux_fft", "uy_fft", "rot_fft", "div_fft", "rot", "div", "q",
-            "q_fft", "a_fft"
+            "ux_fft",
+            "uy_fft",
+            "rot_fft",
+            "div_fft",
+            "rot",
+            "div",
+            "q",
+            "q_fft",
+            "a_fft",
         ):
             var_computed = self.sim.state.compute(key)
+
 
 if __name__ == "__main__":
     unittest.main()

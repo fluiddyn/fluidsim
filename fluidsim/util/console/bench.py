@@ -10,6 +10,8 @@ import numpy as np
 from fluiddyn.util import mpi, info
 from fluiddyn.io import stdout_redirected
 
+from fluidsim import _is_testing
+
 from ..util import import_module_solver_from_key
 from .util import (
     modif_params2d,
@@ -38,7 +40,6 @@ def bench(
     n2=None,
     path_dir=None,
     type_fft=None,
-    raise_error=False,
     it_end=None,
 ):
     """Instantiate simulation object and run benchmarks."""
@@ -63,7 +64,7 @@ def bench(
         try:
             run_bench(sim, path_dir)
         except Exception as e:
-            if raise_error:
+            if _is_testing:
                 raise
 
             else:
@@ -237,11 +238,15 @@ def run(args):
         info._print_dict(d)
     elif args.print_shape_loc:
         if args.type_fft is None:
-            args.type_fft = "fft2d.mpi_with_fftw1d"
+            raise ValueError(
+                "Add the fft type, for example -t fft2d.mpi_with_fftw1d"
+            )
         print_shape_loc(args.n0, args.n1, args.n2, args.type_fft)
     elif args.estimate_shapes:
         if args.type_fft is None:
-            args.type_fft = "fft2d.mpi_with_fftw1d"
+            raise ValueError(
+                "Add the fft type, for example -t fft2d.mpi_with_fftw1d"
+            )
         estimate_shapes_weak_scaling(
             args.n0, args.n1, args.n2, type_fft=args.type_fft, show=True
         )

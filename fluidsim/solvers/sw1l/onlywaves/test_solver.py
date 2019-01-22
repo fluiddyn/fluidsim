@@ -28,8 +28,7 @@ class TestSimulSW1LWaves(TestSimulConserve):
         Fap_fft = tendencies_fft.get_var("ap_fft")
         Fam_fft = tendencies_fft.get_var("am_fft")
 
-        return self.sim.oper.uxuyetafft_from_qapamfft(
-            Fq_fft, Fap_fft, Fam_fft)
+        return self.sim.oper.uxuyetafft_from_qapamfft(Fq_fft, Fap_fft, Fam_fft)
 
     def test_energy_conservation(self):
         """Verify that the energy growth rate due to nonlinear tendencies
@@ -72,7 +71,6 @@ class TestSimulSW1LWaves(TestSimulConserve):
     def test_state_compute(self):
         for key in ("uy_fft", "rot", "q"):
             var_computed = self.sim.state.compute(key)
-
 
 
 if __name__ == "__main__":

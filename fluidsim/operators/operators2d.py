@@ -421,54 +421,15 @@ class OperatorsPseudoSpectral2D(_Operators):
         return ux_fft, uy_fft
 
     def rotfft_from_psifft(self, psi_fft):
-        rot_fft = self.laplacian_fft(psi_fft)  # -K2 * psi_fft
-        return rot_fft
+        return self.laplacian_fft(psi_fft)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KX = self.KX
-
-        px_f_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        if f_fft.dtype == np.float64:
-            ff_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * ff_fft[i0, i1]
-        else:
-            fc_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * fc_fft[i0, i1]
-
-        return px_f_fft
+        return 1j * self.KX * f_fft
 
     def pyffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KY = self.KY
-
-        py_f_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        if f_fft.dtype == np.float64:
-            ff_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * ff_fft[i0, i1]
-        else:
-            fc_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * fc_fft[i0, i1]
-
-        return py_f_fft
+        return 1j * self.KY * f_fft
 
     def laplacian2_fft(self, a_fft):
         warn("Use oper.laplacian_fft instead.", PendingDeprecationWarning)

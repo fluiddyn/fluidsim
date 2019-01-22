@@ -8,17 +8,13 @@
 """
 
 from typing import Union
-import os as _os
-import glob as _glob
+import os
 from copy import deepcopy as _deepcopy
 import inspect
 from pathlib import Path
 
 import numpy as _np
 import h5py as _h5py
-
-import operator as _operator
-import numbers as _numbers
 
 from importlib import import_module
 
@@ -50,14 +46,14 @@ def available_solver_keys(package=solvers):
     if isinstance(package, str):
         package = import_module(package)
 
-    top = _os.path.split(inspect.getfile(package))[0]
-    top = _os.path.abspath(top) + _os.sep
+    top = os.path.split(inspect.getfile(package))[0]
+    top = os.path.abspath(top) + os.sep
     keys = list()
-    for dirpath, dirname, filenames in _os.walk(top):
+    for dirpath, dirname, filenames in os.walk(top):
         if "solver.py" in filenames:
-            dirpath = _os.path.abspath(dirpath)
+            dirpath = os.path.abspath(dirpath)
             key = dirpath.replace(top, "")
-            key = key.replace(_os.sep, ".")
+            key = key.replace(os.sep, ".")
             keys.append(key)
 
     return sorted(keys)
@@ -147,7 +143,7 @@ def import_simul_class_from_key(key, package=None):
 def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
     """Return the path of a result directory."""
     if name_dir is None:
-        return _os.getcwd()
+        return os.getcwd()
 
     if not isinstance(name_dir, Path):
         name_dir = Path(name_dir)
@@ -333,7 +329,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
     # choose the file with the time closer to t_approx
     name_file = name_file_from_time_approx(path_dir, t_approx)
-    path_file = _os.path.join(path_dir, name_file)
+    path_file = os.path.join(path_dir, name_file)
 
     if mpi.rank > 0:
         params = None
@@ -364,15 +360,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
     """Save files with a modified resolution."""
-    path_base = pathdir_from_namedir(dir_base)
-    list_dir_results = list(path_base.glob("SE2D*"))
-    for path_dir in list_dir_results:
-        modif_resolution_from_dir(
-            name_dir=path_dir,
-            t_approx=t_approx,
-            coef_modif_resol=coef_modif_resol,
-            PLOT=False,
-        )
+    raise DeprecationWarning("Sorry, use modif_resolution_from_dir instead")
 
 
 def modif_resolution_from_dir(
@@ -416,7 +404,7 @@ def times_start_end_from_path(path):
     """
 
     path_file = path + "/stdout.txt"
-    if not _os.path.exists(path_file):
+    if not os.path.exists(path_file):
         print("Given path does not exist:\n " + path)
         return 666, 666
 
@@ -431,10 +419,10 @@ def times_start_end_from_path(path):
 
         # in order to get the information at the end of the file,
         # we do not want to read the full file...
-        file_stdout.seek(0, 2)  # go to the end
+        file_stdout.seek(0, os.SEEK_END)  # go to the end
         nb_caract = file_stdout.tell()
         nb_caract_to_read = min(nb_caract, 1000)
-        file_stdout.seek(-nb_caract_to_read, 2)
+        file_stdout.seek(file_stdout.tell() - nb_caract_to_read, os.SEEK_SET)
         while line != "":
             if line.startswith("it ="):
                 line_it = line
@@ -443,7 +431,8 @@ def times_start_end_from_path(path):
 
         if last_line.startswith("save state_phys"):
             word = last_line.replace("=", " ").split()[-1]
-            t_e = float(word.replace(".hd5", ""))
+            _, ext = os.path.splitext(word)
+            t_e = float(word.replace(ext, ""))
         else:
             words = line_it.split()
             t_e = float(words[6])
@@ -451,169 +440,3 @@ def times_start_end_from_path(path):
     # print('t_s = {0:.3f}, t_e = {1:.3f}'.format(t_s, t_e))
 
     return t_s, t_e
-
-
-class SetOfDirResults(object):
-    """Represent a set of result directories."""
-
-    def __init__(self, arg):
-        if isinstance(arg, str):
-            dir_base = pathdir_from_namedir(arg)
-            paths_results = tuple(dir_base.glob("SE2D_*"))
-            if len(paths_results) == 0:
-                print("No result directory in the directory\n" + dir_base)
-        else:
-            paths_results = arg
-            for ind, val in enumerate(arg):
-                paths_results[ind] = pathdir_from_namedir(val)
-            if len(paths_results) == 0:
-                print("paths_results empty")
-
-        self.nb_dirs = len(paths_results)
-
-        self.dict_paths = {}
-        self.dict_params = {}
-
-        keys_values = ["c", "f", "name_solver", "nh"]
-        self.dict_values = {}
-        for k in keys_values:
-            self.dict_values[k] = []
-
-        for path_dir in paths_results:
-            path_file = path_dir + "/param_simul.h5"
-
-            name_run = _os.path.split(path_dir)[1]
-
-            if not _os.path.exists(path_file):
-                print(
-                    "No file param_simul.h5 in dir\n"
-                    + path_dir
-                    + "This directory is skipped..."
-                )
-                self.nb_dirs -= 1
-            else:
-                self.dict_paths[name_run] = path_dir
-
-                with _h5py.File(path_file, "r") as f:
-                    name_run2 = f.attrs["name_run"]
-                    name_solver = f.attrs["name_solver"]
-
-                if name_run != name_run2:
-                    raise ValueError("name_run != name_run2")
-
-                # old code that have to be modified...
-                params = Parameters(path_dir=path_dir, VERBOSE=False)
-                self.dict_params[name_run] = params
-
-                params.add_a_param("name_solver", name_solver)
-                params.add_a_param("solver", name_solver)
-                params.add_a_param("name_run", name_run)
-                params.add_a_param("nh", params["nx"])
-
-                if "c2" in params.__dict__ and "c" not in params.__dict__:
-                    params.add_a_param("c", _np.sqrt(params["c2"]))
-
-                for k in keys_values:
-                    if not params[k] in self.dict_values[k]:
-                        self.dict_values[k].append(params[k])
-
-        if self.nb_dirs > 1:
-            for k, v in self.dict_values.items():
-                v.sort()
-                if isinstance(v[0], _numbers.Number):
-                    self.dict_values[k] = _np.array(v)
-
-        self.paths = list(self.dict_paths.values())
-
-    def dirs_from_values(self, k_sort="c2", **kwargs):
-        """Return a list of dirs from conditions.
-
-        >>> paths = setofdir.dirs_from_values2(
-        >>>    c2=100, f=('>', 1), nh=('=',1920))
-
-        """
-
-        kdirs_corresp = list(self.dict_params.keys())
-        for k, v in kwargs.items():
-            if isinstance(v, tuple):
-                str_operator = v[0]
-                value = v[1]
-            else:
-                str_operator = "=="
-                value = v
-
-            if str_operator == "==":
-                cond = _operator.eq
-            elif str_operator == "!=":
-                cond = _operator.ne
-            elif str_operator == "<":
-                cond = _operator.lt
-            elif str_operator == ">":
-                cond = _operator.gt
-            elif str_operator == ">=":
-                cond = _operator.le
-            elif str_operator == "<=":
-                cond = _operator.ge
-            else:
-                raise ValueError(
-                    "Supports only the operators ==, !=, >, <, >=, <="
-                )
-
-            kdirs_corresp_temp = [
-                kdir
-                for kdir, params in self.dict_params.items()
-                if cond(params[k], value)
-            ]
-
-            kdirs_corresp = list(
-                set(kdirs_corresp).intersection(kdirs_corresp_temp)
-            )
-
-        if len(kdirs_corresp) == 0 and mpi.rank == 0:
-            print("No result directory corresponds to the criteria.")
-
-        kdirs_corresp.sort(key=lambda key: self.dict_params[key][k_sort])
-
-        return kdirs_corresp
-
-    def filter(self, **kwargs):
-        """Return a filtered SetOfDirResults from conditions.
-
-        >>> setofdir2 = setofdir.filter(c2=100, f=('>', 1), nh=('=',1920))
-        """
-        dirs = self.dirs_from_values(**kwargs)
-        paths = [self.dict_paths[dir_i] for dir_i in dirs]
-        return SetOfDirResults(paths)
-
-    def path_larger_t_start(self):
-        """Return the path corresponding to the run with larger *t_start*.
-
-        """
-        if len(self.paths) == 1:
-            path = self.paths[0]
-        else:
-            t_s = -1.0
-            for path_temp in self.paths:
-                t_s_temp, t_e = times_start_end_from_path(path_temp)
-                if t_s_temp > t_s:
-                    path = path_temp
-                    t_s = t_s_temp
-        return path
-
-    def one_path_from_values(self, **kwargs):
-        """Return one path from parameter values.
-
-        If there are two corresponding runs, a warning is written and
-        the function returns None.
-        """
-        keys_corresp = self.dirs_from_values(**kwargs)
-        if len(keys_corresp) == 1:
-            return self.dict_paths[keys_corresp[0]]
-
-        elif len(keys_corresp) == 0:
-            print("No directory corresponds to the given values.")
-        elif len(keys_corresp) > 1:
-            print("More than one directory corresponds to the given value(s).")
-            paths = [self.dict_paths[dir_i] for dir_i in keys_corresp]
-            sod = SetOfDirResults(paths)
-            return sod.path_larger_t_start()

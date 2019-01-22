@@ -386,8 +386,10 @@ class TimeSignalsK(SpecificOutput):
         t = dict_results["times"]
         Nt = t.size
         nt = 2 ** int(np.fix(np.log2(Nt / 10)))
-        # if nt%2 == 1:
-        #     nt -= 1
+        if nt < 2:
+            nt = 2
+        if nt % 2 == 1:
+            nt -= 1
         self.nt = nt
 
         if not hasattr(self, "opfft1d"):
@@ -459,7 +461,6 @@ class TimeSignalsK(SpecificOutput):
             + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
         )
         ax1.set_title(title)
-        ax1.hold(True)
 
         nb_shells = dict_results["nb_shells"]
         for ish in range(nb_shells):

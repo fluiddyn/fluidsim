@@ -607,4 +607,3 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             PiCPE = cumsum_inv(transferCPE) * self.oper.deltak
 
         ax2.plot(khE, PiCPE, "m", linewidth=2)
-

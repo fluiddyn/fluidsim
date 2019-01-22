@@ -18,7 +18,7 @@ class InfoSolverFiniteDiff(InfoSolverBase):
             "TimeSteppingFiniteDiffCrankNicolson"
         )
 
-        self.classes.Operators.module_name = "fluidsim.operators.op_finitediff"
+        self.classes.Operators.module_name = "fluidsim.operators.op_finitediff1d"
         self.classes.Operators.class_name = "OperatorFiniteDiff1DPeriodic"
 
 

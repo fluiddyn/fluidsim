@@ -32,8 +32,7 @@ class TestSimulSW1LExactlin(TestSimulConserveOutput):
         Fap_fft = tendencies_fft.get_var("ap_fft")
         Fam_fft = tendencies_fft.get_var("am_fft")
 
-        return self.sim.oper.uxuyetafft_from_qapamfft(
-            Fq_fft, Fap_fft, Fam_fft)
+        return self.sim.oper.uxuyetafft_from_qapamfft(Fq_fft, Fap_fft, Fam_fft)
 
     def test_enstrophy_conservation(self):
         """Verify that the enstrophy growth rate due to nonlinear tendencies

@@ -36,8 +36,8 @@ class SpectralEnergyBudgetSW1LBase(SpectralEnergyBudgetBase):
                         )
                     )
 
-class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
 
+class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
     def compute(self):
         """compute spectral energy budget the one time."""
         oper = self.sim.oper

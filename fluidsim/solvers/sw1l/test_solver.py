@@ -28,7 +28,7 @@ class TestSimulSW1L(TestSimulConserveOutput):
         params.output.periods_save.spectra = 0.2
         params.output.periods_save.increments = 0.25
         params.output.periods_save.pdf = 0.25
-        params.output.periods_save.time_signals_fft = 0.25
+        params.output.periods_save.time_signals_fft = 0.1
 
         params.f = 1e-4
         params.forcing.enable = True
@@ -48,6 +48,10 @@ class TestSimulSW1L(TestSimulConserveOutput):
     def test_spatial_means(self):
         self.plot("spatial_means")
 
+    def test_increments(self):
+        self.plot("increments")
+        self.sim.output.increments.plot_Kolmo()
+
     def test_spectra(self):
         """Test spectra loading and plotting.
 
@@ -66,15 +70,18 @@ class TestSimulSW1L(TestSimulConserveOutput):
         """
         self.get_results("spectra")
         if mpi.nb_proc == 1:
-            self.sim.output.spectra.plot1d()
-            self.sim.output.spectra.plot2d()
+            spectra = self.sim.output.spectra
+            spectra.plot1d()
+            spectra.plot2d()
+            # spectra.plot_diss()
+            spectra.compute_lin_spectra()
             plt.cla()
 
     def test_spect_energy_budg(self):
         """Test spect_energy_budg loading and plotting.
 
         .. TODO::
-        
+
            Errors
 
            * if periods_save = 0.25.
@@ -84,6 +91,14 @@ class TestSimulSW1L(TestSimulConserveOutput):
         """
         self.get_results("spect_energy_budg")
         self.plot("spect_energy_budg")
+
+    def test_time_signals_fft(self):
+        self.plot("time_signals_fft")
+        self.sim.output.time_signals_fft.plot_spectra()
+
+    def test_pdf(self):
+        self.plot("pdf")
+        self.get_results("pdf")
 
     def test_energy_vs_spatial_means(self):
         """Verify energy saved by spatial_means module is the same."""
@@ -97,7 +112,7 @@ class TestSimulSW1L(TestSimulConserveOutput):
         assert_array_almost_equal(
             dict_results_print_stdout["E"],
             df_spatial_means.E[:imax].values,
-            decimal=4
+            decimal=4,
         )
 
     def get_tendencies(self):
@@ -115,9 +130,7 @@ class TestSimulSW1L(TestSimulConserveOutput):
         """
         oper = self.sim.oper
         Fx_fft, Fy_fft, Feta_fft = self.get_tendencies()
-        Fq_fft, _, _ = oper.qapamfft_from_uxuyetafft(
-            Fx_fft, Fy_fft, Feta_fft
-        )
+        Fq_fft, _, _ = oper.qapamfft_from_uxuyetafft(Fx_fft, Fy_fft, Feta_fft)
         q_fft = self.sim.state.get_var("q_fft")
 
         T_q = (Fq_fft.conj() * q_fft + Fq_fft * q_fft.conj()).real / 2.0

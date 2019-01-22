@@ -94,7 +94,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         classes._set_child("SpectralEnergyBudget", attribs=attribs)
 
         attribs = {
-            "module_name": "fluidsim.base.output.increments",
+            "module_name": package + ".increments",
             "class_name": "IncrementsSW1L",
         }
         classes._set_child("Increments", attribs=attribs)
