@@ -47,6 +47,10 @@ class TestSimulSW1L(TestSimulConserveOutput):
 
     def test_spatial_means(self):
         self.plot("spatial_means")
+        spatial_means = self.sim.output.spatial_means
+        spatial_means.compute_time_means()
+        spatial_means.time_first_saved()
+        spatial_means.time_last_saved()
 
     def test_increments(self):
         self.plot("increments")
