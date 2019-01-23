@@ -29,16 +29,24 @@ mock_modules(
         "scipy.sparse",
         "scipy.sparse.linalg",
         "scipy.fftpack",
+        "scipy.special",
+        "scipy.spatial",
+        "scipy.linalg",
+        "scipy.linalg.blas",
         "basilisk",
         "basilisk.stream",
-        "pyshtools"
+        "pyshtools",
+        "pyshtools.constant",
+        "fluidsht",
+        "fluidsht.sht2d",
+        "fluidsht.sht2d.operators",
     )
 )
 
 from fluiddoc.ipynb_maker import ipynb_to_rst
 
 ipynb_to_rst()
-ipynb_to_rst('ipynb/executed', executed=True)
+ipynb_to_rst("ipynb/executed", executed=True)
 
 import fluidsim
 
