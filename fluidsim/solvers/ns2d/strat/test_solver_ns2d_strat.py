@@ -8,34 +8,11 @@ import fluidsim as fls
 import fluiddyn.util.mpi as mpi
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
-from fluidsim.util.testing import TestSimul
+from fluidsim.solvers.ns2d.test_solver_ns2d import TestSimulBase as Base
 
 
-class TestSimulBase(TestSimul):
+class TestSimulBase(Base):
     Simul = Simul
-
-    @classmethod
-    def init_params(cls):
-
-        params = cls.params = cls.Simul.create_default_params()
-        params.short_name_type_run = "test"
-        params.output.sub_directory = "unittests"
-
-        nh = 64
-        params.oper.nx = nh = 64
-        params.oper.ny = nh // 2
-        Lh = 6.0
-        params.oper.Lx = Lh
-        params.oper.Ly = Lh
-
-        params.oper.coef_dealiasing = 2.0 / 3
-        params.nu_8 = 2.0
-
-        params.time_stepping.t_end = 0.5
-
-        params.init_fields.type = "noise"
-
-        return params
 
 
 class TestSolverNS2DTendency(TestSimulBase):

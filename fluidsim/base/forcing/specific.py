@@ -566,7 +566,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         # warning : this is 2d specific!
 
-        ipart = np.random.random_integers(0, nb_wn_f - 1)
+        ipart = np.random.randint(0, nb_wn_f - 1)
         kx_part = KX_f[ipart]
         ky_part = KY_f[ipart]
         ikx_part = abs(oper_c.kx_loc - kx_part).argmin()

@@ -7,7 +7,7 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver import TestSimulBase as _Base
+from ..test_solver_ns3d import TestSimulBase as _Base
 
 from .solver import Simul
 
@@ -64,6 +64,13 @@ class TestOutput(TestSimulBase):
         periods = params.output.periods_save
         for key in periods._key_attribs:
             periods[key] = 0.2
+
+        for tag in params.output._tag_children:
+            if tag.startswith("periods"):
+                continue
+            child = params.output[tag]
+            if hasattr(child, "HAS_TO_PLOT_SAVED"):
+                child["HAS_TO_PLOT_SAVED"] = True
 
     def test_output(self):
 
