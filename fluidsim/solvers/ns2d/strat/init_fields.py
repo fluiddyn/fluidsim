@@ -40,6 +40,7 @@ class InitFieldsNoiseStrat(InitFieldsNoise):
 
     """
 
+
 class InitFieldsLinearMode(SpecificInitFields):
     """
     Class to initialize the fields with the linear mode

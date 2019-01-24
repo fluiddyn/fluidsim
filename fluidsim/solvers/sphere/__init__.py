@@ -8,5 +8,6 @@ sphere.
    :toctree:
 
    ns2d
+   sw1l
 
 """

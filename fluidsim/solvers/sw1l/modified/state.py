@@ -67,7 +67,7 @@ class StateSW1LModified(StateSW1L):
         elif key == "q":
             rot = self.compute("rot")
             eta = self.sim.state.state_phys.get_var("eta")
-            result = rot - self.f * eta
+            result = rot - self.params.f * eta
         elif key == "q_fft":
             ux_fft = self.state_spect.get_var("ux_fft")
             uy_fft = self.state_spect.get_var("uy_fft")

@@ -13,21 +13,21 @@ from warnings import warn
 
 import numpy as np
 
-from fluidpythran import boost, Array, FluidPythran
+from transonic import boost, Array, Transonic
 from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
 from ..base.setofvariables import SetOfVariables
 from .. import _is_testing
 
-fp = FluidPythran()
+ts = Transonic()
 
-if not fp.is_transpiling and not fp.is_compiled and not _is_testing:
+if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     warn(
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."
     )
-elif fp.is_transpiling:
+elif ts.is_transpiling:
     _Operators = object
 
 
@@ -59,7 +59,7 @@ def compute_increments_dim1(var: Af, irx: int):
     return inc_var
 
 
-if not fp.is_transpiling:
+if not ts.is_transpiling:
     nb_proc = mpi.nb_proc
     rank = mpi.rank
 else:
@@ -144,15 +144,6 @@ class OperatorsPseudoSpectral2D(_Operators):
             nkx_loc_rank = np.array(comm.allgather(self.nkx_loc))
             a = nkx_loc_rank
             self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
-
-        try:
-            # for shallow water models
-            Kappa2 = self.K2 + self.params.kd2
-            self.Kappa2_not0 = self.K2_not0 + self.params.kd2
-            self.Kappa_over_ic = -1.0j * np.sqrt(Kappa2 / self.params.c2)
-
-        except AttributeError:
-            pass
 
         try:
             NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES
@@ -430,228 +421,15 @@ class OperatorsPseudoSpectral2D(_Operators):
         return ux_fft, uy_fft
 
     def rotfft_from_psifft(self, psi_fft):
-        rot_fft = self.laplacian_fft(psi_fft)  # -K2 * psi_fft
-        return rot_fft
-
-    def uxuyetafft_from_qfft(self, q_fft, params=None):
-        """Compute ux, uy and eta in Fourier space."""
-        if params is None:
-            params = self.params
-            Kappa2_not0 = self.Kappa2_not0
-        else:
-            Kappa2_not0 = self.K2_not0 + params.kd2
-
-        ilq_fft = invlaplacian_fft(q_fft, Kappa2_not0, rank)
-        rot_fft = laplacian_fft(ilq_fft, self.K2)
-        ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
-
-        if params.f == 0:
-            eta_fft = self.create_arrayK(value=0)
-        else:
-            eta_fft = -params.f * ilq_fft / params.c2
-        return ux_fft, uy_fft, eta_fft
-
-    def uxuyetafft_from_afft(self, a_fft, params=None):
-        """Compute ux, uy and eta in Fourier space."""
-        if params is None:
-            params = self.params
-
-        eta_fft = self.etafft_from_afft(a_fft, params)
-        if params.f == 0:
-            rot_fft = self.create_arrayK(value=0)
-        else:
-            rot_fft = params.f * eta_fft
-
-        ux_fft, uy_fft = self.vecfft_from_rotfft(rot_fft)
-
-        return ux_fft, uy_fft, eta_fft
-
-    def rotfft_from_qfft(self, q_fft, params=None):
-        """Compute ux, uy and eta in Fourier space."""
-        if params is None:
-            params = self.params
-            Kappa2_not0 = self.Kappa2_not0
-        else:
-            Kappa2_not0 = self.K2_not0 + params.kd2
-
-        rot_fft = laplacian_fft(
-            invlaplacian_fft(q_fft, Kappa2_not0, rank), self.K2
-        )
-        return rot_fft
-
-    def rotfft_from_afft(self, a_fft, params=None):
-        """Compute ux, uy and eta in Fourier space."""
-        if params is None:
-            params = self.params
-
-        if params.f == 0:
-            rot_fft = self.create_arrayK(value=0)
-        else:
-            rot_fft = params.f * self.etafft_from_afft(a_fft, params)
-
-        return rot_fft
-
-    def afft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
-        if params is None:
-            params = self.params
-
-        a_fft = laplacian_fft(eta_fft, self.K2)
-        if params.f != 0:
-            rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-            a_fft += params.f / params.c2 * rot_fft
-        return a_fft
-
-    def etafft_from_qfft(self, q_fft, params=None):
-        """Compute eta in Fourier space."""
-        if params is None:
-            params = self.params
-            Kappa2_not0 = self.Kappa2_not0
-        else:
-            Kappa2_not0 = self.K2_not0 + params.kd2
-
-        if params.f == 0:
-            eta_fft = self.create_arrayK(value=0)
-        else:
-            eta_fft = (
-                -params.f / params.c2 * invlaplacian_fft(q_fft, Kappa2_not0, rank)
-            )
-        return eta_fft
-
-    def etafft_from_afft(self, a_fft, params=None):
-        """Compute eta in Fourier space."""
-        if params is None:
-            params = self.params
-            Kappa2_not0 = self.Kappa2_not0
-        else:
-            Kappa2_not0 = self.K2_not0 + params.kd2
-
-        eta_fft = invlaplacian_fft(a_fft, Kappa2_not0, rank)
-        return eta_fft
-
-    def etafft_from_aqfft(self, a_fft, q_fft, params=None):
-        """Compute eta in Fourier space."""
-        if params is None:
-            params = self.params
-            Kappa2_not0 = self.Kappa2_not0
-        else:
-            Kappa2_not0 = self.K2_not0 + params.kd2
-
-        if params.f == 0:
-            eta_fft = invlaplacian_fft(a_fft, self.K2_not0, rank)
-        else:
-            eta_fft = invlaplacian_fft(
-                (a_fft - params.f / params.c2 * q_fft), Kappa2_not0, rank
-            )
-        return eta_fft
-
-    def qdafft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft, params=None):
-        if params is None:
-            params = self.params
-        div_fft = self.divfft_from_vecfft(ux_fft, uy_fft)
-        rot_fft = self.rotfft_from_vecfft(ux_fft, uy_fft)
-        q_fft = rot_fft - params.f * eta_fft
-        ageo_fft = params.f / params.c2 * rot_fft + laplacian_fft(
-            eta_fft, self.K2
-        )
-        return q_fft, div_fft, ageo_fft
-
-    def apamfft_from_adfft(self, a_fft, d_fft):
-        """Return the eigen modes ap and am."""
-        Delta_a_fft = self.Kappa_over_ic * d_fft
-        ap_fft = 0.5 * (a_fft + Delta_a_fft)
-        am_fft = 0.5 * (a_fft - Delta_a_fft)
-        return ap_fft, am_fft
-
-    def divfft_from_apamfft(self, ap_fft, am_fft):
-        """Return div from the eigen modes ap and am."""
-        # cdef Py_ssize_t rank = self.rank
-
-        Delta_a_fft = ap_fft - am_fft
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-        Kappa_over_ic = self.Kappa_over_ic
-        d_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        for i0 in range(n0):
-            for i1 in range(n1):
-                if i0 == 0 and i1 == 0 and rank == 0:
-                    d_fft[i0, i1] = 0.0
-                else:
-                    d_fft[i0, i1] = Delta_a_fft[i0, i1] / Kappa_over_ic[i0, i1]
-        return d_fft
-
-    def qapamfft_from_etafft(self, eta_fft, params=None):
-        """eta (fft) ---> q, ap, am (fft)"""
-        if params is None:
-            params = self.params
-
-        q_fft = -params.f * eta_fft
-        ap_fft = 0.5 * laplacian_fft(eta_fft, self.K2)
-        am_fft = ap_fft.copy()
-        return q_fft, ap_fft, am_fft
+        return self.laplacian_fft(psi_fft)
 
     def pxffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KX = self.KX
-
-        px_f_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        if f_fft.dtype == np.float64:
-            ff_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * ff_fft[i0, i1]
-        else:
-            fc_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    px_f_fft[i0, i1] = 1j * KX[i0, i1] * fc_fft[i0, i1]
-
-        return px_f_fft
+        return 1j * self.KX * f_fft
 
     def pyffft_from_fft(self, f_fft):
         """Return the gradient of f_fft in spectral space."""
-
-        n0 = self.nK0_loc
-        n1 = self.nK1_loc
-
-        KY = self.KY
-
-        py_f_fft = np.empty([n0, n1], dtype=np.complex128)
-
-        if f_fft.dtype == np.float64:
-            ff_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * ff_fft[i0, i1]
-        else:
-            fc_fft = f_fft
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    py_f_fft[i0, i1] = 1j * KY[i0, i1] * fc_fft[i0, i1]
-
-        return py_f_fft
-
-    def uxuyetafft_from_qapamfft(self, q_fft, ap_fft, am_fft):
-        """q, ap, am (fft) ---> ux, uy, eta (fft)"""
-        a_fft = ap_fft + am_fft
-        if rank == 0:
-            a_fft[0, 0] = 0.0
-        div_fft = self.divfft_from_apamfft(ap_fft, am_fft)
-        (uxa_fft, uya_fft, etaa_fft) = self.uxuyetafft_from_afft(a_fft)
-        (uxq_fft, uyq_fft, etaq_fft) = self.uxuyetafft_from_qfft(q_fft)
-        uxd_fft, uyd_fft = self.vecfft_from_divfft(div_fft)
-        ux_fft = uxa_fft + uxq_fft + uxd_fft
-        uy_fft = uya_fft + uyq_fft + uyd_fft
-        eta_fft = etaa_fft + etaq_fft
-        if rank == 0:
-            ux_fft[0, 0] = 0.5 * (ap_fft[0, 0] + am_fft[0, 0])
-            uy_fft[0, 0] = 0.5j * (am_fft[0, 0] - ap_fft[0, 0])
-        return ux_fft, uy_fft, eta_fft
+        return 1j * self.KY * f_fft
 
     def laplacian2_fft(self, a_fft):
         warn("Use oper.laplacian_fft instead.", PendingDeprecationWarning)

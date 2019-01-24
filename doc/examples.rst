@@ -12,3 +12,4 @@ Examples
    examples/forcing-in-script
    examples/static-layers
    examples/running-third-party-basilisk
+   ipynb/executed/taylor-green

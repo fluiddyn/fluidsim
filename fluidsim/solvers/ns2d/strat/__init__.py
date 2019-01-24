@@ -10,6 +10,5 @@ Provides:
    state
    init_fields
    output
-   diag
 
 """

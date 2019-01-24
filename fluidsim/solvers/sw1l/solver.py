@@ -17,7 +17,7 @@ variables, i.e. the horizontal velocities and surface dispacement.
 
 """
 
-from fluidpythran import cachedjit, Array
+from transonic import jit, Array
 from fluiddyn.util import mpi
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -29,8 +29,8 @@ from fluidsim.base.solvers.pseudo_spect import (
 A = Array[float, "2d"]
 
 
-@cachedjit
-def compute_Frot(rot: A, ux: A, uy: A, f: "float or int"):
+@jit
+def compute_Frot(rot: A, ux: A, uy: A, f: float):
     """Compute cross-product of absolute potential vorticity with velocity."""
     if f != 0:
         rot_abs = rot + f
@@ -41,6 +41,11 @@ def compute_Frot(rot: A, ux: A, uy: A, f: "float or int"):
     F1y = -rot_abs * ux
 
     return F1x, F1y
+
+
+@jit
+def compute_pressure(c2: float, eta: A, ux: A, uy: A):
+    return c2 * eta + 0.5 * (ux ** 2 + uy ** 2)
 
 
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
@@ -136,6 +141,10 @@ class Simul(SimulBasePseudoSpectral):
 
     def __init__(self, params):
         # Parameter(s) specific to this solver
+
+        params.f = float(params.f)
+        params.c2 = float(params.c2)
+
         params.kd2 = params.f ** 2 / params.c2
         if params.beta != 0:
             raise NotImplementedError(
@@ -214,24 +223,21 @@ class Simul(SimulBasePseudoSpectral):
         else:
             tendencies_fft = old
 
+        F1x, F1y = compute_Frot(rot, ux, uy, self.params.f)
+        gradx_fft, grady_fft = oper.gradfft_from_fft(
+            oper.fft2(compute_pressure(self.params.c2, eta, ux, uy))
+        )
+        oper.dealiasing(gradx_fft, grady_fft)
+
         Fx_fft = tendencies_fft.get_var("ux_fft")
         Fy_fft = tendencies_fft.get_var("uy_fft")
         Feta_fft = tendencies_fft.get_var("eta_fft")
 
-        compute_tendencies_nonlin_sw1l(
-            rot,
-            ux,
-            uy,
-            eta,
-            Fx_fft,
-            Fy_fft,
-            Feta_fft,
-            self.params.f,
-            self.params.c2,
-            oper.fft2,
-            oper.gradfft_from_fft,
-            oper.dealiasing,
-            oper.divfft_from_vecfft,
+        Fx_fft[:] = oper.fft2(F1x) - gradx_fft
+        Fy_fft[:] = oper.fft2(F1y) - grady_fft
+
+        Feta_fft[:] = -oper.divfft_from_vecfft(
+            oper.fft2((eta + 1) * ux), oper.fft2((eta + 1) * uy)
         )
 
         oper.dealiasing(tendencies_fft)
@@ -240,45 +246,6 @@ class Simul(SimulBasePseudoSpectral):
             tendencies_fft += self.forcing.get_forcing()
 
         return tendencies_fft
-
-
-# pythran export compute_tendencies_nonlin_sw1l(
-#     float64[][], float64[][], float64[][], float64[][],
-#     complex128[][], complex128[][], complex128[][],
-#     float, float,
-#     function_to_be_called_from_python_interpreter -> complex128[][],
-#     function_to_be_called_from_python_interpreter -> (
-#         complex128[][], complex128[][]),
-#     function_to_be_called_from_python_interpreter -> NoneType,
-#     function_to_be_called_from_python_interpreter -> (
-#         complex128[][], complex128[][]))
-
-
-def compute_tendencies_nonlin_sw1l(
-    rot,
-    ux,
-    uy,
-    eta,
-    Fx_fft,
-    Fy_fft,
-    Feta_fft,
-    f,
-    c2,
-    fft2,
-    gradfft_from_fft,
-    dealiasing,
-    divfft_from_vecfft,
-):
-    """Compute nonlinear tendencies for the sw1l model"""
-    F1x, F1y = compute_Frot(rot, ux, uy, f)
-    gradx_fft, grady_fft = gradfft_from_fft(
-        fft2(c2 * eta + 0.5 * (ux ** 2 + uy ** 2))
-    )
-    dealiasing(gradx_fft, grady_fft)
-    Fx_fft[:] = fft2(F1x) - gradx_fft
-    Fy_fft[:] = fft2(F1y) - grady_fft
-
-    Feta_fft[:] = -divfft_from_vecfft(fft2((eta + 1) * ux), fft2((eta + 1) * uy))
 
 
 if __name__ == "__main__":

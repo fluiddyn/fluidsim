@@ -117,72 +117,72 @@ class Simul(SimulSW1L):
             omega = -1.0j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
         return omega
 
-    def verify_tendencies(
-        self, state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft
-    ):
-        # for verification conservation energy
-        # compute the linear terms
-        oper = self.oper
-        ux = state_phys.get_var("ux")
-        uy = state_phys.get_var("uy")
-        eta = state_phys.get_var("eta")
+    # def verify_tendencies(
+    #     self, state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft
+    # ):
+    #     # for verification conservation energy
+    #     # compute the linear terms
+    #     oper = self.oper
+    #     ux = state_phys.get_var("ux")
+    #     uy = state_phys.get_var("uy")
+    #     eta = state_phys.get_var("eta")
 
-        q_fft = state_spect.get_var("q_fft")
-        ap_fft = state_spect.get_var("ap_fft")
-        am_fft = state_spect.get_var("am_fft")
-        a_fft = ap_fft + am_fft
-        div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
+    #     q_fft = state_spect.get_var("q_fft")
+    #     ap_fft = state_spect.get_var("ap_fft")
+    #     am_fft = state_spect.get_var("am_fft")
+    #     a_fft = ap_fft + am_fft
+    #     div_fft = oper.divfft_from_apamfft(ap_fft, am_fft)
 
-        eta_fft = oper.etafft_from_qfft(q_fft) + oper.etafft_from_afft(a_fft)
+    #     eta_fft = oper.etafft_from_qfft(q_fft) + oper.etafft_from_afft(a_fft)
 
-        dx_c2eta_fft, dy_c2eta_fft = oper.gradfft_from_fft(
-            self.params.c2 * eta_fft
-        )
-        LCx = self.params.f * uy
-        LCy = -self.params.f * ux
-        Lx_fft = oper.fft2(LCx) - dx_c2eta_fft
-        Ly_fft = oper.fft2(LCy) - dy_c2eta_fft
-        Leta_fft = -div_fft
+    #     dx_c2eta_fft, dy_c2eta_fft = oper.gradfft_from_fft(
+    #         self.params.c2 * eta_fft
+    #     )
+    #     LCx = self.params.f * uy
+    #     LCy = -self.params.f * ux
+    #     Lx_fft = oper.fft2(LCx) - dx_c2eta_fft
+    #     Ly_fft = oper.fft2(LCy) - dy_c2eta_fft
+    #     Leta_fft = -div_fft
 
-        # compute the full tendencies
-        Fx_fft = Lx_fft + Nx_fft
-        Fy_fft = Ly_fft + Ny_fft
-        Feta_fft = Leta_fft + Neta_fft
-        oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
+    #     # compute the full tendencies
+    #     Fx_fft = Lx_fft + Nx_fft
+    #     Fy_fft = Ly_fft + Ny_fft
+    #     Feta_fft = Leta_fft + Neta_fft
+    #     oper.dealiasing(Fx_fft, Fy_fft, Feta_fft)
 
-        # test : ux, uy, eta ---> q, ap, am
-        (Fq_fft, Fp_fft, Fm_fft) = self.oper.qapamfft_from_uxuyetafft(
-            Fx_fft, Fy_fft, Feta_fft
-        )
-        # test : q, ap, am ---> ux, uy, eta
-        (Fx2_fft, Fy2_fft, Feta2_fft) = self.oper.uxuyetafft_from_qapamfft(
-            Fq_fft, Fp_fft, Fm_fft
-        )
-        print(np.max(abs(Fx2_fft - Fx_fft)))
-        print(np.max(abs(Fy2_fft - Fy_fft)))
-        print(np.max(abs(Feta2_fft - Feta_fft)))
-        Fx_fft = Fx2_fft
-        Fy_fft = Fy2_fft
-        Feta_fft = Feta2_fft
+    #     # test : ux, uy, eta ---> q, ap, am
+    #     (Fq_fft, Fp_fft, Fm_fft) = self.oper.qapamfft_from_uxuyetafft(
+    #         Fx_fft, Fy_fft, Feta_fft
+    #     )
+    #     # test : q, ap, am ---> ux, uy, eta
+    #     (Fx2_fft, Fy2_fft, Feta2_fft) = self.oper.uxuyetafft_from_qapamfft(
+    #         Fq_fft, Fp_fft, Fm_fft
+    #     )
+    #     print(np.max(abs(Fx2_fft - Fx_fft)))
+    #     print(np.max(abs(Fy2_fft - Fy_fft)))
+    #     print(np.max(abs(Feta2_fft - Feta_fft)))
+    #     Fx_fft = Fx2_fft
+    #     Fy_fft = Fy2_fft
+    #     Feta_fft = Feta2_fft
 
-        (Fq2_fft, Fp2_fft, Fm2_fft) = self.oper.qapamfft_from_uxuyetafft(
-            Fx2_fft, Fy2_fft, Feta2_fft
-        )
-        print(np.max(abs(Fq2_fft - Fq_fft)))
-        print(np.max(abs(Fp2_fft - Fp_fft)))
-        print(np.max(abs(Fm2_fft - Fm_fft)))
+    #     (Fq2_fft, Fp2_fft, Fm2_fft) = self.oper.qapamfft_from_uxuyetafft(
+    #         Fx2_fft, Fy2_fft, Feta2_fft
+    #     )
+    #     print(np.max(abs(Fq2_fft - Fq_fft)))
+    #     print(np.max(abs(Fp2_fft - Fp_fft)))
+    #     print(np.max(abs(Fm2_fft - Fm_fft)))
 
-        Fx = oper.ifft2(Fx_fft)
-        Fy = oper.ifft2(Fy_fft)
-        Feta = oper.ifft2(Feta_fft)
-        A = (
-            Feta * (ux ** 2 + uy ** 2) / 2
-            + (1 + eta) * (ux * Fx + uy * Fy)
-            + self.params.c2 * eta * Feta
-        )
-        A_fft = oper.fft2(A)
-        if mpi.rank == 0:
-            print("should be zero =", A_fft[0, 0])
+    #     Fx = oper.ifft2(Fx_fft)
+    #     Fy = oper.ifft2(Fy_fft)
+    #     Feta = oper.ifft2(Feta_fft)
+    #     A = (
+    #         Feta * (ux ** 2 + uy ** 2) / 2
+    #         + (1 + eta) * (ux * Fx + uy * Fy)
+    #         + self.params.c2 * eta * Feta
+    #     )
+    #     A_fft = oper.fft2(A)
+    #     if mpi.rank == 0:
+    #         print("should be zero =", A_fft[0, 0])
 
 
 if __name__ == "__main__":

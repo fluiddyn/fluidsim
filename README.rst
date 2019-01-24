@@ -31,11 +31,10 @@
    :alt: Binder notebook
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
-simulations using Python.
-Fluidsim is an object-oriented library to develop solvers (mainly using
-pseudo-spectral methods) by writing mainly Python code. The result is **very
-efficient** even compared to a pure Fortran or C++ code since the
-time-consuming tasks are performed by optimized compiled functions.
+simulations using Python. Fluidsim is an object-oriented library to develop
+solvers (mainly using pseudo-spectral methods) by writing mainly Python code.
+The result is **very efficient** even compared to a pure Fortran or C++ code
+since the time-consuming tasks are performed by optimized compiled functions.
 
 **Documentation**: https://fluidsim.readthedocs.io
 
@@ -45,7 +44,6 @@ To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluiddyn [--user]
   pip install fluidsim [--user]
 
 Add ``--user`` flag if you are installing without setting up a virtual

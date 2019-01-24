@@ -7,13 +7,12 @@ import matplotlib.pyplot as plt
 import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.io import stdout_redirected
 
 from fluidsim.solvers.ns3d.solver import Simul
 
 from fluidsim.base.output import run
 
-from fluidsim.test import TestSimul
+from fluidsim.util.testing import TestSimul
 
 
 class TestSimulBase(TestSimul):
@@ -90,8 +89,7 @@ class TestOutput(TestSimulBase):
     def test_output(self):
 
         sim = self.sim
-        with stdout_redirected():
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
         if mpi.nb_proc == 1:
 
@@ -117,59 +115,58 @@ class TestOutput(TestSimulBase):
         if mpi.nb_proc > 1:
             path_run = mpi.comm.bcast(path_run)
 
-        with stdout_redirected():
-            if mpi.nb_proc == 1:
-                sim2 = fls.load_sim_for_plot(path_run)
-                sim2.output.print_stdout.load()
-                sim2.output.print_stdout.plot()
-                sim2.output.spatial_means.load()
-                sim2.output.spatial_means.load_dataset()
-                sim2.output.spatial_means.plot()
-                sim2.output.spectra.load1d_mean()
-                sim2.output.spectra.load3d_mean()
-                sim2.output.spectra.plot1d(
-                    tmin=0.1,
-                    tmax=10,
-                    delta_t=0.01,
-                    coef_compensate=5 / 3,
-                    coef_plot_k3=1.0,
-                    coef_plot_k53=1.0,
-                )
-                sim2.output.spectra.plot3d(
-                    tmin=0.1,
-                    tmax=10,
-                    delta_t=0.01,
-                    coef_compensate=5 / 3,
-                    coef_plot_k3=1.0,
-                    coef_plot_k53=1.0,
-                )
+        if mpi.nb_proc == 1:
+            sim2 = fls.load_sim_for_plot(path_run)
+            sim2.output.print_stdout.load()
+            sim2.output.print_stdout.plot()
+            sim2.output.spatial_means.load()
+            sim2.output.spatial_means.load_dataset()
+            sim2.output.spatial_means.plot()
+            sim2.output.spectra.load1d_mean()
+            sim2.output.spectra.load3d_mean()
+            sim2.output.spectra.plot1d(
+                tmin=0.1,
+                tmax=10,
+                delta_t=0.01,
+                coef_compensate=5 / 3,
+                coef_plot_k3=1.0,
+                coef_plot_k53=1.0,
+            )
+            sim2.output.spectra.plot3d(
+                tmin=0.1,
+                tmax=10,
+                delta_t=0.01,
+                coef_compensate=5 / 3,
+                coef_plot_k3=1.0,
+                coef_plot_k53=1.0,
+            )
 
-                sim2.output.phys_fields.set_equation_crosssection(
-                    f"x={sim.oper.Lx/4}"
-                )
-                sim2.output.phys_fields.animate("vx")
+            sim2.output.phys_fields.set_equation_crosssection(
+                f"x={sim.oper.Lx/4}"
+            )
+            sim2.output.phys_fields.animate("vx")
 
-                sim2.output.phys_fields.plot(
-                    field="vx", time=10, equation=f"z={sim.oper.Lz/4}"
-                )
+            sim2.output.phys_fields.plot(
+                field="vx", time=10, equation=f"z={sim.oper.Lz/4}"
+            )
 
-            sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
-            sim3.params.time_stepping.t_end += 0.2
-            sim3.time_stepping.start()
+        sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+        sim3.params.time_stepping.t_end += 0.2
+        sim3.time_stepping.start()
 
-            if mpi.nb_proc == 1:
-                sim3.output.phys_fields.animate(
-                    "vx",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
+        if mpi.nb_proc == 1:
+            sim3.output.phys_fields.animate(
+                "vx",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=False,
+                numfig=1,
+            )
 
-                sys.argv = ["fluidsim-create-xml-description", path_run]
-                run()
+            sys.argv = ["fluidsim-create-xml-description", path_run]
+            run()
         plt.close("all")
 
 

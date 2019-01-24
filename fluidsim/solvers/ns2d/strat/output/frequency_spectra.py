@@ -187,11 +187,13 @@ class FrequencySpectra(SpecificOutput):
                     mpi.comm.Gatherv(
                         sendbuf=field_ap,
                         recvbuf=(field_ap_seq, sendcounts),
-                        root=0)
+                        root=0,
+                    )
                     mpi.comm.Gatherv(
                         sendbuf=field_am,
                         recvbuf=(field_am_seq, sendcounts),
-                        root=0)
+                        root=0,
+                    )
 
                 else:
                     field_ap_seq = field_ap
@@ -212,7 +214,6 @@ class FrequencySpectra(SpecificOutput):
                     self.temp_array_new[
                         1, self.nb_times_in_temp_array, :, :
                     ] = field_am_decimate
-
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_temp_array] = (
@@ -278,7 +279,6 @@ class FrequencySpectra(SpecificOutput):
             # Flush buffer and sleep time
             sys.stdout.flush()
             time.sleep(0.2)
-
 
     def _init_online_plot(self):
         if mpi.rank == 0:

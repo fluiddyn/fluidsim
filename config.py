@@ -29,6 +29,11 @@ except ImportError:
 
 from configparser import ConfigParser
 
+from logging import ERROR, INFO
+if "egg_info" in sys.argv:
+    level = ERROR
+else:
+    level = INFO
 
 try:
     import colorlog as logging
@@ -42,10 +47,9 @@ except ImportError:
 
     handler = logging.StreamHandler()
 
-
 logger = logging.getLogger("fluidsim")
 logger.addHandler(handler)
-logger.setLevel(20)
+logger.setLevel(level)
 
 
 try:

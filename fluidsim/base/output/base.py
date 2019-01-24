@@ -455,6 +455,15 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                 ax = fig.subplots()
             return fig, ax
 
+    def close_files(self):
+        if mpi.rank == 0 and self._has_to_save:
+            self.print_stdout.close()
+            for k in self.params.periods_save._get_key_attribs():
+                period = self.params.periods_save.__dict__[k]
+                if period != 0:
+                    if hasattr(self.__dict__[k], "_close_file"):
+                        self.__dict__[k]._close_file()
+
     def end_of_simul(self, total_time):
         self.print_stdout(
             f"Computation completed in {total_time:8.6g} s\n"
@@ -466,13 +475,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             self.one_time_step()
             if self.sim.output.phys_fields.t_last_save < self.sim.time_stepping.t:
                 self.phys_fields.save()
-        if mpi.rank == 0 and self._has_to_save:
-            self.print_stdout.close()
-            for k in self.params.periods_save._get_key_attribs():
-                period = self.params.periods_save.__dict__[k]
-                if period != 0:
-                    if hasattr(self.__dict__[k], "_close_file"):
-                        self.__dict__[k]._close_file()
+
+        self.close_files()
 
         if not self.path_run.startswith(FLUIDSIM_PATH):
             path_base = FLUIDSIM_PATH

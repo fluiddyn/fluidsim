@@ -1,9 +1,9 @@
-import unittest
-
 from .dimensional import Converter
 
+from fluidsim.util.testing import TestCase
 
-class TestDimensional(unittest.TestCase):
+
+class TestDimensional(TestCase):
     def test_converter(self):
 
         conv = Converter(C=0.648 ** 2, h=4e-4)

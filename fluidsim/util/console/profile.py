@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 from fluiddyn.io import stdout_redirected
 
+from fluidsim import _is_testing
+
 from ..util import import_module_solver_from_key
 from .util import (
     modif_params2d,
@@ -83,7 +85,6 @@ def profile(
     n2=None,
     path_dir=None,
     type_fft=None,
-    raise_error=False,
     verbose=False,
     plot=False,
     it_end=None,
@@ -129,7 +130,7 @@ def profile(
         try:
             run_profile(sim, nb_dim, path_dir, verbose=verbose)
         except Exception as e:
-            if raise_error:
+            if _is_testing:
                 raise
 
             else:

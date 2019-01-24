@@ -322,16 +322,22 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
                 )
             )
 
-    def verify_injection_rate_coarse(self, var_fft):
+    def verify_injection_rate_coarse(self, var_fft=None):
         """Verify injection rate."""
-        f_fft = self.fstate_coarse.get_var(self.key_forced)
-        deltat = self.sim.time_stepping.deltat
+        if var_fft is None:
+            var_fft = self.sim.state.state_spect.get_var(self.key_forced)
+            var_fft = self.oper.coarse_seq_from_fft_loc(
+                var_fft, self.shapeK_loc_coarse
+            )
 
-        P_forcing1 = np.real(f_fft.conj() * var_fft)
-        P_forcing2 = abs(f_fft) ** 2
-        P_forcing2 = deltat / 2 * self.oper_coarse.sum_wavenumbers(P_forcing2)
-        P_forcing1 = self.oper_coarse.sum_wavenumbers(P_forcing1)
         if mpi.rank == 0:
+            f_fft = self.fstate_coarse.get_var(self.key_forced)
+            deltat = self.sim.time_stepping.deltat
+
+            P_forcing1 = np.real(f_fft.conj() * var_fft)
+            P_forcing2 = abs(f_fft) ** 2
+            P_forcing2 = deltat / 2 * self.oper_coarse.sum_wavenumbers(P_forcing2)
+            P_forcing1 = self.oper_coarse.sum_wavenumbers(P_forcing1)
             print(
                 "P_f = {:9.4e} ; P_1 = {:9.4e}; P_2 = {:9.4e} (coarse)".format(
                     P_forcing1 + P_forcing2, P_forcing1, P_forcing2
@@ -470,12 +476,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
                 "normalized", {"type": "2nd_degree_eq", "which_root": "minabs"}
             )
 
-    def __init__(self, sim):
-        super().__init__(sim)
-
-        if self.params.forcing.normalized.type == "particular_k":
-            raise NotImplementedError
-
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
@@ -566,7 +566,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         # warning : this is 2d specific!
 
-        ipart = np.random.random_integers(0, nb_wn_f - 1)
+        ipart = np.random.randint(0, nb_wn_f - 1)
         kx_part = KX_f[ipart]
         ky_part = KY_f[ipart]
         ikx_part = abs(oper_c.kx_loc - kx_part).argmin()

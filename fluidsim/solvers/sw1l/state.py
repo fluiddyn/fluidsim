@@ -7,7 +7,6 @@
 
 """
 
-from past.utils import old_div
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -100,9 +99,7 @@ class StateSW1L(StatePseudoSpectral):
             h = self.compute("h")
             ux = self.state_phys.get_var("ux")
             uy = self.state_phys.get_var("uy")
-            result = np.sqrt(
-                old_div((ux ** 2 + uy ** 2), (self.sim.params.c2 * h))
-            )
+            result = np.sqrt((ux ** 2 + uy ** 2) / (self.sim.params.c2 * h))
 
         else:
             to_print = 'Do not know how to compute "' + key + '".'
@@ -280,14 +277,12 @@ class StateSW1L(StatePseudoSpectral):
 
         uu2_fft = self.oper.fft2(ux ** 2 + uy ** 2)
 
-        eta_fft = old_div(
-            (
-                1.0j * self.oper.KX * tempx_fft / K2_not0
-                + 1.0j * self.oper.KY * tempy_fft / K2_not0
-                - old_div(uu2_fft, 2)
-            ),
-            self.params.c2,
-        )
+        eta_fft = (
+            1.0j * self.oper.KX * tempx_fft / K2_not0
+            + 1.0j * self.oper.KY * tempy_fft / K2_not0
+            - uu2_fft / 2.0
+        ) / self.params.c2
+
         if mpi.rank == 0:
             eta_fft[0, 0] = 0.0
         self.oper.dealiasing(eta_fft)

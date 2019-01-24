@@ -9,7 +9,8 @@ Provides
    operators0d
    operators2d
    operators3d
-   util2d_pythran
-   util3d_pythran
+   sphericalharmo
+   op_finitediff1d
+   op_finitediff2d
 
 """

@@ -9,7 +9,7 @@
 
 import numpy as np
 
-from fluidpythran import cachedjit, Array
+from transonic import jit, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -18,7 +18,7 @@ from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
 AF = Array[np.float64, "2d"]
 
 
-@cachedjit
+@jit
 def tendencies_nonlin_ns2dstrat(
     ux: AF, uy: AF, px_rot: AF, py_rot: AF, px_b: AF, py_b: AF, N: float
 ):
@@ -208,7 +208,7 @@ class Simul(SimulNS2D):
         pt_energy = self.oper.sum_wavenumbers(pt_energy_fft)
         ratio = pt_energy / self.oper.sum_wavenumbers(abs(pt_energy_fft))
 
-        epsilon = 1e-15
+        epsilon = 1e-14
         energy_conserved = ratio < epsilon
         if not energy_conserved:
             print("Energy is not conserved!")

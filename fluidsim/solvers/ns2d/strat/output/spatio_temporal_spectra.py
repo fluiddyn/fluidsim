@@ -80,7 +80,6 @@ class SpatioTempSpectra(SpecificOutput):
         nK0_dec = len(list(range(0, nK0, self.spatial_decimate)))
         nK1_dec = len(list(range(0, nK1, self.spatial_decimate)))
 
-
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
         nb_bytes = np.empty([nK0_dec, nK1_dec], dtype=complex).nbytes
@@ -195,11 +194,13 @@ class SpatioTempSpectra(SpecificOutput):
                     mpi.comm.Gatherv(
                         sendbuf=field_ap,
                         recvbuf=(field_ap_seq, sendcounts),
-                        root=0)
+                        root=0,
+                    )
                     mpi.comm.Gatherv(
                         sendbuf=field_am,
                         recvbuf=(field_am_seq, sendcounts),
-                        root=0)
+                        root=0,
+                    )
 
                 else:
                     field_ap_seq = field_ap
@@ -215,11 +216,11 @@ class SpatioTempSpectra(SpecificOutput):
                     ]
 
                     self.spatio_temp_new[
-                            0, self.nb_times_in_spatio_temp, :, :
-                        ] = field_ap_decimate
+                        0, self.nb_times_in_spatio_temp, :, :
+                    ] = field_ap_decimate
                     self.spatio_temp_new[
-                            1, self.nb_times_in_spatio_temp, :, :
-                        ] = field_am_decimate
+                        1, self.nb_times_in_spatio_temp, :, :
+                    ] = field_am_decimate
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_spatio_temp] = (

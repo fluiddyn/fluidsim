@@ -15,30 +15,134 @@ import unittest
 import argparse
 import time
 from warnings import warn
-
-import matplotlib
+import shutil
 from importlib import import_module
 
-matplotlib.use("agg")
-
-
+import numpy as np
+from fluiddyn.io import stdout_redirected
 from fluiddyn.util import mpi
+from fluiddyn.util.compat import cached_property
+
+
+class TestCase(unittest.TestCase):
+
+    # True except if pytest is used...
+    has_to_redirect_stdout = not any(
+        any(test_tool in arg for arg in sys.argv)
+        for test_tool in ("pytest", "py.test")
+    )
+
+    def run(self, result=None):
+        with stdout_redirected(self.has_to_redirect_stdout):
+            super().run(result=result)
+
+
+class TestSimul(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.init_params()
+        with stdout_redirected(cls.has_to_redirect_stdout):
+            cls.sim = cls.Simul(cls.params)
+
+    @classmethod
+    def tearDownClass(cls):
+        # clean by removing the directory
+        if mpi.rank == 0:
+            if hasattr(cls, "sim"):
+                shutil.rmtree(cls.sim.output.path_run, ignore_errors=True)
+
+    @classmethod
+    def init_params(cls):
+        params = cls.params = cls.Simul.create_default_params()
+
+        params.short_name_type_run = "test"
+        params.output.sub_directory = "unittests"
+
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 2
+        params.time_stepping.deltat0 = 0.1
+
+
+class TestSimulConserve(TestSimul):
+    """A test case which makes it easy to test for energy and enstrophy
+    conservation. By default the simulation is instantiated and run till the end
+    within the ``setUpClass`` method.
+
+    """
+
+    zero = 1e-14
+
+    @classmethod
+    def setUpClass(cls):
+        cls.init_params()
+        with stdout_redirected(cls.has_to_redirect_stdout), cls.Simul(
+            cls.params
+        ) as sim:
+            cls.sim = sim
+            sim.time_stepping.start()
+
+    @cached_property
+    def tendencies_fft(self):
+        self.sim.params.forcing.enable = False
+        return self.sim.tendencies_nonlin()
+
+    def assertAlmostZero(
+        self, value, places=None, msg=None, tolerance_warning=True
+    ):
+        """Assert if value is almost zero."""
+        if places is None:
+            places = -int(np.log10(self.zero))
+
+        self.assertAlmostEqual(value, 0, places=places, msg=msg)
+        if places < 7 and mpi.rank == 0 and tolerance_warning:
+            warn(
+                "Machine zero level too high. Value to be asserted as zero"
+                f"= {value}\n\tTest: {self.id()}"
+            )
+
+
+class TestSimulConserveOutput(TestSimulConserve):
+    """A test case with methods to easily test for the output modules."""
+
+    def get_sim_output_attr_from_str(self, module):
+        return getattr(self.sim.output, module)
+
+    def get_results(self, name):
+        module = self.get_sim_output_attr_from_str(name)
+        for method_str in ("compute", "load_dataset", "load"):
+            try:
+                method = getattr(module, method_str)
+            except AttributeError:
+                pass
+            else:
+                results = method()
+        return results
+
+    @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
+    def plot(self, name):
+        """Test if plot methods work."""
+        import matplotlib.pyplot as plt
+
+        attr = self.get_sim_output_attr_from_str(name)
+        attr.plot()
+        plt.close("all")
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):
     def __init__(self, *args, **kwargs):
-        super(TimeLoggingTestResult, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.test_timings = []
 
     def startTest(self, test):
         self._test_started_at = time.time()
-        super(TimeLoggingTestResult, self).startTest(test)
+        super().startTest(test)
 
     def addSuccess(self, test):
         elapsed = time.time() - self._test_started_at
         name = self.getDescription(test)
         self.test_timings.append((name, elapsed))
-        super(TimeLoggingTestResult, self).addSuccess(test)
+        super().addSuccess(test)
 
     def getTestTimings(self):
         return self.test_timings
@@ -47,13 +151,13 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 class TimeLoggingTestRunner(unittest.TextTestRunner):
     def __init__(self, slow_test_threshold=0.3, *args, **kwargs):
         self.slow_test_threshold = slow_test_threshold
-        return super(TimeLoggingTestRunner, self).__init__(
+        return super().__init__(
             resultclass=TimeLoggingTestResult, *args, **kwargs
         )
 
-    def run(self, test):
-        result = super(TimeLoggingTestRunner, self).run(test)
-        msg = "\n\nSlow tests (>{:.3f}s):".format(self.slow_test_threshold)
+    def run(self, tests):
+        result = super().run(tests)
+        msg = f"\n\nSlow tests (>{self.slow_test_threshold:.3f}s):"
         self.write_result(msg)
         self.write_result("-" * len(msg))
 
@@ -77,7 +181,11 @@ def _mname(obj):
     return "%s.%s.%s" % (mod_name, obj.__class__.__name__, obj._testMethodName)
 
 
-def _run(tests, verbose=False):
+def deactivate_redirect_stdout(tests):
+    TestCase.has_to_redirect_stdout = False
+
+
+def _run(tests, verbose=False, no_capture=False):
     """Run a set of tests using unittest."""
 
     if mpi.rank == 0:
@@ -86,9 +194,14 @@ def _run(tests, verbose=False):
         verbosity = 0
 
     if verbose:
-        testRunner = TimeLoggingTestRunner(verbosity=verbosity)
+        TestRunner = TimeLoggingTestRunner
     else:
-        testRunner = unittest.runner.TextTestRunner(verbosity=verbosity)
+        TestRunner = unittest.runner.TextTestRunner
+
+    testRunner = TestRunner(verbosity=verbosity)
+
+    if no_capture:
+        deactivate_redirect_stdout(tests)
 
     result = testRunner.run(tests)
     if verbose:
@@ -114,13 +227,15 @@ def import_test_module(module_name: str):
         module = import_module(module_name)
     except ModuleNotFoundError:
         module_name = ".".join(module_name.split(".")[:-1])
-        warn(f"Module not found. Attempting {module_name} instead")
+        # warn(f"Module not found. Attempting {module_name} instead")
         module = import_module(module_name)
     finally:
         return module
 
 
-def discover_tests(module_name="fluidsim", start_dir=None, verbose=False):
+def discover_tests(
+    verbose=False, no_capture=False, module_name="fluidsim", path=None
+):
     """Discovers all tests under a module or directory.
     Similar to `python -m unittest discover`.
 
@@ -140,17 +255,25 @@ def discover_tests(module_name="fluidsim", start_dir=None, verbose=False):
         For verbose output
 
     """
-    if start_dir is None:
+    if path is None:
         module = import_test_module(module_name)
         path_src = inspect.getfile(module)
-        start_dir = os.path.dirname(path_src)
+        path = os.path.dirname(path_src)
 
-    loader = unittest.TestLoader()
-    tests = loader.discover(start_dir)
-    return _run(tests, verbose)
+    if os.path.isdir(path):
+        loader = unittest.TestLoader()
+        tests = loader.discover(path)
+    else:
+        module = path.replace(os.path.sep, ".")
+        module = import_test_module(module)
+        tests = unittest.defaultTestLoader.loadTestsFromModule(module)
+        suite = unittest.TestSuite()
+        suite.addTests(tests)
+
+    return _run(tests, verbose, no_capture)
 
 
-def collect_tests(verbose, *modules):
+def collect_tests(verbose, no_capture, *modules):
     """Creates a `TestSuite` from several modules.
 
     Parameters
@@ -175,7 +298,7 @@ def collect_tests(verbose, *modules):
         tests = unittest.defaultTestLoader.loadTestsFromModule(module)
         suite.addTests(tests)
 
-    return _run(suite, verbose)
+    return _run(suite, verbose, no_capture)
 
 
 def init_parser(parser):
@@ -188,11 +311,11 @@ def init_parser(parser):
         help="tests are discovered under this module",
     )
     parser.add_argument(
-        "-s",
-        "--start-dir",
+        "-p",
+        "--path",
         default=None,
         help=(
-            "tests are discovered under this directory and overrides -m"
+            "tests are discovered under this directory/file and overrides -m"
             " option."
         ),
     )
@@ -208,6 +331,9 @@ def init_parser(parser):
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="for verbose output"
+    )
+    parser.add_argument(
+        "-nc", "--no-capture", action="store_true", help="No stdout capture"
     )
 
 
@@ -225,9 +351,11 @@ def run(args=None):
         args = parser.parse_args()
 
     if len(args.collect) > 0:
-        result = collect_tests(args.verbose, *args.collect)
+        result = collect_tests(args.verbose, args.no_capture, *args.collect)
     else:
-        result = discover_tests(args.module, args.start_dir, args.verbose)
+        result = discover_tests(
+            args.verbose, args.no_capture, args.module, args.path
+        )
 
     if result.wasSuccessful():
         sys.exit(0)

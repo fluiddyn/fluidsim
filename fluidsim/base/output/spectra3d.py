@@ -169,7 +169,7 @@ class Spectra(SpecificOutput):
                 + ", nh = {0:5d}".format(self.nx)
             )
 
-    def _online_plot_saving(self):
+    def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass
 
     def load3d_mean(self, tmin=None, tmax=None):

@@ -30,69 +30,72 @@ try:
 except ImportError:
     use_pythran = False
 
-
-import numpy as np
-
-f"In >=2018, you should use a Python supporting f-strings!"
-
 from config import MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger
 
-if use_pythran:
-    try:
-        from pythran.dist import PythranBuildExt
-
-        class fluidsim_build_ext(build_ext, PythranBuildExt):
-            pass
-
-    except ImportError:
-        fluidsim_build_ext = build_ext
-else:
-    fluidsim_build_ext = build_ext
-
 here = Path(__file__).parent.absolute()
-
-from fluidpythran.dist import make_pythran_files
-
-paths = [
-    "fluidsim/base/time_stepping/pseudo_spect.py",
-    "fluidsim/base/output/increments.py",
-    "fluidsim/operators/operators2d.py",
-    "fluidsim/operators/operators3d.py",
-    "fluidsim/solvers/ns2d/solver.py",
-]
-make_pythran_files(
-    [here / path for path in paths],
-    mocked_modules=(
-        "psutil",
-        "h5py",
-        "matplotlib",
-        "matplotlib.pyplot",
-        "fluiddyn",
-        "fluiddyn.io",
-        "fluiddyn.util",
-        "fluiddyn.util.paramcontainer",
-        "fluiddyn.util.mpi",
-        "fluiddyn.output",
-        "fluiddyn.calcul",
-        "fluiddyn.calcul.setofvariables",
-        "fluidfft.fft2d.operators",
-        "fluidfft.fft3d.operators",
-    ),
-)
-
 time_start = time()
-config = get_config()
 
-# handle environ (variables) in config
-if "environ" in config:
-    os.environ.update(config["environ"])
 
-monkeypatch_parallel_build()
 
-logger.info("Running fluidsim setup.py on platform " + sys.platform)
+fluidsim_build_ext = None
 
-if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 2):
-    raise RuntimeError("Python version 2.7 or >= 3.2 required.")
+if "egg_info" not in sys.argv:
+
+    import numpy as np
+
+    if use_pythran:
+        try:
+            from pythran.dist import PythranBuildExt
+
+            class fluidsim_build_ext(build_ext, PythranBuildExt):
+                pass
+
+        except ImportError:
+            fluidsim_build_ext = build_ext
+    else:
+        fluidsim_build_ext = build_ext
+
+    from transonic.dist import make_backend_files
+
+    paths = [
+        "fluidsim/base/time_stepping/pseudo_spect.py",
+        "fluidsim/base/output/increments.py",
+        "fluidsim/operators/operators2d.py",
+        "fluidsim/operators/operators3d.py",
+        "fluidsim/solvers/ns2d/solver.py",
+    ]
+    make_backend_files(
+        [here / path for path in paths],
+        mocked_modules=(
+            "psutil",
+            "h5py",
+            "matplotlib",
+            "matplotlib.pyplot",
+            "fluiddyn",
+            "fluiddyn.io",
+            "fluiddyn.util",
+            "fluiddyn.util.paramcontainer",
+            "fluiddyn.util.mpi",
+            "fluiddyn.output",
+            "fluiddyn.calcul",
+            "fluiddyn.calcul.setofvariables",
+            "fluidfft.fft2d.operators",
+            "fluidfft.fft3d.operators",
+        ),
+    )
+
+    config = get_config()
+
+    # handle environ (variables) in config
+    if "environ" in config:
+        os.environ.update(config["environ"])
+
+    monkeypatch_parallel_build()
+
+    logger.info("Running fluidsim setup.py on platform " + sys.platform)
+
+if sys.version_info[:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
 
 # Get the long description from the relevant file
 with open(os.path.join(here, "README.rst")) as f:
@@ -105,7 +108,6 @@ d = run_path("fluidsim/_version.py")
 __version__ = d["__version__"]
 __about__ = d["__about__"]
 
-print(__about__)
 
 # Get the development status from the version string
 if "a" in __version__:
@@ -117,43 +119,45 @@ else:
 
 ext_modules = []
 
-logger.info("Importing mpi4py: {}".format(MPI4PY))
+if "egg_info" not in sys.argv:
+    print(__about__)
 
-define_macros = []
-if has_cython and os.getenv("TOXENV") is not None:
-    cython_defaults = CythonOptions.get_directive_defaults()
-    cython_defaults["linetrace"] = True
-    define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
+    logger.info("Importing mpi4py: {}".format(MPI4PY))
 
-path_sources = "fluidsim/base/time_stepping"
-ext_cyfunc = Extension(
-    "fluidsim.base.time_stepping.pseudo_spect_cy",
-    include_dirs=[path_sources, np.get_include()],
-    libraries=["m"],
-    library_dirs=[],
-    sources=[path_sources + "/pseudo_spect_cy." + ext_source],
-    define_macros=define_macros,
-)
+    define_macros = []
+    if has_cython and os.getenv("TOXENV") is not None:
+        cython_defaults = CythonOptions.get_directive_defaults()
+        cython_defaults["linetrace"] = True
+        define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
 
-ext_modules.append(ext_cyfunc)
+    path_sources = "fluidsim/base/time_stepping"
+    ext_cyfunc = Extension(
+        "fluidsim.base.time_stepping.pseudo_spect_cy",
+        include_dirs=[path_sources, np.get_include()],
+        libraries=["m"],
+        library_dirs=[],
+        sources=[path_sources + "/pseudo_spect_cy." + ext_source],
+        define_macros=define_macros,
+    )
 
-logger.info(
-    "The following extensions could be built if necessary:\n"
-    + "".join([ext.name + "\n" for ext in ext_modules])
-)
+    ext_modules.append(ext_cyfunc)
+
+    logger.info(
+        "The following extensions could be built if necessary:\n"
+        + "".join([ext.name + "\n" for ext in ext_modules])
+    )
 
 install_requires = [
     "fluiddyn >= 0.2.5.post1",
-    "future >= 0.16",
     "h5py",
     "h5netcdf",
-    "fluidpythran>=0.1.4",
+    "transonic>=0.1.8",
     "setuptools_scm",
     "xarray",
 ]
 
 if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4, != 0.11.1", "fluidfft >= 0.2.7"])
+    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
 
 
 def modification_date(filename):
@@ -169,7 +173,8 @@ def make_pythran_extensions(modules):
             + str(exclude_pythran)
             + " will not be built."
         )
-    develop = sys.argv[-1] == "develop"
+    develop = "develop" in sys.argv
+
     extensions = []
     for mod in modules:
         package = mod.rsplit(".", 1)[0]
@@ -202,16 +207,12 @@ def make_pythran_extensions(modules):
     return extensions
 
 
-if use_pythran:
+if use_pythran and "egg_info" not in sys.argv:
     ext_names = []
     for root, dirs, files in os.walk("fluidsim"):
         path_dir = Path(root)
         for name in files:
-            if (
-                name.endswith("_pythran.py")
-                or path_dir.name == "__pythran__"
-                and name.endswith(".py")
-            ):
+            if path_dir.name == "__pythran__" and name.endswith(".py"):
                 path = os.path.join(root, name)
                 ext_names.append(path.replace(os.path.sep, ".").split(".py")[0])
 
@@ -233,11 +234,8 @@ for command in ["profile", "bench", "bench-analysis"]:
 
 
 setup(
-    name="fluidsim",
     version=__version__,
-    description=("Framework for studying fluid dynamics with simulations."),
     long_description=long_description,
-    keywords="Fluid dynamics, research",
     author="Pierre Augier",
     author_email="pierre.augier@legi.cnrs.fr",
     url="https://bitbucket.org/fluiddyn/fluidsim",
@@ -264,14 +262,8 @@ setup(
         "Programming Language :: Cython",
         "Programming Language :: C",
     ],
-    python_requires=">=3.6",
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,
-    extras_require=dict(
-        doc=["Sphinx>=1.1", "numpydoc"],
-        parallel=["mpi4py"],
-        sphere=["fluidsht"],
-    ),
     cmdclass={"build_ext": fluidsim_build_ext},
     ext_modules=ext_modules,
     entry_points={"console_scripts": console_scripts},

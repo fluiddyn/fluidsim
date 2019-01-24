@@ -3,12 +3,11 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver import TestSimulBase as _Base
+from ..test_solver_ns3d import TestSimulBase as _Base
 
 from .solver import Simul
 
@@ -66,56 +65,61 @@ class TestOutput(TestSimulBase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+        for tag in params.output._tag_children:
+            if tag.startswith("periods"):
+                continue
+            child = params.output[tag]
+            if hasattr(child, "HAS_TO_PLOT_SAVED"):
+                child["HAS_TO_PLOT_SAVED"] = True
+
     def test_output(self):
 
-        with stdout_redirected():
-            sim = self.sim
+        sim = self.sim
 
-            oper = sim.oper
-            X, Y, Z = oper.get_XYZ_loc()
+        oper = sim.oper
+        X, Y, Z = oper.get_XYZ_loc()
 
-            def compute_forcing_fft_each_time(self):
-                return {"vx_fft": oper.create_arrayK(value=0)}
+        def compute_forcing_fft_each_time(self):
+            return {"vx_fft": oper.create_arrayK(value=0)}
 
-            sim.forcing.forcing_maker.monkeypatch_compute_forcing_fft_each_time(
-                compute_forcing_fft_each_time
-            )
+        sim.forcing.forcing_maker.monkeypatch_compute_forcing_fft_each_time(
+            compute_forcing_fft_each_time
+        )
 
-            sim.time_stepping.start()
+        sim.time_stepping.start()
 
-            if mpi.nb_proc == 1:
+        if mpi.nb_proc > 1:
+            return
 
-                sim2 = fls.load_sim_for_plot(sim.output.path_run)
-                sim2.output.print_stdout.load()
-                sim2.output.print_stdout.plot()
-                sim2.output.spatial_means.load()
-                sim2.output.spatial_means.load_dataset()
-                sim2.output.spatial_means.plot()
-                sim2.output.spectra.load1d_mean()
-                sim2.output.spectra.load3d_mean()
-                sim2.output.spectra.plot1d(
-                    tmin=0.1,
-                    tmax=10,
-                    delta_t=0.01,
-                    coef_compensate=5 / 3,
-                    coef_plot_k3=1.0,
-                    coef_plot_k53=1.0,
-                )
-                sim2.output.spectra.plot3d(
-                    tmin=0.1,
-                    tmax=10,
-                    delta_t=0.01,
-                    coef_compensate=5 / 3,
-                    coef_plot_k3=1.0,
-                    coef_plot_k53=1.0,
-                )
+        sim2 = fls.load_sim_for_plot(sim.output.path_run)
+        sim2.output.print_stdout.load()
+        sim2.output.print_stdout.plot()
+        sim2.output.spatial_means.load()
+        sim2.output.spatial_means.load_dataset()
+        sim2.output.spatial_means.plot()
+        sim2.output.spectra.load1d_mean()
+        sim2.output.spectra.load3d_mean()
+        sim2.output.spectra.plot1d(
+            tmin=0.1,
+            tmax=10,
+            delta_t=0.01,
+            coef_compensate=5 / 3,
+            coef_plot_k3=1.0,
+            coef_plot_k53=1.0,
+        )
+        sim2.output.spectra.plot3d(
+            tmin=0.1,
+            tmax=10,
+            delta_t=0.01,
+            coef_compensate=5 / 3,
+            coef_plot_k3=1.0,
+            coef_plot_k53=1.0,
+        )
 
-                sim2.output.phys_fields.set_equation_crosssection(
-                    f"x={sim.oper.Lx/4}"
-                )
-                sim2.output.phys_fields.animate("vx")
+        sim2.output.phys_fields.set_equation_crosssection(f"x={sim.oper.Lx/4}")
+        sim2.output.phys_fields.animate("vx")
 
-                sim2.output.phys_fields.plot(field="vx", time=10)
+        sim2.output.phys_fields.plot(field="vx", time=10)
 
         plt.close("all")
 

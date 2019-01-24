@@ -18,12 +18,12 @@
 
 import numpy as np
 
-from fluidpythran import cachedjit
+from transonic import jit
 
 from fluidsim.base.output import OutputBasePseudoSpectral
 
 
-@cachedjit
+@jit
 def linear_eigenmode_from_values_1k(
     ux_fft: np.complex128,
     uy_fft: np.complex128,
@@ -94,7 +94,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         classes._set_child("SpectralEnergyBudget", attribs=attribs)
 
         attribs = {
-            "module_name": "fluidsim.base.output.increments",
+            "module_name": package + ".increments",
             "class_name": "IncrementsSW1L",
         }
         classes._set_child("Increments", attribs=attribs)

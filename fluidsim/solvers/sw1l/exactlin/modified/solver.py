@@ -97,27 +97,27 @@ class Simul(SimulSW1LExactLin):
 
         return tendencies_fft
 
-    def verify_tendencies(
-        self, state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft
-    ):
-        """For verifying conservation of quadratic energy."""
+    # def verify_tendencies(
+    #     self, state_spect, state_phys, Nx_fft, Ny_fft, Neta_fft
+    # ):
+    #     """For verifying conservation of quadratic energy."""
 
-        oper = self.oper
-        ux_fft = self.state.get_var("ux_fft")
-        uy_fft = self.state.get_var("uy_fft")
-        eta_fft = self.state.get_var("eta_fft")
+    #     oper = self.oper
+    #     ux_fft = self.state.get_var("ux_fft")
+    #     uy_fft = self.state.get_var("uy_fft")
+    #     eta_fft = self.state.get_var("eta_fft")
 
-        oper.dealiasing(Nx_fft, Ny_fft, Neta_fft)
-        T_ux = (ux_fft.conj() * Nx_fft).real
-        T_uy = (uy_fft.conj() * Ny_fft).real
-        T_eta = (eta_fft.conj() * Neta_fft).real * self.params.c2
-        T_tot = T_ux + T_uy + T_eta
-        print(
-            "sum(T_tot) = {0:9.4e} ; sum(abs(T_tot)) = {1:9.4e}".format(
-                self.oper.sum_wavenumbers(T_tot),
-                self.oper.sum_wavenumbers(abs(T_tot)),
-            )
-        )
+    #     oper.dealiasing(Nx_fft, Ny_fft, Neta_fft)
+    #     T_ux = (ux_fft.conj() * Nx_fft).real
+    #     T_uy = (uy_fft.conj() * Ny_fft).real
+    #     T_eta = (eta_fft.conj() * Neta_fft).real * self.params.c2
+    #     T_tot = T_ux + T_uy + T_eta
+    #     print(
+    #         "sum(T_tot) = {0:9.4e} ; sum(abs(T_tot)) = {1:9.4e}".format(
+    #             self.oper.sum_wavenumbers(T_tot),
+    #             self.oper.sum_wavenumbers(abs(T_tot)),
+    #         )
+    #     )
 
 
 if __name__ == "__main__":

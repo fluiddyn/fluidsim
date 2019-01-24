@@ -2,11 +2,12 @@ import unittest
 import numpy as np
 import sys
 
-from fluiddyn.io import stdout_redirected
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .operators import OperatorsPseudoSpectralSW1L
+from fluidsim.util.testing import TestCase, stdout_redirected
+
+from fluidsim.solvers.sw1l.operators import OperatorsPseudoSpectralSW1L
 
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
@@ -36,17 +37,17 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
 
     params.oper.coef_dealiasing = coef_dealiasing
 
-    with stdout_redirected():
-        oper = OperatorsPseudoSpectralSW1L(params=params)
+    oper = OperatorsPseudoSpectralSW1L(params=params)
 
     return oper
 
 
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
-class TestOperators(unittest.TestCase):
+class TestOperators(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.oper = create_oper()
+        with stdout_redirected(cls.has_to_redirect_stdout):
+            cls.oper = create_oper()
         cls.rtol = 1e-15
         cls.atol = 1e-14  # Absolute tolerance for double precision FFT
 

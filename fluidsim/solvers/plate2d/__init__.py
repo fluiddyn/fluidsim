@@ -13,7 +13,6 @@ Provides:
    output
    init_fields
    forcing
-   diag
    dimensional
 
 """
