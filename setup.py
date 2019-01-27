@@ -7,18 +7,17 @@ from runpy import run_path
 from datetime import datetime
 from distutils.sysconfig import get_config_var
 
+from setuptools.dist import Distribution
 from setuptools import setup, find_packages
 
 try:
     from Cython.Distutils.extension import Extension
-    from Cython.Distutils import build_ext
     from Cython.Compiler import Options as CythonOptions
 
     has_cython = True
     ext_source = "pyx"
 except ImportError:
     from setuptools import Extension
-    from distutils.command.build_ext import build_ext
 
     has_cython = False
     ext_source = "c"
@@ -30,30 +29,85 @@ try:
 except ImportError:
     use_pythran = False
 
-from config import MPI4PY, FFTW3, monkeypatch_parallel_build, get_config, logger
-
 here = Path(__file__).parent.absolute()
+
+try:
+    from setup_config import MPI4PY, FFTW3, logger
+except ImportError:
+    # needed when there is already a module with the same name imported.
+    setup_config = run_path(here / "setup_config.py")
+    MPI4PY = setup_config["MPI4PY"]
+    FFTW3 = setup_config["FFTW3"]
+    logger = setup_config["logger"]
+
+try:
+    from setup_build import FluidSimBuildExt
+except ImportError:
+    # needed when there is already a module with the same name imported.
+    FluidFFTBuildExt = run_path(here / "setup_build.py")["FluidSimBuildExt"]
+
 time_start = time()
 
 
+if sys.version_info[:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
 
-fluidsim_build_ext = None
 
-if "egg_info" not in sys.argv:
+# Get the long description from the relevant file
+with open(os.path.join(here, "README.rst")) as file:
+    long_description = file.read()
+lines = long_description.splitlines(True)
+long_description = "".join(lines[14:])
 
-    import numpy as np
+# Get the version from the relevant file
+version = run_path("fluidsim/_version.py")
+__version__ = version["__version__"]
+__about__ = version["__about__"]
 
-    if use_pythran:
-        try:
-            from pythran.dist import PythranBuildExt
+# Get the development status from the version string
+if "a" in __version__:
+    devstatus = "Development Status :: 3 - Alpha"
+elif "b" in __version__:
+    devstatus = "Development Status :: 4 - Beta"
+else:
+    devstatus = "Development Status :: 5 - Production/Stable"
 
-            class fluidsim_build_ext(build_ext, PythranBuildExt):
-                pass
+install_requires = [
+    "fluiddyn >= 0.3.0",
+    "h5py",
+    "h5netcdf",
+    "transonic>=0.1.8",
+    "setuptools_scm",
+    "xarray",
+]
 
-        except ImportError:
-            fluidsim_build_ext = build_ext
-    else:
-        fluidsim_build_ext = build_ext
+if FFTW3:
+    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
+
+console_scripts = [
+    "fluidsim = fluidsim.util.console.__main__:run",
+    "fluidsim-test = fluidsim.util.testing:run",
+    "fluidsim-create-xml-description = fluidsim.base.output:run",
+]
+
+for command in ["profile", "bench", "bench-analysis"]:
+    console_scripts.append(
+        "fluidsim-"
+        + command
+        + " = fluidsim.util.console.__main__:run_"
+        + command.replace("-", "_")
+    )
+
+
+def install_setup_requires():
+    dist = Distribution()
+    # Honor setup.cfg's options.
+    dist.parse_config_files(ignore_option_errors=True)
+    if dist.setup_requires:
+        dist.fetch_build_eggs(dist.setup_requires)
+
+
+def transonize():
 
     from transonic.dist import make_backend_files
 
@@ -84,88 +138,22 @@ if "egg_info" not in sys.argv:
         ),
     )
 
-    config = get_config()
-
-    # handle environ (variables) in config
-    if "environ" in config:
-        os.environ.update(config["environ"])
-
-    monkeypatch_parallel_build()
-
-    logger.info("Running fluidsim setup.py on platform " + sys.platform)
-
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
-
-# Get the long description from the relevant file
-with open(os.path.join(here, "README.rst")) as f:
-    long_description = f.read()
-lines = long_description.splitlines(True)
-long_description = "".join(lines[14:])
-
-# Get the version from the relevant file
-d = run_path("fluidsim/_version.py")
-__version__ = d["__version__"]
-__about__ = d["__about__"]
-
-
-# Get the development status from the version string
-if "a" in __version__:
-    devstatus = "Development Status :: 3 - Alpha"
-elif "b" in __version__:
-    devstatus = "Development Status :: 4 - Beta"
-else:
-    devstatus = "Development Status :: 5 - Production/Stable"
-
-ext_modules = []
-
-if "egg_info" not in sys.argv:
-    print(__about__)
-
-    logger.info("Importing mpi4py: {}".format(MPI4PY))
-
-    define_macros = []
-    if has_cython and os.getenv("TOXENV") is not None:
-        cython_defaults = CythonOptions.get_directive_defaults()
-        cython_defaults["linetrace"] = True
-        define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
-
-    path_sources = "fluidsim/base/time_stepping"
-    ext_cyfunc = Extension(
-        "fluidsim.base.time_stepping.pseudo_spect_cy",
-        include_dirs=[path_sources, np.get_include()],
-        libraries=["m"],
-        library_dirs=[],
-        sources=[path_sources + "/pseudo_spect_cy." + ext_source],
-        define_macros=define_macros,
-    )
-
-    ext_modules.append(ext_cyfunc)
-
-    logger.info(
-        "The following extensions could be built if necessary:\n"
-        + "".join([ext.name + "\n" for ext in ext_modules])
-    )
-
-install_requires = [
-    "fluiddyn >= 0.2.5.post1",
-    "h5py",
-    "h5netcdf",
-    "transonic>=0.1.8",
-    "setuptools_scm",
-    "xarray",
-]
-
-if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
-
 
 def modification_date(filename):
     t = os.path.getmtime(filename)
     return datetime.fromtimestamp(t)
 
 
-def make_pythran_extensions(modules):
+def create_pythran_extensions():
+
+    modules = []
+    for root, dirs, files in os.walk("fluidsim"):
+        path_dir = Path(root)
+        for name in files:
+            if path_dir.name == "__pythran__" and name.endswith(".py"):
+                path = os.path.join(root, name)
+                modules.append(path.replace(os.path.sep, ".").split(".py")[0])
+
     exclude_pythran = tuple()
     if len(exclude_pythran) > 0:
         logger.info(
@@ -175,6 +163,8 @@ def make_pythran_extensions(modules):
         )
     develop = "develop" in sys.argv
 
+    import numpy as np
+
     extensions = []
     for mod in modules:
         package = mod.rsplit(".", 1)[0]
@@ -182,19 +172,20 @@ def make_pythran_extensions(modules):
             continue
         base_file = mod.replace(".", os.path.sep)
         py_file = base_file + ".py"
-        # warning: does not work on Windows
-        suffix = get_config_var("EXT_SUFFIX") or ".so"
+        suffix = get_config_var("EXT_SUFFIX")
         bin_file = base_file + suffix
-        logger.info(
-            "make_pythran_extension: {} -> {} ".format(
-                py_file, os.path.basename(bin_file)
-            )
-        )
         if (
             not develop
             or not os.path.exists(bin_file)
             or modification_date(bin_file) < modification_date(py_file)
         ):
+
+            logger.info(
+                "pythran extension has to be built: {} -> {} ".format(
+                    py_file, os.path.basename(bin_file)
+                )
+            )
+
             pext = PythranExtension(mod, [py_file], extra_compile_args=["-O3"])
             pext.include_dirs.append(np.get_include())
             # bug pythran extension...
@@ -207,30 +198,49 @@ def make_pythran_extensions(modules):
     return extensions
 
 
-if use_pythran and "egg_info" not in sys.argv:
-    ext_names = []
-    for root, dirs, files in os.walk("fluidsim"):
-        path_dir = Path(root)
-        for name in files:
-            if path_dir.name == "__pythran__" and name.endswith(".py"):
-                path = os.path.join(root, name)
-                ext_names.append(path.replace(os.path.sep, ".").split(".py")[0])
+def create_extensions():
 
-    ext_modules += make_pythran_extensions(ext_names)
+    if "egg_info" in sys.argv:
+        return []
 
-console_scripts = [
-    "fluidsim = fluidsim.util.console.__main__:run",
-    "fluidsim-test = fluidsim.util.testing:run",
-    "fluidsim-create-xml-description = fluidsim.base.output:run",
-]
+    logger.info("Running fluidsim setup.py on platform " + sys.platform)
+    logger.info(__about__)
 
-for command in ["profile", "bench", "bench-analysis"]:
-    console_scripts.append(
-        "fluidsim-"
-        + command
-        + " = fluidsim.util.console.__main__:run_"
-        + command.replace("-", "_")
+    install_setup_requires()
+
+    transonize()
+
+    logger.info("Importing mpi4py: {}".format(MPI4PY))
+
+    define_macros = []
+    if has_cython and os.getenv("TOXENV") is not None:
+        cython_defaults = CythonOptions.get_directive_defaults()
+        cython_defaults["linetrace"] = True
+        define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
+
+    import numpy as np
+
+    path_sources = "fluidsim/base/time_stepping"
+    ext_cyfunc = Extension(
+        "fluidsim.base.time_stepping.pseudo_spect_cy",
+        include_dirs=[path_sources, np.get_include()],
+        libraries=["m"],
+        library_dirs=[],
+        sources=[path_sources + "/pseudo_spect_cy." + ext_source],
+        define_macros=define_macros,
     )
+
+    ext_modules = [ext_cyfunc]
+
+    logger.info(
+        "The following extensions could be built if necessary:\n"
+        + "".join([ext.name + "\n" for ext in ext_modules])
+    )
+
+    if use_pythran:
+        ext_modules.extend(create_pythran_extensions())
+
+    return ext_modules
 
 
 setup(
@@ -264,8 +274,8 @@ setup(
     ],
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,
-    cmdclass={"build_ext": fluidsim_build_ext},
-    ext_modules=ext_modules,
+    cmdclass={"build_ext": FluidSimBuildExt},
+    ext_modules=create_extensions(),
     entry_points={"console_scripts": console_scripts},
 )
 
