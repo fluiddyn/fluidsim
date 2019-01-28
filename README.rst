@@ -46,8 +46,9 @@ For a **basic installation** it should be sufficient to run::
 
   pip install fluidsim [--user]
 
-Add ``--user`` flag if you are installing without setting up a virtual
-environment.
+Add ``--user`` flag if you do not have permission to write in the directory of
+the python executable and you don't want to / can't setup a virtual environment
+or use pyenv or conda.
 
 Installation
 ------------
@@ -70,10 +71,6 @@ the links to know more:
    <https://fluidfft.readthedocs.io/en/latest/install.html#basic-installation-with-pip>`__
    ``~/.fluidfft-site.cfg`` to detect the FFT libraries and install
    ``fluidfft``
-6. `Configure
-   <https://fluidsim.readthedocs.io/en/latest/install.html#basic-installation-with-pip>`__
-   ``~/.fluidsim-site.cfg`` to activate some solver-specific Pythran
-   extensions
 
 **Note**: Detailed instructions to install the above dependencies using Anaconda
 / Miniconda or in a specific operating system such as Ubuntu, macOS etc. can be
@@ -109,10 +106,10 @@ which produces very efficient binaries by compiling Python via C++11.
 An advantage of a CFD code written mostly in Python is that, to run simulations
 and analyze the results, the users communicate (possibly interactively)
 together and with the machine with Python, which is nowadays among the best
-languages to do these tasks.  Moreover, it is much simpler and faster than with
-pure Fortran or C++ codes to add any complicated analysis or to write a modified
-solver. Fluidsim can also be used to extend existing solvers with Python interfaces
-such as `Basilisk <http://basilisk.fr>`__.
+languages to do these tasks. Moreover, it is much simpler and faster than with
+pure Fortran or C++ codes to add any complicated analysis or to write a
+modified solver. Fluidsim can also be used to extend existing solvers with
+Python interfaces such as `Basilisk <http://basilisk.fr>`__.
 
 We have created fluidsim to be **easy and nice to use and to develop**,
 **efficient** and **robust**.

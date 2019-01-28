@@ -58,7 +58,7 @@ class TestSolverNS2DTendency(TestSimulBase):
             abs(T_rot)
         )
 
-        self.assertGreater(1e-15, ratio)
+        self.assertGreater(1e-15, abs(ratio))
 
 
 class TestForcingProportional(TestSimulBase):

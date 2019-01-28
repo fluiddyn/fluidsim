@@ -117,11 +117,9 @@ class SimulSphereNS2D(SimulSphericalHarmo):
 
         # oper.dealiasing(Frot_sh)
 
-        import numpy as np
-
-        T_rot = np.real(Frot_sh.conj() * rot_sh + Frot_sh * rot_sh.conj()) / 2.0
+        T_rot = (Frot_sh.conj() * rot_sh).real
         print(
-            ("sum(T_rot) = {0:9.4e} ; sum(abs(T_rot)) = {1:9.4e}").format(
+            ("sum(T_rot) = {:9.4e} ; sum(abs(T_rot)) = {:9.4e}").format(
                 self.oper.sum_wavenumbers(T_rot),
                 self.oper.sum_wavenumbers(abs(T_rot)),
             )
