@@ -18,6 +18,13 @@ except ImportError:
     has_cython = False
     ext_source = "c"
 
+
+try:
+    from pythran.dist import PythranExtension, PythranBuildExt
+except ImportError:
+    PythranBuildExt = object
+
+
 here = Path(__file__).parent.absolute()
 
 try:
@@ -29,7 +36,22 @@ except ImportError:
     PARALLEL_COMPILE = setup_config["PARALLEL_COMPILE"]
 
 
-class FluidSimBuildExt(build_ext):
+try:
+    num_jobs = int(os.environ["FLUIDDYN_NUM_PROCS_BUILD"])
+except KeyError:
+    num_jobs = multiprocessing.cpu_count()
+
+    try:
+        from psutil import virtual_memory
+    except ImportError:
+        pass
+    else:
+        avail_memory_in_Go = virtual_memory().available / 1e9
+        limit_num_jobs = round(avail_memory_in_Go / 3)
+        num_jobs = min(num_jobs, limit_num_jobs)
+
+
+class FluidSimBuildExt(build_ext, PythranBuildExt):
     def build_extensions(self):
         """Function to monkey-patch
         distutils.command.build_ext.build_ext.build_extensions
@@ -55,11 +77,6 @@ class FluidSimBuildExt(build_ext):
                 ext.sources = self.cython_sources(ext.sources, ext)
             except AttributeError:
                 pass
-
-        try:
-            num_jobs = int(os.environ["FLUIDDYN_NUM_PROCS_BUILD"])
-        except KeyError:
-            num_jobs = multiprocessing.cpu_count()
 
         cython_extensions = []
         pythran_extensions = []

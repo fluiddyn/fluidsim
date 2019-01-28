@@ -1,6 +1,5 @@
 import unittest
 
-import numpy as np
 import matplotlib.pyplot as plt
 
 import fluidsim as fls
@@ -8,7 +7,7 @@ import fluidsim as fls
 import fluiddyn.util.mpi as mpi
 
 from fluidsim.solvers.ns2d.bouss.solver import Simul
-from fluidsim.solvers.ns2d.test_solver_ns2d import TestSimulBase as Base
+from fluidsim.solvers.ns2d.test_solver import TestSimulBase as Base
 
 
 class TestSimulBase(Base):
