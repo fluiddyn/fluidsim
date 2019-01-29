@@ -28,7 +28,7 @@ class FluidSimBuildExt(ParallelBuildExt):
 
     def get_num_jobs(self):
         if PARALLEL_COMPILE:
-            super().get_num_jobs()
+            return super().get_num_jobs()
         else:
             # Return None which would in turn retain the `self.parallel` in its
             # default value
