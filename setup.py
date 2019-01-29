@@ -20,13 +20,6 @@ except ImportError:
     has_cython = False
     ext_source = "c"
 
-try:
-    from transonic.dist import init_pythran_extensions
-
-    use_transonic = True
-except ImportError:
-    use_transonic = False
-
 here = Path(__file__).parent.absolute()
 
 try:
@@ -139,6 +132,7 @@ def transonize():
 
 def create_pythran_extensions():
     import numpy as np
+    from transonic.dist import init_pythran_extensions
 
     compile_arch = os.getenv("CARCH", "native")
     extensions = init_pythran_extensions(
@@ -187,8 +181,7 @@ def create_extensions():
         + "".join([ext.name + "\n" for ext in ext_modules])
     )
 
-    if use_transonic:
-        ext_modules.extend(create_pythran_extensions())
+    ext_modules.extend(create_pythran_extensions())
 
     return ext_modules
 
