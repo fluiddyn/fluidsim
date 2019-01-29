@@ -1,29 +1,10 @@
-import os
 from pathlib import Path
 from runpy import run_path
 
-from concurrent.futures import ThreadPoolExecutor as Pool
-import multiprocessing
-
 try:
-    from Cython.Distutils.extension import Extension
-    from Cython.Distutils import build_ext
-
-    has_cython = True
-    ext_source = "pyx"
+    from transonic.dist import ParallelBuildExt
 except ImportError:
-    from setuptools import Extension
-    from distutils.command.build_ext import build_ext
-
-    has_cython = False
-    ext_source = "c"
-
-
-try:
-    from pythran.dist import PythranExtension, PythranBuildExt
-except ImportError:
-    PythranBuildExt = object
-
+    from distutils.command.build_ext import build_ext as ParallelBuildExt
 
 here = Path(__file__).parent.absolute()
 
@@ -36,71 +17,19 @@ except ImportError:
     PARALLEL_COMPILE = setup_config["PARALLEL_COMPILE"]
 
 
-try:
-    num_jobs = int(os.environ["FLUIDDYN_NUM_PROCS_BUILD"])
-except KeyError:
-    num_jobs = multiprocessing.cpu_count()
-
-    try:
-        from psutil import virtual_memory
-    except ImportError:
-        pass
-    else:
-        avail_memory_in_Go = virtual_memory().available / 1e9
-        limit_num_jobs = round(avail_memory_in_Go / 3)
-        num_jobs = min(num_jobs, limit_num_jobs)
+logger.debug("FluidSimBuildExt base class = {}".format(ParallelBuildExt))
 
 
-class FluidSimBuildExt(build_ext, PythranBuildExt):
-    def build_extensions(self):
-        """Function to monkey-patch
-        distutils.command.build_ext.build_ext.build_extensions
+class FluidSimBuildExt(ParallelBuildExt):
+    def initialize_options(self):
+        super().initialize_options()
+        self.logger_name = "fluidsim"
+        self.num_jobs_env_var = "FLUIDDYN_NUM_PROCS_BUILD"
 
-        """
-        to_be_removed = ["-Wstrict-prototypes"]
-        starts_forbiden = ["-axMIC_", "-diag-disable:"]
-
-        self.compiler.compiler_so = [
-            key
-            for key in self.compiler.compiler_so
-            if key not in to_be_removed
-            and all([not key.startswith(s) for s in starts_forbiden])
-        ]
-
-        if not PARALLEL_COMPILE:
-            return super().build_extensions()
-
-        self.check_extensions_list(self.extensions)
-
-        for ext in self.extensions:
-            try:
-                ext.sources = self.cython_sources(ext.sources, ext)
-            except AttributeError:
-                pass
-
-        cython_extensions = []
-        pythran_extensions = []
-        for ext in self.extensions:
-            if isinstance(ext, Extension):
-                cython_extensions.append(ext)
-            else:
-                pythran_extensions.append(ext)
-
-        def names(exts):
-            return [ext.name for ext in exts]
-
-        with Pool(num_jobs) as pool:
-            logger.info(
-                "Start build_extension: {}".format(names(cython_extensions))
-            )
-            pool.map(self.build_extension, cython_extensions)
-
-        logger.info("Stop build_extension: {}".format(names(cython_extensions)))
-
-        with Pool(num_jobs) as pool:
-            logger.info(
-                "Start build_extension: {}".format(names(pythran_extensions))
-            )
-            pool.map(self.build_extension, pythran_extensions)
-
-        logger.info("Stop build_extension: {}".format(names(pythran_extensions)))
+    def get_num_jobs(self):
+        if PARALLEL_COMPILE:
+            super().get_num_jobs()
+        else:
+            # Return None which would in turn retain the `self.parallel` in its
+            # default value
+            return None
