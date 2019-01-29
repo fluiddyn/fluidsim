@@ -1,5 +1,5 @@
 develop:
-	pip install -v -e . | grep -v link
+	pip install -v -e .[dev] | grep -v link
 
 clean_so:
 	find fluidsim -name "*.so" -delete

@@ -17,19 +17,10 @@ import subprocess
 import shlex
 from ctypes.util import find_library
 
-import multiprocessing
-from distutils.ccompiler import CCompiler
-
-try:
-    from Cython.Distutils import build_ext
-    from Cython.Distutils.extension import Extension
-except ImportError:
-    from distutils.command.build_ext import build_ext
-    from setuptools import Extension
-
 from configparser import ConfigParser
 
 from logging import ERROR, INFO
+
 if "egg_info" in sys.argv:
     level = ERROR
 else:
@@ -51,26 +42,6 @@ logger = logging.getLogger("fluidsim")
 logger.addHandler(handler)
 logger.setLevel(level)
 
-
-try:
-    from concurrent.futures import ThreadPoolExecutor as Pool
-except ImportError:
-    from multiprocessing.pool import ThreadPool as LegacyPool
-
-    # To ensure the with statement works. Required for some older 2.7.x releases
-    class Pool(LegacyPool):
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *args):
-            self.close()
-            self.join()
-
-    logger.warn(
-        "Falling back to multiprocessing.pool.ThreadPool\n"
-        "    pip install futures\n"
-        "to use concurrent.futures Python 2.7 backport.\n"
-    )
 
 DEBUG = os.environ.get("FLUIDDYN_DEBUG", False)
 PARALLEL_COMPILE = not DEBUG
@@ -128,96 +99,6 @@ else:
 
 
 FFTW3 = check_avail_library("fftw3")
-
-
-def build_extensions(self):
-    """Function to monkey-patch
-    distutils.command.build_ext.build_ext.build_extensions
-
-    """
-    self.check_extensions_list(self.extensions)
-
-    to_be_removed = ["-Wstrict-prototypes"]
-    starts_forbiden = ["-axMIC_", "-diag-disable:"]
-
-    self.compiler.compiler_so = [
-        key
-        for key in self.compiler.compiler_so
-        if key not in to_be_removed
-        and all([not key.startswith(s) for s in starts_forbiden])
-    ]
-
-    for ext in self.extensions:
-        try:
-            ext.sources = self.cython_sources(ext.sources, ext)
-        except AttributeError:
-            pass
-
-    try:
-        num_jobs = int(os.environ["FLUIDDYN_NUM_PROCS_BUILD"])
-    except KeyError:
-        try:
-            num_jobs = os.cpu_count()
-        except AttributeError:
-            num_jobs = multiprocessing.cpu_count()
-
-    cython_extensions = []
-    pythran_extensions = []
-    for ext in self.extensions:
-        if isinstance(ext, Extension):
-            cython_extensions.append(ext)
-        else:
-            pythran_extensions.append(ext)
-
-    def names(exts):
-        return [ext.name for ext in exts]
-
-    with Pool(num_jobs) as pool:
-        logger.info("Start build_extension: {}".format(names(cython_extensions)))
-        pool.map(self.build_extension, cython_extensions)
-
-    logger.info("Stop build_extension: {}".format(names(cython_extensions)))
-
-    with Pool(num_jobs) as pool:
-        logger.info("Start build_extension: {}".format(names(pythran_extensions)))
-        pool.map(self.build_extension, pythran_extensions)
-
-    logger.info("Stop build_extension: {}".format(names(pythran_extensions)))
-
-
-def compile(
-    self,
-    sources,
-    output_dir=None,
-    macros=None,
-    include_dirs=None,
-    debug=0,
-    extra_preargs=None,
-    extra_postargs=None,
-    depends=None,
-):
-    """Function to monkey-patch distutils.ccompiler.CCompiler"""
-    macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
-        output_dir, macros, include_dirs, sources, depends, extra_postargs
-    )
-    cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
-
-    for obj in objects:
-        try:
-            src, ext = build[obj]
-        except KeyError:
-            continue
-        self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
-
-    # Return *all* object filenames, not just the ones we just built.
-    return objects
-
-
-def monkeypatch_parallel_build():
-    """Monkey-patch to compile in parallel."""
-    if PARALLEL_COMPILE:
-        build_ext.build_extensions = build_extensions
-        CCompiler.compile = compile
 
 
 def get_default_config():
@@ -304,6 +185,10 @@ def get_config():
                 value = config.getboolean(section, option)
 
             section_dict[option] = value
+
+    # handle environ (variables) in config
+    if "environ" in config_dict:
+        os.environ.update(config_dict["environ"])
 
     return config_dict
 

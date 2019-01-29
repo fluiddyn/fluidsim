@@ -110,10 +110,14 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
         if type_fft not in d:
             raise ConsoleError("{} not in {}".format(type_fft, list(d.keys())))
 
+        ClassFFT = d[type_fft]
+        if ClassFFT is None:
+            raise RuntimeError(f"Class {type_fft} is not available")
+
         if n2 is None:
-            opfft = d[type_fft](n0, n1)
+            opfft = ClassFFT(n0, n1)
         else:
-            opfft = d[type_fft](n0, n1, n2)
+            opfft = ClassFFT(n0, n1, n2)
 
         return opfft
 
@@ -151,7 +155,12 @@ def estimate_shapes_weak_scaling(
     nproc_gp = np.logspace(1, num_gp, num_gp, base=nproc_min, dtype=int)
     nproc_max = nproc_gp[-1]
 
-    opfft = get_opfft(n0_max, n1_max, n2_max, type_fft=type_fft)
+    try:
+        opfft = get_opfft(n0_max, n1_max, n2_max, type_fft=type_fft)
+    except RuntimeError:
+        print(f"Cannot create FFT operator {type_fft}")
+        return
+
     shapeX_seq = opfft.get_shapeX_seq()
     shapes = OrderedDict()
     for nproc in nproc_gp:
@@ -177,7 +186,13 @@ def print_shape_loc(n0, n1, n2=None, type_fft=None):
     Meant to be used with MPI.
 
     """
-    opfft = get_opfft(n0, n1, n2, type_fft=type_fft)
+
+    try:
+        opfft = get_opfft(n0, n1, n2, type_fft=type_fft)
+    except RuntimeError:
+        print(f"Cannot create FFT operator {type_fft}")
+        return
+
     shapeX_loc = opfft.get_shapeX_loc()
     shapeK_loc = opfft.get_shapeK_loc()
     print("-" * 8)

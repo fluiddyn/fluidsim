@@ -7,7 +7,7 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver_ns3d import TestSimulBase as _Base
+from ..test_solver import TestSimulBase as _Base
 
 from .solver import Simul
 

@@ -8,7 +8,7 @@ import fluidsim as fls
 import fluiddyn.util.mpi as mpi
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
-from fluidsim.solvers.ns2d.test_solver_ns2d import TestSimulBase as Base
+from fluidsim.solvers.ns2d.test_solver import TestSimulBase as Base
 
 
 class TestSimulBase(Base):
@@ -21,6 +21,8 @@ class TestSolverNS2DTendency(TestSimulBase):
         params = super().init_params()
         params.time_stepping.USE_CFL = False
         params.time_stepping.USE_T_END = False
+        # todo: understand why it fails for larger it_end and deltat0. I (pa)
+        # guess there could be a bug hidden.
         params.time_stepping.it_end = 2
         params.time_stepping.deltat0 = 0.02
         params.output.HAS_TO_SAVE = False

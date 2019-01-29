@@ -14,13 +14,11 @@ Provides:
 import os
 import sys
 import time
+from glob import glob
+
 import numpy as np
 import h5py
-import math
-import matplotlib.pyplot as plt
 
-from math import pi
-from glob import glob
 from scipy import signal
 
 from fluiddyn.util import mpi
