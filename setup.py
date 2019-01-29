@@ -22,6 +22,7 @@ except ImportError:
 
 try:
     from transonic.dist import init_pythran_extensions
+
     use_transonic = True
 except ImportError:
     use_transonic = False
@@ -143,7 +144,7 @@ def create_pythran_extensions():
     extensions = init_pythran_extensions(
         "fluidsim",
         include_dirs=np.get_include(),
-        compile_args=("-O3", "-march={}".format(compile_arch), "-DUSE_XSIMD")
+        compile_args=("-O3", "-march={}".format(compile_arch), "-DUSE_XSIMD"),
     )
     return extensions
 
