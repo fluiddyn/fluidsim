@@ -78,7 +78,7 @@ install_requires = [
     "fluiddyn >= 0.3.0",
     "h5py",
     "h5netcdf",
-    "transonic>=0.1.9",
+    "transonic >= 0.1.9.post0",
     "setuptools_scm",
     "xarray",
 ]
