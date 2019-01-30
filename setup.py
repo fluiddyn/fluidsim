@@ -8,6 +8,9 @@ from runpy import run_path
 from setuptools.dist import Distribution
 from setuptools import setup, find_packages
 
+if sys.version_info[:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
+
 
 def install_setup_requires():
     dist = Distribution()
@@ -50,10 +53,6 @@ except ImportError:
     FluidSimBuildExt = run_path(here / "setup_build.py")["FluidSimBuildExt"]
 
 time_start = time()
-
-
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
 
 
 # Get the long description from the relevant file
