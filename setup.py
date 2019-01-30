@@ -4,11 +4,21 @@ from pathlib import Path
 
 from time import time
 from runpy import run_path
-from datetime import datetime
-from distutils.sysconfig import get_config_var
 
 from setuptools.dist import Distribution
 from setuptools import setup, find_packages
+
+
+def install_setup_requires():
+    dist = Distribution()
+    # Honor setup.cfg's options.
+    dist.parse_config_files(ignore_option_errors=True)
+    if dist.setup_requires:
+        dist.fetch_build_eggs(dist.setup_requires)
+
+
+install_setup_requires()
+
 
 try:
     from Cython.Distutils.extension import Extension
@@ -21,13 +31,6 @@ except ImportError:
 
     has_cython = False
     ext_source = "c"
-
-try:
-    from pythran.dist import PythranExtension
-
-    use_pythran = True
-except ImportError:
-    use_pythran = False
 
 here = Path(__file__).parent.absolute()
 
@@ -44,7 +47,7 @@ try:
     from setup_build import FluidSimBuildExt
 except ImportError:
     # needed when there is already a module with the same name imported.
-    FluidFFTBuildExt = run_path(here / "setup_build.py")["FluidSimBuildExt"]
+    FluidSimBuildExt = run_path(here / "setup_build.py")["FluidSimBuildExt"]
 
 time_start = time()
 
@@ -76,7 +79,7 @@ install_requires = [
     "fluiddyn >= 0.3.0",
     "h5py",
     "h5netcdf",
-    "transonic>=0.1.8",
+    "transonic>=0.1.9",
     "setuptools_scm",
     "xarray",
 ]
@@ -97,14 +100,6 @@ for command in ["profile", "bench", "bench-analysis"]:
         + " = fluidsim.util.console.__main__:run_"
         + command.replace("-", "_")
     )
-
-
-def install_setup_requires():
-    dist = Distribution()
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
-    if dist.setup_requires:
-        dist.fetch_build_eggs(dist.setup_requires)
 
 
 def transonize():
@@ -139,74 +134,25 @@ def transonize():
     )
 
 
-def modification_date(filename):
-    t = os.path.getmtime(filename)
-    return datetime.fromtimestamp(t)
-
-
 def create_pythran_extensions():
-
-    modules = []
-    for root, dirs, files in os.walk("fluidsim"):
-        path_dir = Path(root)
-        for name in files:
-            if path_dir.name == "__pythran__" and name.endswith(".py"):
-                path = os.path.join(root, name)
-                modules.append(path.replace(os.path.sep, ".").split(".py")[0])
-
-    exclude_pythran = tuple()
-    if len(exclude_pythran) > 0:
-        logger.info(
-            "Pythran files in the packages "
-            + str(exclude_pythran)
-            + " will not be built."
-        )
-    develop = "develop" in sys.argv
-
     import numpy as np
+    from transonic.dist import init_pythran_extensions
 
-    extensions = []
-    for mod in modules:
-        package = mod.rsplit(".", 1)[0]
-        if any(package == excluded for excluded in exclude_pythran):
-            continue
-        base_file = mod.replace(".", os.path.sep)
-        py_file = base_file + ".py"
-        suffix = get_config_var("EXT_SUFFIX")
-        bin_file = base_file + suffix
-        if (
-            not develop
-            or not os.path.exists(bin_file)
-            or modification_date(bin_file) < modification_date(py_file)
-        ):
-
-            logger.info(
-                "pythran extension has to be built: {} -> {} ".format(
-                    py_file, os.path.basename(bin_file)
-                )
-            )
-
-            pext = PythranExtension(mod, [py_file], extra_compile_args=["-O3"])
-            pext.include_dirs.append(np.get_include())
-            # bug pythran extension...
-            compile_arch = os.getenv("CARCH", "native")
-            pext.extra_compile_args.extend(
-                ["-O3", "-march={}".format(compile_arch), "-DUSE_XSIMD"]
-            )
-            # pext.extra_link_args.extend(['-fopenmp'])
-            extensions.append(pext)
+    compile_arch = os.getenv("CARCH", "native")
+    extensions = init_pythran_extensions(
+        "fluidsim",
+        include_dirs=np.get_include(),
+        compile_args=("-O3", "-march={}".format(compile_arch), "-DUSE_XSIMD"),
+    )
     return extensions
 
 
 def create_extensions():
-
     if "egg_info" in sys.argv:
         return []
 
     logger.info("Running fluidsim setup.py on platform " + sys.platform)
     logger.info(__about__)
-
-    install_setup_requires()
 
     transonize()
 
@@ -237,8 +183,7 @@ def create_extensions():
         + "".join([ext.name + "\n" for ext in ext_modules])
     )
 
-    if use_pythran:
-        ext_modules.extend(create_pythran_extensions())
+    ext_modules.extend(create_pythran_extensions())
 
     return ext_modules
 

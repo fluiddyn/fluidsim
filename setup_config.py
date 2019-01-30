@@ -19,32 +19,22 @@ from ctypes.util import find_library
 
 from configparser import ConfigParser
 
-from logging import ERROR, INFO
+from logging import ERROR, INFO, DEBUG
+
+from transonic.dist import get_logger
+
+FLUIDDYN_DEBUG = os.environ.get("FLUIDDYN_DEBUG", False)
+PARALLEL_COMPILE = not FLUIDDYN_DEBUG
 
 if "egg_info" in sys.argv:
     level = ERROR
+elif FLUIDDYN_DEBUG:
+    level = DEBUG
 else:
     level = INFO
 
-try:
-    import colorlog as logging
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.ColoredFormatter("%(log_color)s%(levelname)s: %(message)s")
-    )
-except ImportError:
-    import logging
-
-    handler = logging.StreamHandler()
-
-logger = logging.getLogger("fluidsim")
-logger.addHandler(handler)
+logger = get_logger("fluidsim")
 logger.setLevel(level)
-
-
-DEBUG = os.environ.get("FLUIDDYN_DEBUG", False)
-PARALLEL_COMPILE = not DEBUG
 
 
 def check_avail_library(library_name):
