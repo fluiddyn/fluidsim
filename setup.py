@@ -8,6 +8,18 @@ from runpy import run_path
 from setuptools.dist import Distribution
 from setuptools import setup, find_packages
 
+
+def install_setup_requires():
+    dist = Distribution()
+    # Honor setup.cfg's options.
+    dist.parse_config_files(ignore_option_errors=True)
+    if dist.setup_requires:
+        dist.fetch_build_eggs(dist.setup_requires)
+
+
+install_setup_requires()
+
+
 try:
     from Cython.Distutils.extension import Extension
     from Cython.Compiler import Options as CythonOptions
@@ -67,7 +79,7 @@ install_requires = [
     "fluiddyn >= 0.3.0",
     "h5py",
     "h5netcdf",
-    "transonic>=0.1.8",
+    "transonic>=0.1.9",
     "setuptools_scm",
     "xarray",
 ]
@@ -88,14 +100,6 @@ for command in ["profile", "bench", "bench-analysis"]:
         + " = fluidsim.util.console.__main__:run_"
         + command.replace("-", "_")
     )
-
-
-def install_setup_requires():
-    dist = Distribution()
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
-    if dist.setup_requires:
-        dist.fetch_build_eggs(dist.setup_requires)
 
 
 def transonize():
@@ -149,8 +153,6 @@ def create_extensions():
 
     logger.info("Running fluidsim setup.py on platform " + sys.platform)
     logger.info(__about__)
-
-    install_setup_requires()
 
     transonize()
 

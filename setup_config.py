@@ -21,11 +21,7 @@ from configparser import ConfigParser
 
 from logging import ERROR, INFO, DEBUG
 
-try:
-    from transonic.dist import get_logger
-except ImportError:
-    from logging import getLogger as get_logger
-
+from transonic.dist import get_logger
 
 FLUIDDYN_DEBUG = os.environ.get("FLUIDDYN_DEBUG", False)
 PARALLEL_COMPILE = not FLUIDDYN_DEBUG

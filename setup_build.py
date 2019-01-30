@@ -1,23 +1,16 @@
 from pathlib import Path
 from runpy import run_path
 
-try:
-    from transonic.dist import ParallelBuildExt
-except ImportError:
-    from distutils.command.build_ext import build_ext as ParallelBuildExt
+from transonic.dist import ParallelBuildExt
 
 here = Path(__file__).parent.absolute()
 
 try:
-    from setup_config import PARALLEL_COMPILE, logger
+    from setup_config import PARALLEL_COMPILE
 except ImportError:
     # needed when there is already a module with the same name imported.
     setup_config = run_path(here / "setup_config.py")
-    logger = setup_config["logger"]
     PARALLEL_COMPILE = setup_config["PARALLEL_COMPILE"]
-
-
-logger.debug("FluidSimBuildExt base class = {}".format(ParallelBuildExt))
 
 
 class FluidSimBuildExt(ParallelBuildExt):
