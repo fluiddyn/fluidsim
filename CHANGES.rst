@@ -1,4 +1,15 @@
 
+0.3.0 (2019-01-31)
+------------------
+
+- Drop support for Python 2.7!
+- Accelerated by Transonic & Pythran (also time stepping)
+- Better setup.py (by Ashwin Vishnu)
+- Improvement ns2d.strat (by Miguel Calpe Linares)
+- Much better testing (internal, CI, compatibility pytest, coverage 87%)
+- Fix several bugs :-)
+- New function load_for_restart
+
 0.2.2 (2018-07-01)
 ------------------
 
