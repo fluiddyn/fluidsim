@@ -1,3 +1,6 @@
+# Second tag after tip is usually the latest release
+RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
+
 develop:
 	pip install -v -e .[dev] | grep -v link
 
@@ -17,6 +20,9 @@ clean:
 	rm -rf build
 
 cleanall: clean clean_so cleanpythran
+
+shortlog:
+	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
 black:
 	black -l 82 fluidsim
