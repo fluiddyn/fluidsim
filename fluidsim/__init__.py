@@ -90,6 +90,10 @@ from .base.params import load_params_simul
 # clean up
 from . import util
 
+try:
+    from .magic import load_ipython_extension
+except ImportError:
+    pass
 
 del util
 
