@@ -56,11 +56,19 @@ if any(
 
     plt.show = _show
 
-    if "FLUID_COMPILE_CACHEDJIT" not in os.environ:
+    if all(
+        env_var not in os.environ
+        for env_var in ("FLUID_COMPILE_CACHEDJIT", "TRANSONIC_COMPILE_JIT")
+    ):
         mpi.printby0("Compilation of jit functions disabled.")
         from transonic import set_compile_jit
 
         set_compile_jit(False)
+    elif "FLUID_COMPILE_CACHEDJIT" in os.environ:
+        mpi.printby0(
+            "WARNING: FLUID_COMPILE_CACHEDJIT is deprecated, use "
+            "TRANSONIC_COMPILE_JIT instead."
+        )
 
 from ._version import __version__, get_local_version
 

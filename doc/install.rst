@@ -196,11 +196,11 @@ Fluidsim is also sensitive to the environment variables:
 
 - ``FLUIDDYN_PATH_SCRATCH``: working directory (can be useful on some clusters).
 
-- ``FLUID_COMPILE_CACHEDJIT``: set this variable to force JIT compilation using
+- ``TRANSONIC_COMPILE_JIT``: set this variable to force JIT compilation using
   ``transonic`` while running tests. This is not necessary, but could be useful
   for troubleshooting if simulations freeze. For example::
 
-     FLUID_COMPILE_CACHEDJIT=1 fluidsim-test -m fluidsim.solvers.sw1l
+     TRANSONIC_COMPILE_JIT=1 fluidsim-test -m fluidsim.solvers.sw1l
 
 - Customize compilers to build Cython extensions, if the defaults do not work
   for you, either using the environment variables:
