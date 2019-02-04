@@ -67,7 +67,7 @@ the links to know more:
 2. FFT libraries such as MPI-enabled FFTW (for 2D and 3D solvers) and P3DFFT,
    PFFT (for 3D solvers) either using a package manager or `from source
    <https://fluidfft.readthedocs.io/en/latest/install/fft_libs.html>`__
-3. Python packages `dependencies
+3. Install optional Python `package dependencies
    <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
 4. `A C++11 compiler and BLAS
    libraries <https://pythran.readthedocs.io/en/latest/#installation>`__ and
