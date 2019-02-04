@@ -2,7 +2,7 @@
 |logo|
 ======
 
-|release| |pyversions| |docs| |coverage| |travis|
+|release| |pyversions| |docs| |coverage| |travis| |chat|
 
 .. |logo| image:: https://bitbucket.org/fluiddyn/fluidsim/raw/default/doc/logo.svg
    :alt: FluidSim
@@ -26,9 +26,15 @@
    :target: https://travis-ci.org/fluiddyn/fluidsim
    :alt: Travis CI status
 
+.. |chat| image:: https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg
+   :target: https://matrix.to/#/#fluiddyn-users:matrix.org
+   :alt: Chat room
+
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?urlpath=lab/tree/doc/ipynb
    :alt: Binder notebook
+
+.. description
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
 simulations using Python. Fluidsim is an object-oriented library to develop

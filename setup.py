@@ -55,11 +55,14 @@ except ImportError:
 time_start = time()
 
 
-# Get the long description from the relevant file
-with open(os.path.join(here, "README.rst")) as file:
-    long_description = file.read()
-lines = long_description.splitlines(True)
-long_description = "".join(lines[14:])
+def long_description():
+    """Get the long description from the relevant file."""
+    with open(os.path.join(here, "README.rst")) as readme:
+        lines = list(readme)
+
+    idx = lines.index(".. description\n") + 1
+    return "".join(lines[idx:])
+
 
 # Get the version from the relevant file
 version = run_path("fluidsim/_version.py")
@@ -189,7 +192,7 @@ def create_extensions():
 
 setup(
     version=__version__,
-    long_description=long_description,
+    long_description=long_description(),
     author="Pierre Augier",
     author_email="pierre.augier@legi.cnrs.fr",
     url="https://bitbucket.org/fluiddyn/fluidsim",
