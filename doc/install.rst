@@ -66,8 +66,9 @@ for most cases, manual intervention is not required.
   .. warning::
 
      To reach good performance, we advice to try to put in the file
-     `~/.pythranrc` the lines (it seems to work well on Linux, see the `Pythran
-     documentation <https://pythonhosted.org/pythran/MANUAL.html>`_):
+     ``~/.pythranrc`` the lines (it seems to work well on Linux, see the
+     `Pythran documentation
+     <https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc>`_):
 
      .. code:: ini
 
@@ -79,7 +80,7 @@ for most cases, manual intervention is not required.
      The compilation of C++ files produced by Pythran can be long and can
      consume a lot of memory. If you encounter any problems, you can try to use
      clang (for example with ``conda install clangdev``) and to enable its use
-     in the file `~/.pythranrc` with:
+     in the file ``~/.pythranrc`` with:
 
      .. code:: ini
 
