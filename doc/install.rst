@@ -9,8 +9,8 @@ documentation of the project
 Dependencies
 ------------
 
-Starting from ``fluidsim>=0.3.0`` the Python dependencies are installed automatically so
-for most cases, manual intervention is not required.
+Starting from ``fluidsim>=0.3.0`` the Python dependencies are installed
+automatically. So for most cases, manual intervention is not required.
 
 - Python >= 3.6
 
