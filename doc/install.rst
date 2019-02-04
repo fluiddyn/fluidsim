@@ -109,11 +109,21 @@ Basic installation with pip
 If you are in a hurry and that you are not really concerned about performance,
 you can use pip::
 
-  pip install fluidsim
+  pip install fluidsim --no-cache-dir
 
-or::
+or (without virtualenv)::
 
-  pip install fluidsim --user
+  pip install fluidsim --no-cache-dir --user
+
+
+.. note::
+
+   The build is different depending on whether some packages (namely ``mpi4py``
+   and ``pythran``) are importable or not. Suppose you perform a barebones
+   installation and later on you decide to install any of those packages. If
+   you have ``fluidsim`` in the ``pip`` cache, the extensions in ``fluidsim``
+   will not installed properly. The option ``--no-cache-dir`` would avoid such
+   trouble arising from ``pip`` reinstalling a cached copy of ``fluidsim``.
 
 You can also configure the installation of fluidsim by creating the file
 ``~/.fluidsim-site.cfg`` and modify it to fit your requirements before the
@@ -155,17 +165,14 @@ and modify it to fit your requirements.
 Build/install
 ~~~~~~~~~~~~~
 
-Build/install in development mode (with a virtualenv or with conda)::
+Build/install in development mode (with a virtualenv or with conda), by
+running from the top-level directory::
 
-  python setup.py develop
+  pip install -e .
 
 or (without virtualenv)::
 
-  python setup.py develop --user
-
-Of course you can also install FluidDyn with the install command ``python
-setup.py install``.
-
+  pip install -e . --user
 
 Run the tests!
 --------------

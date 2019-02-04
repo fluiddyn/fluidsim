@@ -50,7 +50,7 @@ To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluidsim [--user]
+  pip install fluidsim --no-cache-dir [--user]
 
 Add ``--user`` flag if you do not have permission to write in the directory of
 the python executable and you don't want to / can't setup a virtual environment
