@@ -248,7 +248,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
     def _init_skip_quiver(self):
         # 4% of the Lx it is a great separation between vector arrows.
         try:
-            delta_quiver = 0.04 * self.oper.Lx
+            delta_quiver = 0.04 * min(self.oper.Lx, self.oper.Ly)
         except AttributeError:
             skip = 1
         else:
@@ -403,7 +403,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
             # we have to get the field from a file
             self.set_of_phys_files.update_times()
             if time == None:
-                time = self.set_of_phys_files.times[-1]
+                time = sorted(self.set_of_phys_files.times)[-1]
 
             if key_field not in self.sim.state.keys_state_phys:
                 raise ValueError("key not in state.keys_state_phys")
@@ -462,6 +462,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
             ax.set_xlabel("x")
             ax.set_ylabel("y")
             self._set_title(ax, key_field, time, vmax)
+
+            if self.oper.Lx != self.oper.Ly:
+                ax.set_aspect("equal")
 
             fig.tight_layout()
             fig.canvas.draw()
