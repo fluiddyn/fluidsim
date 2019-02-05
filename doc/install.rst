@@ -9,22 +9,26 @@ documentation of the project
 Dependencies
 ------------
 
-- Python 2.7 or >= 3.4
+Starting from ``fluidsim>=0.3.0`` the Python dependencies are installed
+automatically. So for most cases, manual intervention is not required.
 
-- Numpy
+- Python >= 3.6
+
+- Numpy, `transonic <https://transonic.readthedocs.io>`_
 
 - `fluiddyn <http://fluiddyn.readthedocs.io>`_
 
-  The base package of the FluidDyn project is a pure Python package that will be
-  installed automatically so you should not need to worry about this dependency.
+  The base package of the FluidDyn project.
 
 - `fluidfft <http://fluidfft.readthedocs.io>`_
 
-  fluidsim needs fluidfft. If you don't install it before carefully, it will be
-  installed automatically and you won't be able to use fancy FFT libraries
-  (using for example MPI with 2D decomposition or GPU with CUDA). If you are
-  not too concerned about performance, no problem. Otherwise, install fluidfft
-  as explained `here <http://fluidfft.readthedocs.io/en/latest/install.html>`__.
+  Pseudospectral solvers of fluidsim needs fluidfft. If you have not configured
+  it before installing, it will be installed automatically and you won't be able
+  to use fancy FFT libraries (using for example MPI with 2D decomposition or
+  GPU with CUDA). If you do not need a pseudospectral solver, or if you are
+  not too concerned about performance, no problem.  Otherwise, install fluidfft
+  as explained `here
+  <http://fluidfft.readthedocs.io/en/latest/install.html>`__.
 
 - h5py (optionally, with MPI support, but only if you know what you do)
 
@@ -62,10 +66,11 @@ Dependencies
   .. warning::
 
      To reach good performance, we advice to try to put in the file
-     `~/.pythranrc` the lines (it seems to work well on Linux, see the `Pythran
-     documentation <https://pythonhosted.org/pythran/MANUAL.html>`_):
+     ``~/.pythranrc`` the lines (it seems to work well on Linux, see the
+     `Pythran documentation
+     <https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc>`_):
 
-     .. code:: bash
+     .. code:: ini
 
         [pythran]
         complex_hook = True
@@ -75,16 +80,25 @@ Dependencies
      The compilation of C++ files produced by Pythran can be long and can
      consume a lot of memory. If you encounter any problems, you can try to use
      clang (for example with ``conda install clangdev``) and to enable its use
-     in the file `~/.pythranrc` with:
+     in the file ``~/.pythranrc`` with:
 
-     .. code:: bash
+     .. code:: ini
 
         [compiler]
         CXX=clang++
         CC=clang
+        blas=openblas
 
 - Optionally (for MPI runs), `mpi4py <http://mpi4py.scipy.org>`_ (which depends
   on a MPI implementation).
+
+  .. warning::
+
+     If the system has multiple MPI libraries, it is adviced to explicitly
+     mention the MPI command. For instance to use Intel MPI::
+
+        CC=mpiicc pip install mpi4py
+
 
 - Optionally (for some command-line tools), `Pandas
   <https://pandas.pydata.org/>`_.
@@ -95,11 +109,21 @@ Basic installation with pip
 If you are in a hurry and that you are not really concerned about performance,
 you can use pip::
 
-  pip install fluidsim
+  pip install fluidsim --no-cache-dir
 
-or::
+or (without virtualenv)::
 
-  pip install fluidsim --user
+  pip install fluidsim --no-cache-dir --user
+
+
+.. note::
+
+   The build is different depending on whether some packages (namely ``mpi4py``
+   and ``pythran``) are importable or not. Suppose you perform a barebones
+   installation and later on you decide to install any of those packages. If
+   you have ``fluidsim`` in the ``pip`` cache, the extensions in ``fluidsim``
+   will not installed properly. The option ``--no-cache-dir`` would avoid such
+   trouble arising from ``pip`` reinstalling a cached copy of ``fluidsim``.
 
 You can also configure the installation of fluidsim by creating the file
 ``~/.fluidsim-site.cfg`` and modify it to fit your requirements before the
@@ -131,31 +155,24 @@ from `the PyPI page <https://pypi.org/project/fluidsim>`_.
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-For particular installation setup, copy the default configuration file::
+For particular installation setup, copy the default configuration file to
+``site.cfg``::
 
   cp site.cfg.default site.cfg
 
 and modify it to fit your requirements.
 
-.. warning::
-
-   If you care about performance, correctly set up a configuration file. By
-   default, some Pythran files are not Pythranized!
-
 Build/install
 ~~~~~~~~~~~~~
 
-Build/install in development mode (with a virtualenv or with conda)::
+Build/install in development mode (with a virtualenv or with conda), by
+running from the top-level directory::
 
-  python setup.py develop
+  pip install -e .
 
 or (without virtualenv)::
 
-  python setup.py develop --user
-
-Of course you can also install FluidDyn with the install command ``python
-setup.py install``.
-
+  pip install -e . --user
 
 Run the tests!
 --------------
@@ -176,7 +193,7 @@ during the build using the environment variable ``FLUIDDYN_NUM_PROCS_BUILD``::
 
    export FLUIDDYN_NUM_PROCS_BUILD=2
 
-Fluidsim is also sensible to the environment variables:
+Fluidsim is also sensitive to the environment variables:
 
 - ``FLUIDSIM_PATH``: path where the simulation results are saved.
 
@@ -185,3 +202,20 @@ Fluidsim is also sensible to the environment variables:
     export FLUIDSIM_PATH=$HOME/Data
 
 - ``FLUIDDYN_PATH_SCRATCH``: working directory (can be useful on some clusters).
+
+- ``TRANSONIC_COMPILE_JIT``: set this variable to force JIT compilation using
+  ``transonic`` while running tests. This is not necessary, but could be useful
+  for troubleshooting if simulations freeze. For example::
+
+     TRANSONIC_COMPILE_JIT=1 fluidsim-test -m fluidsim.solvers.sw1l
+
+- Customize compilers to build Cython extensions, if the defaults do not work
+  for you, either using the environment variables:
+
+  - ``MPICXX``: for Cython extensions in ``fluidfft`` (default: ``mpicxx``)
+  - ``CC``: command to generate object files in ``fluidsim``
+  - ``LDSHARED``: command to link and generate shared libraries in ``fluidsim`` 
+  - ``CARCH``: to cross compile (default: ``native``)
+
+  or by using a ``site.cfg`` or ``~/.fluidsim-site.cfg`` file as described
+  above.

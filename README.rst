@@ -2,7 +2,7 @@
 |logo|
 ======
 
-|release| |pyversions| |docs| |coverage| |travis|
+|release| |pyversions| |docs| |coverage| |travis| |chat|
 
 .. |logo| image:: https://bitbucket.org/fluiddyn/fluidsim/raw/default/doc/logo.svg
    :alt: FluidSim
@@ -26,9 +26,15 @@
    :target: https://travis-ci.org/fluiddyn/fluidsim
    :alt: Travis CI status
 
+.. |chat| image:: https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg
+   :target: https://matrix.to/#/#fluiddyn-users:matrix.org
+   :alt: Chat room
+
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?urlpath=lab/tree/doc/ipynb
    :alt: Binder notebook
+
+.. description
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
 simulations using Python. Fluidsim is an object-oriented library to develop
@@ -44,7 +50,7 @@ To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluidsim [--user]
+  pip install fluidsim --no-cache-dir [--user]
 
 Add ``--user`` flag if you do not have permission to write in the directory of
 the python executable and you don't want to / can't setup a virtual environment
@@ -61,9 +67,10 @@ the links to know more:
 2. FFT libraries such as MPI-enabled FFTW (for 2D and 3D solvers) and P3DFFT,
    PFFT (for 3D solvers) either using a package manager or `from source
    <https://fluidfft.readthedocs.io/en/latest/install/fft_libs.html>`__
-3. Python packages ``fluiddyn mako cython pyfftw pythran mpi4py``
+3. Install optional Python `package dependencies
+   <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
 4. `A C++11 compiler and BLAS
-   libraries <https://github.com/serge-sans-paille/pythran#installation>`__ and
+   libraries <https://pythran.readthedocs.io/en/latest/#installation>`__ and
    `configure
    <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
    ``~/.pythranrc`` to customize compilation of Pythran extensions

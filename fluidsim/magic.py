@@ -158,7 +158,6 @@ class FluidsimMagics(Magics):
         else:
             sim = load_sim_for_plot(
                 name_dir=args.directory,
-                t_approx=args.t_approx,
                 merge_missing_params=args.merge_missing_params,
             )
 
