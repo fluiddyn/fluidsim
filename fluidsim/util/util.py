@@ -350,6 +350,11 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = os.path.join(path_dir, name_file)
 
+    if merge_missing_params:
+        # this has to be done by all processes otherwise there is a problem
+        # with Transonic (see https://bitbucket.org/fluiddyn/fluidsim/issues/26)
+        default_params = solver.Simul.create_default_params()
+
     if mpi.rank > 0:
         params = None
     else:
@@ -357,7 +362,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
             params = Parameters(hdf5_object=f["info_simul"]["params"])
 
         if merge_missing_params:
-            merge_params(params, solver.Simul.create_default_params())
+            merge_params(params, default_params)
 
         params.path_run = path_dir
         params.NEW_DIR_RESULTS = False
