@@ -408,10 +408,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
             if key_field not in self.sim.state.keys_state_phys:
                 raise ValueError("key not in state.keys_state_phys")
 
-            field = self.get_field_to_plot(key=key_field, time=time)
+            field = self.get_field_to_plot(key=key_field, time=time, interpolate_time=True)
             if QUIVER:
-                vecx = self.get_field_to_plot(key=vecx, time=time)
-                vecy = self.get_field_to_plot(key=vecy, time=time)
+                vecx = self.get_field_to_plot(key=vecx, time=time, interpolate_time=True)
+                vecy = self.get_field_to_plot(key=vecy, time=time, interpolate_time=True)
 
         if mpi.rank == 0:
             if numfig is None:
