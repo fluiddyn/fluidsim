@@ -26,7 +26,7 @@ class TestSimulBase(TestSimul):
         params.output.sub_directory = "unittests"
 
         params.oper.lmax = 15
-        params.oper.omega = 0.
+        params.oper.omega = 0.0
 
         params.nu_8 = 2.0
 

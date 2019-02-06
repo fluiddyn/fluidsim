@@ -104,16 +104,17 @@ class FrequencySpectra(SpecificOutput):
         # Convert time_start to it_start.
         if not self.sim.time_stepping.it:
             self.it_start = int(
-                self.time_start / self.params.time_stepping.deltat0)
+                self.time_start / self.params.time_stepping.deltat0
+            )
         else:
             # If simulation starts from an specific time...
-            self.it_start = self.sim.time_stepping.it + \
-                            int((self.time_start - self.sim.time_stepping.t) /
-                                self.params.time_stepping.deltat0)
+            self.it_start = self.sim.time_stepping.it + int(
+                (self.time_start - self.sim.time_stepping.t)
+                / self.params.time_stepping.deltat0
+            )
 
             if self.it_start < self.sim.time_stepping.it:
                 self.it_start = self.sim.time_stepping.it
-
 
         # Create empty array with times
         self.times_arr = np.empty([self.nb_arr_in_file])

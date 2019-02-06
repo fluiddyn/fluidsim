@@ -252,8 +252,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
         except AttributeError:
             skip = 1
         else:
-            skip = (len(self.oper.get_grid1d_seq("x")) / self.oper.Lx) \
-                   * delta_quiver
+            skip = (
+                len(self.oper.get_grid1d_seq("x")) / self.oper.Lx
+            ) * delta_quiver
             skip = int(np.round(skip))
             if skip < 1:
                 skip = 1
@@ -389,7 +390,8 @@ class PhysFieldsBase2D(PhysFieldsBase):
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
 
-        if (time is None
+        if (
+            time is None
             and not is_field_ready
             and not self.sim.params.ONLY_COARSE_OPER
         ):
@@ -408,10 +410,16 @@ class PhysFieldsBase2D(PhysFieldsBase):
             if key_field not in self.sim.state.keys_state_phys:
                 raise ValueError("key not in state.keys_state_phys")
 
-            field = self.get_field_to_plot(key=key_field, time=time, interpolate_time=True)
+            field = self.get_field_to_plot(
+                key=key_field, time=time, interpolate_time=True
+            )
             if QUIVER:
-                vecx = self.get_field_to_plot(key=vecx, time=time, interpolate_time=True)
-                vecy = self.get_field_to_plot(key=vecy, time=time, interpolate_time=True)
+                vecx = self.get_field_to_plot(
+                    key=vecx, time=time, interpolate_time=True
+                )
+                vecy = self.get_field_to_plot(
+                    key=vecy, time=time, interpolate_time=True
+                )
 
         if mpi.rank == 0:
             if numfig is None:
@@ -482,9 +490,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
             vecy = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
-            [XX, YY] = (
-                np.meshgrid(self.oper.get_grid1d_seq("x"),
-                            self.oper.get_grid1d_seq("y")))
+            [XX, YY] = np.meshgrid(
+                self.oper.get_grid1d_seq("x"), self.oper.get_grid1d_seq("y")
+            )
 
         if mpi.rank == 0:
             # local variable 'normalize_diff' is assigned to but never used
