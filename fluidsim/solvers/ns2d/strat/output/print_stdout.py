@@ -56,10 +56,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
-                to_print += (
-                    "              estimated remaining duration = {:9.3g} s"
-                    "".format(duration_left)
-                )
+                to_print += f"              estimated remaining duration = {duration_left}"
 
         self.energy_temp = energy
         return to_print
