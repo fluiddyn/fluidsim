@@ -2,7 +2,7 @@ from time import time
 import os
 import sys
 
-from fluiddyn.util import mpi
+from fluiddyn.util import mpi, print_memory_usage
 
 
 class PrintStdOutBase(object):
@@ -69,6 +69,7 @@ class PrintStdOutBase(object):
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_print_info >= self.period_print:
             self._print_info()
+            print_memory_usage()
             self.t_last_print_info = tsim
 
     def _print_info(self):
