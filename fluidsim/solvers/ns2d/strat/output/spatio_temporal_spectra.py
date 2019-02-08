@@ -278,7 +278,7 @@ class SpatioTempSpectra(SpecificOutput):
         skip = int((1 - overlap) * windows_size)
 
         # Slice step cannot be zero
-        if not skip or skip==1:
+        if not skip or skip == 1:
             skip = 2
 
         # Array of times to start the FT
@@ -301,7 +301,6 @@ class SpatioTempSpectra(SpecificOutput):
         freq_sampling = 1.0 / (self.time_decimate * self.params.time_stepping.deltat0)
 
         # Compute temporal FT
-        print(times_start)
         for index, time_start in enumerate(times_start):
 
             # Compute index to start and to end FT
@@ -324,7 +323,11 @@ class SpatioTempSpectra(SpecificOutput):
             spatio_temp_all[index, :, :, :, :] = temp_spectrum
 
         # Build up a dictionary with the rsults
-        dict_arr = {"omegas": omegas, "spectrum": np.mean(spatio_temp_all, axis=0)}
+        dict_arr = {
+            "omegas": omegas,
+            "spectrum": np.mean(spatio_temp_all, axis=0),
+            "windows_size": windows_size,
+        }
 
         # Create name path file
         str_time = time.strftime("%Y_%m_%d-%H_%M_%S")
@@ -651,10 +654,6 @@ class SpatioTempSpectra(SpecificOutput):
         with h5py.File(path_file, "r") as f:
             spectrum = f["spectrum"].value
             omegas = f["omegas"].value
-        # else:
-        # raise ValueError(
-        # "temp_spectrum not in f.keys(). " "It needs to be computed."
-        # )
 
         # Define index with spatial decimation
         idx_mode = np.argmin(abs(self.sim.oper.kx[:: self.spatial_decimate] - mode[0]))
@@ -670,15 +669,13 @@ class SpatioTempSpectra(SpecificOutput):
         # Compute omega dispersion relation mode
         kx_mode = self.sim.oper.kx[:: self.spatial_decimate][idx_mode]
         kz_mode = self.sim.oper.ky[:: self.spatial_decimate][idz_mode]
-        f_iw = (
-            (1 / (2 * pi))
-            * self.sim.params.N
-            * (kx_mode / np.sqrt(kx_mode ** 2 + kz_mode ** 2))
-        )
+
+        # Linear frequency. Used for compensation of the plots..
+        f_l = self.sim.params.N / (2 * np.pi)
 
         # Plot omega +
         fig1, ax1 = plt.subplots()
-        ax1.set_xlabel(r"$\omega / \omega_{i\omega}$")
+        ax1.set_xlabel(r"$\omega / N$")
         ax1.set_ylabel(r"$F(\omega)$")
         ax1.set_title(
             r"$\omega_+ ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
@@ -688,14 +685,14 @@ class SpatioTempSpectra(SpecificOutput):
         )
 
         ax1.loglog(
-            omegas[0 : len(omegas) // 2] / f_iw,
+            omegas[0 : len(omegas) // 2] / f_l,
             spectrum[0, 0 : len(omegas) // 2, idz_mode, idx_mode],
         )
-        ax1.axvline(x=f_iw / f_iw, color="k", linestyle="--")
+        ax1.axvline(x=f_l / f_l, color="k", linestyle="--")
 
         # Plot omega -
         fig2, ax2 = plt.subplots()
-        ax2.set_xlabel(r"$\omega / \omega_{i\omega}$")
+        ax2.set_xlabel(r"$\omega / N$")
         ax2.set_ylabel(r"$F(\omega)$")
         ax2.set_title(
             r"$\omega_- ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
@@ -705,10 +702,10 @@ class SpatioTempSpectra(SpecificOutput):
         )
 
         ax2.loglog(
-            -1 * omegas[len(omegas) // 2 + 1 :] / f_iw,
+            -1 * omegas[len(omegas) // 2 + 1 :] / f_l,
             spectrum[0, len(omegas) // 2 + 1 :, idz_mode, idx_mode],
         )
-        ax2.axvline(x=f_iw / f_iw, color="k", linestyle="--")
+        ax2.axvline(x=f_l / f_l, color="k", linestyle="--")
 
     def _init_online_plot(self):
         if mpi.rank == 0:
