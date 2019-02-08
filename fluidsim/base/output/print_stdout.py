@@ -106,12 +106,10 @@ class PrintStdOutBase(object):
                 self.params.time_stepping.it_end - self.sim.time_stepping.it
             ) * self.sim.time_stepping.deltat
 
-        remaining_real_time = timedelta(
-            seconds=(
-                remaining_simul_time / duration_simul_time * duration_real_word
-            )
+        remaining_real_time = round(
+            remaining_simul_time / duration_simul_time * duration_real_word
         )
-        return remaining_real_time
+        return timedelta(seconds=remaining_real_time)
 
     def close(self):
         try:
