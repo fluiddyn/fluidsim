@@ -69,11 +69,11 @@ class PrintStdOutBase(object):
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_print_info >= self.period_print:
             self._print_info()
-            print_memory_usage()
             self.t_last_print_info = tsim
 
     def _print_info(self):
         self.print_stdout(self._make_str_info())
+        print_memory_usage("MEMORY_USAGE:")
 
     def _make_str_info(self):
         return "it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n".format(
