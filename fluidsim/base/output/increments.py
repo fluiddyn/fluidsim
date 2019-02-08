@@ -12,6 +12,7 @@ from .base import SpecificOutput
 Ai = Array[int, "1d"]
 Af = Array[float, "2d"]
 
+
 @boost
 def strfunc_from_pdf(
     rxs: Ai, pdf: Af, values: Af, order: float, absolute: bool = False
