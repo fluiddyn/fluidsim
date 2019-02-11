@@ -179,7 +179,10 @@ class TestForcingOutput(TestSimulBase):
             spatio_temporal_spectra = sim2.output.spatio_temporal_spectra
             spatio_temporal_spectra.compute_frequency_spectra()
             spatio_temporal_spectra.print_info_frequency_spectra()
-            spatio_temporal_spectra.plot_frequency_spectra_individual_mode(mode=(1, 1))
+            spatio_temporal_spectra.plot_frequency_spectra_individual_mode(
+                mode=(1, 1)
+            )
+            spatio_temporal_spectra.plot_kx_omega_cross_section()
 
             sim2.output.increments.load()
             sim2.output.increments.plot()
