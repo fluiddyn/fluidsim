@@ -87,7 +87,7 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
+            self.file.write(f"####\ntime = {tsim:11.5e}\n")
             to_print = (
                 "Z    = {:11.5e} \n"
                 "E    = {:11.5e} ; EK         = {:11.5e} ; EA        = {:11.5e} \n"

@@ -12,7 +12,7 @@ Provides
 from fluiddyn.util import mpi
 
 
-class Operators0D(object):
+class Operators0D:
     """0D operators.
 
     """

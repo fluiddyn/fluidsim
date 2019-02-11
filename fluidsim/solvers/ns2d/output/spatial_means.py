@@ -66,7 +66,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
+            self.file.write(f"####\ntime = {tsim:11.5e}\n")
             to_print = (
                 "E    = {:11.5e} ; Z         = {:11.5e} \n"
                 "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; epsK_tot = {:11.5e} \n"

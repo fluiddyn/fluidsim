@@ -16,7 +16,7 @@ import numpy as np
 from .base import TimeSteppingBase
 
 
-class ExactLinearCoefs(object):
+class ExactLinearCoefs:
     """Handle the computation of the exact coefficient for the RK4."""
 
     def __init__(self, time_stepping):
@@ -59,7 +59,7 @@ class TimeSteppingSimple(TimeSteppingBase):
     """
 
     def __init__(self, sim):
-        super(TimeSteppingSimple, self).__init__(sim)
+        super().__init__(sim)
 
         self._init_freq_lin()
         self._init_compute_time_step()
@@ -80,7 +80,7 @@ class TimeSteppingSimple(TimeSteppingBase):
         self._time_step_RK()
         if np.isnan(np.sum(self.sim.state.state_phys[0])):
             raise ValueError(
-                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+                f"nan at it = {self.it}, t = {self.t:.4f}"
             )
 
     def _time_step_RK2(self):

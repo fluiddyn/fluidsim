@@ -41,7 +41,7 @@ class InfoSolverPredaPrey(InfoSolverBase):
     """Contain the information on the solver predaprey."""
 
     def _init_root(self):
-        super(InfoSolverPredaPrey, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.models0d.predaprey"
         self.module_name = package + ".solver"
@@ -72,7 +72,7 @@ class Simul(SimulBase):
         params._set_attribs(attribs)
 
     def __init__(self, *args, **kargs):
-        super(Simul, self).__init__(*args, **kargs)
+        super().__init__(*args, **kargs)
         p = self.params
         self.Xs = p.C / p.D
         self.Ys = p.A / p.B

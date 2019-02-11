@@ -112,7 +112,7 @@ class StateSW1LExactLin(StateSW1L):
                 self.it_computed[key2] = it
 
         else:
-            result = super(StateSW1LExactLin, self).compute(
+            result = super().compute(
                 key, SAVE_IN_DICT=SAVE_IN_DICT, RAISE_ERROR=RAISE_ERROR
             )
             SAVE_IN_DICT = False

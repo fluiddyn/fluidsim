@@ -93,8 +93,8 @@ class SpectraNS3D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot1d(tmin={}, tmax={}, delta_t={},".format(tmin, tmax, delta_t)
-                + " coef_compensate={:.3f})".format(coef_compensate)
+                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t},"
+                + f" coef_compensate={coef_compensate:.3f})"
             )
 
             print(
@@ -111,12 +111,12 @@ class SpectraNS3D(Spectra):
             )
 
             fig, ax = self.output.figure_axe()
-            ax.set_xlabel("${}$".format(key_k))
+            ax.set_xlabel(f"${key_k}$")
             ax.set_ylabel("spectra " + key)
             ax.set_title(
                 "1D spectra, solver "
                 + self.output.name_solver
-                + ", nx = {0:5d}".format(self.nx)
+                + f", nx = {self.nx:5d}"
             )
             ax.set_xscale("log")
             ax.set_yscale("log")
@@ -178,16 +178,16 @@ class SpectraNS3D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot3d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+                "plot3d(tmin={}, tmax={}, delta_t={:.2f},".format(
                     tmin, tmax, delta_t
                 )
-                + " coef_compensate={0:.3f})".format(coef_compensate)
+                + f" coef_compensate={coef_compensate:.3f})"
             )
 
             print(
                 """plot 3d spectra
-    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
                     tmin_plot,
                     tmax_plot,
                     delta_t,
@@ -203,7 +203,7 @@ class SpectraNS3D(Spectra):
             ax1.set_title(
                 "3D spectra, solver "
                 + self.output.name_solver
-                + ", nx = {0:5d}".format(self.nx)
+                + f", nx = {self.nx:5d}"
             )
             ax1.set_xscale("log")
             ax1.set_yscale("log")

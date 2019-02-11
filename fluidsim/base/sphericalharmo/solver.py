@@ -31,7 +31,7 @@ class InfoSolverSphericalHarmo(InfoSolverPseudoSpectral):
 
         """
 
-        super(InfoSolverSphericalHarmo, self)._init_root()
+        super()._init_root()
 
         here = "fluidsim.base.sphericalharmo"
 

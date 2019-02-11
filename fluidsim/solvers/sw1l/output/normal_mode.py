@@ -24,7 +24,7 @@ from fluiddyn.util.compat import cached_property
 from fluiddyn.util import mpi
 
 
-class NormalModeBase(object):
+class NormalModeBase:
     def __init__(self, output):
         self.sim = output.sim
         self.params = output.sim.params
@@ -111,7 +111,7 @@ class NormalModeBase(object):
 
 class NormalModeDecomposition(NormalModeBase):
     def __init__(self, output):
-        super(NormalModeDecomposition, self).__init__(output)
+        super().__init__(output)
 
     @cached_property
     def qmat(self):
@@ -363,7 +363,7 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
 
             self.bvecrot_fft = bvecrot_fft
 
-        return super(NormalModeDecompositionModified, self).compute()
+        return super().compute()
 
     def normalmodefft_from_keyfft(self, key):
         """Returns the normal mode decomposition for the state_spect key specified."""
@@ -396,6 +396,4 @@ class NormalModeDecompositionModified(NormalModeDecomposition):
             return key_modes, normal_mode_vec_fft
 
         else:
-            return super(
-                NormalModeDecompositionModified, self
-            ).normalmodefft_from_keyfft(key)
+            return super().normalmodefft_from_keyfft(key)

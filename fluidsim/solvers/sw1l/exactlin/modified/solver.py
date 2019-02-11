@@ -18,7 +18,7 @@ class InfoSolverSW1LExactLinModified(InfoSolverSW1L):
     """Information about the solver SW1L."""
 
     def _init_root(self):
-        super(InfoSolverSW1LExactLinModified, self)._init_root()
+        super()._init_root()
 
         sw1l = "fluidsim.solvers.sw1l"
 

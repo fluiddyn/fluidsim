@@ -12,7 +12,7 @@ class PrintStdOutNS3D(PrintStdOutBase):
     """
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutNS3D, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         energy = self.output.compute_energy()
         if mpi.rank == 0:
@@ -93,7 +93,7 @@ class PrintStdOutNS3D(PrintStdOutBase):
         ax1.set_title(
             "info stdout, solver "
             + self.output.name_solver
-            + ", nx = {0:5d}".format(self.params.oper.nx)
+            + f", nx = {self.params.oper.nx:5d}"
         )
         ax1.plot(t, deltat, "k", linewidth=2)
 

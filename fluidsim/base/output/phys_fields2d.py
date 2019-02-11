@@ -32,7 +32,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
     def __init__(self, output, phys_fields):
         self.phys_fields = phys_fields
-        super(MoviesBasePhysFields2D, self).__init__(output)
+        super().__init__(output)
         self._equation = None
 
     def init_animation(
@@ -45,12 +45,12 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         if dt_equations is None:
             dt_equations = np.median(np.diff(self.time_files))
-            print("dt_equations = {:.4f}".format(dt_equations))
+            print(f"dt_equations = {dt_equations:.4f}")
 
         if tmax is None:
             tmax = self.time_files.max()
 
-        super(MoviesBasePhysFields2D, self).init_animation(
+        super().init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
 
@@ -154,7 +154,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
     def _get_axis_data(self, shape=None):
         """Get 1D arrays for setting the axes."""
 
-        x, y = super(MoviesBasePhysFields2D, self)._get_axis_data()
+        x, y = super()._get_axis_data()
         if shape is not None and (y.shape[0], x.shape[0]) != shape:
             path_file = os.path.join(self.output.path_run, "params_simul.xml")
             params = Parameters(path_file=path_file)
@@ -267,12 +267,12 @@ class PhysFieldsBase2D(PhysFieldsBase):
     def _set_title(self, ax, key, time, vmax=None):
         title = (
             key
-            + ", $t = {0:.3f}$, ".format(time)
+            + f", $t = {time:.3f}$, "
             + self.output.name_solver
-            + ", $n_x = {0:d}$".format(self.params.oper.nx)
+            + f", $n_x = {self.params.oper.nx:d}$"
         )
         if vmax is not None:
-            title += r", $|\vec{v}|_{max} = $" + "{0:.3f}".format(vmax)
+            title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
         ax.set_title(title)
 
     def _init_online_plot(self):

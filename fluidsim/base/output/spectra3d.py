@@ -12,7 +12,7 @@ from .movies import MoviesBase1D
 class MoviesSpectra(MoviesBase1D):
     def __init__(self, output, spectra):
         self.spectra = spectra
-        super(MoviesSpectra, self).__init__(output)
+        super().__init__(output)
 
     def init_animation(self, *args, **kwargs):
         if "xmax" not in kwargs:
@@ -23,7 +23,7 @@ class MoviesSpectra(MoviesBase1D):
         with h5py.File(self.spectra.path_file3d) as f:
             self.times = f["times"][...]
 
-        super(MoviesSpectra, self).init_animation(*args, **kwargs)
+        super().init_animation(*args, **kwargs)
 
     def get_field_to_plot(self, time, key=None):
         if key is None:
@@ -93,7 +93,7 @@ class Spectra(SpecificOutput):
         params = output.sim.params
         self.nx = int(params.oper.nx)
 
-        super(Spectra, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.spectra,
             has_to_plot_saved=params.output.spectra.HAS_TO_PLOT_SAVED,
@@ -166,7 +166,7 @@ class Spectra(SpecificOutput):
             axe.set_title(
                 "spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
 
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):

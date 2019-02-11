@@ -53,7 +53,7 @@ from fluiddyn.calcul.easypyfft import fftw_grid_size
 from fluidsim.base.setofvariables import SetOfVariables
 
 
-class SpecificForcing(object):
+class SpecificForcing:
     """Base class for specific forcing"""
 
     tag = "specific"
@@ -202,7 +202,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             pass
         else:
             if isinstance(angle, str):
-                if angle.endswith(u"°"):
+                if angle.endswith("°"):
                     angle = radians(float(angle[:-1]))
                 else:
                     raise ValueError(
@@ -468,7 +468,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        super(NormalizedForcing, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         try:
             params.forcing.normalized
         except AttributeError:
@@ -696,7 +696,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        super(RandomSimplePseudoSpectral, cls)._complete_params_with_default(
+        super()._complete_params_with_default(
             params
         )
 
@@ -743,9 +743,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        super(
-            TimeCorrelatedRandomPseudoSpectral, cls
-        )._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
         try:
             params.forcing.tcrandom

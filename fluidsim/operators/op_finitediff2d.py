@@ -137,11 +137,11 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         if (self.Lx / np.pi).is_integer():
             str_Lx = repr(int(self.Lx // np.pi)) + "pi"
         else:
-            str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
+            str_Lx = f"{self.Lx:.3f}".rstrip("0")
         if (self.Ly / np.pi).is_integer():
             str_Ly = repr(int(self.Ly // np.pi)) + "pi"
         else:
-            str_Ly = "{:.3f}".format(self.Ly).rstrip("0")
+            str_Ly = f"{self.Ly:.3f}".rstrip("0")
         return ("L=" + str_Lx + "x" + str_Ly + "_{}x{}").format(self.nx, self.ny)
 
     def produce_long_str_describing_oper(self):
@@ -149,14 +149,14 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         if (self.Lx / np.pi).is_integer():
             str_Lx = repr(int(self.Lx // np.pi)) + "pi"
         else:
-            str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
+            str_Lx = f"{self.Lx:.3f}".rstrip("0")
         if (self.Ly / np.pi).is_integer():
             str_Ly = repr(int(self.Ly // np.pi)) + "pi"
         else:
-            str_Ly = "{:.3f}".format(self.Ly).rstrip("0")
+            str_Ly = f"{self.Ly:.3f}".rstrip("0")
         return (
             "Finite difference operator 2D,\n"
-            "nx = {0:6d} ; ny = {1:6d}\n".format(self.nx, self.ny)
+            "nx = {:6d} ; ny = {:6d}\n".format(self.nx, self.ny)
             + "Lx = "
             + str_Lx
             + " ; Ly = "

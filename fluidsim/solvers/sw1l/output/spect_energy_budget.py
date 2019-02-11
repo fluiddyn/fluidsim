@@ -221,14 +221,14 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
                 tmin, tmax, delta_t
             )
             print(to_print)
 
             to_print = """plot fluxes 2D
-    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
                 tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
             )
             print(to_print)
@@ -245,8 +245,8 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             title = (
                 "energy flux, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             ax1.set_title(title)
             ax1.set_xscale("log")
@@ -321,7 +321,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
         else:
             self.norm_mode = norm_mode
 
-        super(SpectralEnergyBudgetSW1L, self).__init__(output)
+        super().__init__(output)
 
     def _transfer_keys_coeff(self):
         c2 = self.params.c2
@@ -551,8 +551,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             title = (
                 "Spectral Energy Budget, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             self.axe_a.set_title(title)
             self.axe_a.legend()
@@ -580,7 +580,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
                 tmin, tmax, delta_t
             )
             print(to_print)
@@ -618,8 +618,8 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             title = (
                 "Spectral Energy Budget, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             ax1.set_title(title)
             ax1.set_xscale("log")
@@ -727,7 +727,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
 class SpectralEnergyBudgetSW1LModified(SpectralEnergyBudgetSW1L):
     def __init__(self, output):
         norm_mode = NormalModeDecompositionModified(output)
-        super(SpectralEnergyBudgetSW1LModified, self).__init__(output, norm_mode)
+        super().__init__(output, norm_mode)
 
     def _transfer_keys_coeff(self):
         c2 = self.params.c2

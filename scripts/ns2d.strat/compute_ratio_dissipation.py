@@ -21,7 +21,7 @@ def compute_ratio_dissipation(path_simulation, tmin=None):
     else:
         gamma_out = float(gamma_str)
 
-    print("Compute dissipation nx = {} and gamma {}..".format(res_out, gamma_out))
+    print(f"Compute dissipation nx = {res_out} and gamma {gamma_out}..")
 
     # Load object parameters
     params = load_params_simul(path_simulation)

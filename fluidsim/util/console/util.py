@@ -279,7 +279,7 @@ def parse_args_dim(args):
         if n0 is None:
             n0 = 512
     else:
-        raise ConsoleError("dim should not be {}".format(dim))
+        raise ConsoleError(f"dim should not be {dim}")
 
     if n1 is None:
         n1 = n0
@@ -305,7 +305,7 @@ def get_path_file(sim, path_results, name="bench", ext=".json"):
     t_as_str = time_as_str()
     key_solver = sim.info_solver.short_name.lower()
     pid = str(os.getpid())
-    nb_proc = "np={}".format(mpi.nb_proc)
+    nb_proc = f"np={mpi.nb_proc}"
     type_fft = sim.params.oper.type_fft.split(".")[-1].replace("_", "-")
     name_file = (
         "_".join(

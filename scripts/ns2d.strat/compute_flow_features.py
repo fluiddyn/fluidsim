@@ -21,9 +21,9 @@ n_files_average = 50 # Number of files to perform the time average
 path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
 
 if nx == 1920:
-    directory = "sim{}_no_shear_modes".format(nx)
+    directory = f"sim{nx}_no_shear_modes"
 elif nx == 3840 or nx == 7680:
-    directory = "sim{}_modif_res_no_shear_modes".format(nx)
+    directory = f"sim{nx}_modif_res_no_shear_modes"
 else:
     raise ValueError(".")
 

@@ -115,7 +115,7 @@ class StateSW1LWaves(StateSW1L):
             result = self.oper.create_arrayX(value=0)
 
         else:
-            result = super(StateSW1LWaves, self).compute(
+            result = super().compute(
                 key, SAVE_IN_DICT=SAVE_IN_DICT, RAISE_ERROR=RAISE_ERROR
             )
             SAVE_IN_DICT = False

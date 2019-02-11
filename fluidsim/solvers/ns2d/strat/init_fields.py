@@ -51,7 +51,7 @@ class InitFieldsLinearMode(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
-        super(InitFieldsLinearMode, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(
             cls.tag,
             attribs={

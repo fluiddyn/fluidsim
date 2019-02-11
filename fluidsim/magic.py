@@ -77,7 +77,7 @@ class FluidsimMagics(Magics):
     """
 
     def __init__(self, shell, package_solvers):
-        super(FluidsimMagics, self).__init__(shell)
+        super().__init__(shell)
         self.package = package_solvers
 
     def is_defined(self, varname):

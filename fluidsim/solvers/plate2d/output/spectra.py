@@ -107,10 +107,10 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+                "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
                     tmin, tmax, delta_t
                 )
-                + " coef_compensate={0:.3f})".format(coef_compensate)
+                + f" coef_compensate={coef_compensate:.3f})"
             )
 
             print(
@@ -134,7 +134,7 @@ class SpectraPlate2D(Spectra):
             ax1.set_title(
                 "1D spectra, solver "
                 + self.output.name_solver
-                + ", nh = {:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
             ax1.set_xscale("log")
             ax1.set_yscale("log")
@@ -188,10 +188,10 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+                "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
                     tmin, tmax, delta_t
                 )
-                + " coef_compensate={0:.3f})".format(coef_compensate)
+                + f" coef_compensate={coef_compensate:.3f})"
             )
 
             print(
@@ -215,7 +215,7 @@ class SpectraPlate2D(Spectra):
             ax1.set_title(
                 "2D spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
             ax1.set_xscale("log")
             ax1.set_yscale("log")

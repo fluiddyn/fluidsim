@@ -34,7 +34,7 @@ class PrintStdOutLorenz(PrintStdOutBase):
         self.print_stdout = self.__call__
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutLorenz, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         if mpi.rank == 0:
             to_print += (

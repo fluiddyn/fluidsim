@@ -31,14 +31,14 @@ path_simulations = sorted(glob(os.path.join(path_root, directory, "NS2D*")))
 
 if MAKE_TABLE:
     path_table = ("/home/users/calpelin7m/" +
-                  "Phd/docs/Manuscript/buoyancy_reynolds_table_n{}.tex".format(nx))
+                  f"Phd/docs/Manuscript/buoyancy_reynolds_table_n{nx}.tex")
 
     to_print = ("\\begin{table}[h]\n"
                 "\\centering \n"
                 "\\begin{tabular}{cccc} \n"
                 "\\toprule[1.5pt] \n" + \
-                "\\bm{$\gamma$} & \\bm{$F_h$} & \\bm{$Re_8$} & \\bm{$\mathcal{R}$} \\\\ \n"
-                "\\midrule\ \n")
+                "\\bm{$\\gamma$} & \\bm{$F_h$} & \\bm{$Re_8$} & \\bm{$\\mathcal{R}$} \\\\ \n"
+                "\\midrule\\ \n")
 
 for path in path_simulations:
 

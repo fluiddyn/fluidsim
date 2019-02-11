@@ -30,7 +30,7 @@ def tendencies_nonlin_ns2dstrat(
 class InfoSolverNS2DStrat(InfoSolverNS2D):
     def _init_root(self):
 
-        super(InfoSolverNS2DStrat, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.ns2d.strat"
         self.module_name = package + ".solver"
@@ -212,7 +212,7 @@ class Simul(SimulNS2D):
         energy_conserved = ratio < epsilon
         if not energy_conserved:
             print("Energy is not conserved!")
-            print("ratio = {}".format(ratio))
+            print(f"ratio = {ratio}")
             return False
         return True
 

@@ -168,11 +168,11 @@ ikz_text = np.argmin(abs(kz - kz[ikz] * 0.7))
 
 ax.plot(kx, 1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
 ax.plot(kx, -1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
-ax.text(kx[ikx_text], kz[ikz_text], "\hat{a}_+", color="white", fontsize=15)
+ax.text(kx[ikx_text], kz[ikz_text], r"\hat{a}_+", color="white", fontsize=15)
 
 ax2.plot(kx, 1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
 ax2.plot(kx, -1e-0 * sim.params.N * (kx / eps)**(1/3), color="white")
-ax2.text(kx[ikx_text], kz[ikz_text], "\hat{a}_-", color="white", fontsize=15)
+ax2.text(kx[ikx_text], kz[ikz_text], r"\hat{a}_-", color="white", fontsize=15)
 
 if scale == "linear":
   _im = ax.pcolormesh(KX, KZ, data_ap_plot_modified, vmin=vmin, vmax=vmax)

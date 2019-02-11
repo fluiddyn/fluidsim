@@ -74,7 +74,7 @@ params.preprocess.viscosity_type = 'hyper8'
 # -------Simulation commences-------------
 sim = Simul(params)
 if mpi.rank == 0:
-    print("Froude number ~ {0:3e}, Viscosity = {1:3e} + {2:3e}".format(
+    print("Froude number ~ {:3e}, Viscosity = {:3e} + {:3e}".format(
         (1./params.c2), sim.params.nu_2, sim.params.nu_8))
 
 sim.time_stepping.start()

@@ -16,7 +16,7 @@ from math import pi
 from fluiddyn.util import mpi
 
 
-class TimeSteppingBase(object):
+class TimeSteppingBase:
     """Universal time stepping class used for all solvers.
 
 
@@ -90,7 +90,7 @@ cfl_coef: float (default None)
         self._has_to_stop = False
 
         def handler_signals(signal_number, stack):
-            print("signal {} received.".format(signal_number))
+            print(f"signal {signal_number} received.")
             self._has_to_stop = True
 
         try:
@@ -182,7 +182,7 @@ cfl_coef: float (default None)
             self.sim.output.phys_fields.save()
         if self.params.time_stepping.USE_T_END:
             print_stdout(
-                "    compute until t = {0:10.6g}".format(
+                "    compute until t = {:10.6g}".format(
                     self.params.time_stepping.t_end
                 )
             )
@@ -192,7 +192,7 @@ cfl_coef: float (default None)
                 self.one_time_step()
         else:
             print_stdout(
-                "    compute until it = {0:8d}".format(
+                "    compute until it = {:8d}".format(
                     self.params.time_stepping.it_end
                 )
             )

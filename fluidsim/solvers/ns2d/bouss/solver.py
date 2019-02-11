@@ -29,7 +29,7 @@ def tendencies_nonlin_ns2dbouss(
 class InfoSolverNS2DBouss(InfoSolverNS2D):
     def _init_root(self):
 
-        super(InfoSolverNS2DBouss, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.ns2d.bouss"
         self.module_name = package + ".solver"

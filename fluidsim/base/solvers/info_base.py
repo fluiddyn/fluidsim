@@ -26,7 +26,7 @@ class InfoSolverBase(ParamContainer):
         if len(kargs) == 0 or ("path_file" in kargs and "tag" not in kargs):
             kargs["tag"] = "solver"
 
-        super(InfoSolverBase, self).__init__(**kargs)
+        super().__init__(**kargs)
 
         if (
             "tag" in kargs

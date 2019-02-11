@@ -225,7 +225,7 @@ def check_dissipation():
     if time_total > 1000:
         print(
             "The stationarity has not " + \
-            "reached after {} simulations.".format(it))
+            f"reached after {it} simulations.")
         should_I_stop = "non_stationarity"
 
     if ratio_x > threshold_ratio and ratio_y > threshold_ratio:
@@ -245,12 +245,12 @@ def check_dissipation():
             should_I_stop = False
 
         else:
-            print("Checking stationarity... with nu8 = {}".format(nu_8_old))
+            print(f"Checking stationarity... with nu8 = {nu_8_old}")
             E, t, P_tot = compute_energy_spatial(sim)
             ratio = np.mean(np.diff(E[2:]) / np.diff(t[2:]))
             if (ratio / injection_energy_0) < 0.5 and \
                abs(nu_8_old - params.nu_8) / params.nu_8 < 0.05:
-                print("Stationarity is reached.\n nu_8 = {}".format(params.nu_8))
+                print(f"Stationarity is reached.\n nu_8 = {params.nu_8}")
                 factor = 1.
                 should_I_stop = True
             else:
@@ -269,7 +269,7 @@ gamma_not = make_float_value_for_path(gamma)
 
 # Create directory in path
 path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim/Coef_Diss"
-name_directory = "Coef_Diss_gamma{}".format(gamma_not)
+name_directory = f"Coef_Diss_gamma{gamma_not}"
 path = os.path.join(path_root, name_directory)
 
 if mpi.rank == 0 and not os.path.exists(path):

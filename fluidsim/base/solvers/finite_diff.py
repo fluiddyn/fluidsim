@@ -6,7 +6,7 @@ class InfoSolverFiniteDiff(InfoSolverBase):
 
     def _init_root(self):
 
-        super(InfoSolverFiniteDiff, self)._init_root()
+        super()._init_root()
 
         # self.classes.State.module_name = 'fluidsim.base.state'
         # self.classes.State.class_name = 'StateBase'

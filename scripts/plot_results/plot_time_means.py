@@ -88,7 +88,7 @@ if LOAD:
 fig, ax1 = sim.output.figure_axe()
 
 ax1.set_xlabel('$2E/c^2$')
-ax1.set_ylabel('$\epsilon / P$')
+ax1.set_ylabel(r'$\epsilon / P$')
 ax1.hold(True)
 
 coef_norm = Froude_numbers**-1.54

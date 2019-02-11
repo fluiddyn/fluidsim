@@ -11,7 +11,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
     the current state of the simulation."""
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutSW1L, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         energyK, energyA = self.output.compute_energiesKA()
         energy = energyK + energyA
@@ -108,11 +108,11 @@ class PrintStdOutSW1L(PrintStdOutBase):
         title = (
             "info stdout, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + f", nh = {self.nx:5d}"
         )
 
         try:
-            title = title + ", c = {0:.4g}, f = {1:.4g}".format(
+            title = title + ", c = {:.4g}, f = {:.4g}".format(
                 np.sqrt(self.c2), self.f
             )
         except AttributeError:

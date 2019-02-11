@@ -14,7 +14,7 @@ import numpy as np
 import basilisk.stream as basilisk
 
 
-class OperatorsBasilisk2D(object):
+class OperatorsBasilisk2D:
     """2D operators.
 
     """

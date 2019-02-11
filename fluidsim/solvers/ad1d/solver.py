@@ -17,7 +17,7 @@ from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 class InfoSolverAD1D(InfoSolverFiniteDiff):
     def _init_root(self):
 
-        super(InfoSolverAD1D, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.ad1d"
         self.module_name = package + ".solver"

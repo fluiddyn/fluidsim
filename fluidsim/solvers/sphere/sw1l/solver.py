@@ -39,7 +39,7 @@ class InfoSolverSphereSW1L(InfoSolverSphericalHarmo):
         """Init. `self` by writting the information on the solver.
         """
 
-        super(InfoSolverSphereSW1L, self)._init_root()
+        super()._init_root()
 
         here = "fluidsim.solvers.sphere.sw1l"
 

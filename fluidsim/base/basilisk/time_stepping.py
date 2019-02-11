@@ -16,7 +16,7 @@ from signal import signal
 import numpy as np
 
 
-class TimeSteppingBasilisk(object):
+class TimeSteppingBasilisk:
     """Time stepping class to handle Basilisk's event loop and FluidSim output.
 
     """
@@ -38,7 +38,7 @@ class TimeSteppingBasilisk(object):
         self._has_to_stop = False
 
         def handler_signals(signal_number, stack):
-            print("signal {} received.".format(signal_number))
+            print(f"signal {signal_number} received.")
             self._has_to_stop = True
 
         signal(12, handler_signals)

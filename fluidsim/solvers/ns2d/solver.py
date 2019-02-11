@@ -70,7 +70,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
         - :class:`fluidsim.solvers.ns2d.forcing.ForcingNS2D`
 
         """
-        super(InfoSolverNS2D, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.ns2d"
         self.module_name = package + ".solver"

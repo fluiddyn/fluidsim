@@ -6,7 +6,7 @@ from datetime import timedelta
 from fluiddyn.util import mpi, print_memory_usage
 
 
-class PrintStdOutBase(object):
+class PrintStdOutBase:
     """A :class:`PrintStdOutBase` object is used to print in both the
     stdout and the stdout.txt file, and also to print simple info on
     the current state of the simulation."""
@@ -77,7 +77,7 @@ class PrintStdOutBase(object):
         print_memory_usage("MEMORY_USAGE:")
 
     def _make_str_info(self):
-        return "it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n".format(
+        return "it = {:6d} ; t = {:10.6g} ; deltat  = {:10.5g}\n".format(
             self.sim.time_stepping.it,
             self.sim.time_stepping.t,
             self.sim.time_stepping.deltat,

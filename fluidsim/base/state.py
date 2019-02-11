@@ -20,7 +20,7 @@ import numpy as np
 from fluidsim.base.setofvariables import SetOfVariables
 
 
-class StateBase(object):
+class StateBase:
     """Contains the state variables and handles the access to fields.
 
     Parameters
@@ -202,7 +202,7 @@ class StateBase(object):
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_phys:
                 raise ValueError(
-                    'Do not know how to initialize with key "{}".'.format(key)
+                    f'Do not know how to initialize with key "{key}".'
                 )
 
             self.state_phys.set_var(key, value)
@@ -240,7 +240,7 @@ class StatePseudoSpectral(StateBase):
 
     def __init__(self, sim, oper=None):
 
-        super(StatePseudoSpectral, self).__init__(sim, oper)
+        super().__init__(sim, oper)
 
         self.keys_state_spect = sim.info.solver.classes.State.keys_state_spect
         self.state_spect = SetOfVariables(
@@ -380,7 +380,7 @@ class StatePseudoSpectral(StateBase):
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_spect:
                 raise ValueError(
-                    'Do not know how to initialize with key "{}".'.format(key)
+                    f'Do not know how to initialize with key "{key}".'
                 )
 
             self.state_spect.set_var(key, value)

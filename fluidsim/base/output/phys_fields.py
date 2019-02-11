@@ -91,7 +91,7 @@ class PhysFieldsBase(SpecificOutput):
             self.animate = self.movies.animate
             self.interact = self.movies.interact
 
-        super(PhysFieldsBase, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.phys_fields,
             period_plot=params.output.periods_plot.phys_fields,
@@ -155,7 +155,7 @@ class PhysFieldsBase(SpecificOutput):
                 time, self.sim.time_stepping.it, ext
             )
         else:
-            name_save = "state_phys_t{:07.3f}.{}".format(time, ext)
+            name_save = f"state_phys_t{time:07.3f}.{ext}"
 
         path_file = os.path.join(path_run, name_save)
         if os.path.exists(path_file):

@@ -94,4 +94,4 @@ class StatePlate2D(StatePseudoSpectral):
                 z_fft = np.zeros_like(w_fft)
                 self.init_state_from_wz_fft(w_fft, z_fft)
         else:
-            super(StatePlate2D, self).init_statespect_from(**kwargs)
+            super().init_statespect_from(**kwargs)

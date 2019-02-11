@@ -117,7 +117,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         if params.ONLY_COARSE_OPER:
             nx = ny = 4
 
-        super(OperatorsPseudoSpectral2D, self).__init__(
+        super().__init__(
             nx,
             ny,
             params.oper.Lx,
@@ -455,7 +455,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         """
         sign = 1j ** order
         if sign.imag != 0:
-            raise ValueError("Order={} should be even!".format(order))
+            raise ValueError(f"Order={order} should be even!")
 
         if negative:
             sign *= -1
@@ -483,7 +483,7 @@ class OperatorsPseudoSpectral2D(_Operators):
         """
         sign = 1.0 / 1j ** order
         if sign.imag != 0:
-            raise ValueError("Order={} should be even!".format(order))
+            raise ValueError(f"Order={order} should be even!")
 
         if negative:
             sign *= -1

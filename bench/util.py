@@ -28,7 +28,7 @@ def create_common_params(n0, n1=None, n2=None):
         n1 = n0
 
     params._set_child('two_d', dict(
-        shape='{} {}'.format(n0, n1), time='00:20:00',
+        shape=f'{n0} {n1}', time='00:20:00',
         solver='ns2d',
         fft_seq=['fft2d.with_fftw1d',
                 'fft2d.with_fftw2d'],
@@ -41,7 +41,7 @@ def create_common_params(n0, n1=None, n2=None):
         n2 = n0
 
     params._set_child('three_d', dict(
-        shape='{} {} {}'.format(n0, n1, n2), time='00:30:00',
+        shape=f'{n0} {n1} {n2}', time='00:30:00',
         solver='ns3d',
         fft_seq=['fft3d.with_fftw3d'],
         fft=['fft3d.mpi_with_fftw1d',
@@ -155,7 +155,7 @@ def submit(
     else:
         cluster.submit_command(
             cmd,
-            name_run='{}_{}'.format(params_dim.solver, nb_mpi),
+            name_run=f'{params_dim.solver}_{nb_mpi}',
             nb_nodes=nb_nodes,
             nb_cores_per_node=nb_cores_per_node,
             walltime=params_dim.time,

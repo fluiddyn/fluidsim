@@ -14,7 +14,7 @@ Provides:
 import numpy as np
 
 
-class Converter(object):
+class Converter:
     r"""Converter between dimensional and adimensional variables.
 
     Parameters

@@ -178,12 +178,12 @@ class StateSW1L(StatePseudoSpectral):
                 )
                 init_from_keyfft(value)
             except AttributeError:
-                super(StateSW1L, self).init_statespect_from(**kwargs)
+                super().init_statespect_from(**kwargs)
         elif len(kwargs) == 2:
             if "q_fft" in kwargs and "a_fft" in kwargs:
                 self.init_from_qafft(**kwargs)
         else:
-            super(StateSW1L, self).init_statespect_from(**kwargs)
+            super().init_statespect_from(**kwargs)
 
     def init_from_etafft(self, eta_fft):
         r"""Initialize from :math:`\hat \eta` and set velocities to zero."""

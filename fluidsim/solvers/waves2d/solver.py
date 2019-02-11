@@ -116,7 +116,7 @@ class Simul(SimulBasePseudoSpectral):
 
     def __init__(self, params):
         self.info_solver = info_solver
-        super(Simul, self).__init__(params)
+        super().__init__(params)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
 

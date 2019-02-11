@@ -36,7 +36,7 @@ class OutputStrat(Output):
             self._init_froude_number()
             self.ratio_omegas = self._compute_ratio_omegas()
 
-        super(OutputStrat, self).__init__(sim)
+        super().__init__(sim)
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -146,7 +146,7 @@ class OutputStrat(Output):
         """Compute froude number ONLY for anisotropic forcing."""
         angle = self.sim.params.forcing.tcrandom_anisotropic.angle
         if isinstance(angle, str):
-            if angle.endswith(u"°"):
+            if angle.endswith("°"):
                 angle = radians(float(angle[:-1]))
             else:
                 raise ValueError(
@@ -158,7 +158,7 @@ class OutputStrat(Output):
         self.froude_number = np.sin(angle)
 
     def _compute_ratio_omegas(self):
-        """Compute ratio omegas; gamma = \omega_l / \omega_{af}"""
+        r"""Compute ratio omegas; gamma = \omega_l / \omega_{af}"""
         params = self.sim.params
 
         omega_l = params.N * self.froude_number
@@ -208,7 +208,7 @@ class OutputStrat(Output):
 
     def _create_list_for_name_run(self):
         """Creates new name_run for the simulation."""
-        list_for_name_run = super(OutputStrat, self)._create_list_for_name_run()
+        list_for_name_run = super()._create_list_for_name_run()
         if self.sim.params.forcing.type.endswith("anisotropic"):
             str_describing_attribs_strat = (
                 self._produce_str_describing_attribs_strat()

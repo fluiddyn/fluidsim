@@ -322,8 +322,8 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         title = (
             "mean energy, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            + f", nh = {self.nx:5d}"
+            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
         )
         ax1.set_title(title)
         norm = self.c2 / 2
@@ -351,8 +351,8 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         title = (
             "forcing and dissipation, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            + f", nh = {self.nx:5d}"
+            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
         )
         ax1.set_title(title)
         if "PK_tot" in dict_results:
@@ -426,7 +426,7 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         for k in keys:
             E = dict_results[k]
             dE_dt = abs(np.gradient(E, 1.0) / dt)
-            dE_dt_avg = "{0:11.6e}".format(dE_dt.mean())
+            dE_dt_avg = "{:11.6e}".format(dE_dt.mean())
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
                 axarr[i].set_ylabel(r"$\partial_t$" + keys[i])

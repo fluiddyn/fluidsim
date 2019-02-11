@@ -36,7 +36,7 @@ class StateNS3D(StatePseudoSpectral):
 
     def __init__(self, sim, oper=None):
 
-        super(StateNS3D, self).__init__(sim, oper)
+        super().__init__(sim, oper)
 
         self.fields_tmp = tuple(
             np.empty_like(self.state_phys[0]) for n in range(6)

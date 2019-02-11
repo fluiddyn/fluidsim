@@ -24,7 +24,7 @@ class InfoSolverBasilisk(InfoSolverBase):
 
     def _init_root(self):
 
-        super(InfoSolverBasilisk, self)._init_root()
+        super()._init_root()
 
         mod = "fluidsim.base.basilisk"
 
@@ -55,7 +55,7 @@ class SimulBasilisk(SimulBase):
     def __init__(self, params):
         """Initialize parameters, state fields, and event loop."""
         bas = self.basilisk = basilisk
-        super(SimulBasilisk, self).__init__(params)
+        super().__init__(params)
 
         def init(i, t):
             bas.omega.f = bas.noise

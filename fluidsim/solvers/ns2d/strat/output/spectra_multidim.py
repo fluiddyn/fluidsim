@@ -249,7 +249,7 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         ax.text(
             kx[ikx_text],
             kz[ikz_text],
-            "{}".format(text_plot),
+            f"{text_plot}",
             color="white",
             fontsize=15,
         )

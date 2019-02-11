@@ -128,7 +128,7 @@ def bench(sim):
     nfile = (
         'result_bench_' + key_solver + '_' +
         sim.oper.produce_str_describing_grid() +
-        '_' + t_as_str + '_{}'.format(pid) + '.json')
+        '_' + t_as_str + f'_{pid}' + '.json')
 
     path = os.path.join(path_results, nfile)
 

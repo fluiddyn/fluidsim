@@ -58,9 +58,9 @@ params.preprocess.viscosity_type = 'hyper8'
 
 sim = Simul(params)
 sim.output.print_stdout(
-    "Froude number ~ {0:3e}, Viscosity = {1:3e} + {2:3e}".format(
+    "Froude number ~ {:3e}, Viscosity = {:3e} + {:3e}".format(
           (1./params.c2), sim.params.nu_2, sim.params.nu_8))
-sim.output.print_stdout("Forcing rate = {0}".format(sim.params.forcing.forcing_rate))
+sim.output.print_stdout(f"Forcing rate = {sim.params.forcing.forcing_rate}")
 
 sim.time_stepping.start()
 

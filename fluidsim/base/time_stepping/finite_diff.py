@@ -32,7 +32,7 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
         params.time_stepping.type_time_scheme = "RK2"
 
     def __init__(self, sim):
-        super(TimeSteppingFiniteDiffCrankNicolson, self).__init__(sim)
+        super().__init__(sim)
 
         self._init_compute_time_step()
         self._init_time_scheme()
@@ -44,7 +44,7 @@ class TimeSteppingFiniteDiffCrankNicolson(TimeSteppingBase):
         self._time_step_RK()
         if np.isnan(np.min(self.sim.state.state_phys)):
             raise ValueError(
-                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+                f"nan at it = {self.it}, t = {self.t:.4f}"
             )
 
     def _time_step_RK2(self):

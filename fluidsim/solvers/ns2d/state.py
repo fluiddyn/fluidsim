@@ -39,7 +39,7 @@ class StateNS2D(StatePseudoSpectral):
 
     def __init__(self, sim, oper=None):
 
-        super(StateNS2D, self).__init__(sim, oper)
+        super().__init__(sim, oper)
 
         self.field_tmp0 = np.empty_like(self.state_phys[0])
         self.field_tmp1 = np.empty_like(self.state_phys[0])
@@ -141,6 +141,6 @@ class StateNS2D(StatePseudoSpectral):
             elif key == "uy_fft":
                 self.init_from_uyfft(arr)
             else:
-                super(StateNS2D, self).init_statespect_from(**kwargs)
+                super().init_statespect_from(**kwargs)
         else:
-            super(StateNS2D, self).init_statespect_from(**kwargs)
+            super().init_statespect_from(**kwargs)

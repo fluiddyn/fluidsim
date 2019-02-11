@@ -26,7 +26,7 @@ class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
         """Init. `self` by writting the information on the solver.
         """
 
-        super(InfoSolverSphereNS2D, self)._init_root()
+        super()._init_root()
 
         here = "fluidsim.solvers.sphere.ns2d"
 

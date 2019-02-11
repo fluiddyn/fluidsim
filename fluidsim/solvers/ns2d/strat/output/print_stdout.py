@@ -26,7 +26,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
     """
 
     def __init__(self, output):
-        super(PrintStdOutNS2DStrat, self).__init__(output)
+        super().__init__(output)
         self.path_memory = self.output.path_run + "/memory_out.txt"
         if mpi.rank == 0 and self.output._has_to_save:
             if not os.path.exists(self.path_memory):
@@ -36,7 +36,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 self.file_memory.seek(0, 2)  # go to the end of the file
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutNS2DStrat, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         energyK, energyA, energyK_ux = self.output.compute_energies()
         energy = energyK + energyA
@@ -52,7 +52,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
                 memory = get_memory_usage()
                 self._write_memory_txt()
 
-                to_print += "              memory  = {:9.3f} Mo.\n".format(memory)
+                to_print += f"              memory  = {memory:9.3f} Mo.\n"
 
             duration_left = self._evaluate_duration_left()
             if duration_left is not None:
@@ -65,7 +65,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         """Write memory .txt"""
         it = self.sim.time_stepping.it
         mem = get_memory_usage()
-        self.file_memory.write("{:.3f},{:.3f}\n".format(it, mem))
+        self.file_memory.write(f"{it:.3f},{mem:.3f}\n")
         self.file_memory.flush()
         os.fsync(self.file_memory.fileno())
 
@@ -172,7 +172,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax1.set_title(
             "info stdout, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.params.oper.nx)
+            + f", nh = {self.params.oper.nx:5d}"
         )
         ax1.plot(t, deltat, "k", linewidth=2)
 
@@ -188,7 +188,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         ax2.grid(True)
 
     def close(self):
-        super(PrintStdOutNS2DStrat, self).close()
+        super().close()
         try:
             self.file_memory.close()
         except AttributeError:

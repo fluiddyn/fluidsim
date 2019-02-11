@@ -35,7 +35,7 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
         self.print_stdout = self.__call__
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutPredaPrey, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         potential = self.output.compute_potential()
         if mpi.rank == 0:

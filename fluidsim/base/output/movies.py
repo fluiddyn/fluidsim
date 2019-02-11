@@ -28,7 +28,7 @@ from matplotlib import animation
 from fluiddyn.util import mpi, is_run_from_jupyter
 
 
-class MoviesBase(object):
+class MoviesBase:
     """Base class defining most generic functions for movies."""
 
     def __init__(self, output):
@@ -374,7 +374,7 @@ class MoviesBase1D(MoviesBase):
     ):
         """Initializes animated figure."""
 
-        super(MoviesBase1D, self).init_animation(
+        super().init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
 
@@ -400,9 +400,9 @@ class MoviesBase1D(MoviesBase):
         self._ani_line.set_data(x, y)
         self.ax.set_title(
             self.key_field
-            + ", $t = {0:.3f}$, ".format(time)
+            + f", $t = {time:.3f}$, "
             + self.output.name_solver
-            + ", $n_x = {0:d}$".format(self.output.sim.oper.nx_seq)
+            + f", $n_x = {self.output.sim.oper.nx_seq:d}$"
         )
 
         return self._ani_line

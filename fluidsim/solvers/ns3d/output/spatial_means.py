@@ -62,7 +62,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
+            self.file.write(f"####\ntime = {tsim:11.5e}\n")
             to_print = (
                 "E    = {:11.5e}\n"
                 "Ex   = {:11.5e} ; Ey   = {:11.5e} ; Ez   = {:11.5e}\n"

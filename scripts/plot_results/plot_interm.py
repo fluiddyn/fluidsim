@@ -106,7 +106,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
     pol = np.polyfit(np.log(rxs[condr]), np.log(M_order[condr]), 1)
     expo = pol[0]
 
-    print('order = {0:.2f} ; expo = {1:.2f}'.format(order, expo))
+    print(f'order = {order:.2f} ; expo = {expo:.2f}')
     M_lin = np.exp((pol[1] + np.log(rxs[condr])*pol[0]))
 
 
@@ -114,14 +114,14 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
         fig, ax1 = sim.output.figure_axe()
         title = (
             'struct. function, solver '+sim.output.name_solver+
-            ', nh = {0:5d}'.format(sim.param.nx)+
-            ', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(sim.param.c2),
+            f', nh = {sim.param.nx:5d}'+
+            ', c = {:.4g}, f = {:.4g}'.format(np.sqrt(sim.param.c2),
                                                 sim.param.f)
             )
 
         ax1.set_xlabel('$r$')
         ax1.set_ylabel(
-            '$\langle |\delta v|^{'+'{0:.2f}'.format(order)+'}\\rangle/r$')
+            r'$\langle |\delta v|^{'+f'{order:.2f}'+'}\\rangle/r$')
 
         ax1.set_title(title)
         ax1.hold(True)
@@ -146,8 +146,8 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
             rxs[cond],temp[cond]/temp[0]*M_order[0]/norm[0],
             'k:', linewidth=1)
 
-        plt.text(1, 6*10**0,'order = {0:.2f}'.format(order),fontsize=16)
-        plt.text(0.11, 4*10**-1,'expo = {0:.3f}'.format(expo),fontsize=16)
+        plt.text(1, 6*10**0,f'order = {order:.2f}',fontsize=16)
+        plt.text(0.11, 4*10**-1,f'expo = {expo:.3f}',fontsize=16)
 
 
 
@@ -166,8 +166,8 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
     if PLOT_PDF:
         fig, ax1 = sim.output.figure_axe()
         title = ('pdf increments, solver '+sim.output.name_solver+
-', nh = {0:5d}'.format(sim.param.nx)+
-', c2 = {0:.4g}, f = {1:.4g}'.format(sim.param.c2, sim.param.f)
+f', nh = {sim.param.nx:5d}'+
+f', c2 = {sim.param.c2:.4g}, f = {sim.param.f:.4g}'
                  )
 
         ax1.set_title(title)
@@ -176,7 +176,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
         ax1.set_yscale('linear')
 
         ax1.set_xlabel(key_var)
-        ax1.set_ylabel('PDF x $\delta v^'+repr(order)+'$')
+        ax1.set_ylabel(r'PDF x $\delta v^'+repr(order)+'$')
 
         colors = ['k', 'y', 'r', 'b', 'g', 'm', 'c']
 
@@ -209,8 +209,8 @@ expos_K41 = orders/3
 
 fig, ax1 = sim.output.figure_axe()
 title = ('intermittency, solver '+sim.output.name_solver+
-', nh = {0:5d}'.format(sim.param.nx)+
-', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(sim.param.c2), sim.param.f)
+f', nh = {sim.param.nx:5d}'+
+', c = {:.4g}, f = {:.4g}'.format(np.sqrt(sim.param.c2), sim.param.f)
 )
 
 ax1.set_title(title)
@@ -219,7 +219,7 @@ ax1.set_xscale('linear')
 ax1.set_yscale('linear')
 
 ax1.set_xlabel('order q')
-ax1.set_ylabel('$\zeta_q$')
+ax1.set_ylabel(r'$\zeta_q$')
 
 ax1.plot(orders, expos)
 

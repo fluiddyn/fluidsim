@@ -78,7 +78,7 @@ class InfoSolverSW1L(InfoSolverPseudoSpectral):
         - :class:`fluidsim.solvers.sw1l.forcing.ForcingSW1L`
 
         """
-        super(InfoSolverSW1L, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.sw1l"
 
@@ -152,11 +152,11 @@ class Simul(SimulBasePseudoSpectral):
                 "Equations are non-periodic in this formulation."
             )
 
-        super(Simul, self).__init__(params)
+        super().__init__(params)
 
         if mpi.rank == 0:
             self.output.print_stdout(
-                "c2 = {0:6.5g} ; f = {1:6.5g} ; kd2 = {2:6.5g}".format(
+                "c2 = {:6.5g} ; f = {:6.5g} ; kd2 = {:6.5g}".format(
                     params.c2, params.f, params.kd2
                 )
             )

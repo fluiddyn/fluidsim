@@ -20,7 +20,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
     def __call__(self):
         """Preprocesses if enabled."""
 
-        super(PreprocessPseudoSpectral, self).__call__()
+        super().__call__()
         if self.params.enable:
             if self.sim.params.forcing.enable:
                 if "forcing" in self.params.init_field_scale:
@@ -98,7 +98,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             raise ValueError("Unknown initial fields scaling: ", scale)
 
     def set_viscosity(self):
-        """Based on
+        r"""Based on
 
         - the initial total enstrophy, \Omega_0, or
 
@@ -356,7 +356,7 @@ def calcul_viscosity(
     if verbose:
         length_scale = np.mean(kolmo_len)
         k_diss = 1.0 / length_scale
-        print("\nCALCULATED (eps={})".format(epsilon))
+        print(f"\nCALCULATED (eps={epsilon})")
         print(
             f"Dissipation wavenumber, k_d = {k_diss}; k_d / k_f = {k_diss / k_f}"
         )

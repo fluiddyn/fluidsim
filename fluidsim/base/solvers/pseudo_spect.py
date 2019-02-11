@@ -45,7 +45,7 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
 
         """
-        super(InfoSolverPseudoSpectral, self)._init_root()
+        super()._init_root()
 
         self.module_name = "fluidsim.base.solvers.pseudo_spect"
         self.class_name = "SimulBasePseudoSpectral"
@@ -92,7 +92,7 @@ class InfoSolverPseudoSpectral3D(InfoSolverPseudoSpectral):
 
         """
 
-        super(InfoSolverPseudoSpectral3D, self)._init_root()
+        super()._init_root()
 
         self.classes.Operators.module_name = "fluidsim.operators.operators3d"
         self.classes.Operators.class_name = "OperatorsPseudoSpectral3D"

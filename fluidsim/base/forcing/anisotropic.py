@@ -118,10 +118,10 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         title = (
             pforcing.type
             + "; "
-            + r"$nk_{{min}} = {} \delta k_x$; ".format(pforcing.nkmin_forcing)
-            + r"$nk_{{max}} = {} \delta k_z$; ".format(pforcing.nkmax_forcing)
+            + fr"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_x$; "
+            + fr"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_z$; "
             + r"$\theta = {:.0f}^\circ$; ".format(degrees(self.angle))
-            + r"Forced modes = {}".format(self.nb_forced_modes)
+            + fr"Forced modes = {self.nb_forced_modes}"
         )
 
         ax.set_title(title)

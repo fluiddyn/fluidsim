@@ -17,7 +17,7 @@ def submit(nb_nodes, nb_cores_per_node=None, solver='ns2d'):
         ('fluidsim bench 1024 -d 2 -s '
          '{} -o /.fsnet/data/legi/calcul9/home/augier3pi/fluidsim_bench'
         ).format(solver),
-        name_run='fluidsim-bench_{}'.format(nb_mpi),
+        name_run=f'fluidsim-bench_{nb_mpi}',
         nb_nodes=nb_nodes,
         # nb_cores_per_node=nb_cores_per_node,
         nb_cores_per_node=cluster.nb_cores_per_node,

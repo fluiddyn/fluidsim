@@ -45,7 +45,7 @@ class InitFieldsWave(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsWave, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"eta_max": 1.0, "ikx": 2})
 
     def __call__(self):
@@ -87,7 +87,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsVortexGrid, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(
             cls.tag, attribs={"omega_max": 1.0, "n_vort": 8, "sd": None}
         )

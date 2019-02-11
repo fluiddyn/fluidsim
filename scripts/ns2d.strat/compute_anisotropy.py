@@ -60,7 +60,7 @@ def compute_anisotropy(path_simulation, tmin=None):
     else:
         gamma_out = float(gamma_str)
 
-    print("Compute anisotropy nx = {} and gamma {}..".format(res_out, gamma_out))
+    print(f"Compute anisotropy nx = {res_out} and gamma {gamma_out}..")
 
     # Load data energy spectra file.
     with h5py.File(path_simulation + "/spectra1D.h5", "r") as f:
@@ -93,4 +93,4 @@ if __name__ == "__main__":
                     "sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma05_2018-08-14_10-01-22")
 
     anisotropy = compute_anisotropy(path_simulation)
-    print("anisotropy = {}".format(anisotropy))
+    print(f"anisotropy = {anisotropy}")

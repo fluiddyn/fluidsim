@@ -47,7 +47,7 @@ if not ts.is_compiled and not _is_testing:
     use_cython = True
 
 
-class ExactLinearCoefs(object):
+class ExactLinearCoefs:
     """Handle the computation of the exact coefficient for the RK4."""
 
     def __init__(self, time_stepping):
@@ -98,7 +98,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         params.time_stepping.USE_CFL = True
 
     def __init__(self, sim):
-        super(TimeSteppingPseudoSpectral, self).__init__(sim)
+        super().__init__(sim)
 
         self._init_freq_lin()
         self._init_compute_time_step()
@@ -188,7 +188,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
-                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+                f"nan at it = {self.it}, t = {self.t:.4f}"
             )
 
     def _time_step_RK2(self):

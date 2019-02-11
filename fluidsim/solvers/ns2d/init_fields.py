@@ -30,7 +30,7 @@ class InitFieldsNoise(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
-        super(InitFieldsNoise, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
         params.init_fields._set_child(
             cls.tag, attribs={"velo_max": 1.0, "length": 0.0}
@@ -117,7 +117,7 @@ class InitFieldsJet(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
-        super(InitFieldsJet, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
     # params.init_fields._set_child(cls.tag, attribs={})
 
@@ -153,7 +153,7 @@ class InitFieldsDipole(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
-        super(InitFieldsDipole, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
     # params.init_fields._set_child(cls.tag, attribs={})
 

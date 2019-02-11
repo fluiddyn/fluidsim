@@ -179,7 +179,7 @@ Lx, Ly and Lz: float
             ny = params.oper.ny
             nz = params.oper.nz
 
-        super(OperatorsPseudoSpectral3D, self).__init__(
+        super().__init__(
             nx,
             ny,
             nz,

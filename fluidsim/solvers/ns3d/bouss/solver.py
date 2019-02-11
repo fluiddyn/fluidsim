@@ -23,7 +23,7 @@ from ..strat.solver import InfoSolverNS3DStrat, Simul as SimulStrat
 class InfoSolverNS3DBouss(InfoSolverNS3DStrat):
     def _init_root(self):
 
-        super(InfoSolverNS3DBouss, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.ns3d.bouss"
         self.module_name = package + ".solver"

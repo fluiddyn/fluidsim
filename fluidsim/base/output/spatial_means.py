@@ -89,7 +89,7 @@ class SpatialMeansBase(SpecificOutput):
             title = (
                 "mean quantities, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
             axe.set_title(title)
 

@@ -177,7 +177,7 @@ class CorrelationsFreq(SpecificOutput):
     def __init__(self, output):
         params = output.sim.params
         pcorrel_freq = params.output.correl_freq
-        super(CorrelationsFreq, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.correl_freq,
             has_to_plot_saved=pcorrel_freq.HAS_TO_PLOT_SAVED,
@@ -347,7 +347,7 @@ class CorrelationsFreq(SpecificOutput):
             ax.set_title(
                 "Correlation, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.params.oper.nx)
+                + f", nh = {self.params.oper.nx:5d}"
             )
 
     def _online_plot_saving(self, dict_results):

@@ -21,7 +21,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
     def __init__(self, output):
         self.one_over_N2 = 1.0 / output.sim.params.N ** 2
-        super(SpatialMeansNS3DStrat, self).__init__(output)
+        super().__init__(output)
 
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
@@ -77,7 +77,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write("####\ntime = {:11.5e}\n".format(tsim))
+            self.file.write(f"####\ntime = {tsim:11.5e}\n")
             to_print = (
                 "E    = {:11.5e}\n"
                 "EA   = {:11.5e} ; EKz   = {:11.5e} ; "

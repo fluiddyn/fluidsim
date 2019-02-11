@@ -111,4 +111,4 @@ class StateSphericalHarmo(StatePseudoSpectral):
             if "rot_sh" in kwargs:
                 self.init_from_rotsh(kwargs["rot_sh"])
         else:
-            super(StateSphericalHarmo, self).init_statespect_from(**kwargs)
+            super().init_statespect_from(**kwargs)

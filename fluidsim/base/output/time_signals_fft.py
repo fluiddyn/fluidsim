@@ -48,7 +48,7 @@ class TimeSignalsK(SpecificOutput):
         if params.output.periods_save.time_signals_fft:
             self._init_save(sim)
 
-        super(TimeSignalsK, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.time_signals_fft,
             period_plot=params.output.periods_plot.time_signals_fft,
@@ -326,12 +326,12 @@ class TimeSignalsK(SpecificOutput):
             ax1.set_xlabel("$t/T$")
             ax1.set_ylabel("signals (s$^{-1}$)")
             title = (
-                "signals eigenmodes, ikh = {0:.2f}, solver ".format(
+                "signals eigenmodes, ikh = {:.2f}, solver ".format(
                     (kh_shell[ish] / self.sim.oper.deltak)
                 )
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c2 = {0:.4g}, f = {1:.4g}".format(self.c2, self.f)
+                + f", nh = {self.nx:5d}"
+                + f", c2 = {self.c2:.4g}, f = {self.f:.4g}"
             )
             ax1.set_title(title)
 
@@ -457,8 +457,8 @@ class TimeSignalsK(SpecificOutput):
         title = (
             "time spectra, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            + f", nh = {self.nx:5d}"
+            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
         )
         ax1.set_title(title)
 

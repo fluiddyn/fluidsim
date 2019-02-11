@@ -101,7 +101,7 @@ class WavesVortices(Waves):
     _key_forced_default = ("q_fft", "a_fft")
 
     def __init__(self, sim):
-        super(WavesVortices, self).__init__(sim)
+        super().__init__(sim)
         params = sim.params.forcing
         self.forcing_rate = 0.5 * params.forcing_rate
 

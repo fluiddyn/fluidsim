@@ -98,19 +98,19 @@ def create_description_xmf_file(path=None):
 
     if ndim == 1:
         geometry_type = "Origin_Dx"
-        dims_data = "{}".format(nx)
+        dims_data = f"{nx}"
         origins = "0"
-        deltaxs = "{}".format(deltax)
+        deltaxs = f"{deltax}"
     elif ndim == 2:
         geometry_type = "Origin_DxDy"
-        dims_data = "{} {}".format(ny, nx)
+        dims_data = f"{ny} {nx}"
         origins = "0 0"
-        deltaxs = "{} {}".format(deltay, deltax)
+        deltaxs = f"{deltay} {deltax}"
     elif ndim == 3:
         geometry_type = "Origin_DxDyDz"
-        dims_data = "{} {} {}".format(nz, ny, nx)
+        dims_data = f"{nz} {ny} {nx}"
         origins = "0 0 0"
-        deltaxs = "{} {} {}".format(deltaz, deltay, deltax)
+        deltaxs = f"{deltaz} {deltay} {deltax}"
 
     if ndim in (2, 3):
         vectors = []
@@ -124,7 +124,7 @@ def create_description_xmf_file(path=None):
         for key in keys:
             if key.endswith("x"):
                 vector = key[:-1]
-                vector_components = set([vector + compo for compo in components])
+                vector_components = {vector + compo for compo in components}
                 if vector_components.issubset(set(keys)):
                     vectors.append(vector)
 

@@ -123,10 +123,10 @@ ax1.tick_params(labelsize=16)
 
 if key == "ap":
     data = np.log10(abs(ap_fft_arr)**2)
-    text = "$\hat{a}_+$"
+    text = r"$\hat{a}_+$"
 elif key == "am":
     data = np.log10(abs(am_fft_arr)**2)
-    text = "$\hat{a}_-$"
+    text = r"$\hat{a}_-$"
 else:
     raise ValueError("Not implemented")
 
@@ -266,6 +266,6 @@ ax1.set_aspect("equal")
 
 if SAVE:
     path_save = "/home/users/calpelin7m/Phd/docs/Manuscript/figures"
-    name = "spectrakykx_forced{}_key_{}_t_{}.png".format(index_simulation, key, tmin)
+    name = f"spectrakykx_forced{index_simulation}_key_{key}_t_{tmin}.png"
     fig1.savefig(os.path.join(path_save, name), bbox_inches="tight")
 plt.show()

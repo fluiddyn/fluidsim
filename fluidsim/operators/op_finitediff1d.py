@@ -17,7 +17,7 @@ from .base import OperatorsBase1D
 
 class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
     def __init__(self, params=None):
-        super(OperatorFiniteDiff1DPeriodic, self).__init__(params)
+        super().__init__(params)
         nx = self.nx
         self.nx_seq = nx
         dx = self.deltax
@@ -45,6 +45,4 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
         return sparse.identity(self.size)
 
     def produce_long_str_describing_oper(self):
-        return super(
-            OperatorFiniteDiff1DPeriodic, self
-        ).produce_long_str_describing_oper("Finite difference")
+        return super().produce_long_str_describing_oper("Finite difference")

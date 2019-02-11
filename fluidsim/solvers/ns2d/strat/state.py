@@ -49,7 +49,7 @@ class StateNS2DStrat(StateNS2D):
 
     def __init__(self, sim, oper=None):
 
-        super(StateNS2DStrat, self).__init__(sim, oper)
+        super().__init__(sim, oper)
 
         self.field_tmp4 = np.empty_like(self.state_phys[0])
         self.field_tmp5 = np.empty_like(self.state_phys[0])

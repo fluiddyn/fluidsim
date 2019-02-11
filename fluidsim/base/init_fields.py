@@ -21,7 +21,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.setofvariables import SetOfVariables
 
 
-class InitFieldsBase(object):
+class InitFieldsBase:
     """Initialization of the fields (base class)."""
 
     @staticmethod
@@ -138,7 +138,7 @@ modif_after_init: bool (default False)
         self._specific_init_fields()
 
 
-class SpecificInitFields(object):
+class SpecificInitFields:
     tag = "specific"
 
     @classmethod
@@ -155,7 +155,7 @@ class InitFieldsFromFile(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsFromFile, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"path": ""})
         params.init_fields.from_file._set_doc(
             """
@@ -206,14 +206,14 @@ path: str
                 for r in axes:
                     # for example r can be: 'z', 'y', 'x'
                     r = r.decode("utf-8")
-                    nr = "n{}".format(r)
+                    nr = f"n{r}"
                     nr_file = group_oper.attrs[nr]
                     if params.oper[nr] != nr_file:
                         raise ValueError(
                             "this is not a correct state for this simulation\n"
                             "self.{0} != params_file.{0}".format(nr)
                         )
-                    Lr = "L{}".format(r)
+                    Lr = f"L{r}"
                     try:
                         Lr_file = group_oper.attrs[Lr]
                     except KeyError:
@@ -400,7 +400,7 @@ class InitFieldsConstant(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsConstant, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"value": 1.0})
         params.init_fields.constant._set_doc(
             """
@@ -424,7 +424,7 @@ class InitFieldsNoise(SpecificInitFields):
     @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
-        super(InitFieldsNoise, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
         params.init_fields._set_child(cls.tag, attribs={"max": 1.0})
         params.init_fields.noise._set_doc(
             """

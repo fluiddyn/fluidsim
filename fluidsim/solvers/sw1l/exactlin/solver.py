@@ -24,7 +24,7 @@ class InfoSolverSW1LExactLin(InfoSolverSW1L):
     """Information about the solver SW1L."""
 
     def _init_root(self):
-        super(InfoSolverSW1LExactLin, self)._init_root()
+        super()._init_root()
 
         sw1l = "fluidsim.solvers.sw1l"
 
@@ -47,7 +47,7 @@ class Simul(SimulSW1L):
         if params.beta != 0:
             raise NotImplementedError("Do not use this solver for beta-plane!")
 
-        super(Simul, self).__init__(params)
+        super().__init__(params)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper

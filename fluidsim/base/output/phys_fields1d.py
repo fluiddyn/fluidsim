@@ -26,7 +26,7 @@ from .phys_fields import PhysFieldsBase
 class MoviesBasePhysFields1D(MoviesBase1D):
     def __init__(self, output, phys_fields):
         self.phys_fields = phys_fields
-        super(MoviesBasePhysFields1D, self).__init__(output)
+        super().__init__(output)
         self._equation = None
 
 
@@ -75,8 +75,8 @@ class PhysFieldsBase1D(PhysFieldsBase):
     def _set_title(self, ax, key, time):
         title = (
             key
-            + ", $t = {0:.3f}$, ".format(time)
+            + f", $t = {time:.3f}$, "
             + self.output.name_solver
-            + ", $n_x = {0:d}$".format(self.params.oper.nx)
+            + f", $n_x = {self.params.oper.nx:d}$"
         )
         ax.set_title(title)

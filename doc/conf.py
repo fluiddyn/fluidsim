@@ -91,8 +91,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"FluidSim"
-copyright = u"2015, Pierre Augier"
+project = "FluidSim"
+copyright = "2015, Pierre Augier"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -239,8 +239,8 @@ latex_documents = [
     (
         "index",
         "fluidsim.tex",
-        u"fluidsim Documentation",
-        u"Pierre Augier",
+        "fluidsim Documentation",
+        "Pierre Augier",
         "manual",
     )
 ]
@@ -271,7 +271,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ("index", "FluidSim", u"FluidSim Documentation", [u"Pierre Augier"], 1)
+    ("index", "FluidSim", "FluidSim Documentation", ["Pierre Augier"], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -287,8 +287,8 @@ texinfo_documents = [
     (
         "index",
         "FluidDyn",
-        u"FluidDyn Documentation",
-        u"Pierre Augier",
+        "FluidDyn Documentation",
+        "Pierre Augier",
         "FluidDyn",
         "One line description of project.",
         "Miscellaneous",

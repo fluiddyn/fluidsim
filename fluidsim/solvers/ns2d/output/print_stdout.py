@@ -23,7 +23,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
     """
 
     def _make_str_info(self):
-        to_print = super(PrintStdOutNS2D, self)._make_str_info()
+        to_print = super()._make_str_info()
 
         energy = self.output.compute_energy()
 
@@ -102,7 +102,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         ax.set_title(
             "info stdout, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.sim.oper.nx_seq)
+            + f", nh = {self.sim.oper.nx_seq:5d}"
         )
         ax.plot(t, deltat, "k", linewidth=2)
         fig.tight_layout()
@@ -119,7 +119,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         ax.set_title(
             "info stdout, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.sim.oper.nx_seq)
+            + f", nh = {self.sim.oper.nx_seq:5d}"
         )
 
         ax.set_xlabel("t")

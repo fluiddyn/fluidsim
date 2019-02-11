@@ -235,7 +235,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         imin_plot = np.argmin(abs(times - tmin))
         imax_plot = np.argmin(abs(times - tmax))
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
             tmin, tmax, delta_t
         )
         print(to_print)
@@ -244,8 +244,8 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         tmax_plot = times[imax_plot]
         print(
             """plot spectral energy budget
-            tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-            imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+            tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+            imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
                 tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
             )
         )
@@ -259,7 +259,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax1.set_title(
             "2D spectra, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + f", nh = {self.nx:5d}"
         )
 
         transferEK_kx = dset_transferEK_kx[imin_plot : imax_plot + 1].mean(0)
@@ -298,7 +298,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.set_title(
             "2D spectra, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + f", nh = {self.nx:5d}"
         )
 
         transferEK_ky = dset_transferEK_ky[imin_plot : imax_plot + 1].mean(0)

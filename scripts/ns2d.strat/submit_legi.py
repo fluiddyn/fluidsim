@@ -12,12 +12,12 @@ cluster = Calcul()
 cluster.commands_setting_env.append(
     'export FLUIDSIM_PATH="/fsnet/project/meige/2015/15DELDUCA/DataSim"')
 
-name_run_root = "find_coeff_nu8_gamma={}".format(args.gamma)
+name_run_root = f"find_coeff_nu8_gamma={args.gamma}"
 
 walltime = '24:00:00'
 nb_proc = 8
 
-command_to_submit = "python coeff_diss.py {}".format(args.gamma)
+command_to_submit = f"python coeff_diss.py {args.gamma}"
 
 cluster.submit_command(
     command_to_submit,

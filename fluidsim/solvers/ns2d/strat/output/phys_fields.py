@@ -17,17 +17,17 @@ class PhysFields2DStrat(PhysFieldsBase2D):
 
     def update_animation(self, frame, **fargs):
 
-        super(PhysFields2DStrat, self).update_animation(frame, **fargs)
+        super().update_animation(frame, **fargs)
 
         if "ratio_omegas" in self.__dict__:
             title = (
                 self.key_field
-                + ", R = {0:.2f}".format(self.output.ratio_omegas)
-                + ", F = {0:.1f}".format(self.output.froude_number)
-                + ", $t = {0:.3f}$".format(self.ani_times[frame])
+                + f", R = {self.output.ratio_omegas:.2f}"
+                + f", F = {self.output.froude_number:.1f}"
+                + ", $t = {:.3f}$".format(self.ani_times[frame])
             )
         else:
-            title = self.key_field + ", $t = {0:.3f}$".format(
+            title = self.key_field + ", $t = {:.3f}$".format(
                 self.ani_times[frame]
             )
 

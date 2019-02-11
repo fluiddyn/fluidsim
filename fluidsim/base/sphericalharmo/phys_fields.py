@@ -34,12 +34,12 @@ class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
     def _set_title(self, ax, key, time, vmax=None):
         title = (
             key
-            + ", $t = {0:.3f}$, ".format(time)
+            + f", $t = {time:.3f}$, "
             + self.output.name_solver
-            + r", $l_\max = {0:d}$".format(self.params.oper.lmax)
+            + fr", $l_\max = {self.params.oper.lmax:d}$"
         )
         if vmax is not None:
-            title += r", $|\vec{v}|_{max} = $" + "{0:.3f}".format(vmax)
+            title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
         ax.set_title(title)
 
     def _compute_skip_quiver(self):

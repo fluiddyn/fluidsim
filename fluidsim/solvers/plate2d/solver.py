@@ -52,7 +52,7 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
 
         """
 
-        super(InfoSolverPlate2D, self)._init_root()
+        super()._init_root()
 
         package = "fluidsim.solvers.plate2d"
         self.module_name = package + ".solver"
@@ -204,7 +204,7 @@ class Simul(SimulBasePseudoSpectral):
 
     def compute_freq_diss(self):
         """Compute the dissipation frequencies with dissipation only for w."""
-        f_d_w, f_d_hypo_w = super(Simul, self).compute_freq_diss()
+        f_d_w, f_d_hypo_w = super().compute_freq_diss()
         f_d = np.zeros_like(self.state.state_spect, dtype=np.float64)
         f_d_hypo = np.zeros_like(self.state.state_spect, dtype=np.float64)
         f_d[0] = f_d_w

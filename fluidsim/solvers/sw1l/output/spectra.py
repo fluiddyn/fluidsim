@@ -17,16 +17,16 @@ class SpectraSW1L(Spectra):
         self.c2 = params.c2
         self.f = params.f
 
-        super(SpectraSW1L, self).__init__(output)
+        super().__init__(output)
 
     def _init_online_plot(self):
-        super(SpectraSW1L, self)._init_online_plot()
+        super()._init_online_plot()
         if mpi.rank == 0:
             title = (
                 "spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             self.axe.set_title(title)
 
@@ -187,14 +187,14 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot1d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+            to_print = "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
                 tmin, tmax, delta_t
             )
             print(to_print)
 
             to_print = """plot 1D spectra
-    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
                 tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
             )
             print(to_print)
@@ -207,8 +207,8 @@ class SpectraSW1L(Spectra):
             title = (
                 "1D spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             ax.set_title(title)
             ax.set_xscale("log")
@@ -292,14 +292,14 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot2d(tmin={0}, tmax={1}, delta_t={2:.2f},".format(
+            to_print = "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
                 tmin, tmax, delta_t
             )
             print(to_print)
 
             to_print = """plot 2D spectra
-    tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}
-    imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}""".format(
+    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
                 tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
             )
             print(to_print)
@@ -312,8 +312,8 @@ class SpectraSW1L(Spectra):
             title = (
                 "2D spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             ax.set_title(title)
             ax.set_xscale("log")
@@ -471,7 +471,7 @@ class SpectraSW1L(Spectra):
 class SpectraSW1LNormalMode(SpectraSW1L):
     def __init__(self, output):
         self.norm_mode = NormalModeBase(output)
-        super(SpectraSW1LNormalMode, self).__init__(output)
+        super().__init__(output)
 
     def compute_lin_spectra(self):
         energy_glin_fft, energy_aplin_fft, energy_amlin_fft = (

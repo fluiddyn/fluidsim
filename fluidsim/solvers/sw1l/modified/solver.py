@@ -20,7 +20,7 @@ class InfoSolverSW1LModified(InfoSolverSW1L):
     """Information about the solver SW1L."""
 
     def _init_root(self, **kargs):
-        super(InfoSolverSW1LModified, self)._init_root()
+        super()._init_root()
 
         sw1l = "fluidsim.solvers.sw1l"
 

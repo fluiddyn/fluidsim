@@ -325,7 +325,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
 
     long_functions = {}
 
-    key_fft = "fft{}d".format(nb_dim)
+    key_fft = f"fft{nb_dim}d"
     kinds = _kinds + (key_fft,)
     times = {k: 0.0 for k in kinds}
 
@@ -391,7 +391,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
         print(name + ":")
         for k, v in d.items():
             if k == "percentage":
-                print("    " + k + " = {:.2f} %".format(v))
+                print("    " + k + f" = {v:.2f} %")
             else:
                 print("    " + k + " = " + repr(v))
 

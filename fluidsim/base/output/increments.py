@@ -81,7 +81,7 @@ class Increments(SpecificOutput):
         self._bins = np.arange(0.5, self.nbins, dtype=float) / self.nbins
         self.keys_vars_to_compute = list(output.sim.state.state_phys.keys)
 
-        super(Increments, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.increments,
             has_to_plot_saved=params.output.increments.HAS_TO_PLOT_SAVED,
@@ -97,7 +97,7 @@ class Increments(SpecificOutput):
             axe.set_title(
                 r"pdf $\delta u_x (x)$, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
 
     def _online_plot_saving(self, dict_results, key="rot"):
@@ -192,7 +192,7 @@ class Increments(SpecificOutput):
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
             tmin, tmax, delta_t
         )
         print(to_print)
@@ -225,13 +225,13 @@ class Increments(SpecificOutput):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("$r_x$")
         ax1.set_ylabel(
-            r"$\langle \delta u^{" + "{0}".format(order) + "} \\rangle$"
+            r"$\langle \delta u^{" + f"{order}" + "} \\rangle$"
         )
 
         ax1.set_title(
             "struct. functions, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + f", nh = {self.nx:5d}"
         )
         ax1.set_xscale("log")
         ax1.set_yscale(yscale)
@@ -463,14 +463,14 @@ class Increments(SpecificOutput):
             tmin=tmin, tmax=tmax, key_var=key_var, irx_to_plot=irx_to_plot
         )
 
-        to_print = "plot_pdf(tmin={0}, tmax={1})".format(tmin, tmax)
+        to_print = f"plot_pdf(tmin={tmin}, tmax={tmax})"
         print(to_print)
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_title(
             "pdf increments, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
+            + f", nh = {self.nx:5d}"
         )
         # +', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f))
 
@@ -484,7 +484,7 @@ class Increments(SpecificOutput):
 
         for irxp, irx in enumerate(irx_to_plot):
 
-            print("color = {0}, rx = {1}".format(colors[irxp], self.rxs[irx]))
+            print("color = {}, rx = {}".format(colors[irxp], self.rxs[irx]))
 
             val_inc = values_inc_timemean[irxp]
 

@@ -21,7 +21,7 @@ class InitFieldsCos(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsCos, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
     # params.init_fields._set_child(cls.tag, attribs={})
 
@@ -36,7 +36,7 @@ class InitFieldsGaussian(SpecificInitFields):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(InitFieldsGaussian, cls)._complete_params_with_default(params)
+        super()._complete_params_with_default(params)
 
     # params.init_fields._set_child(cls.tag, attribs={})
 

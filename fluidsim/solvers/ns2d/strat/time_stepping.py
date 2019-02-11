@@ -25,7 +25,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super(TimeSteppingPseudoSpectralStrat, cls)._complete_params_with_default(
+        super()._complete_params_with_default(
             params
         )
 
@@ -36,7 +36,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         """
         Initialization compute time step solver ns2d.strat.
         """
-        super(TimeSteppingPseudoSpectralStrat, self)._init_compute_time_step()
+        super()._init_compute_time_step()
 
         # Coefficients dt
         self.coef_deltat_dispersion_relation = 1.0
@@ -204,5 +204,5 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(
-                "nan at it = {0}, t = {1:.4f}".format(self.it, self.t)
+                f"nan at it = {self.it}, t = {self.t:.4f}"
             )

@@ -30,7 +30,7 @@ class ProbaDensityFunc(SpecificOutput):
         self.f = params.f
         self.nx = params.oper.nx
 
-        super(ProbaDensityFunc, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.pdf,
             has_to_plot_saved=params.output.pdf.HAS_TO_PLOT_SAVED,
@@ -45,8 +45,8 @@ class ProbaDensityFunc(SpecificOutput):
             title = (
                 r"pdf $\eta$, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
-                + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+                + f", nh = {self.nx:5d}"
+                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
             )
             axe.set_title(title)
 
@@ -115,8 +115,8 @@ class ProbaDensityFunc(SpecificOutput):
         ax1.set_title(
             "PDF, solver "
             + self.output.name_solver
-            + ", nh = {0:5d}".format(self.nx)
-            + ", c = {0:.4g}, f = {1:.4g}".format(np.sqrt(self.c2), self.f)
+            + f", nh = {self.nx:5d}"
+            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
         )
         ax1.set_xscale("linear")
         ax1.set_yscale("linear")
@@ -156,7 +156,7 @@ class ProbaDensityFunc(SpecificOutput):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={0}, tmax={1}, delta_t={2:.2f})".format(
+            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
                 tmin, tmax, delta_t
             )
             print(to_print)

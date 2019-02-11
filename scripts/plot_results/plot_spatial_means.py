@@ -65,8 +65,8 @@ fig, ax1 = sim.output.figure_axe(size_axe=size_axe)
 ax1.set_xlabel('$t$')
 ax1.set_ylabel('$2E(t)/c^2$')
 title = ('mean energy, solver ' + sim.output.name_solver +
-         ', nh = {0:5d}'.format(nx) +
-         ', c2 = {0:.4g}, f = {1:.4g}'.format(c2, f))
+         f', nh = {nx:5d}' +
+         f', c2 = {c2:.4g}, f = {f:.4g}')
 
 ax1.set_title(title)
 ax1.hold(True)
@@ -92,10 +92,10 @@ z_bottom_axe = 0.56
 size_axe[1] = z_bottom_axe
 fig, ax1 = sim.output.figure_axe(size_axe=size_axe)
 ax1.set_xlabel('t')
-ax1.set_ylabel('$P_E(t)$, $\epsilon(t)$')
+ax1.set_ylabel(r'$P_E(t)$, $\epsilon(t)$')
 title = ('forcing and dissipation, solver '+sim.output.name_solver+
-         ', nh = {0:5d}'.format(nx)+
-         ', c2 = {0:.4g}, f = {1:.4g}'.format(c2, f))
+         f', nh = {nx:5d}'+
+         f', c2 = {c2:.4g}, f = {f:.4g}')
 ax1.set_title(title)
 ax1.hold(True)
 (l_P_tot,) = ax1.plot(t, P_tot, 'c', linewidth=2 )
@@ -103,9 +103,9 @@ ax1.hold(True)
 (l_epsE_hypo,) = ax1.plot(t, epsE_hypo, 'g', linewidth=2 )
 (l_epsE_tot,) = ax1.plot(t, epsE_tot, 'k', linewidth=2 )
 l_P_tot.set_label('$P_{tot}$')
-l_epsE.set_label('$\epsilon$')
-l_epsE_hypo.set_label('$\epsilon_{hypo}$')
-l_epsE_tot.set_label('$\epsilon_{tot}$')
+l_epsE.set_label(r'$\epsilon$')
+l_epsE_hypo.set_label(r'$\epsilon_{hypo}$')
+l_epsE_tot.set_label(r'$\epsilon_{tot}$')
 
 ax1.legend(loc=2)
 
@@ -113,7 +113,7 @@ z_bottom_axe = 0.07
 size_axe[1] = z_bottom_axe
 ax2 = fig.add_axes(size_axe)
 ax2.set_xlabel('t')
-ax2.set_ylabel('$\epsilon$ Charney PE(t)')
+ax2.set_ylabel(r'$\epsilon$ Charney PE(t)')
 title = ('dissipation Charney PE')
 ax2.set_title(title)
 ax2.hold(True)

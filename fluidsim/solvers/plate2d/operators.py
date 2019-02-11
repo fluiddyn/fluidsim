@@ -43,7 +43,7 @@ class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
     """
 
     def __init__(self, params):
-        super(OperatorsPseudoSpectralPlate2D, self).__init__(params)
+        super().__init__(params)
 
         self.KX2 = self.KX ** 2
         self.KY2 = self.KY ** 2

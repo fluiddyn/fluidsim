@@ -163,7 +163,7 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
 
         for name, elapsed in result.getTestTimings():
             if elapsed > self.slow_test_threshold:
-                self.write_result("({:.3f}s) {}".format(elapsed, name))
+                self.write_result(f"({elapsed:.3f}s) {name}")
 
         return result
 
@@ -178,7 +178,7 @@ def _mname(obj):
     """ Get the full dotted name of the test method """
 
     mod_name = obj.__class__.__module__.replace("fluidsim.", "")
-    return "%s.%s.%s" % (mod_name, obj.__class__.__name__, obj._testMethodName)
+    return f"{mod_name}.{obj.__class__.__name__}.{obj._testMethodName}"
 
 
 def deactivate_redirect_stdout(tests):
@@ -208,7 +208,7 @@ def _run(tests, verbose=False, no_capture=False):
         msg = "Skipped tests"
         testRunner.write_result("\n", msg, "\n", "-" * len(msg))
         for (case, reason) in result.skipped:
-            testRunner.write_result("S  %s (%s)" % (_mname(case), reason))
+            testRunner.write_result("S  {} ({})".format(_mname(case), reason))
         for (case, reason) in result.expectedFailures:
             testRunner.write_result("X  %s" % _mname(case))
 

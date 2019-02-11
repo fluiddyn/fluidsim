@@ -19,7 +19,7 @@ else:
 if mpi.nb_proc > 1:
     pid = mpi.comm.bcast(pid, root=0)
 
-path_dir = "/tmp/tmp_test_fluidsim_profile_dir_pid{}".format(pid)
+path_dir = f"/tmp/tmp_test_fluidsim_profile_dir_pid{pid}"
 
 
 class TestsProfile(TestCase):

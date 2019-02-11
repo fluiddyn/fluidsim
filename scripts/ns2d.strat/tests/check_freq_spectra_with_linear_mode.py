@@ -149,7 +149,7 @@ if __name__ == '__main__':
         #     ax.loglog(omegas/omega_n, freq_spectrum[0, :, 1, i])
 
         ax.semilogy(omegas/omega_n, freq_spectrum[0, :, 1, 4])
-        ax.axvline(x=omega_n / omega_n, label="$\omega_{th}$", c="k")
+        ax.axvline(x=omega_n / omega_n, label=r"$\omega_{th}$", c="k")
 
         # Set text
         ax.text(5e-2, 1e3,

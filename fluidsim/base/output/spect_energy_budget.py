@@ -42,7 +42,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         self.sum_wavenumbers = output.sim.oper.sum_wavenumbers
 
         HAS_TO_PLOT_SAVED = params.output.spect_energy_budg.HAS_TO_PLOT_SAVED
-        super(SpectralEnergyBudgetBase, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
@@ -76,7 +76,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             axe_a.set_title(
                 "energy flux, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
             axe_a.set_xscale("log")
 

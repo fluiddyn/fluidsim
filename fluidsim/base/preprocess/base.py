@@ -11,7 +11,7 @@ Provides:
 from builtins import object
 
 
-class PreprocessBase(object):
+class PreprocessBase:
     _tag = "preprocess"
 
     @staticmethod

@@ -29,7 +29,7 @@ class SpectraMultiDim(SpecificOutput):
         if not params.output.HAS_TO_SAVE:
             params.output.periods_save.spectra_multidim = False
 
-        super(SpectraMultiDim, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.spectra_multidim,
             has_to_plot_saved=params.output.spectra_multidim.HAS_TO_PLOT_SAVED,
@@ -92,7 +92,7 @@ class SpectraMultiDim(SpecificOutput):
             axe.set_title(
                 "Multidimensional spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.nx)
+                + f", nh = {self.nx:5d}"
             )
 
     def _online_plot_saving(self, arg):

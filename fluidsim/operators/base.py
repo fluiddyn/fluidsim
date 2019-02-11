@@ -14,7 +14,7 @@ Provides:
 import numpy as np
 
 
-class OperatorsBase1D(object):
+class OperatorsBase1D:
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
@@ -49,7 +49,7 @@ class OperatorsBase1D(object):
         if (self.Lx / np.pi).is_integer():
             str_Lx = repr(int(self.Lx / np.pi)) + "pi"
         else:
-            str_Lx = "{:.3f}".format(self.Lx).rstrip("0")
+            str_Lx = f"{self.Lx:.3f}".rstrip("0")
 
         return str_Lx
 
@@ -62,8 +62,8 @@ class OperatorsBase1D(object):
         """Produce a string describing the operator."""
         str_Lx = self._str_describing_oper()
         return (
-            "{} operator 1D,\n".format(oper_method)
-            + "nx = {0:6d}\n".format(self.nx)
+            f"{oper_method} operator 1D,\n"
+            + f"nx = {self.nx:6d}\n"
             + "Lx = "
             + str_Lx
             + "\n"

@@ -28,7 +28,7 @@ from .specific import (
 )
 
 
-class ForcingBase(object):
+class ForcingBase:
     """Organize the forcing schemes (base class)"""
 
     @staticmethod

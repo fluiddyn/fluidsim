@@ -408,7 +408,7 @@ def modif_resolution_from_dir(
 
     print(sim2.params.path_run)
 
-    sim2.output.path_run = str(path_dir) + "/State_phys_{0}x{1}".format(
+    sim2.output.path_run = str(path_dir) + "/State_phys_{}x{}".format(
         sim2.params.oper.nx, sim2.params.oper.ny
     )
     print("Save file in directory\n" + sim2.output.path_run)

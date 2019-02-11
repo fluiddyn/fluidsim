@@ -24,7 +24,7 @@ def load_bench(path_dir, solver, hostname="any"):
         solver = solver.split(".", 1)[1]
 
     dicts = []
-    for path in glob(path_dir + "/result_bench_{}*.json".format(solver)):
+    for path in glob(path_dir + f"/result_bench_{solver}*.json"):
         with open(path) as f:
             d = json.load(f)
 
@@ -163,8 +163,8 @@ def plot_scaling(
         fig, axes = plt.subplots(1, 2)
         ax0, ax1 = axes.ravel()
 
-    ax0.set_ylabel("speedup ({} scaling)".format(type_plot))
-    ax1.set_ylabel("efficiency % ({} scaling)".format(type_plot))
+    ax0.set_ylabel(f"speedup ({type_plot} scaling)")
+    ax1.set_ylabel(f"efficiency % ({type_plot} scaling)")
 
     def plot_once(ax, x, y, label, linestyle="-k"):
         """Avoid plotting the same label again."""
@@ -236,7 +236,7 @@ def plot_scaling(
                 efficiency.index,
                 efficiency.values,
                 "x-",
-                label="{}, {}".format(name, name_dir),
+                label=f"{name}, {name_dir}",
             )
 
     add_hline(ax1, efficiency, 100)

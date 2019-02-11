@@ -103,7 +103,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             energy = energy_k + energy_l + energy_e
             epsK_tot = epsK + epsK_hypo
 
-            self.file.write("####\ntime = {0:17.13f}\n".format(tsim))
+            self.file.write(f"####\ntime = {tsim:17.13f}\n")
             to_print = (
                 "E    = {:31.26e} ; E_k    = {:11.6e} ; "
                 "E_l    = {:11.6e} ; E_e    = {:11.6e}\n"

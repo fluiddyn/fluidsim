@@ -36,7 +36,7 @@ import fluidsim
 from fluidsim.util.util import load_params_simul
 
 
-class OutputBase(object):
+class OutputBase:
     """Handle the output."""
 
     @staticmethod
@@ -306,7 +306,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             if mpi.nb_proc == 1:
                 specifications += "sequential,\n"
             else:
-                specifications += "parallel ({} proc.)\n".format(mpi.nb_proc)
+                specifications += f"parallel ({mpi.nb_proc} proc.)\n"
             self.print_stdout(
                 "\nsolver "
                 + self.name_solver
@@ -514,7 +514,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         mem = arr.nbytes * 1.0e-6
         if mpi.nb_proc > 1:
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
-        self.print_stdout(string.ljust(30) + ": {0} Mo".format(mem))
+        self.print_stdout(string.ljust(30) + f": {mem} Mo")
 
 
 class OutputBasePseudoSpectral(OutputBase):
@@ -522,7 +522,7 @@ class OutputBasePseudoSpectral(OutputBase):
 
         oper = self.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
-        super(OutputBasePseudoSpectral, self).init_with_oper_and_state()
+        super().init_with_oper_and_state()
 
     def compute_energy_fft(self):
         """Compute energy(k)"""
@@ -540,7 +540,7 @@ class OutputBasePseudoSpectral(OutputBase):
         return self.sum_wavenumbers(energy_fft)
 
 
-class SpecificOutput(object):
+class SpecificOutput:
     """Small class for features useful for specific outputs"""
 
     def __init__(
