@@ -1,8 +1,9 @@
 from time import time
 import os
 import sys
+from datetime import timedelta
 
-from fluiddyn.util import mpi
+from fluiddyn.util import mpi, print_memory_usage
 
 
 class PrintStdOutBase(object):
@@ -73,6 +74,7 @@ class PrintStdOutBase(object):
 
     def _print_info(self):
         self.print_stdout(self._make_str_info())
+        print_memory_usage("MEMORY_USAGE:")
 
     def _make_str_info(self):
         return "it = {0:6d} ; t = {1:10.6g} ; deltat  = {2:10.5g}\n".format(
@@ -104,7 +106,10 @@ class PrintStdOutBase(object):
                 self.params.time_stepping.it_end - self.sim.time_stepping.it
             ) * self.sim.time_stepping.deltat
 
-        return remaining_simul_time / duration_simul_time * duration_real_word
+        remaining_real_time = round(
+            remaining_simul_time / duration_simul_time * duration_real_word
+        )
+        return timedelta(seconds=remaining_real_time)
 
     def close(self):
         try:

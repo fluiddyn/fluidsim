@@ -9,14 +9,13 @@ from fluiddyn.util import mpi
 
 from .base import SpecificOutput
 
-A = Array[float, "2d"]
-# transonic def strfunc_from_pdf(
-#     int32[], float64[][], float64[][], float, bool)
+Ai = Array[int, "1d"]
+Af = Array[float, "2d"]
 
 
 @boost
 def strfunc_from_pdf(
-    rxs: A, pdf: A, values: A, order: float, absolute: bool = False
+    rxs: Ai, pdf: Af, values: Af, order: float, absolute: bool = False
 ):
     """Compute structure function of specified order from pdf for increments
     module.
