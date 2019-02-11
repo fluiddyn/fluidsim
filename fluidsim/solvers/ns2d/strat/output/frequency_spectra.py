@@ -52,7 +52,7 @@ class FrequencySpectra(SpecificOutput):
     def __init__(self, output):
         params = output.sim.params
         pfreq_spectra = params.output.frequency_spectra
-        super(FrequencySpectra, self).__init__(
+        super().__init__(
             output,
             period_save=params.output.periods_save.frequency_spectra,
             has_to_plot_saved=pfreq_spectra.HAS_TO_PLOT_SAVED,
@@ -72,8 +72,7 @@ class FrequencySpectra(SpecificOutput):
         # Compute number array in file
         nb_bytes = np.empty([n0, n1], dtype=float).nbytes
         self.nb_arr_in_file = int(self.size_max_file * (1024 ** 2) // nb_bytes)
-        if mpi.rank == 0:
-            print("nb_arr_in_file_frequency_spectra = ", self.nb_arr_in_file)
+        mpi.printby0("nb_arr_in_file", self.nb_arr_in_file)
 
         # Check: duration file <= duration simulation
         self.duration_file = (
@@ -130,7 +129,7 @@ class FrequencySpectra(SpecificOutput):
 
         # Create directory to save files
         if mpi.rank == 0:
-            dir_name = "temporal_data"
+            dir_name = self._tag
             self.path_dir = os.path.join(self.sim.output.path_run, dir_name)
 
             if not os.path.exists(self.path_dir):
@@ -149,7 +148,7 @@ class FrequencySpectra(SpecificOutput):
         if mpi.rank == 0:
             # Name file
             it_start = int(times_arr[0] / self.sim.params.time_stepping.deltat0)
-            name_file = "temp_array_it={}.h5".format(it_start)
+            name_file = f"temp_array_it{it_start}.h5"
             path_file = os.path.join(self.path_dir, name_file)
 
             # Dictionary arrays
@@ -242,7 +241,7 @@ class FrequencySpectra(SpecificOutput):
         Computes and saves the frequency spectra.
         """
         # Define list of path files
-        list_files = glob(os.path.join(self.path_dir, "temp_array_it=*"))
+        list_files = glob(os.path.join(self.path_dir, "temp_array_it*"))
 
         # Compute sampling frequency
         freq_sampling = 1.0 / (
@@ -296,5 +295,5 @@ class FrequencySpectra(SpecificOutput):
             axe.set_title(
                 "spectra, solver "
                 + self.output.name_solver
-                + ", nh = {0:5d}".format(self.params.oper.nx)
+                + f", nh = {self.params.oper.nx:5d}"
             )
