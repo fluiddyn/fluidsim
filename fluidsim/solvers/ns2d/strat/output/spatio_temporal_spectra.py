@@ -112,6 +112,11 @@ class SpatioTempSpectra(SpecificOutput):
             self.spatio_temp_new = np.empty(
                 [2, self.nb_arr_in_file, nK0_dec, nK1_dec], dtype=complex
             )
+            if mpi.nb_proc > 1:
+                self.spatio_temp_new = np.empty(
+                    [2, self.nb_arr_in_file, nK1_dec, nK0_dec], dtype=complex
+                )
+
         # Convert time_start to it_start.
         if not self.sim.time_stepping.it:
             self.it_start = int(
@@ -212,6 +217,9 @@ class SpatioTempSpectra(SpecificOutput):
                         recvbuf=(field_am_seq, sendcounts),
                         root=0,
                     )
+                    if mpi.rank == 0:
+                        field_ap_seq = np.transpose(field_ap_seq, axes=(1, 0))
+                        field_am_seq = np.transpose(field_am_seq, axes=(1, 0))
 
                 else:
                     field_ap_seq = field_ap
@@ -249,31 +257,47 @@ class SpatioTempSpectra(SpecificOutput):
                     self.nb_times_in_spatio_temp += 1
 
     def compute_frequency_spectra(
-        self, tmin=None, tmax=None, nb_periods_N=None, overlap=0.5
+        self, tmin=None, tmax=None, time_windows=None, overlap=0.5
     ):
         """Computes the temporal frequency spectrum.
 
         Keyword Arguments:
             tmin {float} -- Minimum time to perform temporal FT. (default: {None})
-            tmax {float} -- Maximum time to perform temporal FT. [description] (default: {None})
-            nb_periods_N {int} -- Number of periods of N to compute windows (default: {None})
+            tmax {float} -- Maximum time to perform temporal FT. (default: {None})
+            time_windows {float} -- TIme windows to compute temporal FT. (default: {None})
             overlap {float} -- Overlap between windows. From 0 to 1. (default: {0.5})
         """
 
         # Get concatenated array of times and spatio temporal
         times, spatio_temp = self._get_concatenate_data(tmin, tmax)
 
-        # Compute time_windows
-        if not nb_periods_N:
+        # Compute windows_size
+        if not time_windows:
             nb_periods_N = 10
+            windows_size = int(
+                2
+                * pi
+                / self.sim.params.N
+                * nb_periods_N
+                * (1 / self.sim.params.time_stepping.deltat0 / self.time_decimate)
+            )
+        else:
+            windows_size = int(
+                time_windows
+                * (1 / self.sim.params.time_stepping.deltat0 / self.time_decimate)
+            )
 
-        windows_size = int(
-            2
-            * pi
-            / self.sim.params.N
-            * nb_periods_N
-            * (1 / self.sim.params.time_stepping.deltat0 / self.time_decimate)
-        )
+        # # Compute time_windows
+        # if not nb_periods_N:
+        # nb_periods_N = 10
+
+        # windows_size = int(
+        # 2
+        # * pi
+        # / self.sim.params.N
+        # * nb_periods_N
+        # * (1 / self.sim.params.time_stepping.deltat0 / self.time_decimate)
+        # )
 
         if windows_size > len(times):
             windows_size = len(times)
@@ -424,56 +448,6 @@ class SpatioTempSpectra(SpecificOutput):
         print(to_print)
 
         return times_conc[itmin:itmax], spatio_temp_conc[:, itmin:itmax, :, :]
-
-    # def compute_frequency_spectra(
-    # self, tmin=None, tmax=None, windows_size=None, overlap=None
-    # ):
-    # """
-    # Computes and saves the frequency spectra of individual Fourier modes.
-    # """
-    # # Define list of path files
-    # list_files = glob(os.path.join(self.path_dir, "spatio_temp_it=*"))
-
-    # # Compute sampling frequency
-    # freq_sampling = 1.0 / (self.time_decimate * self.params.time_stepping.deltat0)
-
-    # for index, file_path in enumerate(list_files):
-
-    # # Generating counter
-    # print(
-    # "Computing frequency spectra = {}/{}".format(
-    # index, len(list_files) - 1
-    # ),
-    # end="\r",
-    # )
-
-    # # Load data from file
-    # with h5py.File(file_path, "r") as f:
-    # spatio_temp = f["spatio_temp"].value
-    # times = f["times_arr"].value
-
-    # # Compute the temporal spectrum of a 3D array
-    # omegas, temp_spectrum = signal.periodogram(
-    # spatio_temp,
-    # fs=freq_sampling,
-    # window="hann",
-    # nfft=spatio_temp.shape[1],
-    # detrend="constant",
-    # return_onesided=False,
-    # scaling="spectrum",
-    # axis=1,
-    # )
-
-    # # Save array omegas and spectrum to file
-    # dict_arr = {"omegas": omegas, "temp_spectrum": temp_spectrum}
-
-    # with h5py.File(file_path, "r+") as f:
-    # for k, v in list(dict_arr.items()):
-    # f.create_dataset(k, data=v)
-
-    # # Flush buffer and sleep time
-    # sys.stdout.flush()
-    # time.sleep(0.2)
 
     def plot_kx_omega_cross_section(
         self,
@@ -657,14 +631,12 @@ class SpatioTempSpectra(SpecificOutput):
         )
 
     def plot_frequency_spectra_individual_mode(self, path_file=None, mode=None):
-        """[summary]
+        """Plots the frequency spectra of an individual Fourier mode.
         
         Keyword Arguments:
-            path_file {[type]} -- [description] (default: {None})
-            mode {[type]} -- [description] (default: {None})
+            path_file {string} -- Path of the file.
+            mode {tuple} -- Mode (kx, kz) to plot.
         
-        Raises:
-            ValueError -- [description]
         """
 
         # Define path_dir as posix
