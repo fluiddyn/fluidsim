@@ -9,7 +9,7 @@ from fluiddyn.util import mpi
 
 from .base import SpecificOutput
 
-Ai = Array[int, "1d"]
+Ai = Array[np.int32, "1d"]
 Af = Array[float, "2d"]
 
 

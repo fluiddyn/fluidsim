@@ -148,7 +148,7 @@ class SpatioTempSpectra(SpecificOutput):
         dir_name = "spatio_temporal"
         self.path_dir = Path(self.sim.output.path_run) / dir_name
 
-        if self.has_to_save:
+        if self.has_to_save and mpi.rank == 0:
             self.path_dir.mkdir(exist_ok=True)
 
         # Start loop in _online_save
