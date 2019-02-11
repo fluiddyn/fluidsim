@@ -54,7 +54,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
 
-        dt_file = (self.time_files[-1] - self.time_files[0]) / len(self.time_files)
+        dt_file = (self.time_files[-1] - self.time_files[0]) / len(
+            self.time_files
+        )
         if dt_equations < dt_file / 4:
             raise ValueError("dt_equations < dt_file / 4")
 
@@ -185,10 +187,16 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
         if self._has_uxuy and self._QUIVER:
             ux = get_field_to_plot(
-                time=time, key="ux", equation=self._equation, interpolate_time=True
+                time=time,
+                key="ux",
+                equation=self._equation,
+                interpolate_time=True,
             )
             uy = get_field_to_plot(
-                time=time, key="uy", equation=self._equation, interpolate_time=True
+                time=time,
+                key="uy",
+                equation=self._equation,
+                interpolate_time=True,
             )
             vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
             skip = self.phys_fields._skip_quiver
@@ -244,7 +252,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
         except AttributeError:
             skip = 1
         else:
-            skip = (len(self.oper.get_grid1d_seq("x")) / self.oper.Lx) * delta_quiver
+            skip = (
+                len(self.oper.get_grid1d_seq("x")) / self.oper.Lx
+            ) * delta_quiver
             skip = int(np.round(skip))
             if skip < 1:
                 skip = 1
@@ -380,7 +390,11 @@ class PhysFieldsBase2D(PhysFieldsBase):
         if vecx not in keys_state_phys or vecy not in keys_state_phys:
             QUIVER = False
 
-        if time is None and not is_field_ready and not self.sim.params.ONLY_COARSE_OPER:
+        if (
+            time is None
+            and not is_field_ready
+            and not self.sim.params.ONLY_COARSE_OPER
+        ):
             # we have to get the field from the state
             time = self.sim.time_stepping.t
             field, _ = self.get_field_to_plot_from_state(key_field)
@@ -431,12 +445,20 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
             if type_plot == "contourf":
                 contours = ax.contourf(
-                    x_seq, y_seq, field, nb_contours, vmin=vmin, vmax=vmax, cmap=cmap
+                    x_seq,
+                    y_seq,
+                    field,
+                    nb_contours,
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=cmap,
                 )
                 fig.colorbar(contours)
                 fig.contours = contours
             elif type_plot == "pcolor":
-                pc = ax.pcolormesh(x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap)
+                pc = ax.pcolormesh(
+                    x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap
+                )
                 fig.colorbar(pc)
         else:
             ax = None
@@ -487,7 +509,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
             quiver = ax.quiver(
-                XX[::skip, ::skip], YY[::skip, ::skip], vecx_c / vmax, vecy_c / vmax
+                XX[::skip, ::skip],
+                YY[::skip, ::skip],
+                vecx_c / vmax,
+                vecy_c / vmax,
             )
         else:
             quiver = vmax = None
