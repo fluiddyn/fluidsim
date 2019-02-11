@@ -91,7 +91,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Check: duration file <= duration simulation
         self.duration_file = (
-            self.nb_arr_in_file * self.params.time_stepping.deltat0 * self.time_decimate
+            self.nb_arr_in_file
+            * self.params.time_stepping.deltat0
+            * self.time_decimate
         )
         if (
             self.duration_file > self.params.time_stepping.t_end
@@ -112,7 +114,9 @@ class SpatioTempSpectra(SpecificOutput):
             )
         # Convert time_start to it_start.
         if not self.sim.time_stepping.it:
-            self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
+            self.it_start = int(
+                self.time_start / self.params.time_stepping.deltat0
+            )
         else:
             # If simulation starts from an specific time...
             self.it_start = self.sim.time_stepping.it + int(
@@ -199,10 +203,14 @@ class SpatioTempSpectra(SpecificOutput):
 
                     # Send array each process to root (process 0)
                     mpi.comm.Gatherv(
-                        sendbuf=field_ap, recvbuf=(field_ap_seq, sendcounts), root=0
+                        sendbuf=field_ap,
+                        recvbuf=(field_ap_seq, sendcounts),
+                        root=0,
                     )
                     mpi.comm.Gatherv(
-                        sendbuf=field_am, recvbuf=(field_am_seq, sendcounts), root=0
+                        sendbuf=field_am,
+                        recvbuf=(field_am_seq, sendcounts),
+                        root=0,
                     )
 
                 else:
@@ -298,7 +306,9 @@ class SpatioTempSpectra(SpecificOutput):
         )
 
         # Compute sampling frequency in Hz
-        freq_sampling = 1.0 / (self.time_decimate * self.params.time_stepping.deltat0)
+        freq_sampling = 1.0 / (
+            self.time_decimate * self.params.time_stepping.deltat0
+        )
 
         # Compute temporal FT
         for index, time_start in enumerate(times_start):
@@ -375,7 +385,9 @@ class SpatioTempSpectra(SpecificOutput):
                 times = f["times_arr"].value
 
             # Print concatenating info..
-            print(f"Concatenating file = {index + 1}/{len(list_files)}..", end="\r")
+            print(
+                f"Concatenating file = {index + 1}/{len(list_files)}..", end="\r"
+            )
 
             # Concatenate arrays
             if isinstance(spatio_temp_conc, np.ndarray):
@@ -464,7 +476,11 @@ class SpatioTempSpectra(SpecificOutput):
     # time.sleep(0.2)
 
     def plot_kx_omega_cross_section(
-        self, path_file=None, field="ap_fft", ikz_plot=None, func_plot="pcolormesh"
+        self,
+        path_file=None,
+        field="ap_fft",
+        ikz_plot=None,
+        func_plot="pcolormesh",
     ):
         # Define path dir as posix path
         path_dir = Path(self.path_dir)
@@ -535,7 +551,9 @@ class SpatioTempSpectra(SpecificOutput):
         temp_spectrum_mean = temp_spectrum_mean[i_field]
 
         data = np.log10(
-            temp_spectrum_mean[imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot]
+            temp_spectrum_mean[
+                imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot
+            ]
         )
         new = np.empty(
             [
@@ -588,24 +606,35 @@ class SpatioTempSpectra(SpecificOutput):
             color="k",
         )
 
+        # Check if angle string or float instance.
+        if (
+            isinstance(sim.params.forcing.tcrandom_anisotropic.angle, str)
+            and "°" in sim.params.forcing.tcrandom_anisotropic.angle
+        ):
+            angle = math.radians(
+                float(sim.params.forcing.tcrandom_anisotropic.angle.split("°")[0])
+            )
+        else:
+            angle = sim.params.forcing.tcrandom_anisotropic.angle
+
         # Plot forcing region
         ax.axvline(
-            sim.oper.deltaky
-            * sim.params.forcing.nkmin_forcing
-            * np.sin(sim.params.forcing.tcrandom_anisotropic.angle),
+            sim.oper.deltaky * sim.params.forcing.nkmin_forcing * np.sin(angle),
             color="red",
         )
 
         ax.axvline(
-            sim.oper.deltaky
-            * sim.params.forcing.nkmax_forcing
-            * np.sin(sim.params.forcing.tcrandom_anisotropic.angle),
+            sim.oper.deltaky * sim.params.forcing.nkmax_forcing * np.sin(angle),
             color="red",
         )
 
         # Plot text shear modes
         ax.text(
-            sim.oper.deltakx // 2, -1, r"$E(k_x=0, k_z) = 0$", rotation=90, fontsize=14
+            sim.oper.deltakx // 2,
+            -1,
+            r"$E(k_x=0, k_z) = 0$",
+            rotation=90,
+            fontsize=14,
         )
 
         # Tight layout of the figure
@@ -622,7 +651,8 @@ class SpatioTempSpectra(SpecificOutput):
         print(
             "Total number files simulation = ",
             int(
-                (self.params.time_stepping.t_end - self.time_start) / self.duration_file
+                (self.params.time_stepping.t_end - self.time_start)
+                / self.duration_file
             ),
         )
 
@@ -656,8 +686,12 @@ class SpatioTempSpectra(SpecificOutput):
             omegas = f["omegas"].value
 
         # Define index with spatial decimation
-        idx_mode = np.argmin(abs(self.sim.oper.kx[:: self.spatial_decimate] - mode[0]))
-        idz_mode = np.argmin(abs(self.sim.oper.ky[:: self.spatial_decimate] - mode[1]))
+        idx_mode = np.argmin(
+            abs(self.sim.oper.kx[:: self.spatial_decimate] - mode[0])
+        )
+        idz_mode = np.argmin(
+            abs(self.sim.oper.ky[:: self.spatial_decimate] - mode[1])
+        )
         print(
             "kx_plot = {:.3f} ; kz_plot = {:.3f}".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
