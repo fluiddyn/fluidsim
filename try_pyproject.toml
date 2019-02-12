@@ -1,3 +1,2 @@
 [build-system]
-requires = ["setuptools", "wheel", "numpy", "transonic>=0.1.11"]
-
+requires = ["setuptools", "wheel", "numpy", "transonic>=0.1.11.post0"]
