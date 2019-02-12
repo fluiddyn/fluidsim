@@ -14,7 +14,7 @@ from fluiddyn.util.compat import cached_property
 
 # transonic import numpy as np
 
-from transonic import jit, Array
+from transonic import boost, jit, Array
 
 from fluidsim.operators.operators2d import (
     OperatorsPseudoSpectral2D,
@@ -110,7 +110,13 @@ def _qapamfft_from_uxuyetafft(
     return q_fft, ap_fft, am_fft
 
 
+@boost
 class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
+    Kappa_over_ic: AC
+    nK0_loc: int
+    nK1_loc: int
+    rank: int
+
     @cached_property
     def Kappa2_not0(self):
         return self.K2_not0 + self.params.kd2
@@ -306,14 +312,15 @@ class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
         am_fft = 0.5 * (a_fft - Delta_a_fft)
         return ap_fft, am_fft
 
-    def divfft_from_apamfft(self, ap_fft, am_fft):
+    @jit
+    def divfft_from_apamfft(self, ap_fft: AC, am_fft: AC):
         """Return div from the eigen modes ap and am."""
-        # cdef Py_ssize_t rank = self.rank
-
-        Delta_a_fft = ap_fft - am_fft
         n0 = self.nK0_loc
         n1 = self.nK1_loc
         Kappa_over_ic = self.Kappa_over_ic
+        rank = self.rank
+
+        Delta_a_fft = ap_fft - am_fft
         d_fft = np.empty([n0, n1], dtype=np.complex128)
 
         for i0 in range(n0):

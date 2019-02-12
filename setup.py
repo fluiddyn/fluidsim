@@ -81,7 +81,7 @@ install_requires = [
     "fluiddyn >= 0.3.0",
     "h5py",
     "h5netcdf",
-    "transonic >= 0.1.9.post0",
+    "transonic >= 0.1.11",
     "setuptools_scm",
     "xarray",
 ]
@@ -144,7 +144,7 @@ def create_pythran_extensions():
     extensions = init_pythran_extensions(
         "fluidsim",
         include_dirs=np.get_include(),
-        compile_args=("-O3", "-march={}".format(compile_arch), "-DUSE_XSIMD"),
+        compile_args=("-O3", f"-march={compile_arch}", "-DUSE_XSIMD"),
     )
     return extensions
 
@@ -158,7 +158,7 @@ def create_extensions():
 
     transonize()
 
-    logger.info("Importing mpi4py: {}".format(MPI4PY))
+    logger.info(f"Importing mpi4py: {MPI4PY}")
 
     define_macros = []
     if has_cython and os.getenv("TOXENV") is not None:
