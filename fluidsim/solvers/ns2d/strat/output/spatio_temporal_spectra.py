@@ -412,9 +412,9 @@ class SpatioTempSpectra(SpecificOutput):
 
             # Concatenate arrays
             if isinstance(spatio_temp_conc, np.ndarray):
-                np.concatenate((spatio_temp_conc, spatio_temp), axis=1)
+                spatio_temp_conc = np.concatenate((spatio_temp_conc, spatio_temp), axis=1)
             elif isinstance(times_conc, np.ndarray):
-                np.concatenate((times_conc, times), axis=0)
+                times_conc = np.concatenate((times_conc, times), axis=0)
             else:
                 spatio_temp_conc = spatio_temp
                 times_conc = times
