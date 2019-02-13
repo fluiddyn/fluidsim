@@ -81,6 +81,32 @@ class TestForcingLinearMode(TestSimulBase):
             sim.forcing.forcing_maker.plot_forcing_region()
 
 
+class TestForcingConstantRateEnergy(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.constant_rate_of = "energy"
+        params.forcing.key_forced = "rot_fft"
+
+    def test_(self):
+        self.sim.time_stepping.start()
+
+
+class TestForcingConstantRateEnergyAP(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.constant_rate_of = "energy"
+        params.forcing.key_forced = "ap_fft"
+
+    def test_(self):
+        self.sim.time_stepping.start()
+
+
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):

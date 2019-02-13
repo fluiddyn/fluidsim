@@ -175,23 +175,23 @@ class StateNS2DStrat(StateNS2D):
 
     def init_from_apfft(self, ap_fft):
         """Initialize the state from the linear mode ap_fft. """
-        rot_fft, b_fft = self._compute_state_from_apfft(ap_fft)
+        rot_fft, b_fft = self.compute_rotbfft_from_apfft(ap_fft)
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_from_amfft(self, am_fft):
         """Initialize the state from the linear mode am_fft. """
-        rot_fft, b_fft = self._compute_state_from_amfft(am_fft)
+        rot_fft, b_fft = self.compute_rotbfft_from_amfft(am_fft)
         self.init_from_rotbfft(rot_fft, b_fft)
 
-    def _compute_state_from_amfft(self, am_fft):
+    def compute_rotbfft_from_amfft(self, am_fft):
         """
         Computes rot_fft and b_fft from linear mode am_fft.
-        """
-        # Create array linear mode am_fft
-        ap_fft = np.zeros(self.oper.shapeK, dtype="complex")
 
-        # Compute rot_fft and b_fft from ap_fft
-        uy_fft = (1.0 / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
+        ap_fft is assumed to be null
+        """
+        # it should be (ap_fft + am_fft)
+        # but ap_fft is assumed to be null
+        uy_fft = (1.0 / (2 * self.params.N ** 2)) * am_fft
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
@@ -201,19 +201,21 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
-        # b_fft[cond] = (- 1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+
+        # it should be (ap_fft[cond] - am_fft[cond])
+        # but ap_fft is assumed to be null
+        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (- am_fft[cond])
         return rot_fft, b_fft
 
-    def _compute_state_from_apfft(self, ap_fft):
+    def compute_rotbfft_from_apfft(self, ap_fft):
         """
         Computes rot_fft and b_fft from linear mode ap_fft.
-        """
-        # Create array linear mode am_fft
-        am_fft = np.zeros(self.oper.shapeK, dtype="complex")
 
-        # Compute rot_fft and b_fft from ap_fft
-        uy_fft = (1.0 / (2 * self.params.N ** 2)) * (ap_fft + am_fft)
+        am_fft is assumed to be null
+        """
+        # it should be (ap_fft + am_fft)
+        # but am_fft is assumed to be null
+        uy_fft = (1.0 / (2 * self.params.N ** 2)) * ap_fft
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
@@ -223,8 +225,9 @@ class StateNS2DStrat(StateNS2D):
 
         omega_k = self.params.N * self.oper.KX / self.oper.K_not0
         b_fft = np.zeros(self.oper.shapeK, dtype="complex")
-        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
-        # b_fft[cond] = (- 1.0 / (2j * omega_k[cond])) * (ap_fft[cond] - am_fft[cond])
+        # it should be (ap_fft[cond] - am_fft[cond])
+        # but am_fft is assumed to be null
+        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * ap_fft[cond]
 
         return rot_fft, b_fft
 

@@ -13,7 +13,7 @@ from fluidsim.base.forcing.anisotropic import (
 
 
 class ForcingNS2D(ForcingBasePseudoSpectral):
-    """Forcing class for the ns2d strat solver.
+    """Forcing class for the ns2d solver.
 
     .. inheritance-diagram:: ForcingNS2D
 
@@ -24,3 +24,28 @@ class ForcingNS2D(ForcingBasePseudoSpectral):
         """Complete the ParamContainer info_solver."""
         classes = [TimeCorrelatedRandomPseudoSpectralAnisotropic]
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
+
+    def compute_coef_ab_normalize(
+        self, constant_rate_of, key_forced, f_fft, var_fft, deltat
+    ):
+
+        if constant_rate_of != "energy":
+            raise ValueError
+
+        if hasattr(self.forcing_maker, "oper_coarse"):
+            oper = self.forcing_maker.oper_coarse
+        else:
+            oper = self.sim.oper
+
+        if key_forced == "rot_fft":
+            vx_fft, vy_fft = oper.vecfft_from_rotfft(var_fft)
+            fx_fft, fy_fft = oper.vecfft_from_rotfft(f_fft)
+        else:
+            raise ValueError
+
+        a = deltat / 2 * oper.sum_wavenumbers(abs(fx_fft) ** 2 + abs(fy_fft) ** 2)
+        b = oper.sum_wavenumbers(
+            (vx_fft.conj() * fx_fft).real + (vy_fft.conj() * fy_fft).real
+        )
+
+        return a, b

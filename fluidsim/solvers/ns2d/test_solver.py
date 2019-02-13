@@ -86,6 +86,18 @@ class TestForcing(TestSimulBase):
         self.sim.time_stepping.start()
 
 
+class TestForcingConstantRateEnergy(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.constant_rate_of = "energy"
+
+    def test_(self):
+        self.sim.time_stepping.start()
+
+
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
