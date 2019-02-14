@@ -89,22 +89,29 @@ class TestForcingConstantRateEnergy(TestSimulBase):
         params.forcing.type = "tcrandom"
         params.forcing.normalized.constant_rate_of = "energy"
         params.forcing.key_forced = "rot_fft"
+        params.forcing.tcrandom_anisotropic.kz_negative_enable = True
+        params.forcing.forcing_rate = 3.333
+
+        params.output.periods_save.spatial_means = 1e-6
+
+        return params
 
     def test_(self):
         self.sim.time_stepping.start()
 
+        if mpi.rank == 0:
+            # Does the energy injection rate have the correct value at all times ?
+            means = self.sim.output.spatial_means.load()
+            P_tot = means["PK_tot"] + means["PA_tot"]
+            assert np.allclose(P_tot, self.sim.params.forcing.forcing_rate)
 
-class TestForcingConstantRateEnergyAP(TestSimulBase):
+
+class TestForcingConstantRateEnergyAP(TestForcingConstantRateEnergy):
     @classmethod
     def init_params(self):
         params = super().init_params()
-        params.forcing.enable = True
-        params.forcing.type = "tcrandom"
-        params.forcing.normalized.constant_rate_of = "energy"
         params.forcing.key_forced = "ap_fft"
-
-    def test_(self):
-        self.sim.time_stepping.start()
+        params.forcing.tcrandom_anisotropic.kz_negative_enable = False
 
 
 class TestForcingOutput(TestSimulBase):
