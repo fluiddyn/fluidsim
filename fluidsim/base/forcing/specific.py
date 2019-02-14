@@ -640,6 +640,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         .. |fvar| mathmacro:: \hat f
 
+        .. |Sum| mathmacro:: \sum_{\mathbf k}
+
         We consider that we force a variable |var| with a forcing |fvar|.
 
         .. math::
@@ -651,7 +653,43 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
         ``self.forcing_rate`` (:math:`P`). Let's consider that the time step
         starts at :math:`t=0` and that the time increment is :math:`\delta t`.
 
-        ...
+        For simplicity, we first consider that the quadratic quantity is the
+        quadratic quantity of the forced variable |var|. Note that this
+        function supports other quadratic quantities (for details, read the
+        code). The average of the injection rate over the time step is:
+
+        .. math::
+
+            P = \int_0^{\delta t} \frac{dt}{\delta t} \Sum \p_t \frac{|\var^2|}{2}
+            = \int_0^{\delta t} \frac{dt}{\delta t} \Sum \var^* \fvar
+
+        We compute an approximation at first order in :math:`\delta t` so that
+        we can normalize the forcing such that the value given by this
+        approximation is constant for all time steps. For each time step, the
+        forcing |fvar| is constant in time. At first order in :math:`\delta t`,
+        we have during the time step:
+
+        .. math::
+
+            \var(t) \simeq \var(0) + \fvar t
+
+        and we get
+
+        .. math::
+
+            P \simeq \fvar \int_0^{\delta t} \frac{dt}{\delta t} \Sum (\var(0)^* + \fvar^* t)
+            = \Sum \var(0)^* \fvar + \Sum \frac{|\fvar|^2}{2} \delta t
+
+        The final forcing |fvar| is proportional to the "random" forcing :math:`\fvar_r`:
+
+        .. math:: \fvar = R \fvar_r
+
+        We solve a second-order equation to get the value of the coefficient
+        :math:`R`:
+
+        .. math::
+
+            \left(\Sum \frac{|\fvar_r|^2}{2} \delta t\right) R^2 + \left(\Sum \var(0)^* \fvar_r\right) R - P = 0
 
         Parameters
         ----------
