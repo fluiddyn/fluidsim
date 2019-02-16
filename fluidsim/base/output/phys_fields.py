@@ -391,6 +391,13 @@ class SetOfPhysFieldFiles:
             self.update_times()
             time = self.times[-1]
 
+        # Assert files are available
+        if self.times.size == 0:
+            raise FileNotFoundError(
+                "No state_phys files were detected in directory: "
+                f"{self.path_dir}"
+            )
+
         if not interpolate_time and time is not None:
             idx, time_closest = self.get_closest_time_file(time)
             return self.get_field_to_plot(
