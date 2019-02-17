@@ -49,6 +49,7 @@ class TestSolverAD1D(TestSimul):
         params.U = 1.0
 
         params.short_name_type_run = "test"
+        params.output.sub_directory = "unittests"
 
         params.oper.nx = 40
         params.oper.Lx = 1.0
