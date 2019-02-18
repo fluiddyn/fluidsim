@@ -47,9 +47,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             print("self.params.time_stepping.cfl_coef_group not in params")
             self.coef_group = 1.0
 
-        if not self.coef_group:
-            self.coef_group = 1.0
-
         self.coef_phase = 1.0
 
         has_vars = self.sim.state.has_vars
@@ -81,23 +78,27 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
                 * (2.0 * pi / freq_disp_relation)
             )
 
-        # Try to compute deltat_group_vel
-        try:
-            freq_group, freq_phase = (
-                self._compute_time_increment_group_and_phase()
-            )
-        except AttributeError as e:
-            print("_compute_time_increment_group_and_phase is not implemented", e)
-            self.deltat_group_vel = 1.0
-            self.deltat_phase_vel = 1.0
+        # Try to compute deltat_group_vel if self.coed_group is True
+        if self.coef_group:
+            try:
+                freq_group, freq_phase = (
+                    self._compute_time_increment_group_and_phase()
+                )
+            except AttributeError as e:
+                print(
+                    "_compute_time_increment_group_and_phase is not implemented",
+                    e,
+                )
+                self.deltat_group_vel = 1.0
+                self.deltat_phase_vel = 1.0
 
-        else:
-            if mpi.nb_proc > 1:
-                freq_group = mpi.comm.allreduce(freq_group, op=mpi.MPI.MAX)
-                freq_phase = mpi.comm.allreduce(freq_phase, op=mpi.MPI.MAX)
+            else:
+                if mpi.nb_proc > 1:
+                    freq_group = mpi.comm.allreduce(freq_group, op=mpi.MPI.MAX)
+                    freq_phase = mpi.comm.allreduce(freq_phase, op=mpi.MPI.MAX)
 
-            self.deltat_group_vel = self.coef_group / freq_group
-            self.deltat_phase_vel = self.coef_phase / freq_phase
+                self.deltat_group_vel = self.coef_group / freq_group
+                self.deltat_phase_vel = self.coef_phase / freq_phase
 
         if self.params.forcing.enable:
             self.deltat_f = self._compute_time_increment_forcing()
@@ -156,14 +157,6 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
             deltat_CFL = self.CFL / freq_CFL
         else:
             deltat_CFL = self.deltat_max
-
-        # maybe_new_dt = min(
-        #     deltat_CFL,
-        #     self.deltat_dispersion_relation,
-        #     self.deltat_group_vel,
-        #     self.deltat_phase_vel,
-        #     self.deltat_max,
-        # )
 
         # Removed phase velocity (considered not relevant)
         if not self.coef_group:

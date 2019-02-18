@@ -589,9 +589,6 @@ class SpatioTempSpectra(SpecificOutput):
         vmin = np.min(data[abs(data) != np.inf])
         vmax = np.max(data)
 
-        # import pdb
-        # pdb.set_trace()
-
         # Plot with contourf
         import matplotlib.cm as cm
 
