@@ -109,6 +109,15 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
 
+    def _init_path_files(self):
+        super()._init_path_files()
+
+        # This if clause is required since the function _init_path_files is
+        # first called by the super().__init__ function when set_of_phys_files
+        # is not initialized (see above). Useful when end_of_simul is called.
+        if hasattr(self, "set_of_phys_files"):
+            self.set_of_phys_files.path_dir = self.output.path_run
+
     def _init_files(self, dict_arrays_1time=None):
         # Does nothing on purpose...
         pass
@@ -390,6 +399,13 @@ class SetOfPhysFieldFiles:
         if time is None and idx_time is None:
             self.update_times()
             time = self.times[-1]
+
+        # Assert files are available
+        if self.times.size == 0:
+            raise FileNotFoundError(
+                "No state_phys files were detected in directory: "
+                f"{self.path_dir}"
+            )
 
         if not interpolate_time and time is not None:
             idx, time_closest = self.get_closest_time_file(time)

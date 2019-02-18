@@ -86,6 +86,27 @@ class TestForcing(TestSimulBase):
         self.sim.time_stepping.start()
 
 
+class TestForcingConstantRateEnergy(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.constant_rate_of = "energy"
+        params.forcing.forcing_rate = 3.333
+        params.output.periods_save.spatial_means = 1e-6
+
+    def test_(self):
+        self.sim.time_stepping.start()
+
+        if mpi.rank == 0:
+            # Does the energy injection rate have the correct value at all times ?
+            means = self.sim.output.spatial_means.load()
+            assert np.allclose(
+                means["PK_tot"], self.sim.params.forcing.forcing_rate
+            )
+
+
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):

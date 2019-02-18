@@ -46,10 +46,12 @@ from copy import deepcopy
 from math import radians
 import types
 from warnings import warn
+
 import numpy as np
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 
@@ -473,7 +475,32 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             params.forcing.normalized
         except AttributeError:
             params.forcing._set_child(
-                "normalized", {"type": "2nd_degree_eq", "which_root": "minabs"}
+                "normalized",
+                {
+                    "type": "2nd_degree_eq",
+                    "which_root": "minabs",
+                    "constant_rate_of": None,
+                },
+            )
+
+            params.forcing._set_doc("How the forcing is normalized")
+
+    def __init__(self, sim):
+
+        super().__init__(sim)
+
+        params_norm = self.params.forcing.normalized
+
+        if not hasattr(params_norm, "constant_rate_of"):
+            params_norm._set_attr("constant_rate_of", None)
+
+        if (
+            params_norm.constant_rate_of is not None
+            and params_norm.type != "2nd_degree_eq"
+        ):
+            raise NotImplementedError(
+                "params.forcing.normalized.constant_rate_of is implemented "
+                'only for params.forcing.normalized.type == "2nd_degree_eq"'
             )
 
     def compute(self):
@@ -603,9 +630,66 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
         return fvc_fft
 
     def normalize_forcingc_2nd_degree_eq(self, fvc_fft, vc_fft):
-        """Modify the array fvc_fft to fixe the injection rate.
+        r"""Modify the array fvc_fft to fixe the injection rate.
 
         To be called only with proc 0.
+
+        .. |p| mathmacro:: \partial
+
+        .. |var| mathmacro:: \hat\alpha
+
+        .. |fvar| mathmacro:: \hat f
+
+        .. |Sum| mathmacro:: \sum_{\mathbf k}
+
+        We consider that we force a variable |var| with a forcing |fvar|.
+
+        .. math::
+
+            \p_t \var = \fvar
+
+        We want to normalize the forcing |fvar| such that the average over the
+        time step of the injection of a quadratic quantity be equal to
+        ``self.forcing_rate`` (:math:`P`). Let's consider that the time step
+        starts at :math:`t=0` and that the time increment is :math:`\delta t`.
+
+        For simplicity, we first consider that the quadratic quantity is the
+        quadratic quantity of the forced variable |var|. Note that this
+        function supports other quadratic quantities (for details, read the
+        code). The average of the injection rate over the time step is:
+
+        .. math::
+
+            P = \int_0^{\delta t} \frac{dt}{\delta t} \Sum \p_t \frac{|\var^2|}{2}
+            = \int_0^{\delta t} \frac{dt}{\delta t} \Sum \var^* \fvar
+
+        We compute an approximation at first order in :math:`\delta t` so that
+        we can normalize the forcing such that the value given by this
+        approximation is constant for all time steps. For each time step, the
+        forcing |fvar| is constant in time. At first order in :math:`\delta t`,
+        we have during the time step:
+
+        .. math::
+
+            \var(t) \simeq \var(0) + \fvar t
+
+        and we get
+
+        .. math::
+
+            P \simeq \fvar \int_0^{\delta t} \frac{dt}{\delta t} \Sum (\var(0)^* + \fvar^* t)
+            = \Sum \var(0)^* \fvar + \Sum \frac{|\fvar|^2}{2} \delta t
+
+        The final forcing |fvar| is proportional to the "random" forcing :math:`\fvar_r`:
+
+        .. math:: \fvar = R \fvar_r
+
+        We solve a second-order equation to get the value of the coefficient
+        :math:`R`:
+
+        .. math::
+
+            \left(\Sum \frac{|\fvar_r|^2}{2} \delta t\right) R^2 + \left(\Sum \var(0)^* \fvar_r\right) R - P = 0
 
         Parameters
         ----------
@@ -620,8 +704,20 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         deltat = self.sim.time_stepping.deltat
 
-        a = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft) ** 2)
-        b = oper_c.sum_wavenumbers((vc_fft.conj() * fvc_fft).real)
+        if self.params.forcing.normalized.constant_rate_of is not None:
+            if not hasattr(self.sim.forcing, "compute_coef_ab_normalize"):
+                raise NotImplementedError
+            a, b = self.sim.forcing.compute_coef_ab_normalize(
+                self.params.forcing.normalized.constant_rate_of,
+                self.key_forced,
+                fvc_fft,
+                vc_fft,
+                deltat,
+            )
+        else:
+            a = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft) ** 2)
+            b = oper_c.sum_wavenumbers((vc_fft.conj() * fvc_fft).real)
+
         c = -self.forcing_rate
 
         alpha = self.coef_normalization_from_abc(a, b, c)
@@ -638,17 +734,17 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
     def coef_normalization_from_abc(self, a, b, c):
         """Compute the roots of a quadratic equation
 
-        Compute the roots given the coefficients `a`,`b` and `c`.
+        Compute the roots given the coefficients ``a``, ``b`` and ``c``.
         Then, select one of the roots based on a criteria and return it.
 
         Notes
         -----
         Set params.forcing.normalized.which_root to choose the root with:
 
-        - `minabs` : minimum absolute value
-        - `first` : root with positive sign before discriminant
-        - `second` : root with negative sign before discriminant
-        - `positive` : positive root
+        - ``minabs`` : minimum absolute value
+        - ``first`` : root with positive sign before discriminant
+        - ``second`` : root with negative sign before discriminant
+        - ``positive`` : positive root
 
         """
         try:
@@ -696,9 +792,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
     def _complete_params_with_default(cls, params):
         """This static method is used to complete the *params* container.
         """
-        super()._complete_params_with_default(
-            params
-        )
+        super()._complete_params_with_default(params)
 
         try:
             params.forcing.random
