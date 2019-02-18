@@ -56,6 +56,8 @@ class SpatioTempSpectra(SpecificOutput):
                 "time_decimate": 2,
                 "spatial_decimate": 2,
                 "size_max_file": 0.1,
+                "kx_max": None,
+                "kz_max": None,
             },
         )
 
@@ -74,11 +76,47 @@ class SpatioTempSpectra(SpecificOutput):
         self.spatial_decimate = pspatiotemp_spectra.spatial_decimate
         self.size_max_file = pspatiotemp_spectra.size_max_file
 
+        self.kx_max = pspatiotemp_spectra.kx_max
+        self.kz_max = pspatiotemp_spectra.kz_max
+
+        # By default: kxmax_dealiasing or kymax_dealiasing
+        if self.kx_max == None:
+            self.kx_max = self.sim.oper.kxmax_dealiasing
+
+        if self.kz_max == None:
+            self.kz_max = self.sim.oper.kymax_dealiasing
+
         self.has_to_save = bool(params.output.periods_save.spatio_temporal_spectra)
 
+        # Check: In restart... time_start == time last state.
+        path_dir = Path(self.sim.output.path_run)
+        path_spatio_temp_files = path_dir / "spatio_temporal"
+
+        if sorted(path_spatio_temp_files.glob("spatio_temp*")):
+            time_last_file = float(
+                sorted(path_dir.glob("state_phys*"))[-1].stem.split("state_phys_t")[1]
+            )
+
+            if round(self.time_start, 3) != time_last_file:
+                self.time_start = time_last_file
+
+        # Compute arrays
         nK0, nK1 = self.sim.oper.shapeK_seq
-        nK0_dec = len(list(range(0, nK0, self.spatial_decimate)))
-        nK1_dec = len(list(range(0, nK1, self.spatial_decimate)))
+
+        # The maximum value kx_max should be the dealiased value
+        if self.kx_max > self.sim.oper.kxmax_dealiasing:
+            self.kx_max = self.sim.oper.kxmax_dealiasing
+
+        # The maximum value kz_max should be the dealiased value
+        if self.kz_max > self.sim.oper.kymax_dealiasing:
+            self.kz_max = self.sim.oper.kymax_dealiasing
+
+        # Modified values to take into account kx_max and kz_max
+        self.nK0 = np.argmin(abs(self.sim.oper.kxE - self.kx_max))
+        self.nK1 = np.argmin(abs(self.sim.oper.kyE - self.kz_max))
+
+        nK0_dec = len(list(range(0, self.nK0, self.spatial_decimate)))
+        nK1_dec = len(list(range(0, self.nK1, self.spatial_decimate)))
 
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
@@ -88,14 +126,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Check: duration file <= duration simulation
         self.duration_file = (
-            self.nb_arr_in_file
-            * self.params.time_stepping.deltat0
-            * self.time_decimate
+            self.nb_arr_in_file * self.params.time_stepping.deltat0 * self.time_decimate
         )
-        if (
-            self.duration_file > self.params.time_stepping.t_end
-            and self.has_to_save
-        ):
+        if self.duration_file > self.params.time_stepping.t_end and self.has_to_save:
             raise ValueError(
                 "The duration of the simulation is not enough to fill a file."
             )
@@ -105,30 +138,19 @@ class SpatioTempSpectra(SpecificOutput):
             raise ValueError("The size of the file should be larger.")
 
         else:
-            # todo: if mpi.nb_proc == 1:
-            # Array 4D (2 keys, times, n0, n1)
+            # Create array 4D (2 keys, times, n0, n1)
+
             self.spatio_temp_new = np.empty(
                 [2, self.nb_arr_in_file, nK0_dec, nK1_dec], dtype=complex
             )
-            if mpi.nb_proc > 1:
-                self.spatio_temp_new = np.empty(
-                    [2, self.nb_arr_in_file, nK1_dec, nK0_dec], dtype=complex
-                )
-
-        # todo: check if it works well for restart
-        # - restart from a simul without spatio_temp
-        # - restart from a simul with spatio_temp (with time_start not equal
-        #   to the previous time_start)
 
         #  Convert time_start to it_start.
         if not self.sim.time_stepping.it:
-            self.it_start = int(
-                self.time_start / self.params.time_stepping.deltat0
-            )
+            self.it_start = int(self.time_start / self.params.time_stepping.deltat0)
         else:
             # If simulation starts from a specific time...
             self.it_start = self.sim.time_stepping.it + int(
-                (self.time_start - self.sim.time_stepping.t)
+                (self.time_start - round(self.sim.time_stepping.t, 3))
                 / self.params.time_stepping.deltat0
             )
 
@@ -137,6 +159,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Create empty array with times
         self.times_arr = np.empty([self.nb_arr_in_file])
+        self.its_arr = np.empty([self.nb_arr_in_file])
 
         if params.time_stepping.USE_CFL and self.has_to_save:
             raise ValueError(
@@ -159,17 +182,17 @@ class SpatioTempSpectra(SpecificOutput):
         # we can not do anything when this function is called.
         pass
 
-    def _write_to_file(self, spatio_temp_arr, times_arr):
+    def _write_to_file(self, spatio_temp_arr, times_arr, its_arr):
         """Writes a file with the spatio temporal data"""
         if mpi.rank == 0:
             # Name file
-            it_start = int(times_arr[0] / self.sim.params.time_stepping.deltat0)
-            name_file = f"spatio_temp_it{it_start}.h5"
+            it_end = self.sim.time_stepping.it
+            name_file = f"spatio_temp_it{it_end}.h5"
             path_file = self.path_dir / name_file
 
             # Dictionary arrays
             dict_arr = {
-                "it_start": it_start,
+                "its_arr": its_arr,
                 "times_arr": times_arr,
                 "spatio_temp": spatio_temp_arr,
             }
@@ -207,22 +230,20 @@ class SpatioTempSpectra(SpecificOutput):
 
                 # Send array each process to root (process 0)
                 mpi.comm.Gatherv(
-                    sendbuf=field_ap,
-                    recvbuf=(field_ap_seq, sendcounts),
-                    root=0,
+                    sendbuf=field_ap, recvbuf=(field_ap_seq, sendcounts), root=0
                 )
                 mpi.comm.Gatherv(
-                    sendbuf=field_am,
-                    recvbuf=(field_am_seq, sendcounts),
-                    root=0,
+                    sendbuf=field_am, recvbuf=(field_am_seq, sendcounts), root=0
                 )
-                if mpi.rank == 0:
-                    field_ap_seq = np.transpose(field_ap_seq, axes=(1, 0))
-                    field_am_seq = np.transpose(field_am_seq, axes=(1, 0))
 
             else:
                 field_ap_seq = field_ap
                 field_am_seq = field_am
+
+            # Cut off kx_max and kz_max
+            if mpi.rank == 0:
+                field_ap_seq = field_ap_seq[0 : self.nK0, 0 : self.nK1]
+                field_am_seq = field_am_seq[0 : self.nK0, 0 : self.nK1]
 
             # Decimate with process 0
             if mpi.rank == 0:
@@ -232,7 +253,6 @@ class SpatioTempSpectra(SpecificOutput):
                 field_am_decimate = field_am_seq[
                     :: self.spatial_decimate, :: self.spatial_decimate
                 ]
-
                 self.spatio_temp_new[
                     0, self.nb_times_in_spatio_temp, :, :
                 ] = field_ap_decimate
@@ -241,15 +261,33 @@ class SpatioTempSpectra(SpecificOutput):
                 ] = field_am_decimate
 
             # Save the time to self.times_arr
-            self.times_arr[self.nb_times_in_spatio_temp] = (
-                itsim * self.sim.params.time_stepping.deltat0
-            )
+            if not self.sim.time_stepping.it:
+                self.times_arr[self.nb_times_in_spatio_temp] = (
+                    itsim * self.sim.params.time_stepping.deltat0
+                )
+            else:
+                self.times_arr[self.nb_times_in_spatio_temp] = self.sim.time_stepping.t
+
+            self.its_arr[self.nb_times_in_spatio_temp] = self.sim.time_stepping.it
 
             # Check if self.spatio_temp is filled. If yes, writes to a file.
-            if self.nb_times_in_spatio_temp == self.nb_arr_in_file - 1:
+            if (
+                self.nb_times_in_spatio_temp == self.nb_arr_in_file - 1
+                or self.sim.time_stepping.is_simul_completed() == True
+            ):
                 if mpi.rank == 0:
                     print("Saving spatio_temporal data...")
-                self._write_to_file(self.spatio_temp_new, self.times_arr)
+
+                # If the file is not completed AND the simulation is finished, it saves the file too.
+                # Check if the last time is good.
+                if self.sim.time_stepping.is_simul_completed() and mpi.rank == 0:
+                    self.spatio_temp_new = self.spatio_temp_new[
+                        :, : self.nb_times_in_spatio_temp + 1, :, :
+                    ]
+                    self.times_arr = self.times_arr[: self.nb_times_in_spatio_temp + 1]
+                    self.its_arr = self.its_arr[: self.nb_times_in_spatio_temp + 1]
+
+                self._write_to_file(self.spatio_temp_new, self.times_arr, self.its_arr)
 
                 self.nb_times_in_spatio_temp = 0
             else:
@@ -329,9 +367,7 @@ class SpatioTempSpectra(SpecificOutput):
         )
 
         # Compute sampling frequency in Hz
-        freq_sampling = 1.0 / (
-            self.time_decimate * self.params.time_stepping.deltat0
-        )
+        freq_sampling = 1.0 / (self.time_decimate * self.params.time_stepping.deltat0)
 
         # Compute temporal FT
         for index, time_start in enumerate(times_start):
@@ -406,15 +442,15 @@ class SpatioTempSpectra(SpecificOutput):
                 times = f["times_arr"].value
 
             # Print concatenating info..
-            print(
-                f"Concatenating file = {index + 1}/{len(list_files)}..", end="\r"
-            )
+            print(f"Concatenating file = {index + 1}/{len(list_files)}..", end="\r")
 
             # Concatenate arrays
             if isinstance(spatio_temp_conc, np.ndarray):
-                np.concatenate((spatio_temp_conc, spatio_temp), axis=1)
+                spatio_temp_conc = np.concatenate(
+                    (spatio_temp_conc, spatio_temp), axis=1
+                )
             elif isinstance(times_conc, np.ndarray):
-                np.concatenate((times_conc, times), axis=0)
+                times_conc = np.concatenate((times_conc, times), axis=0)
             else:
                 spatio_temp_conc = spatio_temp
                 times_conc = times
@@ -447,11 +483,7 @@ class SpatioTempSpectra(SpecificOutput):
         return times_conc[itmin:itmax], spatio_temp_conc[:, itmin:itmax, :, :]
 
     def plot_kx_omega_cross_section(
-        self,
-        path_file=None,
-        field="ap_fft",
-        ikz_plot=None,
-        func_plot="pcolormesh",
+        self, path_file=None, field="ap_fft", ikz_plot=None, func_plot="pcolormesh"
     ):
         # Define path dir as posix path
         path_dir = self.path_dir
@@ -468,11 +500,20 @@ class SpatioTempSpectra(SpecificOutput):
         # Load simulation object
         sim = load_state_phys_file(path_dir.parent, merge_missing_params=True)
 
+        # Cut_off indexes
+        ikx_top = np.argmin(abs(sim.oper.kx - sim.oper.kxmax_dealiasing))
+        ikz_top = np.argmin(abs(sim.oper.ky - sim.oper.kymax_dealiasing))
+
+        # Cut_off kx_max and ky_max
+        #
+        kx_cut_off = sim.oper.kx[0 : ikx_top + 1]
+        kz_cut_off = sim.oper.ky[0 : ikz_top + 1]
+
         # Compute kx_decimate and ky_decimate
-        kx_decimate = sim.oper.kx[
+        kx_decimate = kx_cut_off[
             :: sim.params.output.spatio_temporal_spectra.spatial_decimate
         ]
-        kz_decimate = sim.oper.ky[
+        kz_decimate = kz_cut_off[
             :: sim.params.output.spatio_temporal_spectra.spatial_decimate
         ]
 
@@ -482,7 +523,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         #### PLOT OMEGA - KX
         kxmin_plot = 0
-        kxmax_plot = 80
+        kxmax_plot = self.sim.oper.kx[
+            np.argmin(abs(self.sim.oper.kx - self.sim.oper.kxmax_dealiasing))
+        ]
 
         ikxmin_plot = np.argmin(abs(kx_decimate - kxmin_plot))
         ikxmax_plot = np.argmin(abs(kx_decimate - kxmax_plot)) + 1
@@ -497,7 +540,7 @@ class SpatioTempSpectra(SpecificOutput):
             kx_decimate[ikxmin_plot:ikxmax_plot], omegas[imin_omegas_plot:]
         )
 
-        if not ikz_plot:
+        if ikz_plot == None:
             ikz_plot = 1
 
         # Parameters figure
@@ -522,11 +565,14 @@ class SpatioTempSpectra(SpecificOutput):
         temp_spectrum_mean = temp_spectrum_mean[i_field]
 
         # todo: fix the warnings that we get while testing
+        # data = np.log10(
+        # temp_spectrum_mean[imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot]
+        # )
+
         data = np.log10(
-            temp_spectrum_mean[
-                imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot
-            ]
+            temp_spectrum_mean[imin_omegas_plot:, ikxmin_plot:ikxmax_plot, ikz_plot]
         )
+
         new = np.empty(
             [
                 temp_spectrum_mean.shape[0] + 1,
@@ -536,11 +582,15 @@ class SpatioTempSpectra(SpecificOutput):
         )
         new[:-1] = temp_spectrum_mean
         new[-1] = temp_spectrum_mean[-1]
-        data = np.log10(new[imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot])
+        data = np.log10(new[imin_omegas_plot:, ikxmin_plot:ikxmax_plot, ikz_plot])
+        # data = np.log10(new[imin_omegas_plot:, ikz_plot, ikxmin_plot:ikxmax_plot])
 
         # Maximum and minimum values
         vmin = np.min(data[abs(data) != np.inf])
         vmax = np.max(data)
+
+        # import pdb
+        # pdb.set_trace()
 
         # Plot with contourf
         import matplotlib.cm as cm
@@ -602,11 +652,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Plot text shear modes
         ax.text(
-            sim.oper.deltakx // 2,
-            -1,
-            r"$E(k_x=0, k_z) = 0$",
-            rotation=90,
-            fontsize=14,
+            sim.oper.deltakx // 2, -1, r"$E(k_x=0, k_z) = 0$", rotation=90, fontsize=14
         )
 
         # Tight layout of the figure
@@ -623,8 +669,7 @@ class SpatioTempSpectra(SpecificOutput):
         print(
             "Total number files simulation = ",
             int(
-                (self.params.time_stepping.t_end - self.time_start)
-                / self.duration_file
+                (self.params.time_stepping.t_end - self.time_start) / self.duration_file
             ),
         )
 
@@ -656,12 +701,8 @@ class SpatioTempSpectra(SpecificOutput):
             omegas = f["omegas"].value
 
         # Define index with spatial decimation
-        idx_mode = np.argmin(
-            abs(self.sim.oper.kx[:: self.spatial_decimate] - mode[0])
-        )
-        idz_mode = np.argmin(
-            abs(self.sim.oper.ky[:: self.spatial_decimate] - mode[1])
-        )
+        idx_mode = np.argmin(abs(self.sim.oper.kx[:: self.spatial_decimate] - mode[0]))
+        idz_mode = np.argmin(abs(self.sim.oper.ky[:: self.spatial_decimate] - mode[1]))
         print(
             "kx_plot = {:.3f} ; kz_plot = {:.3f}".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
