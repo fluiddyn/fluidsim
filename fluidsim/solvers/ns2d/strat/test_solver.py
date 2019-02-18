@@ -110,7 +110,7 @@ class TestForcingOutput(TestSimulBase):
         params.output.periods_plot.phys_fields = 0.2
 
         # Spatio-temporal spectra
-        params.output.spatio_temporal_spectra.size_max_file = 0.02
+        params.output.spatio_temporal_spectra.size_max_file = 0.01
         params.output.spatio_temporal_spectra.time_decimate = 1
         params.output.spatio_temporal_spectra.spatial_decimate = 1
         params.output.spatio_temporal_spectra.time_start = 0
