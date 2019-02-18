@@ -2,7 +2,7 @@
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
 
 develop:
-	pip install -v -e .[dev] | grep -v link
+	pip install -v -e .[dev] --user | grep -v link
 
 clean_so:
 	find fluidsim -name "*.so" -delete
