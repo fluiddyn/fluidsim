@@ -505,8 +505,19 @@ class SpatioTempSpectra(SpecificOutput):
         # ikx_top = np.argmin(abs(sim.oper.kx - sim.oper.kxmax_dealiasing))
         # ikz_top = np.argmin(abs(sim.oper.ky - sim.oper.kymax_dealiasing))
 
-        ikx_top = np.argmin(abs(sim.oper.kx - pspatio.kx_max))
-        ikz_top = np.argmin(abs(sim.oper.ky - pspatio.kz_max))
+        kx_max = pspatio.kx_max
+        kz_max = pspatio.kx_max
+
+        if kx_max == None:
+            kx_max = sim.oper.kxmax_dealiasing
+
+        if kz_max == None:
+            kz_max = sim.oper.kymax_dealiasing
+
+        print("kx_max", kx_max)
+
+        ikx_top = np.argmin(abs(sim.oper.kx - kx_max))
+        ikz_top = np.argmin(abs(sim.oper.ky - kz_max))
 
         # Cut_off kx_max and ky_max
         kx_cut_off = sim.oper.kx[0 : ikx_top]
@@ -526,7 +537,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         #### PLOT OMEGA - KX
         kxmin_plot = 0
-        kxmax_plot = self.sim.oper.kx[ikx_top]
+        kxmax_plot = sim.oper.kx[ikx_top]
 
         ikxmin_plot = np.argmin(abs(kx_decimate - kxmin_plot))
         ikxmax_plot = np.argmin(abs(kx_decimate - kxmax_plot)) + 1
