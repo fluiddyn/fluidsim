@@ -449,8 +449,8 @@ class SpatioTempSpectra(SpecificOutput):
                 spatio_temp_conc = np.concatenate(
                     (spatio_temp_conc, spatio_temp), axis=1
                 )
-            elif isinstance(times_conc, np.ndarray):
-                times_conc = np.concatenate((times_conc, times), axis=0)
+            if isinstance(times_conc, np.ndarray):
+                times_conc = np.concatenate((times_conc, times), axis=0)       
             else:
                 spatio_temp_conc = spatio_temp
                 times_conc = times
@@ -485,6 +485,7 @@ class SpatioTempSpectra(SpecificOutput):
     def plot_kx_omega_cross_section(
         self, path_file=None, field="ap_fft", ikz_plot=None, func_plot="pcolormesh"
     ):
+        pspatio = self.params.output.spatio_temporal_spectra
         # Define path dir as posix path
         path_dir = self.path_dir
 
@@ -501,13 +502,15 @@ class SpatioTempSpectra(SpecificOutput):
         sim = load_state_phys_file(path_dir.parent, merge_missing_params=True)
 
         # Cut_off indexes
-        ikx_top = np.argmin(abs(sim.oper.kx - sim.oper.kxmax_dealiasing))
-        ikz_top = np.argmin(abs(sim.oper.ky - sim.oper.kymax_dealiasing))
+        # ikx_top = np.argmin(abs(sim.oper.kx - sim.oper.kxmax_dealiasing))
+        # ikz_top = np.argmin(abs(sim.oper.ky - sim.oper.kymax_dealiasing))
+
+        ikx_top = np.argmin(abs(sim.oper.kx - pspatio.kx_max))
+        ikz_top = np.argmin(abs(sim.oper.ky - pspatio.kz_max))
 
         # Cut_off kx_max and ky_max
-        #
-        kx_cut_off = sim.oper.kx[0 : ikx_top + 1]
-        kz_cut_off = sim.oper.ky[0 : ikz_top + 1]
+        kx_cut_off = sim.oper.kx[0 : ikx_top]
+        kz_cut_off = sim.oper.ky[0 : ikz_top]
 
         # Compute kx_decimate and ky_decimate
         kx_decimate = kx_cut_off[
@@ -523,9 +526,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         #### PLOT OMEGA - KX
         kxmin_plot = 0
-        kxmax_plot = self.sim.oper.kx[
-            np.argmin(abs(self.sim.oper.kx - self.sim.oper.kxmax_dealiasing))
-        ]
+        kxmax_plot = self.sim.oper.kx[ikx_top]
 
         ikxmin_plot = np.argmin(abs(kx_decimate - kxmin_plot))
         ikxmax_plot = np.argmin(abs(kx_decimate - kxmax_plot)) + 1
