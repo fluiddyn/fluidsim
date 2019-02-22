@@ -483,7 +483,7 @@ class SpatioTempSpectra(SpecificOutput):
         return times_conc[itmin:itmax], spatio_temp_conc[:, itmin:itmax, :, :]
 
     def plot_kx_omega_cross_section(
-        self, path_file=None, field="ap_fft", ikz_plot=None, func_plot="pcolormesh"
+        self, path_file=None, field="ap_fft", ikz_plot=None, kxmax_plot=None, func_plot="pcolormesh"
     ):
         pspatio = self.params.output.spatio_temporal_spectra
         # Define path dir as posix path
@@ -493,6 +493,7 @@ class SpatioTempSpectra(SpecificOutput):
         if not path_file:
             path_file = sorted((path_dir / "Spectrum").glob("spectrum*"))[-1]
 
+        print(f"File = {path_file}")
         # Load data
         with h5py.File(path_file, "r") as f:
             temp_spectrum_mean = f["spectrum"].value
@@ -536,8 +537,14 @@ class SpatioTempSpectra(SpecificOutput):
         omegas *= 1 / (sim.params.N)
 
         #### PLOT OMEGA - KX
+
+        # Define maximum and minimum values to plot.
         kxmin_plot = 0
-        kxmax_plot = sim.oper.kx[ikx_top]
+        if kxmax_plot == None:
+            kxmax_plot = sim.oper.kx[ikx_top]
+        else:
+            ikxmax_plot = np.argmin(abs(sim.oper.kx - kxmax_plot))
+            kxmax_plot = sim.oper.kx[ikxmax_plot]
 
         ikxmin_plot = np.argmin(abs(kx_decimate - kxmin_plot))
         ikxmax_plot = np.argmin(abs(kx_decimate - kxmax_plot)) + 1
@@ -609,6 +616,10 @@ class SpatioTempSpectra(SpecificOutput):
                 kxs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
             )
         elif func_plot == "pcolormesh":
+            # To fit in pcolormesh
+            kxs_grid = kxs_grid - (sim.oper.deltakx/2)
+            omegas_grid = omegas_grid - (omegas[1]/2)
+
             cf = ax.pcolormesh(
                 kxs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
             )
@@ -623,17 +634,8 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Plot dispersion relation
         ax.plot(
-            kx_decimate[ikxmin_plot:ikxmax_plot],
-            -np.log10(
-                sim.params.N
-                * (
-                    kx_decimate[ikxmin_plot:ikxmax_plot]
-                    / np.sqrt(
-                        kx_decimate[ikxmin_plot:ikxmax_plot] ** 2
-                        + kz_decimate[ikz_plot] ** 2
-                    )
-                )
-            ),
+            kxs_grid[0],
+            -(kxs_grid[0] / np.sqrt(kxs_grid[0] ** 2 + kz_decimate[ikz_plot] ** 2)),
             color="k",
         )
 
@@ -661,7 +663,163 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Plot text shear modes
         ax.text(
-            sim.oper.deltakx // 2, -1, r"$E(k_x=0, k_z) = 0$", rotation=90, fontsize=14
+            sim.oper.deltakx // 2, -1, r"$E(k_x=0, k_z) = 0$", rotation=90, fontsize=14, color="white"
+        )
+
+        # Tight layout of the figure
+        fig.tight_layout()
+    
+    def plot_kz_omega_cross_section(
+        self,
+        path_file=None,
+        field="ap_fft",
+        ikx_plot=None,
+        func_plot="pcolormesh",
+    ):
+        # Define path dir as posix path
+        path_dir = self.path_dir
+
+        # If path_file does not exist.
+        if not path_file:
+            path_file = sorted((path_dir / "Spectrum").glob("spectrum*"))[-1]
+
+        # Print path_file
+        print(f"Path = {path_file}")
+        
+        # Load data
+        with h5py.File(path_file, "r") as f:
+            temp_spectrum_mean = f["spectrum"].value
+            omegas = f["omegas"].value
+
+        # Load simulation object
+        sim = load_state_phys_file(path_dir.parent, merge_missing_params=True)
+
+        # Compute kx_decimate and ky_decimate
+        kx_decimate = sim.oper.kx[
+            :: sim.params.output.spatio_temporal_spectra.spatial_decimate
+        ]
+        kz_decimate = sim.oper.ky[
+            :: sim.params.output.spatio_temporal_spectra.spatial_decimate
+        ]
+
+        # Omegas
+        omegas *= 2 * np.pi
+        omegas *= 1 / (sim.params.N)
+
+        #### PLOT OMEGA - KZ
+        kzmin_plot = 0
+        kzmax_plot = 80
+
+        ikzmin_plot = np.argmin(abs(kz_decimate - kzmin_plot))
+        ikzmax_plot = np.argmin(abs(kz_decimate - kzmax_plot)) + 1
+
+        omega_max_plot = 0
+        omega_min_plot = -3
+
+        omegas = np.append(omegas, 0)
+        imin_omegas_plot = np.argmin(abs(omegas - omega_min_plot)) - 1
+
+        kzs_grid, omegas_grid = np.meshgrid(
+            kz_decimate[ikzmin_plot:ikzmax_plot], omegas[imin_omegas_plot:]
+        )
+
+        if not ikx_plot:
+            ikx_plot = 1
+
+        # Parameters figure
+        fig, ax = plt.subplots()
+        ax.set_xlim(left=kzmin_plot, right=kzmax_plot - sim.oper.deltaky / 2)
+        ax.set_ylim(top=omega_max_plot, bottom=omega_min_plot)
+        ax.set_xlabel(r"$k_z$", fontsize=16)
+        ax.set_ylabel(r"$\omega / N$", fontsize=16)
+        ax.tick_params(axis="x", labelsize=16)
+        ax.tick_params(axis="y", labelsize=16)
+        ax.set_title(fr"$log ({kx_decimate[ikx_plot]}, k_z, \omega)$")
+
+        # Compute index array corresponding to field.
+        if field == "ap_fft":
+            i_field = 0
+        elif field == "am_fft":
+            i_field = 1
+        else:
+            raise ValueError(f"field = {field} not known.")
+
+        # Compute data
+        temp_spectrum_mean = temp_spectrum_mean[i_field]
+
+        # todo: fix the warnings that we get while testing
+        data = np.log10(
+            temp_spectrum_mean[
+                imin_omegas_plot:, ikx_plot, ikzmin_plot:ikzmax_plot
+            ]
+        )
+        new = np.empty(
+            [
+                temp_spectrum_mean.shape[0] + 1,
+                temp_spectrum_mean.shape[1],
+                temp_spectrum_mean.shape[2],
+            ]
+        )
+        new[:-1] = temp_spectrum_mean
+        new[-1] = temp_spectrum_mean[-1]
+        data = np.log10(new[imin_omegas_plot:, ikx_plot, ikzmin_plot:ikzmax_plot])
+
+        # Maximum and minimum values
+        vmin = np.min(data[abs(data) != np.inf])
+        vmin = -3
+        vmax = np.max(data)
+        vmax = 0
+
+        # Plot with contourf
+        import matplotlib.cm as cm
+        
+
+        if func_plot == "contourf":
+            cf = ax.contourf(
+                kzs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
+            )
+        elif func_plot == "pcolormesh":
+            kzs_grid = kzs_grid - (sim.oper.deltaky/2)
+            omegas_grid = omegas_grid - (omegas[1]/2)
+            cf = ax.pcolormesh(
+                kzs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
+            )
+        else:
+            print(f"Function plot not known.")
+
+        # Plot colorbar
+        m = plt.cm.ScalarMappable(cmap=cm.viridis)
+        m.set_array(data)
+        m.set_clim(vmin, vmax)
+        plt.colorbar(m)
+
+        # Plot dispersion relation
+        ax.plot(
+            kzs_grid[0][ikzmin_plot:ikzmax_plot],
+                    -(kx_decimate[ikx_plot] / np.sqrt(kx_decimate[ikx_plot] ** 2 + kzs_grid[0][ikzmin_plot:ikzmax_plot] ** 2)),
+                    color="k")
+
+
+        # Check if angle string or float instance.
+        if (
+            isinstance(sim.params.forcing.tcrandom_anisotropic.angle, str)
+            and "°" in sim.params.forcing.tcrandom_anisotropic.angle
+        ):
+            angle = math.radians(
+                float(sim.params.forcing.tcrandom_anisotropic.angle.split("°")[0])
+            )
+        else:
+            angle = sim.params.forcing.tcrandom_anisotropic.angle
+
+        # Plot forcing region
+        ax.axvline(
+            sim.oper.deltaky * sim.params.forcing.nkmin_forcing * np.sin(angle),
+            color="red",
+        )
+
+        ax.axvline(
+            sim.oper.deltaky * sim.params.forcing.nkmax_forcing * np.sin(angle),
+            color="red",
         )
 
         # Tight layout of the figure
@@ -704,7 +862,7 @@ class SpatioTempSpectra(SpecificOutput):
             mode = (kx, kz)
 
         # Load frequency spectra
-        print("path_file", path_file)
+        print(f"path_file = {path_file}")
         with h5py.File(path_file, "r") as f:
             spectrum = f["spectrum"].value
             omegas = f["omegas"].value
@@ -725,12 +883,16 @@ class SpatioTempSpectra(SpecificOutput):
         kz_mode = self.sim.oper.ky[:: self.spatial_decimate][idz_mode]
 
         # Linear frequency. Used for compensation of the plots..
-        f_l = self.sim.params.N / (2 * np.pi)
+        N = self.sim.params.N
+        f_l = N / (2 * np.pi)
+        iw = (N / (2 * np.pi)) * kx_mode / (np.sqrt(kx_mode**2 + kz_mode**2))
+        
 
         # Plot omega +
         fig1, ax1 = plt.subplots()
         ax1.set_xlabel(r"$\omega / N$")
         ax1.set_ylabel(r"$F(\omega)$")
+        ax1.set_ylim(bottom=1e-7)
         ax1.set_title(
             r"$\omega_+ ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
@@ -740,14 +902,16 @@ class SpatioTempSpectra(SpecificOutput):
 
         ax1.loglog(
             omegas[0 : len(omegas) // 2] / f_l,
-            spectrum[0, 0 : len(omegas) // 2, idz_mode, idx_mode],
-        )
+            spectrum[0, 0 : len(omegas) // 2, idx_mode, idz_mode],
+        "k")
         ax1.axvline(x=f_l / f_l, color="k", linestyle="--")
-
+        ax1.axvline(x=iw / f_l, color="r", linestyle="--")
+        
         # Plot omega -
         fig2, ax2 = plt.subplots()
         ax2.set_xlabel(r"$\omega / N$")
         ax2.set_ylabel(r"$F(\omega)$")
+        ax2.set_ylim(bottom=1e-7)
         ax2.set_title(
             r"$\omega_- ; (k_x, k_z) = ({:.2f}, {:.2f})$".format(
                 self.sim.oper.kx[:: self.spatial_decimate][idx_mode],
@@ -757,10 +921,11 @@ class SpatioTempSpectra(SpecificOutput):
 
         ax2.loglog(
             -1 * omegas[len(omegas) // 2 + 1 :] / f_l,
-            spectrum[0, len(omegas) // 2 + 1 :, idz_mode, idx_mode],
-        )
+            spectrum[0, len(omegas) // 2 + 1 :, idx_mode, idz_mode],
+        "k")
         ax2.axvline(x=f_l / f_l, color="k", linestyle="--")
-
+        ax2.axvline(x=iw / f_l, color="r", linestyle="--")
+        
     def _init_online_plot(self):
         if mpi.rank == 0:
             fig, axe = self.output.figure_axe(numfig=1_000_000)
