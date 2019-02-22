@@ -709,9 +709,12 @@ class SpatioTempSpectra(SpecificOutput):
         #### PLOT OMEGA - KZ
         kzmin_plot = 0
         kzmax_plot = 80
+        
+        if kzmax_plot > sim.oper.kymax_dealiasing:
+            kzmax_plot = sim.oper.kymax_dealiasing
 
         ikzmin_plot = np.argmin(abs(kz_decimate - kzmin_plot))
-        ikzmax_plot = np.argmin(abs(kz_decimate - kzmax_plot)) + 1
+        ikzmax_plot = np.argmin(abs(kz_decimate - kzmax_plot))
 
         omega_max_plot = 0
         omega_min_plot = -3
@@ -772,7 +775,6 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Plot with contourf
         import matplotlib.cm as cm
-        
 
         if func_plot == "contourf":
             cf = ax.contourf(
