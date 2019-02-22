@@ -80,10 +80,10 @@ class SpatioTempSpectra(SpecificOutput):
         self.kz_max = pspatiotemp_spectra.kz_max
 
         # By default: kxmax_dealiasing or kymax_dealiasing
-        if self.kx_max == None:
+        if self.kx_max is None:
             self.kx_max = self.sim.oper.kxmax_dealiasing
 
-        if self.kz_max == None:
+        if self.kz_max is None:
             self.kz_max = self.sim.oper.kymax_dealiasing
 
         self.has_to_save = bool(
@@ -537,10 +537,10 @@ class SpatioTempSpectra(SpecificOutput):
         kx_max = pspatio.kx_max
         kz_max = pspatio.kx_max
 
-        if kx_max == None:
+        if kx_max is None:
             kx_max = sim.oper.kxmax_dealiasing
 
-        if kz_max == None:
+        if kz_max is None:
             kz_max = sim.oper.kymax_dealiasing
 
         print("kx_max", kx_max)
@@ -568,7 +568,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Define maximum and minimum values to plot.
         kxmin_plot = 0
-        if kxmax_plot == None:
+        if kxmax_plot is None:
             kxmax_plot = sim.oper.kx[ikx_top]
         else:
             ikxmax_plot = np.argmin(abs(sim.oper.kx - kxmax_plot))
@@ -587,7 +587,7 @@ class SpatioTempSpectra(SpecificOutput):
             kx_decimate[ikxmin_plot:ikxmax_plot], omegas[imin_omegas_plot:]
         )
 
-        if ikz_plot == None:
+        if ikz_plot is None:
             ikz_plot = 1
 
         # Parameters figure

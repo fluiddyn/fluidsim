@@ -216,6 +216,8 @@ class TestForcingOutput(TestSimulBase):
                 mode=(1, 1)
             )
             spatio_temporal_spectra.plot_kx_omega_cross_section()
+            # todo: enable this test and fix the associated TypeError
+            # spatio_temporal_spectra.plot_kz_omega_cross_section()
 
             sim2.output.increments.load()
             sim2.output.increments.plot()
