@@ -340,7 +340,7 @@ class CorrelationsFreq(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, ax = self.output.figure_axe(numfig=4100000)
+            fig, ax = self.output.figure_axe(numfig=4_100_000)
             self.ax = ax
             ax.set_xlabel("Omega")
             ax.set_ylabel("Correlations")
@@ -375,7 +375,7 @@ class CorrelationsFreq(SpecificOutput):
                     )
                     corr[i1, io4, io3] = corr[i1, io3, io4]
 
-        fig, ax = self.output.figure_axe(numfig=4100000)
+        fig, ax = self.output.figure_axe(numfig=4_100_000)
         self.ax = ax
         ax.set_xlabel("Omega")
         ax.set_xlabel("Correlation")

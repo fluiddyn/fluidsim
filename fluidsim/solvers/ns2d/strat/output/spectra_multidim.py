@@ -247,11 +247,7 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         ikz_text = np.argmin(abs(kz - kz[ikz] * 0.7))
 
         ax.text(
-            kx[ikx_text],
-            kz[ikz_text],
-            f"{text_plot}",
-            color="white",
-            fontsize=15,
+            kx[ikx_text], kz[ikz_text], f"{text_plot}", color="white", fontsize=15
         )
 
         # Colorbar

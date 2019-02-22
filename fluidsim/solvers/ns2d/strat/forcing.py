@@ -21,7 +21,7 @@ class ForcingNS2DStrat(ForcingNS2D):
         self, constant_rate_of, key_forced, f_fft, var_fft, deltat
     ):
 
-        if constant_rate_of != "energy":
+        if constant_rate_of not in ["energy", "energyK"]:
             raise ValueError
 
         if hasattr(self.forcing_maker, "oper_coarse"):
@@ -52,16 +52,14 @@ class ForcingNS2DStrat(ForcingNS2D):
         else:
             raise ValueError
 
+        a = deltat / 2 * sum_k(abs(fx_fft) ** 2 + abs(fy_fft) ** 2)
+        b = sum_k((vx_fft.conj() * fx_fft).real + (vy_fft.conj() * fy_fft).real)
+
+        if constant_rate_of == "energyK":
+            return a, b
+
         N2 = self.sim.params.N ** 2
-        a = (
-            deltat
-            / 2
-            * sum_k(abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fb_fft) ** 2 / N2)
-        )
-        b = sum_k(
-            (vx_fft.conj() * fx_fft).real
-            + (vy_fft.conj() * fy_fft).real
-            + (b_fft.conj() * fb_fft).real / N2
-        )
+        a += deltat / 2 * sum_k(abs(fb_fft) ** 2) / N2
+        b += sum_k((b_fft.conj() * fb_fft).real) / N2
 
         return a, b

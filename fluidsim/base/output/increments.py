@@ -90,7 +90,7 @@ class Increments(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5000000)
+            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
             self.axe = axe
             axe.set_xlabel(r"$\delta u_x (x)$")
             axe.set_ylabel("pdf")
@@ -224,9 +224,7 @@ class Increments(SpecificOutput):
         size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("$r_x$")
-        ax1.set_ylabel(
-            r"$\langle \delta u^{" + f"{order}" + "} \\rangle$"
-        )
+        ax1.set_ylabel(r"$\langle \delta u^{" + f"{order}" + "} \\rangle$")
 
         ax1.set_title(
             "struct. functions, solver "

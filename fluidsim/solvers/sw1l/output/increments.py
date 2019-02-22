@@ -125,9 +125,7 @@ imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
         size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("$r_x$")
-        ax1.set_ylabel(
-            r"$\langle \delta u^{" + f"{order}" + "} \\rangle$"
-        )
+        ax1.set_ylabel(r"$\langle \delta u^{" + f"{order}" + "} \\rangle$")
 
         ax1.set_title(
             "struct. functions, solver "

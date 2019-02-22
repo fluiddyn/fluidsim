@@ -29,7 +29,7 @@ class ForcingNS2D(ForcingBasePseudoSpectral):
         self, constant_rate_of, key_forced, f_fft, var_fft, deltat
     ):
 
-        if constant_rate_of != "energy":
+        if constant_rate_of not in ["energy", "energyK"]:
             raise ValueError
 
         if hasattr(self.forcing_maker, "oper_coarse"):

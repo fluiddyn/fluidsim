@@ -85,7 +85,7 @@ class SpectraMultiDim(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1000000)
+            fig, axe = self.output.figure_axe(numfig=1_000_000)
             self.axe = axe
             axe.set_xlabel("$k_x$")
             axe.set_ylabel("$k_y$")
