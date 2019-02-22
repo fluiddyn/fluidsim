@@ -161,7 +161,7 @@ class Spectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1000000)
+            fig, axe = self.output.figure_axe(numfig=1_000_000)
             self.axe = axe
             axe.set_xlabel("$k_h$")
             axe.set_ylabel("$E(k_h)$")

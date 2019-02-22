@@ -68,7 +68,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
 
             size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
             self.fig, axe_a = self.output.figure_axe(
-                size_axe=size_axe, numfig=4000000
+                size_axe=size_axe, numfig=4_000_000
             )
             self.axe_a = axe_a
             axe_a.set_xlabel(r"$k_h$")

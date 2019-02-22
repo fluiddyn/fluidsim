@@ -187,9 +187,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
-            raise ValueError(
-                f"nan at it = {self.it}, t = {self.t:.4f}"
-            )
+            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.

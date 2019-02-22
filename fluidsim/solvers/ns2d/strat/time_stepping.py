@@ -25,9 +25,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        super()._complete_params_with_default(
-            params
-        )
+        super()._complete_params_with_default(params)
 
         # Add parameter coefficient CFL GROUP VELOCITY
         params.time_stepping._set_attrib("cfl_coef_group", None)
@@ -196,6 +194,4 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
-            raise ValueError(
-                f"nan at it = {self.it}, t = {self.t:.4f}"
-            )
+            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")

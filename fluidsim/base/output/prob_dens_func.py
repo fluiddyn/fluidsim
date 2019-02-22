@@ -38,7 +38,7 @@ class ProbaDensityFunc(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5000000)
+            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
             self.axe = axe
             axe.set_xlabel(r"$\eta$")
             axe.set_ylabel("pdf")

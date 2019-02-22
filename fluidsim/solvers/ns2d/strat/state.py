@@ -204,7 +204,7 @@ class StateNS2DStrat(StateNS2D):
 
         # it should be (ap_fft[cond] - am_fft[cond])
         # but ap_fft is assumed to be null
-        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (- am_fft[cond])
+        b_fft[cond] = (1.0 / (2j * omega_k[cond])) * (-am_fft[cond])
         return rot_fft, b_fft
 
     def compute_rotbfft_from_apfft(self, ap_fft):

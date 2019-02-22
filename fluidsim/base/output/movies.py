@@ -152,7 +152,7 @@ class MoviesBase:
         numfig=None,
         fargs={},
         fig_kw={},
-        **kwargs
+        **kwargs,
     ):
         """Load the key field from multiple save files and display as
         an animated plot or save as a movie file.
@@ -252,7 +252,7 @@ class MoviesBase:
         tmin=None,
         tmax=None,
         fig_kw={},
-        **kwargs
+        **kwargs,
     ):
         """Launches an interactive plot.
 

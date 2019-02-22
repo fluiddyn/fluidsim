@@ -19,6 +19,4 @@ class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):
         self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(state_spect[0])):
-            raise ValueError(
-                f"nan at it = {self.it}, t = {self.t:.4f}"
-            )
+            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")

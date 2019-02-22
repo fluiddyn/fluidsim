@@ -79,9 +79,7 @@ class TimeSteppingSimple(TimeSteppingBase):
         # one_time_step_computation by cProfile
         self._time_step_RK()
         if np.isnan(np.sum(self.sim.state.state_phys[0])):
-            raise ValueError(
-                f"nan at it = {self.it}, t = {self.t:.4f}"
-            )
+            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.
