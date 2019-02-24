@@ -342,19 +342,10 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         field_max = field.max()
         field_min = field.min()
-        # field_mean = field.mean()
 
         if nb_proc > 1:
             field_max = comm.allreduce(field_max, op=MPI.MAX)
             field_min = comm.allreduce(field_min, op=MPI.MIN)
-        # field_mean = comm.allreduce(field_min, op=MPI.SUM)/nb_proc
-
-        # rms = np.sqrt(np.mean( (field-field_mean)**2 ))
-        # range_min = field_mean - 20*rms
-        # range_max = field_mean + 20*rms
-
-        # range_min = max(field_min, range_min)
-        # range_max = min(field_max, range_max)
 
         range_min = field_min
         range_max = field_max
@@ -367,7 +358,13 @@ class OperatorsPseudoSpectral2D(_Operators):
             hist, bin_edges = np.histogram(
                 field, bins=nb_bins, range=(range_min, range_max)
             )
-            hist = comm.allreduce(hist, op=MPI.SUM)
+            # memory leak related to this line for CPython 3.7.1
+            # hist = comm.allreduce(hist, op=MPI.SUM)
+            # workaround for CPython 3.7.0 and 3.7.1
+            tmp = np.empty_like(hist)
+            comm.Allreduce(hist, tmp, op=MPI.SUM)
+            hist = tmp
+            #
             pdf = hist / ((bin_edges[1] - bin_edges[0]) * hist.sum())
         return pdf, bin_edges
 

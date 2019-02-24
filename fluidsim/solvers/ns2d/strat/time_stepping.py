@@ -61,7 +61,7 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         try:
             self.dispersion_relation = self.sim.compute_dispersion_relation()
         except AttributeError:
-            print("compute_dispersion_relation is not" "not implemented.")
+            print("compute_dispersion_relation is not implemented.")
             self.deltat_dispersion_relation = 1.0
         else:
             freq_disp_relation = self.dispersion_relation.max()

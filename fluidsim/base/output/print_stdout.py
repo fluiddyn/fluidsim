@@ -74,7 +74,7 @@ class PrintStdOutBase:
 
     def _print_info(self):
         self.print_stdout(self._make_str_info())
-        print_memory_usage("MEMORY_USAGE:")
+        print_memory_usage("MEMORY_USAGE")
 
     def _make_str_info(self):
         return "it = {:6d} ; t = {:10.6g} ; deltat  = {:10.5g}\n".format(

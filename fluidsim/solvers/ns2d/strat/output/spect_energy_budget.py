@@ -198,7 +198,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
-    def plot(self, tmin=0, tmax=None, delta_t=2):
+    def plot(
+        self, tmin=0, tmax=None, delta_t=2, plot_diss_EK=False, plot_conv=False
+    ):
         """Plot the energy budget."""
 
         # Load data from file
@@ -217,6 +219,10 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
             dset_dissEK_ky = f["dissEK_ky"].value
             dset_dissEA_ky = f["dissEA_ky"].value
+
+            if plot_conv:
+                dset_conv_kx = f["B_kx"].value
+                dset_conv_ky = f["B_ky"].value
 
         if tmin is None:
             tmin = 0
@@ -283,11 +289,22 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         DissEK_kx = dissEK_kx[1:].cumsum() * self.oper.deltakx
         DissEA_kx = dissEA_kx[1:].cumsum() * self.oper.deltakx
 
-        ax1.plot(kxE[1:], PiEK_kx + PiEA_kx, label=r"$\Pi$")
-        ax1.plot(kxE[1:], PiEK_kx, label=r"$\Pi_K$")
-        ax1.plot(kxE[1:], PiEA_kx, label=r"$\Pi_A$")
-        ax1.plot(kxE[1:], DissEK_kx + DissEA_kx, label=r"$D$")
-        ax1.axhline(y=0, color="k", linestyle="--")
+        ax1.plot(kxE[1:], PiEK_kx + PiEA_kx, "k", label=r"$\Pi$")
+        ax1.plot(kxE[1:], PiEK_kx, "r", label=r"$\Pi_K$")
+        ax1.plot(kxE[1:], PiEA_kx, "b", label=r"$\Pi_A$")
+        ax1.plot(kxE[1:], DissEK_kx + DissEA_kx, "k--", label=r"$D$")
+
+        if plot_diss_EK:
+            ax1.plot(kxE[1:], DissEK_kx, "r--", label=r"$D_K$")
+
+        if plot_conv:
+            conv_kx = dset_conv_kx[imin_plot : imax_plot + 1].mean(0)[
+                :id_kx_dealiasing
+            ]
+            conv_kx = cumsum_inv(conv_kx[1:]) * self.oper.deltakx
+            ax1.plot(kxE[1:], conv_kx, "c", label=r"$C$")
+
+        ax1.axhline(y=0, color="k", linestyle=":")
 
         # Parameters of the figure
         fig, ax2 = self.output.figure_axe()
@@ -319,11 +336,22 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         DissEK_ky = dissEK_ky[1:].cumsum() * self.oper.deltaky
         DissEA_ky = dissEA_ky[1:].cumsum() * self.oper.deltaky
 
-        ax2.plot(kyE[1:], PiEK_ky + PiEA_ky, label=r"$\Pi$")
-        ax2.plot(kyE[1:], PiEK_ky, label=r"$\Pi_K$")
-        ax2.plot(kyE[1:], PiEA_ky, label=r"$\Pi_A$")
-        ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, label=r"$D$")
-        ax2.axhline(y=0, color="k", linestyle="--")
+        ax2.plot(kyE[1:], PiEK_ky + PiEA_ky, "k", label=r"$\Pi$")
+        ax2.plot(kyE[1:], PiEK_ky, "r", label=r"$\Pi_K$")
+        ax2.plot(kyE[1:], PiEA_ky, "b", label=r"$\Pi_A$")
+        ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, "k--", label=r"$D$")
+
+        if plot_diss_EK:
+            ax2.plot(kyE[1:], DissEK_ky, "r--", label=r"$D_K$")
+
+        if plot_conv:
+            conv_ky = dset_conv_ky[imin_plot : imax_plot + 1].mean(0)[
+                :id_ky_dealiasing
+            ]
+            conv_ky = cumsum_inv(conv_ky[1:]) * self.oper.deltaky
+            ax2.plot(kyE[1:], conv_ky, "c", label=r"$C$")
+
+        ax2.axhline(y=0, color="k", linestyle=":")
 
         # Plot forcing wave-number k_f
         nkmax = self.sim.params.forcing.nkmax_forcing
