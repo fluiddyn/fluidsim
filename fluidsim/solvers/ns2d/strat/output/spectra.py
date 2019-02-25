@@ -91,15 +91,10 @@ class SpectraNS2DStrat(Spectra):
                 "of the spectra for this case"
             )
 
-    def plot1d(
-        self,
-        tmin=0,
-        tmax=None,
-        delta_t=2,
-        coef_compensate_kx=5 / 3,
-        coef_compensate_kz=3.0,
+    def load1d_means(
+        self, tmin=0, tmax=None, delta_t=2, versus_kx=True, versus_ky=True
     ):
-        """Plot spectra one-dimensional."""
+        means = {}
         with h5py.File(self.path_file1D, "r") as h5file:
 
             # Open data from file
@@ -107,21 +102,14 @@ class SpectraNS2DStrat(Spectra):
             dset_kxE = h5file["kxE"]
             dset_kyE = h5file["kyE"]
             times = dset_times.value
-            kx = dset_kxE.value
-            ky = dset_kyE.value
+            means["times"] = times
+            means["kx"] = dset_kxE.value
+            means["ky"] = dset_kyE.value
 
             if tmin is None:
                 tmin = 0
             if tmax is None:
                 tmax = np.max(times)
-
-            # Open data set 1D spectra
-            dset_spectrum1Dkx_EA = h5file["spectrum1Dkx_EA"]
-            dset_spectrum1Dky_EA = h5file["spectrum1Dky_EA"]
-            dset_spectrum1Dkx_EK = h5file["spectrum1Dkx_EK"]
-            dset_spectrum1Dky_EK = h5file["spectrum1Dky_EK"]
-            dset_spectrum1Dkx_E = h5file["spectrum1Dkx_E"]
-            dset_spectrum1Dky_E = h5file["spectrum1Dky_E"]
 
             # Compute average from tmin and tmax for plot
             delta_t_save = np.mean(times[1:] - times[0:-1])
@@ -136,123 +124,126 @@ class SpectraNS2DStrat(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            print(
-                "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
-                + f" coef_compensate_kx={coef_compensate_kx:.3f})"
-            )
+            if versus_kx:
+                # Open data set 1D spectra
+                dset_spectrum1Dkx_EA = h5file["spectrum1Dkx_EA"]
+                dset_spectrum1Dkx_EK = h5file["spectrum1Dkx_EK"]
+                dset_spectrum1Dkx_E = h5file["spectrum1Dkx_E"]
 
-            print(
-                """plot 1D spectra
-            tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-            imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                    tmin_plot,
-                    tmax_plot,
-                    delta_t,
-                    imin_plot,
-                    imax_plot,
-                    delta_i_plot,
-                )
-            )
+                # Average in time between tmin and tmax
+                means["E_kx"] = (
+                    dset_spectrum1Dkx_E[imin_plot : imax_plot + 1]
+                ).mean(0)
+                means["EK_kx"] = (
+                    dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]
+                ).mean(0)
+                means["EA_kx"] = (
+                    dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]
+                ).mean(0)
 
-            # Parameters figure E(k_x)
-            fig, ax1 = self.output.figure_axe()
-            ax1.set_xlabel("$k_x$")
-            ax1.set_ylabel(
-                r"$E(k_x)k_x^{{{}}}$".format(round(coef_compensate_kx, 2))
-            )
-            ax1.set_title(
-                "1D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
-            # ax1.set_ylim(ymin=1e-6, ymax=1e3)
+            if versus_ky:
+                # Open data set 1D spectra
+                dset_spectrum1Dky_EA = h5file["spectrum1Dky_EA"]
+                dset_spectrum1Dky_EK = h5file["spectrum1Dky_EK"]
+                dset_spectrum1Dky_E = h5file["spectrum1Dky_E"]
 
-            # Average in time between tmin and tmax
-            E_kx = (dset_spectrum1Dkx_E[imin_plot : imax_plot + 1]).mean(0)
-            EK_kx = (dset_spectrum1Dkx_EK[imin_plot : imax_plot + 1]).mean(0)
-            EA_kx = (dset_spectrum1Dkx_EA[imin_plot : imax_plot + 1]).mean(0)
+                # Average in time between tmin and tmax
+                means["E_ky"] = (
+                    dset_spectrum1Dky_E[imin_plot : imax_plot + 1]
+                ).mean(0)
+                means["EK_ky"] = (
+                    dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]
+                ).mean(0)
+                means["EA_ky"] = (
+                    dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]
+                ).mean(0)
 
-            id_kx_dealiasing = (
-                np.argmin(abs(kx - (kx.max() * self.sim.oper.coef_dealiasing)))
-                - 1
+        print(
+            """load spectra
+        tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+        imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
+                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
             )
-            id_ky_dealiasing = (
-                np.argmin(abs(ky - (ky.max() * self.sim.oper.coef_dealiasing)))
-                - 1
-            )
+        )
 
-            # Remove modes dealiased.
-            E_kx_plot = E_kx[:id_kx_dealiasing]
-            EK_kx_plot = EK_kx[:id_kx_dealiasing]
-            EA_kx_plot = EA_kx[:id_kx_dealiasing]
-            kx_plot = kx[:id_kx_dealiasing]
+        return means
 
-            # Remove shear modes if there is no energy on them.
-            if self.sim.params.oper.NO_SHEAR_MODES:
-                E_kx_plot = E_kx_plot[1:]
-                EK_kx_plot = EK_kx_plot[1:]
-                EA_kx_plot = EA_kx_plot[1:]
-                kx_plot = kx_plot[1:]
+    def plot1d(
+        self,
+        tmin=0,
+        tmax=None,
+        delta_t=2,
+        coef_compensate=5 / 3,
+        level2=1.0,
+        level3=1.0,
+        yrange=5,
+    ):
+        """Plot spectra one-dimensional."""
+        print(
+            "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
+            + f" coef_compensate={coef_compensate:.3f})"
+        )
 
-            ax1.plot(
-                kx_plot, E_kx_plot * kx_plot ** coef_compensate_kx, label="E"
-            )
-            ax1.plot(
-                kx_plot, EK_kx_plot * kx_plot ** coef_compensate_kx, label="EK"
-            )
-            ax1.plot(
-                kx_plot, EA_kx_plot * kx_plot ** coef_compensate_kx, label="EA"
-            )
+        means = self.load1d_means(
+            tmin, tmax, delta_t, versus_kx=True, versus_ky=True
+        )
 
-            # Plot scaling lines
-            ax1.plot(
-                kx_plot[50:],
-                1e0 * kx_plot[50:] ** (-3) * kx_plot[50:] ** coef_compensate_kx,
-                color="k",
-                linestyle="--",
-                linewidth=1,
-                label=r"$k_x^{-3}$",
-            )
-            ax1.plot(
-                kx_plot[50:],
-                1e-2 * kx_plot[50:] ** (-2) * kx_plot[50:] ** coef_compensate_kx,
-                color="k",
-                linestyle="-.",
-                linewidth=1,
-                label=r"$k_x^{-2}$",
-            )
+        kx = means["kx"]
+        ky = means["ky"]
 
-            # Set limits axis y
-            ymin = E_kx_plot[0:50] * kx_plot[0:50] ** coef_compensate_kx
-            ymin = ymin[ymin > 0]
-            ymax = E_kx_plot * kx_plot ** coef_compensate_kx
-            ax1.set_ylim((1e-1 * ymin.min(), ymax.max()))
+        # Parameters figure E(k_x)
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel("$k_x$, $k_z$")
+        ax.set_ylabel(r"$E(k)k^{{{}}}$".format(round(coef_compensate, 2)))
+        ax.set_title(
+            "1D spectra, solver "
+            + self.output.name_solver
+            + f", nh = {self.nx:5d}"
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        # ax.set_ylim(ymin=1e-6, ymax=1e3)
 
-            # Parameters figure E(k_y)
-            fig, ax2 = self.output.figure_axe()
-            ax2.set_xlabel(r"$k_z$")
-            ax2.set_ylabel(fr"$E(k_z)k_z^{{{coef_compensate_kz}}}$")
-            ax2.set_title(
-                "1D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
-
-            ax2.set_xscale("log")
-            ax2.set_yscale("log")
-
-            E_ky = (dset_spectrum1Dky_E[imin_plot : imax_plot + 1]).mean(0)
-            EK_ky = (dset_spectrum1Dky_EK[imin_plot : imax_plot + 1]).mean(0)
-            EA_ky = (dset_spectrum1Dky_EA[imin_plot : imax_plot + 1]).mean(0)
+        id_kx_dealiasing = (
+            np.argmin(abs(kx - (kx.max() * self.sim.oper.coef_dealiasing))) - 1
+        )
+        id_ky_dealiasing = (
+            np.argmin(abs(ky - (ky.max() * self.sim.oper.coef_dealiasing))) - 1
+        )
 
         # Remove modes dealiased.
-        E_ky_plot = E_ky[:id_ky_dealiasing]
-        EK_ky_plot = EK_ky[:id_ky_dealiasing]
-        EA_ky_plot = EA_ky[:id_ky_dealiasing]
+        E_kx_plot = means["E_kx"][:id_kx_dealiasing]
+        EK_kx_plot = means["EK_kx"][:id_kx_dealiasing]
+        EA_kx_plot = means["EA_kx"][:id_kx_dealiasing]
+        kx_plot = kx[:id_kx_dealiasing]
+
+        # Remove shear modes if there is no energy on them.
+        if self.sim.params.oper.NO_SHEAR_MODES:
+            E_kx_plot = E_kx_plot[1:]
+            EK_kx_plot = EK_kx_plot[1:]
+            EA_kx_plot = EA_kx_plot[1:]
+            kx_plot = kx_plot[1:]
+
+        ax.plot(
+            kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
+        )
+        ax.plot(
+            kx_plot,
+            EK_kx_plot * kx_plot ** coef_compensate,
+            "r",
+            label="$E_K(k_x)$",
+        )
+        ax.plot(
+            kx_plot,
+            EA_kx_plot * kx_plot ** coef_compensate,
+            "b",
+            label="$E_A(k_x)$",
+        )
+
+        # Remove modes dealiased.
+        E_ky_plot = means["E_ky"][:id_ky_dealiasing]
+        EK_ky_plot = means["EK_ky"][:id_ky_dealiasing]
+        EA_ky_plot = means["EA_ky"][:id_ky_dealiasing]
         ky_plot = ky[:id_ky_dealiasing]
 
         # Remove shear modes if there is no energy on them.
@@ -262,57 +253,82 @@ class SpectraNS2DStrat(Spectra):
             EA_ky_plot = EA_ky_plot[1:]
             ky_plot = ky_plot[1:]
 
-        ax2.plot(ky_plot, E_ky_plot * ky_plot ** coef_compensate_kz, label="E")
-        ax2.plot(ky_plot, EK_ky_plot * ky_plot ** coef_compensate_kz, label="EK")
-        ax2.plot(ky_plot, EA_ky_plot * ky_plot ** coef_compensate_kz, label="EA")
+        ax.plot(
+            ky_plot,
+            E_ky_plot * ky_plot ** coef_compensate,
+            "k--",
+            label="$E(k_z)$",
+        )
+        ax.plot(
+            ky_plot,
+            EK_ky_plot * ky_plot ** coef_compensate,
+            "r--",
+            label="$E_K(k_z)$",
+        )
+        ax.plot(
+            ky_plot,
+            EA_ky_plot * ky_plot ** coef_compensate,
+            "b--",
+            label="$E_A(k_z)$",
+        )
 
         # Plot scaling lines
-        ax2.plot(
-            ky_plot[50:],
-            1e-2 * ky_plot[50:] ** (-5 / 3) * ky_plot[50:] ** coef_compensate_kz,
-            color="k",
-            linestyle="--",
-            linewidth=1,
-            label=r"$k_z^{-5/3}$",
-        )
-        ax2.plot(
-            ky_plot[50:],
-            1e-2 * ky_plot[50:] ** (-2) * ky_plot[50:] ** coef_compensate_kz,
-            color="k",
-            linestyle="-.",
-            linewidth=1,
-            label=r"$k_z^{-2}$",
-        )
+        kx = kx_plot[40:id_kx_dealiasing]
+        if level3:
+            ax.plot(
+                kx,
+                level3 * kx ** (-3) * kx ** coef_compensate,
+                "k:",
+                label=r"$k^{-3}$",
+            )
+        if level2:
+            ax.plot(
+                kx,
+                level2 * kx ** (-2) * kx ** coef_compensate,
+                "k-.",
+                label=r"$k^{-2}$",
+            )
 
         # Plot forcing wave-number k_f
         nkmax = self.sim.params.forcing.nkmax_forcing
         nkmin = self.sim.params.forcing.nkmin_forcing
         k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
-        try:
-            angle = self.sim.forcing.forcing_maker.angle
-        except AttributeError:
-            pass
-        else:
+
+        pforcing = self.sim.params.forcing
+        if pforcing.enable and pforcing.type == "tcrandom_anisotropic":
+            angle = pforcing.tcrandom_anisotropic.angle
+            try:
+                if angle.endswith("°"):
+                    angle = np.pi / 180 * float(angle[:-1])
+            except AttributeError:
+                pass
             k_fx = np.sin(angle) * k_f
             k_fy = np.cos(angle) * k_f
-            ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")
-            ax2.axvline(x=k_fy, color="k", linestyle=":", label="$k_{f,z}$")
+            ax.axvline(x=k_fx, color="y", linestyle=":", label="$k_{f,x}$")
+            ax.axvline(x=k_fy, color="y", linestyle="-.", label="$k_{f,z}$")
 
-        ax1.legend()
-        ax2.legend()
+        # Set limits axis y
+        if yrange is not None:
+            ymax = 2 * max(
+                (E_kx_plot * kx_plot ** coef_compensate).max(),
+                (E_ky_plot * ky_plot ** coef_compensate).max(),
+            )
+            ax.set_ylim((10 ** (-yrange) * ymax, ymax))
 
-    def plot2d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
-        """Plot 2D spectra."""
+        ax.legend()
 
+        # from ipdb import set_trace
+        # set_trace()
+
+    def load2d_means(self, tmin=0, tmax=1000, delta_t=2):
+
+        means = {}
         # Load data from file
         with h5py.File(self.path_file2D, "r") as h5file:
             dset_times = h5file["times"]
-            kh = h5file["khE"].value
+            means["kh"] = h5file["khE"].value
             times = dset_times.value
-
-            dset_spectrum_E = h5file["spectrum2D_E"]
-            dset_spectrum_EK = h5file["spectrum2D_EK"]
-            dset_spectrum_EA = h5file["spectrum2D_EA"]
+            means["times"] = times
 
             # Compute average from tmin and tmax for plot
             delta_t_save = np.mean(times[1:] - times[0:-1])
@@ -328,13 +344,6 @@ class SpectraNS2DStrat(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot2s(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
-                + f" coef_compensate={coef_compensate:.3f})"
-            )
-
-            print(
                 """plot 2D spectra
             tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
             imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
@@ -347,25 +356,46 @@ class SpectraNS2DStrat(Spectra):
                 )
             )
 
-            # Parameters figure
-            fig, ax1 = self.output.figure_axe()
-            ax1.set_xlabel(r"$k$")
-            ax1.set_ylabel(r"$E(k)$")
-            ax1.set_title(
-                "2D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
+            dset_spectrum_E = h5file["spectrum2D_E"]
+            dset_spectrum_EK = h5file["spectrum2D_EK"]
+            dset_spectrum_EA = h5file["spectrum2D_EA"]
 
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
+            means["E"] = dset_spectrum_E[imin_plot : imax_plot + 1].mean(0)
+            means["EK"] = dset_spectrum_EK[imin_plot : imax_plot + 1].mean(0)
+            means["EA"] = dset_spectrum_EA[imin_plot : imax_plot + 1].mean(0)
 
-            E = dset_spectrum_E[imin_plot : imax_plot + 1].mean(0)
-            EK = dset_spectrum_EK[imin_plot : imax_plot + 1].mean(0)
-            EA = dset_spectrum_EA[imin_plot : imax_plot + 1].mean(0)
+        return means
 
-        ax1.plot(kh, E, label="E")
-        ax1.plot(kh, EK, label="EK")
-        ax1.plot(kh, EA, label="EA")
+    def plot2d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
+        """Plot 2D spectra."""
 
-        ax1.legend()
+        print(
+            "plot2s(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
+            + f" coef_compensate={coef_compensate:.3f})"
+        )
+
+        means = self.load2d_means(tmin, tmax, delta_t)
+
+        kh = means["kh"]
+        E = means["E"]
+        EK = means["EK"]
+        EA = means["EA"]
+
+        # Parameters figure
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(r"$k$")
+        ax.set_ylabel(r"$E(k)$")
+        ax.set_title(
+            "2D spectra, solver "
+            + self.output.name_solver
+            + f", nh = {self.nx:5d}"
+        )
+
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        ax.plot(kh, E, "k", label="E")
+        ax.plot(kh, EK, "r", label="EK")
+        ax.plot(kh, EA, "b", label="EA")
+
+        ax.legend()

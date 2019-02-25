@@ -439,46 +439,34 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
         epsA_hypo = dict_results["epsA_hypo"]
         epsA_tot = dict_results["epsA_tot"]
 
-        width_axe = 0.85
-        height_axe = 0.39
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
+        fig, (ax1, ax2) = plt.subplots(2)
 
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle("Energy and enstrophy")
+        ax1.set_title("Energy and enstrophy")
         ax1.set_ylabel("$E(t)$")
-        ax1.plot(t, E, "k", linewidth=2)
+        ax1.plot(t, E, "k")
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
         ax2.set_ylabel("$Z(t)$")
         ax2.set_xlabel("$t$")
-        ax2.plot(t, Z, "k", linewidth=2)
+        ax2.plot(t, Z, "k")
+        fig.tight_layout()
 
-        z_bottom_axe = 0.54
-        size_axe[1] = z_bottom_axe
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
-        fig.suptitle("Dissipation of energy and enstrophy")
+        fig, (ax1, ax2) = plt.subplots(2)
+        ax1.set_title("Dissipation of energy and enstrophy")
         ax1.set_ylabel(r"$\epsilon (t) = \epsilon_K + \epsilon_A$")
 
-        ax1.plot(t, epsK + epsA, "r", label=r"$\epsilon$", linewidth=2)
-        ax1.plot(
-            t, epsK_tot + epsA_tot, "k", label=r"$\epsilon_{tot}$", linewidth=2
-        )
+        if self.sim.params.nu_m4:
+            ax1.plot(t, epsK + epsA, "r", label=r"$\epsilon$")
 
-        z_bottom_axe = 0.08
-        size_axe[1] = z_bottom_axe
-        ax2 = fig.add_axes(size_axe)
+        ax1.plot(t, epsK_tot + epsA_tot, "k", label=r"$\epsilon_{tot}$")
+
         ax2.set_xlabel("$t$")
         ax2.set_ylabel(r"$\epsilon_Z(t)$")
 
-        ax2.plot(t, epsZ, "r", linewidth=2)
-        ax2.plot(t, epsZ_tot, "k", linewidth=2)
+        ax2.plot(t, epsZ_tot, "k", label=r"$\epsilon_Z$")
 
         # If true hypo-viscosity...
         if self.sim.params.nu_m4:
+            ax2.plot(t, epsZ, "r")
             ax1.plot(
                 t,
                 epsK_hypo + epsA_hypo,
@@ -486,16 +474,18 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
                 label=r"$\epsilon_{hypo}$",
                 linewidth=2,
             )
-            ax2.plot(t, epsZ_hypo, "g", linewidth=2)
+            ax2.plot(t, epsZ_hypo, "g")
 
         if self.sim.params.forcing.enable:
             PK = dict_results["PK_tot"]
             PA = dict_results["PA_tot"]
             P = PK + PA
             PZ_tot = dict_results["PZ_tot"]
-            ax1.plot(t, P, "c", label="P", linewidth=2)
-            ax2.plot(t, PZ_tot, "c", label="P", linewidth=2)
+            ax1.plot(t, P, "c", label="P")
+            ax2.plot(t, PZ_tot, "c", label=r"$P_Z$")
             ax1.set_ylabel("P_E(t), epsK(t)")
             ax2.set_ylabel("P_Z(t), epsZ(t)")
 
         ax1.legend()
+        ax2.legend()
+        fig.tight_layout()

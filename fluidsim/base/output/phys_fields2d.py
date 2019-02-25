@@ -334,7 +334,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         vecx="ux",
         vecy="uy",
         nb_contours=20,
-        type_plot="contourf",
+        type_plot="pcolor",
         vmin=None,
         vmax=None,
         cmap="viridis",
@@ -359,7 +359,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
         nb_contours : 20
 
-        type_plot : 'contourf'
+        type_plot : "pcolor" or "contourf"
 
         vmin : None
 
@@ -406,7 +406,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
             self.set_of_phys_files.update_times()
             tmax = sorted(self.set_of_phys_files.times)[-1]
 
-            if time == None or time > tmax:
+            if time is None or time > tmax:
                 time = sorted(self.set_of_phys_files.times)[-1]
 
             if key_field not in self.sim.state.keys_state_phys:
@@ -455,11 +455,13 @@ class PhysFieldsBase2D(PhysFieldsBase):
                 )
                 fig.colorbar(contours)
                 fig.contours = contours
-            elif type_plot == "pcolor":
+            elif type_plot in ["pcolor", "pcolormesh"]:
                 pc = ax.pcolormesh(
                     x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap
                 )
                 fig.colorbar(pc)
+            else:
+                print(f"`type_plot = {type_plot}` not implemented")
         else:
             ax = None
 

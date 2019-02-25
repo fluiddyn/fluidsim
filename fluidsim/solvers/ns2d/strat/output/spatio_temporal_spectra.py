@@ -747,7 +747,7 @@ class SpatioTempSpectra(SpecificOutput):
         #### PLOT OMEGA - KZ
         kzmin_plot = 0
         kzmax_plot = 80
-        
+
         if kzmax_plot > sim.oper.kymax_dealiasing:
             kzmax_plot = sim.oper.kymax_dealiasing
 
