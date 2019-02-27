@@ -160,49 +160,46 @@ class OutputStrat(Output):
     def _compute_ratio_omegas(self):
         r"""Compute ratio omegas; gamma = \omega_l / \omega_{af}"""
         params = self.sim.params
+        pforcing = params.forcing
+        forcing_rate = pforcing.forcing_rate
+        
+        # Compute forcing wave-number
+        nkmax_forcing = pforcing.nkmax_forcing
+        nkmin_forcing = pforcing.nkmin_forcing
 
-        omega_l = params.N * self.froude_number
+        deltak = max(2 * np.pi / params.oper.Lx, 2 * np.pi / params.oper.Ly)
+        k_f = ((nkmax_forcing + nkmin_forcing) / 2) * deltak
+        l_f = 2 * np.pi / k_f
+        
+        # Compute linear frequency
+        omega_l = params.N * self.froude_number 
+        omega_l = omega_l / (2 * np.pi)
+
+        # Compute forcing frequency
         if (
-            params.forcing.key_forced is None
-            or params.forcing.key_forced == "rot_fft"
+            pforcing.key_forced is None
+            or pforcing.key_forced == "rot_fft"
         ):
-            omega_af = (2 * np.pi) * params.forcing.forcing_rate ** (1.0 / 3)
-        elif params.forcing.key_forced == "ap_fft":
-            nkmax_forcing = params.forcing.nkmax_forcing
-            nkmin_forcing = params.forcing.nkmin_forcing
+            omega_af = forcing_rate ** (1. / 3)
 
-            deltak = max(2 * np.pi / params.oper.Lx, 2 * np.pi / params.oper.Ly)
-            k_f = ((nkmax_forcing + nkmin_forcing) / 2) * deltak
-            omega_af = (
-                2
-                * np.pi
-                / params.forcing.forcing_rate ** (1.0 / 7)
-                * ((2 * np.pi / k_f) ** (2.0 / 7))
-            )
+        elif pforcing.key_forced == "ap_fft":
+            omega_af = forcing_rate ** (1. / 7) * l_f ** (-2. / 7)
+        
         else:
             raise ValueError("params.forcing.key_forced is not known.")
+        
+        # Normalization with energy
+        if pforcing.normalized.constant_rate_of == "energy":
+            omega_af = forcing_rate**(1. / 3) * l_f ** (-2. / 3)
+                
         return omega_l / omega_af
 
     def _produce_str_describing_attribs_strat(self):
         """
         Produce string describing the parameters froude_number and ratio_omegas.
-        #TODO: not the best way to produce string.
         """
-        str_froude_number = str(round(self.froude_number, 1))
-        str_ratio_omegas = str(round(self._compute_ratio_omegas(), 1))
-
-        if "." in str_froude_number:
-            str_froude_number = (
-                str_froude_number.split(".")[0] + str_froude_number.split(".")[1]
-            )
-        if str_froude_number.endswith("0"):
-            str_froude_number = str_froude_number[:-1]
-        if "." in str_ratio_omegas:
-            str_ratio_omegas = (
-                str_ratio_omegas.split(".")[0] + str_ratio_omegas.split(".")[1]
-            )
-        if str_ratio_omegas.endswith("0"):
-            str_ratio_omegas = str_ratio_omegas[:-1]
+        str_froude_number = str(round(self.froude_number, 3))
+        str_ratio_omegas = str(round(self._compute_ratio_omegas(), 3))
 
         return "F" + str_froude_number + "_" + "gamma" + str_ratio_omegas
 
