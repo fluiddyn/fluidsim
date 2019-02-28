@@ -176,6 +176,9 @@ def create_extensions():
         library_dirs=[],
         sources=[path_sources + "/pseudo_spect_cy." + ext_source],
         define_macros=define_macros,
+        # to compile on Windows, we may need (see issue #28)
+        # language="c++",
+        # we may also just stop using Cython! at least on Windows
     )
 
     ext_modules = [ext_cyfunc]
