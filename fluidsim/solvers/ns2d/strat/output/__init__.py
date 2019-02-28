@@ -170,36 +170,36 @@ class OutputStrat(Output):
         deltak = max(2 * np.pi / params.oper.Lx, 2 * np.pi / params.oper.Ly)
         k_f = ((nkmax_forcing + nkmin_forcing) / 2) * deltak
         l_f = 2 * np.pi / k_f
-        
-        # Compute linear frequency
-        omega_l = params.N * self.froude_number 
+
+        # Compute linear frequency in s^-1
+        omega_l = params.N * self.froude_number
         omega_l = omega_l / (2 * np.pi)
 
         # Compute forcing frequency
-        if (
-            pforcing.key_forced is None
-            or pforcing.key_forced == "rot_fft"
-        ):
-            omega_af = forcing_rate ** (1. / 3)
+        if pforcing.normalized.constant_rate_of is None:
+            if pforcing.key_forced is None or pforcing.key_forced == "rot_fft":
+                omega_af = forcing_rate ** (1.0 / 3)
 
-        elif pforcing.key_forced == "ap_fft":
-            omega_af = forcing_rate ** (1. / 7) * l_f ** (-2. / 7)
-        
+            elif pforcing.key_forced == "ap_fft":
+                omega_af = forcing_rate ** (1.0 / 7) * l_f ** (-2.0 / 7)
+
+            else:
+                raise ValueError("params.forcing.key_forced is not known.")
+
+        elif pforcing.normalized.constant_rate_of in ["energy", "energyK"]:
+            omega_af = forcing_rate ** (1.0 / 3) * l_f ** (-2.0 / 3)
+
         else:
-            raise ValueError("params.forcing.key_forced is not known.")
-        
-        # Normalization with energy
-        if pforcing.normalized.constant_rate_of == "energy":
-            omega_af = forcing_rate**(1. / 3) * l_f ** (-2. / 3)
-                
+            raise ValueError(f"{pforcing.normalized.constant_rate_of} not known.")
+
         return omega_l / omega_af
 
     def _produce_str_describing_attribs_strat(self):
         """
         Produce string describing the parameters froude_number and ratio_omegas.
         """
-        str_froude_number = str(round(self.froude_number, 3))
-        str_ratio_omegas = str(round(self._compute_ratio_omegas(), 3))
+        str_froude_number = f"{self.froude_number:.3f}"
+        str_ratio_omegas = f"{self._compute_ratio_omegas():.1f}"
 
         return "F" + str_froude_number + "_" + "gamma" + str_ratio_omegas
 
