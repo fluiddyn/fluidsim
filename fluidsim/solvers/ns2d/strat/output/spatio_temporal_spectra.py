@@ -452,6 +452,20 @@ class SpatioTempSpectra(SpecificOutput):
         # Define list files
         list_files = sorted(self.path_dir.glob("spatio_temp_it*"))
 
+        # Sort files by number of iteration.
+        list_its = []
+
+        for path_file in list_files:
+            list_its.append(int(path_file.name.split("_it")[1].split(".h5")[0]))
+
+        list_its = sorted(list_its)
+        print(list_its)
+        list_files_new = []
+        for it in list_its:
+            list_files_new.append(self.path_dir / ("spatio_temp_it" + str(it) + ".h5"))
+
+        list_files = list_files_new
+
         # Define concatenate arrays
         spatio_temp_conc = None
         times_conc = None
