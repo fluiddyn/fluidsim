@@ -40,7 +40,7 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
 
         - :class:`fluidsim.base.state.StatePseudoSpectral`
 
-        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+        - :class:`fluidsim.base.time_stepping.pseudo_spect.TimeSteppingPseudoSpectral`
 
         - :class:`fluidsim.operators.operators.OperatorsPseudoSpectral2D`
 
@@ -55,7 +55,7 @@ class InfoSolverPseudoSpectral(InfoSolverBase):
         self.classes.State.class_name = "StatePseudoSpectral"
 
         self.classes.TimeStepping.module_name = (
-            "fluidsim.base.time_stepping.pseudo_spect_cy"
+            "fluidsim.base.time_stepping.pseudo_spect"
         )
 
         self.classes.TimeStepping.class_name = "TimeSteppingPseudoSpectral"

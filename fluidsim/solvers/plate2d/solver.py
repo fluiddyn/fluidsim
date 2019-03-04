@@ -34,7 +34,7 @@ class InfoSolverPlate2D(InfoSolverPseudoSpectral):
         The function `InfoSolverPseudoSpectral._init_root` is
         called. We keep one class listed by this function:
 
-        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+        - :class:`fluidsim.base.time_stepping.pseudo_spect.TimeSteppingPseudoSpectral`
 
         The other first-level classes for this solver are:
 

@@ -14,7 +14,7 @@ import numpy as np
 
 from math import pi
 from fluiddyn.util import mpi
-from fluidsim.base.time_stepping.pseudo_spect_cy import TimeSteppingPseudoSpectral
+from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
 
 
 class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):

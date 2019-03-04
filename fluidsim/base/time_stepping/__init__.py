@@ -9,7 +9,6 @@ Provides:
 
    base
    pseudo_spect
-   pseudo_spect_cy
    finite_diff
 
 """
