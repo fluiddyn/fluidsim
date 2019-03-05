@@ -59,7 +59,7 @@ class InfoSolverSW1L(InfoSolverPseudoSpectral):
         called first. A few classes defined by this function are retained as it
         is:
 
-        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+        - :class:`fluidsim.base.time_stepping.pseudo_spect.TimeSteppingPseudoSpectral`
 
         - :class:`fluidsim.solvers.sw1l.OperatorsPseudoSpectralSW1L`
 

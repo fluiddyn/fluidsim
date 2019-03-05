@@ -1,6 +1,6 @@
 import numpy as np
 
-from fluidsim.base.time_stepping.pseudo_spect_cy import TimeSteppingPseudoSpectral
+from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
 
 
 class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):

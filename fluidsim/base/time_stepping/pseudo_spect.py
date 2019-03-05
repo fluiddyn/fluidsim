@@ -20,16 +20,13 @@ Provides:
 
 """
 
-from warnings import warn
-import os
-
 import numpy as np
+
+# transonic import numpy as np
 
 from transonic import Transonic, Type, NDim, Array
 
 from .base import TimeSteppingBase
-
-from ... import _is_testing
 
 ts = Transonic()
 
@@ -39,12 +36,6 @@ A = Array[np.complex128, N]
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N]
 A2 = Array[T, N - 1]
-
-
-use_cython = os.environ.get("FLUIDSIM_TIMESTEPPING_CYTHON", False)
-
-if not ts.is_compiled and not _is_testing:
-    use_cython = True
 
 
 class ExactLinearCoefs:
@@ -69,8 +60,22 @@ class ExactLinearCoefs:
     def compute(self, dt):
         """Compute the exact coefficients."""
         f_lin = self.freq_lin
-        self.exact = np.exp(-dt * f_lin)
-        self.exact2 = np.exp(-dt / 2 * f_lin)
+        exact = self.exact
+        exact2 = self.exact2
+
+        if ts.is_transpiled:
+            ts.use_block("exact_lin_compute")
+        else:
+            # transonic block (
+            #     A1 f_lin, exact, exact2;
+            #     float dt
+            # )
+            # transonic block (
+            #     A2 f_lin, exact, exact2;
+            #     float dt
+            # )
+            exact[:] = np.exp(-dt * f_lin)
+            exact2[:] = np.exp(-dt / 2 * f_lin)
         self.dt_old = dt
 
     def get_updated_coefs_CLF(self):
@@ -129,43 +134,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if params_ts.type_time_scheme == "RK4":
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
 
-        if not use_cython:
-            if params_ts.type_time_scheme == "RK2":
-                time_step_RK = self._time_step_RK2
-            else:
-                time_step_RK = self._time_step_RK4
-            self._time_step_RK = time_step_RK
-            return
-
-        dtype = self.freq_lin.dtype
-        if dtype == np.float64:
-            str_type = "float"
-        elif dtype == np.complex128:
-            str_type = "complex"
+        if params_ts.type_time_scheme == "RK2":
+            time_step_RK = self._time_step_RK2
         else:
-            raise NotImplementedError("dtype of freq_lin:" + repr(dtype))
-
-        name_function = (
-            "_time_step_"
-            + params_ts.type_time_scheme
-            + "_state_ndim{}_freqlin_ndim{}_".format(
-                self.sim.state.state_spect.ndim, self.freq_lin.ndim
-            )
-            + str_type
-        )
-
-        if not hasattr(self, name_function):
-            warn(
-                "The specialized function "
-                + name_function
-                + " is not implemented (solver {}).".format(
-                    self.sim.info_solver.short_name
-                )
-            )
-
-            name_function = "_time_step_" + params_ts.type_time_scheme
-
-        exec("self._time_step_RK = self." + name_function, globals(), locals())
+            time_step_RK = self._time_step_RK4
+        self._time_step_RK = time_step_RK
 
     def _compute_freq_complex(self):
         state_spect = self.sim.state.state_spect

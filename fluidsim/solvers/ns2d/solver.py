@@ -52,7 +52,7 @@ class InfoSolverNS2D(InfoSolverPseudoSpectral):
         The function `InfoSolverPseudoSpectral._init_root` is
         called. We keep two classes listed by this function:
 
-        - :class:`fluidsim.base.time_stepping.pseudo_spect_cy.TimeSteppingPseudoSpectral`
+        - :class:`fluidsim.base.time_stepping.pseudo_spect.TimeSteppingPseudoSpectral`
 
         - :class:`fluidsim.operators.operators2d.OperatorsPseudoSpectral2D`
 

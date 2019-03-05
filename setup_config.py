@@ -69,25 +69,6 @@ def check_avail_library(library_name):
         return False
 
 
-on_rtd = os.environ.get("READTHEDOCS")
-
-
-if on_rtd:
-    MPI4PY = False
-else:
-    try:
-        import mpi4py
-    except ImportError:
-        MPI4PY = False
-        logger.info("ImportError of mpi4py: no mpi extensions will be built.")
-    else:
-        MPI4PY = True
-        CC = os.getenv("CC", "mpicc")
-        logger.info(
-            "Compiling Cython extensions with the compiler/wrapper: " + CC
-        )
-
-
 FFTW3 = check_avail_library("fftw3")
 
 

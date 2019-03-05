@@ -44,7 +44,7 @@ automatically. So for most cases, manual intervention is not required.
        $ python -c 'import h5py; h5py.run_tests()'
 
     In some cases you need to set C_INCLUDE_PATH variable before h5py
-    installation. For example on debian stretch : 
+    installation. For example on Debian stretch:
 
     .. code:: bash
 
@@ -132,8 +132,8 @@ installation with pip::
   wget https://bitbucket.org/fluiddyn/fluidsim/raw/default/site.cfg.default -O ~/.fluidsim-site.cfg
 
 
-Install from the repository (recommended)
------------------------------------------
+Install from the repository
+---------------------------
 
 Get the source code
 ~~~~~~~~~~~~~~~~~~~
@@ -173,6 +173,11 @@ running from the top-level directory::
 or (without virtualenv)::
 
   pip install -e . --user
+
+To install Fluidsim with all optional dependencies and all capacities::
+
+  pip install mpi4py pythran
+  pip install -e .[full]
 
 Run the tests!
 --------------
@@ -214,7 +219,7 @@ Fluidsim is also sensitive to the environment variables:
 
   - ``MPICXX``: for Cython extensions in ``fluidfft`` (default: ``mpicxx``)
   - ``CC``: command to generate object files in ``fluidsim``
-  - ``LDSHARED``: command to link and generate shared libraries in ``fluidsim`` 
+  - ``LDSHARED``: command to link and generate shared libraries in ``fluidsim``
   - ``CARCH``: to cross compile (default: ``native``)
 
   or by using a ``site.cfg`` or ``~/.fluidsim-site.cfg`` file as described

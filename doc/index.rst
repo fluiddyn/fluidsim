@@ -14,12 +14,14 @@ efficient** even compared to a pure Fortran or C++ code since the
 time-consuming tasks are performed by optimized compiled functions.
 
 Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
-code written mostly in Python. It uses the library `fluidfft
-<http://fluidfft.readthedocs.io>`_ to use very efficient FFT
-libraries. Fluidfft is written in C++, Cython and Python. Fluidfft and fluidsim
-take advantage of `Pythran <https://github.com/serge-sans-paille/pythran>`_, a
+code written mostly in Python. It uses the library `Fluidfft
+<http://fluidfft.readthedocs.io>`_ to use very efficient FFT libraries.
+Fluidfft is written in C++, Cython and Python. Fluidfft and fluidsim take
+advantage of `Pythran <https://github.com/serge-sans-paille/pythran>`_, a
 static Python compiler which produces very efficient binaries by compiling
-Python via C++11.
+Python via C++11. Pythran is actually used in Fluidsim through `Transonic
+<http://transonic.readthedocs.io>`_, which is a new and cool project for HPC
+with Python.
 
 An advantage of a CFD code written mostly in Python is that to run simulations
 and analyze the results, the users communicate (possibly interactively)
@@ -32,9 +34,9 @@ We have created fluidsim to be **easy and nice to use and to develop**, highly
 **efficient** and **robust**.
 
 Fluidsim is a young package but the list of solvers already implemented (see
-:mod:`fluidsim.solvers`) gives a good idea of the versatility of this framework.
-However, currently, fluidsim excels in particular in solving equations over a
-periodic space:
+:mod:`fluidsim.solvers`) gives a good idea of the versatility of this
+framework. However, currently, Fluidsim excels in particular in solving
+equations over a periodic space:
 
   * 2d and 3d incompressible Navier-Stokes equations,
 
@@ -44,13 +46,28 @@ periodic space:
   * 2d and 3d stratified Navier-Stokes equations under the Boussinesq
     approximation with constant Brunt-Väisälä frequency,
 
-  * 2d one-layer shallow-water equations + modified versions of these equations,
+  * 2d one-layer shallow-water equations + modified versions of these
+    equations,
 
   * 2d Föppl-von Kármán equations (elastic thin plate).
 
 Being a framework, Fluidsim can easily be extended in other packages to develop
 other solvers (see for example the package `fluidsim_ocean
 <https://bitbucket.org/fluiddyn/fluidsim_ocean>`_).
+
+
+**Metapapers and citations**
+
+Our metapapers presenting `Fluidsim
+<http://www.legi.grenoble-inp.fr/people/Pierre.Augier/docs/fluidsim_paper.pdf>`__,
+`Fluidfft
+<http://www.legi.grenoble-inp.fr/people/Pierre.Augier/docs/fluidfft_paper.pdf>`__
+and the `FluidDyn project
+<http://www.legi.grenoble-inp.fr/people/Pierre.Augier/docs/fluiddyn_metapaper.pdf>`__,
+have been accepted by the `Journal of Open Research Software (JORS)
+<https://openresearchsoftware.metajnl.com/>`_. If you use Fluidsim to produce
+scientific articles, please cite them!
+
 
 User Guide
 ----------
@@ -112,8 +129,9 @@ Links
 - Unittest coverage |coverage|
 - Continuous integration with travis |travis|
 - Continuous integration with Bitbucket Pipelines |pipelines|
-- `FluidDyn user chat room
-  <https://riot.im/app/#/room/#fluiddyn-users:matrix.org>`_
+- FluidDyn user chat room in
+  `Riot <https://riot.im/app/#/room/#fluiddyn-users:matrix.org>`_ or
+  `Slack <https://fluiddyn.slack.com>`_
 - `FluidDyn mailing list <https://www.freelists.org/list/fluiddyn>`_
 - `FluidDyn on Twitter <https://twitter.com/pyfluiddyn>`_
 
@@ -124,4 +142,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

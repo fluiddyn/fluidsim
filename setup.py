@@ -22,27 +22,13 @@ def install_setup_requires():
 
 install_setup_requires()
 
-
-try:
-    from Cython.Distutils.extension import Extension
-    from Cython.Compiler import Options as CythonOptions
-
-    has_cython = True
-    ext_source = "pyx"
-except ImportError:
-    from setuptools import Extension
-
-    has_cython = False
-    ext_source = "c"
-
 here = Path(__file__).parent.absolute()
 
 try:
-    from setup_config import MPI4PY, FFTW3, logger
+    from setup_config import FFTW3, logger
 except ImportError:
     # needed when there is already a module with the same name imported.
     setup_config = run_path(here / "setup_config.py")
-    MPI4PY = setup_config["MPI4PY"]
     FFTW3 = setup_config["FFTW3"]
     logger = setup_config["logger"]
 
@@ -158,34 +144,12 @@ def create_extensions():
 
     transonize()
 
-    logger.info(f"Importing mpi4py: {MPI4PY}")
-
-    define_macros = []
-    if has_cython and os.getenv("TOXENV") is not None:
-        cython_defaults = CythonOptions.get_directive_defaults()
-        cython_defaults["linetrace"] = True
-        define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
-
-    import numpy as np
-
-    path_sources = "fluidsim/base/time_stepping"
-    ext_cyfunc = Extension(
-        "fluidsim.base.time_stepping.pseudo_spect_cy",
-        include_dirs=[path_sources, np.get_include()],
-        libraries=["m"],
-        library_dirs=[],
-        sources=[path_sources + "/pseudo_spect_cy." + ext_source],
-        define_macros=define_macros,
-    )
-
-    ext_modules = [ext_cyfunc]
+    ext_modules = create_pythran_extensions()
 
     logger.info(
         "The following extensions could be built if necessary:\n"
         + "".join([ext.name + "\n" for ext in ext_modules])
     )
-
-    ext_modules.extend(create_pythran_extensions())
 
     return ext_modules
 
@@ -216,8 +180,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Programming Language :: Cython",
-        "Programming Language :: C",
     ],
     packages=find_packages(exclude=["doc", "examples"]),
     install_requires=install_requires,

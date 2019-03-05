@@ -1,9 +1,0 @@
-cython
-jupyter
-numpy
-matplotlib
-scipy
-fluiddyn>=0.3.0
-Sphinx>=1.1
-numpydoc
-fluidfft
