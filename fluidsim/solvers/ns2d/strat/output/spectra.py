@@ -224,6 +224,11 @@ class SpectraNS2DStrat(Spectra):
             EA_kx_plot = EA_kx_plot[1:]
             kx_plot = kx_plot[1:]
 
+        # Compute k_b: L_b = U / N
+        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux"))**2))
+        k_b = self.sim.params.N / U
+        ax.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
+
         ax.plot(
             kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
         )

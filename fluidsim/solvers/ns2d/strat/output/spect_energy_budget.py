@@ -357,15 +357,25 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         nkmax = self.sim.params.forcing.nkmax_forcing
         nkmin = self.sim.params.forcing.nkmin_forcing
         k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
-        try:
-            angle = self.sim.forcing.forcing_maker.angle
-        except AttributeError:
-            pass
-        else:
+
+        pforcing = self.sim.params.forcing
+        if pforcing.enable and pforcing.type == "tcrandom_anisotropic":
+            angle = pforcing.tcrandom_anisotropic.angle
+            try:
+                if angle.endswith("°"):
+                    angle = np.pi / 180 * float(angle[:-1])
+            except AttributeError:
+                pass
             k_fx = np.sin(angle) * k_f
             k_fy = np.cos(angle) * k_f
-            ax1.axvline(x=k_fx, color="k", linestyle=":", label="$k_{f,x}$")
-            ax2.axvline(x=k_fy, color="k", linestyle=":", label="$k_{f,z}$")
+            ax1.axvline(x=k_fx, color="y", linestyle="-.", label="$k_{f,x}$")
+            ax2.axvline(x=k_fy, color="y", linestyle="-.", label="$k_{f,z}$")
+
+        # Compute k_b: L_b = U / N
+        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux"))**2))
+        k_b = self.sim.params.N / U
+        ax1.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
+        ax2.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
 
         ax1.legend()
         ax2.legend()
