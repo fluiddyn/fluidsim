@@ -462,7 +462,9 @@ class SpatioTempSpectra(SpecificOutput):
         print(list_its)
         list_files_new = []
         for it in list_its:
-            list_files_new.append(self.path_dir / ("spatio_temp_it" + str(it) + ".h5"))
+            list_files_new.append(
+                self.path_dir / ("spatio_temp_it" + str(it) + ".h5")
+            )
 
         list_files = list_files_new
 
@@ -519,6 +521,49 @@ class SpatioTempSpectra(SpecificOutput):
 
         return times_conc[itmin:itmax], spatio_temp_conc[:, itmin:itmax, :, :]
 
+    def _add_inset_plot(self, fig, kxmax_inset=32, kzmax_inset=32):
+        """
+        Adds an inset plot to the object figure.
+        It is the spectral space with the forcing region.
+        """
+        # Checks if self.sim.forcing.forcing_maker object exists. 
+        if self.sim.forcing.forcing_maker is None:
+            ax_inset = None
+        else:
+            # Define position of the inset plot
+            # There are percentages of the original axes.
+            left, bottom, width, height = [0.56, 0.68, 0.22, 0.22]
+            ax_inset = fig.add_axes([left, bottom, width, height])
+
+            # Add labels
+            ax_inset.set_xlabel("$k_x$", labelpad=0.05)
+            ax_inset.set_ylabel("$k_z$", labelpad=0.05)
+
+            # Set ticks each axis
+            xticks = np.arange(0, kxmax_inset, self.sim.oper.deltakx)
+            zticks = np.arange(0, kzmax_inset, self.sim.oper.deltaky)
+            ax_inset.set_xticks(xticks[:: int(self.sim.oper.deltaky)])
+            ax_inset.set_yticks(zticks)
+
+            # Set axis limit & grid
+            ax_inset.set_xlim(0, kxmax_inset)
+            ax_inset.set_ylim(0, kzmax_inset)
+            ax_inset.grid(linestyle="--", alpha=0.4)
+
+            indices_forcing = np.argwhere(
+                self.sim.forcing.forcing_maker.COND_NO_F == False
+            )
+
+            for i, index in enumerate(indices_forcing):
+                ax_inset.plot(
+                    self.sim.oper.KX[0, index[1]],
+                    self.sim.oper.KY[index[0], 0],
+                    "ro",
+                    label="Forced mode" if i == 0 else "",
+                )
+
+        return ax_inset
+
     def plot_kx_omega_cross_section(
         self,
         path_file=None,
@@ -526,6 +571,7 @@ class SpatioTempSpectra(SpecificOutput):
         ikz_plot=None,
         kxmax_plot=None,
         func_plot="pcolormesh",
+        INSET_PLOT=True,
     ):
         pspatio = self.params.output.spatio_temporal_spectra
         # Define path dir as posix path
@@ -595,7 +641,7 @@ class SpatioTempSpectra(SpecificOutput):
         omega_min_plot = -3
 
         omegas = np.append(omegas, 0)
-        imin_omegas_plot = np.argmin(abs(omegas - omega_min_plot)) - 1
+        imin_omegas_plot = np.argmin(abs(omegas - omega_min_plot))
 
         kxs_grid, omegas_grid = np.meshgrid(
             kx_decimate[ikxmin_plot:ikxmax_plot], omegas[imin_omegas_plot:]
@@ -718,7 +764,13 @@ class SpatioTempSpectra(SpecificOutput):
             color="white",
         )
 
-        # Tight layout of the figure
+        # Inset plot
+        if INSET_PLOT:
+            ax_inset = self._add_inset_plot(fig)
+            if ax_inset is not None:
+                ax_inset.axhline(y=self.sim.oper.ky[ikz_plot], color="k")
+
+        # Tight layut of the figure
         fig.tight_layout()
 
     def plot_kz_omega_cross_section(
@@ -727,10 +779,11 @@ class SpatioTempSpectra(SpecificOutput):
         field="ap_fft",
         ikx_plot=None,
         func_plot="pcolormesh",
+        INSET_PLOT=True,
     ):
-        # Define path dir as posix path
+        # if ax_inset is not None:
+        #  D    efine path dir as po   six path
         path_dir = self.path_dir
-
         # If path_file does not exist.
         if not path_file:
             path_file = sorted((path_dir / "Spectrum").glob("spectrum*"))[-1]
@@ -882,6 +935,12 @@ class SpatioTempSpectra(SpecificOutput):
             color="red",
         )
 
+        # Inset plot
+        if INSET_PLOT:
+            ax_inset = self._add_inset_plot(fig)
+            if ax_inset is not None:
+                ax_inset.axvline(x=self.sim.oper.kx[ikx_plot], color="k")
+
         # Tight layout of the figure
         fig.tight_layout()
 
@@ -901,7 +960,9 @@ class SpatioTempSpectra(SpecificOutput):
             ),
         )
 
-    def plot_frequency_spectra_individual_mode(self, path_file=None, mode=None):
+    def plot_frequency_spectra_individual_mode(
+        self, path_file=None, mode=None, INSET_PLOT=True
+    ):
         """Plots the frequency spectra of an individual Fourier mode.
 
         Keyword Arguments:
@@ -991,6 +1052,12 @@ class SpatioTempSpectra(SpecificOutput):
         )
         ax2.axvline(x=f_l / f_l, color="k", linestyle="--")
         ax2.axvline(x=iw / f_l, color="r", linestyle="--")
+
+        # Inset plot
+        if INSET_PLOT:
+            ax_inset = self._add_inset_plot(fig2)
+            if ax_inset is not None:
+                ax_inset.plot([kx_mode], [kz_mode], color="b", marker="o")
 
     def _init_online_plot(self):
         if mpi.rank == 0:
