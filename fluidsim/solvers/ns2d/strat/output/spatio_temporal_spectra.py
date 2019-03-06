@@ -558,7 +558,9 @@ class SpatioTempSpectra(SpecificOutput):
                 ax_inset.plot(
                     self.sim.oper.KX[0, index[1]],
                     self.sim.oper.KY[index[0], 0],
-                    "ro",
+                    color="red",
+                    marker="o",
+                    markersize=2,
                     label="Forced mode" if i == 0 else "",
                 )
 
@@ -658,7 +660,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax.set_ylabel(r"$\omega / N$", fontsize=16)
         ax.tick_params(axis="x", labelsize=16)
         ax.tick_params(axis="y", labelsize=16)
-        ax.set_title(fr"$log (k_x, {kz_decimate[ikz_plot]}, \omega)$")
+        ax.set_title(fr"$log_{{10}} E(k_x, {kz_decimate[ikz_plot]}, \omega)$")
 
         # Compute index array corresponding to field.
         if field == "ap_fft":
@@ -842,7 +844,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax.set_ylabel(r"$\omega / N$", fontsize=16)
         ax.tick_params(axis="x", labelsize=16)
         ax.tick_params(axis="y", labelsize=16)
-        ax.set_title(fr"$log ({kx_decimate[ikx_plot]}, k_z, \omega)$")
+        ax.set_title(fr"$log_{{10}} E({kx_decimate[ikx_plot]}, k_z, \omega)$")
 
         # Compute index array corresponding to field.
         if field == "ap_fft":
