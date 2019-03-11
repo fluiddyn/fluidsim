@@ -1,4 +1,11 @@
 
+0.3.1 (2019-03-07)
+------------------
+
+- Windows compatibility
+- Only Python code (stop using Cython)
+- Improvements ns2d.strat
+
 0.3.0 (2019-01-31)
 ------------------
 
