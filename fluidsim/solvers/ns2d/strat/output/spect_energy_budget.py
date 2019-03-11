@@ -392,3 +392,37 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
         ax1.legend()
         ax2.legend()
+
+    def load_mean(self, tmin=None, tmax=None):
+        """
+        Loads data spect_energy_budget.
+        
+        It computes the mean between tmin and tmax.
+        """
+
+        with h5py.File(self.path_file, "r") as f:
+            times = f["times"].value
+            kxE = f["kxE"].value
+            kyE = f["kyE"].value
+            dset_dissEK_kx = f["dissEK_kx"].value
+            dset_dissEA_kx = f["dissEA_kx"].value
+            dset_dissEK_ky = f["dissEK_ky"].value
+            dset_dissEA_ky = f["dissEA_ky"].value
+
+            # If tmin and tmax is None
+            if tmin is None:
+                tmin = np.min(times)
+            
+            if tmax is None:
+                tmax = np.max(times)
+
+            imin_plot = np.argmin(abs(times - tmin))
+            imax_plot = np.argmin(abs(times - tmax))
+
+            dset_dissE_kx = dset_dissEK_kx + dset_dissEA_kx
+            dissE_kx = dset_dissE_kx[imin_plot:imax_plot + 1].mean(0)
+
+            dset_dissE_ky = dset_dissEK_ky + dset_dissEA_ky
+            dissE_ky = dset_dissE_ky[imin_plot:imax_plot + 1].mean(0)
+
+        return kxE, kyE, dissE_kx, dissE_ky
