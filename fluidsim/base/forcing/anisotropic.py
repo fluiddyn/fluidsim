@@ -57,16 +57,6 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
         self.kymin_forcing = np.cos(angle) * self.kmin_forcing
         self.kymax_forcing = np.cos(angle) * self.kmax_forcing
 
-        if (
-            self.kxmax_forcing - self.kxmin_forcing < self.oper.deltakx
-            or self.kymax_forcing - self.kymin_forcing < self.oper.deltaky
-        ):
-            raise ValueError(
-                "No forcing modes in one direction.\n"
-                f"kxmin={self.kxmin_forcing}, kxmax={self.kxmax_forcing}, deltakx={self.oper.deltakx}\n"
-                f"kymin={self.kymin_forcing}, kymax={self.kymax_forcing}, deltaky={self.oper.deltaky}"
-            )
-
         COND_NO_F_KX = np.logical_or(
             self.oper_coarse.KX > self.kxmax_forcing,
             self.oper_coarse.KX < self.kxmin_forcing,
