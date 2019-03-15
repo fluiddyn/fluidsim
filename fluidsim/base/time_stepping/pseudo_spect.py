@@ -22,8 +22,6 @@ Provides:
 
 import numpy as np
 
-# transonic import numpy as np
-
 from transonic import Transonic, Type, NDim, Array
 
 from .base import TimeSteppingBase

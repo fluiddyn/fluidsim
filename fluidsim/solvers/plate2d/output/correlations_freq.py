@@ -23,8 +23,6 @@ from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 
 from fluidsim.base.output.base import SpecificOutput
 
-# transonic import numpy as np
-
 
 @jit
 def compute_correl4_seq(

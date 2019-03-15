@@ -2,8 +2,6 @@ import h5py
 import os
 import numpy as np
 
-# transonic import numpy as np
-
 from transonic import boost, Array
 from fluiddyn.util import mpi
 

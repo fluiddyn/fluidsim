@@ -12,8 +12,6 @@ Provides
 import numpy as np
 from fluiddyn.util.compat import cached_property
 
-# transonic import numpy as np
-
 from transonic import boost, jit, Array
 
 from fluidsim.operators.operators2d import (
