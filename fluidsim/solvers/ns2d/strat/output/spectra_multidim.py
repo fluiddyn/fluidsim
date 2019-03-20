@@ -103,20 +103,24 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
                 raise ValueError("Key unknown.")
 
             # Compute time average
-            if not tmin:
+            if tmin is None:
                 tmin = times[0]
-            if not tmax:
+            if tmax is None:
                 tmax = times[-1]
 
             itmin = np.argmin(abs(times - tmin))
-            itmax = np.argmin(abs(times - tmax))
+            if tmin == tmax:
+                data_plot = data[itmin, :, :]
+                if key != "ap_fft":
+                    vmax_modified = ap_fft_spectrum[itmin, :, :].max()
 
-            data_plot = (data[itmin:itmax, :, :]).mean(0)
-
-            if key != "ap_fft":
-                vmax_modified = (
-                    (ap_fft_spectrum[itmin:itmax, :, :]).mean(0)
-                ).max()
+            else:
+                itmax = np.argmin(abs(times - tmax))
+                data_plot = (data[itmin:itmax, :, :]).mean(0)
+                if key != "ap_fft":
+                    vmax_modified = (
+                        (ap_fft_spectrum[itmin:itmax, :, :]).mean(0)
+                    ).max()
 
         # Create array kz with negative values
         kz = 2 * np.pi * np.fft.fftfreq(oper.ny, oper.Ly / oper.ny)
