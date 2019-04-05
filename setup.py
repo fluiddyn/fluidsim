@@ -67,7 +67,7 @@ install_requires = [
     "fluiddyn >= 0.3.0",
     "h5py",
     "h5netcdf",
-    "transonic>=0.1.11.post0",
+    "transonic>=0.2.0",
     "setuptools_scm",
     "xarray",
 ]
@@ -101,25 +101,7 @@ def transonize():
         "fluidsim/operators/operators3d.py",
         "fluidsim/solvers/ns2d/solver.py",
     ]
-    make_backend_files(
-        [here / path for path in paths],
-        mocked_modules=(
-            "psutil",
-            "h5py",
-            "matplotlib",
-            "matplotlib.pyplot",
-            "fluiddyn",
-            "fluiddyn.io",
-            "fluiddyn.util",
-            "fluiddyn.util.paramcontainer",
-            "fluiddyn.util.mpi",
-            "fluiddyn.output",
-            "fluiddyn.calcul",
-            "fluiddyn.calcul.setofvariables",
-            "fluidfft.fft2d.operators",
-            "fluidfft.fft3d.operators",
-        ),
-    )
+    make_backend_files([here / path for path in paths])
 
 
 def create_pythran_extensions():
