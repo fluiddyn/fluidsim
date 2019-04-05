@@ -11,15 +11,13 @@ Provides:
 
 """
 
-import os
 import sys
 import time
-from glob import glob
-
-import numpy as np
 import h5py
+import numpy as np
 
 from scipy import signal
+from pathlib import Path
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
@@ -64,6 +62,22 @@ class FrequencySpectra(SpecificOutput):
         self.spatial_decimate = pfreq_spectra.spatial_decimate
         self.size_max_file = pfreq_spectra.size_max_file
         self.periods_save = params.output.periods_save.frequency_spectra
+
+        self.has_to_save = bool(params.output.periods_save.frequency_spectra)
+
+        # Check: In restart... time_start == time last state.
+        path_run = Path(self.sim.output.path_run)
+        path_spatio_temp_files = path_run / "frequency_spectra"
+
+        if sorted(path_spatio_temp_files.glob("temp_array_it*")):
+            name = sorted(path_run.glob("state_phys*"))[-1].stem
+            if "_it" in name:
+                time_last_file = float(name.split("state_phys_t")[-1].split("_it")[0])
+            else:
+                time_last_file = float(name.split("state_phys_t")[1])
+
+            if round(self.time_start, 3) != time_last_file:
+                self.time_start = time_last_file
 
         # Number points each direction
         n0 = len(list(range(0, params.oper.ny, self.spatial_decimate)))
@@ -130,10 +144,10 @@ class FrequencySpectra(SpecificOutput):
         # Create directory to save files
         if mpi.rank == 0:
             dir_name = self._tag
-            self.path_dir = os.path.join(self.sim.output.path_run, dir_name)
+            self.path_dir = Path(self.sim.output.path_run) / dir_name
 
-            if not os.path.exists(self.path_dir):
-                os.mkdir(self.path_dir)
+        if self.has_to_save and mpi.rank == 0:
+            self.path_dir.mkdir(exist_ok=True)
 
         # Start loop in _online_save
         self.it_last_run = self.it_start
@@ -149,7 +163,7 @@ class FrequencySpectra(SpecificOutput):
             # Name file
             it_start = int(times_arr[0] / self.sim.params.time_stepping.deltat0)
             name_file = f"temp_array_it{it_start}.h5"
-            path_file = os.path.join(self.path_dir, name_file)
+            path_file = self.path_dir / name_file
 
             # Dictionary arrays
             dict_arr = {
@@ -236,12 +250,91 @@ class FrequencySpectra(SpecificOutput):
                 else:
                     self.nb_times_in_temp_array += 1
 
+    def _concatenate_data(self, tmin, tmax):
+        """
+        Concatenates temporal data.
+            
+        Argument
+            tmin {float} -- Minimum time to perform temporal FT.
+            tmax {float} -- Maximum time to perform temporal FT.
+
+        Raises:
+            ValueError -- itmin == itmax
+
+        Returns:
+            times_conc {array} -- Concatenated time array
+            temp_arr_conc {array} -- concatenated temporal data array
+        """
+
+        path_files = sorted(self.path_dir.glob("temp_array_it*"))
+
+        # Sort files by number of iteration.
+        list_its = []
+
+        for path_file in path_files:
+            list_its.append(int(path_file.name.split("_it")[1].split(".h5")[0]))
+
+        list_its = sorted(list_its)
+        print(list_its)
+        list_files_new = []
+        for it in list_its:
+            list_files_new.append(self.path_dir / ("temp_array_it" + str(it) + ".h5")
+            )
+
+        list_files = list_files_new
+        for lf in list_files:
+            print(lf.name)
+
+        # Create concatenated arrays
+        temp_arr_conc = None
+        times_conc = None
+
+        for path_file in list_files:
+            with h5py.File(path_file, "r") as f:
+                temp_arr = f["temp_arr"].value
+                times = f["times_arr"].value
+
+            # Concatenate arrays
+            if isinstance(temp_arr_conc, np.ndarray):
+                temp_arr_conc = np.concatenate(
+                    (temp_arr_conc, temp_arr), axis=1
+                )
+            if isinstance(times_conc, np.ndarray):
+                times_conc = np.concatenate((times_conc, times), axis=0)
+            else:
+                temp_arr_conc = temp_arr
+                times_conc = times
+
+        # Default tmin and tmax
+        if not tmin:
+            tmin = np.min(times_conc)
+        if not tmax:
+            tmax = np.max(times_conc)
+
+        # Find indexes itmin and itmax
+        itmin = np.argmin(abs(times_conc - tmin))
+        itmax = np.argmin(abs(times_conc - tmax)) + 1
+
+        # Check..
+        if itmin == itmax:
+            raise ValueError(
+                "itmin == itmax. \n"
+                + f"Choose between tmin = {np.min(times_conc)} - "
+                + f"tmax = {np.max(times_conc)}"
+            )
+
+        # Print info..
+        to_print = f"tmin = {np.min(times_conc)} ; tmax = {np.max(times_conc)}"
+        print(to_print)
+
+        return times_conc[itmin:itmax], temp_arr_conc[:, itmin:itmax, :, :]
+
     def compute_frequency_spectra(self):
         """
         Computes and saves the frequency spectra.
         """
         # Define list of path files
-        list_files = glob(os.path.join(self.path_dir, "temp_array_it*"))
+        list_files = sorted(self.path_dir.glob("temp_array_iself.t*"))
 
         # Compute sampling frequency
         freq_sampling = 1.0 / (
