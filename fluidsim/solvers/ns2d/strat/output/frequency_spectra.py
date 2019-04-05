@@ -72,7 +72,9 @@ class FrequencySpectra(SpecificOutput):
         if sorted(path_spatio_temp_files.glob("temp_array_it*")):
             name = sorted(path_run.glob("state_phys*"))[-1].stem
             if "_it" in name:
-                time_last_file = float(name.split("state_phys_t")[-1].split("_it")[0])
+                time_last_file = float(
+                    name.split("state_phys_t")[-1].split("_it")[0]
+                )
             else:
                 time_last_file = float(name.split("state_phys_t")[1])
 
@@ -278,7 +280,8 @@ class FrequencySpectra(SpecificOutput):
         print(list_its)
         list_files_new = []
         for it in list_its:
-            list_files_new.append(self.path_dir / ("temp_array_it" + str(it) + ".h5")
+            list_files_new.append(
+                self.path_dir / ("temp_array_it" + str(it) + ".h5")
             )
 
         list_files = list_files_new
@@ -296,9 +299,7 @@ class FrequencySpectra(SpecificOutput):
 
             # Concatenate arrays
             if isinstance(temp_arr_conc, np.ndarray):
-                temp_arr_conc = np.concatenate(
-                    (temp_arr_conc, temp_arr), axis=1
-                )
+                temp_arr_conc = np.concatenate((temp_arr_conc, temp_arr), axis=1)
             if isinstance(times_conc, np.ndarray):
                 times_conc = np.concatenate((times_conc, times), axis=0)
             else:
