@@ -105,6 +105,40 @@ except ImportError:
 
 del util
 
+__citation__ = r"""
+@article{fluiddyn,
+doi = {10.5334/jors.237},
+year = {2019},
+publisher = {Ubiquity Press,  Ltd.},
+volume = {7},
+author = {Pierre Augier and Ashwin Vishnu Mohanan and Cyrille Bonamy},
+title = {{FluidDyn}: A Python Open-Source Framework for Research and Teaching in Fluid Dynamics
+    by Simulations,  Experiments and Data Processing},
+journal = {Journal of Open Research Software}
+}
+
+@article{fluidfft,
+doi = {10.5334/jors.238},
+year = {2019},
+publisher = {Ubiquity Press,  Ltd.},
+volume = {7},
+author = {Ashwin Vishnu Mohanan and Cyrille Bonamy and Pierre Augier},
+title = {{FluidFFT}: Common {API} (C$\mathplus\mathplus$ and Python)
+    for Fast Fourier Transform {HPC} Libraries},
+journal = {Journal of Open Research Software}
+}
+
+@article{fluidsim,
+doi = {10.5334/jors.239},
+year = {2019},
+publisher = {Ubiquity Press,  Ltd.},
+volume = {7},
+author = {Mohanan, Ashwin Vishnu and Bonamy, Cyrille and Linares, Miguel Calpe and Augier, Pierre},
+title = {{FluidSim}: {Modular}, {Object}-{Oriented} {Python} {Package} for
+    {High}-{Performance} {CFD} {Simulations}},
+journal = {Journal of Open Research Software}
+}
+"""
 
 __all__ = [
     "__version__",
@@ -118,4 +152,5 @@ __all__ = [
     "modif_resolution_all_dir",
     "load_params_simul",
     "load_for_restart",
+    "__citation__",
 ]
