@@ -59,11 +59,11 @@ other solvers (see for example the package `fluidsim_ocean
 **Metapapers and citations**
 
 If you use FluidSim to produce scientific articles, please cite our metapapers
-presenting the FluidDyn project
+presenting the `FluidDyn project
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.237/>`__,
-FluidFFT
+`FluidFFT
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.238/>`__, and
-FluidSim
+`FluidSim
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.239/>`__:
 
 
