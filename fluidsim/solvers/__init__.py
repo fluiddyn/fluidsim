@@ -27,6 +27,7 @@ Provides:
 
 """
 import numpy as _np
+from warnings import warn as _warn
 
 
 def pkgload():
@@ -41,5 +42,12 @@ def pkgload():
     solver_pkgs = (f"fluidsim.solvers.{solver}" for solver in solvers)
     solver_modules = (f"fluidsim.solvers.{solver}.solver" for solver in solvers)
 
+    _warn(
+        (
+            "This function will not work in numpy>=0.16.0 and will be removed in "
+            "the future"
+        ),
+        FutureWarning,
+    )
     _np.pkgload(*solver_pkgs)
     _np.pkgload(*solver_modules)
