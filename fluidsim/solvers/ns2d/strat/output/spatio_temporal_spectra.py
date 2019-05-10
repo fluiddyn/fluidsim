@@ -320,7 +320,7 @@ class SpatioTempSpectra(SpecificOutput):
         Keyword Arguments:
             tmin {float} -- Minimum time to perform temporal FT. (default: {None})
             tmax {float} -- Maximum time to perform temporal FT. (default: {None})
-            time_windows {float} -- TIme windows to compute temporal FT. (default: {None})
+            time_windows {float} -- Time windows to compute temporal FT. (default: {None})
             overlap {float} -- Overlap between windows. From 0 to 1. (default: {0.5})
         """
 
@@ -468,19 +468,43 @@ class SpatioTempSpectra(SpecificOutput):
 
         list_files = list_files_new
 
+        # List of tuples (ifile, time)
+        ifile_time = []
+        
+        for index, path_file in enumerate(list_files):
+            with h5py.File(path_file, "r") as f:
+                times = f["times_arr"].value
+            for time_value in times:
+                ifile_time.append((index, time_value))
+
+        ifile_min = None
+        ifile_max = None
+
+        for ii, value in enumerate(ifile_time):
+            if ifile_min is None and tmin == round(value[1], 0):
+                ifile_min = value[0]
+            if ifile_max is None and tmax == round(value[1], 0):
+                ifile_max = value[0]
+
+        if ifile_min is None:
+            ifile_min = 0
+        
+        if ifile_max is None:
+            ifile_max = len(list_files)
+
         # Define concatenate arrays
         spatio_temp_conc = None
         times_conc = None
 
         # Load all data
-        for index, path_file in enumerate(list_files):
+        for index, path_file in enumerate(list_files[ifile_min:ifile_max]):
             with h5py.File(path_file, "r") as f:
                 spatio_temp = f["spatio_temp"].value
                 times = f["times_arr"].value
 
             # Print concatenating info..
             print(
-                f"Concatenating file = {index + 1}/{len(list_files)}..", end="\r"
+                f"Concatenating file = {index + 1}/{len(list_files[ifile_min:ifile_max])}..", end="\r"
             )
 
             # Concatenate arrays
