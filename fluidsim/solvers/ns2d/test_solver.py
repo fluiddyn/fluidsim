@@ -115,6 +115,8 @@ class TestForcingOutput(TestSimulBase):
         params.forcing.enable = True
         params.forcing.type = "tcrandom"
 
+        params.time_stepping.max_elapsed = "0:10:00"
+
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:

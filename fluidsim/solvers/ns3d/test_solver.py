@@ -77,6 +77,8 @@ class TestOutput(TestSimulBase):
         params = super().init_params()
         params.init_fields.type = "dipole"
 
+        params.time_stepping.max_elapsed = 600
+
         params.forcing.enable = True
         params.forcing.type = "in_script"
         params.forcing.key_forced = "vx_fft"

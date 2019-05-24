@@ -25,6 +25,7 @@ params.N = 4.0  # Brunt Vaisala frequency
 
 params.time_stepping.t_end = 10.0
 params.time_stepping.cfl_coef = 0.2
+params.time_stepping.max_elapsed = "00:00:05"
 
 params.init_fields.type = "noise"
 params.init_fields.noise.velo_max = 0.01

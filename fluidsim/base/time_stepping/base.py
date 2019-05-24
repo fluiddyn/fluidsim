@@ -122,7 +122,6 @@ max_elapsed: number or str (default None)
             if mpi.nb_proc > 1:
                 t_start = mpi.comm.bcast(t_start, root=0)
             self._time_should_stop = t_start + self.max_elapsed
-            # print("_time_should_stop", self._time_should_stop)
         else:
             self.max_elapsed = None
 
@@ -249,9 +248,16 @@ max_elapsed: number or str (default None)
             self.compute_time_increment_CLF()
         if self.sim.is_forcing_enabled:
             self.sim.forcing.compute()
-        if self.max_elapsed is not None and time() > self._time_should_stop:
-            mpi.printby0("Maximum elapsed time reached. Should stop soon.")
-            self._has_to_stop = True
+        if self.max_elapsed is not None:
+            if mpi.rank == 0:
+                now = time()
+            else:
+                now = None
+            if mpi.nb_proc > 1:
+                now = mpi.comm.bcast(now, root=0)
+            if now > self._time_should_stop:
+                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
+                self._has_to_stop = True
         self.sim.output.one_time_step()
         self.one_time_step_computation()
         self.t += self.deltat
