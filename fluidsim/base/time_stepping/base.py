@@ -12,6 +12,8 @@ Provides:
 from signal import signal
 from warnings import warn
 from math import pi
+from datetime import datetime, timedelta
+from time import time
 
 from fluiddyn.util import mpi
 
@@ -35,6 +37,7 @@ class TimeSteppingBase:
             "deltat0": 0.2,
             "deltat_max": 0.2,
             "cfl_coef": None,
+            "max_elapsed": None,
         }
         params._set_child("time_stepping", attribs=attribs)
 
@@ -77,6 +80,12 @@ cfl_coef: float (default None)
     If not None, clf_coef used in the CFL condition. If None, the value is choosen
     taking into account the time scheme.
 
+max_elapsed: number or str (default None)
+
+    If not None, the computation stops when the elapsed time becomes larger
+    than `max_elapsed`. Can be a number (in seconds) or a string (formated as
+    "%H:%M:%S").
+
 """
         )
 
@@ -97,6 +106,25 @@ cfl_coef: float (default None)
             signal(12, handler_signals)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
+
+        if self.params.time_stepping.max_elapsed is not None:
+            param_max_elapsed = self.params.time_stepping.max_elapsed
+            try:
+                self.max_elapsed = float(param_max_elapsed)
+            except ValueError:
+                t = datetime.strptime(param_max_elapsed, "%H:%M:%S")
+                delta_t = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                self.max_elapsed = delta_t.total_seconds()
+
+            t_start = None
+            if mpi.rank == 0:
+                t_start = time()
+            if mpi.nb_proc > 1:
+                t_start = mpi.comm.bcast(t_start, root=0)
+            self._time_should_stop = t_start + self.max_elapsed
+            # print("_time_should_stop", self._time_should_stop)
+        else:
+            self.max_elapsed = None
 
     def _init_compute_time_step(self):
 
@@ -221,6 +249,9 @@ cfl_coef: float (default None)
             self.compute_time_increment_CLF()
         if self.sim.is_forcing_enabled:
             self.sim.forcing.compute()
+        if self.max_elapsed is not None and time() > self._time_should_stop:
+            mpi.printby0("Maximum elapsed time reached. Should stop soon.")
+            self._has_to_stop = True
         self.sim.output.one_time_step()
         self.one_time_step_computation()
         self.t += self.deltat
