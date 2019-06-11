@@ -263,7 +263,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax1.set_xscale("log")
         ax1.set_yscale("linear")
         ax1.set_title(
-            "2D spectra, solver "
+            "Spectral energy budget, solver "
             + self.output.name_solver
             + f", nh = {self.nx:5d}"
         )
@@ -313,7 +313,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
         ax2.set_title(
-            "2D spectra, solver "
+            "Spectral energy budget, solver "
             + self.output.name_solver
             + f", nh = {self.nx:5d}"
         )
