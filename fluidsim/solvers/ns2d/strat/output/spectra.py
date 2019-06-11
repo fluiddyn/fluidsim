@@ -229,9 +229,13 @@ class SpectraNS2DStrat(Spectra):
         k_b = self.sim.params.N / U
         ax.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
 
-        ax.plot(
-            kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
-        )
+        # Plot ozmidov scale
+        k_o = (self.sim.params.N**3 / self.sim.params.forcing.forcing_rate)**(1/2)
+        ax.axvline(x=k_o, color="y", linestyle=":", label="$k_o$")
+
+        # ax.plot(
+            # kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
+        # )
         ax.plot(
             kx_plot,
             EK_kx_plot * kx_plot ** coef_compensate,
@@ -258,12 +262,12 @@ class SpectraNS2DStrat(Spectra):
             EA_ky_plot = EA_ky_plot[1:]
             ky_plot = ky_plot[1:]
 
-        ax.plot(
-            ky_plot,
-            E_ky_plot * ky_plot ** coef_compensate,
-            "k--",
-            label="$E(k_z)$",
-        )
+        # ax.plot(
+            # ky_plot,
+            # E_ky_plot * ky_plot ** coef_compensate,
+            # "k--",
+            # label="$E(k_z)$",
+        # )
         ax.plot(
             ky_plot,
             EK_ky_plot * ky_plot ** coef_compensate,
