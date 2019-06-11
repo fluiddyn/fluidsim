@@ -222,5 +222,5 @@ class OutputStrat(Output):
         self.phys_fields.plot(field=field, time=time_phys, QUIVER=False)
         self.print_stdout.plot()
         self.spatial_means.plot()
-        self.spectra.plot1d(tmin=tmin, tmax=tmax)
+        self.spectra.plot1d(tmin=tmin, tmax=tmax, level3=10.0)
         self.spect_energy_budg.plot(tmin=tmin, tmax=tmax)
