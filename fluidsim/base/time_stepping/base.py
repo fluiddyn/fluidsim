@@ -18,7 +18,7 @@ from time import time
 from fluiddyn.util import mpi
 
 
-class TimeSteppingBase:
+class TimeSteppingBase0:
     """Universal time stepping class used for all solvers.
 
 
@@ -125,6 +125,74 @@ max_elapsed: number or str (default None)
         else:
             self.max_elapsed = None
 
+    def start(self):
+        """Loop to run the function :func:`one_time_step`.
+
+        If *self.USE_T_END* is true, run till ``t >= t_end``,
+        otherwise run *self.it_end* time steps.
+        """
+        self.sim.__enter__()
+
+        output = self.sim.output
+        if (
+            not hasattr(output, "_has_been_initialized_with_state")
+            or not output._has_been_initialized_with_state
+        ):
+            output.init_with_initialized_state()
+
+        print_stdout = output.print_stdout
+        print_stdout(
+            "*************************************\n"
+            + "Beginning of the computation"
+        )
+        if self.sim.output._has_to_save:
+            self.sim.output.phys_fields.save()
+        if self.params.time_stepping.USE_T_END:
+            print_stdout(
+                "    compute until t = {:10.6g}".format(
+                    self.params.time_stepping.t_end
+                )
+            )
+            while (
+                self.t < self.params.time_stepping.t_end and not self._has_to_stop
+            ):
+                self.one_time_step()
+        else:
+            print_stdout(
+                "    compute until it = {:8d}".format(
+                    self.params.time_stepping.it_end
+                )
+            )
+            while (
+                self.it < self.params.time_stepping.it_end
+                and not self._has_to_stop
+            ):
+                self.one_time_step()
+
+        self.sim.__exit__()
+
+    def one_time_step(self):
+        """Main time stepping function."""
+        if self.params.time_stepping.USE_CFL:
+            self.compute_time_increment_CLF()
+        if self.sim.is_forcing_enabled:
+            self.sim.forcing.compute()
+        if self.max_elapsed is not None:
+            if mpi.rank == 0:
+                now = time()
+            else:
+                now = None
+            if mpi.nb_proc > 1:
+                now = mpi.comm.bcast(now, root=0)
+            if now > self._time_should_stop:
+                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
+                self._has_to_stop = True
+        self.sim.output.one_time_step()
+        self.one_time_step_computation()
+        self.t += self.deltat
+        self.it += 1
+
+class TimeSteppingBase(TimeSteppingBase0):
     def _init_compute_time_step(self):
 
         params_ts = self.params.time_stepping
@@ -185,52 +253,6 @@ max_elapsed: number or str (default None)
         else:
             raise ValueError("Problem name time_scheme")
 
-    def start(self):
-        """Loop to run the function :func:`one_time_step`.
-
-        If *self.USE_T_END* is true, run till ``t >= t_end``,
-        otherwise run *self.it_end* time steps.
-        """
-        self.sim.__enter__()
-
-        output = self.sim.output
-        if (
-            not hasattr(output, "_has_been_initialized_with_state")
-            or not output._has_been_initialized_with_state
-        ):
-            output.init_with_initialized_state()
-
-        print_stdout = output.print_stdout
-        print_stdout(
-            "*************************************\n"
-            + "Beginning of the computation"
-        )
-        if self.sim.output._has_to_save:
-            self.sim.output.phys_fields.save()
-        if self.params.time_stepping.USE_T_END:
-            print_stdout(
-                "    compute until t = {:10.6g}".format(
-                    self.params.time_stepping.t_end
-                )
-            )
-            while (
-                self.t < self.params.time_stepping.t_end and not self._has_to_stop
-            ):
-                self.one_time_step()
-        else:
-            print_stdout(
-                "    compute until it = {:8d}".format(
-                    self.params.time_stepping.it_end
-                )
-            )
-            while (
-                self.it < self.params.time_stepping.it_end
-                and not self._has_to_stop
-            ):
-                self.one_time_step()
-
-        self.sim.__exit__()
-
     def is_simul_completed(self):
         """Checks if simulation time or iteration has reached the end according
         to parameters specified.
@@ -241,27 +263,6 @@ max_elapsed: number or str (default None)
 
         else:
             return self.it >= self.params.time_stepping.it_end
-
-    def one_time_step(self):
-        """Main time stepping function."""
-        if self.params.time_stepping.USE_CFL:
-            self.compute_time_increment_CLF()
-        if self.sim.is_forcing_enabled:
-            self.sim.forcing.compute()
-        if self.max_elapsed is not None:
-            if mpi.rank == 0:
-                now = time()
-            else:
-                now = None
-            if mpi.nb_proc > 1:
-                now = mpi.comm.bcast(now, root=0)
-            if now > self._time_should_stop:
-                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
-                self._has_to_stop = True
-        self.sim.output.one_time_step()
-        self.one_time_step_computation()
-        self.t += self.deltat
-        self.it += 1
 
     def _compute_time_increment_CLF_uxuyuz(self):
         """Compute the time increment deltat with a CLF condition."""

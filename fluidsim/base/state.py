@@ -13,8 +13,6 @@ Provides:
 
 """
 
-from builtins import range
-from builtins import object
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables

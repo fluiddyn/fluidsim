@@ -99,12 +99,12 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                 self.ax, ux, uy, XX, YY
             )
 
-        if not self.sim.time_stepping.is_simul_completed():
-            INSET = False
-
         try:
             self.output.spatial_means
         except AttributeError:
+            INSET = False
+
+        if INSET and not self.sim.time_stepping.is_simul_completed():
             INSET = False
 
         self._ANI_INSET = INSET
