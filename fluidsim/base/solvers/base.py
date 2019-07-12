@@ -122,7 +122,7 @@ nu_2: float (default = 0.)
             if hasattr(self, "info_solver"):
                 warn(
                     "Creating a new info_solver instance "
-                    "due to type mismatch  {}".format(self.InfoSolver)
+                    f"due to type mismatch  {self.InfoSolver}"
                 )
             self.info_solver = self.InfoSolver()
             self.info_solver.complete_with_classes()
@@ -131,7 +131,7 @@ nu_2: float (default = 0.)
 
         if not isinstance(params, Parameters):
             raise TypeError(
-                "params should be a Parameters instance, not %s" % type(params)
+                f"params should be a Parameters instance, not {type(params)}"
             )
 
         self.params = params
@@ -146,7 +146,7 @@ nu_2: float (default = 0.)
         self.output = Output(self)
 
         self.output.print_stdout(
-            "*************************************\n" + "Program fluidsim"
+            "*************************************\nProgram fluidsim"
         )
 
         # output.print_memory_usage(

@@ -45,32 +45,28 @@ class TimeSteppingBasilisk:
 
     def start(self):
         output = self.sim.output
-        if (
-            not hasattr(output, "_has_been_initialized_with_state")
-            or not output._has_been_initialized_with_state
-        ):
-            output.init_with_initialized_state()
+        output.init_with_initialized_state()
 
         print_stdout = output.print_stdout
         print_stdout(
             "*************************************\n"
             + "Beginning of the computation"
         )
-        if self.sim.output._has_to_save:
-            self.sim.output.phys_fields.save()
+        if output._has_to_save:
+            output.phys_fields.save()
 
-        pts = self.sim.params.time_stepping
-        if pts.USE_T_END:
-            t_end = pts.t_end
-            nb_time_steps = int(float(pts.t_end) / pts.deltat0)
+        params_ts = self.sim.params.time_stepping
+        if params_ts.USE_T_END:
+            t_end = params_ts.t_end
+            nb_time_steps = int(float(params_ts.t_end) / params_ts.deltat0)
             self.deltat = t_end / nb_time_steps
         else:
-            nb_time_steps = pts.it_end
-            t_end = pts.deltat0 * pts.it_end
-            self.deltat = pts.deltat0
+            nb_time_steps = params_ts.it_end
+            t_end = params_ts.deltat0 * params_ts.it_end
+            self.deltat = params_ts.deltat0
 
         def one_time_step(i, t):
-            print("Basilisk one_time_step: (i, t) = " "{}, {}".format(i, t))
+            print(f"Basilisk one_time_step: (i, t) = {i}, {t}")
             self.t = t
             self.it = i
             self.sim.state._get_state_from_basilisk()
@@ -87,4 +83,4 @@ class TimeSteppingBasilisk:
         self.sim.basilisk.run()
 
         total_time_simul = time() - time_begining_simul
-        self.sim.output.end_of_simul(total_time_simul)
+        output.end_of_simul(total_time_simul)
