@@ -8,7 +8,7 @@ Provides:
    :private-members:
 
 """
-
+import numpy as np
 
 from ..state import StateBase
 
@@ -19,10 +19,17 @@ class StatePhysDedalus:
         self.keys = keys
 
     def get_var(self, key):
-        return self.dedalus_solver.state[key]["g"]
+        if self.dedalus_solver is None:
+            return np.zeros(1)
+
+        field = self.dedalus_solver.state[key]
+        field.set_scales(1.)
+        return field["g"]
 
     def set_var(self, key, value):
-        self.dedalus_solver.state[key]["g"][:] = value
+        field = self.dedalus_solver.state[key]
+        field.set_scales(1.)
+        field[:] = value
 
     def initialize(self, value):
         for key in self.keys:
@@ -59,4 +66,9 @@ class StateDedalus(StateBase):
     def __init__(self, sim, oper=None):
         super().__init__(sim, oper)
         sim.init_dedalus()
-        self.state_phys = StatePhysDedalus(self.sim.dedalus_solver, self.keys_state_phys)
+        if self.sim.params.ONLY_COARSE_OPER:
+            solver = None
+        else:
+            solver = self.sim.dedalus_solver
+
+        self.state_phys = StatePhysDedalus(solver, self.keys_state_phys)
