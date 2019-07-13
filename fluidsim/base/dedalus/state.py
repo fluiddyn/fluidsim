@@ -29,7 +29,7 @@ class StatePhysDedalus:
     def set_var(self, key, value):
         field = self.dedalus_solver.state[key]
         field.set_scales(1.)
-        field[:] = value
+        field["g"] = value
 
     def initialize(self, value):
         for key in self.keys:

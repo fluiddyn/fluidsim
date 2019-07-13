@@ -60,7 +60,7 @@ class SimulDedalus(SimulBase):
     def _complete_params_with_default(params):
         """Complete the `params` container (static method)."""
         SimulBase._complete_params_with_default(params)
-        attribs = {"prandtl": 1.0, "rayleigh": 1e6}
+        attribs = {"prandtl": 1.0, "rayleigh": 1e6, "F": 1.0}
         params._set_attribs(attribs)
 
     def create_problem(self):
@@ -74,7 +74,7 @@ class SimulDedalus(SimulBase):
         problem.meta["p", "b", "vx", "vz"]["z"]["dirichlet"] = True
         problem.parameters["P"] = (params.rayleigh * params.prandtl) ** (-1 / 2)
         problem.parameters["R"] = (params.rayleigh / params.prandtl) ** (-1 / 2)
-        problem.parameters["F"] = 1
+        problem.parameters["F"] = params.F
         problem.add_equation("dx(vx) + dz_vz = 0")
         problem.add_equation(
             "dt(b) - P*(dx(dx(b)) + dz(dz_b)) - F*vz       = -(vx*dx(b) + vz*dz_b)"
@@ -112,8 +112,6 @@ Simul = SimulDedalus
 
 if __name__ == "__main__":
 
-    import matplotlib.pyplot as plt
-
     params = Simul.create_default_params()
 
     params.short_name_type_run = "test"
@@ -122,13 +120,10 @@ if __name__ == "__main__":
 
     params.time_stepping.t_end = 10
     params.time_stepping.USE_CFL = True
-    params.time_stepping.deltat0 = 2.
+    params.time_stepping.deltat0 = 2.0
 
     params.output.periods_print.print_stdout = 1e-15
     params.output.periods_save.phys_fields = 0.5
 
     sim = Simul(params)
     sim.time_stepping.start()
-
-    # sim.output.print_stdout.plot_energy()
-    # plt.show()

@@ -47,7 +47,7 @@ class OperatorsDedalus2D:
 
         self.domain = self.create_domain(params)
 
-        self.axes = ("y", "x")
+        self.axes = ("z", "x")
         self.Lx = params.oper.Lx
         self.Ly = params.oper.Lz
 
