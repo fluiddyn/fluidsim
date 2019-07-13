@@ -1,7 +1,6 @@
 """Time stepping (:mod:`fluidsim.base.dedalus.time_stepping`)
 ==============================================================
 
-
 Provides:
 
 .. autoclass:: TimeSteppingDedalus
@@ -9,9 +8,6 @@ Provides:
    :private-members:
 
 """
-
-from time import time
-from signal import signal
 
 # import numpy as np
 
@@ -39,6 +35,9 @@ class TimeSteppingDedalus(TimeSteppingBase0):
 
     def init_dedalus_cfl(self, sim):
         initial_dt = sim.params.time_stepping.deltat0
+        if sim.params.ONLY_COARSE_OPER:
+            self.CFL = None
+            return
         self.CFL = flow_tools.CFL(
             sim.dedalus_solver,
             initial_dt=initial_dt,
@@ -56,7 +55,10 @@ class TimeSteppingDedalus(TimeSteppingBase0):
         super().start()
 
     def compute_time_increment_CLF(self):
-        self.deltat = self.CFL.compute_dt()
+        if self.CFL is None:
+            self.deltat = None
+        else:
+            self.deltat = self.CFL.compute_dt()
 
     def one_time_step_computation(self):
         self.deltat = self.sim.dedalus_solver.step(self.deltat)

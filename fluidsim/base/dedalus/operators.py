@@ -53,7 +53,7 @@ class OperatorsDedalus2D:
 
         self.params = params
 
-        self.y_seq, self.x_seq = self.domain.grids(scales=3/2)
+        self.y_seq, self.x_seq = self.domain.grids(scales=1.)
         self.x_seq = self.x_seq.flatten()
         self.y_seq = self.y_seq.flatten()
         self.X, self.Y = np.meshgrid(self.x_seq, self.y_seq)
@@ -68,12 +68,7 @@ class OperatorsDedalus2D:
         if axe not in ("x", "y"):
             raise ValueError
 
-        if self.params.ONLY_COARSE_OPER:
-            number_points = getattr(self.params.oper, "n" + axe)
-            length = getattr(self, "L" + axe)
-            return np.linspace(0, length, number_points)
-        else:
-            return getattr(self, axe + "_seq")
+        return getattr(self, axe + "_seq")
 
     def produce_str_describing_oper(self):
         """Produce a string describing the operator."""

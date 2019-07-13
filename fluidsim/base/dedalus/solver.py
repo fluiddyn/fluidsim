@@ -103,9 +103,9 @@ class SimulDedalus(SimulBase):
 
     def init_dedalus(self):
         self.problem = self.create_problem()
-        self.dedalus_solver = self.build_dedalus_solver()
-        for field in self.dedalus_solver.state.fields:
-            field.set_scales(1.5)
+
+        if not self.params.ONLY_COARSE_OPER:
+            self.dedalus_solver = self.build_dedalus_solver()
 
 
 Simul = SimulDedalus
