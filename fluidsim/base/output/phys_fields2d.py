@@ -472,8 +472,8 @@ class PhysFieldsBase2D(PhysFieldsBase):
             vmax = None
 
         if mpi.rank == 0:
-            ax.set_xlabel("x")
-            ax.set_ylabel("y")
+            ax.set_xlabel(self.oper.axes[1])
+            ax.set_ylabel(self.oper.axes[0])
             self._set_title(ax, key_field, time, vmax)
 
             if self.oper.Lx != self.oper.Ly:
