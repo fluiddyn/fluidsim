@@ -24,12 +24,12 @@ class StatePhysDedalus:
 
         field = self.dedalus_solver.state[key]
         field.set_scales(1.)
-        return field["g"]
+        return field["g"].transpose()
 
     def set_var(self, key, value):
         field = self.dedalus_solver.state[key]
         field.set_scales(1.)
-        field["g"] = value
+        field["g"] = value.transpose()
 
     def initialize(self, value):
         for key in self.keys:
@@ -54,14 +54,14 @@ class StateDedalus(StateBase):
         info_solver.classes.State._set_attribs(
             {
                 "keys_state_phys": ["b", "vx", "vz"],
-                "keys_computable": [],
+                "keys_computable": ["dz_b", "dz_vx", "dz_vz"],
                 "keys_phys_needed": ["b", "vx", "vz"],
             }
         )
 
     def compute(self, key):
         """Compute scalar fields such a component of the velocity or vorticity."""
-        return self.get_var(key)
+        return self.state_phys.get_var(key)
 
     def __init__(self, sim, oper=None):
         super().__init__(sim, oper)

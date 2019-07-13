@@ -101,8 +101,12 @@ class MoviesBase:
             "get_field_to_plot function declaration missing."
         )
 
-    def _init_labels(self, xlabel="x", ylabel="y"):
+    def _init_labels(self, xlabel=None, ylabel=None):
         """Initialize the labels."""
+        if xlabel is None:
+            xlabel = self.sim.oper.axes[1]
+        if ylabel is None:
+            ylabel = self.sim.oper.axes[0]
         self.ax.set_xlabel(xlabel, fontdict=self.font)
         self.ax.set_ylabel(ylabel, fontdict=self.font)
 

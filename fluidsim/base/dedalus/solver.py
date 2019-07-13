@@ -13,7 +13,6 @@ Provides:
 
 """
 
-import numpy as np
 
 from fluidsim.base.solvers.base import SimulBase
 from fluidsim.base.solvers.info_base import InfoSolverBase
@@ -32,7 +31,7 @@ class InfoSolverDedalus(InfoSolverBase):
 
         self.module_name = mod + ".solver"
         self.class_name = "SimulDedalus"
-        self.short_name = "dedal"
+        self.short_name = "dedalus"
 
         classes = self.classes
 
