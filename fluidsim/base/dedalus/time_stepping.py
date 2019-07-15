@@ -9,8 +9,6 @@ Provides:
 
 """
 
-# import numpy as np
-
 from dedalus.extras import flow_tools
 
 from fluidsim.base.time_stepping.base import TimeSteppingBase0
