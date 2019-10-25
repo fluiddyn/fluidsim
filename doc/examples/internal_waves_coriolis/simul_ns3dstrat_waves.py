@@ -72,7 +72,7 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = 'waves_coriolis'
 
-nz = 80
+nz = 32 
 aspect_ratio = 4
 nx = ny = nz*aspect_ratio
 lz = 1
@@ -116,7 +116,7 @@ eps = 1e-2*U**3/H
 params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 100*period_N
+params.time_stepping.t_end = 50*period_N
 params.time_stepping.deltat_max = period_N/40
 
 params.init_fields.type = 'noise'
@@ -149,19 +149,15 @@ def step_func(x):
 
 amplitude_side = amplitude + 0.15
 
-vxtarget = U * (
-    (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude))) *
-    step_func(Y - amplitude_side) * step_func(-(Y - (ly - amplitude_side)))
-)
+maskx = ( (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude))) * 
+        step_func(Y - amplitude_side) * step_func(-(Y - (ly - amplitude_side))) )
 
-vytarget = U * (
-    (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude))) *
-    step_func(X - amplitude_side) * step_func(-(X - (lx - amplitude_side)))
-)
+masky = ( (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude))) * 
+        step_func(X - amplitude_side) * step_func(-(X - (lx - amplitude_side))) )
 
 z_variation = np.sin(2*pi*Z)
-vxtarget *= z_variation
-vytarget *= z_variation
+vxtarget = z_variation
+vytarget = z_variation
 
 
 # calculus of coef_sigma
@@ -188,8 +184,8 @@ def compute_forcing_each_time(self):
     vx = sim.state.state_phys.get_var('vx')
     vy = sim.state.state_phys.get_var('vy')
     sigma = coef_sigma/sim.time_stepping.deltat
-    fx = sigma * (coef_forcing_time_x * vxtarget - vx)
-    fy = sigma * (coef_forcing_time_y * vytarget - vy)
+    fx = sigma * maskx * (coef_forcing_time_x * vxtarget - vx)
+    fy = sigma * masky * (coef_forcing_time_y * vytarget - vy)
     result = {'vx_fft': fx, 'vy_fft': fy}
     return result
 
