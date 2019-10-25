@@ -25,36 +25,36 @@ amplitude = 0.05  # m
 
 # useful parameters and secondary input parameters
 
-period_N = 2*pi/N
+period_N = 2 * pi / N
 # total period of the forcing signal
-period_forcing = 1e3*period_N
-dt_forcing = period_N/1e1
+period_forcing = 1e3 * period_N
+dt_forcing = period_N / 1e1
 
 
 # preparation of a time signal for the forcing
-nt_forcing = 2 * fftw_grid_size(int(period_forcing/dt_forcing))
-dt_forcing = period_forcing/nt_forcing
+nt_forcing = 2 * fftw_grid_size(int(period_forcing / dt_forcing))
+dt_forcing = period_forcing / nt_forcing
 
 
 if mpi.rank == 0:
     oper_fft_forcing = FFTW1DReal2Complex(nt_forcing)
     nomegas_forcing = oper_fft_forcing.shapeK[0]
-    domega = 2*pi/period_forcing
+    domega = 2 * pi / period_forcing
 
-    omegas_forcing = domega*np.arange(nomegas_forcing)
+    omegas_forcing = domega * np.arange(nomegas_forcing)
     times_forcing = dt_forcing * np.arange(nt_forcing)
 
     def create_interpolation_forcing_function():
         forcing_time = np.random.rand(nt_forcing)
         forcing_omega = oper_fft_forcing.fft(forcing_time)
         forcing_omega *= np.exp(
-            -(omegas_forcing - omega_f)**2 / (2*delta_omega_f**2))
+            -(omegas_forcing - omega_f) ** 2 / (2 * delta_omega_f ** 2)
+        )
 
         forcing_time = oper_fft_forcing.ifft(forcing_omega)
         forcing_time /= np.sqrt(np.mean(np.square(forcing_time)))
 
-        return interp1d(times_forcing, forcing_time,
-                        fill_value='extrapolate')
+        return interp1d(times_forcing, forcing_time, fill_value="extrapolate")
 
     calcul_forcing_time_x = create_interpolation_forcing_function()
     calcul_forcing_time_y = create_interpolation_forcing_function()
@@ -70,18 +70,18 @@ if mpi.nb_proc > 1:
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'waves_coriolis'
+params.output.sub_directory = "waves_coriolis"
 
-nz = 32 
+nz = 32
 aspect_ratio = 4
-nx = ny = nz*aspect_ratio
+nx = ny = nz * aspect_ratio
 lz = 1
 
 params.oper.nx = nx
 params.oper.ny = ny
 params.oper.nz = nz
-params.oper.Lx = lx = lz/nz*nx
-params.oper.Ly = ly = lz/nz*ny
+params.oper.Lx = lx = lz / nz * nx
+params.oper.Ly = ly = lz / nz * ny
 params.oper.Lz = lz
 
 r"""
@@ -108,28 +108,28 @@ where $C$ is a constant of order 1.
 
 """
 n = 8
-C = 1.
-dx = lx/nx
-U = amplitude*omega_f
+C = 1.0
+dx = lx / nx
+U = amplitude * omega_f
 H = 1
-eps = 1e-2*U**3/H
-params.nu_8 = (dx/C)**((3*n-2)/3) * eps**(1/3)
+eps = 1e-2 * U ** 3 / H
+params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 50*period_N
-params.time_stepping.deltat_max = period_N/40
+params.time_stepping.t_end = 50 * period_N
+params.time_stepping.deltat_max = period_N / 40
 
-params.init_fields.type = 'noise'
+params.init_fields.type = "noise"
 params.init_fields.noise.velo_max = 0.001
 params.init_fields.noise.length = 2e-1
 
 params.forcing.enable = True
-params.forcing.type = 'in_script'
+params.forcing.type = "in_script"
 
-params.output.periods_print.print_stdout = 1.
+params.output.periods_print.print_stdout = 1.0
 
-params.output.periods_save.phys_fields = 2.
-params.output.periods_save.spectra = 1.
+params.output.periods_save.phys_fields = 2.0
+params.output.periods_save.spectra = 1.0
 params.output.periods_save.spatial_means = 0.5
 
 sim = Simul(params)
@@ -141,21 +141,29 @@ X, Y, Z = oper.get_XYZ_loc()
 
 # calculus of the target velocity components
 
-width = max(4*dx, amplitude/5)
+width = max(4 * dx, amplitude / 5)
+
 
 def step_func(x):
     """Activation function"""
-    return 0.5*(np.tanh(x/width) + 1)
+    return 0.5 * (np.tanh(x / width) + 1)
+
 
 amplitude_side = amplitude + 0.15
 
-maskx = ( (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude))) * 
-        step_func(Y - amplitude_side) * step_func(-(Y - (ly - amplitude_side))) )
+maskx = (
+    (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude)))
+    * step_func(Y - amplitude_side)
+    * step_func(-(Y - (ly - amplitude_side)))
+)
 
-masky = ( (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude))) * 
-        step_func(X - amplitude_side) * step_func(-(X - (lx - amplitude_side))) )
+masky = (
+    (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude)))
+    * step_func(X - amplitude_side)
+    * step_func(-(X - (lx - amplitude_side)))
+)
 
-z_variation = np.sin(2*pi*Z)
+z_variation = np.sin(2 * pi * Z)
 vxtarget = z_variation
 vytarget = z_variation
 
@@ -170,7 +178,7 @@ sigma = gamma / (n_dt * dt)
 """
 gamma = 2
 n_dt = 4
-coef_sigma = gamma/n_dt
+coef_sigma = gamma / n_dt
 
 
 def compute_forcing_each_time(self):
@@ -181,21 +189,24 @@ def compute_forcing_each_time(self):
     time = sim.time_stepping.t % period_forcing
     coef_forcing_time_x = calcul_forcing_time_x(time)
     coef_forcing_time_y = calcul_forcing_time_y(time)
-    vx = sim.state.state_phys.get_var('vx')
-    vy = sim.state.state_phys.get_var('vy')
-    sigma = coef_sigma/sim.time_stepping.deltat
+    vx = sim.state.state_phys.get_var("vx")
+    vy = sim.state.state_phys.get_var("vy")
+    sigma = coef_sigma / sim.time_stepping.deltat
     fx = sigma * maskx * (coef_forcing_time_x * vxtarget - vx)
     fy = sigma * masky * (coef_forcing_time_y * vytarget - vy)
-    result = {'vx_fft': fx, 'vy_fft': fy}
+    result = {"vx_fft": fx, "vy_fft": fy}
     return result
 
+
 sim.forcing.forcing_maker.monkeypatch_compute_forcing_each_time(
-    compute_forcing_each_time)
+    compute_forcing_each_time
+)
 
 # finally we start the simulation
 sim.time_stepping.start()
 
-mpi.printby0(f"""
+mpi.printby0(
+    f"""
 # To visualize the output with Paraview, create a file states_phys.xmf with:
 
 fluidsim-create-xml-description {sim.output.path_run}
@@ -212,4 +223,6 @@ sim = load_sim_for_plot()
 sim.output.phys_fields.set_equation_crosssection('x={lx/2}')
 sim.output.phys_fields.animate('b')
 
-""")
+"""
+)
+
