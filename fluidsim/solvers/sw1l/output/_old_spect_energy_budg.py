@@ -46,7 +46,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
         rot_fft = oper.rotfft_from_vecfft(ux_fft, uy_fft)
         urx_fft, ury_fft = oper.vecfft_from_rotfft(rot_fft)
-        del (rot_fft)
+        del rot_fft
         urx = oper.ifft2(urx_fft)
         ury = oper.ifft2(ury_fft)
 
@@ -69,7 +69,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         udx = oper.ifft2(udx_fft)
         udy = oper.ifft2(udy_fft)
         div = oper.ifft2(div_fft)
-        del (div_fft)
+        del div_fft
 
         # print_memory_usage('before starting computing fluxes')
 
@@ -78,7 +78,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         transferCPE_fft = inner_prod(q_fft, Fq_fft)
         del (q_fft, Fq_fft)
         transfer2D_CPE = self.spectrum2D_from_fft(transferCPE_fft)
-        del (transferCPE_fft)
+        del transferCPE_fft
 
         #         print(
         # ('sum(transfer2D_CPE) = {0:9.4e} ; sum(abs(transfer2D_CPE)) = {1:9.4e}'
@@ -138,7 +138,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         EP_fft = oper.fft2(EP)
         del (EP, h)
         px_EP_fft, py_EP_fft = oper.gradfft_from_fft(EP_fft)
-        del (EP_fft)
+        del EP_fft
 
         convK_fft = (
             1.0
@@ -152,7 +152,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         )
         del (px_h_fft, py_h_fft, px_EP_fft, py_EP_fft)
         convK2D = self.spectrum2D_from_fft(convK_fft)
-        del (convK_fft)
+        del convK_fft
 
         # print_memory_usage('after convK2D')
 
@@ -188,7 +188,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             ury_fft, Fyrr_fft
         )
         transfer2D_Errr = self.spectrum2D_from_fft(transferErrr_fft)
-        del (transferErrr_fft)
+        del transferErrr_fft
         #         print(
         # ('sum(transfer2D_Errr) = {0:9.4e} ; sum(abs(transfer2D_Errr)) = {1:9.4e}'
         # ).format(
@@ -200,7 +200,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             udy_fft, Fyrd_fft
         )
         transfer2D_Edrd = self.spectrum2D_from_fft(transferEdrd_fft)
-        del (transferEdrd_fft)
+        del transferEdrd_fft
         #         print(
         # ('sum(transfer2D_Edrd) = {0:9.4e} ; sum(abs(transfer2D_Edrd)) = {1:9.4e}'
         # ).format(
@@ -215,7 +215,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         )
         Clfromqq = self.spectrum2D_from_fft(Clfromqq)
         transfer2D_Edrr_rrd = self.spectrum2D_from_fft(transferEdrr_rrd_fft)
-        del (transferEdrr_rrd_fft)
+        del transferEdrr_rrd_fft
         #         print(
         # ('sum(transfer2D_Edrr_rrd) = {0:9.4e} ; '
         # 'sum(abs(transfer2D_Edrr_rrd)) = {1:9.4e}'
@@ -228,7 +228,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             ury_fft, Fydr_fft
         )
         transfer2D_Erdr = self.spectrum2D_from_fft(transferErdr_fft)
-        del (transferErdr_fft)
+        del transferErdr_fft
         #         print(
         # ('sum(transfer2D_Erdr) = {0:9.4e} ; sum(abs(transfer2D_Erdr)) = {1:9.4e}'
         # ).format(
@@ -240,7 +240,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             udy_fft, Fydd_fft
         )
         transfer2D_Eddd = self.spectrum2D_from_fft(transferEddd_fft)
-        del (transferEddd_fft)
+        del transferEddd_fft
         #         print(
         # ('sum(transfer2D_Eddd) = {0:9.4e} ; sum(abs(transfer2D_Eddd)) = {1:9.4e}'
         # ).format(
@@ -257,7 +257,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
 
         Cqfromll = self.spectrum2D_from_fft(Cqfromll)
         transfer2D_Eddr_rdd = self.spectrum2D_from_fft(transferEddr_rdd_fft)
-        del (transferEddr_rdd_fft)
+        del transferEddr_rdd_fft
         #         print(
         # ('sum(transfer2D_Eddr_rdd) = {0:9.4e} ; '
         # 'sum(abs(transfer2D_Eddr_rdd)) = {1:9.4e}'
@@ -288,31 +288,31 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         px_etauy_fft, py_etauy_fft = oper.gradfft_from_fft(etauy_fft)
 
         px_etaux = oper.ifft2(px_etaux_fft)
-        del (px_etaux_fft)
+        del px_etaux_fft
         py_etaux = oper.ifft2(py_etaux_fft)
-        del (py_etaux_fft)
+        del py_etaux_fft
         px_etauy = oper.ifft2(px_etauy_fft)
-        del (px_etauy_fft)
+        del px_etauy_fft
         py_etauy = oper.ifft2(py_etauy_fft)
-        del (py_etauy_fft)
+        del py_etauy_fft
 
         Fx_reu = -urx * px_etaux - ury * py_etaux
         Fx_reu_fft = oper.fft2(Fx_reu)
-        del (Fx_reu)
+        del Fx_reu
 
         Fx_deu = -udx * px_etaux - udy * py_etaux - 0.5 * div * eta * ux
         del (px_etaux, py_etaux)
         Fx_deu_fft = oper.fft2(Fx_deu)
-        del (Fx_deu)
+        del Fx_deu
 
         Fy_reu = -urx * px_etauy - ury * py_etauy
         Fy_reu_fft = oper.fft2(Fy_reu)
-        del (Fy_reu)
+        del Fy_reu
 
         Fy_deu = -udx * px_etauy - udy * py_etauy - 0.5 * div * eta * uy
         del (px_etauy, py_etauy)
         Fy_deu_fft = oper.fft2(Fy_deu)
-        del (Fy_deu)
+        del Fy_deu
 
         transferEureu_fft = 0.5 * (
             inner_prod(ux_fft, Fx_reu_fft)
@@ -341,7 +341,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         del (etaux_fft, etauy_fft)
 
         transfer2D_Eudeu = self.spectrum2D_from_fft(transferEudeu_fft)
-        del (transferEudeu_fft)
+        del transferEudeu_fft
         #         print(
         # ('sum(transferEudeu_fft) = {0:9.4e} ; '
         # 'sum(abs(transferEudeu_fft)) = {1:9.4e}'

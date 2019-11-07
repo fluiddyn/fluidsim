@@ -162,7 +162,7 @@ class OutputStrat(Output):
         params = self.sim.params
         pforcing = params.forcing
         forcing_rate = pforcing.forcing_rate
-        
+
         # Compute forcing wave-number
         nkmax_forcing = pforcing.nkmax_forcing
         nkmin_forcing = pforcing.nkmin_forcing

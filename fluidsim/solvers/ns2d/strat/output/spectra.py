@@ -225,16 +225,18 @@ class SpectraNS2DStrat(Spectra):
             kx_plot = kx_plot[1:]
 
         # Compute k_b: L_b = U / N
-        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux"))**2))
+        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux")) ** 2))
         k_b = self.sim.params.N / U
         ax.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
 
         # Plot ozmidov scale
-        k_o = (self.sim.params.N**3 / self.sim.params.forcing.forcing_rate)**(1/2)
+        k_o = (self.sim.params.N ** 3 / self.sim.params.forcing.forcing_rate) ** (
+            1 / 2
+        )
         ax.axvline(x=k_o, color="y", linestyle=":", label="$k_o$")
 
         # ax.plot(
-            # kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
+        # kx_plot, E_kx_plot * kx_plot ** coef_compensate, "k", label="$E(k_x)$"
         # )
         ax.plot(
             kx_plot,
@@ -263,10 +265,10 @@ class SpectraNS2DStrat(Spectra):
             ky_plot = ky_plot[1:]
 
         # ax.plot(
-            # ky_plot,
-            # E_ky_plot * ky_plot ** coef_compensate,
-            # "k--",
-            # label="$E(k_z)$",
+        # ky_plot,
+        # E_ky_plot * ky_plot ** coef_compensate,
+        # "k--",
+        # label="$E(k_z)$",
         # )
         ax.plot(
             ky_plot,

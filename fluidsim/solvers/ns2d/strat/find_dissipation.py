@@ -629,4 +629,3 @@ if __name__ == "__main__":
         write_to_file(path_file_write, to_print, mode=mode_write)
 
         shutil.move(sim.params.path_run, path)
-

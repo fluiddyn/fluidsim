@@ -374,18 +374,16 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             # Band forcing region kx
             k_fxmin = nkmin * self.sim.oper.deltak * np.sin(angle)
             k_fxmax = nkmax * self.sim.oper.deltak * np.sin(angle)
-        
+
             # Band forcing region ky
             k_fymin = nkmin * self.sim.oper.deltak * np.cos(angle)
             k_fymax = nkmax * self.sim.oper.deltak * np.cos(angle)
 
-            
             ax1.axvspan(k_fxmin, k_fxmax, alpha=0.15, color="black")
             ax2.axvspan(k_fymin, k_fymax, alpha=0.15, color="black")
 
-
         # Compute k_b: L_b = U / N
-        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux"))**2))
+        U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux")) ** 2))
         k_b = self.sim.params.N / U
         ax1.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
         ax2.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
@@ -412,7 +410,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             # If tmin and tmax is None
             if tmin is None:
                 tmin = np.min(times)
-            
+
             if tmax is None:
                 tmax = np.max(times)
 
@@ -420,9 +418,9 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             imax_plot = np.argmin(abs(times - tmax))
 
             dset_dissE_kx = dset_dissEK_kx + dset_dissEA_kx
-            dissE_kx = dset_dissE_kx[imin_plot:imax_plot + 1].mean(0)
+            dissE_kx = dset_dissE_kx[imin_plot : imax_plot + 1].mean(0)
 
             dset_dissE_ky = dset_dissEK_ky + dset_dissEA_ky
-            dissE_ky = dset_dissE_ky[imin_plot:imax_plot + 1].mean(0)
+            dissE_ky = dset_dissE_ky[imin_plot : imax_plot + 1].mean(0)
 
         return kxE, kyE, dissE_kx, dissE_ky

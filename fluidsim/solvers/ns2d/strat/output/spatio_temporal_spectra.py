@@ -470,7 +470,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         # List of tuples (ifile, time)
         ifile_time = []
-        
+
         for index, path_file in enumerate(list_files):
             with h5py.File(path_file, "r") as f:
                 times = f["times_arr"].value
@@ -488,7 +488,7 @@ class SpatioTempSpectra(SpecificOutput):
 
         if ifile_min is None:
             ifile_min = 0
-        
+
         if ifile_max is None:
             ifile_max = len(list_files)
 
@@ -504,7 +504,8 @@ class SpatioTempSpectra(SpecificOutput):
 
             # Print concatenating info..
             print(
-                f"Concatenating file = {index + 1}/{len(list_files[ifile_min:ifile_max])}..", end="\r"
+                f"Concatenating file = {index + 1}/{len(list_files[ifile_min:ifile_max])}..",
+                end="\r",
             )
 
             # Concatenate arrays
@@ -550,7 +551,7 @@ class SpatioTempSpectra(SpecificOutput):
         Adds an inset plot to the object figure.
         It is the spectral space with the forcing region.
         """
-        # Checks if self.sim.forcing.forcing_maker object exists. 
+        # Checks if self.sim.forcing.forcing_maker object exists.
         if self.sim.forcing.forcing_maker is None:
             ax_inset = None
         else:

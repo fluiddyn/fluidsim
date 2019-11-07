@@ -113,7 +113,9 @@ max_elapsed: number or str (default None)
                 self.max_elapsed = float(param_max_elapsed)
             except ValueError:
                 t = datetime.strptime(param_max_elapsed, "%H:%M:%S")
-                delta_t = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                delta_t = timedelta(
+                    hours=t.hour, minutes=t.minute, seconds=t.second
+                )
                 self.max_elapsed = delta_t.total_seconds()
 
             t_start = None
@@ -256,7 +258,9 @@ max_elapsed: number or str (default None)
             if mpi.nb_proc > 1:
                 now = mpi.comm.bcast(now, root=0)
             if now > self._time_should_stop:
-                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
+                self.sim.output.print_stdout(
+                    "Maximum elapsed time reached. Should stop soon."
+                )
                 self._has_to_stop = True
         self.sim.output.one_time_step()
         self.one_time_step_computation()
