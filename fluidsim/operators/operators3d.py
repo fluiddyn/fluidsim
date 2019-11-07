@@ -287,12 +287,12 @@ Lx, Ly and Lz: float
 
         """
 
-        divh_fft = 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
-        urx_fft = vx_fft - divh_fft * self.Kx * self.inv_K_square_nozero
-        ury_fft = vy_fft - divh_fft * self.Ky * self.inv_K_square_nozero
+        divh_fft = self.Kx * vx_fft + self.Ky * vy_fft
+        udx_fft = divh_fft * self.Kx * self.inv_K_square_nozero
+        udy_fft = divh_fft * self.Ky * self.inv_K_square_nozero
 
-        udx_fft = vx_fft - urx_fft
-        udy_fft = vy_fft - ury_fft
+        urx_fft = vx_fft - udx_fft
+        ury_fft = vy_fft - udy_fft
 
         return urx_fft, ury_fft, udx_fft, udy_fft
 
