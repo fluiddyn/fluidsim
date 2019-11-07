@@ -32,29 +32,29 @@ dt_forcing = period_N / 1e1
 
 
 # preparation of a time signal for the forcing
-nt_forcing = 2 * fftw_grid_size(int(period_forcing / dt_forcing))
-dt_forcing = period_forcing / nt_forcing
+nt_forcing = 2 * fftw_grid_size(int(period_forcing/dt_forcing))
+dt_forcing = period_forcing/nt_forcing
 
 
 if mpi.rank == 0:
     oper_fft_forcing = FFTW1DReal2Complex(nt_forcing)
     nomegas_forcing = oper_fft_forcing.shapeK[0]
-    domega = 2 * pi / period_forcing
+    domega = 2*pi/period_forcing
 
-    omegas_forcing = domega * np.arange(nomegas_forcing)
+    omegas_forcing = domega*np.arange(nomegas_forcing)
     times_forcing = dt_forcing * np.arange(nt_forcing)
 
     def create_interpolation_forcing_function():
         forcing_time = np.random.rand(nt_forcing)
         forcing_omega = oper_fft_forcing.fft(forcing_time)
         forcing_omega *= np.exp(
-            -(omegas_forcing - omega_f) ** 2 / (2 * delta_omega_f ** 2)
-        )
+            -(omegas_forcing - omega_f)**2 / (2*delta_omega_f**2))
 
         forcing_time = oper_fft_forcing.ifft(forcing_omega)
         forcing_time /= np.sqrt(np.mean(np.square(forcing_time)))
 
-        return interp1d(times_forcing, forcing_time, fill_value="extrapolate")
+        return interp1d(times_forcing, forcing_time,
+                        fill_value='extrapolate')
 
     calcul_forcing_time_x = create_interpolation_forcing_function()
     calcul_forcing_time_y = create_interpolation_forcing_function()
@@ -72,7 +72,7 @@ params = Simul.create_default_params()
 
 params.output.sub_directory = "waves_coriolis"
 
-nz = 32
+nz = 64
 aspect_ratio = 4
 nx = ny = nz * aspect_ratio
 lz = 1
@@ -107,17 +107,17 @@ We want that $dx < \eta_n$, so we choose $\nu_n$ such that $dx = C \eta_n$
 where $C$ is a constant of order 1.
 
 """
-n = 8
+n = 2
 C = 1.0
 dx = lx / nx
 U = amplitude * omega_f
 H = 1
 eps = 1e-2 * U ** 3 / H
-params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
+params.nu_2 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 50 * period_N
-params.time_stepping.deltat_max = period_N / 40
+params.time_stepping.t_end = 100 * period_N
+params.time_stepping.deltat_max = deltat_max = period_N / 40
 
 params.init_fields.type = "noise"
 params.init_fields.noise.velo_max = 0.001
@@ -164,8 +164,8 @@ masky = (
 )
 
 z_variation = np.sin(2 * pi * Z)
-vxtarget = z_variation
-vytarget = z_variation
+vxtarget = U*z_variation
+vytarget = U*z_variation
 
 
 # calculus of coef_sigma
@@ -191,7 +191,7 @@ def compute_forcing_each_time(self):
     coef_forcing_time_y = calcul_forcing_time_y(time)
     vx = sim.state.state_phys.get_var("vx")
     vy = sim.state.state_phys.get_var("vy")
-    sigma = coef_sigma / sim.time_stepping.deltat
+    sigma = coef_sigma / deltat_max
     fx = sigma * maskx * (coef_forcing_time_x * vxtarget - vx)
     fy = sigma * masky * (coef_forcing_time_y * vytarget - vy)
     result = {"vx_fft": fx, "vy_fft": fy}
