@@ -287,9 +287,9 @@ Lx, Ly and Lz: float
 
         """
 
-        divh_fft = self.Kx * vx_fft + self.Ky * vy_fft
-        udx_fft = divh_fft * self.Kx * self.inv_K_square_nozero
-        udy_fft = divh_fft * self.Ky * self.inv_K_square_nozero
+        kdotu_fft = self.Kx * vx_fft + self.Ky * vy_fft
+        udx_fft = kdotu_fft * self.Kx * self.inv_K_square_nozero
+        udy_fft = kdotu_fft * self.Ky * self.inv_K_square_nozero
 
         urx_fft = vx_fft - udx_fft
         ury_fft = vy_fft - udy_fft
