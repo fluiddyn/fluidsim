@@ -20,7 +20,7 @@ https://github.com/pypa/setuptools_scm#setuptools_scm
 
 """
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 __all__ = ["__version__", "get_local_version", "__about__"]
 
