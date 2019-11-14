@@ -30,11 +30,11 @@
    :target: https://matrix.to/#/#fluiddyn-users:matrix.org
    :alt: Chat room
 
+.. description
+
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?urlpath=lab/tree/doc/ipynb
    :alt: Binder notebook
-
-.. description
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
 simulations using Python. Fluidsim is an object-oriented library to develop
@@ -46,6 +46,7 @@ since the time-consuming tasks are performed by optimized compiled functions.
 
 Getting started
 ---------------
+
 To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
