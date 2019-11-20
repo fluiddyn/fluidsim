@@ -109,6 +109,7 @@ class TestOutput(TestSimulBase):
         # compute twice for better coverage
         sim.state.compute("rotz")
         sim.state.compute("rotz")
+        sim.state.compute("divh")
 
         sim.output.phys_fields._get_grid1d("iz=0")
         sim.output.phys_fields._get_grid1d("iy=0")

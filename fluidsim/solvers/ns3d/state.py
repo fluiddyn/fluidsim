@@ -56,6 +56,11 @@ class StateNS3D(StatePseudoSpectral):
             vy_fft = self.get_var("vy_fft")
             rotz_fft = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
             result = self.oper.ifft3d(rotz_fft)
+        elif key == "divh":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            divh_fft = self.oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
+            result = self.oper.ifft3d(divh_fft)
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:

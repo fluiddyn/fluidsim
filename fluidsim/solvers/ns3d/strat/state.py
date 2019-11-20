@@ -28,7 +28,7 @@ class StateNS3DStrat(StateNS3D):
                 "keys_state_spect": [k + "_fft" for k in keys_state_phys],
                 "keys_state_phys": keys_state_phys,
                 "keys_phys_needed": keys_state_phys,
-                "keys_computable": [],
+                "keys_computable": ["rotz", "divh"],
                 "keys_linear_eigenmodes": ["rot_fft"],
             }
         )

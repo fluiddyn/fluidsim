@@ -88,6 +88,12 @@ class TestOutput(TestSimulBase):
 
         sim.time_stepping.start()
 
+        sim.state.compute("divh")
+
+        np.testing.assert_almost_equal(
+            sum(sim.output.compute_energies()), sim.output.compute_energy()
+        )
+
         if mpi.nb_proc > 1:
             return
 

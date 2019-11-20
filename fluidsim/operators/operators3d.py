@@ -296,6 +296,11 @@ Lx, Ly and Lz: float
 
         return urx_fft, ury_fft, udx_fft, udy_fft
 
+    @boost
+    def divhfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
+        """Compute the horizontal divergence in spectral space."""
+        return 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
+
     def get_grid1d_seq(self, axe="x"):
 
         if axe not in ("x", "y", "z"):
