@@ -379,7 +379,7 @@ class MoviesBase1D(MoviesBase):
         )
 
         ax = self.ax
-        self._ani_line, = ax.plot([], [])
+        (self._ani_line,) = ax.plot([], [])
 
         if "xmax" in kwargs:
             ax.set_xlim(0, kwargs["xmax"])
@@ -394,7 +394,7 @@ class MoviesBase1D(MoviesBase):
         print("update_animation for frame", frame, "       ", end="\r")
         time = self.ani_times[frame]
         get_field_to_plot = self.phys_fields.get_field_to_plot
-        y = get_field_to_plot(time=time, key=self.key_field)
+        y, time = get_field_to_plot(time=time, key=self.key_field)
         x = self._get_axis_data()
 
         self._ani_line.set_data(x, y)

@@ -63,10 +63,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._has_uxuy = self.sim.state.has_vars("ux", "uy")
 
         get_field_to_plot = self.phys_fields.get_field_to_plot
-        field = get_field_to_plot(self.key_field)
+        field, time = get_field_to_plot(self.key_field)
         if self._has_uxuy:
-            ux = get_field_to_plot("ux")
-            uy = get_field_to_plot("uy")
+            ux, time = get_field_to_plot("ux")
+            uy, time = get_field_to_plot("uy")
         else:
             ux = uy = None
 
@@ -110,9 +110,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ANI_INSET = INSET
         if self._ANI_INSET:
             try:
-                self._ani_spatial_means_t, self._ani_spatial_means_key = (
-                    self._get_spatial_means()
-                )
+                (
+                    self._ani_spatial_means_t,
+                    self._ani_spatial_means_key,
+                ) = self._get_spatial_means()
             except FileNotFoundError:
                 print("No spatial means file => no inset plot.")
                 self._ANI_INSET = False
@@ -171,7 +172,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         step = self._step
         get_field_to_plot = self.phys_fields.get_field_to_plot
 
-        field = get_field_to_plot(
+        field, time = get_field_to_plot(
             time=time,
             key=self.key_field,
             equation=self._equation,
@@ -186,13 +187,13 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._im.set_array(field.flatten())
 
         if self._has_uxuy and self._QUIVER:
-            ux = get_field_to_plot(
+            ux, time = get_field_to_plot(
                 time=time,
                 key="ux",
                 equation=self._equation,
                 interpolate_time=True,
             )
-            uy = get_field_to_plot(
+            uy, time = get_field_to_plot(
                 time=time,
                 key="uy",
                 equation=self._equation,
@@ -412,14 +413,14 @@ class PhysFieldsBase2D(PhysFieldsBase):
             if key_field not in self.sim.state.keys_state_phys:
                 raise ValueError("key not in state.keys_state_phys")
 
-            field = self.get_field_to_plot(
+            field, time = self.get_field_to_plot(
                 key=key_field, time=time, interpolate_time=True
             )
             if QUIVER:
-                vecx = self.get_field_to_plot(
+                vecx, time = self.get_field_to_plot(
                     key=vecx, time=time, interpolate_time=True
                 )
-                vecy = self.get_field_to_plot(
+                vecy, time = self.get_field_to_plot(
                     key=vecy, time=time, interpolate_time=True
                 )
 
@@ -488,10 +489,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
         """
         if isinstance(vecx, str):
-            vecx = self.get_field_to_plot(vecx)
+            vecx, time = self.get_field_to_plot(vecx)
 
         if isinstance(vecy, str):
-            vecy = self.get_field_to_plot(vecy)
+            vecy, time = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(

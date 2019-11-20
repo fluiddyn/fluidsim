@@ -158,14 +158,14 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                 )
 
         if not is_field_ready:
-            field = self.get_field_to_plot(
+            field, time = self.get_field_to_plot(
                 key=key_field, time=time, equation=equation
             )
             if QUIVER:
-                vecx = self.get_field_to_plot(
+                vecx, time = self.get_field_to_plot(
                     key=vecx, time=time, equation=equation
                 )
-                vecy = self.get_field_to_plot(
+                vecy, time = self.get_field_to_plot(
                     key=vecy, time=time, equation=equation
                 )
 
@@ -228,10 +228,10 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         """
         if isinstance(vecx, str):
-            vecx = self.get_field_to_plot(vecx)
+            vecx, time = self.get_field_to_plot(vecx)
 
         if isinstance(vecy, str):
-            vecy = self.get_field_to_plot(vecy)
+            vecy, time = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
             equation = self._equation

@@ -274,7 +274,7 @@ class PhysFieldsBase(SpecificOutput):
             field, key = self.get_field_to_plot_from_state(
                 field=key, equation=equation
             )
-            return field
+            return field, self.sim.time_stepping.t
 
         else:
             return self.set_of_phys_files.get_field_to_plot(
@@ -438,49 +438,50 @@ class SetOfPhysFieldFiles:
             weight0 = 1 - np.abs(time - self.times[idx0]) / dt_save
             weight1 = 1 - np.abs(time - self.times[idx1]) / dt_save
 
-            field0 = self.get_field_to_plot(
+            field0, time0 = self.get_field_to_plot(
                 idx_time=idx0, key=key, equation=equation
             )
-            field1 = self.get_field_to_plot(
+            field1, time1 = self.get_field_to_plot(
                 idx_time=idx1, key=key, equation=equation
             )
 
-            return field0 * weight0 + field1 * weight1
+            return field0 * weight0 + field1 * weight1, time
 
         # print(idx_time, 'Using file', self.path_files[idx_time])
 
-        with h5py.File(self.path_files[idx_time]) as f:
-            dset = f["state_phys"][key]
+        with h5py.File(self.path_files[idx_time]) as file:
+            time = file["state_phys"].attrs["time"]
+            dset = file["state_phys"][key]
 
             if equation is None:
-                return dset.value
+                return dset.value, time
 
             if equation.startswith("iz="):
                 iz = eval(equation[len("iz=") :])
-                return dset[iz, ...]
+                return dset[iz, ...], time
 
             elif equation.startswith("z="):
                 z = eval(equation[len("z=") :])
                 iz = abs(self.output.sim.oper.get_grid1d_seq("z") - z).argmin()
-                return dset[iz, ...]
+                return dset[iz, ...], time
 
             elif equation.startswith("iy="):
                 iy = eval(equation[len("iy=") :])
-                return dset[:, iy, :]
+                return dset[:, iy, :], time
 
             elif equation.startswith("y="):
                 y = eval(equation[len("y=") :])
                 iy = abs(self.output.sim.oper.get_grid1d_seq("y") - y).argmin()
-                return dset[:, iy, :]
+                return dset[:, iy, :], time
 
             elif equation.startswith("ix="):
                 ix = eval(equation[len("ix=") :])
-                return dset[..., ix]
+                return dset[..., ix], time
 
             elif equation.startswith("x="):
                 x = eval(equation[len("x=") :])
                 ix = abs(self.output.sim.oper.get_grid1d_seq("x") - x).argmin()
-                return dset[..., ix]
+                return dset[..., ix], time
 
             else:
                 raise NotImplementedError

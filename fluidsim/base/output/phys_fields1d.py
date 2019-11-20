@@ -58,7 +58,7 @@ class PhysFieldsBase1D(PhysFieldsBase):
             if key_field not in self.sim.state.keys_state_phys:
                 raise ValueError("key not in state.keys_state_phys")
 
-            field = self.get_field_to_plot(key=key_field, time=time)
+            field, time = self.get_field_to_plot(key=key_field, time=time)
 
         if mpi.rank == 0:
             if numfig is None:
