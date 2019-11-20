@@ -25,15 +25,15 @@ class TestSimulBase(TestSimul):
 
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        nx = 32
+        nx = 64
         params.oper.nx = nx
-        params.oper.ny = nx
-        params.oper.nz = nx
+        params.oper.ny = nx * 3 // 4
+        params.oper.nz = nx // 2
 
         Lx = 6.0
         params.oper.Lx = Lx
-        params.oper.Ly = Lx
-        params.oper.Lz = Lx
+        params.oper.Ly = Lx * 3 // 4
+        params.oper.Lz = Lx // 2
 
         params.oper.coef_dealiasing = 2.0 / 3
         params.nu_8 = 2.0

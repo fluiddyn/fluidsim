@@ -14,8 +14,6 @@ Provides:
 
 """
 
-from builtins import object
-
 import numpy as np
 
 from fluiddyn.util import mpi

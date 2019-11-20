@@ -273,6 +273,7 @@ def load_state_phys_file(
     t_approx=None,
     modif_save_params=True,
     merge_missing_params=False,
+    init_with_initialized_state=True,
 ):
     """Create a simulation from a file.
 
@@ -305,6 +306,10 @@ def load_state_phys_file(
       Can be used to load old simulations carried out with an old fluidsim
       version.
 
+    init_with_initialized_state : bool (optional, default == True)
+
+      If True, call sim.output.init_with_initialized_state.
+
     """
 
     params, Simul = load_for_restart(name_dir, t_approx, merge_missing_params)
@@ -316,6 +321,10 @@ def load_state_phys_file(
     params.ONLY_COARSE_OPER = False
 
     sim = Simul(params)
+
+    if init_with_initialized_state:
+        sim.output.init_with_initialized_state()
+
     return sim
 
 
