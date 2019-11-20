@@ -79,9 +79,10 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         # Try to compute deltat_group_vel if self.coed_group is True
         if self.coef_group:
             try:
-                freq_group, freq_phase = (
-                    self._compute_time_increment_group_and_phase()
-                )
+                (
+                    freq_group,
+                    freq_phase,
+                ) = self._compute_time_increment_group_and_phase()
             except AttributeError as e:
                 print(
                     "_compute_time_increment_group_and_phase is not implemented",

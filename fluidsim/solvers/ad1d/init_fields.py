@@ -42,7 +42,7 @@ class InitFieldsGaussian(SpecificInitFields):
 
     def __call__(self):
         oper = self.sim.oper
-        s = np.exp(-(10 * (oper.xs - oper.Lx / 2.0)) ** 2)
+        s = np.exp(-((10 * (oper.xs - oper.Lx / 2.0)) ** 2))
         self.sim.state.state_phys[0] = s
 
 

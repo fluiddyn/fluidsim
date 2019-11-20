@@ -33,9 +33,11 @@ class SpectraSW1L(Spectra):
     def compute(self):
         """compute the values at one time."""
         # compute 'quantities_fft'
-        energyK_fft, energyA_fft, energyKr_fft = (
-            self.output.compute_energies_fft()
-        )
+        (
+            energyK_fft,
+            energyA_fft,
+            energyKr_fft,
+        ) = self.output.compute_energies_fft()
         ErtelPE_fft, CharneyPE_fft = self.output.compute_PE_fft()
 
         # compute the spectra 1D
@@ -82,9 +84,11 @@ class SpectraSW1L(Spectra):
         return dict_spectra1D, dict_spectra2D
 
     def compute_lin_spectra(self):
-        energy_glin_fft, energy_dlin_fft, energy_alin_fft = (
-            self.output.compute_lin_energies_fft()
-        )
+        (
+            energy_glin_fft,
+            energy_dlin_fft,
+            energy_alin_fft,
+        ) = self.output.compute_lin_energies_fft()
 
         spectrum1Dkx_Eglin, spectrum1Dky_Eglin = self.spectra1D_from_fft(
             energy_glin_fft
@@ -474,9 +478,11 @@ class SpectraSW1LNormalMode(SpectraSW1L):
         super().__init__(output)
 
     def compute_lin_spectra(self):
-        energy_glin_fft, energy_aplin_fft, energy_amlin_fft = (
-            self.norm_mode.compute_qapam_energies_fft()
-        )
+        (
+            energy_glin_fft,
+            energy_aplin_fft,
+            energy_amlin_fft,
+        ) = self.norm_mode.compute_qapam_energies_fft()
 
         energy_alin_fft = energy_aplin_fft + energy_amlin_fft
         spectrum1Dkx_Eglin, spectrum1Dky_Eglin = self.spectra1D_from_fft(

@@ -60,9 +60,14 @@ class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
     def monge_ampere_from_fft(self, a_fft, b_fft):
         """Compute the Monge-Ampere operator"""
 
-        pxx_a_fft, pyy_a_fft, pxy_a_fft, pxx_b_fft, pyy_b_fft, pxy_b_fft = monge_ampere_step0(
-            a_fft, b_fft, self.KX2, self.KY2, self.KXKY
-        )
+        (
+            pxx_a_fft,
+            pyy_a_fft,
+            pxy_a_fft,
+            pxx_b_fft,
+            pyy_b_fft,
+            pxy_b_fft,
+        ) = monge_ampere_step0(a_fft, b_fft, self.KX2, self.KY2, self.KXKY)
 
         self.ifft_as_arg(pxx_a_fft, self.tmp_pxx_a)
         self.ifft_as_arg(pyy_a_fft, self.tmp_pyy_a)

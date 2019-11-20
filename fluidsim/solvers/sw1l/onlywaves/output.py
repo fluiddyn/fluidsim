@@ -19,5 +19,5 @@ class OutputSW1LWaves(OutputSW1L):
         classes = info_solver.classes.Output.classes
 
         classes.SpectralEnergyBudget.class_name = (
-            "SpectralEnergyBudgetSW1L"
-        )  # Waves'
+            "SpectralEnergyBudgetSW1L"  # Waves'
+        )

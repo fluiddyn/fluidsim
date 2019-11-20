@@ -135,12 +135,12 @@ class InitFieldsJet(SpecificInitFields):
         b = Ly / 2.0
         omega0 = 2.0
         omega = omega0 * (
-            np.exp(-((oper.YY - Ly / 2.0 + b / 2.0) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0) / a) ** 2)
-            + np.exp(-((oper.YY - Ly / 2.0 + b / 2.0 + Ly) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0 + Ly) / a) ** 2)
-            + np.exp(-((oper.YY - Ly / 2.0 + b / 2.0 - Ly) / a) ** 2)
-            - np.exp(-((oper.YY - Ly / 2.0 - b / 2.0 - Ly) / a) ** 2)
+            np.exp(-(((oper.YY - Ly / 2.0 + b / 2.0) / a) ** 2))
+            - np.exp(-(((oper.YY - Ly / 2.0 - b / 2.0) / a) ** 2))
+            + np.exp(-(((oper.YY - Ly / 2.0 + b / 2.0 + Ly) / a) ** 2))
+            - np.exp(-(((oper.YY - Ly / 2.0 - b / 2.0 + Ly) / a) ** 2))
+            + np.exp(-(((oper.YY - Ly / 2.0 + b / 2.0 - Ly) / a) ** 2))
+            - np.exp(-(((oper.YY - Ly / 2.0 - b / 2.0 - Ly) / a) ** 2))
         )
         return omega
 

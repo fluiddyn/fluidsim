@@ -34,9 +34,11 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         if mpi.rank == 0:
             self._result["t"] = tsim
 
-        energyK_fft, energyA_fft, energyKr_fft = (
-            self.output.compute_energies_fft()
-        )
+        (
+            energyK_fft,
+            energyA_fft,
+            energyKr_fft,
+        ) = self.output.compute_energies_fft()
         energyK = self.sum_wavenumbers(energyK_fft)
         energyA = self.sum_wavenumbers(energyA_fft)
         energyKr = self.sum_wavenumbers(energyKr_fft)

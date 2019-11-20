@@ -51,7 +51,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
 
         if scale == "energy":
             try:
-                Ek, = self.output.compute_quad_energies()
+                (Ek,) = self.output.compute_quad_energies()
             except:
                 Ek = self.output.compute_energy()
 
