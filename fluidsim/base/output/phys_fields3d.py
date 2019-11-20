@@ -152,10 +152,29 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             # we have to get the field from a file
             self.set_of_phys_files.update_times()
             if key_field not in self.sim.state.keys_state_phys:
-                raise ValueError(
+                error_message = (
                     f'key "{key_field}" not in state.keys_state_phys '
-                    f"({self.sim.state.keys_state_phys})"
+                    f"({self.sim.state.keys_state_phys})."
                 )
+
+                if time is not None:
+                    error_message += (
+                        "\nThe quantity cannot be computed because "
+                        "time is not None."
+                    )
+                elif key_field in self.sim.state.keys_computable:
+                    if self.sim.params.ONLY_COARSE_OPER:
+                        error_message += (
+                            f'\n"{key_field}" in sim.state.keys_computable '
+                            "but sim.params.ONLY_COARSE_OPER is True"
+                        )
+                else:
+                    error_message += (
+                        f"\nThe quantity cannot be computed because "
+                        '"{key_field}" in sim.state.keys_computable.'
+                    )
+
+                raise ValueError(error_message)
 
         if not is_field_ready:
             field, time = self.get_field_to_plot(
