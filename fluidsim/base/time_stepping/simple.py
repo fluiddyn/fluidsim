@@ -10,7 +10,6 @@ Provides:
 
 """
 
-from builtins import object
 import numpy as np
 
 from .base import TimeSteppingBase

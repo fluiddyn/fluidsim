@@ -8,7 +8,6 @@ Provides:
    :private-members:
 
 """
-from builtins import object
 
 
 class PreprocessBase:

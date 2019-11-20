@@ -32,7 +32,7 @@ class MoviesSpectra(MoviesBase1D):
         with h5py.File(self.spectra.path_file2D) as f:
             y = f["spectrum2D_" + key][idx]
         y[abs(y) < 10e-16] = 0
-        return y
+        return y, t_file
 
     def get_closest_time_file(self, time):
         """Find the index and value of the closest actual time of the field."""
