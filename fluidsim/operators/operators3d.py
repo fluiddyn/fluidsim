@@ -108,6 +108,7 @@ class OperatorsPseudoSpectral3D(_Operators):
     Kx: Af
     Ky: Af
     inv_K_square_nozero: Af
+    inv_Kh_square_nozero: Af
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -286,10 +287,13 @@ Lx, Ly and Lz: float
         """Compute toroidal and poloidal horizontal velocities
 
         """
+        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
 
         kdotu_fft = self.Kx * vx_fft + self.Ky * vy_fft
-        udx_fft = kdotu_fft * self.Kx * self.inv_K_square_nozero
-        udy_fft = kdotu_fft * self.Ky * self.inv_K_square_nozero
+        udx_fft = kdotu_fft * self.Kx * inv_Kh_square_nozero
+        udy_fft = kdotu_fft * self.Ky * inv_Kh_square_nozero
 
         urx_fft = vx_fft - udx_fft
         ury_fft = vy_fft - udy_fft
