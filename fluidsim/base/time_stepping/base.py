@@ -187,12 +187,15 @@ max_elapsed: number or str (default None)
             if mpi.nb_proc > 1:
                 now = mpi.comm.bcast(now, root=0)
             if now > self._time_should_stop:
-                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
+                self.sim.output.print_stdout(
+                    "Maximum elapsed time reached. Should stop soon."
+                )
                 self._has_to_stop = True
         self.sim.output.one_time_step()
         self.one_time_step_computation()
         self.t += self.deltat
         self.it += 1
+
 
 class TimeSteppingBase(TimeSteppingBase0):
     def _init_compute_time_step(self):

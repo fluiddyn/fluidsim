@@ -53,7 +53,7 @@ class OperatorsDedalus2D:
 
         self.params = params
 
-        self.x_seq, self.y_seq = self.domain.grids(scales=1.)
+        self.x_seq, self.y_seq = self.domain.grids(scales=1.0)
         self.x_seq = self.x_seq.flatten()
         self.y_seq = self.y_seq.flatten()
         self.X, self.Y = np.meshgrid(self.x_seq, self.y_seq)

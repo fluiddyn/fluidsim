@@ -23,12 +23,12 @@ class StatePhysDedalus:
             return np.zeros(1)
 
         field = self.dedalus_solver.state[key]
-        field.set_scales(1.)
+        field.set_scales(1.0)
         return field["g"].transpose()
 
     def set_var(self, key, value):
         field = self.dedalus_solver.state[key]
-        field.set_scales(1.)
+        field.set_scales(1.0)
         field["g"] = value.transpose()
 
     def initialize(self, value):
