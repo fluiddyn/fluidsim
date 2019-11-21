@@ -25,8 +25,8 @@ def load_bench(path_dir, solver, hostname="any"):
 
     dicts = []
     for path in glob(path_dir + f"/result_bench_{solver}*.json"):
-        with open(path) as f:
-            d = json.load(f)
+        with open(path) as file:
+            d = json.load(file)
 
         if hostname != "any" and not d["hostname"].startswith(hostname):
             continue

@@ -82,9 +82,9 @@ am_fft_arr = np.empty([itmax - itmin, nz, nx], dtype="complex")
 
 for ifile, path_file in enumerate(paths_files[itmin:itmax]):
     with h5py.File(path_file, "r") as f:
-        ux = f["state_phys"]["ux"].value
-        uz = f["state_phys"]["uy"].value
-        b = f["state_phys"]["b"].value
+        ux = f["state_phys"]["ux"][...]
+        uz = f["state_phys"]["uy"][...]
+        b = f["state_phys"]["b"][...]
 
         # Fourier transform of the variables...
         ux_fft_arr[ifile, :, :] = np.fft.fft2(ux)

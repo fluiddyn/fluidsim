@@ -11,8 +11,8 @@ hostname = 'cl7'
 dicts = []
 
 for path in glob('results_bench/*'):
-    with open(path) as f:
-        d = json.load(f)
+    with open(path) as file:
+        d = json.load(file)
     if not d['hostname'].startswith(hostname):
         continue
     dicts.append(d)

@@ -201,7 +201,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
                     str_path = path
 
                 print("Loading params from file\n" + str_path)
-                with h5py.File(path) as h5file:
+                with h5py.File(path, "r") as h5file:
                     params = Parameters(hdf5_object=h5file["/info_simul/params"])
             else:
                 raise ValueError
@@ -241,7 +241,7 @@ def load_info_solver(path_dir=None):
         str_path = path
 
     print("load params from file\n" + str_path)
-    with h5py.File(path) as h5file:
+    with h5py.File(path, "r") as h5file:
         return Parameters(hdf5_object=h5file["/info_simul/solver"])
 
 

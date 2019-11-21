@@ -64,11 +64,11 @@ def compute_anisotropy(path_simulation, tmin=None):
 
     # Load data energy spectra file.
     with h5py.File(path_simulation + "/spectra1D.h5", "r") as f:
-        kx = f["kxE"].value
-        times = f["times"].value
-        spectrumkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
-        spectrumkx_EK = f["spectrum1Dkx_EK"].value
-        spectrumkx_EK_uy = f["spectrum1Dkx_EK_uy"].value
+        kx = f["kxE"][...]
+        times = f["times"][...]
+        spectrumkx_EK_ux = f["spectrum1Dkx_EK_ux"][...]
+        spectrumkx_EK = f["spectrum1Dkx_EK"][...]
+        spectrumkx_EK_uy = f["spectrum1Dkx_EK_uy"][...]
         dt_state_phys = np.median(np.diff(times))
 
     # Compute start time average itmin

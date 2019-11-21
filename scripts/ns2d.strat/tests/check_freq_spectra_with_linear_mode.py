@@ -136,8 +136,8 @@ if __name__ == '__main__':
             sim.output.path_run, "temporal_data", "temp_*"))[0]
 
         with h5py.File(path_file, "r") as f:
-            omegas = f["omegas"].value
-            freq_spectrum = f["freq_spectrum"].value
+            omegas = f["omegas"][...]
+            freq_spectrum = f["freq_spectrum"][...]
 
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()

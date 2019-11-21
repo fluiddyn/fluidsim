@@ -101,10 +101,10 @@ class SpectraNS2DStrat(Spectra):
             dset_times = h5file["times"]
             dset_kxE = h5file["kxE"]
             dset_kyE = h5file["kyE"]
-            times = dset_times.value
+            times = dset_times[...]
             means["times"] = times
-            means["kx"] = dset_kxE.value
-            means["ky"] = dset_kyE.value
+            means["kx"] = dset_kxE[...]
+            means["ky"] = dset_kyE[...]
 
             if tmin is None:
                 tmin = 0
@@ -346,8 +346,8 @@ class SpectraNS2DStrat(Spectra):
         # Load data from file
         with h5py.File(self.path_file2D, "r") as h5file:
             dset_times = h5file["times"]
-            means["kh"] = h5file["khE"].value
-            times = dset_times.value
+            means["kh"] = h5file["khE"][...]
+            times = dset_times[...]
             means["times"] = times
 
             # Compute average from tmin and tmax for plot

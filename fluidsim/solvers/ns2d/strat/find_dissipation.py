@@ -243,8 +243,8 @@ def modify_factor(sim, key_viscosity):
 
 def write_to_file(path, to_print, mode="a"):
     """ Writes to a file."""
-    with open(path, mode) as f:
-        f.write(to_print)
+    with open(path, mode) as file:
+        file.write(to_print)
 
 
 def make_float_value_for_path(value):

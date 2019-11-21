@@ -20,8 +20,8 @@ class MoviesSpectra(MoviesBase1D):
         if "ymax" not in kwargs:
             kwargs["ymax"] = 1.0
 
-        with h5py.File(self.spectra.path_file3d) as f:
-            self.times = f["times"][...]
+        with h5py.File(self.spectra.path_file3d) as file:
+            self.times = file["times"][...]
 
         super().init_animation(*args, **kwargs)
 
@@ -29,8 +29,8 @@ class MoviesSpectra(MoviesBase1D):
         if key is None:
             key = self.key_field
         idx, t_file = self.get_closest_time_file(time)
-        with h5py.File(self.spectra.path_file3d) as f:
-            y = f["spectra_" + key][idx]
+        with h5py.File(self.spectra.path_file3d) as file:
+            y = file["spectra_" + key][idx]
         y[abs(y) < 10e-16] = 0
         return y, t_file
 
@@ -55,8 +55,8 @@ class MoviesSpectra(MoviesBase1D):
           x-axis data.
 
         """
-        with h5py.File(self.spectra.path_file3d) as f:
-            x = f["k_spectra3d"][...]
+        with h5py.File(self.spectra.path_file3d) as file:
+            x = file["k_spectra3d"][...]
 
         return x
 
@@ -122,8 +122,8 @@ class Spectra(SpecificOutput):
                 )
                 self.nb_saved_times = 1
             else:
-                with h5py.File(self.path_file1d, "r") as f:
-                    dset_times = f["times"]
+                with h5py.File(self.path_file1d, "r") as file:
+                    dset_times = file["times"]
                     self.nb_saved_times = dset_times.shape[0] + 1
                 # save the spectra in the file spectra1s.h5
                 self._add_dict_arrays_to_file(self.path_file1d, dict_spectra1d)

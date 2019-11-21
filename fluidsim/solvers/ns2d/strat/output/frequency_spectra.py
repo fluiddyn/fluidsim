@@ -175,9 +175,9 @@ class FrequencySpectra(SpecificOutput):
             }
 
             # Write dictionary to file
-            with h5py.File(path_file, "w") as f:
+            with h5py.File(path_file, "w") as file:
                 for k, v in list(dict_arr.items()):
-                    f.create_dataset(k, data=v)
+                    file.create_dataset(k, data=v)
 
     def _online_save(self):
         """Computes and saves the values at one time."""
@@ -255,7 +255,7 @@ class FrequencySpectra(SpecificOutput):
     def _concatenate_data(self, tmin, tmax):
         """
         Concatenates temporal data.
-            
+
         Argument
             tmin {float} -- Minimum time to perform temporal FT.
             tmax {float} -- Maximum time to perform temporal FT.
@@ -293,9 +293,9 @@ class FrequencySpectra(SpecificOutput):
         times_conc = None
 
         for path_file in list_files:
-            with h5py.File(path_file, "r") as f:
-                temp_arr = f["temp_arr"].value
-                times = f["times_arr"].value
+            with h5py.File(path_file, "r") as file:
+                temp_arr = file["temp_arr"][...]
+                times = file["times_arr"][...]
 
             # Concatenate arrays
             if isinstance(temp_arr_conc, np.ndarray):
@@ -353,9 +353,9 @@ class FrequencySpectra(SpecificOutput):
             )
 
             # Load data from file
-            with h5py.File(file_path, "r") as f:
-                temp_array = f["temp_arr"].value
-                times = f["times_arr"].value
+            with h5py.File(file_path, "r") as file:
+                temp_array = file["temp_arr"][...]
+                times = file["times_arr"][...]
 
             # Compute the temporal spectrum of a 3D array
             omegas, freq_spectrum = signal.periodogram(
@@ -372,9 +372,9 @@ class FrequencySpectra(SpecificOutput):
             # Save array omegas and spectrum to file
             dict_arr = {"omegas": omegas, "freq_spectrum": freq_spectrum}
 
-            with h5py.File(file_path, "r+") as f:
+            with h5py.File(file_path, "r+") as file:
                 for k, v in list(dict_arr.items()):
-                    f.create_dataset(k, data=v)
+                    file.create_dataset(k, data=v)
 
             # Flush buffer and sleep time
             sys.stdout.flush()

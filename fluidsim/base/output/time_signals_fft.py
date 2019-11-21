@@ -269,17 +269,17 @@ class TimeSignalsK(SpecificOutput):
                 "no file time_sigK.h5 in\n" + self.output.dir_save_run
             )
 
-        with h5py.File(self.path_file, "r+") as f:
+        with h5py.File(self.path_file, "r+") as file:
 
-            dset_times = f["times"]
+            dset_times = file["times"]
             times = dset_times[...]
 
             dict_results = {}
             dict_results["times"] = times
 
-            dict_results["nb_shells"] = f.attrs["nb_shells"]
-            dict_results["nb_k_per_shell"] = f.attrs["nb_k_per_shell"]
-            dict_results["nb_k_tot"] = f.attrs["nb_k_tot"]
+            dict_results["nb_shells"] = file.attrs["nb_shells"]
+            dict_results["nb_k_per_shell"] = file.attrs["nb_k_per_shell"]
+            dict_results["nb_k_tot"] = file.attrs["nb_k_tot"]
 
             keys_1time = [
                 "kh_shell",
@@ -291,7 +291,7 @@ class TimeSignalsK(SpecificOutput):
             ]
 
             for key in keys_1time:
-                dset_temp = f[key]
+                dset_temp = file[key]
                 dict_results[key] = dset_temp[...]
 
             keys_linear_eigenmodes = (
@@ -299,7 +299,7 @@ class TimeSignalsK(SpecificOutput):
             )
 
             for key in keys_linear_eigenmodes:
-                dset_temp = f[key[:-3] + "array_ik"]
+                dset_temp = file[key[:-3] + "array_ik"]
                 A = dset_temp[...]
                 dict_results["sig_" + key] = np.ascontiguousarray(A.transpose())
         return dict_results

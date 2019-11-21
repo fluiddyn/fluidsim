@@ -147,9 +147,9 @@ def bench(sim):
     except AttributeError:
         pass
 
-    with open(path, 'w') as f:
-        json.dump(results, f, sort_keys=True)
-        f.write('\n')
+    with open(path, 'w') as file:
+        json.dump(results, file, sort_keys=True)
+        file.write('\n')
 
 
 def print_analysis(s):

@@ -209,9 +209,9 @@ class SpatioTempSpectra(SpecificOutput):
             }
 
             # Write dictionary to file
-            with h5py.File(path_file, "w") as f:
+            with h5py.File(path_file, "w") as file:
                 for k, v in list(dict_arr.items()):
-                    f.create_dataset(k, data=v)
+                    file.create_dataset(k, data=v)
 
     def _online_save(self):
         """Computes and saves the values at one time."""
@@ -430,9 +430,9 @@ class SpatioTempSpectra(SpecificOutput):
         path_file = path_dir / name_file
 
         # Save file into directory spatio_temporal/Spectrum
-        with h5py.File(path_file, "w") as f:
+        with h5py.File(path_file, "w") as file:
             for k, v in list(dict_arr.items()):
-                f.create_dataset(k, data=v)
+                file.create_dataset(k, data=v)
 
     def _get_concatenate_data(self, tmin, tmax):
         """Gives concatenated time and spatio_temp arrays/
@@ -472,8 +472,8 @@ class SpatioTempSpectra(SpecificOutput):
         ifile_time = []
 
         for index, path_file in enumerate(list_files):
-            with h5py.File(path_file, "r") as f:
-                times = f["times_arr"].value
+            with h5py.File(path_file, "r") as file:
+                times = file["times_arr"][...]
             for time_value in times:
                 ifile_time.append((index, time_value))
 
@@ -498,9 +498,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Load all data
         for index, path_file in enumerate(list_files[ifile_min:ifile_max]):
-            with h5py.File(path_file, "r") as f:
-                spatio_temp = f["spatio_temp"].value
-                times = f["times_arr"].value
+            with h5py.File(path_file, "r") as file:
+                spatio_temp = file["spatio_temp"][...]
+                times = file["times_arr"][...]
 
             # Print concatenating info..
             print(
@@ -610,9 +610,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         print(f"File = {path_file}")
         # Load data
-        with h5py.File(path_file, "r") as f:
-            temp_spectrum_mean = f["spectrum"].value
-            omegas = f["omegas"].value
+        with h5py.File(path_file, "r") as file:
+            temp_spectrum_mean = file["spectrum"][...]
+            omegas = file["omegas"][...]
 
         # Load simulation object
         sim = load_state_phys_file(path_dir.parent, merge_missing_params=True)
@@ -819,9 +819,9 @@ class SpatioTempSpectra(SpecificOutput):
         print(f"Path = {path_file}")
 
         # Load data
-        with h5py.File(path_file, "r") as f:
-            temp_spectrum_mean = f["spectrum"].value
-            omegas = f["omegas"].value
+        with h5py.File(path_file, "r") as file:
+            temp_spectrum_mean = file["spectrum"][...]
+            omegas = file["omegas"][...]
 
         # Load simulation object
         sim = load_state_phys_file(path_dir.parent, merge_missing_params=True)
@@ -1012,9 +1012,9 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Load frequency spectra
         print(f"path_file = {path_file}")
-        with h5py.File(path_file, "r") as f:
-            spectrum = f["spectrum"].value
-            omegas = f["omegas"].value
+        with h5py.File(path_file, "r") as file:
+            spectrum = file["spectrum"][...]
+            omegas = file["omegas"][...]
 
         # Define index with spatial decimation
         idx_mode = np.argmin(

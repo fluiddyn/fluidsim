@@ -449,12 +449,12 @@ class SetOfPhysFieldFiles:
 
         # print(idx_time, 'Using file', self.path_files[idx_time])
 
-        with h5py.File(self.path_files[idx_time]) as file:
+        with h5py.File(self.path_files[idx_time], "r") as file:
             time = file["state_phys"].attrs["time"]
             dset = file["state_phys"][key]
 
             if equation is None:
-                return dset.value, time
+                return dset[...], time
 
             if equation.startswith("iz="):
                 iz = eval(equation[len("iz=") :])

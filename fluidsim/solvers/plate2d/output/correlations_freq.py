@@ -208,15 +208,15 @@ class CorrelationsFreq(SpecificOutput):
         self.nb_times_in_spatio_temp = 0
 
         if os.path.exists(self.path_file):
-            with h5py.File(self.path_file, "r") as f:
-                link_corr4 = f["corr4"]
-                link_corr2 = f["corr2"]
-                link_nb_means = f["nb_means"]
+            with h5py.File(self.path_file, "r") as file:
+                link_corr4 = file["corr4"]
+                link_corr2 = file["corr2"]
+                link_nb_means = file["nb_means"]
                 self.corr4 = link_corr4[-1]
                 self.corr2 = link_corr2[-1]
                 self.nb_means_times = link_nb_means[-1]
-                self.periods_fill = f["periods_fill"][...]
-                if self.sim.time_stepping.deltat != f["deltat"][...]:
+                self.periods_fill = file["periods_fill"][...]
+                if self.sim.time_stepping.deltat != file["deltat"][...]:
                     raise ValueError()
 
         else:
@@ -397,10 +397,10 @@ class CorrelationsFreq(SpecificOutput):
 
     def compute_corr4_norm(self, it=-1):
 
-        with h5py.File(self.path_file, "r") as f:
-            corr4 = f["corr4"][it]
-            corr2 = f["corr2"][it]
-            nb_means = f["nb_means"][it]
+        with h5py.File(self.path_file, "r") as file:
+            corr4 = file["corr4"][it]
+            corr2 = file["corr2"][it]
+            nb_means = file["nb_means"][it]
 
         nb_omegas = self.nb_omegas
 
@@ -554,17 +554,17 @@ class CorrelationsFreq(SpecificOutput):
             return np.abs(corr4_mini.mean(1).mean(1))
 
     def _compute_norm_pick_corr4(self):
-        with h5py.File(self.path_file, "r") as f:
-            corr4 = f["corr4"][:]
-            nb_means = f["nb_means"][:]
+        with h5py.File(self.path_file, "r") as file:
+            corr4 = file["corr4"][:]
+            nb_means = file["nb_means"][:]
         fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
         return nb_means, fcorr4
 
     def _compute_dnormpickC4_over_dnbmean(self):
-        with h5py.File(self.path_file, "r") as f:
-            corr4 = f["corr4"][:]
-            nb_means = f["nb_means"][:]
+        with h5py.File(self.path_file, "r") as file:
+            corr4 = file["corr4"][:]
+            nb_means = file["nb_means"][:]
 
         fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
@@ -595,10 +595,10 @@ class CorrelationsFreq(SpecificOutput):
 
     def plot_corr2(self, nonorm=False, it=-1):
 
-        with h5py.File(self.path_file, "r") as f:
-            corr2_in_file = f["corr2"]
+        with h5py.File(self.path_file, "r") as file:
+            corr2_in_file = file["corr2"]
             corr2 = corr2_in_file[it]
-            nb_means = f["nb_means"][it]
+            nb_means = file["nb_means"][it]
 
         fy, fx = np.meshgrid(self.omegas, self.omegas)
 
@@ -629,9 +629,9 @@ class CorrelationsFreq(SpecificOutput):
 
     def plot_corr2_1d(self, it=-1):
 
-        with h5py.File(self.path_file, "r") as f:
-            corr2 = f["corr2"][it]
-            nb_means = f["nb_means"][it]
+        with h5py.File(self.path_file, "r") as file:
+            corr2 = file["corr2"][it]
+            nb_means = file["nb_means"][it]
 
         corr2_diag = np.empty(self.nb_omegas, dtype=np.complex128)
         for io3 in range(self.nb_omegas):
@@ -710,9 +710,9 @@ class CorrelationsFreq(SpecificOutput):
 
     def plot_convergence2(self):
         ws = 10
-        with h5py.File(self.path_file, "r") as f:
-            corr4_full = f["corr4"]
-            nb_means = f["nb_means"]
+        with h5py.File(self.path_file, "r") as file:
+            corr4_full = file["corr4"]
+            nb_means = file["nb_means"]
             means = np.empty(corr4_full.shape[0])
             f_conv = np.empty(corr4_full.shape[0:2])
             for inb in range(corr4_full.shape[0]):

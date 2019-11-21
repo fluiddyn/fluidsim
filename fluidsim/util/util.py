@@ -367,8 +367,8 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     if mpi.rank > 0:
         params = None
     else:
-        with _h5py.File(path_file, "r") as f:
-            params = Parameters(hdf5_object=f["info_simul"]["params"])
+        with _h5py.File(path_file, "r") as file:
+            params = Parameters(hdf5_object=file["info_simul"]["params"])
 
         if merge_missing_params:
             merge_params(params, default_params)

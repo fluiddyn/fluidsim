@@ -384,9 +384,9 @@ def bench(sim, path_results):
     except IndexError:
         pass
 
-    with open(path, "w") as f:
-        json.dump(results, f, sort_keys=True)
-        f.write("\n")
+    with open(path, "w") as file:
+        json.dump(results, file, sort_keys=True)
+        file.write("\n")
 
     print("results benchmarks saved in\n" + path + "\n")
 

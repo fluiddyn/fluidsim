@@ -48,16 +48,16 @@ for ipath, path in enumerate(path_simulations):
     anisotropies = []
     for path_file in path_phys_files[-n_files_average:]:
         with h5py.File(path_file, "r") as f:
-            ux = f["state_phys"]["ux"].value
-            uz = f["state_phys"]["uy"].value
+            ux = f["state_phys"]["ux"][...]
+            uz = f["state_phys"]["uy"][...]
             anisotropies.append(np.mean(ux**2) / np.mean(uz**2))
     anisotropies_gammas.append(np.mean(anisotropies))
 
     # Compute ratio D(k_x)/epsilon
     print("Computing ratio dissipation for gamma {}...".format(gammas[ipath]))
     with h5py.File(path + "/spect_energy_budg.h5", "r") as f:
-        kx = f['kxE'].value
-        kz = f['kyE'].value
+        kx = f['kxE'][...]
+        kz = f['kyE'][...]
         dset_dissEKu_kx = f['dissEKu_kx']
         dset_dissEKv_kx = f['dissEKv_kx']
         dset_dissEA_kx = f['dissEA_kx']

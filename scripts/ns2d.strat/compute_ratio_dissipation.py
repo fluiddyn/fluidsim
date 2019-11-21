@@ -27,9 +27,9 @@ def compute_ratio_dissipation(path_simulation, tmin=None):
     params = load_params_simul(path_simulation)
 
     with h5py.File(path_simulation + "/spect_energy_budg.h5", "r") as f:
-        times = f["times"].value
-        kx = f["kxE"].value
-        kz = f['kyE'].value
+        times = f["times"][...]
+        kx = f["kxE"][...]
+        kz = f['kyE'][...]
         dset_dissEKu_kx = f['dissEKu_kx']
         dset_dissEKv_kx = f['dissEKv_kx']
         dset_dissEA_kx = f["dissEA_kx"]

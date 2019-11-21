@@ -61,12 +61,12 @@ pforcing = sim.params.forcing
 # Load data
 with h5py.File((path / "spectra_multidim.h5").as_posix(), "r") as f:
 
-    times = f["times"].value
+    times = f["times"][...]
     itmin = np.argmin(abs(times - tmin))
     itmax = np.argmin(abs(times - tmax))
     times = times[itmin:itmax:skip]
 
-    kx = f["kxE"].value
+    kx = f["kxE"][...]
 
 
     ap_fft_spectrum = f["spectrumkykx_ap_fft"]

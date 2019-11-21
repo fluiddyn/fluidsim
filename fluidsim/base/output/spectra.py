@@ -20,8 +20,8 @@ class MoviesSpectra(MoviesBase1D):
         if "ymax" not in kwargs:
             kwargs["ymax"] = 1.0
 
-        with h5py.File(self.spectra.path_file2D) as f:
-            self.times = f["times"][...]
+        with h5py.File(self.spectra.path_file2D) as file:
+            self.times = file["times"][...]
 
         super().init_animation(*args, **kwargs)
 
@@ -29,8 +29,8 @@ class MoviesSpectra(MoviesBase1D):
         if key is None:
             key = self.key_field
         idx, t_file = self.get_closest_time_file(time)
-        with h5py.File(self.spectra.path_file2D) as f:
-            y = f["spectrum2D_" + key][idx]
+        with h5py.File(self.spectra.path_file2D) as file:
+            y = file["spectrum2D_" + key][idx]
         y[abs(y) < 10e-16] = 0
         return y, t_file
 
@@ -55,8 +55,8 @@ class MoviesSpectra(MoviesBase1D):
           x-axis data.
 
         """
-        with h5py.File(self.spectra.path_file2D) as f:
-            x = f["khE"][...]
+        with h5py.File(self.spectra.path_file2D) as file:
+            x = file["khE"][...]
 
         return x
 
@@ -124,8 +124,8 @@ class Spectra(SpecificOutput):
                 )
                 self.nb_saved_times = 1
             else:
-                with h5py.File(self.path_file1D, "r") as f:
-                    dset_times = f["times"]
+                with h5py.File(self.path_file1D, "r") as file:
+                    dset_times = file["times"]
                     self.nb_saved_times = dset_times.shape[0] + 1
                 # save the spectra in the file spectra1D.h5
                 self._add_dict_arrays_to_file(self.path_file1D, dict_spectra1D)
@@ -175,12 +175,12 @@ class Spectra(SpecificOutput):
         pass
 
     def load2d_mean(self, tmin=None, tmax=None):
-        with h5py.File(self.path_file2D, "r") as f:
-            dset_times = f["times"]
+        with h5py.File(self.path_file2D, "r") as file:
+            dset_times = file["times"]
             times = dset_times[...]
             nt = len(times)
 
-            kh = f["khE"][...]
+            kh = file["khE"][...]
 
             if tmin is None:
                 imin_plot = 0
@@ -204,21 +204,21 @@ class Spectra(SpecificOutput):
             )
 
             dict_results = {"kh": kh}
-            for key in list(f.keys()):
+            for key in list(file.keys()):
                 if key.startswith("spectr"):
-                    dset_key = f[key]
+                    dset_key = file[key]
                     spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                     dict_results[key] = spect
         return dict_results
 
     def load1d_mean(self, tmin=None, tmax=None):
-        with h5py.File(self.path_file1D, "r") as f:
-            dset_times = f["times"]
+        with h5py.File(self.path_file1D, "r") as file:
+            dset_times = file["times"]
             times = dset_times[...]
             nt = len(times)
 
-            kx = f["kxE"][...]
-            # ky = f['kyE'][...]
+            kx = file["kxE"][...]
+            # ky = file['kyE'][...]
             kh = kx
 
             if tmin is None:
@@ -243,9 +243,9 @@ class Spectra(SpecificOutput):
             )
 
             dict_results = {"kh": kh}
-            for key in list(f.keys()):
+            for key in list(file.keys()):
                 if key.startswith("spectr"):
-                    dset_key = f[key]
+                    dset_key = file[key]
                     spect = dset_key[imin_plot : imax_plot + 1].mean(0)
                     dict_results[key] = spect
         return dict_results

@@ -60,9 +60,9 @@ def _compute_lx_from_path(path_simulation, tmin=None):
     params = load_params_simul(path_simulation)
 
     with h5py.File(path_simulation + "/spectra1D.h5", "r") as f:
-        times_spectra = f["times"].value
-        kx = f["kyE"].value
-        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
+        times_spectra = f["times"][...]
+        kx = f["kyE"][...]
+        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"][...]
 
     # Compute time average spectra
     dt = np.median(np.diff(times_spectra))

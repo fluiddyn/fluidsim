@@ -85,19 +85,19 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
         pforcing = self.sim.params.forcing
 
         # Load data
-        with h5py.File(self.path_file, "r") as f:
-            times = f["times"].value
-            kx = f["kxE"].value
-            ap_fft_spectrum = f["spectrumkykx_ap"]
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            kx = file["kxE"][...]
+            ap_fft_spectrum = file["spectrumkykx_ap"]
             if key == "EK":
-                data = f["spectrumkykx_EK"]
+                data = file["spectrumkykx_EK"]
             elif key == "EA":
-                data = f["spectrumkykx_EA"]
+                data = file["spectrumkykx_EA"]
             elif key == "ap_fft" or not key:
-                data = f["spectrumkykx_ap"]
+                data = file["spectrumkykx_ap"]
                 text_plot = r"$\hat{a}_+$"
             elif key == "am_fft":
-                data = f["spectrumkykx_am"]
+                data = file["spectrumkykx_am"]
                 text_plot = r"$\hat{a}_-$"
             else:
                 raise ValueError("Key unknown.")

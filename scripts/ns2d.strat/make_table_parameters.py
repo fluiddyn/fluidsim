@@ -63,9 +63,9 @@ for path in path_simulations:
     path_spectra = path + "/spectra1D.h5"
 
     with h5py.File(path_spectra, "r") as f:
-        times_spectra = f["times"].value
-        kx = f["kxE"].value
-        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
+        times_spectra = f["times"][...]
+        kx = f["kxE"][...]
+        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"][...]
 
     spectrum1Dkx_EK_ux = np.mean(spectrum1Dkx_EK_ux[-100:, :], axis=0)
     ## Remove modes with dealiasing

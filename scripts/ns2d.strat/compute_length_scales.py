@@ -27,11 +27,11 @@ def compute_length_scales(path_simulation, tmin=None):
 
     # Load data energy spectra
     with h5py.File(path_simulation + "/spectra1D.h5", "r") as f:
-        times = f["times"].value
-        kx = f["kxE"].value
-        ky = f["kyE"].value
-        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"].value
-        spectrum1Dky_EK_uy = f["spectrum1Dky_EK_uy"].value
+        times = f["times"][...]
+        kx = f["kxE"][...]
+        ky = f["kyE"][...]
+        spectrum1Dkx_EK_ux = f["spectrum1Dkx_EK_ux"][...]
+        spectrum1Dky_EK_uy = f["spectrum1Dky_EK_uy"][...]
 
     # Temporal average spectra
     dt = np.median(np.diff(times))

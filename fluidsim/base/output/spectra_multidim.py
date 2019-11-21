@@ -52,8 +52,8 @@ class SpectraMultiDim(SpecificOutput):
                 )
                 self.nb_saved_times = 1
             else:
-                with h5py.File(self.path_file, "r") as f:
-                    dset_times = f["times"]
+                with h5py.File(self.path_file, "r") as file:
+                    dset_times = file["times"]
                     self.nb_saved_times = dset_times.shape[0] + 1
                 # save the spectra in the file spectra_multidim.h5
                 self._add_dict_arrays_to_file(self.path_file, dict_spectra)
@@ -104,10 +104,10 @@ class SpectraMultiDim(SpecificOutput):
         dict_results = {}
 
         # Load data
-        with h5py.File(self.path_file, "r") as f:
-            for key in f.keys():
+        with h5py.File(self.path_file, "r") as file:
+            for key in file.keys():
                 if not key.startswith("info"):
-                    dict_results[key] = f[key].value
+                    dict_results[key] = file[key][...]
 
         # Time average spectra
         times = dict_results["times"]

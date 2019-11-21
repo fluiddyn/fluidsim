@@ -10,7 +10,7 @@ params = Simul.create_default_params()
 
 params.short_name_type_run = 'no_flow'
 params.init_fields.type = 'constant'
-params.init_fields.constant.value = 0.
+params.init_fields.constant[...] = 0.
 params.output.sub_directory = 'spect_energy_budg_tests_noflow'
 
 # --------Grid parameters---------

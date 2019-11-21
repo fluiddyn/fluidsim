@@ -67,7 +67,7 @@ for path in paths_simulations:
     path_phys_files = glob(path + "/state_phys_t*")
     for path_file in path_phys_files[-10:-1]:
         with h5py.File(path_file, "r") as f:
-            ux = f["state_phys"]["ux"].value
+            ux = f["state_phys"]["ux"][...]
         ux_rms.append(np.sqrt(np.mean(ux**2)))
 
     # Load parameters

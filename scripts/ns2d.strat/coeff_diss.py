@@ -61,13 +61,13 @@ def load_mean_spect_energy_budg(sim, tmin=0, tmax=1000):
     """
 
     with h5py.File(sim.output.spect_energy_budg.path_file, "r") as f:
-        times = f["times"].value
-        kxE = f["kxE"].value
-        kyE = f["kyE"].value
-        dset_dissEK_kx = f["dissEK_kx"].value
-        dset_dissEA_kx = f["dissEA_kx"].value
-        dset_dissEK_ky = f["dissEK_ky"].value
-        dset_dissEA_ky = f["dissEA_ky"].value
+        times = f["times"][...]
+        kxE = f["kxE"][...]
+        kyE = f["kyE"][...]
+        dset_dissEK_kx = f["dissEK_kx"][...]
+        dset_dissEA_kx = f["dissEA_kx"][...]
+        dset_dissEK_ky = f["dissEK_ky"][...]
+        dset_dissEA_ky = f["dissEA_ky"][...]
 
         imin_plot = np.argmin(abs(times - tmin))
         imax_plot = np.argmin(abs(times - tmax))

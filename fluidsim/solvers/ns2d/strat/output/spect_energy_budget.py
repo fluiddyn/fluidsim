@@ -204,25 +204,25 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         """Plot the energy budget."""
 
         # Load data from file
-        with h5py.File(self.path_file, "r") as f:
-            times = f["times"].value
-            kxE = f["kxE"].value
-            kyE = f["kyE"].value
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            kxE = file["kxE"][...]
+            kyE = file["kyE"][...]
 
-            dset_transferEK_kx = f["transferEK_kx"].value
-            dset_transferEK_ky = f["transferEK_ky"].value
-            dset_transferEA_kx = f["transferEA_kx"].value
-            dset_transferEA_ky = f["transferEA_ky"].value
+            dset_transferEK_kx = file["transferEK_kx"][...]
+            dset_transferEK_ky = file["transferEK_ky"][...]
+            dset_transferEA_kx = file["transferEA_kx"][...]
+            dset_transferEA_ky = file["transferEA_ky"][...]
 
-            dset_dissEK_kx = f["dissEK_kx"].value
-            dset_dissEA_kx = f["dissEA_kx"].value
+            dset_dissEK_kx = file["dissEK_kx"][...]
+            dset_dissEA_kx = file["dissEA_kx"][...]
 
-            dset_dissEK_ky = f["dissEK_ky"].value
-            dset_dissEA_ky = f["dissEA_ky"].value
+            dset_dissEK_ky = file["dissEK_ky"][...]
+            dset_dissEA_ky = file["dissEA_ky"][...]
 
             if plot_conv:
-                dset_conv_kx = f["B_kx"].value
-                dset_conv_ky = f["B_ky"].value
+                dset_conv_kx = file["B_kx"][...]
+                dset_conv_ky = file["B_ky"][...]
 
         if tmin is None:
             tmin = 0
@@ -394,18 +394,18 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
     def load_mean(self, tmin=None, tmax=None):
         """
         Loads data spect_energy_budget.
-        
+
         It computes the mean between tmin and tmax.
         """
 
-        with h5py.File(self.path_file, "r") as f:
-            times = f["times"].value
-            kxE = f["kxE"].value
-            kyE = f["kyE"].value
-            dset_dissEK_kx = f["dissEK_kx"].value
-            dset_dissEA_kx = f["dissEA_kx"].value
-            dset_dissEK_ky = f["dissEK_ky"].value
-            dset_dissEA_ky = f["dissEA_ky"].value
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            kxE = file["kxE"][...]
+            kyE = file["kyE"][...]
+            dset_dissEK_kx = file["dissEK_kx"][...]
+            dset_dissEA_kx = file["dissEA_kx"][...]
+            dset_dissEK_ky = file["dissEK_ky"][...]
+            dset_dissEA_ky = file["dissEA_ky"][...]
 
             # If tmin and tmax is None
             if tmin is None:

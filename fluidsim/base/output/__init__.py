@@ -75,26 +75,26 @@ def create_description_xmf_file(path=None):
     paths.sort()
     path = paths[0]
 
-    with h5py.File(path) as f:
+    with h5py.File(path, "r") as file:
         ndim = 3
 
-        nx = f["/info_simul/params/oper"].attrs["nx"]
-        Lx = f["/info_simul/params/oper"].attrs["Lx"]
+        nx = file["/info_simul/params/oper"].attrs["nx"]
+        Lx = file["/info_simul/params/oper"].attrs["Lx"]
         deltax = Lx / nx
         try:
-            ny = f["/info_simul/params/oper"].attrs["ny"]
-            Ly = f["/info_simul/params/oper"].attrs["Ly"]
+            ny = file["/info_simul/params/oper"].attrs["ny"]
+            Ly = file["/info_simul/params/oper"].attrs["Ly"]
             deltay = Ly / ny
         except KeyError:
             ndim = 1
         try:
-            nz = f["/info_simul/params/oper"].attrs["nz"]
-            Lz = f["/info_simul/params/oper"].attrs["Lz"]
+            nz = file["/info_simul/params/oper"].attrs["nz"]
+            Lz = file["/info_simul/params/oper"].attrs["Lz"]
             deltaz = Lz / nz
         except KeyError:
             ndim = 2
 
-        keys = list(f["/state_phys"].keys())
+        keys = list(file["/state_phys"].keys())
 
     if ndim == 1:
         geometry_type = "Origin_Dx"
@@ -139,8 +139,8 @@ def create_description_xmf_file(path=None):
     for path in paths:
         base_name = os.path.basename(path)
 
-        with h5py.File(path) as f:
-            time = f["state_phys"].attrs["time"]
+        with h5py.File(path, "r") as file:
+            time = file["state_phys"].attrs["time"]
 
         txt += """
     <Grid Name="my_uniform_grid" GridType="Uniform">
@@ -207,8 +207,8 @@ def create_description_xmf_file(path=None):
 </Xdmf>
 """
 
-    with open(path_out, "w") as f:
-        f.write(txt)
+    with open(path_out, "w") as file:
+        file.write(txt)
 
     print(
         "Creation of the file "
