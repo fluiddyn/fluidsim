@@ -125,24 +125,25 @@ def plot_scaling(
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
         exit_if_empty(df, input_params)
-
         nb_proc_min = df.nb_proc.min()
         df_grouped = df.groupby(["type_fft", "nb_proc"]).quantile(q=0.2)
         if show:
             print(df)
         return df_grouped, nb_proc_min
 
-    df_filter, nb_proc_min_filter = group_df(df_filter)
     keys_filter = [
         k for k in df_filter.columns if k.startswith("t_elapsed_" + type_time)
     ]
 
+    df_filter, nb_proc_min_filter = group_df(
+        df_filter[keys_filter + ["type_fft", "nb_proc"]]
+    )
     df_filter = df_filter[keys_filter]
     df_filter_nb_proc_min = df_filter.xs(nb_proc_min_filter, level=1)
 
     def get_min(df):
         """Get minumum time from the whole dataframe"""
-        m = df.as_matrix()
+        m = df.values
         i0, i1 = np.unravel_index(np.argmin(m), m.shape)
         mymin = m[i0, i1]
         ind = df.index[i0]
