@@ -13,9 +13,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from fluiddyn.util import mpi
-from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex, fftw_grid_size
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
+
+from frequency_modulation import FrequencyModulatedSignalMaker
 
 # main input parameters
 omega_f = 0.3  # rad/s
@@ -27,49 +28,22 @@ amplitude = 0.05  # m
 period_N = 2 * pi / N
 # total period of the forcing signal
 period_forcing = 1e3 * period_N
-dt_forcing = period_N / 1e1
 
 # preparation of a time signal for the forcing
-nt_forcing = 2 * fftw_grid_size(int(period_forcing / dt_forcing))
-dt_forcing = period_forcing / nt_forcing
-
-# filter parameters for the time signal
-omega_max = omega_f
-omega_min = omega_f / 10
-
 if mpi.rank == 0:
-    oper_fft_forcing = FFTW1DReal2Complex(nt_forcing)
-    nomegas_forcing = oper_fft_forcing.shapeK[0]
-    domega = 2 * pi / period_forcing
-
-    omegas_forcing = domega * np.arange(nomegas_forcing)
-    omegas_forcing_nozero = omegas_forcing
-    omegas_forcing_nozero[0] = 1e-14
-    times_forcing = dt_forcing * np.arange(nt_forcing)
+    time_signal_maker = FrequencyModulatedSignalMaker(
+        total_time=period_forcing, approximate_dt=period_N / 1e1
+    )
 
     def create_interpolation_forcing_function():
-        # Gaussian white noise
-        forcing_time = np.random.randn(nt_forcing)
-        forcing_omega = oper_fft_forcing.fft(forcing_time)
-        # rectangular filtering
-        forcing_omega *= omegas_forcing >= omega_min
-        forcing_omega *= omegas_forcing <= omega_max
-        # set amplitude
-        forcing_time = oper_fft_forcing.ifft(forcing_omega)
-        forcing_time_amplitude = delta_omega_f / np.std(forcing_time)
-        forcing_time *= forcing_time_amplitude
+        (
+            times_forcing,
+            forcing_vs_time,
+        ) = time_signal_maker.create_frequency_modulated_signal(
+            omega_f, delta_omega_f, amplitude
+        )
 
-        # time integration for frequency modulation
-        forcing_omega = oper_fft_forcing.fft(forcing_time)
-        forcing_omega /= 1j * omegas_forcing_nozero
-        int_forcing_time = oper_fft_forcing.ifft(forcing_omega)
-
-        # frequency modulated forcing time signal
-        forcing_time += omega_f
-        int_forcing_time += omega_f * times_forcing - int_forcing_time[0]
-        forcing_time = amplitude * forcing_time * np.sin(int_forcing_time)
-
-        return interp1d(times_forcing, forcing_time, fill_value="extrapolate")
+        return interp1d(times_forcing, forcing_vs_time, fill_value="extrapolate")
 
     calcul_forcing_time_x = create_interpolation_forcing_function()
     calcul_forcing_time_y = create_interpolation_forcing_function()
