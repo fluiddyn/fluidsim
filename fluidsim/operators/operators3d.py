@@ -124,6 +124,7 @@ class OperatorsPseudoSpectral3D(_Operators):
             "Lx": 2 * pi,
             "Ly": 2 * pi,
             "Lz": 2 * pi,
+            "NO_SHEAR_MODES": False,
         }
         params._set_child("oper", attribs=attribs)
         params.oper._set_doc(
@@ -208,6 +209,18 @@ Lx, Ly and Lz: float
         self.ifft2 = self.ifft2d = self.oper2d.ifft2
         self.fft2 = self.fft2d = self.oper2d.fft2
 
+        try:
+            NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES
+        except AttributeError:
+            pass
+        else:
+            if NO_SHEAR_MODES:
+                COND_NOSHEAR = self.Kx ** 2 + self.Ky ** 2 == 0.0
+                where_dealiased = np.logical_or(
+                    COND_NOSHEAR, self.where_dealiased
+                )
+                self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
+
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
@@ -284,7 +297,9 @@ Lx, Ly and Lz: float
 
     @boost
     def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
-        """Compute toroidal and poloidal horizontal velocities
+        """Compute toroidal and poloidal horizontal velocities. 
+        
+        urx_fft, ury_fft contain shear modes!
 
         """
         inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2

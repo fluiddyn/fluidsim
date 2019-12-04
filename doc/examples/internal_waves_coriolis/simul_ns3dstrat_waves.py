@@ -134,7 +134,7 @@ eps = 1e-2 * U ** 3 / H
 params.nu_2 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 50 * period_N
+params.time_stepping.t_end = 200 * period_N
 params.time_stepping.deltat_max = deltat_max = period_N / 40
 
 params.init_fields.type = "noise"
