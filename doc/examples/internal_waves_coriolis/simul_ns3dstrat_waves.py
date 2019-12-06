@@ -8,15 +8,10 @@ Launch with::
 """
 
 from math import pi
-import numpy as np
-
-from scipy.interpolate import interp1d
 
 from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
-
-from frequency_modulation import FrequencyModulatedSignalMaker
 
 # main input parameters
 omega_f = 0.3  # rad/s
@@ -28,34 +23,6 @@ amplitude = 0.05  # m
 period_N = 2 * pi / N
 # total period of the forcing signal
 period_forcing = 1e3 * period_N
-
-# preparation of a time signal for the forcing
-if mpi.rank == 0:
-    time_signal_maker = FrequencyModulatedSignalMaker(
-        total_time=period_forcing, approximate_dt=period_N / 1e1
-    )
-
-    def create_interpolation_forcing_function():
-        (
-            times_forcing,
-            forcing_vs_time,
-        ) = time_signal_maker.create_frequency_modulated_signal(
-            omega_f, delta_omega_f, amplitude
-        )
-
-        return interp1d(times_forcing, forcing_vs_time, fill_value="extrapolate")
-
-    calcul_forcing_time_x = create_interpolation_forcing_function()
-    calcul_forcing_time_y = create_interpolation_forcing_function()
-else:
-    calcul_forcing_time_x = calcul_forcing_time_y = None
-
-if mpi.nb_proc > 1:
-    calcul_forcing_time_x = mpi.comm.bcast(calcul_forcing_time_x, root=0)
-    calcul_forcing_time_y = mpi.comm.bcast(calcul_forcing_time_y, root=0)
-
-
-# initialization of the simulation
 
 params = Simul.create_default_params()
 
@@ -116,7 +83,15 @@ params.init_fields.noise.velo_max = 0.001
 params.init_fields.noise.length = 2e-1
 
 params.forcing.enable = True
-params.forcing.type = "in_script"
+params.forcing.type = "watu_coriolis"
+
+watu = params.forcing.watu_coriolis
+watu.omega_f = omega_f
+watu.delta_omega_f = delta_omega_f
+watu.amplitude = amplitude
+watu.period_forcing = period_forcing
+watu.approximate_dt = period_N / 1e1
+watu.nb_wave_makers = 2
 
 params.output.periods_print.print_stdout = 1.0
 
@@ -126,75 +101,6 @@ params.output.periods_save.spatial_means = 0.5
 
 sim = Simul(params)
 
-# monkey-patching for forcing
-oper = sim.oper
-X, Y, Z = oper.get_XYZ_loc()
-
-
-# calculus of the target velocity components
-
-width = max(4 * dx, amplitude / 5)
-
-
-def step_func(x):
-    """Activation function"""
-    return 0.5 * (np.tanh(x / width) + 1)
-
-
-amplitude_side = amplitude + 0.15
-
-maskx = (
-    (step_func(-(X - amplitude)) + step_func(X - (lx - amplitude)))
-    * step_func(Y - amplitude_side)
-    * step_func(-(Y - (ly - amplitude_side)))
-)
-
-masky = (
-    (step_func(-(Y - amplitude)) + step_func(Y - (ly - amplitude)))
-    * step_func(X - amplitude_side)
-    * step_func(-(X - (lx - amplitude_side)))
-)
-
-z_variation = np.sin(2 * pi * Z)
-vxtarget = z_variation
-vytarget = z_variation
-
-
-# calculus of coef_sigma
-"""
-f(t) = f0 * exp(-sigma*t)
-
-If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
-
-sigma = gamma / (n_dt * dt)
-"""
-gamma = 2
-n_dt = 4
-coef_sigma = gamma / n_dt
-
-
-def compute_forcing_each_time(self):
-    """This function is called by the forcing_maker to compute the forcing
-
-    """
-    sim = self.sim
-    time = sim.time_stepping.t % period_forcing
-    coef_forcing_time_x = calcul_forcing_time_x(time)
-    coef_forcing_time_y = calcul_forcing_time_y(time)
-    vx = sim.state.state_phys.get_var("vx")
-    vy = sim.state.state_phys.get_var("vy")
-    sigma = coef_sigma / deltat_max
-    fx = sigma * maskx * (coef_forcing_time_x * vxtarget - vx)
-    fy = sigma * masky * (coef_forcing_time_y * vytarget - vy)
-    result = {"vx_fft": fx, "vy_fft": fy}
-    return result
-
-
-sim.forcing.forcing_maker.monkeypatch_compute_forcing_each_time(
-    compute_forcing_each_time
-)
-
-# finally we start the simulation
 sim.time_stepping.start()
 
 mpi.printby0(

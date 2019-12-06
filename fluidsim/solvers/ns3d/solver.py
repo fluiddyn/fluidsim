@@ -48,6 +48,9 @@ class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
         classes.Output.module_name = package + ".output"
         classes.Output.class_name = "Output"
 
+        classes.Forcing.module_name = package + ".forcing"
+        classes.Forcing.class_name = "ForcingNS3D"
+
 
 class Simul(SimulBasePseudoSpectral):
     r"""Pseudo-spectral solver 3D incompressible Navier-Stokes equations.

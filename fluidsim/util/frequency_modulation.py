@@ -44,5 +44,7 @@ class FrequencyModulatedSignalMaker:
         phase_vs_time = self.oper_fft.ifft(phase_vs_omega)
         # frequency modulated forcing time signal
         phase_vs_time += omega_f * self.times - phase_vs_time[0]
-        forcing_vs_time = amplitude * (omegaf_vs_time + omega_f) * np.sin(phase_vs_time)
+        forcing_vs_time = (
+            amplitude * (omegaf_vs_time + omega_f) * np.sin(phase_vs_time)
+        )
         return self.times, forcing_vs_time
