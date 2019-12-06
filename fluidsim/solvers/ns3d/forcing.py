@@ -47,8 +47,8 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
                 # load time signals
                 with h5netcdf.File(str(path_file), "r") as file:
 
-                    times = ...
-                    signals = ...
+                    times = file["/times"][...]
+                    signals = file["/signals"][...]
 
             else:
                 time_signal_maker = FrequencyModulatedSignalMaker(

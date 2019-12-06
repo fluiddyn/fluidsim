@@ -331,6 +331,8 @@ def load_state_phys_file(
 def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     """Load params and Simul for a restart.
 
+    >>> params, Simul = load_for_restart(name_dir)
+
     Parameters
     ----------
 
