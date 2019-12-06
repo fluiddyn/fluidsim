@@ -55,7 +55,7 @@ class TestOutput(TestSimulBase):
     def init_params(self):
         params = super().init_params()
 
-        params.init_fields.type = "dipole"
+        params.init_fields.type = "noise"
 
         params.forcing.enable = True
         params.forcing.type = "in_script"
@@ -93,6 +93,12 @@ class TestOutput(TestSimulBase):
         np.testing.assert_almost_equal(
             sum(sim.output.compute_energies()), sim.output.compute_energy()
         )
+
+        # test energy in shear modes
+        EKhs = sim.output.spatial_means.load()["EKhs"]
+        E = sim.output.spatial_means.load()["E"]
+        ratio = EKhs[-1] / E[-1]
+        self.assertGreater(ratio, 1e-15)
 
         if mpi.nb_proc > 1:
             return
@@ -157,6 +163,33 @@ class TestInitInScript(TestSimulBase):
 
         sim.state.init_from_vxvyfft(vx_fft, vy_fft)
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
+
+
+class TestNoShearModes(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+
+        params.init_fields.type = "noise"
+
+        params.forcing.enable = False
+
+        params.output.periods_save.spatial_means = 0.2
+
+        params.oper.NO_SHEAR_MODES = True
+
+    def test_noshearmodes(self):
+
+        sim = self.sim
+
+        sim.time_stepping.start()
+
+        # test energy in shear modes
+        EKhs = sim.output.spatial_means.load()["EKhs"]
+        E = sim.output.spatial_means.load()["E"]
+        ratio = EKhs[-1] / E[-1]
+        print(ratio)
+        self.assertGreater(1e-15, ratio)
 
 
 if __name__ == "__main__":
