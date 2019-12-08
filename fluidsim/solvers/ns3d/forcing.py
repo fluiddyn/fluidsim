@@ -1,3 +1,15 @@
+"""Forcing (:mod:`fluidsim.solvers.ns3d.forcing`)
+=================================================
+
+.. autoclass:: ForcingInternalWavesWatuCoriolis
+   :members:
+
+.. autoclass:: ForcingNS3D
+   :members:
+
+"""
+
+
 from pathlib import Path
 
 import numpy as np
@@ -13,6 +25,14 @@ from fluidsim.base.forcing.specific import SpecificForcingPseudoSpectralSimple
 
 
 class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
+    """Forcing mimicking an experimental setup in the Coriolis platform.
+
+    The experiments have been carried out within the ERC project `WATU
+    <http://nicolas.mordant.free.fr/watu.html>`_. Internal gravity waves are
+    forced with two long vertical boards oscillating along their central
+    horizontal axes.
+
+    """
 
     tag = "watu_coriolis"
 
@@ -116,13 +136,11 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         self.vytarget = z_variation
 
         # calculus of coef_sigma
-        """
-        f(t) = f0 * exp(-sigma*t)
 
-        If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
+        # f(t) = f0 * exp(-sigma*t)
+        # If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
+        # sigma = gamma / (n_dt * dt)
 
-        sigma = gamma / (n_dt * dt)
-        """
         gamma = 2
         n_dt = 4
         self.coef_sigma = gamma / n_dt
@@ -144,6 +162,8 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
+    """Main forcing class for the ns3d solver."""
+
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         ForcingBasePseudoSpectral._complete_info_solver(

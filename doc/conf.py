@@ -33,6 +33,7 @@ mock_modules(
         "scipy.spatial",
         "scipy.linalg",
         "scipy.linalg.blas",
+        "scipy.interpolate",
         "basilisk",
         "basilisk.stream",
         "pyshtools",

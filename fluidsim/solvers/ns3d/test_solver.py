@@ -8,8 +8,8 @@ import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
 
+from fluidsim import load_for_restart
 from fluidsim.solvers.ns3d.solver import Simul
-
 from fluidsim.base.output import run
 
 from fluidsim.util.testing import TestSimul
@@ -203,6 +203,43 @@ class TestInitInScript(TestSimulBase):
 
         sim.state.init_from_vxvyfft(vx_fft, vy_fft)
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
+
+
+class TestForcingWatuCoriolis(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+
+        params.init_fields.type = "noise"
+
+        omega_f = 0.3  # rad/s
+        delta_omega_f = 0.03  # rad/s
+        N = 0.4  # rad/s
+        amplitude = 0.05  # m
+        period_N = 2 * np.pi / N
+        period_forcing = 1e3 * period_N
+
+        params.forcing.enable = True
+        params.forcing.type = "watu_coriolis"
+
+        watu = params.forcing.watu_coriolis
+        watu.omega_f = omega_f
+        watu.delta_omega_f = delta_omega_f
+        watu.amplitude = amplitude
+        watu.period_forcing = period_forcing
+        watu.approximate_dt = period_N / 1e1
+        watu.nb_wave_makers = 2
+
+        params.output.periods_save.phys_fields = 2.0
+
+    def test_forcing(self):
+
+        sim = self.sim
+        sim.time_stepping.start()
+        params, Simul = load_for_restart(sim.output.path_run)
+        params.time_stepping.t_end += 10.0
+        sim1 = Simul(params)
+        sim1.time_stepping.start()
 
 
 if __name__ == "__main__":

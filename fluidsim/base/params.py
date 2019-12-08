@@ -228,12 +228,12 @@ def load_info_solver(path_dir=None):
     if path_info_solver.exists():
         return Parameters(path_file=str(path_info_solver))
 
-    paths = path_dir.glob("state_*")
+    paths = sorted(path_dir.glob("state_*"))
 
     if not paths:
         raise ValueError("No result files in dir " + str(path_dir))
 
-    path = str(sorted(paths)[0])
+    path = str(paths[0])
 
     if len(path) > 100:
         str_path = "[...]" + path[-100:]

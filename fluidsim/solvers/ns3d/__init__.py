@@ -9,6 +9,7 @@ Provides:
    solver
    state
    init_fields
+   forcing
 
 
 .. autosummary::
