@@ -54,7 +54,8 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
     def __init__(self, sim):
         super().__init__(sim)
 
-        if sim.params.forcing.watu_coriolis.nb_wave_makers != 2:
+        self.nb_wave_makers = sim.params.forcing.watu_coriolis.nb_wave_makers
+        if self.nb_wave_makers not in (1, 2):
             raise NotImplementedError
 
         # preparation of a time signal for the forcing
@@ -77,7 +78,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
                 )
 
                 signals = []
-                for _ in range(sim.params.forcing.watu_coriolis.nb_wave_makers):
+                for _ in range(self.nb_wave_makers):
                     (
                         times,
                         forcing_vs_time,
@@ -152,13 +153,14 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         sim = self.sim
         time = sim.time_stepping.t % self.period_forcing
         coef_forcing_time_x = self.interpolents[0](time)
-        coef_forcing_time_y = self.interpolents[1](time)
         vx = sim.state.state_phys.get_var("vx")
-        vy = sim.state.state_phys.get_var("vy")
         fx = self.sigma * self.maskx * (coef_forcing_time_x * self.vxtarget - vx)
+        if self.nb_wave_makers == 1:
+            return {"vx_fft": sim.oper.fft(fx)}
+        coef_forcing_time_y = self.interpolents[1](time)
+        vy = sim.state.state_phys.get_var("vy")
         fy = self.sigma * self.masky * (coef_forcing_time_y * self.vytarget - vy)
-        result = {"vx_fft": sim.oper.fft(fx), "vy_fft": sim.oper.fft(fy)}
-        return result
+        return {"vx_fft": sim.oper.fft(fx), "vy_fft": sim.oper.fft(fy)}
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
