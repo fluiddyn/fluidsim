@@ -168,12 +168,28 @@ class PhysFieldsBase(SpecificOutput):
 
         path_file = os.path.join(path_run, name_save)
         if os.path.exists(path_file):
+            # do not save if the file corresponds to the same it
+            it_file = None
+            if mpi.rank == 0:
+                with h5pack.File(path_file, "r") as file:
+                    it_file = file["state_phys"].attrs["it"]
+            if mpi.nb_proc > 1:
+                it_file = mpi.comm.bcast(it_file, root=0)
+            if it_file == self.sim.time_stepping.it:
+                return
             name_save = "state_phys_t{:07.3f}_it={}.{}".format(
                 time, self.sim.time_stepping.it, ext
             )
             path_file = os.path.join(path_run, name_save)
-        to_print = "save state_phys in file " + name_save
-        self.output.print_stdout(to_print)
+        self.output.print_stdout("save state_phys in file " + name_save)
+
+        def create_group_with_attrs(h5file):
+            group_state_phys = h5file.create_group("state_phys")
+            group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
+            group_state_phys.attrs["name_type_variables"] = state_phys.info
+            group_state_phys.attrs["time"] = time
+            group_state_phys.attrs["it"] = self.sim.time_stepping.it
+            return group_state_phys
 
         # FIXME: bad condition below when run sequentially, with MPI enabled h5py
         # As a workaround the instantiation is made with h5pack
@@ -182,21 +198,12 @@ class PhysFieldsBase(SpecificOutput):
                 # originally:
                 # h5file = h5netcdf.File(...
                 h5file = h5pack.File(path_file, "w")
-                group_state_phys = h5file.create_group("state_phys")
-                group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
-                group_state_phys.attrs["name_type_variables"] = state_phys.info
-                group_state_phys.attrs["time"] = time
-                group_state_phys.attrs["it"] = self.sim.time_stepping.it
+                group_state_phys = create_group_with_attrs(h5file)
         else:
             # originally:
             # h5file = h5py.File(...
             h5file = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
-            group_state_phys = h5file.create_group("state_phys")
-            group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
-            group_state_phys.attrs["name_type_variables"] = state_phys.info
-
-            group_state_phys.attrs["time"] = time
-            group_state_phys.attrs["it"] = self.sim.time_stepping.it
+            group_state_phys = create_group_with_attrs(h5file)
 
         if mpi.nb_proc == 1:
             for k in state_phys.keys:
