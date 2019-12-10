@@ -479,20 +479,26 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         self.close_files()
 
         if not self.path_run.startswith(FLUIDSIM_PATH):
-            path_base = FLUIDSIM_PATH
+            path_base = Path(FLUIDSIM_PATH)
             if len(self.params.sub_directory) > 0:
-                path_base = os.path.join(path_base, self.params.sub_directory)
+                path_base = path_base / self.params.sub_directory
 
-            new_path_run = os.path.join(path_base, self.sim.name_run)
+            new_path_run = path_base / self.sim.name_run
+
+            try:
+                if new_path_run.parent.samefile(Path(self.path_run).parent):
+                    return
+            except OSError:
+                pass
 
             if mpi.rank == 0:
-                if not os.path.exists(path_base):
+                if not path_base.exists():
                     os.makedirs(path_base)
 
                 shutil.move(self.path_run, path_base)
                 print("move result directory in directory:\n" + new_path_run)
 
-            self.path_run = new_path_run
+            self.path_run = str(new_path_run)
             for spec_output in list(self.__dict__.values()):
                 if isinstance(spec_output, SpecificOutput):
                     try:
