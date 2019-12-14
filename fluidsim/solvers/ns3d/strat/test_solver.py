@@ -72,6 +72,8 @@ class TestOutput(TestSimulBase):
             if hasattr(child, "HAS_TO_PLOT_SAVED"):
                 child["HAS_TO_PLOT_SAVED"] = True
 
+        params.output.spectra.kzkh_periodicity = 2
+
     def test_output(self):
 
         sim = self.sim
@@ -111,6 +113,7 @@ class TestOutput(TestSimulBase):
         sim2.output.spatial_means.plot()
         sim2.output.spectra.load1d_mean()
         sim2.output.spectra.load3d_mean()
+        sim2.output.spectra.load_kzkh_mean()
         sim2.output.spectra.plot1d(
             tmin=0.1,
             tmax=10,

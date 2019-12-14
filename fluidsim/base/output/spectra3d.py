@@ -79,7 +79,9 @@ class Spectra(SpecificOutput):
         tag = "spectra"
 
         params.output.periods_save._set_attrib(tag, 0)
-        params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
+        params.output._set_child(
+            tag, attribs={"HAS_TO_PLOT_SAVED": False, "kzkh_periodicity": 0}
+        )
 
     def _init_movies(self):
         self.movies = MoviesSpectra(self.output, self)
@@ -91,7 +93,9 @@ class Spectra(SpecificOutput):
             self._init_movies()
 
         params = output.sim.params
+        self.kzkh_periodicity = params.output.spectra.kzkh_periodicity
         self.nx = int(params.oper.nx)
+        self.nb_saved_times = 0
 
         super().__init__(
             output,
@@ -103,23 +107,33 @@ class Spectra(SpecificOutput):
         path_run = self.output.path_run
         self.path_file1d = path_run + "/spectra1d.h5"
         self.path_file3d = path_run + "/spectra3d.h5"
+        self.path_file_kzkh = path_run + "/spectra_kzkh.h5"
 
     def _init_files(self, dict_arrays_1time=None):
-        dict_spectra1d, dict_spectra3d = self.compute()
+        dict_spectra1d, dict_spectra3d, dict_kzkh = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1d):
                 oper = self.sim.oper
                 kx = oper.deltakx * np.arange(oper.nkx_spectra)
                 ky = oper.deltaky * np.arange(oper.nky_spectra)
                 kz = oper.deltakz * np.arange(oper.nkz_spectra)
-                dict_arrays_1time = {"kx": kx, "ky": ky, "kz": kz}
                 self._create_file_from_dict_arrays(
-                    self.path_file1d, dict_spectra1d, dict_arrays_1time
+                    self.path_file1d,
+                    dict_spectra1d,
+                    {"kx": kx, "ky": ky, "kz": kz},
                 )
-                dict_arrays_1time = {"k_spectra3d": self.sim.oper.k_spectra3d}
                 self._create_file_from_dict_arrays(
-                    self.path_file3d, dict_spectra3d, dict_arrays_1time
+                    self.path_file3d,
+                    dict_spectra3d,
+                    {"k_spectra3d": self.sim.oper.k_spectra3d},
                 )
+                if self.kzkh_periodicity:
+                    self._create_file_from_dict_arrays(
+                        self.path_file_kzkh,
+                        dict_kzkh,
+                        {"kz": kz, "kh_spectra": self.sim.oper.kh_spectra},
+                    )
+
                 self.nb_saved_times = 1
             else:
                 with h5py.File(self.path_file1d, "r") as file:
@@ -130,6 +144,12 @@ class Spectra(SpecificOutput):
                 # save the spectra in the file spectra3d.h5
                 self._add_dict_arrays_to_file(self.path_file3d, dict_spectra3d)
 
+                if (
+                    self.kzkh_periodicity
+                    and self.nb_saved_times % self.kzkh_periodicity == 0
+                ):
+                    self._add_dict_arrays_to_file(self.path_file_kzkh, dict_kzkh)
+
         self.t_last_save = self.sim.time_stepping.t
 
     def _online_save(self):
@@ -137,7 +157,7 @@ class Spectra(SpecificOutput):
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_save >= self.period_save:
             self.t_last_save = tsim
-            dict_spectra1d, dict_spectra3d = self.compute()
+            dict_spectra1d, dict_spectra3d, dict_kzkh = self.compute()
             if mpi.rank == 0:
                 # save the spectra in the file spectra1D.h5
                 self._add_dict_arrays_to_file(self.path_file1d, dict_spectra1d)
@@ -153,9 +173,7 @@ class Spectra(SpecificOutput):
 
     def compute(self):
         """compute the values at one time."""
-        if mpi.rank == 0:
-            dict_results = {}
-            return dict_results
+        raise NotImplementedError
 
     def _init_online_plot(self):
         if mpi.rank == 0:
@@ -172,18 +190,15 @@ class Spectra(SpecificOutput):
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass
 
-    def load3d_mean(self, tmin=None, tmax=None):
-        with h5py.File(self.path_file3d, "r") as h5file:
+    def _load_mean_file(self, path, tmin=None, tmax=None):
+        dict_results = {}
+        with h5py.File(path, "r") as h5file:
             times = h5file["times"][...]
             nt = len(times)
-
-            k3d = h5file["k_spectra3d"][...]
-
             if tmin is None:
                 imin_plot = 0
             else:
                 imin_plot = np.argmin(abs(times - tmin))
-
             if tmax is None:
                 imax_plot = nt - 1
             else:
@@ -193,14 +208,13 @@ class Spectra(SpecificOutput):
             tmax = times[imax_plot]
 
             print(
-                "compute mean of 2D spectra\n"
+                "compute mean of spectra\n"
                 + (
                     "tmin = {0:8.6g} ; tmax = {1:8.6g}"
                     "imin = {2:8d} ; imax = {3:8d}"
                 ).format(tmin, tmax, imin_plot, imax_plot)
             )
 
-            dict_results = {"k": k3d}
             for key in list(h5file.keys()):
                 if key.startswith("spectr"):
                     dset_key = h5file[key]
@@ -208,41 +222,32 @@ class Spectra(SpecificOutput):
                     dict_results[key] = spect
         return dict_results
 
+    def load3d_mean(self, tmin=None, tmax=None):
+        dict_results = self._load_mean_file(self.path_file3d, tmin, tmax)
+        with h5py.File(self.path_file3d, "r") as h5file:
+            dict_results["k"] = h5file["k_spectra3d"][...]
+        return dict_results
+
     def load1d_mean(self, tmin=None, tmax=None):
+        dict_results = self._load_mean_file(self.path_file1d, tmin, tmax)
         with h5py.File(self.path_file1d, "r") as h5file:
-            times = h5file["times"][...]
-            nt = len(times)
-
-            dict_results = {}
             for key in ("kx", "ky", "kz"):
-                dict_results[key] = h5file["kx"][...]
+                dict_results[key] = h5file[key][...]
+        return dict_results
 
-            if tmin is None:
-                imin_plot = 0
-            else:
-                imin_plot = np.argmin(abs(times - tmin))
+    def load_kzkh_mean(self, tmin=None, tmax=None):
 
-            if tmax is None:
-                imax_plot = nt - 1
-            else:
-                imax_plot = np.argmin(abs(times - tmax))
-
-            tmin = times[imin_plot]
-            tmax = times[imax_plot]
-
-            print(
-                "compute mean of 1D spectra"
-                + (
-                    "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
-                    "imin = {2:8d} ; imax = {3:8d}\n"
-                ).format(tmin, tmax, imin_plot, imax_plot)
+        if not os.path.exists(self.path_file_kzkh):
+            raise RuntimeError(
+                self.path_file_kzkh
+                + " does not exist. Can't load values from it."
             )
 
-            for key in list(h5file.keys()):
-                if key.startswith("spectr"):
-                    dset_key = h5file[key]
-                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
-                    dict_results[key] = spect
+        dict_results = self._load_mean_file(self.path_file_kzkh, tmin, tmax)
+        with h5py.File(self.path_file_kzkh, "r") as h5file:
+            for key in ("kz", "kh_spectra"):
+                dict_results[key] = h5file[key][...]
+
         return dict_results
 
     def plot1d(self):
