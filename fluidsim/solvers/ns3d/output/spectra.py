@@ -48,10 +48,7 @@ class SpectraNS3D(Spectra):
         }
         dict_spectra3d = {"spectra_" + k: v for k, v in dict_spectra3d.items()}
 
-        if (
-            self.kzkh_periodicity
-            and self.nb_saved_times % self.kzkh_periodicity == 0
-        ):
+        if self.has_to_save_kzkh():
             dict_kzkh = {
                 "spectra_E": self.oper.compute_spectrum_kzkh(
                     nrj_vx_fft + nrj_vy_fft + nrj_vz_fft

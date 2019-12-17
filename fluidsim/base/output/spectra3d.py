@@ -1,4 +1,5 @@
 import os
+from textwrap import dedent
 
 import numpy as np
 import h5py
@@ -82,6 +83,19 @@ class Spectra(SpecificOutput):
         params.output._set_child(
             tag, attribs={"HAS_TO_PLOT_SAVED": False, "kzkh_periodicity": 0}
         )
+        params.output.spectra._set_doc(
+            dedent(
+                """
+                    HAS_TO_PLOT_SAVED : bool (False)
+
+                      If True, some curves can be plotted during the run.
+
+                    kzkh_periodicity : int (0)
+
+                      Periodicity of saving of (kz, kh) spectra (compared to standard spectra).
+        """
+            )
+        )
 
     def _init_movies(self):
         self.movies = MoviesSpectra(self.output, self)
@@ -144,13 +158,24 @@ class Spectra(SpecificOutput):
                 # save the spectra in the file spectra3d.h5
                 self._add_dict_arrays_to_file(self.path_file3d, dict_spectra3d)
 
-                if (
-                    self.kzkh_periodicity
-                    and self.nb_saved_times % self.kzkh_periodicity == 0
-                ):
+                if self.has_to_save_kzkh(only_rank0=True):
                     self._add_dict_arrays_to_file(self.path_file_kzkh, dict_kzkh)
 
         self.t_last_save = self.sim.time_stepping.t
+
+    def has_to_save_kzkh(self, only_rank0=False):
+        if mpi.rank == 0:
+            answer = (
+                self.kzkh_periodicity
+                and self.nb_saved_times % self.kzkh_periodicity == 0
+            )
+        else:
+            answer = None
+
+        if only_rank0 or mpi.nb_proc == 1:
+            return answer
+
+        return mpi.comm.bcast(answer, root=0)
 
     def _online_save(self):
         """Save the values at one time. """

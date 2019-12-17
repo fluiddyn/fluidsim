@@ -30,7 +30,7 @@ params.N = N
 
 params.output.sub_directory = "waves_coriolis"
 
-nz = 64
+nz = 30
 aspect_ratio = 4
 nx = nz * aspect_ratio
 ny = nx
@@ -75,7 +75,7 @@ eps = 1e-2 * U ** 3 / H
 params.nu_2 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 200 * period_N
+params.time_stepping.t_end = 20 * period_N
 params.time_stepping.deltat_max = deltat_max = period_N / 40
 
 params.init_fields.type = "noise"
@@ -98,6 +98,8 @@ params.output.periods_print.print_stdout = 1.0
 params.output.periods_save.phys_fields = 2.0
 params.output.periods_save.spectra = 1.0
 params.output.periods_save.spatial_means = 0.5
+
+params.output.spectra.kzkh_periodicity = 2
 
 sim = Simul(params)
 
