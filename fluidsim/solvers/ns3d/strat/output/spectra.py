@@ -1,3 +1,12 @@
+"""Spectra (:mod:`fluidsim.solvers.ns3d.strat.output.spectra`)
+==============================================================
+
+.. autoclass:: SpectraNS3DStrat
+   :members:
+   :private-members:
+
+"""
+
 import numpy as np
 
 from fluidsim.solvers.ns3d.output.spectra import SpectraNS3D

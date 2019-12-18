@@ -3,7 +3,7 @@
 
 .. autoclass:: SpatialMeansNS3DStrat
    :members:
-   :private-members
+   :private-members:
 
 """
 

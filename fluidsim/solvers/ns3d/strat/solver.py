@@ -58,40 +58,55 @@ class Simul(SimulNS3D):
 
     .. |kk| mathmacro:: \textbf{k}
 
-    .. |ek| mathmacro:: \hat{\textbf{e}}_\textbf{k}
+    .. |ek| mathmacro:: \textbf{e}_\textbf{k}
+
+    .. |ez| mathmacro:: \textbf{e}_\textbf{z}
 
     .. |bnabla| mathmacro:: \boldsymbol{\nabla}
 
+    .. |bomega| mathmacro:: \boldsymbol{\omega}
+
     This class is dedicated to solve with a pseudo-spectral method the
-    incompressible Navier-Stokes equations (possibly with hyper-viscosity):
+    incompressible Navier-Stokes equations (possibly with hyper-viscosity)
+    under the Boussinesq approximation with a constant Brunt-Vaisala frequency:
 
     .. math::
+
       \p_t \vv + \vv \cdot \bnabla \vv =
-      - \bnabla p  - \nu_\alpha (-\Delta)^\alpha \vv,
+      - \bnabla p + b \ez - \nu_\alpha (-\Delta)^\alpha \vv,
 
-    where :math:`\vv` is the non-divergent velocity (:math:`\bnabla
-    \cdot \vv = 0`), :math:`p` is the pressure, :math:`\Delta` is the
-    3D Laplacian operator.
+      \p_t b   + \vv \cdot \bnabla b =
+      - N^2 v_z  - \nu_\alpha (-\Delta)^\alpha b,
 
-    In Fourier space, these equations can be written as:
+    where :math:`\vv` is the non-divergent velocity (:math:`\bnabla \cdot \vv =
+    0`), :math:`p` is the pressure, :math:`\Delta` is the 3D Laplacian
+    operator, :math:`b` is the buoyancy and :math:`N` is the (constant)
+    Brunt-Vaisala frequency.
+
+    The equation for the velocity can be rewritten as (here without the viscous term)
 
     .. math::
-      \p_t \hat v = N(v) + L \hat v,
+
+      \p_t \vv =
+      - \bnabla (p + |\vv|^2/2) + \vv \times \bomega  + b \ez,
+
+    In Fourier space, we obtain
+
+    .. math::
+      \p_t \hat{\vv} = \hat N(\vv) + L \hat{\vv},
 
     where
 
     .. math::
 
-      N(\vv) = -P_\perp \widehat{\bnabla \cdot \vv \vv},
+      \hat N(\vv) = P_\perp \widehat{\vv \times \bomega} + \hat b \ez,
 
     .. math::
 
       L = - \nu_\alpha |\kk|^{2\alpha},
 
     with :math:`P_\perp = (1 - \ek \ek \cdot)` the operator projection on the
-    plane perpendicular to the wave number :math:`\kk`. Since the flow is
-    incompressible (:math:`\kk \cdot \vv = 0`), the effect of the pressure term
-    is taken into account with the operator :math:`P_\perp`.
+    plane perpendicular to the wave number :math:`\kk`.
 
     """
     InfoSolver = InfoSolverNS3DStrat

@@ -1,9 +1,26 @@
+"""Output for the ns3d.strat solver
+===================================
+
+.. autoclass:: Output
+   :members:
+   :private-members:
+
+.. autosummary::
+   :toctree:
+
+   spatial_means
+   spectra
+
+"""
+
 import numpy as np
 
 from ...output import Output as OutputNS3D
 
 
 class Output(OutputNS3D):
+    """Main output class for ns3d.strat"""
+
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""

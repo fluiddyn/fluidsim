@@ -8,5 +8,6 @@ Provides:
 
    solver
    state
+   output
 
 """

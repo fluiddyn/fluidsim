@@ -68,6 +68,8 @@ class Simul(SimulBasePseudoSpectral):
 
     .. |bnabla| mathmacro:: \boldsymbol{\nabla}
 
+    .. |bomega| mathmacro:: \boldsymbol{\omega}
+
     This class is dedicated to solve with a pseudo-spectral method the
     incompressible Navier-Stokes equations (possibly with hyper-viscosity):
 
@@ -82,13 +84,13 @@ class Simul(SimulBasePseudoSpectral):
     In Fourier space, these equations can be written as:
 
     .. math::
-      \p_t \hat v = N(v) + L \hat v,
+      \p_t \hat{\vv} = \hat N(\vv) + L \hat{\vv},
 
     where
 
     .. math::
 
-      N(\vv) = -P_\perp \widehat{\bnabla \cdot \vv \vv},
+      \hat N(\vv) = -P_\perp \widehat{\vv \cdot \bnabla \vv},
 
     .. math::
 
@@ -98,6 +100,19 @@ class Simul(SimulBasePseudoSpectral):
     plane perpendicular to the wave number :math:`\kk`. Since the flow is
     incompressible (:math:`\kk \cdot \vv = 0`), the effect of the pressure term
     is taken into account with the operator :math:`P_\perp`.
+
+    In practice, it is more efficient to use the relation
+
+    .. math::
+
+      \vv \cdot \bnabla \vv = \bnabla |\vv|^2/2 - \vv \times \bomega,
+
+    with :math:`\bomega = \bnabla \times \vv` the vorticity, and to compute the
+    nonlinear term as
+
+    .. math::
+
+      \hat N(\vv) = P_\perp \widehat{\vv \times \bomega}.
 
     """
     InfoSolver = InfoSolverNS3D
