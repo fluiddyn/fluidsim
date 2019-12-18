@@ -50,7 +50,7 @@ class SpectraNS3D(Spectra):
 
         if self.has_to_save_kzkh():
             dict_kzkh = {
-                "spectra_E": self.oper.compute_spectrum_kzkh(
+                "K": self.oper.compute_spectrum_kzkh(
                     nrj_vx_fft + nrj_vy_fft + nrj_vz_fft
                 )
             }
@@ -157,7 +157,7 @@ class SpectraNS3D(Spectra):
     def plot3d(
         self,
         tmin=0,
-        tmax=1000,
+        tmax=None,
         delta_t=2,
         coef_compensate=0,
         key="E",
@@ -166,7 +166,8 @@ class SpectraNS3D(Spectra):
     ):
         with h5py.File(self.path_file3d, "r") as h5file:
             times = h5file["times"][...]
-
+            if tmax is None:
+                tmax = times.max()
             ks = h5file["k_spectra3d"][...]
             ks_no0 = ks.copy()
             ks_no0[ks == 0] = 1e-15
@@ -233,3 +234,22 @@ class SpectraNS3D(Spectra):
 
         if coef_plot_k53 is not None:
             ax1.plot(ks, coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm, "k-.")
+
+    def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None):
+        data = self.load_kzkh_mean(tmin, tmax, key)
+        spectrum = data[key]
+        kz = data["kz"]
+        kh = data["kh_spectra"]
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        ax.set_xlabel("$\kappa_h$")
+        ax.set_ylabel("$k_z$")
+        ax.set_title(
+            "3D spectra, solver "
+            + self.output.name_solver
+            + f", nx = {self.nx:5d}"
+        )
+
+        ax.pcolormesh(kh, kz, spectrum)

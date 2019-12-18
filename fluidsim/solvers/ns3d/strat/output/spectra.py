@@ -100,3 +100,6 @@ class SpectraNS3DStrat(SpectraNS3D):
             dict_kzkh = None
 
         return dict_spectra1d, dict_spectra3d, dict_kzkh
+
+    def plot_kzkh(self, tmin=0, tmax=None, key="Khd", ax=None):
+        super().plot_kzkh(tmin, tmax, key, ax)

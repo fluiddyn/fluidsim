@@ -130,6 +130,7 @@ class TestOutput(TestSimulBase):
             coef_plot_k3=1.0,
             coef_plot_k53=1.0,
         )
+        sim2.output.spectra.plot_kzkh(key="Khd")
 
         sim2.output.phys_fields.set_equation_crosssection(f"x={sim.oper.Lx/4}")
         sim2.output.phys_fields.animate("vx")

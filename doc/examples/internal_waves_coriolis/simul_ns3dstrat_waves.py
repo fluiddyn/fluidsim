@@ -95,7 +95,7 @@ watu.nb_wave_makers = 2
 
 params.output.periods_print.print_stdout = 1.0
 
-params.output.periods_save.phys_fields = 2.0
+params.output.periods_save.phys_fields = 4.0
 params.output.periods_save.spectra = 1.0
 params.output.periods_save.spatial_means = 0.5
 

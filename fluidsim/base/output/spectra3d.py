@@ -188,6 +188,8 @@ class Spectra(SpecificOutput):
                 self._add_dict_arrays_to_file(self.path_file1d, dict_spectra1d)
                 # save the spectra in the file spectra2D.h5
                 self._add_dict_arrays_to_file(self.path_file3d, dict_spectra3d)
+                if self.has_to_save_kzkh(only_rank0=True):
+                    self._add_dict_arrays_to_file(self.path_file_kzkh, dict_kzkh)
                 self.nb_saved_times += 1
                 if self.has_to_plot:
                     self._online_plot_saving(dict_spectra1d, dict_spectra3d)
@@ -215,7 +217,7 @@ class Spectra(SpecificOutput):
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass
 
-    def _load_mean_file(self, path, tmin=None, tmax=None):
+    def _load_mean_file(self, path, tmin=None, tmax=None, key_to_load=None):
         dict_results = {}
         with h5py.File(path, "r") as h5file:
             times = h5file["times"][...]
@@ -234,11 +236,17 @@ class Spectra(SpecificOutput):
 
             print(
                 "compute mean of spectra\n"
-                + (
-                    "tmin = {0:8.6g} ; tmax = {1:8.6g}"
-                    "imin = {2:8d} ; imax = {3:8d}"
-                ).format(tmin, tmax, imin_plot, imax_plot)
+                f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
             )
+
+            if key_to_load is not None:
+                if key_to_load not in h5file.keys():
+                    print(key_to_load, h5file.keys())
+                    raise ValueError
+                spect = h5file[key_to_load][imin_plot : imax_plot + 1].mean(0)
+                dict_results[key_to_load] = spect
+                return dict_results
 
             for key in list(h5file.keys()):
                 if key.startswith("spectr"):
@@ -260,7 +268,7 @@ class Spectra(SpecificOutput):
                 dict_results[key] = h5file[key][...]
         return dict_results
 
-    def load_kzkh_mean(self, tmin=None, tmax=None):
+    def load_kzkh_mean(self, tmin=None, tmax=None, key_to_load=None):
 
         if not os.path.exists(self.path_file_kzkh):
             raise RuntimeError(
@@ -268,7 +276,9 @@ class Spectra(SpecificOutput):
                 + " does not exist. Can't load values from it."
             )
 
-        dict_results = self._load_mean_file(self.path_file_kzkh, tmin, tmax)
+        dict_results = self._load_mean_file(
+            self.path_file_kzkh, tmin, tmax, key_to_load
+        )
         with h5py.File(self.path_file_kzkh, "r") as h5file:
             for key in ("kz", "kh_spectra"):
                 dict_results[key] = h5file[key][...]
