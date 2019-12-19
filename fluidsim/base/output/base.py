@@ -555,7 +555,7 @@ class SpecificOutput:
         period_save=0,
         period_plot=0,
         has_to_plot_saved=False,
-        dict_arrays_1time=None,
+        arrays_1st_time=None,
     ):
 
         sim = output.sim
@@ -592,20 +592,20 @@ class SpecificOutput:
             self.period_save = 0.0
 
         if self.period_save != 0.0:
-            self._init_files(dict_arrays_1time)
+            self._init_files(arrays_1st_time)
 
     def _init_path_files(self):
         if hasattr(self, "_name_file"):
             self.path_file = os.path.join(self.output.path_run, self._name_file)
 
-    def _init_files(self, dict_arrays_1time=None):
-        if dict_arrays_1time is None:
-            dict_arrays_1time = {}
+    def _init_files(self, arrays_1st_time=None):
+        if arrays_1st_time is None:
+            arrays_1st_time = {}
         dict_results = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
                 self._create_file_from_dict_arrays(
-                    self.path_file, dict_results, dict_arrays_1time
+                    self.path_file, dict_results, arrays_1st_time
                 )
                 self.nb_saved_times = 1
             else:
@@ -633,7 +633,7 @@ class SpecificOutput:
                         plt.pause(1e-3)
 
     def _create_file_from_dict_arrays(
-        self, path_file, dict_matrix, dict_arrays_1time
+        self, path_file, dict_matrix, arrays_1st_time
     ):
         if os.path.exists(path_file):
             print("file NOT created since it already exists!")
@@ -648,7 +648,7 @@ class SpecificOutput:
                 times = np.array([self.sim.time_stepping.t], dtype=np.float64)
                 file.create_dataset("times", data=times, maxshape=(None,))
 
-                for k, v in list(dict_arrays_1time.items()):
+                for k, v in list(arrays_1st_time.items()):
                     file.create_dataset(k, data=v)
 
                 for k, v in list(dict_matrix.items()):

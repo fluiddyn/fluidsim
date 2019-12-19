@@ -189,7 +189,7 @@ class SpatioTempSpectra(SpecificOutput):
         self.it_last_run = self.it_start
         self.nb_times_in_spatio_temp = 0
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         # we can not do anything when this function is called.
         pass
 

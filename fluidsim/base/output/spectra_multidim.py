@@ -39,16 +39,16 @@ class SpectraMultiDim(SpecificOutput):
         path_run = self.output.path_run
         self.path_file = path_run + "/spectra_multidim.h5"
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         dict_spectra = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
-                dict_arrays_1time = {
+                arrays_1st_time = {
                     "kxE": self.sim.oper.kxE,
                     "kyE": self.sim.oper.kyE,
                 }
                 self._create_file_from_dict_arrays(
-                    self.path_file, dict_spectra, dict_arrays_1time
+                    self.path_file, dict_spectra, arrays_1st_time
                 )
                 self.nb_saved_times = 1
             else:

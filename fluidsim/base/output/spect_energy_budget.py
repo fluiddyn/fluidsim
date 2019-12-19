@@ -46,7 +46,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=HAS_TO_PLOT_SAVED,
-            dict_arrays_1time={
+            arrays_1st_time={
                 "khE": output.sim.oper.khE,
                 "kxE": output.sim.oper.kxE,
                 "kyE": output.sim.oper.kyE,

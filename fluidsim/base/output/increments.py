@@ -75,7 +75,7 @@ class Increments(SpecificOutput):
                 self.nbins = mpi.comm.bcast(self.nbins)
 
         self.nrx = self.rxs.size
-        dict_arrays_1time = {"rxs": self.rxs, "nbins": self.nbins}
+        arrays_1st_time = {"rxs": self.rxs, "nbins": self.nbins}
         self._bins = np.arange(0.5, self.nbins, dtype=float) / self.nbins
         self.keys_vars_to_compute = list(output.sim.state.state_phys.keys)
 
@@ -83,7 +83,7 @@ class Increments(SpecificOutput):
             output,
             period_save=params.output.periods_save.increments,
             has_to_plot_saved=params.output.increments.HAS_TO_PLOT_SAVED,
-            dict_arrays_1time=dict_arrays_1time,
+            arrays_1st_time=arrays_1st_time,
         )
 
     def _init_online_plot(self):

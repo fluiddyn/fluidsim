@@ -256,7 +256,7 @@ class CorrelationsFreq(SpecificOutput):
             if self.omega_dealiasing > self.omega_Nyquist:
                 print("Warning: omega_dealiasing > omega_Nyquist")
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         # we can not do anything when this function is called.
         pass
 
@@ -267,14 +267,14 @@ class CorrelationsFreq(SpecificOutput):
             * self.periods_fill
         )
         omegas = 2 * np.pi / time_tot * np.arange(self.nb_omegas)
-        dict_arrays_1time = {
+        arrays_1st_time = {
             "omegas": omegas,
             "deltat": self.sim.time_stepping.deltat,
             "nb_times_compute": self.nb_times_compute,
             "periods_fill": self.periods_fill,
         }
         self._create_file_from_dict_arrays(
-            self.path_file, correlations, dict_arrays_1time
+            self.path_file, correlations, arrays_1st_time
         )
 
         self.t_last_save = self.sim.time_stepping.t

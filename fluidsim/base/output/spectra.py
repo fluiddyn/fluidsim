@@ -107,20 +107,20 @@ class Spectra(SpecificOutput):
         self.path_file1D = path_run + "/spectra1D.h5"
         self.path_file2D = path_run + "/spectra2D.h5"
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         dict_spectra1D, dict_spectra2D = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1D):
-                dict_arrays_1time = {
+                arrays_1st_time = {
                     "kxE": self.sim.oper.kxE,
                     "kyE": self.sim.oper.kyE,
                 }
                 self._create_file_from_dict_arrays(
-                    self.path_file1D, dict_spectra1D, dict_arrays_1time
+                    self.path_file1D, dict_spectra1D, arrays_1st_time
                 )
-                dict_arrays_1time = {"khE": self.sim.oper.khE}
+                arrays_1st_time = {"khE": self.sim.oper.khE}
                 self._create_file_from_dict_arrays(
-                    self.path_file2D, dict_spectra2D, dict_arrays_1time
+                    self.path_file2D, dict_spectra2D, arrays_1st_time
                 )
                 self.nb_saved_times = 1
             else:

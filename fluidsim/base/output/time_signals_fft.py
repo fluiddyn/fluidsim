@@ -166,11 +166,11 @@ class TimeSignalsK(SpecificOutput):
         if mpi.nb_proc > 1:
             self.period_save = mpi.comm.bcast(self.period_save)
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         if not os.path.exists(self.path_file):
             dict_results = self.compute()
             if mpi.rank == 0:
-                dict_arrays_1time = {
+                arrays_1st_time = {
                     "kh_shell": self.kh_shell,
                     "omega_shell": self.omega_shell,
                     "kx_array_ik": self.kx_array_ik,
@@ -179,7 +179,7 @@ class TimeSignalsK(SpecificOutput):
                     "omega_array_ik": self.omega_array_ik,
                 }
                 self._create_file_from_dict_arrays(
-                    self.path_file, dict_results, dict_arrays_1time
+                    self.path_file, dict_results, arrays_1st_time
                 )
 
         if mpi.rank == 0:

@@ -52,7 +52,7 @@ class SpatialMeansBase(SpecificOutput):
         if self.period_save != 0:
             self._save_one_time()
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
 
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):

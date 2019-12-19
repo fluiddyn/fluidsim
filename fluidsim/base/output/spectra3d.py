@@ -123,7 +123,7 @@ class Spectra(SpecificOutput):
         self.path_file3d = path_run + "/spectra3d.h5"
         self.path_file_kzkh = path_run + "/spectra_kzkh.h5"
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         dict_spectra1d, dict_spectra3d, dict_kzkh = self.compute()
         if mpi.rank == 0:
             if not os.path.exists(self.path_file1d):

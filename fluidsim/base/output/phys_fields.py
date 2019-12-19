@@ -118,7 +118,7 @@ class PhysFieldsBase(SpecificOutput):
         if hasattr(self, "set_of_phys_files"):
             self.set_of_phys_files.path_dir = self.output.path_run
 
-    def _init_files(self, dict_arrays_1time=None):
+    def _init_files(self, arrays_1st_time=None):
         # Does nothing on purpose...
         pass
 
