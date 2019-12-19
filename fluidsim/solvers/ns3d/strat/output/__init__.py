@@ -10,6 +10,7 @@
 
    spatial_means
    spectra
+   spect_energy_budget
 
 """
 
@@ -29,11 +30,16 @@ class Output(OutputNS3D):
         classes = info_solver.classes.Output.classes
         base_name_mod = "fluidsim.solvers.ns3d.strat.output"
 
-        classes.Spatial_means.module_name = base_name_mod + ".spatial_means"
-        classes.Spatial_means.class_name = "SpatialMeansNS3DStrat"
+        classes.SpatialMeans.module_name = base_name_mod + ".spatial_means"
+        classes.SpatialMeans.class_name = "SpatialMeansNS3DStrat"
 
         classes.Spectra.module_name = base_name_mod + ".spectra"
         classes.Spectra.class_name = "SpectraNS3DStrat"
+
+        classes.SpectralEnergyBudget.module_name = (
+            base_name_mod + ".spect_energy_budget"
+        )
+        classes.SpectralEnergyBudget.class_name = "SpectralEnergyBudgetNS3DStrat"
 
     def compute_energies_fft(self):
         get_var = self.sim.state.state_spect.get_var

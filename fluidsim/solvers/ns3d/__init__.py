@@ -1,7 +1,8 @@
 """Navier-Stokes 3D solvers (:mod:`fluidsim.solvers.ns3d`)
 ==========================================================
 
-Provides:
+Submodules and packages
+-----------------------
 
 .. autosummary::
    :toctree:
@@ -10,7 +11,10 @@ Provides:
    state
    init_fields
    forcing
+   output
 
+Derived solvers
+---------------
 
 .. autosummary::
    :toctree:

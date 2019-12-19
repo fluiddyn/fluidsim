@@ -698,3 +698,9 @@ class SpecificOutput:
             self.sim.time_stepping.t - self.t_last_save
             >= self.period_save - 1e-14
         )
+
+    def _init_online_plot(self):
+        pass
+
+    def _online_plot_saving(self, dict_results):
+        pass

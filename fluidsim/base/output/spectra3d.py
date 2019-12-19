@@ -153,7 +153,7 @@ class Spectra(SpecificOutput):
                 with h5py.File(self.path_file1d, "r") as file:
                     dset_times = file["times"]
                     self.nb_saved_times = dset_times.shape[0] + 1
-                # save the spectra in the file spectra1s.h5
+                # save the spectra in the file spectra1d.h5
                 self._add_dict_arrays_to_file(self.path_file1d, dict_spectra1d)
                 # save the spectra in the file spectra3d.h5
                 self._add_dict_arrays_to_file(self.path_file3d, dict_spectra3d)

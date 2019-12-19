@@ -1,3 +1,19 @@
+"""Output for the ns3d solver
+=============================
+
+.. autoclass:: Output
+   :members:
+   :private-members:
+
+.. autosummary::
+   :toctree:
+
+   spatial_means
+   spectra
+   spect_energy_budget
+
+"""
+
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
@@ -29,17 +45,20 @@ class Output(OutputBasePseudoSpectral):
         )
 
         classes._set_child(
-            "Spatial_means",
+            "SpatialMeans",
             attribs={
                 "module_name": base_name_mod + ".spatial_means",
                 "class_name": "SpatialMeansNS3D",
             },
         )
 
-    # attribs = {
-    #     'module_name': base_name_mod + '.spect_energy_budget',
-    #     'class_name': 'SpectralEnergyBudgetNS3D'}
-    # classes._set_child('spect_energy_budg', attribs=attribs)
+        classes._set_child(
+            "SpectralEnergyBudget",
+            attribs={
+                "module_name": base_name_mod + ".spect_energy_budget",
+                "class_name": "SpectralEnergyBudgetNS3D",
+            },
+        )
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

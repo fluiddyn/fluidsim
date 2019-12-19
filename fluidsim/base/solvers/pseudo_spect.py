@@ -162,8 +162,6 @@ nu_m4: float
         f_d_hypo : `numpy.array`
             The dissipation frequency at large scale (hypo-viscosity)
 
-        .. FIXME: Shouldn't fourth order viscosity be negative?
-
         """
         if self.params.nu_2 > 0:
             f_d = self.params.nu_2 * self.oper.K2
@@ -185,7 +183,7 @@ nu_m4: float
             f_d_hypo[self.oper.K <= 20] = 0.0
 
         else:
-            f_d_hypo = np.zeros_like(f_d)
+            f_d_hypo = 0.0
 
         return f_d, f_d_hypo
 
