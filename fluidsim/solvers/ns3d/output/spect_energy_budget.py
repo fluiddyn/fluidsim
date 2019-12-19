@@ -96,7 +96,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
             arrays_1st_time={
                 "kx": kx,
                 "ky": ky,
-                "ky": kz,
+                "kz": kz,
                 "kh": oper.kh_spectra,
             },
         )
@@ -194,3 +194,80 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         assert transfer_K.sum() < 1e-14
 
         return results
+
+    def load_mean(self, tmin=0, tmax=None, key_to_load=None):
+        means = {}
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            nt = len(times)
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
+
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
+
+            print(
+                "compute mean spectral energy budget\n"
+                f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
+            )
+
+            for key in list(file.keys()):
+                if key.startswith("k"):
+                    means[key] = file[key][...]
+
+            if key_to_load is not None:
+                if key_to_load not in file.keys():
+                    print(key_to_load, file.keys())
+                    raise ValueError
+                spect = file[key_to_load][imin_plot : imax_plot + 1].mean(0)
+                means[key_to_load] = spect
+                return means
+
+            for key in list(file.keys()):
+                if key != "times" and not key.startswith("k"):
+                    dset_key = file[key]
+                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    means[key] = spect
+        return means
+
+    _key_plot_default_kzkh = "transfer_Kh"
+
+    def plot_kzkh(self, tmin=0, tmax=None, key=None, ax=None):
+
+        with h5py.File(self.path_file, "r") as file:
+            keys_saved = [
+                key
+                for key in file.keys()
+                if key not in ("times", "info_simul")
+                and not key.startswith("k")
+                and not any(key.endswith("_k" + letter) for letter in "xyz")
+            ]
+
+        if key is None:
+            key = self._key_plot_default_kzkh
+
+        if key not in keys_saved:
+            raise ValueError(f"key '{key}' not in {keys_saved}")
+
+        data = self.load_mean(tmin, tmax, key)
+        spectrum = data[key]
+        kz = data["kz"]
+        kh = data["kh"]
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        ax.set_xlabel("$\kappa_h$")
+        ax.set_ylabel("$k_z$")
+        ax.set_title(
+            f"{key}, solver {self.output.name_solver}, nx = {self.nx:5d}"
+        )
+
+        ax.pcolormesh(kh, kz, spectrum)

@@ -93,11 +93,12 @@ watu.period_forcing = period_forcing
 watu.approximate_dt = period_N / 1e1
 watu.nb_wave_makers = 2
 
-params.output.periods_print.print_stdout = 1.0
+params.output.periods_print.print_stdout = 4.0
 
-params.output.periods_save.phys_fields = 4.0
-params.output.periods_save.spectra = 1.0
-params.output.periods_save.spatial_means = 0.5
+params.output.periods_save.phys_fields = 16.0
+params.output.periods_save.spectra = 4.0
+params.output.periods_save.spatial_means = 4.0
+params.output.periods_save.spect_energy_budg = 4.0
 
 params.output.spectra.kzkh_periodicity = 2
 

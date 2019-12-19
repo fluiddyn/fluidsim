@@ -187,10 +187,8 @@ class SpectraNS3D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot3d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
-                + f" coef_compensate={coef_compensate:.3f})"
+                f"plot3d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
+                f" coef_compensate={coef_compensate:.3f})"
             )
 
             print(
