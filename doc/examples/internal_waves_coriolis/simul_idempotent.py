@@ -3,25 +3,40 @@ force internal waves in the Coriolis platform.
 
 Launch with::
 
-  mpirun -np 4 python simul_idempotent.py
+  mpirun -np 4 python simul_idempotent.py 0.02 30
+
+or::
+
+  mpirun -np 4 python simul_idempotent.py 0.02 30 --max-elapsed 00:02:00
 
 """
 
 from math import pi
 from pathlib import Path
 import sys
+import argparse
 
 from fluiddyn.util import mpi
 from fluidsim import FLUIDSIM_PATH, load_for_restart
 from fluidsim.solvers.ns3d.strat.solver import Simul
 
+parser = argparse.ArgumentParser()
+parser.add_argument("amplitude", help="Amplitude of the movement", type=float)
+parser.add_argument("nz", help="Number of point over the z direction", type=int)
+parser.add_argument("-me", "--max-elapsed", help="Maximum elapsed time", type=str, default="00:02:00")
+
+args = parser.parse_args()
+mpi.printby0(args)
+
+amplitude = args.amplitude  # m
+nz = args.nz
+max_elapsed = args.max_elapsed
+
 # main input parameters
 omega_f = 0.3  # rad/s
 delta_omega_f = 0.03  # rad/s
 N = 0.4  # rad/s
-amplitude = 0.05  # m
 
-nz = 30
 aspect_ratio = 4
 nx = ny = nz * aspect_ratio
 
@@ -30,13 +45,15 @@ short_name_type_run = f"ampl{amplitude}"
 
 path_dir = Path(FLUIDSIM_PATH) / sub_directory
 
-path_idempotent_file = path_dir / f"idempotent_{short_name_type_run}_{nx}x{ny}x{nz}.txt"
+path_idempotent_file = (
+    path_dir / f"idempotent_{short_name_type_run}_{nx}x{ny}x{nz}.txt"
+)
 
 path_idempotent_file_exists = None
 if mpi.rank == 0:
     path_idempotent_file_exists = path_idempotent_file.exists()
-path_idempotent_file_exists = mpi.comm.bcast(path_idempotent_file_exists, root=0)
-
+if mpi.nb_proc > 1:
+    path_idempotent_file_exists = mpi.comm.bcast(path_idempotent_file_exists, root=0)
 
 if not path_idempotent_file_exists:
     mpi.printby0("New simulation")
@@ -96,7 +113,7 @@ if not path_idempotent_file_exists:
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 20 * period_N
     params.time_stepping.deltat_max = deltat_max = period_N / 40
-    params.time_stepping.max_elapsed = "00:00:30"
+    params.time_stepping.max_elapsed = max_elapsed
 
     params.init_fields.type = "noise"
     params.init_fields.noise.velo_max = 0.001
@@ -129,13 +146,17 @@ if not path_idempotent_file_exists:
             file.write(sim.name_run)
 
 else:
-    mpi.printby0(f"file {path_idempotent_file} exists:\nrestarting the simulation")
+    mpi.printby0(
+        f"file {path_idempotent_file} exists:\nrestarting the simulation"
+    )
 
     name_dir = None
     if mpi.rank == 0:
         with open(path_idempotent_file) as file:
             name_dir = file.read().strip()
-    name_dir = mpi.comm.bcast(name_dir, root=0)
+        print(str(path_dir / name_dir))
+    if mpi.nb_proc > 1:
+        name_dir = mpi.comm.bcast(name_dir, root=0)
 
     params, Simul = load_for_restart(path_dir / name_dir)
     sim = Simul(params)
@@ -144,7 +165,7 @@ sim.time_stepping.start()
 
 if sim.time_stepping._has_to_stop:
     mpi.printby0("Simulation is not completed. The script should be relaunched")
-    sys.exit(0)
+    sys.exit(99)
 
 mpi.printby0(
     f"""
@@ -161,7 +182,7 @@ ipython
 
 from fluidsim import load_sim_for_plot
 sim = load_sim_for_plot()
-sim.output.phys_fields.set_equation_crosssection('x={lx/2}')
+sim.output.phys_fields.set_equation_crosssection('x={sim.params.oper.Lx/2}')
 sim.output.phys_fields.animate('b')
 
 """
