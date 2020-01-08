@@ -17,6 +17,7 @@ import re
 import os
 import datetime
 from glob import glob
+from pathlib import Path
 
 import numpy as np
 import h5py
@@ -151,10 +152,10 @@ class PhysFieldsBase(SpecificOutput):
 
         time = self.sim.time_stepping.t
 
-        path_run = self.output.path_run
+        path_run = Path(self.output.path_run)
 
-        if mpi.rank == 0 and not os.path.exists(path_run):
-            os.mkdir(path_run)
+        if mpi.rank == 0:
+            path_run.mkdir(exist_ok=True)
 
         if (
             self.period_save < 0.001
@@ -166,8 +167,15 @@ class PhysFieldsBase(SpecificOutput):
         else:
             name_save = f"state_phys_t{time:07.3f}.{ext}"
 
-        path_file = os.path.join(path_run, name_save)
-        if os.path.exists(path_file):
+        path_file = path_run / name_save
+
+        does_path_exist = None
+        if mpi.rank == 0:
+            does_path_exist = path_file.exists()
+        if mpi.nb_proc > 1:
+            does_path_exist = mpi.comm.bcast(does_path_exist, root=0)
+
+        if does_path_exist:
             # do not save if the file corresponds to the same it
             it_file = None
             if mpi.rank == 0:
@@ -180,7 +188,7 @@ class PhysFieldsBase(SpecificOutput):
             name_save = "state_phys_t{:07.3f}_it={}.{}".format(
                 time, self.sim.time_stepping.it, ext
             )
-            path_file = os.path.join(path_run, name_save)
+            path_file = path_run / name_save
         self.output.print_stdout("save state_phys in file " + name_save)
 
         def create_group_with_attrs(h5file):
