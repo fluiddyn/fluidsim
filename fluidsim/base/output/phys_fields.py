@@ -51,7 +51,7 @@ def _create_variable(group, key, field):
         except AttributeError:
             raise ValueError(
                 "Error while creating a netCDF4 variable using group"
-                " of type {} for key {}".format(type(group), key)
+                f" of type {type(group)} for key {key}"
             )
 
     else:
@@ -60,7 +60,7 @@ def _create_variable(group, key, field):
         except AttributeError:
             raise ValueError(
                 "Error while creating a HDF5 dataset using group"
-                " of type {} for key {}".format(type(group), key)
+                f" of type {type(group)} for key {key}"
             )
 
 
@@ -161,8 +161,8 @@ class PhysFieldsBase(SpecificOutput):
             self.period_save < 0.001
             or self.params.output.phys_fields.file_with_it
         ):
-            name_save = "state_phys_t{:07.3f}_it={}.{}".format(
-                time, self.sim.time_stepping.it, ext
+            name_save = (
+                f"state_phys_t{time:07.3f}_it={self.sim.time_stepping.it}.{ext}"
             )
         else:
             name_save = f"state_phys_t{time:07.3f}.{ext}"
@@ -185,8 +185,8 @@ class PhysFieldsBase(SpecificOutput):
                 it_file = mpi.comm.bcast(it_file, root=0)
             if it_file == self.sim.time_stepping.it:
                 return
-            name_save = "state_phys_t{:07.3f}_it={}.{}".format(
-                time, self.sim.time_stepping.it, ext
+            name_save = (
+                f"state_phys_t{time:07.3f}_it={self.sim.time_stepping.it}.{ext}"
             )
             path_file = path_run / name_save
         self.output.print_stdout("save state_phys in file " + name_save)
