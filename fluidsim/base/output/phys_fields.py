@@ -179,7 +179,7 @@ class PhysFieldsBase(SpecificOutput):
             # do not save if the file corresponds to the same it
             it_file = None
             if mpi.rank == 0:
-                with h5pack.File(path_file, "r") as file:
+                with h5pack.File(str(path_file), "r") as file:
                     it_file = file["state_phys"].attrs["it"]
             if mpi.nb_proc > 1:
                 it_file = mpi.comm.bcast(it_file, root=0)
@@ -199,18 +199,14 @@ class PhysFieldsBase(SpecificOutput):
             group_state_phys.attrs["it"] = self.sim.time_stepping.it
             return group_state_phys
 
-        # FIXME: bad condition below when run sequentially, with MPI enabled h5py
-        # As a workaround the instantiation is made with h5pack
         if mpi.nb_proc == 1 or not cfg_h5py.mpi:
             if mpi.rank == 0:
-                # originally:
-                # h5file = h5netcdf.File(...
-                h5file = h5pack.File(path_file, "w")
+                h5file = h5pack.File(str(path_file), "w")
                 group_state_phys = create_group_with_attrs(h5file)
         else:
-            # originally:
-            # h5file = h5py.File(...
-            h5file = h5pack.File(path_file, "w", driver="mpio", comm=mpi.comm)
+            h5file = h5pack.File(
+                str(path_file), "w", driver="mpio", comm=mpi.comm
+            )
             group_state_phys = create_group_with_attrs(h5file)
 
         if mpi.nb_proc == 1:
@@ -250,7 +246,7 @@ class PhysFieldsBase(SpecificOutput):
                         )
             h5file.close()
             if mpi.rank == 0:
-                h5file = h5pack.File(path_file, "r+")
+                h5file = h5pack.File(str(path_file), "r+")
 
         if mpi.rank == 0:
             h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
