@@ -14,10 +14,15 @@ from fluiddyn.util import mpi
 from fluidsim.solvers.ns3d.strat.solver import Simul
 
 # main input parameters
-omega_f = 0.3  # rad/s
-delta_omega_f = 0.03  # rad/s
-N = 0.4  # rad/s
-amplitude = 0.05  # m
+N = 0.6  # rad/s
+#if aspect_ratio == 4:
+omega_f = 0.807 * N  # rad/s
+#elif aspect_ratio == 6:
+#    omega_f = 0.674 * N  # rad/s
+
+delta_omega_f = 0.1 * omega_f  # rad/s
+
+amplitude = 0.05
 
 # useful parameters and secondary input parameters
 period_N = 2 * pi / N
@@ -66,13 +71,13 @@ We want that $dx < \eta_n$, so we choose $\nu_n$ such that $dx = C \eta_n$
 where $C$ is a constant of order 1.
 
 """
-n = 2
+n = 8
 C = 1.0
 dx = lx / nx
 U = amplitude * omega_f
 H = 1
 eps = 1e-2 * U ** 3 / H
-params.nu_2 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
+params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 20 * period_N
@@ -98,7 +103,7 @@ params.output.periods_print.print_stdout = 4.0
 params.output.periods_save.phys_fields = 16.0
 params.output.periods_save.spectra = 4.0
 params.output.periods_save.spatial_means = 4.0
-params.output.periods_save.spect_energy_budg = 4.0
+params.output.periods_save.spect_energy_budg = 1.0
 
 params.output.spectra.kzkh_periodicity = 2
 
@@ -126,3 +131,6 @@ sim.output.phys_fields.animate('b')
 
 """
 )
+
+
+sim.output.spect_energy_budg.plot_fluxes(key_k='kh')

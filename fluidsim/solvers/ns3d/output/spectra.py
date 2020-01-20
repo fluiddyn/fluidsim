@@ -235,7 +235,7 @@ class SpectraNS3D(Spectra):
 
     def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None):
         data = self.load_kzkh_mean(tmin, tmax, key)
-        spectrum = data[key]
+        spectrum = np.log10(data[key])
         kz = data["kz"]
         kh = data["kh_spectra"]
 
@@ -245,7 +245,7 @@ class SpectraNS3D(Spectra):
         ax.set_xlabel("$\kappa_h$")
         ax.set_ylabel("$k_z$")
         ax.set_title(
-            "3D spectra, solver "
+            "log 3D spectra, solver "
             + self.output.name_solver
             + f", nx = {self.nx:5d}"
         )

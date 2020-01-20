@@ -93,12 +93,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
             output,
             period_save=params.output.periods_save.spect_energy_budg,
             has_to_plot_saved=params.output.spect_energy_budg.HAS_TO_PLOT_SAVED,
-            arrays_1st_time={
-                "kx": kx,
-                "ky": ky,
-                "kz": kz,
-                "kh": oper.kh_spectra,
-            },
+            arrays_1st_time={"kx": kx, "ky": ky, "kz": kz, "kh": oper.kh_spectra},
         )
 
     def compute_spectra(self, name, quantity):

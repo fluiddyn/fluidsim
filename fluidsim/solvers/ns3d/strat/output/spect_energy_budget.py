@@ -87,6 +87,11 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         vy = state_phys.get_var("vy")
         vz = state_phys.get_var("vz")
 
+        fft3d = self.oper.fft3d
+        assert np.allclose(vx_fft, fft3d(vx))
+        assert np.allclose(vy_fft, fft3d(vy))
+        assert np.allclose(vz_fft, fft3d(vz))
+
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
         # todo: f_d_hypo
@@ -94,17 +99,22 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         del vx_fft, vy_fft
 
         b_fft = state_spect.get_var("b_fft")
+        assert np.allclose(b_fft, fft3d(state_phys.get_var("b")))
 
         results.update(
             self.compute_spectra("diss_A", 1 / N ** 2 * f_d * abs(b_fft) ** 2)
         )
 
         results.update(
-            self.compute_spectra("conv_K2A", np.real(vz_fft.conj() * b_fft))
+            self.compute_spectra("conv_K2A", -np.real(vz_fft.conj() * b_fft))
         )
         del vz_fft
 
-        fb_fft = -oper.div_vb_fft_from_vb(vx, vy, vz, state_phys.get_var("b"))
+        fb_fft = (
+            -1
+            / N ** 2
+            * oper.div_vb_fft_from_vb(vx, vy, vz, state_phys.get_var("b"))
+        )
         del vx, vy, vz
 
         results.update(
@@ -116,3 +126,96 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
                 assert value.sum() < 1e-14
 
         return results
+
+    def compute_fluxes_mean(self, tmin=None, tmax=None):
+
+        with h5py.File(self.path_file, "r") as file:
+            keys_saved = [
+                key
+                for key in file.keys()
+                if key not in ("times", "info_simul")
+                and not key.startswith("k")
+                and not any(key.endswith("_k" + letter) for letter in "xyz")
+            ]
+
+        data = {}
+        for key in keys_saved:
+            data.update(self.load_mean(tmin, tmax, key))
+
+        kz = data["kz"]
+        kh = data["kh"]
+
+        dict_results = {"kz": kz, "kh": kh}
+
+        deltakz = kz[1]
+        deltakh = kh[1]
+
+        for key in keys_saved:
+            spectrum = data[key]
+            flux = deltakz * spectrum.sum(0)
+            flux = deltakh * np.cumsum(flux)
+            if key.startswith("transfer"):
+                spectrum *= -1
+
+            key_flux = "hflux_" + key
+            dict_results.update({key_flux: flux})
+
+            flux = deltakh * spectrum.sum(1)
+            flux = deltakz * np.cumsum(flux)
+            if key.startswith("transfer"):
+                spectrum *= -1
+
+            key_flux = "zflux_" + key
+            dict_results.update({key_flux: flux})
+
+        return dict_results
+
+    def plot_fluxes(self, tmin=None, tmax=None, key_k="kh", ax=None):
+
+        data = self.compute_fluxes_mean(tmin, tmax)
+
+        k_plot = data[key_k]
+        deltak = k_plot[1]
+        k_plot += deltak / 2
+
+        key_flux = key_k[1] + "flux_"
+        flux_Kh = data[key_flux + "transfer_Kh"]
+        flux_Kz = data[key_flux + "transfer_Kz"]
+        flux_A = data[key_flux + "transfer_A"]
+        DKh = data[key_flux + "diss_Kh"]
+        DKz = data[key_flux + "diss_Kz"]
+        DA = data[key_flux + "diss_A"]
+        CK2A = data[key_flux + "conv_K2A"]
+
+        # errors in ns3d/spect_energy_budget/compute?
+        # N = self.params.N
+        # flux_A = -flux_A / N ** 2
+        # CK2A = -CK2A
+
+        flux_K = flux_Kh + flux_Kz
+        T = flux_K + flux_A
+        DK = DKh + DKz
+        D = DK + DA
+
+        eps = D[-1]
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        xlbl = "k_" + key_k[1]
+        ylbl = "$\Pi(" + xlbl + ")/\epsilon$"
+        xlbl = "$" + xlbl + "$"
+        ax.set_xlabel(xlbl)
+        ax.set_ylabel(ylbl)
+        ax.set_title(
+            f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
+        )
+
+        ax.semilogx(k_plot, T / eps, "k", linewidth=2, label="$\Pi/\epsilon$")
+        ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label="$D/\epsilon$")
+        ax.semilogx(k_plot, (T + D) / eps, "k:", label="$(\Pi+D)/\epsilon$")
+        ax.semilogx(k_plot, flux_K / eps, "r", label="$\Pi_K/\epsilon$")
+        ax.semilogx(k_plot, flux_A / eps, "b", label="$\Pi_A/\epsilon$")
+        ax.semilogx(k_plot, CK2A / eps, "m", linewidth=2, label="$B/\epsilon$")
+
+        ax.legend()
