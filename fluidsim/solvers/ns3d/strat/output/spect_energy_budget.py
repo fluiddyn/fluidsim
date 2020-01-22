@@ -88,9 +88,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         vz = state_phys.get_var("vz")
 
         fft3d = self.oper.fft3d
-        assert np.allclose(vx_fft, fft3d(vx))
-        assert np.allclose(vy_fft, fft3d(vy))
-        assert np.allclose(vz_fft, fft3d(vz))
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
@@ -99,7 +96,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         del vx_fft, vy_fft
 
         b_fft = state_spect.get_var("b_fft")
-        assert np.allclose(b_fft, fft3d(state_phys.get_var("b")))
 
         results.update(
             self.compute_spectra("diss_A", 1 / N ** 2 * f_d * abs(b_fft) ** 2)
@@ -155,7 +151,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             flux = deltakz * spectrum.sum(0)
             flux = deltakh * np.cumsum(flux)
             if key.startswith("transfer"):
-                spectrum *= -1
+                flux *= -1
 
             key_flux = "hflux_" + key
             dict_results.update({key_flux: flux})
@@ -163,7 +159,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             flux = deltakh * spectrum.sum(1)
             flux = deltakz * np.cumsum(flux)
             if key.startswith("transfer"):
-                spectrum *= -1
+                flux *= -1
 
             key_flux = "zflux_" + key
             dict_results.update({key_flux: flux})
@@ -193,7 +189,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         # CK2A = -CK2A
 
         flux_K = flux_Kh + flux_Kz
-        T = flux_K + flux_A
+        flux = flux_K + flux_A
         DK = DKh + DKz
         D = DK + DA
 
@@ -211,9 +207,10 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
         )
 
-        ax.semilogx(k_plot, T / eps, "k", linewidth=2, label="$\Pi/\epsilon$")
+        ax.semilogx(k_plot, flux / eps, "k", linewidth=2, label="$\Pi/\epsilon$")
         ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label="$D/\epsilon$")
-        ax.semilogx(k_plot, (T + D) / eps, "k:", label="$(\Pi+D)/\epsilon$")
+        ax.semilogx(k_plot, DA / eps, "k-.", linewidth=2, label="$D_A/\epsilon$")
+        ax.semilogx(k_plot, (flux + D) / eps, "k:", label="$(\Pi+D)/\epsilon$")
         ax.semilogx(k_plot, flux_K / eps, "r", label="$\Pi_K/\epsilon$")
         ax.semilogx(k_plot, flux_A / eps, "b", label="$\Pi_A/\epsilon$")
         ax.semilogx(k_plot, CK2A / eps, "m", linewidth=2, label="$B/\epsilon$")

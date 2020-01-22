@@ -29,7 +29,7 @@ class StateNS3D(StatePseudoSpectral):
                 "keys_state_spect": [k + "_fft" for k in keys_state_phys],
                 "keys_state_phys": keys_state_phys,
                 "keys_phys_needed": keys_state_phys,
-                "keys_computable": ["rotz"],
+                "keys_computable": ["rotz", "divh", "rotz_fft", "divh_fft"],
                 "keys_linear_eigenmodes": ["rot_fft"],
             }
         )
@@ -61,6 +61,14 @@ class StateNS3D(StatePseudoSpectral):
             vy_fft = self.get_var("vy_fft")
             divh_fft = self.oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
             result = self.oper.ifft3d(divh_fft)
+        elif key == "rotz_fft":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            result = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
+        elif key == "divh_fft":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            result = self.oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
@@ -92,3 +100,34 @@ class StateNS3D(StatePseudoSpectral):
 
         self.statephys_from_statespect()
         self.statespect_from_statephys()
+
+    def init_statespect_from(self, **kwargs):
+        """Initialize `state_spect` from arrays.
+
+        Parameters
+        ----------
+
+        **kwargs : {key: array, ...}
+
+          keys and arrays used for the initialization. The other keys
+          are set to zero.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+           kwargs = {'a_fft': Fa_fft}
+           init_statespect_from(**kwargs)
+
+           ux_fft, uy_fft, eta_fft = oper.uxuyetafft_from_qfft(q_fft)
+           init_statespect_from(ux_fft=ux_fft, uy_fft=uy_fft, eta_fft=eta_fft)
+
+        """
+
+        if len(kwargs) == 1 and next(iter(kwargs.keys())) == "rotz_fft":
+            self.state_spect[:] = 0.0
+            vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(kwargs["rotz_fft"])
+            super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
+        else:
+            return super().init_statespect_from(**kwargs)

@@ -297,8 +297,8 @@ Lx, Ly and Lz: float
 
     @boost
     def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
-        """Compute toroidal and poloidal horizontal velocities. 
-        
+        """Compute toroidal and poloidal horizontal velocities.
+
         urx_fft, ury_fft contain shear modes!
 
         """
@@ -320,6 +320,17 @@ Lx, Ly and Lz: float
         """Compute the horizontal divergence in spectral space."""
         return 1j * (self.Kx * vx_fft + self.Ky * vy_fft)
 
+    @boost
+    def vxvyfft_from_rotzfft(self, rotz_fft: Ac):
+
+        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+
+        vx_fft = 1j * self.Ky * inv_Kh_square_nozero * rotz_fft
+        vy_fft = -1j * self.Kx * inv_Kh_square_nozero * rotz_fft
+        return vx_fft, vy_fft
+
     def get_grid1d_seq(self, axe="x"):
 
         if axe not in ("x", "y", "z"):
@@ -331,6 +342,9 @@ Lx, Ly and Lz: float
             return np.linspace(0, length, number_points)
         else:
             return getattr(self, axe + "_seq")
+
+    def project_fft_on_realX(self, f_fft):
+        return self.fft(self.ifft(f_fft))
 
 
 def _ik_from_ikc(ikc, nkc, nk):
