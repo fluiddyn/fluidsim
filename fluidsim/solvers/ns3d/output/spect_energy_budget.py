@@ -266,3 +266,87 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         )
 
         ax.pcolormesh(kh, kz, spectrum)
+
+    def compute_fluxes_mean(self, tmin=None, tmax=None):
+
+        with h5py.File(self.path_file, "r") as file:
+            keys_saved = [
+                key
+                for key in file.keys()
+                if key not in ("times", "info_simul")
+                and not key.startswith("k")
+                and not any(key.endswith("_k" + letter) for letter in "xyz")
+            ]
+
+        data = {}
+        for key in keys_saved:
+            data.update(self.load_mean(tmin, tmax, key))
+
+        kz = data["kz"]
+        kh = data["kh"]
+
+        dict_results = {"kz": kz, "kh": kh}
+
+        deltakz = kz[1]
+        deltakh = kh[1]
+
+        for key in keys_saved:
+            spectrum = data[key]
+            flux = deltakz * spectrum.sum(0)
+            flux = deltakh * np.cumsum(flux)
+            if key.startswith("transfer"):
+                flux *= -1
+
+            key_flux = "hflux_" + key
+            dict_results.update({key_flux: flux})
+
+            flux = deltakh * spectrum.sum(1)
+            flux = deltakz * np.cumsum(flux)
+            if key.startswith("transfer"):
+                flux *= -1
+
+            key_flux = "zflux_" + key
+            dict_results.update({key_flux: flux})
+
+        return dict_results
+
+    def plot_fluxes(self, tmin=None, tmax=None, key_k="kh", ax=None):
+
+        data = self.compute_fluxes_mean(tmin, tmax)
+
+        k_plot = data[key_k]
+        deltak = k_plot[1]
+        k_plot += deltak / 2
+
+        key_flux = key_k[1] + "flux_"
+        flux_Kh = data[key_flux + "transfer_Kh"]
+        flux_Kz = data[key_flux + "transfer_Kz"]
+        DKh = data[key_flux + "diss_Kh"]
+        DKz = data[key_flux + "diss_Kz"]
+
+        flux_tot = flux_Kh + flux_Kz
+        D = DKh + DKz
+
+        eps = D[-1]
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        xlbl = "k_" + key_k[1]
+        ylbl = "$\Pi(" + xlbl + ")/\epsilon$"
+        xlbl = "$" + xlbl + "$"
+        ax.set_xlabel(xlbl)
+        ax.set_ylabel(ylbl)
+        ax.set_title(
+            f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
+        )
+
+        ax.semilogx(
+            k_plot, flux_tot / eps, "k", linewidth=2, label="$\Pi/\epsilon$"
+        )
+        ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label="$D/\epsilon$")
+        ax.semilogx(
+            k_plot, (flux_tot + D) / eps, "k:", label="$(\Pi+D)/\epsilon$"
+        )
+
+        ax.legend()

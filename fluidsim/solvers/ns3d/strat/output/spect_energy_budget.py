@@ -123,49 +123,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         return results
 
-    def compute_fluxes_mean(self, tmin=None, tmax=None):
-
-        with h5py.File(self.path_file, "r") as file:
-            keys_saved = [
-                key
-                for key in file.keys()
-                if key not in ("times", "info_simul")
-                and not key.startswith("k")
-                and not any(key.endswith("_k" + letter) for letter in "xyz")
-            ]
-
-        data = {}
-        for key in keys_saved:
-            data.update(self.load_mean(tmin, tmax, key))
-
-        kz = data["kz"]
-        kh = data["kh"]
-
-        dict_results = {"kz": kz, "kh": kh}
-
-        deltakz = kz[1]
-        deltakh = kh[1]
-
-        for key in keys_saved:
-            spectrum = data[key]
-            flux = deltakz * spectrum.sum(0)
-            flux = deltakh * np.cumsum(flux)
-            if key.startswith("transfer"):
-                flux *= -1
-
-            key_flux = "hflux_" + key
-            dict_results.update({key_flux: flux})
-
-            flux = deltakh * spectrum.sum(1)
-            flux = deltakz * np.cumsum(flux)
-            if key.startswith("transfer"):
-                flux *= -1
-
-            key_flux = "zflux_" + key
-            dict_results.update({key_flux: flux})
-
-        return dict_results
-
     def plot_fluxes(self, tmin=None, tmax=None, key_k="kh", ax=None):
 
         data = self.compute_fluxes_mean(tmin, tmax)
@@ -183,13 +140,8 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         DA = data[key_flux + "diss_A"]
         CK2A = data[key_flux + "conv_K2A"]
 
-        # errors in ns3d/spect_energy_budget/compute?
-        # N = self.params.N
-        # flux_A = -flux_A / N ** 2
-        # CK2A = -CK2A
-
         flux_K = flux_Kh + flux_Kz
-        flux = flux_K + flux_A
+        flux_tot = flux_K + flux_A
         DK = DKh + DKz
         D = DK + DA
 
@@ -207,12 +159,17 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
         )
 
-        ax.semilogx(k_plot, flux / eps, "k", linewidth=2, label="$\Pi/\epsilon$")
+        ax.semilogx(
+            k_plot, flux_tot / eps, "k", linewidth=2, label="$\Pi/\epsilon$"
+        )
         ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label="$D/\epsilon$")
-        ax.semilogx(k_plot, DA / eps, "k-.", linewidth=2, label="$D_A/\epsilon$")
-        ax.semilogx(k_plot, (flux + D) / eps, "k:", label="$(\Pi+D)/\epsilon$")
+        ax.semilogx(
+            k_plot, (flux_tot + D) / eps, "k:", label="$(\Pi+D)/\epsilon$"
+        )
         ax.semilogx(k_plot, flux_K / eps, "r", label="$\Pi_K/\epsilon$")
         ax.semilogx(k_plot, flux_A / eps, "b", label="$\Pi_A/\epsilon$")
+        ax.semilogx(k_plot, DK / eps, "r--", label="$D_K/\epsilon$")
+        ax.semilogx(k_plot, DA / eps, "b--", label="$D_A/\epsilon$")
         ax.semilogx(k_plot, CK2A / eps, "m", linewidth=2, label="$B/\epsilon$")
 
         ax.legend()
