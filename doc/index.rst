@@ -152,8 +152,8 @@ Links
    :target: https://pypi.org/project/fluidsim/
    :alt: Latest version
 
-.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/graph/badge.svg
-   :target: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/
    :alt: Code coverage
 
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master

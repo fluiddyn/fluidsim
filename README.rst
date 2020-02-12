@@ -24,8 +24,8 @@
    :target: http://fluidsim.readthedocs.org
    :alt: Documentation status
 
-.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/default/graph/badge.svg
-   :target: https://codecov.io/bb/fluiddyn/fluidsim
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/fluiddyn/fluidsim
    :alt: Code coverage
 
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
