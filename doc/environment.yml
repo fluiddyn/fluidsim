@@ -17,5 +17,5 @@ dependencies:
     - sphinx
     - numpydoc
     - sphinx_rtd_theme
-    - hg+https://bitbucket.org/fluiddyn/fluiddyn#egg=fluiddyn
-    - hg+https://bitbucket.org/fluiddyn/fluidfft#egg=fluidfft
+    - hg+https://foss.heptapod.net/fluiddyn/fluiddyn#egg=fluiddyn
+    - hg+https://foss.heptapod.net/fluiddyn/fluidfft#egg=fluidfft

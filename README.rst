@@ -1,10 +1,16 @@
+.. warning ::
+
+   Our repositories in Bitbucket.org will soon be deleted! Our new home:
+   https://foss.heptapod.net/fluiddyn (`more details
+   <https://fluiddyn.readthedocs.io/en/latest/advice_developers.html>`_).
+
 ======
 |logo|
 ======
 
 |release| |pyversions| |docs| |coverage| |travis| |chat|
 
-.. |logo| image:: https://bitbucket.org/fluiddyn/fluidsim/raw/default/doc/logo.svg
+.. |logo| image:: https://foss.heptapod.net/fluiddyn/fluiddyn/raw/branch/default/doc/logo.png
    :alt: FluidSim
 
 .. |release| image:: https://badge.fury.io/py/fluidsim.svg
@@ -18,7 +24,7 @@
    :target: http://fluidsim.readthedocs.org
    :alt: Documentation status
 
-.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidsim/branch/default/graph/badge.svg
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/default/graph/badge.svg
    :target: https://codecov.io/bb/fluiddyn/fluidsim
    :alt: Code coverage
 
@@ -85,8 +91,8 @@ the links to know more:
 found `here
 <https://fluiddyn.readthedocs.io/en/latest/get_good_Python_env.html>`__.
 
-You can get the source code from `Bitbucket
-<https://bitbucket.org/fluiddyn/fluidsim>`__ or from `the Python
+You can get the source code from `Heptapod
+<https://foss.heptapod.net/fluiddyn/fluidsim>`__ or from `the Python
 Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
 The development mode is often useful if you intend to modify fluidsim . From
 the root directory::

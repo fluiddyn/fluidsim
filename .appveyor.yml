@@ -22,7 +22,7 @@ install:
   - python -m pip install -U pip setuptools wheel
   - python -m pip install -U pytest black pyfftw scipy
   - python -c "import pyfftw as m; print(m)"
-  - python -m pip install hg+https://bitbucket.org/fluiddyn/fluidfft#egg=fluidfft
+  - python -m pip install hg+https://foss.heptapod.net/fluiddyn/fluidfft#egg=fluidfft
 
 build_script:
   - pip install -e .[fft]

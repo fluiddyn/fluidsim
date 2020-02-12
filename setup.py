@@ -141,7 +141,7 @@ setup(
     long_description=long_description(),
     author="Pierre Augier",
     author_email="pierre.augier@legi.cnrs.fr",
-    url="https://bitbucket.org/fluiddyn/fluidsim",
+    url="https://foss.heptapod.net/fluiddyn/fluidsim",
     license="CeCILL",
     classifiers=[
         # How mature is this project? Common values are

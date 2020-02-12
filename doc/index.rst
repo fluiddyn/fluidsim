@@ -4,6 +4,12 @@
 Fluidsim documentation
 ======================
 
+.. warning ::
+
+   Our repositories in Bitbucket.org will soon be deleted! Our new home:
+   https://foss.heptapod.net/fluiddyn (`more details
+   <https://fluiddyn.readthedocs.io/en/latest/advice_developers.html>`_).
+
 Fluidsim is a framework for studying fluid dynamics with numerical
 simulations using Python. It is part of the wider project `FluidDyn
 <http://fluiddyn.readthedocs.io>`_.
@@ -53,7 +59,7 @@ equations over a periodic space:
 
 Being a framework, Fluidsim can easily be extended in other packages to develop
 other solvers (see for example the package `fluidsim_ocean
-<https://bitbucket.org/fluiddyn/fluidsim_ocean>`_).
+<https://foss.heptapod.net/fluiddyn/fluidsim_ocean>`_).
 
 
 **Metapapers and citations**
@@ -153,16 +159,11 @@ Links
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
     :target: https://travis-ci.org/fluiddyn/fluidsim
 
-.. |pipelines| image:: https://img.shields.io/bitbucket/pipelines/fluiddyn/fluidsim.svg
-   :target: https://bitbucket.org/fluiddyn/fluidsim/addon/pipelines/home#!/
-
-
 - `FluidDyn documentation <http://fluiddyn.readthedocs.io>`_
-- `Fluidsim forge on Bitbucket <https://bitbucket.org/fluiddyn/fluidsim>`_
+- `Fluidsim forge on Heptapod <https://foss.heptapod.net/fluiddyn/fluidsim>`_
 - Fluidsim in PyPI |release|
 - Unittest coverage |coverage|
 - Continuous integration with travis |travis|
-- Continuous integration with Bitbucket Pipelines |pipelines|
 - FluidDyn user chat room in
   `Riot <https://riot.im/app/#/room/#fluiddyn-users:matrix.org>`_ or
   `Slack <https://fluiddyn.slack.com>`_

@@ -129,7 +129,7 @@ You can also configure the installation of fluidsim by creating the file
 ``~/.fluidsim-site.cfg`` and modify it to fit your requirements before the
 installation with pip::
 
-  wget https://bitbucket.org/fluiddyn/fluidsim/raw/default/site.cfg.default -O ~/.fluidsim-site.cfg
+  wget https://foss.heptapod.net/fluiddyn/fluidsim/raw/default/site.cfg.default -O ~/.fluidsim-site.cfg
 
 
 Install from the repository
@@ -139,18 +139,17 @@ Get the source code
 ~~~~~~~~~~~~~~~~~~~
 
 For fluidsim, we use the revision control software Mercurial and the main
-repository is hosted `here <https://bitbucket.org/fluiddyn/fluidsim>`_ in
-Bitbucket. Download the source with something like::
+repository is hosted `here <https://foss.heptapod.net/fluiddyn/fluidsim>`_ in
+Heptapod. Download the source with something like::
 
-  hg clone https://bitbucket.org/fluiddyn/fluidsim
+  hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 
-If you are new with Mercurial and Bitbucket, you can also read `this short
+If you are new with Mercurial and Heptapod, you can also read `this short
 tutorial
-<http://fluiddyn.readthedocs.org/en/latest/mercurial_bitbucket.html>`_.
+<http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html>`_.
 
 If you don't want to use Mercurial, you can also just manually download the
-package from `the Bitbucket page <https://bitbucket.org/fluiddyn/fluidsim>`_ or
-from `the PyPI page <https://pypi.org/project/fluidsim>`_.
+package from `the PyPI page <https://pypi.org/project/fluidsim>`_.
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~

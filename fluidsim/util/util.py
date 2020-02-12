@@ -363,7 +363,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
     if merge_missing_params:
         # this has to be done by all processes otherwise there is a problem
-        # with Transonic (see https://bitbucket.org/fluiddyn/fluidsim/issues/26)
+        # with Transonic (see https://foss.heptapod.net/fluiddyn/fluidsim/issues/26)
         default_params = solver.Simul.create_default_params()
 
     if mpi.rank > 0:

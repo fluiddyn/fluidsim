@@ -1,7 +1,6 @@
 """Investigate possible memory leak with sw1l solver
 
-`Related issue
-<https://bitbucket.org/fluiddyn/fluidsim/issues/27/memory-leak-with-mpi-h5py-state_phys>`_
+`Related issue <https://foss.heptapod.net/fluiddyn/fluidsim/issues/27>`_
 
 Reproduce
 ---------
