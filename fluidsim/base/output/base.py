@@ -29,11 +29,15 @@ import matplotlib.pyplot as plt
 
 import fluiddyn
 from fluiddyn.util import mpi
-from fluiddyn.util import is_run_from_ipython, time_as_str, print_memory_usage
+from fluiddyn.util import (
+    is_run_from_ipython,
+    time_as_str,
+    print_memory_usage,
+)
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, Path
 
 import fluidsim
-from fluidsim.util.util import load_params_simul
+from fluidsim.util.util import load_params_simul, open_patient
 
 
 class OutputBase:
@@ -668,7 +672,7 @@ class SpecificOutput:
             raise ValueError("can not add dict arrays in nonexisting file!")
 
         elif mpi.rank == 0:
-            with h5py.File(path_file, "r+") as file:
+            with open_patient(path_file, "r+") as file:
                 dset_times = file["times"]
                 nb_saved_times = dset_times.shape[0]
                 dset_times.resize((nb_saved_times + 1,))

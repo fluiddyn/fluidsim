@@ -12,6 +12,7 @@ import os
 from copy import deepcopy as _deepcopy
 import inspect
 from pathlib import Path
+import time
 
 import numpy as _np
 import h5py as _h5py
@@ -475,3 +476,17 @@ def times_start_end_from_path(path):
     # print('t_s = {0:.3f}, t_e = {1:.3f}'.format(t_s, t_e))
 
     return t_s, t_e
+
+
+def open_patient(path, *args, time_wait_total=200, time_wait_once=2):
+    time_first_try = time.time()
+    while True:
+        try:
+            file = _h5py.File(path, *args)
+            break
+        except OSError as error:
+            errno = int(repr(error).split("errno = ")[1].split(",")[0])
+            if errno != 11 or time.time() - time_first_try > time_wait_total:
+                raise
+            time.sleep(time_wait_once)
+    return file
