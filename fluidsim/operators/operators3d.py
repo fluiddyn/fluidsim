@@ -328,9 +328,9 @@ Lx, Ly and Lz: float
 
     def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
         """Return a coarse field in K space."""
-        nkzc, nkyc, nkxc = shapeK_loc_coarse  # TO VERIFY BONAMY
+        nkzc, nkyc, nkxc = shapeK_loc_coarse
         if nb_proc > 1:
-            nk0c, nk1c, nk2c = shapeK_loc_coarse  # TO VERIFY BONAMY
+            nk0c, nk1c, nk2c = shapeK_loc_coarse
             self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
             nk2_loc = self.shapeK_loc[2]
             nk2_loc_rank = np.array(comm.allgather(nk2_loc))
