@@ -285,11 +285,10 @@ Lx, Ly and Lz: float
             nK0c, nK1c, nK2c = shapeK_loc_coarse
 
             for ik0c in range(nK0c):
-                k0 = self.deltaks[0] * ik0c
-                k1 = 0.0
-                k2 = 0.0
+                ik1c = 0.0
+                ik2c = 0.0
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
-                    k0, k1, k2
+                    ik0c, ik1c, ik2c
                 )
 
                 if mpi.rank == 0:
@@ -341,11 +340,10 @@ Lx, Ly and Lz: float
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
             for ik0c in range(nk0c):
-                k0 = self.deltaks[0] * ik0c
-                k1 = 0.0
-                k2 = 0.0
+                ik1c = 0.0
+                ik2c = 0.0
                 rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
-                    k0, k1, k2
+                    ik0c, ik1c, ik2c
                 )
                 if rank == rank_ik:
                     # create f1d_temp
@@ -384,43 +382,42 @@ Lx, Ly and Lz: float
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
         return fc_fft
 
-    def where_is_wavenumber(self, k0_approx, k1_approx, k2_approx):
-        ik0_seq = int(np.round(k0_approx / self.deltaks[0]))
+    def where_is_wavenumber(self, ik0, ik1, ik2):
         nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
 
-        if ik0_seq >= nk0_seq:
+        if ik0 >= nk0_seq:
             raise ValueError("not good :-) ik0_seq >= nk0_seq")
 
         if nb_proc == 1:
             rank_k = 0
-            ik0_loc = ik0_seq
+            ik0_loc = ik0
         else:
             if self.SAME_SIZE_IN_ALL_PROC:
-                rank_k = int(np.floor(float(ik0_seq) / self.nk0_loc))
-                if ik0_seq >= self.nk0_loc * nb_proc:
+                rank_k = int(np.floor(float(ik0) / self.nk0_loc))
+                if ik0 >= self.nk0_loc * nb_proc:
                     raise ValueError(
                         "not good :-) ik0_seq >= self.nk0_loc * mpi.nb_proc\n"
                         "ik0_seq, self.nk0_loc, mpi.nb_proc = "
-                        "{}, {}, {}".format(ik0_seq, self.nk0_loc, nb_proc)
+                        f"{ik0}, {self.nk0_loc}, {nb_proc}"
                     )
 
             else:
                 rank_k = 0
                 while rank_k < self.nb_proc - 1 and (
                     not (
-                        self.iK0loc_start_rank[rank_k] <= ik0_seq
-                        and ik0_seq < self.iK0loc_start_rank[rank_k + 1]
+                        self.iK0loc_start_rank[rank_k] <= ik0
+                        and ik0 < self.iK0loc_start_rank[rank_k + 1]
                     )
                 ):
                     rank_k += 1
 
-            ik0_loc = ik0_seq - self.iK0loc_start_rank[rank_k]
+            ik0_loc = ik0 - self.iK0loc_start_rank[rank_k]
 
-        ik1_loc = int(np.round(k1_approx / self.deltaks[1]))
+        ik1_loc = ik1
         if ik1_loc < 0:
             ik1_loc = self.nk1_loc + ik1_loc
 
-        ik2_loc = int(np.round(k2_approx / self.deltaks[2]))
+        ik2_loc = ik2
         if ik2_loc < 0:
             ik2_loc = self.nk2_loc + ik2_loc
 
