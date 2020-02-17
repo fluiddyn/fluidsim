@@ -285,8 +285,8 @@ Lx, Ly and Lz: float
             nK0c, nK1c, nK2c = shapeK_loc_coarse
 
             for ik0c in range(nK0c):
-                ik1c = 0.0
-                ik2c = 0.0
+                ik1c = 0
+                ik2c = 0
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                     ik0c, ik1c, ik2c
                 )
@@ -340,8 +340,8 @@ Lx, Ly and Lz: float
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
             for ik0c in range(nk0c):
-                ik1c = 0.0
-                ik2c = 0.0
+                ik1c = 0
+                ik2c = 0
                 rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
                     ik0c, ik1c, ik2c
                 )
