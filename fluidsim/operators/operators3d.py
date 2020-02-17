@@ -15,6 +15,7 @@ from copy import deepcopy
 import numpy as np
 
 from transonic import boost, Array, Transonic
+from fluiddyn.util import mpi
 from fluiddyn.util.mpi import nb_proc, rank
 from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
@@ -82,6 +83,11 @@ if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     dealiasing_setofvar = dealiasing_setofvar_numpy
 elif ts.is_transpiling:
     _Operators = object
+
+
+if nb_proc > 1:
+    MPI = mpi.MPI
+    comm = mpi.comm
 
 
 @boost
@@ -208,6 +214,12 @@ Lx, Ly and Lz: float
 
         self.ifft2 = self.ifft2d = self.oper2d.ifft2
         self.fft2 = self.fft2d = self.oper2d.fft2
+        if nb_proc > 1:
+            if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
+                raise NotImplementedError()
+
+            self.iK0loc_start = self.seq_indices_first_K[0]
+            self.nk0_loc, self.nk1_loc, self.nk2_loc = self.shapeK_loc
 
         try:
             NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES
@@ -267,7 +279,43 @@ Lx, Ly and Lz: float
         nkzc, nkyc, nkxc = shapeK_loc_coarse
 
         if nb_proc > 1:
-            raise NotImplementedError
+            nK2 = self.shapeK_seq[2]
+            if mpi.rank == 0:
+                fck_fft = arr_coarse
+            nK0c, nK1c, nK2c = shapeK_loc_coarse
+
+            for ik0c in range(nK0c):
+                k0 = self.deltaks[0] * ik0c
+                k1 = 0.0
+                k2 = 0.0
+                rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
+                    k0, k1, k2
+                )
+
+                if mpi.rank == 0:
+                    fc1D = fck_fft[ik0c, :, :]
+
+                if rank_ik != 0:
+                    # message fc1D
+                    if mpi.rank == rank_ik:
+                        fc1D = np.empty([nK1c, nK2c], dtype=np.complex128)
+                    if mpi.rank == 0 or mpi.rank == rank_ik:
+                        fc1D = np.ascontiguousarray(fc1D)
+                    if mpi.rank == 0:
+                        mpi.comm.Send(
+                            [fc1D, mpi.MPI.COMPLEX], dest=rank_ik, tag=ik0c
+                        )
+                    elif mpi.rank == rank_ik:
+                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX], source=0, tag=ik0c)
+                if mpi.rank == rank_ik:
+                    # copy
+                    for ik2c in range(nK2c):
+                        if ik2c <= nK2c / 2.0:
+                            ik2 = ik2c
+                        else:
+                            k2nodim = ik2c - nK2c
+                            ik2 = k2nodim + nK2
+                        arr[ik0loc, 0:nK1c, ik2] = fc1D[:, ik2c]
 
         else:
             nkz, nky, nkx = self.shapeK_seq
@@ -280,9 +328,50 @@ Lx, Ly and Lz: float
 
     def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
         """Return a coarse field in K space."""
-        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        nkzc, nkyc, nkxc = shapeK_loc_coarse  # TO VERIFY BONAMY
         if nb_proc > 1:
-            raise NotImplementedError()
+            nk0c, nk1c, nk2c = shapeK_loc_coarse  # TO VERIFY BONAMY
+            self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
+            nk2_loc = self.shapeK_loc[2]
+            nk2_loc_rank = np.array(comm.allgather(nk2_loc))
+            a = nk2_loc_rank
+            self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
+            fc_fft = np.empty([nk0c, nk1c, nk2c], np.complex128)
+            nk0, nk1, nk2 = self.shapeK_loc
+            f1d_temp = np.empty([nk1c, nk2c], np.complex128)
+
+            for ik0c in range(nk0c):
+                k0 = self.deltaks[0] * ik0c
+                k1 = 0.0
+                k2 = 0.0
+                rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
+                    k0, k1, k2
+                )
+                if rank == rank_ik:
+                    # create f1d_temp
+                    for ik2c in range(nk2c):
+                        if ik2c <= nk2c / 2:
+                            ik2 = ik2c
+                        else:
+                            k2nodim = ik2c - nk2c
+                            ik2 = k2nodim + nk2
+                        f1d_temp[:, ik2c] = f_fft[ik0loc, 0:nk1c, ik2]
+
+                if rank_ik != 0:
+                    # message f1d_temp
+                    if rank == 0:
+                        comm.Recv(
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
+                            source=rank_ik,
+                            tag=ik0c,
+                        )
+                    elif rank == rank_ik:
+                        comm.Send(
+                            [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ik0c
+                        )
+                if rank == 0:
+                    # copy into fc_fft
+                    fc_fft[ik0c] = f1d_temp.copy()
 
         else:
             fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
@@ -294,6 +383,48 @@ Lx, Ly and Lz: float
                     for ikxc in range(nkxc):
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
         return fc_fft
+
+    def where_is_wavenumber(self, k0_approx, k1_approx, k2_approx):
+        ik0_seq = int(np.round(k0_approx / self.deltaks[0]))
+        nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
+
+        if ik0_seq >= nk0_seq:
+            raise ValueError("not good :-) ik0_seq >= nk0_seq")
+
+        if nb_proc == 1:
+            rank_k = 0
+            ik0_loc = ik0_seq
+        else:
+            if self.SAME_SIZE_IN_ALL_PROC:
+                rank_k = int(np.floor(float(ik0_seq) / self.nk0_loc))
+                if ik0_seq >= self.nk0_loc * nb_proc:
+                    raise ValueError(
+                        "not good :-) ik0_seq >= self.nk0_loc * mpi.nb_proc\n"
+                        "ik0_seq, self.nk0_loc, mpi.nb_proc = "
+                        "{}, {}, {}".format(ik0_seq, self.nk0_loc, nb_proc)
+                    )
+
+            else:
+                rank_k = 0
+                while rank_k < self.nb_proc - 1 and (
+                    not (
+                        self.iK0loc_start_rank[rank_k] <= ik0_seq
+                        and ik0_seq < self.iK0loc_start_rank[rank_k + 1]
+                    )
+                ):
+                    rank_k += 1
+
+            ik0_loc = ik0_seq - self.iK0loc_start_rank[rank_k]
+
+        ik1_loc = int(np.round(k1_approx / self.deltaks[1]))
+        if ik1_loc < 0:
+            ik1_loc = self.nk1_loc + ik1_loc
+
+        ik2_loc = int(np.round(k2_approx / self.deltaks[2]))
+        if ik2_loc < 0:
+            ik2_loc = self.nk2_loc + ik2_loc
+
+        return rank_k, ik0_loc, ik1_loc, ik2_loc
 
     @boost
     def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
