@@ -215,9 +215,6 @@ Lx, Ly and Lz: float
         self.ifft2 = self.ifft2d = self.oper2d.ifft2
         self.fft2 = self.fft2d = self.oper2d.fft2
         if nb_proc > 1:
-            if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
-                raise NotImplementedError()
-
             self.iK0loc_start = self.seq_indices_first_K[0]
             self.nk0_loc, self.nk1_loc, self.nk2_loc = self.shapeK_loc
 
@@ -329,6 +326,9 @@ Lx, Ly and Lz: float
         """Return a coarse field in K space."""
         nkzc, nkyc, nkxc = shapeK_loc_coarse
         if nb_proc > 1:
+            if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
+                raise NotImplementedError()
+
             nk0c, nk1c, nk2c = shapeK_loc_coarse
             self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
             nk2_loc = self.shapeK_loc[2]
