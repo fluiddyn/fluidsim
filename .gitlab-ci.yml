@@ -1,0 +1,8 @@
+variables:
+  CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
+
+tests:
+  image: fluiddyn/python3-stable
+  script:
+    - pip install -U pip tox numpy cython transonic mpi4py --user
+    - tox -e py36,codecov
