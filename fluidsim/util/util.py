@@ -1,9 +1,19 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util`)
 =================================================================
 
+Public API
+----------
+
 .. autofunction:: load_sim_for_plot
 
 .. autofunction:: load_state_phys_file
+
+.. autofunction:: load_for_restart
+
+Internal API
+------------
+
+.. autofunction:: open_patient
 
 """
 
@@ -15,7 +25,7 @@ from pathlib import Path
 import time
 
 import numpy as _np
-import h5py as _h5py
+import h5py
 
 from importlib import import_module
 
@@ -370,7 +380,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     if mpi.rank > 0:
         params = None
     else:
-        with _h5py.File(path_file, "r") as file:
+        with h5py.File(path_file, "r") as file:
             params = Parameters(hdf5_object=file["info_simul"]["params"])
 
         if merge_missing_params:
@@ -478,11 +488,39 @@ def times_start_end_from_path(path):
     return t_s, t_e
 
 
-def open_patient(path, *args, time_wait_total=200, time_wait_once=2):
+def open_patient(
+    path,
+    *args,
+    time_wait_total=200,
+    time_wait_once=2,
+    class_file=h5py.File,
+    **kwargs
+):
+    """Open a hdf5 type file in a "patient" way.
+
+    If the file is already opened by another process (``errno==11`` for hdf5),
+    the error is caught and we retry later.
+
+    Parameters
+    ----------
+
+    time_wait_total : number (optional)
+
+      Time to wait before raising the error.
+
+    time_wait_once : number (optional)
+
+      Time between attempts.
+
+    class_file : type (optional)
+
+      Class of the file (default ``h5py.File``, but could be ``h5netcdf.File``).
+
+    """
     time_first_try = time.time()
     while True:
         try:
-            file = _h5py.File(path, *args)
+            file = class_file(path, *args, **kwargs)
             break
         except OSError as error:
             errno = int(repr(error).split("errno = ")[1].split(",")[0])

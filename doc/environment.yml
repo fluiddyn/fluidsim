@@ -6,6 +6,7 @@ dependencies:
   - python=3.6
   - blas=*=openblas
   - h5py
+  - scipy
   - fftw
   - pyfftw
   - cython

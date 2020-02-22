@@ -25,15 +25,15 @@ from fluiddoc import mock_modules
 
 mock_modules(
     (
-        "scipy",
-        "scipy.sparse",
-        "scipy.sparse.linalg",
-        "scipy.fftpack",
-        "scipy.special",
-        "scipy.spatial",
-        "scipy.linalg",
-        "scipy.linalg.blas",
-        "scipy.interpolate",
+        # "scipy",
+        # "scipy.sparse",
+        # "scipy.sparse.linalg",
+        # "scipy.fftpack",
+        # "scipy.special",
+        # "scipy.spatial",
+        # "scipy.linalg",
+        # "scipy.linalg.blas",
+        # "scipy.interpolate",
         "basilisk",
         "basilisk.stream",
         "pyshtools",
@@ -50,6 +50,7 @@ ipynb_to_rst()
 ipynb_to_rst("ipynb/executed", executed=True)
 
 import fluidsim
+import fluidsim.operators.operators2d
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
