@@ -11,7 +11,11 @@ import fluiddyn.util.mpi as mpi
 import fluiddyn.output
 
 from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
-from fluidsim import modif_resolution_from_dir, load_params_simul
+from fluidsim import (
+    modif_resolution_from_dir,
+    load_params_simul,
+    load_state_phys_file,
+)
 
 from fluidsim.util import times_start_end_from_path
 
@@ -77,6 +81,13 @@ class TestBaseSolverPS(TestSimul):
         path = glob("state_*")[0]
         load_params_simul(path)
         load_info_solver()
+
+        sim_big = load_state_phys_file(path_new)
+
+        for key in self.sim.state.keys_state_phys:
+            var = self.sim.state.get_var(key)
+            var_big = sim_big.state.get_var(key)
+            assert np.mean(var ** 2) == np.mean(var_big ** 2)
 
 
 if __name__ == "__main__":
