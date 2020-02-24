@@ -1,5 +1,6 @@
 import unittest
 import sys
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,9 +9,15 @@ import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
 
-from fluidsim import load_for_restart
+
+from fluidsim import (
+    modif_resolution_from_dir,
+    load_state_phys_file,
+    load_for_restart,
+)
 from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim.base.output import run
+
 
 from fluidsim.util.testing import TestSimul
 
@@ -25,7 +32,7 @@ class TestSimulBase(TestSimul):
 
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        nx = 64
+        nx = 32
         params.oper.nx = nx
         params.oper.ny = nx * 3 // 4
         params.oper.nz = nx // 2
@@ -217,7 +224,7 @@ class TestForcingWatuCoriolis(TestSimulBase):
         N = 0.4  # rad/s
         amplitude = 0.05  # m
         period_N = 2 * np.pi / N
-        period_forcing = 1e3 * period_N
+        period_forcing = 1e1 * period_N
 
         params.forcing.enable = True
         params.forcing.type = "watu_coriolis"
@@ -237,9 +244,24 @@ class TestForcingWatuCoriolis(TestSimulBase):
         sim = self.sim
         sim.time_stepping.start()
         params, Simul = load_for_restart(sim.output.path_run)
-        params.time_stepping.t_end += 10.0
-        sim1 = Simul(params)
-        sim1.time_stepping.start()
+        params.time_stepping.t_end += 2.0
+        sim_restart = Simul(params)
+        sim_restart.time_stepping.start()
+
+        if mpi.nb_proc > 1:
+            return
+
+        modif_resolution_from_dir(
+            self.sim.output.path_run, coef_modif_resol=3.0 / 2, PLOT=True
+        )
+
+        path_dir_big = next(Path(self.sim.output.path_run).glob("State_phys_*"))
+        sim_big = load_state_phys_file(path_dir_big)
+
+        for key in self.sim.state.keys_state_phys:
+            var = self.sim.state.get_var(key)
+            var_big = sim_big.state.get_var(key)
+            assert np.mean(var ** 2) == np.mean(var_big ** 2)
 
 
 if __name__ == "__main__":

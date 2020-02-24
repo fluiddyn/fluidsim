@@ -353,7 +353,43 @@ class InitFieldsFromSimul(SpecificInitFields):
 
     def _make_state_spect_3d(self, sim_in):
         # sim = self.sim
-        raise NotImplementedError
+        sim = self.sim
+        if (
+            sim.params.oper.nx == sim_in.params.oper.nx
+            and sim.params.oper.ny == sim_in.params.oper.ny
+            and sim.params.oper.nz == sim_in.params.oper.nz
+        ):
+            return deepcopy(sim_in.state.state_spect)
+
+        # modify resolution
+        state_spect = SetOfVariables(like=sim.state.state_spect, value=0.0)
+        keys_state_spect = sim_in.info.solver.classes.State["keys_state_spect"]
+        for index_key in range(len(keys_state_spect)):
+
+            field_fft_seq_in = sim_in.state.state_spect[index_key]
+            field_fft_seq_new_res = state_spect[index_key]
+            [nk0, nk1, nk2] = field_fft_seq_new_res.shape
+            [nk0_in, nk1_in, nk2_in] = field_fft_seq_in.shape
+
+            nk0_min = min(nk0, nk0_in)
+            nk1_min = min(nk1, nk1_in)
+            # nk2_min = min(nk2, nk2_in)
+
+            raise NotImplementedError
+            # for ik2 in range(nk2_min):
+            # it is a little bit complicate to take into account ky
+
+            for ik1 in range(nk1_min):
+                field_fft_seq_new_res[0, ik1] = field_fft_seq_in[0, ik1]
+                field_fft_seq_new_res[nk0_min // 2, ik1] = field_fft_seq_in[
+                    nk0_min // 2, ik1
+                ]
+            for ik0 in range(1, nk0_min // 2):
+                for ik1 in range(nk1_min):
+                    field_fft_seq_new_res[ik0, ik1] = field_fft_seq_in[ik0, ik1]
+                    field_fft_seq_new_res[-ik0, ik1] = field_fft_seq_in[-ik0, ik1]
+
+        return state_spect
 
     def _get_state_from_simul(self, sim_in):
 
