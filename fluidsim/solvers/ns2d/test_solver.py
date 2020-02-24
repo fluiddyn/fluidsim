@@ -155,6 +155,7 @@ class TestForcingOutput(TestSimulBase):
         sim.state.init_statespect_from(uy_fft=uy_fft)
 
         if mpi.nb_proc == 1:
+            plt.close("all")
             sim.output.spectra.plot1d()
             sim.output.spectra.plot2d()
             sim.output.spectra.load2d_mean()
@@ -167,6 +168,8 @@ class TestForcingOutput(TestSimulBase):
             sim.output.spatial_means.load_dataset()
             sim.output.spatial_means.time_first_saved()
             sim.output.spatial_means.time_last_saved()
+
+            plt.close("all")
 
             sim.output.print_stdout.plot_energy()
             sim.output.print_stdout.plot_deltat()

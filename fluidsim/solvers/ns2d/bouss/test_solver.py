@@ -53,6 +53,7 @@ class TestForcingOutput(TestSimulBase):
         sim.state.compute("uy_fft")
 
         if mpi.nb_proc == 1:
+            plt.close("all")
             sim.output.spectra.plot1d()
             sim.output.spectra.plot2d()
             sim.output.spectra.load2d_mean()
