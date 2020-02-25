@@ -380,11 +380,8 @@ class InitFieldsFromSimul(SpecificInitFields):
             for ik0 in range(nk0_min):
                 for ik1 in range(nk1_min):
                     for ik2 in range(nk2_min):
-                        ikx, iky, ikz = oper_in.ikxyzseq_from_ik012rank(
+                        kx_adim, ky_adim, kz_adim = oper_in.kadim_from_ik012rank(
                             ik0, ik1, ik2
-                        )
-                        kx_adim, ky_adim, kz_adim = oper_in.kadim_from_ikxyzseq(
-                            ikx, iky, ikz
                         )
                         # print(
                         #     "-" * 79 + "\n"

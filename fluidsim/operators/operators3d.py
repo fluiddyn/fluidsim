@@ -481,7 +481,7 @@ Lx, Ly and Lz: float
     def project_fft_on_realX(self, f_fft):
         return self.fft(self.ifft(f_fft))
 
-    def ikxyzseq_from_ik012rank(self, ik0, ik1, ik2, rank=0):
+    def _ikxyzseq_from_ik012rank(self, ik0, ik1, ik2, rank=0):
         if self._is_mpi_lib:
             # much more complicated in this case
             raise NotImplementedError
@@ -492,7 +492,7 @@ Lx, Ly and Lz: float
             raise NotImplementedError
         return ikx, iky, ikz
 
-    def ik012rank_from_ikxyzseq(self, ikx, iky, ikz):
+    def _ik012rank_from_ikxyzseq(self, ikx, iky, ikz):
         if self._is_mpi_lib:
             # much more complicated in this case
             raise NotImplementedError
@@ -504,33 +504,42 @@ Lx, Ly and Lz: float
             raise NotImplementedError
         return ik0, ik1, ik2, rank_k
 
-    def kadim_from_ikxyzseq(self, ikx, iky, ikz):
+    def _kadim_from_ikxyzseq(self, ikx, iky, ikz):
         kx_adim = ikx
         ky_adim = _kadim_from_ik(iky, self.ny)
         kz_adim = _kadim_from_ik(ikz, self.nz)
         return kx_adim, ky_adim, kz_adim
 
-    def ikxyzseq_from_kadim(self, kx_adim, ky_adim, kz_adim):
+    def _ikxyzseq_from_kadim(self, kx_adim, ky_adim, kz_adim):
         ikx = kx_adim
         iky = _ik_from_kadim(ky_adim, self.ny)
         ikz = _ik_from_kadim(kz_adim, self.nz)
         return ikx, iky, ikz
 
+    def kadim_from_ik012rank(self, ik0, ik1, ik2, rank=0):
+        ikx, iky, ikz = self._ikxyzseq_from_ik012rank(ik0, ik1, ik2, rank)
+        return self._kadim_from_ikxyzseq(ikx, iky, ikz)
+
+    def ik012rank_from_kadim(self, kx_adim, ky_adim, kz_adim):
+        ikx, iky, ikz = self._ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
+        return self._ik012rank_from_ikxyzseq(ikx, iky, ikz)
+
     def set_value_spect(
         self, arr_fft, value, kx_adim, ky_adim, kz_adim, from_rank=0
     ):
-        ikx, iky, ikz = self.ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
-        ik0, ik1, ik2, rank_k = self.ik012rank_from_ikxyzseq(ikx, iky, ikz)
+        ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
+            kx_adim, ky_adim, kz_adim
+        )
         if mpi.rank != rank_k or from_rank != 0:
             raise NotImplementedError
         # print("-" * 20)
-        # print(f"ikz, iky, ikx             = ({ikz:4d}, {iky:4d}, {ikx:4d})")
         # print(f"ik0, ik1, ik2             = ({ik0:4d}, {ik1:4d}, {ik2:4d})")
         arr_fft[ik0, ik1, ik2] = value
 
     def get_value_spect(self, arr_fft, kx_adim, ky_adim, kz_adim, to_rank=0):
-        ikx, iky, ikz = self.ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
-        ik0, ik1, ik2, rank_k = self.ik012rank_from_ikxyzseq(ikx, iky, ikz)
+        ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
+            kx_adim, ky_adim, kz_adim
+        )
         if mpi.rank != rank_k or to_rank != 0:
             raise NotImplementedError
         return arr_fft[ik0, ik1, ik2]
