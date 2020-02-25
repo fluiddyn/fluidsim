@@ -20,6 +20,7 @@ from fluiddyn.util.mpi import nb_proc, rank
 from fluidfft.fft3d.operators import OperatorsPseudoSpectral3D as _Operators
 
 from fluidsim.base.setofvariables import SetOfVariables
+from fluidsim.base.params import Parameters
 
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 from .. import _is_testing
@@ -115,6 +116,12 @@ class OperatorsPseudoSpectral3D(_Operators):
     Ky: Af
     inv_K_square_nozero: Af
     inv_Kh_square_nozero: Af
+
+    @classmethod
+    def _create_default_params(cls):
+        params = Parameters(tag="params", attribs={"ONLY_COARSE_OPER": False})
+        cls._complete_params_with_default(params)
+        return params
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -474,6 +481,60 @@ Lx, Ly and Lz: float
     def project_fft_on_realX(self, f_fft):
         return self.fft(self.ifft(f_fft))
 
+    def ikxyzseq_from_ik012rank(self, ik0, ik1, ik2, rank=0):
+        if self._is_mpi_lib:
+            # much more complicated in this case
+            raise NotImplementedError
+        dimX_K = self._op_fft.get_dimX_K()
+        if dimX_K == (0, 1, 2):
+            ikz, iky, ikx = ik0, ik1, ik2
+        else:
+            raise NotImplementedError
+        return ikx, iky, ikz
+
+    def ik012rank_from_ikxyzseq(self, ikx, iky, ikz):
+        if self._is_mpi_lib:
+            # much more complicated in this case
+            raise NotImplementedError
+        rank_k = 0
+        dimX_K = self._op_fft.get_dimX_K()
+        if dimX_K == (0, 1, 2):
+            ik0, ik1, ik2 = ikz, iky, ikx
+        else:
+            raise NotImplementedError
+        return ik0, ik1, ik2, rank_k
+
+    def kadim_from_ikxyzseq(self, ikx, iky, ikz):
+        kx_adim = ikx
+        ky_adim = _kadim_from_ik(iky, self.ny)
+        kz_adim = _kadim_from_ik(ikz, self.nz)
+        return kx_adim, ky_adim, kz_adim
+
+    def ikxyzseq_from_kadim(self, kx_adim, ky_adim, kz_adim):
+        ikx = kx_adim
+        iky = _ik_from_kadim(ky_adim, self.ny)
+        ikz = _ik_from_kadim(kz_adim, self.nz)
+        return ikx, iky, ikz
+
+    def set_value_spect(
+        self, arr_fft, value, kx_adim, ky_adim, kz_adim, from_rank=0
+    ):
+        ikx, iky, ikz = self.ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
+        ik0, ik1, ik2, rank_k = self.ik012rank_from_ikxyzseq(ikx, iky, ikz)
+        if mpi.rank != rank_k or from_rank != 0:
+            raise NotImplementedError
+        # print("-" * 20)
+        # print(f"ikz, iky, ikx             = ({ikz:4d}, {iky:4d}, {ikx:4d})")
+        # print(f"ik0, ik1, ik2             = ({ik0:4d}, {ik1:4d}, {ik2:4d})")
+        arr_fft[ik0, ik1, ik2] = value
+
+    def get_value_spect(self, arr_fft, kx_adim, ky_adim, kz_adim, to_rank=0):
+        ikx, iky, ikz = self.ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
+        ik0, ik1, ik2, rank_k = self.ik012rank_from_ikxyzseq(ikx, iky, ikz)
+        if mpi.rank != rank_k or to_rank != 0:
+            raise NotImplementedError
+        return arr_fft[ik0, ik1, ik2]
+
 
 def _ik_from_ikc(ikc, nkc, nk):
     if ikc <= nkc / 2.0:
@@ -484,13 +545,22 @@ def _ik_from_ikc(ikc, nkc, nk):
     return ik
 
 
+def _kadim_from_ik(ik, nk, first=False):
+    if first or ik <= nk // 2:
+        return ik
+    return ik - nk
+
+
+def _ik_from_kadim(k_adim, nk, first=False):
+    if first or k_adim >= 0:
+        return k_adim
+    return nk + k_adim
+
+
 if __name__ == "__main__":
     n = 4
 
-    from fluidsim.base.params import Parameters
-
-    p = Parameters(tag="params", attribs={"ONLY_COARSE_OPER": False})
-    OperatorsPseudoSpectral3D._complete_params_with_default(p)
+    p = OperatorsPseudoSpectral3D._create_default_params()
 
     p.oper.nx = n
     p.oper.ny = 2 * n
@@ -509,8 +579,6 @@ if __name__ == "__main__":
     field_fft = oper.fft3d(field)
 
     assert field_fft.shape == oper.shapeK_loc
-
-    oper.vgradv_from_v(field, field, field)
 
     oper.project_perpk3d(field_fft, field_fft, field_fft)
 

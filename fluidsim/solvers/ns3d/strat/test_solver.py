@@ -20,6 +20,11 @@ class TestTendency(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
+
+        params.oper.nx *= 2
+        params.oper.ny *= 2
+        params.oper.nz *= 2
+
         params.init_fields.type = "noise"
         params.output.HAS_TO_SAVE = False
 

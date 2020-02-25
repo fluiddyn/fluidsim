@@ -423,6 +423,14 @@ def modif_resolution_from_dir(
     params2 = _deepcopy(sim.params)
     params2.oper.nx = int(sim.params.oper.nx * coef_modif_resol)
     params2.oper.ny = int(sim.params.oper.ny * coef_modif_resol)
+
+    try:
+        params2.oper.nz = int(sim.params.oper.nz * coef_modif_resol)
+    except AttributeError:
+        dimension = 2
+    else:
+        dimension = 3
+
     params2.init_fields.type = "from_simul"
 
     sim2 = solver.Simul(params2)
@@ -430,9 +438,13 @@ def modif_resolution_from_dir(
 
     print(sim2.params.path_run)
 
-    sim2.output.path_run = str(path_dir) + "/State_phys_{}x{}".format(
-        sim2.params.oper.nx, sim2.params.oper.ny
-    )
+    oper_new = sim2.params.oper
+    if dimension == 3:
+        dir_new_file = f"/State_phys_{oper_new.nx}x{oper_new.ny}x{oper_new.nz}"
+    else:
+        dir_new_file = f"/State_phys_{oper_new.nx}x{oper_new.ny}"
+
+    sim2.output.path_run = str(path_dir) + dir_new_file
     print("Save file in directory\n" + sim2.output.path_run)
     sim2.output.phys_fields.save(particular_attr="modif_resolution")
 
@@ -494,7 +506,7 @@ def open_patient(
     time_wait_total=200,
     time_wait_once=2,
     class_file=h5py.File,
-    **kwargs
+    **kwargs,
 ):
     """Open a hdf5 type file in a "patient" way.
 
