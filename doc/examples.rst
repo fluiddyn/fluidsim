@@ -13,3 +13,6 @@ Examples
    examples/static-layers
    examples/running-third-party-basilisk
    ipynb/executed/taylor-green
+
+There are more interesting examples in
+https://foss.heptapod.net/fluiddyn/fluidsim/tree/branch/default/doc/examples!
