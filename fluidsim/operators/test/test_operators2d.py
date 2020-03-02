@@ -1,12 +1,12 @@
 import unittest
 import numpy as np
 import sys
+from copy import deepcopy
 
 import fluiddyn.util.mpi as mpi
-from fluiddyn.util.paramcontainer import ParamContainer
+from fluiddyn.calcul.easypyfft import fftw_grid_size
 
 from fluidsim.util.testing import TestCase
-
 
 try:
     from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
@@ -18,14 +18,13 @@ else:
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
 
-    params = ParamContainer(tag="params")
+    params = OperatorsPseudoSpectral2D._create_default_params()
 
-    params._set_attrib("ONLY_COARSE_OPER", kwargs.get("ONLY_COARSE_OPER", False))
+    params.ONLY_COARSE_OPER = kwargs.get("ONLY_COARSE_OPER", False)
+
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
-
-    OperatorsPseudoSpectral2D._complete_params_with_default(params)
 
     if "nh" in kwargs:
         nh = kwargs["nh"]
@@ -157,6 +156,59 @@ class TestOperatorsDealiasing(TestCase):
         oper.dealiasing(var_fft)
         sum_var_dealiased = var_fft.sum()
         self.assertEqual(sum_var, sum_var_dealiased)
+
+
+def test_coarse():
+    params = OperatorsPseudoSpectral2D._create_default_params()
+    params.oper.nx = 32
+    params.oper.ny = 48
+    oper = OperatorsPseudoSpectral2D(params)
+
+    if mpi.rank == 0:
+        params_coarse = deepcopy(params)
+        params_coarse.oper.nx = 2 * fftw_grid_size(8)
+        params_coarse.oper.ny = 2 * fftw_grid_size(12)
+        params_coarse.oper.type_fft = "sequential"
+        params_coarse.oper.coef_dealiasing = 1.0
+
+        oper_coarse = oper.__class__(params=params_coarse)
+
+        field_coarse = oper_coarse.create_arrayX_random()
+        field_coarse_fft = oper_coarse.fft(field_coarse)
+        oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
+        nKyc, nKxc = oper_coarse_shapeK_loc
+        # zeros because of conditions in put_coarse_array_in_array_fft
+        field_coarse_fft[nKyc // 2] = 0
+        field_coarse_fft[:, nKxc - 1] = 0
+        field_coarse = oper_coarse.ifft(field_coarse_fft)
+
+        energy = oper_coarse.compute_energy_from_X(field_coarse)
+        field_coarse_fft = oper_coarse.fft(field_coarse)
+        field_coarse_fft[nKyc // 2] = 0
+        field_coarse_fft[:, nKxc - 1] = 0
+    else:
+        field_coarse_fft = None
+        oper_coarse_shapeK_loc = None
+
+    field_fft = oper.create_arrayK(value=0)
+
+    oper.put_coarse_array_in_array_fft(
+        field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK_loc
+    )
+
+    field = oper.ifft(field_fft)
+    energy_big = oper.compute_energy_from_X(field)
+
+    field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
+        field_fft, oper_coarse.shapeK_loc
+    )
+
+    if mpi.rank == 0:
+        field_coarse_back = oper_coarse.ifft(field_coarse_fft_back)
+        energy_back = oper_coarse.compute_energy_from_X(field_coarse_back)
+        assert energy > 0
+        assert np.allclose(energy, energy_big)
+        assert np.allclose(energy, energy_back)
 
 
 if __name__ == "__main__":

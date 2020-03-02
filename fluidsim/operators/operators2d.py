@@ -17,6 +17,7 @@ from transonic import boost, Array, Transonic
 from fluiddyn.util import mpi
 from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 
+from fluidsim.base.params import Parameters
 from ..base.setofvariables import SetOfVariables
 from .. import _is_testing
 
@@ -76,6 +77,12 @@ class OperatorsPseudoSpectral2D(_Operators):
 
     _has_to_dealiase: bool
     where_dealiased: "uint8[:, :]"
+
+    @classmethod
+    def _create_default_params(cls):
+        params = Parameters(tag="params", attribs={"ONLY_COARSE_OPER": False})
+        cls._complete_params_with_default(params)
+        return params
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -558,6 +565,7 @@ class OperatorsPseudoSpectral2D(_Operators):
             nKy = self.shapeK_seq[0]
 
             if any(arr_coarse[nKyc // 2] != 0):
+                print(arr_coarse[nKyc // 2])
                 raise ValueError("any(arr_coarse[nKyc//2] != 0)")
 
             if any(arr_coarse[:, nKxc - 1] != 0):
