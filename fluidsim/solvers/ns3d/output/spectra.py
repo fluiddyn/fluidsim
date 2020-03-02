@@ -242,7 +242,7 @@ class SpectraNS3D(Spectra):
         if ax is None:
             fig, ax = self.output.figure_axe()
 
-        ax.set_xlabel("$\kappa_h$")
+        ax.set_xlabel(r"$\kappa_h$")
         ax.set_ylabel("$k_z$")
         ax.set_title(
             "log 3D spectra, solver "

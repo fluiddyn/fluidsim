@@ -264,6 +264,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         epsA_hypo = dict_results["epsA_hypo"]
         eps_tot = dict_results["eps_tot"]
 
+        # fig 1 : energies
         fig, ax = self.output.figure_axe()
         fig.suptitle("Energy")
         ax.set_ylabel("$E(t)$")
@@ -275,13 +276,14 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         ax.legend()
 
+        # figure 2 : dissipations
         fig, ax = self.output.figure_axe()
         fig.suptitle("Dissipation of energy")
         ax.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax.plot(t, epsK, "r", linewidth=1, label=r"$\epsilon_K$")
-        ax.plot(t, epsA, "b", linewidth=1, label=r"$\epsilon_A$")
-        ax.plot(t, eps_tot, "k", linewidth=2, label=r"$\epsilon$")
+        ax.plot(t, epsK, "r", linewidth=1, label=r"$\epsilon_K$", zorder=10)
+        ax.plot(t, epsA, "b", linewidth=1, label=r"$\epsilon_A$", zorder=10)
+        ax.plot(t, eps_tot, "k", linewidth=2, label=r"$\epsilon$", zorder=10)
 
         eps_hypo = epsK_hypo + epsA_hypo
         if max(eps_hypo) > 0:
@@ -291,7 +293,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             PK_tot = dict_results["PK_tot"]
             PA_tot = dict_results["PA_tot"]
 
-            ax.plot(t, PK_tot, "r--", label=r"$P_K$")
-            ax.plot(t, PA_tot, "b--", label=r"$P_A$")
+            ax.plot(t, PK_tot, "r--", label=r"$P_K$", zorder=0)
+            ax.plot(t, PA_tot, "b--", label=r"$P_A$", zorder=0)
 
         ax.legend()

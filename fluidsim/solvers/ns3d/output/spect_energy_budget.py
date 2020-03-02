@@ -259,7 +259,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         if ax is None:
             fig, ax = self.output.figure_axe()
 
-        ax.set_xlabel("$\kappa_h$")
+        ax.set_xlabel(r"$\kappa_h$")
         ax.set_ylabel("$k_z$")
         ax.set_title(
             f"{key}, solver {self.output.name_solver}, nx = {self.nx:5d}"
@@ -333,7 +333,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
             fig, ax = self.output.figure_axe()
 
         xlbl = "k_" + key_k[1]
-        ylbl = "$\Pi(" + xlbl + ")/\epsilon$"
+        ylbl = r"$\Pi(" + xlbl + r")/\epsilon$"
         xlbl = "$" + xlbl + "$"
         ax.set_xlabel(xlbl)
         ax.set_ylabel(ylbl)
@@ -342,11 +342,11 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         )
 
         ax.semilogx(
-            k_plot, flux_tot / eps, "k", linewidth=2, label="$\Pi/\epsilon$"
+            k_plot, flux_tot / eps, "k", linewidth=2, label=r"$\Pi/\epsilon$"
         )
-        ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label="$D/\epsilon$")
+        ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label=r"$D/\epsilon$")
         ax.semilogx(
-            k_plot, (flux_tot + D) / eps, "k:", label="$(\Pi+D)/\epsilon$"
+            k_plot, (flux_tot + D) / eps, "k:", label=r"$(\Pi+D)/\epsilon$"
         )
 
         ax.legend()
