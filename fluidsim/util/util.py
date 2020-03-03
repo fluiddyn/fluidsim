@@ -421,6 +421,7 @@ def modif_resolution_from_dir(
     sim = load_state_phys_file(name_dir, t_approx)
 
     params2 = _deepcopy(sim.params)
+    params2.output.HAS_TO_SAVE = True
     params2.oper.nx = int(sim.params.oper.nx * coef_modif_resol)
     params2.oper.ny = int(sim.params.oper.ny * coef_modif_resol)
 
