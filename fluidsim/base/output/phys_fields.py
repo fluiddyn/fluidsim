@@ -152,6 +152,17 @@ class PhysFieldsBase(SpecificOutput):
 
         time = self.sim.time_stepping.t
 
+        if self.params.time_stepping.USE_T_END:
+            t_end = self.params.time_stepping.t_end
+            if t_end >= 1000:
+                # max number of digits = int(log10(t_end)) + 1
+                # add .3f precision = 4 additional characters
+                str_width = int(np.log10(t_end)) + 5
+            else:
+                str_width = 7
+        else:
+            str_width = 7
+
         path_run = Path(self.output.path_run)
 
         if mpi.rank == 0:
@@ -161,11 +172,11 @@ class PhysFieldsBase(SpecificOutput):
             self.period_save < 0.001
             or self.params.output.phys_fields.file_with_it
         ):
-            name_save = (
-                f"state_phys_t{time:07.3f}_it={self.sim.time_stepping.it}.{ext}"
-            )
+            str_it = f"_it={self.sim.time_stepping.it}"
         else:
-            name_save = f"state_phys_t{time:07.3f}.{ext}"
+            str_it = ""
+
+        name_save = f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
         path_file = path_run / name_save
 
