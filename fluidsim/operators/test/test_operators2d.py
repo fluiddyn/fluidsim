@@ -168,15 +168,15 @@ class TestCoarse(unittest.TestCase):
         params.oper.ny = 48
         oper = self.Oper(params)
 
-        if mpi.rank == 0:
-            params_coarse = deepcopy(params)
-            params_coarse.oper.nx = 2 * 8
-            params_coarse.oper.ny = 2 * 12
-            params_coarse.oper.type_fft = "sequential"
-            params_coarse.oper.coef_dealiasing = 1.0
+        params_coarse = deepcopy(params)
+        params_coarse.oper.nx = 2 * 8
+        params_coarse.oper.ny = 2 * 12
+        params_coarse.oper.type_fft = "sequential"
+        params_coarse.oper.coef_dealiasing = 1.0
 
-            oper_coarse = oper.__class__(params=params_coarse)
-            oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
+        oper_coarse = oper.__class__(params=params_coarse)
+        oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
+        if mpi.rank == 0:
 
             field_coarse = oper_coarse.create_arrayX_random()
             field_coarse_fft = oper_coarse.fft(field_coarse)
@@ -194,10 +194,10 @@ class TestCoarse(unittest.TestCase):
             energy = oper_coarse.compute_energy_from_X(field_coarse)
         else:
             field_coarse_fft = None
-            oper_coarse_shapeK_loc = None
+        #    oper_coarse_shapeK_loc = None
+        #    oper_coarse = oper.__class__(params=params_coarse)
 
         field_fft = oper.create_arrayK(value=0)
-
         oper.put_coarse_array_in_array_fft(
             field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK_loc
         )
@@ -213,6 +213,7 @@ class TestCoarse(unittest.TestCase):
             field_coarse_back = oper_coarse.ifft(field_coarse_fft_back)
             energy_back = oper_coarse.compute_energy_from_X(field_coarse_back)
             assert energy > 0
+            print(energy, energy_big, energy_back)
             assert np.allclose(energy, energy_big)
             assert np.allclose(energy, energy_back)
 

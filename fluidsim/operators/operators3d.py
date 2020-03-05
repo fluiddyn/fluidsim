@@ -221,9 +221,18 @@ Lx, Ly and Lz: float
 
         self.ifft2 = self.ifft2d = self.oper2d.ifft2
         self.fft2 = self.fft2d = self.oper2d.fft2
-        if nb_proc > 1:
+        if not self.is_sequential:
             self.iK0loc_start = self.seq_indices_first_K[0]
             self.nk0_loc, self.nk1_loc, self.nk2_loc = self.shapeK_loc
+
+            self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
+            nk2_loc = self.shapeK_loc[2]
+            nk2_loc_rank = np.array(comm.allgather(nk2_loc))
+            a = nk2_loc_rank
+            self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
+            self.dimX_K = self._op_fft.get_dimX_K()
+        else:
+            self.SAME_SIZE_IN_ALL_PROC = True
 
         try:
             NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES
@@ -285,8 +294,22 @@ Lx, Ly and Lz: float
         if nb_proc > 1:
             nK2 = self.shapeK_seq[2]
             if mpi.rank == 0:
-                fck_fft = arr_coarse
-            nK0c, nK1c, nK2c = shapeK_loc_coarse
+                if self.dimX_K == (1, 0, 2):
+                    fck_fft = np.zeros((nkyc, nkzc, nkxc), dtype=np.complex128)
+                    for i0 in range(nkzc):
+                        for i1 in range(nkyc):
+                            fck_fft[i1, i0, :] = arr_coarse[i0, i1, :]
+                if self.dimX_K == (2, 1, 0):
+                    fck_fft = np.zeros((nkxc, nkyc, nkzc), dtype=np.complex128)
+                    for i0 in range(nkzc):
+                        for i1 in range(nkyc):
+                            for i2 in range(nkxc):
+                                fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
+
+            if self.dimX_K == (1, 0, 2):
+                nK1c, nK0c, nK2c = shapeK_loc_coarse
+            elif self.dimX_K == (2, 1, 0):
+                nK2c, nK1c, nK0c = shapeK_loc_coarse
 
             for ik0c in range(nK0c):
                 ik1c = 0
@@ -294,10 +317,8 @@ Lx, Ly and Lz: float
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                     ik0c, ik1c, ik2c
                 )
-
                 if mpi.rank == 0:
                     fc1D = fck_fft[ik0c, :, :]
-
                 if rank_ik != 0:
                     # message fc1D
                     if mpi.rank == rank_ik:
@@ -336,13 +357,12 @@ Lx, Ly and Lz: float
             if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
                 raise NotImplementedError()
 
-            nk0c, nk1c, nk2c = shapeK_loc_coarse
-            self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
-            nk2_loc = self.shapeK_loc[2]
-            nk2_loc_rank = np.array(comm.allgather(nk2_loc))
-            a = nk2_loc_rank
-            self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
-            fc_fft = np.empty([nk0c, nk1c, nk2c], np.complex128)
+            if self.dimX_K == (1, 0, 2):
+                nk1c, nk0c, nk2c = shapeK_loc_coarse
+            elif self.dimX_K == (2, 1, 0):
+                nk2c, nk1c, nk0c = shapeK_loc_coarse
+
+            fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
             nk0, nk1, nk2 = self.shapeK_loc
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
@@ -376,8 +396,18 @@ Lx, Ly and Lz: float
                         )
                 if rank == 0:
                     # copy into fc_fft
-                    fc_fft[ik0c] = f1d_temp.copy()
-
+                    fc_fft_tmp[ik0c] = f1d_temp.copy()
+            fc_fft = np.zeros(shapeK_loc_coarse, dtype=np.complex128)
+            if rank == 0:
+                if self.dimX_K == (1, 0, 2):
+                    for i0 in range(nkzc):
+                        for i1 in range(nkyc):
+                            fc_fft[i0, i1, :] = fc_fft_tmp[i1, i0, :]
+                if self.dimX_K == (2, 1, 0):
+                    for i0 in range(nkzc):
+                        for i1 in range(nkyc):
+                            for i2 in range(nkxc):
+                                fc_fft[i0, i1, i2] = fc_fft_tmp[i2, i1, i0]
         else:
             fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
             nkz, nky, nkx = self.shapeK_seq
