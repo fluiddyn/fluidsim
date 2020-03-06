@@ -152,18 +152,25 @@ class PhysFieldsBase(SpecificOutput):
 
         time = self.sim.time_stepping.t
 
+        path_run = Path(self.output.path_run)
+
         if self.params.time_stepping.USE_T_END:
-            t_end = self.params.time_stepping.t_end
-            if t_end >= 1000:
+            # check if some state_phys files already exist
+            try:
+                path_test = next(path_run.glob("state_phys*"))
+            except StopIteration:
+                # file does not exist : get str_width from t_end
                 # max number of digits = int(log10(t_end)) + 1
                 # add .3f precision = 4 additional characters
-                str_width = int(np.log10(t_end)) + 5
+                # +2 by anticipation of potential restarts
+                str_width = int(np.log10(self.params.time_stepping.t_end)) + 7
             else:
-                str_width = 7
+                # file does exist : get str_width from file name
+                # file name is something like 'state_phys_tYYYY.YYY.nc'
+                str_width = len(path_test.name[12:-3])
         else:
+            # dynamic width not implemented if USE_T_END==False
             str_width = 7
-
-        path_run = Path(self.output.path_run)
 
         if mpi.rank == 0:
             path_run.mkdir(exist_ok=True)
