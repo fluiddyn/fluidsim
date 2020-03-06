@@ -420,6 +420,7 @@ Lx, Ly and Lz: float
         return fc_fft
 
     def where_is_wavenumber(self, ik0, ik1, ik2):
+        """Give local indices and rank from the sequential indices"""
         nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
 
         if ik0 >= nk0_seq:
@@ -512,6 +513,7 @@ Lx, Ly and Lz: float
         return self.fft(self.ifft(f_fft))
 
     def _ikxyzseq_from_ik012rank(self, ik0, ik1, ik2, rank=0):
+        """Give the sequential indices (xyz) from the local indices and the rank"""
         if self._is_mpi_lib:
             # much more complicated in this case
             raise NotImplementedError
@@ -523,6 +525,7 @@ Lx, Ly and Lz: float
         return ikx, iky, ikz
 
     def _ik012rank_from_ikxyzseq(self, ikx, iky, ikz):
+        """Give the local indices and the rank from "sequential" indices (xyz)"""
         if self._is_mpi_lib:
             # much more complicated in this case
             raise NotImplementedError
@@ -535,28 +538,33 @@ Lx, Ly and Lz: float
         return ik0, ik1, ik2, rank_k
 
     def _kadim_from_ikxyzseq(self, ikx, iky, ikz):
+        """Give the adimensional wavenumbers from sequential indices"""
         kx_adim = ikx
         ky_adim = _kadim_from_ik(iky, self.ny)
         kz_adim = _kadim_from_ik(ikz, self.nz)
         return kx_adim, ky_adim, kz_adim
 
     def _ikxyzseq_from_kadim(self, kx_adim, ky_adim, kz_adim):
+        """Give the sequential indices from the adimensional wavenumbers"""
         ikx = kx_adim
         iky = _ik_from_kadim(ky_adim, self.ny)
         ikz = _ik_from_kadim(kz_adim, self.nz)
         return ikx, iky, ikz
 
     def kadim_from_ik012rank(self, ik0, ik1, ik2, rank=0):
+        """Give the adimensional wavenumbers from local indices and rank"""
         ikx, iky, ikz = self._ikxyzseq_from_ik012rank(ik0, ik1, ik2, rank)
         return self._kadim_from_ikxyzseq(ikx, iky, ikz)
 
     def ik012rank_from_kadim(self, kx_adim, ky_adim, kz_adim):
+        """Give the local indices and rank from the adimensional wavenumbers"""
         ikx, iky, ikz = self._ikxyzseq_from_kadim(kx_adim, ky_adim, kz_adim)
         return self._ik012rank_from_ikxyzseq(ikx, iky, ikz)
 
     def set_value_spect(
         self, arr_fft, value, kx_adim, ky_adim, kz_adim, from_rank=0
     ):
+        """Set a value in a spectral array given the adimensional wavenumber"""
         ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
             kx_adim, ky_adim, kz_adim
         )
@@ -567,6 +575,7 @@ Lx, Ly and Lz: float
         arr_fft[ik0, ik1, ik2] = value
 
     def get_value_spect(self, arr_fft, kx_adim, ky_adim, kz_adim, to_rank=0):
+        """Get a value in a spectral array given the adimensional wavenumber"""
         ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
             kx_adim, ky_adim, kz_adim
         )

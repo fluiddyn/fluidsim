@@ -214,8 +214,8 @@ class TestCoarse(unittest.TestCase):
             energy_back = oper_coarse.compute_energy_from_X(field_coarse_back)
             assert energy > 0
             print(energy, energy_big, energy_back)
-            assert np.allclose(energy, energy_big)
             assert np.allclose(energy, energy_back)
+            assert np.allclose(energy, energy_big)
 
 
 if __name__ == "__main__":
