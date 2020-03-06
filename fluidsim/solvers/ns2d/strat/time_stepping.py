@@ -10,8 +10,6 @@ Provides:
 
 """
 
-import numpy as np
-
 from math import pi
 from fluiddyn.util import mpi
 from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
@@ -176,23 +174,3 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
         normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt
         if normalize_diff > 0.02:
             self.deltat = maybe_new_dt
-
-    def one_time_step_computation(self):
-        """One time step"""
-        # WARNING: if the function _time_step_RK comes from an extension, its
-        # execution time seems to be attributed to the function
-        # one_time_step_computation by cProfile
-        self._time_step_RK()
-        self.sim.oper.dealiasing(self.sim.state.state_spect)
-
-        # If no shear modes in the flow.
-        if self.sim.params.NO_SHEAR_MODES:
-            for ikey, key_name in enumerate(self.sim.state.state_spect.keys):
-                key_fft = self.sim.state.state_spect.get_var(key_name)
-                key_fft[0, :] = 0
-                self.sim.state.state_spect.set_var(key_name, key_fft)
-
-        self.sim.state.statephys_from_statespect()
-        # np.isnan(np.sum seems to be really fast
-        if np.isnan(np.sum(self.sim.state.state_spect[0])):
-            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")

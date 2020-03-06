@@ -103,6 +103,17 @@ def fix_old_params(params):
         else:
             params.forcing._set_attrib("enable", params.FORCING)
 
+    # for ns2d.strat (wrong parameter params.NO_SHEAR_MODES)
+    try:
+        params.NO_SHEAR_MODES
+    except AttributeError:
+        pass
+    else:
+        try:
+            params.oper.NO_SHEAR_MODES = params.NO_SHEAR_MODES
+        except AttributeError:
+            pass
+
 
 def merge_params(to_params, *other_params):
     """Merges missing parameters attributes and children of a typical

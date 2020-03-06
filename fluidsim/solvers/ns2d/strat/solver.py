@@ -69,7 +69,7 @@ class Simul(SimulNS2D):
         """This static method is used to complete the *params* container.
         """
         SimulNS2D._complete_params_with_default(params)
-        attribs = {"N": 1.0, "NO_SHEAR_MODES": False}
+        attribs = {"N": 1.0}
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
