@@ -174,28 +174,31 @@ class TestCoarse(unittest.TestCase):
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0
 
-        oper_coarse = oper.__class__(params=params_coarse)
-        oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
         if mpi.rank == 0:
+            oper_coarse = oper.__class__(params=params_coarse)
+            oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
 
             field_coarse = oper_coarse.create_arrayX_random()
             field_coarse_fft = oper_coarse.fft(field_coarse)
 
             if self.nb_dim == 2:
                 nKyc, nKxc = oper_coarse_shapeK_loc
-                # zeros because of (too strong) conditions in put_coarse_array_in_array_fft
-                field_coarse_fft[nKyc // 2] = 0
+                # zeros because of conditions in put_coarse_array_in_array_fft
+                field_coarse_fft[nKyc // 2, :] = 0
                 field_coarse_fft[:, nKxc - 1] = 0
                 field_coarse = oper_coarse.ifft(field_coarse_fft)
                 field_coarse_fft = oper_coarse.fft(field_coarse)
-                field_coarse_fft[nKyc // 2] = 0
-                field_coarse_fft[:, nKxc - 1] = 0
 
             energy = oper_coarse.compute_energy_from_X(field_coarse)
         else:
             field_coarse_fft = None
-        #    oper_coarse_shapeK_loc = None
-        #    oper_coarse = oper.__class__(params=params_coarse)
+            oper_coarse = None
+            oper_coarse_shapeK_loc = None
+
+        if mpi.nb_proc > 1:
+            oper_coarse_shapeK_loc = mpi.comm.bcast(
+                oper_coarse_shapeK_loc, root=0
+            )
 
         field_fft = oper.create_arrayK(value=0)
         oper.put_coarse_array_in_array_fft(
@@ -206,7 +209,7 @@ class TestCoarse(unittest.TestCase):
         energy_big = oper.compute_energy_from_X(field)
 
         field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
-            field_fft, oper_coarse.shapeK_loc
+            field_fft, oper_coarse_shapeK_loc
         )
 
         if mpi.rank == 0:

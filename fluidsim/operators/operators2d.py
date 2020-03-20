@@ -564,11 +564,10 @@ class OperatorsPseudoSpectral2D(_Operators):
         else:
             nKy = self.shapeK_seq[0]
 
-            if any(arr_coarse[nKyc // 2] != 0):
-                print(arr_coarse[nKyc // 2])
+            if not np.allclose(0.0, max(abs(arr_coarse[nKyc // 2, :]))):
                 raise ValueError("any(arr_coarse[nKyc//2] != 0)")
 
-            if any(arr_coarse[:, nKxc - 1] != 0):
+            if not np.allclose(0.0, max(abs(arr_coarse[:, nKxc - 1]))):
                 raise ValueError("any(arr_coarse[:, nKxc-1] != 0)")
 
             for ikyc in range(nKyc):
