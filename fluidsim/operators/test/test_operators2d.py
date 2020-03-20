@@ -166,11 +166,17 @@ class TestCoarse(unittest.TestCase):
         params = self.Oper._create_default_params()
         params.oper.nx = 32
         params.oper.ny = 48
+        if self.nb_dim == 3:
+            params.oper.nz = 12
+
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
         params_coarse.oper.nx = 2 * 8
         params_coarse.oper.ny = 2 * 12
+        if self.nb_dim == 3:
+            params_coarse.oper.nz = 2 * 4
+
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0
 
@@ -182,13 +188,17 @@ class TestCoarse(unittest.TestCase):
             field_coarse_fft = oper_coarse.fft(field_coarse)
 
             if self.nb_dim == 2:
-                nKyc, nKxc = oper_coarse_shapeK_loc
+                nkyc, nkxc = oper_coarse_shapeK_loc
                 # zeros because of conditions in put_coarse_array_in_array_fft
-                field_coarse_fft[nKyc // 2, :] = 0
-                field_coarse_fft[:, nKxc - 1] = 0
-                field_coarse = oper_coarse.ifft(field_coarse_fft)
-                field_coarse_fft = oper_coarse.fft(field_coarse)
+                field_coarse_fft[nkyc // 2, :] = 0
+                field_coarse_fft[:, nkxc - 1] = 0
+            elif self.nb_dim == 3:
+                nkzc, nkyc, nkxc = oper_coarse_shapeK_loc
+                field_coarse_fft[nkzc // 2, :] = 0
+                field_coarse_fft[:, nkyc // 2, :] = 0
+                field_coarse_fft[:, :, nkxc - 1] = 0
 
+            field_coarse = oper_coarse.ifft(field_coarse_fft)
             energy = oper_coarse.compute_energy_from_X(field_coarse)
         else:
             field_coarse_fft = None
@@ -205,8 +215,23 @@ class TestCoarse(unittest.TestCase):
             field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK_loc
         )
 
+        energy_big_fft = oper.compute_energy_from_K(field_fft)
+
+        if mpi.rank == 0:
+            print(
+                "energy,  energy_big_fft\n"
+                + (2 * "{:.8f}    ").format(energy, energy_big_fft)
+            )
+            assert energy > 0
+            assert np.allclose(energy, energy_big_fft)
+            print("OK np.allclose(energy, energy_big_fft)")
+
         field = oper.ifft(field_fft)
         energy_big = oper.compute_energy_from_X(field)
+
+        field_fft_back = oper.fft(field)
+        if not np.allclose(field_fft, field_fft_back):
+            print("Buggy! field_fft != field_fft_back")
 
         field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
             field_fft, oper_coarse_shapeK_loc
@@ -215,9 +240,14 @@ class TestCoarse(unittest.TestCase):
         if mpi.rank == 0:
             field_coarse_back = oper_coarse.ifft(field_coarse_fft_back)
             energy_back = oper_coarse.compute_energy_from_X(field_coarse_back)
-            assert energy > 0
-            print(energy, energy_big, energy_back)
+            print(
+                "energy,  energy_back,  energy_big_fft,  energy_big\n"
+                + (4 * "{:.8f}    ").format(
+                    energy, energy_back, energy_big_fft, energy_big
+                )
+            )
             assert np.allclose(energy, energy_back)
+            print("OK np.allclose(energy, energy_back)")
             assert np.allclose(energy, energy_big)
 
 
