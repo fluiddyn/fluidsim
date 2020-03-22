@@ -292,7 +292,7 @@ Lx, Ly and Lz: float
         nkzc, nkyc, nkxc = shapeK_loc_coarse
 
         if nb_proc > 1:
-            nK2 = self.shapeK_seq[2]
+            nk0, nk1, nk2 = self.shapeK_seq
             if mpi.rank == 0:
                 if self.dimX_K == (1, 0, 2):
                     fck_fft = np.zeros((nkyc, nkzc, nkxc), dtype=np.complex128)
@@ -307,22 +307,23 @@ Lx, Ly and Lz: float
                                 fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
 
             if self.dimX_K == (1, 0, 2):
-                nK1c, nK0c, nK2c = shapeK_loc_coarse
+                nk1c, nk0c, nk2c = shapeK_loc_coarse
             elif self.dimX_K == (2, 1, 0):
-                nK2c, nK1c, nK0c = shapeK_loc_coarse
+                nk2c, nk1c, nk0c = shapeK_loc_coarse
 
-            for ik0c in range(nK0c):
+            for ik0c in range(nk0c):
                 ik1c = 0
                 ik2c = 0
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
-                    ik0c, ik1c, ik2c
+                    ik0, ik1c, ik2c
                 )
                 if mpi.rank == 0:
                     fc1D = fck_fft[ik0c, :, :]
                 if rank_ik != 0:
                     # message fc1D
                     if mpi.rank == rank_ik:
-                        fc1D = np.empty([nK1c, nK2c], dtype=np.complex128)
+                        fc1D = np.empty([nk1c, nk2c], dtype=np.complex128)
                     if mpi.rank == 0 or mpi.rank == rank_ik:
                         fc1D = np.ascontiguousarray(fc1D)
                     if mpi.rank == 0:
@@ -333,13 +334,9 @@ Lx, Ly and Lz: float
                         mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX], source=0, tag=ik0c)
                 if mpi.rank == rank_ik:
                     # copy
-                    for ik2c in range(nK2c):
-                        if ik2c <= nK2c / 2.0:
-                            ik2 = ik2c
-                        else:
-                            k2nodim = ik2c - nK2c
-                            ik2 = k2nodim + nK2
-                        arr[ik0loc, 0:nK1c, ik2] = fc1D[:, ik2c]
+                    for ik1c in range(nk1c):
+                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                        arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
 
         else:
             nkz, nky, nkx = self.shapeK_seq
@@ -363,24 +360,21 @@ Lx, Ly and Lz: float
                 nk2c, nk1c, nk0c = shapeK_loc_coarse
 
             fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
-            nk0, nk1, nk2 = self.shapeK_loc
+            nk0, nk1, nk2 = self.shapeK_seq
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
             for ik0c in range(nk0c):
                 ik1c = 0
                 ik2c = 0
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
                 rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
-                    ik0c, ik1c, ik2c
+                    ik0, ik1c, ik2c
                 )
                 if rank == rank_ik:
                     # create f1d_temp
-                    for ik2c in range(nk2c):
-                        if ik2c <= nk2c / 2:
-                            ik2 = ik2c
-                        else:
-                            k2nodim = ik2c - nk2c
-                            ik2 = k2nodim + nk2
-                        f1d_temp[:, ik2c] = f_fft[ik0loc, 0:nk1c, ik2]
+                    for ik1c in range(nk1c):
+                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                        f1d_temp[ik1c, :] = f_fft[ik0loc, ik1, 0:nk2c]
 
                 if rank_ik != 0:
                     # message f1d_temp
