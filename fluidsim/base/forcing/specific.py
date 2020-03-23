@@ -159,7 +159,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
                 "The resolution is too small for the required forcing: "
-                "any(np.greater({}, {}))".format(shape_forcing, shape)
+                f"any(np.greater({shape_forcing}, {shape}))"
             )
 
     def __init__(self, sim):
