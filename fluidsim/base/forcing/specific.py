@@ -82,7 +82,7 @@ class SpecificForcingPseudoSpectralSimple(SpecificForcing):
         self.forcing_fft = self.fstate.state_spect
 
     def compute(self):
-        """compute a forcing normalize with a 2nd degree eq."""
+        """compute the forcing."""
         obj = self.compute_forcing_fft_each_time()
         if isinstance(obj, dict):
             kwargs = obj

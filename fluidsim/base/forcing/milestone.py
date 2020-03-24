@@ -22,10 +22,12 @@ def step(x, limit, smoothness):
 
 
 class ForcingMilestone(Base):
+    tag = "milestone"
+
     @classmethod
     def _complete_params_with_default(cls, params):
         Base._complete_params_with_default(params)
-        milestone = params.forcing._set_child("milestone")
+        milestone = params.forcing._set_child(cls.tag)
         milestone._set_child(
             "objects", dict(type="cylinders", number=2, diameter=1.0,),
         )
@@ -38,8 +40,6 @@ class ForcingMilestone(Base):
 
     def __init__(self, sim):
         super().__init__(sim)
-
-        type(self)._complete_params_with_default(sim.params)
 
         params = OperatorsPseudoSpectral2D._create_default_params()
         lx = params.oper.Lx = sim.params.oper.Lx
@@ -60,7 +60,7 @@ class ForcingMilestone(Base):
     def get_solid_field(self, time):
 
         oper = self.oper_coarse
-
+        lx = oper.Lx
         radius = self.params_milestone.objects.diameter / 2
 
         x_coors, y_coors = self.get_locations(time)
@@ -131,6 +131,10 @@ class ForcingMilestone(Base):
         )
         plt.show()
 
+    def compute(self):
+        rot_fft = self.oper.create_arrayK(value=0.0)
+        self.fstate.init_statespect_from(rot_fft=rot_fft)
+
 
 if __name__ == "__main__":
 
@@ -144,7 +148,10 @@ if __name__ == "__main__":
     lx = params.oper.Lx = 10.0
     params.oper.Ly = lx / nx * ny
 
+    params.forcing.enable = True
+    params.forcing.type = "milestone"
+
     sim = Simul(params)
 
-    milestone = ForcingMilestone(sim)
+    milestone = sim.forcing.forcing_maker
     milestone.check_with_animation()

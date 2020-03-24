@@ -64,7 +64,7 @@ else:
     devstatus = "Development Status :: 5 - Production/Stable"
 
 install_requires = [
-    "fluiddyn >= 0.3.0",
+    "fluiddyn >= 0.3.2",
     "h5py",
     "h5netcdf",
     "transonic>=0.2.0",
