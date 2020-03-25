@@ -1,6 +1,6 @@
 """
 
-`run -m fluidsim.base.forcing.milestone`
+run -m fluidsim.base.forcing.milestone
 
 solid_coarse -> solid
 
@@ -41,21 +41,36 @@ class ForcingMilestone(Base):
     def __init__(self, sim):
         super().__init__(sim)
 
-        params = OperatorsPseudoSpectral2D._create_default_params()
-        lx = params.oper.Lx = sim.params.oper.Lx
-        ly = params.oper.Ly = sim.params.oper.Ly
-        nx = 40
-        ny = int(nx * ly / lx)
-        params.oper.nx = nx
-        params.oper.ny = ny
-        self.oper_coarse = OperatorsPseudoSpectral2D(params)
+        # params = OperatorsPseudoSpectral2D._create_default_params()
+        # lx = params.oper.Lx = sim.params.oper.Lx
+        # ly = params.oper.Ly = sim.params.oper.Ly
+        # nx = 40
+        # ny = int(nx * ly / lx)
+        # params.oper.nx = nx
+        # params.oper.ny = ny
+        # self.oper_coarse = OperatorsPseudoSpectral2D(params)
+
+        # for now, let's keep it simple!
+        self.oper_coarse = sim.oper
 
         self.params_milestone = sim.params.forcing.milestone
 
         self.number_objects = self.params_milestone.objects.number
-        mesh = ly / self.number_objects
+        mesh = self.oper_coarse.ly / self.number_objects
+
+        self.speed = self.params_milestone.movement.uniform.speed
 
         self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
+
+        # calculus of coef_sigma
+
+        # f(t) = f0 * exp(-sigma*t)
+        # If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
+        # sigma = gamma / (n_dt * dt)
+
+        gamma = 2
+        n_dt = 4
+        self.coef_sigma = gamma / n_dt
 
     def get_solid_field(self, time):
 
@@ -79,6 +94,52 @@ class ForcingMilestone(Base):
         lx = self.params.oper.Lx
         x_coors = (speed * time) % lx * np.ones(self.number_objects)
         return x_coors, self.y_coors
+
+    def check_plot_solid(self, time):
+
+        solid, x_coors, y_coors = self.get_solid_field(time)
+
+        fig, ax = plt.subplots()
+        oper_c = self.oper_coarse
+        lx = oper_c.Lx
+        ly = oper_c.Ly
+
+        nx = oper_c.nx
+        ny = oper_c.ny
+        xs = np.linspace(0, lx, nx + 1)
+        ys = np.linspace(0, ly, ny + 1)
+        pcmesh = ax.pcolormesh(xs, ys, solid)
+        ax.axis("equal")
+        ax.set_xlim((0, lx))
+        ax.set_ylim((0, ly))
+        fig.colorbar(pcmesh)
+
+    def check_plot_forcing(self, time):
+
+        self.compute(time)
+
+        fx = self.fstate.state_phys.get_var("ux")
+        fy = self.fstate.state_phys.get_var("uy")
+
+        rot_f = self.fstate.state_phys.get_var("rot")
+
+        fig, ax = plt.subplots()
+        oper_c = self.oper_coarse
+        lx = oper_c.Lx
+        ly = oper_c.Ly
+
+        nx = oper_c.nx
+        ny = oper_c.ny
+        xs = np.linspace(0, lx, nx + 1)
+        ys = np.linspace(0, ly, ny + 1)
+        pcmesh = ax.pcolormesh(xs, ys, rot_f)
+
+        ax.quiver(oper_c.X, oper_c.Y, fx, fy)
+
+        ax.axis("equal")
+        ax.set_xlim((0, lx))
+        ax.set_ylim((0, ly))
+        fig.colorbar(pcmesh)
 
     def check_with_animation(self):
 
@@ -104,7 +165,7 @@ class ForcingMilestone(Base):
 
         solid, x_coors, y_coors = self.get_solid_field(0)
 
-        scat = ax.scatter(x_coors, y_coors)
+        scat = ax.scatter(x_coors, y_coors, marker="x")
         ax.axis("equal")
 
         xs = np.linspace(0, lx, nx + 1)
@@ -128,11 +189,29 @@ class ForcingMilestone(Base):
             frames=range(number_frames),
             fargs=(pcmesh, scat),
             blit=True,
+            interval=500,  # in ms
         )
         plt.show()
 
-    def compute(self):
-        rot_fft = self.oper.create_arrayK(value=0.0)
+    def compute(self, time=None):
+
+        if time is None:
+            time = self.sim.time_stepping.t
+
+        solid, x_coors, y_coors = self.get_solid_field(time)
+
+        ux = self.sim.state.state_phys.get_var("ux")
+        # uy = self.sim.state.state_phys.get_var("uy")
+
+        fx = self.coef_sigma * solid * (self.speed - ux)
+        # fy = -self.coef_sigma * solid * uy
+
+        fx_fft = self.sim.oper.fft(fx)
+        # fy_fft = self.sim.oper.fft(fy)
+
+        fy_fft = self.sim.oper.create_arrayK(value=0)
+
+        rot_fft = self.oper.rotfft_from_vecfft(fx_fft, fy_fft)
         self.fstate.init_statespect_from(rot_fft=rot_fft)
 
 
@@ -142,16 +221,38 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    nx = params.oper.nx = 100
-    ny = params.oper.ny = 40
+    nx = params.oper.nx = 512
+    ny = params.oper.ny = nx // 4
 
-    lx = params.oper.Lx = 10.0
+    lx = params.oper.Lx = 40.0
     params.oper.Ly = lx / nx * ny
+
+    params.time_stepping.t_end = 100
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
+    params.forcing.milestone.objects.number = 2
+    params.forcing.milestone.movement.uniform.speed = 1.0
+
+    params.init_fields.type = "noise"
+    params.init_fields.noise.velo_max = 1e-2
+
+    params.nu_8 = 1e-10
+
+    params.output.periods_plot.phys_fields = 2e-1
+    params.output.periods_print.print_stdout = 5
 
     sim = Simul(params)
 
-    milestone = sim.forcing.forcing_maker
-    milestone.check_with_animation()
+    fig = plt.gcf()
+    ax = fig.axes[0]
+    ax.axis("equal")
+    fig.set_size_inches(14, 4)
+
+    self = milestone = sim.forcing.forcing_maker
+
+    sim.time_stepping.start()
+
+    # milestone.check_with_animation()
+    # milestone.check_plot_solid(0)
+    # self.check_plot_forcing(10)
