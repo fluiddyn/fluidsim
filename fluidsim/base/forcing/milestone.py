@@ -201,23 +201,25 @@ class ForcingMilestone(Base):
         solid, x_coors, y_coors = self.get_solid_field(time)
 
         ux = self.sim.state.state_phys.get_var("ux")
-        # uy = self.sim.state.state_phys.get_var("uy")
+        uy = self.sim.state.state_phys.get_var("uy")
 
         fx = self.coef_sigma * solid * (self.speed - ux)
-        # fy = -self.coef_sigma * solid * uy
+        fy = -self.coef_sigma * solid * uy
 
         fx_fft = self.sim.oper.fft(fx)
-        # fy_fft = self.sim.oper.fft(fy)
+        fy_fft = self.sim.oper.fft(fy)
 
-        fy_fft = self.sim.oper.create_arrayK(value=0)
+        # fy_fft = self.sim.oper.create_arrayK(value=0)
 
-        rot_fft = self.oper.rotfft_from_vecfft(fx_fft, fy_fft)
-        self.fstate.init_statespect_from(rot_fft=rot_fft)
+        # rot_fft = self.oper.rotfft_from_vecfft(fx_fft, fy_fft)
+        # self.fstate.init_statespect_from(rot_fft=rot_fft)
+
+        self.fstate.init_statespect_from(ux_fft=fx_fft, uy_fft=fy_fft)
 
 
 if __name__ == "__main__":
 
-    from fluidsim.solvers.ns2d.solver import Simul
+    from fluidsim.solvers.ns2d.with_uxuy import Simul
 
     params = Simul.create_default_params()
 
