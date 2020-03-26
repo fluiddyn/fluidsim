@@ -57,20 +57,23 @@ class ForcingMilestone(Base):
 
         self.number_objects = self.params_milestone.objects.number
         mesh = self.oper_coarse.ly / self.number_objects
-
-        self.speed = self.params_milestone.movement.uniform.speed
-
         self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
 
-        # calculus of coef_sigma
-
+        # Calculus of coef_sigma:
         # f(t) = f0 * exp(-sigma*t)
         # If we want f(t)/f0 = 10**(-gamma) after n_dt time steps, we have to have:
         # sigma = gamma / (n_dt * dt)
-
         gamma = 2
         n_dt = 4
         self.coef_sigma = gamma / n_dt
+        self.sigma = self.coef_sigma / self.params.time_stepping.deltat_max
+
+        type_movement = self.params_milestone.movement.type
+        if type_movement == "uniform":
+            self.get_locations = self.get_locations_uniform
+            self.speed = self.params_milestone.movement.uniform.speed
+        else:
+            raise NotImplementedError
 
     def get_solid_field(self, time):
 
@@ -89,7 +92,7 @@ class ForcingMilestone(Base):
                 solid += step(distance_from_center, radius, 0.2)
         return solid, x_coors, y_coors
 
-    def get_locations(self, time):
+    def get_locations_uniform(self, time):
         speed = self.params_milestone.movement.uniform.speed
         lx = self.params.oper.Lx
         x_coors = (speed * time) % lx * np.ones(self.number_objects)
@@ -203,7 +206,7 @@ class ForcingMilestone(Base):
         solid, x_coors, y_coors = self.get_solid_field(time)
 
         ux = sim.state.state_phys.get_var("ux")
-        fx = self.coef_sigma * solid * (self.speed - ux)
+        fx = self.sigma * solid * (self.speed - ux)
         fx_fft = sim.oper.fft(fx)
 
         if "rot_fft" in sim.state.keys_state_spect:
@@ -212,7 +215,7 @@ class ForcingMilestone(Base):
             self.fstate.init_statespect_from(rot_fft=rot_fft)
         else:
             uy = sim.state.state_phys.get_var("uy")
-            fy = -self.coef_sigma * solid * uy
+            fy = -self.sigma * solid * uy
             fy_fft = sim.oper.fft(fy)
             self.fstate.init_statespect_from(ux_fft=fx_fft, uy_fft=fy_fft)
 
@@ -255,7 +258,7 @@ if __name__ == "__main__":
 
     self = milestone = sim.forcing.forcing_maker
 
-    sim.time_stepping.start()
+    # sim.time_stepping.start()
 
     # milestone.check_with_animation()
     # milestone.check_plot_solid(0)

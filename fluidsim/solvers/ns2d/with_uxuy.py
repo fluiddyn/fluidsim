@@ -1,10 +1,25 @@
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
+from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
 
 from .state import StateNS2D as StateBase
 from .solver import InfoSolverNS2D as InfoBase, Simul as SimulBase, compute_Frot
 from .output import Output as OutputBase
+
+
+class TimeStepping(TimeSteppingPseudoSpectral):
+    def one_time_step_computation(self):
+        """One time step"""
+        state_spect = self.sim.state.state_spect
+        self._time_step_RK()
+        self.sim.oper.dealiasing(state_spect)
+        ux_fft = state_spect.get_var("ux_fft")
+        uy_fft = state_spect.get_var("uy_fft")
+        self.sim.oper.projection_perp(ux_fft, uy_fft)
+        self.sim.state.statephys_from_statespect()
+        if np.isnan(np.sum(state_spect[0])):
+            raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")
 
 
 class State(StateBase):
@@ -66,6 +81,9 @@ class InfoSolver(InfoBase):
 
         classes.Output.module_name = module
         classes.Output.class_name = "Output"
+
+        classes.TimeStepping.module_name = module
+        classes.TimeStepping.class_name = "TimeStepping"
 
 
 class Simul(SimulBase):
