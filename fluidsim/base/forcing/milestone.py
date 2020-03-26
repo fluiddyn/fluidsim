@@ -8,12 +8,13 @@ forcing(x, y, z) = sigma * solid(x, y) * (speed_target - velocity(x, y, z))
 
 """
 
+from math import sin, cos, pi
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+# from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
 from .specific import SpecificForcingPseudoSpectralSimple as Base
 
 
@@ -71,7 +72,14 @@ class ForcingMilestone(Base):
         type_movement = self.params_milestone.movement.type
         if type_movement == "uniform":
             self.get_locations = self.get_locations_uniform
-            self.speed = self.params_milestone.movement.uniform.speed
+            self._speed = self.params_milestone.movement.uniform.speed
+            self.get_speed = self.get_speed_uniform
+        elif type_movement == "sinusoidal":
+            sinusoidal = self.params_milestone.movement.sinusoidal
+            self._half_length = sinusoidal.length / 2
+            self._omega = 2 * pi / sinusoidal.period
+            self.get_locations = self.get_locations_sinusoidal
+            self.get_speed = self.get_speed_sinusoidal
         else:
             raise NotImplementedError
 
@@ -97,6 +105,19 @@ class ForcingMilestone(Base):
         lx = self.params.oper.Lx
         x_coors = (speed * time) % lx * np.ones(self.number_objects)
         return x_coors, self.y_coors
+
+    def get_speed_uniform(self, time):
+        return self._speed
+
+    def get_locations_sinusoidal(self, time):
+        lx = self.params.oper.Lx
+        x_coors = (
+            lx / 2 + self._half_length * sin(self._omega * time - pi / 2)
+        ) * np.ones(self.number_objects)
+        return x_coors, self.y_coors
+
+    def get_speed_sinusoidal(self, time):
+        return self._half_length * self._omega * cos(self._omega * time - pi / 2)
 
     def check_plot_solid(self, time):
 
@@ -159,10 +180,12 @@ class ForcingMilestone(Base):
 
         if type_movement == "uniform":
             period = lx / movement.uniform.speed
-            number_frames = 40
-            dt = period / number_frames
+        elif type_movement == "sinusoidal":
+            period = movement.sinusoidal.period
         else:
             raise NotImplementedError
+        number_frames = 40
+        dt = period / number_frames
 
         fig, ax = plt.subplots()
 
@@ -206,7 +229,7 @@ class ForcingMilestone(Base):
         solid, x_coors, y_coors = self.get_solid_field(time)
 
         ux = sim.state.state_phys.get_var("ux")
-        fx = self.sigma * solid * (self.speed - ux)
+        fx = self.sigma * solid * (self.get_speed(time) - ux)
         fx_fft = sim.oper.fft(fx)
 
         if "rot_fft" in sim.state.keys_state_spect:
@@ -239,7 +262,10 @@ if __name__ == "__main__":
     params.forcing.enable = True
     params.forcing.type = "milestone"
     params.forcing.milestone.objects.number = 2
+    params.forcing.milestone.movement.type = "sinusoidal"
     params.forcing.milestone.movement.uniform.speed = 1.0
+    params.forcing.milestone.movement.sinusoidal.length = 0.8 * lx
+    params.forcing.milestone.movement.sinusoidal.period = 20.0
 
     params.init_fields.type = "noise"
     params.init_fields.noise.velo_max = 1e-2
