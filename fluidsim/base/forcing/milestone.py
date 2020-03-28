@@ -22,6 +22,86 @@ def step(x, limit, smoothness):
     return 0.5 * (np.tanh((-x + limit) / smoothness) + 1)
 
 
+class PeriodicUniform:
+    def __init__(self, speed_max, length, length_acc, lx):
+
+        self.speed_max = speed_max
+
+        sign = np.sign(speed_max)
+        x_uni = length - 2 * length_acc
+        t_uni = x_uni / abs(speed_max)
+        self.acc = sign * speed_max ** 2 / (2 * length_acc)
+        t_a = speed_max / self.acc
+        self.period = 4 * t_a + 2 * t_uni
+
+        self.t_1 = t_a
+        self.t_2 = t_a + t_uni
+        self.t_3 = self.t_2 + 2 * t_a
+        self.t_4 = self.t_3 + t_uni
+
+        self.x_0 = lx / 2 - sign * length / 2
+        self.x_1 = self.x_4 = self.x_0 + sign * length_acc
+        self.x_2 = self.x_3 = self.x_0 + sign * (length_acc + x_uni)
+
+    def get_speed(self, time):
+
+        speed_max = self.speed_max
+        acc = self.acc
+        t_1 = self.t_1
+        t_2 = self.t_2
+        t_3 = self.t_3
+        t_4 = self.t_4
+
+        time = time % self.period
+
+        # acceleration
+        if time <= t_1:
+            return acc * time
+        # uniform
+        elif (time > t_1) and (time <= t_2):
+            return speed_max
+        # acceleration 2
+        elif (time > t_2) and (time <= t_3):
+            t = time - t_2
+            return speed_max - acc * t
+        # uniform 2
+        elif (time > t_3) and (time <= t_4):
+            return -speed_max
+        # acceleration 3
+        elif time > t_4:
+            t = time - t_4
+            return -speed_max + acc * t
+
+    def get_locations(self, time):
+
+        speed_max = self.speed_max
+        acc = self.acc
+        t_1 = self.t_1
+        t_2 = self.t_2
+        t_3 = self.t_3
+        t_4 = self.t_4
+
+        time = time % self.period
+
+        # acceleration
+        if time <= t_1:
+            return self.x_0 + acc / 2 * time ** 2
+        # uniform
+        elif (time > t_1) and (time <= t_2):
+            return self.x_1 + speed_max * (time - t_1)
+        # acceleration 2
+        elif (time > t_2) and (time <= t_3):
+            t = time - t_2
+            return self.x_2 + speed_max * t - acc / 2 * t ** 2
+        # uniform 2
+        elif (time > t_3) and (time <= t_4):
+            return self.x_3 - speed_max * (time - t_3)
+        # acceleration 3
+        elif time > t_4:
+            t = time - t_4
+            return self.x_4 - speed_max * t + acc / 2 * t ** 2
+
+
 class ForcingMilestone(Base):
     tag = "milestone"
 
@@ -30,13 +110,19 @@ class ForcingMilestone(Base):
         Base._complete_params_with_default(params)
         milestone = params.forcing._set_child(cls.tag)
         milestone._set_child(
-            "objects", dict(type="cylinders", number=2, diameter=1.0,),
+            "objects",
+            dict(
+                type="cylinders",
+                number=2,
+                diameter=1.0,
+                width_boundary_layers=0.1,
+            ),
         )
         movement = milestone._set_child("movement", dict(type="uniform"))
         movement._set_child("uniform", dict(speed=1.0))
         movement._set_child("sinusoidal", dict(length=1.0, period=1.0))
         movement._set_child(
-            "periodic_uniform", dict(length=1.0, lenght_acc=1.0, speed=1.0)
+            "periodic_uniform", dict(length=1.0, length_acc=1.0, speed=1.0)
         )
 
     def __init__(self, sim):
@@ -80,6 +166,26 @@ class ForcingMilestone(Base):
             self._omega = 2 * pi / sinusoidal.period
             self.get_locations = self.get_locations_sinusoidal
             self.get_speed = self.get_speed_sinusoidal
+
+        elif type_movement == "periodic_uniform":
+
+            params_pu = self.params_milestone.movement.periodic_uniform
+            periodic_uniform = PeriodicUniform(
+                params_pu.speed,
+                params_pu.length,
+                params_pu.length_acc,
+                sim.params.oper.Lx,
+            )
+
+            def get_locations(time):
+                x_coors = periodic_uniform.get_locations(time) * np.ones(
+                    self.number_objects
+                )
+                return x_coors, self.y_coors
+
+            self.get_locations = get_locations
+            self.get_speed = periodic_uniform.get_speed
+            self.period = periodic_uniform.period
         else:
             raise NotImplementedError
 
@@ -89,6 +195,8 @@ class ForcingMilestone(Base):
         lx = oper.Lx
         radius = self.params_milestone.objects.diameter / 2
 
+        width = self.params_milestone.objects.width_boundary_layers
+
         x_coors, y_coors = self.get_locations(time)
         solid = np.zeros_like(oper.X)
         for x, y in zip(x_coors, y_coors):
@@ -97,7 +205,7 @@ class ForcingMilestone(Base):
                 distance_from_center = np.sqrt(
                     (oper.X - x_center) ** 2 + (oper.Y - y) ** 2
                 )
-                solid += step(distance_from_center, radius, 0.2)
+                solid += step(distance_from_center, radius, width)
         return solid, x_coors, y_coors
 
     def get_locations_uniform(self, time):
@@ -178,12 +286,16 @@ class ForcingMilestone(Base):
         movement = self.params_milestone.movement
         type_movement = movement.type
 
-        if type_movement == "uniform":
-            period = lx / movement.uniform.speed
-        elif type_movement == "sinusoidal":
-            period = movement.sinusoidal.period
-        else:
-            raise NotImplementedError
+        try:
+            period = self.period
+        except AttributeError:
+            if type_movement == "uniform":
+                period = lx / movement.uniform.speed
+            elif type_movement == "sinusoidal":
+                period = movement.sinusoidal.period
+            else:
+                raise NotImplementedError
+
         number_frames = 40
         dt = period / number_frames
 
@@ -251,28 +363,53 @@ if __name__ == "__main__":
 
     params = Simul.create_default_params()
 
-    nx = params.oper.nx = 512
-    ny = params.oper.ny = nx // 4
+    diameter = 0.5
+    number_cylinders = 3
+    speed = 0.1
 
-    lx = params.oper.Lx = 40.0
-    params.oper.Ly = lx / nx * ny
+    ny = params.oper.ny = 96 * 2
+    nx = params.oper.nx = 4 * ny / 3
 
-    params.time_stepping.t_end = 100
+    ly = params.oper.Ly = 3 * diameter * number_cylinders
+    lx = params.oper.Lx = ly / ny * nx * 4 / number_cylinders
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
-    params.forcing.milestone.objects.number = 2
-    params.forcing.milestone.movement.type = "sinusoidal"
-    params.forcing.milestone.movement.uniform.speed = 1.0
-    params.forcing.milestone.movement.sinusoidal.length = 0.8 * lx
-    params.forcing.milestone.movement.sinusoidal.period = 20.0
+    objects = params.forcing.milestone.objects
+
+    objects.number = number_cylinders
+    objects.diameter = diameter
+    objects.width_boundary_layers = 0.1
+
+    movement = params.forcing.milestone.movement
+
+    # movement.type = "uniform"
+    # movement.uniform.speed = 1.0
+
+    # movement.type = "sinusoidal"
+    # movement.sinusoidal.length = 14 * diameter
+    # movement.sinusoidal.period = 100.0
+
+    movement.type = "periodic_uniform"
+    movement.periodic_uniform.length = 14 * diameter
+    movement.periodic_uniform.length_acc = 0.25
+    movement.periodic_uniform.speed = speed
 
     params.init_fields.type = "noise"
-    params.init_fields.noise.velo_max = 1e-2
+    params.init_fields.noise.velo_max = 5e-3
 
-    params.nu_8 = 1e-10
+    movement = PeriodicUniform(
+        speed,
+        movement.periodic_uniform.length,
+        movement.periodic_uniform.length_acc,
+        lx,
+    )
 
-    params.output.periods_plot.phys_fields = 2e-1
+    params.time_stepping.t_end = movement.period * 2
+
+    params.nu_8 = 1e-14
+
+    params.output.periods_plot.phys_fields = 5.0
     params.output.periods_print.print_stdout = 5
 
     sim = Simul(params)
