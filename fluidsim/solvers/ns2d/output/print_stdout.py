@@ -34,8 +34,8 @@ class PrintStdOutNS2D(PrintStdOutBase):
 
         if mpi.rank == 0:
             to_print += (
-                "              energy = {:9.3e} ; Delta energy = {:+9.3e}"
-                "".format(energy, delta_energy)
+                f"              energy = {energy:9.3e} ; "
+                f"Delta energy = {delta_energy:+9.3e}\n"
             )
 
             duration_left = self._evaluate_duration_left()
