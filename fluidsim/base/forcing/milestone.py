@@ -357,6 +357,8 @@ class ForcingMilestone(Base):
 
 if __name__ == "__main__":
 
+    from fluiddyn.util import mpi
+
     from fluidsim.solvers.ns2d.with_uxuy import Simul
 
     # from fluidsim.solvers.ns2d.solver import Simul
@@ -414,14 +416,15 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    fig = plt.gcf()
-    ax = fig.axes[0]
-    ax.axis("equal")
-    fig.set_size_inches(14, 4)
+    if mpi.rank == 0:
+        fig = plt.gcf()
+        ax = fig.axes[0]
+        ax.axis("equal")
+        fig.set_size_inches(14, 4)
 
     self = milestone = sim.forcing.forcing_maker
 
-    # sim.time_stepping.start()
+    sim.time_stepping.start()
 
     # milestone.check_with_animation()
     # milestone.check_plot_solid(0)
