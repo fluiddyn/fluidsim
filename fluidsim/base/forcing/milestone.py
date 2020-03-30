@@ -273,7 +273,7 @@ class ForcingMilestone(Base):
         ax.set_ylim((0, ly))
         fig.colorbar(pcmesh)
 
-    def check_with_animation(self):
+    def check_with_animation(self, number_frames=40, interval=500):
 
         oper_c = self.oper_coarse
 
@@ -296,7 +296,6 @@ class ForcingMilestone(Base):
             else:
                 raise NotImplementedError
 
-        number_frames = 40
         dt = period / number_frames
 
         fig, ax = plt.subplots()
@@ -327,7 +326,7 @@ class ForcingMilestone(Base):
             frames=range(number_frames),
             fargs=(pcmesh, scat),
             blit=True,
-            interval=500,  # in ms
+            interval=interval,  # in ms
         )
         plt.show()
 
