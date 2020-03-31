@@ -14,7 +14,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-# from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+from fluiddyn.util import mpi
+
+from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
 from .specific import SpecificForcingPseudoSpectralSimple as Base
 
 
@@ -108,7 +110,7 @@ class ForcingMilestone(Base):
     @classmethod
     def _complete_params_with_default(cls, params):
         Base._complete_params_with_default(params)
-        milestone = params.forcing._set_child(cls.tag)
+        milestone = params.forcing._set_child(cls.tag, dict(nx_max=None))
         milestone._set_child(
             "objects",
             dict(
@@ -128,23 +130,34 @@ class ForcingMilestone(Base):
     def __init__(self, sim):
         super().__init__(sim)
 
-        # params = OperatorsPseudoSpectral2D._create_default_params()
-        # lx = params.oper.Lx = sim.params.oper.Lx
-        # ly = params.oper.Ly = sim.params.oper.Ly
-        # nx = 40
-        # ny = int(nx * ly / lx)
-        # params.oper.nx = nx
-        # params.oper.ny = ny
-        # self.oper_coarse = OperatorsPseudoSpectral2D(params)
-
-        # for now, let's keep it simple!
-        self.oper_coarse = sim.oper
-
         self.params_milestone = sim.params.forcing.milestone
 
-        self.number_objects = self.params_milestone.objects.number
-        mesh = self.oper_coarse.ly / self.number_objects
-        self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
+        if self.params_milestone.nx_max is None:
+            self._is_using_coarse_oper = False
+            self.oper_coarse = sim.oper
+        else:
+            self._is_using_coarse_oper = True
+
+            if mpi.rank == 0:
+                params = OperatorsPseudoSpectral2D._create_default_params()
+                lx = params.oper.Lx = sim.params.oper.Lx
+                ly = params.oper.Ly = sim.params.oper.Ly
+                nx = params.oper.nx = self.params_milestone.nx_max
+                params.oper.ny = 2 * int(nx * ly / lx / 2)
+                params.oper.type_fft = "sequential"
+                self.oper_coarse = OperatorsPseudoSpectral2D(params)
+                self.oper_coarse_shapeK_loc = self.oper_coarse.shapeK_loc
+            else:
+                self.oper_coarse = None
+                self.oper_coarse_shapeK_loc = None
+
+            if mpi.nb_proc > 1:
+                self.oper_coarse_shapeK_loc = mpi.comm.bcast(
+                    self.oper_coarse_shapeK_loc, root=0
+                )
+
+            self.solid = self.sim.oper.create_arrayX()
+            self.solid_fft = self.sim.oper.create_arrayK()
 
         # Calculus of coef_sigma:
         # f(t) = f0 * exp(-sigma*t)
@@ -154,6 +167,10 @@ class ForcingMilestone(Base):
         n_dt = 4
         self.coef_sigma = gamma / n_dt
         self.sigma = self.coef_sigma / self.params.time_stepping.deltat_max
+
+        self.number_objects = self.params_milestone.objects.number
+        mesh = self.sim.oper.ly / self.number_objects
+        self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
 
         type_movement = self.params_milestone.movement.type
         if type_movement == "uniform":
@@ -190,6 +207,9 @@ class ForcingMilestone(Base):
             raise NotImplementedError
 
     def get_solid_field(self, time):
+
+        if self._is_using_coarse_oper and mpi.rank > 0:
+            return (None,) * 3
 
         oper = self.oper_coarse
         lx = oper.Lx
@@ -256,17 +276,17 @@ class ForcingMilestone(Base):
         rot_f = self.fstate.state_phys.get_var("rot")
 
         fig, ax = plt.subplots()
-        oper_c = self.oper_coarse
-        lx = oper_c.Lx
-        ly = oper_c.Ly
+        oper = self.sim.oper
+        lx = oper.Lx
+        ly = oper.Ly
 
-        nx = oper_c.nx
-        ny = oper_c.ny
+        nx = oper.nx
+        ny = oper.ny
         xs = np.linspace(0, lx, nx + 1)
         ys = np.linspace(0, ly, ny + 1)
         pcmesh = ax.pcolormesh(xs, ys, rot_f)
 
-        ax.quiver(oper_c.X, oper_c.Y, fx, fy)
+        ax.quiver(oper.X, oper.Y, fx, fy)
 
         ax.axis("equal")
         ax.set_xlim((0, lx))
@@ -330,6 +350,25 @@ class ForcingMilestone(Base):
         )
         plt.show()
 
+    def _full_from_coarse(self, solid):
+        if mpi.rank == 0:
+            solid_coarse_fft = self.oper_coarse.fft(solid)
+            nKyc, nKxc = self.oper_coarse_shapeK_loc
+            solid_coarse_fft[nKyc // 2, :] = 0.0
+            solid_coarse_fft[:, nKxc - 1] = 0.0
+        else:
+            solid_coarse_fft = None
+
+        self.sim.oper.put_coarse_array_in_array_fft(
+            solid_coarse_fft,
+            self.solid_fft,
+            self.oper_coarse,
+            self.oper_coarse_shapeK_loc,
+        )
+
+        self.sim.oper.ifft_as_arg(self.solid_fft, self.solid)
+        return self.solid
+
     def compute(self, time=None):
 
         sim = self.sim
@@ -338,6 +377,9 @@ class ForcingMilestone(Base):
             time = sim.time_stepping.t
 
         solid, x_coors, y_coors = self.get_solid_field(time)
+
+        if self._is_using_coarse_oper:
+            solid = self._full_from_coarse(solid)
 
         ux = sim.state.state_phys.get_var("ux")
         fx = self.sigma * solid * (self.get_speed(time) - ux)
@@ -356,7 +398,7 @@ class ForcingMilestone(Base):
 
 if __name__ == "__main__":
 
-    from fluiddyn.util import mpi
+    from time import perf_counter
 
     from fluidsim.solvers.ns2d.with_uxuy import Simul
 
@@ -376,6 +418,7 @@ if __name__ == "__main__":
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
+    params.forcing.milestone.nx_max = 48
     objects = params.forcing.milestone.objects
 
     objects.number = number_cylinders
@@ -415,7 +458,7 @@ if __name__ == "__main__":
 
     sim = Simul(params)
 
-    if mpi.rank == 0:
+    if mpi.rank == 0 and params.output.periods_plot.phys_fields:
         fig = plt.gcf()
         ax = fig.axes[0]
         ax.axis("equal")
@@ -423,7 +466,9 @@ if __name__ == "__main__":
 
     self = milestone = sim.forcing.forcing_maker
 
-    sim.time_stepping.start()
+    # t_start = perf_counter()
+    # sim.time_stepping.start()
+    # mpi.printby0(f"Done in {perf_counter() - t_start} s")
 
     # milestone.check_with_animation()
     # milestone.check_plot_solid(0)
