@@ -16,11 +16,9 @@ class PreprocessBase:
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         """Complete the ParamContainer info_solver."""
-        info_solver.classes.Preprocess._set_child("classes")
+        classesXML = info_solver.classes.Preprocess._set_child("classes")
 
         if classes is not None:
-            classesXML = info_solver.classes.Preprocess.classes
-
             for cls in classes:
                 classesXML._set_child(
                     cls.tag,

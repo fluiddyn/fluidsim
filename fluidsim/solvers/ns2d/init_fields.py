@@ -32,11 +32,11 @@ class InitFieldsNoise(SpecificInitFields):
         """Complete the `params` container (class method)."""
         super()._complete_params_with_default(params)
 
-        params.init_fields._set_child(
+        p_noise = params.init_fields._set_child(
             cls.tag, attribs={"velo_max": 1.0, "length": 0.0}
         )
 
-        params.init_fields.noise._set_doc(
+        p_noise._set_doc(
             """
 velo_max: float (default 1.)
 

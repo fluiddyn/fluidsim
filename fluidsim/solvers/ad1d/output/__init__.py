@@ -10,8 +10,7 @@ class Output(OutputBase):
 
         This is a static method!
         """
-        info_solver.classes.Output._set_child("classes")
-        classes = info_solver.classes.Output.classes
+        classes = info_solver.classes.Output._set_child("classes")
 
         base_name_mod = "fluidsim.solvers.ad1d.output"
 

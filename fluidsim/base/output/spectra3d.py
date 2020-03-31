@@ -80,10 +80,10 @@ class Spectra(SpecificOutput):
         tag = "spectra"
 
         params.output.periods_save._set_attrib(tag, 0)
-        params.output._set_child(
+        p_spectra = params.output._set_child(
             tag, attribs={"HAS_TO_PLOT_SAVED": False, "kzkh_periodicity": 0}
         )
-        params.output.spectra._set_doc(
+        p_spectra._set_doc(
             dedent(
                 """
                     HAS_TO_PLOT_SAVED : bool (False)

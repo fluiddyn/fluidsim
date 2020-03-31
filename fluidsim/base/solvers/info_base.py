@@ -45,9 +45,9 @@ class InfoSolverBase(ParamContainer):
             }
         )
 
-        self._set_child("classes")
+        classes = self._set_child("classes")
 
-        self.classes._set_child(
+        classes._set_child(
             "Operators",
             attribs={
                 "module_name": "fluidsim.operators.operators0d",
@@ -55,7 +55,7 @@ class InfoSolverBase(ParamContainer):
             },
         )
 
-        self.classes._set_child(
+        classes._set_child(
             "State",
             attribs={
                 "module_name": "fluidsim.base.state",
@@ -63,7 +63,7 @@ class InfoSolverBase(ParamContainer):
             },
         )
 
-        self.classes._set_child(
+        classes._set_child(
             "TimeStepping",
             attribs={
                 "module_name": "fluidsim.base.time_stepping.simple",
@@ -71,7 +71,7 @@ class InfoSolverBase(ParamContainer):
             },
         )
 
-        self.classes._set_child(
+        classes._set_child(
             "InitFields",
             attribs={
                 "module_name": "fluidsim.base.init_fields",
@@ -79,7 +79,7 @@ class InfoSolverBase(ParamContainer):
             },
         )
 
-        self.classes._set_child(
+        classes._set_child(
             "Forcing",
             attribs={
                 "module_name": "fluidsim.base.forcing",
@@ -87,7 +87,7 @@ class InfoSolverBase(ParamContainer):
             },
         )
 
-        self.classes._set_child(
+        classes._set_child(
             "Output",
             attribs={
                 "module_name": "fluidsim.base.output.base",

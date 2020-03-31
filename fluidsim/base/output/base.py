@@ -46,8 +46,7 @@ class OutputBase:
     @staticmethod
     def _complete_info_solver(info_solver):
         """Complete the ParamContainer info_solver."""
-        info_solver.classes.Output._set_child("classes")
-        classes = info_solver.classes.Output.classes
+        classes = info_solver.classes.Output._set_child("classes")
 
         classes._set_child(
             "PrintStdOut",
@@ -75,9 +74,9 @@ class OutputBase:
             "HAS_TO_SAVE": True,
             "sub_directory": "",
         }
-        params._set_child("output", attribs=attribs)
+        p_output = params._set_child("output", attribs=attribs)
 
-        params.output._set_doc(
+        p_output._set_doc(
             """
 
 See :mod:`fluidsim.output.base`
@@ -100,21 +99,21 @@ sub_directory: str (default: "")
 """
         )
 
-        params.output._set_child("periods_save")
-        params.output.periods_save._set_doc(
+        p_output._set_child("periods_save")
+        p_output.periods_save._set_doc(
             """
 Periods (float, in equation time) to set when the specific outputs are saved.
 """
         )
-        params.output._set_child("periods_print")
-        params.output.periods_print._set_doc(
+        p_output._set_child("periods_print")
+        p_output.periods_print._set_doc(
             """
 Periods (float, in equation time) to set when the printing specific outputs are
 called.
 """
         )
-        params.output._set_child("periods_plot")
-        params.output.periods_plot._set_doc(
+        p_output._set_child("periods_plot")
+        p_output.periods_plot._set_doc(
             """
 Periods (float, in equation time) to set when the plots of the specific outputs
 are called.

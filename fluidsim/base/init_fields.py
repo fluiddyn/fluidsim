@@ -39,9 +39,7 @@ class InitFieldsBase:
           default one (for example with the tag 'noise').
 
         """
-        info_solver.classes.InitFields._set_child("classes")
-
-        classesXML = info_solver.classes.InitFields.classes
+        classesXML = info_solver.classes.InitFields._set_child("classes")
 
         classes_used = [
             InitFieldsFromFile,

@@ -28,8 +28,7 @@ class Output(OutputBasePseudoSpectral):
 
         This is a static method!
         """
-        info_solver.classes.Output._set_child("classes")
-        classes = info_solver.classes.Output.classes
+        classes = info_solver.classes.Output._set_child("classes")
 
         package = "fluidsim.solvers.plate2d.output"
 

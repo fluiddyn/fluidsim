@@ -52,7 +52,7 @@ class InitFieldsLinearMode(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         """Complete the `params` container (class method)."""
         super()._complete_params_with_default(params)
-        params.init_fields._set_child(
+        p_linear_mode = params.init_fields._set_child(
             cls.tag,
             attribs={
                 "i_mode": (8, 8),
@@ -62,7 +62,7 @@ class InitFieldsLinearMode(SpecificInitFields):
             },
         )
 
-        params.init_fields.linear_mode._set_doc(
+        p_linear_mode._set_doc(
             """
         i_mode : tuple
 

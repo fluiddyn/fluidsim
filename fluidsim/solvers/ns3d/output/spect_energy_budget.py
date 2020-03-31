@@ -12,7 +12,6 @@ from textwrap import dedent
 import numpy as np
 import h5py
 
-from fluiddyn.util import mpi
 from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.output.base import SpecificOutput
@@ -67,8 +66,10 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         tag = cls._tag
 
         params.output.periods_save._set_attrib(tag, 0)
-        params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
-        params.output.spectra._set_doc(
+        p_seb = params.output._set_child(
+            tag, attribs={"HAS_TO_PLOT_SAVED": False}
+        )
+        p_seb._set_doc(
             dedent(
                 """
                     HAS_TO_PLOT_SAVED : bool (False)
