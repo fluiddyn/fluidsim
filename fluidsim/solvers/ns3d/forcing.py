@@ -23,6 +23,8 @@ from fluidsim.util.frequency_modulation import FrequencyModulatedSignalMaker
 from fluidsim.base.forcing.base import ForcingBasePseudoSpectral
 from fluidsim.base.forcing.specific import SpecificForcingPseudoSpectralSimple
 
+from .milestone import ForcingMilestone3D
+
 
 class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
     """Forcing mimicking an experimental setup in the Coriolis platform.
@@ -169,5 +171,5 @@ class ForcingNS3D(ForcingBasePseudoSpectral):
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         ForcingBasePseudoSpectral._complete_info_solver(
-            info_solver, [ForcingInternalWavesWatuCoriolis]
+            info_solver, [ForcingInternalWavesWatuCoriolis, ForcingMilestone3D]
         )

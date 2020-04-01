@@ -132,6 +132,9 @@ class ForcingMilestone(Base):
 
         self.params_milestone = sim.params.forcing.milestone
 
+        lx = sim.params.oper.Lx
+        ly = sim.params.oper.Ly
+
         if self.params_milestone.nx_max is None:
             self._is_using_coarse_oper = False
             self.oper_coarse = sim.oper
@@ -140,8 +143,8 @@ class ForcingMilestone(Base):
 
             if mpi.rank == 0:
                 params = OperatorsPseudoSpectral2D._create_default_params()
-                lx = params.oper.Lx = sim.params.oper.Lx
-                ly = params.oper.Ly = sim.params.oper.Ly
+                params.oper.Lx = lx
+                params.oper.Ly = ly
                 nx = params.oper.nx = self.params_milestone.nx_max
                 params.oper.ny = 2 * int(nx * ly / lx / 2)
                 params.oper.type_fft = "sequential"
@@ -169,7 +172,7 @@ class ForcingMilestone(Base):
         self.sigma = self.coef_sigma / self.params.time_stepping.deltat_max
 
         self.number_objects = self.params_milestone.objects.number
-        mesh = self.sim.oper.ly / self.number_objects
+        mesh = ly / self.number_objects
         self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
 
         type_movement = self.params_milestone.movement.type
