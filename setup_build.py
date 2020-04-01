@@ -9,7 +9,7 @@ try:
     from setup_config import PARALLEL_COMPILE
 except ImportError:
     # needed when there is already a module with the same name imported.
-    setup_config = run_path(here / "setup_config.py")
+    setup_config = run_path(str(here / "setup_config.py"))
     PARALLEL_COMPILE = setup_config["PARALLEL_COMPILE"]
 
 

@@ -28,7 +28,7 @@ try:
     from setup_config import FFTW3, logger
 except ImportError:
     # needed when there is already a module with the same name imported.
-    setup_config = run_path(here / "setup_config.py")
+    setup_config = run_path(str(here / "setup_config.py"))
     FFTW3 = setup_config["FFTW3"]
     logger = setup_config["logger"]
 
@@ -36,7 +36,7 @@ try:
     from setup_build import FluidSimBuildExt
 except ImportError:
     # needed when there is already a module with the same name imported.
-    FluidSimBuildExt = run_path(here / "setup_build.py")["FluidSimBuildExt"]
+    FluidSimBuildExt = run_path(str(here / "setup_build.py"))["FluidSimBuildExt"]
 
 time_start = time()
 
