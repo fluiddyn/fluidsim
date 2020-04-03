@@ -246,6 +246,13 @@ Lx, Ly and Lz: float
                 )
                 self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
 
+    @property
+    def K2_not0(self):
+        K2_not0 = np.copy(self.K2)
+        if sum(self.seq_indices_first_K) == 0:
+            K2_not0[0, 0, 0] = 1e-14
+        return K2_not0
+
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
         return self._op_fft.build_invariant_arrayX_from_2d_indices12X(

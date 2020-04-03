@@ -90,6 +90,8 @@ class TestOutput(TestSimulBase):
         params.forcing.type = "in_script"
         params.forcing.key_forced = "vx_fft"
 
+        params.nu_m4 = 1e-3
+
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:

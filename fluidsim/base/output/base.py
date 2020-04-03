@@ -29,11 +29,7 @@ import matplotlib.pyplot as plt
 
 import fluiddyn
 from fluiddyn.util import mpi
-from fluiddyn.util import (
-    is_run_from_ipython,
-    time_as_str,
-    print_memory_usage,
-)
+from fluiddyn.util import is_run_from_ipython, time_as_str, print_memory_usage
 from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, Path
 
 import fluidsim

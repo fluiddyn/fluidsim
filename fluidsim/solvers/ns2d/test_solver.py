@@ -117,6 +117,8 @@ class TestForcingOutput(TestSimulBase):
 
         params.time_stepping.max_elapsed = "0:10:00"
 
+        params.nu_m4 = 1e-3
+
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:

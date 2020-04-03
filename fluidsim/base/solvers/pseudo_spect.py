@@ -177,10 +177,13 @@ nu_m4: float
         if self.params.nu_m4 != 0.0:
             f_d_hypo = self.params.nu_m4 / self.oper.K2_not0 ** 2
             # mode K2 = 0 !
-            if mpi.rank == 0:
-                f_d_hypo[0, 0] = f_d_hypo[0, 1]
-
-            f_d_hypo[self.oper.K <= 20] = 0.0
+            dim = len(self.oper.shapeK)
+            if dim == 2:
+                if mpi.rank == 0:
+                    f_d_hypo[0, 0] = f_d_hypo[0, 1]
+            else:
+                if sum(self.oper.seq_indices_first_K) == 0:
+                    f_d_hypo[0, 0, 0] = f_d_hypo[0, 0, 1]
 
         else:
             f_d_hypo = 0.0
