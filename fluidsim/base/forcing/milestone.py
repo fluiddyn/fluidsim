@@ -127,11 +127,7 @@ class ForcingMilestone(Base):
             "periodic_uniform", dict(length=1.0, length_acc=1.0, speed=1.0)
         )
 
-    def __init__(self, sim):
-        super().__init__(sim)
-
-        self.params_milestone = sim.params.forcing.milestone
-
+    def _init_operators(self, sim):
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly
 
@@ -159,8 +155,23 @@ class ForcingMilestone(Base):
                     self.oper_coarse_shapeK_loc, root=0
                 )
 
-            self.solid = self.sim.oper.create_arrayX()
-            self.solid_fft = self.sim.oper.create_arrayK()
+            self.solid = self.sim.oper.create_arrayX(value=0)
+            self.solid_fft = self.sim.oper.create_arrayK(value=0)
+
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        self.params_milestone = sim.params.forcing.milestone
+
+        nx_max = self.params_milestone.nx_max
+
+        if nx_max is not None and nx_max > sim.params.oper.nx:
+            raise ValueError
+
+        if nx_max == sim.params.oper.nx:
+            self.params_milestone.nx_max = None
+
+        self._init_operators(sim)
 
         # Calculus of coef_sigma:
         # f(t) = f0 * exp(-sigma*t)
@@ -172,7 +183,7 @@ class ForcingMilestone(Base):
         self.sigma = self.coef_sigma / self.params.time_stepping.deltat_max
 
         self.number_objects = self.params_milestone.objects.number
-        mesh = ly / self.number_objects
+        mesh = sim.params.oper.Ly / self.number_objects
         self.y_coors = mesh * (1 / 2 + np.arange(self.number_objects))
 
         type_movement = self.params_milestone.movement.type

@@ -8,8 +8,38 @@ from fluidsim.base.forcing.milestone import (
 
 
 class ForcingMilestone3D(ForcingMilestone):
+    def _init_operators(self, sim):
+        lx = sim.params.oper.Lx
+        ly = sim.params.oper.Ly
+
+        if self.params_milestone.nx_max is None:
+            self._is_using_coarse_oper = False
+            self.oper_coarse = self.oper2d_big
+        else:
+            self._is_using_coarse_oper = True
+
+            if mpi.rank == 0:
+                params = OperatorsPseudoSpectral2D._create_default_params()
+                params.oper.Lx = lx
+                params.oper.Ly = ly
+                nx = params.oper.nx = self.params_milestone.nx_max
+                params.oper.ny = 2 * int(nx * ly / lx / 2)
+                params.oper.type_fft = "sequential"
+                self.oper_coarse = OperatorsPseudoSpectral2D(params)
+                self.oper_coarse_shapeK_loc = self.oper_coarse.shapeK_loc
+            else:
+                self.oper_coarse = None
+                self.oper_coarse_shapeK_loc = None
+
+            if mpi.nb_proc > 1:
+                self.oper_coarse_shapeK_loc = mpi.comm.bcast(
+                    self.oper_coarse_shapeK_loc, root=0
+                )
+
+            self.solid = self.sim.oper.create_arrayX(value=0)
+            self.solid_fft = self.sim.oper.create_arrayK(value=0)
+
     def __init__(self, sim):
-        super().__init__(sim)
 
         if mpi.rank == 0:
             params = OperatorsPseudoSpectral2D._create_default_params()
@@ -19,31 +49,38 @@ class ForcingMilestone3D(ForcingMilestone):
             params.oper.ny = sim.params.oper.ny
             params.oper.type_fft = "sequential"
             self.oper2d_big = OperatorsPseudoSpectral2D(params)
-            self.solid2d_big_fft = self.oper2d_big.create_arrayK()
-            self.solid2d_big = self.oper2d_big.create_arrayX()
+            self.solid2d_big_fft = self.oper2d_big.create_arrayK(value=0)
+            self.solid2d_big = self.oper2d_big.create_arrayX(value=0)
+
+        super().__init__(sim)
 
     def _full_from_coarse(self, solid):
 
-        if mpi.rank == 0:
-            solid_coarse_fft = self.oper_coarse.fft(solid)
-            nKyc, nKxc = self.oper_coarse_shapeK_loc
-            solid_coarse_fft[nKyc // 2, :] = 0.0
-            solid_coarse_fft[:, nKxc - 1] = 0.0
+        if self._is_using_coarse_oper:
+            if mpi.rank == 0:
+                solid_coarse_fft = self.oper_coarse.fft(solid)
+                nKyc, nKxc = self.oper_coarse_shapeK_loc
+                solid_coarse_fft[nKyc // 2, :] = 0.0
+                solid_coarse_fft[:, nKxc - 1] = 0.0
+            else:
+                solid_coarse_fft = None
+
+            self.oper2d_big.put_coarse_array_in_array_fft(
+                solid_coarse_fft,
+                self.solid2d_big_fft,
+                self.oper_coarse,
+                self.oper_coarse_shapeK_loc,
+            )
+
+            self.oper2d_big.ifft_as_arg(self.solid2d_big_fft, self.solid2d_big)
+
         else:
-            solid_coarse_fft = None
-
-        self.oper2d_big.put_coarse_array_in_array_fft(
-            solid_coarse_fft,
-            self.solid2d_big_fft,
-            self.oper_coarse,
-            self.oper_coarse_shapeK_loc,
-        )
-
-        self.oper2d_big.ifft_as_arg(self.solid2d_big_fft, self.solid2d_big)
+            self.solid2d_big = solid
 
         self.solid = self.sim.oper.oper_fft.build_invariant_arrayX_from_2d_indices12X(
             self.oper2d_big.oper_fft, self.solid2d_big
         )
+
         return self.solid
 
     def compute(self, time=None):
@@ -63,6 +100,7 @@ class ForcingMilestone3D(ForcingMilestone):
 
         fy = -self.sigma * solid * sim.state.state_phys.get_var("vy")
         fy_fft = sim.oper.fft(fy)
+
         self.fstate.init_statespect_from(vx_fft=fx_fft, vy_fft=fy_fft)
 
 
@@ -91,7 +129,7 @@ if __name__ == "__main__":
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
-    params.forcing.milestone.nx_max = 48
+    # params.forcing.milestone.nx_max = 48
     objects = params.forcing.milestone.objects
 
     objects.number = number_cylinders

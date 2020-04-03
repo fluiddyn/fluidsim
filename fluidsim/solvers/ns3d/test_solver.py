@@ -46,6 +46,7 @@ class TestSimulBase(TestSimul):
         params.nu_8 = 2.0
 
         params.time_stepping.t_end = 0.2
+        params.init_fields.type = "noise"
 
         return params
 
@@ -54,8 +55,6 @@ class TestTendency(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
-
-        params.init_fields.type = "noise"
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
@@ -264,6 +263,40 @@ class TestForcingWatuCoriolis(TestSimulBase):
             var = sim_restart.state.get_var(key)
             var_big = sim_big.state.get_var(key)
             assert np.allclose(np.mean(var ** 2), np.mean(var_big ** 2))
+
+
+@unittest.skipIf(mpi.nb_proc != 1, "Not implemented in MPI")
+class TestForcingMilestone(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.forcing.enable = True
+        params.forcing.type = "milestone"
+        movement = params.forcing.milestone.movement
+        movement.type = "uniform"
+        movement.uniform.speed = 1.0
+
+        params.init_fields.type = "noise"
+        params.init_fields.noise.velo_max = 5e-3
+
+        return params
+
+    def test_milestone(self):
+        self.sim.time_stepping.start()
+
+
+@unittest.skipIf(mpi.nb_proc != 1, "Not implemented in MPI")
+class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.time_stepping.t_end = 2.0
+        params.forcing.milestone.nx_max = 24
+        movement = params.forcing.milestone.movement
+        movement.type = "periodic_uniform"
+        movement.periodic_uniform.length = 2.0
+        movement.periodic_uniform.length_acc = 0.25
+        movement.periodic_uniform.speed = 2.5
 
 
 if __name__ == "__main__":
