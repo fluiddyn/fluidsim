@@ -133,6 +133,10 @@ class OperatorsPseudoSpectral2D(_Operators):
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 
+        # compatibility for fluidfft <= 0.3.0
+        if not hasattr(self, "oper_fft") and hasattr(self, "opfft"):
+            self.oper_fft = self.opfft
+
         self.Lx = self.lx
         self.Ly = self.ly
 
@@ -145,7 +149,7 @@ class OperatorsPseudoSpectral2D(_Operators):
                 self.project_fft_on_realX = self.project_fft_on_realX_slow
 
         if not self.is_sequential:
-            self.iKxloc_start, _ = self.opfft.get_seq_indices_first_K()
+            self.iKxloc_start, _ = self.oper_fft.get_seq_indices_first_K()
             self.iKxloc_start_rank = np.array(comm.allgather(self.iKxloc_start))
 
             nkx_loc_rank = np.array(comm.allgather(self.nkx_loc))

@@ -205,6 +205,10 @@ Lx, Ly and Lz: float
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 
+        # compatibility for fluidfft <= 0.3.0
+        if not hasattr(self, "oper_fft") and hasattr(self, "_op_fft"):
+            self.oper_fft = self._op_fft
+
         # problem here type_fft
         params2d = deepcopy(params)
         params2d.oper.type_fft = params2d.oper.type_fft2d
@@ -230,7 +234,7 @@ Lx, Ly and Lz: float
             nk2_loc_rank = np.array(comm.allgather(nk2_loc))
             a = nk2_loc_rank
             self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
-            self.dimX_K = self._op_fft.get_dimX_K()
+            self.dimX_K = self.oper_fft.get_dimX_K()
         else:
             self.SAME_SIZE_IN_ALL_PROC = True
 
@@ -255,13 +259,13 @@ Lx, Ly and Lz: float
 
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
-        return self._op_fft.build_invariant_arrayX_from_2d_indices12X(
+        return self.oper_fft.build_invariant_arrayX_from_2d_indices12X(
             self.oper2d, arr2d
         )
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
-        return self._op_fft.build_invariant_arrayK_from_2d_indices12X(
+        return self.oper_fft.build_invariant_arrayK_from_2d_indices12X(
             self.oper2d, arr2d
         )
 
@@ -518,7 +522,7 @@ Lx, Ly and Lz: float
         if self._is_mpi_lib:
             # much more complicated in this case
             raise NotImplementedError
-        dimX_K = self._op_fft.get_dimX_K()
+        dimX_K = self.oper_fft.get_dimX_K()
         if dimX_K == (0, 1, 2):
             ikz, iky, ikx = ik0, ik1, ik2
         else:
@@ -531,7 +535,7 @@ Lx, Ly and Lz: float
             # much more complicated in this case
             raise NotImplementedError
         rank_k = 0
-        dimX_K = self._op_fft.get_dimX_K()
+        dimX_K = self.oper_fft.get_dimX_K()
         if dimX_K == (0, 1, 2):
             ik0, ik1, ik2 = ikz, iky, ikx
         else:
