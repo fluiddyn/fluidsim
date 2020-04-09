@@ -81,8 +81,9 @@ class TestSolverAD1D(TestSimul):
         with self.assertRaises(ValueError):
             sim.state.compute("bar")
 
-        sim.oper.identity()
-        sim.oper.pxx(dx_s)
+        if hasattr(sim.oper, "identity"):
+            sim.oper.identity()
+            sim.oper.pxx(dx_s)
 
         sim.output.phys_fields.plot()
         sim.output.phys_fields.plot(field="s", time=10)

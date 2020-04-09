@@ -28,12 +28,12 @@ from .base import TimeSteppingBase
 
 ts = Transonic()
 
-N = NDim(3, 4)
-A = Array[np.complex128, N]
+N = NDim(2, 3, 4)
+A = Array[np.complex128, N, "C"]
 
 T = Type(np.float64, np.complex128)
-A1 = Array[T, N]
-A2 = Array[T, N - 1]
+A1 = Array[T, N, "C"]
+A2 = Array[T, N - 1, "C"]
 
 
 class ExactLinearCoefs:

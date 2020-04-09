@@ -21,7 +21,8 @@ class InfoSolverAD1DPseudoSpect(InfoSolverPseudoSpectral):
     def _init_root(self):
         super()._init_root()
 
-        package = "fluidsim.solvers.ad1d.pseudo_spect"
+        package_base = "fluidsim.solvers.ad1d"
+        package = package_base + ".pseudo_spect"
         self.module_name = package + ".solver"
         self.class_name = "Simul"
         self.short_name = "AD1D"
@@ -30,6 +31,9 @@ class InfoSolverAD1DPseudoSpect(InfoSolverPseudoSpectral):
 
         classes.Operators.module_name = "fluidsim.operators.operators1d"
         classes.Operators.class_name = "OperatorsPseudoSpectral1D"
+
+        classes.InitFields.module_name = package_base + ".init_fields"
+        classes.InitFields.class_name = "InitFieldsAD1D"
 
         classes.State.module_name = package + ".state"
         classes.State.class_name = "StateAD1DPseudoSpectral"
