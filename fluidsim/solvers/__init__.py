@@ -17,6 +17,7 @@ example, :mod:`fluidsim.solvers.ns2d.strat` or
    waves2d
    sphere
    models0d
+   nl1d
 
 Provides:
 

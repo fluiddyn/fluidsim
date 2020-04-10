@@ -45,6 +45,9 @@ class InitFieldsGaussian(SpecificInitFields):
         s = np.exp(-((10 * (oper.xs - oper.Lx / 2.0)) ** 2))
         self.sim.state.state_phys[0] = s
 
+        if hasattr(self.sim.state, "statespect_from_statephys"):
+            self.sim.state.statespect_from_statephys()
+
 
 class InitFieldsAD1D(InitFieldsBase):
     """Init the fields for the solver AD1D."""

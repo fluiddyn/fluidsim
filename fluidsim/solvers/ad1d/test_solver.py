@@ -9,7 +9,7 @@ except ImportError:
     scipy_installed = False
 
 
-import fluiddyn.util.mpi as mpi
+from fluiddyn.util import mpi
 
 from fluidsim.solvers.ad1d.solver import Simul
 
