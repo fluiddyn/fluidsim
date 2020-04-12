@@ -43,7 +43,7 @@ class OperatorsBase1D:
         self.size = nx
         self.shapeX = self.shapeX_seq = self.shapeX_loc = self.shape = (nx,)
         self.deltax = Lx / nx
-        self.x = self.x_seq = self.x_loc = self.xs = np.linspace(0, Lx, nx)
+        self.x = self.x_seq = self.x_loc = self.xs = self.deltax * np.arange(nx)
 
     def _str_describing_oper(self):
         if (self.Lx / np.pi).is_integer():

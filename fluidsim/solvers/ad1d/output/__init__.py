@@ -39,4 +39,4 @@ class Output(OutputBase):
         params.output.phys_fields.field_to_plot = "s"
 
     def compute_energy(self):
-        return 0.5 * np.mean(self.sim.state.state_phys.get_var("s") ** 2)
+        return 0.5 * np.mean(self.sim.state.state_phys ** 2)

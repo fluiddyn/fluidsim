@@ -105,4 +105,4 @@ if __name__ == "__main__":
     # sim.output.phys_fields.plot(field='s')
 
     sim.time_stepping.start()
-# sim.output.phys_fields.plot(field='s')
+    # sim.output.phys_fields.plot(field='s')

@@ -31,12 +31,11 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         return params
 
     def __init__(self, params, SEQUENTIAL=None):
-        # super(OperatorsPseudoSpectral1D, self).__init__(params)
         super().__init__(params)
-        # OperatorsBase1D.__init__(self, params)
 
         assert params.oper.type_fft == "sequential"
-        opfft = FFTW1DReal2Complex(params.oper.nx)
+        nx = params.oper.nx
+        opfft = FFTW1DReal2Complex(nx)
         self.fft = opfft.fft
         self.ifft = opfft.ifft
         self.fft_as_arg = opfft.fft_as_arg
@@ -46,15 +45,15 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         self.shapeK = self.shapeK_loc = opfft.shapeK
         self.deltakx = 2 * np.pi / self.Lx
         self.nkx = self.shapeK[0]
-        self.kx = self.deltax * np.arange(self.nkx)
-        # self.kx = kx = self.deltax * np.array(
-        #     list(range(nx//2 + 1)) + list(range(-nx//2 + 1, 0)))
+        self.kx = self.deltakx * np.arange(self.nkx)
+        assert self.nkx == self.nx // 2 + 1
 
         self.coef_dealiasing = params.oper.coef_dealiasing
-        kx_max = self.deltakx * (self.nx // 2 + 1)
+        kx_max = self.deltakx * (self.nkx - 1)
+        assert kx_max == self.kx.max()
+
         CONDKX = abs(self.kx) > self.coef_dealiasing * kx_max
-        self.where_dealiased = np.array(CONDKX, dtype=np.uint8)
-        self.indexes_dealiased = np.argwhere(CONDKX)
+        self.where_dealiased = np.array(CONDKX, dtype=np.bool)
 
         # for spectra
         self.nkxE = self.nx // 2 + 1
