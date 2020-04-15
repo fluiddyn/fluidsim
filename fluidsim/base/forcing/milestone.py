@@ -106,6 +106,7 @@ class PeriodicUniform:
 
 class ForcingMilestone(Base):
     tag = "milestone"
+    ndim = 2
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -222,7 +223,7 @@ class ForcingMilestone(Base):
 
     def get_solid_field(self, time):
 
-        if self._is_using_coarse_oper and mpi.rank > 0:
+        if mpi.rank > 0 and (self._is_using_coarse_oper or self.ndim == 3):
             return (None,) * 3
 
         oper = self.oper_coarse

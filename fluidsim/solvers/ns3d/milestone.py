@@ -8,6 +8,8 @@ from fluidsim.base.forcing.milestone import (
 
 
 class ForcingMilestone3D(ForcingMilestone):
+    ndim = 3
+
     def _init_operators(self, sim):
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly

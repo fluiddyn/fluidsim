@@ -265,7 +265,6 @@ class TestForcingWatuCoriolis(TestSimulBase):
             assert np.allclose(np.mean(var ** 2), np.mean(var_big ** 2))
 
 
-@unittest.skipIf(mpi.nb_proc != 1, "Not implemented in MPI")
 class TestForcingMilestone(TestSimulBase):
     @classmethod
     def init_params(self):
@@ -285,7 +284,6 @@ class TestForcingMilestone(TestSimulBase):
         self.sim.time_stepping.start()
 
 
-@unittest.skipIf(mpi.nb_proc != 1, "Not implemented in MPI")
 class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
     @classmethod
     def init_params(self):

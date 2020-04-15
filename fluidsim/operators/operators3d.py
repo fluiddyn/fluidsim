@@ -259,7 +259,6 @@ Lx, Ly and Lz: float
 
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d, oper2d=None):
         """Build a 3D array from a 2D array"""
-
         if oper2d is None:
             oper2d = self.oper2d
 
@@ -267,8 +266,25 @@ Lx, Ly and Lz: float
             return self.oper_fft.build_invariant_arrayX_from_2d_indices12X(
                 oper2d.oper_fft, arr2d
             )
+
+        if mpi.rank > 0:
+            assert arr2d is None
+        arr2d = mpi.comm.bcast(arr2d, root=0)
+
+        n0_loc, n1_loc, n2_loc = self.shapeX_loc
+
+        if mpi.rank == 0:
+            shapeX_loc_2d = oper2d.shapeX_loc
         else:
+            shapeX_loc_2d = None
+        shapeX_loc_2d = mpi.comm.bcast(shapeX_loc_2d, root=0)
+
+        if shapeX_loc_2d != (n1_loc, n2_loc):
             raise NotImplementedError
+            # ind0seq_first, ind1seq_first, ind2seq_first = \
+            #     self.oper_fft.get_seq_indices_first_K()
+
+        return np.stack(n0_loc * [arr2d])
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""
