@@ -528,7 +528,7 @@ class OperatorsPseudoSpectral2D(_Operators):
 
         nKyc, nKxc = shapeK_loc_coarse
 
-        if mpi.nb_proc > 1:
+        if mpi.nb_proc > 1 and not self.is_sequential:
             if not self.is_transposed:
                 raise NotImplementedError()
 

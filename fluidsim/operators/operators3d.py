@@ -257,11 +257,18 @@ Lx, Ly and Lz: float
             K2_not0[0, 0, 0] = 1e-14
         return K2_not0
 
-    def build_invariant_arrayX_from_2d_indices12X(self, arr2d):
+    def build_invariant_arrayX_from_2d_indices12X(self, arr2d, oper2d=None):
         """Build a 3D array from a 2D array"""
-        return self.oper_fft.build_invariant_arrayX_from_2d_indices12X(
-            self.oper2d, arr2d
-        )
+
+        if oper2d is None:
+            oper2d = self.oper2d
+
+        if mpi.nb_proc == 1:
+            return self.oper_fft.build_invariant_arrayX_from_2d_indices12X(
+                oper2d.oper_fft, arr2d
+            )
+        else:
+            raise NotImplementedError
 
     def build_invariant_arrayK_from_2d_indices12X(self, arr2d):
         """Build a 3D array from a 2D array"""

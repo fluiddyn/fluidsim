@@ -166,7 +166,7 @@ class ForcingMilestone(Base):
         nx_max = self.params_milestone.nx_max
 
         if nx_max is not None and nx_max > sim.params.oper.nx:
-            raise ValueError
+            raise ValueError("params_milestone.nx_max > sim.params.oper.nx")
 
         if nx_max == sim.params.oper.nx:
             self.params_milestone.nx_max = None
