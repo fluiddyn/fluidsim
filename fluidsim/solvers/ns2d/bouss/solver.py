@@ -64,14 +64,6 @@ class Simul(SimulNS2D):
 
     InfoSolver = InfoSolverNS2DBouss
 
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
-        SimulNS2D._complete_params_with_default(params)
-        attribs = {"NO_SHEAR_MODES": False}
-        params._set_attribs(attribs)
-
     def tendencies_nonlin(self, state_spect=None, old=None):
         r"""Compute the nonlinear tendencies of the solver ns2d.strat.
 

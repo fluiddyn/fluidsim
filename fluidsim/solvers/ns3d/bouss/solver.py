@@ -96,14 +96,6 @@ class Simul(SimulStrat):
     """
     InfoSolver = InfoSolverNS3DBouss
 
-    @staticmethod
-    def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
-        SimulStrat._complete_params_with_default(params)
-        attribs = {"NO_SHEAR_MODES": False}
-        params._set_attribs(attribs)
-
     def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg
