@@ -190,6 +190,63 @@ nu_m4: float
 
         return f_d, f_d_hypo
 
+    def plot_freq_diss(self, key_k=None):
+        r"""Plot the dissipation frequencies as functions of k.
+
+        key_k : `str`
+            key for wavevector to plot with (kx,ky or kz)
+
+        """
+
+        f_d, f_d_hypo = self.compute_freq_diss()
+
+        oper = self.oper
+        kx = oper.deltakx * np.arange(oper.nkx_spectra)
+        ky = oper.deltaky * np.arange(oper.nky_spectra)
+        kz = oper.deltakz * np.arange(oper.nkz_spectra)
+        dict_k = {"kx": kx, "ky": ky, "kz": kz}
+
+        if key_k == None:
+            key_k = "kx"
+        ks = dict_k[key_k]
+        ks_not0 = ks.copy()
+        ks_not0[ks == 0] = np.nan
+
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(f"${key_k}$")
+        ax.set_ylabel(r"$\omega_\mathrm{diss}$")
+        ax.set_title(
+            "Dissipation frequencies, solver "
+            + self.output.name_solver
+            + f", nx = {oper.nx:5d}"
+        )
+
+        f_d_tot = np.zeros_like(ks)
+
+        if self.params.nu_2 > 0:
+            f_d_2 = self.params.nu_2 * ks ** 2
+            ax.plot(ks, f_d_2, "r", linewidth=2, label=r"$\nu_2$")
+            f_d_tot += f_d_2
+
+        if self.params.nu_4 > 0.0:
+            f_d_4 = self.params.nu_4 * ks ** 4
+            ax.plot(ks, f_d_4, "m", linewidth=2, label=r"$\nu_4$")
+            f_d_tot += f_d_4
+
+        if self.params.nu_8 > 0.0:
+            f_d_8 = self.params.nu_8 * ks ** 8
+            ax.plot(ks, f_d_8, "b", linewidth=2, label=r"$\nu_8$")
+            f_d_tot += f_d_8
+
+        if self.params.nu_m4 != 0.0:
+            f_d_hypo = self.params.nu_m4 / ks_not0 ** 4
+            ax.plot(ks, f_d_hypo, "g", linewidth=2, label=r"$\nu_{-4}$")
+            f_d_tot += f_d_hypo
+
+        ax.plot(ks, f_d_tot, "k--", linewidth=2, label="total")
+
+        ax.legend()
+
     def tendencies_nonlin(self, variables=None, old=None):
         r"""Compute the nonlinear tendencies.
 

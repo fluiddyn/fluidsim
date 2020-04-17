@@ -287,7 +287,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         eps_hypo = epsK_hypo + epsA_hypo
         if max(eps_hypo) > 0:
-            ax.plot(t, eps_hypo, "g", linewidth=1)
+            ax.plot(t, eps_hypo, "g", linewidth=1, label=r"$\epsilon_{hypo}$")
 
         if "PK_tot" in dict_results and plot_injection:
             PK_tot = dict_results["PK_tot"]
