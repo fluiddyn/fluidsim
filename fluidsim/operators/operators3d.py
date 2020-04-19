@@ -257,6 +257,10 @@ Lx, Ly and Lz: float
             K2_not0[0, 0, 0] = 1e-14
         return K2_not0
 
+    @property
+    def K4(self):
+        return self.K2 ** 2
+
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d, oper2d=None):
         """Build a 3D array from a 2D array"""
         if oper2d is None:
