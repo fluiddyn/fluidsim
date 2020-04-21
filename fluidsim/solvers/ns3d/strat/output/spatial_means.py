@@ -82,41 +82,24 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write(f"####\ntime = {tsim:11.5e}\n")
-            to_print = (
-                "E    = {:11.5e}\n"
-                "EA   = {:11.5e} ; EKz   = {:11.5e} ; "
-                "EKhr   = {:11.5e} ; EKhd   = {:11.5e} ; EKhs   = {:11.5e}\n"
-                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; "
-                "epsA = {:11.5e} ; epsA_hypo = {:11.5e} ; "
-                "eps_tot = {:11.5e} \n"
-            ).format(
-                energy,
-                nrj_A,
-                nrj_Kz,
-                nrj_Khr,
-                nrj_Khd,
-                nrj_Khs,
-                epsK,
-                epsK_hypo,
-                epsA,
-                epsA_hypo,
-                epsK + epsK_hypo + epsA + epsA_hypo,
+            self.file.write(
+                f"####\ntime = {tsim:11.5e}\n"
+                f"E    = {energy:11.5e}\n"
+                f"EA   = {nrj_A:11.5e} ; EKz   = {nrj_Kz:11.5e} ; "
+                f"EKhr   = {nrj_Khr:11.5e} ; EKhd   = {nrj_Khd:11.5e} ; "
+                f"EKhs   = {nrj_Khs:11.5e}\n"
+                f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; "
+                f"epsA = {epsA:11.5e} ; epsA_hypo = {epsA_hypo:11.5e} ; "
+                f"eps_tot = {epsK + epsK_hypo + epsA + epsA_hypo:11.5e} \n"
             )
-            self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
-                to_print = (
-                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
-                    "PK_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2) + (
-                    "PA1  = {:11.5e} ; PA2       = {:11.5e} ; "
-                    "PA_tot   = {:11.5e} \n"
-                ).format(
-                    PA1, PA2, PA1 + PA2
+                self.file.write(
+                    f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; "
+                    f"PK_tot   = {PK1 + PK2:11.5e} \n"
+                    f"PA1  = {PA1:11.5e} ; PA2       = {PA2:11.5e} ; "
+                    f"PA_tot   = {PA1 + PA2:11.5e} \n"
                 )
-
-                self.file.write(to_print)
 
             self.file.flush()
             os.fsync(self.file.fileno())

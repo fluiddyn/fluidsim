@@ -62,23 +62,19 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if mpi.rank == 0:
 
-            self.file.write(f"####\ntime = {tsim:11.5e}\n")
-            to_print = (
-                "E    = {:11.5e}\n"
-                "Ex   = {:11.5e} ; Ey   = {:11.5e} ; Ez   = {:11.5e}\n"
-                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; "
-                "epsK_tot = {:11.5e} \n"
-            ).format(
-                energy, nrj_vx, nrj_vy, nrj_vz, epsK, epsK_hypo, epsK + epsK_hypo
+            self.file.write(
+                f"####\ntime = {tsim:11.5e}\n"
+                f"E    = {energy:11.5e}\n"
+                f"Ex   = {nrj_vx:11.5e} ; Ey   = {nrj_vy:11.5e} ; Ez   = {nrj_vz:11.5e}\n"
+                f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; "
+                f"epsK_tot = {epsK + epsK_hypo:11.5e} \n"
             )
-            self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
-                to_print = (
-                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; "
-                    "PK_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2)
-                self.file.write(to_print)
+                self.file.write(
+                    f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; "
+                    f"PK_tot   = {PK1 + PK2:11.5e} \n"
+                )
 
             self.file.flush()
             os.fsync(self.file.fileno())
