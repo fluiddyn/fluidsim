@@ -697,9 +697,8 @@ class SpecificOutput:
 
     def _has_to_online_save(self):
         return (
-            self.sim.time_stepping.t - self.t_last_save
-            >= self.period_save - 1e-14
-        )
+            self.sim.time_stepping.t + 1e-15
+        ) // self.period_save > self.t_last_save // self.period_save
 
     def _init_online_plot(self):
         pass
