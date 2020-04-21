@@ -86,3 +86,8 @@ class Output(OutputBasePseudoSpectral):
     def compute_energy(self):
         energy_fft = self.compute_energy_fft()
         return self.sum_wavenumbers(energy_fft)
+
+    def plot_summary(self, tmin=0):
+        self.spatial_means.plot()
+        self.spectra.plot1d(tmin=tmin)
+        self.spect_energy_budg.plot_fluxes(tmin=tmin)
