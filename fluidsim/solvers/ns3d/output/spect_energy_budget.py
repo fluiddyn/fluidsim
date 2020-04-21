@@ -191,7 +191,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         return results
 
-    def load_mean(self, tmin=0, tmax=None, key_to_load=None):
+    def load_mean(self, tmin=0, tmax=None, keys_to_load=None):
         means = {}
         with h5py.File(self.path_file, "r") as file:
             times = file["times"][...]
@@ -218,19 +218,23 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
                 if key.startswith("k"):
                     means[key] = file[key][...]
 
-            if key_to_load is not None:
-                if key_to_load not in file.keys():
-                    print(key_to_load, file.keys())
-                    raise ValueError
-                spect = file[key_to_load][imin_plot : imax_plot + 1].mean(0)
-                means[key_to_load] = spect
-                return means
+            if keys_to_load is not None:
+                if isinstance(keys_to_load, str):
+                    keys_to_load = [keys_to_load]
+                for key in keys_to_load:
+                    if key not in file.keys():
+                        print(key, file.keys())
+                        raise ValueError
+            else:
+                keys_to_load = [
+                    key
+                    for key in file.keys()
+                    if key != "times" and not key.startswith("k")
+                ]
 
-            for key in list(file.keys()):
-                if key != "times" and not key.startswith("k"):
-                    dset_key = file[key]
-                    spect = dset_key[imin_plot : imax_plot + 1].mean(0)
-                    means[key] = spect
+            for key in keys_to_load:
+                spect = file[key][imin_plot : imax_plot + 1].mean(0)
+                means[key] = spect
         return means
 
     _key_plot_default_kzkh = "transfer_Kh"
@@ -279,9 +283,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
                 and not any(key.endswith("_k" + letter) for letter in "xyz")
             ]
 
-        data = {}
-        for key in keys_saved:
-            data.update(self.load_mean(tmin, tmax, key))
+        data = self.load_mean(tmin, tmax, keys_saved)
 
         kz = data["kz"]
         kh = data["kh"]
