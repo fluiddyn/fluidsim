@@ -46,6 +46,19 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         epsA = self.sum_wavenumbers(f_d * 2 * energyA_fft)
         epsA_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energyA_fft)
 
+        if self.sim.params.nu_4 > 0.0:
+            f_d4 = self.params.nu_4 * self.oper.K4
+            assert not np.allclose(f_d, f_d4)
+            epsK4 = self.sum_wavenumbers(f_d4 * 2 * energyK_fft)
+            epsA4 = self.sum_wavenumbers(f_d4 * 2 * energyA_fft)
+            del f_d4
+
+        if self.sim.params.nu_8 > 0.0:
+            f_d8 = self.params.nu_8 * self.oper.K8
+            epsK8 = self.sum_wavenumbers(f_d8 * 2 * energyK_fft)
+            epsA8 = self.sum_wavenumbers(f_d8 * 2 * energyA_fft)
+            del f_d8
+
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             forcing_fft = self.sim.forcing.get_forcing()
@@ -93,6 +106,16 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
                 f"eps_tot = {epsK + epsK_hypo + epsA + epsA_hypo:11.5e} \n"
             )
 
+            if self.sim.params.nu_4 > 0.0:
+                self.file.write(
+                    f"epsK4 = {epsK4:11.5e} ; epsA4 = {epsA4:11.5e}\n"
+                )
+
+            if self.sim.params.nu_8 > 0.0:
+                self.file.write(
+                    f"epsK8 = {epsK8:11.5e} ; epsA8 = {epsA8:11.5e}\n"
+                )
+
             if self.sim.params.forcing.enable:
                 self.file.write(
                     f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; "
@@ -129,20 +152,26 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         lines_PK = []
         lines_PA = []
         lines_epsK = []
+        lines_epsK4 = []
+        lines_epsK8 = []
 
         for il, line in enumerate(lines):
             if line.startswith("time ="):
                 lines_t.append(line)
-            if line.startswith("E    ="):
+            elif line.startswith("E    ="):
                 lines_E.append(line)
-            if line.startswith("EA   ="):
+            elif line.startswith("EA   ="):
                 lines_EA.append(line)
-            if line.startswith("PK1  ="):
+            elif line.startswith("PK1  ="):
                 lines_PK.append(line)
-            if line.startswith("PA1  ="):
+            elif line.startswith("PA1  ="):
                 lines_PA.append(line)
-            if line.startswith("epsK ="):
+            elif line.startswith("epsK ="):
                 lines_epsK.append(line)
+            elif line.startswith("epsK4 ="):
+                lines_epsK4.append(line)
+            elif line.startswith("epsK8 ="):
+                lines_epsK8.append(line)
 
         nt = len(lines_t)
         if nt > 1:
@@ -166,6 +195,14 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         epsA = np.empty(nt)
         epsA_hypo = np.empty(nt)
         eps_tot = np.empty(nt)
+
+        if lines_epsK4:
+            epsK4 = np.empty(nt)
+            epsA4 = np.empty(nt)
+
+        if lines_epsK8:
+            epsK8 = np.empty(nt)
+            epsA8 = np.empty(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -205,6 +242,18 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             epsA_hypo[il] = float(words[14])
             eps_tot[il] = float(words[18])
 
+            if lines_epsK4:
+                line = lines_epsK4[il]
+                words = line.split()
+                epsK4[il] = float(words[2])
+                epsA4[il] = float(words[6])
+
+            if lines_epsK8:
+                line = lines_epsK8[il]
+                words = line.split()
+                epsK8[il] = float(words[2])
+                epsA8[il] = float(words[6])
+
         dict_results["t"] = t
         dict_results["E"] = E
         dict_results["EA"] = EA
@@ -227,9 +276,17 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         dict_results["epsA_hypo"] = epsA_hypo
         dict_results["eps_tot"] = eps_tot
 
+        if lines_epsK4:
+            dict_results["epsK4"] = epsK4
+            dict_results["epsA4"] = epsA4
+
+        if lines_epsK8:
+            dict_results["epsK8"] = epsK8
+            dict_results["epsA8"] = epsA8
+
         return dict_results
 
-    def plot(self, plot_injection=True):
+    def plot(self, plot_injection=True, plot_hyper=False):
         dict_results = self.load()
 
         t = dict_results["t"]
@@ -271,6 +328,48 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         eps_hypo = epsK_hypo + epsA_hypo
         if max(eps_hypo) > 0:
             ax.plot(t, eps_hypo, "g", linewidth=1, label=r"$\epsilon_{hypo}$")
+
+        if "epsK4" in dict_results and plot_hyper:
+            epsK4 = dict_results["epsK4"]
+            epsA4 = dict_results["epsA4"]
+            if not np.allclose(epsK, epsK4):
+                ax.plot(
+                    t,
+                    epsK4,
+                    "r:",
+                    linewidth=1,
+                    label=r"$\epsilon_{K4}$",
+                    zorder=10,
+                )
+                ax.plot(
+                    t,
+                    epsA4,
+                    "b:",
+                    linewidth=1,
+                    label=r"$\epsilon_{A4}$",
+                    zorder=10,
+                )
+
+        if "epsK8" in dict_results and plot_hyper:
+            epsK8 = dict_results["epsK8"]
+            epsA8 = dict_results["epsA8"]
+            if not np.allclose(epsK, epsK8):
+                ax.plot(
+                    t,
+                    epsK8,
+                    "r:",
+                    linewidth=1,
+                    label=r"$\epsilon_{K8}$",
+                    zorder=10,
+                )
+                ax.plot(
+                    t,
+                    epsA8,
+                    "b:",
+                    linewidth=1,
+                    label=r"$\epsilon_{A8}$",
+                    zorder=10,
+                )
 
         if "PK_tot" in dict_results and plot_injection:
             PK_tot = dict_results["PK_tot"]
