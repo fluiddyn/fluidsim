@@ -124,9 +124,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         type_time_scheme = self.params.time_stepping.type_time_scheme
 
-        if type_time_scheme not in ["RK2", "RK4", "Euler"]:
-            raise ValueError("Problem name time_scheme")
-
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
         elif type_time_scheme == "RK2":
@@ -136,6 +133,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK4
+        else:
+            raise ValueError(f'Problem name time_scheme ("{type_time_scheme}")')
 
         self._time_step_RK = time_step_RK
 
@@ -205,8 +204,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         Notes
         -----
-
-        .. |p| mathmacro:: \partial
 
         We consider an equation of the form
 

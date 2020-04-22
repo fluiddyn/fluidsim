@@ -21,7 +21,7 @@ class TestSolverSquare1D(TestSimul):
         params.oper.nx = 40
         params.oper.Lx = 1.0
 
-        params.time_stepping.type_time_scheme = "RK2"
+        params.time_stepping.type_time_scheme = "Euler"
 
         params.nu_2 = 0.01
 
