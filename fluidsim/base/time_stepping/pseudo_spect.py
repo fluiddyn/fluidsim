@@ -129,7 +129,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
-        if type_time_scheme == "RK2":
+        elif type_time_scheme == "RK2":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
         elif type_time_scheme == "RK4":
