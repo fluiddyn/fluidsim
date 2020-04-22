@@ -205,7 +205,7 @@ class TimeSteppingBase(TimeSteppingBase0):
         if params_ts.USE_CFL:
             if params_ts.cfl_coef is not None:
                 self.CFL = params_ts.cfl_coef
-            elif params_ts.type_time_scheme == "RK2":
+            elif params_ts.type_time_scheme in ["RK2", "Euler"]:
                 self.CFL = 0.4
             elif params_ts.type_time_scheme == "RK4":
                 self.CFL = 1.0

@@ -122,20 +122,21 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _init_time_scheme(self):
 
-        params_ts = self.params.time_stepping
+        type_time_scheme = self.params.time_stepping.type_time_scheme
 
-        if params_ts.type_time_scheme not in ["RK2", "RK4"]:
+        if type_time_scheme not in ["RK2", "RK4", "Euler"]:
             raise ValueError("Problem name time_scheme")
 
-        self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
-
-        if params_ts.type_time_scheme == "RK4":
-            self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
-
-        if params_ts.type_time_scheme == "RK2":
+        if type_time_scheme == "Euler":
+            time_step_RK = self._time_step_Euler
+        if type_time_scheme == "RK2":
+            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
-        else:
+        elif type_time_scheme == "RK4":
+            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+            self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK4
+
         self._time_step_RK = time_step_RK
 
     def _compute_freq_complex(self):
@@ -159,6 +160,43 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(self.sim.state.state_spect[0])):
             raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")
+
+    def _time_step_Euler(self):
+        r"""Advance in time with the forward Euler method.
+
+        .. _eulertimescheme:
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        The forward Euler method computes an approximation of the
+        solution after a time increment :math:`dt`. We denote the
+        initial time :math:`t = 0`.
+
+        Euler approximation :
+
+          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+
+          Integrating from :math:`t` to :math:`t+dt`, it gives:
+
+          .. math:: S_{dt} = (S_0 + N_0 dt) e^{\sigma dt}.
+
+        """
+        dt = self.deltat
+        diss = self.exact_linear_coefs.get_updated_coefs()[0]
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_n = compute_tendencies()
+
+        state_spect[:] = (state_spect + dt * tendencies_n) * diss
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.
