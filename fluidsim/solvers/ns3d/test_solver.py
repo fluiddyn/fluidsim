@@ -43,6 +43,7 @@ class TestSimulBase(TestSimul):
         params.oper.Lz = Lx // 2
 
         params.oper.coef_dealiasing = 2.0 / 3
+        params.nu_4 = 2.0
         params.nu_8 = 2.0
 
         params.time_stepping.t_end = 0.2
