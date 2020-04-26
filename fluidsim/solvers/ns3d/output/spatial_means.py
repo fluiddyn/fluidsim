@@ -32,6 +32,16 @@ class SpatialMeansNS3D(SpatialMeansBase):
         epsK = self.sum_wavenumbers(f_d * 2 * energy_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energy_fft)
 
+        if self.sim.params.nu_4 > 0.0:
+            f_d4 = self.params.nu_4 * self.oper.K4
+            epsK4 = self.sum_wavenumbers(f_d4 * 2 * energy_fft)
+            del f_d4
+
+        if self.sim.params.nu_8 > 0.0:
+            f_d8 = self.params.nu_8 * self.oper.K8
+            epsK8 = self.sum_wavenumbers(f_d8 * 2 * energy_fft)
+            del f_d8
+
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
             forcing_fft = self.sim.forcing.get_forcing()
@@ -70,6 +80,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 f"epsK_tot = {epsK + epsK_hypo:11.5e} \n"
             )
 
+            if self.sim.params.nu_4 > 0.0:
+                self.file.write(f"epsK4 = {epsK4:11.5e}\n")
+
+            if self.sim.params.nu_8 > 0.0:
+                self.file.write(f"epsK8 = {epsK8:11.5e}\n")
+
             if self.sim.params.forcing.enable:
                 self.file.write(
                     f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; "
@@ -103,6 +119,8 @@ class SpatialMeansNS3D(SpatialMeansBase):
         lines_Ex = []
         lines_PK = []
         lines_epsK = []
+        lines_epsK4 = []
+        lines_epsK8 = []
 
         for il, line in enumerate(lines):
             if line.startswith("time ="):
@@ -115,6 +133,10 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 lines_PK.append(line)
             if line.startswith("epsK ="):
                 lines_epsK.append(line)
+            elif line.startswith("epsK4 ="):
+                lines_epsK4.append(line)
+            elif line.startswith("epsK8 ="):
+                lines_epsK8.append(line)
 
         nt = len(lines_t)
         if nt > 1:
@@ -131,6 +153,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
         epsK = np.empty(nt)
         epsK_hypo = np.empty(nt)
         epsK_tot = np.empty(nt)
+
+        if lines_epsK4:
+            epsK4 = np.empty(nt)
+
+        if lines_epsK8:
+            epsK8 = np.empty(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -160,6 +188,16 @@ class SpatialMeansNS3D(SpatialMeansBase):
             epsK_hypo[il] = float(words[6])
             epsK_tot[il] = float(words[10])
 
+            if lines_epsK4:
+                line = lines_epsK4[il]
+                words = line.split()
+                epsK4[il] = float(words[2])
+
+            if lines_epsK8:
+                line = lines_epsK8[il]
+                words = line.split()
+                epsK8[il] = float(words[2])
+
         dict_results["t"] = t
         dict_results["E"] = E
         dict_results["Ex"] = Ex
@@ -174,9 +212,15 @@ class SpatialMeansNS3D(SpatialMeansBase):
         dict_results["epsK_hypo"] = epsK_hypo
         dict_results["epsK_tot"] = epsK_tot
 
+        if lines_epsK4:
+            dict_results["epsK4"] = epsK4
+
+        if lines_epsK8:
+            dict_results["epsK8"] = epsK8
+
         return dict_results
 
-    def plot(self):
+    def plot(self, plot_injection=True, plot_hyper=False):
         dict_results = self.load()
 
         t = dict_results["t"]
@@ -201,7 +245,32 @@ class SpatialMeansNS3D(SpatialMeansBase):
         fig.suptitle("Dissipation of energy and enstrophy")
         ax.set_ylabel(r"$\epsilon_K(t)$")
 
-        ax.plot(t, epsK, "r", linewidth=2)
+        def _plot(x, y, fmt, label=None, linewidth=1, zorder=10):
+            ax.plot(
+                x, y, fmt, label=label, linewidth=linewidth, zorder=zorder,
+            )
+
+        _plot(t, epsK, "r", r"$\epsilon$", linewidth=2)
         if self.sim.params.nu_m4 != 0:
-            ax.plot(t, epsK_hypo, "g", linewidth=2)
-        ax.plot(t, epsK_tot, "k", linewidth=2)
+            _plot(t, epsK_hypo, "g", r"$\epsilon_{-4}$", linewidth=2)
+            _plot(t, epsK_tot, "k", r"$\epsilon_{tot}$", linewidth=2)
+
+        if "epsK4" in dict_results and plot_hyper:
+            epsK4 = dict_results["epsK4"]
+            if not np.allclose(epsK, epsK4):
+                _plot(
+                    t, epsK4, "r:", r"$\epsilon_4$",
+                )
+
+        if "epsK8" in dict_results and plot_hyper:
+            epsK8 = dict_results["epsK8"]
+            if not np.allclose(epsK, epsK8):
+                _plot(
+                    t, epsK8, "r:", r"$\epsilon_8$",
+                )
+
+        if "PK_tot" in dict_results and plot_injection:
+            PK_tot = dict_results["PK_tot"]
+            ax.plot(t, PK_tot, "r--", label=r"$P$", zorder=0)
+
+        ax.legend()

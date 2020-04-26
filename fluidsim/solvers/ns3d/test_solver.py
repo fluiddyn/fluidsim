@@ -133,7 +133,7 @@ class TestOutput(TestSimulBase):
             sim2.output.print_stdout.plot()
             sim2.output.spatial_means.load()
             sim2.output.spatial_means.load_dataset()
-            sim2.output.spatial_means.plot()
+            sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
             sim2.output.spectra.load1d_mean()
             sim2.output.spectra.load3d_mean()
             sim2.output.spectra.plot1d(

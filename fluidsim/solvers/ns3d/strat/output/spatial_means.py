@@ -48,7 +48,6 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         if self.sim.params.nu_4 > 0.0:
             f_d4 = self.params.nu_4 * self.oper.K4
-            assert not np.allclose(f_d, f_d4)
             epsK4 = self.sum_wavenumbers(f_d4 * 2 * energyK_fft)
             epsA4 = self.sum_wavenumbers(f_d4 * 2 * energyA_fft)
             del f_d4
@@ -359,7 +358,6 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         if "PK_tot" in dict_results and plot_injection:
             PK_tot = dict_results["PK_tot"]
             PA_tot = dict_results["PA_tot"]
-
             ax.plot(t, PK_tot, "r--", label=r"$P_K$", zorder=0)
             ax.plot(t, PA_tot, "b--", label=r"$P_A$", zorder=0)
 
