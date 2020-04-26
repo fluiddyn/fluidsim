@@ -129,6 +129,7 @@ class TestOutput(TestSimulBase):
 
         if mpi.nb_proc == 1:
             sim2 = fls.load_sim_for_plot(path_run)
+            sim2.output.plot_summary(tmin=0, key_field="vx")
             sim2.output.print_stdout.load()
             sim2.output.print_stdout.plot()
             sim2.output.spatial_means.load()
