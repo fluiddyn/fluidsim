@@ -8,10 +8,6 @@
 """
 
 import numpy as np
-import h5py
-
-from fluiddyn.util import mpi
-from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.solvers.ns3d.output.spect_energy_budget import (
     SpectralEnergyBudgetNS3D,
@@ -74,7 +70,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         N = self.sim.params.N
 
         oper = self.sim.oper
-        compute_spectrum_kzkh = oper.compute_spectrum_kzkh
 
         state_spect = state.state_spect
 
@@ -86,8 +81,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         vx = state_phys.get_var("vx")
         vy = state_phys.get_var("vy")
         vz = state_phys.get_var("vz")
-
-        fft3d = self.oper.fft3d
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
 
