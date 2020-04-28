@@ -118,31 +118,9 @@ class MoviesBase:
         """
         Defines key_field default.
         """
-        # Compute keys of the simulation.
-        keys_state_phys = self.sim.info.solver.classes.State["keys_state_phys"]
-        keys_computable = self.sim.info.solver.classes.State["keys_computable"]
-
-        if key_field is None:
-            field_to_plot = self.params.phys_fields.field_to_plot
-            if (
-                field_to_plot in keys_state_phys
-                or field_to_plot in keys_computable
-            ):
-                key_field = field_to_plot
-            else:
-                raise ValueError(
-                    "params.output.phys_fields.field_to_plot not "
-                    "in keys_state_phys"
-                )
-
-        else:
-            if key_field in keys_state_phys or key_field in keys_computable:
-                key_field = key_field
-
-            else:
-                raise ValueError("key_field not in keys_state_phys")
-
-        self.key_field = key_field
+        self.key_field = self.phys_fields.get_key_field_to_plot(
+            forbid_compute=True, key_field_to_plot=key_field
+        )
 
     def animate(
         self,

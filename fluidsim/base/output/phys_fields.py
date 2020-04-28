@@ -110,9 +110,10 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
 
-    def get_key_field_to_plot(self, forbid_compute=False):
+    def get_key_field_to_plot(self, forbid_compute=False, key_field_to_plot=None):
         params = self.params
-        key_field_to_plot = params.output.phys_fields.field_to_plot
+        if key_field_to_plot is None:
+            key_field_to_plot = params.output.phys_fields.field_to_plot
         info_state = self.sim.info.solver.classes.State
         keys_ok = info_state.keys_state_phys.copy()
 
