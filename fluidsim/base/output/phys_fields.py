@@ -98,7 +98,7 @@ class PhysFieldsBase(SpecificOutput):
             period_plot=params.output.periods_plot.phys_fields,
         )
 
-        self.field_to_plot = params.output.phys_fields.field_to_plot
+        self.key_field_to_plot = self.get_key_field_to_plot()
 
         self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
         self._equation = None
@@ -109,6 +109,23 @@ class PhysFieldsBase(SpecificOutput):
 
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
+
+    def get_key_field_to_plot(self, forbid_compute=False):
+        params = self.params
+        key_field_to_plot = params.output.phys_fields.field_to_plot
+        info_state = self.sim.info.solver.classes.State
+        keys_ok = info_state.keys_state_phys.copy()
+
+        if not params.ONLY_COARSE_OPER and not forbid_compute:
+            keys_ok.extend(info_state.keys_computable)
+
+        if key_field_to_plot not in keys_ok:
+            key_field_to_plot = info_state.keys_state_phys[0]
+            for key in ["q", "rot", "rotz"]:
+                if key in keys_ok:
+                    key_field_to_plot = key
+
+        return key_field_to_plot
 
     def _init_path_files(self):
         super()._init_path_files()
@@ -318,25 +335,7 @@ class PhysFieldsBase(SpecificOutput):
         """Get the field to be plotted in process 0."""
 
         if field is None:
-            keys_state_phys = self.sim.info.solver.classes.State[
-                "keys_state_phys"
-            ]
-            keys_computable = self.sim.info.solver.classes.State[
-                "keys_computable"
-            ]
-            field_to_plot = self.params.output.phys_fields.field_to_plot
-            if (
-                field_to_plot in keys_state_phys
-                or field_to_plot in keys_computable
-            ):
-                key_field = field_to_plot
-            else:
-                if "q" in keys_state_phys:
-                    key_field = "q"
-                elif "rot" in keys_state_phys:
-                    key_field = "rot"
-                else:
-                    key_field = keys_state_phys[0]
+            key_field = self.key_field_to_plot
             field_loc = self.sim.state.get_var(key_field)
         elif isinstance(field, np.ndarray):
             key_field = "given field"

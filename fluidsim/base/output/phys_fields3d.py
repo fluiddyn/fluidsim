@@ -116,7 +116,9 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         key_field = None
         if field is None:
-            key_field = self.field_to_plot
+            key_field = self.get_key_field_to_plot(
+                forbid_compute=time is not None
+            )
         elif isinstance(field, np.ndarray):
             key_field = "given array"
             is_field_ready = True
