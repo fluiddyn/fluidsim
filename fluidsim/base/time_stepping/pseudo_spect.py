@@ -131,6 +131,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         elif type_time_scheme == "RK2":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
+        elif type_time_scheme == "RK2_phaseshift":
+            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+            time_step_RK = self._time_step_RK2_phaseshift
         elif type_time_scheme == "RK4":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
@@ -284,6 +287,123 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             # )
 
             state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
+
+    def _time_step_RK2_phaseshift(self):
+        r"""Advance in time with the Runge-Kutta 2 method.
+
+        .. _rk2timescheme:
+
+        Notes
+        -----
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        The Runge-Kutta 2 method computes an approximation of the
+        solution after a time increment :math:`dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Approximation 1:
+
+          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+
+          Integrating from :math:`t` to :math:`t+dt/2`, it gives:
+
+          .. |SA1halfdt| mathmacro:: S_{A1dt/2}
+
+          .. math:: \SA1halfdt = (S_0 + N_0 dt/2) e^{\frac{\sigma dt}{2}}.
+
+
+        - Approximation 2:
+
+          .. math::
+             \p_t \log S = \sigma
+             + \frac{N(\SA1halfdt)}{ \SA1halfdt },
+
+          Integrating from :math:`t` to :math:`t+dt` and retaining
+          only the terms in :math:`dt^1` gives:
+
+          .. math::
+             S_{dtA2} = S_0 e^{\sigma dt}
+             + N(\SA1halfdt) dt e^{\frac{\sigma dt}{2}}.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        ### first substep
+        state_spect = self.sim.state.state_spect
+
+        # phaseshift
+        oper = self.sim.oper
+        p = np.random.rand()
+        # delta = p * np.array([oper.deltax, oper.deltay, oper.deltaz])
+        # phase = delta[0] * oper.k0 + delta[1] * oper.k1 + delta[2] * oper.k2
+        delta = p * oper.deltax
+        phase = delta * oper.kx
+        phase_shift = np.exp(1j * phase)
+        state_spect_shifted = state_spect * phase_shift
+
+        # tendencies
+        compute_tendencies = self.sim.tendencies_nonlin
+        tendencies_n = compute_tendencies(state_spect_shifted)
+        tendencies_n /= phase_shift
+
+        state_spect_n12 = self._state_spect_tmp
+
+        # time advancement
+
+        # if ts.is_transpiled:
+        #     ts.use_block("rk2_step0")
+        # else:
+        #     # transonic block (
+        #     #     A state_spect_n12, state_spect, tendencies_n;
+        #     #     A1 diss2;
+        #     #     float dt
+        #     # )
+        #     # transonic block (
+        #     #     A state_spect_n12, state_spect, tendencies_n;
+        #     #     A2 diss2;
+        #     #     float dt
+        #     # )
+
+        state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
+
+        ### second substep
+        # phaseshift
+        q = np.mod(p + 0.5, 1)
+        # delta = q * np.array([oper.deltax, oper.deltay, oper.deltaz])
+        # phase = delta[0] * oper.k0 + delta[1] * oper.k1 + delta[2] * oper.k2
+        delta = q * oper.deltax
+        phase = delta * oper.kx
+        phase_shift = np.exp(1j * phase)
+        state_spect_shifted = state_spect_n12 * phase_shift
+
+        # tendencies
+        tendencies_n12 = compute_tendencies(state_spect_shifted, old=tendencies_n)
+        tendencies_n12 /= phase_shift
+
+        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n12)
+
+        # time advancement
+
+        # if ts.is_transpiled:
+        #     ts.use_block("rk2_step1")
+        # else:
+        #     # transonic block (
+        #     #     A state_spect, tendencies_n12;
+        #     #     A1 diss, diss2;
+        #     #     float dt
+        #     # )
+
+        #     # transonic block (
+        #     #     A state_spect, tendencies_n12;
+        #     #     A2 diss, diss2;
+        #     #     float dt
+        #     # )
+
+        state_spect[:] = state_spect * diss + dt * diss2 * tendencies_dealiased
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
