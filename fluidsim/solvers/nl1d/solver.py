@@ -69,7 +69,7 @@ class Simul(SimulBasePseudoSpectral):
             tendencies_fft = old
         f_fft = tendencies_fft.get_var("s_fft")
         self.oper.fft_as_arg(f_signal, f_fft)
-
+        self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 
 
