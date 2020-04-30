@@ -23,9 +23,7 @@ from fluidsim.base.forcing.milestone import PeriodicUniform
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-N", type=float, default=0.55, help="Brunt–Väisälä frequency"
-)
+parser.add_argument("-N", type=float, default=0.5, help="Brunt–Väisälä frequency")
 
 parser.add_argument(
     "-D", "--diameter", type=float, default=0.5, help="Diameter of the cylinders"
@@ -116,10 +114,11 @@ def main(args):
     )
 
     params.time_stepping.t_end = movement.period * args.n_periods
+    params.time_stepping.deltat_max = 0.1 * diameter / speed
 
     params.nu_2 = 1e-6
 
-    epsilon_eval = 0.01 * speed ** 3 / mesh
+    epsilon_eval = 0.02 * speed ** 3 / mesh
     eta_elav = (params.nu_2 ** 3 / epsilon_eval) ** (1 / 4)
 
     kmax = params.oper.coef_dealiasing * pi / dx
@@ -136,13 +135,13 @@ def main(args):
     params.nu_4 = freq_nu4 / kmax ** 4
 
     params.output.sub_directory = "milestone"
-    params.output.periods_print.print_stdout = 10
+    params.output.periods_print.print_stdout = movement.period / 10.0
 
     periods_save = params.output.periods_save
-    periods_save.phys_fields = 10.0
-    periods_save.spatial_means = 2
-    periods_save.spect_energy_budg = 10.0
-    periods_save.spectra = 5.0
+    periods_save.phys_fields = movement.period / 10.0
+    periods_save.spatial_means = movement.period / 1000.0
+    periods_save.spect_energy_budg = movement.period / 50.0
+    periods_save.spectra = movement.period / 100.0
 
     sim = Simul(params)
 
