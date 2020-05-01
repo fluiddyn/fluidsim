@@ -450,10 +450,10 @@ class SpectraSW1L(Spectra):
             key_field = self._ani_key
 
         def select(idx, key_field, h5file):
-            if key_field is "Etot" or key_field is None:
+            if key_field == "Etot" or key_field is None:
                 self._ani_key = "Etot"
                 y = h5file["spectrum2D_EK"][idx] + h5file["spectrum2D_EA"][idx]
-            elif key_field is "EKd":
+            elif key_field == "EKd":
                 y = h5file["spectrum2D_EK"][idx] - h5file["spectrum2D_EKr"][idx]
             else:
                 try:
