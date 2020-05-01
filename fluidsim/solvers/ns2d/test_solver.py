@@ -200,6 +200,7 @@ class TestForcingOutput(TestSimulBase):
                 numfig=1,
             )
             sim2.output.phys_fields.plot()
+            sim2.plot_freq_diss("y")
 
             # `compute('q')` two times for better coverage...
             sim.state.get_var("q")

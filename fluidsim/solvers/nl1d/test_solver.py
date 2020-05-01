@@ -41,3 +41,4 @@ class TestSolverSquare1D(TestSimul):
     def test_simul(self):
         sim = self.sim
         sim.time_stepping.start()
+        sim.plot_freq_diss()

@@ -162,6 +162,7 @@ class TestOutput(TestSimulBase):
             sim2.output.phys_fields.plot(
                 field="vx", time=10, equation=f"z={sim.oper.Lz/4}"
             )
+            sim2.plot_freq_diss("z")
 
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2

@@ -190,35 +190,30 @@ nu_m4: float
 
         return f_d, f_d_hypo
 
-    def plot_freq_diss(self, key_k=None):
+    def plot_freq_diss(self, direction="x"):
         r"""Plot the dissipation frequencies as functions of k.
 
-        key_k : `str`
-            key for wavevector to plot with (kx,ky or kz)
+        direction : `str`
+            Direction of the wavevector to plot with ("x", "y" or "z")
 
         """
 
-        f_d, f_d_hypo = self.compute_freq_diss()
+        number = getattr(self.params.oper, "n" + direction)
+        length = getattr(self.params.oper, "L" + direction)
+        deltak = 2 * np.pi / length
+        nk = int(self.params.oper.coef_dealiasing * number // 2)
+        ks = deltak * np.arange(nk)
 
-        oper = self.oper
-        kx = oper.deltakx * np.arange(oper.nkx_spectra)
-        ky = oper.deltaky * np.arange(oper.nky_spectra)
-        kz = oper.deltakz * np.arange(oper.nkz_spectra)
-        dict_k = {"kx": kx, "ky": ky, "kz": kz}
-
-        if key_k == None:
-            key_k = "kx"
-        ks = dict_k[key_k]
         ks_not0 = ks.copy()
         ks_not0[ks == 0] = np.nan
 
         fig, ax = self.output.figure_axe()
-        ax.set_xlabel(f"${key_k}$")
+        ax.set_xlabel(f"$k{direction}$")
         ax.set_ylabel(r"$\omega_\mathrm{diss}$")
         ax.set_title(
             "Dissipation frequencies, solver "
             + self.output.name_solver
-            + f", nx = {oper.nx:5d}"
+            + f", n{direction} = {number:5d}"
         )
 
         f_d_tot = np.zeros_like(ks)
