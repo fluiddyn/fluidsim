@@ -14,6 +14,8 @@ Provides:
 
 """
 
+from functools import partial
+
 import numpy as np
 
 from fluiddyn.util import mpi
@@ -118,6 +120,9 @@ key_forced: {None} or str
             self.forcing_maker = ClassForcing(sim)
         else:
             self.forcing_maker = None
+
+        if hasattr(ClassForcing, "get_info"):
+            self.get_info = partial(ClassForcing.get_info, sim)
 
         self._t_last_computed = -np.inf
 

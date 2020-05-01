@@ -128,6 +128,23 @@ class ForcingMilestone(Base):
             "periodic_uniform", dict(length=1.0, length_acc=1.0, speed=1.0)
         )
 
+    @classmethod
+    def get_info(cls, sim):
+        info = {}
+        params = sim.params
+        params_milestone = params.forcing.milestone
+        type_movement = params_milestone.movement.type
+        if type_movement == "periodic_uniform":
+            params_pu = params_milestone.movement.periodic_uniform
+            periodic_uniform = PeriodicUniform(
+                params_pu.speed,
+                params_pu.length,
+                params_pu.length_acc,
+                params.oper.Lx,
+            )
+            info["period"] = periodic_uniform.period
+        return info
+
     def _init_operators(self, sim):
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly

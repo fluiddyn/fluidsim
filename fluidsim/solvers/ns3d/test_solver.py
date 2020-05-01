@@ -298,6 +298,10 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
         movement.periodic_uniform.length_acc = 0.25
         movement.periodic_uniform.speed = 2.5
 
+    def test_milestone(self):
+        super().test_milestone()
+        self.sim.forcing.get_info()
+
 
 if __name__ == "__main__":
     unittest.main()
