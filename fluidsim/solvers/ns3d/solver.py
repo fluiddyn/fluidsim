@@ -204,6 +204,7 @@ f: float (default None)
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 
 
