@@ -8,8 +8,12 @@
 """
 
 import numpy as np
+import h5py
 
-from fluidsim.solvers.ns3d.output.spectra import SpectraNS3D
+from fluidsim.solvers.ns3d.output.spectra import (
+    SpectraNS3D,
+    _get_averaged_spectrum,
+)
 
 
 class SpectraNS3DStrat(SpectraNS3D):
@@ -103,3 +107,41 @@ class SpectraNS3DStrat(SpectraNS3D):
 
     def plot_kzkh(self, tmin=0, tmax=None, key="Khd", ax=None):
         super().plot_kzkh(tmin, tmax, key, ax)
+
+    def _plot1d_direction(
+        self, direction, imin_plot, imax_plot, coef_compensate, ax
+    ):
+
+        with h5py.File(self.path_file1d, "r") as h5file:
+            ks = h5file["k" + direction][...]
+
+            def _get_spectrum(key):
+                return _get_averaged_spectrum(
+                    key + direction, h5file, imin_plot, imax_plot
+                )
+
+            spectrumK = _get_spectrum("spectra_E_k")
+            spectrumA = _get_spectrum("spectra_A_k")
+            spectrumKhd = _get_spectrum("spectra_Khd_k")
+            spectrumKz = _get_spectrum("spectra_vz_k")
+
+        ks_no0 = ks.copy()
+        ks_no0[ks == 0] = np.nan
+        coef_norm = ks_no0 ** (coef_compensate)
+
+        style_line = ""
+        if direction == "z":
+            style_line = ":"
+
+        def _plot(spectrum, color, label, linewidth=2):
+            ax.plot(
+                ks,
+                spectrum * coef_norm,
+                color + style_line,
+                linewidth=linewidth,
+                label=label,
+            )
+
+        _plot(spectrumK, "r", f"$E_K(k_{direction})$")
+        _plot(spectrumA, "b", f"$E_A(k_{direction})$")
+        _plot(spectrumKhd + spectrumKz, "y", "poloidal", 0.8)

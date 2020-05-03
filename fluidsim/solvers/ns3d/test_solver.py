@@ -137,6 +137,9 @@ class TestOutput(TestSimulBase):
             sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
             sim2.output.spectra.load1d_mean()
             sim2.output.spectra.load3d_mean()
+            sim2.output.spectra.plot1d(
+                coef_plot_k3=1.0, coef_plot_k53=1.0, xlim=(0.1, 1), ylim=(0.1, 1),
+            )
             sim2.output.spectra.plot1d_times(
                 tmin=0.1,
                 tmax=10,
@@ -144,11 +147,12 @@ class TestOutput(TestSimulBase):
                 coef_compensate=5 / 3,
                 coef_plot_k3=1.0,
                 coef_plot_k53=1.0,
+                xlim=(0.1, 1),
+                ylim=(0.1, 1),
             )
             sim2.output.spectra.plot3d_times(
                 tmin=0.1,
                 tmax=10,
-                delta_t=0.01,
                 coef_compensate=5 / 3,
                 coef_plot_k3=1.0,
                 coef_plot_k53=1.0,
