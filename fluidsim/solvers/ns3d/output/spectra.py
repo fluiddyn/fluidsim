@@ -59,7 +59,7 @@ class SpectraNS3D(Spectra):
 
         return dict_spectra1d, dict_spectra3d, dict_kzkh
 
-    def plot1d(
+    def plot1d_times(
         self,
         tmin=0,
         tmax=None,
@@ -71,73 +71,140 @@ class SpectraNS3D(Spectra):
         coef_plot_k53=None,
         xlim=None,
         ylim=None,
+        only_time_average=False,
     ):
 
-        with h5py.File(self.path_file1d, "r") as h5file:
+        self._plot_times(
+            tmin=tmin,
+            tmax=tmax,
+            delta_t=delta_t,
+            coef_compensate=coef_compensate,
+            key=key,
+            key_k=key_k,
+            coef_plot_k3=coef_plot_k3,
+            coef_plot_k53=coef_plot_k53,
+            xlim=xlim,
+            ylim=ylim,
+            ndim=1,
+            only_time_average=only_time_average,
+        )
+
+    def plot3d_times(
+        self,
+        tmin=0,
+        tmax=None,
+        delta_t=None,
+        coef_compensate=0,
+        key="E",
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        xlim=None,
+        ylim=None,
+        only_time_average=False,
+    ):
+
+        self._plot_times(
+            tmin=tmin,
+            tmax=tmax,
+            delta_t=delta_t,
+            coef_compensate=coef_compensate,
+            key=key,
+            coef_plot_k3=coef_plot_k3,
+            coef_plot_k53=coef_plot_k53,
+            xlim=xlim,
+            ylim=ylim,
+            ndim=3,
+            only_time_average=only_time_average,
+        )
+
+    def _plot_times(
+        self,
+        tmin=0,
+        tmax=None,
+        delta_t=None,
+        coef_compensate=0,
+        key="E",
+        key_k="kx",
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        xlim=None,
+        ylim=None,
+        only_time_average=False,
+        ndim=1,
+    ):
+
+        if ndim not in [1, 3]:
+            raise ValueError
+
+        path_file = getattr(self, f"path_file{ndim}d")
+
+        if ndim == 1:
+            key_spectra = "spectra_" + key + "_" + key_k
+            key_k_label = "k_" + key_k[-1]
+        else:
+            key_spectra = "spectra_" + key
+            key_k = "k_spectra3d"
+            key_k_label = "k"
+
+        with h5py.File(path_file, "r") as h5file:
             times = h5file["times"][...]
 
             if tmax is None:
                 tmax = times.max()
 
             ks = h5file[key_k][...]
-            ks_no0 = ks.copy()
-            ks_no0[ks == 0] = np.nan
 
-            dset_spectra_E = h5file["spectra_" + key + "_" + key_k]
+        ks_no0 = ks.copy()
+        ks_no0[ks == 0] = np.nan
 
-            if delta_t is not None:
-                delta_t_save = np.mean(times[1:] - times[0:-1])
-                delta_i_plot = int(np.round(delta_t / delta_t_save))
-                delta_t = delta_t_save * delta_i_plot
-                if delta_i_plot == 0:
-                    delta_i_plot = 1
-            else:
-                delta_i_plot = None
+        delta_t_save = np.diff(times).mean()
 
-            imin_plot = np.argmin(abs(times - tmin))
-            imax_plot = np.argmin(abs(times - tmax))
+        if delta_t is None:
+            nb_curves = 20
+            delta_t = (times[-1] - times[0]) / nb_curves
 
-            tmin_plot = times[imin_plot]
-            tmax_plot = times[imax_plot]
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
+        if delta_i_plot == 0:
+            delta_i_plot = 1
+        delta_t = delta_t_save * delta_i_plot
 
-            print(
-                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t},"
-                + f" coef_compensate={coef_compensate:.3f})"
-            )
+        imin_plot = np.argmin(abs(times - tmin))
+        imax_plot = np.argmin(abs(times - tmax))
 
-            print(
-                """plot 1D spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {}""".format(
-                    tmin_plot,
-                    tmax_plot,
-                    delta_t,
-                    imin_plot,
-                    imax_plot,
-                    delta_i_plot,
-                )
-            )
+        tmin_plot = times[imin_plot]
+        tmax_plot = times[imax_plot]
 
-            fig, ax = self.output.figure_axe()
-            ax.set_xlabel(f"${key_k}$")
-            ax.set_ylabel("spectra " + key)
-            ax.set_title(
-                "1D spectra, solver "
-                + self.output.name_solver
-                + f", nx = {self.nx:5d}"
-            )
-            ax.set_xscale("log")
-            ax.set_yscale("log")
+        print(
+            f"plot{ndim}d_times(tmin={tmin:8.6g}, tmax={tmax:8.6g}, delta_t={delta_t:8.6g},"
+            f" coef_compensate={coef_compensate:.3f})\n"
+            f"""plot {ndim}D spectra
+tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
+        )
 
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(f"${key_k_label}$")
+        ax.set_ylabel("spectra " + key)
+        ax.set_title(
+            f"{ndim}D spectra, solver "
+            + self.output.name_solver
+            + f", nx = {self.nx:5d}"
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        with h5py.File(path_file, "r") as h5file:
+            dset_spectra = h5file[key_spectra]
             coef_norm = ks_no0 ** (coef_compensate)
-            if delta_t is not None:
+            if not only_time_average:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                    spectrum = dset_spectra_E[it]
+                    spectrum = dset_spectra[it]
                     spectrum[spectrum < 10e-16] = 0.0
                     ax.plot(ks, spectrum * coef_norm)
 
-            spectra = dset_spectra_E[imin_plot : imax_plot + 1]
+            spectra = dset_spectra[imin_plot : imax_plot + 1]
         spectrum = spectra.mean(0)
+        spectrum[spectrum < 10e-16] = 0.0
         ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
 
         if coef_plot_k3 is not None:
@@ -153,85 +220,6 @@ class SpectraNS3D(Spectra):
 
         if ylim is not None:
             ax.set_ylim(ylim)
-
-    def plot3d(
-        self,
-        tmin=0,
-        tmax=None,
-        delta_t=2,
-        coef_compensate=0,
-        key="E",
-        coef_plot_k3=None,
-        coef_plot_k53=None,
-    ):
-        with h5py.File(self.path_file3d, "r") as h5file:
-            times = h5file["times"][...]
-            if tmax is None:
-                tmax = times.max()
-            ks = h5file["k_spectra3d"][...]
-            ks_no0 = ks.copy()
-            ks_no0[ks == 0] = 1e-15
-
-            dset_spectrum = h5file["spectra_" + key]
-
-            delta_t_save = np.mean(times[1:] - times[0:-1])
-            delta_i_plot = int(np.round(delta_t / delta_t_save))
-            if delta_i_plot == 0 and delta_t != 0.0:
-                delta_i_plot = 1
-            delta_t = delta_i_plot * delta_t_save
-
-            imin_plot = np.argmin(abs(times - tmin))
-            imax_plot = np.argmin(abs(times - tmax))
-
-            tmin_plot = times[imin_plot]
-            tmax_plot = times[imax_plot]
-
-            print(
-                f"plot3d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
-                f" coef_compensate={coef_compensate:.3f})"
-            )
-
-            print(
-                """plot 3d spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                    tmin_plot,
-                    tmax_plot,
-                    delta_t,
-                    imin_plot,
-                    imax_plot,
-                    delta_i_plot,
-                )
-            )
-
-            fig, ax1 = self.output.figure_axe()
-            ax1.set_xlabel("$k$")
-            ax1.set_ylabel("3D spectra")
-            ax1.set_title(
-                "3D spectra, solver "
-                + self.output.name_solver
-                + f", nx = {self.nx:5d}"
-            )
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
-
-            coef_norm = ks_no0 ** coef_compensate
-
-            if delta_t != 0.0:
-                for it in range(imin_plot, imax_plot + 1, delta_i_plot):
-                    EK = dset_spectrum[it]
-                    EK[EK < 10e-16] = 0.0
-                    ax1.plot(ks, EK * coef_norm, "k", linewidth=1)
-
-            EK = dset_spectrum[imin_plot : imax_plot + 1].mean(0)
-        EK[EK < 10e-16] = 0.0
-        ax1.plot(ks, EK * coef_norm, "k", linewidth=2)
-
-        if coef_plot_k3 is not None:
-            ax1.plot(ks, coef_plot_k3 * ks_no0 ** (-3) * coef_norm, "k--")
-
-        if coef_plot_k53 is not None:
-            ax1.plot(ks, coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm, "k-.")
 
     def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None):
         data = self.load_kzkh_mean(tmin, tmax, key)
@@ -251,3 +239,15 @@ class SpectraNS3D(Spectra):
         )
 
         ax.pcolormesh(kh, kz, spectrum)
+
+    def plot1d(
+        self,
+        tmin=0,
+        tmax=None,
+        coef_compensate=0,
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        xlim=None,
+        ylim=None,
+    ):
+        print("TODO: implement this function plot1d!")

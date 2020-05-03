@@ -119,7 +119,7 @@ class TestOutput(TestSimulBase):
         sim2.output.spectra.load1d_mean()
         sim2.output.spectra.load3d_mean()
         sim2.output.spectra.load_kzkh_mean()
-        sim2.output.spectra.plot1d(
+        sim2.output.spectra.plot1d_times(
             tmin=0.1,
             tmax=10,
             delta_t=0.01,
@@ -127,7 +127,7 @@ class TestOutput(TestSimulBase):
             coef_plot_k3=1.0,
             coef_plot_k53=1.0,
         )
-        sim2.output.spectra.plot3d(
+        sim2.output.spectra.plot3d_times(
             tmin=0.1,
             tmax=10,
             delta_t=0.01,
