@@ -22,6 +22,7 @@ import os
 import shutil
 import numbers
 from time import sleep
+from copy import copy
 
 import numpy as np
 import h5py
@@ -138,12 +139,10 @@ are called.
         self.name_solver = sim.info.solver.short_name
 
         # initialisation name_run and path_run
-        self._init_name_run()
-        if mpi.nb_proc > 1:
-            # ensure same name_run across all processes
-            self.name_run = mpi.comm.bcast(self.name_run, root=0)
-
-        self.sim.name_run = self.name_run
+        if mpi.rank == 0:
+            self._init_name_run()
+        else:
+            self.name_run = None
 
         if not params.NEW_DIR_RESULTS:
             try:
@@ -229,18 +228,19 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         self._init_name_run()
 
             else:
-                path_run = ""
-
-            if mpi.nb_proc > 1:
-                self.path_run = mpi.comm.bcast(path_run, root=0)
-                self.name_run = mpi.comm.bcast(self.name_run, root=0)
-            else:
-                self.path_run = path_run
-
-            self.sim.name_run = self.name_run
+                path_run = None
 
             if mpi.rank == 0:
-                params._set_attrib("path_run", self.path_run)
+                params._set_attrib("path_run", path_run)
+            if mpi.nb_proc > 1:
+                path_run = mpi.comm.bcast(path_run, root=0)
+            self.path_run = path_run
+
+        if mpi.nb_proc > 1:
+            # ensure same name_run across all processes
+            self.name_run = mpi.comm.bcast(self.name_run, root=0)
+
+        self.sim.name_run = self.name_run
 
         dict_classes = sim.info.solver.classes.Output.import_classes()
 
@@ -399,7 +399,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         self.print_stdout.complete_init_with_state()
 
-        dict_classes = self.sim.info.solver.classes.Output.import_classes()
+        dict_classes = copy(self.sim.info.solver.classes.Output.import_classes())
 
         # The class PrintStdOut has already been instantiated.
         dict_classes.pop("PrintStdOut")

@@ -97,9 +97,13 @@ class InfoSolverBase(ParamContainer):
 
     def import_classes(self):
         """Import the classes and return a dictionary."""
+        if hasattr(self, "_cached_imported_classes"):
+            return self._cached_imported_classes
+
         dict_classes = {}
         tags = self.classes._tag_children
         if len(tags) == 0:
+            self._set_internal_attr("_cached_imported_classes", dict_classes)
             return dict_classes
 
         for tag in tags:
@@ -113,6 +117,7 @@ class InfoSolverBase(ParamContainer):
                 Class = import_class(module_name, class_name)
                 dict_classes[cls._tag] = Class
 
+        self._set_internal_attr("_cached_imported_classes", dict_classes)
         return dict_classes
 
     def complete_with_classes(self):
