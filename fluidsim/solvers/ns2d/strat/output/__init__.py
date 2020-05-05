@@ -198,20 +198,17 @@ class OutputStrat(Output):
         """
         Produce string describing the parameters froude_number and ratio_omegas.
         """
-        str_froude_number = f"{self.froude_number:.3f}"
-        str_ratio_omegas = f"{self._compute_ratio_omegas():.1f}"
-
-        return "F" + str_froude_number + "_" + "gamma" + str_ratio_omegas
+        return (
+            f"F{self.froude_number:.3f}_gamma{self._compute_ratio_omegas():.1f}"
+        )
 
     def _create_list_for_name_run(self):
         """Creates new name_run for the simulation."""
         list_for_name_run = super()._create_list_for_name_run()
         if self.sim.params.forcing.type.endswith("anisotropic"):
-            str_describing_attribs_strat = (
-                self._produce_str_describing_attribs_strat()
-            )
-            if len(str_describing_attribs_strat) > 0:
-                list_for_name_run.append(str_describing_attribs_strat)
+            tmp = self._produce_str_describing_attribs_strat()
+            if tmp:
+                list_for_name_run.append(tmp)
         return list_for_name_run
 
     def plot_summary(self, field="b", time_phys=None, tmin=None, tmax=None):

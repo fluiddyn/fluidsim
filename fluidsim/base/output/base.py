@@ -257,19 +257,34 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def _init_name_run(self):
         """Initialize the run name"""
-        list_for_name_run = self._create_list_for_name_run()
-        list_for_name_run.append(time_as_str())
-        self.name_run = "_".join(list_for_name_run)
+        if not hasattr(self, "_list_for_name_run"):
+            self._list_for_name_run = self._create_list_for_name_run()
+        self.name_run = f"{'_'.join(self._list_for_name_run)}_{time_as_str()}"
 
     def _create_list_for_name_run(self):
         """Create a list of strings to make the run name."""
+        sim = self.sim
+        params = sim.params
         list_for_name_run = [self.name_solver]
-        if len(self.sim.params.short_name_type_run) > 0:
-            list_for_name_run.append(self.sim.params.short_name_type_run)
+        if len(params.short_name_type_run) > 0:
+            list_for_name_run.append(params.short_name_type_run)
         if hasattr(self, "oper"):
-            str_describing_oper = self.oper.produce_str_describing_oper()
+            str_describing_oper = sim.oper.produce_str_describing_oper()
             if len(str_describing_oper) > 0:
                 list_for_name_run.append(str_describing_oper)
+
+        dict_classes = sim.info_solver.import_classes()
+        try:
+            cls = dict_classes["Forcing"]
+        except KeyError:
+            pass
+        else:
+            if hasattr(cls, "_create_str_for_name_run"):
+                str_for_name = cls._create_str_for_name_run(
+                    params, sim.info_solver
+                )
+                if str_for_name:
+                    list_for_name_run.append(str_for_name)
 
         return list_for_name_run
 

@@ -93,8 +93,21 @@ key_forced: {None} or str
             if hasattr(cls, "_complete_params_with_default"):
                 cls._complete_params_with_default(params)
 
+    @staticmethod
+    def _create_str_for_name_run(params, info_solver):
+        if not params.forcing.enable:
+            return
+        dict_classes = info_solver.classes.Forcing.import_classes()
+        try:
+            cls = dict_classes[params.forcing.type]
+        except KeyError:
+            return
+        if hasattr(cls, "_create_str_for_name_run"):
+            return cls._create_str_for_name_run(params)
+
     def __init__(self, sim):
-        self.type_forcing = sim.params.forcing.type
+        params = sim.params
+        self.type_forcing = params.forcing.type
 
         dict_classes = sim.info.solver.classes.Forcing.import_classes()
 
@@ -103,9 +116,7 @@ key_forced: {None} or str
             # temporary trick to open old simulations
             if self.type_forcing == "random" and "tcrandom" in dict_classes:
                 self.type_forcing = "tcrandom"
-                sim.params.forcing.__dict__["tcrandom"] = sim.params.forcing[
-                    "random"
-                ]
+                params.forcing.__dict__["tcrandom"] = params.forcing["random"]
             else:
                 if mpi.rank == 0:
                     print("dict_classes:", dict_classes)
@@ -116,7 +127,7 @@ key_forced: {None} or str
         ClassForcing = dict_classes[self.type_forcing]
 
         self.sim = sim
-        if not sim.params.ONLY_COARSE_OPER:
+        if not params.ONLY_COARSE_OPER:
             self.forcing_maker = ClassForcing(sim)
         else:
             self.forcing_maker = None

@@ -145,6 +145,14 @@ class ForcingMilestone(Base):
             info["period"] = periodic_uniform.period
         return info
 
+    @classmethod
+    def _create_str_for_name_run(cls, params):
+        params_milestone = params.forcing.milestone
+        type_movement = params_milestone.movement.type
+        if type_movement == "periodic_uniform":
+            params_pu = params_milestone.movement.periodic_uniform
+            return f"Lf{params_pu.length:.2f}_Uf{params_pu.speed}"
+
     def _init_operators(self, sim):
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly
