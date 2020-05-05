@@ -251,7 +251,7 @@ class Spectra(SpecificOutput):
         return dict_results
 
     def plot1d(self):
-        pass
+        raise NotImplementedError
 
     def plot2d(self):
-        pass
+        raise NotImplementedError
