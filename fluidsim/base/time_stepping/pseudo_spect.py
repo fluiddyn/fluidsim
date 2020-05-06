@@ -128,6 +128,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
+        elif type_time_scheme == "Euler_phaseshift":
+            time_step_RK = self._time_step_Euler_phaseshift
         elif type_time_scheme == "RK2":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
@@ -201,6 +203,52 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_n = compute_tendencies()
 
         state_spect[:] = (state_spect + dt * tendencies_n) * diss
+
+    def _time_step_Euler_phaseshift(self):
+        r"""Advance in time with the forward Euler method.
+
+        .. _eulertimescheme:
+
+        Notes
+        -----
+
+        .. |p| mathmacro:: \partial
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        The forward Euler method computes an approximation of the
+        solution after a time increment :math:`dt`. We denote the
+        initial time :math:`t = 0`.
+
+        Euler approximation :
+
+          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+
+          Integrating from :math:`t` to :math:`t+dt`, it gives:
+
+          .. math:: S_{dt} = (S_0 + N_0 dt) e^{\sigma dt}.
+
+        """
+        dt = self.deltat
+        diss = self.exact_linear_coefs.get_updated_coefs()[0]
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        # regular tendencies
+        tendencies_n = compute_tendencies()
+        # shifted tendencies
+        phase = 0.5 * self.sim.oper.deltax * self.sim.oper.kx
+        phase_shift = np.exp(1j * phase)
+        state_spect_shifted = phase_shift * state_spect
+        tendencies_shifted = compute_tendencies(state_spect_shifted)
+        tendencies_shifted /= phase_shift
+        # dealiased tendencies
+        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_shifted)
+
+        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
 
     def _time_step_RK2(self):
         r"""Advance in time with the Runge-Kutta 2 method.
@@ -330,27 +378,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         """
         dt = self.deltat
-        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+        diss = self.exact_linear_coefs.get_updated_coefs()[0]
 
-        ### first substep
-        state_spect = self.sim.state.state_spect
-
-        # phaseshift
         oper = self.sim.oper
-        p = np.random.rand()
-        # delta = p * np.array([oper.deltax, oper.deltay, oper.deltaz])
-        # phase = delta[0] * oper.k0 + delta[1] * oper.k1 + delta[2] * oper.k2
-        delta = p * oper.deltax
-        phase = delta * oper.kx
-        phase_shift = np.exp(1j * phase)
-        state_spect_shifted = state_spect * phase_shift
+
+        # first substep
+        state_spect = self.sim.state.state_spect
 
         # tendencies
         compute_tendencies = self.sim.tendencies_nonlin
-        tendencies_n = compute_tendencies(state_spect_shifted)
-        tendencies_n /= phase_shift
+        tendencies_n = compute_tendencies(state_spect)
 
-        state_spect_n12 = self._state_spect_tmp
+        state_spect_n1 = self._state_spect_tmp
 
         # time advancement
 
@@ -368,23 +407,19 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         #     #     float dt
         #     # )
 
-        state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
+        state_spect_n1[:] = (state_spect + dt * tendencies_n) * diss
 
-        ### second substep
+        # second substep
         # phaseshift
-        q = np.mod(p + 0.5, 1)
-        # delta = q * np.array([oper.deltax, oper.deltay, oper.deltaz])
-        # phase = delta[0] * oper.k0 + delta[1] * oper.k1 + delta[2] * oper.k2
-        delta = q * oper.deltax
-        phase = delta * oper.kx
+        phase = 0.5 * oper.deltax * oper.kx
         phase_shift = np.exp(1j * phase)
-        state_spect_shifted = state_spect_n12 * phase_shift
+        state_spect_shifted = state_spect_n1 * phase_shift
 
         # tendencies
-        tendencies_n12 = compute_tendencies(state_spect_shifted, old=tendencies_n)
-        tendencies_n12 /= phase_shift
+        tendencies_n1 = compute_tendencies(state_spect_shifted)
+        tendencies_n1 /= phase_shift
 
-        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n12)
+        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n1)
 
         # time advancement
 
@@ -403,7 +438,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         #     #     float dt
         #     # )
 
-        state_spect[:] = state_spect * diss + dt * diss2 * tendencies_dealiased
+        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
