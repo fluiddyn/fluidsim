@@ -53,6 +53,11 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
             ),
         )
 
+    @classmethod
+    def _create_str_for_name_run(cls, params):
+        p_watu = params.forcing[cls.tag]
+        return f"ampl{p_watu.amplitude:.3f}_omegaf{p_watu.omega_f:.3f}"
+
     def __init__(self, sim):
         super().__init__(sim)
 
