@@ -154,7 +154,6 @@ class OutputStrat(Output):
                     + "the degree symbol or a float in radians"
                 )
 
-        # self.froude_number = round(np.sin(angle), 1)
         self.froude_number = np.sin(angle)
 
     def _compute_ratio_omegas(self):
@@ -194,21 +193,13 @@ class OutputStrat(Output):
 
         return omega_l / omega_af
 
-    def _produce_str_describing_attribs_strat(self):
-        """
-        Produce string describing the parameters froude_number and ratio_omegas.
-        """
-        return (
-            f"F{self.froude_number:.3f}_gamma{self._compute_ratio_omegas():.1f}"
-        )
-
     def _create_list_for_name_run(self):
         """Creates new name_run for the simulation."""
         list_for_name_run = super()._create_list_for_name_run()
         if self.sim.params.forcing.type.endswith("anisotropic"):
-            tmp = self._produce_str_describing_attribs_strat()
-            if tmp:
-                list_for_name_run.append(tmp)
+            list_for_name_run.append(
+                f"F{self.froude_number:.3f}_gamma{self.ratio_omegas:.1f}"
+            )
         return list_for_name_run
 
     def plot_summary(self, field="b", time_phys=None, tmin=None, tmax=None):
