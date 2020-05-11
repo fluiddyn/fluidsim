@@ -24,6 +24,7 @@ from fluidsim.base.params import Parameters
 
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 from .. import _is_testing
+from .base import OperatorBase
 
 ts = Transonic()
 
@@ -92,7 +93,7 @@ if nb_proc > 1:
 
 
 @boost
-class OperatorsPseudoSpectral3D(_Operators):
+class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
     """Provides fast Fourier transform functions and 3D operators.
 
     Uses fft operators that implement the methods:

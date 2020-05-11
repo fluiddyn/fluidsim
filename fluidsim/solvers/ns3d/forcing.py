@@ -54,9 +54,12 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         )
 
     @classmethod
-    def _create_str_for_name_run(cls, params):
-        p_watu = params.forcing[cls.tag]
-        return f"ampl{p_watu.amplitude:.3f}_omegaf{p_watu.omega_f:.3f}"
+    def _modify_sim_repr_maker(cls, sim_repr_maker):
+        p_watu = sim_repr_maker.sim.params.forcing[cls.tag]
+        sim_repr_maker.add_parameters(
+            {"ampl": p_watu.amplitude, "omegaf": p_watu.omega_f},
+            formats={"ampl": ".3f", "omegaf": ".3f"},
+        )
 
     def __init__(self, sim):
         super().__init__(sim)

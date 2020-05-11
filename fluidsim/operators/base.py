@@ -14,7 +14,16 @@ Provides:
 import numpy as np
 
 
-class OperatorsBase1D:
+class OperatorBase:
+    def _modify_sim_repr_maker(self, sim_repr_maker):
+        if not hasattr(self, "produce_str_describing_oper"):
+            return
+
+        repr_oper = self.produce_str_describing_oper()
+        sim_repr_maker.add_word(repr_oper)
+
+
+class OperatorsBase1D(OperatorBase):
     @staticmethod
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container.
@@ -24,16 +33,6 @@ class OperatorsBase1D:
         return params
 
     def __init__(self, params=None):
-        """
-        .. todo::
-
-            Cleanup variable names to conform with fluidfft variables.
-            For eg.,
-
-             - self.xs -> self.x
-             - self.shape -> self.shapeX
-
-        """
         self.params = params
         self.axes = ("x",)
 

@@ -94,16 +94,17 @@ key_forced: {None} or str
                 cls._complete_params_with_default(params)
 
     @staticmethod
-    def _create_str_for_name_run(params, info_solver):
-        if not params.forcing.enable:
+    def _modify_sim_repr_maker(sim_repr_maker):
+        sim = sim_repr_maker.sim
+        if not sim.params.forcing.enable:
             return
-        dict_classes = info_solver.classes.Forcing.import_classes()
+        dict_classes = sim.info_solver.classes.Forcing.import_classes()
         try:
-            cls = dict_classes[params.forcing.type]
+            cls = dict_classes[sim.params.forcing.type]
         except KeyError:
             return
-        if hasattr(cls, "_create_str_for_name_run"):
-            return cls._create_str_for_name_run(params)
+        if hasattr(cls, "_modify_sim_repr_maker"):
+            return cls._modify_sim_repr_maker(sim_repr_maker)
 
     def __init__(self, sim):
         params = sim.params

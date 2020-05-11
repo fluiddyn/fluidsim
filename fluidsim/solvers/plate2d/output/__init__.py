@@ -82,15 +82,16 @@ class Output(OutputBasePseudoSpectral):
 
         params.output.phys_fields.field_to_plot = "z"
 
-    def _create_list_for_name_run(self):
-        list_for_name_run = super()._create_list_for_name_run()
-
+    def _init_sim_repr_maker(self):
+        """initialize sim_repr_maker."""
+        sim_repr_maker = super()._init_sim_repr_maker()
         if self.sim.params.forcing.enable:
-            str_P = f"P{self.sim.params.forcing.forcing_rate:5.0e}"
-            str_P = str_P.replace("+", "")
-            list_for_name_run.insert(2, str_P)
-
-        return list_for_name_run
+            sim_repr_maker.add_parameters(
+                {"P": self.sim.params.forcing.forcing_rate},
+                formats={"P": "5.0g"},
+                indices={"P": 2},
+            )
+        return sim_repr_maker
 
     def compute_energies_conversion_fft(self):
         w_fft = self.sim.state.get_var("w_fft")

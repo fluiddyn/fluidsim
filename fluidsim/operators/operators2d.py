@@ -20,6 +20,7 @@ from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 from fluidsim.base.params import Parameters
 from ..base.setofvariables import SetOfVariables
 from .. import _is_testing
+from .base import OperatorBase
 
 ts = Transonic()
 
@@ -73,7 +74,7 @@ if nb_proc > 1:
 
 
 @boost
-class OperatorsPseudoSpectral2D(_Operators):
+class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
     _has_to_dealiase: bool
     where_dealiased: "uint8[:, :]"

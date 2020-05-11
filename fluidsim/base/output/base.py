@@ -37,6 +37,52 @@ import fluidsim
 from fluidsim.util.util import load_params_simul, open_patient
 
 
+class SimReprMaker:
+    """Code to create strings to represent a simulation"""
+
+    def __init__(self, sim):
+        self.sim = sim
+        self.params = sim.params
+        self.ordered_keys = []
+        self.parameters = {}
+        self.formats = {}
+
+    def add_word(self, word):
+        if word:
+            self.ordered_keys.append(("__word", word))
+
+    def add_parameters(self, parameters, formats=None, indices=None):
+        for key in parameters:
+            if indices and key in indices:
+                index = indices[key]
+                self.ordered_keys.insert(index, ("__parameter", key))
+            else:
+                self.ordered_keys.append(("__parameter", key))
+        self.parameters.update(parameters)
+        if formats:
+            self.formats.update(formats)
+
+    def _make_list_repr(self):
+        list_repr = []
+        for kind, value in self.ordered_keys:
+            if kind == "__word":
+                list_repr.append(value)
+            elif kind == "__parameter":
+                name_parameter = value
+                parameter = self.parameters[name_parameter]
+                fmt = self.formats.get(name_parameter, "")
+                str_parameter = ("{:" + fmt + "}").format(parameter)
+                list_repr.append(f"{name_parameter}{str_parameter}")
+            else:
+                raise ValueError
+        return list_repr
+
+    def make_name_run(self):
+        list_repr = self._make_list_repr()
+        # todo: clever than that
+        return f"{'_'.join(list_repr)}_{time_as_str()}"
+
+
 class OutputBase:
     """Handle the output."""
 
@@ -257,36 +303,34 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def _init_name_run(self):
         """Initialize the run name"""
-        if not hasattr(self, "_list_for_name_run"):
-            self._list_for_name_run = self._create_list_for_name_run()
-        self.name_run = f"{'_'.join(self._list_for_name_run)}_{time_as_str()}"
+        if not hasattr(self, "_sim_repr_maker"):
+            self._sim_repr_maker = self._init_sim_repr_maker()
+        self.name_run = self._sim_repr_maker.make_name_run()
 
-    def _create_list_for_name_run(self):
+    def _init_sim_repr_maker(self):
         """Create a list of strings to make the run name."""
         sim = self.sim
         params = sim.params
-        list_for_name_run = [self.name_solver]
-        if len(params.short_name_type_run) > 0:
-            list_for_name_run.append(params.short_name_type_run)
-        if hasattr(self, "oper"):
-            str_describing_oper = sim.oper.produce_str_describing_oper()
-            if len(str_describing_oper) > 0:
-                list_for_name_run.append(str_describing_oper)
 
+        sim_repr_maker = SimReprMaker(sim)
+        sim_repr_maker.add_word(self.name_solver)
+        sim_repr_maker.add_word(params.short_name_type_run)
+
+        # oper should already be initialized at this point
+        if hasattr(self, "oper") and hasattr(self.oper, "_modify_sim_repr_maker"):
+            self.oper._modify_sim_repr_maker(sim_repr_maker)
+
+        # other classes are not initialized at this point
         dict_classes = sim.info_solver.import_classes()
         try:
             cls = dict_classes["Forcing"]
         except KeyError:
             pass
         else:
-            if hasattr(cls, "_create_str_for_name_run"):
-                str_for_name = cls._create_str_for_name_run(
-                    params, sim.info_solver
-                )
-                if str_for_name:
-                    list_for_name_run.append(str_for_name)
+            if hasattr(cls, "_modify_sim_repr_maker"):
+                cls._modify_sim_repr_maker(sim_repr_maker)
 
-        return list_for_name_run
+        return sim_repr_maker
 
     def init_with_oper_and_state(self):
         sim = self.sim

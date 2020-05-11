@@ -193,20 +193,20 @@ class OutputStrat(Output):
 
         return omega_l / omega_af
 
-    def _create_list_for_name_run(self):
-        """Creates new name_run for the simulation."""
-        list_for_name_run = super()._create_list_for_name_run()
+    def _init_sim_repr_maker(self):
+        """initialize sim_repr_maker."""
+        sim_repr_maker = super()._init_sim_repr_maker()
         if self.sim.params.forcing.type.endswith("anisotropic"):
-            list_for_name_run.append(
-                f"F{self.froude_number:.3f}_gamma{self.ratio_omegas:.1f}"
+            sim_repr_maker.add_parameters(
+                {"F": self.froude_number, "gamma": self.ratio_omegas},
+                formats={"gamma": ".1f"},
             )
-        return list_for_name_run
+        return sim_repr_maker
 
     def plot_summary(self, field="b", time_phys=None, tmin=None, tmax=None):
         """
         Plots summary of all outputs of a simulation.
         """
-
         self.phys_fields.plot(field=field, time=time_phys, QUIVER=False)
         self.print_stdout.plot()
         self.spatial_means.plot()
