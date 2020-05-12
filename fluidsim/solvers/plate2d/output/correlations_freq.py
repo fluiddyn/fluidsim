@@ -241,9 +241,8 @@ class CorrelationsFreq(SpecificOutput):
             omega1_max = self.iomegas1.max() * delta_omega
             if self.omega_Nyquist <= omega1_max:
                 raise ValueError(
-                    "omega_1_max={} is larger than omega_Nyquist={}.".format(
-                        omega1_max, self.omega_Nyquist
-                    )
+                    f"omega_1_max={omega1_max} is larger than "
+                    f"omega_Nyquist={self.omega_Nyquist}."
                 )
 
             self.omega_dealiasing = (

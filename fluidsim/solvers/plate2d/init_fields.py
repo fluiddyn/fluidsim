@@ -83,17 +83,25 @@ class InitFieldsHarmonic(SpecificInitFields):
     def _complete_params_with_default(cls, params):
         super(cls, cls)._complete_params_with_default(params)
 
+        params.init_fields._set_child(
+            cls.tag, attribs={"i0": 20, "i1": 25},
+        )
+
     def __call__(self):
         w_fft, z_fft = self.compute_wz_fft()
         self.sim.state.init_state_from_wz_fft(w_fft, z_fft)
 
     def compute_wz_fft(self):
+        p_harmonic = self.sim.params.init_fields.harmonic
+        i0 = p_harmonic.i0
+        i1 = p_harmonic.i1
+
         oper = self.sim.oper
 
         w_fft = np.zeros(oper.shapeK_loc, dtype=np.complex128)
         z_fft = np.zeros(oper.shapeK_loc, dtype=np.complex128)
-        w_fft[20, 25] = 1.0
-        z_fft[20, 25] = 1.0
+        w_fft[i0, i1] = 1.0
+        z_fft[i0, i1] = 1.0
 
         w = oper.ifft2(w_fft)
         z = oper.ifft2(z_fft)

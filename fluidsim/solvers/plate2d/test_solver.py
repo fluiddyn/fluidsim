@@ -13,11 +13,11 @@ class TestSimulBase(TestSimul):
     Simul = Simul
 
     @classmethod
-    def init_params(cls, Lh=2):
+    def init_params(cls, Lh=2, nh=32):
         cls.params = params = Simul.create_default_params()
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        cls.nh = nh = 32
+        cls.nh = nh
         params.oper.nx = nh
         params.oper.ny = nh
         cls.Lh = Lh
@@ -48,11 +48,10 @@ class TestSolverPlate2DTendency(TestSimulBase):
 class TestSolverPlate2DInit(TestSimulBase):
     @classmethod
     def init_params(cls):
-        params = super().init_params(4.0)
+        params = super().init_params(4.0, nh=8)
         params.init_fields.type = "harmonic"
-        cls.nh = nh = 52
-        params.oper.nx = nh
-        params.oper.ny = nh
+        params.init_fields.harmonic.i0 = 2
+        params.init_fields.harmonic.i1 = 4
 
     def test_init(self):
         pass
@@ -61,14 +60,15 @@ class TestSolverPlate2DInit(TestSimulBase):
 class TestSolverPlate2DOutput(TestSimulBase):
     @classmethod
     def init_params(cls):
-        params = super().init_params(6.0)
+        params = super().init_params(6.0, nh=12)
         delta_x = cls.Lh / cls.nh
 
         kmax = np.sqrt(2) * np.pi / delta_x
         deltat = 2 * np.pi / kmax ** 2 / 2
 
         params.time_stepping.deltat0 = deltat
-        params.time_stepping.it_end = 8
+        params.time_stepping.it_end = 10
+        params.time_stepping.USE_T_END = False
 
         params.init_fields.type = "noise"
         params.init_fields.noise.velo_max = 1e-6
@@ -88,8 +88,8 @@ class TestSolverPlate2DOutput(TestSimulBase):
 
         params.output.periods_save.phys_fields = 6 * deltat
         params.output.periods_save.spectra = 6 * deltat
-        params.output.periods_save.spatial_means = 6 * deltat
-        params.output.periods_save.correl_freq = 6 * deltat
+        params.output.periods_save.spatial_means = 4 * deltat
+        params.output.periods_save.correl_freq = 2 * deltat
 
         params.output.ONLINE_PLOT_OK = True
         params.output.period_refresh_plots = 6 * deltat
@@ -99,7 +99,7 @@ class TestSolverPlate2DOutput(TestSimulBase):
 
         params.output.correl_freq.HAS_TO_PLOT_SAVED = True
         params.output.correl_freq.it_start = 0
-        params.output.correl_freq.nb_times_compute = 8
+        params.output.correl_freq.nb_times_compute = 5
         params.output.correl_freq.coef_decimate = 1
         params.output.correl_freq.iomegas1 = [1, 2]
 
