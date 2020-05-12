@@ -20,6 +20,26 @@ class OperatorBase:
             return
 
         repr_oper = self.produce_str_describing_oper()
+
+        if (
+            self.axes
+            and self.axes != ("lat", "lon")
+            and self.params.ONLY_COARSE_OPER
+        ):
+            str_shape, str_volume = repr_oper.split("_")
+            ndim = len(self.axes)
+            p_oper = self.params.oper
+            if ndim == 1:
+                shape_reversed = (p_oper.nx,)
+            elif ndim == 2:
+                shape_reversed = (p_oper.nx, p_oper.ny)
+            elif ndim == 3:
+                shape_reversed = (p_oper.nx, p_oper.ny, p_oper.nz)
+            else:
+                raise NotImplementedError
+            str_shape = "x".join(str(n) for n in shape_reversed)
+            repr_oper = f"{str_shape}_{str_volume}"
+
         sim_repr_maker.add_word(repr_oper)
 
 
