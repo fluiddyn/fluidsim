@@ -85,8 +85,17 @@ class SimReprMaker:
 
     def make_name_run(self):
         list_repr = self._make_list_repr()
-        # todo: clever than that
-        return f"{'_'.join(list_repr)}_{time_as_str()}"
+        params = self.sim.params
+        if not params.NEW_DIR_RESULTS and (
+            params.ONLY_COARSE_OPER or params.init_fields.type == "from_file"
+        ):
+            path_run = params.path_run
+            if isinstance(path_run, Path):
+                path_run = path_run.name
+            time_as_s = "_".join(path_run.split("_")[-2:])
+        else:
+            time_as_s = time_as_str()
+        return f"{'_'.join(list_repr)}_{time_as_s}"
 
 
 class OutputBase:
