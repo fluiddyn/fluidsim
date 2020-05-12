@@ -530,7 +530,7 @@ class CorrelationsFreq(SpecificOutput):
     def _compute_norm_pick_corr4_from_corr4(self, corr4, i1=0, delta_io=10):
         io1 = self.iomegas1[i1]
         io3 = 4 * io1
-        io4 = 8 * io1
+        io4 = 4 * io1
         delta_io = min(delta_io, io3)
         if corr4.ndim == 3:
             return np.abs(
@@ -550,12 +550,13 @@ class CorrelationsFreq(SpecificOutput):
                 io3 - delta_io : io3 + delta_io + 1,
                 io4 - delta_io : io4 + delta_io + 1,
             ]
-            return np.abs(corr4_mini.mean(1).mean(1))
+            return np.abs(corr4_mini.mean((1, 2)))
 
     def _compute_norm_pick_corr4(self):
         with h5py.File(self.path_file, "r") as file:
             corr4 = file["corr4"][:]
             nb_means = file["nb_means"][:]
+
         fcorr4 = self._compute_norm_pick_corr4_from_corr4(corr4)
 
         return nb_means, fcorr4
@@ -710,31 +711,38 @@ class CorrelationsFreq(SpecificOutput):
     def plot_convergence2(self):
         ws = 10
         with h5py.File(self.path_file, "r") as file:
-            corr4_full = file["corr4"]
-            nb_means = file["nb_means"]
-            means = np.empty(corr4_full.shape[0])
-            f_conv = np.empty(corr4_full.shape[0:2])
-            for inb in range(corr4_full.shape[0]):
-                corr4_nb = corr4_full[inb]
-                means[inb] = nb_means[inb]
-                for i1, io1 in enumerate(self.iomegas1):
-                    if (2 * io1 + ws < self.nb_omegas) & (2 * io1 - ws > io1):
-                        f_conv[inb, i1] = np.abs(
-                            np.mean(
-                                corr4_nb[
-                                    i1,
-                                    2 * io1 - ws : 2 * io1 + ws + 1,
-                                    2 * io1 - ws : 2 * io1 + ws + 1,
-                                ]
-                            )
+            corr4_full = file["corr4"][...]
+            nb_means = file["nb_means"][...]
+
+        means = np.zeros(corr4_full.shape[0])
+        f_conv = np.zeros(corr4_full.shape[0:2])
+        for inb in range(corr4_full.shape[0]):
+            corr4_nb = corr4_full[inb]
+            means[inb] = nb_means[inb]
+            for i1, io1 in enumerate(self.iomegas1):
+                print(io1, ws, self.nb_omegas)
+                if (2 * io1 + ws < self.nb_omegas) and (2 * io1 - ws > io1):
+                    f_conv[inb, i1] = np.abs(
+                        np.mean(
+                            corr4_nb[
+                                i1,
+                                2 * io1 - ws : 2 * io1 + ws + 1,
+                                2 * io1 - ws : 2 * io1 + ws + 1,
+                            ]
                         )
+                    )
         fig, ax1 = self.output.figure_axe()
         ax1.set_xlabel("nb_means")
         # ax1.set_ylabel('convergence')
         ax1.set_title("Trispectra Convergence")
 
+        if f_conv.max() == 0:
+            return
+
         for i1, io1 in enumerate(self.iomegas1):
-            f_conv[:, i1] = f_conv[:, i1] / f_conv[-1, i1]
+            norm = f_conv[-1, i1]
+            if norm != 0:
+                f_conv[:, i1] = f_conv[:, i1] / norm
             ax1.plot(means, f_conv[:, i1], linewidth=1)
 
         ax1.set_xscale("log")
