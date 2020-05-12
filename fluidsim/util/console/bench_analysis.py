@@ -215,12 +215,8 @@ def plot_scaling(
     set_label_scale(ax0)
     ax0.legend()
     ax0.set_title(
-        "Best for {} processes: {}, {}={:.2f} ms".format(
-            nb_proc_min_filter,
-            name_min_filter,
-            key_min_filter,
-            t_min_filter * 1000,
-        )
+        f"Best for {nb_proc_min_filter} processes: "
+        f"{name_min_filter}, {key_min_filter}={t_min_filter * 1000:.2f} ms"
     )
 
     # Plot efficiency

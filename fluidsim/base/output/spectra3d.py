@@ -208,11 +208,7 @@ class Spectra(SpecificOutput):
             self.axe = axe
             axe.set_xlabel("$k$")
             axe.set_ylabel("$E(k)$")
-            axe.set_title(
-                "spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
+            axe.set_title("spectra\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass

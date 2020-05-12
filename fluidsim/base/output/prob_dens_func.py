@@ -42,13 +42,7 @@ class ProbaDensityFunc(SpecificOutput):
             self.axe = axe
             axe.set_xlabel(r"$\eta$")
             axe.set_ylabel("pdf")
-            title = (
-                r"pdf $\eta$, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            axe.set_title(title)
+            axe.set_title(r"pdf $\eta$" + "\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, dict_pdf):
         """online plot on pdf"""
@@ -112,12 +106,7 @@ class ProbaDensityFunc(SpecificOutput):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel(r"$\eta$")
         ax1.set_ylabel("PDF")
-        ax1.set_title(
-            "PDF, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-        )
+        ax1.set_title("PDF\n" + self.output.summary_simul)
         ax1.set_xscale("linear")
         ax1.set_yscale("linear")
 

@@ -126,13 +126,7 @@ imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("$r_x$")
         ax1.set_ylabel(r"$\langle \delta u^{" + f"{order}" + "} \\rangle$")
-
-        ax1.set_title(
-            "struct. functions, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
-        # +', c = {0:.4g}, f = {1:.4g}'.format(np.sqrt(self.c2), self.f))
+        ax1.set_title("struct. functions\n" + self.output.summary_simul)
 
         ax1.set_xscale("log")
         ax1.set_yscale(yscale)
@@ -310,13 +304,7 @@ imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
         size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("$r_x$")
-        title = (
-            "struct. functions, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-            + f", c2 = {self.c2:.4g}, f = {self.f:.4g}"
-        )
-        ax1.set_title(title)
+        ax1.set_title("struct. functions\n" + self.output.summary_simul)
         ax1.set_xscale("log")
         ax1.set_yscale("linear")
 

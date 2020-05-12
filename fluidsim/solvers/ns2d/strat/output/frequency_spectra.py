@@ -386,8 +386,4 @@ class FrequencySpectra(SpecificOutput):
             self.axe = axe
             axe.set_xlabel("$k_h$")
             axe.set_ylabel("$E(k_h)$")
-            axe.set_title(
-                "spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.params.oper.nx:5d}"
-            )
+            axe.set_title("spectra\n" + self.output.summary_simul)

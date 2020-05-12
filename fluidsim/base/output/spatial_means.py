@@ -86,12 +86,7 @@ class SpatialMeansBase(SpecificOutput):
             self.axe_a = axe
             axe.set_xlabel("$t$")
             axe.set_ylabel("$E(t)$")
-            title = (
-                "mean quantities, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
-            axe.set_title(title)
+            axe.set_title("mean quantities\n" + self.output.summary_simul)
 
             z_bottom_axe = 0.08
             size_axe[1] = z_bottom_axe

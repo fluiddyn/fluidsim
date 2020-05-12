@@ -75,10 +75,4 @@ class PhysFieldsBase1D(PhysFieldsBase):
             self._set_title(ax, key_field, time)
 
     def _set_title(self, ax, key, time):
-        title = (
-            key
-            + f", $t = {time:.3f}$, "
-            + self.output.name_solver
-            + f", $n_x = {self.params.oper.nx:d}$"
-        )
-        ax.set_title(title)
+        ax.set_title(key + f", $t = {time:.3f}$\n" + self.output.summary_simul)

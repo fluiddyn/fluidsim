@@ -99,11 +99,7 @@ class SpectraNS2D(Spectra):
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$k_h$")
             ax1.set_ylabel("spectra")
-            ax1.set_title(
-                "1D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
+            ax1.set_title("1D spectra\n" + self.output.summary_simul)
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
@@ -179,11 +175,7 @@ class SpectraNS2D(Spectra):
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$k_h$")
             ax1.set_ylabel("2D spectra")
-            ax1.set_title(
-                "2D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
+            ax1.set_title("2D spectra\n" + self.output.summary_simul)
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 

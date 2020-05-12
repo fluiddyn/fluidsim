@@ -266,15 +266,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 
     def _set_title(self, ax, key, time, vmax=None):
-        title = (
-            key
-            + f", $t = {time:.3f}$, "
-            + self.output.name_solver
-            + f", $n_x = {self.params.oper.nx:d}$"
-        )
+        title = key + f", $t = {time:.3f}$, "
         if vmax is not None:
             title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
-        ax.set_title(title)
+        ax.set_title(title + "\n" + self.output.summary_simul)
 
     def _init_online_plot(self):
         self.key_field = self.params.output.phys_fields.field_to_plot

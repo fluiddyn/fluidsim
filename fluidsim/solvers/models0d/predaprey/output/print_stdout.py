@@ -128,7 +128,7 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
         ax.set_xlabel("t")
         ax.set_ylabel("deltat(t)")
 
-        ax.set_title("info stdout, solver " + self.output.name_solver)
+        ax.set_title("info stdout\n" + self.output.summary_simul)
         ax.plot(t, deltat, "k", linewidth=2)
 
     def plot_potential(self):

@@ -467,13 +467,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             fig, ax1 = self.output.figure_axe(size_axe=size_axe)
             ax1.set_xlabel("$k_h$")
             ax1.set_ylabel("transfers")
-            title = (
-                "energy flux, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            ax1.set_title(title)
+            ax1.set_title("energy flux\n" + self.output.summary_simul)
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
 
@@ -592,8 +586,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
             ax2 = fig.add_axes(size_axe)
             ax2.set_xlabel("$k_h$")
             ax2.set_ylabel("transfers")
-            title = "Charney PE flux"
-            ax2.set_title(title)
+            ax2.set_title("Charney PE flux")
             ax2.set_xscale("log")
             ax2.set_yscale("linear")
 

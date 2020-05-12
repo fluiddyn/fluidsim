@@ -93,9 +93,7 @@ class Increments(SpecificOutput):
             axe.set_xlabel(r"$\delta u_x (x)$")
             axe.set_ylabel("pdf")
             axe.set_title(
-                r"pdf $\delta u_x (x)$, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
+                r"pdf $\delta u_x (x)$" + "\n" + self.output.summary_simul
             )
 
     def _online_plot_saving(self, dict_results, key="rot"):
@@ -224,11 +222,7 @@ class Increments(SpecificOutput):
         ax1.set_xlabel("$r_x$")
         ax1.set_ylabel(r"$\langle \delta u^{" + f"{order}" + "} \\rangle$")
 
-        ax1.set_title(
-            "struct. functions, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
+        ax1.set_title("struct. functions\n" + self.output.summary_simul)
         ax1.set_xscale("log")
         ax1.set_yscale(yscale)
 
@@ -463,12 +457,7 @@ class Increments(SpecificOutput):
         print(to_print)
 
         fig, ax1 = self.output.figure_axe()
-        ax1.set_title(
-            "pdf increments, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
-        # +', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f))
+        ax1.set_title("pdf increments\n" + self.output.summary_simul)
 
         ax1.set_xscale("linear")
         ax1.set_yscale("linear")

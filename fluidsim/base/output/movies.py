@@ -381,10 +381,7 @@ class MoviesBase1D(MoviesBase):
 
         self._ani_line.set_data(x, y)
         self.ax.set_title(
-            self.key_field
-            + f", $t = {time:.3f}$, "
-            + self.output.name_solver
-            + f", $n_x = {self.output.sim.oper.nx_seq:d}$"
+            self.key_field + f", $t = {time:.3f}$\n" + self.output.summary_simul
         )
 
         return self._ani_line

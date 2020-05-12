@@ -266,9 +266,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         ax.set_xlabel(r"$\kappa_h$")
         ax.set_ylabel("$k_z$")
-        ax.set_title(
-            f"{key}, solver {self.output.name_solver}, nx = {self.nx:5d}"
-        )
+        ax.set_title(f"{key}\n{self.output.summary_simul}")
 
         ax.pcolormesh(kh, kz, spectrum)
 
@@ -340,9 +338,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         xlbl = "$" + xlbl + "$"
         ax.set_xlabel(xlbl)
         ax.set_ylabel(ylbl)
-        ax.set_title(
-            f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
-        )
+        ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
 
         ax.semilogx(
             k_plot, flux_tot / eps, "k", linewidth=2, label=r"$\Pi/\epsilon$"

@@ -105,20 +105,7 @@ class PrintStdOutSW1L(PrintStdOutBase):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("t")
         ax1.set_ylabel("deltat(t)")
-        title = (
-            "info stdout, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
-
-        try:
-            title = title + ", c = {:.4g}, f = {:.4g}".format(
-                np.sqrt(self.c2), self.f
-            )
-        except AttributeError:
-            pass
-
-        ax1.set_title(title)
+        ax1.set_title("info stdout\n" + self.output.summary_simul)
         ax1.plot(t, deltat, "k", linewidth=2)
 
         z_bottom_axe = 0.08

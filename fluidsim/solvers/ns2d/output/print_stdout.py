@@ -99,11 +99,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         ax.set_xlabel("t")
         ax.set_ylabel("deltat(t)")
 
-        ax.set_title(
-            "info stdout, solver "
-            + self.output.name_solver
-            + f", nh = {self.sim.oper.nx_seq:5d}"
-        )
+        ax.set_title("info stdout\n" + self.output.summary_simul)
         ax.plot(t, deltat, "k", linewidth=2)
         fig.tight_layout()
 
@@ -116,11 +112,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
 
         fig, ax = self.output.figure_axe()
 
-        ax.set_title(
-            "info stdout, solver "
-            + self.output.name_solver
-            + f", nh = {self.sim.oper.nx_seq:5d}"
-        )
+        ax.set_title("info stdout\n" + self.output.summary_simul)
 
         ax.set_xlabel("t")
         ax.set_ylabel("E(t), deltaE(t)")

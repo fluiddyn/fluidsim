@@ -73,11 +73,7 @@ class SpectralEnergyBudgetBase(SpecificOutput):
             self.axe_a = axe_a
             axe_a.set_xlabel(r"$k_h$")
             axe_a.set_ylabel(r"$\Pi(k_h)$")
-            axe_a.set_title(
-                "energy flux, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-            )
+            axe_a.set_title("energy flux\n" + self.output.summary_simul)
             axe_a.set_xscale("log")
 
             z_bottom_axe = 0.08

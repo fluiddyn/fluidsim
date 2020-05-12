@@ -90,9 +90,7 @@ class SpectraMultiDim(SpecificOutput):
             axe.set_xlabel("$k_x$")
             axe.set_ylabel("$k_y$")
             axe.set_title(
-                "Multidimensional spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
+                "Multidimensional spectra\n" + self.output.summary_simul
             )
 
     def _online_plot_saving(self, arg):

@@ -242,13 +242,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             fig, ax1 = self.output.figure_axe(size_axe=size_axe)
             ax1.set_xlabel("$k_h$")
             ax1.set_ylabel("transfers")
-            title = (
-                "energy flux, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            ax1.set_title(title)
+            ax1.set_title("energy flux\n" + self.output.summary_simul)
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
 
@@ -297,8 +291,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             ax2 = fig.add_axes(size_axe)
             ax2.set_xlabel("$k_h$")
             ax2.set_ylabel("transfers")
-            title = "Charney PE flux"
-            ax2.set_title(title)
+            ax2.set_title("Charney PE flux")
             ax2.set_xscale("log")
             ax2.set_yscale("linear")
 
@@ -548,13 +541,9 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
         )
 
         if self.nb_saved_times == 2:
-            title = (
-                "Spectral Energy Budget, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
+            self.axe_a.set_title(
+                "Spectral Energy Budget\n" + self.output.summary_simul
             )
-            self.axe_a.set_title(title)
             self.axe_a.legend()
             self.axe_b.legend()
             self.axe_b.set_ylabel(r"$\Sigma C(k_h)$")
@@ -615,12 +604,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             ax11.set_xlabel("$k_h$")
             ax11.set_ylabel("Transfer terms, $T(k_h)$")
 
-            title = (
-                "Spectral Energy Budget, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
+            title = "Spectral Energy Budget\n" + self.output.summary_simul
             ax1.set_title(title)
             ax1.set_xscale("log")
             ax1.axhline()

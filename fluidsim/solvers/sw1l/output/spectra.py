@@ -22,13 +22,7 @@ class SpectraSW1L(Spectra):
     def _init_online_plot(self):
         super()._init_online_plot()
         if mpi.rank == 0:
-            title = (
-                "spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            self.axe.set_title(title)
+            self.axe.set_title("spectra\n" + self.output.summary_simul)
 
     def compute(self):
         """compute the values at one time."""
@@ -208,13 +202,7 @@ class SpectraSW1L(Spectra):
 
             ax.set_xlabel("$k_h$")
             ax.set_ylabel("1D spectra")
-            title = (
-                "1D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            ax.set_title(title)
+            ax.set_title("1D spectra\n" + self.output.summary_simul)
             ax.set_xscale("log")
             ax.set_yscale("log")
 
@@ -313,13 +301,7 @@ class SpectraSW1L(Spectra):
 
             ax.set_xlabel("$k_h$")
             ax.set_ylabel("2D spectra")
-            title = (
-                "2D spectra, solver "
-                + self.output.name_solver
-                + f", nh = {self.nx:5d}"
-                + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-            )
-            ax.set_title(title)
+            ax.set_title("2D spectra\n" + self.output.summary_simul)
             ax.set_xscale("log")
             ax.set_yscale("log")
 

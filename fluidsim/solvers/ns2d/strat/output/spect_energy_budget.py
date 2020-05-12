@@ -262,11 +262,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax1.set_ylabel(r"$\Pi$")
         ax1.set_xscale("log")
         ax1.set_yscale("linear")
-        ax1.set_title(
-            "Spectral energy budget, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
+        ax1.set_title("Spectral energy budget\n" + self.output.summary_simul)
 
         transferEK_kx = dset_transferEK_kx[imin_plot : imax_plot + 1].mean(0)
         transferEA_kx = dset_transferEA_kx[imin_plot : imax_plot + 1].mean(0)
@@ -312,11 +308,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.set_ylabel(r"$\Pi$")
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
-        ax2.set_title(
-            "Spectral energy budget, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
+        ax2.set_title("Spectral energy budget\n" + self.output.summary_simul)
 
         transferEK_ky = dset_transferEK_ky[imin_plot : imax_plot + 1].mean(0)
         transferEA_ky = dset_transferEA_ky[imin_plot : imax_plot + 1].mean(0)

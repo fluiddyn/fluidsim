@@ -341,11 +341,7 @@ class CorrelationsFreq(SpecificOutput):
             self.ax = ax
             ax.set_xlabel("Omega")
             ax.set_ylabel("Correlations")
-            ax.set_title(
-                "Correlation, solver "
-                + self.output.name_solver
-                + f", nh = {self.params.oper.nx:5d}"
-            )
+            ax.set_title("Correlation\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, dict_results):
         nb_omegas = self.nb_omegas
@@ -377,8 +373,6 @@ class CorrelationsFreq(SpecificOutput):
         ax.set_xlabel("Omega")
         ax.set_xlabel("Correlation")
         ax.plot(corr2[:, :], "k.")
-        # ax.set_title('Correlation, solver '+self.output.name_solver +
-        #               ', nh = {0:5d}'.format(self.nx))
 
         fig, ax = self.output.figure_axe(numfig=2333)
         self.ax = ax

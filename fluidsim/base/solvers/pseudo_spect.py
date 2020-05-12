@@ -210,11 +210,7 @@ nu_m4: float
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"$k{direction}$")
         ax.set_ylabel(r"$\omega_\mathrm{diss}$")
-        ax.set_title(
-            "Dissipation frequencies, solver "
-            + self.output.name_solver
-            + f", n{direction} = {number:5d}"
-        )
+        ax.set_title("Dissipation frequencies\n" + self.output.summary_simul)
 
         f_d_tot = np.zeros_like(ks)
 

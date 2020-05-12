@@ -321,13 +321,7 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("t")
         ax1.set_ylabel("$2E(t)/c^2$")
-        title = (
-            "mean energy, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.set_title(title)
+        ax1.set_title("mean energy\n" + self.output.summary_simul)
         norm = self.c2 / 2
         ax1.plot(t, E / norm, "k", linewidth=2, label="$E$")
         ax1.plot(t, EK / norm, "r", linewidth=1, label="$E_K$")
@@ -341,8 +335,7 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel("Charney PE(t)")
-        title = "mean Charney PE(t)"
-        ax2.set_title(title)
+        ax2.set_title("mean Charney PE(t)")
         ax2.plot(t, CPE, "k", linewidth=2)
 
         z_bottom_axe = 0.56
@@ -350,13 +343,8 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         fig, ax1 = self.output.figure_axe(size_axe=size_axe)
         ax1.set_xlabel("t")
         ax1.set_ylabel(r"$P_E(t)$, $\epsilon(t)$")
-        title = (
-            "forcing and dissipation, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-            + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(self.c2), self.f)
-        )
-        ax1.set_title(title)
+        ax1.set_title("forcing and dissipation\n" + self.output.summary_simul)
+
         if "PK_tot" in dict_results:
             ax1.plot(t, P_tot, "c", linewidth=2, label="$P_{tot}$")
 
@@ -371,30 +359,10 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel(r"$\epsilon$ Charney PE(t)")
-        title = "dissipation Charney PE"
-        ax2.set_title(title)
+        ax2.set_title("dissipation Charney PE")
         ax2.plot(t, epsCPE, "k--", linewidth=2)
         ax2.plot(t, epsCPE_hypo, "g", linewidth=2)
         ax2.plot(t, epsCPE_tot, "r", linewidth=2)
-
-    #         skew_eta = dict_results['skew_eta']
-    #         kurt_eta = dict_results['kurt_eta']
-    #         skew_rot = dict_results['skew_rot']
-    #         kurt_rot = dict_results['kurt_rot']
-
-    #         fig, ax1 = self.output.figure_axe()
-
-    #         title = ('skewness and kurtosis, solver '+self.output.name_solver+
-    # ', nh = {0:5d}'.format(self.nx)+
-    # ', c2 = {0:.4g}, f = {1:.4g}'.format(self.c2, self.f)
-    # )
-    #         ax1.set_title(title)
-    #         ax2.set_xlabel('t')
-
-    #         ax1.plot(t, skew_eta, 'b', linewidth=2)
-    #         ax1.plot(t, kurt_eta, 'b--', linewidth=2)
-    #         ax1.plot(t, skew_rot, 'r', linewidth=2)
-    #         ax1.plot(t, kurt_rot, 'r--', linewidth=2)
 
     def plot_rates(self, keys="E"):
         """Plots the time history of the time derivative of a spatial mean,

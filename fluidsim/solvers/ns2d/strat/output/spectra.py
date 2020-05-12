@@ -195,11 +195,7 @@ class SpectraNS2DStrat(Spectra):
         fig, ax = self.output.figure_axe()
         ax.set_xlabel("$k_x$, $k_z$")
         ax.set_ylabel(r"$E(k)k^{{{}}}$".format(round(coef_compensate, 2)))
-        ax.set_title(
-            "1D spectra, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
+        ax.set_title("1D spectra\n" + self.output.summary_simul)
         ax.set_xscale("log")
         ax.set_yscale("log")
         # ax.set_ylim(ymin=1e-6, ymax=1e3)
@@ -405,11 +401,7 @@ class SpectraNS2DStrat(Spectra):
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$k$")
         ax.set_ylabel(r"$E(k)$")
-        ax.set_title(
-            "2D spectra, solver "
-            + self.output.name_solver
-            + f", nh = {self.nx:5d}"
-        )
+        ax.set_title("2D spectra\n" + self.output.summary_simul)
 
         ax.set_xscale("log")
         ax.set_yscale("log")

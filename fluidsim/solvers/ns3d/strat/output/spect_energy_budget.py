@@ -148,9 +148,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         xlbl = "$" + xlbl + "$"
         ax.set_xlabel(xlbl)
         ax.set_ylabel(ylbl)
-        ax.set_title(
-            f"spectral fluxes, solver {self.output.name_solver}, nx = {self.nx:5d}"
-        )
+        ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
 
         ax.semilogx(
             k_plot, flux_tot / eps, "k", linewidth=2, label=r"$\Pi/\epsilon$"
