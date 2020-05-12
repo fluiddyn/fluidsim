@@ -82,17 +82,6 @@ class Output(OutputBasePseudoSpectral):
 
         params.output.phys_fields.field_to_plot = "z"
 
-    def _init_sim_repr_maker(self):
-        """initialize sim_repr_maker."""
-        sim_repr_maker = super()._init_sim_repr_maker()
-        if self.sim.params.forcing.enable:
-            sim_repr_maker.add_parameters(
-                {"P": self.sim.params.forcing.forcing_rate},
-                formats={"P": "5.0g"},
-                indices={"P": 2},
-            )
-        return sim_repr_maker
-
     def compute_energies_conversion_fft(self):
         w_fft = self.sim.state.get_var("w_fft")
         z_fft = self.sim.state.get_var("z_fft")

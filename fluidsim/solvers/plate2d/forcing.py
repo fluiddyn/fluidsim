@@ -25,11 +25,22 @@ class ForcingPlate2D(ForcingBasePseudoSpectral):
         ForcingBasePseudoSpectral._complete_info_solver(info_solver, classes)
 
 
-class TCRandomPSW(TCRandomPS):
+class SpecificForcingPlate2d:
+    @classmethod
+    def _modify_sim_repr_maker(cls, sim_repr_maker):
+        sim = sim_repr_maker.sim
+        sim_repr_maker.add_parameters(
+            {"P": sim.params.forcing.forcing_rate},
+            formats={"P": "5.0g"},
+            indices={"P": 2},
+        )
+
+
+class TCRandomPSW(SpecificForcingPlate2d, TCRandomPS):
     _key_forced_default = "w_fft"
 
 
-class Proportional(ProportionalBase):
+class Proportional(SpecificForcingPlate2d, ProportionalBase):
     _key_forced_default = "w_fft"
 
 
