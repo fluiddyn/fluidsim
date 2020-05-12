@@ -72,6 +72,8 @@ class SimReprMaker:
                 parameter = self.parameters[name_parameter]
                 fmt = self.formats.get(name_parameter, "")
                 str_parameter = ("{:" + fmt + "}").format(parameter)
+                if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
+                    str_parameter = str_parameter.replace("e+", "e")
                 list_repr.append(f"{name_parameter}{str_parameter}")
             else:
                 raise ValueError
