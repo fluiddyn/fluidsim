@@ -229,7 +229,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
                 keys_to_load = [
                     key
                     for key in file.keys()
-                    if key != "times" and not key.startswith("k")
+                    if key != "times" and not key.startswith(("k", "info"))
                 ]
 
             for key in keys_to_load:
