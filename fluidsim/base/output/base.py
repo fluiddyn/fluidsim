@@ -78,13 +78,17 @@ class SimReprMaker:
                 str_parameter = ("{:" + fmt + "}").format(parameter)
                 if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
                     str_parameter = str_parameter.replace("e+", "e")
-                list_repr.append(f"{name_parameter}{str_parameter}")
+                list_repr.append((name_parameter, str_parameter))
             else:
                 raise ValueError
         return list_repr
 
-    def make_name_run(self):
-        list_repr = self._make_list_repr()
+    def get_list_repr(self):
+        if not hasattr(self, "_list_repr"):
+            self._list_repr = self._make_list_repr()
+        return self._list_repr
+
+    def get_time_as_str(self):
         params = self.sim.params
         if not params.NEW_DIR_RESULTS and (
             params.ONLY_COARSE_OPER or params.init_fields.type == "from_file"
@@ -92,10 +96,31 @@ class SimReprMaker:
             path_run = params.path_run
             if isinstance(path_run, Path):
                 path_run = path_run.name
-            time_as_s = "_".join(path_run.split("_")[-2:])
+            return "_".join(path_run.split("_")[-2:])
         else:
-            time_as_s = time_as_str()
-        return f"{'_'.join(list_repr)}_{time_as_s}"
+            return time_as_str()
+
+    def make_representations(self):
+        time = self.get_time_as_str()
+        list_repr = self.get_list_repr().copy()
+        list_repr.append(time)
+
+        for_name = []
+        for_summary = []
+        for obj in list_repr:
+            if isinstance(obj, tuple):
+                name_parameter, str_parameter = obj
+                obj = f"{name_parameter}{str_parameter}"
+                str_summary = f"{name_parameter}={str_parameter}"
+            else:
+                str_summary = obj.replace("_", ", ")
+
+            for_name.append(obj)
+            for_summary.append(str_summary)
+
+        name_run = "_".join(for_name)
+        summary_simul = ", ".join(for_summary)
+        return name_run, summary_simul
 
 
 class OutputBase:
@@ -320,7 +345,10 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         """Initialize the run name"""
         if not hasattr(self, "_sim_repr_maker"):
             self._sim_repr_maker = self._init_sim_repr_maker()
-        self.name_run = self._sim_repr_maker.make_name_run()
+        (
+            self.name_run,
+            self.summary_simul,
+        ) = self._sim_repr_maker.make_representations()
 
     def _init_sim_repr_maker(self):
         """Create a list of strings to make the run name."""

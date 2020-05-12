@@ -36,11 +36,13 @@ from glob import glob
 import argparse
 
 import h5py
+import matplotlib as mpl
 
 import fluiddyn.output
 
 from .base import OutputBase, OutputBasePseudoSpectral
 
+mpl.rc("axes", titlesize=10)
 
 __all__ = ["OutputBase", "OutputBasePseudoSpectral"]
 

@@ -193,11 +193,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"${key_k_label}$")
         ax.set_ylabel("spectra " + key)
-        ax.set_title(
-            f"{ndim}D spectra, solver "
-            + self.output.name_solver
-            + f", nx = {self.nx:5d}"
-        )
+        ax.set_title(f"{ndim}D spectra\n" + self.output.summary_simul)
         ax.set_xscale("log")
         ax.set_yscale("log")
 
@@ -240,11 +236,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
 
         ax.set_xlabel(r"$\kappa_h$")
         ax.set_ylabel("$k_z$")
-        ax.set_title(
-            "log 3D spectra, solver "
-            + self.output.name_solver
-            + f", nx = {self.nx:5d}"
-        )
+        ax.set_title("log 3D spectra\n" + self.output.summary_simul)
 
         ax.pcolormesh(kh, kz, spectrum)
 
@@ -285,11 +277,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"$k$")
         ax.set_ylabel("spectra")
-        ax.set_title(
-            f"1D spectra, solver "
-            + self.output.name_solver
-            + f", nx = {self.nx:5d}"
-        )
+        ax.set_title(f"1D spectra\n" + self.output.summary_simul)
         ax.set_xscale("log")
         ax.set_yscale("log")
 
