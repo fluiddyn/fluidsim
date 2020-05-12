@@ -70,7 +70,11 @@ class SimReprMaker:
             elif kind == "__parameter":
                 name_parameter = value
                 parameter = self.parameters[name_parameter]
-                fmt = self.formats.get(name_parameter, "")
+                if isinstance(parameter, float):
+                    default_fmt = ".3f"
+                else:
+                    default_fmt = ""
+                fmt = self.formats.get(name_parameter, default_fmt)
                 str_parameter = ("{:" + fmt + "}").format(parameter)
                 if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
                     str_parameter = str_parameter.replace("e+", "e")
