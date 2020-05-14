@@ -119,6 +119,10 @@ class Simul(SimulNS3D):
         attribs = {"N": 1.0}
         params._set_attribs(attribs)
 
+    @classmethod
+    def _modify_sim_repr_maker(cls, sim_repr_maker):
+        sim_repr_maker.add_parameters({"N": sim_repr_maker.sim.params.N})
+
     def tendencies_nonlin(self, state_spect=None, old=None):
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg

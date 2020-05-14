@@ -78,6 +78,10 @@ class SimReprMaker:
                 str_parameter = ("{:" + fmt + "}").format(parameter)
                 if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
                     str_parameter = str_parameter.replace("e+", "e")
+                if "e" not in str_parameter:
+                    str_parameter = str_parameter.rstrip("0")
+                if str_parameter.endswith("."):
+                    str_parameter = str_parameter[:-1]
                 list_repr.append((name_parameter, str_parameter))
             else:
                 raise ValueError
@@ -362,6 +366,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
         # oper should already be initialized at this point
         if hasattr(self, "oper") and hasattr(self.oper, "_modify_sim_repr_maker"):
             self.oper._modify_sim_repr_maker(sim_repr_maker)
+
+        if hasattr(sim, "_modify_sim_repr_maker"):
+            sim._modify_sim_repr_maker(sim_repr_maker)
 
         # other classes are not initialized at this point
         dict_classes = sim.info_solver.import_classes()

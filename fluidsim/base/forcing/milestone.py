@@ -153,7 +153,11 @@ class ForcingMilestone(Base):
         if type_movement == "periodic_uniform":
             params_pu = params_milestone.movement.periodic_uniform
             sim_repr_maker.add_parameters(
-                {"Lf": params_pu.length, "Uf": params_pu.speed},
+                {
+                    "Lf": params_pu.length,
+                    "U": params_pu.speed,
+                    "D": params_milestone.objects.diameter,
+                },
                 formats={"Lf": ".2f"},
             )
 
