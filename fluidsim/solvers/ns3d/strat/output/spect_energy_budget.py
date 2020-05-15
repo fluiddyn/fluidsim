@@ -143,24 +143,24 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         if ax is None:
             fig, ax = self.output.figure_axe()
 
-        xlbl = "k_" + key_k[1]
-        ylbl = r"$\Pi(" + xlbl + r")/\epsilon$"
-        xlbl = "$" + xlbl + "$"
-        ax.set_xlabel(xlbl)
-        ax.set_ylabel(ylbl)
+        xlabel = "k_" + key_k[1]
+        ylabel = fr"$\Pi({xlabel})/\epsilon$"
+        ax.set_xlabel(f"${xlabel}")
+        ax.set_ylabel(ylabel)
         ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
 
-        ax.semilogx(
-            k_plot, flux_tot / eps, "k", linewidth=2, label=r"$\Pi/\epsilon$"
-        )
-        ax.semilogx(k_plot, D / eps, "k--", linewidth=2, label=r"$D/\epsilon$")
-        ax.semilogx(
-            k_plot, (flux_tot + D) / eps, "k:", label=r"$(\Pi+D)/\epsilon$"
-        )
-        ax.semilogx(k_plot, flux_K / eps, "r", label=r"$\Pi_K/\epsilon$")
-        ax.semilogx(k_plot, flux_A / eps, "b", label=r"$\Pi_A/\epsilon$")
-        ax.semilogx(k_plot, DK / eps, "r--", label=r"$D_K/\epsilon$")
-        ax.semilogx(k_plot, DA / eps, "b--", label=r"$D_A/\epsilon$")
-        ax.semilogx(k_plot, CK2A / eps, "m", linewidth=2, label=r"$B/\epsilon$")
+        def _plot(x, y, code, label, linewidth=None):
+            ax.semilogx(
+                x, y / eps, code, label=label, linewidth=linewidth,
+            )
+
+        _plot(k_plot, flux_tot, "k", r"$\Pi/\epsilon$", linewidth=2)
+        _plot(k_plot, D, "k--", r"$D/\epsilon$", linewidth=2)
+        _plot(k_plot, flux_tot + D, "k:", r"$(\Pi+D)/\epsilon$")
+        _plot(k_plot, flux_K, "r", r"$\Pi_K/\epsilon$")
+        _plot(k_plot, flux_A, "b", r"$\Pi_A/\epsilon$")
+        _plot(k_plot, DK, "r--", r"$D_K/\epsilon$")
+        _plot(k_plot, DA, "b--", r"$D_A/\epsilon$")
+        _plot(k_plot, CK2A, "m", r"$B/\epsilon$", linewidth=2)
 
         ax.legend()

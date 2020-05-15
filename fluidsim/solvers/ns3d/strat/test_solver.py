@@ -116,6 +116,11 @@ class TestOutput(TestSimulBase):
         sim2.output.spatial_means.load()
         sim2.output.spatial_means.load_dataset()
         sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
+
+        sim2.output.spatial_means.plot_dimless_numbers_versus_time()
+        result = sim2.output.spatial_means.get_dimless_numbers_averaged()
+        assert isinstance(result, dict)
+
         sim2.output.spectra.load1d_mean()
         sim2.output.spectra.load3d_mean()
         sim2.output.spectra.load_kzkh_mean()
@@ -139,6 +144,7 @@ class TestOutput(TestSimulBase):
         sim2.output.spectra.plot_kzkh(key="Khd")
 
         sim2.output.spect_energy_budg.plot_kzkh()
+        sim2.output.spect_energy_budg.plot_fluxes()
 
         sim2.output.phys_fields.set_equation_crosssection(f"x={sim.oper.Lx/4}")
         sim2.output.phys_fields.animate("vx")

@@ -362,3 +362,69 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             ax.plot(t, PA_tot, "b--", label=r"$P_A$", zorder=0)
 
         ax.legend()
+
+    def get_dimless_numbers_versus_time(self):
+        data = self.load()
+        results = {"t": data["t"]}
+        EKhr = data["EKhr"]
+        EKhd = data["EKhd"]
+        EKhs = data["EKhs"]
+        epsK = data["epsK"]
+        epsA = data["epsA"]
+
+        Uh2 = EKhr + EKhd + EKhs
+
+        N = self.params.N
+        nu_2 = self.params.nu_2
+        nu_4 = self.params.nu_4
+        nu_8 = self.params.nu_8
+
+        results["Fh"] = epsK / (Uh2 * N)
+
+        if nu_2:
+            results["R2"] = epsK / (nu_2 * N ** 2)
+        if nu_4:
+            results["R4"] = epsK * Uh2 / (nu_4 * N ** 4)
+        if nu_8:
+            results["R8"] = epsK * Uh2 ** 3 / (nu_8 * N ** 8)
+
+        results["Gamma"] = epsA / epsK
+
+        return results
+
+    def get_dimless_numbers_averaged(self, tmin=0, tmax=None):
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+        return {
+            k: q[itmin:stop].mean()
+            for k, q in numbers_vs_time.items()
+            if k != "t"
+        }
+
+    def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+        times = times[itmin:stop]
+
+        fig, ax = self.output.figure_axe()
+
+        for key, quantity in numbers_vs_time.items():
+            if key == "t":
+                continue
+            ax.plot(times, quantity[itmin:stop], label=key)
+
+        ax.set_yscale("log")
+        ax.set_xlabel("$t$")
+
+        fig.legend()
+
+
+def _compute_indices_tmin_tmax(times, tmin, tmax):
+    if tmax is None:
+        itmax = len(times) - 1
+    itmin = abs(times - tmin).argmin()
+    return itmin, itmax
