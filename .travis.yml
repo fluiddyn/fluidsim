@@ -48,8 +48,7 @@ cache:
         # - $TRAVIS_BUILD_DIR/.tox
 
 install:
-    - pip install -U pip pipenv tox==3.6 tox-pipenv colorlog coverage fluiddevops
-    - pip install -U numpy cython mako mpi4py transonic  # To be removed when pip==10 is out and this step can be bootstrapped
+    - pip install -U pip tox colorlog coverage fluiddevops
 
 before_script:
     - |
