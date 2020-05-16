@@ -49,6 +49,7 @@ cache:
 
 install:
     - pip install -U pip tox colorlog coverage fluiddevops
+    - pip install -U cython mpi4py
 
 before_script:
     - |
