@@ -8,8 +8,8 @@ python:
   - 3.7
 
 env:
-  - TOXENV=py,codecov-travis OMPI_CC=mpicc OMPI_CXX=mpicxx
-  - TOXENV=py-pythran,codecov-travis OMPI_CC=mpicc OMPI_CXX=mpicxx
+  - TOXENV=py,codecov-travis
+  - TOXENV=py-pythran,codecov-travis
 
 addons:
   apt:
