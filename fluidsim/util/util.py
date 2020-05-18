@@ -23,16 +23,14 @@ from copy import deepcopy as _deepcopy
 import inspect
 from pathlib import Path
 import time
+from importlib import import_module
 
 import numpy as _np
 import h5py
 
-from importlib import import_module
-
-
 import fluiddyn as fld
-
 from fluiddyn.util import mpi
+from fluiddyn.io.redirect_stdout import stdout_redirected
 
 from fluidsim import path_dir_results, solvers
 
@@ -224,7 +222,9 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     return name_file
 
 
-def load_sim_for_plot(name_dir=None, merge_missing_params=False):
+def load_sim_for_plot(
+    name_dir=None, merge_missing_params=False, hide_stdout=False
+):
     """Create a object Simul from a dir result.
 
     Creating simulation objects with this function should be fast because the
@@ -245,6 +245,10 @@ def load_sim_for_plot(name_dir=None, merge_missing_params=False):
 
       Can be used to load old simulations carried out with an old fluidsim
       version.
+
+    hide_stdout : bool (optional, default == False)
+
+      If True, without stdout.
 
     """
     path_dir = pathdir_from_namedir(name_dir)
@@ -269,7 +273,8 @@ def load_sim_for_plot(name_dir=None, merge_missing_params=False):
 
     fix_old_params(params)
 
-    sim = solver.Simul(params)
+    with stdout_redirected(hide_stdout):
+        sim = solver.Simul(params)
     return sim
 
 
@@ -285,6 +290,7 @@ def load_state_phys_file(
     modif_save_params=True,
     merge_missing_params=False,
     init_with_initialized_state=True,
+    hide_stdout=False,
 ):
     """Create a simulation from a file.
 
@@ -321,6 +327,10 @@ def load_state_phys_file(
 
       If True, call sim.output.init_with_initialized_state.
 
+    hide_stdout : bool (optional, default == False)
+
+      If True, without stdout.
+
     """
 
     params, Simul = load_for_restart(name_dir, t_approx, merge_missing_params)
@@ -331,7 +341,8 @@ def load_state_phys_file(
 
     params.ONLY_COARSE_OPER = False
 
-    sim = Simul(params)
+    with stdout_redirected(hide_stdout):
+        sim = Simul(params)
 
     if init_with_initialized_state:
         sim.output.init_with_initialized_state()
