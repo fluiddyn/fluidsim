@@ -266,7 +266,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 
     def _set_title(self, ax, key, time, vmax=None):
-        title = key + f", $t = {time:.3f}$, "
+        title = key + f", $t = {time:.3f}$"
         if vmax is not None:
             title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
         ax.set_title(title + "\n" + self.output.summary_simul)

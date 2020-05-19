@@ -129,7 +129,11 @@ length: float (default 0.)
                 if mpi.nb_proc > 1:
                     value_max = oper.comm.allreduce(value_max, op=mpi.MPI.MAX)
 
-                fields[key] = (velo_max / value_max) * field_fft
+                field_max = velo_max
+                if key == "b_fft" and hasattr(params, "N"):
+                    field_max *= params.N
+
+                fields[key] = (field_max / value_max) * field_fft
 
         self.sim.state.init_statespect_from(**fields)
         self.sim.state.statephys_from_statespect()

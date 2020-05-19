@@ -389,7 +389,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             results["R8"] = epsK * Uh2 ** 3 / (nu_8 * N ** 8)
 
         results["Gamma"] = epsA / epsK
-
+        results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
         return results
 
     def get_dimless_numbers_averaged(self, tmin=0, tmax=None):
@@ -397,11 +397,17 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         times = numbers_vs_time["t"]
         itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
         stop = itmax + 1
-        return {
+
+        result = {
             k: q[itmin:stop].mean()
             for k, q in numbers_vs_time.items()
-            if k != "t"
+            if k not in ["t", "dimensional"]
         }
+        result["dimensional"] = {
+            k: q[itmin:stop].mean()
+            for k, q in numbers_vs_time["dimensional"].items()
+        }
+        return result
 
     def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
         numbers_vs_time = self.get_dimless_numbers_versus_time()
@@ -413,7 +419,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         fig, ax = self.output.figure_axe()
 
         for key, quantity in numbers_vs_time.items():
-            if key == "t":
+            if key in ["t", "dimensional"]:
                 continue
             ax.plot(times, quantity[itmin:stop], label=key)
 

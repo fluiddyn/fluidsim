@@ -145,7 +145,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         xlabel = "k_" + key_k[1]
         ylabel = fr"$\Pi({xlabel})/\epsilon$"
-        ax.set_xlabel(f"${xlabel}")
+        ax.set_xlabel(f"${xlabel}$")
         ax.set_ylabel(ylabel)
         ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
 
