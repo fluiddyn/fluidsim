@@ -15,6 +15,7 @@ from pathlib import Path
 import numpy as np
 import h5netcdf
 from scipy.interpolate import interp1d
+from math import pi
 
 
 from fluiddyn.util import mpi
@@ -117,6 +118,14 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
                 interp1d(times, signals[index])
                 for index in range(signals.shape[0])
             ]
+
+            # warning : period_forcing / omega_f should be integer
+            period_f = 2 * pi / sim.params.forcing.watu_coriolis.omega_f
+            if sim.params.forcing.watu_coriolis.period_forcing % period_f > 1e-10:
+                mpi.printby0(
+                    "WARNING: period_forcing is not a multiple of 2*pi/omega_f."
+                    "The forcing velocity signal may not be continuous."
+                )
 
         if mpi.nb_proc > 1:
             self.interpolents = mpi.comm.bcast(self.interpolents, root=0)
