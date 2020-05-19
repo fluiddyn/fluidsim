@@ -336,6 +336,93 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
             state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
 
+    def _time_step_RK2_trapezoid(self):
+        r"""Advance in time with the Runge-Kutta 2 method + trapezoidal rule
+        (Heun's method)
+
+        .. _rk2timescheme:
+
+        Notes
+        -----
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        The Runge-Kutta 2 method computes an approximation of the
+        solution after a time increment :math:`dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Approximation 1:
+
+          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+
+          Integrating from :math:`t` to :math:`t+dt`, it gives:
+
+          .. |SA1dt| mathmacro:: S_{A1dt}
+
+          .. math:: \SA1dt = (S_0 + N_0 dt) e^{\sigma dt}.
+
+
+        - Approximation 2:
+
+          .. math::
+             \p_t \log S = \sigma
+             + \frac{N(\SA1halfdt)}{ \SA1halfdt },
+
+          Integrating from :math:`t` to :math:`t+dt` and retaining
+          only the terms in :math:`dt^1` gives:
+
+          .. math::
+             S_{dtA2} = S_0 e^{\sigma dt}
+             + N(\SA1halfdt) dt e^{\frac{\sigma dt}{2}}.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_n = compute_tendencies()
+
+        state_spect_n12 = self._state_spect_tmp
+
+        if ts.is_transpiled:
+            ts.use_block("rk2_step0")
+        else:
+            # transonic block (
+            #     A state_spect_n12, state_spect, tendencies_n;
+            #     A1 diss2;
+            #     float dt
+            # )
+            # transonic block (
+            #     A state_spect_n12, state_spect, tendencies_n;
+            #     A2 diss2;
+            #     float dt
+            # )
+
+            state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
+
+        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
+
+        if ts.is_transpiled:
+            ts.use_block("rk2_step1")
+        else:
+            # transonic block (
+            #     A state_spect, tendencies_n12;
+            #     A1 diss, diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, tendencies_n12;
+            #     A2 diss, diss2;
+            #     float dt
+            # )
+
+            state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
+
     def _time_step_RK2_phaseshift(self):
         r"""Advance in time with the Runge-Kutta 2 method.
 
