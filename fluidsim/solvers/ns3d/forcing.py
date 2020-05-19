@@ -57,7 +57,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
     def _modify_sim_repr_maker(cls, sim_repr_maker):
         p_watu = sim_repr_maker.sim.params.forcing[cls.tag]
         sim_repr_maker.add_parameters(
-            {"ampl": p_watu.amplitude, "omegaf": p_watu.omega_f},
+            {"ampl": p_watu.amplitude, "omegaf": p_watu.omega_f}
         )
 
     def __init__(self, sim):
@@ -106,8 +106,15 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
                         "/signals", ("signal", "time"), data=signals
                     )
 
+            # add one point at the end for periodicity
+            signals = np.column_stack((signals, signals[:, 0]))
+            times = np.hstack(
+                (times, sim.params.forcing.watu_coriolis.period_forcing)
+            )
+
+            # interpolation functions
             self.interpolents = [
-                interp1d(times, signals[index], fill_value="extrapolate")
+                interp1d(times, signals[index])
                 for index in range(signals.shape[0])
             ]
 
