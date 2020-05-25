@@ -133,6 +133,11 @@ max_elapsed: number or str (default None)
         If *self.USE_T_END* is true, run till ``t >= t_end``,
         otherwise run *self.it_end* time steps.
         """
+        self._init_before_main_loop()
+        self.main_loop(print_begin=True, save_init_field=True)
+        self.finalize_after_main_loop()
+
+    def _init_before_main_loop(self):
         self.sim.__enter__()
 
         output = self.sim.output
@@ -142,36 +147,35 @@ max_elapsed: number or str (default None)
         ):
             output.init_with_initialized_state()
 
-        print_stdout = output.print_stdout
-        print_stdout(
-            "*************************************\n"
-            + "Beginning of the computation"
-        )
-        if self.sim.output._has_to_save:
-            self.sim.output.phys_fields.save()
-        if self.params.time_stepping.USE_T_END:
+        self._init_before_main_loop_called = True
+
+    def finalize_after_main_loop(self):
+        self.sim.__exit__()
+
+    def main_loop(self, print_begin=False, save_init_field=False):
+
+        if not hasattr(self, "_init_before_main_loop_called"):
+            self._init_before_main_loop()
+
+        print_stdout = self.sim.output.print_stdout
+        if print_begin:
             print_stdout(
-                "    compute until t = {:10.6g}".format(
-                    self.params.time_stepping.t_end
-                )
+                "*************************************\n"
+                "Beginning of the computation"
             )
-            while (
-                self.t < self.params.time_stepping.t_end and not self._has_to_stop
-            ):
+        if save_init_field and self.sim.output._has_to_save:
+            self.sim.output.phys_fields.save()
+
+        params_stepping = self.params.time_stepping
+
+        if params_stepping.USE_T_END:
+            print_stdout(f"    compute until t = {params_stepping.t_end:10.6g}")
+            while self.t < params_stepping.t_end and not self._has_to_stop:
                 self.one_time_step()
         else:
-            print_stdout(
-                "    compute until it = {:8d}".format(
-                    self.params.time_stepping.it_end
-                )
-            )
-            while (
-                self.it < self.params.time_stepping.it_end
-                and not self._has_to_stop
-            ):
+            print_stdout(f"    compute until it = {params_stepping.it_end:8d}")
+            while self.it < params_stepping.it_end and not self._has_to_stop:
                 self.one_time_step()
-
-        self.sim.__exit__()
 
     def one_time_step(self):
         """Main time stepping function."""
