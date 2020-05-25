@@ -73,7 +73,10 @@ nu_2_needed = (epsilon_eval * eta_kmax ** 4) ** (1 / 3)
 freq_nu4 = 0.5 * (nu_2_needed - params.nu_2) * kmax ** 2
 
 nu_4_needed = freq_nu4 / kmax ** 4
-params.nu_4 = 0.0
+
+# for the first main time loop, nearly no viscosity!
+# warning: not exactly 0 otherwise, output methods get lost
+params.nu_4 = 1e-14
 
 params.output.sub_directory = sub_directory
 params.output.periods_print.print_stdout = movement.period / 20.0
@@ -90,7 +93,14 @@ sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
 
 print("first main loop finished, let's start a new one")
 
+assert sim.params is params
+
+# modify t_end and nu_4
 params.time_stepping.t_end *= 2
+params.nu_4 = nu_4_needed
+
+# time_stepping parameters have changed, we need to call
+sim.time_stepping.init_from_params()
 
 sim.time_stepping.main_loop()
 

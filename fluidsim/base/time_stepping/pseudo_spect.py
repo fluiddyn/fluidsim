@@ -102,7 +102,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def __init__(self, sim):
         super().__init__(sim)
+        self.init_from_params()
 
+    def init_from_params(self):
         self._init_freq_lin()
         self._init_compute_time_step()
         self._init_exact_linear_coef()
