@@ -389,7 +389,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_n12 = self._state_spect_tmp
 
         if ts.is_transpiled:
-            ts.use_block("rk2_step0")
+            ts.use_block("rk2_trapezoid_step0")
         else:
             # transonic block (
             #     A state_spect_n12, state_spect, tendencies_n;
@@ -407,7 +407,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
 
         if ts.is_transpiled:
-            ts.use_block("rk2_step1")
+            ts.use_block("rk2_trapezoid_step1")
         else:
             # transonic block (
             #     A state_spect, tendencies_n12;
@@ -479,21 +479,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_n1 = self._state_spect_tmp
 
         # time advancement
-
-        # if ts.is_transpiled:
-        #     ts.use_block("rk2_step0")
-        # else:
-        #     # transonic block (
-        #     #     A state_spect_n12, state_spect, tendencies_n;
-        #     #     A1 diss2;
-        #     #     float dt
-        #     # )
-        #     # transonic block (
-        #     #     A state_spect_n12, state_spect, tendencies_n;
-        #     #     A2 diss2;
-        #     #     float dt
-        #     # )
-
         state_spect_n1[:] = (state_spect + dt * tendencies_n) * diss
 
         # second substep
@@ -509,22 +494,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n1)
 
         # time advancement
-
-        # if ts.is_transpiled:
-        #     ts.use_block("rk2_step1")
-        # else:
-        #     # transonic block (
-        #     #     A state_spect, tendencies_n12;
-        #     #     A1 diss, diss2;
-        #     #     float dt
-        #     # )
-
-        #     # transonic block (
-        #     #     A state_spect, tendencies_n12;
-        #     #     A2 diss, diss2;
-        #     #     float dt
-        #     # )
-
         state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
 
     def _time_step_RK4(self):
