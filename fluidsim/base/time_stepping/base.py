@@ -3,6 +3,10 @@
 
 Provides:
 
+.. autoclass:: TimeSteppingBase0
+   :members:
+   :private-members:
+
 .. autoclass:: TimeSteppingBase
    :members:
    :private-members:
@@ -130,14 +134,22 @@ max_elapsed: number or str (default None)
     def start(self):
         """Loop to run the function :func:`one_time_step`.
 
-        If *self.USE_T_END* is true, run till ``t >= t_end``,
-        otherwise run *self.it_end* time steps.
+        If ``self.USE_T_END`` is true, run till ``t >= t_end``,
+        otherwise run ``self.it_end`` time steps.
         """
-        self._init_before_main_loop()
         self.main_loop(print_begin=True, save_init_field=True)
-        self.finalize_after_main_loop()
+        self.finalize_main_loop()
 
-    def _init_before_main_loop(self):
+    def prepare_main_loop(self):
+        """Prepare the simulation just before the main loop.
+
+        This function is called automatically in ``main_loop`` if it hasn't
+        been called before. It can be used by users for debugging.
+
+        During this preparation, the time of the begining of the simulation is
+        set and the outputs are initialized with the initial state.
+
+        """
         self.sim.__enter__()
 
         output = self.sim.output
@@ -147,15 +159,21 @@ max_elapsed: number or str (default None)
         ):
             output.init_with_initialized_state()
 
-        self._init_before_main_loop_called = True
+        self._prepare_main_loop_called = True
 
-    def finalize_after_main_loop(self):
+    def finalize_main_loop(self):
+        """Finalize the simulation after the main time loop.
+
+        - set the end time
+        - finalize the outputs (in particular close the files)
+        """
         self.sim.__exit__()
 
     def main_loop(self, print_begin=False, save_init_field=False):
+        """The main time loop!"""
 
-        if not hasattr(self, "_init_before_main_loop_called"):
-            self._init_before_main_loop()
+        if not hasattr(self, "_prepare_main_loop_called"):
+            self.prepare_main_loop()
 
         print_stdout = self.sim.output.print_stdout
         if print_begin:

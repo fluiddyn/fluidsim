@@ -89,21 +89,33 @@ periods_save.spectra = movement.period / 100.0
 
 sim = Simul(params)
 
+"""
+For this simulation, we want to
+
+- run a first time loop,
+- modify t_end and nu_4,
+- relaunch the time loop.
+
+The usual call of `sim.time_stepping.start` is replaced by these few lines:
+"""
+
 sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
 
 print("first main loop finished, let's start a new one")
 
-assert sim.params is params
-
 # modify t_end and nu_4
+assert sim.params is params
 params.time_stepping.t_end *= 2
 params.nu_4 = nu_4_needed
 
-# time_stepping parameters have changed, we need to call
+# time_stepping parameters have been changed, we need to call
 sim.time_stepping.init_from_params()
 
 sim.time_stepping.main_loop()
 
+sim.time_stepping.finalize_main_loop()
+
+# some plots to visualize the result
 sim.output.spatial_means.plot()
 sim.output.spectra.plot1d(coef_compensate=5 / 3)
 
