@@ -21,12 +21,13 @@ class TestSolverSquare1D(TestSimul):
         params.oper.nx = 40
         params.oper.Lx = 1.0
 
-        params.time_stepping.type_time_scheme = "Euler"
-
         params.nu_2 = 0.01
 
-        params.time_stepping.t_end = 0.4
+        params.time_stepping.type_time_scheme = "Euler"
         params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 4
+        params.time_stepping.deltat_max = 0.1
 
         params.init_fields.type = "gaussian"
 
@@ -40,5 +41,25 @@ class TestSolverSquare1D(TestSimul):
     )
     def test_simul(self):
         sim = self.sim
-        sim.time_stepping.start()
+        params = sim.params
+
+        sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
+
+        params.time_stepping.it_end += 2
+        params.time_stepping.type_time_scheme = "Euler_phaseshift"
+        sim.time_stepping.init_from_params()
+        sim.time_stepping.main_loop()
+
+        params.time_stepping.it_end += 2
+        params.time_stepping.type_time_scheme = "RK2_trapezoid"
+        sim.time_stepping.init_from_params()
+        sim.time_stepping.main_loop()
+
+        params.time_stepping.it_end += 2
+        params.time_stepping.type_time_scheme = "RK2_phaseshift"
+        sim.time_stepping.init_from_params()
+        sim.time_stepping.main_loop()
+
+        sim.time_stepping.finalize_main_loop()
+
         sim.plot_freq_diss()

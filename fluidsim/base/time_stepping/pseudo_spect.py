@@ -133,6 +133,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         elif type_time_scheme == "RK2":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
+        elif type_time_scheme == "RK2_trapezoid":
+            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+            time_step_RK = self._time_step_RK2_trapezoid
         elif type_time_scheme == "RK2_phaseshift":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2_phaseshift
@@ -485,7 +488,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         """
         dt = self.deltat
-        diss = self.exact_linear_coefs.get_updated_coefs()[0]
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
         oper = self.sim.oper
 
@@ -511,7 +514,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_n12 = compute_tendencies(state_spect_shifted)
         tendencies_n12 /= phase_shift
 
-        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n1)
+        tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n12)
 
         # time advancement
         state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
