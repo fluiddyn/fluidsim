@@ -206,7 +206,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect[:] = (state_spect + dt * tendencies_n) * diss
 
     def _time_step_Euler_phaseshift(self):
-        r"""Advance in time with the forward Euler method, dealias 
+        r"""Advance in time with the forward Euler method, dealias
         with pase-shifting.
 
         .. _eulertimescheme_phaseshift:
@@ -232,13 +232,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
           .. math:: S_{\d t} = (S_0 + N_\mathrm{dealias} \d t) e^{\sigma \d t}.
 
-        - Phase-shifting: 
+        - Phase-shifting:
 
             .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N_0^*),
 
             where :math:`N_0^*` is the phase-shifted nonlinear term:
 
-            .. math:: e^{\frac{-\d xk}{2}}N\left(e^{\frac{+\d xk}{2}}S_0\right).      
+            .. math:: e^{\frac{-\d xk}{2}}N\left(e^{\frac{+\d xk}{2}}S_0\right).
 
         """
         dt = self.deltat
@@ -401,13 +401,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             ts.use_block("rk2_trapezoid_step0")
         else:
             # transonic block (
-            #     A state_spect_n12, state_spect, tendencies_n;
-            #     A1 diss2;
+            #     A state_spect_n1, state_spect, tendencies_n;
+            #     A1 diss;
             #     float dt
             # )
             # transonic block (
-            #     A state_spect_n12, state_spect, tendencies_n;
-            #     A2 diss2;
+            #     A state_spect_n1, state_spect, tendencies_n;
+            #     A2 diss;
             #     float dt
             # )
 
@@ -419,14 +419,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             ts.use_block("rk2_trapezoid_step1")
         else:
             # transonic block (
-            #     A state_spect, tendencies_n12;
-            #     A1 diss, diss2;
+            #     A state_spect, tendencies_n, tendencies_n1;
+            #     A1 diss;
             #     float dt
             # )
 
             # transonic block (
-            #     A state_spect, tendencies_n12;
-            #     A2 diss, diss2;
+            #     A state_spect, tendencies_n, tendencies_n1;
+            #     A2 diss;
             #     float dt
             # )
 
@@ -475,7 +475,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              S_{\d tA2} = S_0 e^{\sigma \d t}
              + N_\mathrm{dealias} dt e^{\frac{\sigma \d t}{2}}.
 
-        - Phase-shifting: 
+        - Phase-shifting:
 
             .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N^*(\SA1halfdt)),
 
