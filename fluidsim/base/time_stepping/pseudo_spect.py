@@ -176,22 +176,23 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         -----
 
         .. |p| mathmacro:: \partial
+        .. |d| mathmacro:: \mathrm{d}
 
         We consider an equation of the form
 
         .. math:: \p_t S = \sigma S + N(S),
 
         The forward Euler method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        solution after a time increment :math:`\d t`. We denote the
         initial time :math:`t = 0`.
 
         Euler approximation :
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt`, it gives:
+          Integrating from :math:`t` to :math:`t+\d t`, it gives:
 
-          .. math:: S_{dt} = (S_0 + N_0 dt) e^{\sigma dt}.
+          .. math:: S_{\d t} = (S_0 + N_0 \d t) e^{\sigma \d t}.
 
         """
         dt = self.deltat
@@ -205,30 +206,39 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect[:] = (state_spect + dt * tendencies_n) * diss
 
     def _time_step_Euler_phaseshift(self):
-        r"""Advance in time with the forward Euler method.
+        r"""Advance in time with the forward Euler method, dealias 
+        with pase-shifting.
 
-        .. _eulertimescheme:
+        .. _eulertimescheme_phaseshift:
 
         Notes
         -----
 
-        .. |p| mathmacro:: \partial
+        WIP: only for 1D!
 
         We consider an equation of the form
 
         .. math:: \p_t S = \sigma S + N(S),
 
         The forward Euler method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        solution after a time increment :math:`\d t`. We denote the
         initial time :math:`t = 0`.
 
-        Euler approximation :
+        - Euler approximation:
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt`, it gives:
+          Integrating from :math:`t` to :math:`t+\d t`, it gives:
 
-          .. math:: S_{dt} = (S_0 + N_0 dt) e^{\sigma dt}.
+          .. math:: S_{\d t} = (S_0 + N_\mathrm{dealias} \d t) e^{\sigma \d t}.
+
+        - Phase-shifting: 
+
+            .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N_0^*),
+
+            where :math:`N_0^*` is the phase-shifted nonlinear term:
+
+            .. math:: e^{\frac{-\d xk}{2}}N\left(e^{\frac{+\d xk}{2}}S_0\right).      
 
         """
         dt = self.deltat
@@ -263,18 +273,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         .. math:: \p_t S = \sigma S + N(S),
 
         The Runge-Kutta 2 method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        solution after a time increment :math:`\d t`. We denote the
         initial time :math:`t = 0`.
 
         - Approximation 1:
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt/2`, it gives:
+          Integrating from :math:`t` to :math:`t+\d t/2`, it gives:
 
-          .. |SA1halfdt| mathmacro:: S_{A1dt/2}
+          .. |SA1halfdt| mathmacro:: S_{A1\mathrm{d}t/2}
 
-          .. math:: \SA1halfdt = (S_0 + N_0 dt/2) e^{\frac{\sigma dt}{2}}.
+          .. math:: \SA1halfdt = (S_0 + N_0 \d t/2) e^{\frac{\sigma \d t}{2}}.
 
 
         - Approximation 2:
@@ -283,12 +293,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma
              + \frac{N(\SA1halfdt)}{ \SA1halfdt },
 
-          Integrating from :math:`t` to :math:`t+dt` and retaining
-          only the terms in :math:`dt^1` gives:
+          Integrating from :math:`t` to :math:`t+\d t` and retaining
+          only the terms in :math:`\d t^1` gives:
 
           .. math::
-             S_{dtA2} = S_0 e^{\sigma dt}
-             + N(\SA1halfdt) dt e^{\frac{\sigma dt}{2}}.
+             S_{\d tA2} = S_0 e^{\sigma \d t}
+             + N(\SA1halfdt) dt e^{\frac{\sigma \d t}{2}}.
 
         """
         dt = self.deltat
@@ -340,7 +350,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         r"""Advance in time with the Runge-Kutta 2 method + trapezoidal rule
         (Heun's method)
 
-        .. _rk2timescheme:
+        .. _rk2timescheme_trapezoid:
 
         Notes
         -----
@@ -349,33 +359,32 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         .. math:: \p_t S = \sigma S + N(S),
 
-        The Runge-Kutta 2 method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        Heun's method computes an approximation of the
+        solution after a time increment :math:`\d t`. We denote the
         initial time :math:`t = 0`.
 
         - Approximation 1:
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt`, it gives:
+          Integrating from :math:`t` to :math:`t+\d t`, it gives:
 
-          .. |SA1dt| mathmacro:: S_{A1dt}
+          .. |SA1dt| mathmacro:: S_{A1\mathrm{d}t}
 
-          .. math:: \SA1dt = (S_0 + N_0 dt) e^{\sigma dt}.
+          .. math:: \SA1dt = (S_0 + N_0 \d t) e^{\sigma \d t}.
 
 
         - Approximation 2:
 
           .. math::
-             \p_t \log S = \sigma
-             + \frac{N(\SA1halfdt)}{ \SA1halfdt },
+             \p_t \log S = \sigma + \frac{1}{2}\left(\frac{N(S_0)}{S_0}+\frac{N(\SA1halfdt)}{\SA1halfdt}\right),
 
-          Integrating from :math:`t` to :math:`t+dt` and retaining
-          only the terms in :math:`dt^1` gives:
+          Integrating from :math:`t` to :math:`t+\d t` and retaining
+          only the terms in :math:`\d t^1` gives:
 
           .. math::
-             S_{dtA2} = S_0 e^{\sigma dt}
-             + N(\SA1halfdt) dt e^{\frac{\sigma dt}{2}}.
+             S_{\d tA2} = (S_0 + N_0\frac{\d t}{2}) e^{\sigma \d t}
+             + N(\SA1halfdt) \frac{\d t}{2}.
 
         """
         dt = self.deltat
@@ -386,7 +395,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         tendencies_n = compute_tendencies()
 
-        state_spect_n12 = self._state_spect_tmp
+        state_spect_n1 = self._state_spect_tmp
 
         if ts.is_transpiled:
             ts.use_block("rk2_trapezoid_step0")
@@ -402,9 +411,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float dt
             # )
 
-            state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
+            state_spect_n1[:] = (state_spect + dt * tendencies_n) * diss
 
-        tendencies_n12 = compute_tendencies(state_spect_n12, old=tendencies_n)
+        tendencies_n1 = compute_tendencies(state_spect_n1)
 
         if ts.is_transpiled:
             ts.use_block("rk2_trapezoid_step1")
@@ -421,33 +430,36 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             #     float dt
             # )
 
-            state_spect[:] = state_spect * diss + dt * diss2 * tendencies_n12
+            state_spect[:] = (
+                state_spect + dt / 2 * tendencies_n
+            ) * diss + dt / 2 * tendencies_n1
 
     def _time_step_RK2_phaseshift(self):
         r"""Advance in time with the Runge-Kutta 2 method.
+        Dealias with phase-shifting.
 
-        .. _rk2timescheme:
+        .. _rk2timescheme_phaseshift:
 
         Notes
         -----
+
+        WIP: only for 1D!
 
         We consider an equation of the form
 
         .. math:: \p_t S = \sigma S + N(S),
 
         The Runge-Kutta 2 method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        solution after a time increment :math:`\d t`. We denote the
         initial time :math:`t = 0`.
 
         - Approximation 1:
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt/2`, it gives:
+          Integrating from :math:`t` to :math:`t+\d t/2`, it gives:
 
-          .. |SA1halfdt| mathmacro:: S_{A1dt/2}
-
-          .. math:: \SA1halfdt = (S_0 + N_0 dt/2) e^{\frac{\sigma dt}{2}}.
+          .. math:: \SA1halfdt = (S_0 + N_0 \d t/2) e^{\frac{\sigma \d t}{2}}.
 
 
         - Approximation 2:
@@ -456,12 +468,20 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma
              + \frac{N(\SA1halfdt)}{ \SA1halfdt },
 
-          Integrating from :math:`t` to :math:`t+dt` and retaining
-          only the terms in :math:`dt^1` gives:
+          Integrating from :math:`t` to :math:`t+\d t` and retaining
+          only the terms in :math:`\d t^1` gives:
 
           .. math::
-             S_{dtA2} = S_0 e^{\sigma dt}
-             + N(\SA1halfdt) dt e^{\frac{\sigma dt}{2}}.
+             S_{\d tA2} = S_0 e^{\sigma \d t}
+             + N_\mathrm{dealias} dt e^{\frac{\sigma \d t}{2}}.
+
+        - Phase-shifting: 
+
+            .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N^*(\SA1halfdt)),
+
+            where :math:`N^*(\SA1halfdt)` is the phase-shifted nonlinear term:
+
+            .. math:: e^{\frac{-\d xk}{2}}N\left(e^{\frac{+\d xk}{2}}\SA1halfdt\right).
 
         """
         dt = self.deltat
@@ -476,20 +496,20 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         compute_tendencies = self.sim.tendencies_nonlin
         tendencies_n = compute_tendencies(state_spect)
 
-        state_spect_n1 = self._state_spect_tmp
+        state_spect_n12 = self._state_spect_tmp
 
         # time advancement
-        state_spect_n1[:] = (state_spect + dt * tendencies_n) * diss
+        state_spect_n12[:] = (state_spect + dt / 2 * tendencies_n) * diss2
 
         # second substep
         # phaseshift
         phase = 0.5 * oper.deltax * oper.kx
         phase_shift = np.exp(1j * phase)
-        state_spect_shifted = state_spect_n1 * phase_shift
+        state_spect_shifted = state_spect_n12 * phase_shift
 
         # tendencies
-        tendencies_n1 = compute_tendencies(state_spect_shifted)
-        tendencies_n1 /= phase_shift
+        tendencies_n12 = compute_tendencies(state_spect_shifted)
+        tendencies_n12 /= phase_shift
 
         tendencies_dealiased = 0.5 * (tendencies_n + tendencies_n1)
 
@@ -506,21 +526,21 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         .. math:: \p_t S = \sigma S + N(S),
 
         The Runge-Kutta 4 method computes an approximation of the
-        solution after a time increment :math:`dt`. We denote the
+        solution after a time increment :math:`\d t`. We denote the
         initial time as :math:`t = 0`. This time scheme uses 4
-        approximations. Only the terms in :math:`dt^1` are retained.
+        approximations. Only the terms in :math:`\d t^1` are retained.
 
         - Approximation 1:
 
           .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
 
-          Integrating from :math:`t` to :math:`t+dt/2` gives:
+          Integrating from :math:`t` to :math:`t+\d t/2` gives:
 
-          .. math:: \SA1halfdt = (S_0 + N_0 dt/2) e^{\sigma \frac{dt}{2}}.
+          .. math:: \SA1halfdt = (S_0 + N_0 \d t/2) e^{\sigma \frac{\d t}{2}}.
 
-          Integrating from :math:`t` to :math:`t+dt` gives:
+          Integrating from :math:`t` to :math:`t+\d t` gives:
 
-          .. math:: S_{A1dt} = (S_0 + N_0 dt) e^{\sigma dt}.
+          .. math:: S_{A1\d t} = (S_0 + N_0 \d t) e^{\sigma \d t}.
 
 
         - Approximation 2:
@@ -529,19 +549,19 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma
              + \frac{N(\SA1halfdt)}{ \SA1halfdt },
 
-          Integrating from :math:`t` to :math:`t+dt/2` gives:
+          Integrating from :math:`t` to :math:`t+\d t/2` gives:
 
-          .. |SA2halfdt| mathmacro:: S_{A2 dt/2}
-
-          .. math::
-             \SA2halfdt = S_0 e^{\sigma \frac{dt}{2}}
-             + N(\SA1halfdt) \frac{dt}{2}.
-
-          Integrating from :math:`t` to :math:`t+dt` gives:
+          .. |SA2halfdt| mathmacro:: S_{A2 \mathrm{d}t/2}
 
           .. math::
-             S_{A2dt} = S_0 e^{\sigma dt}
-             + N(\SA1halfdt) e^{\sigma \frac{dt}{2}} dt.
+             \SA2halfdt = S_0 e^{\sigma \frac{\d t}{2}}
+             + N(\SA1halfdt) \frac{\d t}{2}.
+
+          Integrating from :math:`t` to :math:`t+\d t` gives:
+
+          .. math::
+             S_{A2\d t} = S_0 e^{\sigma \d t}
+             + N(\SA1halfdt) e^{\sigma \frac{\d t}{2}} dt.
 
 
         - Approximation 3:
@@ -550,43 +570,43 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma
              + \frac{N(\SA2halfdt)}{ \SA2halfdt },
 
-          Integrating from :math:`t` to :math:`t+dt` gives:
+          Integrating from :math:`t` to :math:`t+\d t` gives:
 
           .. math::
-             S_{A3dt} = S_0 e^{\sigma dt}
-             + N(\SA2halfdt) e^{\sigma \frac{dt}{2}} dt.
+             S_{A3\d t} = S_0 e^{\sigma \d t}
+             + N(\SA2halfdt) e^{\sigma \frac{\d t}{2}} \d t.
 
         - Approximation 4:
 
           .. math::
              \p_t \log S = \sigma
-             + \frac{N(S_{A3dt})}{ S_{A3dt} },
+             + \frac{N(S_{A3\d t})}{ S_{A3\d t} },
 
-          Integrating from :math:`t` to :math:`t+dt` gives:
+          Integrating from :math:`t` to :math:`t+\d t` gives:
 
           .. math::
-             S_{A4dt} = S_0 e^{\sigma dt} + N(S_{A3dt}) dt.
+             S_{A4\d t} = S_0 e^{\sigma \d t} + N(S_{A3\d t}) \d t.
 
 
         The final result is a pondered average of the results of 4
-        approximations for the time :math:`t+dt`:
+        approximations for the time :math:`t+\d t`:
 
           .. math::
              \frac{1}{3} \left[
-             \frac{1}{2} S_{A1dt}
-             + S_{A2dt} + S_{A3dt}
-             + \frac{1}{2} S_{A4dt}
+             \frac{1}{2} S_{A1\d t}
+             + S_{A2\d t} + S_{A3\d t}
+             + \frac{1}{2} S_{A4\d t}
              \right],
 
         which is equal to:
 
           .. math::
-             S_0 e^{\sigma dt}
-             + \frac{dt}{3} \left[
-             \frac{1}{2} N(S_0) e^{\sigma dt}
-             + N(\SA1halfdt) e^{\sigma \frac{dt}{2}}
-             + N(\SA2halfdt) e^{\sigma \frac{dt}{2}}
-             + \frac{1}{2} N(S_{A3dt})\right].
+             S_0 e^{\sigma \d t}
+             + \frac{\d t}{3} \left[
+             \frac{1}{2} N(S_0) e^{\sigma \d t}
+             + N(\SA1halfdt) e^{\sigma \frac{\d t}{2}}
+             + N(\SA2halfdt) e^{\sigma \frac{\d t}{2}}
+             + \frac{1}{2} N(S_{A3\d t})\right].
 
         """
         dt = self.deltat
