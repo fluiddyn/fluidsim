@@ -53,7 +53,7 @@ class TestSolverSquare1D(TestSimul):
 
 class TestTimeStepping(TestSimul):
     Simul = Simul
-    deltat = 1e-3
+    deltat = 4e-3
     k_init = 10
     amplitude = 0.7
 
@@ -110,7 +110,7 @@ class TestTimeStepping(TestSimul):
         sim.time_stepping.main_loop()
 
         s_fft = sim.state.get_var("s_fft")
-        assert np.allclose(s_fft, self.s_exact2_fft)
+        assert np.allclose(s_fft, self.s_exact2_fft, rtol=2e-4)
 
     @skip_if_mpi
     def test_Euler(self):
