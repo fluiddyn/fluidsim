@@ -53,7 +53,7 @@ class TestSolverSquare1D(TestSimul):
 
 class TestTimeStepping(TestSimul):
     Simul = Simul
-    deltat = 4e-3
+    deltat = 2e-4
     k_init = 10
     amplitude = 0.7
 
@@ -110,7 +110,7 @@ class TestTimeStepping(TestSimul):
         sim.time_stepping.main_loop()
 
         s_fft = sim.state.get_var("s_fft")
-        assert np.allclose(s_fft, self.s_exact2_fft, rtol=2e-4)
+        assert np.allclose(s_fft, self.s_exact2_fft)
 
     @skip_if_mpi
     def test_Euler(self):
@@ -129,10 +129,13 @@ class TestTimeStepping(TestSimul):
         self._test_type_time_scheme("RK2_trapezoid")
 
     @skip_if_mpi
+    def test_RK2_trapezoid_phaseshift(self):
+        self._test_type_time_scheme("RK2_trapezoid_phaseshift", 1)
+
+    @skip_if_mpi
     def test_RK2_phaseshift(self):
         self._test_type_time_scheme("RK2_phaseshift")
 
-    @unittest.expectedFailure
     @skip_if_mpi
     def test_RK2_phaseshift_coef_dealiasing_equal_1(self):
         self._test_type_time_scheme("RK2_phaseshift", 1)
