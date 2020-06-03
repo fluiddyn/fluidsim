@@ -1,10 +1,18 @@
 import unittest
+from copy import deepcopy
+
+import numpy as np
 
 from .solver import Simul
 
 from fluiddyn.util import mpi
 
 from fluidsim.util.testing import TestSimul
+
+
+skip_if_mpi = unittest.skipIf(
+    mpi.nb_proc > 1, "MPI not implemented, for eg. sim.oper.gather_Xspace"
+)
 
 
 class TestSolverSquare1D(TestSimul):
@@ -32,34 +40,103 @@ class TestSolverSquare1D(TestSimul):
         params.init_fields.type = "gaussian"
 
         params.output.periods_print.print_stdout = 0.25
-        params.output.periods_save.phys_fields = 0.5
+        params.output.periods_save.phys_fields = 0.2
         params.output.periods_plot.phys_fields = 0.0
         params.output.phys_fields.field_to_plot = "s"
 
-    @unittest.skipIf(
-        mpi.nb_proc > 1, "MPI not implemented, for eg. sim.oper.gather_Xspace"
-    )
+    @skip_if_mpi
     def test_simul(self):
+        sim = self.sim
+        sim.time_stepping.start()
+        sim.plot_freq_diss()
+
+
+class TestTimeStepping(TestSimul):
+    Simul = Simul
+    deltat = 1e-3
+    k_init = 10
+    amplitude = 0.7
+
+    @classmethod
+    def init_params(cls):
+
+        params = cls.params = cls.Simul.create_default_params()
+
+        params.short_name_type_run = "test"
+        params.output.sub_directory = "unittests"
+
+        params.oper.nx = 32
+        params.oper.Lx = 2 * np.pi
+        params.oper.coef_dealiasing = 0.66
+
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 0
+        params.time_stepping.deltat0 = cls.deltat
+
+        params.init_fields.type = "in_script"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        sim = cls.sim
+
+        params2 = deepcopy(sim.params)
+        params2.oper.nx = 64
+        oper2 = type(sim.oper)(params2)
+
+        cls.s_init = 1 + cls.amplitude * np.cos(cls.k_init * sim.oper.x)
+
+        s_init2 = 1 + cls.amplitude * np.cos(cls.k_init * oper2.x)
+
+        s_exact2 = s_init2 / (1 + cls.deltat * s_init2)
+        s_exact2_fft = oper2.fft(s_exact2)
+        cls.s_exact2_fft = s_exact2_fft[oper2.kx <= sim.oper.kx.max()]
+
+    def _test_type_time_scheme(self, type_time_scheme, coef_dealiasing=0.66):
         sim = self.sim
         params = sim.params
 
-        sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
+        params2 = deepcopy(params)
+        params2.oper.coef_dealiasing = coef_dealiasing
+        sim.oper = type(sim.oper)(params2)
 
-        params.time_stepping.it_end += 2
-        params.time_stepping.type_time_scheme = "Euler_phaseshift"
+        sim.state.init_statephys_from(s=self.s_init.copy())
+        sim.state.statespect_from_statephys()
+
+        params.time_stepping.it_end += 1
+        params.time_stepping.type_time_scheme = type_time_scheme
         sim.time_stepping.init_from_params()
         sim.time_stepping.main_loop()
 
-        params.time_stepping.it_end += 2
-        params.time_stepping.type_time_scheme = "RK2_trapezoid"
-        sim.time_stepping.init_from_params()
-        sim.time_stepping.main_loop()
+        s_fft = sim.state.get_var("s_fft")
+        assert np.allclose(s_fft, self.s_exact2_fft)
 
-        params.time_stepping.it_end += 2
-        params.time_stepping.type_time_scheme = "RK2_phaseshift"
-        sim.time_stepping.init_from_params()
-        sim.time_stepping.main_loop()
+    @skip_if_mpi
+    def test_Euler(self):
+        self._test_type_time_scheme("Euler")
 
-        sim.time_stepping.finalize_main_loop()
+    @skip_if_mpi
+    def test_Euler_phaseshift(self):
+        self._test_type_time_scheme("Euler_phaseshift", 1)
 
-        sim.plot_freq_diss()
+    @skip_if_mpi
+    def test_RK2(self):
+        self._test_type_time_scheme("RK2")
+
+    @skip_if_mpi
+    def test_RK2_trapezoid(self):
+        self._test_type_time_scheme("RK2_trapezoid")
+
+    @skip_if_mpi
+    def test_RK2_phaseshift(self):
+        self._test_type_time_scheme("RK2_phaseshift")
+
+    @unittest.expectedFailure
+    @skip_if_mpi
+    def test_RK2_phaseshift_coef_dealiasing_equal_1(self):
+        self._test_type_time_scheme("RK2_phaseshift", 1)
+
+    @skip_if_mpi
+    def test_RK4(self):
+        self._test_type_time_scheme("RK4")
