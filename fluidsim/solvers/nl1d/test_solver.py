@@ -129,14 +129,6 @@ class TestTimeStepping(TestSimul):
         self._test_type_time_scheme("RK2_trapezoid")
 
     @skip_if_mpi
-    def test_RK2_trapezoid_phaseshift(self):
-        self._test_type_time_scheme("RK2_trapezoid_phaseshift", 1)
-
-    @skip_if_mpi
-    def test_RK2_phaseshift(self):
-        self._test_type_time_scheme("RK2_phaseshift")
-
-    @skip_if_mpi
     def test_RK2_phaseshift_coef_dealiasing_equal_1(self):
         self._test_type_time_scheme("RK2_phaseshift", 1)
 

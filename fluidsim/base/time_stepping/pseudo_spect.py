@@ -136,9 +136,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         elif type_time_scheme == "RK2_trapezoid":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2_trapezoid
-        elif type_time_scheme == "RK2_trapezoid_phaseshift":
-            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
-            time_step_RK = self._time_step_RK2_trapezoid_phaseshift
         elif type_time_scheme == "RK2_phaseshift":
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2_phaseshift
@@ -195,9 +192,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         Euler approximation :
 
-          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
 
-          Integrating from :math:`t` to :math:`t+\dt`, it gives:
+        Integrating from :math:`t` to :math:`t+\dt`, it gives:
 
           .. math:: S_{\dt} = (S_0 + N_0 \dt) e^{\sigma \dt}.
 
@@ -239,13 +236,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
           .. math:: S_{\dt} = (S_0 + N_\mathrm{dealias} \dt) e^{\sigma \dt}.
 
-        - Phase-shifting:
+          where the dealiased non-linear term is :math:`N_\mathrm{dealias} =
+          (N_0 + \tilde N_0)/2` and the phase-shifted nonlinear term
+          :math:`\tilde N_0` is given by
 
-            .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N_0^*),
-
-            where :math:`N_0^*` is the phase-shifted nonlinear term:
-
-            .. math:: e^{\frac{-k \dx}{2}}N\left(e^{\frac{+k \dx}{2}}S_0\right).
+          .. math::
+            \tilde N_0 = e^{-\frac{1}{2}k\dx}N\left(e^{\frac{1}{2}k\dx}S_0\right).
 
         """
         dt = self.deltat
@@ -285,24 +281,22 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         - Approximation 1:
 
-          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
 
           Integrating from :math:`t` to :math:`t+\dt/2`, it gives:
 
-          .. math:: S_1 = (S_0 + N_0 \dt/2) e^{\frac{\sigma \dt}{2}}.
-
+          .. math:: S_1 = (S_0 + \frac{\dt}{2} N_0) e^{\sigma \frac{\dt}{2}}.
 
         - Approximation 2:
 
           .. math::
-             \p_t \log S = \sigma + \frac{N(S_1)}{ S_1 },
+             \p_t \log S = \sigma + \frac{N_1}{S_1},
 
           Integrating from :math:`t` to :math:`t+\dt` and retaining
-          only the terms in :math:`dt^1` gives:
+          only the terms in :math:`(N\dt/S)^1` gives:
 
           .. math::
-             S_2 = S_0 e^{\sigma \dt}
-             + N(S_1) \dt e^{\frac{\sigma \dt}{2}}.
+             S_2 = S_0 e^{\sigma \dt} + \dt N_1 e^{\sigma \frac{\dt}{2}}.
 
         """
         dt = self.deltat
@@ -379,14 +373,13 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
           .. math::
              \p_t \log S = \sigma + \frac{1}{2}\left(
-                 \frac{N(S_0)}{S_0} + \frac{N_1}{S_1}\right),
+                 \frac{N_0}{S_0} + \frac{N_1}{S_1}\right),
 
           Integrating from :math:`t` to :math:`t+\dt` and retaining
-          only the terms in :math:`\dt^1` gives:
+          only the terms in :math:`(N\dt/S)^1` gives:
 
           .. math::
-             S_2 = (S_0 + N_0\frac{\dt}{2}) e^{\sigma \dt}
-             + N_1 \frac{\dt}{2}.
+             S_2 = S_0 e^{\sigma \dt} + \frac{\dt}{2} (N_0 e^{\sigma \dt} + N_1).
 
         """
         dt = self.deltat
@@ -407,9 +400,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             state_spect + dt / 2 * tendencies_0
         ) * diss + dt / 2 * tendencies_1
 
-    def _time_step_RK2_trapezoid_phaseshift(self):
-        r"""Advance in time with the Runge-Kutta 2 method + trapezoidal rule
-        (Heun's method)
+    def _time_step_RK2_phaseshift(self):
+        r"""Runge-Kutta 2 method with phase-shifting
 
         Notes
         -----
@@ -424,27 +416,34 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         - Approximation 1:
 
-          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
 
           Integrating from :math:`t` to :math:`t+\dt`, it gives:
 
           .. math:: S_1 = (S_0 + N_0 \dt) e^{\sigma \dt}.
 
-
         - Approximation 2:
 
           .. math::
-             \p_t \log S = \sigma + \frac{N_0 + N_1}{2 S_0},
+             \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
 
-          Integrating from :math:`t` to :math:`t+\dt` and retaining
-          only the terms in :math:`\dt^1` gives:
+
+          where the dealiased non-linear term is :math:`N_\mathrm{dealias} =
+          (N_0 + \tilde N_1)/2` and the phase-shifted nonlinear term
+          :math:`\tilde N_1` is given by
 
           .. math::
-             S_2 = (S_0 + (N_0 + N_1)\frac{\dt}{2}) e^{\sigma \dt}.
+            \tilde N_1 = e^{-\frac{1}{2}k\dx}N\left(e^{\frac{1}{2}k\dx}S_1\right).
+
+          Integrating from :math:`t` to :math:`t+\dt` and retaining
+          only the terms in :math:`(N\dt/S)^1` gives:
+
+          .. math::
+             S_2 = S_0 e^{\sigma \dt} + \dt N_d e^{\sigma \frac{\dt}{2}}.
 
         """
         dt = self.deltat
-        diss = self.exact_linear_coefs.get_updated_coefs()[0]
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
@@ -464,90 +463,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             compute_tendencies(phase_shift * state_spect_1) / phase_shift
         )
 
-        state_spect[:] = (
-            state_spect + dt / 2 * (tendencies_0 + tendencies_1)
-        ) * diss
-
-    def _time_step_RK2_phaseshift(self):
-        r"""Advance in time with the Runge-Kutta 2 method.
-        Dealias with phase-shifting.
-
-        .. _rk2timescheme_phaseshift:
-
-        Notes
-        -----
-
-        WIP: only for 1D! + no result of the phaseshift!
-
-        We consider an equation of the form
-
-        .. math:: \p_t S = \sigma S + N(S),
-
-        The Runge-Kutta 2 method computes an approximation of the
-        solution after a time increment :math:`\dt`. We denote the
-        initial time :math:`t = 0`.
-
-        - Approximation 1:
-
-          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
-
-          Integrating from :math:`t` to :math:`t+\dt/2`, it gives:
-
-          .. math:: S_1 = (S_0 + N_0 \dt/2) e^{\frac{\sigma \dt}{2}}.
-
-
-        - Approximation 2:
-
-          .. math::
-             \p_t \log S = \sigma
-             + \frac{N_\mathrm{dealias}}{ S_1 },
-
-          Integrating from :math:`t` to :math:`t+\dt` and retaining
-          only the terms in :math:`dt^1` gives:
-
-          .. math::
-             S_2 = S_0 e^{\sigma \mathop{dt}}
-             + N_\mathrm{dealias} \dt e^{\frac{\sigma \dt}{2}}.
-
-        - Phase-shifting:
-
-            .. math:: N_\mathrm{dealias} = \frac{1}{2}(N_0 + N^*(S_1)),
-
-            where :math:`N^*(S_1)` is the phase-shifted nonlinear term:
-
-            .. math:: e^{\frac{-k \dx}{2}}N\left(e^{\frac{+k \dx}{2}}S_1\right).
-
-        """
-        dt = self.deltat
-        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-
-        # first substep
-        state_spect = self.sim.state.state_spect
-
-        # tendencies
-        compute_tendencies = self.sim.tendencies_nonlin
-        tendencies_0 = compute_tendencies(state_spect)
-
-        state_spect_12 = self._state_spect_tmp
-
-        # time advancement
-        state_spect_12[:] = (state_spect + dt / 2 * tendencies_0) * diss2
-
-        # second substep
-        # phaseshift
-        oper = self.sim.oper
-        phase = 0.5 * oper.deltax * oper.kx
-        phase_shift = np.exp(1j * phase)
-
-        # tendencies
-        tendencies_12 = (
-            compute_tendencies(phase_shift * state_spect_12) / phase_shift
-        )
-
-        tendencies_dealiased = 0.5 * (tendencies_0 + tendencies_12)
-
-        # time advancement
-        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
+        tendencies_d = (tendencies_0 + tendencies_1) / 2
+        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
 
     def _time_step_RK4(self):
         r"""Advance in time with the Runge-Kutta 4 method.
