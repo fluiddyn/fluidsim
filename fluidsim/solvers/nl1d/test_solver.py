@@ -15,6 +15,7 @@ skip_if_mpi = unittest.skipIf(
 )
 
 
+@skip_if_mpi
 class TestSolverSquare1D(TestSimul):
     Simul = Simul
 
@@ -44,13 +45,13 @@ class TestSolverSquare1D(TestSimul):
         params.output.periods_plot.phys_fields = 0.0
         params.output.phys_fields.field_to_plot = "s"
 
-    @skip_if_mpi
     def test_simul(self):
         sim = self.sim
         sim.time_stepping.start()
         sim.plot_freq_diss()
 
 
+@skip_if_mpi
 class TestTimeStepping(TestSimul):
     Simul = Simul
     deltat = 2e-4
@@ -112,26 +113,29 @@ class TestTimeStepping(TestSimul):
         s_fft = sim.state.get_var("s_fft")
         assert np.allclose(s_fft, self.s_exact2_fft)
 
-    @skip_if_mpi
     def test_Euler(self):
         self._test_type_time_scheme("Euler")
 
-    @skip_if_mpi
     def test_Euler_phaseshift(self):
         self._test_type_time_scheme("Euler_phaseshift", 1)
 
-    @skip_if_mpi
+    def test_Euler_phaseshift_random(self):
+        self._test_type_time_scheme("Euler_phaseshift_random", 1)
+
     def test_RK2(self):
         self._test_type_time_scheme("RK2")
 
-    @skip_if_mpi
     def test_RK2_trapezoid(self):
         self._test_type_time_scheme("RK2_trapezoid")
 
-    @skip_if_mpi
-    def test_RK2_phaseshift_coef_dealiasing_equal_1(self):
+    def test_RK2_phaseshift(self):
         self._test_type_time_scheme("RK2_phaseshift", 1)
 
-    @skip_if_mpi
+    def test_RK2_phaseshift_random(self):
+        self._test_type_time_scheme("RK2_phaseshift_random", 1)
+
+    def test_RK2_phaseshift_exact(self):
+        self._test_type_time_scheme("RK2_phaseshift_exact", 1)
+
     def test_RK4(self):
         self._test_type_time_scheme("RK4")

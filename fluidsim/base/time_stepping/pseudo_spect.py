@@ -35,6 +35,8 @@ T = Type(np.float64, np.complex128)
 A1 = Array[T, N, "C"]
 A2 = Array[T, N - 1, "C"]
 
+uniform = np.random.default_rng().uniform
+
 
 class ExactLinearCoefs:
     """Handle the computation of the exact coefficient for the RK4."""
@@ -126,21 +128,26 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         type_time_scheme = self.params.time_stepping.type_time_scheme
 
+        if type_time_scheme.startswith("RK"):
+            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
+
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
         elif type_time_scheme == "Euler_phaseshift":
             time_step_RK = self._time_step_Euler_phaseshift
+        elif type_time_scheme == "Euler_phaseshift_random":
+            time_step_RK = self._time_step_Euler_phaseshift_random
         elif type_time_scheme == "RK2":
-            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2
         elif type_time_scheme == "RK2_trapezoid":
-            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2_trapezoid
         elif type_time_scheme == "RK2_phaseshift":
-            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK2_phaseshift
+        elif type_time_scheme == "RK2_phaseshift_random":
+            time_step_RK = self._time_step_RK2_phaseshift_random
+        elif type_time_scheme == "RK2_phaseshift_exact":
+            time_step_RK = self._time_step_RK2_phaseshift_exact
         elif type_time_scheme == "RK4":
-            self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK4
         else:
@@ -159,7 +166,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         self.exact_linear_coefs = ExactLinearCoefs(self)
 
     def one_time_step_computation(self):
-        """One time step"""
+        """One time step."""
         # WARNING: if the function _time_step_RK comes from an extension, its
         # execution time seems to be attributed to the function
         # one_time_step_computation by cProfile
@@ -171,9 +178,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             raise ValueError(f"nan at it = {self.it}, t = {self.t:.4f}")
 
     def _time_step_Euler(self):
-        r"""Advance in time with the forward Euler method.
-
-        .. _eulertimescheme:
+        r"""Forward Euler method.
 
         Notes
         -----
@@ -209,11 +214,30 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect[:] = (state_spect + dt * tendencies_0) * diss
 
-    def _time_step_Euler_phaseshift(self):
-        r"""Advance in time with the forward Euler method, dealias
-        with pase-shifting.
+    def _get_phase_shift(self):
+        """Compute the phase shift term."""
+        phase = 0.5 * self.sim.oper.deltax * self.sim.oper.kx
+        return np.exp(1j * phase)
 
-        .. _eulertimescheme_phaseshift:
+    def _get_phase_shift_random(self):
+        """Compute two random phase shift terms."""
+        alpha = uniform(-1, 1)
+        if alpha < 0:
+            beta = alpha + 0.5
+        else:
+            beta = alpha - 0.5
+
+        phase_shift_alpha = np.exp(
+            1j * alpha * self.sim.oper.deltax * self.sim.oper.kx
+        )
+        phase_shift_beta = np.exp(
+            1j * beta * self.sim.oper.deltax * self.sim.oper.kx
+        )
+
+        return phase_shift_alpha, phase_shift_beta
+
+    def _time_step_Euler_phaseshift(self):
+        r"""Forward Euler method, dealiasing with phase-shifting.
 
         Notes
         -----
@@ -253,8 +277,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # regular tendencies
         tendencies_0 = compute_tendencies()
         # shifted tendencies
-        phase = 0.5 * self.sim.oper.deltax * self.sim.oper.kx
-        phase_shift = np.exp(1j * phase)
+        phase_shift = self._get_phase_shift()
         tendencies_shifted = (
             compute_tendencies(phase_shift * state_spect) / phase_shift
         )
@@ -263,10 +286,60 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
 
-    def _time_step_RK2(self):
-        r"""Advance in time with the Runge-Kutta 2 method.
+    def _time_step_Euler_phaseshift_random(self):
+        r"""Forward Euler method, dealiasing with phase-shifting.
 
-        .. _rk2timescheme:
+        Notes
+        -----
+
+        WIP: only for 1D!
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        The forward Euler method computes an approximation of the
+        solution after a time increment :math:`\dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Euler approximation:
+
+          .. math:: \p_t \log S = \sigma + \frac{N_\mathrm{dealias}}{S_0},
+
+          Integrating from :math:`t` to :math:`t+\dt`, it gives:
+
+          .. math:: S_{\dt} = (S_0 + N_\mathrm{dealias} \dt) e^{\sigma \dt}.
+
+          where the dealiased non-linear term :math:`N_\mathrm{dealias} =
+          (\tilde N_{0\alpha} + \tilde N_{0\beta})/2` is computed as the
+          average of two terms shifted with dependant phases
+          :math:`\phi_\alpha = \alpha \dx k` and :math:`\phi_\beta = \beta \dx
+          k` with :math:`\alpha` taken randomly between -1 and 1 and
+          :math:`|\alpha - \beta| = 0.5`.
+
+        """
+        dt = self.deltat
+        diss = self.exact_linear_coefs.get_updated_coefs()[0]
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        # shifted tendencies
+        phase_shift_alpha, phase_shift_beta = self._get_phase_shift_random()
+        tendencies_alpha = (
+            compute_tendencies(phase_shift_alpha * state_spect)
+            / phase_shift_alpha
+        )
+        tendencies_beta = (
+            compute_tendencies(phase_shift_beta * state_spect) / phase_shift_beta
+        )
+        # dealiased tendencies
+        tendencies_dealiased = 0.5 * (tendencies_alpha + tendencies_beta)
+
+        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
+
+    def _time_step_RK2(self):
+        r"""Runge-Kutta 2 method.
 
         Notes
         -----
@@ -345,10 +418,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             state_spect[:] = state_spect * diss + dt * diss2 * tendencies_12
 
     def _time_step_RK2_trapezoid(self):
-        r"""Advance in time with the Runge-Kutta 2 method + trapezoidal rule
-        (Heun's method)
-
-        .. _rk2timescheme_trapezoid:
+        r"""Runge-Kutta 2 method with trapezoidal rule (Heun's method).
 
         Notes
         -----
@@ -401,7 +471,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         ) * diss + dt / 2 * tendencies_1
 
     def _time_step_RK2_phaseshift(self):
-        r"""Runge-Kutta 2 method with phase-shifting
+        r"""Runge-Kutta 2 method with phase-shifting.
 
         Notes
         -----
@@ -454,11 +524,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         state_spect_1[:] = (state_spect + dt * tendencies_0) * diss
 
-        # phaseshift
-        oper = self.sim.oper
-        phase = 0.5 * oper.deltax * oper.kx
-        phase_shift = np.exp(1j * phase)
-
+        phase_shift = self._get_phase_shift()
         tendencies_1 = (
             compute_tendencies(phase_shift * state_spect_1) / phase_shift
         )
@@ -466,10 +532,136 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_d = (tendencies_0 + tendencies_1) / 2
         state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
 
-    def _time_step_RK4(self):
-        r"""Advance in time with the Runge-Kutta 4 method.
+    def _time_step_RK2_phaseshift_random(self):
+        r"""Runge-Kutta 2 method with phase-shifting (random).
 
-        .. _rk4timescheme:
+        Notes
+        -----
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        Heun's method computes an approximation of the
+        solution after a time increment :math:`\dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Approximation 1:
+
+          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
+
+          Integrating from :math:`t` to :math:`t+\dt`, it gives:
+
+          .. math:: S_1 = (S_0 + N_0 \dt) e^{\sigma \dt}.
+
+        - Approximation 2:
+
+          .. math::
+             \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
+
+          where the dealiased non-linear term is :math:`N_d =
+          (\tilde N_{0\alpha} + \tilde N_{1\beta})/2`.
+
+          Integrating from :math:`t` to :math:`t+\dt` and retaining
+          only the terms in :math:`(N\dt/S)^1` gives:
+
+          .. math::
+             S_2 = S_0 e^{\sigma \dt} + \dt N_d e^{\sigma \frac{\dt}{2}}.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        phase_shift_alpha, phase_shift_beta = self._get_phase_shift_random()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_0 = (
+            compute_tendencies(phase_shift_alpha * state_spect)
+            / phase_shift_alpha
+        )
+
+        state_spect_1 = self._state_spect_tmp
+
+        state_spect_1[:] = (state_spect + dt * tendencies_0) * diss
+
+        tendencies_1 = (
+            compute_tendencies(phase_shift_beta * state_spect_1)
+            / phase_shift_beta
+        )
+
+        tendencies_d = (tendencies_0 + tendencies_1) / 2
+        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
+
+    def _time_step_RK2_phaseshift_exact(self):
+        r"""Runge-Kutta 2 method with phase-shifting for exact dealiasing.
+
+        Notes
+        -----
+
+        It requires 4 evaluations of the nonlinear terms (as RK4).
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S),
+
+        Heun's method computes an approximation of the
+        solution after a time increment :math:`\dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Approximation 1:
+
+          .. math:: \p_t \log S = \sigma + \frac{N_{d0}}{S_0},
+
+          Integrating from :math:`t` to :math:`t+\dt`, it gives:
+
+          .. math:: S_1 = (S_0 + N_{d0} \dt) e^{\sigma \dt}.
+
+        - Approximation 2:
+
+          .. math::
+             \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
+
+          where the dealiased non-linear term is :math:`N_d =
+          (N_{d0} +  N_{d1})/2`.
+
+          Integrating from :math:`t` to :math:`t+\dt` and retaining
+          only the terms in :math:`(N\dt/S)^1` gives:
+
+          .. math::
+             S_2 = S_0 e^{\sigma \dt} + \dt N_d e^{\sigma \frac{\dt}{2}}.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        phase_shift = self._get_phase_shift()
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tendencies_d0 = (
+            compute_tendencies(state_spect)
+            + compute_tendencies(phase_shift * state_spect) / phase_shift
+        ) / 2
+
+        state_spect_1 = self._state_spect_tmp
+
+        state_spect_1[:] = (state_spect + dt * tendencies_d0) * diss
+
+        tendencies_d1 = (
+            compute_tendencies(state_spect_1)
+            + compute_tendencies(phase_shift * state_spect_1) / phase_shift
+        ) / 2
+
+        tendencies_d = (tendencies_d0 + tendencies_d1) / 2
+        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
+
+    def _time_step_RK4(self):
+        r"""Runge-Kutta 4 method.
+
+        Notes
+        -----
 
         .. |SA1dt2| mathmacro:: S_{A1 \mathop{dt}/2}
 
@@ -493,7 +685,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
           Integrating from :math:`t` to :math:`t+\dt` gives:
 
           .. math:: S_{A1\dt} = (S_0 + N_0 \dt) e^{\sigma \dt}.
-
 
         - Approximation 2:
 
@@ -538,7 +729,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
           .. math::
              S_{A4\dt} = S_0 e^{\sigma \dt} + N(S_{A3\dt}) \dt.
-
 
         The final result is a pondered average of the results of 4
         approximations for the time :math:`t+\dt`:

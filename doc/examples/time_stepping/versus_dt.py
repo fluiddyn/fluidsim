@@ -4,7 +4,16 @@ import matplotlib.pyplot as plt
 from phase_shifting import Resolution
 
 
-schemes = ["RK4", "RK2", "RK2_phaseshift", "Euler", "Euler_phaseshift"]
+schemes = [
+    "RK4",
+    "RK2",
+    "RK2_phaseshift",
+    "RK2_phaseshift_random",
+    "RK2_phaseshift_exact",
+    "Euler",
+    "Euler_phaseshift",
+    "Euler_phaseshift_random",
+]
 
 steps = np.logspace(-2.5, 0, 100)
 
