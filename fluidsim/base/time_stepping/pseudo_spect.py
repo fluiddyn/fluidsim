@@ -216,7 +216,21 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _get_phase_shift(self):
         """Compute the phase shift term."""
-        phase = 0.5 * self.sim.oper.deltax * self.sim.oper.kx
+        oper = self.sim.oper
+        ndim = len(oper.axes)
+        if ndim == 1:
+            phase = 0.5 * oper.deltax * oper.kx
+        elif ndim == 2:
+            phase = 0.5 * (oper.deltax * oper.Kx + oper.deltay * oper.Ky)
+        elif ndim == 3:
+            phase = 0.5 * (
+                oper.deltax * oper.Kx
+                + oper.deltay * oper.Ky
+                + oper.deltaz * oper.Kz
+            )
+        else:
+            raise NotImplementedError
+
         return np.exp(1j * phase)
 
     def _get_phase_shift_random(self):

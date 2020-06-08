@@ -147,12 +147,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
         Ex = np.empty(nt)
         Ey = np.empty(nt)
         Ez = np.empty(nt)
-        PK1 = np.empty(nt)
-        PK2 = np.empty(nt)
-        PK_tot = np.empty(nt)
+        PK1 = np.zeros(nt)
+        PK2 = np.zeros(nt)
+        PK_tot = np.zeros(nt)
         epsK = np.empty(nt)
-        epsK_hypo = np.empty(nt)
-        epsK_tot = np.empty(nt)
+        epsK_hypo = np.zeros(nt)
+        epsK_tot = np.zeros(nt)
 
         if lines_epsK4:
             epsK4 = np.empty(nt)

@@ -227,9 +227,12 @@ class TimeSteppingBase(TimeSteppingBase0):
         if params_ts.USE_CFL:
             if params_ts.cfl_coef is not None:
                 self.CFL = params_ts.cfl_coef
-            elif params_ts.type_time_scheme in ["RK2", "Euler"]:
+            elif any(
+                params_ts.type_time_scheme.startswith(scheme)
+                for scheme in ["RK2", "Euler"]
+            ):
                 self.CFL = 0.4
-            elif params_ts.type_time_scheme == "RK4":
+            elif params_ts.type_time_scheme.startswith("RK4"):
                 self.CFL = 1.0
             else:
                 raise ValueError("Problem name time_scheme")
