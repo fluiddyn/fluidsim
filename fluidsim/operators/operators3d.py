@@ -138,6 +138,7 @@ class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
             "Lx": 2 * pi,
             "Ly": 2 * pi,
             "Lz": 2 * pi,
+            "truncation_shape": "cubic",
             "NO_SHEAR_MODES": False,
         }
         params._set_child("oper", attribs=attribs)
@@ -238,6 +239,8 @@ Lx, Ly and Lz: float
             self.dimX_K = self.oper_fft.get_dimX_K()
         else:
             self.SAME_SIZE_IN_ALL_PROC = True
+
+        self._reinit_truncation()
 
         try:
             NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES

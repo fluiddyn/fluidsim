@@ -42,6 +42,25 @@ class OperatorBase:
 
         sim_repr_maker.add_word(repr_oper)
 
+    def _reinit_truncation(self):
+        try:
+            truncation_shape = self.params.oper.truncation_shape
+        except AttributeError:
+            pass
+        else:
+            if truncation_shape == "cubic":
+                # nothing to do (default fluidfft)
+                pass
+            elif truncation_shape == "spherical":
+                kmax = self.coef_dealiasing * self.deltakx * self.nx / 2
+                self.where_dealiased = np.array(
+                    self.K2 >= kmax ** 2, dtype=np.uint8
+                )
+            else:
+                raise ValueError(
+                    'truncation_shape must be "cubic" or "spherical"'
+                )
+
 
 class OperatorsBase1D(OperatorBase):
     @staticmethod

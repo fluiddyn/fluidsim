@@ -96,6 +96,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             "ny": 48,
             "Lx": 8,
             "Ly": 8,
+            "truncation_shape": "cubic",
             "NO_SHEAR_MODES": False,
         }
         params._set_child("oper", attribs=attribs)
@@ -156,6 +157,8 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             nkx_loc_rank = np.array(comm.allgather(self.nkx_loc))
             a = nkx_loc_rank
             self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
+
+        self._reinit_truncation()
 
         try:
             NO_SHEAR_MODES = self.params.oper.NO_SHEAR_MODES

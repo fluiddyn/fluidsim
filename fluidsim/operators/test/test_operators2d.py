@@ -169,6 +169,8 @@ class TestCoarse(unittest.TestCase):
         if self.nb_dim == 3:
             params.oper.nz = 12
 
+        params.oper.truncation_shape = "spherical"
+
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
