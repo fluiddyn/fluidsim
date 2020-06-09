@@ -102,6 +102,11 @@ class TestOutput(TestSimulBase):
         sim = self.sim
         sim.time_stepping.start()
 
+        # testing phase_shift
+        phase_shift = sim.time_stepping._get_phase_shift()
+        assert phase_shift.shape == sim.oper.Kx.shape
+        assert sim.time_stepping._get_phase_shift() is phase_shift
+
         if mpi.nb_proc == 1:
 
             phys_fields = sim.output.phys_fields

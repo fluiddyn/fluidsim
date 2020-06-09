@@ -143,6 +143,11 @@ class TestForcingOutput(TestSimulBase):
 
         sim.time_stepping.start()
 
+        # testing phase_shift
+        phase_shift = sim.time_stepping._get_phase_shift()
+        assert phase_shift.shape == sim.oper.KX.shape
+        assert sim.time_stepping._get_phase_shift() is phase_shift
+
         sim.state.compute("rot_fft")
         sim.state.compute("rot_fft")
 
