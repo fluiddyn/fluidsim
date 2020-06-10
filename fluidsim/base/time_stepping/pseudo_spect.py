@@ -24,7 +24,7 @@ Provides:
 
 import numpy as np
 
-from transonic import Transonic, Type, NDim, Array
+from transonic import Transonic, Type, NDim, Array, boost
 
 from .base import TimeSteppingBase
 
@@ -38,6 +38,33 @@ A1 = Array[T, N, "C"]
 A2 = Array[T, N - 1, "C"]
 
 uniform = np.random.default_rng().uniform
+
+
+# transonic def step_Euler(A, float, A, A1, A)
+# transonic def step_Euler(A, float, A, A2, A)
+
+
+# @boost
+def step_Euler(state_spect, dt, tendencies, diss, output):
+    output[:] = (state_spect + dt * tendencies) * diss
+
+
+# transonic def step_Euler_inplace(A, float, A, A1)
+# transonic def step_Euler_inplace(A, float, A, A2)
+
+
+# @boost
+def step_Euler_inplace(state_spect, dt, tendencies, diss):
+    step_Euler(state_spect, dt, tendencies, diss, state_spect)
+
+
+# transonic def step_like_RK2(A, float, A, A1, A1)
+# transonic def step_like_RK2(A, float, A, A2, A2)
+
+
+# @boost
+def step_like_RK2(state_spect, dt, tendencies, diss, diss2):
+    state_spect[:] = state_spect * diss + dt * diss2 * tendencies
 
 
 class ExactLinearCoefs:
@@ -213,8 +240,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect = self.sim.state.state_spect
 
         tendencies_0 = compute_tendencies()
-
-        state_spect[:] = (state_spect + dt * tendencies_0) * diss
+        step_Euler_inplace(state_spect, dt, tendencies_0, diss)
 
     def _get_phase_shift(self):
         """Compute the phase shift term."""
@@ -301,8 +327,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
         # dealiased tendencies
         tendencies_dealiased = 0.5 * (tendencies_0 + tendencies_shifted)
-
-        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
+        step_Euler_inplace(state_spect, dt, tendencies_dealiased, diss)
 
     def _time_step_Euler_phaseshift_random(self):
         r"""Forward Euler method, dealiasing with phase-shifting.
@@ -353,8 +378,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
         # dealiased tendencies
         tendencies_dealiased = 0.5 * (tendencies_alpha + tendencies_beta)
-
-        state_spect[:] = (state_spect + dt * tendencies_dealiased) * diss
+        step_Euler_inplace(state_spect, dt, tendencies_dealiased, diss)
 
     def _time_step_RK2(self):
         r"""Runge-Kutta 2 method.
@@ -399,41 +423,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_0 = compute_tendencies()
 
         state_spect_12 = self._state_spect_tmp
-
-        if ts.is_transpiled:
-            ts.use_block("rk2_step0")
-        else:
-            # transonic block (
-            #     A state_spect_12, state_spect, tendencies_0;
-            #     A1 diss2;
-            #     float dt
-            # )
-            # transonic block (
-            #     A state_spect_12, state_spect, tendencies_0;
-            #     A2 diss2;
-            #     float dt
-            # )
-
-            state_spect_12[:] = (state_spect + dt / 2 * tendencies_0) * diss2
+        step_Euler(
+            state_spect, dt / 2, tendencies_0, diss2, output=state_spect_12
+        )
 
         tendencies_12 = compute_tendencies(state_spect_12, old=tendencies_0)
-
-        if ts.is_transpiled:
-            ts.use_block("rk2_step1")
-        else:
-            # transonic block (
-            #     A state_spect, tendencies_12;
-            #     A1 diss, diss2;
-            #     float dt
-            # )
-
-            # transonic block (
-            #     A state_spect, tendencies_12;
-            #     A2 diss, diss2;
-            #     float dt
-            # )
-
-            state_spect[:] = state_spect * diss + dt * diss2 * tendencies_12
+        step_like_RK2(state_spect, dt, tendencies_12, diss, diss2)
 
     def _time_step_RK2_trapezoid(self):
         r"""Runge-Kutta 2 method with trapezoidal rule (Heun's method).
@@ -479,8 +474,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_0 = compute_tendencies()
 
         state_spect_1 = self._state_spect_tmp
-
-        state_spect_1[:] = (state_spect + dt * tendencies_0) * diss
+        step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
         tendencies_1 = compute_tendencies(state_spect_1)
 
@@ -539,8 +533,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_0 = compute_tendencies()
 
         state_spect_1 = self._state_spect_tmp
-
-        state_spect_1[:] = (state_spect + dt * tendencies_0) * diss
+        step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
         phase_shift = self._get_phase_shift()
         tendencies_1 = (
@@ -548,7 +541,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
 
         tendencies_d = (tendencies_0 + tendencies_1) / 2
-        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
+        step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_random(self):
         r"""Runge-Kutta 2 method with phase-shifting (random).
@@ -601,8 +594,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
 
         state_spect_1 = self._state_spect_tmp
-
-        state_spect_1[:] = (state_spect + dt * tendencies_0) * diss
+        step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
         tendencies_1 = (
             compute_tendencies(phase_shift_beta * state_spect_1)
@@ -610,7 +602,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
 
         tendencies_d = (tendencies_0 + tendencies_1) / 2
-        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
+        step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_exact(self):
         r"""Runge-Kutta 2 method with phase-shifting for exact dealiasing.
@@ -664,8 +656,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         ) / 2
 
         state_spect_1 = self._state_spect_tmp
-
-        state_spect_1[:] = (state_spect + dt * tendencies_d0) * diss
+        step_Euler(state_spect, dt, tendencies_d0, diss, output=state_spect_1)
 
         tendencies_d1 = (
             compute_tendencies(state_spect_1)
@@ -673,7 +664,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         ) / 2
 
         tendencies_d = (tendencies_d0 + tendencies_d1) / 2
-        state_spect[:] = state_spect * diss + dt * tendencies_d * diss2
+        step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK4(self):
         r"""Runge-Kutta 4 method.
