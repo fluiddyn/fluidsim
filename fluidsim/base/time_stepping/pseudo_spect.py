@@ -9,14 +9,16 @@ Provides:
 
 .. todo::
 
-  It would be interesting to implement phase-shifting timestepping schemes as:
+  It would be interesting to also implement the Adams-Bashforth (leapfrog)
+  scheme with phase-shifting. It is very close to
+  :func:`_time_step_RK2_phaseshift` with 2 evaluations of the non-linear terms
+  per time step (but with 2 symmetrical and equivalent steps).
 
-  - RK2 + phase-shifting
+.. note::
 
-  - Adams-Bashforth (leapfrog) + phase-shifting
-
-  For a theoretical presentation of phase-shifting see
-  https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19810022965.pdf.
+  For a theoretical presentation of phase-shifting, see the book Numerical
+  Experiments in Homogeneous Turbulence (Robert S. Rogallo,
+  https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19810022965.pdf).
 
 """
 
