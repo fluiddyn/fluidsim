@@ -254,6 +254,16 @@ Lx, Ly and Lz: float
                 )
                 self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
 
+    def get_region_multiple_aliases(self):
+        aliases_x = abs(self.Kx) >= 2 / 3 * self.deltakx * self.nx / 2
+        aliases_y = abs(self.Ky) >= 2 / 3 * self.deltaky * self.ny / 2
+        aliases_z = abs(self.Kz) >= 2 / 3 * self.deltakz * self.nz / 2
+        return (
+            (aliases_x & aliases_y)
+            | (aliases_y & aliases_z)
+            | (aliases_z & aliases_x)
+        )
+
     @property
     def K2_not0(self):
         K2_not0 = np.copy(self.K2)

@@ -112,6 +112,9 @@ class TestForcingOutput(TestSimulBase):
     def init_params(self):
 
         params = super().init_params()
+
+        params.oper.truncation_shape = "no_multiple_aliases"
+
         params.forcing.enable = True
         params.forcing.type = "tcrandom"
 

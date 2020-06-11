@@ -56,9 +56,17 @@ class OperatorBase:
                 self.where_dealiased = np.array(
                     self.K2 >= kmax ** 2, dtype=np.uint8
                 )
+            elif truncation_shape == "no_multiple_aliases":
+                if not hasattr(self, "get_region_multiple_aliases"):
+                    raise NotImplementedError
+                where_dealiased = self.get_region_multiple_aliases()
+                if self.coef_dealiasing:
+                    kmax = self.coef_dealiasing * self.deltakx * self.nx / 2
+                    where_dealiased |= self.K2 >= kmax ** 2
+                self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
             else:
                 raise ValueError(
-                    'truncation_shape must be "cubic" or "spherical"'
+                    'truncation_shape must be "cubic", "spherical" or "no_multiple_aliases"'
                 )
 
 

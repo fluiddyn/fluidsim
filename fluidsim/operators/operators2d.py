@@ -172,6 +172,11 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                 )
                 self.where_dealiased = np.array(where_dealiased, dtype=np.uint8)
 
+    def get_region_multiple_aliases(self):
+        aliases_x = abs(self.KX) >= 2 / 3 * self.deltakx * self.nx / 2
+        aliases_y = abs(self.KY) >= 2 / 3 * self.deltaky * self.ny / 2
+        return aliases_x & aliases_y
+
     def dealiasing(self, *args):
         if not self._has_to_dealiase:
             return

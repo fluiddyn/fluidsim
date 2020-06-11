@@ -82,6 +82,9 @@ class TestOutput(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
+
+        params.oper.truncation_shape = "no_multiple_aliases"
+
         params.init_fields.type = "dipole"
 
         params.time_stepping.max_elapsed = 600
