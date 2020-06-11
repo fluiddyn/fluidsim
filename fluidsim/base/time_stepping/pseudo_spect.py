@@ -24,7 +24,7 @@ Provides:
 
 import numpy as np
 
-from transonic import Transonic, Type, NDim, Array, boost
+from transonic import Transonic, Type, NDim, Array, boost, Union
 
 from .base import TimeSteppingBase
 
@@ -36,34 +36,27 @@ A = Array[np.complex128, N, "C"]
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N, "C"]
 A2 = Array[T, N - 1, "C"]
+ArrayDiss = Union[A1, A2]
 
 uniform = np.random.default_rng().uniform
 
 
-# transonic def step_Euler(A, float, A, A1, A)
-# transonic def step_Euler(A, float, A, A2, A)
-
-
-# @boost
-def step_Euler(state_spect, dt, tendencies, diss, output):
+@boost
+def step_Euler(
+    state_spect: A, dt: float, tendencies: A, diss: ArrayDiss, output: A
+):
     output[:] = (state_spect + dt * tendencies) * diss
 
 
-# transonic def step_Euler_inplace(A, float, A, A1)
-# transonic def step_Euler_inplace(A, float, A, A2)
-
-
-# @boost
-def step_Euler_inplace(state_spect, dt, tendencies, diss):
+@boost
+def step_Euler_inplace(state_spect: A, dt: float, tendencies: A, diss: ArrayDiss):
     step_Euler(state_spect, dt, tendencies, diss, state_spect)
 
 
-# transonic def step_like_RK2(A, float, A, A1, A1)
-# transonic def step_like_RK2(A, float, A, A2, A2)
-
-
-# @boost
-def step_like_RK2(state_spect, dt, tendencies, diss, diss2):
+@boost
+def step_like_RK2(
+    state_spect: A, dt: float, tendencies: A, diss: ArrayDiss, diss2: ArrayDiss
+):
     state_spect[:] = state_spect * diss + dt * diss2 * tendencies
 
 
@@ -685,7 +678,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         - Approximation 1:
 
-          .. math:: \p_t \log S = \sigma + \frac{N(S_0)}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
 
           Integrating from :math:`t` to :math:`t+\dt/2` gives:
 
@@ -754,7 +747,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
           .. math::
              S_0 e^{\sigma \dt}
              + \frac{\dt}{3} \left[
-             \frac{1}{2} N(S_0) e^{\sigma \dt}
+             \frac{1}{2} N_0 e^{\sigma \dt}
              + N(\SA1dt2) e^{\sigma \frac{\dt}{2}}
              + N(\SA2dt2) e^{\sigma \frac{\dt}{2}}
              + \frac{1}{2} N(S_{A3\dt})\right].
@@ -771,28 +764,17 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_tmp1 = self._state_spect_tmp1
         state_spect_12_approx1 = state_spect_tmp1
 
-        if ts.is_transpiled:
-            ts.use_block("rk4_step0")
-        else:
-            # based on approximation 0
-            # transonic block (
-            #     A state_spect, state_spect_tmp,
-            #       tendencies_0, state_spect_12_approx1;
-            #     A1 diss, diss2;
-            #     float dt
-            # )
-
-            # transonic block (
-            #     A state_spect, state_spect_tmp,
-            #       tendencies_0, state_spect_12_approx1;
-            #     A2 diss, diss2;
-            #     float dt
-            # )
-
-            state_spect_tmp[:] = (state_spect + dt / 6 * tendencies_0) * diss
-            state_spect_12_approx1[:] = (
-                state_spect + dt / 2 * tendencies_0
-            ) * diss2
+        # rk4_step0
+        step_Euler(
+            state_spect, dt / 6, tendencies_0, diss, output=state_spect_tmp
+        )
+        step_Euler(
+            state_spect,
+            dt / 2,
+            tendencies_0,
+            diss2,
+            output=state_spect_12_approx1,
+        )
 
         tendencies_1 = compute_tendencies(
             state_spect_12_approx1, old=tendencies_0
