@@ -258,18 +258,15 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _get_phase_shift_random(self):
         """Compute two random phase shift terms."""
-        alpha = uniform(-1, 1)
+        oper = self.sim.oper
+        alpha = uniform(-0.5, 0.5)
         if alpha < 0:
             beta = alpha + 0.5
         else:
             beta = alpha - 0.5
 
-        phase_shift_alpha = np.exp(
-            1j * alpha * self.sim.oper.deltax * self.sim.oper.kx
-        )
-        phase_shift_beta = np.exp(
-            1j * beta * self.sim.oper.deltax * self.sim.oper.kx
-        )
+        phase_shift_alpha = np.exp(1j * alpha * oper.deltax * oper.kx)
+        phase_shift_beta = np.exp(1j * beta * oper.deltax * oper.kx)
 
         return phase_shift_alpha, phase_shift_beta
 
@@ -552,11 +549,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         - Approximation 1:
 
-          .. math:: \p_t \log S = \sigma + \frac{N_0}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{N_{0\alpha}}{S_0},
 
           Integrating from :math:`t` to :math:`t+\dt`, it gives:
 
-          .. math:: S_1 = (S_0 + N_0 \dt) e^{\sigma \dt}.
+          .. math:: S_1 = (S_0 + N_{0\alpha} \dt) e^{\sigma \dt}.
 
         - Approximation 2:
 
