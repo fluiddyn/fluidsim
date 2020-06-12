@@ -99,6 +99,7 @@ class SpectraNS3DStrat(SpectraNS3D):
                 "A": self.oper.compute_spectrum_kzkh(nrj_A_fft),
                 "Khr": self.oper.compute_spectrum_kzkh(nrj_Khr_fft),
                 "Khd": self.oper.compute_spectrum_kzkh(nrj_Khd_fft),
+                "Kz": self.oper.compute_spectrum_kzkh(nrj_vz_fft),
             }
         else:
             dict_kzkh = None
