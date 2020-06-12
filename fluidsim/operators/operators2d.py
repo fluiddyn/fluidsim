@@ -10,6 +10,7 @@ Provides
 """
 
 from warnings import warn
+from random import uniform
 
 import numpy as np
 
@@ -78,6 +79,10 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
     _has_to_dealiase: bool
     where_dealiased: "uint8[:, :]"
+    KX: Af
+    KY: Af
+    deltax: float
+    deltay: float
 
     @classmethod
     def _create_default_params(cls):
@@ -605,8 +610,11 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         else:
             return getattr(self, axe + "_seq")
 
+    @boost
     def get_phases_random(self):
-        alpha_x, alpha_y = np.random.uniform(-0.5, 0.5, 2)
+        # Not supported by Pythran 0.9.5!
+        # alpha_x, alpha_y = np.random.uniform(-0.5, 0.5, 2)
+        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
 

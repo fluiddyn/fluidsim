@@ -11,6 +11,7 @@ Provides
 
 from math import pi
 from copy import deepcopy
+from random import uniform
 
 import numpy as np
 
@@ -115,8 +116,12 @@ class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
 
     Kx: Af
     Ky: Af
+    Kz: Af
     inv_K_square_nozero: Af
     inv_Kh_square_nozero: Af
+    deltax: float
+    deltay: float
+    deltaz: float
 
     @classmethod
     def _create_default_params(cls):
@@ -629,8 +634,11 @@ Lx, Ly and Lz: float
             raise NotImplementedError
         return arr_fft[ik0, ik1, ik2]
 
+    @boost
     def get_phases_random(self):
-        alpha_x, alpha_y, alpha_z = np.random.uniform(-0.5, 0.5, 3)
+        # Not supported by Pythran 0.9.5!
+        # alpha_x, alpha_y, alpha_z = np.random.uniform(-0.5, 0.5, 3)
+        alpha_x, alpha_y, alpha_z = tuple(uniform(-0.5, 0.5) for _ in range(3))
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
         beta_z = alpha_z + 0.5 if alpha_z < 0 else alpha_z - 0.5
