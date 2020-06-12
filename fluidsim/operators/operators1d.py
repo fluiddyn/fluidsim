@@ -93,3 +93,11 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         kx = self.kx
         px_f_fft = 1j * kx * f_fft
         return px_f_fft
+
+    def get_phases_random(self):
+        alpha = np.random.uniform(-0.5, 0.5)
+        beta = alpha + 0.5 if alpha < 0 else alpha - 0.5
+
+        phase_alpha = 1j * alpha * self.deltax * self.kx
+        phase_beta = 1j * beta * self.deltax * self.kx
+        return phase_alpha, phase_beta

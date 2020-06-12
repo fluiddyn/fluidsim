@@ -119,6 +119,7 @@ class TestForcingOutput(TestSimulBase):
         params.forcing.type = "tcrandom"
 
         params.time_stepping.max_elapsed = "0:10:00"
+        params.time_stepping.type_time_scheme = "RK2_phaseshift_random"
 
         params.nu_m4 = 1e-3
 

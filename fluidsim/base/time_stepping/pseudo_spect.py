@@ -153,6 +153,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if type_time_scheme.startswith("RK"):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
 
+        if type_time_scheme.endswith("_random") and not hasattr(
+            self.sim.oper, "get_phases_random"
+        ):
+            raise NotImplementedError
+
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
         elif type_time_scheme == "Euler_phaseshift":
@@ -258,16 +263,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _get_phase_shift_random(self):
         """Compute two random phase shift terms."""
-        oper = self.sim.oper
-        alpha = uniform(-0.5, 0.5)
-        if alpha < 0:
-            beta = alpha + 0.5
-        else:
-            beta = alpha - 0.5
-
-        phase_shift_alpha = np.exp(1j * alpha * oper.deltax * oper.kx)
-        phase_shift_beta = np.exp(1j * beta * oper.deltax * oper.kx)
-
+        phase_alpha, phase_beta = self.sim.oper.get_phases_random()
+        phase_shift_alpha = np.exp(phase_alpha)
+        phase_shift_beta = np.exp(phase_beta)
         return phase_shift_alpha, phase_shift_beta
 
     def _time_step_Euler_phaseshift(self):

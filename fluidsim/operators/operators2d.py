@@ -605,6 +605,19 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         else:
             return getattr(self, axe + "_seq")
 
+    def get_phases_random(self):
+        alpha_x, alpha_y = np.random.uniform(-0.5, 0.5, 2)
+        beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
+        beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
+
+        phase_alpha = 1j * (
+            alpha_x * self.deltax * self.KX + alpha_y * self.deltay * self.KY
+        )
+        phase_beta = 1j * (
+            beta_x * self.deltax * self.KX + beta_y * self.deltay * self.KY
+        )
+        return phase_alpha, phase_beta
+
 
 # energy_arr = self.sum_wavenumbers(abs(arr)**2)
 # energy_array_coarse_after = oper_coarse.sum_wavenumbers(

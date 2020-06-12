@@ -629,6 +629,24 @@ Lx, Ly and Lz: float
             raise NotImplementedError
         return arr_fft[ik0, ik1, ik2]
 
+    def get_phases_random(self):
+        alpha_x, alpha_y, alpha_z = np.random.uniform(-0.5, 0.5, 3)
+        beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
+        beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
+        beta_z = alpha_z + 0.5 if alpha_z < 0 else alpha_z - 0.5
+
+        phase_alpha = 1j * (
+            alpha_x * self.deltax * self.Kx
+            + alpha_y * self.deltay * self.Ky
+            + alpha_z * self.deltaz * self.Kz
+        )
+        phase_beta = 1j * (
+            beta_x * self.deltax * self.Kx
+            + beta_y * self.deltay * self.Ky
+            + beta_z * self.deltaz * self.Kz
+        )
+        return phase_alpha, phase_beta
+
 
 def _ik_from_ikc(ikc, nkc, nk):
     if ikc <= nkc / 2.0:

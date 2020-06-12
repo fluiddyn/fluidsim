@@ -88,6 +88,7 @@ class TestOutput(TestSimulBase):
         params.init_fields.type = "dipole"
 
         params.time_stepping.max_elapsed = 600
+        params.time_stepping.type_time_scheme = "RK2_phaseshift_random"
 
         params.forcing.enable = True
         params.forcing.type = "in_script"
