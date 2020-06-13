@@ -32,8 +32,11 @@ ts = Transonic()
 
 N = NDim(2, 3, 4)
 A = Array[np.complex128, N, "C"]
-Af = Array[np.float64, N, "C"]
 Am1 = Array[np.complex128, N - 1, "C"]
+
+N123 = NDim(1, 2, 3)
+A123c = Array[np.complex128, N123, "C"]
+A123f = Array[np.float64, N123, "C"]
 
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N, "C"]
@@ -277,8 +280,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             ts.use_block("phase_shift_random")
         else:
             # transonic block (
-            #     A phase_shift_alpha, phase_shift_beta;
-            #     Af phase_alpha, phase_beta;
+            #     A123c phase_shift_alpha, phase_shift_beta;
+            #     A123f phase_alpha, phase_beta;
             # )
             phase_shift_alpha[:] = np.exp(1j * phase_alpha)
             phase_shift_beta[:] = np.exp(1j * phase_beta)
@@ -609,10 +612,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_1 = self._state_spect_tmp
         step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
-        tendencies_1_shift = (
-            compute_tendencies(phase_shift_beta * state_spect_1)
-            / phase_shift_beta
-        )
+        tendencies_1_shift = compute_tendencies(phase_shift_beta * state_spect_1)
 
         tendencies_d = self._state_spect_tmp
         if ts.is_transpiled:

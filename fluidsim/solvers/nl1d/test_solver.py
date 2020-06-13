@@ -111,7 +111,9 @@ class TestTimeStepping(TestSimul):
         sim.time_stepping.main_loop()
 
         s_fft = sim.state.get_var("s_fft")
-        assert np.allclose(s_fft, self.s_exact2_fft)
+        assert np.allclose(s_fft, self.s_exact2_fft), abs(
+            s_fft - self.s_exact2_fft
+        ).max()
 
     def test_Euler(self):
         self._test_type_time_scheme("Euler")
