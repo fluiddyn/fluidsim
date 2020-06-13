@@ -299,6 +299,8 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             if mpi.rank == 0:
                 while True:
                     path_run = os.path.join(path_base, self.name_run)
+                    if not params.output.HAS_TO_SAVE:
+                        break
                     if not os.path.exists(path_run):
                         try:
                             os.makedirs(path_run)
