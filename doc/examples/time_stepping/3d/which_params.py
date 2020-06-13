@@ -17,6 +17,7 @@ def compute(nx, nb_processes=20, verbose=True):
 
     if verbose:
         print(f"\n{nb_processes = }")
+        print("coef dealisasing", coefficients)
         # print(tmp)
         # print(np.round(tmp))
         print("nx =", nb_points)

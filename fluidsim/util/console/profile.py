@@ -325,7 +325,7 @@ def plot_pie(
 _kinds = ("fft_as", "pythran", ".pyx", ".py")
 
 
-def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
+def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
     """Print analysis of profiling result of a 2D solver.
 
     Parameters
@@ -334,7 +334,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
         Object pointing to a stats file
 
     """
-    stats = pstats.Stats(path)
+    stats = pstats.Stats(str(path))
     stats.sort_stats("time").print_stats(12)
 
     if nb_dim not in (2, 3):

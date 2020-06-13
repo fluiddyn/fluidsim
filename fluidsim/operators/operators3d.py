@@ -643,12 +643,12 @@ Lx, Ly and Lz: float
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
         beta_z = alpha_z + 0.5 if alpha_z < 0 else alpha_z - 0.5
 
-        phase_alpha = 1j * (
+        phase_alpha = (
             alpha_x * self.deltax * self.Kx
             + alpha_y * self.deltay * self.Ky
             + alpha_z * self.deltaz * self.Kz
         )
-        phase_beta = 1j * (
+        phase_beta = (
             beta_x * self.deltax * self.Kx
             + beta_y * self.deltay * self.Ky
             + beta_z * self.deltaz * self.Kz

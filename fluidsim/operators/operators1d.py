@@ -98,6 +98,6 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         alpha = np.random.uniform(-0.5, 0.5)
         beta = alpha + 0.5 if alpha < 0 else alpha - 0.5
 
-        phase_alpha = 1j * alpha * self.deltax * self.kx
-        phase_beta = 1j * beta * self.deltax * self.kx
+        phase_alpha = alpha * self.deltax * self.kx
+        phase_beta = beta * self.deltax * self.kx
         return phase_alpha, phase_beta

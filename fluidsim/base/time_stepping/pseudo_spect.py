@@ -32,6 +32,7 @@ ts = Transonic()
 
 N = NDim(2, 3, 4)
 A = Array[np.complex128, N, "C"]
+Af = Array[np.float64, N, "C"]
 Am1 = Array[np.complex128, N - 1, "C"]
 
 T = Type(np.float64, np.complex128)
@@ -261,9 +262,26 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def _get_phase_shift_random(self):
         """Compute two random phase shift terms."""
+        if not hasattr(self, "_phase_shift_alpha"):
+            self._phase_shift_alpha = np.empty(
+                self.sim.oper.shapeK_loc, dtype=np.complex128
+            )
+            self._phase_shift_beta = np.empty_like(self._phase_shift_alpha)
+
         phase_alpha, phase_beta = self.sim.oper.get_phases_random()
-        phase_shift_alpha = np.exp(phase_alpha)
-        phase_shift_beta = np.exp(phase_beta)
+
+        phase_shift_alpha = self._phase_shift_alpha
+        phase_shift_beta = self._phase_shift_beta
+
+        if ts.is_transpiled:
+            ts.use_block("phase_shift_random")
+        else:
+            # transonic block (
+            #     A phase_shift_alpha, phase_shift_beta;
+            #     Af phase_alpha, phase_beta;
+            # )
+            phase_shift_alpha[:] = np.exp(1j * phase_alpha)
+            phase_shift_beta[:] = np.exp(1j * phase_beta)
         return phase_shift_alpha, phase_shift_beta
 
     def _time_step_Euler_phaseshift(self):
@@ -591,12 +609,23 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_1 = self._state_spect_tmp
         step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
-        tendencies_1 = (
+        tendencies_1_shift = (
             compute_tendencies(phase_shift_beta * state_spect_1)
             / phase_shift_beta
         )
 
-        tendencies_d = (tendencies_0 + tendencies_1) / 2
+        tendencies_d = self._state_spect_tmp
+        if ts.is_transpiled:
+            ts.use_block("rk2_random")
+        else:
+            # transonic block (
+            #     A tendencies_d, tendencies_0, tendencies_1_shift;
+            #     Am1 phase_shift_beta;
+            # )
+            tendencies_d[:] = 0.5 * (
+                tendencies_0 + tendencies_1_shift / phase_shift_beta
+            )
+
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_exact(self):

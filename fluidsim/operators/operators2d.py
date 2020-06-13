@@ -618,10 +618,10 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
 
-        phase_alpha = 1j * (
+        phase_alpha = (
             alpha_x * self.deltax * self.KX + alpha_y * self.deltay * self.KY
         )
-        phase_beta = 1j * (
+        phase_beta = (
             beta_x * self.deltax * self.KX + beta_y * self.deltay * self.KY
         )
         return phase_alpha, phase_beta
