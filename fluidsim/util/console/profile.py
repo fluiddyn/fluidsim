@@ -39,7 +39,7 @@ nb_proc = mpi.nb_proc
 description = "Profile time-elapsed in various function calls"
 
 
-def run_profile(sim, nb_dim=2, path_results=".", plot=False, verbose=True):
+def run_profile(sim, nb_dim=None, path_results=".", plot=False, verbose=True):
     """Profile a simulation run and save the results in `profile.pstats`
 
     Parameters
@@ -52,11 +52,21 @@ def run_profile(sim, nb_dim=2, path_results=".", plot=False, verbose=True):
         Path where all pstats files will be saved
 
     """
+    if nb_dim is None:
+        try:
+            nb_dim = len(sim.oper.axes)
+        except AttributeError:
+            raise ValueError
+
     path, t_as_str = get_path_file(sim, path_results, "profile", ".pstats")
-    t0 = time()
     with stdout_redirected(not verbose):
-        cProfile.runctx("sim.time_stepping.start()", globals(), locals(), path)
-    t_end = time()
+        sim.time_stepping.init_from_params()
+        t0 = time()
+        cProfile.runctx(
+            "sim.time_stepping.main_loop()", globals(), locals(), path
+        )
+        t_end = time()
+        sim.time_stepping.finalize_main_loop()
 
     if sim.oper.rank == 0:
         times = analyze_stats(path, nb_dim, plot)
@@ -339,14 +349,14 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
                     if "fft/Sources" in key[0]:
                         continue
 
-                    if "fft_as_arg" in key[2]:
+                    if "fft_as_arg" in name:
                         continue
 
                 if k == key_fft:
                     if (
-                        "util_pythran" in key[2]
+                        "__pythran__" in name
                         or "operators.py" in key[0]
-                        or "fft_as_arg" in key[2]
+                        or "fft_as_arg" in name
                     ):
                         continue
 
@@ -365,15 +375,8 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.02):
                         continue
 
                 if k == ".py":
-                    if "fft_as_arg" in key[2]:
+                    if "fft_as_arg" in name:
                         continue
-
-                    if name == "one_time_step_computation":
-                        print(
-                            "warning: special case one_time_step_computation "
-                            "included in .pyx (see explanation in the code)"
-                        )
-                        k = ".pyx"
 
                 times[k] += time
 

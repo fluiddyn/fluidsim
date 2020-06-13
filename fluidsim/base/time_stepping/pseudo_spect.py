@@ -194,9 +194,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
     def one_time_step_computation(self):
         """One time step."""
-        # WARNING: if the function _time_step_RK comes from an extension, its
-        # execution time seems to be attributed to the function
-        # one_time_step_computation by cProfile
         self._time_step_RK()
         self.sim.oper.dealiasing(self.sim.state.state_spect)
         self.sim.state.statephys_from_statespect()
