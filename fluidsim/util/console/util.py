@@ -4,6 +4,7 @@
 """
 import os
 from time import time
+from pathlib import Path
 
 try:
     from time import perf_counter as clock
@@ -296,11 +297,13 @@ def parse_args_dim(args):
     return args
 
 
-def get_path_file(sim, path_results, name="bench", ext=".json"):
+def get_path_file(sim, path_dir_results, name="bench", ext=".json"):
     """Generate a unique filename from simulation object."""
 
-    if not os.path.exists(path_results) and mpi.rank == 0:
-        os.makedirs(path_results)
+    path_dir_results = Path(path_dir_results)
+
+    if mpi.rank == 0:
+        path_dir_results.mkdir(parents=True, exist_ok=True)
 
     t_as_str = time_as_str()
     key_solver = sim.info_solver.short_name.lower()
@@ -322,22 +325,22 @@ def get_path_file(sim, path_results, name="bench", ext=".json"):
         + ext
     )
 
-    path = os.path.join(path_results, name_file)
+    path = str(path_dir_results / name_file)
     return path, t_as_str
 
 
-def bench(sim, path_results):
+def bench(sim, path_dir_results):
     """Benchmark a simulation run and save the results in a JSON file.
 
     Parameters
     ----------
     sim : Simul
         An initialized simulation object
-    path_results :  str
+    path_dir_results :  str
         Directory path to save results in
 
     """
-    path, t_as_str = get_path_file(sim, path_results)
+    path, t_as_str = get_path_file(sim, path_dir_results)
     print("running a benchmark simulation... ", end="")
     with stdout_redirected():
         t0_usr = time()
@@ -388,11 +391,11 @@ def bench(sim, path_results):
         json.dump(results, file, sort_keys=True)
         file.write("\n")
 
-    print("results benchmarks saved in\n" + path + "\n")
+    print(f"results benchmarks saved in\n{path}\n")
 
 
 def tear_down(sim):
     """Delete simulation directory."""
     if mpi.rank == 0:
         print("Cleaning up simulation.")
-        shutil.rmtree(sim.output.path_run)
+        shutil.rmtree(sim.output.path_run, ignore_errors=True)

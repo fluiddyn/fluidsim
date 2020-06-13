@@ -6,6 +6,7 @@
 import gc
 import os
 from time import time
+from pathlib import Path
 
 import pstats
 import cProfile
@@ -39,7 +40,7 @@ nb_proc = mpi.nb_proc
 description = "Profile time-elapsed in various function calls"
 
 
-def run_profile(sim, nb_dim=None, path_results=".", plot=False, verbose=True):
+def run_profile(sim, nb_dim=None, path_results=None, plot=False, verbose=True):
     """Profile a simulation run and save the results in `profile.pstats`
 
     Parameters
@@ -58,7 +59,18 @@ def run_profile(sim, nb_dim=None, path_results=".", plot=False, verbose=True):
         except AttributeError:
             raise ValueError
 
-    path, t_as_str = get_path_file(sim, path_results, "profile", ".pstats")
+    if path_results is None:
+        path_results = Path.cwd()
+    else:
+        path_results = Path(path_results)
+
+    if path_results.name.endswith(".pstats"):
+        path = path_results
+        path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        path, t_as_str = get_path_file(sim, path_results, "profile", ".pstats")
+        path = Path(path)
+
     with stdout_redirected(not verbose):
         sim.time_stepping.init_from_params()
         t0 = time()

@@ -64,14 +64,19 @@ parser.add_argument(
     default=None,
 )
 
+parser.add_argument(
+    "--t_end", help="params.time_stepping.t_end", type=float, default=20.0,
+)
 
-def init_new_simul(args):
+
+Re = 1600
+V0 = 1.0
+L = 1
+
+
+def init_params(args):
 
     params = Simul.create_default_params()
-
-    Re = 1600
-    V0 = 1.0
-    L = 1
 
     params.short_name_type_run = (
         f"{args.type_time_scheme}_trunc{args.coef_dealiasing:.3f}"
@@ -84,7 +89,7 @@ def init_new_simul(args):
 
     params.init_fields.type = "in_script"
 
-    params.time_stepping.t_end = 20.0 * L / V0
+    params.time_stepping.t_end = args.t_end * L / V0
     params.time_stepping.type_time_scheme = args.type_time_scheme
     if args.max_elapsed is not None:
         params.time_stepping.max_elapsed = args.max_elapsed
@@ -94,7 +99,7 @@ def init_new_simul(args):
     params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
     params.oper.coef_dealiasing = args.coef_dealiasing
     if args.coef_dealiasing > 2 / 3:
-        params.oper.truncation_shape = "spherical"
+        params.oper.truncation_shape = "no_multiple_aliases"
 
     params.output.sub_directory = sub_directory
     params.output.periods_print.print_stdout = 0.5
@@ -104,17 +109,14 @@ def init_new_simul(args):
     params.output.periods_save.spect_energy_budg = 0.5
     params.output.spectra.kzkh_periodicity = 1
 
-    if args.only_print_params:
-        params.time_stepping._print_as_xml()
-        params.oper._print_as_xml()
-        params.output._print_as_xml()
-        sys.exit()
-
     if args.only_init:
         params.output.HAS_TO_SAVE = False
+        params.NEW_DIR_RESULTS = False
 
-    sim = Simul(params)
+    return params
 
+
+def init_state(sim):
     X, Y, Z = sim.oper.get_XYZ_loc()
 
     vx = V0 * np.sin(X / L) * np.cos(Y / L) * np.cos(Z / L)
@@ -126,6 +128,19 @@ def init_new_simul(args):
     sim.state.statespect_from_statephys()
     sim.state.statephys_from_statespect()
 
+
+def init_new_simul(args):
+
+    params = init_params(args)
+
+    if args.only_print_params:
+        params.time_stepping._print_as_xml()
+        params.oper._print_as_xml()
+        params.output._print_as_xml()
+        sys.exit()
+
+    sim = Simul(params)
+    init_state(sim)
     return params, sim
 
 
