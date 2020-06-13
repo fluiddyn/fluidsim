@@ -32,6 +32,7 @@ ts = Transonic()
 
 N = NDim(2, 3, 4)
 A = Array[np.complex128, N, "C"]
+Am1 = Array[np.complex128, N - 1, "C"]
 
 T = Type(np.float64, np.complex128)
 A1 = Array[T, N, "C"]
@@ -521,11 +522,20 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
         phase_shift = self._get_phase_shift()
-        tendencies_1 = (
-            compute_tendencies(phase_shift * state_spect_1) / phase_shift
-        )
+        tendencies_1_shift = compute_tendencies(phase_shift * state_spect_1)
 
-        tendencies_d = (tendencies_0 + tendencies_1) / 2
+        tendencies_d = self._state_spect_tmp
+        if ts.is_transpiled:
+            ts.use_block("rk2_tendencies_d")
+        else:
+            # transonic block (
+            #     A tendencies_d, tendencies_0, tendencies_1_shift;
+            #     Am1 phase_shift;
+            # )
+            tendencies_d[:] = 0.5 * (
+                tendencies_0 + tendencies_1_shift / phase_shift
+            )
+
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_random(self):
@@ -635,18 +645,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
-        tendencies_d0 = (
+        tendencies_d0 = 0.5 * (
             compute_tendencies(state_spect)
             + compute_tendencies(phase_shift * state_spect) / phase_shift
-        ) / 2
+        )
 
         state_spect_1 = self._state_spect_tmp
         step_Euler(state_spect, dt, tendencies_d0, diss, output=state_spect_1)
 
-        tendencies_d1 = (
+        tendencies_d1 = 0.5 * (
             compute_tendencies(state_spect_1)
             + compute_tendencies(phase_shift * state_spect_1) / phase_shift
-        ) / 2
+        )
 
         tendencies_d = (tendencies_d0 + tendencies_d1) / 2
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
