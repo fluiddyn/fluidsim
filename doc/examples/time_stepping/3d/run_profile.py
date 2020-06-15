@@ -14,6 +14,8 @@ python run_profile.py -nx 144 -cd 0.9 --type_time_scheme RK2_phaseshift_random -
 ```
 
 """
+from contextlib import redirect_stdout
+from pathlib import Path
 
 from fluiddyn.util import mpi
 
@@ -31,7 +33,11 @@ def main(args):
     params.output.periods_print.print_stdout = args.t_end / 4
     sim = Simul(params)
     init_state(sim)
-    run_profile(sim, path_results=f"tmp_profile/{sim.name_run}.pstats")
+    Path("tmp_profile").mkdir(exist_ok=True)
+    base_name_file = f"tmp_profile/{sim.name_run}."
+    with open(base_name_file + "log", "w") as file:
+        with redirect_stdout(file):
+            run_profile(sim, path_results=base_name_file + "pstats")
 
 
 if __name__ == "__main__":

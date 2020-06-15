@@ -67,3 +67,7 @@ bench/FourierFlows/statprof/*
 **/oar_launcher_*
 
 site.cfg
+
+*.lock
+*.dirlock
+**/tmp*
