@@ -57,5 +57,48 @@ def submit_simul(coef_dealiasing, nx, type_time_scheme, cfl_coef=None):
         pass
 
 
+def submit_profile(coef_dealiasing, nx, type_time_scheme, t_end, cfl_coef=None):
+
+    if nx < 480:
+        nb_cores_per_node = 10
+    else:
+        nb_cores_per_node = 20
+
+    nb_mpi_processes = nb_nodes * nb_cores_per_node
+
+    command = (
+        f"run_profile.py -cd {coef_dealiasing} -nx {nx} "
+        f"--type_time_scheme {type_time_scheme} --t_end {t_end}"
+    )
+
+    if cfl_coef:
+        command += f" -cfl {cfl_coef}"
+
+    name_run = f"{type_time_scheme}_trunc{coef_dealiasing:.3f}"
+
+    if cfl_coef:
+        name_run += f"_cfl{cfl_coef}"
+
+    print(f"submitting:\npython {command}")
+
+    if not cluster:
+        return
+
+    try:
+        cluster.submit_script(
+            command,
+            name_run=name_run,
+            nb_nodes=nb_nodes,
+            nb_cores_per_node=nb_cores_per_node,
+            nb_mpi_processes=1,
+            omp_num_threads=1,
+            idempotent=True,
+            ask=False,
+            walltime="02:00:00",
+        )
+    except OSError:
+        pass
+
+
 if __name__ == "__main__":
     submit_simul(0.94, 128, "RK2_phaseshift", cfl_coef=0.2)
