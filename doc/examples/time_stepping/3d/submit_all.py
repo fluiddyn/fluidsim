@@ -1,18 +1,15 @@
-from which_params import compute, coefficients, nx_bigs
+from which_params import compute, coefficients, nx_bigs, nb_procs
 from util_submit import submit_simul
 
 schemes = [
     "RK4",
     "RK2",
-    "RK2_phaseshift",
     "RK2_phaseshift_exact",
     "RK2_phaseshift_random",
-    ("RK2_phaseshift", 0.2),
-    ("RK2_phaseshift_random", 0.2),
 ]
 
 
-def submit(nx_big):
+def submit(nx_big, nb_proc):
     nb_points = compute(nx_big, verbose=False)
 
     assert nb_points[0] == nx_big
@@ -29,8 +26,10 @@ def submit(nx_big):
             else:
                 cfl_coef = None
             print(f"{coef_dealiasing:.3f}, {nx}, {scheme:25s}, {cfl_coef}")
-            submit_simul(coef_dealiasing, nx, scheme, cfl_coef)
+            submit_simul(coef_dealiasing, nx, scheme, cfl_coef, nb_proc)
 
 
-for nx_big in nx_bigs:
-    submit(nx_big)
+for nx_big, nb_proc in zip(nx_bigs, nb_procs):
+    if nx_big > 400:
+        continue
+    submit(nx_big, nb_proc)

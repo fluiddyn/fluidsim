@@ -51,6 +51,7 @@ def step_Euler(
     state_spect: A, dt: float, tendencies: A, diss: ArrayDiss, output: A
 ):
     output[:] = (state_spect + dt * tendencies) * diss
+    return output
 
 
 @boost
@@ -63,6 +64,26 @@ def step_like_RK2(
     state_spect: A, dt: float, tendencies: A, diss: ArrayDiss, diss2: ArrayDiss
 ):
     state_spect[:] = state_spect * diss + dt * diss2 * tendencies
+
+
+@boost
+def mean_with_phaseshift(
+    tendencies_0: A, tendencies_1_shift: A, phase_shift: Am1, output: A
+):
+    output[:] = 0.5 * (tendencies_0 + tendencies_1_shift / phase_shift)
+    return output
+
+
+@boost
+def mul(phase_shift: Am1, state_spect: A, output: A):
+    output[:] = phase_shift * state_spect
+    return output
+
+
+@boost
+def div_inplace(arr: A, phase_shift: Am1):
+    arr /= phase_shift
+    return arr
 
 
 class ExactLinearCoefs:
@@ -604,28 +625,30 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
-        tendencies_0 = (
-            compute_tendencies(phase_shift_alpha * state_spect)
-            / phase_shift_alpha
+        tmp0 = np.empty_like(state_spect)
+        state_spect_shift = mul(phase_shift_alpha, state_spect, output=tmp0)
+        tendencies_0_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift
         )
 
-        state_spect_1 = self._state_spect_tmp
-        step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
+        tendencies_0 = div_inplace(tendencies_0_shift, phase_shift_alpha)
 
-        tendencies_1_shift = compute_tendencies(phase_shift_beta * state_spect_1)
+        state_spect_1 = step_Euler(
+            state_spect, dt, tendencies_0, diss, output=self._state_spect_tmp
+        )
 
-        tendencies_d = self._state_spect_tmp
-        if ts.is_transpiled:
-            ts.use_block("rk2_random")
-        else:
-            # transonic block (
-            #     A tendencies_d, tendencies_0, tendencies_1_shift;
-            #     Am1 phase_shift_beta;
-            # )
-            tendencies_d[:] = 0.5 * (
-                tendencies_0 + tendencies_1_shift / phase_shift_beta
-            )
+        tmp1 = np.empty_like(state_spect)
+        state_spect_1_shift = mul(phase_shift_beta, state_spect_1, output=tmp1)
+        tendencies_1_shift = compute_tendencies(
+            state_spect_1_shift, old=state_spect_1_shift
+        )
 
+        tendencies_d = mean_with_phaseshift(
+            tendencies_0,
+            tendencies_1_shift,
+            phase_shift_beta,
+            output=self._state_spect_tmp,
+        )
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_exact(self):
@@ -669,25 +692,49 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         """
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-
         phase_shift = self._get_phase_shift()
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
-        tendencies_d0 = 0.5 * (
-            compute_tendencies(state_spect)
-            + compute_tendencies(phase_shift * state_spect) / phase_shift
+        tmp0 = np.empty_like(state_spect)
+        tmp1 = np.empty_like(state_spect)
+        tmp2 = np.empty_like(state_spect)
+        tmp3 = np.empty_like(state_spect)
+
+        tendencies_0 = compute_tendencies(state_spect, old=tmp0)
+        state_spect_shift = mul(phase_shift, state_spect, output=tmp1)
+        tendencies_0_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift
+        )
+        tendencies_d0 = mean_with_phaseshift(
+            tendencies_0, tendencies_0_shift, phase_shift, output=tmp2
         )
 
-        state_spect_1 = self._state_spect_tmp
-        step_Euler(state_spect, dt, tendencies_d0, diss, output=state_spect_1)
-
-        tendencies_d1 = 0.5 * (
-            compute_tendencies(state_spect_1)
-            + compute_tendencies(phase_shift * state_spect_1) / phase_shift
+        state_spect_1 = step_Euler(
+            state_spect, dt, tendencies_d0, diss, output=self._state_spect_tmp
         )
 
-        tendencies_d = (tendencies_d0 + tendencies_d1) / 2
+        tendencies_1 = compute_tendencies(state_spect_1, old=tmp0)
+        state_spect_shift = mul(phase_shift, state_spect_1, output=tmp1)
+        tendencies_1_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift
+        )
+
+        tendencies_d = tmp3
+        if ts.is_transpiled:
+            ts.use_block("rk2_exact")
+        else:
+            # based on approximation 1
+            # transonic block (
+            #     A tendencies_d, tendencies_d0, tendencies_1, tendencies_1_shift;
+            #     Am1 phase_shift
+            # )
+
+            tendencies_d[:] = 0.5 * (
+                tendencies_d0
+                + 0.5 * (tendencies_1 + tendencies_1_shift / phase_shift)
+            )
+
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK4(self):
@@ -791,20 +838,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect = self.sim.state.state_spect
 
         tendencies_0 = compute_tendencies()
-        state_spect_tmp = self._state_spect_tmp
         state_spect_tmp1 = self._state_spect_tmp1
-        state_spect_12_approx1 = state_spect_tmp1
 
         # rk4_step0
-        step_Euler(
-            state_spect, dt / 6, tendencies_0, diss, output=state_spect_tmp
+        state_spect_tmp = step_Euler(
+            state_spect, dt / 6, tendencies_0, diss, output=self._state_spect_tmp
         )
-        step_Euler(
-            state_spect,
-            dt / 2,
-            tendencies_0,
-            diss2,
-            output=state_spect_12_approx1,
+        state_spect_12_approx1 = step_Euler(
+            state_spect, dt / 2, tendencies_0, diss2, output=state_spect_tmp1,
         )
 
         tendencies_1 = compute_tendencies(

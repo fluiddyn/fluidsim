@@ -20,7 +20,7 @@ def submit_profiles_1coef(coef):
     coefficients = [0.9, 1.0]
 
     for nx, coef_dealiasing in zip(nxs[1:], coefficients):
-        for scheme in ["RK2_phaseshift", "RK2_phaseshift_random"]:
+        for scheme in ["RK2_phaseshift_random", "RK2_phaseshift_exact"]:
             submit_profile(coef_dealiasing, nx, scheme, t_end=t_end)
 
 

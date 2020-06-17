@@ -94,6 +94,10 @@ class TestTimeStepping(TestSimul):
         s_exact2_fft = oper2.fft(s_exact2)
         cls.s_exact2_fft = s_exact2_fft[oper2.kx <= sim.oper.kx.max()]
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.sim.time_stepping.finalize_main_loop()
+
     def _test_type_time_scheme(self, type_time_scheme, coef_dealiasing=0.66):
         sim = self.sim
         params = sim.params

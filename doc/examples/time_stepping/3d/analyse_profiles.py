@@ -30,7 +30,7 @@ columns = ["scheme", "nx", "coef_dealiased", "duration"]
 
 
 def get_dataframe(path_dir):
-
+    path_dir = Path(path_dir)
     paths_log = sorted(path_dir.glob("*.log"))
 
     values = []
@@ -39,6 +39,11 @@ def get_dataframe(path_dir):
 
     df = DataFrame(values, columns=columns)
     df["nx2/3"] = df.nx * df.coef_dealiased / (2 / 3)
-    # norm = df[df.scheme == "RK4"].duration.values[0]
-    # df["speedup"] = norm / df["duration"]
+    norm = df[df.scheme == "RK4"].duration.values[0]
+    df["speedup"] = norm / df["duration"]
     return df
+
+
+df = get_dataframe("tmp_profile")
+
+print(df)

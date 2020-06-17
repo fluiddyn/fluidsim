@@ -11,17 +11,18 @@ cluster.commands_setting_env = [
     "export FLUIDSIM_PATH=/fsnet/project/watu/2020/20MILESTONE",
 ]
 
-nb_nodes = 1
 
+def submit_simul(
+    coef_dealiasing, nx, type_time_scheme, cfl_coef=None, nb_proc=None
+):
 
-def submit_simul(coef_dealiasing, nx, type_time_scheme, cfl_coef=None):
+    if nb_proc is None:
+        if nx < 480:
+            nb_proc = 10
+        else:
+            nb_proc = 20
 
-    if nx < 480:
-        nb_cores_per_node = 10
-    else:
-        nb_cores_per_node = 20
-
-    nb_mpi_processes = nb_nodes * nb_cores_per_node
+    nb_mpi_processes = nb_proc
 
     command = (
         f"run_simul.py -cd {coef_dealiasing} -nx {nx} --type_time_scheme {type_time_scheme} "
@@ -45,8 +46,8 @@ def submit_simul(coef_dealiasing, nx, type_time_scheme, cfl_coef=None):
         cluster.submit_script(
             command,
             name_run=name_run,
-            nb_nodes=nb_nodes,
-            nb_cores_per_node=nb_cores_per_node,
+            nb_nodes=1,
+            nb_cores_per_node=nb_proc,
             nb_mpi_processes=nb_mpi_processes,
             omp_num_threads=1,
             idempotent=True,
@@ -63,8 +64,6 @@ def submit_profile(coef_dealiasing, nx, type_time_scheme, t_end, cfl_coef=None):
         nb_cores_per_node = 10
     else:
         nb_cores_per_node = 20
-
-    nb_mpi_processes = nb_nodes * nb_cores_per_node
 
     command = (
         f"run_profile.py -cd {coef_dealiasing} -nx {nx} "
@@ -88,7 +87,7 @@ def submit_profile(coef_dealiasing, nx, type_time_scheme, t_end, cfl_coef=None):
         cluster.submit_script(
             command,
             name_run=name_run,
-            nb_nodes=nb_nodes,
+            nb_nodes=1,
             nb_cores_per_node=nb_cores_per_node,
             nb_mpi_processes=1,
             omp_num_threads=1,

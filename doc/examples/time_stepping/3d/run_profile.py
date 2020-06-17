@@ -35,9 +35,13 @@ def main(args):
     init_state(sim)
     Path("tmp_profile").mkdir(exist_ok=True)
     base_name_file = f"tmp_profile/{sim.name_run}."
-    with open(base_name_file + "log", "w") as file:
+    name_file_log = base_name_file + "log"
+    with open(name_file_log, "w") as file:
         with redirect_stdout(file):
             run_profile(sim, path_results=base_name_file + "pstats")
+
+    with open(name_file_log) as file:
+        print(file.read())
 
 
 if __name__ == "__main__":

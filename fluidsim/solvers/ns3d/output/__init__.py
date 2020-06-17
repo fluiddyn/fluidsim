@@ -17,6 +17,7 @@
 import numpy as np
 
 from fluidsim.base.output import OutputBasePseudoSpectral
+from fluidsim.operators.operators3d import compute_energy_from_1field
 
 
 class Output(OutputBasePseudoSpectral):
@@ -74,9 +75,9 @@ class Output(OutputBasePseudoSpectral):
         vy_fft = self.sim.state.state_spect.get_var("vy_fft")
         vz_fft = self.sim.state.state_spect.get_var("vz_fft")
         return (
-            0.5 * np.abs(vx_fft) ** 2,
-            0.5 * np.abs(vy_fft) ** 2,
-            0.5 * np.abs(vz_fft) ** 2,
+            compute_energy_from_1field(vx_fft),
+            compute_energy_from_1field(vy_fft),
+            compute_energy_from_1field(vz_fft),
         )
 
     def compute_energy_fft(self):

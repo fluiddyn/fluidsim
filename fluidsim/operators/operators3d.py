@@ -80,6 +80,11 @@ def dealiasing_variable_numpy(ff_fft: Ac, where_dealiased: Aui8):
     ff_fft[np.nonzero(where_dealiased)] = 0.0
 
 
+@boost
+def compute_energy_from_1field(arr: Ac):
+    return 0.5 * np.abs(arr) ** 2
+
+
 if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     # for example if Pythran is not available
     dealiasing_variable = dealiasing_variable_numpy
