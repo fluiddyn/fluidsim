@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -37,13 +38,50 @@ def get_dataframe(path_dir):
     for path in paths_log:
         values.append(get_values(path))
 
-    df = DataFrame(values, columns=columns)
-    df["nx2/3"] = df.nx * df.coef_dealiased / (2 / 3)
-    norm = df[df.scheme == "RK4"].duration.values[0]
-    df["speedup"] = norm / df["duration"]
-    return df
+    df_full = pd.DataFrame(values, columns=columns)
+    df_full["nx2/3"] = df_full.nx * df_full.coef_dealiased / (2 / 3)
+
+    nx23s = df_full["nx2/3"].unique()
+
+    results = []
+    for nx23 in nx23s:
+        df = df_full[df_full["nx2/3"] == nx23].copy()
+        try:
+            norm = df[df.scheme == "RK4"].duration.values[0]
+        except IndexError:
+            # No data for RK4
+            continue
+        df["speedup"] = norm / df["duration"]
+        results.append(df)
+    return pd.concat(results)
 
 
-df = get_dataframe("tmp_profile")
+df = get_dataframe(
+    Path.home() / "Dev/postdoc_legi_jason/phaseshift/profiles_2020-06-17"
+)
 
 print(df)
+schemes = sorted(df.scheme.unique())
+
+fig, ax = plt.subplots()
+
+for scheme in schemes:
+    df_1scheme = df[df.scheme == scheme].copy()
+    df_1scheme.sort_values("nx2/3", inplace=True)
+    coefs = df_1scheme.coef_dealiased.unique()
+    coefs.sort()
+    for coef in coefs:
+
+        df_tmp = df_1scheme[df_1scheme.coef_dealiased == coef]
+        if coef == 2 / 3:
+            str_coef = "2/3"
+        else:
+            str_coef = str(coef)
+        ax.plot(
+            df_tmp["nx2/3"], df_tmp.speedup, "x", label=f"{scheme}, {str_coef}"
+        )
+
+ax.set_xscale("log")
+fig.legend()
+
+plt.show()
