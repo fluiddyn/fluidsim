@@ -21,6 +21,7 @@ Provides:
   https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19810022965.pdf).
 
 """
+from random import randint
 
 import numpy as np
 
@@ -68,22 +69,34 @@ def step_like_RK2(
 
 @boost
 def mean_with_phaseshift(
-    tendencies_0: A, tendencies_1_shift: A, phase_shift: Am1, output: A
+    tendencies_0: A, tendencies_1_shift: A, phaseshift: Am1, output: A
 ):
-    output[:] = 0.5 * (tendencies_0 + tendencies_1_shift / phase_shift)
+    output[:] = 0.5 * (tendencies_0 + tendencies_1_shift / phaseshift)
     return output
 
 
 @boost
-def mul(phase_shift: Am1, state_spect: A, output: A):
-    output[:] = phase_shift * state_spect
+def mul(phaseshift: Am1, state_spect: A, output: A):
+    output[:] = phaseshift * state_spect
     return output
 
 
 @boost
-def div_inplace(arr: A, phase_shift: Am1):
-    arr /= phase_shift
+def div_inplace(arr: A, phaseshift: Am1):
+    arr /= phaseshift
     return arr
+
+
+@boost
+def compute_phaseshift_terms(
+    phase_alpha: A123f,
+    phase_beta: A123f,
+    phaseshift_alpha: A123c,
+    phaseshift_beta: A123c,
+):
+    phaseshift_alpha[:] = np.exp(1j * phase_alpha)
+    phaseshift_beta[:] = np.exp(1j * phase_beta)
+    return phaseshift_alpha, phaseshift_beta
 
 
 class ExactLinearCoefs:
@@ -150,6 +163,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         TimeSteppingBase._complete_params_with_default(params)
         params.time_stepping.USE_CFL = True
 
+        params.time_stepping._set_child(
+            "phaseshift_random",
+            attribs=dict(nb_pairs=1, nb_steps_compute_new_pair=None),
+        )
+
     def __init__(self, sim):
         super().__init__(sim)
         self.init_from_params()
@@ -179,10 +197,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if type_time_scheme.startswith("RK"):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
 
-        if type_time_scheme.endswith("_random") and not hasattr(
-            self.sim.oper, "get_phases_random"
-        ):
-            raise NotImplementedError
+        if type_time_scheme.endswith("_random"):
+            self._init_phaseshift_random()
+            if not hasattr(self.sim.oper, "get_phases_random"):
+                raise NotImplementedError
 
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
@@ -263,10 +281,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_0 = compute_tendencies()
         step_Euler_inplace(state_spect, dt, tendencies_0, diss)
 
-    def _get_phase_shift(self):
+    def _get_phaseshift(self):
         """Compute the phase shift term."""
-        if hasattr(self, "_phase_shift") and self._phase_shift is not None:
-            return self._phase_shift
+        if hasattr(self, "_phaseshift") and self._phaseshift is not None:
+            return self._phaseshift
         oper = self.sim.oper
         ndim = len(oper.axes)
         if ndim == 1:
@@ -281,32 +299,81 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             )
         else:
             raise NotImplementedError
-        self._phase_shift = np.exp(1j * phase)
-        return self._phase_shift
+        self._phaseshift = np.exp(1j * phase)
+        return self._phaseshift
 
-    def _get_phase_shift_random(self):
-        """Compute two random phase shift terms."""
-        if not hasattr(self, "_phase_shift_alpha"):
-            self._phase_shift_alpha = np.empty(
+    def _init_phaseshift_random(self):
+
+        params_phaseshift = self.params.time_stepping.phaseshift_random
+        if params_phaseshift.nb_steps_compute_new_pair is None:
+            if params_phaseshift.nb_pairs == 1:
+                params_phaseshift.nb_steps_compute_new_pair = 2
+            else:
+                params_phaseshift.nb_steps_compute_new_pair = (
+                    4 * params_phaseshift.nb_pairs
+                )
+
+        self._index_phaseshift = 1
+        self._previous_index_pair = 0
+        self._previous_index_flip = 0
+        self._pairs_phaseshift = []
+        for _ in range(params_phaseshift.nb_pairs):
+            phaseshift_alpha = np.empty(
                 self.sim.oper.shapeK_loc, dtype=np.complex128
             )
-            self._phase_shift_beta = np.empty_like(self._phase_shift_alpha)
+            phaseshift_beta = np.empty_like(phaseshift_alpha)
+            phase_alpha, phase_beta = self.sim.oper.get_phases_random()
 
-        phase_alpha, phase_beta = self.sim.oper.get_phases_random()
+            self._pairs_phaseshift.append(
+                compute_phaseshift_terms(
+                    phase_alpha, phase_beta, phaseshift_alpha, phaseshift_beta
+                )
+            )
 
-        phase_shift_alpha = self._phase_shift_alpha
-        phase_shift_beta = self._phase_shift_beta
+    def _get_phaseshift_random(self):
+        """Compute two random phase shift terms."""
+        params_phaseshift = self.params.time_stepping.phaseshift_random
 
-        if ts.is_transpiled:
-            ts.use_block("phase_shift_random")
+        nb_pairs = params_phaseshift.nb_pairs
+        nb_steps_compute_new_pair = params_phaseshift.nb_steps_compute_new_pair
+
+        if nb_pairs == 1 and nb_steps_compute_new_pair == 1:
+            phaseshift_alpha, phaseshift_beta = self._pairs_phaseshift[0]
+        elif nb_pairs == 1 and nb_steps_compute_new_pair == 2:
+            pair = self._pairs_phaseshift[0]
+            if self._index_phaseshift == 1:
+                phaseshift_alpha, phaseshift_beta = pair
+            else:
+                phaseshift_beta, phaseshift_alpha = pair
         else:
-            # transonic block (
-            #     A123c phase_shift_alpha, phase_shift_beta;
-            #     A123f phase_alpha, phase_beta;
-            # )
-            phase_shift_alpha[:] = np.exp(1j * phase_alpha)
-            phase_shift_beta[:] = np.exp(1j * phase_beta)
-        return phase_shift_alpha, phase_shift_beta
+            index_pair = randint(0, nb_pairs - 1)
+            pair = self._pairs_phaseshift[index_pair]
+            index_flip = randint(0, 1)
+            if (
+                index_pair == self._previous_index_pair
+                and index_flip == self._previous_index_flip
+            ):
+                index_flip = 0 if index_flip else 1
+            self._previous_index_pair = index_pair
+            self._previous_index_flip = index_flip
+            if index_flip:
+                phaseshift_alpha, phaseshift_beta = pair
+            else:
+                phaseshift_beta, phaseshift_alpha = pair
+
+        if self._index_phaseshift == nb_steps_compute_new_pair:
+            self._index_phaseshift = 1
+            phase_alpha, phase_beta = self.sim.oper.get_phases_random()
+            phaseshift_alpha, phaseshift_beta = self._pairs_phaseshift.pop(0)
+            self._pairs_phaseshift.append(
+                compute_phaseshift_terms(
+                    phase_alpha, phase_beta, phaseshift_alpha, phaseshift_beta
+                )
+            )
+        else:
+            self._index_phaseshift += 1
+
+        return phaseshift_alpha, phaseshift_beta
 
     def _time_step_Euler_phaseshift(self):
         r"""Forward Euler method, dealiasing with phase-shifting.
@@ -349,9 +416,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         # regular tendencies
         tendencies_0 = compute_tendencies()
         # shifted tendencies
-        phase_shift = self._get_phase_shift()
+        phaseshift = self._get_phaseshift()
         tendencies_shifted = (
-            compute_tendencies(phase_shift * state_spect) / phase_shift
+            compute_tendencies(phaseshift * state_spect) / phaseshift
         )
         # dealiased tendencies
         tendencies_dealiased = 0.5 * (tendencies_0 + tendencies_shifted)
@@ -396,13 +463,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect = self.sim.state.state_spect
 
         # shifted tendencies
-        phase_shift_alpha, phase_shift_beta = self._get_phase_shift_random()
+        phaseshift_alpha, phaseshift_beta = self._get_phaseshift_random()
         tendencies_alpha = (
-            compute_tendencies(phase_shift_alpha * state_spect)
-            / phase_shift_alpha
+            compute_tendencies(phaseshift_alpha * state_spect) / phaseshift_alpha
         )
         tendencies_beta = (
-            compute_tendencies(phase_shift_beta * state_spect) / phase_shift_beta
+            compute_tendencies(phaseshift_beta * state_spect) / phaseshift_beta
         )
         # dealiased tendencies
         tendencies_dealiased = 0.5 * (tendencies_alpha + tendencies_beta)
@@ -563,8 +629,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_1 = self._state_spect_tmp
         step_Euler(state_spect, dt, tendencies_0, diss, output=state_spect_1)
 
-        phase_shift = self._get_phase_shift()
-        tendencies_1_shift = compute_tendencies(phase_shift * state_spect_1)
+        phaseshift = self._get_phaseshift()
+        tendencies_1_shift = compute_tendencies(phaseshift * state_spect_1)
 
         tendencies_d = self._state_spect_tmp
         if ts.is_transpiled:
@@ -572,10 +638,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         else:
             # transonic block (
             #     A tendencies_d, tendencies_0, tendencies_1_shift;
-            #     Am1 phase_shift;
+            #     Am1 phaseshift;
             # )
             tendencies_d[:] = 0.5 * (
-                tendencies_0 + tendencies_1_shift / phase_shift
+                tendencies_0 + tendencies_1_shift / phaseshift
             )
 
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
@@ -620,25 +686,25 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
 
-        phase_shift_alpha, phase_shift_beta = self._get_phase_shift_random()
+        phaseshift_alpha, phaseshift_beta = self._get_phaseshift_random()
 
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
         tmp0 = np.empty_like(state_spect)
-        state_spect_shift = mul(phase_shift_alpha, state_spect, output=tmp0)
+        state_spect_shift = mul(phaseshift_alpha, state_spect, output=tmp0)
         tendencies_0_shift = compute_tendencies(
             state_spect_shift, old=state_spect_shift
         )
 
-        tendencies_0 = div_inplace(tendencies_0_shift, phase_shift_alpha)
+        tendencies_0 = div_inplace(tendencies_0_shift, phaseshift_alpha)
 
         state_spect_1 = step_Euler(
             state_spect, dt, tendencies_0, diss, output=self._state_spect_tmp
         )
 
         tmp1 = np.empty_like(state_spect)
-        state_spect_1_shift = mul(phase_shift_beta, state_spect_1, output=tmp1)
+        state_spect_1_shift = mul(phaseshift_beta, state_spect_1, output=tmp1)
         tendencies_1_shift = compute_tendencies(
             state_spect_1_shift, old=state_spect_1_shift
         )
@@ -646,7 +712,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_d = mean_with_phaseshift(
             tendencies_0,
             tendencies_1_shift,
-            phase_shift_beta,
+            phaseshift_beta,
             output=self._state_spect_tmp,
         )
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
@@ -692,7 +758,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         """
         dt = self.deltat
         diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
-        phase_shift = self._get_phase_shift()
+        phaseshift = self._get_phaseshift()
         compute_tendencies = self.sim.tendencies_nonlin
         state_spect = self.sim.state.state_spect
 
@@ -702,12 +768,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tmp3 = np.empty_like(state_spect)
 
         tendencies_0 = compute_tendencies(state_spect, old=tmp0)
-        state_spect_shift = mul(phase_shift, state_spect, output=tmp1)
+        state_spect_shift = mul(phaseshift, state_spect, output=tmp1)
         tendencies_0_shift = compute_tendencies(
             state_spect_shift, old=state_spect_shift
         )
         tendencies_d0 = mean_with_phaseshift(
-            tendencies_0, tendencies_0_shift, phase_shift, output=tmp2
+            tendencies_0, tendencies_0_shift, phaseshift, output=tmp2
         )
 
         state_spect_1 = step_Euler(
@@ -715,7 +781,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         )
 
         tendencies_1 = compute_tendencies(state_spect_1, old=tmp0)
-        state_spect_shift = mul(phase_shift, state_spect_1, output=tmp1)
+        state_spect_shift = mul(phaseshift, state_spect_1, output=tmp1)
         tendencies_1_shift = compute_tendencies(
             state_spect_shift, old=state_spect_shift
         )
@@ -727,12 +793,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             # based on approximation 1
             # transonic block (
             #     A tendencies_d, tendencies_d0, tendencies_1, tendencies_1_shift;
-            #     Am1 phase_shift
+            #     Am1 phaseshift
             # )
 
             tendencies_d[:] = 0.5 * (
                 tendencies_d0
-                + 0.5 * (tendencies_1 + tendencies_1_shift / phase_shift)
+                + 0.5 * (tendencies_1 + tendencies_1_shift / phaseshift)
             )
 
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)

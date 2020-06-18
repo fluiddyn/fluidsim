@@ -98,7 +98,13 @@ class TestTimeStepping(TestSimul):
     def tearDownClass(cls):
         cls.sim.time_stepping.finalize_main_loop()
 
-    def _test_type_time_scheme(self, type_time_scheme, coef_dealiasing=0.66):
+    def _test_type_time_scheme(
+        self,
+        type_time_scheme,
+        coef_dealiasing=0.66,
+        nb_pairs=1,
+        nb_steps_compute_new_pair=None,
+    ):
         sim = self.sim
         params = sim.params
 
@@ -111,6 +117,10 @@ class TestTimeStepping(TestSimul):
 
         params.time_stepping.it_end += 1
         params.time_stepping.type_time_scheme = type_time_scheme
+        params.time_stepping.phaseshift_random.nb_pairs = nb_pairs
+        params.time_stepping.phaseshift_random.nb_steps_compute_new_pair = (
+            nb_steps_compute_new_pair
+        )
         sim.time_stepping.init_from_params()
         sim.time_stepping.main_loop()
 
@@ -127,6 +137,12 @@ class TestTimeStepping(TestSimul):
 
     def test_Euler_phaseshift_random(self):
         self._test_type_time_scheme("Euler_phaseshift_random", 1)
+
+    def test_Euler_phaseshift_random_bis(self):
+        self._test_type_time_scheme("Euler_phaseshift_random", 1, 1, 1)
+
+    def test_Euler_phaseshift_random_ter(self):
+        self._test_type_time_scheme("Euler_phaseshift_random", 1, 2)
 
     def test_RK2(self):
         self._test_type_time_scheme("RK2")

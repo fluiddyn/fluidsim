@@ -106,10 +106,10 @@ class TestOutput(TestSimulBase):
         sim = self.sim
         sim.time_stepping.start()
 
-        # testing phase_shift
-        phase_shift = sim.time_stepping._get_phase_shift()
-        assert phase_shift.shape == sim.oper.Kx.shape
-        assert sim.time_stepping._get_phase_shift() is phase_shift
+        # testing phaseshift
+        phaseshift = sim.time_stepping._get_phaseshift()
+        assert phaseshift.shape == sim.oper.Kx.shape
+        assert sim.time_stepping._get_phaseshift() is phaseshift
 
         if mpi.nb_proc == 1:
 
