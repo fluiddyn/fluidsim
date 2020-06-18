@@ -58,7 +58,15 @@ def submit_simul(
         pass
 
 
-def submit_profile(coef_dealiasing, nx, type_time_scheme, t_end, cfl_coef=None):
+def submit_profile(
+    coef_dealiasing,
+    nx,
+    type_time_scheme,
+    t_end,
+    cfl_coef=None,
+    nb_pairs=1,
+    nb_steps=None,
+):
 
     if nx < 480:
         nb_cores_per_node = 10
@@ -67,11 +75,15 @@ def submit_profile(coef_dealiasing, nx, type_time_scheme, t_end, cfl_coef=None):
 
     command = (
         f"run_profile.py -cd {coef_dealiasing} -nx {nx} "
-        f"--type_time_scheme {type_time_scheme} --t_end {t_end}"
+        f"--type_time_scheme {type_time_scheme} --t_end {t_end} "
+        f"--nb_pairs {nb_pairs}"
     )
 
     if cfl_coef:
         command += f" -cfl {cfl_coef}"
+
+    if nb_steps:
+        command += f" --nb_steps {nb_steps}"
 
     name_run = f"{type_time_scheme}_trunc{coef_dealiasing:.3f}"
 

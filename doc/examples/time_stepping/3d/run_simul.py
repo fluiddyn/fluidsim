@@ -68,6 +68,20 @@ parser.add_argument(
     "--t_end", help="params.time_stepping.t_end", type=float, default=20.0,
 )
 
+parser.add_argument(
+    "--nb_pairs",
+    help="params.time_stepping.phaseshift_random.nb_pairs",
+    type=int,
+    default=1,
+)
+
+parser.add_argument(
+    "--nb_steps_compute_new_pair",
+    help="params.time_stepping.phaseshift_random.nb_steps_compute_new_pair",
+    type=int,
+    default=None,
+)
+
 
 Re = 1600
 V0 = 1.0
@@ -82,6 +96,12 @@ def init_params(args):
         f"{args.type_time_scheme}_trunc{args.coef_dealiasing:.3f}"
     )
 
+    if args.nb_pairs != 1:
+        params.short_name_type_run += f"_nb_pairs{args.nb_pairs}"
+
+    if args.nb_steps_compute_new_pair:
+        params.short_name_type_run += f"_nb_steps{args.nb_steps_compute_new_pair}"
+
     if args.cfl_coef:
         params.short_name_type_run += f"_cfl{args.cfl_coef}"
 
@@ -94,6 +114,10 @@ def init_params(args):
     if args.max_elapsed is not None:
         params.time_stepping.max_elapsed = args.max_elapsed
     params.time_stepping.cfl_coef = args.cfl_coef
+
+    params_phaseshift = params.time_stepping.phaseshift_random
+    params_phaseshift.nb_pairs = args.nb_pairs
+    params_phaseshift.nb_steps_compute_new_pair = args.nb_steps_compute_new_pair
 
     params.oper.nx = params.oper.ny = params.oper.nz = args.nx
     params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
@@ -157,6 +181,12 @@ if __name__ == "__main__":
 
     if args.cfl_coef:
         name_file += f"_cfl{args.cfl_coef}"
+
+    if args.nb_pairs != 1:
+        name_file += f"_nb_pairs{args.nb_pairs}"
+
+    if args.nb_steps_compute_new_pair:
+        name_file += f"_nb_steps{args.nb_steps_compute_new_pair}"
 
     name_file += ".txt"
 
