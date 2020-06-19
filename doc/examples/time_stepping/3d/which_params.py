@@ -19,8 +19,8 @@ eta = (nu ** 3 / epsilon) ** (1 / 4)
 
 coefficients = np.array([2 / 3, 0.90, 1.0])
 
-nx_bigs = [800, 400, 256, 128]
-nb_procs = [20, 10, 4, 2]
+nx_bigs = [800, 640, 400, 256, 128]
+nb_procs = [20, 10, 10, 4, 2]
 
 
 def compute(nx, nb_processes=20, verbose=True):

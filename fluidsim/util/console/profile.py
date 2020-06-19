@@ -71,6 +71,9 @@ def run_profile(sim, nb_dim=None, path_results=None, plot=False, verbose=True):
         path, t_as_str = get_path_file(sim, path_results, "profile", ".pstats")
         path = Path(path)
 
+    if mpi.rank > 0:
+        path = path.with_name(path.stem + f"_rank{mpi.rank}" + path.suffix)
+
     with stdout_redirected(not verbose):
         sim.time_stepping.init_from_params()
         t0 = time()
@@ -80,7 +83,7 @@ def run_profile(sim, nb_dim=None, path_results=None, plot=False, verbose=True):
         t_end = time()
         sim.time_stepping.finalize_main_loop()
 
-    if sim.oper.rank == 0:
+    if mpi.rank == 0:
         times = analyze_stats(path, nb_dim, plot)
         print(f"\nelapsed time = {t_end - t0:.3f} s")
         name_solver = sim.__module__.rsplit(".", maxsplit=1)[0]

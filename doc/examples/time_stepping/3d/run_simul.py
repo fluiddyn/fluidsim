@@ -125,6 +125,9 @@ def init_params(args):
     if args.coef_dealiasing > 2 / 3:
         params.oper.truncation_shape = "no_multiple_aliases"
 
+    if mpi.nb_proc > 1:
+        params.oper.type_fft = "fft3d.mpi_with_fftw1d"
+
     params.output.sub_directory = sub_directory
     params.output.periods_print.print_stdout = 0.5
     params.output.periods_save.phys_fields = 4
