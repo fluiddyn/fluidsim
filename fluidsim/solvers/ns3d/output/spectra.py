@@ -225,7 +225,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-    def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None):
+    def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None, vmin=None, vmax=None):
         data = self.load_kzkh_mean(tmin, tmax, key)
         spectrum = np.log10(data[key])
         kz = data["kz"]
@@ -233,12 +233,15 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
 
         if ax is None:
             fig, ax = self.output.figure_axe()
+        else:
+            fig = ax.figure
 
         ax.set_xlabel(r"$\kappa_h$")
         ax.set_ylabel("$k_z$")
-        ax.set_title("log 3D spectra\n" + self.output.summary_simul)
+        ax.set_title("log10 spectra\n" + self.output.summary_simul)
 
-        ax.pcolormesh(kh, kz, spectrum)
+        qmesh = ax.pcolormesh(kh, kz, spectrum, vmin=vmin, vmax=vmax)
+        fig.colorbar(qmesh)
 
     def plot1d(
         self,
@@ -324,14 +327,14 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         ks_no0[ks == 0] = np.nan
         coef_norm = ks_no0 ** (coef_compensate)
 
-        style_line = ""
+        style_line = "r"
         if direction == "z":
-            style_line = ":"
+            style_line = "g"
 
         ax.plot(
             ks,
             spectrum * coef_norm,
-            "k" + style_line,
+            style_line,
             linewidth=2,
             label=f"$E(k_{direction})$",
         )
