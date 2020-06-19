@@ -22,6 +22,10 @@ from time import time
 from fluiddyn.util import mpi
 
 
+def max_abs(arr):
+    return max(abs(arr.min()), abs(arr.max()))
+
+
 class TimeSteppingBase0:
     """Universal time stepping class used for all solvers.
 
@@ -302,9 +306,9 @@ class TimeSteppingBase(TimeSteppingBase0):
         uz = get_var("vz")
 
         if ux.size > 0:
-            max_ux = abs(ux).max()
-            max_uy = abs(uy).max()
-            max_uz = abs(uz).max()
+            max_ux = max_abs(ux)
+            max_uy = max_abs(uy)
+            max_uz = max_abs(uz)
             tmp = (
                 max_ux / self.sim.oper.deltax
                 + max_uy / self.sim.oper.deltay
@@ -337,8 +341,8 @@ class TimeSteppingBase(TimeSteppingBase0):
         ux = self.sim.state.get_var("ux")
         uy = self.sim.state.get_var("uy")
 
-        max_ux = abs(ux).max()
-        max_uy = abs(uy).max()
+        max_ux = max_abs(ux)
+        max_uy = max_abs(uy)
         tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
 
         self._compute_time_increment_CLF_from_tmp(tmp)
@@ -368,8 +372,8 @@ class TimeSteppingBase(TimeSteppingBase0):
 
             cph = (f ** 2 / k_min ** 2 + params.c2) ** 0.5
 
-        max_ux = abs(ux).max()
-        max_uy = abs(uy).max()
+        max_ux = max_abs(ux)
+        max_uy = max_abs(uy)
         tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
 
         if mpi.nb_proc > 1:
@@ -392,7 +396,7 @@ class TimeSteppingBase(TimeSteppingBase0):
     def _compute_time_increment_CLF_ux(self):
         """Compute the time increment deltat with a CLF condition."""
         ux = self.sim.state.get_var("ux")
-        max_ux = abs(ux).max()
+        max_ux = max_abs(ux)
         tmp = max_ux / self.sim.oper.deltax
         self._compute_time_increment_CLF_from_tmp(tmp)
 
