@@ -45,7 +45,7 @@ def main(args):
     params.output.HAS_TO_SAVE = False
     params.output.periods_print.print_stdout = args.t_end / 4
     sim = Simul(params)
-    init_state(sim)
+    init_state(sim, args)
     Path("tmp_profile").mkdir(exist_ok=True)
     base_name_file = f"tmp_profile/{sim.name_run}."
     name_file_log = base_name_file + "log"

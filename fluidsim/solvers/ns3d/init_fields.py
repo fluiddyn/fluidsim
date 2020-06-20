@@ -139,49 +139,54 @@ length: float (default 0.)
         self.sim.state.statephys_from_statespect()
 
     def compute_vv_fft(self):
+        params_noise = self.sim.params.init_fields.noise
+        return compute_solenoidal_noise_fft(
+            self.sim.oper, params_noise.length, params_noise.velo_max,
+        )
 
-        params = self.sim.params
-        oper = self.sim.oper
 
-        lambda0 = params.init_fields.noise.length
-        if lambda0 is None:
-            lambda0 = oper.Lx / 4.0
+def compute_solenoidal_noise_fft(oper, length=None, velo_max=1, seed=42):
+    """Compute a divergence-free (incompressible) random field"""
 
-        def H_smooth(x, delta):
-            return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
+    lambda0 = length
+    if lambda0 is None:
+        lambda0 = oper.Lx / 4.0
 
-        # to compute always the same field... (for 1 resolution...)
-        np.random.seed(42 + mpi.rank)
+    def H_smooth(x, delta):
+        return (1.0 + np.tanh(2 * np.pi * x / delta)) / 2.0
 
-        vv = [np.random.random(oper.shapeX_loc) - 0.5 for i in range(3)]
+    # to compute always the same field... (for 1 resolution...)
+    np.random.seed(seed + mpi.rank)
 
-        vv_fft = []
-        for ii, vi in enumerate(vv):
-            vv_fft.append(oper.fft(vi))
+    vv = [np.random.random(oper.shapeX_loc) - 0.5 for i in range(3)]
 
-            if mpi.rank == 0:
-                vv_fft[ii][0, 0, 0] = 0.0
+    vv_fft = []
+    for ii, vi in enumerate(vv):
+        vv_fft.append(oper.fft(vi))
 
-        oper.project_perpk3d(*vv_fft)
-        oper.dealiasing(*vv_fft)
+        if mpi.rank == 0:
+            vv_fft[ii][0, 0, 0] = 0.0
 
-        k0 = 2 * np.pi / lambda0
-        delta_k0 = 1.0 * k0
+    oper.project_perpk3d(*vv_fft)
+    oper.dealiasing(*vv_fft)
 
-        K = np.sqrt(oper.K2)
+    k0 = 2 * np.pi / lambda0
+    delta_k0 = 1.0 * k0
 
-        vv_fft = [vi_fft * H_smooth(k0 - K, delta_k0) for vi_fft in vv_fft]
-        vv = [oper.ifft(ui_fft) for ui_fft in vv_fft]
+    K = np.sqrt(oper.K2)
 
-        velo_max = np.sqrt(vv[0] ** 2 + vv[1] ** 2 + vv[2] ** 2).max()
-        if mpi.nb_proc > 1:
-            velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
+    vv_fft = [vi_fft * H_smooth(k0 - K, delta_k0) for vi_fft in vv_fft]
+    vv = [oper.ifft(ui_fft) for ui_fft in vv_fft]
 
-        vv = [params.init_fields.noise.velo_max * vi / velo_max for vi in vv]
+    velo_max_result_random = np.sqrt(vv[0] ** 2 + vv[1] ** 2 + vv[2] ** 2).max()
+    if mpi.nb_proc > 1:
+        velo_max_result_random = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
 
-        vv_fft = [oper.fft(vi) for vi in vv]
+    vv = [velo_max * vi / velo_max_result_random for vi in vv]
 
-        return tuple(vv_fft)
+    vv_fft = [oper.fft(vi) for vi in vv]
+
+    return tuple(vv_fft)
 
 
 class InitFieldsNS3D(InitFieldsBase):

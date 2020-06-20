@@ -22,6 +22,7 @@ from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim import FLUIDSIM_PATH, load_for_restart
+from fluidsim.solvers.ns3d.init_fields import compute_solenoidal_noise_fft
 
 sub_directory = "taylor-green_phase-shifting"
 
@@ -82,10 +83,17 @@ parser.add_argument(
     default=None,
 )
 
-
 Re = 1600
 V0 = 1.0
 L = 1
+
+parser.add_argument(
+    "--velo_max_noise", help="noise level", type=float, default=V0 / 8,
+)
+
+parser.add_argument(
+    "--length_noise", help="noise length", type=float, default=L / 5,
+)
 
 
 def init_params(args):
@@ -143,7 +151,7 @@ def init_params(args):
     return params
 
 
-def init_state(sim):
+def init_state(sim, args):
     X, Y, Z = sim.oper.get_XYZ_loc()
 
     vx = V0 * np.sin(X / L) * np.cos(Y / L) * np.cos(Z / L)
@@ -151,8 +159,16 @@ def init_state(sim):
     vz = sim.oper.create_arrayX(value=0)
 
     sim.state.init_statephys_from(vx=vx, vy=vy, vz=vz)
-
     sim.state.statespect_from_statephys()
+
+    if args.velo_max_noise:
+        noise_fft = compute_solenoidal_noise_fft(
+            sim.oper, length=args.length_noise, velo_max=args.velo_max_noise
+        )
+        for i_direction, letter_direction in enumerate("xyz"):
+            vi_fft = sim.state.state_spect.get_var(f"v{letter_direction}_fft")
+            vi_fft += noise_fft[i_direction]
+
     sim.state.statephys_from_statespect()
 
 
@@ -167,7 +183,7 @@ def init_new_simul(args):
         sys.exit()
 
     sim = Simul(params)
-    init_state(sim)
+    init_state(sim, args)
     return params, sim
 
 
