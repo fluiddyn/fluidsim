@@ -88,7 +88,7 @@ V0 = 1.0
 L = 1
 
 parser.add_argument(
-    "--velo_max_noise", help="noise level", type=float, default=V0 / 8,
+    "--velo_max_noise", help="noise level", type=float, default=0.0,
 )
 
 parser.add_argument(
@@ -140,10 +140,10 @@ def init_params(args):
     params.output.sub_directory = sub_directory
     params.output.periods_print.print_stdout = 0.5
     params.output.periods_save.phys_fields = 4
-    params.output.periods_save.spatial_means = 0.2
-    params.output.periods_save.spectra = 0.5
-    params.output.periods_save.spect_energy_budg = 0.5
-    params.output.spectra.kzkh_periodicity = 1
+    params.output.periods_save.spatial_means = 0.1
+    params.output.periods_save.spectra = 0.2
+    params.output.periods_save.spect_energy_budg = 0.2
+    params.output.spectra.kzkh_periodicity = 2
 
     if args.only_init:
         params.output.HAS_TO_SAVE = False
