@@ -130,7 +130,8 @@ def init_params(args):
     params.oper.nx = params.oper.ny = params.oper.nz = args.nx
     params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
     params.oper.coef_dealiasing = args.coef_dealiasing
-    if args.coef_dealiasing > 2 / 3:
+    params.oper.truncation_shape = "spherical"
+    if args.coef_dealiasing > np.sqrt(2) * 2 / 3:
         params.oper.truncation_shape = "no_multiple_aliases"
 
     if mpi.nb_proc > 1:
