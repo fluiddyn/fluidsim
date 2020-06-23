@@ -189,6 +189,8 @@ def init_new_simul(args):
 
 
 if __name__ == "__main__":
+    import hashlib
+
     args = parser.parse_args()
     mpi.printby0(args)
 
@@ -208,7 +210,14 @@ if __name__ == "__main__":
     if args.nb_steps_compute_new_pair:
         name_file += f"_nb_steps{args.nb_steps_compute_new_pair}"
 
-    name_file += ".txt"
+    str_for_sha = ""
+    for k, v in args._get_kwargs():
+        if k in ["max_elapsed", "t_end"]:
+            continue
+        str_for_sha += f"{k}: {v}, "
+    sha = int(hashlib.sha256(str_for_sha.encode("utf-8")).hexdigest(), 16)
+    sha = sha % 10 ** 16
+    name_file += f"_{sha}.txt"
 
     path_idempotent_file = path_dir / name_file
 
