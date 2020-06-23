@@ -95,6 +95,13 @@ parser.add_argument(
     "--length_noise", help="noise length", type=float, default=L / 5,
 )
 
+parser.add_argument(
+    "--truncation_shape",
+    help='Truncation shape (can be "cubic", "spherical" or "no_multiple_aliases")',
+    type=str,
+    default=None,
+)
+
 
 def init_params(args):
 
@@ -130,9 +137,13 @@ def init_params(args):
     params.oper.nx = params.oper.ny = params.oper.nz = args.nx
     params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
     params.oper.coef_dealiasing = args.coef_dealiasing
-    params.oper.truncation_shape = "spherical"
-    if args.coef_dealiasing > np.sqrt(2) * 2 / 3:
-        params.oper.truncation_shape = "no_multiple_aliases"
+
+    if args.truncation_shape is None:
+        params.oper.truncation_shape = "spherical"
+        if args.coef_dealiasing > np.sqrt(2) * 2 / 3:
+            params.oper.truncation_shape = "no_multiple_aliases"
+    else:
+        params.oper.truncation_shape = args.truncation_shape
 
     if mpi.nb_proc > 1:
         params.oper.type_fft = "fft3d.mpi_with_fftw1d"

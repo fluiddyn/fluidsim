@@ -14,7 +14,6 @@ python run_profile.py -nx 144 -cd 0.9 --type_time_scheme RK2_phaseshift_random -
 ```
 
 """
-from contextlib import redirect_stdout
 from pathlib import Path
 import sys
 

@@ -15,12 +15,18 @@ cluster.commands_setting_env = [
 def submit_simul(
     coef_dealiasing, nx, type_time_scheme, cfl_coef=None, nb_proc=None
 ):
-
+    nb_nodes = 1
     if nb_proc is None:
         if nx < 480:
             nb_proc = 10
+        if nx >= 640:
+            nb_proc = 40
+            nb_nodes = 2
         else:
             nb_proc = 20
+
+    tmp = nx / 2 / nb_proc
+    assert round(tmp) == tmp
 
     nb_mpi_processes = nb_proc
 
@@ -46,8 +52,8 @@ def submit_simul(
         cluster.submit_script(
             command,
             name_run=name_run,
-            nb_nodes=1,
-            nb_cores_per_node=nb_proc,
+            nb_nodes=nb_nodes,
+            nb_cores_per_node=nb_proc // nb_nodes,
             nb_mpi_processes=nb_mpi_processes,
             omp_num_threads=1,
             idempotent=True,
