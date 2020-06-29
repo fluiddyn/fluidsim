@@ -13,7 +13,12 @@ cluster.commands_setting_env = [
 
 
 def submit_simul(
-    coef_dealiasing, nx, type_time_scheme, cfl_coef=None, nb_proc=None
+    coef_dealiasing,
+    nx,
+    type_time_scheme,
+    cfl_coef=None,
+    nb_proc=None,
+    truncation_shape=None,
 ):
     nb_nodes = 1
     if nb_proc is None:
@@ -35,13 +40,15 @@ def submit_simul(
         f'--max-elapsed "{max_elapsed}"'
     )
 
-    if cfl_coef:
-        command += f" -cfl {cfl_coef}"
-
     name_run = f"{type_time_scheme}_trunc{coef_dealiasing:.3f}"
 
     if cfl_coef:
+        command += f" -cfl {cfl_coef}"
         name_run += f"_cfl{cfl_coef}"
+
+    if truncation_shape is not None:
+        command += f" --truncation_shape {truncation_shape}"
+        name_run += f"_{truncation_shape}"
 
     print(f"submitting:\npython {command}")
 
