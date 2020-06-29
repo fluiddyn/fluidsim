@@ -107,9 +107,12 @@ def init_params(args):
 
     params = Simul.create_default_params()
 
-    params.short_name_type_run = (
-        f"{args.type_time_scheme}_trunc{args.coef_dealiasing:.3f}"
-    )
+    if args.truncation_shape == "cubic":
+        str_trunc_shape = "_cubic_"
+    else:
+        str_trunc_shape = ""
+
+    params.short_name_type_run = f"{args.type_time_scheme}_trunc{str_trunc_shape}{args.coef_dealiasing:.3f}"
 
     if args.nb_pairs != 1:
         params.short_name_type_run += f"_nb_pairs{args.nb_pairs}"
