@@ -180,7 +180,9 @@ def compute_solenoidal_noise_fft(oper, length=None, velo_max=1, seed=42):
 
     velo_max_result_random = np.sqrt(vv[0] ** 2 + vv[1] ** 2 + vv[2] ** 2).max()
     if mpi.nb_proc > 1:
-        velo_max_result_random = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
+        velo_max_result_random = oper.comm.allreduce(
+            velo_max_result_random, op=mpi.MPI.MAX
+        )
 
     vv = [velo_max * vi / velo_max_result_random for vi in vv]
 
