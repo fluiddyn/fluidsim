@@ -180,7 +180,7 @@ class Spectra(SpecificOutput):
     def _online_save(self):
         """Save the values at one time. """
         tsim = self.sim.time_stepping.t
-        if tsim - self.t_last_save >= self.period_save:
+        if self._has_to_online_save():
             self.t_last_save = tsim
             dict_spectra1d, dict_spectra3d, dict_kzkh = self.compute()
             if mpi.rank == 0:

@@ -234,16 +234,20 @@ class SpatialMeansNS3D(SpatialMeansBase):
         epsK_tot = dict_results["epsK_tot"]
 
         fig, ax = self.output.figure_axe()
-        fig.suptitle("Energy and enstrophy")
+        ax.set_title("Energy and enstrophy\n" + self.output.summary_simul)
         ax.set_ylabel("$E(t)$")
+        ax.set_xlabel("$t$")
         ax.plot(t, E, "k", linewidth=2)
         ax.plot(t, Ex, "b")
         ax.plot(t, Ey, "r")
         ax.plot(t, Ez, "c")
 
         fig, ax = self.output.figure_axe()
-        fig.suptitle("Dissipation of energy and enstrophy")
+        ax.set_title(
+            "Dissipation of energy and enstrophy\n" + self.output.summary_simul
+        )
         ax.set_ylabel(r"$\epsilon_K(t)$")
+        ax.set_xlabel("$t$")
 
         def _plot(x, y, fmt, label=None, linewidth=1, zorder=10):
             ax.plot(

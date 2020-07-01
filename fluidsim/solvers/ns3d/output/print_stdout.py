@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from fluidsim.base.output.print_stdout import PrintStdOutBase
 
@@ -81,21 +82,17 @@ class PrintStdOutNS3D(PrintStdOutBase):
         E = dict_results["E"]
         deltaE = dict_results["deltaE"]
 
-        x_left_axe = 0.12
-        z_bottom_axe = 0.55
-        width_axe = 0.85
-        height_axe = 0.4
-        size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-        fig, ax1 = self.output.figure_axe(size_axe=size_axe)
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+
         ax1.set_xlabel("t")
         ax1.set_ylabel("deltat(t)")
 
         ax1.set_title("info stdout\n" + self.output.summary_simul)
         ax1.plot(t, deltat, "k", linewidth=2)
 
-        size_axe[1] = 0.08
-        ax2 = fig.add_axes(size_axe)
         ax2.set_xlabel("t")
         ax2.set_ylabel("E(t), deltaE(t)")
         ax2.plot(t, E, "k", linewidth=2)
         ax2.plot(t, deltaE, "b", linewidth=2)
+
+        fig.tight_layout()

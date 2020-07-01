@@ -156,31 +156,30 @@ class SpectraNS3D(Spectra):
 
         with h5py.File(path_file, "r") as h5file:
             times = h5file["times"][...]
-
-            if tmax is None:
-                tmax = times.max()
-
             ks = h5file[key_k][...]
 
         ks_no0 = ks.copy()
         ks_no0[ks == 0] = np.nan
 
-        delta_t_save = np.diff(times).mean()
-
-        if delta_t is None:
-            nb_curves = 20
-            delta_t = (times[-1] - times[0]) / nb_curves
-
-        delta_i_plot = int(np.round(delta_t / delta_t_save))
-        if delta_i_plot == 0:
-            delta_i_plot = 1
-        delta_t = delta_t_save * delta_i_plot
+        if tmax is None:
+            tmax = times.max()
 
         imin_plot = np.argmin(abs(times - tmin))
         imax_plot = np.argmin(abs(times - tmax))
 
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
+
+        delta_t_save = np.diff(times).mean()
+
+        if delta_t is None:
+            nb_curves = min(20, len(times))
+            delta_t = (tmax_plot - tmin_plot) / nb_curves
+
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
+        if delta_i_plot == 0:
+            delta_i_plot = 1
+        delta_t = delta_t_save * delta_i_plot
 
         print(
             f"plot{ndim}d_times(tmin={tmin:8.6g}, tmax={tmax:8.6g}, delta_t={delta_t:8.6g},"
@@ -193,7 +192,10 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"${key_k_label}$")
         ax.set_ylabel("spectra " + key)
-        ax.set_title(f"{ndim}D spectra\n" + self.output.summary_simul)
+        ax.set_title(
+            f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
         ax.set_xscale("log")
         ax.set_yscale("log")
 
@@ -225,7 +227,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-    def plot_kzkh(self, tmin=0, tmax=None, key="K", ax=None, vmin=None, vmax=None):
+    def plot_kzkh(
+        self, tmin=0, tmax=None, key="K", ax=None, vmin=None, vmax=None
+    ):
         data = self.load_kzkh_mean(tmin, tmax, key)
         spectrum = np.log10(data[key])
         kz = data["kz"]
@@ -254,11 +258,68 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ylim=None,
         directions=("x", "z"),
     ):
-        path_file = self.path_file1d
+
+        self._plot_ndim(
+            tmin,
+            tmax,
+            coef_compensate=coef_compensate,
+            coef_plot_k3=coef_plot_k3,
+            coef_plot_k53=coef_plot_k53,
+            xlim=xlim,
+            ylim=ylim,
+            ndim=1,
+            directions=directions,
+        )
+
+    def plot3d(
+        self,
+        tmin=0,
+        tmax=None,
+        coef_compensate=0,
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        xlim=None,
+        ylim=None,
+    ):
+
+        self._plot_ndim(
+            tmin,
+            tmax,
+            coef_compensate=coef_compensate,
+            coef_plot_k3=coef_plot_k3,
+            coef_plot_k53=coef_plot_k53,
+            xlim=xlim,
+            ylim=ylim,
+            ndim=3,
+        )
+
+    def _plot_ndim(
+        self,
+        tmin=0,
+        tmax=None,
+        coef_compensate=0,
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        xlim=None,
+        ylim=None,
+        ndim=1,
+        directions=("x", "z"),
+    ):
+        if ndim not in [1, 3]:
+            raise ValueError
+
+        path_file = getattr(self, f"path_file{ndim}d")
+
+        if ndim == 1:
+            key_k = "k" + directions[0]
+            key_k_label = "k_" + key_k[-1]
+        else:
+            key_k = "k_spectra3d"
+            key_k_label = "k"
 
         with h5py.File(path_file, "r") as h5file:
             times = h5file["times"][...]
-            kx = h5file["kx"][...]
+            ks = h5file[key_k][...]
 
         if tmax is None:
             tmax = times.max()
@@ -270,28 +331,39 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         tmax_plot = times[imax_plot]
 
         print(
-            f"plot1d(tmin={tmin:8.6g}, tmax={tmax:8.6g},"
+            f"plot{ndim}d(tmin={tmin:8.6g}, tmax={tmax:8.6g},"
             f" coef_compensate={coef_compensate:.3f})\n"
-            f"""plot 1D spectra
+            f"""plot {ndim}D spectra
 tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g}
 imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         )
 
         fig, ax = self.output.figure_axe()
-        ax.set_xlabel(f"$k$")
+        ax.set_xlabel(f"${key_k_label}$")
         ax.set_ylabel("spectra")
-        ax.set_title(f"1D spectra\n" + self.output.summary_simul)
+        ax.set_title(
+            f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-        direction = "x"
+        if ndim == 1:
+            for direction in directions:
+                self._plot1d_direction(
+                    direction, imin_plot, imax_plot, coef_compensate, ax
+                )
+        else:
+            ks_no0 = ks.copy()
+            ks_no0[ks == 0] = np.nan
+            with h5py.File(path_file, "r") as h5file:
+                spectrum = h5file["spectra_E"][imin_plot : imax_plot + 1].mean(0)
+                coef_norm = ks_no0 ** (coef_compensate)
 
-        for direction in directions:
-            self._plot1d_direction(
-                direction, imin_plot, imax_plot, coef_compensate, ax
-            )
+            spectrum[spectrum < 10e-16] = 0.0
+            ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
 
-        ks = np.linspace(kx[1], 0.8 * kx[-1], 20)
+        ks = np.linspace(ks[1], 0.8 * ks[-1], 20)
 
         ks_no0 = ks.copy()
         ks_no0[ks == 0] = np.nan
@@ -311,7 +383,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-        fig.legend()
+        if ndim == 1:
+            fig.legend()
 
     def _plot1d_direction(
         self, direction, imin_plot, imax_plot, coef_compensate, ax
