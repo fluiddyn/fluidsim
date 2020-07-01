@@ -83,7 +83,11 @@ parser.add_argument(
     default=None,
 )
 
-Re = 1600
+parser.add_argument(
+    "--Re", help="Reynolds number", type=float, default=1600.0,
+)
+
+
 V0 = 1.0
 L = 1
 
@@ -114,6 +118,9 @@ def init_params(args):
 
     params.short_name_type_run = f"{args.type_time_scheme}_trunc{str_trunc_shape}{args.coef_dealiasing:.3f}"
 
+    if args.Re != 1600.0:
+        params.short_name_type_run += f"_Re{args.Re:.0f}"
+
     if args.nb_pairs != 1:
         params.short_name_type_run += f"_nb_pairs{args.nb_pairs}"
 
@@ -123,7 +130,7 @@ def init_params(args):
     if args.cfl_coef:
         params.short_name_type_run += f"_cfl{args.cfl_coef}"
 
-    params.nu_2 = V0 * L / Re
+    params.nu_2 = V0 * L / args.Re
 
     params.init_fields.type = "in_script"
 

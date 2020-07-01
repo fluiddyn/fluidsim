@@ -19,6 +19,7 @@ def submit_simul(
     cfl_coef=None,
     nb_proc=None,
     truncation_shape=None,
+    Re=None,
 ):
     nb_nodes = 1
     if nb_proc is None:
@@ -49,6 +50,10 @@ def submit_simul(
     if truncation_shape is not None:
         command += f" --truncation_shape {truncation_shape}"
         name_run += f"_{truncation_shape}"
+
+    if Re is not None:
+        command += f" --Re {Re}"
+        name_run += f"_Re{Re}"
 
     print(f"submitting:\npython {command}")
 

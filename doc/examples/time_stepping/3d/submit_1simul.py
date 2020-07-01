@@ -1,12 +1,12 @@
 from util_submit import submit_simul
 
-nb_proc = 10
-nx = 400
+Re = 2800
 
-submit_simul(2 / 3, nx, "RK4", nb_proc=nb_proc, truncation_shape="cubic")
-submit_simul(1.0, nx, "RK4", nb_proc=nb_proc, truncation_shape="cubic")
-submit_simul(2 / 3, nx, "RK4", nb_proc=nb_proc)
-submit_simul(1.0, nx, "RK4", nb_proc=nb_proc)
+nb_proc = 4
+nx = 256
+submit_simul(2 / 3, nx, "RK4", nb_proc=nb_proc, Re=Re)
 
-submit_simul(1.0, nx, "RK2_phaseshift_random", nb_proc=nb_proc)
-submit_simul(1.0, nx, "RK2_phaseshift_exact", nb_proc=nb_proc)
+nx = 168
+submit_simul(1.0, nx, "RK4", nb_proc=nb_proc, Re=Re)
+submit_simul(1.0, nx, "RK2_phaseshift_random", nb_proc=nb_proc, Re=Re)
+submit_simul(1.0, nx, "RK2_phaseshift_exact", nb_proc=nb_proc, Re=Re)
