@@ -13,11 +13,23 @@
 
 """
 
+from transonic import boost
+
 from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.setofvariables import SetOfVariables
 
 from ..solver import InfoSolverNS3D, Simul as SimulNS3D
+
+
+Ac = "complex128[:,:,:]"
+
+
+@boost
+def compute_fb_fft(div_vb_fft: Ac, N: float, vz_fft: Ac):
+    fb_fft = div_vb_fft
+    fb_fft[:] = -div_vb_fft - N ** 2 * vz_fft
+    return fb_fft
 
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
@@ -193,9 +205,8 @@ class Simul(SimulNS3D):
             b = self.state.fields_tmp[3]
             ifft_as_arg(b_fft, b)
 
-        fb_fft = (
-            -oper.div_vb_fft_from_vb(vx, vy, vz, b) - self.params.N ** 2 * vz_fft
-        )
+        div_vb_fft = oper.div_vb_fft_from_vb(vx, vy, vz, b)
+        fb_fft = compute_fb_fft(div_vb_fft, self.params.N, vz_fft)
 
         tendencies_fft.set_var("b_fft", fb_fft)
 

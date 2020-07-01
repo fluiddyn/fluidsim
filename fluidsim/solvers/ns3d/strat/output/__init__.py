@@ -14,7 +14,12 @@
 
 """
 
-import numpy as np
+from fluidsim.operators.operators3d import (
+    compute_energy_from_1field,
+    compute_energy_from_1field_with_coef,
+    compute_energy_from_2fields,
+    compute_energy_from_3fields,
+)
 
 from ...output import Output as OutputNS3D
 
@@ -52,10 +57,12 @@ class Output(OutputNS3D):
             vx_fft, vy_fft
         )
 
-        nrj_A = 0.5 / self.sim.params.N ** 2 * np.abs(b_fft) ** 2
-        nrj_Kz = 0.5 * np.abs(vz_fft) ** 2
-        nrj_Khr = 0.5 * (np.abs(urx_fft) ** 2 + np.abs(ury_fft) ** 2)
-        nrj_Khd = 0.5 * (np.abs(udx_fft) ** 2 + np.abs(udy_fft) ** 2)
+        nrj_A = compute_energy_from_1field_with_coef(
+            b_fft, 1.0 / self.sim.params.N ** 2
+        )
+        nrj_Kz = compute_energy_from_1field(vz_fft)
+        nrj_Khr = compute_energy_from_2fields(urx_fft, ury_fft)
+        nrj_Khd = compute_energy_from_2fields(udx_fft, udy_fft)
         return nrj_A, nrj_Kz, nrj_Khr, nrj_Khd
 
     def compute_energy_fft(self):
@@ -64,10 +71,10 @@ class Output(OutputNS3D):
         vx_fft = get_var("vx_fft")
         vy_fft = get_var("vy_fft")
         vz_fft = get_var("vz_fft")
-        nrj_A = 0.5 / self.sim.params.N ** 2 * np.abs(b_fft) ** 2
-        nrj_K = 0.5 * (
-            np.abs(vx_fft) ** 2 + np.abs(vy_fft) ** 2 + np.abs(vz_fft) ** 2
+        nrj_A = compute_energy_from_1field_with_coef(
+            b_fft, 1.0 / self.sim.params.N ** 2
         )
+        nrj_K = compute_energy_from_3fields(vx_fft, vy_fft, vz_fft)
         return nrj_A + nrj_K
 
     def compute_energies(self):

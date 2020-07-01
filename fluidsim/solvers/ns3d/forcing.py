@@ -17,6 +17,7 @@ import h5netcdf
 from scipy.interpolate import interp1d
 from math import pi
 
+from transonic import boost, Array
 
 from fluiddyn.util import mpi
 from fluidsim.util.frequency_modulation import FrequencyModulatedSignalMaker
@@ -174,18 +175,43 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         self.sigma = self.coef_sigma / self.params.time_stepping.deltat_max
         self.period_forcing = self.params.forcing.watu_coriolis.period_forcing
 
+        self._tmp_forcing = sim.oper.create_arrayX()
+
     def compute_forcing_fft_each_time(self):
         sim = self.sim
         time = sim.time_stepping.t % self.period_forcing
-        coef_forcing_time_x = self.interpolents[0](time)
+        coef_forcing_time_x = float(self.interpolents[0](time))
         vx = sim.state.state_phys.get_var("vx")
-        fx = self.sigma * self.maskx * (coef_forcing_time_x * self.vxtarget - vx)
+        tmp = self._tmp_forcing
+        fx = compute_watu_coriolis_forcing_component(
+            self.sigma, self.maskx, coef_forcing_time_x, self.vxtarget, vx, tmp,
+        )
+        fx_fft = sim.oper.fft(fx)
         if self.nb_wave_makers == 1:
-            return {"vx_fft": sim.oper.fft(fx)}
-        coef_forcing_time_y = self.interpolents[1](time)
+            return {"vx_fft": fx_fft}
+        coef_forcing_time_y = float(self.interpolents[1](time))
         vy = sim.state.state_phys.get_var("vy")
-        fy = self.sigma * self.masky * (coef_forcing_time_y * self.vytarget - vy)
-        return {"vx_fft": sim.oper.fft(fx), "vy_fft": sim.oper.fft(fy)}
+        fy = compute_watu_coriolis_forcing_component(
+            self.sigma, self.masky, coef_forcing_time_y, self.vytarget, vy, tmp,
+        )
+        return {"vx_fft": fx_fft, "vy_fft": sim.oper.fft(fy)}
+
+
+A2d = Array[np.float64, "3d"]
+A3d = Array[np.float64, "3d"]
+
+
+@boost
+def compute_watu_coriolis_forcing_component(
+    sigma: float,
+    mask: A2d,
+    coef_forcing_time: float,
+    target: A3d,
+    velocity: A3d,
+    out: A3d,
+):
+    out[:] = sigma * mask * (coef_forcing_time * target - velocity)
+    return out
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):

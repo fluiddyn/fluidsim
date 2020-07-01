@@ -100,6 +100,8 @@ def transonize():
         "fluidsim/operators/operators2d.py",
         "fluidsim/operators/operators3d.py",
         "fluidsim/solvers/ns2d/solver.py",
+        "fluidsim/solvers/ns3d/strat/solver.py",
+        "fluidsim/solvers/ns3d/forcing.py",
     ]
     make_backend_files([here / path for path in paths])
 

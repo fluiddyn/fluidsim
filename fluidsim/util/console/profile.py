@@ -338,7 +338,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
 
     """
     stats = pstats.Stats(str(path))
-    stats.sort_stats("time").print_stats(12)
+    stats.sort_stats("time").print_stats(20)
 
     if nb_dim not in (2, 3):
         raise NotImplementedError

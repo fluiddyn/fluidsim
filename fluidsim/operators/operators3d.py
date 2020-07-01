@@ -85,6 +85,23 @@ def compute_energy_from_1field(arr: Ac):
     return 0.5 * np.abs(arr) ** 2
 
 
+@boost
+def compute_energy_from_1field_with_coef(arr: Ac, coef: float):
+    return 0.5 * coef * np.abs(arr) ** 2
+
+
+@boost
+def compute_energy_from_2fields(vx: Ac, vy: Ac):
+    return 0.5 * (np.abs(vx) ** 2 + np.abs(vy) ** 2)
+
+
+@boost
+def compute_energy_from_3fields(
+    vx: Ac, vy: Ac, vz: Ac,
+):
+    return 0.5 * (np.abs(vx) ** 2 + np.abs(vy) ** 2 + np.abs(vz) ** 2)
+
+
 if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
     # for example if Pythran is not available
     dealiasing_variable = dealiasing_variable_numpy

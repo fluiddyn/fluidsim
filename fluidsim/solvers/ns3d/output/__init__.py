@@ -14,8 +14,6 @@
 
 """
 
-import numpy as np
-
 from fluidsim.base.output import OutputBasePseudoSpectral
 from fluidsim.operators.operators3d import compute_energy_from_1field
 
