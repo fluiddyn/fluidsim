@@ -134,6 +134,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         amplitude = sim.params.forcing.watu_coriolis.amplitude
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly
+        lz = sim.params.oper.Lz
         dx = lx / sim.params.oper.nx
 
         # calculus of the target velocity components
@@ -158,7 +159,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
             * step_func(-(X - (lx - amplitude_side)))
         )
 
-        z_variation = np.sin(2 * np.pi * Z)
+        z_variation = np.sin(2 * np.pi * Z / lz)
         self.vxtarget = z_variation
         self.vytarget = z_variation
 
