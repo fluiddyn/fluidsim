@@ -381,8 +381,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         Notes
         -----
 
-        WIP: only for 1D!
-
         We consider an equation of the form
 
         .. math:: \p_t S = \sigma S + N(S),
@@ -429,8 +427,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         Notes
         -----
-
-        WIP: only for 1D!
 
         We consider an equation of the form
 
@@ -662,11 +658,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         - Approximation 1:
 
-          .. math:: \p_t \log S = \sigma + \frac{N_{0\alpha}}{S_0},
+          .. math:: \p_t \log S = \sigma + \frac{\tilde N_{0\alpha}}{S_0},
 
           Integrating from :math:`t` to :math:`t+\dt`, it gives:
 
-          .. math:: S_1 = (S_0 + N_{0\alpha} \dt) e^{\sigma \dt}.
+          .. math:: S_1 = (S_0 + \tilde N_{0\alpha} \dt) e^{\sigma \dt}.
 
         - Approximation 2:
 
