@@ -331,7 +331,9 @@ def plot_pie(
 _kinds = ("fft_as", "pythran", ".pyx", ".py", "built-in", "numpy")
 
 
-def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
+def analyze_stats(
+    path, nb_dim=2, plot=False, threshold_long_function=0.01, verbose=True
+):
     """Print analysis of profiling result of a 2D solver.
 
     Parameters
@@ -341,7 +343,8 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
 
     """
     stats = pstats.Stats(str(path))
-    stats.sort_stats("time").print_stats(20)
+    if verbose:
+        stats.sort_stats("time").print_stats(20)
 
     if nb_dim not in (2, 3):
         raise NotImplementedError
@@ -404,6 +407,13 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
                         time=time, percentage=100 * time / total_time, kind=k
                     )
 
+    if plot:
+        plot_pie(times, long_functions)
+        plt.show()
+
+    if not verbose:
+        return times, long_functions
+
     print(
         "\nlong_functions (more than {} % of total time):".format(
             100 * threshold_long_function
@@ -426,14 +436,14 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
         t = times[k]
         if t > 0:
             print(
-                "time {:10s}: {:5.03f} % ({:4.02f} s)".format(
+                "time {:10s}: {:7.03f} % ({:4.02f} s)".format(
                     k, t / total_time * 100, t
                 )
             )
 
     print(
-        "-" * 24
-        + "\n{:15s}  {:5.02f} %".format(
+        "-" * 26
+        + "\n{:15s}  {:7.03f} %".format(
             "", sum([t for t in times.values()]) / total_time * 100
         )
     )
@@ -442,11 +452,7 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
     time_in_not_py = sum([t for t in times.values()])
     print(
         "In not Python functions:\n{:15s}".format("")
-        + "  {:5.02f} %".format(time_in_not_py / total_time * 100)
+        + "  {:7.03f} %".format(time_in_not_py / total_time * 100)
     )
-
-    if plot:
-        plot_pie(times, long_functions)
-        plt.show()
 
     return times, long_functions
