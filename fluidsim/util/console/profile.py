@@ -243,8 +243,11 @@ def _compute_shorter_name(key, kind):
             return words[1][1:-1]
 
     if kind == "pythran" in key:
-        key = key.split("_pythran.")[-1].rstrip(">")
-        return key + " (pythran)"
+        if "_pythran." in key:
+            key = key.split("_pythran.")[-1].rstrip(">") + " (pythran)"
+        else:
+            key = key.split("<built-in method ")[-1].rstrip(">")
+        return key
 
     if "fluidsim.solvers." in key:
         return key.split("fluidsim.solvers.")[-1][:-1]
@@ -325,7 +328,7 @@ def plot_pie(
     return pie
 
 
-_kinds = ("fft_as", "pythran", ".pyx", ".py")
+_kinds = ("fft_as", "pythran", ".pyx", ".py", "built-in", "numpy")
 
 
 def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
@@ -385,13 +388,14 @@ def analyze_stats(path, nb_dim=2, plot=False, threshold_long_function=0.01):
                         ):
                             time += vcaller[2]
 
-                if k == "fft_as":
-                    if ".pyx" in key[0]:
-                        continue
+                if k == "fft_as" and ".pyx" in key[0]:
+                    continue
 
-                if k == ".py":
-                    if "fft_as_arg" in name:
-                        continue
+                if k == ".py" and "fft_as_arg" in name:
+                    continue
+
+                if k == "built-in" and "pythran" in name:
+                    continue
 
                 times[k] += time
 
