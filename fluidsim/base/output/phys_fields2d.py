@@ -226,7 +226,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         clim = self._clim
         if clim is not None:
             self._im.set_clim(*clim)
-            self._ani_cbar.set_clim(*clim)
             ticks = np.linspace(*clim, num=21, endpoint=True)
             self._ani_cbar.set_ticks(ticks)
 
