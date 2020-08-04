@@ -738,7 +738,13 @@ class SpatioTempSpectra(SpecificOutput):
             omegas_grid = omegas_grid - (omegas[1] / 2)
 
             cf = ax.pcolormesh(
-                kxs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
+                kxs_grid,
+                omegas_grid,
+                data,
+                shading="nearest",
+                cmap=cm.viridis,
+                vmin=vmin,
+                vmax=vmax,
             )
         else:
             print(f"Function plot not known.")
@@ -916,7 +922,13 @@ class SpatioTempSpectra(SpecificOutput):
             kzs_grid = kzs_grid - (sim.oper.deltaky / 2)
             omegas_grid = omegas_grid - (omegas[1] / 2)
             cf = ax.pcolormesh(
-                kzs_grid, omegas_grid, data, cmap=cm.viridis, vmin=vmin, vmax=vmax
+                kzs_grid,
+                omegas_grid,
+                data,
+                shading="nearest",
+                cmap=cm.viridis,
+                vmin=vmin,
+                vmax=vmax,
             )
         else:
             print(f"Function plot not known.")

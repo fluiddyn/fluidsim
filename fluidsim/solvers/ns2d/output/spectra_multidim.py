@@ -47,6 +47,7 @@ class SpectraMultiDimNS2D(SpectraMultiDim):
             KX,
             KY,
             spectrumkykx_E,
+            shading="nearest",
             vmin=spectrumkykx_E.min(),
             vmax=spectrumkykx_E.max(),
         )

@@ -244,7 +244,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ax.set_ylabel("$k_z$")
         ax.set_title("log10 spectra\n" + self.output.summary_simul)
 
-        qmesh = ax.pcolormesh(kh, kz, spectrum, vmin=vmin, vmax=vmax)
+        qmesh = ax.pcolormesh(
+            kh, kz, spectrum, shading="nearest", vmin=vmin, vmax=vmax
+        )
         fig.colorbar(qmesh)
 
     def plot1d(

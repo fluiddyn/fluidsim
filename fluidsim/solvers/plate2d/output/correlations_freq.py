@@ -378,14 +378,14 @@ class CorrelationsFreq(SpecificOutput):
         self.ax = ax
         ax.set_xlabel("Omega")
         ax.set_ylabel("Omega")
-        pc = ax.pcolormesh(fx, fy, abs(corr[0, :, :]))
+        pc = ax.pcolormesh(fx, fy, abs(corr[0, :, :]), shading="nearest")
         fig.colorbar(pc)
 
         fig1, ax1 = self.output.figure_axe(numfig=2334)
         self.ax1 = ax1
         ax1.set_xlabel("Omega")
         ax1.set_ylabel("Omega")
-        pc1 = ax1.pcolormesh(fx, fy, corr[1, :, :])
+        pc1 = ax1.pcolormesh(fx, fy, corr[1, :, :], shading="nearest")
         fig1.colorbar(pc1)
 
     def compute_corr4_norm(self, it=-1):
@@ -616,7 +616,12 @@ class CorrelationsFreq(SpecificOutput):
         plt.xlabel("Omega")
         plt.ylabel("Omega")
         plt.pcolormesh(
-            fx, fy, log10corr2, vmin=log10corr2.min(), vmax=log10corr2.max()
+            fx,
+            fy,
+            log10corr2,
+            shading="nearest",
+            vmin=log10corr2.min(),
+            vmax=log10corr2.max(),
         )
         plt.colorbar()
         plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
@@ -664,6 +669,7 @@ class CorrelationsFreq(SpecificOutput):
                 fx,
                 fy,
                 np.log10(abs(corr_norm[i1, :, :])),
+                shading="nearest",
                 vmin=np.log10(abs(corr_norm.min())),
                 vmax=np.log10(abs(corr_norm.max())),
             )
@@ -680,6 +686,7 @@ class CorrelationsFreq(SpecificOutput):
                 fx,
                 fy,
                 np.log10(abs(cum_norm[i1, :, :])),
+                shading="nearest",
                 vmin=np.log10(abs(cum_norm.min())),
                 vmax=np.log10(abs(cum_norm.max())),
             )
@@ -696,6 +703,7 @@ class CorrelationsFreq(SpecificOutput):
                 fx,
                 fy,
                 np.log10(abs(norm[i1, :, :])),
+                shading="nearest",
                 vmin=np.log10(abs(norm.min())),
                 vmax=np.log10(abs(norm.max())),
             )

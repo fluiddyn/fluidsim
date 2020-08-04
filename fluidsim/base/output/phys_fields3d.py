@@ -223,7 +223,13 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                 fig.contours = contours
             elif type_plot == "pcolor":
                 pc = ax.pcolormesh(
-                    x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap
+                    x_seq,
+                    y_seq,
+                    field,
+                    shading="nearest",
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=cmap,
                 )
                 fig.colorbar(pc)
         else:

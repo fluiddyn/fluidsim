@@ -268,7 +268,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         ax.set_ylabel("$k_z$")
         ax.set_title(f"{key}\n{self.output.summary_simul}")
 
-        ax.pcolormesh(kh, kz, spectrum)
+        ax.pcolormesh(kh, kz, spectrum, shading="nearest")
 
     def compute_fluxes_mean(self, tmin=None, tmax=None):
 

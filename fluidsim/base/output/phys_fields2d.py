@@ -89,7 +89,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         XX, YY = np.meshgrid(x[::step], y[::step])
         field = field[::step, ::step]
 
-        self._im = self.ax.pcolormesh(XX, YY, field)
+        self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")
         self._ani_cbar = self.fig.colorbar(self._im)
 
         self._has_uxuy = self.sim.state.has_vars("ux", "uy")
@@ -454,7 +454,13 @@ class PhysFieldsBase2D(PhysFieldsBase):
                 fig.contours = contours
             elif type_plot in ["pcolor", "pcolormesh"]:
                 pc = ax.pcolormesh(
-                    x_seq, y_seq, field, vmin=vmin, vmax=vmax, cmap=cmap
+                    x_seq,
+                    y_seq,
+                    field,
+                    shading="nearest",
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=cmap,
                 )
                 fig.colorbar(pc)
             else:

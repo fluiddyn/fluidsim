@@ -175,7 +175,9 @@ class SpectraMultiDimNS2DStrat(SpectraMultiDim):
 
         print("vmax", vmax)
 
-        spectrum = ax.pcolormesh(KX, KZ, data_plot_modified, vmin=vmin, vmax=vmax)
+        spectrum = ax.pcolormesh(
+            KX, KZ, data_plot_modified, shading="nearest", vmin=vmin, vmax=vmax
+        )
 
         # Create a Rectangle patch
         deltak = max(self.sim.oper.deltakx, self.sim.oper.deltaky)
