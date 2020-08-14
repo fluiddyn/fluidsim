@@ -10,6 +10,7 @@ python:
 env:
   - TOXENV=py,codecov-travis
   - TOXENV=py-pythran,codecov-travis
+  - TOXENV=py-pythran-fft,codecov-travis
 
 addons:
   apt:

@@ -75,7 +75,27 @@ install_requires = [
 ]
 
 if FFTW3:
-    install_requires.extend(["pyfftw >= 0.10.4", "fluidfft >= 0.2.7"])
+    from textwrap import dedent
+    from warnings import warn
+
+    fft_extras_msg = dedent(
+        """
+        *********************************************************************
+
+        FFTW was detected, but pyfftw and fluidfft will not be auto-installed
+        (which was the case in previous fluidsim versions). To do so, instead
+        of:
+
+            pip install fluidsim
+
+        specify "extras":
+
+            pip install "fluidsim[fft]"
+
+        *********************************************************************
+    """
+    )
+    warn(fft_extras_msg)
 
 console_scripts = [
     "fluidsim = fluidsim.util.console.__main__:run",
