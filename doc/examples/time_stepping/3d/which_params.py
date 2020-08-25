@@ -3,6 +3,7 @@ import numpy as np
 try:
     from sympy import primefactors
 except ImportError:
+    print("ImportError: sympy")
     pass
 
 L = 1.0
