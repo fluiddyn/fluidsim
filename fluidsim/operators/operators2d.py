@@ -58,6 +58,7 @@ def compute_increments_dim1(var: Af, irx: int):
     """Compute the increments of var over the dim 1."""
     n1 = var.shape[1]
     n1new = n1 - irx
+    # bug for gast 0.4.0 (https://github.com/serge-sans-paille/gast/issues/48)
     inc_var = var[:, irx:n1] - var[:, 0:n1new]
     return inc_var
 
