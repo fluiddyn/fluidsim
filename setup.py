@@ -68,6 +68,8 @@ install_requires = [
     "h5py",
     "h5netcdf",
     "transonic>=0.4.3",
+    "gast~=0.3.3",
+    "beniget~=0.2.1",
     "setuptools_scm",
     "xarray",
 ]
