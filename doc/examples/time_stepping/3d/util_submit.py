@@ -8,7 +8,7 @@ cluster = Cluster()
 cluster.commands_setting_env = [
     "source /etc/profile",
     'export PATH="$HOME/miniconda3/bin:$PATH"'
-    "export FLUIDSIM_PATH=/fsnet/project/watu/2020/20MILESTONE",
+    "export FLUIDSIM_PATH=/fsnet/project/meige/2020/20PHASESHIFT",
 ]
 
 
