@@ -578,9 +578,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         self.__dict__[k]._close_file()
 
     def end_of_simul(self, total_time):
+        # self.path_run: str
+        path_run = Path(self.path_run)
         self.print_stdout(
             f"Computation completed in {total_time:8.6g} s\n"
-            "path_run =\n" + self.path_run
+            f"path_run =\n{path_run}"
         )
         if self._has_to_save:
             if hasattr(self.sim, "forcing"):
@@ -599,17 +601,17 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             new_path_run = path_base / self.sim.name_run
 
             try:
-                if new_path_run.parent.samefile(Path(self.path_run).parent):
+                if new_path_run.parent.samefile(path_run.parent):
                     return
             except OSError:
                 pass
 
-            if mpi.rank == 0:
+            if mpi.rank == 0 and path_run.exists():
                 if not path_base.exists():
                     os.makedirs(path_base)
 
                 shutil.move(self.path_run, path_base)
-                print("move result directory in directory:\n" + new_path_run)
+                print(f"move result directory in directory:\n{new_path_run}")
 
             self.path_run = str(new_path_run)
             for spec_output in list(self.__dict__.values()):
