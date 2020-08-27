@@ -4,17 +4,21 @@ import numpy as np
 
 import fluiddyn.util.mpi as mpi
 
-from fluidsim.solvers.plate2d.solver import Simul
 
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 
+@skip_if_no_fluidfft()
 class TestSimulBase(TestSimul):
-    Simul = Simul
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.plate2d.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls, Lh=2, nh=32):
-        cls.params = params = Simul.create_default_params()
+        cls.params = params = cls.Simul.create_default_params()
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
         cls.nh = nh

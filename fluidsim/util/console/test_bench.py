@@ -7,7 +7,7 @@ from shutil import rmtree
 import sys
 
 from fluiddyn.util import mpi
-from fluidsim.util.testing import TestCase
+from fluidsim.util.testing import TestCase, skip_if_no_fluidfft
 
 from fluidsim.util.console.__main__ import run_bench, run_bench_analysis
 
@@ -15,6 +15,7 @@ from fluidsim.util.console.__main__ import run_bench, run_bench_analysis
 path_tmp = "/tmp/fluidsim_test_bench"
 
 
+@skip_if_no_fluidfft()
 class TestBench(TestCase):
     """Test benchmarking."""
 

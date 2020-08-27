@@ -1,12 +1,22 @@
 import unittest
+
 import fluiddyn.util.mpi as mpi
-from fluidsim.util.testing import TestSimulConserveOutput
-from fluidsim.solvers.sw1l.exactlin.solver import Simul
+from fluidsim.util.testing import (
+    TestSimulConserveOutput,
+    classproperty,
+    skip_if_no_fluidfft,
+)
 
 
+@skip_if_no_fluidfft()
 class TestSimulSW1LExactlin(TestSimulConserveOutput):
-    Simul = Simul
     zero = 1e-3
+
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.sw1l.exactlin.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):

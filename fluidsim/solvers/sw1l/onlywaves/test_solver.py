@@ -2,13 +2,22 @@ import unittest
 from numpy.testing import assert_array_almost_equal
 import matplotlib.pyplot as plt
 import fluiddyn.util.mpi as mpi
-from fluidsim.util.testing import TestSimulConserve
-from fluidsim.solvers.sw1l.onlywaves.solver import Simul
+from fluidsim.util.testing import (
+    TestSimulConserve,
+    skip_if_no_fluidfft,
+    classproperty,
+)
 
 
+@skip_if_no_fluidfft()
 class TestSimulSW1LWaves(TestSimulConserve):
-    Simul = Simul
     zero = 1e-6
+
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.sw1l.onlywaves.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):

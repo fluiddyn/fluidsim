@@ -10,7 +10,6 @@ import fluiddyn.util.mpi as mpi
 # to get fld.show
 import fluiddyn.output
 
-from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 from fluidsim import (
     modif_resolution_from_dir,
     load_params_simul,
@@ -21,12 +20,16 @@ from fluidsim.util import times_start_end_from_path
 
 from fluidsim.base.params import load_info_solver
 
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, classproperty, skip_if_no_fluidfft
 
 
+@skip_if_no_fluidfft()
 class TestBaseSolverPS(TestSimul):
+    @classproperty
+    def Simul(cls):
+        from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 
-    Simul = SimulBasePseudoSpectral
+        return SimulBasePseudoSpectral
 
     @classmethod
     def setUpClass(cls):

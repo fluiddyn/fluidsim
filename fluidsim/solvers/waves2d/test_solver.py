@@ -1,10 +1,14 @@
-from fluidsim.util.testing import TestSimul
-from fluidsim.solvers.waves2d.solver import Simul
+from fluiddyn.util.compat import cached_property
+from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 
+@skip_if_no_fluidfft()
 class TestSimulBase(TestSimul):
+    @classproperty
+    def Simul(cls):
+        from .solver import Simul
 
-    Simul = Simul
+        return Simul
 
     @classmethod
     def init_params(cls):
@@ -31,7 +35,7 @@ class TestSimulBase(TestSimul):
 
 class TestOutput(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
 
         params.init_fields.type = "noise"

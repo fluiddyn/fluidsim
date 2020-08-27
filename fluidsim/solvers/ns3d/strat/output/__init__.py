@@ -14,12 +14,18 @@
 
 """
 
-from fluidsim.operators.operators3d import (
-    compute_energy_from_1field,
-    compute_energy_from_1field_with_coef,
-    compute_energy_from_2fields,
-    compute_energy_from_3fields,
-)
+try:
+    from fluidsim.operators.operators3d import (
+        compute_energy_from_1field,
+        compute_energy_from_1field_with_coef,
+        compute_energy_from_2fields,
+        compute_energy_from_3fields,
+    )
+except ImportError:
+    from fluidsim import _is_testing
+
+    if not _is_testing:
+        raise
 
 from ...output import Output as OutputNS3D
 

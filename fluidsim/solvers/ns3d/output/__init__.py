@@ -15,7 +15,14 @@
 """
 
 from fluidsim.base.output import OutputBasePseudoSpectral
-from fluidsim.operators.operators3d import compute_energy_from_1field
+
+try:
+    from fluidsim.operators.operators3d import compute_energy_from_1field
+except ImportError:
+    from fluidsim import _is_testing
+
+    if not _is_testing:
+        raise
 
 
 class Output(OutputBasePseudoSpectral):

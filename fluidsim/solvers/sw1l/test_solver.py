@@ -1,14 +1,25 @@
 import unittest
-from numpy.testing import assert_array_almost_equal
+
 import matplotlib.pyplot as plt
+from numpy.testing import assert_array_almost_equal
+
 import fluiddyn.util.mpi as mpi
-from fluidsim.util.testing import TestSimulConserveOutput
-from fluidsim.solvers.sw1l.solver import Simul
+from fluidsim.util.testing import (
+    TestSimulConserveOutput,
+    classproperty,
+    skip_if_no_fluidfft,
+)
 
 
+@skip_if_no_fluidfft()
 class TestSimulSW1L(TestSimulConserveOutput):
-    Simul = Simul
     zero = 1e-5
+
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.sw1l.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):

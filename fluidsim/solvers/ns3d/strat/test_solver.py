@@ -7,13 +7,15 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from ..test_solver import TestSimulBase as _Base
-
-from .solver import Simul
+from ..test_solver import TestSimulBase as _Base, classproperty
 
 
 class TestSimulBase(_Base):
-    Simul = Simul
+    @classproperty
+    def Simul(cls):
+        from .solver import Simul
+
+        return Simul
 
 
 class TestTendency(TestSimulBase):

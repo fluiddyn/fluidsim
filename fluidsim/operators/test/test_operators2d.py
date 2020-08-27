@@ -5,17 +5,11 @@ from copy import deepcopy
 
 import fluiddyn.util.mpi as mpi
 
-from fluidsim.util.testing import TestCase
-
-try:
-    from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
-except ValueError:
-    NO_PYTHRAN = True
-else:
-    NO_PYTHRAN = False
+from fluidsim.util.testing import TestCase, skip_if_no_fluidfft
 
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
+    from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
 
     params = OperatorsPseudoSpectral2D._create_default_params()
 
@@ -60,9 +54,7 @@ def compute_increments_dim1_old(var, irx):
     return inc_var
 
 
-@unittest.skipIf(
-    NO_PYTHRAN, "Pythran extension fluidsim.operators.util2d_pythran unavailable"
-)
+@skip_if_no_fluidfft()
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(TestCase):
     @classmethod
@@ -119,6 +111,7 @@ class TestOperators(TestCase):
             assert_increments_equal(irx)
 
 
+@skip_if_no_fluidfft()
 class TestOperatorOnlyCoarse(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -139,6 +132,7 @@ class TestOperatorOnlyCoarse(TestCase):
         self.assertNotEqual(oper.ny, self.nh)
 
 
+@skip_if_no_fluidfft()
 class TestOperatorsDealiasing(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -157,9 +151,15 @@ class TestOperatorsDealiasing(TestCase):
         self.assertEqual(sum_var, sum_var_dealiased)
 
 
+@skip_if_no_fluidfft()
 class TestCoarse(unittest.TestCase):
-    Oper = OperatorsPseudoSpectral2D
     nb_dim = 2
+
+    @property
+    def Oper(self):
+        from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+
+        return OperatorsPseudoSpectral2D
 
     def test_coarse(self):
 
@@ -190,6 +190,7 @@ class TestCoarse(unittest.TestCase):
             field_coarse_fft = oper_coarse.fft(field_coarse)
 
             if self.nb_dim == 2:
+
                 nkyc, nkxc = oper_coarse_shapeK_loc
                 # zeros because of conditions in put_coarse_array_in_array_fft
                 field_coarse_fft[nkyc // 2, :] = 0

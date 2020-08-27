@@ -1,8 +1,6 @@
 import unittest
 
 from fluidsim.base.params import merge_params
-from fluidsim.base.solvers.base import SimulBase
-from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral as Simul
 
 from fluidsim.util.testing import TestCase
 
@@ -12,6 +10,9 @@ class TestParameters(TestCase):
 
     def test_merge(self):
         """Test merging parameters."""
+        from fluidsim.base.solvers.base import SimulBase
+        from fluidsim.solvers.ad1d.solver import Simul
+
         params1 = SimulBase.create_default_params()
         params2 = Simul.create_default_params()
         merge_params(params1, params2)

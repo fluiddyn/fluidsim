@@ -15,15 +15,19 @@ from fluidsim import (
     load_state_phys_file,
     load_for_restart,
 )
-from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim.base.output import run
 
 
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 
+@skip_if_no_fluidfft()
 class TestSimulBase(TestSimul):
-    Simul = Simul
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.ns3d.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):

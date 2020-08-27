@@ -8,20 +8,57 @@ this module to run FluidSim unittests, without going into the source directory
 for eg. when it is installed through `pip`.
 
 """
-import os
-import sys
-import inspect
-import unittest
 import argparse
-import time
-from warnings import warn
+import inspect
+import os
 import shutil
+import sys
+import time
+import unittest
+from functools import lru_cache
 from importlib import import_module
+from warnings import warn
 
 import numpy as np
+
 from fluiddyn.io import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.compat import cached_property
+
+
+@lru_cache()
+def skip_if_no_fluidfft():
+    try:
+        import fluidfft
+    except ImportError:
+        FLUIDFFT_INSTALLED = False
+    else:
+        FLUIDFFT_INSTALLED = True
+    return unittest.skipUnless(FLUIDFFT_INSTALLED, "FluidFFT is not installed")
+
+
+class classproperty:
+    """A combination of property and classmethod. Decorator that converts a
+    method with a single cls argument into a property that can be accessed
+    directly from the class.
+
+    Borrowed from django.utils.functional
+
+    License: BSD-3
+    Copyright (c) Django Software Foundation and individual contributors.
+    All rights reserved.
+
+    """
+
+    def __init__(self, method=None):
+        self.fget = method
+
+    def __get__(self, instance, cls=None):
+        return self.fget(cls)
+
+    def getter(self, method):
+        self.fget = method
+        return self
 
 
 class TestCase(unittest.TestCase):

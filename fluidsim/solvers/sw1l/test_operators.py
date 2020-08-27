@@ -5,9 +5,7 @@ import sys
 import fluiddyn.util.mpi as mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidsim.util.testing import TestCase, stdout_redirected
-
-from fluidsim.solvers.sw1l.operators import OperatorsPseudoSpectralSW1L
+from fluidsim.util.testing import TestCase, stdout_redirected, skip_if_no_fluidfft
 
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
@@ -18,6 +16,8 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
     params._set_attrib("f", 0)
     params._set_attrib("c2", 100)
     params._set_attrib("kd2", 0)
+
+    from fluidsim.solvers.sw1l.operators import OperatorsPseudoSpectralSW1L
 
     OperatorsPseudoSpectralSW1L._complete_params_with_default(params)
 
@@ -42,6 +42,7 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
     return oper
 
 
+@skip_if_no_fluidfft()
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(TestCase):
     @classmethod

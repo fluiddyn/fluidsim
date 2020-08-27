@@ -1,12 +1,22 @@
 import unittest
+
 import fluiddyn.util.mpi as mpi
-from fluidsim.util.testing import TestSimulConserveOutput
-from fluidsim.solvers.sw1l.modified.solver import Simul
+from fluidsim.util.testing import (
+    TestSimulConserveOutput,
+    classproperty,
+    skip_if_no_fluidfft,
+)
 
 
+@skip_if_no_fluidfft()
 class TestSimulSW1LModified(TestSimulConserveOutput):
-    Simul = Simul
     zero = 1e-8
+
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.sw1l.modified.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):
@@ -35,7 +45,7 @@ class TestSimulSW1LModified(TestSimulConserveOutput):
         """Test spect_energy_budg loading and plotting.
 
         .. TODO::
-        
+
            Errors
 
            * if periods_save = 0.25.

@@ -7,12 +7,16 @@ import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
 
-from fluidsim.solvers.ns2d.solver import Simul
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, classproperty, skip_if_no_fluidfft
 
 
+@skip_if_no_fluidfft()
 class TestSimulBase(TestSimul):
-    Simul = Simul
+    @classproperty
+    def Simul(cls):
+        from fluidsim.solvers.ns2d.solver import Simul
+
+        return Simul
 
     @classmethod
     def init_params(cls):
