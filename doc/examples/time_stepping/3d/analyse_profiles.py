@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from which_params import deltak
+
 
 def get_params(path):
     name = path.name
@@ -39,7 +41,7 @@ def get_dataframe(path_dir):
         values.append(get_values(path))
 
     df_full = pd.DataFrame(values, columns=columns)
-    df_full["nx2/3"] = df_full.nx * df_full.coef_dealiased / (2 / 3)
+    df_full["nx2/3"] = df_full.coef_dealiased * deltak * df_full.nx / 2
 
     nx23s = df_full["nx2/3"].unique()
 
@@ -47,7 +49,7 @@ def get_dataframe(path_dir):
     for nx23 in nx23s:
         df = df_full[df_full["nx2/3"] == nx23].copy()
         try:
-            norm = df[df.scheme == "RK4"].duration.values[0]
+            norm = df[df.scheme == "RK4"].duration.values.mean()
         except IndexError:
             # No data for RK4
             continue
@@ -61,7 +63,8 @@ df = get_dataframe(
 )
 
 print(df)
-schemes = sorted(df.scheme.unique())
+# schemes = sorted(df.scheme.unique())
+schemes = ["RK4", "RK2", "RK2_phaseshift_exact", "RK2_phaseshift_random"]
 
 fig, ax = plt.subplots()
 
@@ -78,10 +81,20 @@ for scheme in schemes:
         else:
             str_coef = str(coef)
         ax.plot(
-            df_tmp["nx2/3"], df_tmp.speedup, "x", label=f"{scheme}, {str_coef}"
+            df_tmp["nx2/3"],
+            df_tmp.speedup,
+            "x",
+            label=f"{scheme}, $C_t = {str_coef}$",
         )
 
 ax.set_xscale("log")
-fig.legend()
+legend = fig.legend(prop={"size": 8}, bbox_to_anchor=(0.2, 0.6), loc="lower left")
+
+ax.set_ylabel("speedup compared to RK4")
+ax.set_xlabel(r"$k_{\max}$")
+
+fig.tight_layout()
+
+# legend.set_bbox_to_anchor((0.3, 0.7))
 
 plt.show()
