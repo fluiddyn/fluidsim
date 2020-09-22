@@ -23,8 +23,7 @@ class InfoSolverSphereNS2D(InfoSolverSphericalHarmo):
     """Contain the information on a base pseudo-spectral solver."""
 
     def _init_root(self):
-        """Init. `self` by writting the information on the solver.
-        """
+        """Init. `self` by writting the information on the solver."""
 
         super()._init_root()
 

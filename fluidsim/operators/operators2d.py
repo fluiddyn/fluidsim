@@ -93,8 +93,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         attribs = {
             "type_fft": "default",
             "coef_dealiasing": 2.0 / 3,

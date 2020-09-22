@@ -15,8 +15,7 @@ from .op_finitediff1d import OperatorFiniteDiff1DPeriodic
 class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
 
         attribs = {"nx": 48, "ny": 48, "Lx": 8, "Ly": 8}
         params._set_child("oper", attribs=attribs)

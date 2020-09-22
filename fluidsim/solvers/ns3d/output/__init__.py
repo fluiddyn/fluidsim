@@ -68,8 +68,7 @@ class Output(OutputBasePseudoSpectral):
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         OutputBasePseudoSpectral._complete_params_with_default(
             params, info_solver
         )

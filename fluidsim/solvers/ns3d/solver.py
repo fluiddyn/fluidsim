@@ -119,8 +119,7 @@ class Simul(SimulBasePseudoSpectral):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
         params._set_attrib("f", None)
         params._set_doc(

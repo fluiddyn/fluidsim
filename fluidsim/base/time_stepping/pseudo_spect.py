@@ -152,14 +152,11 @@ class ExactLinearCoefs:
 
 
 class TimeSteppingPseudoSpectral(TimeSteppingBase):
-    """Time stepping class for pseudo-spectral solvers.
-
-    """
+    """Time stepping class for pseudo-spectral solvers."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         TimeSteppingBase._complete_params_with_default(params)
         params.time_stepping.USE_CFL = True
 
@@ -907,7 +904,11 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             state_spect, dt / 6, tendencies_0, diss, output=self._state_spect_tmp
         )
         state_spect_12_approx1 = step_Euler(
-            state_spect, dt / 2, tendencies_0, diss2, output=state_spect_tmp1,
+            state_spect,
+            dt / 2,
+            tendencies_0,
+            diss2,
+            output=state_spect_tmp1,
         )
 
         tendencies_1 = compute_tendencies(

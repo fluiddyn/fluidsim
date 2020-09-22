@@ -16,14 +16,11 @@ from ..base.setofvariables import SetOfVariables
 
 
 class OperatorsPseudoSpectral1D(OperatorsBase1D):
-    """1D operators for pseudospectral solvers.
-
-    """
+    """1D operators for pseudospectral solvers."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         params = OperatorsBase1D._complete_params_with_default(params)
         params.oper._set_attribs(
             {"type_fft": "sequential", "coef_dealiasing": 2.0 / 3}

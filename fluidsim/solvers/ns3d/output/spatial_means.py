@@ -251,7 +251,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         def _plot(x, y, fmt, label=None, linewidth=1, zorder=10):
             ax.plot(
-                x, y, fmt, label=label, linewidth=linewidth, zorder=zorder,
+                x,
+                y,
+                fmt,
+                label=label,
+                linewidth=linewidth,
+                zorder=zorder,
             )
 
         _plot(t, epsK, "r", r"$\epsilon$", linewidth=2)
@@ -263,14 +268,20 @@ class SpatialMeansNS3D(SpatialMeansBase):
             epsK4 = dict_results["epsK4"]
             if not np.allclose(epsK, epsK4):
                 _plot(
-                    t, epsK4, "r:", r"$\epsilon_4$",
+                    t,
+                    epsK4,
+                    "r:",
+                    r"$\epsilon_4$",
                 )
 
         if "epsK8" in dict_results and plot_hyper:
             epsK8 = dict_results["epsK8"]
             if not np.allclose(epsK, epsK8):
                 _plot(
-                    t, epsK8, "r:", r"$\epsilon_8$",
+                    t,
+                    epsK8,
+                    "r:",
+                    r"$\epsilon_8$",
                 )
 
         if "PK_tot" in dict_results and plot_injection:

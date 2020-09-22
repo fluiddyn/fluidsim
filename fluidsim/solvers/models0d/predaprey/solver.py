@@ -58,9 +58,7 @@ class InfoSolverPredaPrey(InfoSolverBase):
 
 
 class Simul(SimulBase):
-    """Solve the Lotka-Volterra equations.
-
-    """
+    """Solve the Lotka-Volterra equations."""
 
     InfoSolver = InfoSolverPredaPrey
 

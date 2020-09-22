@@ -48,8 +48,7 @@ class ForcingBase:
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         params._set_child(
             "forcing",
             attribs={
@@ -189,8 +188,7 @@ class ForcingBasePseudoSpectral(ForcingBase):
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         ForcingBase._complete_params_with_default(params, info_solver)
 
         params.forcing._set_attribs({"nkmax_forcing": 5, "nkmin_forcing": 4})

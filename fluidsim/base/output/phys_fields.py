@@ -395,9 +395,7 @@ def time_from_path(path):
 
 
 class SetOfPhysFieldFiles:
-    """A set of physical field files.
-
-    """
+    """A set of physical field files."""
 
     def __init__(self, path_dir=os.curdir, output=None):
         self.output = output

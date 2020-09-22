@@ -97,7 +97,9 @@ def compute_energy_from_2fields(vx: Ac, vy: Ac):
 
 @boost
 def compute_energy_from_3fields(
-    vx: Ac, vy: Ac, vz: Ac,
+    vx: Ac,
+    vy: Ac,
+    vz: Ac,
 ):
     return 0.5 * (np.abs(vx) ** 2 + np.abs(vy) ** 2 + np.abs(vz) ** 2)
 
@@ -153,8 +155,7 @@ class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         attribs = {
             "type_fft": "default",
             "type_fft2d": "sequential",

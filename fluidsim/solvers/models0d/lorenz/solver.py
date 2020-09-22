@@ -61,9 +61,7 @@ class InfoSolverLorenz(InfoSolverBase):
 
 
 class Simul(SimulBase):
-    """Solve the Lorenz equations.
-
-    """
+    """Solve the Lorenz equations."""
 
     InfoSolver = InfoSolverLorenz
 

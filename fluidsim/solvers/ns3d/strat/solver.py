@@ -125,8 +125,7 @@ class Simul(SimulNS3D):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         SimulNS3D._complete_params_with_default(params)
         attribs = {"N": 1.0}
         params._set_attribs(attribs)

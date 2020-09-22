@@ -38,9 +38,7 @@ def monge_ampere_step1(
 
 
 class OperatorsPseudoSpectralPlate2D(OperatorsPseudoSpectral2D):
-    """Operators for the plate2d model.
-
-    """
+    """Operators for the plate2d model."""
 
     def __init__(self, params):
         super().__init__(params)

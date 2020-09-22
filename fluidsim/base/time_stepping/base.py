@@ -27,15 +27,11 @@ def max_abs(arr):
 
 
 class TimeSteppingBase0:
-    """Universal time stepping class used for all solvers.
-
-
-    """
+    """Universal time stepping class used for all solvers."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         attribs = {
             "USE_T_END": True,
             "t_end": 10.0,

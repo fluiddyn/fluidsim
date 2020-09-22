@@ -148,9 +148,7 @@ def compute_correl2(q_fftt, iomegas1, nb_omegas, nb_xs_seq):
 
 
 class CorrelationsFreq(SpecificOutput):
-    """Compute, save, load and plot correlations of frequencies.
-
-    """
+    """Compute, save, load and plot correlations of frequencies."""
 
     _tag = "correl_freq"
     _name_file = _tag + ".h5"

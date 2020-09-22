@@ -32,8 +32,7 @@ class Output(OutputBase):
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         OutputBase._complete_params_with_default(params, info_solver)
 
         params.output.phys_fields.field_to_plot = "s"

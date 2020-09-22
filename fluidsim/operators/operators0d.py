@@ -13,14 +13,11 @@ from fluiddyn.util import mpi
 
 
 class Operators0D:
-    """0D operators.
-
-    """
+    """0D operators."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         params._set_child("oper")
 
     def __init__(self, params=None, SEQUENTIAL=None):

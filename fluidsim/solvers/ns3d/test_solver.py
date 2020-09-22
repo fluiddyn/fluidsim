@@ -151,7 +151,10 @@ class TestOutput(TestSimulBase):
             sim2.output.spectra.load1d_mean()
             sim2.output.spectra.load3d_mean()
             sim2.output.spectra.plot1d(
-                coef_plot_k3=1.0, coef_plot_k53=1.0, xlim=(0.1, 1), ylim=(0.1, 1),
+                coef_plot_k3=1.0,
+                coef_plot_k53=1.0,
+                xlim=(0.1, 1),
+                ylim=(0.1, 1),
             )
             sim2.output.spectra.plot1d_times(
                 tmin=0.1,

@@ -36,8 +36,7 @@ class InfoSolverSphereSW1L(InfoSolverSphericalHarmo):
     """Contain the information on the ``sphere.sw1l`` solver."""
 
     def _init_root(self):
-        """Init. `self` by writting the information on the solver.
-        """
+        """Init. `self` by writting the information on the solver."""
 
         super()._init_root()
 
@@ -61,9 +60,7 @@ class SimulSphereSW1L(SimulSphericalHarmo):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """Complete the `params` container (static method).
-
-        """
+        """Complete the `params` container (static method)."""
         SimulSphericalHarmo._complete_params_with_default(params)
 
         attribs = {"c2": 20}

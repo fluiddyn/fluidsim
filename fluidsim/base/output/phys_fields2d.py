@@ -38,8 +38,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
     ):
-        """Initialize list of files and times, pcolor plot, quiver and colorbar.
-        """
+        """Initialize list of files and times, pcolor plot, quiver and colorbar."""
         self.phys_fields.set_of_phys_files.update_times()
         self.time_files = self.phys_fields.set_of_phys_files.times
 

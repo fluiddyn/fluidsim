@@ -58,9 +58,7 @@ class InfoSolverNS2DBouss(InfoSolverNS2D):
 
 
 class Simul(SimulNS2D):
-    """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
-
-    """
+    """Pseudo-spectral solver 2D incompressible Navier-Stokes equations."""
 
     InfoSolver = InfoSolverNS2DBouss
 
@@ -105,7 +103,7 @@ class Simul(SimulNS2D):
         N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla} \zeta +
         \mathbf{\nabla}\wedge b\mathbf{e_z} = - \mathbf{u}\cdot \mathbf{\nabla}
         \zeta + \p_x b` and :math:`\hat N(b) = - \mathbf{u}\cdot
-        \mathbf{\nabla} b`.  """
+        \mathbf{\nabla} b`."""
         oper = self.oper
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg

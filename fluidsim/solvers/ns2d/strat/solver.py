@@ -58,16 +58,13 @@ class InfoSolverNS2DStrat(InfoSolverNS2D):
 
 
 class Simul(SimulNS2D):
-    """Pseudo-spectral solver 2D incompressible Navier-Stokes equations.
-
-    """
+    """Pseudo-spectral solver 2D incompressible Navier-Stokes equations."""
 
     InfoSolver = InfoSolverNS2DStrat
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         SimulNS2D._complete_params_with_default(params)
         attribs = {"N": 1.0}
         params._set_attribs(attribs)
@@ -113,7 +110,7 @@ class Simul(SimulNS2D):
         :math:`N(\zeta) = - \mathbf{u}\cdot \mathbf{\nabla} \zeta +
         \mathbf{\nabla}\wedge b\mathbf{e_z} = - \mathbf{u}\cdot \mathbf{\nabla}
         \zeta + \p_x b` and :math:`N(b) = - \mathbf{u}\cdot \mathbf{\nabla} b +
-        N^2u_y`.  """
+        N^2u_y`."""
         oper = self.oper
         fft_as_arg = oper.fft_as_arg
         ifft_as_arg = oper.ifft_as_arg

@@ -62,8 +62,8 @@ class NormalModeBase:
         return self.bvec_fft
 
     def bvecfft_from_qapamfft(self, q_fft, ap_fft, am_fft):
-        r""" Compute normal mode vector :math:`\mathbf{B}`
-        with dimensions of velocity from diagonalized linear modes.  """
+        r"""Compute normal mode vector :math:`\mathbf{B}`
+        with dimensions of velocity from diagonalized linear modes."""
         c = self.params.c2 ** 0.5
         c2 = self.params.c2
         K = self.oper.K_not0
@@ -79,8 +79,8 @@ class NormalModeBase:
         return bvec_fft
 
     def bvecfft_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-        r""" Compute normal mode vector, :math:`\mathbf{B}`
-        with dimensions of velocity from primitive variables.  """
+        r"""Compute normal mode vector, :math:`\mathbf{B}`
+        with dimensions of velocity from primitive variables."""
         q_fft, ap_fft, am_fft = self.oper.qapamfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft
         )
@@ -131,21 +131,24 @@ class NormalModeDecomposition(NormalModeBase):
         K_not0 = oper.K_not0
         ck = c * K_not0
 
-        qmat = np.array(
-            [
+        qmat = (
+            np.array(
                 [
-                    -1j * 2.0 ** 0.5 * ck * KY,
-                    +1j * f * KY + KX * sigma,
-                    +1j * f * KY - KX * sigma,
-                ],
-                [
-                    +1j * 2.0 ** 0.5 * ck * KX,
-                    -1j * f * KX + KY * sigma,
-                    -1j * f * KX - KY * sigma,
-                ],
-                [2.0 ** 0.5 * f * K, c * K2, c * K2],
-            ]
-        ) / (2.0 ** 0.5 * sigma * K_not0)
+                    [
+                        -1j * 2.0 ** 0.5 * ck * KY,
+                        +1j * f * KY + KX * sigma,
+                        +1j * f * KY - KX * sigma,
+                    ],
+                    [
+                        +1j * 2.0 ** 0.5 * ck * KX,
+                        -1j * f * KX + KY * sigma,
+                        -1j * f * KX - KY * sigma,
+                    ],
+                    [2.0 ** 0.5 * f * K, c * K2, c * K2],
+                ]
+            )
+            / (2.0 ** 0.5 * sigma * K_not0)
+        )
 
         if mpi.rank == 0 or oper.is_sequential:
             qmat[:, :, 0, 0] = 0.0

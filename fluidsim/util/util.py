@@ -115,9 +115,7 @@ def import_module_solver_from_key(key=None, package=None):
 
 
 def get_dim_from_solver_key(key, package=None):
-    """Try to guess the dimension from the solver key (via the operator name).
-
-    """
+    """Try to guess the dimension from the solver key (via the operator name)."""
     cls = import_simul_class_from_key(key, package)
     info = cls.InfoSolver()
     class_name = info.classes.Operators.class_name
@@ -469,9 +467,7 @@ def modif_resolution_from_dir(
 
 
 def times_start_end_from_path(path):
-    """Return the start and end times from a result directory path.
-
-    """
+    """Return the start and end times from a result directory path."""
 
     path_file = path + "/stdout.txt"
     if not os.path.exists(path_file):

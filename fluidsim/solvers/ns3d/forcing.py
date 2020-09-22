@@ -185,7 +185,12 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         vx = sim.state.state_phys.get_var("vx")
         tmp = self._tmp_forcing
         fx = compute_watu_coriolis_forcing_component(
-            self.sigma, self.maskx, coef_forcing_time_x, self.vxtarget, vx, tmp,
+            self.sigma,
+            self.maskx,
+            coef_forcing_time_x,
+            self.vxtarget,
+            vx,
+            tmp,
         )
         fx_fft = sim.oper.fft(fx)
         if self.nb_wave_makers == 1:
@@ -193,7 +198,12 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         coef_forcing_time_y = float(self.interpolents[1](time))
         vy = sim.state.state_phys.get_var("vy")
         fy = compute_watu_coriolis_forcing_component(
-            self.sigma, self.masky, coef_forcing_time_y, self.vytarget, vy, tmp,
+            self.sigma,
+            self.masky,
+            coef_forcing_time_y,
+            self.vytarget,
+            vy,
+            tmp,
         )
         return {"vx_fft": fx_fft, "vy_fft": sim.oper.fft(fy)}
 

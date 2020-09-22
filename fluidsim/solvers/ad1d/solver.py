@@ -61,8 +61,7 @@ class Simul(SimulBase):
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         SimulBase._complete_params_with_default(params)
         attribs = {"U": 1.0}
         params._set_attribs(attribs)

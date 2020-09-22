@@ -11,9 +11,9 @@ from ._old_spatial_means import load_txt as _old_load_txt
 class SpatialMeansMSW1L(SpatialMeansJSON):
     """Handle the saving of spatial mean quantities.
 
-       Viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also
-       handles the computation of forcing and dissipation rates for
-       sw1l.modified solver
+    Viz. total energy, K.E., A.P.E. and Charney potential enstrophy. It also
+    handles the computation of forcing and dissipation rates for
+    sw1l.modified solver
 
     """
 

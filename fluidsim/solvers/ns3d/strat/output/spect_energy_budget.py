@@ -151,7 +151,11 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         def _plot(x, y, code, label, linewidth=None):
             ax.semilogx(
-                x, y / eps, code, label=label, linewidth=linewidth,
+                x,
+                y / eps,
+                code,
+                label=label,
+                linewidth=linewidth,
             )
 
         _plot(k_plot, flux_tot, "k", r"$\Pi/\epsilon$", linewidth=2)

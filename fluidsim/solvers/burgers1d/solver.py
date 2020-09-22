@@ -25,8 +25,7 @@ class StateBurgers1D(StatePseudoSpectral):
 
     @staticmethod
     def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
-        """
+        """Complete the ParamContainer info_solver."""
         info_solver.classes.State._set_attribs(
             {
                 "keys_state_spect": ["u_fft"],

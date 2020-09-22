@@ -30,8 +30,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         super(
             TimeCorrelatedRandomPseudoSpectral, cls
         )._complete_params_with_default(params)
@@ -47,8 +46,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
             raise NotImplementedError
 
     def _compute_cond_no_forcing(self):
-        """Computes condition no forcing of the anisotropic case.
-        """
+        """Computes condition no forcing of the anisotropic case."""
         angle = self.angle
 
         self.kxmin_forcing = np.sin(angle) * self.kmin_forcing

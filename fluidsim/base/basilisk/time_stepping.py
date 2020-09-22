@@ -17,14 +17,11 @@ import numpy as np
 
 
 class TimeSteppingBasilisk:
-    """Time stepping class to handle Basilisk's event loop and FluidSim output.
-
-    """
+    """Time stepping class to handle Basilisk's event loop and FluidSim output."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         attribs = {"USE_T_END": True, "t_end": 10.0, "it_end": 10, "deltat0": 0.5}
         params._set_child("time_stepping", attribs=attribs)
 

@@ -120,8 +120,7 @@ def plot_scaling(
         raise ConsoleError("Unknown plot type.")
 
     def group_df(df):
-        """Group and take median dataframe results with same number of processes.
-        """
+        """Group and take median dataframe results with same number of processes."""
         # for "scaling" (mpi)
         df = df[df.nb_proc > 1]
         exit_if_empty(df, input_params)

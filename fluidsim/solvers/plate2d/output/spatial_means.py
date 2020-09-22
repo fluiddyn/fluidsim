@@ -52,8 +52,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
     .. math::
 
        D_w = 2 \nu_\alpha \sum_{\mathbf{k}} k^{2\alpha} E_w(k).
-
-"""
+    """
 
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t

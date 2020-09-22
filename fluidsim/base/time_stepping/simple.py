@@ -53,9 +53,7 @@ class ExactLinearCoefs:
 
 
 class TimeSteppingSimple(TimeSteppingBase):
-    """Time stepping class for pseudo-spectral solvers.
-
-    """
+    """Time stepping class for pseudo-spectral solvers."""
 
     def __init__(self, sim):
         super().__init__(sim)

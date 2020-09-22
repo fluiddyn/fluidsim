@@ -468,8 +468,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         super()._complete_params_with_default(params)
         try:
             params.forcing.normalized
@@ -790,8 +789,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         super()._complete_params_with_default(params)
 
         try:
@@ -835,8 +833,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         super()._complete_params_with_default(params)
 
         try:
@@ -882,9 +879,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         return f_fft
 
     def forcingc_from_f0f1(self):
-        """Return a coarse forcing as a linear combination of 2 random arrays
-
-        """
+        """Return a coarse forcing as a linear combination of 2 random arrays"""
         tsim = self.sim.time_stepping.t
         deltat = self.period_change_f0f1
         omega = np.pi / deltat

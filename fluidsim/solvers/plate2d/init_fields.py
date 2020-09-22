@@ -84,7 +84,8 @@ class InitFieldsHarmonic(SpecificInitFields):
         super(cls, cls)._complete_params_with_default(params)
 
         params.init_fields._set_child(
-            cls.tag, attribs={"i0": 20, "i1": 25},
+            cls.tag,
+            attribs={"i0": 20, "i1": 25},
         )
 
     def __call__(self):

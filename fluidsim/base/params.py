@@ -223,9 +223,7 @@ def load_params_simul(path=None, only_mpi_rank0=True):
 
 
 def load_info_solver(path_dir=None):
-    """Load the solver information, return an InfoSolverBase instance.
-
-    """
+    """Load the solver information, return an InfoSolverBase instance."""
     if path_dir is None:
         path_dir = os.getcwd()
 
