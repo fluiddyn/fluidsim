@@ -50,7 +50,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-np", "--n_periods", type=int, default=5, help="Number of periods",
+    "-np",
+    "--n_periods",
+    type=int,
+    default=5,
+    help="Number of periods",
 )
 
 parser.add_argument(

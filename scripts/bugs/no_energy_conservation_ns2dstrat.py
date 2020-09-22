@@ -36,7 +36,7 @@ params = Simul.create_default_params()
 params.oper.nx = nx = 64
 params.oper.ny = ny = nx
 
-params.oper.Lx = 10.
+params.oper.Lx = 10.0
 params.oper.Ly = params.oper.Lx * (ny / nx)
 # params.oper.coef_dealiasing = 0.5
 
@@ -50,17 +50,17 @@ params.nu_8 = 1e-8
 # params.nu_8 = 1e-14
 
 # params.N = 3.
-params.init_fields.type = 'noise'
+params.init_fields.type = "noise"
 params.init_fields.noise.length = 1
 params.init_fields.noise.velo_max = 1e-4
 
 params.forcing.enable = True
 # params.forcing.type = 'tcrandom_anisotropic'
-params.forcing.type = 'tcrandom'
+params.forcing.type = "tcrandom"
 
 params.forcing.nkmax_forcing = 10
 params.forcing.nkmin_forcing = 4
-params.forcing.tcrandom.time_correlation = 1.
+params.forcing.tcrandom.time_correlation = 1.0
 # params.forcing.key_forced = 'ap_fft'
 # params.forcing.normalized.which_root = 'minabs'
 

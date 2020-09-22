@@ -28,7 +28,7 @@ shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
 black:
-	black -l 82 fluidsim
+	black -l 82 fluidsim scripts bench doc
 
 tests:
 	fluidsim-test -v

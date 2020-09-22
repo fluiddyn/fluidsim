@@ -28,7 +28,7 @@ plt = None
 
 
 def initialize(solver, context):
-    if 'NS' in config.params.solver:
+    if "NS" in config.params.solver:
         initialize1(solver, context)
     else:
         initialize2(solver, context)
@@ -59,9 +59,11 @@ def initialize2(solver, context):
 
 def energy_fourier(comm, a):
     # N = config.params.N
-    result = 2 * sum(abs(a[..., 1:-1])**2) \
-             + sum(abs(a[..., 0])**2) \
-             + sum(abs(a[..., -1])**2)
+    result = (
+        2 * sum(abs(a[..., 1:-1]) ** 2)
+        + sum(abs(a[..., 0]) ** 2)
+        + sum(abs(a[..., -1]) ** 2)
+    )
     result = comm.allreduce(result)
     return result
 
@@ -78,40 +80,51 @@ def update(context):
     params = config.params
     solver = config.solver
 
-    if (params.tstep % params.compute_energy == 0 or
-            params.tstep % params.plot_step == 0 and params.plot_step > 0):
+    if (
+        params.tstep % params.compute_energy == 0
+        or params.tstep % params.plot_step == 0
+        and params.plot_step > 0
+    ):
         U = solver.get_velocity(**c)
         curl = solver.get_curl(**c)
         # if params.solver == 'NS':
         #     P = solver.get_pressure(**c)
 
     if plt is not None:
-        if params.tstep % params.plot_step == 0 and solver.rank == 0 and params.plot_step > 0:
+        if (
+            params.tstep % params.plot_step == 0
+            and solver.rank == 0
+            and params.plot_step > 0
+        ):
             if im1 is None:
                 plt.figure()
-                im1 = plt.contourf(c.X[1][:, :, 0], c.X[0]
-                                   [:, :, 0], U[0, :, :, 10], 100)
+                im1 = plt.contourf(
+                    c.X[1][:, :, 0], c.X[0][:, :, 0], U[0, :, :, 10], 100
+                )
                 plt.colorbar(im1)
                 plt.draw()
                 globals().update(im1=im1)
             else:
                 im1.ax.clear()
-                im1.ax.contourf(c.X[1][:, :, 0], c.X[0]
-                                [:, :, 0], U[0, :, :, 10], 100)
+                im1.ax.contourf(
+                    c.X[1][:, :, 0], c.X[0][:, :, 0], U[0, :, :, 10], 100
+                )
                 im1.autoscale()
             plt.pause(1e-6)
 
     if params.tstep % params.compute_energy == 0:
         # dx, L = params.dx, params.L
         ww = solver.comm.reduce(
-            sum(curl.astype(float64) * curl.astype(float64)) / prod(params.N) / 2)
+            sum(curl.astype(float64) * curl.astype(float64)) / prod(params.N) / 2
+        )
         # Compute energy with double precision
         kk = solver.comm.reduce(
-            sum(U.astype(float64) * U.astype(float64)) / prod(params.N) / 2)
-        if 'shenfun' in params.solver:
+            sum(U.astype(float64) * U.astype(float64)) / prod(params.N) / 2
+        )
+        if "shenfun" in params.solver:
             ww2 = energy_fourier(solver.comm, c.U_hat) / 2
         else:
-            ww2 = energy_fourier(solver.comm, c.U_hat) / prod(params.N)**2 / 2
+            ww2 = energy_fourier(solver.comm, c.U_hat) / prod(params.N) ** 2 / 2
 
         kold[0] = kk
         if solver.rank == 0:
@@ -127,11 +140,13 @@ def regression_test(context):
     U = solver.get_velocity(**context)
     curl = solver.get_curl(**context)
     w = solver.comm.reduce(
-        sum(curl.astype(float64) * curl.astype(float64)) / prod(params.N) / 2)
+        sum(curl.astype(float64) * curl.astype(float64)) / prod(params.N) / 2
+    )
     # Compute energy with double precision
     k = solver.comm.reduce(
-        sum(U.astype(float64) * U.astype(float64)) / prod(params.N) / 2)
-    config.solver.MemoryUsage('End', solver.comm)
+        sum(U.astype(float64) * U.astype(float64)) / prod(params.N) / 2
+    )
+    config.solver.MemoryUsage("End", solver.comm)
     if solver.rank == 0:
         assert round(asscalar(w) - 0.375249930801, params.ntol) == 0
         assert round(asscalar(k) - 0.124953117517, params.ntol) == 0
@@ -139,35 +154,37 @@ def regression_test(context):
 
 if __name__ == "__main__":
     Re = 1e4
-    U = 2 ** (1. / 3)
-    L = 1.
+    U = 2 ** (1.0 / 3)
+    L = 1.0
     dt = 1e-12
     config.update(
         {
-            'nu': U * L / Re,  # Viscosity
-            'dt': dt,       # Time step
-            'T': 11*dt,        # End time
-            'L': [L, L, L],
-            'M': [7, 7, 7],    # Mesh size is pow(2, M[i]) in direction i
+            "nu": U * L / Re,  # Viscosity
+            "dt": dt,  # Time step
+            "T": 11 * dt,  # End time
+            "L": [L, L, L],
+            "M": [7, 7, 7],  # Mesh size is pow(2, M[i]) in direction i
             #'planner_effort': {'fft': 'FFTW_EXHAUSTIVE'},
             #'decomposition': 'pencil',
             #'P1': 2
-        },  "triplyperiodic"
+        },
+        "triplyperiodic",
     )
     config.triplyperiodic.add_argument("--compute_energy", type=int, default=2)
     config.triplyperiodic.add_argument("--plot_step", type=int, default=2)
     if plt is None:
         sol = get_solver(mesh="triplyperiodic")
     else:
-        sol = get_solver(update=update, regression_test=regression_test,
-                         mesh="triplyperiodic")
+        sol = get_solver(
+            update=update, regression_test=regression_test, mesh="triplyperiodic"
+        )
 
     context = sol.get_context()
 
     # Add curl to the stored results. For this we need to update the update_components
     # method used by the HDF5Writer class to compute the real fields that are stored
     WRITE_HDF5 = False
-    if config.params.solver == 'NS' and WRITE_HDF5:
+    if config.params.solver == "NS" and WRITE_HDF5:
         context.hdf5file.fname = "NS8.h5"
         context.hdf5file.components["curlx"] = context.curl[0]
         context.hdf5file.components["curly"] = context.curl[1]
@@ -185,13 +202,14 @@ if __name__ == "__main__":
 
     # Double check benchmark walltime
     start_time = time.time()
-    cProfile.runctx('solve(sol, context)',
-                    globals(), locals(), 'profile.pstats')
+    cProfile.runctx("solve(sol, context)", globals(), locals(), "profile.pstats")
     end_time = time.time()
-    print('Run time: %f' % (end_time - start_time))
+    print("Run time: %f" % (end_time - start_time))
 
-    s = pstats.Stats('profile.pstats')
-    s.sort_stats('time').print_stats(12)
+    s = pstats.Stats("profile.pstats")
+    s.sort_stats("time").print_stats(12)
 
-    print('you can run:\n'
-          'gprof2dot -f pstats  profile.pstats  | dot -Tpng -o profile.png')
+    print(
+        "you can run:\n"
+        "gprof2dot -f pstats  profile.pstats  | dot -Tpng -o profile.png"
+    )

@@ -15,9 +15,9 @@ from fluidsim.solvers.ns3d.strat.solver import Simul
 
 # main input parameters
 N = 0.6  # rad/s
-#if aspect_ratio == 4:
+# if aspect_ratio == 4:
 omega_f = 0.807 * N  # rad/s
-#elif aspect_ratio == 6:
+# elif aspect_ratio == 6:
 #    omega_f = 0.674 * N  # rad/s
 
 delta_omega_f = 0.1 * omega_f  # rad/s
@@ -133,4 +133,4 @@ sim.output.phys_fields.animate('b')
 )
 
 
-sim.output.spect_energy_budg.plot_fluxes(key_k='kh')
+sim.output.spect_energy_budg.plot_fluxes(key_k="kh")

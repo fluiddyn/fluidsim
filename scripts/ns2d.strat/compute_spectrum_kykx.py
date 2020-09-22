@@ -71,7 +71,7 @@ kx = 2 * pi * np.fft.fftfreq(nx, Lx / nx)
 kz = 2 * pi * np.fft.fftfreq(nz, Lz / nz)
 KX, KZ = np.meshgrid(kx, kz)
 
-omega_k = sim.params.N * (KX / np.sqrt(KX**2 + KZ**2))
+omega_k = sim.params.N * (KX / np.sqrt(KX ** 2 + KZ ** 2))
 
 # Create 3D_arrays
 ux_fft_arr = np.empty([itmax - itmin, nz, nx], dtype="complex")
@@ -90,8 +90,12 @@ for ifile, path_file in enumerate(paths_files[itmin:itmax]):
         ux_fft_arr[ifile, :, :] = np.fft.fft2(ux)
         uz_fft_arr[ifile, :, :] = np.fft.fft2(uz)
         b_fft_arr[ifile, :, :] = np.fft.fft2(b)
-        ap_fft_arr[ifile, :, :] = N**2 * np.fft.fft2(uz) + 1j * omega_k * np.fft.fft2(b)
-        am_fft_arr[ifile, :, :] = N**2 * np.fft.fft2(uz) - 1j * omega_k * np.fft.fft2(b)
+        ap_fft_arr[ifile, :, :] = N ** 2 * np.fft.fft2(
+            uz
+        ) + 1j * omega_k * np.fft.fft2(b)
+        am_fft_arr[ifile, :, :] = N ** 2 * np.fft.fft2(
+            uz
+        ) - 1j * omega_k * np.fft.fft2(b)
 
 # Time average
 ux_fft_arr = np.mean(ux_fft_arr, axis=0)
@@ -122,14 +126,13 @@ ax1.tick_params(labelsize=16)
 # data = abs(am_fft_arr)**2
 
 if key == "ap":
-    data = np.log10(abs(ap_fft_arr)**2)
+    data = np.log10(abs(ap_fft_arr) ** 2)
     text = r"$\hat{a}_+$"
 elif key == "am":
-    data = np.log10(abs(am_fft_arr)**2)
+    data = np.log10(abs(am_fft_arr) ** 2)
     text = r"$\hat{a}_-$"
 else:
     raise ValueError("Not implemented")
-
 
 
 ### Data
@@ -151,30 +154,21 @@ ax1.set_ylim([kz[ikz_negative], kz[ikz] - sim.oper.deltaky])
 # )
 
 ax1.pcolormesh(
-    KX[0:ikz, 0:ikx],
-    KZ[0:ikz, 0:ikx],
-    data[0:ikz, 0:ikx],
-    vmin=5,
-    vmax=8)
+    KX[0:ikz, 0:ikx], KZ[0:ikz, 0:ikx], data[0:ikz, 0:ikx], vmin=5, vmax=8
+)
 
 # # Plot kx > 0 and kz < 0
-KX_grid2 = KX[ikz_negative - 1:, 0:ikx]
+KX_grid2 = KX[ikz_negative - 1 :, 0:ikx]
 
 KZ_grid2 = np.empty_like(KX_grid2)
-KZ_grid2[0:-1,:] = KZ[ikz_negative:, 0:ikx]
-KZ_grid2[-1,:] = KZ[0, 0:ikx]
+KZ_grid2[0:-1, :] = KZ[ikz_negative:, 0:ikx]
+KZ_grid2[-1, :] = KZ[0, 0:ikx]
 
 data_grid2 = np.empty_like(KX_grid2)
-data_grid2[0:-1,:] = data[ikz_negative:, 0:ikx]
-data_grid2[-1,:] = data[0, 0:ikx]
+data_grid2[0:-1, :] = data[ikz_negative:, 0:ikx]
+data_grid2[-1, :] = data[0, 0:ikx]
 
-ax1.pcolormesh(
-    KX_grid2,
-    KZ_grid2,
-    data_grid2,
-    vmin=5,
-    vmax=8
-)
+ax1.pcolormesh(KX_grid2, KZ_grid2, data_grid2, vmin=5, vmax=8)
 
 ##############
 
@@ -213,24 +207,47 @@ ax1.pcolormesh(
 # Create a Rectangle patch
 deltak = max(sim.oper.deltakx, sim.oper.deltaky)
 
-x_rect = np.sin(
-    sim.params.forcing.tcrandom_anisotropic.angle) * deltak * sim.params.forcing.nkmin_forcing
+x_rect = (
+    np.sin(sim.params.forcing.tcrandom_anisotropic.angle)
+    * deltak
+    * sim.params.forcing.nkmin_forcing
+)
 
-z_rect = np.cos(
-    sim.params.forcing.tcrandom_anisotropic.angle) * deltak * sim.params.forcing.nkmin_forcing
+z_rect = (
+    np.cos(sim.params.forcing.tcrandom_anisotropic.angle)
+    * deltak
+    * sim.params.forcing.nkmin_forcing
+)
 
 width = abs(
-    x_rect - np.sin(sim.params.forcing.tcrandom_anisotropic.angle) * deltak * sim.params.forcing.nkmax_forcing)
+    x_rect
+    - np.sin(sim.params.forcing.tcrandom_anisotropic.angle)
+    * deltak
+    * sim.params.forcing.nkmax_forcing
+)
 
 height = abs(
-    z_rect - np.cos(sim.params.forcing.tcrandom_anisotropic.angle) * deltak * sim.params.forcing.nkmax_forcing)
+    z_rect
+    - np.cos(sim.params.forcing.tcrandom_anisotropic.angle)
+    * deltak
+    * sim.params.forcing.nkmax_forcing
+)
 
-rect1 = patches.Rectangle((x_rect,z_rect),width,height,linewidth=1,edgecolor='r',facecolor='none')
+rect1 = patches.Rectangle(
+    (x_rect, z_rect), width, height, linewidth=1, edgecolor="r", facecolor="none"
+)
 
 ax1.add_patch(rect1)
 
 if sim.params.forcing.tcrandom_anisotropic.kz_negative_enable:
-    rect2 = patches.Rectangle((x_rect,-(z_rect + height)),width,height,linewidth=1,edgecolor='r',facecolor='none')
+    rect2 = patches.Rectangle(
+        (x_rect, -(z_rect + height)),
+        width,
+        height,
+        linewidth=1,
+        edgecolor="r",
+        facecolor="none",
+    )
     ax1.add_patch(rect2)
 
 
@@ -241,10 +258,10 @@ ax1.add_patch(
         width=2 * sim.params.forcing.nkmin_forcing * deltak,
         height=2 * sim.params.forcing.nkmin_forcing * deltak,
         angle=0,
-        theta1=-90.,
-        theta2=90.,
+        theta1=-90.0,
+        theta2=90.0,
         linestyle="-.",
-        color="red"
+        color="red",
     )
 )
 ax1.add_patch(
@@ -254,9 +271,9 @@ ax1.add_patch(
         height=2 * sim.params.forcing.nkmax_forcing * deltak,
         angle=0,
         theta1=-90,
-        theta2=90.,
+        theta2=90.0,
         linestyle="-.",
-        color="red"
+        color="red",
     )
 )
 

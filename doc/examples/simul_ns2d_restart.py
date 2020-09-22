@@ -1,4 +1,3 @@
-
 from fluidsim import load_for_restart, path_dir_results
 
 path_dir_root = path_dir_results / "examples"

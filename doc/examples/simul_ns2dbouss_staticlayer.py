@@ -18,11 +18,11 @@ from fluidsim.solvers.ns2d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'examples'
-params.short_name_type_run = 'staticlayer'
+params.output.sub_directory = "examples"
+params.short_name_type_run = "staticlayer"
 
 params.oper.nx = nx = 128
-params.oper.ny = ny = nx//4
+params.oper.ny = ny = nx // 4
 
 params.oper.Lx = lx = 4
 params.oper.Ly = ly = lx * ny / nx
@@ -31,18 +31,18 @@ params.oper.coef_dealiasing = 0.7
 
 params.nu_8 = 1e-10
 
-params.time_stepping.t_end = 8.
+params.time_stepping.t_end = 8.0
 # we need small time step for a strong forcing
 params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = 0.02
 
-params.init_fields.type = 'in_script'
+params.init_fields.type = "in_script"
 
 params.forcing.enable = True
-params.forcing.type = 'in_script_coarse'
+params.forcing.type = "in_script_coarse"
 params.forcing.nkmax_forcing = 10
 
-params.output.sub_directory = 'examples'
+params.output.sub_directory = "examples"
 params.output.periods_print.print_stdout = 0.5
 params.output.periods_save.phys_fields = 0.1
 params.output.periods_save.spatial_means = 0.1
@@ -59,7 +59,7 @@ x0 = lx / 2
 y0 = ly / 2
 blob_height = 0.4
 blob_width = 0.5
-b = -np.exp(-(X - x0)**2/blob_width**2 - (Y - y0)**2/blob_height**2)
+b = -np.exp(-((X - x0) ** 2) / blob_width ** 2 - (Y - y0) ** 2 / blob_height ** 2)
 sim.state.init_from_rotb(rot, b)
 
 # in this case (params.init_fields.type = 'manual') if we want to plot the
@@ -75,8 +75,8 @@ if rank == 0:
     forcing_maker = sim.forcing.forcing_maker
     oper = forcing_maker.oper_coarse
     Y = oper.Y
-    d = ly/6
-    alpha = - 80 * (np.exp(-Y**2/d**2) + np.exp(-(Y - ly)**2/d**2))
+    d = ly / 6
+    alpha = -80 * (np.exp(-(Y ** 2) / d ** 2) + np.exp(-((Y - ly) ** 2) / d ** 2))
 
     # on-the-fly plot
     has_to_animate = 1
@@ -84,12 +84,12 @@ if rank == 0:
         # initialization of the on-the-fly plot
         fig = plt.figure(figsize=(10, 10))
         subplots = fig.subplots(2, 3)
-        title = fig.suptitle('time = 0')
+        title = fig.suptitle("time = 0")
         xs = oper.x
         ys = oper.y
 
         pmeshs = np.empty_like(subplots)
-        subtitles = (('ux', 'uy', 'rot'), ('fx', 'fy', 'frot'))
+        subtitles = (("ux", "uy", "rot"), ("fx", "fy", "frot"))
 
         for (i0, i1), ax in np.ndenumerate(subplots):
             pmeshs[i0, i1] = ax.pcolormesh(xs, ys, alpha)
@@ -102,12 +102,11 @@ if rank == 0:
         #     sys.exit()
 
     def compute_forcingc_fft_each_time(self):
-        """This function is called by the forcing_maker to compute the forcing
-
-        """
-        rot_fft = self.sim.state.state_spect.get_var('rot_fft')
+        """This function is called by the forcing_maker to compute the forcing"""
+        rot_fft = self.sim.state.state_spect.get_var("rot_fft")
         rot_fft = self.oper.coarse_seq_from_fft_loc(
-            rot_fft, self.shapeK_loc_coarse)
+            rot_fft, self.shapeK_loc_coarse
+        )
         ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
         ux = oper.ifft(ux_fft)
         uy = oper.ifft(uy_fft)
@@ -131,7 +130,7 @@ if rank == 0:
                 pmesh.set_array(arr[:-1, :-1].ravel())
                 pmesh.set_clim(arr.min(), arr.max())
 
-            title.set_text(f'time {self.sim.time_stepping.t:.2f}')
+            title.set_text(f"time {self.sim.time_stepping.t:.2f}")
 
             fig.canvas.draw()
             plt.pause(1e-4)
@@ -139,16 +138,17 @@ if rank == 0:
         return frot_fft
 
     forcing_maker.monkeypatch_compute_forcingc_fft_each_time(
-        compute_forcingc_fft_each_time)
+        compute_forcingc_fft_each_time
+    )
 
 # and finally time stepping
 sim.time_stepping.start()
 
 if rank == 0:
     print(
-        '\nTo display a video of this simulation, you can do:\n'
-        f'cd {sim.output.path_run}' +
-        """
+        "\nTo display a video of this simulation, you can do:\n"
+        f"cd {sim.output.path_run}"
+        + """
 ipython
 
 # then in ipython (copy the 3 lines in the terminal):
@@ -157,6 +157,7 @@ from fluidsim import load_sim_for_plot
 sim = load_sim_for_plot()
 
 sim.output.phys_fields.animate('uy', dt_frame_in_sec=0.3, dt_equations=0.1)
-""")
+"""
+    )
 
 plt.show()

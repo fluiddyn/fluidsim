@@ -1,14 +1,13 @@
-
 from fluidsim.solvers.ns2d.solver import Simul
 from fluidsim.solvers.sw1l.solver import Simul
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = 'bench_time_stepping'
+params.output.sub_directory = "bench_time_stepping"
 
 params.oper.nx = params.oper.ny = nh = 1024
 
-params.nu_8 = 1.
+params.nu_8 = 1.0
 
 params.time_stepping.it_end = 10
 params.time_stepping.USE_T_END = False
@@ -16,10 +15,10 @@ params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = 1e-16
 params.time_stepping.type_time_scheme = "RK2"
 
-params.init_fields.type = 'dipole'
+params.init_fields.type = "dipole"
 
 params.forcing.enable = True
-params.forcing.type = 'proportional'
+params.forcing.type = "proportional"
 
 params.output.periods_print.print_stdout = 0.25
 

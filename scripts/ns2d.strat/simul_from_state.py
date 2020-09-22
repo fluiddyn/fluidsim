@@ -57,7 +57,7 @@ params.output.periods_save.phys_fields = 2e-1
 params.output.periods_save.spatial_means = 0.5
 params.output.periods_save.spectra = 0.5
 params.output.periods_save.spect_energy_budg = 0.5
-params.output.periods_save.spatio_temporal_spectra = 1.
+params.output.periods_save.spatio_temporal_spectra = 1.0
 
 params.output.spatio_temporal_spectra.size_max_file = 100
 params.output.spatio_temporal_spectra.spatial_decimate = 4

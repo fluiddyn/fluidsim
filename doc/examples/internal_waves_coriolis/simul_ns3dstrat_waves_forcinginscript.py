@@ -174,9 +174,7 @@ coef_sigma = gamma / n_dt
 
 
 def compute_forcing_each_time(self):
-    """This function is called by the forcing_maker to compute the forcing
-
-    """
+    """This function is called by the forcing_maker to compute the forcing"""
     sim = self.sim
     time = sim.time_stepping.t % period_forcing
     coef_forcing_time_x = calcul_forcing_time_x(time)

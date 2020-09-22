@@ -40,7 +40,7 @@ params.time_stepping.t_end = 150 * hour
 params.oper.radius = 6.37122e6  # meters
 params.oper.omega = 7.292e-5  # rad/s
 g = 9.80616  # acc. due to gravity m/s
-hbar = 10.e3  # depth of troposphere
+hbar = 10.0e3  # depth of troposphere
 params.c2 = g * hbar  # wave speed squared
 
 # Viscosity
@@ -61,7 +61,7 @@ params.output.phys_fields.field_to_plot = "rot"
 sim = Simul(params)
 
 # Initial condition: Zonal jet
-umax = 80.  # jet speed amplitude, m/s
+umax = 80.0  # jet speed amplitude, m/s
 oper = sim.oper
 
 # Lat-Lon in radians
@@ -71,21 +71,21 @@ LONS = oper.LONS - np.pi
 LATS = oper.LATS
 
 # Initial fields: a zonal jet
-phi0 = np.pi / 7.
+phi0 = np.pi / 7.0
 phi1 = 0.5 * np.pi - phi0
 phi2 = 0.25 * np.pi
 
 
 def ux_from_lats(phi):
     en = np.exp(-4.0 / (phi1 - phi0) ** 2)
-    u1 = (umax / en) * np.exp(1. / ((phi - phi0) * (phi - phi1)))
+    u1 = (umax / en) * np.exp(1.0 / ((phi - phi0) * (phi - phi1)))
     u0 = np.zeros_like(phi, np.float)
     return np.where(np.logical_and(phi < phi1, phi > phi0), u1, u0)
 
 
 ug = ux_from_lats(lats1r)
 ug.shape = (oper.nlat, 1)
-ux = ug * oper.create_array_spat(value=1.)  # broadcast to shape (nlats,nlons)
+ux = ug * oper.create_array_spat(value=1.0)  # broadcast to shape (nlats,nlons)
 
 # uy = self.state_phys.get_var("uy")
 def integrand_gh(phi, a, omega):
@@ -124,17 +124,17 @@ h = hbar - gh1[:, 0] / g
 etag = eta_from_h(h)
 
 etag.shape = (oper.nlat, 1)
-eta = etag * oper.create_array_spat(value=1.)  # broadcast to shape (nlats,nlons)
+eta = etag * oper.create_array_spat(value=1.0)  # broadcast to shape (nlats,nlons)
 
 # Height perturbation.
-alpha = 1. / 3.
-beta = 1. / 15.
-hamp = 120.  # amplitude of height perturbation to zonal jet
+alpha = 1.0 / 3.0
+beta = 1.0 / 15.0
+hamp = 120.0  # amplitude of height perturbation to zonal jet
 hbump = (
     hamp
     * np.cos(LATS)
-    * np.exp(-(LONS / alpha) ** 2)
-    * np.exp(-((phi2 - LATS) / beta) ** 2)
+    * np.exp(-((LONS / alpha) ** 2))
+    * np.exp(-(((phi2 - LATS) / beta) ** 2))
 )
 eta += g * hbump / params.c2
 

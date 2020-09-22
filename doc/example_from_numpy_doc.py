@@ -9,7 +9,7 @@ a line by itself, preferably preceeded by a blank line.
 
 """
 
-import os # standard library imports first
+import os  # standard library imports first
 
 # Do NOT import using *, e.g. from numpy import *
 #
@@ -34,7 +34,8 @@ import matplotlib.pyplot as plt
 
 from my_module import my_func, other_func
 
-def foo(var1, var2, long_var_name='hi') :
+
+def foo(var1, var2, long_var_name="hi"):
     r"""A one-line summary that does not use variable names or the
     function name.
 

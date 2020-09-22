@@ -10,6 +10,7 @@ import numpy as np
 
 from fluidsim import load_params_simul
 
+
 def compute_length_scales(path_simulation, tmin=None):
     """
     Compute length scales.
@@ -61,14 +62,15 @@ def compute_length_scales(path_simulation, tmin=None):
     delta_ky = np.median(np.diff(abs(ky)))
 
     # Compute vertical length scale
-    lx = (np.sum(spectrum1Dkx_EK_ux * delta_kx) /
-          np.sum(kx * spectrum1Dkx_EK_ux * delta_kx))
+    lx = np.sum(spectrum1Dkx_EK_ux * delta_kx) / np.sum(
+        kx * spectrum1Dkx_EK_ux * delta_kx
+    )
 
-    lz = (np.sum(spectrum1Dky_EK_uy * delta_ky) /
-          np.sum(ky * spectrum1Dky_EK_uy * delta_ky))
+    lz = np.sum(spectrum1Dky_EK_uy * delta_ky) / np.sum(
+        ky * spectrum1Dky_EK_uy * delta_ky
+    )
 
     return lx, lz
-
 
 
 if __name__ == "__main__":

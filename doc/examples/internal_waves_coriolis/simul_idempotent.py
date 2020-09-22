@@ -23,7 +23,13 @@ from fluidsim.solvers.ns3d.strat.solver import Simul
 parser = argparse.ArgumentParser()
 parser.add_argument("amplitude", help="Amplitude of the movement", type=float)
 parser.add_argument("nz", help="Number of point over the z direction", type=int)
-parser.add_argument("-me", "--max-elapsed", help="Maximum elapsed time", type=str, default="00:02:00")
+parser.add_argument(
+    "-me",
+    "--max-elapsed",
+    help="Maximum elapsed time",
+    type=str,
+    default="00:02:00",
+)
 
 args = parser.parse_args()
 mpi.printby0(args)
@@ -53,7 +59,9 @@ path_idempotent_file_exists = None
 if mpi.rank == 0:
     path_idempotent_file_exists = path_idempotent_file.exists()
 if mpi.nb_proc > 1:
-    path_idempotent_file_exists = mpi.comm.bcast(path_idempotent_file_exists, root=0)
+    path_idempotent_file_exists = mpi.comm.bcast(
+        path_idempotent_file_exists, root=0
+    )
 
 if not path_idempotent_file_exists:
     mpi.printby0("New simulation")

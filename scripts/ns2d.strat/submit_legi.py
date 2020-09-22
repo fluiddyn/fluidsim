@@ -10,11 +10,12 @@ args = parser.parse_args()
 
 cluster = Calcul()
 cluster.commands_setting_env.append(
-    'export FLUIDSIM_PATH="/fsnet/project/meige/2015/15DELDUCA/DataSim"')
+    'export FLUIDSIM_PATH="/fsnet/project/meige/2015/15DELDUCA/DataSim"'
+)
 
 name_run_root = f"find_coeff_nu8_gamma={args.gamma}"
 
-walltime = '24:00:00'
+walltime = "24:00:00"
 nb_proc = 8
 
 command_to_submit = f"python coeff_diss.py {args.gamma}"
@@ -26,4 +27,7 @@ cluster.submit_command(
     walltime=walltime,
     nb_mpi_processes=nb_proc,
     omp_num_threads=1,
-    idempotent=True, delay_signal_walltime=300, ask=False)
+    idempotent=True,
+    delay_signal_walltime=300,
+    ask=False,
+)

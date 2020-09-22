@@ -10,6 +10,7 @@ import numpy as np
 
 from fluidsim import load_params_simul
 
+
 def _compute_epsilon_from_path(path_simulation, tmin=None):
     """
     Computes the mean dissipation from tmin
@@ -32,13 +33,13 @@ def _compute_epsilon_from_path(path_simulation, tmin=None):
     epsK = np.empty(nt)
 
     for il in range(nt):
-            line = lines_t[il]
-            words = line.split()
-            t[il] = float(words[2])
+        line = lines_t[il]
+        words = line.split()
+        t[il] = float(words[2])
 
-            line = lines_epsK[il]
-            words = line.split()
-            epsK[il] = float(words[2])
+        line = lines_epsK[il]
+        words = line.split()
+        epsK[il] = float(words[2])
 
     # Compute start time average itmin
     dt_spatial = np.median(np.diff(t))
@@ -50,6 +51,7 @@ def _compute_epsilon_from_path(path_simulation, tmin=None):
     itmin = np.argmin((abs(t - tmin)))
 
     return np.mean(epsK[itmin:], axis=0)
+
 
 def _compute_lx_from_path(path_simulation, tmin=None):
     """
@@ -81,8 +83,10 @@ def _compute_lx_from_path(path_simulation, tmin=None):
     delta_kx = np.median(np.diff(kx))
 
     # Compute horizontal length scale Brethouwer 2007
-    return (np.sum(spectrum1Dkx_EK_ux * delta_kx) /
-            np.sum(kx * spectrum1Dkx_EK_ux * delta_kx))
+    return np.sum(spectrum1Dkx_EK_ux * delta_kx) / np.sum(
+        kx * spectrum1Dkx_EK_ux * delta_kx
+    )
+
 
 def compute_buoyancy_reynolds(path_simulation, tmin=None):
     """
@@ -92,13 +96,14 @@ def compute_buoyancy_reynolds(path_simulation, tmin=None):
     epsK = _compute_epsilon_from_path(path_simulation, tmin=tmin)
     lx = _compute_lx_from_path(path_simulation, tmin=tmin)
 
-    F_h = ((epsK / lx**2)**(1/3)) * (1 / params.N)
+    F_h = ((epsK / lx ** 2) ** (1 / 3)) * (1 / params.N)
 
-    eta_8 = (params.nu_8 ** 3 / epsK)**(1/22)
-    Re_8 = (lx/eta_8)**(22/3)
+    eta_8 = (params.nu_8 ** 3 / epsK) ** (1 / 22)
+    Re_8 = (lx / eta_8) ** (22 / 3)
 
-    R_b = Re_8 * F_h**8
+    R_b = Re_8 * F_h ** 8
     return F_h, Re_8, R_b
+
 
 # path_simulation = "/fsnet/project/meige/2015/15DELDUCA/DataSim/sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma02_2018-08-14_09-59-55"
 # F_h, Re_8, R_b = compute_buoyancy_reynolds(path_simulation)

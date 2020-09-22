@@ -57,25 +57,25 @@ def update(context):
         plt.pause(1e-6)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Re = 1e4
     U = 2 ** 0.5
-    L = 1.
+    L = 1.0
     config.update(
         {
-            'nu': U * L / Re,
-            'dt': 1e-12,
-            'T': 1e-11,  # Should run 10 iterations
-            'write_result': 100,
-            'L': [L, L],
-            'M': [10, 10]  # Mesh size is pow(2, M[i]) in direction i
+            "nu": U * L / Re,
+            "dt": 1e-12,
+            "T": 1e-11,  # Should run 10 iterations
+            "write_result": 100,
+            "L": [L, L],
+            "M": [10, 10]  # Mesh size is pow(2, M[i]) in direction i
             # 2**9 == 512
-        }, 'doublyperiodic'
+        },
+        "doublyperiodic",
     )
 
     # required to allow overloading through commandline
-    config.doublyperiodic.add_argument(
-        "--plot_result", type=int, default=10)
+    config.doublyperiodic.add_argument("--plot_result", type=int, default=10)
     if plt is None:
         sol = get_solver(mesh="doublyperiodic")
     else:
@@ -88,4 +88,4 @@ if __name__ == '__main__':
     start_time = time.time()
     solve(sol, context)
     end_time = time.time()
-    print('Run time: %f' % (end_time - start_time))
+    print("Run time: %f" % (end_time - start_time))

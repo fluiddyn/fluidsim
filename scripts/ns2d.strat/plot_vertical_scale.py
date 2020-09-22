@@ -20,12 +20,14 @@ from flow_features import get_features_from_sim, _get_resolution_from_dir
 from fluiddyn.output.rcparams import set_rcparams
 
 path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
-directories = ["sim960_no_shear_modes",
-               "sim960_no_shear_modes_transitory",
-               "sim1920_no_shear_modes",
-               "sim1920_modif_res_no_shear_modes",
-               "sim3840_modif_res_no_shear_modes",
-               "sim7680_modif_res_no_shear_modes"]
+directories = [
+    "sim960_no_shear_modes",
+    "sim960_no_shear_modes_transitory",
+    "sim1920_no_shear_modes",
+    "sim1920_modif_res_no_shear_modes",
+    "sim3840_modif_res_no_shear_modes",
+    "sim7680_modif_res_no_shear_modes",
+]
 
 
 paths_simulations = []
@@ -68,7 +70,7 @@ for path in paths_simulations:
     for path_file in path_phys_files[-10:-1]:
         with h5py.File(path_file, "r") as f:
             ux = f["state_phys"]["ux"][...]
-        ux_rms.append(np.sqrt(np.mean(ux**2)))
+        ux_rms.append(np.sqrt(np.mean(ux ** 2)))
 
     # Load parameters
     params = load_params_simul(path)
@@ -86,8 +88,12 @@ ax.set_xlim([1e-10, 1e8])
 ax.set_ylim([0, 1.2e1])
 
 # Plot...
-for _f, _r, _a, _d, _m, _l in zip(froudes, reynoldsb, anisotropies, dissipations, markers, lzs_billant):
-            scatter = ax.scatter(_r, _l, s=100, c=_d, vmin=0, vmax=1, marker=_m, alpha=0.7)
+for _f, _r, _a, _d, _m, _l in zip(
+    froudes, reynoldsb, anisotropies, dissipations, markers, lzs_billant
+):
+    scatter = ax.scatter(
+        _r, _l, s=100, c=_d, vmin=0, vmax=1, marker=_m, alpha=0.7
+    )
 
 # Plot horizontal line
 ax.axhline(y=1, color="k", linestyle="--")
@@ -97,30 +103,67 @@ divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 cax.tick_params(labelsize=14)
 fig.colorbar(scatter, cax=cax)
-ax.text(1e7, 0.013, r"$\log_{10} \left(\frac{k_{x, 1/2}}{k_{x, f}}\right)$", fontsize=12)
+ax.text(
+    1e7,
+    0.013,
+    r"$\log_{10} \left(\frac{k_{x, 1/2}}{k_{x, f}}\right)$",
+    fontsize=12,
+)
 
 # Legend...
-blue_star = mlines.Line2D([], [], color='red', marker='o', linestyle='None',
-                          markersize=8, label=r'$n_x = 960$')
-red_square = mlines.Line2D([], [], color='red', marker='s', linestyle='None',
-                           markersize=8, label=r'$n_x = 1920$')
-purple_triangle = mlines.Line2D([], [], color='red', marker='^', linestyle='None',
-                                markersize=8, label=r'$n_x = 3840$')
-diamond = mlines.Line2D([], [], color='red', marker='^', linestyle='None',
-                                markersize=8, label=r'$n_x = 7680$')
+blue_star = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="o",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 960$",
+)
+red_square = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="s",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 1920$",
+)
+purple_triangle = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="^",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 3840$",
+)
+diamond = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="^",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 7680$",
+)
 
-ax.legend(handles=[blue_star, red_square, purple_triangle, diamond],
-          loc="upper center",
-          bbox_to_anchor=(0.5,1.1),
-          borderaxespad=0.,
-          ncol=len(markers),
-          handletextpad=0.1,
-          fontsize=14)
+ax.legend(
+    handles=[blue_star, red_square, purple_triangle, diamond],
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.1),
+    borderaxespad=0.0,
+    ncol=len(markers),
+    handletextpad=0.1,
+    fontsize=14,
+)
 
 SAVE = False
 if SAVE:
-    path_save = "/fsnet/project/meige/2015/15DELDUCA/notebooks/figures/" + \
-                "vertical_length_scale.png"
+    path_save = (
+        "/fsnet/project/meige/2015/15DELDUCA/notebooks/figures/"
+        + "vertical_length_scale.png"
+    )
     fig.savefig(path_save, format="png", bbox_inches="tight")
 
 plt.show()

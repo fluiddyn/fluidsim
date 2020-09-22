@@ -32,7 +32,8 @@ def compute_flow_features_from_sim(path_simulation, SAVE=False):
 
     """
     if SAVE and os.path.exists(
-            os.path.join(path_simulation, "flow_features.txt")):
+        os.path.join(path_simulation, "flow_features.txt")
+    ):
         pass
     else:
         # Computes all the flow features
@@ -43,13 +44,15 @@ def compute_flow_features_from_sim(path_simulation, SAVE=False):
 
         if SAVE:
             path_save = os.path.join(path_simulation, "flow_features.txt")
-            to_print = (f"anisotropy = {anisotropy} \n" +
-                        f"ratio_diss = {ratio_diss} \n" +
-                        f"F_h = {F_h} \n" +
-                        f"Re_8 = {Re_8} \n" +
-                        f"R_b = {R_b} \n" +
-                        f"l_x = {l_x} \n" +
-                        f"l_z = {l_z} \n")
+            to_print = (
+                f"anisotropy = {anisotropy} \n"
+                + f"ratio_diss = {ratio_diss} \n"
+                + f"F_h = {F_h} \n"
+                + f"Re_8 = {Re_8} \n"
+                + f"R_b = {R_b} \n"
+                + f"l_x = {l_x} \n"
+                + f"l_z = {l_z} \n"
+            )
 
             # Checks if the file flow_features.txt exists
             if os.path.exists(path_save):
@@ -58,6 +61,7 @@ def compute_flow_features_from_sim(path_simulation, SAVE=False):
                 with open(path_save, "w") as f:
                     f.write(to_print)
         return anisotropy, ratio_diss, F_h, Re_8, R_b, l_x, l_z
+
 
 def get_features_from_sim(path_simulation):
     """
@@ -87,11 +91,12 @@ def get_features_from_sim(path_simulation):
         if line.startswith("l_z = "):
             l_z = float(line.split()[2])
 
-
     return anisotropy, ratio_diss, F_h, Re_8, R_b, l_x, l_z
+
 
 def _get_resolution_from_dir(path_simulation):
     return path_simulation.split("NS2D.strat_")[1].split("x")[0]
+
 
 if __name__ == "__main__":
     # path_simulation = ("/fsnet/project/meige/2015/15DELDUCA/DataSim/" +
@@ -103,18 +108,21 @@ if __name__ == "__main__":
     # Compute flow features from all simulations...
 
     path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
-    directories = ["sim960_no_shear_modes",
-                   "sim960_no_shear_modes_transitory",
-                   "sim1920_no_shear_modes",
-                   "sim1920_modif_res_no_shear_modes",
-                   "sim3840_modif_res_no_shear_modes",
-                   "sim7680_modif_res_no_shear_modes"]
-
+    directories = [
+        "sim960_no_shear_modes",
+        "sim960_no_shear_modes_transitory",
+        "sim1920_no_shear_modes",
+        "sim1920_modif_res_no_shear_modes",
+        "sim3840_modif_res_no_shear_modes",
+        "sim7680_modif_res_no_shear_modes",
+    ]
 
     paths_simulations = []
-#     directories = [directories[0]]
+    #     directories = [directories[0]]
     for directory in directories:
-        paths_simulations += sorted(glob(os.path.join(path_root, directory, "NS2D*")))
+        paths_simulations += sorted(
+            glob(os.path.join(path_root, directory, "NS2D*"))
+        )
 
     # To compute flow features in all files
     for path_simulation in paths_simulations:

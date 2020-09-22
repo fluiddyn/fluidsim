@@ -13,11 +13,10 @@ modif_params_profile3d(params, nh=128, nz=128)
 
 sim = solver.Simul(params)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     profile(sim, nb_dim=3)
 
 
 # params.oper.type_fft = 'fluidfft.fft3d.with_fftw3d'
 # params.oper.type_fft = 'fluidfft.fft3d.with_cufft'
 # params.oper.type_fft = 'fluidfft.fft3d.mpi_with_fftwmpi3d'
-

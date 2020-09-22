@@ -13,6 +13,7 @@ import numpy as np
 
 from fluidsim import load_params_simul
 
+
 def _compute_array_times_from_path(path_simulation):
     """
     Compute array with times from path simulation.
@@ -28,7 +29,8 @@ def _compute_array_times_from_path(path_simulation):
     for path in paths_phys_files:
         if not "=" in path.split("state_phys_t")[1].split(".nc")[0]:
             times_phys_files.append(
-                float(path.split("state_phys_t")[1].split(".nc")[0]))
+                float(path.split("state_phys_t")[1].split(".nc")[0])
+            )
         else:
             continue
     return np.asarray(times_phys_files)
@@ -83,14 +85,17 @@ def compute_anisotropy(path_simulation, tmin=None):
     delta_kx = 2 * np.pi / params.oper.Lx
 
     # Compute spatial averaged energy from spectra
-    EK_ux = np.sum(np.mean(spectrumkx_EK_ux[itmin:,:], axis=0) * delta_kx)
-    EK = np.sum(np.mean(spectrumkx_EK[itmin:,:], axis=0) * delta_kx)
+    EK_ux = np.sum(np.mean(spectrumkx_EK_ux[itmin:, :], axis=0) * delta_kx)
+    EK = np.sum(np.mean(spectrumkx_EK[itmin:, :], axis=0) * delta_kx)
 
     return EK_ux / EK
 
+
 if __name__ == "__main__":
-    path_simulation = ("/fsnet/project/meige/2015/15DELDUCA/DataSim/" +
-                    "sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma05_2018-08-14_10-01-22")
+    path_simulation = (
+        "/fsnet/project/meige/2015/15DELDUCA/DataSim/"
+        + "sim1920_no_shear_modes/NS2D.strat_1920x480_S2pix1.571_F07_gamma05_2018-08-14_10-01-22"
+    )
 
     anisotropy = compute_anisotropy(path_simulation)
     print(f"anisotropy = {anisotropy}")

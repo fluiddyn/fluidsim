@@ -14,11 +14,13 @@ from flow_features import get_features_from_sim, _get_resolution_from_dir
 from fluiddyn.output.rcparams import set_rcparams
 
 path_root = "/fsnet/project/meige/2015/15DELDUCA/DataSim"
-directories = ["sim960_no_shear_modes",
-               "sim960_no_shear_modes_transitory",
-               "sim1920_no_shear_modes",
-               "sim1920_modif_res_no_shear_modes",
-               "sim7680_modif_res_no_shear_modes"]
+directories = [
+    "sim960_no_shear_modes",
+    "sim960_no_shear_modes_transitory",
+    "sim1920_no_shear_modes",
+    "sim1920_modif_res_no_shear_modes",
+    "sim7680_modif_res_no_shear_modes",
+]
 
 
 paths_simulations = []
@@ -76,27 +78,59 @@ fig.colorbar(scatter, cax=cax)
 # ax.text(1e7, 0.013, r"$\log_{10} \left(\frac{k_{x, 1/2}}{k_{x, f}}\right)$", fontsize=12)
 
 # Legend...
-blue_star = mlines.Line2D([], [], color='red', marker='o', linestyle='None',
-                          markersize=8, label=r'$n_x = 960$')
-red_square = mlines.Line2D([], [], color='red', marker='s', linestyle='None',
-                           markersize=8, label=r'$n_x = 1920$')
-purple_triangle = mlines.Line2D([], [], color='red', marker='^', linestyle='None',
-                                markersize=8, label=r'$n_x = 3840$')
-diamond = mlines.Line2D([], [], color='red', marker='^', linestyle='None',
-                                markersize=8, label=r'$n_x = 7680$')
+blue_star = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="o",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 960$",
+)
+red_square = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="s",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 1920$",
+)
+purple_triangle = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="^",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 3840$",
+)
+diamond = mlines.Line2D(
+    [],
+    [],
+    color="red",
+    marker="^",
+    linestyle="None",
+    markersize=8,
+    label=r"$n_x = 7680$",
+)
 
-ax.legend(handles=[blue_star, red_square, purple_triangle, diamond],
-          loc="upper center",
-          bbox_to_anchor=(0.5,1.1),
-          borderaxespad=0.,
-          ncol=len(markers),
-          handletextpad=0.1,
-          fontsize=14)
+ax.legend(
+    handles=[blue_star, red_square, purple_triangle, diamond],
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.1),
+    borderaxespad=0.0,
+    ncol=len(markers),
+    handletextpad=0.1,
+    fontsize=14,
+)
 
 SAVE = True
 if SAVE:
-    path_save = "/fsnet/project/meige/2015/15DELDUCA/notebooks/figures/" + \
-                "buoyancy_reynolds_froude.png"
+    path_save = (
+        "/fsnet/project/meige/2015/15DELDUCA/notebooks/figures/"
+        + "buoyancy_reynolds_froude.png"
+    )
     fig.savefig(path_save, format="png", bbox_inches="tight")
 
 

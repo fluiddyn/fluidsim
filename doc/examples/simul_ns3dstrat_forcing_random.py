@@ -1,4 +1,3 @@
-
 from fluiddyn.util.mpi import printby0
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
@@ -30,7 +29,7 @@ params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 printby0(f"nu_8 = {params.nu_8:.3e}")
 
 params.init_fields.type = "noise"
-params.init_fields.noise.length = 1.
+params.init_fields.noise.length = 1.0
 params.init_fields.noise.velo_max = 0.1
 
 params.forcing.enable = True

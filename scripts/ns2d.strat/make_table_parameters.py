@@ -30,15 +30,19 @@ elif nx == 3840:
 path_simulations = sorted(glob(os.path.join(path_root, directory, "NS2D*")))
 
 if MAKE_TABLE:
-    path_table = ("/home/users/calpelin7m/" +
-                  f"Phd/docs/Manuscript/buoyancy_reynolds_table_n{nx}.tex")
+    path_table = (
+        "/home/users/calpelin7m/"
+        + f"Phd/docs/Manuscript/buoyancy_reynolds_table_n{nx}.tex"
+    )
 
-    to_print = ("\\begin{table}[h]\n"
-                "\\centering \n"
-                "\\begin{tabular}{cccc} \n"
-                "\\toprule[1.5pt] \n" + \
-                "\\bm{$\\gamma$} & \\bm{$F_h$} & \\bm{$Re_8$} & \\bm{$\\mathcal{R}$} \\\\ \n"
-                "\\midrule\\ \n")
+    to_print = (
+        "\\begin{table}[h]\n"
+        "\\centering \n"
+        "\\begin{tabular}{cccc} \n"
+        "\\toprule[1.5pt] \n"
+        + "\\bm{$\\gamma$} & \\bm{$F_h$} & \\bm{$Re_8$} & \\bm{$\\mathcal{R}$} \\\\ \n"
+        "\\midrule\\ \n"
+    )
 
 for path in path_simulations:
 
@@ -74,31 +78,32 @@ for path in path_simulations:
     kx = kx[:ikxmax]
     spectrum1Dkx_EK_ux = spectrum1Dkx_EK_ux[:ikxmax]
     delta_kx = sim.oper.deltakx
-    lx = (np.sum(spectrum1Dkx_EK_ux * delta_kx) /
-          np.sum(kx * spectrum1Dkx_EK_ux * delta_kx))
+    lx = np.sum(spectrum1Dkx_EK_ux * delta_kx) / np.sum(
+        kx * spectrum1Dkx_EK_ux * delta_kx
+    )
     print("lx", lx)
     # Compute eta_8
-    eta_8 = (sim.params.nu_8 ** 3 / epsK_tmean)**(1/22)
+    eta_8 = (sim.params.nu_8 ** 3 / epsK_tmean) ** (1 / 22)
     print("eta_8", eta_8)
 
     # Compute Re_8
-    Re_8 = (lx/eta_8)**(22/3)
+    Re_8 = (lx / eta_8) ** (22 / 3)
     print("Re_8", Re_8)
 
     # Compute horizontal Froude
-    F_h = ((epsK_tmean / lx**2)**(1/3)) * (1/sim.params.N)
+    F_h = ((epsK_tmean / lx ** 2) ** (1 / 3)) * (1 / sim.params.N)
     print("F_h", F_h)
 
     # Reynolds buoyancy 8
-    Rb8 = Re_8 * F_h**8
+    Rb8 = Re_8 * F_h ** 8
     print("Rb8", Rb8)
 
     if MAKE_TABLE:
-        to_print += ("{} & {:.4f} & {:.4e} & {:.4e} \\\\ \n".format(
-            gamma_table, F_h, Re_8, Rb8))
+        to_print += "{} & {:.4f} & {:.4e} & {:.4e} \\\\ \n".format(
+            gamma_table, F_h, Re_8, Rb8
+        )
 
 if MAKE_TABLE:
     with open(path_table, "w") as f:
-        to_print += ("\\end{tabular} \n"
-                    "\\end{table}")
+        to_print += "\\end{tabular} \n" "\\end{table}"
         f.write(to_print)

@@ -29,18 +29,18 @@ params = Simul.create_default_params()
 params.oper.nx = nx = 128
 
 params.oper.ny = ny = nx // 2
-params.oper.Lx = 10.
+params.oper.Lx = 10.0
 params.oper.Ly = params.oper.Lx * (ny / nx)
 
 params.nu_8 = 1e-10
 
-params.init_fields.type = 'noise'
-params.init_fields.noise.velo_max = 1.
-params.init_fields.noise.length = 1.
+params.init_fields.type = "noise"
+params.init_fields.noise.velo_max = 1.0
+params.init_fields.noise.length = 1.0
 params.init_fields.modif_after_init = True
 
 params.forcing.enable = True
-params.forcing.type = 'tcrandom'
+params.forcing.type = "tcrandom"
 
 params.forcing.nkmax_forcing = 10
 params.forcing.nkmin_forcing = 4
@@ -57,7 +57,7 @@ params.output.periods_save.phys_fields = 1e-10
 sim = Simul(params)
 
 # we modify the state after the init...
-sim.state.state_phys *= 2.
+sim.state.state_phys *= 2.0
 sim.state.statespect_from_statephys()
 
 sim.time_stepping.start()

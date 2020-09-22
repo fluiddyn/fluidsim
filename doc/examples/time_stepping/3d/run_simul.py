@@ -66,7 +66,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--t_end", help="params.time_stepping.t_end", type=float, default=20.0,
+    "--t_end",
+    help="params.time_stepping.t_end",
+    type=float,
+    default=20.0,
 )
 
 parser.add_argument(
@@ -84,7 +87,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--Re", help="Reynolds number", type=float, default=1600.0,
+    "--Re",
+    help="Reynolds number",
+    type=float,
+    default=1600.0,
 )
 
 
@@ -92,11 +98,17 @@ V0 = 1.0
 L = 1
 
 parser.add_argument(
-    "--velo_max_noise", help="noise level", type=float, default=0.0,
+    "--velo_max_noise",
+    help="noise level",
+    type=float,
+    default=0.0,
 )
 
 parser.add_argument(
-    "--length_noise", help="noise length", type=float, default=L / 5,
+    "--length_noise",
+    help="noise length",
+    type=float,
+    default=L / 5,
 )
 
 parser.add_argument(

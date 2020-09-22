@@ -16,5 +16,5 @@ modif_params_profile2d(params)
 
 sim = solver.Simul(params)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     profile(sim)

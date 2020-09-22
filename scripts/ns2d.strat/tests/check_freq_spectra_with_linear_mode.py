@@ -27,6 +27,7 @@ from math import pi
 from glob import glob
 from fluidsim.solvers.ns2d.strat.solver import Simul
 
+
 def _create_object_params():
     params = Simul.create_default_params()
     try:
@@ -40,10 +41,10 @@ def _create_object_params():
 
     # Forcing parameters
     params.forcing.enable = False
-    params.forcing.type = 'tcrandom_anisotropic'
+    params.forcing.type = "tcrandom_anisotropic"
 
     try:
-        params.forcing.tcrandom_anisotropic.angle = '45.0°'
+        params.forcing.tcrandom_anisotropic.angle = "45.0°"
     except AttributeError:
         pass
 
@@ -52,6 +53,7 @@ def _create_object_params():
 
     # Compute \omega_l
     from math import radians
+
     if "°" in params.forcing.tcrandom_anisotropic.angle:
         angle = params.forcing.tcrandom_anisotropic.angle.split("°")
         angle = float(angle[0])
@@ -60,21 +62,21 @@ def _create_object_params():
     omega_l = params.N * np.sin(radians(angle))
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_l
 
-    params.forcing.key_forced = 'ap_fft'
+    params.forcing.key_forced = "ap_fft"
 
     # Time stepping parameters
     params.time_stepping.USE_CFL = True
     params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = 2.
+    params.time_stepping.t_end = 2.0
 
     # Output parameters
     params.output.HAS_TO_SAVE = False
-    params.output.sub_directory = 'tests'
+    params.output.sub_directory = "tests"
 
     return params
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SAVE = True
     format = ".pdf"
     ### SHORT SIMULATION ###
@@ -87,22 +89,22 @@ if __name__ == '__main__':
     params.oper.Ly = params.oper.Lx * (ny / nx)
 
     params.oper.NO_SHEAR_MODES = False
-    params.nu_8 = 0.
-    params.N = 50.
+    params.nu_8 = 0.0
+    params.N = 50.0
 
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = 0.005
-    params.time_stepping.t_end = 10.
+    params.time_stepping.t_end = 10.0
     params.time_stepping.cfl_coef_group = None
 
     params.output.HAS_TO_SAVE = True
-    params.output.periods_print.print_stdout = 1.
+    params.output.periods_print.print_stdout = 1.0
     params.output.periods_save.phys_fields = 2e-1
 
     params.output.periods_save.spatial_means = 0.0005
 
     params.output.periods_save.frequency_spectra = 1
-    params.output.frequency_spectra.time_start = 0.
+    params.output.frequency_spectra.time_start = 0.0
     params.output.frequency_spectra.spatial_decimate = 1
     params.output.frequency_spectra.size_max_file = 10
     params.output.frequency_spectra.time_decimate = 4
@@ -117,14 +119,19 @@ if __name__ == '__main__':
     sim.time_stepping.start()
 
     from fluiddyn.util import mpi
+
     if mpi.rank == 0:
         kx_s = sim.oper.KX[params.init_fields.linear_mode.i_mode]
         kz_s = sim.oper.KY[params.init_fields.linear_mode.i_mode]
 
         from math import pi
-        omega_n = params.N * np.sin(np.arctan(
-            sim.oper.kx[params.init_fields.linear_mode.i_mode[0]]/ \
-            sim.oper.ky[params.init_fields.linear_mode.i_mode[1]]))
+
+        omega_n = params.N * np.sin(
+            np.arctan(
+                sim.oper.kx[params.init_fields.linear_mode.i_mode[0]]
+                / sim.oper.ky[params.init_fields.linear_mode.i_mode[1]]
+            )
+        )
 
         omega_n = omega_n / (2 * pi)
 
@@ -132,14 +139,16 @@ if __name__ == '__main__':
         sim.output.frequency_spectra.compute_frequency_spectra()
 
         ### LOAD DATA AND PLOT ###
-        path_file = glob(os.path.join(
-            sim.output.path_run, "temporal_data", "temp_*"))[0]
+        path_file = glob(
+            os.path.join(sim.output.path_run, "temporal_data", "temp_*")
+        )[0]
 
         with h5py.File(path_file, "r") as f:
             omegas = f["omegas"][...]
             freq_spectrum = f["freq_spectrum"][...]
 
         import matplotlib.pyplot as plt
+
         fig, ax = plt.subplots()
         ax.set_xlabel(r"$\omega / \omega_{th}$", fontsize=16)
         ax.set_ylabel(r"F($\omega$)", fontsize=16)
@@ -148,13 +157,16 @@ if __name__ == '__main__':
         # for i in range(0,10):
         #     ax.loglog(omegas/omega_n, freq_spectrum[0, :, 1, i])
 
-        ax.semilogy(omegas/omega_n, freq_spectrum[0, :, 1, 4])
+        ax.semilogy(omegas / omega_n, freq_spectrum[0, :, 1, 4])
         ax.axvline(x=omega_n / omega_n, label=r"$\omega_{th}$", c="k")
 
         # Set text
-        ax.text(5e-2, 1e3,
-                r"$\omega_{th} = N \sin(arctan \left( \frac{k_x}{k_z} \right))$",
-                fontsize=16)
+        ax.text(
+            5e-2,
+            1e3,
+            r"$\omega_{th} = N \sin(arctan \left( \frac{k_x}{k_z} \right))$",
+            fontsize=16,
+        )
 
         # If SAVE:
         if SAVE:
@@ -162,7 +174,10 @@ if __name__ == '__main__':
 
             path_save = path_root_save + f"/test_frequency_spectra_seq{format}"
             if mpi.nb_proc > 1:
-                path_save = path_root_save + f"/test_frequency_spectra_mpi_{mpi.nb_proc}{format}"
+                path_save = (
+                    path_root_save
+                    + f"/test_frequency_spectra_mpi_{mpi.nb_proc}{format}"
+                )
             fig.savefig(path_save, format="pdf")
 
         ax.legend()
