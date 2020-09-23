@@ -4,6 +4,7 @@
 
 """
 import numpy as np
+
 from pyshtools.constant import Earth
 
 from fluiddyn.util.compat import cached_property
