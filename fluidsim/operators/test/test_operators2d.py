@@ -54,7 +54,7 @@ def compute_increments_dim1_old(var, irx):
     return inc_var
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(TestCase):
     @classmethod
@@ -111,7 +111,7 @@ class TestOperators(TestCase):
             assert_increments_equal(irx)
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestOperatorOnlyCoarse(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -132,7 +132,7 @@ class TestOperatorOnlyCoarse(TestCase):
         self.assertNotEqual(oper.ny, self.nh)
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestOperatorsDealiasing(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -151,7 +151,7 @@ class TestOperatorsDealiasing(TestCase):
         self.assertEqual(sum_var, sum_var_dealiased)
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestCoarse(unittest.TestCase):
     nb_dim = 2
 

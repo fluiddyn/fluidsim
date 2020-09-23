@@ -8,7 +8,7 @@ from fluidsim.util.testing import (
 )
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestSimulSW1LExactlinModified(TestSimulConserve):
     @classproperty
     def Simul(cls):

@@ -7,7 +7,7 @@ from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
 from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestPreprocessPS(TestSimul):
 
     Simul = SimulBasePseudoSpectral

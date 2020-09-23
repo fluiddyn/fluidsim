@@ -8,7 +8,7 @@ from fluidsim.util.testing import (
 )
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestSimulSW1LModified(TestSimulConserveOutput):
     zero = 1e-8
 

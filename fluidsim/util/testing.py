@@ -15,7 +15,6 @@ import shutil
 import sys
 import time
 import unittest
-from functools import lru_cache
 from importlib import import_module
 from warnings import warn
 
@@ -25,16 +24,18 @@ from fluiddyn.io import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.compat import cached_property
 
+try:
+    import fluidfft
+except ImportError:
+    FLUIDFFT_INSTALLED = False
+else:
+    FLUIDFFT_INSTALLED = True
 
-@lru_cache()
-def skip_if_no_fluidfft():
-    try:
-        import fluidfft
-    except ImportError:
-        FLUIDFFT_INSTALLED = False
-    else:
-        FLUIDFFT_INSTALLED = True
-    return unittest.skipUnless(FLUIDFFT_INSTALLED, "FluidFFT is not installed")
+
+def skip_if_no_fluidfft(func):
+    return unittest.skipUnless(FLUIDFFT_INSTALLED, "FluidFFT is not installed")(
+        func
+    )
 
 
 class classproperty:

@@ -4,9 +4,10 @@ from .solver import Simul
 
 from fluiddyn.util import mpi
 
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft
 
 
+@skip_if_no_fluidfft
 class TestSolverSquare1D(TestSimul):
     Simul = Simul
 

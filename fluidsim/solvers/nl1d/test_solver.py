@@ -7,7 +7,7 @@ from .solver import Simul
 
 from fluiddyn.util import mpi
 
-from fluidsim.util.testing import TestSimul
+from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft
 
 
 skip_if_mpi = unittest.skipIf(
@@ -15,6 +15,7 @@ skip_if_mpi = unittest.skipIf(
 )
 
 
+@skip_if_no_fluidfft
 @skip_if_mpi
 class TestSolverSquare1D(TestSimul):
     Simul = Simul
@@ -51,6 +52,7 @@ class TestSolverSquare1D(TestSimul):
         sim.plot_freq_diss()
 
 
+@skip_if_no_fluidfft
 @skip_if_mpi
 class TestTimeStepping(TestSimul):
     Simul = Simul

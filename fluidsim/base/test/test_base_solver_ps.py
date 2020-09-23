@@ -23,7 +23,7 @@ from fluidsim.base.params import load_info_solver
 from fluidsim.util.testing import TestSimul, classproperty, skip_if_no_fluidfft
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestBaseSolverPS(TestSimul):
     @classproperty
     def Simul(cls):

@@ -42,7 +42,7 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
     return oper
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 @unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(TestCase):
     @classmethod

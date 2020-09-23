@@ -9,7 +9,7 @@ from fluidsim.util.testing import (
 )
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestSimulSW1LWaves(TestSimulConserve):
     zero = 1e-6
 

@@ -15,7 +15,7 @@ from fluidsim.util.console.__main__ import run_bench, run_bench_analysis
 path_tmp = "/tmp/fluidsim_test_bench"
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestBench(TestCase):
     """Test benchmarking."""
 

@@ -26,7 +26,7 @@ class TestsProfile(TestCase):
         if mpi.rank == 0 and os.path.isdir(path_dir):
             rmtree(path_dir)
 
-    @skip_if_no_fluidfft()
+    @skip_if_no_fluidfft
     def test3d(self):
         command = "fluidsim-profile 8 -s ns3d -o"
         args = command.split()
@@ -43,7 +43,7 @@ class TestsProfile(TestCase):
             sys.argv = args
             run_profile()
 
-    @skip_if_no_fluidfft()
+    @skip_if_no_fluidfft
     def test2d(self):
         command = "fluidsim-profile 16 -s ns2d -o"
         args = command.split()

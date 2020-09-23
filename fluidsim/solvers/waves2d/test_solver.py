@@ -2,7 +2,7 @@ from fluiddyn.util.compat import cached_property
 from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestSimulBase(TestSimul):
     @classproperty
     def Simul(cls):

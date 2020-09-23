@@ -11,7 +11,7 @@ from fluidsim.util.testing import (
 )
 
 
-@skip_if_no_fluidfft()
+@skip_if_no_fluidfft
 class TestSimulSW1L(TestSimulConserveOutput):
     zero = 1e-5
 
