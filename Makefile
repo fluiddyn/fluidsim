@@ -14,15 +14,16 @@ clean_pyc:
 	find fluidsim -name "*.pyc" -delete
 	find fluidsim -name "__pycache__" -type d | xargs rm -rf
 
-cleanpythran:
+cleantransonic:
 	find fluidsim -type d -name __pythran__ | xargs rm -rf
-	find fluidsim -name "*pythran*.cpp" -delete
-	find fluidsim -name "*pythran*.so" -delete
+	find fluidsim -type d -name __python__ | xargs rm -rf
+	find fluidsim -type d -name __numba__ | xargs rm -rf
+	find fluidsim -type d -name __cython__ | xargs rm -rf
 
 clean:
 	rm -rf build
 
-cleanall: clean clean_so cleanpythran
+cleanall: clean clean_so cleantransonic
 
 shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
@@ -59,6 +60,3 @@ coverage_short:
 
 lint:
 	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero
-
-install:
-	python setup.py install

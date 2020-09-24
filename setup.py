@@ -5,40 +5,43 @@ from pathlib import Path
 from time import time
 from runpy import run_path
 
-from setuptools.dist import Distribution
 from setuptools import setup, find_packages
+
+from transonic.dist import make_backend_files, init_transonic_extensions
 
 if sys.version_info[:2] < (3, 6):
     raise RuntimeError("Python version >= 3.6 required.")
 
-
-def install_setup_requires():
-    dist = Distribution()
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
-    if dist.setup_requires:
-        dist.fetch_build_eggs(dist.setup_requires)
-
-
-install_setup_requires()
-
 here = Path(__file__).parent.absolute()
 
-try:
-    from setup_config import FFTW3, logger
-except ImportError:
-    # needed when there is already a module with the same name imported.
-    setup_config = run_path(str(here / "setup_config.py"))
-    FFTW3 = setup_config["FFTW3"]
-    logger = setup_config["logger"]
+sys.path.insert(0, ".")
 
-try:
-    from setup_build import FluidSimBuildExt
-except ImportError:
-    # needed when there is already a module with the same name imported.
-    FluidSimBuildExt = run_path(str(here / "setup_build.py"))["FluidSimBuildExt"]
+from setup_configure import FFTW3, logger, FLUIDSIM_TRANSONIC_BACKEND
+from setup_build import FluidSimBuildExt
 
 time_start = time()
+
+
+build_dependencies_backends = {
+    "pythran": ["pythran>=0.9.7"],
+    "cython": ["cython"],
+    "python": [],
+    "numba": [],
+}
+
+if FLUIDSIM_TRANSONIC_BACKEND not in build_dependencies_backends:
+    raise ValueError(
+        f"FLUIDSIM_TRANSONIC_BACKEND={FLUIDSIM_TRANSONIC_BACKEND} "
+        f"not in {list(build_dependencies_backends.keys())}"
+    )
+
+setup_requires = []
+setup_requires.extend(build_dependencies_backends[FLUIDSIM_TRANSONIC_BACKEND])
+
+# Set the environment variable FLUIDSIM_SETUP_REQUIRES=0 if we need to skip
+# setup_requires for any reason.
+if os.environ.get("FLUIDSIM_SETUP_REQUIRES", "1") == "0":
+    setup_requires = []
 
 
 def long_description():
@@ -68,8 +71,6 @@ install_requires = [
     "h5py",
     "h5netcdf",
     "transonic>=0.4.3",
-    "gast~=0.3.3",
-    "beniget~=0.2.1",
     "setuptools_scm",
     "xarray",
 ]
@@ -114,8 +115,6 @@ for command in ["profile", "bench", "bench-analysis"]:
 
 def transonize():
 
-    from transonic.dist import make_backend_files
-
     paths = [
         "fluidsim/base/time_stepping/pseudo_spect.py",
         "fluidsim/base/output/increments.py",
@@ -125,16 +124,18 @@ def transonize():
         "fluidsim/solvers/ns3d/strat/solver.py",
         "fluidsim/solvers/ns3d/forcing.py",
     ]
-    make_backend_files([here / path for path in paths])
+    make_backend_files(
+        [here / path for path in paths], backend=FLUIDSIM_TRANSONIC_BACKEND
+    )
 
 
 def create_pythran_extensions():
     import numpy as np
-    from transonic.dist import init_pythran_extensions
 
     compile_arch = os.getenv("CARCH", "native")
-    extensions = init_pythran_extensions(
+    extensions = init_transonic_extensions(
         "fluidsim",
+        backend=FLUIDSIM_TRANSONIC_BACKEND,
         include_dirs=np.get_include(),
         compile_args=("-O3", f"-march={compile_arch}", "-DUSE_XSIMD"),
     )
@@ -188,10 +189,11 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["doc", "examples"]),
+    setup_requires=setup_requires,
     install_requires=install_requires,
     cmdclass={"build_ext": FluidSimBuildExt},
     ext_modules=create_extensions(),
     entry_points={"console_scripts": console_scripts},
 )
 
-logger.info("Setup completed in {:.3f} seconds.".format(time() - time_start))
+logger.info(f"Setup completed in {time() - time_start:.3f} seconds.")

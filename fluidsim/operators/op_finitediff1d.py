@@ -10,7 +10,11 @@ Provides:
 """
 
 import numpy as np
-import scipy.sparse as sparse
+
+try:
+    import scipy.sparse as sparse
+except ImportError:
+    pass
 
 from .base import OperatorsBase1D
 

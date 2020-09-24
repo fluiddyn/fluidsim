@@ -37,6 +37,11 @@ logger = get_logger("fluidsim")
 logger.setLevel(level)
 
 
+FLUIDSIM_TRANSONIC_BACKEND = os.environ.get(
+    "FLUIDSIM_TRANSONIC_BACKEND", "pythran"
+)
+
+
 def check_avail_library(library_name):
     """Check if a shared library is available.
 

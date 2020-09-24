@@ -4,7 +4,10 @@ from fluidsim.base.params import merge_params
 
 from fluidsim.util.testing import TestCase
 
+from fluidsim.solvers.ad1d.test_solver import scipy_installed
 
+
+@unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
 class TestParameters(TestCase):
     """Test Parameters class and related functions."""
 
