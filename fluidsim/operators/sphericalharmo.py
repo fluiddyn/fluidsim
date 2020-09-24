@@ -5,7 +5,7 @@
 """
 import numpy as np
 
-from pyshtools.constant import Earth
+from pyshtools.constants import Earth
 
 from fluiddyn.util.compat import cached_property
 
@@ -25,7 +25,7 @@ class OperatorsSphericalHarmonics(_Operator):
         - omega (solid body rotation speed)
         - radius (of the sphere)
 
-        are initialized as per *{Earth.r3_wgs84.reference}*
+        are initialized as per *{Earth.wgs84.r3.reference}*
 
         """
 
@@ -33,8 +33,8 @@ class OperatorsSphericalHarmonics(_Operator):
             "lmax": 15,
             "nlat": None,
             "nlon": None,
-            "omega": Earth.omega_wgs84.value,
-            "radius": Earth.r3_wgs84.value,
+            "omega": Earth.wgs84.omega.value,
+            "radius": Earth.wgs84.r3.value,
         }
         params._set_child("oper", attribs=attribs)
 
