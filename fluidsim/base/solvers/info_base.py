@@ -1,3 +1,12 @@
+"""Base solver (:mod:`fluidsim.base.solvers.info_base`)
+=======================================================
+
+.. autoclass:: InfoSolverBase
+   :members:
+   :private-members:
+
+"""
+
 from copy import deepcopy
 
 from fluiddyn.util.paramcontainer import ParamContainer

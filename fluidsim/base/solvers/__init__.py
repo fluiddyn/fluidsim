@@ -10,5 +10,6 @@ Provides:
    base
    pseudo_spect
    finite_diff
+   info_base
 
 """
