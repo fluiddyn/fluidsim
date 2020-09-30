@@ -13,6 +13,7 @@
 
 import sys
 import os
+from pathlib import Path
 
 import matplotlib as mpl
 
@@ -25,29 +26,20 @@ from fluiddoc import mock_modules
 
 mock_modules(
     (
-        # "scipy",
-        # "scipy.sparse",
-        # "scipy.sparse.linalg",
-        # "scipy.fftpack",
-        # "scipy.special",
-        # "scipy.spatial",
-        # "scipy.linalg",
-        # "scipy.linalg.blas",
-        # "scipy.interpolate",
         "basilisk",
         "basilisk.stream",
         "pyshtools",
-        "pyshtools.constant",
+        "pyshtools.constants",
         "fluidsht",
         "fluidsht.sht2d",
         "fluidsht.sht2d.operators",
     )
 )
 
-from fluiddoc.ipynb_maker import ipynb_to_rst
+from fluiddoc.ipynb_maker import execute_notebooks
 
-ipynb_to_rst()
-ipynb_to_rst("ipynb/executed", executed=True)
+execute_notebooks("ipynb")
+nbsphinx_execute = "never"
 
 import fluidsim
 import fluidsim.operators.operators2d
@@ -78,6 +70,7 @@ extensions = [
     "numpydoc",
     "fluiddoc.mathmacro",
     "sphinx.ext.inheritance_diagram",
+    "nbsphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -119,6 +112,14 @@ release = fluidsim.__version__
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ["_build"]
+paths_notebooks = Path("ipynb").glob("*.ipynb")
+exclude_patterns.extend(
+    [
+        f"ipynb/{path.name}"
+        for path in paths_notebooks
+        if not path.name.endswith(".executed.ipynb")
+    ]
+)
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
