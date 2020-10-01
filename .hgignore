@@ -70,3 +70,6 @@ site.cfg
 *.lock
 *.dirlock
 **/tmp*
+
+fluidsim_path
+scratch
