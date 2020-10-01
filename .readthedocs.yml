@@ -16,4 +16,4 @@ python:
       path: .
       extra_requirements:
         - doc
-
+        - fft
