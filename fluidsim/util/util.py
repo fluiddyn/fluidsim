@@ -269,6 +269,12 @@ def load_sim_for_plot(
     except AttributeError:
         pass
 
+    try:
+        params.oper.type_fft = "default"
+        params.oper.type_fft2d = "sequential"
+    except AttributeError:
+        pass
+
     fix_old_params(params)
 
     with stdout_redirected(hide_stdout):
@@ -338,6 +344,11 @@ def load_state_phys_file(
         params.output.ONLINE_PLOT_OK = False
 
     params.ONLY_COARSE_OPER = False
+    try:
+        params.oper.type_fft = "default"
+        params.oper.type_fft2d = "sequential"
+    except AttributeError:
+        pass
 
     with stdout_redirected(hide_stdout):
         sim = Simul(params)
