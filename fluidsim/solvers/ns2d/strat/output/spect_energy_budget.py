@@ -11,6 +11,7 @@ import numpy as np
 import h5py
 
 from fluiddyn.util import mpi
+import matplotlib.pyplot as plt
 
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase,
@@ -198,14 +199,61 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
-    def plot(
-        self, tmin=0, tmax=None, delta_t=2, plot_diss_EK=False, plot_conv=False
-    ):
-        """Plot the energy budget."""
+    def load_mean(self, tmin=None, tmax=None, keys_to_load=None):
+        """Loads data spect_energy_budget.
 
+        It computes the mean between tmin and tmax."""
+        means = {}
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            nt = len(times)
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
+
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
+
+            print(
+                "compute mean spectral energy budget\n"
+                f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
+            )
+
+            for key in list(file.keys()):
+                if key.startswith("k"):
+                    means[key] = file[key][...]
+
+            if keys_to_load is not None:
+                if isinstance(keys_to_load, str):
+                    keys_to_load = [keys_to_load]
+                for key in keys_to_load:
+                    if key not in file.keys():
+                        print(key, file.keys())
+                        raise ValueError
+            else:
+                keys_to_load = [
+                    key
+                    for key in file.keys()
+                    if key != "times" and not key.startswith(("k", "info"))
+                ]
+
+            for key in keys_to_load:
+                spect = file[key][imin_plot : imax_plot + 1].mean(0)
+                means[key] = spect
+        return means
+
+    def compute_fluxes_mean(self, tmin=None, tmax=None):
+        """compute the fluxes mean."""
         # Load data from file
         with h5py.File(self.path_file, "r") as file:
             times = file["times"][...]
+            nt = len(times)
             kxE = file["kxE"][...]
             kyE = file["kyE"][...]
 
@@ -220,50 +268,19 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             dset_dissEK_ky = file["dissEK_ky"][...]
             dset_dissEA_ky = file["dissEA_ky"][...]
 
-            if plot_conv:
-                dset_conv_kx = file["B_kx"][...]
-                dset_conv_ky = file["B_ky"][...]
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
 
-        if tmin is None:
-            tmin = 0
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
 
-        if tmax is None:
-            tmax = np.max(times)
-
-        # Average from tmin and tmax for plot
-        delta_t_save = np.mean(times[1:] - times[0:-1])
-        delta_i_plot = int(np.round(delta_t / delta_t_save))
-
-        if delta_i_plot == 0 and delta_t != 0.0:
-            delta_i_plot = 1
-        delta_t = delta_i_plot * delta_t_save
-
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
-
-        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
-
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
-        print(
-            """plot spectral energy budget
-            tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-            imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-        )
-
-        # Parameters of the figure
-        fig, ax1 = self.output.figure_axe()
-        ax1.set_xlabel("$k_x$")
-        ax1.set_ylabel(r"$\Pi$")
-        ax1.set_xscale("log")
-        ax1.set_yscale("linear")
-        ax1.set_title("Spectral energy budget\n" + self.output.summary_simul)
-
+        # compute means kx
         transferEK_kx = dset_transferEK_kx[imin_plot : imax_plot + 1].mean(0)
         transferEA_kx = dset_transferEA_kx[imin_plot : imax_plot + 1].mean(0)
 
@@ -279,37 +296,14 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEA_kx = dissEA_kx[:id_kx_dealiasing]
         kxE = kxE[:id_kx_dealiasing]
 
+        # Transfer and dissipation kx
         PiEK_kx = cumsum_inv(transferEK_kx[1:]) * self.oper.deltakx
         PiEA_kx = cumsum_inv(transferEA_kx[1:]) * self.oper.deltakx
 
         DissEK_kx = dissEK_kx[1:].cumsum() * self.oper.deltakx
         DissEA_kx = dissEA_kx[1:].cumsum() * self.oper.deltakx
 
-        ax1.plot(kxE[1:], PiEK_kx + PiEA_kx, "k", label=r"$\Pi$")
-        ax1.plot(kxE[1:], PiEK_kx, "r", label=r"$\Pi_K$")
-        ax1.plot(kxE[1:], PiEA_kx, "b", label=r"$\Pi_A$")
-        ax1.plot(kxE[1:], DissEK_kx + DissEA_kx, "k--", label=r"$D$")
-
-        if plot_diss_EK:
-            ax1.plot(kxE[1:], DissEK_kx, "r--", label=r"$D_K$")
-
-        if plot_conv:
-            conv_kx = dset_conv_kx[imin_plot : imax_plot + 1].mean(0)[
-                :id_kx_dealiasing
-            ]
-            conv_kx = cumsum_inv(conv_kx[1:]) * self.oper.deltakx
-            ax1.plot(kxE[1:], conv_kx, "c", label=r"$C$")
-
-        ax1.axhline(y=0, color="k", linestyle=":")
-
-        # Parameters of the figure
-        fig, ax2 = self.output.figure_axe()
-        ax2.set_xlabel("$k_z$")
-        ax2.set_ylabel(r"$\Pi$")
-        ax2.set_xscale("log")
-        ax2.set_yscale("linear")
-        ax2.set_title("Spectral energy budget\n" + self.output.summary_simul)
-
+        # compute means ky
         transferEK_ky = dset_transferEK_ky[imin_plot : imax_plot + 1].mean(0)
         transferEA_ky = dset_transferEA_ky[imin_plot : imax_plot + 1].mean(0)
 
@@ -322,30 +316,100 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         dissEA_ky = dissEA_ky[:id_ky_dealiasing]
         kyE = kyE[:id_ky_dealiasing]
 
+        # Transfer and dissipation ky
         PiEK_ky = cumsum_inv(transferEK_ky[1:]) * self.oper.deltaky
         PiEA_ky = cumsum_inv(transferEA_ky[1:]) * self.oper.deltaky
 
         DissEK_ky = dissEK_ky[1:].cumsum() * self.oper.deltaky
         DissEA_ky = dissEA_ky[1:].cumsum() * self.oper.deltaky
 
-        ax2.plot(kyE[1:], PiEK_ky + PiEA_ky, "k", label=r"$\Pi$")
-        ax2.plot(kyE[1:], PiEK_ky, "r", label=r"$\Pi_K$")
-        ax2.plot(kyE[1:], PiEA_ky, "b", label=r"$\Pi_A$")
-        ax2.plot(kyE[1:], DissEK_ky + DissEA_ky, "k--", label=r"$D$")
+        # save data in dictionary
+        fluxes = {
+            "kxE": kxE,
+            "kyE": kyE,
+            "PiEAmean_x": PiEA_kx,
+            "PiEKmean_x": PiEK_kx,
+            "DissEAmean_x": DissEA_kx,
+            "DissEKmean_x": DissEK_kx,
+            "PiEAmean_y": PiEA_ky,
+            "PiEKmean_y": PiEK_ky,
+            "DissEAmean_y": DissEA_ky,
+            "DissEKmean_y": DissEK_ky,
+        }
+        return fluxes
 
-        if plot_diss_EK:
-            ax2.plot(kyE[1:], DissEK_ky, "r--", label=r"$D_K$")
+    def plot(
+        self, tmin=None, tmax=None, delta_t=2, plot_diss_EK=False, plot_conv=False
+    ):
+        """Plot the energy budget."""
+        # load data from file
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            nt = len(times)
+            if plot_conv:
+                dset_conv_kx = file["B_kx"][...]
+                dset_conv_ky = file["B_ky"][...]
 
-        if plot_conv:
-            conv_ky = dset_conv_ky[imin_plot : imax_plot + 1].mean(0)[
-                :id_ky_dealiasing
-            ]
-            conv_ky = cumsum_inv(conv_ky[1:]) * self.oper.deltaky
-            ax2.plot(kyE[1:], conv_ky, "c", label=r"$C$")
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
 
-        ax2.axhline(y=0, color="k", linestyle=":")
+        # Average from tmin and tmax for plot
+        delta_t_save = np.mean(times[1:] - times[0:-1])
+        delta_i_plot = int(np.round(delta_t / delta_t_save))
 
-        # Plot forcing wave-number k_f
+        if delta_i_plot == 0 and delta_t != 0.0:
+            delta_i_plot = 1
+        delta_t = delta_i_plot * delta_t_save
+
+        to_print = "plot(tmin={}, tmax{}, delta_t={:.2f})".format(
+            tmin, tmax, delta_t
+        )
+        print(to_print)
+
+        tmin = times[imin_plot]
+        tmax = times[imax_plot]
+        print(
+            """plot spectral energy budget
+            tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
+            imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
+                tmin, tmax, delta_t, imin_plot, imax_plot, delta_i_plot
+            )
+        )
+
+        # Load data from function "compute_fluxes_mean"
+        fluxes = self.compute_fluxes_mean(tmin, tmax)
+
+        # Parameters of the figure
+        fig, ax1 = self.output.figure_axe()
+        ax1.set_xlabel("$k_x/k_{f,x}$")
+        ax1.set_ylabel(r"$\Pi(k_x)/\epsilon$")
+        ax1.set_xscale("log")
+        ax1.set_yscale("linear")
+        ax1.set_title("Spectral energy budget\n" + self.output.summary_simul)
+        ax1.set_xlim(left=1e-1, right=5e1)
+
+        # Compute time average dissipation to normalize fluxes
+        dico_results = self.output.spatial_means.load()
+
+        t = dico_results["t"]
+        epsK_tot = dico_results["epsK_tot"]
+        epsA_tot = dico_results["epsA_tot"]
+        eps_tot = epsK_tot + epsA_tot
+
+        imin_plot_spatial_times = np.argmin(abs(t - tmin))
+        imax_plot_spatial_times = np.argmin(abs(t - tmax))
+
+        eps_tot_time_average = eps_tot[
+            imin_plot_spatial_times:imax_plot_spatial_times
+        ].mean(0)
+
+        # calculate forcing wave-number k_f to normalize k_x and k_z
         nkmax = self.sim.params.forcing.nkmax_forcing
         nkmin = self.sim.params.forcing.nkmin_forcing
         k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
@@ -360,8 +424,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
                 pass
             k_fx = np.sin(angle) * k_f
             k_fy = np.cos(angle) * k_f
-            # ax1.axvline(x=k_fx, color="y", linestyle="-.", label="$k_{f,x}$")
-            # ax2.axvline(x=k_fy, color="y", linestyle="-.", label="$k_{f,z}$")
 
             # Band forcing region kx
             k_fxmin = nkmin * self.sim.oper.deltak * np.sin(angle)
@@ -371,14 +433,125 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             k_fymin = nkmin * self.sim.oper.deltak * np.cos(angle)
             k_fymax = nkmax * self.sim.oper.deltak * np.cos(angle)
 
-            ax1.axvspan(k_fxmin, k_fxmax, alpha=0.15, color="black")
-            ax2.axvspan(k_fymin, k_fymax, alpha=0.15, color="black")
+        # extract variables from the dictionary to plot
+        kxE = fluxes["kxE"]
+        kyE = fluxes["kyE"]
+        PiEK_kx = fluxes["PiEKmean_x"]
+        PiEA_kx = fluxes["PiEAmean_x"]
+
+        DissEK_kx = fluxes["DissEKmean_x"]
+        DissEA_kx = fluxes["DissEAmean_x"]
+
+        ax1.plot(
+            kxE[1:] / k_fx,
+            (PiEK_kx + PiEA_kx) / eps_tot_time_average,
+            "k--",
+            label=r"$\Pi/\epsilon$",
+        )
+        ax1.plot(
+            kxE[1:] / k_fx,
+            PiEK_kx / eps_tot_time_average,
+            "r",
+            label=r"$\Pi_K/\epsilon$",
+        )
+        ax1.plot(
+            kxE[1:] / k_fx,
+            PiEA_kx / eps_tot_time_average,
+            "b",
+            label=r"$\Pi_A/\epsilon$",
+        )
+        ax1.plot(
+            kxE[1:] / k_fx,
+            (DissEK_kx + DissEA_kx) / eps_tot_time_average,
+            "g",
+            label=r"$D/\epsilon$",
+        )
+
+        if plot_diss_EK:
+            ax1.plot(kxE[1:], DissEK_kx, "r--", label=r"$D_K$")
+
+        if plot_conv:
+            id_kx_dealiasing = np.argmin(kxE - self.sim.oper.kxmax_dealiasing) - 1
+            id_ky_dealiasing = np.argmin(kyE - self.sim.oper.kymax_dealiasing) - 1
+            conv_kx = dset_conv_kx[imin_plot : imax_plot + 1].mean(0)[
+                :id_kx_dealiasing
+            ]
+            conv_kx = cumsum_inv(conv_kx[1:]) * self.oper.deltakx
+            ax1.plot(kxE[1:], conv_kx, "c", label=r"$C$")
+
+        ax1.axhline(y=0, color="k", linestyle=":")
+
+        # Parameters of the figure
+        fig, ax2 = self.output.figure_axe()
+        ax2.set_xlabel("$k_z/k_{f,z}$")
+        ax2.set_ylabel(r"$\Pi(k_z)/\epsilon$")
+        ax2.set_xscale("log")
+        ax2.set_yscale("linear")
+        ax2.set_title("Spectral energy budget\n" + self.output.summary_simul)
+        ax2.set_xlim(left=1e-1, right=5e1)
+
+        PiEK_ky = fluxes["PiEKmean_y"]
+        PiEA_ky = fluxes["PiEAmean_y"]
+
+        DissEK_ky = fluxes["DissEKmean_y"]
+        DissEA_ky = fluxes["DissEAmean_y"]
+
+        ax2.plot(
+            kyE[1:] / k_fy,
+            (PiEK_ky + PiEA_ky) / eps_tot_time_average,
+            "k--",
+            label=r"$\Pi/\epsilon$",
+        )
+        ax2.plot(
+            kyE[1:] / k_fy,
+            PiEK_ky / eps_tot_time_average,
+            "r",
+            label=r"$\Pi_K/\epsilon$",
+        )
+        ax2.plot(
+            kyE[1:] / k_fy,
+            PiEA_ky / eps_tot_time_average,
+            "b",
+            label=r"$\Pi_A/\epsilon$",
+        )
+        ax2.plot(
+            kyE[1:] / k_fy,
+            (DissEK_ky + DissEA_ky) / eps_tot_time_average,
+            "g",
+            label=r"$D/\epsilon$",
+        )
+
+        if plot_diss_EK:
+            ax2.plot(kyE[1:], DissEK_ky, "r--", label=r"$D_K$")
+
+        if plot_conv:
+            conv_ky = dset_conv_ky[imin_plot : imax_plot + 1].mean(0)[
+                :id_ky_dealiasing
+            ]
+            conv_ky = cumsum_inv(conv_ky[1:]) * self.oper.deltaky
+            ax2.plot(kyE[1:], conv_ky, "c", label=r"$C$")
+
+        ax2.axhline(y=0, color="k", linestyle=":")
+
+        # plot forcing range
+        ax1.axvspan(k_fxmin / k_fx, k_fxmax / k_fx, alpha=0.15, color="black")
+        ax2.axvspan(k_fymin / k_fy, k_fymax / k_fy, alpha=0.15, color="black")
 
         # Compute k_b: L_b = U / N
         U = np.sqrt(np.mean(abs(self.sim.state.get_var("ux")) ** 2))
         k_b = self.sim.params.N / U
-        ax1.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
-        ax2.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
+        ax1.axvline(x=k_b / k_fx, color="k", linestyle="--")
+        ax2.axvline(x=k_b / k_fy, color="k", linestyle="--")
+        ax1.text((k_b / k_fx) + 0.5, 1, r"$k_b$")
+        ax2.text((k_b / k_fy) + 0.5, 1.7, r"$k_b$")
+
+        # Plot ozmidov scale
+        k_o = (self.params.N ** 3 / self.params.forcing.forcing_rate) ** (1 / 2)
+        ax1.axvline(x=k_o / k_fx, color="black", linestyle="--")
+        ax2.axvline(x=k_o / k_fy, color="black", linestyle="--")
+
+        ax1.text((k_o / k_fx) + 2, 1, r"$k_o$")
+        ax2.text((k_o / k_fy) + 2, 1.7, r"$k_o$")
 
         ax1.legend()
         ax2.legend()
