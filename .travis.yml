@@ -10,7 +10,7 @@ python:
 env:
   - TOXENV=py,codecov-travis
   - TOXENV=py-pythran,codecov-travis
-  - TOXENV=py-pythran-fft,codecov-travis
+  - TOXENV=py-fft,codecov-travis
 
 addons:
   apt:
@@ -22,6 +22,7 @@ addons:
       - libfftw3-mpi-dev
       - libhdf5-openmpi-dev
       - openmpi-bin
+      - libopenmpi-dev
       - libopenblas-dev
 
 matrix:
