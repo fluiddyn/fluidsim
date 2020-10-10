@@ -16,7 +16,7 @@ here = Path(__file__).parent.absolute()
 
 sys.path.insert(0, ".")
 
-from setup_configure import FFTW3, logger, FLUIDSIM_TRANSONIC_BACKEND
+from setup_configure import FFTW3, logger, TRANSONIC_BACKEND
 from setup_build import FluidSimBuildExt
 
 time_start = time()
@@ -29,14 +29,14 @@ build_dependencies_backends = {
     "numba": [],
 }
 
-if FLUIDSIM_TRANSONIC_BACKEND not in build_dependencies_backends:
+if TRANSONIC_BACKEND not in build_dependencies_backends:
     raise ValueError(
-        f"FLUIDSIM_TRANSONIC_BACKEND={FLUIDSIM_TRANSONIC_BACKEND} "
+        f"FLUIDSIM_TRANSONIC_BACKEND={TRANSONIC_BACKEND} "
         f"not in {list(build_dependencies_backends.keys())}"
     )
 
 setup_requires = []
-setup_requires.extend(build_dependencies_backends[FLUIDSIM_TRANSONIC_BACKEND])
+setup_requires.extend(build_dependencies_backends[TRANSONIC_BACKEND])
 
 # Set the environment variable FLUIDSIM_SETUP_REQUIRES=0 if we need to skip
 # setup_requires for any reason.
@@ -124,9 +124,7 @@ def transonize():
         "fluidsim/solvers/ns3d/strat/solver.py",
         "fluidsim/solvers/ns3d/forcing.py",
     ]
-    make_backend_files(
-        [here / path for path in paths], backend=FLUIDSIM_TRANSONIC_BACKEND
-    )
+    make_backend_files([here / path for path in paths], backend=TRANSONIC_BACKEND)
 
 
 def create_pythran_extensions():
@@ -135,7 +133,7 @@ def create_pythran_extensions():
     compile_arch = os.getenv("CARCH", "native")
     extensions = init_transonic_extensions(
         "fluidsim",
-        backend=FLUIDSIM_TRANSONIC_BACKEND,
+        backend=TRANSONIC_BACKEND,
         include_dirs=np.get_include(),
         compile_args=("-O3", f"-march={compile_arch}", "-DUSE_XSIMD"),
     )

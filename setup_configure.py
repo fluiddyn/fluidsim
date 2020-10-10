@@ -16,9 +16,8 @@ import sys
 import subprocess
 import shlex
 from ctypes.util import find_library
-
+from distutils.util import strtobool
 from configparser import ConfigParser
-
 from logging import ERROR, INFO, DEBUG
 
 from transonic.dist import get_logger
@@ -37,9 +36,21 @@ logger = get_logger("fluidsim")
 logger.setLevel(level)
 
 
-FLUIDSIM_TRANSONIC_BACKEND = os.environ.get(
-    "FLUIDSIM_TRANSONIC_BACKEND", "pythran"
-)
+TRANSONIC_BACKEND = os.environ.get("FLUIDSIM_TRANSONIC_BACKEND", "pythran")
+
+
+if "PYTHRAN" in os.environ:
+    PYTHRAN = strtobool(os.environ["PYTHRAN"])
+
+    if (
+        "FLUIDSIM_TRANSONIC_BACKEND" in os.environ
+        and not PYTHRAN
+        and TRANSONIC_BACKEND == "pythran"
+    ):
+        raise ValueError
+
+    if not PYTHRAN:
+        TRANSONIC_BACKEND = "python"
 
 
 def check_avail_library(library_name):
