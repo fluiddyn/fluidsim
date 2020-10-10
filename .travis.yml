@@ -4,8 +4,8 @@ dist: xenial
 language: python
 
 python:
-  - 3.6
   - 3.7
+  - 3.8
 
 env:
   - TOXENV=py,codecov-travis
@@ -28,7 +28,7 @@ addons:
 matrix:
   fast_finish: true
   include:
-    - python: 3.6
+    - python: 3.7
       env: TOXENV=lint
       addons:
         # workaround because of the pip install -U ... mpi4py line in install section
@@ -36,7 +36,7 @@ matrix:
           packages: [libopenmpi-dev, openmpi-bin]
 
   allow_failures:
-    - python: 3.6
+    - python: 3.7
       env: TOXENV=lint
 
 before_cache:
@@ -51,7 +51,6 @@ cache:
 
 install:
     - pip install -U pip tox colorlog coverage fluiddevops
-    - pip install -U cython mpi4py
 
 before_script:
     - |
