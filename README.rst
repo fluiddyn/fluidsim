@@ -4,7 +4,7 @@
 
 |release| |pyversions| |docs| |coverage| |travis| |chat|
 
-.. |logo| image:: https://foss.heptapod.net/fluiddyn/fluiddyn/raw/branch/default/doc/logo.png
+.. |logo| image:: https://foss.heptapod.net/fluiddyn/fluidsim/raw/branch/default/doc/logo.svg
    :alt: FluidSim
 
 .. |release| image:: https://badge.fury.io/py/fluidsim.svg
