@@ -1,6 +1,4 @@
-sudo: required
-dist: xenial
-# See https://github.com/travis-ci/travis-ci/issues/9069
+dist: focal
 language: python
 
 python:
@@ -14,10 +12,7 @@ env:
 
 addons:
   apt:
-    sources: ubuntu-toolchain-r-test
     packages:
-      - gcc-6
-      - g++-6
       - libfftw3-dev
       - libfftw3-mpi-dev
       - libhdf5-openmpi-dev
@@ -30,10 +25,6 @@ matrix:
   include:
     - python: 3.7
       env: TOXENV=lint
-      addons:
-        # workaround because of the pip install -U ... mpi4py line in install section
-        apt:
-          packages: [libopenmpi-dev, openmpi-bin]
 
   allow_failures:
     - python: 3.7
@@ -56,7 +47,7 @@ before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
-      echo '[pythran]\ncomplex_hook = True\n[compiler]\nCXX = g++-6\nCC = gcc-6\n' > $HOME/.pythranrc
+      echo '[pythran]\ncomplex_hook = True\n[compiler]\nCXX = clang++-10\nCC = clang-10\n' > $HOME/.pythranrc
       wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/site.cfg.files/site.cfg.travis_$TRAVIS_OS_NAME -O $HOME/.fluidfft-site.cfg
 
 script:
