@@ -18,11 +18,11 @@
    :target: http://fluidsim.readthedocs.org
    :alt: Documentation status
 
-.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/graph/badge.svg
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/branch%2Fdefault/graph/badge.svg
    :target: https://codecov.io/gh/fluiddyn/fluidsim
    :alt: Code coverage
 
-.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg
    :target: https://travis-ci.org/fluiddyn/fluidsim
    :alt: Travis CI status
 
@@ -33,7 +33,7 @@
 .. description
 
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/master?urlpath=lab/tree/doc/ipynb
+   :target: https://mybinder.org/v2/gh/fluiddyn/fluidsim/branch%2Fdefault?urlpath=lab/tree/doc/ipynb
    :alt: Binder notebook
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
