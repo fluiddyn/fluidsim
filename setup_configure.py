@@ -39,17 +39,17 @@ logger.setLevel(level)
 TRANSONIC_BACKEND = os.environ.get("FLUIDSIM_TRANSONIC_BACKEND", "pythran")
 
 
-if "PYTHRAN" in os.environ:
-    PYTHRAN = strtobool(os.environ["PYTHRAN"])
+if "DISABLE_PYTHRAN" in os.environ:
+    DISABLE_PYTHRAN = strtobool(os.environ["DISABLE_PYTHRAN"])
 
     if (
         "FLUIDSIM_TRANSONIC_BACKEND" in os.environ
-        and not PYTHRAN
+        and DISABLE_PYTHRAN
         and TRANSONIC_BACKEND == "pythran"
     ):
         raise ValueError
 
-    if not PYTHRAN:
+    if DISABLE_PYTHRAN:
         TRANSONIC_BACKEND = "python"
 
 
