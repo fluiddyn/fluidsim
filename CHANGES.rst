@@ -1,4 +1,13 @@
 
+0.3.3 (2020-10-15)
+------------------
+
+- Bugfixes and optimizations (in particular for ns3d solvers)
+- Forcing WATU Coriolis and Milestone for ns3d.strat
+- pyproject.toml and isolated build
+- Timestepping using phase-shifting for dealiasing
+- Improve regularity of saving for some outputs
+
 0.3.2 (2019-11-14)
 ------------------
 

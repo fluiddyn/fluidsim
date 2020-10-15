@@ -2,7 +2,7 @@
 |logo|
 ======
 
-|release| |pyversions| |docs| |coverage| |travis| |chat|
+|release| |pyversions| |docs| |coverage| |heptapod_ci| |travis| |chat|
 
 .. |logo| image:: https://foss.heptapod.net/fluiddyn/fluidsim/raw/branch/default/doc/logo.svg
    :alt: FluidSim
@@ -21,6 +21,10 @@
 .. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/branch%2Fdefault/graph/badge.svg
    :target: https://codecov.io/gh/fluiddyn/fluidsim
    :alt: Code coverage
+
+.. |heptapod_ci| image:: https://foss.heptapod.net/fluiddyn/fluidsim/badges/branch/default/pipeline.svg
+   :target: https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
+   :alt: Heptapod CI
 
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg
    :target: https://travis-ci.org/fluiddyn/fluidsim
