@@ -55,57 +55,14 @@ To try fluidsim without installation: |binder|
 
 For a **basic installation** it should be sufficient to run::
 
-  pip install fluidsim --no-cache-dir [--user]
+  pip install fluidsim
 
-Add ``--user`` flag if you do not have permission to write in the directory of
-the python executable and you don't want to / can't setup a virtual environment
-or use pyenv or conda.
-
-Installation
-------------
-
-To take full advantage of fluidsim, consider installing the following
-(optional) dependencies and configurations before installing fluidsim. Click on
-the links to know more:
-
-1. OpenMPI or equivalent
-2. FFT libraries such as MPI-enabled FFTW (for 2D and 3D solvers) and P3DFFT,
-   PFFT (for 3D solvers) either using a package manager or `from source
-   <https://fluidfft.readthedocs.io/en/latest/install/fft_libs.html>`__
-3. Install optional Python `package dependencies
-   <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
-4. `A C++11 compiler and BLAS
-   libraries <https://pythran.readthedocs.io/en/latest/#installation>`__ and
-   `configure
-   <https://fluidsim.readthedocs.io/en/latest/install.html#dependencies>`__
-   ``~/.pythranrc`` to customize compilation of Pythran extensions
-5. `Configure
-   <https://fluidfft.readthedocs.io/en/latest/install.html#basic-installation-with-pip>`__
-   ``~/.fluidfft-site.cfg`` to detect the FFT libraries and install
-   ``fluidfft``
-
-**Note**: Detailed instructions to install the above dependencies using Anaconda
-/ Miniconda or in a specific operating system such as Ubuntu, macOS etc. can be
-found `here
-<https://fluiddyn.readthedocs.io/en/latest/get_good_Python_env.html>`__.
-
-You can get the source code from `Heptapod
-<https://foss.heptapod.net/fluiddyn/fluidsim>`__ or from `the Python
-Package Index <https://pypi.python.org/pypi/fluidsim/>`__.
-The development mode is often useful if you intend to modify fluidsim . From
-the root directory::
-
-  python setup.py develop
-
-Tests
------
-After installing fluidsim run the tests to ensure everything works::
-
-  fluidsim-test
-  mpirun -np 2 fluidsim-test
+Much more detailed instructions are given in `the documentation
+<https://fluidsim.readthedocs.io/en/latest/install.html>`__.
 
 How does it work?
 -----------------
+
 Fluidsim is a `HPC <https://en.wikipedia.org/wiki/High-performance_computing>`_
 code. It is part of the wider project `FluidDyn
 <https://pypi.python.org/pypi/fluiddyn/>`_ and its pseudospectral solvers rely
@@ -148,7 +105,6 @@ presenting the `FluidDyn project
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.238/>`__, and
 `FluidSim
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.239/>`__:
-
 
 .. code ::
 
