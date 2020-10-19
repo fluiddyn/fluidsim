@@ -53,6 +53,9 @@ scripts\Experiments\path_working_exp.txt
 
 */*_pythran.cpp
 **/__pythran__/*
+**/__numba__/*
+**/__python__/*
+**/__cython__/*
 
 bench/results_bench/*.json
 bench/oar_launcher_*
