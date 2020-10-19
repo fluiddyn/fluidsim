@@ -1,6 +1,31 @@
+Changes
+=======
 
-0.3.3 (2020-10-15)
-------------------
+All notable changes to this project will be documented in this file.
+
+The format is based on `Keep a
+Changelog <https://keepachangelog.com/en/1.0.0/>`__, and this project
+adheres to `Semantic
+Versioning <https://semver.org/spec/v2.0.0.html>`__.
+
+.. Type of changes
+.. ---------------
+.. Added      Added for new features.
+.. Changed    Changed for changes in existing functionality.
+.. Deprecated Deprecated for soon-to-be removed features.
+.. Removed    Removed for now removed features.
+.. Fixed      Fixed for any bug fixes.
+.. Security   Security in case of vulnerabilities.
+
+Unreleased_
+-----------
+
+.. towncrier release notes start
+
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...branch%2Fdefault
+
+0.3.3_ (2020-10-15)
+-------------------
 
 - Bugfixes and optimizations (in particular for ns3d solvers)
 - Forcing WATU Coriolis and Milestone for ns3d.strat
@@ -8,20 +33,20 @@
 - Timestepping using phase-shifting for dealiasing
 - Improve regularity of saving for some outputs
 
-0.3.2 (2019-11-14)
-------------------
+0.3.2_ (2019-11-14)
+-------------------
 
 - Bug fixes and Transonic 0.4 compatibility
 
-0.3.1 (2019-03-07)
-------------------
+0.3.1_ (2019-03-07)
+-------------------
 
 - Windows compatibility
 - Only Python code (stop using Cython)
 - Improvements ns2d.strat
 
-0.3.0 (2019-01-31)
-------------------
+0.3.0_ (2019-01-31)
+-------------------
 
 - Drop support for Python 2.7!
 - Accelerated by Transonic & Pythran (also time stepping)
@@ -31,19 +56,19 @@
 - Fix several bugs :-)
 - New function load_for_restart
 
-0.2.2 (2018-07-01)
-------------------
+0.2.2_ (2018-07-01)
+-------------------
 
 - Let fluidfft decides which FFT class to use (dependency fluidfft >= 0.2.4)
 
-0.2.1 (2018-05-24)
-------------------
+0.2.1_ (2018-05-24)
+-------------------
 
 - IPython magic commands (by Ashwin Vishnu).
 - Bugfix divergence-free flow and time_stepping in ns3d solvers.
 
-0.2.0 (2018-05-04)
-------------------
+0.2.0_ (2018-05-04)
+-------------------
 
 - Many bugfixes and nicer code (using the Python code formatter Black).
 - Faster ns3d solver.
@@ -103,3 +128,11 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 
 - Split the package fluiddyn between one base package and specialized
   packages.
+
+.. _0.3.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.2...0.3.3
+.. _0.3.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.1...0.3.2
+.. _0.3.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.0...0.3.1
+.. _0.3.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.2.2...0.3.0
+.. _0.2.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.2.1...0.2.2
+.. _0.2.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.2.0...0.2.1
+.. _0.2.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.1.1...0.2.0

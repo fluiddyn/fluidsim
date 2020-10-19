@@ -3,3 +3,45 @@
 # the PEP 517 interface.
 requires = ["setuptools>=49.5.0", "setuptools_scm", "wheel", "numpy", "transonic>=0.4.3"]
 build-backend = "setuptools.build_meta"
+
+[tool.towncrier]
+package = "fluidsim"
+single_file = true  # if false, filename is formatted like `title_format`.
+filename = "CHANGES.rst"
+directory = "doc/newsfragments"
+template = "doc/newsfragments/template.rst.j2"
+title_format = false  # if false, template includes title
+issue_format = "`!{issue} <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/{issue}>`__"
+underline = "-~"
+# wrap = true # Wrap text to 79 characters
+all_bullets = true  # make all fragments bullet points
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "deprecated"
+name = "Deprecated"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "security"
+name = "Security"
+showcontent = true
