@@ -9,6 +9,7 @@
 
 import numpy as np
 
+from warnings import warn
 from fluidsim.solvers.ns3d.output.spect_energy_budget import (
     SpectralEnergyBudgetNS3D,
 )
@@ -112,7 +113,12 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         for key, value in results.items():
             if key.startswith("transfer_A"):
-                assert value.sum() < 1e-14
+                try:
+                    assert value.sum() < 1e-14
+                except AssertionError:
+                    warn(
+                        f"spect_energy_budg: transfer_A.sum() is too big {value.sum()}"
+                    )
 
         return results
 
@@ -151,11 +157,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         def _plot(x, y, code, label, linewidth=None):
             ax.semilogx(
-                x,
-                y / eps,
-                code,
-                label=label,
-                linewidth=linewidth,
+                x, y / eps, code, label=label, linewidth=linewidth,
             )
 
         _plot(k_plot, flux_tot, "k", r"$\Pi/\epsilon$", linewidth=2)
