@@ -64,6 +64,85 @@ def _create_variable(group, key, field):
             )
 
 
+def save_file(
+    path_file,
+    state_phys,
+    sim_info,
+    output_name_run,
+    oper,
+    time,
+    it,
+    particular_attr=None,
+):
+    def create_group_with_attrs(h5file):
+        group_state_phys = h5file.create_group("state_phys")
+        group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
+        group_state_phys.attrs["name_type_variables"] = state_phys.info
+        group_state_phys.attrs["time"] = time
+        group_state_phys.attrs["it"] = it
+        return group_state_phys
+
+    if mpi.nb_proc == 1 or not cfg_h5py.mpi:
+        if mpi.rank == 0:
+            h5file = h5pack.File(str(path_file), "w")
+            group_state_phys = create_group_with_attrs(h5file)
+    else:
+        h5file = h5pack.File(str(path_file), "w", driver="mpio", comm=mpi.comm)
+        group_state_phys = create_group_with_attrs(h5file)
+
+    if mpi.nb_proc == 1:
+        for k in state_phys.keys:
+            field_seq = state_phys.get_var(k)
+            _create_variable(group_state_phys, k, field_seq)
+    elif not cfg_h5py.mpi:
+        for k in state_phys.keys:
+            field_loc = state_phys.get_var(k)
+            field_seq = oper.gather_Xspace(field_loc)
+            if mpi.rank == 0:
+                _create_variable(group_state_phys, k, field_seq)
+    else:
+        h5file.atomic = False
+        ndim = len(oper.shapeX_loc)
+        if ndim == 2:
+            xstart, ystart = oper.seq_indices_first_X
+        elif ndim == 3:
+            xstart, ystart, zstart = oper.seq_indices_first_X
+        else:
+            raise NotImplementedError
+        xend = xstart + oper.shapeX_loc[0]
+        yend = ystart + oper.shapeX_loc[1]
+        for k in state_phys.keys:
+            field_loc = state_phys.get_var(k)
+            dset = group_state_phys.create_dataset(
+                k, oper.shapeX_seq, dtype=field_loc.dtype
+            )
+            with dset.collective:
+                if field_loc.ndim == 2:
+                    dset[xstart:xend, ystart:yend] = field_loc
+                elif field_loc.ndim == 3:
+                    dset[xstart:xend, ystart:yend, :] = field_loc
+                else:
+                    raise NotImplementedError("Unsupported number of dimensions")
+        h5file.close()
+        if mpi.rank == 0:
+            h5file = h5pack.File(str(path_file), "r+")
+
+    if mpi.rank == 0:
+        h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
+        h5file.attrs["name_solver"] = sim_info.solver.short_name
+        h5file.attrs["name_run"] = output_name_run
+        h5file.attrs["axes"] = np.array(oper.axes, dtype="|S9")
+        if particular_attr is not None:
+            h5file.attrs["particular_attr"] = particular_attr
+
+        sim_info._save_as_hdf5(hdf5_parent=h5file)
+        gp_info = h5file["info_simul"]
+        gf_params = gp_info["params"]
+        gf_params.attrs["SAVE"] = 1
+        gf_params.attrs["NEW_DIR_RESULTS"] = 1
+        h5file.close()
+
+
 class PhysFieldsBase(SpecificOutput):
     """Manage the output of physical fields."""
 
@@ -172,7 +251,7 @@ class PhysFieldsBase(SpecificOutput):
 
         path_run = Path(self.output.path_run)
 
-        if self.params.time_stepping.USE_T_END:
+        if params.time_stepping.USE_T_END:
             # check if some state_phys files already exist
             try:
                 path_test = next(path_run.glob("state_phys*"))
@@ -181,7 +260,7 @@ class PhysFieldsBase(SpecificOutput):
                 # max number of digits = int(log10(t_end)) + 1
                 # add .3f precision = 4 additional characters
                 # +2 by anticipation of potential restarts
-                str_width = int(np.log10(self.params.time_stepping.t_end)) + 7
+                str_width = int(np.log10(params.time_stepping.t_end)) + 7
             else:
                 # file does exist : get str_width from file name
                 # file name is something like 'state_phys_tYYYY.YYY.nc'
@@ -193,10 +272,7 @@ class PhysFieldsBase(SpecificOutput):
         if mpi.rank == 0:
             path_run.mkdir(exist_ok=True)
 
-        if (
-            self.period_save < 0.001
-            or self.params.output.phys_fields.file_with_it
-        ):
+        if 0 < self.period_save < 0.001 or params.output.phys_fields.file_with_it:
             str_it = f"_it={self.sim.time_stepping.it}"
         else:
             str_it = ""
@@ -227,77 +303,16 @@ class PhysFieldsBase(SpecificOutput):
             path_file = path_run / name_save
         self.output.print_stdout("save state_phys in file " + name_save)
 
-        def create_group_with_attrs(h5file):
-            group_state_phys = h5file.create_group("state_phys")
-            group_state_phys.attrs["what"] = "obj state_phys for fluidsim"
-            group_state_phys.attrs["name_type_variables"] = state_phys.info
-            group_state_phys.attrs["time"] = time
-            group_state_phys.attrs["it"] = self.sim.time_stepping.it
-            return group_state_phys
-
-        if mpi.nb_proc == 1 or not cfg_h5py.mpi:
-            if mpi.rank == 0:
-                h5file = h5pack.File(str(path_file), "w")
-                group_state_phys = create_group_with_attrs(h5file)
-        else:
-            h5file = h5pack.File(
-                str(path_file), "w", driver="mpio", comm=mpi.comm
-            )
-            group_state_phys = create_group_with_attrs(h5file)
-
-        if mpi.nb_proc == 1:
-            for k in state_phys.keys:
-                field_seq = state_phys.get_var(k)
-                _create_variable(group_state_phys, k, field_seq)
-        elif not cfg_h5py.mpi:
-            for k in state_phys.keys:
-                field_loc = state_phys.get_var(k)
-                field_seq = self.oper.gather_Xspace(field_loc)
-                if mpi.rank == 0:
-                    _create_variable(group_state_phys, k, field_seq)
-        else:
-            h5file.atomic = False
-            ndim = len(self.oper.shapeX_loc)
-            if ndim == 2:
-                xstart, ystart = self.oper.seq_indices_first_X
-            elif ndim == 3:
-                xstart, ystart, zstart = self.oper.seq_indices_first_X
-            else:
-                raise NotImplementedError
-            xend = xstart + self.oper.shapeX_loc[0]
-            yend = ystart + self.oper.shapeX_loc[1]
-            for k in state_phys.keys:
-                field_loc = state_phys.get_var(k)
-                dset = group_state_phys.create_dataset(
-                    k, self.oper.shapeX_seq, dtype=field_loc.dtype
-                )
-                with dset.collective:
-                    if field_loc.ndim == 2:
-                        dset[xstart:xend, ystart:yend] = field_loc
-                    elif field_loc.ndim == 3:
-                        dset[xstart:xend, ystart:yend, :] = field_loc
-                    else:
-                        raise NotImplementedError(
-                            "Unsupported number of dimensions"
-                        )
-            h5file.close()
-            if mpi.rank == 0:
-                h5file = h5pack.File(str(path_file), "r+")
-
-        if mpi.rank == 0:
-            h5file.attrs["date saving"] = str(datetime.datetime.now()).encode()
-            h5file.attrs["name_solver"] = self.output.name_solver
-            h5file.attrs["name_run"] = self.output.name_run
-            h5file.attrs["axes"] = np.array(self.oper.axes, dtype="|S9")
-            if particular_attr is not None:
-                h5file.attrs["particular_attr"] = particular_attr
-
-            self.sim.info._save_as_hdf5(hdf5_parent=h5file)
-            gp_info = h5file["info_simul"]
-            gf_params = gp_info["params"]
-            gf_params.attrs["SAVE"] = 1
-            gf_params.attrs["NEW_DIR_RESULTS"] = 1
-            h5file.close()
+        save_file(
+            path_file,
+            state_phys,
+            self.sim.info,
+            self.output.name_run,
+            self.sim.oper,
+            time,
+            self.sim.time_stepping.it,
+            particular_attr,
+        )
 
     def get_field_to_plot(
         self,

@@ -507,8 +507,9 @@ def times_start_end_from_path(path):
             line = file_stdout.readline()
 
         if last_line.startswith("save state_phys"):
-            word = last_line.replace("=", " ").split()[-1]
-            _, ext = os.path.splitext(word)
+            name_file = last_line.split()[-1]
+            name_file, ext = os.path.splitext(name_file)
+            word = name_file.split("_it=")[0].split("state_phys_t")[-1]
             t_e = float(word.replace(ext, ""))
         else:
             words = line_it.split()
