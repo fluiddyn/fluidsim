@@ -11,6 +11,8 @@ from fluidsim.util.util import (
 
 params = Simul.create_default_params()
 
+params.output.sub_directory = "dev"
+
 params.oper.nx = 24
 params.oper.ny = 12
 params.init_fields.type = "noise"

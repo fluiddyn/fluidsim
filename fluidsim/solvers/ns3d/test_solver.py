@@ -39,12 +39,15 @@ class TestSimulBase(TestSimul):
         nx = 32
         params.oper.nx = nx
         params.oper.ny = nx * 3 // 4
-        params.oper.nz = nx // 2
 
         Lx = 6.0
         params.oper.Lx = Lx
         params.oper.Ly = Lx * 3 // 4
-        params.oper.Lz = Lx // 2
+        try:
+            params.oper.nz = nx // 2
+            params.oper.Lz = Lx // 2
+        except AttributeError:
+            pass
 
         params.oper.coef_dealiasing = 2.0 / 3
         params.nu_4 = 2.0
