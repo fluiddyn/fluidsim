@@ -305,6 +305,48 @@ path: str
         self.sim.time_stepping.it = it
 
 
+def fill_field_fft_2d(field_fft_in, field_fft_out):
+
+    [nk0_seq, nk1_seq] = field_fft_out.shape
+    [nk0_seq_in, nk1_seq_in] = field_fft_in.shape
+
+    nk0_min = min(nk0_seq, nk0_seq_in)
+    nk1_min = min(nk1_seq, nk1_seq_in)
+
+    # it is a little bit complicate to take into account ky
+    for ik1 in range(nk1_min):
+        field_fft_out[0, ik1] = field_fft_in[0, ik1]
+        field_fft_out[nk0_min // 2, ik1] = field_fft_in[nk0_min // 2, ik1]
+    for ik0 in range(1, nk0_min // 2):
+        for ik1 in range(nk1_min):
+            field_fft_out[ik0, ik1] = field_fft_in[ik0, ik1]
+            field_fft_out[-ik0, ik1] = field_fft_in[-ik0, ik1]
+
+
+def fill_field_fft_3d(field_fft_in, field_fft_out, oper_in, oper_out):
+
+    [nk0, nk1, nk2] = field_fft_out.shape
+    [nk0_in, nk1_in, nk2_in] = field_fft_in.shape
+
+    nk0_min = min(nk0, nk0_in)
+    nk1_min = min(nk1, nk1_in)
+    nk2_min = min(nk2, nk2_in)
+
+    for ik0 in range(nk0_min):
+        for ik1 in range(nk1_min):
+            for ik2 in range(nk2_min):
+                kx_adim, ky_adim, kz_adim = oper_in.kadim_from_ik012rank(
+                    ik0, ik1, ik2
+                )
+                oper_out.set_value_spect(
+                    field_fft_out,
+                    field_fft_in[ik0, ik1, ik2],
+                    kx_adim,
+                    ky_adim,
+                    kz_adim,
+                )
+
+
 class InitFieldsFromSimul(SpecificInitFields):
 
     tag = "from_simul"
@@ -321,30 +363,12 @@ class InitFieldsFromSimul(SpecificInitFields):
             return deepcopy(sim_in.state.state_spect)
 
         # modify resolution
-        state_spect = SetOfVariables(like=sim.state.state_spect)
+        state_spect = SetOfVariables(like=sim.state.state_spect, value=0.0)
         keys_state_spect = sim_in.info.solver.classes.State["keys_state_spect"]
         for index_key in range(len(keys_state_spect)):
-
             field_fft_in = sim_in.state.state_spect[index_key]
-            field_fft_new_res = sim.oper.create_arrayK(value=0.0)
-            [nk0_seq, nk1_seq] = field_fft_new_res.shape
-            [nk0_seq_in, nk1_seq_in] = field_fft_in.shape
-
-            nk0_min = min(nk0_seq, nk0_seq_in)
-            nk1_min = min(nk1_seq, nk1_seq_in)
-
-            # it is a little bit complicate to take into account ky
-            for ik1 in range(nk1_min):
-                field_fft_new_res[0, ik1] = field_fft_in[0, ik1]
-                field_fft_new_res[nk0_min // 2, ik1] = field_fft_in[
-                    nk0_min // 2, ik1
-                ]
-            for ik0 in range(1, nk0_min // 2):
-                for ik1 in range(nk1_min):
-                    field_fft_new_res[ik0, ik1] = field_fft_in[ik0, ik1]
-                    field_fft_new_res[-ik0, ik1] = field_fft_in[-ik0, ik1]
-
-            state_spect[index_key] = field_fft_new_res
+            field_fft_new_res = state_spect[index_key]
+            fill_field_fft_2d(field_fft_in, field_fft_new_res)
 
         return state_spect
 
@@ -364,43 +388,9 @@ class InitFieldsFromSimul(SpecificInitFields):
         state_spect = SetOfVariables(like=sim.state.state_spect, value=0.0)
         keys_state_spect = sim_in.info.solver.classes.State["keys_state_spect"]
         for index_key in range(len(keys_state_spect)):
-
             field_fft_in = sim_in.state.state_spect[index_key]
             field_fft_new_res = state_spect[index_key]
-            [nk0, nk1, nk2] = field_fft_new_res.shape
-            [nk0_in, nk1_in, nk2_in] = field_fft_in.shape
-
-            nk0_min = min(nk0, nk0_in)
-            nk1_min = min(nk1, nk1_in)
-            nk2_min = min(nk2, nk2_in)
-
-            for ik0 in range(nk0_min):
-                for ik1 in range(nk1_min):
-                    for ik2 in range(nk2_min):
-                        kx_adim, ky_adim, kz_adim = oper_in.kadim_from_ik012rank(
-                            ik0, ik1, ik2
-                        )
-                        # print(
-                        #     "-" * 79 + "\n"
-                        #     "ik0, ik1, ik2             = "
-                        #     f"({ik0:4d}, {ik1:4d}, {ik2:4d})\n"
-                        #     "ikz, iky, ikx             = "
-                        #     f"({ikz:4d}, {iky:4d}, {ikx:4d})\n"
-                        #     "kz_adim, ky_adim, kx_adim = "
-                        #     f"({kz_adim:4d}, {ky_adim:4d}, {kx_adim:4d})"
-                        # )
-                        sim.oper.set_value_spect(
-                            field_fft_new_res,
-                            field_fft_in[ik0, ik1, ik2],
-                            kx_adim,
-                            ky_adim,
-                            kz_adim,
-                        )
-
-            # assert np.allclose(
-            #     sim.oper.compute_energy_from_K(field_fft_new_res),
-            #     oper_in.compute_energy_from_K(field_fft_in),
-            # )
+            fill_field_fft_3d(field_fft_in, field_fft_new_res, oper_in, sim.oper)
 
         return state_spect
 
