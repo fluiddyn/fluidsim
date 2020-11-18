@@ -27,6 +27,7 @@ from importlib import import_module
 
 import numpy as _np
 import h5py
+import h5netcdf
 
 import fluiddyn as fld
 from fluiddyn.util import mpi
@@ -41,6 +42,10 @@ from fluidsim.base.params import (
     merge_params,
     fix_old_params,
 )
+from fluidsim.base.init_fields import fill_field_fft_2d, fill_field_fft_3d
+from fluidsim.base.solvers.info_base import create_info_simul
+
+from .output import save_file
 
 
 def available_solver_keys(package=solvers):
@@ -475,6 +480,103 @@ def modif_resolution_from_dir(
         sim.output.phys_fields.plot(numfig=0)
         sim2.output.phys_fields.plot(numfig=1)
         fld.show()
+
+
+class StatePhysLike:
+    def __init__(self, path_file, oper, oper2):
+        self.path_file = path_file
+        self.oper = oper
+        self.oper2 = oper2
+        self.info = "state_phys"
+
+        if path_file.suffix == ".nc":
+            self.h5pack = h5netcdf
+        else:
+            self.h5pack = h5py
+
+        with self.h5pack.File(self.path_file, "r") as h5file:
+            group_state_phys = h5file["/state_phys"]
+            self.keys = list(group_state_phys.keys())
+            self.time = float(group_state_phys.attrs["time"])
+            self.it = int(group_state_phys.attrs["it"])
+            self.name_run = h5file.attrs["name_run"]
+
+    def get_var(self, key):
+
+        with self.h5pack.File(self.path_file, "r") as h5file:
+            group_state_phys = h5file["/state_phys"]
+            field = group_state_phys[key][...]
+
+        field_spect = self.oper.fft(field)
+
+        dimension = len(field_spect.shape)
+        if dimension not in [2, 3]:
+            raise NotImplementedError
+
+        field_spect_new = self.oper2.create_arrayK(0)
+
+        if dimension == 2:
+            fill_field_fft_2d(field_spect, field_spect_new)
+        else:
+            fill_field_fft_3d(field_spect, field_spect_new, self.oper, self.oper2)
+
+        return self.oper2.ifft(field_spect_new)
+
+
+def modif_resolution_from_dir_memory_efficient(
+    name_dir=None, t_approx=None, coef_modif_resol=2
+):
+
+    path_dir = pathdir_from_namedir(name_dir)
+
+    solver = _import_solver_from_path(path_dir)
+
+    Simul = solver.Simul
+
+    classes = Simul.info_solver.import_classes()
+    Operators = classes["Operators"]
+
+    params = load_params_simul(path_dir)
+
+    oper = Operators(params=params)
+
+    params2 = _deepcopy(params)
+    params2.output.HAS_TO_SAVE = True
+    params2.oper.nx = int(params.oper.nx * coef_modif_resol)
+    params2.oper.ny = int(params.oper.ny * coef_modif_resol)
+
+    try:
+        params2.oper.nz = int(params.oper.nz * coef_modif_resol)
+    except AttributeError:
+        dimension = 2
+    else:
+        dimension = 3
+
+    oper2 = Operators(params=params2)
+    info2 = create_info_simul(Simul.info_solver, params2)
+
+    name_file = name_file_from_time_approx(path_dir, t_approx)
+    path_file = path_dir / name_file
+
+    state_phys = StatePhysLike(path_file, oper, oper2)
+
+    if dimension == 3:
+        dir_new_new = f"State_phys_{oper2.nx}x{oper2.ny}x{oper2.nz}"
+    else:
+        dir_new_new = f"State_phys_{oper2.nx}x{oper2.ny}"
+
+    path_file_out = path_file.parent / dir_new_new / path_file.name
+
+    save_file(
+        path_file_out,
+        state_phys,
+        info2,
+        state_phys.name_run,
+        oper2,
+        state_phys.time,
+        state_phys.it,
+        particular_attr="modif_resolution",
+    )
 
 
 def times_start_end_from_path(path):
