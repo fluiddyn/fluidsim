@@ -31,6 +31,7 @@ import h5netcdf
 
 import fluiddyn as fld
 from fluiddyn.util import mpi
+from fluiddyn.util.util import print_memory_usage
 from fluiddyn.io.redirect_stdout import stdout_redirected
 
 from fluidsim import path_dir_results, solvers
@@ -489,6 +490,17 @@ class StatePhysLike:
         self.oper2 = oper2
         self.info = "state_phys"
 
+        self.field = oper.create_arrayX()
+        self.field_spect = oper.create_arrayK()
+        print_memory_usage("Memory usage after init fields 1")
+
+        self.field2 = oper2.create_arrayX()
+        print(f"size field2: {self.field2.nbytes / 1024**3:.2f} Gb")
+        print_memory_usage("Memory usage after init field2")
+        self.field2_spect = oper2.create_arrayK(0)
+        print(f"size field2_spect: {self.field2_spect.nbytes / 1024**3:.2f} Gb")
+        print_memory_usage("Memory usage after init field2_spect")
+
         if path_file.suffix == ".nc":
             self.h5pack = h5netcdf
         else:
@@ -505,22 +517,23 @@ class StatePhysLike:
 
         with self.h5pack.File(self.path_file, "r") as h5file:
             group_state_phys = h5file["/state_phys"]
-            field = group_state_phys[key][...]
+            self.field[:] = group_state_phys[key][...]
 
-        field_spect = self.oper.fft(field)
+        self.oper.fft_as_arg(self.field, self.field_spect)
 
-        dimension = len(field_spect.shape)
+        dimension = len(self.field_spect.shape)
         if dimension not in [2, 3]:
             raise NotImplementedError
 
-        field_spect_new = self.oper2.create_arrayK(0)
-
         if dimension == 2:
-            fill_field_fft_2d(field_spect, field_spect_new)
+            fill_field_fft_2d(self.field_spect, self.field2_spect)
         else:
-            fill_field_fft_3d(field_spect, field_spect_new, self.oper, self.oper2)
+            fill_field_fft_3d(
+                self.field_spect, self.field2_spect, self.oper, self.oper2
+            )
 
-        return self.oper2.ifft(field_spect_new)
+        self.oper2.ifft_as_arg(self.field2_spect, self.field2)
+        return self.field2
 
 
 def modif_resolution_from_dir_memory_efficient(
@@ -546,6 +559,7 @@ def modif_resolution_from_dir_memory_efficient(
     params = load_params_simul(path_dir)
 
     oper = Operators(params=params)
+    print_memory_usage('Memory usage after init operator "input"')
 
     params2 = _deepcopy(params)
     params2.output.HAS_TO_SAVE = True
@@ -560,6 +574,7 @@ def modif_resolution_from_dir_memory_efficient(
         dimension = 3
 
     oper2 = Operators(params=params2)
+    print_memory_usage('Memory usage after init operator "output"')
     info2 = create_info_simul(info_solver, params2)
 
     name_file = name_file_from_time_approx(path_dir, t_approx)

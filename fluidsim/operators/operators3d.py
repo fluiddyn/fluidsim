@@ -595,7 +595,9 @@ Lx, Ly and Lz: float
         if dimX_K == (0, 1, 2):
             ikz, iky, ikx = ik0, ik1, ik2
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
+            )
         return ikx, iky, ikz
 
     def _ik012rank_from_ikxyzseq(self, ikx, iky, ikz):
