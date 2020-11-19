@@ -20,7 +20,7 @@ from fluidsim.util.util import (
 
 @unittest.skipIf(mpi.nb_proc > 1, "Modif resolution do not work with mpi")
 @skip_if_no_fluidfft
-class TestModif3d(TestSimulBase):
+class TestModifResol3d(TestSimulBase):
     def test_modif(self):
         self.sim.output.phys_fields.save()
         self.sim.output.close_files()
@@ -36,7 +36,8 @@ class TestModif3d(TestSimulBase):
             path_run, t_approx, coef_modif_resol, PLOT=False
         )
         path_big = next(Path(path_run).glob("State_phys_*/state_phys*"))
-        path_big_old = path_big.rename(path_big.with_name("old_" + path_big.name))
+        path_big_old = path_big.with_name("old_" + path_big.name)
+        path_big.rename(path_big_old)
 
         # Then, the alternative implementation
         modif_resolution_from_dir_memory_efficient(
@@ -55,7 +56,7 @@ class TestModif3d(TestSimulBase):
         assert np.allclose(field_old, field)
 
 
-class TestModif2d(TestModif3d):
+class TestModifResol2d(TestModifResol3d):
     @classproperty
     def Simul(cls):
         from fluidsim.solvers.ns2d.solver import Simul
