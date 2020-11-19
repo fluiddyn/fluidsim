@@ -526,14 +526,17 @@ class StatePhysLike:
 def modif_resolution_from_dir_memory_efficient(
     name_dir=None, t_approx=None, coef_modif_resol=2
 ):
-
     path_dir = pathdir_from_namedir(name_dir)
-
     solver = _import_solver_from_path(path_dir)
 
     Simul = solver.Simul
+    try:
+        info_solver = Simul.info_solver
+    except AttributeError:
+        info_solver = Simul.InfoSolver()
+        info_solver.complete_with_classes()
 
-    classes = Simul.info_solver.import_classes()
+    classes = info_solver.import_classes()
     Operators = classes["Operators"]
 
     params = load_params_simul(path_dir)
@@ -553,7 +556,7 @@ def modif_resolution_from_dir_memory_efficient(
         dimension = 3
 
     oper2 = Operators(params=params2)
-    info2 = create_info_simul(Simul.info_solver, params2)
+    info2 = create_info_simul(info_solver, params2)
 
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = path_dir / name_file
@@ -566,6 +569,7 @@ def modif_resolution_from_dir_memory_efficient(
         dir_new_new = f"State_phys_{oper2.nx}x{oper2.ny}"
 
     path_file_out = path_file.parent / dir_new_new / path_file.name
+    path_file_out.parent.mkdir(exist_ok=True)
 
     save_file(
         path_file_out,
