@@ -526,6 +526,10 @@ class StatePhysLike:
 def modif_resolution_from_dir_memory_efficient(
     name_dir=None, t_approx=None, coef_modif_resol=2
 ):
+
+    if mpi.nb_proc > 1:
+        raise NotImplementedError
+
     path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
 
@@ -560,6 +564,7 @@ def modif_resolution_from_dir_memory_efficient(
 
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = path_dir / name_file
+    print(f"Changing resolution of the state contained in\n{path_file}")
 
     state_phys = StatePhysLike(path_file, oper, oper2)
 
@@ -570,7 +575,10 @@ def modif_resolution_from_dir_memory_efficient(
 
     path_file_out = path_file.parent / dir_new_new / path_file.name
     path_file_out.parent.mkdir(exist_ok=True)
-
+    print(
+        f"Saving file {path_file_out.name} in directory\n"
+        f"{path_file_out.parent}"
+    )
     save_file(
         path_file_out,
         state_phys,
