@@ -514,25 +514,25 @@ class StatePhysLike:
             self.name_run = h5file.attrs["name_run"]
 
     def get_var(self, key):
-
+        print(f"get_var({key})\n- read field from disk", end="")
         with self.h5pack.File(self.path_file, "r") as h5file:
             group_state_phys = h5file["/state_phys"]
             self.field[:] = group_state_phys[key][...]
-
+        print("done\n- forward fft smaller field", end="")
         self.oper.fft_as_arg(self.field, self.field_spect)
-
         dimension = len(self.field_spect.shape)
         if dimension not in [2, 3]:
             raise NotImplementedError
-
+        print("done\n- fill_field_fft", end="")
         if dimension == 2:
             fill_field_fft_2d(self.field_spect, self.field2_spect)
         else:
             fill_field_fft_3d(
                 self.field_spect, self.field2_spect, self.oper, self.oper2
             )
-
+        print("done\n- backward fft field2", end="")
         self.oper2.ifft_as_arg(self.field2_spect, self.field2)
+        print("done")
         return self.field2
 
 
@@ -557,6 +557,12 @@ def modif_resolution_from_dir_memory_efficient(
     Operators = classes["Operators"]
 
     params = load_params_simul(path_dir)
+
+    try:
+        params.oper.type_fft = "default"
+        params.oper.type_fft2d = "sequential"
+    except AttributeError:
+        pass
 
     oper = Operators(params=params)
     print_memory_usage('Memory usage after init operator "input"')
