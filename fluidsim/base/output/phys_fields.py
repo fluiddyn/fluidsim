@@ -343,12 +343,9 @@ class SetOfPhysFieldFiles:
 
         if interpolate_time and time is not None:
 
-            if time < self.times.min() or time > self.times.max():
-                raise ValueError()
-
             idx_closest, time_closest = self.get_closest_time_file(time)
 
-            if isclose(time, time_closest):
+            if isclose(time, time_closest) or self.times.size == 1:
                 return self.get_field_to_plot(
                     idx_time=idx_closest, key=key, equation=equation
                 )
