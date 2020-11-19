@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import h5py
 
-from fluidsim.solvers.ns2d.solver import Simul
+from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim.util.util import (
     modif_resolution_from_dir,
     modif_resolution_from_dir_memory_efficient,
@@ -15,6 +15,7 @@ params.output.sub_directory = "dev"
 
 params.oper.nx = 24
 params.oper.ny = 12
+params.oper.nz = 12
 params.init_fields.type = "noise"
 
 sim = Simul(params)

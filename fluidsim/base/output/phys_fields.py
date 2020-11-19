@@ -17,6 +17,7 @@ import re
 import os
 from glob import glob
 from pathlib import Path
+from math import isclose
 
 import numpy as np
 import h5py
@@ -214,7 +215,7 @@ class PhysFieldsBase(SpecificOutput):
 
         if (
             not self.sim.params.ONLY_COARSE_OPER
-            and (time is None or time == self.sim.time_stepping.t)
+            and (time is None or isclose(time, self.sim.time_stepping.t))
             and idx_time is None
         ):
             # we get the field from the state
@@ -346,7 +347,7 @@ class SetOfPhysFieldFiles:
 
             idx_closest, time_closest = self.get_closest_time_file(time)
 
-            if time == time_closest:
+            if isclose(time, time_closest):
                 return self.get_field_to_plot(
                     idx_time=idx_closest, key=key, equation=equation
                 )
