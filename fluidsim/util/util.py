@@ -24,6 +24,8 @@ import inspect
 from pathlib import Path
 import time
 from importlib import import_module
+from time import perf_counter
+from datetime import timedelta
 
 import numpy as _np
 import h5py
@@ -31,7 +33,7 @@ import h5netcdf
 
 import fluiddyn as fld
 from fluiddyn.util import mpi
-from fluiddyn.util.util import print_memory_usage
+from fluiddyn.util.util import get_memory_usage
 from fluiddyn.io.redirect_stdout import stdout_redirected
 
 from fluidsim import path_dir_results, solvers
@@ -47,6 +49,11 @@ from fluidsim.base.init_fields import fill_field_fft_2d, fill_field_fft_3d
 from fluidsim.base.solvers.info_base import create_info_simul
 
 from .output import save_file
+
+
+def print_memory_usage_seq(message, flush=None):
+    mem = get_memory_usage()
+    print(message, f"{mem/1024: 7.3f} Go", flush=flush)
 
 
 def available_solver_keys(package=solvers):
@@ -492,14 +499,20 @@ class StatePhysLike:
 
         self.field = oper.create_arrayX()
         self.field_spect = oper.create_arrayK()
-        print_memory_usage("Memory usage after init fields 1")
+        print_memory_usage_seq("Memory usage after init fields:           ")
 
         self.field2 = oper2.create_arrayX()
-        print(f"size field2: {self.field2.nbytes / 1024**3:.2f} Gb")
-        print_memory_usage("Memory usage after init field2")
+        print(
+            "size field2:                                 "
+            f"{self.field2.nbytes / 1024**3:.3f} Go"
+        )
+        print_memory_usage_seq("Memory usage after init field2:           ")
         self.field2_spect = oper2.create_arrayK(0)
-        print(f"size field2_spect: {self.field2_spect.nbytes / 1024**3:.2f} Gb")
-        print_memory_usage("Memory usage after init field2_spect")
+        print(
+            "size field2_spect:                           "
+            f"{self.field2_spect.nbytes / 1024**3:.3f} Go"
+        )
+        print_memory_usage_seq("Memory usage after init field2_spect:     ")
 
         if path_file.suffix == ".nc":
             self.h5pack = h5netcdf
@@ -514,37 +527,59 @@ class StatePhysLike:
             self.name_run = h5file.attrs["name_run"]
 
     def get_var(self, key):
-        print(f"get_var({key})\n- read field from disk", end="")
+        print(f'get_var("{key}")')
+
+        def start_counter(message):
+            print(f"- {message + '...':30s}", end="", flush=True)
+            return perf_counter()
+
+        def end_counter(t_start):
+            print(f"done in {timedelta(seconds=perf_counter() - t_start)}")
+
+        t_start = start_counter("reading field from disk")
         with self.h5pack.File(self.path_file, "r") as h5file:
             group_state_phys = h5file["/state_phys"]
             self.field[:] = group_state_phys[key][...]
-        print("done\n- forward fft smaller field", end="")
+        end_counter(t_start)
+
+        t_start = start_counter("forward fft smaller field")
         self.oper.fft_as_arg(self.field, self.field_spect)
+        end_counter(t_start)
+
         dimension = len(self.field_spect.shape)
         if dimension not in [2, 3]:
             raise NotImplementedError
-        print("done\n- fill_field_fft", end="")
+
+        t_start = start_counter("filling field2_fft")
         if dimension == 2:
             fill_field_fft_2d(self.field_spect, self.field2_spect)
         else:
             fill_field_fft_3d(
                 self.field_spect, self.field2_spect, self.oper, self.oper2
             )
-        print("done\n- backward fft field2", end="")
+        end_counter(t_start)
+
+        t_start = start_counter("backward fft field2")
         self.oper2.ifft_as_arg(self.field2_spect, self.field2)
-        print("done")
+        end_counter(t_start)
+
         return self.field2
 
 
 def modif_resolution_from_dir_memory_efficient(
     name_dir=None, t_approx=None, coef_modif_resol=2
 ):
+    t_start = perf_counter()
 
     if mpi.nb_proc > 1:
         raise NotImplementedError
 
     path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
+
+    name_file = name_file_from_time_approx(path_dir, t_approx)
+    path_file = path_dir / name_file
+    print(f"Changing resolution of the state contained in\n{path_file}")
 
     Simul = solver.Simul
     try:
@@ -565,7 +600,9 @@ def modif_resolution_from_dir_memory_efficient(
         pass
 
     oper = Operators(params=params)
-    print_memory_usage('Memory usage after init operator "input"')
+    print_memory_usage_seq(
+        'Memory usage after init operator "input": ', flush=True
+    )
 
     params2 = _deepcopy(params)
     params2.output.HAS_TO_SAVE = True
@@ -580,12 +617,8 @@ def modif_resolution_from_dir_memory_efficient(
         dimension = 3
 
     oper2 = Operators(params=params2)
-    print_memory_usage('Memory usage after init operator "output"')
+    print_memory_usage_seq('Memory usage after init operator "output":')
     info2 = create_info_simul(info_solver, params2)
-
-    name_file = name_file_from_time_approx(path_dir, t_approx)
-    path_file = path_dir / name_file
-    print(f"Changing resolution of the state contained in\n{path_file}")
 
     state_phys = StatePhysLike(path_file, oper, oper2)
 
@@ -596,10 +629,7 @@ def modif_resolution_from_dir_memory_efficient(
 
     path_file_out = path_file.parent / dir_new_new / path_file.name
     path_file_out.parent.mkdir(exist_ok=True)
-    print(
-        f"Saving file {path_file_out.name} in directory\n"
-        f"{path_file_out.parent}"
-    )
+    print(f"Saving file {path_file_out.name}...", flush=True)
     save_file(
         path_file_out,
         state_phys,
@@ -609,6 +639,10 @@ def modif_resolution_from_dir_memory_efficient(
         state_phys.time,
         state_phys.it,
         particular_attr="modif_resolution",
+    )
+    print(
+        f"File {path_file_out.name} saved in:\n{path_file_out.parent}\n"
+        f"total duration: {timedelta(seconds=perf_counter() - t_start)}"
     )
 
 
