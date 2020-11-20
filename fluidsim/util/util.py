@@ -551,12 +551,7 @@ class StatePhysLike:
             raise NotImplementedError
 
         t_start = start_counter("filling field2_fft")
-        if dimension == 2:
-            fill_field_fft_2d(self.field_spect, self.field2_spect)
-        else:
-            fill_field_fft_3d(
-                self.field_spect, self.field2_spect, self.oper, self.oper2
-            )
+        self.oper2.fill_field_fft(self.field_spect, self.field2_spect, self.oper)
         end_counter(t_start)
 
         t_start = start_counter("backward fft field2")
@@ -588,9 +583,6 @@ def modif_resolution_from_dir_memory_efficient(
         info_solver = Simul.InfoSolver()
         info_solver.complete_with_classes()
 
-    classes = info_solver.import_classes()
-    Operators = classes["Operators"]
-
     params = load_params_simul(path_dir)
 
     try:
@@ -599,33 +591,39 @@ def modif_resolution_from_dir_memory_efficient(
     except AttributeError:
         pass
 
-    oper = Operators(params=params)
+    params2 = _deepcopy(params)
+    params2.output.HAS_TO_SAVE = True
+    nx2 = params2.oper.nx = int(params.oper.nx * coef_modif_resol)
+    ny2 = params2.oper.ny = int(params.oper.ny * coef_modif_resol)
+
+    try:
+        nz2 = params2.oper.nz = int(params.oper.nz * coef_modif_resol)
+    except AttributeError:
+        dimension = 2
+        shape = (params.oper.ny, params.oper.nx)
+        shape2 = (ny2, nx2)
+    else:
+        dimension = 3
+        shape = (params.oper.nz, params.oper.ny, params.oper.nx)
+        shape2 = (nz2, ny2, nx2)
+
+    from .mini_oper_modif_resol import MiniOperModifResol
+
+    oper = MiniOperModifResol(shape)
     print_memory_usage_seq(
         'Memory usage after init operator "input": ', flush=True
     )
+    oper2 = MiniOperModifResol(shape2)
 
-    params2 = _deepcopy(params)
-    params2.output.HAS_TO_SAVE = True
-    params2.oper.nx = int(params.oper.nx * coef_modif_resol)
-    params2.oper.ny = int(params.oper.ny * coef_modif_resol)
-
-    try:
-        params2.oper.nz = int(params.oper.nz * coef_modif_resol)
-    except AttributeError:
-        dimension = 2
-    else:
-        dimension = 3
-
-    oper2 = Operators(params=params2)
     print_memory_usage_seq('Memory usage after init operator "output":')
     info2 = create_info_simul(info_solver, params2)
 
     state_phys = StatePhysLike(path_file, oper, oper2)
 
     if dimension == 3:
-        dir_new_new = f"State_phys_{oper2.nx}x{oper2.ny}x{oper2.nz}"
+        dir_new_new = f"State_phys_{nx2}x{ny2}x{nz2}"
     else:
-        dir_new_new = f"State_phys_{oper2.nx}x{oper2.ny}"
+        dir_new_new = f"State_phys_{nx2}x{ny2}"
 
     path_file_out = path_file.parent / dir_new_new / path_file.name
     path_file_out.parent.mkdir(exist_ok=True)
