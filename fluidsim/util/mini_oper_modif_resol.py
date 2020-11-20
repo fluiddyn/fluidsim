@@ -1,3 +1,5 @@
+import numpy as np
+
 from fluiddyn.calcul.easypyfft import FFTW2DReal2Complex, FFTW3DReal2Complex
 
 from fluidsim.base.init_fields import fill_field_fft_2d
@@ -16,28 +18,28 @@ def fill_field_fft_3d(field_fft_in, field_fft_out):
       pytest fluidsim/util/test_util.py::TestModifResol3d
 
     """
-    raise NotImplementedError
 
-    [nk0, nk1, nk2] = field_fft_out.shape
+    [nk0_out, nk1_out, nk2_out] = field_fft_out.shape
     [nk0_in, nk1_in, nk2_in] = field_fft_in.shape
 
-    nk0_min = min(nk0, nk0_in)
-    nk1_min = min(nk1, nk1_in)
-    nk2_min = min(nk2, nk2_in)
+    nk0_min = min(nk0_out, nk0_in)
+    nk1_min = min(nk1_out, nk1_in)
+    nk2_min = min(nk2_out, nk2_in)
 
-    for ik0 in range(nk0_min):
-        for ik1 in range(nk1_min):
+    for ik0 in range(nk0_min // 2 + 1):
+        for ik1 in range(nk1_min // 2 + 1):
             for ik2 in range(nk2_min):
-                kx_adim, ky_adim, kz_adim = oper_in.kadim_from_ik012rank(
-                    ik0, ik1, ik2
-                )
-                oper_out.set_value_spect(
-                    field_fft_out,
-                    field_fft_in[ik0, ik1, ik2],
-                    kx_adim,
-                    ky_adim,
-                    kz_adim,
-                )
+                # positive wavenumbers
+                field_fft_out[ik0, ik1, ik2] = field_fft_in[ik0, ik1, ik2]
+                # negative wavenumbers
+                if ik0 > 0 and ik0 < nk0_min // 2:
+                    field_fft_out[-ik0, ik1, ik2] = field_fft_in[-ik0, ik1, ik2]
+                    if ik1 > 0 and ik1 < nk1_min // 2:
+                        field_fft_out[-ik0, -ik1, ik2] = field_fft_in[
+                            -ik0, -ik1, ik2
+                        ]
+                if ik1 > 0 and ik1 < nk1_min // 2:
+                    field_fft_out[ik0, -ik1, ik2] = field_fft_in[ik0, -ik1, ik2]
 
 
 class MiniOperModifResol:
