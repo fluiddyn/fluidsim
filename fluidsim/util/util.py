@@ -1,5 +1,5 @@
-"""Utilities for the numerical simulations (:mod:`fluidsim.util`)
-=================================================================
+"""Utilities for the numerical simulations (:mod:`fluidsim.util.util`)
+======================================================================
 
 Public API
 ----------
@@ -9,6 +9,10 @@ Public API
 .. autofunction:: load_state_phys_file
 
 .. autofunction:: load_for_restart
+
+.. autofunction:: modif_resolution_from_dir
+
+.. autofunction:: modif_resolution_from_dir_memory_efficient
 
 Internal API
 ------------
@@ -503,14 +507,14 @@ class StatePhysLike:
 
         self.field2 = oper2.create_arrayX()
         print(
-            "size field2:                                 "
-            f"{self.field2.nbytes / 1024**3:.3f} Go"
+            "size field2:                               "
+            f"{self.field2.nbytes / 1024**3:7.3f} Go"
         )
         print_memory_usage_seq("Memory usage after init field2:           ")
         self.field2_spect = oper2.create_arrayK(0)
         print(
-            "size field2_spect:                           "
-            f"{self.field2_spect.nbytes / 1024**3:.3f} Go"
+            "size field2_spect:                         "
+            f"{self.field2_spect.nbytes / 1024**3:7.3f} Go"
         )
         print_memory_usage_seq("Memory usage after init field2_spect:     ")
 
@@ -564,6 +568,12 @@ class StatePhysLike:
 def modif_resolution_from_dir_memory_efficient(
     name_dir=None, t_approx=None, coef_modif_resol=2
 ):
+    """Save a file with a modified resolution.
+
+    Faster and more memory efficient than ``modif_resolution_from_dir`` (but
+    not plot).
+
+    """
     t_start = perf_counter()
 
     if mpi.nb_proc > 1:

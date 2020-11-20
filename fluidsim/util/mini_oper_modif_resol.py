@@ -1,3 +1,17 @@
+"""Mini operator to modify the resolution (Fourier)
+===================================================
+
+Internal API
+------------
+
+.. autofunction:: fill_field_fft_3d
+
+.. autoclass:: MiniOperModifResol
+   :members:
+   :private-members:
+
+"""
+
 import numpy as np
 
 from fluiddyn.calcul.easypyfft import FFTW2DReal2Complex, FFTW3DReal2Complex
@@ -11,7 +25,7 @@ A = Array[np.complex128, "3d", "C"]
 
 @boost
 def fill_field_fft_3d(field_fft_in: A, field_fft_out: A):
-    """
+    """Fill the values from field_fft_in in field_fft_out
 
     This function is specialized for FFTW3DReal2Complex (no MPI).
     """
