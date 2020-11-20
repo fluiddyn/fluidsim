@@ -4,19 +4,16 @@ from fluiddyn.calcul.easypyfft import FFTW2DReal2Complex, FFTW3DReal2Complex
 
 from fluidsim.base.init_fields import fill_field_fft_2d
 
+from transonic import boost, Array
 
-def fill_field_fft_3d(field_fft_in, field_fft_out):
+A = Array[np.complex128, "3d", "C"]
+
+
+@boost
+def fill_field_fft_3d(field_fft_in: A, field_fft_out: A):
     """
 
     This function is specialized for FFTW3DReal2Complex (no MPI).
-
-    It's better if we don't pass oper_in and oper_out to this function, but we
-    can add other arguments if needed.
-
-    To run the test testing this function::
-
-      pytest fluidsim/util/test_util.py::TestModifResol3d
-
     """
 
     [nk0_out, nk1_out, nk2_out] = field_fft_out.shape
