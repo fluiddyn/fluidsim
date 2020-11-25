@@ -74,20 +74,12 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         state_spect = state.state_spect
 
-        vx_fft = state_spect.get_var("vx_fft")
-        vy_fft = state_spect.get_var("vy_fft")
         vz_fft = state_spect.get_var("vz_fft")
 
         state_phys = state.state_phys
-        vx = state_phys.get_var("vx")
-        vy = state_phys.get_var("vy")
-        vz = state_phys.get_var("vz")
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
-
-        # todo: f_d_hypo
-
-        del vx_fft, vy_fft
+        del f_d_hypo
 
         b_fft = state_spect.get_var("b_fft")
 
@@ -99,6 +91,10 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             self.compute_spectra("conv_K2A", -np.real(vz_fft.conj() * b_fft))
         )
         del vz_fft
+
+        vx = state_phys.get_var("vx")
+        vy = state_phys.get_var("vy")
+        vz = state_phys.get_var("vz")
 
         fb_fft = (
             -1

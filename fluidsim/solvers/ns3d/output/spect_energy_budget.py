@@ -135,6 +135,8 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         ifft_as_arg_destroy(omegay_fft, omegay)
         ifft_as_arg_destroy(omegaz_fft, omegaz)
 
+        del omegax_fft, omegay_fft, omegaz_fft
+
         state_phys = state.state_phys
         vx = state_phys.get_var("vx")
         vy = state_phys.get_var("vy")
@@ -145,6 +147,8 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         fx_fft = oper.fft(fx)
         fy_fft = oper.fft(fy)
         fz_fft = oper.fft(fz)
+
+        del fx, fy, fz
 
         oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
 
@@ -174,7 +178,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         del urx_fft, ury_fft, _
 
         f_d, f_d_hypo = self.sim.compute_freq_diss()
-        # todo: f_d_hypo
+        del f_d_hypo
 
         results.update(
             self.compute_spectra(
