@@ -593,7 +593,8 @@ def modif_resolution_from_dir_memory_efficient(
         info_solver = Simul.InfoSolver()
         info_solver.complete_with_classes()
 
-    params = load_params_simul(path_dir)
+    with h5py.File(path_file, "r") as h5file:
+        params = Parameters(hdf5_object=h5file["/info_simul/params"])
 
     try:
         params.oper.type_fft = "default"
