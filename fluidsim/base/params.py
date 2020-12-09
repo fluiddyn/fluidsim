@@ -249,7 +249,7 @@ def load_info_solver(path_dir=None):
     else:
         str_path = path
 
-    print("load params from file\n" + str_path)
+    mpi.printby0("load params from file\n" + str_path)
     with h5py.File(path, "r") as h5file:
         return Parameters(hdf5_object=h5file["/info_simul/solver"])
 
