@@ -68,7 +68,9 @@ class PrintStdOutBase:
     def _online_print(self):
         """Print simple info on the current state of the simulation"""
         tsim = self.sim.time_stepping.t
-        if tsim - self.t_last_print_info >= self.period_print:
+        if (
+            tsim + 1e-15
+        ) // self.period_print > self.t_last_print_info // self.period_print:
             self._print_info()
             self.t_last_print_info = tsim
 
