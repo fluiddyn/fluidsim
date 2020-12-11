@@ -115,6 +115,8 @@ class TestOutput(TestSimulBase):
         sim2 = fls.load_sim_for_plot(sim.output.path_run)
         sim2.output.print_stdout.load()
         sim2.output.print_stdout.plot()
+        sim2.output.print_stdout.plot_clock_times()
+
         sim2.output.spatial_means.load()
         sim2.output.spatial_means.load_dataset()
         sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)

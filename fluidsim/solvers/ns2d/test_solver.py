@@ -188,6 +188,7 @@ class TestForcingOutput(TestSimulBase):
 
             sim.output.print_stdout.plot_energy()
             sim.output.print_stdout.plot_deltat()
+            sim.output.print_stdout.plot_clock_times()
 
             sim.output.spectra_multidim.plot()
 
