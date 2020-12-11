@@ -77,11 +77,8 @@ class PrintStdOutBase:
         print_memory_usage("MEMORY_USAGE")
 
     def _make_str_info(self):
-        return "it = {:6d} ; t = {:10.6g} ; deltat  = {:10.5g}\n".format(
-            self.sim.time_stepping.it,
-            self.sim.time_stepping.t,
-            self.sim.time_stepping.deltat,
-        )
+        ts = self.sim.time_stepping
+        return f"it = {ts.it:6d} ; t = {ts.t:12.6g} ; deltat  = {ts.deltat:10.5g}\n"
 
     def _evaluate_duration_left(self):
         """ Computes the remaining time. """
