@@ -137,6 +137,7 @@ class PrintStdOutBase:
         time = None
         it_last = None
         it = None
+        equation_time_start = None
 
         with open(self.output.path_run + "/stdout.txt") as file:
             for line in file:
@@ -147,6 +148,9 @@ class PrintStdOutBase:
                     it = int(words[2])
                     time = float(words[6])
                     delta_t = float(words[10])
+
+                    if equation_time_start is None:
+                        equation_time_start = time
 
                 elif line.startswith("    compute until t ="):
                     t_end = float(line.split()[4])
@@ -208,6 +212,7 @@ class PrintStdOutBase:
                 "time_steps",
                 "delta_time_inds",
                 "clock_times_per_timestep",
+                "equation_time_start",
             )
         }
 
@@ -217,14 +222,32 @@ class PrintStdOutBase:
         results = self._load_times()
         equation_times = results["equation_times"]
 
+        if len(equation_times) == 0:
+            print("No time data in the log file. Can't plot anything.")
+            return
+
         fig, axes = plt.subplots(2, 1, sharex=True)
 
         ax = axes[0]
         ax.plot(equation_times, results["remaining_clock_times"])
         ax.set_ylabel("estimated full clock time (s)")
 
+        clock_times_per_timestep = results["clock_times_per_timestep"]
+        if clock_times_per_timestep[-1] <= 0.0:
+            equation_times = equation_times[:-1]
+            clock_times_per_timestep = clock_times_per_timestep[:-1]
+
+        times2 = np.empty(2 * equation_times.size)
+        times2[0] = results["equation_time_start"]
+        times2[1::2] = equation_times
+        times2[2::2] = equation_times[:-1]
+
+        clock_times_per_timestep2 = np.zeros_like(times2)
+        clock_times_per_timestep2[::2] = clock_times_per_timestep
+        clock_times_per_timestep2[1::2] = clock_times_per_timestep
+
         ax = axes[1]
-        ax.plot(equation_times, results["clock_times_per_timestep"])
+        ax.plot(times2, clock_times_per_timestep2)
         ax.set_xlabel("equation time")
         ax.set_ylabel("clock time per time step (s)")
 
