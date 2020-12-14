@@ -198,6 +198,7 @@ class PrintStdOutBase:
             * remaining_clock_times
             / remaining_equation_times
         )
+        full_clock_time = delta_clock_times.sum()
 
         clock_times_per_timestep = delta_clock_times / delta_time_inds
 
@@ -213,6 +214,8 @@ class PrintStdOutBase:
                 "delta_time_inds",
                 "clock_times_per_timestep",
                 "equation_time_start",
+                "delta_clock_times",
+                "full_clock_time",
             )
         }
 
@@ -250,6 +253,8 @@ class PrintStdOutBase:
         ax.plot(times2, clock_times_per_timestep2)
         ax.set_xlabel("equation time")
         ax.set_ylabel("clock time per time step (s)")
+        full_clock_time = results["full_clock_time"]
+        ax.set_title(f"Full clock time: {timedelta(seconds=full_clock_time)}")
 
         for ax in axes:
             ax.set_ylim(bottom=0)
