@@ -52,7 +52,7 @@ class SpectraNS3D(Spectra):
             "vx": s_vx,
             "vy": s_vy,
             "vz": s_vz,
-            "E": s_vx + s_vy + s_vy,
+            "E": s_vx + s_vy + s_vz,
         }
         dict_spectra3d = {"spectra_" + k: v for k, v in dict_spectra3d.items()}
 
