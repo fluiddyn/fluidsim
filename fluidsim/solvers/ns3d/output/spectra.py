@@ -77,6 +77,7 @@ class SpectraNS3D(Spectra):
         key_k="kx",
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
         only_time_average=False,
@@ -91,6 +92,7 @@ class SpectraNS3D(Spectra):
             key_k=key_k,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
+            coef_plot_k2=coef_plot_k2,
             xlim=xlim,
             ylim=ylim,
             ndim=1,
@@ -106,6 +108,7 @@ class SpectraNS3D(Spectra):
         key="E",
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
         only_time_average=False,
@@ -119,6 +122,7 @@ class SpectraNS3D(Spectra):
             key=key,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
+            coef_plot_k2=coef_plot_k2,
             xlim=xlim,
             ylim=ylim,
             ndim=3,
@@ -135,6 +139,7 @@ class SpectraNS3D(Spectra):
         key_k="kx",
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
         only_time_average=False,
@@ -221,6 +226,10 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
             ax.plot(ks[1:], to_plot[1:], "k-.")
 
+        if coef_plot_k2 is not None:
+            to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
+            ax.plot(ks[1:], to_plot[1:], "k--")
+
         if xlim is not None:
             ax.set_xlim(xlim)
 
@@ -256,6 +265,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         coef_compensate=0,
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
         directions=("x", "z"),
@@ -267,6 +277,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             coef_compensate=coef_compensate,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
+            coef_plot_k2=coef_plot_k2,
             xlim=xlim,
             ylim=ylim,
             ndim=1,
@@ -280,6 +291,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         coef_compensate=0,
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
     ):
@@ -290,6 +302,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             coef_compensate=coef_compensate,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
+            coef_plot_k2=coef_plot_k2,
             xlim=xlim,
             ylim=ylim,
             ndim=3,
@@ -302,6 +315,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         coef_compensate=0,
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k2=None,
         xlim=None,
         ylim=None,
         ndim=1,
@@ -377,6 +391,10 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         if coef_plot_k53 is not None:
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
+            ax.plot(ks[1:], to_plot[1:], "k-.")
+
+        if coef_plot_k2 is not None:
+            to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
             ax.plot(ks[1:], to_plot[1:], "k-.")
 
         if xlim is not None:
