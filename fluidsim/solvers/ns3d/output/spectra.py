@@ -431,3 +431,48 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             linewidth=2,
             label=f"$E(k_{direction})$",
         )
+
+    def plot3d_cumul_diss(self, tmin=0, tmax=None):
+        path_file = getattr(self, f"path_file3d")
+        with h5py.File(path_file, "r") as h5file:
+            times = h5file["times"][...]
+        if tmax is None:
+            tmax = times.max()
+
+        # load 3D spectra
+        data = self.load3d_mean(tmin=tmin, tmax=tmax)
+        spectra_K = (
+            data["spectra_vx"] + data["spectra_vy"] + data["spectra_vz"]
+        )  # 'spectra_E' key is wrong: use components instead
+        k = data["k"]
+        deltak = k[1]
+
+        # nu_2 dissipation flux
+        fd = self.sim.params.nu_2 * k ** 2
+        diss = fd * spectra_K
+        flux_diss_nu2 = deltak * np.cumsum(diss)
+
+        # nu_4 dissipation flux
+        fd = self.sim.params.nu_4 * k ** 4
+        diss = fd * spectra_K
+        flux_diss_nu4 = deltak * np.cumsum(diss)
+
+        # normalize by total dissipation
+        eps_tot = flux_diss_nu2[-1] + flux_diss_nu4[-1]
+        flux_diss_nu2 /= eps_tot
+        flux_diss_nu4 /= eps_tot
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(r"$k$")
+        ax.set_ylabel(r"$D(k)/\epsilon$")
+
+        ax.plot(k, flux_diss_nu2, "r-", label=r"$D_2(k)$")
+        ax.plot(k, flux_diss_nu4, "m-", label=r"$D_4(k)$")
+
+        ax.set_title(
+            f"3D cumulative dissipation spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
+        ax.set_xscale("log")
+        fig.legend()
