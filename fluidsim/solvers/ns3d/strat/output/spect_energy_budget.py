@@ -118,7 +118,9 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         return results
 
-    def plot_fluxes(self, tmin=None, tmax=None, key_k="kh", ax=None):
+    def plot_fluxes(
+        self, tmin=None, tmax=None, key_k="kh", ax=None, plot_conversion=True
+    ):
 
         data = self.compute_fluxes_mean(tmin, tmax)
 
@@ -133,7 +135,8 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         DKh = data[key_flux + "diss_Kh"]
         DKz = data[key_flux + "diss_Kz"]
         DA = data[key_flux + "diss_A"]
-        CK2A = data[key_flux + "conv_K2A"]
+        if plot_conversion:
+            CK2A = data[key_flux + "conv_K2A"]
 
         flux_K = flux_Kh + flux_Kz
         flux_tot = flux_K + flux_A
@@ -163,6 +166,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         _plot(k_plot, flux_A, "b", r"$\Pi_A/\epsilon$")
         _plot(k_plot, DK, "r--", r"$D_K/\epsilon$")
         _plot(k_plot, DA, "b--", r"$D_A/\epsilon$")
-        _plot(k_plot, CK2A, "m", r"$B/\epsilon$", linewidth=2)
+        if plot_conversion:
+            _plot(k_plot, CK2A, "m", r"$B/\epsilon$", linewidth=2)
 
         ax.legend()
