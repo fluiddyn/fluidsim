@@ -433,7 +433,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         )
 
     def plot3d_cumul_diss(self, tmin=0, tmax=None):
-        path_file = getattr(self, f"path_file3d")
+        path_file = self.path_file3d
         with h5py.File(path_file, "r") as h5file:
             times = h5file["times"][...]
         if tmax is None:
@@ -443,7 +443,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         data = self.load3d_mean(tmin=tmin, tmax=tmax)
         spectra_K = (
             data["spectra_vx"] + data["spectra_vy"] + data["spectra_vz"]
-        )  # 'spectra_E' key is wrong: use components instead
+        )  # 'spectra_E' key was wrong for fluidsim<=0.3.3: use components instead
         k = data["k"]
         deltak = k[1]
 

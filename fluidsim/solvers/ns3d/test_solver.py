@@ -154,6 +154,7 @@ class TestOutput(TestSimulBase):
             sim2.output.spectra.load1d_mean()
             sim2.output.spectra.load3d_mean()
             sim2.output.spectra.plot1d(
+                coef_plot_k2=1.0,
                 coef_plot_k3=1.0,
                 coef_plot_k53=1.0,
                 xlim=(0.1, 1),
@@ -164,6 +165,7 @@ class TestOutput(TestSimulBase):
                 tmax=10,
                 delta_t=0.01,
                 coef_compensate=5 / 3,
+                coef_plot_k2=1.0,
                 coef_plot_k3=1.0,
                 coef_plot_k53=1.0,
                 xlim=(0.1, 1),
@@ -173,9 +175,11 @@ class TestOutput(TestSimulBase):
                 tmin=0.1,
                 tmax=10,
                 coef_compensate=5 / 3,
+                coef_plot_k2=1.0,
                 coef_plot_k3=1.0,
                 coef_plot_k53=1.0,
             )
+            sim2.output.spectra.plot3d_cumul_diss(tmin=0.1, tmax=10)
 
             sim2.output.phys_fields.set_equation_crosssection(
                 f"x={sim.oper.Lx/4}"
