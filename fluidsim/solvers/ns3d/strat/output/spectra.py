@@ -146,3 +146,72 @@ class SpectraNS3DStrat(SpectraNS3D):
         _plot(spectrumK, "r", f"$E_K(k_{direction})$")
         _plot(spectrumA, "b", f"$E_A(k_{direction})$")
         _plot(spectrumKhd + spectrumKz, "y", "poloidal", 0.8)
+
+    def plot_kzkh_cumul_diss(self, tmin=0, tmax=None):
+        path_file = self.path_file_kzkh
+        with h5py.File(path_file, "r") as h5file:
+            times = h5file["times"][...]
+        if tmax is None:
+            tmax = times.max()
+
+        # load kzkh spectra
+        spectra_K = 0
+        data = self.load_kzkh_mean(tmin=tmin, tmax=tmax, key_to_load="Khd")
+        spectra_K += data["Khd"]
+        data = self.load_kzkh_mean(tmin=tmin, tmax=tmax, key_to_load="Khr")
+        spectra_K += data["Khr"]
+        data = self.load_kzkh_mean(tmin=tmin, tmax=tmax, key_to_load="Kz")
+        spectra_K += data["Kz"]
+
+        # spectral space
+        kh = data["kh_spectra"]
+        kz = data["kz"]
+        deltakh = kh[1]
+        deltakz = kz[1]
+        KH, KZ = np.meshgrid(kh, kz)
+        K2 = KH ** 2 + KZ ** 2
+        K4 = K2 ** 2
+
+        del KH, KZ
+
+        # nu_2 dissipation fluxes
+        fd = self.sim.params.nu_2 * K2
+        diss = fd * spectra_K
+        hflux_diss_nu2 = deltakz * diss.sum(0)
+        hflux_diss_nu2 = deltakh * np.cumsum(hflux_diss_nu2)
+        zflux_diss_nu2 = deltakh * diss.sum(1)
+        zflux_diss_nu2 = deltakz * np.cumsum(zflux_diss_nu2)
+
+        # nu_4 dissipation fluxes
+        fd = self.sim.params.nu_4 * K4
+        diss = fd * spectra_K
+        hflux_diss_nu4 = deltakz * diss.sum(0)
+        hflux_diss_nu4 = deltakh * np.cumsum(hflux_diss_nu4)
+        zflux_diss_nu4 = deltakh * diss.sum(1)
+        zflux_diss_nu4 = deltakz * np.cumsum(zflux_diss_nu4)
+
+        del fd, diss, K2, K4
+
+        # normalize by total dissipation
+        eps_tot = hflux_diss_nu2[-1] + hflux_diss_nu4[-1]
+        hflux_diss_nu2 /= eps_tot
+        zflux_diss_nu2 /= eps_tot
+        hflux_diss_nu4 /= eps_tot
+        zflux_diss_nu4 /= eps_tot
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(r"$k$")
+        ax.set_ylabel(r"$D(k)/\epsilon$")
+
+        ax.plot(kh, hflux_diss_nu2, "r-", label=r"$D_2(k_h)$")
+        ax.plot(kz, zflux_diss_nu2, "r:", label=r"$D_2(k_z)$")
+        ax.plot(kh, hflux_diss_nu4, "m-", label=r"$D_4(k_h)$")
+        ax.plot(kz, zflux_diss_nu4, "r:", label=r"$D_4(k_z)$")
+
+        ax.set_title(
+            f"kzkh cumulative dissipation spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
+        ax.set_xscale("log")
+        fig.legend()

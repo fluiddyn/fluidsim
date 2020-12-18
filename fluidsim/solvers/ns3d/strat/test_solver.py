@@ -146,6 +146,7 @@ class TestOutput(TestSimulBase):
             coef_plot_k53=1.0,
         )
         sim2.output.spectra.plot_kzkh(key="Khd")
+        sim2.output.spectra.plot_kzkh_cumul_diss(tmin=0.1, tmax=10)
 
         sim2.output.spect_energy_budg.plot_kzkh()
         sim2.output.spect_energy_budg.plot_fluxes()
