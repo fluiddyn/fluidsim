@@ -321,9 +321,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         ax.set_ylabel(r"$\epsilon_K(t)$")
 
         def _plot(x, y, fmt, label=None, linewidth=1, zorder=10):
-            ax.plot(
-                x, y, fmt, label=label, linewidth=linewidth, zorder=zorder,
-            )
+            ax.plot(x, y, fmt, label=label, linewidth=linewidth, zorder=zorder)
 
         _plot(t, epsK, "r", r"$\epsilon_K$")
         _plot(t, epsA, "b", r"$\epsilon_A$")
@@ -337,23 +335,15 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             epsK4 = dict_results["epsK4"]
             epsA4 = dict_results["epsA4"]
             if not np.allclose(epsK, epsK4):
-                _plot(
-                    t, epsK4, "r:", r"$\epsilon_{K4}$",
-                )
-                _plot(
-                    t, epsA4, "b:", r"$\epsilon_{A4}$",
-                )
+                _plot(t, epsK4, "r:", r"$\epsilon_{K4}$")
+                _plot(t, epsA4, "b:", r"$\epsilon_{A4}$")
 
         if "epsK8" in dict_results and plot_hyper:
             epsK8 = dict_results["epsK8"]
             epsA8 = dict_results["epsA8"]
             if not np.allclose(epsK, epsK8):
-                _plot(
-                    t, epsK8, "r:", r"$\epsilon_{K8}$",
-                )
-                _plot(
-                    t, epsA8, "b:", r"$\epsilon_{A8}$",
-                )
+                _plot(t, epsK8, "r:", r"$\epsilon_{K8}$")
+                _plot(t, epsA8, "b:", r"$\epsilon_{A8}$")
 
         if "PK_tot" in dict_results and plot_injection:
             PK_tot = dict_results["PK_tot"]
