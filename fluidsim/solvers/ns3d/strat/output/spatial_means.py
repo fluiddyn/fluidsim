@@ -372,6 +372,8 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
         epsK = data["epsK"]
         epsA = data["epsA"]
 
+        epsK_hyper = np.zeros_like(epsK)
+
         Uh2 = EKhr + EKhd + EKhs
 
         N = self.params.N
@@ -385,8 +387,14 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
             results["R2"] = epsK / (nu_2 * N ** 2)
         if nu_4:
             results["R4"] = epsK * Uh2 / (nu_4 * N ** 4)
+            epsK_hyper += data["epsK4"]
         if nu_8:
             results["R8"] = epsK * Uh2 ** 3 / (nu_8 * N ** 8)
+            epsK_hyper += data["epsK8"]
+
+        if nu_2 and (nu_4 or nu_8):
+            epsK2 = epsK - epsK_hyper
+            results["epsK2/epsK"] = epsK2 / epsK
 
         results["Gamma"] = epsA / epsK
         results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
