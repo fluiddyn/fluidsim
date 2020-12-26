@@ -1,11 +1,20 @@
 # Second tag after tip is usually the latest release
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
+.PHONY: black clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
-develop:
+develop_lib:
+	cd lib && pip install -e .
+
+develop: develop_lib
 	pip install -v -e .[dev] | grep -v link
 
 develop_user:
 	pip install -v -e .[dev] --user | grep -v link
+
+dist:
+	cd lib && python setup.py sdist bdist_wheel
+	python setup.py sdist
+	mv -f lib/dist/* dist/
 
 clean_so:
 	find fluidsim -name "*.so" -delete
@@ -21,7 +30,7 @@ cleantransonic:
 	find fluidsim -type d -name __cython__ | xargs rm -rf
 
 clean:
-	rm -rf build
+	rm -rf build lib/build lib/dist
 
 cleanall: clean clean_so cleantransonic
 
