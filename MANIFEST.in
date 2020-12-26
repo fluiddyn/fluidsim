@@ -3,3 +3,4 @@ include *.txt
 include *.rst
 recursive-include doc *.rst
 recursive-include include *.h
+prune lib
