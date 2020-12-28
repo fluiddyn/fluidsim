@@ -5,6 +5,7 @@ from pathlib import Path
 import h5py
 from fluiddyn.util import import_class, mpi
 from fluiddyn.util.paramcontainer import ParamContainer
+
 # FIXME: Move InfoSolverBase here
 from fluidsim.base.solvers.info_base import InfoSolverBase
 
