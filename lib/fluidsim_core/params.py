@@ -6,8 +6,7 @@ import h5py
 from fluiddyn.util import import_class, mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-# FIXME: Move InfoSolverBase here
-from fluidsim.base.solvers.info_base import InfoSolverBase
+from .info import InfoSolverCore
 
 
 class Parameters(ParamContainer):
@@ -15,8 +14,8 @@ class Parameters(ParamContainer):
 
     @classmethod
     def _create_params(cls, input_info_solver):
-        """Create a Parameters instance from an InfoSolverBase instance."""
-        if isinstance(input_info_solver, InfoSolverBase):
+        """Create a Parameters instance from an InfoSolverCore instance."""
+        if isinstance(input_info_solver, InfoSolverCore):
             info_solver = input_info_solver
         elif hasattr(input_info_solver, "Simul"):
             info_solver = input_info_solver.Simul.create_default_params()
