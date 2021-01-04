@@ -76,3 +76,5 @@ site.cfg
 
 fluidsim_path
 scratch
+
+fluidsim/_version.py

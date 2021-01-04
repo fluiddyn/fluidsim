@@ -54,6 +54,26 @@ def long_description():
 
 
 # Get the version from the relevant file
+version_module = here / "fluidsim" / "_version.py"
+version_module_core = here / "lib" / "fluidsim_core" / "_version.py"
+version_template = here / "fluidsim" / "_version.tpl"
+
+if not version_module.exists() or (
+    version_module_core.exists()
+    and
+    # check modification time
+    version_module.stat().st_mtime < version_module_core.stat().st_mtime
+):
+    from string import Template
+
+    logger.info("Writing fluidsim/_version.py")
+    version_def = version_module_core.read_text()
+    tpl = Template(version_template.read_text())
+    version_module.write_text(tpl.substitute(version_def=version_def))
+else:
+    logger.info("Found fluidsim/_version.py")
+
+
 version = run_path("fluidsim/_version.py")
 __version__ = version["__version__"]
 __about__ = version["__about__"]
