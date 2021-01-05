@@ -21,38 +21,50 @@ Internal API
 
 """
 
-from typing import Union
-import os
-from copy import deepcopy as _deepcopy
 import inspect
-from pathlib import Path
+import os
 import time
-from importlib import import_module
-from time import perf_counter
+from copy import deepcopy as _deepcopy
 from datetime import timedelta
-
-import numpy as _np
-import h5py
-import h5netcdf
+from functools import partial
+from importlib import import_module
+from pathlib import Path
+from time import perf_counter
+from typing import Union
 
 import fluiddyn as fld
+import h5netcdf
+import h5py
+import numpy as _np
+from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.util import get_memory_usage
-from fluiddyn.io.redirect_stdout import stdout_redirected
+from fluidsim_core import loader
 
-from fluidsim import path_dir_results, solvers
+from fluidsim import path_dir_results
 
 from fluidsim.base.params import (
+    Parameters,
+    fix_old_params,
     load_info_solver,
     load_params_simul,
-    Parameters,
     merge_params,
-    fix_old_params,
 )
-from fluidsim.base.init_fields import fill_field_fft_2d, fill_field_fft_3d
 from fluidsim.base.solvers.info_base import create_info_simul
 
 from .output import save_file
+
+available_solvers = partial(
+    loader.available_solvers, entrypoint_grp="fluidsim.solvers"
+)
+
+import_module_solver_from_key = partial(
+    loader.import_module_solver, entrypoint_grp="fluidsim.solvers"
+)
+
+import_simul_class_from_key = partial(
+    loader.import_cls_simul, entrypoint_grp="fluidsim.solvers"
+)
 
 
 def print_memory_usage_seq(message, flush=None):
@@ -60,80 +72,20 @@ def print_memory_usage_seq(message, flush=None):
     print(message, f"{mem/1024: 7.3f} Go", flush=flush)
 
 
-def available_solver_keys(package=solvers):
-    """Inspects a package or a subpackage for all available
-    solvers.
+def available_solver_keys():
+    """List all available solvers.
 
     Returns
     -------
     list
 
     """
-    if isinstance(package, str):
-        package = import_module(package)
-
-    top = os.path.split(inspect.getfile(package))[0]
-    top = os.path.abspath(top) + os.sep
-    keys = list()
-    for dirpath, dirname, filenames in os.walk(top):
-        if "solver.py" in filenames:
-            dirpath = os.path.abspath(dirpath)
-            key = dirpath.replace(top, "")
-            key = key.replace(os.sep, ".")
-            keys.append(key)
-
-    return sorted(keys)
+    return sorted(available_solvers())
 
 
-def _get_key_package(key, package):
-    """Compute (key, package) from (key, package) with default value"""
-    if package is None:
-        if key.startswith("fluidsim"):
-            package, key = key.split(".", 1)
-        else:
-            package = "fluidsim.solvers"
-    return key, package
-
-
-def module_solver_from_key(key=None, package=None):
-    """Return the string corresponding to a module solver."""
-    key = key.lower()
-    key, package = _get_key_package(key, package)
-
-    keys = available_solver_keys(package)
-
-    if key in keys:
-        part_path = key
-    else:
-        raise ValueError(
-            "You have to give a proper solver key, name solver given: "
-            "{}. Expected one of: {}".format(key, keys)
-        )
-
-    base_solvers = package
-    module_solver = base_solvers + "." + part_path + ".solver"
-
-    return module_solver
-
-
-def import_module_solver_from_key(key=None, package=None):
-    """Import and reload the solver.
-
-    Parameters
-    ----------
-
-    key : str
-        The short name of a solver.
-
-    """
-    key, package = _get_key_package(key, package)
-
-    return import_module(module_solver_from_key(key, package))
-
-
-def get_dim_from_solver_key(key, package=None):
+def get_dim_from_solver_key(key):
     """Try to guess the dimension from the solver key (via the operator name)."""
-    cls = import_simul_class_from_key(key, package)
+    cls = import_simul_class_from_key(key)
     info = cls.InfoSolver()
     class_name = info.classes.Operators.class_name
 
@@ -148,20 +100,6 @@ def get_dim_from_solver_key(key, package=None):
     raise NotImplementedError(
         "Cannot deduce dimension of the solver from the name " + class_name
     )
-
-
-def import_simul_class_from_key(key, package=None):
-    """Import and reload a simul class.
-
-    Parameters
-    ----------
-
-    key : str
-        The short name of a solver.
-
-    """
-    solver = import_module(module_solver_from_key(key, package))
-    return solver.Simul
 
 
 def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
@@ -196,9 +134,9 @@ def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
 class ModulesSolvers(dict):
     """Dictionary to gather imported solvers."""
 
-    def __init__(self, names_solvers, package=None):
+    def __init__(self, names_solvers):
         for key in names_solvers:
-            self[key] = import_module_solver_from_key(key, package)
+            self[key] = import_module_solver_from_key(key)
 
 
 def name_file_from_time_approx(path_dir, t_approx=None):
