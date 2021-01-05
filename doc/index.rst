@@ -67,7 +67,7 @@ presenting the `FluidDyn project
 <https://openresearchsoftware.metajnl.com/articles/10.5334/jors.239/>`__:
 
 
-.. code ::
+.. code-block :: bibtex
 
     @article{fluiddyn,
     doi = {10.5334/jors.237},
@@ -103,11 +103,9 @@ presenting the `FluidDyn project
     journal = {Journal of Open Research Software}
     }
 
-User Guide
-----------
-
 .. toctree::
    :maxdepth: 1
+   :caption: User Guide
 
    install
    tutorials
@@ -116,6 +114,17 @@ User Guide
 
 Modules Reference
 -----------------
+
+A pure-Python package ``fluidsim-core`` houses all the abstraction necessary to
+define solvers.
+
+.. autosummary::
+   :toctree: generated/
+
+   fluidsim_core
+
+The package ``fluidsim`` provides a set of specialized solvers solvers,
+supporting classes and functions.
 
 .. autosummary::
    :toctree: generated/
@@ -127,11 +136,9 @@ Modules Reference
    fluidsim.magic
 
 
-More
-----
-
 .. toctree::
    :maxdepth: 1
+   :caption: More
 
    changes
    Advice for FluidDyn developers <http://fluiddyn.readthedocs.io/en/latest/advice_developers.html>

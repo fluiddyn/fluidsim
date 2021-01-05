@@ -1,3 +1,15 @@
+"""Info solver
+==============
+
+Container to encode the solver class hierarchy.
+
+.. autofunction:: create_info_simul
+
+.. autoclass:: InfoSolverCore
+   :members:
+   :private-members:
+
+"""
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import ParamContainer
 
@@ -65,6 +77,9 @@ class InfoSolverCore(ParamContainer):
         return dict_classes
 
     def complete_with_classes(self):
+        """Populate info solver by executing ``_complete_info_solver`` class
+        methods
+        """
         dict_classes = self.import_classes()
         for Class in list(dict_classes.values()):
             if hasattr(Class, "_complete_info_solver"):

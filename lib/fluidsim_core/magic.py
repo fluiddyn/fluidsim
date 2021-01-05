@@ -1,3 +1,10 @@
+"""IPython / Jupyter magic commands
+
+.. autoclass:: MagicsCore
+   :members:
+   :private-members:
+
+"""
 from pprint import pprint
 
 from fluiddyn.io.query import query_yes_no
@@ -12,7 +19,11 @@ from .loader import available_solvers, import_cls_simul
 
 
 class MagicsCore(Magics):
-    """Magics simplifies the instantiation steps for a Simul object."""
+    """Magics simplifies the instantiation steps for a Simul object.
+    A class variable ``entrypoint_grp`` informs which modules to import from.
+    See also :any:`fluidsim_core.loader`.
+
+    """
 
     entrypoint_grp = None
 

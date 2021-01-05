@@ -1,3 +1,10 @@
+"""Solver parameters
+
+.. autoclass:: Parameters
+   :members:
+   :private-members:
+
+"""
 import os
 from glob import glob
 from pathlib import Path
@@ -89,7 +96,7 @@ class Parameters(ParamContainer):
 
     @classmethod
     def _load_info_solver(cls, path_dir=None):
-        """Load the solver information, return an InfoSolverBase instance."""
+        """Load the solver information, return an InfoSolverCore instance."""
         if path_dir is None:
             path_dir = os.getcwd()
 

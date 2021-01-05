@@ -1,7 +1,8 @@
 """Utilities for loading and importing solvers
 
-.. autosummary::
-    :toctree:
+.. autofunction:: available_solvers
+.. autofunction:: import_module_solver
+.. autofunction:: import_cls_simul
 
 """
 
@@ -13,7 +14,7 @@ def available_solvers(entrypoint_grp):
     entrypoint_ group. Each entrypoint_ would be a key-value pair - a solver
     short name and the full import path of the solver module respectively.
 
-    _entrypoint: https://packaging.python.org/guides/creating-and-discovering-plugins/#using-package-metadata
+    .. _entrypoint: https://packaging.python.org/guides/creating-and-discovering-plugins/#using-package-metadata
 
     Parameters
     ----------
