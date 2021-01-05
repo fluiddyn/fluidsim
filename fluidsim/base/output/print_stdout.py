@@ -275,5 +275,5 @@ class PrintStdOutBase:
         for ax in axes:
             ax.set_ylim(bottom=0)
 
-        fig.suptitle(self.output.summary_simul)
+        fig.suptitle(self.output.summary_simul, fontsize=8)
         fig.tight_layout()
