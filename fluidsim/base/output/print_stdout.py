@@ -198,7 +198,7 @@ class PrintStdOutBase:
             * remaining_clock_times
             / remaining_equation_times
         )
-        full_clock_time = delta_clock_times.sum()
+        full_clock_time = delta_clock_times[np.isfinite(delta_clock_times)].sum()
 
         clock_times_per_timestep = delta_clock_times / delta_time_inds
 
