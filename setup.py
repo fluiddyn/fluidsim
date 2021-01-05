@@ -118,20 +118,6 @@ if FFTW3:
     )
     warn(fft_extras_msg)
 
-console_scripts = [
-    "fluidsim = fluidsim.util.console.__main__:run",
-    "fluidsim-test = fluidsim.util.testing:run",
-    "fluidsim-create-xml-description = fluidsim.base.output:run",
-]
-
-for command in ["profile", "bench", "bench-analysis"]:
-    console_scripts.append(
-        "fluidsim-"
-        + command
-        + " = fluidsim.util.console.__main__:run_"
-        + command.replace("-", "_")
-    )
-
 
 def transonize():
 
@@ -213,7 +199,6 @@ setup(
     install_requires=install_requires,
     cmdclass={"build_ext": FluidSimBuildExt},
     ext_modules=create_extensions(),
-    entry_points={"console_scripts": console_scripts},
 )
 
 logger.info(f"Setup completed in {time() - time_start:.3f} seconds.")
