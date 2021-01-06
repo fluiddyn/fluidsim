@@ -9,6 +9,7 @@ generic base classes and utilities to build new solvers.
    loader
    magic
    params
+   solver
 
 """
 from ._version import __version__
