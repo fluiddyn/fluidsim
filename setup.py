@@ -57,12 +57,11 @@ def long_description():
 version_module = here / "fluidsim" / "_version.py"
 version_module_core = here / "lib" / "fluidsim_core" / "_version.py"
 version_template = here / "fluidsim" / "_version.tpl"
-
 if not version_module.exists() or (
     version_module_core.exists()
-    and
     # check modification time
-    version_module.stat().st_mtime < version_module_core.stat().st_mtime
+    and version_module.stat().st_mtime
+    < max(version_module_core.stat().st_mtime, version_template.stat().st_mtime)
 ):
     from string import Template
 
