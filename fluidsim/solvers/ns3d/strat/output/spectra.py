@@ -207,7 +207,7 @@ class SpectraNS3DStrat(SpectraNS3D):
         ax.plot(kh, hflux_diss_nu2, "r-", label=r"$D_2(k_h)$")
         ax.plot(kz, zflux_diss_nu2, "r:", label=r"$D_2(k_z)$")
         ax.plot(kh, hflux_diss_nu4, "m-", label=r"$D_4(k_h)$")
-        ax.plot(kz, zflux_diss_nu4, "r:", label=r"$D_4(k_z)$")
+        ax.plot(kz, zflux_diss_nu4, "m:", label=r"$D_4(k_z)$")
 
         ax.set_title(
             f"kzkh cumulative dissipation spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
