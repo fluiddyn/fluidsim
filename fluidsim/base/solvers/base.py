@@ -156,7 +156,7 @@ nu_2: float (default = 0.)
         # self.forcing.compute()
 
         # complete the initialisation of the object output
-        self.output.init_with_oper_and_state()
+        self.output.post_init()
 
         # if enabled, preprocesses flow parameters such as viscosity and
         # forcing based on initialized fields

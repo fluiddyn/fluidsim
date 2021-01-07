@@ -23,6 +23,7 @@ import shutil
 import numbers
 from time import sleep
 from copy import copy
+from warnings import warn
 
 import numpy as np
 import h5py
@@ -30,105 +31,29 @@ import matplotlib.pyplot as plt
 
 import fluiddyn
 from fluiddyn.util import mpi
-from fluiddyn.util import is_run_from_ipython, time_as_str, print_memory_usage
-from fluiddyn.io import FLUIDSIM_PATH, FLUIDDYN_PATH_SCRATCH, Path
+from fluiddyn.util import is_run_from_ipython, print_memory_usage
+from fluiddyn.io import FLUIDSIM_PATH, Path
+from fluidsim_core.output import OutputCore, SimReprMakerCore
 
 import fluidsim
-from fluidsim.util.util import load_params_simul, open_patient
+from fluidsim.util.util import open_patient
 
 
-class SimReprMaker:
-    """Code to create strings to represent a simulation"""
-
-    def __init__(self, sim):
-        self.sim = sim
-        self.params = sim.params
-        self.ordered_keys = []
-        self.parameters = {}
-        self.formats = {}
-
-    def add_word(self, word):
-        if word:
-            self.ordered_keys.append(("__word", word))
-
-    def add_parameters(self, parameters, formats=None, indices=None):
-        for key in parameters:
-            if indices and key in indices:
-                index = indices[key]
-                self.ordered_keys.insert(index, ("__parameter", key))
-            else:
-                self.ordered_keys.append(("__parameter", key))
-        self.parameters.update(parameters)
-        if formats:
-            self.formats.update(formats)
-
-    def _make_list_repr(self):
-        list_repr = []
-        for kind, value in self.ordered_keys:
-            if kind == "__word":
-                list_repr.append(value)
-            elif kind == "__parameter":
-                name_parameter = value
-                parameter = self.parameters[name_parameter]
-                if isinstance(parameter, float):
-                    default_fmt = ".3f"
-                else:
-                    default_fmt = ""
-                fmt = self.formats.get(name_parameter, default_fmt)
-                str_parameter = ("{:" + fmt + "}").format(parameter)
-                if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
-                    str_parameter = str_parameter.replace("e+", "e")
-                if "e" not in str_parameter:
-                    str_parameter = str_parameter.rstrip("0")
-                if str_parameter.endswith("."):
-                    str_parameter = str_parameter[:-1]
-                list_repr.append((name_parameter, str_parameter))
-            else:
-                raise ValueError
-        return list_repr
-
-    def get_list_repr(self):
-        if not hasattr(self, "_list_repr"):
-            self._list_repr = self._make_list_repr()
-        return self._list_repr
-
+class SimReprMaker(SimReprMakerCore):
     def get_time_as_str(self):
         params = self.sim.params
         if not params.NEW_DIR_RESULTS and (
             params.ONLY_COARSE_OPER or params.init_fields.type == "from_file"
         ):
-            path_run = params.path_run
-            if isinstance(path_run, Path):
-                path_run = path_run.name
-            return "_".join(path_run.split("_")[-2:])
+            return self.time_from_path_run(params.path_run)
         else:
-            return time_as_str()
-
-    def make_representations(self):
-        time = self.get_time_as_str()
-        list_repr = self.get_list_repr().copy()
-        list_repr.append(time)
-
-        for_name = []
-        for_summary = []
-        for obj in list_repr:
-            if isinstance(obj, tuple):
-                name_parameter, str_parameter = obj
-                obj = f"{name_parameter}{str_parameter}"
-                str_summary = f"{name_parameter}={str_parameter}"
-            else:
-                str_summary = obj.replace("_", ", ")
-
-            for_name.append(obj)
-            for_summary.append(str_summary)
-
-        name_run = "_".join(for_name)
-        summary_simul = ", ".join(for_summary)
-        return name_run, summary_simul
+            return super().get_time_as_str()
 
 
-class OutputBase:
+class OutputBase(OutputCore):
     """Handle the output."""
+
+    SimReprMaker = SimReprMaker
 
     @staticmethod
     def _complete_info_solver(info_solver):
@@ -219,119 +144,8 @@ are called.
                         raise
 
     def __init__(self, sim):
-        params = sim.params
-        self.sim = sim
-        self.params = params.output
+        super().__init__(sim)
         self.oper = sim.oper
-
-        self._has_to_save = self.params.HAS_TO_SAVE
-        self.name_solver = sim.info.solver.short_name
-
-        # initialisation name_run and path_run
-        if mpi.rank == 0:
-            self._init_name_run()
-        else:
-            self.name_run = None
-
-        if not params.NEW_DIR_RESULTS:
-            try:
-                self.path_run = str(params.path_run)
-            except AttributeError:
-                params.NEW_DIR_RESULTS = True
-                print(
-                    "Strange: params.NEW_DIR_RESULTS == False "
-                    "but no params.path_run"
-                )
-
-            # if _has_to_save, we verify the correspondence between the
-            # resolution of the simulation and the resolution of the
-            # previous simulation saved in this directory
-            if self._has_to_save:
-                if mpi.rank == 0:
-                    try:
-                        params_dir = load_params_simul(self.path_run)
-                    except:
-                        raise ValueError(
-                            "Strange, no info_simul.h5 in self.path_run"
-                        )
-
-                    cond = False
-                    try:
-                        if params.oper.nx != params_dir.oper.nx:
-                            cond = True
-                    except AttributeError:
-                        pass
-                    try:
-                        if params.oper.ny != params_dir.oper.ny:
-                            cond = True
-                    except AttributeError:
-                        pass
-                    try:
-                        if params.oper.nz != params_dir.oper.nz:
-                            cond = True
-                    except AttributeError:
-                        pass
-
-                    if cond:
-                        params.NEW_DIR_RESULTS = True
-                        print(
-                            """
-Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
-         and of the simulation in the directory self.path_run are different
-         we put params.NEW_DIR_RESULTS = True"""
-                        )
-                if mpi.nb_proc > 1:
-                    params.NEW_DIR_RESULTS = mpi.comm.bcast(
-                        params.NEW_DIR_RESULTS
-                    )
-
-        if params.NEW_DIR_RESULTS:
-
-            if FLUIDDYN_PATH_SCRATCH is not None:
-                path_base = FLUIDDYN_PATH_SCRATCH
-            else:
-                path_base = FLUIDSIM_PATH
-
-            if len(params.output.sub_directory) > 0:
-                path_base = os.path.join(path_base, params.output.sub_directory)
-
-            if mpi.rank == 0:
-                while True:
-                    path_run = os.path.join(path_base, self.name_run)
-                    if not params.output.HAS_TO_SAVE:
-                        break
-                    if not os.path.exists(path_run):
-                        try:
-                            os.makedirs(path_run)
-                        except OSError:
-                            # in case of simultaneously launched simulations
-                            print(
-                                'Warning: NEW_DIR_RESULTS=True, but path"',
-                                path_run,
-                                "already exists. Trying a new path...",
-                            )
-                            sleep(1)
-                            self._init_name_run()
-                        else:
-                            break
-                    else:
-                        sleep(1)
-                        self._init_name_run()
-
-            else:
-                path_run = None
-
-            if mpi.rank == 0:
-                params._set_attrib("path_run", path_run)
-            if mpi.nb_proc > 1:
-                path_run = mpi.comm.bcast(path_run, root=0)
-            self.path_run = path_run
-
-        if mpi.nb_proc > 1:
-            # ensure same name_run across all processes
-            self.name_run = mpi.comm.bcast(self.name_run, root=0)
-
-        self.sim.name_run = self.name_run
 
         dict_classes = sim.info.solver.classes.Output.import_classes()
 
@@ -346,24 +160,10 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             for k in self.params.periods_save._get_key_attribs():
                 self.params.periods_save[k] = 0.0
 
-    def _init_name_run(self):
-        """Initialize the run name"""
-        if not hasattr(self, "_sim_repr_maker"):
-            self._sim_repr_maker = self._init_sim_repr_maker()
-        (
-            self.name_run,
-            self.summary_simul,
-        ) = self._sim_repr_maker.make_representations()
-
     def _init_sim_repr_maker(self):
-        """Create a list of strings to make the run name."""
+        sim_repr_maker = super()._init_sim_repr_maker()
+
         sim = self.sim
-        params = sim.params
-
-        sim_repr_maker = SimReprMaker(sim)
-        sim_repr_maker.add_word(self.name_solver)
-        sim_repr_maker.add_word(params.short_name_type_run)
-
         # oper should already be initialized at this point
         if hasattr(self, "oper") and hasattr(self.oper, "_modify_sim_repr_maker"):
             self.oper._modify_sim_repr_maker(sim_repr_maker)
@@ -383,15 +183,24 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         return sim_repr_maker
 
+    def _init_name_run(self):
+        super()._init_name_run()
+
     def init_with_oper_and_state(self):
+        warn(
+            "This method has been replaced with a more generic name `post_init`.",
+            DeprecationWarning,
+        )
+        self.post_init()
+
+    def post_init(self):
         sim = self.sim
+        super().post_init()
 
         if mpi.rank == 0:
 
             objects_to_print = {
-                "sim": sim,
                 "sim.oper": sim.oper,
-                "sim.output": sim.output,
                 "sim.state": sim.state,
                 "sim.time_stepping": sim.time_stepping,
                 "sim.init_fields": sim.init_fields,
@@ -439,8 +248,6 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     + self.sim.produce_str_describing_params()
                 )
 
-        self._save_info_solver_params_xml()
-
         if mpi.rank == 0 and is_run_from_ipython():
             plt.ion()
 
@@ -452,36 +259,9 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def _save_info_solver_params_xml(self, replace=False):
         """Save files with information on the solver and on the run."""
-        if (
-            mpi.rank == 0
-            and self._has_to_save
-            and self.sim.params.NEW_DIR_RESULTS
-        ):
-            comment = (
-                "This file has been created by"
-                " the Python program FluidDyn "
-                + fluiddyn.__version__
-                + " and FluidSim "
-                + fluidsim.get_local_version()
-                + ".\n\nIt should not be modified "
-                "(except for adding xml comments)."
-            )
-            path_run = Path(self.path_run)
-            info_solver_xml_path = path_run / "info_solver.xml"
-            params_xml_path = path_run / "params_simul.xml"
-
-            # save info on the run
-            if replace:
-                os.remove(info_solver_xml_path)
-                os.remove(params_xml_path)
-
-            self.sim.info.solver._save_as_xml(
-                path_file=info_solver_xml_path, comment=comment
-            )
-
-            self.sim.params._save_as_xml(
-                path_file=params_xml_path, comment=comment
-            )
+        super()._save_info_solver_params_xml(
+            replace=replace, comment=f"FluidSim {fluidsim.get_local_version()}"
+        )
 
     def init_with_initialized_state(self):
 
@@ -638,11 +418,10 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
 
 class OutputBasePseudoSpectral(OutputBase):
-    def init_with_oper_and_state(self):
-
+    def post_init(self):
         oper = self.oper
         self.sum_wavenumbers = oper.sum_wavenumbers
-        super().init_with_oper_and_state()
+        super().post_init()
 
     def compute_energy_fft(self):
         """Compute energy(k)"""

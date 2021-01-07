@@ -5,11 +5,12 @@ generic base classes and utilities to build new solvers.
 .. autosummary::
    :toctree:
 
+   params
    info
+   solver
+   output
    loader
    magic
-   params
-   solver
 
 """
 from ._version import __version__
