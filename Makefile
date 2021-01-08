@@ -49,7 +49,7 @@ tests_mpi:
 
 _tests_coverage:
 	mkdir -p .coverage
-	coverage run -p -m pytest -v lib
+	coverage run -p -m pytest -v -s lib
 	coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v

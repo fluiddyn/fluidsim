@@ -258,7 +258,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                     break
                 if not path_run.exists():
                     try:
-                        path_run.mkdir()
+                        path_run.mkdir(parents=True)
                     except OSError:
                         # in case of simultaneously launched simulations
                         print(
