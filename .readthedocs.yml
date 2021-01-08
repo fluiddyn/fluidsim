@@ -12,6 +12,7 @@ python:
   version: 3.7
   system_packages: true
   install:
+    - requirements: .readthedocs.req
     - method: pip
       path: .
       extra_requirements:
