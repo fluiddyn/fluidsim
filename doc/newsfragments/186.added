@@ -1,0 +1,3 @@
+Package split into ``fluidsim-core`` and ``fluidsim``
+- Base classes and abstract base classes defined for ``params``, ``info_solver``, ``sim``, ``output`` instances
+- Entry points as a *plugin framework* to register FluidSim solvers
