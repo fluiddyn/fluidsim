@@ -41,6 +41,7 @@ from fluiddoc.ipynb_maker import execute_notebooks
 execute_notebooks("ipynb")
 nbsphinx_execute = "never"
 
+os.environ["TRANSONIC_NO_REPLACE"] = "1"
 import fluidsim
 import fluidsim.operators.operators2d
 

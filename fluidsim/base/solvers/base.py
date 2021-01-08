@@ -14,18 +14,14 @@ Provides:
 """
 from time import time
 
-from warnings import warn
 import numpy as np
+from fluidsim_core.solver import SimulCore
+
+from ..setofvariables import SetOfVariables
+from .info_base import InfoSolverBase
 
 
-from fluidsim.base.setofvariables import SetOfVariables
-
-from fluidsim.base.params import Parameters, create_params
-
-from fluidsim.base.solvers.info_base import InfoSolverBase, create_info_simul
-
-
-class SimulBase:
+class SimulBase(SimulCore):
     """Represent a solver.
 
     This is the main base class which is inherited by the other
@@ -91,9 +87,7 @@ nu_2: float (default = 0.)
 
     @classmethod
     def create_default_params(cls):
-        cls.info_solver = cls.InfoSolver()
-        cls.info_solver.complete_with_classes()
-        return create_params(cls.info_solver)
+        return super().create_default_params()
 
     def __enter__(self):
         if not hasattr(self, "_end_of_simul") or self._end_of_simul:
@@ -110,32 +104,14 @@ nu_2: float (default = 0.)
             self._end_of_simul = True
 
     def __init__(self, params):
+        super().__init__(params)
+
         # np.seterr(invalid='raise')
         # np.seterr(over='raise')
         np.seterr(all="warn")
         np.seterr(under="ignore")
 
-        if (
-            not hasattr(self, "info_solver")
-            or self.info_solver.__class__ is not self.InfoSolver
-        ):
-            if hasattr(self, "info_solver"):
-                warn(
-                    "Creating a new info_solver instance "
-                    f"due to type mismatch  {self.InfoSolver}"
-                )
-            self.info_solver = self.InfoSolver()
-            self.info_solver.complete_with_classes()
-
         dict_classes = self.info_solver.import_classes()
-
-        if not isinstance(params, Parameters):
-            raise TypeError(
-                f"params should be a Parameters instance, not {type(params)}"
-            )
-
-        self.params = params
-        self.info = create_info_simul(self.info_solver, params)
 
         # initialization operators and grid
         Operators = dict_classes["Operators"]
@@ -180,7 +156,7 @@ nu_2: float (default = 0.)
         # self.forcing.compute()
 
         # complete the initialisation of the object output
-        self.output.init_with_oper_and_state()
+        self.output.post_init()
 
         # if enabled, preprocesses flow parameters such as viscosity and
         # forcing based on initialized fields

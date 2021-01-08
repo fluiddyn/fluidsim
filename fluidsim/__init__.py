@@ -20,7 +20,6 @@ The package is organised in four sub-packages:
    operators
    solvers
    magic
-   pkgload
 
 """
 

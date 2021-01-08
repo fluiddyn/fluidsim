@@ -54,6 +54,25 @@ def long_description():
 
 
 # Get the version from the relevant file
+version_module = here / "fluidsim" / "_version.py"
+version_module_core = here / "lib" / "fluidsim_core" / "_version.py"
+version_template = here / "fluidsim" / "_version.tpl"
+if not version_module.exists() or (
+    version_module_core.exists()
+    # check modification time
+    and version_module.stat().st_mtime
+    < max(version_module_core.stat().st_mtime, version_template.stat().st_mtime)
+):
+    from string import Template
+
+    logger.info("Writing fluidsim/_version.py")
+    version_def = version_module_core.read_text()
+    tpl = Template(version_template.read_text())
+    version_module.write_text(tpl.substitute(version_def=version_def))
+else:
+    logger.info("Found fluidsim/_version.py")
+
+
 version = run_path("fluidsim/_version.py")
 __version__ = version["__version__"]
 __about__ = version["__about__"]
@@ -67,7 +86,7 @@ else:
     devstatus = "Development Status :: 5 - Production/Stable"
 
 install_requires = [
-    "fluiddyn >= 0.3.2",
+    f"fluidsim-core>={__version__}",
     "h5py",
     "h5netcdf",
     "transonic>=0.4.3",
@@ -97,20 +116,6 @@ if FFTW3:
     """
     )
     warn(fft_extras_msg)
-
-console_scripts = [
-    "fluidsim = fluidsim.util.console.__main__:run",
-    "fluidsim-test = fluidsim.util.testing:run",
-    "fluidsim-create-xml-description = fluidsim.base.output:run",
-]
-
-for command in ["profile", "bench", "bench-analysis"]:
-    console_scripts.append(
-        "fluidsim-"
-        + command
-        + " = fluidsim.util.console.__main__:run_"
-        + command.replace("-", "_")
-    )
 
 
 def transonize():
@@ -193,7 +198,6 @@ setup(
     install_requires=install_requires,
     cmdclass={"build_ext": FluidSimBuildExt},
     ext_modules=create_extensions(),
-    entry_points={"console_scripts": console_scripts},
 )
 
 logger.info(f"Setup completed in {time() - time_start:.3f} seconds.")
