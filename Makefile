@@ -2,11 +2,11 @@
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
 .PHONY: black clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
-develop_lib:
-	cd lib && pip install -e .
-
 develop: develop_lib
 	pip install -v -e .[dev] | grep -v link
+
+develop_lib:
+	cd lib && pip install -e .
 
 develop_user:
 	pip install -v -e .[dev] --user | grep -v link
