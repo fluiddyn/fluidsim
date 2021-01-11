@@ -22,7 +22,20 @@ Unreleased_
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...branch%2Fdefault
+
+0.4.0_ (2021-01-11)
+-------------------
+
+* `!186 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/186>`__: Package split into ``fluidsim-core`` and ``fluidsim``
+
+  - Base classes and abstract base classes defined for ``params``, ``info_solver``, ``sim``, ``output`` instances
+  - Entry points as a *plugin framework* to register FluidSim solvers
+
+* ``base/output/print_stdout.py``: better regularity saving + method ``plot_clock_times``
+
+* Able to run bigger simulations (``2034x2034x384``) on the Occigen cluster (in
+  particular new function ``fluidsim.modif_resolution_from_dir_memory_efficient``)
 
 0.3.3_ (2020-10-15)
 -------------------
@@ -129,6 +142,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
+.. _0.4.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...0.4.0
 .. _0.3.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.2...0.3.3
 .. _0.3.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.1...0.3.2
 .. _0.3.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.0...0.3.1

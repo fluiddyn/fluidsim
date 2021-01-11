@@ -88,6 +88,7 @@ from .util.util import (
     load_state_phys_file,
     modif_resolution_from_dir,
     modif_resolution_all_dir,
+    modif_resolution_from_dir_memory_efficient,
     load_for_restart,
 )
 
