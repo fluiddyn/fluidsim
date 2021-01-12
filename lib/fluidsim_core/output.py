@@ -153,9 +153,14 @@ class OutputCore(ABC):
             This class relies on a boolean parameter ``params.NEW_DIR_RESULTS``.
 
         """
-        params = sim.params
         #: The simulation class
         self.sim = sim
+
+        if hasattr(sim, "oper"):
+            #: An alias towards the Operators object
+            self.oper = sim.oper
+
+        params = sim.params
         #: The tree of parameters for output-related classes
         self.params = params.output
 

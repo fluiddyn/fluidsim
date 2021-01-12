@@ -145,7 +145,6 @@ are called.
 
     def __init__(self, sim):
         super().__init__(sim)
-        self.oper = sim.oper
 
         dict_classes = sim.info.solver.classes.Output.import_classes()
 
@@ -182,9 +181,6 @@ are called.
                 cls._modify_sim_repr_maker(sim_repr_maker)
 
         return sim_repr_maker
-
-    def _init_name_run(self):
-        super()._init_name_run()
 
     def init_with_oper_and_state(self):
         warn(
