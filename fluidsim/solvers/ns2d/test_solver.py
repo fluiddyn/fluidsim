@@ -148,6 +148,7 @@ class TestForcingOutput(TestSimulBase):
     def test_forcing_output(self):
 
         sim = self.sim
+        assert f"{sim.params.oper.nx}x{sim.params.oper.ny}" in sim.name_run
 
         sim.time_stepping.start()
 
