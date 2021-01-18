@@ -64,7 +64,14 @@ class TemporalSpectra(SpecificOutput):
         self.period_save = params.output.periods_save.frequency_spectra
 
         self.probes_region = params_tspec.probes_region
-        probes_xmin, probes_xmax, probes_ymin, probes_ymax, probes_zmin, probes_zmax = self.probes_region
+        (
+            probes_xmin,
+            probes_xmax,
+            probes_ymin,
+            probes_ymax,
+            probes_zmin,
+            probes_zmax,
+        ) = self.probes_region
 
         self.file_max_size = params_tspec.file_max_size
 
@@ -73,7 +80,7 @@ class TemporalSpectra(SpecificOutput):
         # operator
         oper = self.sim.oper
         X, Y, Z = oper.get_XYZ_loc()
-        
+
         # global probes coordinates
         probes_x_seq = np.arange(probes_xmin, probes_xmax, probes_deltax)
         probes_y_seq = np.arange(probes_ymin, probes_ymax, probes_deltay)
@@ -86,9 +93,9 @@ class TemporalSpectra(SpecificOutput):
         probes_y_loc = probes_y_seq[test]
         test = (probes_z_seq >= Z.min()) & (probes_z_seq <= Z.max())
         probes_z_loc = probes_z_seq[test]
-        
+
         probes_nb_loc = probes_x_loc.size * probes_y_loc.size * probes_z_loc.size
-        
+
         # local probes indices
         self.probes_ix_loc = np.empty(probes_nb_loc, dtype=int)
         self.probes_iy_loc = np.empty_like(probes_ix_loc)
@@ -108,21 +115,22 @@ class TemporalSpectra(SpecificOutput):
                     probe_i += 1
 
         # files max size
-        probes_write_size = 4 * probes_nb_loc * 8e-6  # (vx,vy,vz,b) * probes * float64 / MB
+        probes_write_size = (
+            4 * probes_nb_loc * 8e-6
+        )  # (vx,vy,vz,b) * probes * float64 / MB
         self.file_max_write = 1
         if probes_write_size > 0:
             self.file_max_write = int(self.file_max_size / probes_write_size)
-    
+
         # create directory
         dir_name = "probes"
         self.path_dir = Path(self.sim.output.path_run) / dir_name
         self.path_dir.mkdir(exist_ok=True)
-        
+
         # initialize file
         self.file_nb = 0
         self.file_write_nb = 0
         self._init_new_file()
-        
 
     def _init_files(self, arrays_1st_time=None):
         # we don't want to do anything when this function is called.
@@ -132,31 +140,47 @@ class TemporalSpectra(SpecificOutput):
         """Initializes a new file"""
         filename = f"rank{mpi.rank}_file{self.file_nb}.hdf5"
         self.path_file = os.path.join(self.path_dir, filename)
-        with h5py.File(self.path_file,'w') as f:
-            f.create_dataset('probes_ix_loc',data=self.probes_ix_loc)
-            f.create_dataset('probes_iy_loc',data=self.probes_iy_loc)
-            f.create_dataset('probes_iz_loc',data=self.probes_iz_loc)
-            f.create_dataset('probes_vx_loc',(probes_nb_loc,1),maxshape=(probes_nb_loc,self.file_max_write))
-            f.create_dataset('probes_vy_loc',(probes_nb_loc,1),maxshape=(probes_nb_loc,self.file_max_write))
-            f.create_dataset('probes_vz_loc',(probes_nb_loc,1),maxshape=(probes_nb_loc,self.file_max_write))
-            f.create_dataset('probes_b_loc',(probes_nb_loc,1),maxshape=(probes_nb_loc,self.file_max_write))
-            f.create_dataset('times',(1,),maxshape=(self.file_max_write,))
+        with h5py.File(self.path_file, "w") as f:
+            f.create_dataset("probes_ix_loc", data=self.probes_ix_loc)
+            f.create_dataset("probes_iy_loc", data=self.probes_iy_loc)
+            f.create_dataset("probes_iz_loc", data=self.probes_iz_loc)
+            f.create_dataset(
+                "probes_vx_loc",
+                (probes_nb_loc, 1),
+                maxshape=(probes_nb_loc, self.file_max_write),
+            )
+            f.create_dataset(
+                "probes_vy_loc",
+                (probes_nb_loc, 1),
+                maxshape=(probes_nb_loc, self.file_max_write),
+            )
+            f.create_dataset(
+                "probes_vz_loc",
+                (probes_nb_loc, 1),
+                maxshape=(probes_nb_loc, self.file_max_write),
+            )
+            f.create_dataset(
+                "probes_b_loc",
+                (probes_nb_loc, 1),
+                maxshape=(probes_nb_loc, self.file_max_write),
+            )
+            f.create_dataset("times", (1,), maxshape=(self.file_max_write,))
 
     def _write_to_file(self, data):
         """Writes a file with the temporal data"""
-        with h5py.File(self.path_file,'a') as f:
-            dset = f['probes_vx_loc']
-            dset.resize((probes_nb_loc,file_write_nb))
-            dset[:,-1] = data['vx']
-            dset = f['probes_vy_loc']
-            dset.resize((probes_nb_loc,file_write_nb))
-            dset[:,-1] = data['vy']
-            dset = f['probes_vz_loc']
-            dset.resize((probes_nb_loc,file_write_nb))
-            dset[:,-1] = data['vz']
-            dset = f['times']
+        with h5py.File(self.path_file, "a") as f:
+            dset = f["probes_vx_loc"]
+            dset.resize((probes_nb_loc, file_write_nb))
+            dset[:, -1] = data["vx"]
+            dset = f["probes_vy_loc"]
+            dset.resize((probes_nb_loc, file_write_nb))
+            dset[:, -1] = data["vy"]
+            dset = f["probes_vz_loc"]
+            dset.resize((probes_nb_loc, file_write_nb))
+            dset[:, -1] = data["vz"]
+            dset = f["times"]
             dset.resize((file_write_nb,))
-            dset[-1] = data['time']
+            dset[-1] = data["time"]
 
     def _online_save(self):
         """Prepares data and writes to file"""
@@ -167,18 +191,22 @@ class TemporalSpectra(SpecificOutput):
             self._init_new_file()
         # get data from probes
         data = {}
-        data['time'] = self.sim.time_stepping.t
+        data["time"] = self.sim.time_stepping.t
         temp = self.sim.state.get_var("vx")
-        data['vx'] = temp[self.probes_ix_loc,self.probes_iy_loc,self.probes_iz_loc]
+        data["vx"] = temp[
+            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+        ]
         temp = self.sim.state.get_var("vy")
-        data['vy'] = temp[self.probes_ix_loc,self.probes_iy_loc,self.probes_iz_loc]
+        data["vy"] = temp[
+            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+        ]
         temp = self.sim.state.get_var("vz")
-        data['vz'] = temp[self.probes_ix_loc,self.probes_iy_loc,self.probes_iz_loc]
+        data["vz"] = temp[
+            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+        ]
         temp = self.sim.state.get_var("b")
-        data['b'] = temp[self.probes_ix_loc,self.probes_iy_loc,self.probes_iz_loc]
+        data["b"] = temp[
+            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+        ]
         # write to file
         self._write_to_file(data)
-
-
-
-
