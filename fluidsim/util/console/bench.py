@@ -5,6 +5,7 @@
 
 import gc
 from collections import OrderedDict
+
 import numpy as np
 
 from fluiddyn.util import mpi, info
@@ -144,7 +145,17 @@ def estimate_shapes_weak_scaling(
 
         nproc_max = cpu_count()
 
-    assert nproc_max % nproc_min == 0
+    if nproc_min >= nproc_max:
+        raise ValueError(
+            "Cannot run estimate_shapes_weak_scaling because "
+            f"nproc_min >= nproc_max (nproc_max = {nproc_max})"
+        )
+
+    if nproc_max % nproc_min != 0:
+        raise ValueError(
+            "nproc_max % nproc_min != 0 "
+            f"(nproc_max={nproc_max}; nproc_min={nproc_min})"
+        )
 
     # Generate a geometric progression for number of processes
 
@@ -262,9 +273,13 @@ def run(args):
             raise ValueError(
                 "Add the fft type, for example -t fft2d.mpi_with_fftw1d"
             )
-        estimate_shapes_weak_scaling(
-            args.n0, args.n1, args.n2, type_fft=args.type_fft, show=True
-        )
+        try:
+            estimate_shapes_weak_scaling(
+                args.n0, args.n1, args.n2, type_fft=args.type_fft, show=True
+            )
+        except ValueError as error:
+            print(error)
+
     else:
         # Initialize simulation and run benchmarks
         solver = import_module_solver_from_key(args.solver)
