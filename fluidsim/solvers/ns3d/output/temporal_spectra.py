@@ -13,11 +13,12 @@ Provides:
 
 import sys
 import time
-import h5py
-import numpy as np
-
-from scipy import signal
 from pathlib import Path
+import glob
+
+import numpy as np
+from scipy import signal
+import h5py
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
@@ -44,7 +45,7 @@ class TemporalSpectra(SpecificOutput):
                 "probes_deltay": 0.1,  # m
                 "probes_deltaz": 0.1,  # m
                 "probes_region": (0, 1, 0, 1, 0, 1),  # m
-                "file_max_size": 1e-2,  # MB
+                "file_max_size": 10.0,  # MB
             },
         )
 
@@ -56,6 +57,8 @@ class TemporalSpectra(SpecificOutput):
             period_save=params.output.periods_save.temporal_spectra,
             has_to_plot_saved=params_tspec.HAS_TO_PLOT_SAVED,
         )
+
+        self.t_last_save = -self.period_save
 
         # Parameters
         self.probes_deltax = params_tspec.probes_deltax
@@ -75,62 +78,142 @@ class TemporalSpectra(SpecificOutput):
 
         self.file_max_size = params_tspec.file_max_size
 
-        self.has_to_save = bool(params.output.periods_save.temporal_spectra)
+        self.key_fields = ["vx", "vy", "vz", "b"]
 
-        # operator
         oper = self.sim.oper
         X, Y, Z = oper.get_XYZ_loc()
 
+        # round probes positions to gridpoints
+        self.probes_deltax = oper.deltax * round(self.probes_deltax / oper.deltax)
+        probes_xmin = oper.deltax * round(probes_xmin / oper.deltax)
+
+        self.probes_deltay = oper.deltay * round(self.probes_deltay / oper.deltay)
+        probes_ymin = oper.deltay * round(probes_ymin / oper.deltay)
+
+        self.probes_deltaz = oper.deltaz * round(self.probes_deltaz / oper.deltaz)
+        probes_zmin = oper.deltaz * round(probes_zmin / oper.deltaz)
+
         # global probes coordinates
-        probes_x_seq = np.arange(probes_xmin, probes_xmax, probes_deltax)
-        probes_y_seq = np.arange(probes_ymin, probes_ymax, probes_deltay)
-        probes_z_seq = np.arange(probes_zmin, probes_zmax, probes_deltaz)
+        self.probes_x_seq = np.arange(probes_xmin, probes_xmax, probes_deltax)
+        self.probes_y_seq = np.arange(probes_ymin, probes_ymax, probes_deltay)
+        self.probes_z_seq = np.arange(probes_zmin, probes_zmax, probes_deltaz)
 
-        # local probes coordinates
-        test = (probes_x_seq >= X.min()) & (probes_x_seq <= X.max())
-        probes_x_loc = probes_x_seq[test]
-        test = (probes_y_seq >= Y.min()) & (probes_y_seq <= Y.max())
-        probes_y_loc = probes_y_seq[test]
-        test = (probes_z_seq >= Z.min()) & (probes_z_seq <= Z.max())
-        probes_z_loc = probes_z_seq[test]
+        probes_nb_seq = (
+            self.probes_x_seq.size
+            * self.probes_y_seq.size
+            * self.probes_z_seq.size
+        )
 
-        probes_nb_loc = probes_x_loc.size * probes_y_loc.size * probes_z_loc.size
-
-        # local probes indices
-        self.probes_ix_loc = np.empty(probes_nb_loc, dtype=int)
-        self.probes_iy_loc = np.empty_like(probes_ix_loc)
-        self.probes_iz_loc = np.empty_like(probes_ix_loc)
-        probe_i = 0
-        for probe_x in probes_x_loc:
-            for probe_y in probes_y_loc:
-                for probe_z in probes_z_loc:
-                    probe_iz, probe_iy, probe_ix = np.where(
-                        (abs(X - probe_x) <= oper.deltax / 2)
-                        & (abs(Y - probe_y) <= oper.deltay / 2)
-                        & (abs(Z - probe_z) <= oper.deltaz / 2)
-                    )
-                    self.probes_ix_loc[probe_i] = probe_ix
-                    self.probes_iy_loc[probe_i] = probe_iy
-                    self.probes_iz_loc[probe_i] = probe_iz
-                    probe_i += 1
-
-        # files max size
-        probes_write_size = (
-            4 * probes_nb_loc * 8e-6
-        )  # (vx,vy,vz,b) * probes * float64 / MB
-        self.file_max_write = 1
-        if probes_write_size > 0:
-            self.file_max_write = int(self.file_max_size / probes_write_size)
-
-        # create directory
+        # data directory
         dir_name = "probes"
         self.path_dir = Path(self.sim.output.path_run) / dir_name
-        self.path_dir.mkdir(exist_ok=True)
+        if not output._has_to_save:
+            self.period_save = 0.0
+        if self.period_save == 0.0:
+            return
+        else:
+            if mpi.rank == 0:
+                self.path_dir.mkdir(exist_ok=True)
 
-        # initialize file
-        self.file_nb = 0
-        self.file_write_nb = 0
-        self._init_new_file()
+        # check for existing files
+        files = list(self.path_dir.glob("rank*"))
+        if files:
+            # check values in files
+            with h5py.File(files[0], "r") as file:
+                if file["nb_proc"][0] != mpi.nb_proc:
+                    raise ValueError("process number is different from files")
+                if not (
+                    np.allclose(file["probes_x_seq"][:], self.probes_x_seq)
+                    and np.allclose(file["probes_y_seq"][:], self.probes_y_seq)
+                    and np.allclose(file["probes_z_seq"][:], self.probes_z_seq)
+                ):
+                    raise ValueError("probes position are different from files")
+            # init from files
+            files = [f for f in files if f.name.startswith(f"rank{mpi.rank:04}")]
+            if files:
+                self.path_file = files[-1]
+                self.file_nb = int(self.path_file.name[13:17])
+                with h5py.File(self.path_file):
+                    self.probes_x_loc = file["probes_x_loc"][:]
+                    self.probes_y_loc = file["probes_y_loc"][:]
+                    self.probes_z_loc = file["probes_z_loc"][:]
+                    self.probes_ix_loc = file["probes_ix_loc"][:]
+                    self.probes_iy_loc = file["probes_iy_loc"][:]
+                    self.probes_iz_loc = file["probes_iz_loc"][:]
+                    self.probes_nb_loc = self.probes_x_loc.size
+                    self.file_write_nb = file["times"].size
+            else:
+                # no probes in proc
+                self.path_file = None
+                self.file_nb = 0
+                self.file_write_nb = 0
+                self.probes_nb_loc = 0
+                self.probes_x_loc = []
+                self.probes_y_loc = []
+                self.probes_z_loc = []
+                self.probes_ix_loc = []
+                self.probes_iy_loc = []
+                self.probes_iz_loc = []
+
+            # files max size (float64 = 8e-6 MB)
+            probes_init_size = 3 * (2 * self.probes_nb_loc + probes_nb_seq) * 8e-6
+            probes_write_size = (4 * self.probes_nb_loc + 1) * 8e-6
+            self.file_max_write = int(
+                (self.file_max_size - probes_init_size) / probes_write_size
+            )
+        else:
+            # no files were found : initialize from params
+            # local probes coordinates
+            cond = (self.probes_x_seq >= X.min()) & (self.probes_x_seq <= X.max())
+            self.probes_x_loc = self.probes_x_seq[cond]
+            cond = (self.probes_y_seq >= Y.min()) & (self.probes_y_seq <= Y.max())
+            self.probes_y_loc = self.probes_y_seq[cond]
+            cond = (self.probes_z_seq >= Z.min()) & (self.probes_z_seq <= Z.max())
+            self.probes_z_loc = self.probes_z_seq[cond]
+
+            self.probes_nb_loc = (
+                probes_x_loc.size * probes_y_loc.size * probes_z_loc.size
+            )
+
+            # local probes indices
+            self.probes_ix_loc = np.empty(self.probes_nb_loc, dtype=int)
+            self.probes_iy_loc = np.empty_like(probes_ix_loc)
+            self.probes_iz_loc = np.empty_like(probes_ix_loc)
+            probe_i = 0
+            for probe_x in probes_x_loc:
+                for probe_y in probes_y_loc:
+                    for probe_z in probes_z_loc:
+                        probe_iz, probe_iy, probe_ix = np.where(
+                            (abs(X - probe_x) <= oper.deltax / 2)
+                            & (abs(Y - probe_y) <= oper.deltay / 2)
+                            & (abs(Z - probe_z) <= oper.deltaz / 2)
+                        )
+                        self.probes_ix_loc[probe_i] = probe_ix
+                        self.probes_iy_loc[probe_i] = probe_iy
+                        self.probes_iz_loc[probe_i] = probe_iz
+                        probe_i += 1
+            self.probes_x_loc = X[
+                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+            ]
+            self.probes_y_loc = Y[
+                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+            ]
+            self.probes_z_loc = Z[
+                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+            ]
+
+            # files max size (float64 = 8e-6 MB)
+            probes_init_size = 3 * (2 * self.probes_nb_loc + probes_nb_seq) * 8e-6
+            probes_write_size = (4 * self.probes_nb_loc + 1) * 8e-6
+            self.file_max_write = int(
+                (self.file_max_size - probes_init_size) / probes_write_size
+            )
+
+            # initialize files
+            self.file_nb = 0
+            self.file_write_nb = 0
+            if self.probes_nb_loc > 0:
+                self._init_new_file()
 
     def _init_files(self, arrays_1st_time=None):
         # we don't want to do anything when this function is called.
@@ -138,75 +221,127 @@ class TemporalSpectra(SpecificOutput):
 
     def _init_new_file(self):
         """Initializes a new file"""
-        filename = f"rank{mpi.rank}_file{self.file_nb}.hdf5"
-        self.path_file = os.path.join(self.path_dir, filename)
-        with h5py.File(self.path_file, "w") as f:
-            f.create_dataset("probes_ix_loc", data=self.probes_ix_loc)
-            f.create_dataset("probes_iy_loc", data=self.probes_iy_loc)
-            f.create_dataset("probes_iz_loc", data=self.probes_iz_loc)
-            f.create_dataset(
+        self.path_file = (
+            self.path_dir / f"rank{mpi.rank:04}_file{self.file_nb:04}.hdf5"
+        )
+        with h5py.File(self.path_file, "w") as file:
+            create_ds = file.create_dataset
+            create_ds("nb_proc", data=mpi.nb_proc)
+            create_ds("probes_x_seq", data=self.probes_x_seq)
+            create_ds("probes_y_seq", data=self.probes_y_seq)
+            create_ds("probes_z_seq", data=self.probes_z_seq)
+            create_ds("probes_x_loc", data=self.probes_x_loc)
+            create_ds("probes_y_loc", data=self.probes_y_loc)
+            create_ds("probes_z_loc", data=self.probes_z_loc)
+            create_ds("probes_ix_loc", data=self.probes_ix_loc)
+            create_ds("probes_iy_loc", data=self.probes_iy_loc)
+            create_ds("probes_iz_loc", data=self.probes_iz_loc)
+            create_ds(
                 "probes_vx_loc",
-                (probes_nb_loc, 1),
-                maxshape=(probes_nb_loc, self.file_max_write),
+                (self.probes_nb_loc, 1),
+                maxshape=(self.probes_nb_loc, self.file_max_write),
             )
-            f.create_dataset(
+            create_ds(
                 "probes_vy_loc",
-                (probes_nb_loc, 1),
-                maxshape=(probes_nb_loc, self.file_max_write),
+                (self.probes_nb_loc, 1),
+                maxshape=(self.probes_nb_loc, self.file_max_write),
             )
-            f.create_dataset(
+            create_ds(
                 "probes_vz_loc",
-                (probes_nb_loc, 1),
-                maxshape=(probes_nb_loc, self.file_max_write),
+                (self.probes_nb_loc, 1),
+                maxshape=(self.probes_nb_loc, self.file_max_write),
             )
-            f.create_dataset(
+            create_ds(
                 "probes_b_loc",
-                (probes_nb_loc, 1),
-                maxshape=(probes_nb_loc, self.file_max_write),
+                (self.probes_nb_loc, 1),
+                maxshape=(self.probes_nb_loc, self.file_max_write),
             )
-            f.create_dataset("times", (1,), maxshape=(self.file_max_write,))
+            create_ds("times", (1,), maxshape=(self.file_max_write,))
 
     def _write_to_file(self, data):
         """Writes a file with the temporal data"""
-        with h5py.File(self.path_file, "a") as f:
-            dset = f["probes_vx_loc"]
-            dset.resize((probes_nb_loc, file_write_nb))
-            dset[:, -1] = data["vx"]
-            dset = f["probes_vy_loc"]
-            dset.resize((probes_nb_loc, file_write_nb))
-            dset[:, -1] = data["vy"]
-            dset = f["probes_vz_loc"]
-            dset.resize((probes_nb_loc, file_write_nb))
-            dset[:, -1] = data["vz"]
-            dset = f["times"]
-            dset.resize((file_write_nb,))
-            dset[-1] = data["time"]
+        with h5py.File(self.path_file, "a") as file:
+            for k, v in list(data.items()):
+                dset = file[k]
+                if k.startswith("time"):
+                    dset.resize((file_write_nb,))
+                    dset[-1] = v
+                else:
+                    dset.resize((self.probes_nb_loc, file_write_nb))
+                    dset[:, -1] = v
+
+    def _add_probes_data_to_dict(self, data_dict, key):
+        """Probes fields and append data to a dict object"""
+        data_dict[f"probes_{key}_loc"] = self.sim.state.get_var(key)[
+            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+        ]
 
     def _online_save(self):
         """Prepares data and writes to file"""
-        # if max write number is reached, init new file
-        if self.file_write_nb >= self.file_max_write:
-            self.file_nb += 1
-            self.file_write_nb = 0
-            self._init_new_file()
-        # get data from probes
-        data = {}
-        data["time"] = self.sim.time_stepping.t
-        temp = self.sim.state.get_var("vx")
-        data["vx"] = temp[
-            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
-        ]
-        temp = self.sim.state.get_var("vy")
-        data["vy"] = temp[
-            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
-        ]
-        temp = self.sim.state.get_var("vz")
-        data["vz"] = temp[
-            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
-        ]
-        temp = self.sim.state.get_var("b")
-        data["b"] = temp[
-            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
-        ]
-        # write to file
-        self._write_to_file(data)
+        if self.probes_nb_loc > 0:
+            tsim = self.sim.time_stepping.t
+            if (
+                tsim + 1e-15
+            ) // self.period_save > self.t_last_save // self.period_save:
+                # if max write number is reached, init new file
+                if self.file_write_nb >= self.file_max_write:
+                    self.file_nb += 1
+                    self.file_write_nb = 0
+                    self._init_new_file()
+                # get data from probes
+                data = {"time": self.sim.time_stepping.t}
+                data["time"] = self.sim.time_stepping.t
+                for key in self.key_fields:
+                    self._add_probes_data_to_dict(data, key)
+                # write to file
+                self._write_to_file(data)
+                self.t_last_save = tsim
+
+    def load_time_series(self, key="b", region=None, tmin=0, tmax=None):
+        """load time series from files"""
+        key = f"probes_{key}_loc"
+        if region is None:
+            region = self.probes_region
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        xmin, xmax, ymin, ymax, zmin, zmax = region
+
+        # get ranks
+        files = list(self.path_dir.glob("rank*"))
+        ranks = [int(f.name[4:8]) for f in files]
+
+        # load series
+        series = []
+        series_times = np.array([])
+        for rank in ranks:
+            files = list(self.path_dir.glob(f"rank{rank:04}*"))
+
+            data = []
+            times = []
+
+            for filename in files:
+                with h5py.File(filename, "r") as file:
+                    probes_x = file["probes_x_loc"][:]
+                    probes_y = file["probes_y_loc"][:]
+                    probes_z = file["probes_z_loc"][:]
+                    probes_times = file["times"][:]
+
+                    cond_region = (
+                        (probes_x > xmin)
+                        & (probes_x < xmax)
+                        & (probes_y > ymin)
+                        & (probes_y < ymax)
+                        & (probes_z > zmin)
+                        & (probes_z < zmax)
+                    )
+                    cond_times = (probes_times > tmin) & (probes_times < tmax)
+
+                    data += [file[key][cond_region, cond_times]]
+                    times += [probes_times[cond_times]]
+
+            series += [np.concatenate(data, axis=1)]
+            series_times = np.concatenate(times)
+
+        result = {key: series, "times": series_times}
+        return result
