@@ -29,10 +29,9 @@ class SimulTestWithOutput(SimulTest):
 
     @staticmethod
     def _complete_params_with_default(params):
-        params._set_attribs({
-            "NEW_DIR_RESULTS": True,
-            "short_name_type_run": "test"
-        })
+        params._set_attribs(
+            {"NEW_DIR_RESULTS": True, "short_name_type_run": "test"}
+        )
 
     def __init__(self, params):
         super().__init__(params)

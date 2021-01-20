@@ -203,7 +203,9 @@ class OutputCore(ABC):
                     for n in ("nx", "ny", "nz"):
                         try:
                             # Mismatch in resolution
-                            if getattr(params.oper, n) != getattr(params_dir.oper, n):
+                            if getattr(params.oper, n) != getattr(
+                                params_dir.oper, n
+                            ):
                                 cond = True
                                 break
                         except AttributeError:

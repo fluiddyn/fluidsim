@@ -34,6 +34,7 @@ class SimulTest(SimulCore):
 
 # All unit tests
 
+
 def test_init_sim():
     params = SimulTest.create_default_params()
     SimulTest(params)
