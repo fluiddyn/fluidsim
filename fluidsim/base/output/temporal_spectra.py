@@ -81,7 +81,6 @@ class TemporalSpectra(SpecificOutput):
     def __init__(self, output):
         params = output.sim.params
         params_tspec = params.output.temporal_spectra
-        oper = self.sim.oper
 
         super().__init__(
             output,
@@ -89,11 +88,15 @@ class TemporalSpectra(SpecificOutput):
             has_to_plot_saved=params_tspec.HAS_TO_PLOT_SAVED,
         )
 
+        oper = self.sim.oper
+
         # Parameters
         self.probes_deltax = params_tspec.probes_deltax
         self.probes_deltay = params_tspec.probes_deltay
         self.probes_deltaz = params_tspec.probes_deltaz
         self.period_save = params.output.periods_save.temporal_spectra
+
+        self.path_dir = Path(self.sim.output.path_run) / "probes"
 
         if not output._has_to_save:
             self.period_save = 0.0
@@ -164,7 +167,6 @@ class TemporalSpectra(SpecificOutput):
         )
 
         # data directory
-        self.path_dir = Path(self.sim.output.path_run) / "probes"
         if mpi.rank == 0:
             self.path_dir.mkdir(exist_ok=True)
         if mpi.nb_proc > 1:
@@ -235,11 +237,9 @@ class TemporalSpectra(SpecificOutput):
             for probe_x in self.probes_x_loc:
                 for probe_y in self.probes_y_loc:
                     for probe_z in self.probes_z_loc:
-                        probe_iz, probe_iy, probe_ix = np.where(
-                            (abs(X - probe_x) <= oper.deltax / 2)
-                            & (abs(Y - probe_y) <= oper.deltay / 2)
-                            & (abs(Z - probe_z) <= oper.deltaz / 2)
-                        )
+                        probe_ix = int((probe_x - X.min()) / oper.deltax)
+                        probe_iy = int((probe_y - Y.min()) / oper.deltay)
+                        probe_iz = int((probe_z - Z.min()) / oper.deltaz)
                         self.probes_ix_loc[probe_i] = probe_ix
                         self.probes_iy_loc[probe_i] = probe_iy
                         self.probes_iz_loc[probe_i] = probe_iz
@@ -296,24 +296,24 @@ class TemporalSpectra(SpecificOutput):
             create_ds(
                 "probes_vx_loc",
                 (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, self.file_max_write_nb),
+                maxshape=(self.probes_nb_loc, None),
             )
             create_ds(
                 "probes_vy_loc",
                 (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, self.file_max_write_nb),
+                maxshape=(self.probes_nb_loc, None),
             )
             create_ds(
                 "probes_vz_loc",
                 (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, self.file_max_write_nb),
+                maxshape=(self.probes_nb_loc, None),
             )
             create_ds(
                 "probes_b_loc",
                 (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, self.file_max_write_nb),
+                maxshape=(self.probes_nb_loc, None),
             )
-            create_ds("times", (1,), maxshape=(self.file_max_write_nb,))
+            create_ds("times", (1,), maxshape=(None,))
 
     def _write_to_file(self, data):
         """Writes a file with the temporal data"""
@@ -359,7 +359,8 @@ class TemporalSpectra(SpecificOutput):
         """load time series from files"""
         key = f"probes_{key}_loc"
         if region is None:
-            region = self.probes_region
+            oper = self.sim.oper
+            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -373,7 +374,7 @@ class TemporalSpectra(SpecificOutput):
         series = []
         series_times = np.array([])
         for rank in ranks:
-            files = sorted(list(self.path_dir.glob(f"rank{rank:04}*")))
+            files = sorted(list(self.path_dir.glob(f"rank{rank:05}*")))
 
             data = []
             times = []
@@ -408,7 +409,8 @@ class TemporalSpectra(SpecificOutput):
     def plot_spectra(self, key="b", region=None, tmin=0, tmax=None):
         """plot temporal spectra from files"""
         if region is None:
-            region = self.probes_region
+            oper = self.sim.oper
+            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
