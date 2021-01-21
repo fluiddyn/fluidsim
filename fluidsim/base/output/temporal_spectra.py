@@ -14,8 +14,8 @@ Provides:
 import sys
 import time
 from pathlib import Path
-import glob
 
+from math import pi
 import numpy as np
 from scipy import signal
 import h5py
@@ -132,9 +132,11 @@ class TemporalSpectra(SpecificOutput):
         else:
             if mpi.rank == 0:
                 self.path_dir.mkdir(exist_ok=True)
+        if mpi.nb_proc > 1:
+            mpi.comm.barrier()
 
         # check for existing files
-        files = list(self.path_dir.glob("rank*"))
+        files = list(self.path_dir.glob(f"rank{mpi.rank:04}*"))
         if files:
             # check values in files
             with h5py.File(files[0], "r") as file:
@@ -367,3 +369,37 @@ class TemporalSpectra(SpecificOutput):
 
         result = {key: series, "times": series_times}
         return result
+
+    def plot_spectra(self, key="b", region=None, tmin=0, tmax=None):
+        """plot temporal spectra from files"""
+        if region is None:
+            region = self.probes_region
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        # load data
+        data = self.load_time_series(key, region, tmin, tmax)
+        series = np.concatenate(data[f"probes_{key}_loc"])
+        times = data["times"]
+
+        # get sampling frequency
+        f_sample = np.mean(times[1:] - times[:-1])
+
+        # compute periodograms and average
+        omegas, spectra = signal.periodogram(series, fs=f_sample)
+        spectra_mean = spectra.mean(0)
+
+        omegas *= 2 * pi
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(r"$\omega$")
+        ax.set_ylabel("spectra " + key)
+        ax.set_title(
+            f"temporal spectrum (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        ax.plot(omegas, spectra_mean, "k", linewidth=2)

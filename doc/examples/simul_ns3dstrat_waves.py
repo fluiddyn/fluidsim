@@ -106,7 +106,7 @@ params.output.spectra.kzkh_periodicity = 1
 params.output.periods_save.temporal_spectra = 0.1
 params.output.temporal_spectra.probes_deltax = 1
 params.output.temporal_spectra.probes_deltay = 1
-params.output.temporal_spectra.probes_deltaz = 1
+params.output.temporal_spectra.probes_deltaz = 0.5
 params.output.temporal_spectra.probes_region = (1, 11, 1, 11, 0, 2)
 params.output.temporal_spectra.file_max_size = 0.1
 
