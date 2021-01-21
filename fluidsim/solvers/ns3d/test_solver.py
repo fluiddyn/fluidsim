@@ -208,6 +208,7 @@ class TestOutput(TestSimulBase):
 
             sys.argv = ["fluidsim-create-xml-description", path_run]
             run()
+            sim3.output.temporal_spectra.load_time_series()
         plt.close("all")
 
 

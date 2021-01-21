@@ -213,13 +213,13 @@ class TemporalSpectra(SpecificOutput):
                         self.probes_iz_loc[probe_i] = probe_iz
                         probe_i += 1
             self.probes_x_loc = X[
-                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
             ]
             self.probes_y_loc = Y[
-                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
             ]
             self.probes_z_loc = Z[
-                self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
             ]
 
             # files max size (float64 = 8e-6 MB)
@@ -293,7 +293,7 @@ class TemporalSpectra(SpecificOutput):
     def _add_probes_data_to_dict(self, data_dict, key):
         """Probes fields and append data to a dict object"""
         data_dict[f"probes_{key}_loc"] = self.sim.state.get_var(key)[
-            self.probes_ix_loc, self.probes_iy_loc, self.probes_iz_loc
+            self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
         ]
 
     def _online_save(self):
@@ -330,7 +330,7 @@ class TemporalSpectra(SpecificOutput):
 
         # get ranks
         files = list(self.path_dir.glob("rank*"))
-        ranks = [int(f.name[4:8]) for f in files]
+        ranks = list({int(f.name[4:8]) for f in files})
 
         # load series
         series = []
@@ -349,16 +349,17 @@ class TemporalSpectra(SpecificOutput):
                     probes_times = file["times"][:]
 
                     cond_region = (
-                        (probes_x > xmin)
-                        & (probes_x < xmax)
-                        & (probes_y > ymin)
-                        & (probes_y < ymax)
-                        & (probes_z > zmin)
-                        & (probes_z < zmax)
+                        (probes_x >= xmin)
+                        & (probes_x <= xmax)
+                        & (probes_y >= ymin)
+                        & (probes_y <= ymax)
+                        & (probes_z >= zmin)
+                        & (probes_z <= zmax)
                     )
-                    cond_times = (probes_times > tmin) & (probes_times < tmax)
+                    cond_times = (probes_times >= tmin) & (probes_times <= tmax)
 
-                    data += [file[key][cond_region, cond_times]]
+                    temp = file[key][cond_region, :]
+                    data += [temp[:, cond_times]]
                     times += [probes_times[cond_times]]
 
             series += [np.concatenate(data, axis=1)]
