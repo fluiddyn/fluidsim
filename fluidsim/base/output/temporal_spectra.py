@@ -64,7 +64,7 @@ class TemporalSpectra(SpecificOutput):
         self.probes_deltax = params_tspec.probes_deltax
         self.probes_deltay = params_tspec.probes_deltay
         self.probes_deltaz = params_tspec.probes_deltaz
-        self.period_save = params.output.periods_save.frequency_spectra
+        self.period_save = params.output.periods_save.temporal_spectra
 
         self.probes_region = params_tspec.probes_region
         (
@@ -78,25 +78,43 @@ class TemporalSpectra(SpecificOutput):
 
         self.file_max_size = params_tspec.file_max_size
 
-        self.key_fields = ["vx", "vy", "vz", "b"]
+        self.keys_fields = self.sim.info_solver.classes.State.keys_state_phys
 
         oper = self.sim.oper
         X, Y, Z = oper.get_XYZ_loc()
 
         # round probes positions to gridpoints
-        self.probes_deltax = oper.deltax * round(self.probes_deltax / oper.deltax)
+        # probes spacing should at least be oper grid spacing
+        self.probes_deltax = max(
+            oper.deltax, oper.deltax * round(self.probes_deltax / oper.deltax)
+        )
         probes_xmin = oper.deltax * round(probes_xmin / oper.deltax)
 
-        self.probes_deltay = oper.deltay * round(self.probes_deltay / oper.deltay)
+        self.probes_deltay = max(
+            oper.deltay, oper.deltay * round(self.probes_deltay / oper.deltay)
+        )
         probes_ymin = oper.deltay * round(probes_ymin / oper.deltay)
 
-        self.probes_deltaz = oper.deltaz * round(self.probes_deltaz / oper.deltaz)
+        self.probes_deltaz = max(
+            oper.deltaz, oper.deltaz * round(self.probes_deltaz / oper.deltaz)
+        )
         probes_zmin = oper.deltaz * round(probes_zmin / oper.deltaz)
 
+        # make sure probes region is not empty
+        probes_xmax = max(probes_xmax, probes_xmin + 1e-15)
+        probes_ymax = max(probes_ymax, probes_ymin + 1e-15)
+        probes_zmax = max(probes_zmax, probes_zmin + 1e-15)
+
         # global probes coordinates
-        self.probes_x_seq = np.arange(probes_xmin, probes_xmax, probes_deltax)
-        self.probes_y_seq = np.arange(probes_ymin, probes_ymax, probes_deltay)
-        self.probes_z_seq = np.arange(probes_zmin, probes_zmax, probes_deltaz)
+        self.probes_x_seq = np.arange(
+            probes_xmin, probes_xmax, self.probes_deltax
+        )
+        self.probes_y_seq = np.arange(
+            probes_ymin, probes_ymax, self.probes_deltay
+        )
+        self.probes_z_seq = np.arange(
+            probes_zmin, probes_zmax, self.probes_deltaz
+        )
 
         probes_nb_seq = (
             self.probes_x_seq.size
@@ -120,7 +138,7 @@ class TemporalSpectra(SpecificOutput):
         if files:
             # check values in files
             with h5py.File(files[0], "r") as file:
-                if file["nb_proc"][0] != mpi.nb_proc:
+                if file["nb_proc"][()] != mpi.nb_proc:
                     raise ValueError("process number is different from files")
                 if not (
                     np.allclose(file["probes_x_seq"][:], self.probes_x_seq)
@@ -133,7 +151,7 @@ class TemporalSpectra(SpecificOutput):
             if files:
                 self.path_file = files[-1]
                 self.file_nb = int(self.path_file.name[13:17])
-                with h5py.File(self.path_file):
+                with h5py.File(self.path_file) as file:
                     self.probes_x_loc = file["probes_x_loc"][:]
                     self.probes_y_loc = file["probes_y_loc"][:]
                     self.probes_z_loc = file["probes_z_loc"][:]
@@ -172,17 +190,19 @@ class TemporalSpectra(SpecificOutput):
             self.probes_z_loc = self.probes_z_seq[cond]
 
             self.probes_nb_loc = (
-                probes_x_loc.size * probes_y_loc.size * probes_z_loc.size
+                self.probes_x_loc.size
+                * self.probes_y_loc.size
+                * self.probes_z_loc.size
             )
 
             # local probes indices
             self.probes_ix_loc = np.empty(self.probes_nb_loc, dtype=int)
-            self.probes_iy_loc = np.empty_like(probes_ix_loc)
-            self.probes_iz_loc = np.empty_like(probes_ix_loc)
+            self.probes_iy_loc = np.empty_like(self.probes_ix_loc)
+            self.probes_iz_loc = np.empty_like(self.probes_ix_loc)
             probe_i = 0
-            for probe_x in probes_x_loc:
-                for probe_y in probes_y_loc:
-                    for probe_z in probes_z_loc:
+            for probe_x in self.probes_x_loc:
+                for probe_y in self.probes_y_loc:
+                    for probe_z in self.probes_z_loc:
                         probe_iz, probe_iy, probe_ix = np.where(
                             (abs(X - probe_x) <= oper.deltax / 2)
                             & (abs(Y - probe_y) <= oper.deltay / 2)
@@ -263,11 +283,11 @@ class TemporalSpectra(SpecificOutput):
         with h5py.File(self.path_file, "a") as file:
             for k, v in list(data.items()):
                 dset = file[k]
-                if k.startswith("time"):
-                    dset.resize((file_write_nb,))
+                if k.startswith("times"):
+                    dset.resize((self.file_write_nb,))
                     dset[-1] = v
                 else:
-                    dset.resize((self.probes_nb_loc, file_write_nb))
+                    dset.resize((self.probes_nb_loc, self.file_write_nb))
                     dset[:, -1] = v
 
     def _add_probes_data_to_dict(self, data_dict, key):
@@ -289,11 +309,12 @@ class TemporalSpectra(SpecificOutput):
                     self.file_write_nb = 0
                     self._init_new_file()
                 # get data from probes
-                data = {"time": self.sim.time_stepping.t}
-                data["time"] = self.sim.time_stepping.t
-                for key in self.key_fields:
+                data = {"times": self.sim.time_stepping.t}
+                data["times"] = self.sim.time_stepping.t
+                for key in self.keys_fields:
                     self._add_probes_data_to_dict(data, key)
                 # write to file
+                self.file_write_nb += 1
                 self._write_to_file(data)
                 self.t_last_save = tsim
 
