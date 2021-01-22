@@ -97,6 +97,7 @@ class TemporalSpectra(SpecificOutput):
         self.period_save = params.output.periods_save.temporal_spectra
 
         self.path_dir = Path(self.sim.output.path_run) / "probes"
+        self.keys_fields = self.sim.info_solver.classes.State.keys_state_phys
 
         if not output._has_to_save:
             self.period_save = 0.0
@@ -128,8 +129,6 @@ class TemporalSpectra(SpecificOutput):
             )
 
         self.file_max_size = params_tspec.file_max_size
-
-        self.keys_fields = self.sim.info_solver.classes.State.keys_state_phys
 
         X, Y, Z = oper.get_XYZ_loc()
 
@@ -406,6 +405,35 @@ class TemporalSpectra(SpecificOutput):
         result = {key: series, "times": series_times}
         return result
 
+    def compute_spectra(self, keys=None, region=None, tmin=0, tmax=None):
+        """compute temporal spectra from files"""
+        if keys is None:
+            keys = self.keys_fields
+        if region is None:
+            oper = self.sim.oper
+            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        dict_spectra = {"region": region, "tmin": tmin, "tmax": tmax}
+
+        for key in keys:
+            # load data
+            data = self.load_time_series(key, region, tmin, tmax)
+            series = np.concatenate(data[f"probes_{key}_loc"])
+            times = data["times"]
+
+            # get sampling frequency
+            f_sample = 1 / np.mean(times[1:] - times[:-1])
+
+            # compute periodograms and average
+            freq, spectra = signal.periodogram(series, fs=f_sample)
+            dict_spectra["spectra_" + key] = spectra.mean(0)
+
+        dict_spectra["omegas"] = 2 * pi * freq
+
+        return dict_spectra
+
     def plot_spectra(self, key="b", region=None, tmin=0, tmax=None):
         """plot temporal spectra from files"""
         if region is None:
@@ -414,19 +442,10 @@ class TemporalSpectra(SpecificOutput):
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        # load data
-        data = self.load_time_series(key, region, tmin, tmax)
-        series = np.concatenate(data[f"probes_{key}_loc"])
-        times = data["times"]
-
-        # get sampling frequency
-        f_sample = np.mean(times[1:] - times[:-1])
-
-        # compute periodograms and average
-        omegas, spectra = signal.periodogram(series, fs=f_sample)
-        spectra_mean = spectra.mean(0)
-
-        omegas *= 2 * pi
+        # compute spectra
+        dict_spectra = self.compute_spectra(
+            keys=[key], region=region, tmin=tmin, tmax=tmax
+        )
 
         # plot
         fig, ax = self.output.figure_axe()
@@ -439,4 +458,9 @@ class TemporalSpectra(SpecificOutput):
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-        ax.plot(omegas, spectra_mean, "k", linewidth=2)
+        ax.plot(
+            dict_spectra["omegas"],
+            dict_spectra["spectra_" + key],
+            "k",
+            linewidth=2,
+        )
