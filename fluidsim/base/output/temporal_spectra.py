@@ -397,14 +397,14 @@ class TemporalSpectra(SpecificOutput):
                     probes_z = file["probes_z_loc"][:]
                     probes_times = file["times"][:]
 
-                    cond_region = (
+                    cond_region = np.where(
                         (probes_x >= xmin)
                         & (probes_x <= xmax)
                         & (probes_y >= ymin)
                         & (probes_y <= ymax)
                         & (probes_z >= zmin)
                         & (probes_z <= zmax)
-                    )
+                    )[0]
                     cond_times = (probes_times >= tmin) & (probes_times <= tmax)
 
                     temp = file[key][cond_region, :]
