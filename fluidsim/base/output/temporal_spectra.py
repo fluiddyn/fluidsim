@@ -46,6 +46,7 @@ class TemporalSpectra(SpecificOutput):
                 "probes_deltaz": 0.1,  # m
                 "probes_region": None,  # m
                 "file_max_size": 10.0,  # MB
+                "SAVE_AS_SINGLE_PREC": False,
             },
         )
 
@@ -74,6 +75,10 @@ class TemporalSpectra(SpecificOutput):
             file_max_size: float (default: 10.0)
 
                 Maximum size of one time series file, in megabytes.
+
+            SAVE_AS_SINGLE_PREC: bool (default: False)
+
+                If set to true, probes data is saved as float32.
             
             """
         )
@@ -129,6 +134,7 @@ class TemporalSpectra(SpecificOutput):
             )
 
         self.file_max_size = params_tspec.file_max_size
+        self.SAVE_AS_SINGLE_PREC = params_tspec.SAVE_AS_SINGLE_PREC
 
         X, Y, Z = oper.get_XYZ_loc()
 
@@ -188,7 +194,7 @@ class TemporalSpectra(SpecificOutput):
             files = [f for f in files if f.name.startswith(f"rank{mpi.rank:05}")]
             if files:
                 self.path_file = files[-1]
-                self.file_nb = int(self.path_file.name[13:17])
+                self.file_nb = int(self.path_file.name[14:18])
                 with h5py.File(self.path_file) as file:
                     self.probes_x_loc = file["probes_x_loc"][:]
                     self.probes_y_loc = file["probes_y_loc"][:]
@@ -321,9 +327,13 @@ class TemporalSpectra(SpecificOutput):
                 dset = file[k]
                 if k.startswith("times"):
                     dset.resize((self.file_write_nb,))
+                    if self.SAVE_AS_SINGLE_PREC:
+                        v = np.array(v, dtype="float32")
                     dset[-1] = v
                 else:
                     dset.resize((self.probes_nb_loc, self.file_write_nb))
+                    if self.SAVE_AS_SINGLE_PREC:
+                        v = v.astype("float32")
                     dset[:, -1] = v
 
     def _add_probes_data_to_dict(self, data_dict, key):
@@ -354,8 +364,10 @@ class TemporalSpectra(SpecificOutput):
                 self._write_to_file(data)
                 self.t_last_save = tsim
 
-    def load_time_series(self, key="b", region=None, tmin=0, tmax=None):
+    def load_time_series(self, key=None, region=None, tmin=0, tmax=None):
         """load time series from files"""
+        if key is None:
+            key = self.keys_fields[0]
         key = f"probes_{key}_loc"
         if region is None:
             oper = self.sim.oper
@@ -434,8 +446,10 @@ class TemporalSpectra(SpecificOutput):
 
         return dict_spectra
 
-    def plot_spectra(self, key="b", region=None, tmin=0, tmax=None):
+    def plot_spectra(self, key=None, region=None, tmin=0, tmax=None):
         """plot temporal spectra from files"""
+        if key is None:
+            key = self.keys_fields[0]
         if region is None:
             oper = self.sim.oper
             region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
