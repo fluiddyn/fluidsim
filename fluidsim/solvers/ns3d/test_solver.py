@@ -108,6 +108,11 @@ class TestOutput(TestSimulBase):
         for key in periods._key_attribs:
             periods[key] = 0.1
 
+        Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
+        probes_region = (0.0, Lx, 0.0, Ly, 0.55 * Lz, Lz)
+        params.output.temporal_spectra.probes_region = probes_region
+        params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
+
     def test_output(self):
 
         sim = self.sim
@@ -208,7 +213,7 @@ class TestOutput(TestSimulBase):
 
             sys.argv = ["fluidsim-create-xml-description", path_run]
             run()
-            sim3.output.temporal_spectra.load_time_series()
+            sim3.output.temporal_spectra.plot_spectra()
         plt.close("all")
 
 

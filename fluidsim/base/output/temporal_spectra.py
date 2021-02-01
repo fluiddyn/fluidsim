@@ -11,8 +11,6 @@ Provides:
 
 """
 
-import sys
-import time
 from pathlib import Path
 
 from math import pi
@@ -46,7 +44,7 @@ class TemporalSpectra(SpecificOutput):
                 "probes_deltaz": 0.1,  # m
                 "probes_region": None,  # m
                 "file_max_size": 10.0,  # MB
-                "SAVE_AS_SINGLE_PREC": False,
+                "SAVE_AS_FLOAT32": False,
             },
         )
 
@@ -54,32 +52,32 @@ class TemporalSpectra(SpecificOutput):
             """
             probes_deltax: float (default: 0.1)
 
-                Probes spacing in the x direction, in meters.
+                Probes spacing in the x direction, in params.oper.Lx unit.
 
             probes_deltay: float (default: 0.1)
 
-                Probes spacing in the y direction, in meters.
+                Probes spacing in the y direction.
 
             probes_deltaz: float (default: 0.1)
 
-                Probes spacing in the x direction, in meters.
+                Probes spacing in the x direction.
 
             probes_region: tuple (default:None)
 
                 Boundaries of the region in the simulation domain were probes are set.
-                
-                probes_region = (xmax, xmin, ymax, ymin, zmax, zmin), in meters. 
-                
+
+                probes_region = (xmax, xmin, ymax, ymin, zmax, zmin), in params.oper.Lx unit.
+
                 If None, set to the whole simulation domain.
 
             file_max_size: float (default: 10.0)
 
                 Maximum size of one time series file, in megabytes.
 
-            SAVE_AS_SINGLE_PREC: bool (default: False)
+            SAVE_AS_FLOAT32: bool (default: False)
 
                 If set to true, probes data is saved as float32.
-            
+
             """
         )
 
@@ -111,30 +109,16 @@ class TemporalSpectra(SpecificOutput):
 
         if params_tspec.probes_region is not None:
             self.probes_region = params_tspec.probes_region
-            (
-                xmin,
-                xmax,
-                ymin,
-                ymax,
-                zmin,
-                zmax,
-            ) = self.probes_region
+            xmin, xmax, ymin, ymax, zmin, zmax = self.probes_region
         else:
             xmin = ymin = zmin = 0.0
             xmax = oper.Lx
             ymax = oper.Ly
             zmax = oper.Lz
-            self.probes_region = (
-                xmin,
-                xmax,
-                ymin,
-                ymax,
-                zmin,
-                zmax,
-            )
+            self.probes_region = xmin, xmax, ymin, ymax, zmin, zmax
 
         self.file_max_size = params_tspec.file_max_size
-        self.SAVE_AS_SINGLE_PREC = params_tspec.SAVE_AS_SINGLE_PREC
+        self.SAVE_AS_FLOAT32 = params_tspec.SAVE_AS_FLOAT32
 
         X, Y, Z = oper.get_XYZ_loc()
 
@@ -165,12 +149,6 @@ class TemporalSpectra(SpecificOutput):
         self.probes_y_seq = np.arange(ymin, ymax, self.probes_deltay)
         self.probes_z_seq = np.arange(zmin, zmax, self.probes_deltaz)
 
-        probes_nb_seq = (
-            self.probes_x_seq.size
-            * self.probes_y_seq.size
-            * self.probes_z_seq.size
-        )
-
         # data directory
         if mpi.rank == 0:
             self.path_dir.mkdir(exist_ok=True)
@@ -178,11 +156,11 @@ class TemporalSpectra(SpecificOutput):
             mpi.comm.barrier()
 
         # check for existing files
-        files = sorted(list(self.path_dir.glob(f"rank{mpi.rank:05}*")))
-        if files:
+        paths = sorted(self.path_dir.glob("rank*.h5"))
+        if paths:
             # check values in files
-            with h5py.File(files[0], "r") as file:
-                if file["nb_proc"][()] != mpi.nb_proc:
+            with h5py.File(paths[0], "r") as file:
+                if file.attrs["nb_proc"] != mpi.nb_proc:
                     raise ValueError("process number is different from files")
                 if not (
                     np.allclose(file["probes_x_seq"][:], self.probes_x_seq)
@@ -191,11 +169,11 @@ class TemporalSpectra(SpecificOutput):
                 ):
                     raise ValueError("probes position are different from files")
             # init from files
-            files = [f for f in files if f.name.startswith(f"rank{mpi.rank:05}")]
-            if files:
-                self.path_file = files[-1]
-                self.file_nb = int(self.path_file.name[14:18])
-                with h5py.File(self.path_file) as file:
+            paths = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
+            if paths:
+                self.path_file = paths[-1]
+                with h5py.File(self.path_file, "r") as file:
+                    self.index_file = file.attrs["index_file"]
                     self.probes_x_loc = file["probes_x_loc"][:]
                     self.probes_y_loc = file["probes_y_loc"][:]
                     self.probes_z_loc = file["probes_z_loc"][:]
@@ -203,13 +181,13 @@ class TemporalSpectra(SpecificOutput):
                     self.probes_iy_loc = file["probes_iy_loc"][:]
                     self.probes_iz_loc = file["probes_iz_loc"][:]
                     self.probes_nb_loc = self.probes_x_loc.size
-                    self.file_write_nb = file["times"].size
+                    self.number_times_in_file = file["times"].size
                     self.t_last_save = file["times"][-1]
             else:
                 # no probes in proc
                 self.path_file = None
-                self.file_nb = 0
-                self.file_write_nb = 0
+                self.index_file = 0
+                self.number_times_in_file = 0
                 self.probes_nb_loc = 0
                 self.probes_x_loc = []
                 self.probes_y_loc = []
@@ -221,12 +199,15 @@ class TemporalSpectra(SpecificOutput):
         else:
             # no files were found : initialize from params
             # local probes coordinates
-            cond = (self.probes_x_seq >= X.min()) & (self.probes_x_seq <= X.max())
-            self.probes_x_loc = self.probes_x_seq[cond]
-            cond = (self.probes_y_seq >= Y.min()) & (self.probes_y_seq <= Y.max())
-            self.probes_y_loc = self.probes_y_seq[cond]
-            cond = (self.probes_z_seq >= Z.min()) & (self.probes_z_seq <= Z.max())
-            self.probes_z_loc = self.probes_z_seq[cond]
+            self.probes_x_loc = self.probes_x_seq[
+                (self.probes_x_seq >= X.min()) & (self.probes_x_seq <= X.max())
+            ]
+            self.probes_y_loc = self.probes_y_seq[
+                (self.probes_y_seq >= Y.min()) & (self.probes_y_seq <= Y.max())
+            ]
+            self.probes_z_loc = self.probes_z_seq[
+                (self.probes_z_seq >= Z.min()) & (self.probes_z_seq <= Z.max())
+            ]
 
             self.probes_nb_loc = (
                 self.probes_x_loc.size
@@ -260,21 +241,23 @@ class TemporalSpectra(SpecificOutput):
             ]
 
             # initialize files
-            self.file_nb = 0
-            self.file_write_nb = 0
+            self.index_file = 0
+            self.number_times_in_file = 0
             self.t_last_save = -self.period_save
             if self.probes_nb_loc > 0:
                 self._init_new_file()
 
-        # files max size (float64 = 8e-6 MB)
-        # size of init : 3 coords * (x_loc + ix_loc + x_seq)
-        probes_init_size = 3 * (2 * self.probes_nb_loc + probes_nb_seq) * 8e-6
-        # size of a single write : nb_fields * probes_nb_loc + time
+        if self.SAVE_AS_FLOAT32:
+            size_1_number = 4e-6
+        else:
+            size_1_number = 8e-6
+
+        # size of a single write: nb_fields * probes_nb_loc + time
         probes_write_size = (
             len(self.keys_fields) * self.probes_nb_loc + 1
-        ) * 8e-6
-        self.file_max_write_nb = int(
-            (self.file_max_size - probes_init_size) / probes_write_size
+        ) * size_1_number
+        self.max_number_times_in_file = int(
+            self.file_max_size / probes_write_size
         )
 
     def _init_files(self, arrays_1st_time=None):
@@ -284,11 +267,12 @@ class TemporalSpectra(SpecificOutput):
     def _init_new_file(self):
         """Initializes a new file"""
         self.path_file = (
-            self.path_dir / f"rank{mpi.rank:05}_file{self.file_nb:04}.hdf5"
+            self.path_dir / f"rank{mpi.rank:05}_file{self.index_file:04}.h5"
         )
         with h5py.File(self.path_file, "w") as file:
+            file.attrs["nb_proc"] = mpi.nb_proc
+            file.attrs["index_file"] = self.index_file
             create_ds = file.create_dataset
-            create_ds("nb_proc", data=mpi.nb_proc)
             create_ds("probes_x_seq", data=self.probes_x_seq)
             create_ds("probes_y_seq", data=self.probes_y_seq)
             create_ds("probes_z_seq", data=self.probes_z_seq)
@@ -326,13 +310,13 @@ class TemporalSpectra(SpecificOutput):
             for k, v in data.items():
                 dset = file[k]
                 if k.startswith("times"):
-                    dset.resize((self.file_write_nb,))
-                    if self.SAVE_AS_SINGLE_PREC:
+                    dset.resize((self.number_times_in_file,))
+                    if self.SAVE_AS_FLOAT32:
                         v = np.array(v, dtype="float32")
                     dset[-1] = v
                 else:
-                    dset.resize((self.probes_nb_loc, self.file_write_nb))
-                    if self.SAVE_AS_SINGLE_PREC:
+                    dset.resize((self.probes_nb_loc, self.number_times_in_file))
+                    if self.SAVE_AS_FLOAT32:
                         v = v.astype("float32")
                     dset[:, -1] = v
 
@@ -350,9 +334,9 @@ class TemporalSpectra(SpecificOutput):
                 tsim + 1e-15
             ) // self.period_save > self.t_last_save // self.period_save:
                 # if max write number is reached, init new file
-                if self.file_write_nb >= self.file_max_write_nb:
-                    self.file_nb += 1
-                    self.file_write_nb = 0
+                if self.number_times_in_file >= self.max_number_times_in_file:
+                    self.index_file += 1
+                    self.number_times_in_file = 0
                     self._init_new_file()
                 # get data from probes
                 data = {"times": self.sim.time_stepping.t}
@@ -360,7 +344,7 @@ class TemporalSpectra(SpecificOutput):
                 for key in self.keys_fields:
                     self._add_probes_data_to_dict(data, key)
                 # write to file
-                self.file_write_nb += 1
+                self.number_times_in_file += 1
                 self._write_to_file(data)
                 self.t_last_save = tsim
 
@@ -378,24 +362,31 @@ class TemporalSpectra(SpecificOutput):
         xmin, xmax, ymin, ymax, zmin, zmax = region
 
         # get ranks
-        files = sorted(list(self.path_dir.glob("rank*")))
-        ranks = list({int(f.name[4:9]) for f in files})
+        paths = sorted(self.path_dir.glob("rank*.h5"))
+        ranks = sorted({int(p.name[4:9]) for p in paths})
+
+        # get times from the files of first rank
+        times = []
+        for path_file in paths:
+            if not path_file.name.startswith(f"rank{ranks[0]:05}"):
+                continue
+            with h5py.File(path_file, "r") as file:
+                times_file = file["times"][:]
+                cond_times = (times_file >= tmin) & (times_file <= tmax)
+                times.append(times_file[cond_times])
+        times = np.concatenate(times)
 
         # load series
         series = []
-        series_times = np.array([])
         for rank in ranks:
-            files = sorted(list(self.path_dir.glob(f"rank{rank:05}*")))
-
             data = []
-            times = []
-
-            for filename in files:
-                with h5py.File(filename, "r") as file:
+            for path_file in paths:
+                if not path_file.name.startswith(f"rank{rank:05}"):
+                    continue
+                with h5py.File(path_file, "r") as file:
                     probes_x = file["probes_x_loc"][:]
                     probes_y = file["probes_y_loc"][:]
                     probes_z = file["probes_z_loc"][:]
-                    probes_times = file["times"][:]
 
                     cond_region = np.where(
                         (probes_x >= xmin)
@@ -405,16 +396,16 @@ class TemporalSpectra(SpecificOutput):
                         & (probes_z >= zmin)
                         & (probes_z <= zmax)
                     )[0]
-                    cond_times = (probes_times >= tmin) & (probes_times <= tmax)
 
-                    temp = file[key][cond_region, :]
-                    data += [temp[:, cond_times]]
-                    times += [probes_times[cond_times]]
+                    tmp = file[key][cond_region, :]
 
-            series += [np.concatenate(data, axis=1)]
-            series_times = np.concatenate(times)
+                    times_file = file["times"][:]
+                    cond_times = (times_file >= tmin) & (times_file <= tmax)
+                    data.append(tmp[:, cond_times])
 
-        result = {key: series, "times": series_times}
+            series.append(np.concatenate(data, axis=1))
+
+        result = {key: series, "times": times}
         return result
 
     def compute_spectra(self, keys=None, region=None, tmin=0, tmax=None):
