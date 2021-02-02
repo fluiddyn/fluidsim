@@ -149,11 +149,13 @@ def create_pythran_extensions():
 
 
 def create_extensions():
-    if "egg_info" in sys.argv:
+    if "egg_info" in sys.argv or "dist_info" in sys.argv:
         return []
 
-    logger.info("Running fluidsim setup.py on platform " + sys.platform)
-    logger.info(__about__)
+    logger.info(
+        f"Running fluidsim setup.py ({sys.argv[1:]}) "
+        f"on platform {sys.platform}\n " + __about__
+    )
 
     transonize()
 
