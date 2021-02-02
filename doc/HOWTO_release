@@ -1,0 +1,14 @@
+# How to release
+
+Change version in lib/fluidsim_core/_version.py
+
+```
+make coverage
+rm -rf dist/ lib/dist
+cd lib
+python setup.py sdist bdist_wheel
+twine upload dist/*
+cd ..
+python setup.py sdist
+twine upload dist/*
+```

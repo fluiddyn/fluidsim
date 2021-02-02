@@ -22,7 +22,14 @@ Unreleased_
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...branch%2Fdefault
+
+0.4.1_ (2021-02-02)
+-------------------
+
+Few bugfixes and `!192
+<https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/192>` (temporal
+spectra for ns3d solvers).
 
 0.4.0_ (2021-01-11)
 -------------------
@@ -142,6 +149,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
+.. _0.4.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...0.4.1
 .. _0.4.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...0.4.0
 .. _0.3.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.2...0.3.3
 .. _0.3.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.1...0.3.2
