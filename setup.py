@@ -16,11 +16,13 @@ here = Path(__file__).parent.absolute()
 
 sys.path.insert(0, ".")
 
-from setup_configure import FFTW3, logger, TRANSONIC_BACKEND
+from setup_configure import FFTW3, logger, TRANSONIC_BACKEND, get_config
 from setup_build import FluidSimBuildExt
 
 time_start = time()
 
+# Parse site.cfg or ~/.fluidsim-site.cfg
+_ = get_config()
 
 build_dependencies_backends = {
     "pythran": ["pythran>=0.9.7"],
