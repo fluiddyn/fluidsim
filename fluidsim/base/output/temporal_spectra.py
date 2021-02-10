@@ -469,3 +469,93 @@ class TemporalSpectra(SpecificOutput):
             "k",
             linewidth=2,
         )
+
+    def save_data_as_phys_fields(self):
+        """load temporal data and save as phys_fields array"""
+
+        # path to saving directory
+        path_dir_save = self.path_dir / "phys_fields"
+        path_dir_save.mkdir(exist_ok=True)
+
+        # get ranks
+        paths = sorted(self.path_dir.glob("rank*.h5"))
+        ranks = sorted({int(p.name[4:9]) for p in paths})
+
+        # get times and probes positions from the files of first rank
+        times = []
+        probes_x_seq = np.array([])
+        for path_file in paths:
+            if not path_file.name.startswith(f"rank{ranks[0]:05}"):
+                continue
+            with h5py.File(path_file, "r") as file:
+                times.append(file["times"][:])
+                if not probes_x_seq.any():
+                    probes_x_seq = file["probes_x_seq"][:]
+                    probes_y_seq = file["probes_y_seq"][:]
+                    probes_z_seq = file["probes_z_seq"][:]
+        times = np.concatenate(times)
+
+        # time string width
+        # digits for integer part : int(log10(t)) + 1
+        # add 2 zeros, coma and 3 decimals : + 6
+        width = int(np.log10(times.max())) + 7
+
+        # probes positions
+        xmin = probes_x_seq.min()
+        xmax = probes_x_seq.max()
+        deltax = probes_x_seq[1] - xmin
+        ymin = probes_y_seq.min()
+        ymax = probes_y_seq.max()
+        deltay = probes_y_seq[1] - ymin
+        zmin = probes_z_seq.min()
+        zmax = probes_z_seq.max()
+        deltaz = probes_z_seq[1] - zmin
+        probes_Z, probes_Y, probes_X = np.meshgrid(
+            probes_z_seq, probes_y_seq, probes_x_seq, indexing="ij"
+        )
+
+        # loop on times
+        for time in times:
+            # initialize arrays
+            dict_arrays = {k: np.empty_like(probes_X) for k in self.keys_fields}
+
+            # loop on ranks
+            for rank in ranks:
+                for path_file in paths:
+                    if not path_file.name.startswith(f"rank{rank:05}"):
+                        continue
+                    with h5py.File(path_file, "r") as file:
+                        # time index
+                        it = np.where(file["times"][:] == time)[0]
+                        if not it:
+                            continue
+
+                        # get global probes indices
+                        coord_loc = file["probes_x_loc"][:]
+                        ix = np.rint((coord_loc - xmin) / deltax).astype("int")
+                        coord_loc = file["probes_y_loc"][:]
+                        iy = np.rint((coord_loc - ymin) / deltay).astype("int")
+                        coord_loc = file["probes_z_loc"][:]
+                        iz = np.rint((coord_loc - zmin) / deltaz).astype("int")
+
+                        # load data at time t for all keys_fields
+                        for key in self.keys_fields:
+                            dict_arrays[key][iz, iy, ix] = file[
+                                f"probes_{key}_loc"
+                            ][:, it].transpose()
+
+            # save fields into a new file
+            path_file_save = (
+                path_dir_save / f"probes_fields_t{time:0{width}.3f}.hdf5"
+            )
+            with h5py.File(path_file_save, "w") as file:
+                create_ds = file.create_dataset
+                # probes coordinates
+                create_ds("x", data=probes_X)
+                create_ds("y", data=probes_Y)
+                create_ds("z", data=probes_Z)
+                # physical fields
+                for k, v in dict_arrays.items():
+                    create_ds(k, data=v)
+                # sim info
+                self.sim.info._save_as_hdf5(hdf5_parent=file)
