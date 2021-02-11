@@ -488,7 +488,7 @@ class TemporalSpectra(SpecificOutput):
                 continue
             with h5py.File(path_file, "r") as file:
                 times.append(file["times"][:])
-                if not probes_x_seq in locals():
+                if not "probes_x_seq" in locals():
                     probes_x_seq = file["probes_x_seq"][:]
                     probes_y_seq = file["probes_y_seq"][:]
                     probes_z_seq = file["probes_z_seq"][:]
@@ -524,10 +524,13 @@ class TemporalSpectra(SpecificOutput):
                     if not path_file.name.startswith(f"rank{rank:05}"):
                         continue
                     with h5py.File(path_file, "r") as file:
+                        # check if the file contains the time we're looking for
+                        tmin_file, tmax_file = file["times"][[0, -1]]
+                        if (time < tmin_file) or (time > tmax_file):
+                            continue
+
                         # time index
                         it = np.where(file["times"][:] == time)[0]
-                        if not it:
-                            continue
 
                         # get global probes indices
                         coord_loc = file["probes_x_loc"][:]
@@ -542,6 +545,9 @@ class TemporalSpectra(SpecificOutput):
                             dict_arrays[key][iz, iy, ix] = file[
                                 f"probes_{key}_loc"
                             ][:, it].transpose()
+
+                        # stop opening files when we've reached the right one
+                        break
 
             # save fields into a new file
             path_file_save = (
