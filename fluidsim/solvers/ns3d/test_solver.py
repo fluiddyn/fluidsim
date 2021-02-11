@@ -214,6 +214,9 @@ class TestOutput(TestSimulBase):
             sys.argv = ["fluidsim-create-xml-description", path_run]
             run()
             sim3.output.temporal_spectra.plot_spectra()
+            sim3.output.temporal_spectra.save_data_as_phys_fields(
+                delta_index_times=2
+            )
         plt.close("all")
 
 

@@ -470,7 +470,7 @@ class TemporalSpectra(SpecificOutput):
             linewidth=2,
         )
 
-    def save_data_as_phys_fields(self):
+    def save_data_as_phys_fields(self, delta_index_times=1):
         """load temporal data and save as phys_fields array"""
 
         # path to saving directory
@@ -483,17 +483,16 @@ class TemporalSpectra(SpecificOutput):
 
         # get times and probes positions from the files of first rank
         times = []
-        probes_x_seq = np.array([])
         for path_file in paths:
             if not path_file.name.startswith(f"rank{ranks[0]:05}"):
                 continue
             with h5py.File(path_file, "r") as file:
                 times.append(file["times"][:])
-                if not probes_x_seq.any():
+                if not probes_x_seq in locals():
                     probes_x_seq = file["probes_x_seq"][:]
                     probes_y_seq = file["probes_y_seq"][:]
                     probes_z_seq = file["probes_z_seq"][:]
-        times = np.concatenate(times)
+        times = np.concatenate(times)[::delta_index_times]
 
         # time string width
         # digits for integer part : int(log10(t)) + 1
