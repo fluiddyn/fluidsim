@@ -482,16 +482,19 @@ class TemporalSpectra(SpecificOutput):
         ranks = sorted({int(p.name[4:9]) for p in paths})
 
         # get times and probes positions from the files of first rank
+        paths_1st_rank = [
+            p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
+        ]
+
+        with h5py.File(paths_1st_rank[0], "r") as file:
+            probes_x_seq = file["probes_x_seq"][:]
+            probes_y_seq = file["probes_y_seq"][:]
+            probes_z_seq = file["probes_z_seq"][:]
+
         times = []
-        for path_file in paths:
-            if not path_file.name.startswith(f"rank{ranks[0]:05}"):
-                continue
-            with h5py.File(path_file, "r") as file:
+        for path in paths_1st_rank:
+            with h5py.File(path, "r") as file:
                 times.append(file["times"][:])
-                if not "probes_x_seq" in locals():
-                    probes_x_seq = file["probes_x_seq"][:]
-                    probes_y_seq = file["probes_y_seq"][:]
-                    probes_z_seq = file["probes_z_seq"][:]
         times = np.concatenate(times)[::delta_index_times]
 
         # time string width
@@ -501,13 +504,10 @@ class TemporalSpectra(SpecificOutput):
 
         # probes positions
         xmin = probes_x_seq.min()
-        xmax = probes_x_seq.max()
         deltax = probes_x_seq[1] - xmin
         ymin = probes_y_seq.min()
-        ymax = probes_y_seq.max()
         deltay = probes_y_seq[1] - ymin
         zmin = probes_z_seq.min()
-        zmax = probes_z_seq.max()
         deltaz = probes_z_seq[1] - zmin
         probes_Z, probes_Y, probes_X = np.meshgrid(
             probes_z_seq, probes_y_seq, probes_x_seq, indexing="ij"
