@@ -551,7 +551,7 @@ class TemporalSpectra(SpecificOutput):
 
             # save fields into a new file
             path_file_save = (
-                path_dir_save / f"probes_fields_t{time:0{width}.3f}.hdf5"
+                path_dir_save / f"probes_fields_t{time:0{width}.3f}.h5"
             )
             with h5py.File(path_file_save, "w") as file:
                 create_ds = file.create_dataset
