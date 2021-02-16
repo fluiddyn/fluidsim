@@ -482,6 +482,8 @@ class TemporalSpectra(SpecificOutput):
         ranks = sorted({int(p.name[4:9]) for p in paths})
 
         # get times and probes positions from the files of first rank
+        print("save probe data as 3D arrays")
+
         paths_1st_rank = [
             p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
         ]
@@ -496,6 +498,8 @@ class TemporalSpectra(SpecificOutput):
             with h5py.File(path, "r") as file:
                 times.append(file["times"][:])
         times = np.concatenate(times)[::delta_index_times]
+
+        print(f"tmin={times.min():8.6g}, tmax={times.max():8.6g}")
 
         # time string width
         # digits for integer part : int(log10(t)) + 1
@@ -517,6 +521,8 @@ class TemporalSpectra(SpecificOutput):
         for time in times:
             # initialize arrays
             dict_arrays = {k: np.empty_like(probes_X) for k in self.keys_fields}
+
+            print(f"rearranging... t={time:8.6g}")
 
             # loop on ranks
             for rank in ranks:
