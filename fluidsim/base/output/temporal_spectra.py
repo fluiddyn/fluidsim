@@ -17,6 +17,7 @@ from math import pi
 import numpy as np
 from scipy import signal
 import h5py
+from rich.progress import track
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
@@ -518,11 +519,9 @@ class TemporalSpectra(SpecificOutput):
         )
 
         # loop on times
-        for time in times:
+        for time in track(times, description="Rearranging..."):
             # initialize arrays
             dict_arrays = {k: np.empty_like(probes_X) for k in self.keys_fields}
-
-            print(f"rearranging... t={time:8.6g}")
 
             # loop on ranks
             for rank in ranks:
