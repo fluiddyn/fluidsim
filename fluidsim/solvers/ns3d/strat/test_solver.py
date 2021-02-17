@@ -7,6 +7,10 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
+from fluidsim.extend_simul.spatial_means_center_milestone import (
+    SpatialMeansCenter,
+)
+
 from ..test_solver import TestSimulBase as _Base, classproperty
 
 
@@ -58,6 +62,12 @@ class TestTendency(TestSimulBase):
 
 
 class TestOutput(TestSimulBase):
+    @classproperty
+    def Simul(cls):
+        from .solver import Simul
+
+        return SpatialMeansCenter.create_extended_Simul(Simul)
+
     @classmethod
     def init_params(self):
         params = super().init_params()

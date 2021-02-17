@@ -42,6 +42,10 @@ class InfoSolverCore(ParamContainer):
             if not only_root:
                 self.complete_with_classes()
 
+                if hasattr(self, "_modificators"):
+                    for modif_info_solver in self._modificators:
+                        modif_info_solver(self)
+
     def _init_root(self):
 
         self._set_attribs(
