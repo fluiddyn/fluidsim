@@ -8,7 +8,6 @@
 """
 
 import numpy as np
-from fluidsim.base.params import create_params
 from fluidsim.base.setofvariables import SetOfVariables
 
 from fluidsim.base.solvers.pseudo_spect import (
@@ -17,29 +16,20 @@ from fluidsim.base.solvers.pseudo_spect import (
 )
 
 
-info_solver = InfoSolverPseudoSpectral()
+class InfoSolverWaves2d(InfoSolverPseudoSpectral):
+    def _init_root(self):
 
-package = "fluidsim.solvers.waves2d"
-info_solver.module_name = package + ".solver"
-info_solver.class_name = "Simul"
-info_solver.short_name = "Waves2d"
+        super()._init_root()
 
-classes = info_solver.classes
+        package = "fluidsim.solvers.waves2d"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "Waves2d"
 
-classes.State.module_name = package + ".state"
-classes.State.class_name = "StateWaves"
+        classes = self.classes
 
-# classes.InitFields.module_name = package + '.init_fields'
-# classes.InitFields.class_name = 'InitFieldsWaves'
-
-# classes.Output.module_name = package + '.output'
-# classes.Output.class_name = 'Output'
-
-# classes.Forcing.module_name = package + '.forcing'
-# classes.Forcing.class_name = 'ForcingNS2D'
-
-
-info_solver.complete_with_classes()
+        classes.State.module_name = package + ".state"
+        classes.State.class_name = "StateWaves"
 
 
 class Simul(SimulBasePseudoSpectral):
@@ -101,6 +91,7 @@ class Simul(SimulBasePseudoSpectral):
 
 
     """
+    InfoSolver = InfoSolverWaves2d
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -108,14 +99,6 @@ class Simul(SimulBasePseudoSpectral):
         SimulBasePseudoSpectral._complete_params_with_default(params)
         attribs = {"c2": 1.0, "f": 0}
         params._set_attribs(attribs)
-
-    @classmethod
-    def create_default_params(cls):
-        return create_params(info_solver)
-
-    def __init__(self, params):
-        self.info_solver = info_solver
-        super().__init__(params)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
 

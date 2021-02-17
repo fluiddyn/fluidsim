@@ -36,10 +36,6 @@ class InfoSolverAD1D(InfoSolverFiniteDiff):
         classes.Output.class_name = "Output"
 
 
-# classes.Forcing.module_name = package + '.forcing'
-# classes.Forcing.class_name = 'ForcingAD1D'
-
-
 class Simul(SimulBase):
     r"""Advection-diffusion solver 1D.
 
