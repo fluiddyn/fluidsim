@@ -94,6 +94,7 @@ install_requires = [
     "transonic>=0.4.3",
     "setuptools_scm",
     "xarray",
+    "rich",
 ]
 
 if FFTW3:
