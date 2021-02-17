@@ -46,11 +46,9 @@ class SimulCore(ABC):
         if not hasattr(self, "info_solver") or not isinstance(
             self.info_solver, self.InfoSolver
         ):
-            if hasattr(self, "info_solver"):
-                warn(
-                    "Creating a new info_solver instance "
-                    f"due to type mismatch {self.InfoSolver}"
-                )
+            """The condition `not isinstance(self.info_solver, self.InfoSolver)`
+            is needed in some rare situations (mostly testing) for which
+            info_solver comes from an inherited class."""
             self.info_solver = self.InfoSolver()
 
         if not isinstance(params, self.Parameters):

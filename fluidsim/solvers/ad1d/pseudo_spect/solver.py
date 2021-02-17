@@ -42,9 +42,6 @@ class InfoSolverAD1DPseudoSpect(InfoSolverPseudoSpectral):
         classes.Output.class_name = "Output"
 
 
-# classes.TimeStepping.module_name='fluidsim.base.time_stepping.pseudo_spect'
-
-
 class Simul(SimulBasePseudoSpectral):
     InfoSolver = InfoSolverAD1DPseudoSpect
 

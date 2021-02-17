@@ -83,8 +83,6 @@ load_info_solver = Parameters._load_info_solver
 if __name__ == "__main__":
     info_solver = InfoSolverBase(tag="solver")
 
-    info_solver.complete_with_classes()
-
     params = create_params(info_solver)
 
 # info = create_info_simul(info_solver, params)
