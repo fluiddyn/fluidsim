@@ -12,6 +12,7 @@ Provides:
 """
 
 from pathlib import Path
+from logging import warn
 
 from math import pi
 import numpy as np
@@ -84,7 +85,14 @@ class TemporalSpectra(SpecificOutput):
 
     def __init__(self, output):
         params = output.sim.params
-        params_tspec = params.output.temporal_spectra
+        try:
+            params_tspec = params.output.temporal_spectra
+        except AttributeError:
+            warn(
+                "Cannot initialize temporal spectra output because "
+                "`params` does not contain parameters for this class."
+            )
+            return
 
         super().__init__(
             output,
