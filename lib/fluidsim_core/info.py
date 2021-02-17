@@ -25,7 +25,7 @@ def create_info_simul(info_solver, params):
 class InfoSolverCore(ParamContainer):
     """Contain the information on a solver."""
 
-    def __init__(self, **kargs):
+    def __init__(self, only_root=False, **kargs):
 
         if len(kargs) == 0 or ("path_file" in kargs and "tag" not in kargs):
             kargs["tag"] = "solver"
@@ -38,6 +38,9 @@ class InfoSolverCore(ParamContainer):
             and "path_file" not in kargs
         ):
             self._init_root()
+
+            if not only_root:
+                self.complete_with_classes()
 
     def _init_root(self):
 

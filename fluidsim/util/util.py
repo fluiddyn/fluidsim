@@ -86,7 +86,7 @@ def available_solver_keys():
 def get_dim_from_solver_key(key):
     """Try to guess the dimension from the solver key (via the operator name)."""
     cls = import_simul_class_from_key(key)
-    info = cls.InfoSolver()
+    info = cls.InfoSolver(only_root=True)
     class_name = info.classes.Operators.class_name
 
     # special cases:
@@ -529,7 +529,6 @@ def modif_resolution_from_dir_memory_efficient(
         info_solver = Simul.info_solver
     except AttributeError:
         info_solver = Simul.InfoSolver()
-        info_solver.complete_with_classes()
 
     with h5py.File(path_file, "r") as h5file:
         params = Parameters(hdf5_object=h5file["/info_simul/params"])

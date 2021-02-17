@@ -37,7 +37,6 @@ class SimulCore(ABC):
 
         """
         cls.info_solver = cls.InfoSolver()
-        cls.info_solver.complete_with_classes()
         return cls.Parameters._create_params(cls.info_solver)
 
     @abstractmethod
@@ -53,7 +52,6 @@ class SimulCore(ABC):
                     f"due to type mismatch {self.InfoSolver}"
                 )
             self.info_solver = self.InfoSolver()
-            self.info_solver.complete_with_classes()
 
         if not isinstance(params, self.Parameters):
             raise TypeError(
