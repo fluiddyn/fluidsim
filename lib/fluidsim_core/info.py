@@ -51,6 +51,21 @@ class InfoSolverCore(ParamContainer):
 
         _ = self._set_child("classes")
 
+    def _set_attrib(self, key, value):
+        """Add an attribute to the container."""
+        if isinstance(value, dict) and all(
+            k in value for k in ("module_name", "class_name")
+        ):
+            from warnings import warn
+
+            warn(
+                f"A class {key} was specified in the InfoSolver "
+                "instance using _set_attrib method. Perhaps you meant \n\n"
+                f"_set_child('{key}', {value}) \n\ninstead?"
+            )
+
+        super()._set_attrib(key, value)
+
     def import_classes(self):
         """Import the classes and return a dictionary."""
         if hasattr(self, "_cached_imported_classes"):
