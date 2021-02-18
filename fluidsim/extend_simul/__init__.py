@@ -1,17 +1,38 @@
 """Mechanism to extend a Simul class with just a simple class
 =============================================================
 
+.. autoclass:: SimulExtender
+   :members:
+   :private-members:
+
+.. autosummary::
+   :toctree:
+
+   spatial_means_regions_milestone
+
 """
 
 
 class SimulExtender:
+    """Abstract class to define a "Simul extender"
+
+    Simul extenders are classes that can extend a ``Simul`` class to change its
+    behavior for some simulations.
+
+    This class is meant to be subclassed. The child class has to contain one
+    class attribute ``_module_name`` and two class methods
+    ``create_extended_Simul`` and ``complete_params_with_default``. An example
+    can be found in the module
+    :mod:`fluidsim.extend_simul.spatial_means_regions_milestone`.
+    """
+
     @classmethod
     def add_info_solver_modificator(cls, InfoSolver, modif_info_solver):
         if not hasattr(InfoSolver, "_modificators"):
             InfoSolver._modificators = []
             InfoSolver._extenders = []
         InfoSolver._modificators.append(modif_info_solver)
-        InfoSolver._extenders.append((cls._module_name, cls._class_name))
+        InfoSolver._extenders.append((cls._module_name, cls.__name__))
 
     @classmethod
     def create_extended_Simul(cls, Simul, modif_info_solver=None):

@@ -134,6 +134,7 @@ supporting classes and functions.
    fluidsim.solvers
    fluidsim.util
    fluidsim.magic
+   fluidsim.extend_simul
 
 
 .. toctree::

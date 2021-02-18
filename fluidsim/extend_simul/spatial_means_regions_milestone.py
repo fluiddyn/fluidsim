@@ -1,10 +1,23 @@
+"""Spatial means regions
+========================
+
+.. autoclass:: SpatialMeansRegions
+   :members:
+   :private-members:
+
+"""
+
 from . import SimulExtender
 
 
 class SpatialMeansRegions(SimulExtender):
+    """Specific output for the MILESTONE simulations
+
+    It is still a work in progress.
+
+    """
     _tag = "spatial_means_regions"
     _module_name = "fluidsim.extend_simul.spatial_means_regions_milestone"
-    _class_name = "SpatialMeansRegions"
 
     def __init__(self, output):
         self.output = output
@@ -24,7 +37,7 @@ class SpatialMeansRegions(SimulExtender):
                 "SpatialMeansRegions",
                 attribs={
                     "module_name": cls._module_name,
-                    "class_name": cls._class_name,
+                    "class_name": cls.__name__,
                 },
             )
 
