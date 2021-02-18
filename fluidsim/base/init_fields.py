@@ -17,6 +17,7 @@ import h5py
 import h5netcdf
 
 from fluiddyn.util import mpi
+from fluidsim_core.params import iter_complete_params
 
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -97,17 +98,7 @@ modif_after_init: bool (default False)
         )
 
         dict_classes = info_solver.classes.InitFields.import_classes()
-
-        for Class in list(dict_classes.values()):
-            if hasattr(Class, "_complete_params_with_default"):
-                try:
-                    Class._complete_params_with_default(params)
-                except TypeError:
-                    try:
-                        Class._complete_params_with_default(params, info_solver)
-                    except TypeError as e:
-                        e.args += ("for class: " + repr(Class),)
-                        raise
+        iter_complete_params(params, info_solver, dict_classes.values())
 
     def __init__(self, sim):
 

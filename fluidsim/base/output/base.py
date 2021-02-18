@@ -34,6 +34,7 @@ from fluiddyn.util import mpi
 from fluiddyn.util import is_run_from_ipython, print_memory_usage
 from fluiddyn.io import FLUIDSIM_PATH, Path
 from fluidsim_core.output import OutputCore, SimReprMakerCore
+from fluidsim_core.params import iter_complete_params
 
 import fluidsim
 from fluidsim.util.util import open_patient
@@ -132,16 +133,7 @@ are called.
         )
 
         dict_classes = info_solver.classes.Output.import_classes()
-        for Class in list(dict_classes.values()):
-            if hasattr(Class, "_complete_params_with_default"):
-                try:
-                    Class._complete_params_with_default(params)
-                except TypeError:
-                    try:
-                        Class._complete_params_with_default(params, info_solver)
-                    except TypeError as e:
-                        e.args += ("for class: " + repr(Class),)
-                        raise
+        iter_complete_params(params, info_solver, dict_classes.values())
 
     def __init__(self, sim):
         super().__init__(sim)

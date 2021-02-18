@@ -1,5 +1,7 @@
 """Solver parameters
 
+.. autofunction:: iter_complete_params
+
 .. autoclass:: Parameters
    :members:
    :private-members:
@@ -14,6 +16,32 @@ from fluiddyn.util import import_class, mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from .info import InfoSolverCore
+
+
+def iter_complete_params(params, info_solver, classes):
+    """Iterate over a collection of classes and invoke the static method
+    ``_complete_params_with_default`` to populate an instance of
+    :class:`Parameters` in-place.
+
+    Parameters
+    ----------
+    params : :class:`fluidsim_core.params.Parameters` or its subclass
+
+    info_solver : :class:`fluidsim_core.info.InfoSolverCore` or its subclass
+
+    classes : iterable
+
+    """
+    for Class in classes:
+        if hasattr(Class, "_complete_params_with_default"):
+            try:
+                Class._complete_params_with_default(params)
+            except TypeError:
+                try:
+                    Class._complete_params_with_default(params, info_solver)
+                except TypeError as e:
+                    e.args += ("for class: " + repr(Class),)
+                    raise
 
 
 class Parameters(ParamContainer):
@@ -38,17 +66,7 @@ class Parameters(ParamContainer):
             info_solver.module_name, info_solver.class_name
         )
 
-        for Class in list(dict_classes.values()):
-            if hasattr(Class, "_complete_params_with_default"):
-                try:
-                    Class._complete_params_with_default(params)
-                except TypeError:
-                    try:
-                        Class._complete_params_with_default(params, info_solver)
-                    except TypeError as e:
-                        e.args += ("for class: " + repr(Class),)
-                        raise
-
+        iter_complete_params(params, info_solver, dict_classes.values())
         return params
 
     @classmethod
