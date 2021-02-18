@@ -1,0 +1,2 @@
+New mechanism to easily extend a Simul class (subpackage
+:mod:`fluidsim.extend_simul`).
