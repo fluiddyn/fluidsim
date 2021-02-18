@@ -6,11 +6,20 @@
 
 class SimulExtender:
     @classmethod
-    def create_extended_Simul(cls, Simul):
-        """Should return the new extended Simul class
+    def create_extended_Simul(cls, Simul, modif_info_solver=None):
+        """Should return the new extended Simul class"""
+        if modif_info_solver is None:
+            return Simul
 
-        """
-        return Simul
+        class NewInfoSolver(Simul.InfoSolver):
+            pass
+
+        cls.add_info_solver_modificator(NewInfoSolver, modif_info_solver)
+
+        class NewSimul(Simul):
+            InfoSolver = NewInfoSolver
+
+        return NewSimul
 
     @classmethod
     def _complete_params_with_default(cls, params):

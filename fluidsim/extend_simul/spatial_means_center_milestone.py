@@ -8,6 +8,11 @@ class SpatialMeansCenter(SimulExtender):
         self.output = output
 
     @classmethod
+    def complete_params_with_default(cls, params):
+        params.output.periods_save._set_attrib(cls._tag, 0)
+        params.output._set_child(cls._tag, attribs={"xmin": 2, "xmax": 4})
+
+    @classmethod
     def create_extended_Simul(cls, Simul):
         """Here we want to add a specific output"""
 
@@ -21,12 +26,7 @@ class SpatialMeansCenter(SimulExtender):
                 },
             )
 
-        class NewInfoSolver(Simul.InfoSolver):
-            pass
+        return SimulExtender.create_extended_Simul(Simul, modif_info_solver)
 
-        cls.add_info_solver_modificator(NewInfoSolver, modif_info_solver)
-
-        class NewSimul(Simul):
-            InfoSolver = NewInfoSolver
-
-        return NewSimul
+    def _online_save(self):
+        pass

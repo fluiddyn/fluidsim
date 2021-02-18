@@ -104,7 +104,6 @@ class DummyOutput(SpecificOutputTest):
     be instantiated.
 
     """
-    pass
 
 
 class WorkingOutput(SpecificOutputTest):
@@ -120,9 +119,8 @@ def assert_default_params(params):
 
 
 def test_init_info_solver_params():
-    info_solver = InfoSolverTestWithOutput()
     with pytest.warns(UserWarning, match=r"A class Dummy .* using _set_attrib"):
-        info_solver.complete_with_classes()
+        info_solver = InfoSolverTestWithOutput()
 
     params = Parameters._create_params(info_solver)
 
