@@ -1,0 +1,5 @@
+Improve FluidSim Core API with a warning and a convenience function
+
+- Warnings added when ``_set_attrib`` is called instead of ``_set_child`` by a InfoSolver instance
+- New function iter_complete_params
+
