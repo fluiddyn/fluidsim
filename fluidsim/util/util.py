@@ -144,6 +144,17 @@ class ModulesSolvers(dict):
 def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
+    Parameters
+    ----------
+
+    path_dir: Path or str
+
+      Path of the directory of the simulation.
+
+    t_approx : number or "last" (optional)
+
+      Approximate time of the file to be loaded.
+
     .. todo::
 
         Can be elegantly implemented using regex as done in
@@ -154,9 +165,14 @@ def name_file_from_time_approx(path_dir, t_approx=None):
         path_dir = Path(path_dir)
 
     path_files = sorted(path_dir.glob("state_phys_t*"))
+
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
         raise ValueError("No state file in the dir\n" + str(path_dir))
+
+    if t_approx is None:
+        # should be the last one but not 100% sure
+        return path_files[-1].name
 
     name_files = [path.name for path in path_files]
     if "state_phys_t=" in name_files[0]:
@@ -170,7 +186,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
         if "_" in tmp:
             tmp = tmp[: tmp.index("_")]
         times[ii] = float(tmp)
-    if t_approx is None:
+    if t_approx == "last":
         t_approx = times.max()
     i_file = abs(times - t_approx).argmin()
     name_file = path_files[i_file].name
@@ -250,7 +266,7 @@ def _import_solver_from_path(path_dir):
 
 def load_state_phys_file(
     name_dir=None,
-    t_approx=None,
+    t_approx="last",
     modif_save_params=True,
     merge_missing_params=False,
     init_with_initialized_state=True,
@@ -319,7 +335,7 @@ def load_state_phys_file(
     return sim
 
 
-def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
+def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False):
     """Load params and Simul for a restart.
 
     >>> params, Simul = load_for_restart(name_dir)
@@ -411,7 +427,7 @@ def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
 
 
 def modif_resolution_from_dir(
-    name_dir=None, t_approx=None, coef_modif_resol=2, PLOT=True
+    name_dir=None, t_approx="last", coef_modif_resol=2, PLOT=True
 ):
     """Save a file with a modified resolution."""
 
@@ -530,7 +546,7 @@ class StatePhysLike:
 
 
 def modif_resolution_from_dir_memory_efficient(
-    name_dir=None, t_approx=None, coef_modif_resol=2
+    name_dir=None, t_approx="last", coef_modif_resol=2
 ):
     """Save a file with a modified resolution.
 
