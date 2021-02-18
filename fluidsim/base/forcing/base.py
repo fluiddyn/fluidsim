@@ -19,6 +19,7 @@ from functools import partial
 import numpy as np
 
 from fluiddyn.util import mpi
+from fluidsim_core.params import iter_complete_params
 
 from .specific import (
     InScriptForcingPseudoSpectral,
@@ -87,10 +88,11 @@ key_forced: {None} or str
 
         dict_classes = info_solver.classes.Forcing.import_classes()
         # iter on the dict in a determined order
-        for key in sorted(dict_classes.keys()):
-            cls = dict_classes[key]
-            if hasattr(cls, "_complete_params_with_default"):
-                cls._complete_params_with_default(params)
+        iter_complete_params(
+            params,
+            info_solver,
+            (dict_classes[key] for key in sorted(dict_classes)),
+        )
 
     @staticmethod
     def _modify_sim_repr_maker(sim_repr_maker):

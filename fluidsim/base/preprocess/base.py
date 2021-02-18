@@ -8,6 +8,7 @@ Provides:
    :private-members:
 
 """
+from fluidsim_core.params import iter_complete_params
 
 
 class PreprocessBase:
@@ -45,9 +46,7 @@ class PreprocessBase:
         params._set_child("preprocess", attribs=attribs)
 
         dict_classes = info_solver.classes.Preprocess.import_classes()
-        for Class in list(dict_classes.values()):
-            if hasattr(Class, "_complete_params_with_default"):
-                Class._complete_params_with_default(params)
+        iter_complete_params(params, info_solver, dict_classes.values())
 
     def __init__(self, sim):
         self.params = sim.params.preprocess
