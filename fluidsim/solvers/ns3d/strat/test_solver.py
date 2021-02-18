@@ -7,8 +7,8 @@ import fluiddyn.util.mpi as mpi
 
 import fluidsim as fls
 
-from fluidsim.extend_simul.spatial_means_center_milestone import (
-    SpatialMeansCenter,
+from fluidsim.extend_simul.spatial_means_regions_milestone import (
+    SpatialMeansRegions,
 )
 
 from ..test_solver import TestSimulBase as _Base, classproperty
@@ -66,7 +66,7 @@ class TestOutput(TestSimulBase):
     def Simul(cls):
         from .solver import Simul
 
-        return SpatialMeansCenter.create_extended_Simul(Simul)
+        return SpatialMeansRegions.create_extended_Simul(Simul)
 
     @classmethod
     def init_params(self):
@@ -130,6 +130,9 @@ class TestOutput(TestSimulBase):
         sim2.output.spatial_means.load()
         sim2.output.spatial_means.load_dataset()
         sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
+
+        sim2.output.spatial_means_regions.load()
+        sim2.output.spatial_means_regions.plot()
 
         sim2.output.spatial_means.plot_dimless_numbers_versus_time()
         result = sim2.output.spatial_means.get_dimless_numbers_averaged()

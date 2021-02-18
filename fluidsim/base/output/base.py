@@ -21,7 +21,6 @@ import datetime
 import os
 import shutil
 import numbers
-from time import sleep
 from copy import copy
 from warnings import warn
 

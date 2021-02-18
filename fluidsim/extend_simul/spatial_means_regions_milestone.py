@@ -1,8 +1,10 @@
 from . import SimulExtender
 
 
-class SpatialMeansCenter(SimulExtender):
-    _tag = "spatial_means_region"
+class SpatialMeansRegions(SimulExtender):
+    _tag = "spatial_means_regions"
+    _module_name = "fluidsim.extend_simul.spatial_means_regions_milestone"
+    _class_name = "SpatialMeansRegions"
 
     def __init__(self, output):
         self.output = output
@@ -19,14 +21,20 @@ class SpatialMeansCenter(SimulExtender):
         def modif_info_solver(info_solver):
 
             info_solver.classes.Output.classes._set_child(
-                "SpatialMeansCenter",
+                "SpatialMeansRegions",
                 attribs={
-                    "module_name": "fluidsim.extend_simul.spatial_means_center_milestone",
-                    "class_name": "SpatialMeansCenter",
+                    "module_name": cls._module_name,
+                    "class_name": cls._class_name,
                 },
             )
 
-        return SimulExtender.create_extended_Simul(Simul, modif_info_solver)
+        return super().create_extended_Simul(Simul, modif_info_solver)
 
     def _online_save(self):
-        pass
+        return NotImplemented
+
+    def load(self):
+        return NotImplemented
+
+    def plot(self):
+        return NotImplemented

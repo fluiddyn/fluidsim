@@ -46,6 +46,14 @@ class InfoSolverCore(ParamContainer):
                     for modif_info_solver in self._modificators:
                         modif_info_solver(self)
 
+                    self._set_attrib(
+                        "extenders",
+                        [
+                            f"{module_name}.{class_name}"
+                            for module_name, class_name in self._extenders
+                        ],
+                    )
+
     def _init_root(self):
 
         self._set_attribs(

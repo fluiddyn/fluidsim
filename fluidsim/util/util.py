@@ -21,7 +21,6 @@ Internal API
 
 """
 
-import inspect
 import os
 import time
 from copy import deepcopy as _deepcopy
@@ -31,6 +30,7 @@ from importlib import import_module
 from pathlib import Path
 from time import perf_counter
 from typing import Union
+from logging import warn
 
 import fluiddyn as fld
 import h5netcdf
@@ -39,6 +39,8 @@ import numpy as _np
 from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.util import get_memory_usage
+from fluiddyn.util import import_class
+
 from fluidsim_core import loader
 
 from fluidsim import path_dir_results
@@ -151,7 +153,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     if not isinstance(path_dir, Path):
         path_dir = Path(path_dir)
 
-    path_files = sorted(tuple(path_dir.glob("state_phys_t*")))
+    path_files = sorted(path_dir.glob("state_phys_t*"))
     nb_files = len(path_files)
     if nb_files == 0 and mpi.rank == 0:
         raise ValueError("No state file in the dir\n" + str(path_dir))
@@ -232,8 +234,11 @@ def load_sim_for_plot(
 
     fix_old_params(params)
 
+    path_file = Path(path_dir) / name_file_from_time_approx(path_dir)
+    Simul = _extend_Simul_if_needed(solver.Simul, path_file)
+
     with stdout_redirected(hide_stdout):
-        sim = solver.Simul(params)
+        sim = Simul(params)
     return sim
 
 
@@ -342,6 +347,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
 
     path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
+    Simul = solver.Simul
 
     # choose the file with the time closer to t_approx
     name_file = name_file_from_time_approx(path_dir, t_approx)
@@ -350,7 +356,7 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     if merge_missing_params:
         # this has to be done by all processes otherwise there is a problem
         # with Transonic (see https://foss.heptapod.net/fluiddyn/fluidsim/issues/26)
-        default_params = solver.Simul.create_default_params()
+        default_params = Simul.create_default_params()
 
     if mpi.rank > 0:
         params = None
@@ -376,7 +382,27 @@ def load_for_restart(name_dir=None, t_approx=None, merge_missing_params=False):
     if mpi.nb_proc > 1:
         params = mpi.comm.bcast(params, root=0)
 
-    return params, solver.Simul
+    Simul = _extend_Simul_if_needed(Simul, path_file)
+
+    return params, Simul
+
+
+def _extend_Simul_if_needed(Simul, path_file):
+    with h5py.File(path_file, "r") as file:
+        extenders = list(file["/info_simul/solver"].attrs.get("extenders", []))
+
+    for extender_full_name in extenders:
+        module_name, class_name = extender_full_name.rsplit(".", 1)
+        print(module_name, class_name)
+
+        try:
+            extender_class = import_class(module_name, class_name)
+        except ImportError:
+            warn(f"ImportError extender class {extender_full_name}.")
+        else:
+            Simul = extender_class.create_extended_Simul(Simul)
+
+    return Simul
 
 
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):
