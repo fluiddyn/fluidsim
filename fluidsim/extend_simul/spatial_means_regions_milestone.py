@@ -16,6 +16,7 @@ class SpatialMeansRegions(SimulExtender):
     It is still a work in progress.
 
     """
+
     _tag = "spatial_means_regions"
     _module_name = "fluidsim.extend_simul.spatial_means_regions_milestone"
 
@@ -28,11 +29,17 @@ class SpatialMeansRegions(SimulExtender):
         params.output._set_child(cls._tag, attribs={"xmin": 2, "xmax": 4})
 
     @classmethod
-    def create_extended_Simul(cls, Simul):
-        """Here we want to add a specific output"""
+    def get_modif_info_solver(cls):
+        """Create a function to modify ``info_solver``.
+
+        Note that this function is called when the object ``info_solver`` has
+        not yet been created (and cannot yet be modified)! This is why one
+        needs to create a function that will be called later to modify
+        ``info_solver``.
+
+        """
 
         def modif_info_solver(info_solver):
-
             info_solver.classes.Output.classes._set_child(
                 "SpatialMeansRegions",
                 attribs={
@@ -41,7 +48,7 @@ class SpatialMeansRegions(SimulExtender):
                 },
             )
 
-        return super().create_extended_Simul(Simul, modif_info_solver)
+        return modif_info_solver
 
     def _online_save(self):
         return NotImplemented

@@ -30,7 +30,6 @@ from importlib import import_module
 from pathlib import Path
 from time import perf_counter
 from typing import Union
-from logging import warn
 
 import fluiddyn as fld
 import h5netcdf
@@ -39,7 +38,6 @@ import numpy as _np
 from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.util import get_memory_usage
-from fluiddyn.util import import_class
 
 from fluidsim_core import loader
 
@@ -53,6 +51,7 @@ from fluidsim.base.params import (
     merge_params,
 )
 from fluidsim.base.solvers.info_base import create_info_simul
+from fluidsim.extend_simul import _extend_Simul_if_needed
 
 from .output import save_file
 
@@ -401,24 +400,6 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
     Simul = _extend_Simul_if_needed(Simul, path_file)
 
     return params, Simul
-
-
-def _extend_Simul_if_needed(Simul, path_file):
-    with h5py.File(path_file, "r") as file:
-        extenders = list(file["/info_simul/solver"].attrs.get("extenders", []))
-
-    for extender_full_name in extenders:
-        module_name, class_name = extender_full_name.rsplit(".", 1)
-        print(module_name, class_name)
-
-        try:
-            extender_class = import_class(module_name, class_name)
-        except ImportError:
-            warn(f"ImportError extender class {extender_full_name}.")
-        else:
-            Simul = extender_class.create_extended_Simul(Simul)
-
-    return Simul
 
 
 def modif_resolution_all_dir(t_approx=None, coef_modif_resol=2, dir_base=None):

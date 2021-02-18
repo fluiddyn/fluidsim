@@ -10,6 +10,7 @@ import fluidsim as fls
 from fluidsim.extend_simul.spatial_means_regions_milestone import (
     SpatialMeansRegions,
 )
+from fluidsim.extend_simul import extend_Simul_class
 
 from ..test_solver import TestSimulBase as _Base, classproperty
 
@@ -66,7 +67,7 @@ class TestOutput(TestSimulBase):
     def Simul(cls):
         from .solver import Simul
 
-        return SpatialMeansRegions.create_extended_Simul(Simul)
+        return extend_Simul_class(Simul, SpatialMeansRegions)
 
     @classmethod
     def init_params(self):

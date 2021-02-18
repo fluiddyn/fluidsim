@@ -49,8 +49,8 @@ class InfoSolverCore(ParamContainer):
                     self._set_attrib(
                         "extenders",
                         [
-                            f"{module_name}.{class_name}"
-                            for module_name, class_name in self._extenders
+                            f"{extender._module_name}.{extender.__name__}"
+                            for extender in self._extenders
                         ],
                     )
 
