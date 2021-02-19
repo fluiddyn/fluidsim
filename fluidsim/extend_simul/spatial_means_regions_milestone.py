@@ -94,14 +94,20 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         if self.period_save == 0:
             return
 
-        self._save_one_time()
-
         self.masks = []
+        self.nb_points = []
         for info_region in self.info_regions:
             (ixmin_loc, ixmax_loc, ixstop_loc) = info_region[4:]
             mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
             mask_loc[:, :, ixmin_loc:ixstop_loc] = 1
             self.masks.append(mask_loc)
+
+            nb_points = mask_loc.sum()
+            if mpi.nb_proc > 1:
+                nb_points = mpi.comm.allreduce(nb_points, op=mpi.MPI.SUM)
+            self.nb_points.append(nb_points)
+
+        self._save_one_time()
 
     def _init_path_files(self):
         self.path_dir = Path(self.output.path_run) / self._tag
@@ -111,16 +117,15 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         ]
 
     def _init_files(self, arrays_1st_time=None):
-        self.path_dir.mkdir(exist_ok=False)
-
         if mpi.rank == 0:
+            self.path_dir.mkdir(exist_ok=False)
             for path, info_region in zip(self.paths, self.info_regions):
                 xmin, xmax = info_region[:2]
                 if not path.exists():
                     with open(path, "w") as file:
                         file.write(
                             f"# xmin = {xmin} ; xmax = {xmax}\n"
-                            "time,EK,EKz,EA,epsK,epsA,PK,PA"
+                            "time,EK,EKz,EA,epsK,epsA,PK,PA\n"
                         )
                 else:
                     with open(path, "r") as file:
@@ -161,13 +166,93 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         if self._has_to_online_save():
             self._save_one_time()
 
+    def _compute_means_regions(self, field):
+        results = []
+        for nb_points, mask in zip(self.nb_points, self.masks):
+            result = (mask * field).sum()
+            if mpi.nb_proc > 1:
+                result = mpi.comm.allreduce(result, op=mpi.MPI.SUM)
+            results.append(result / nb_points)
+        return results
+
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
+        ifft = self.sim.oper.ifft
+
+        from fluidsim.operators.operators3d import (
+            compute_energy_from_1field,
+            compute_energy_from_1field_with_coef,
+            compute_energy_from_2fields,
+        )
+
+        get_var = self.sim.state.state_phys.get_var
+        b = get_var("b")
+        vx = get_var("vx")
+        vy = get_var("vy")
+        vz = get_var("vz")
+
+        EAs = self._compute_means_regions(0.5 * self.sim.params.N ** 2 * b * b)
+        EKzs = self._compute_means_regions(0.5 * vz * vz)
+        EKxs = self._compute_means_regions(0.5 * vx * vx)
+        EKys = self._compute_means_regions(0.5 * vy * vy)
+
+        EKhs = [EKx + EKy for EKx, EKy in zip(EKxs, EKys)]
+        EKs = [EKh + EKz for EKh, EKz in zip(EKhs, EKzs)]
+
+        get_var = self.sim.state.state_spect.get_var
+        b_fft = get_var("b_fft")
+        vx_fft = get_var("vx_fft")
+        vy_fft = get_var("vy_fft")
+        vz_fft = get_var("vz_fft")
+
+        energyA_fft = compute_energy_from_1field_with_coef(
+            b_fft, 1.0 / self.sim.params.N ** 2
+        )
+        E_Kz_fft = compute_energy_from_1field(vz_fft)
+        E_Kh_fft = compute_energy_from_2fields(vx_fft, vy_fft)
+
+        energyK_fft = E_Kz_fft + E_Kh_fft
+
+        f_d, _ = self.sim.compute_freq_diss()
+
+        epsKs = self._compute_means_regions(
+            ifft((2 * f_d * energyK_fft).astype(complex))
+        )
+        epsAs = self._compute_means_regions(
+            ifft((2 * f_d * energyA_fft).astype(complex))
+        )
+
+        if self.sim.params.forcing.enable:
+            deltat = self.sim.time_stepping.deltat
+            forcing_fft = self.sim.forcing.get_forcing()
+
+            fx_fft = forcing_fft.get_var("vx_fft")
+            fy_fft = forcing_fft.get_var("vy_fft")
+            fz_fft = forcing_fft.get_var("vz_fft")
+
+            PK1_fft = (
+                vx_fft.conj() * fx_fft
+                + vy_fft.conj() * fy_fft
+                + vz_fft.conj() * fz_fft
+            )
+            PK2_fft = abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2
+
+            PKs = self._compute_means_regions(
+                ifft(PK1_fft + PK2_fft * deltat / 2)
+            )
+
+        else:
+            PKs = [0.0] * 3
+
+        for i, path in enumerate(self.paths):
+            with open(path, "a") as file:
+                file.write(f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},{epsKs[i]},{epsAs[i]},{PKs[i]},0.0\n")
 
     def load(self, iregion=0):
-        df = pd.read_csv(self.paths[iregion])
+        df = pd.read_csv(self.paths[iregion], skiprows=1)
         return df
 
-    def plot(self):
-        return NotImplemented
+    def plot(self, keys="EK", iregion=0):
+        df = self.load(iregion)
+        df.plot(x="time", y=keys)

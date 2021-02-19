@@ -150,8 +150,12 @@ def main(args):
     periods_save = params.output.periods_save
     periods_save.phys_fields = movement.period / 10.0
     periods_save.spatial_means = movement.period / 1000.0
+    periods_save.spatial_means_regions = movement.period / 500.0
     periods_save.spect_energy_budg = movement.period / 50.0
     periods_save.spectra = movement.period / 100.0
+
+    params.output.spatial_means_regions.xmin = [0.1, 0.4, 0.75]
+    params.output.spatial_means_regions.xmax = [0.25, 0.6, 0.9]
 
     sim = Simul(params)
 
