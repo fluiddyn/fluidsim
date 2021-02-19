@@ -35,7 +35,6 @@ class SpatialMeansBase(SpecificOutput):
 
     def __init__(self, output):
         params = output.sim.params
-        self.nx = params.oper.nx
 
         self.sum_wavenumbers = output.sum_wavenumbers
         try:
