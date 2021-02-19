@@ -74,6 +74,14 @@ class Output(OutputBasePseudoSpectral):
             },
         )
 
+        classes._set_child(
+            "SpatiotemporalSpectra",
+            attribs={
+                "module_name": "fluidsim.base.output.spatiotemporal_spectra",
+                "class_name": "SpatiotemporalSpectra",
+            },
+        )
+
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container."""

@@ -41,7 +41,7 @@ class SpatiotemporalSpectra(SpecificOutput):
             tag,
             attribs={
                 "HAS_TO_PLOT_SAVED": False,
-                "spectral_region": None,  # m
+                "probes_region": None,  # m
                 "file_max_size": 10.0,  # MB
                 "SAVE_AS_FLOAT32": False,
             },
@@ -49,11 +49,19 @@ class SpatiotemporalSpectra(SpecificOutput):
 
         params.output.temporal_spectra._set_doc(
             """
-            spectral_region: tuple (default:None)
+            probes_region: tuple (default:None)
 
                 Boundaries of the region to record in the spectral domain.
 
-                spectral_region = (kxmax, kymax, kzmax), in units of params.oper.Lx^-1.
+                probes_region = (kxmax, kymax, kzmax), in units of params.oper.Lx^-1.
+
+                The resulting ranges for each wavevectors are :
+
+                    kx in [0 , kxmax]
+
+                    ky in [-kymax+1 , kymax]
+
+                    kz in [-kzmax+1 , kzmax]
 
                 If None, set to kimax = deltaki.
 
@@ -102,17 +110,17 @@ class SpatiotemporalSpectra(SpecificOutput):
         deltaky = oper.deltaky
         deltakz = oper.deltakz
 
-        if params_stspec.spectral_region is not None:
-            self.spectral_region = params_stspec.spectral_region
-            kxmax, kymax, kzmax = self.spectral_region
+        if params_stspec.probes_region is not None:
+            self.probes_region = params_stspec.probes_region
+            kxmax, kymax, kzmax = self.probes_region
         else:
             kxmax = deltakx
             kymax = deltaky
             kzmax = deltakz
-            self.spectral_region = kxmax, kymax, kzmax
+            self.probes_region = kxmax, kymax, kzmax
 
-        self.file_max_size = params_tspec.file_max_size
-        self.SAVE_AS_FLOAT32 = params_tspec.SAVE_AS_FLOAT32
+        self.file_max_size = params_stspec.file_max_size
+        self.SAVE_AS_FLOAT32 = params_stspec.SAVE_AS_FLOAT32
 
         # make sure spectral region is not empty
         kxmax += 1e-15
@@ -127,7 +135,7 @@ class SpatiotemporalSpectra(SpecificOutput):
         self.probes_kz_seq = np.r_[0:kzmax:deltakz, kzmin:0:deltakz]
 
         # dimensions order in Fourier space
-        self.dims_order = sim.oper.oper_fft.get_dimX_K()
+        self.dims_order = oper.oper_fft.get_dimX_K()
 
         # data directory
         if mpi.rank == 0:
@@ -142,7 +150,7 @@ class SpatiotemporalSpectra(SpecificOutput):
             with h5py.File(paths[0], "r") as file:
                 if file.attrs["nb_proc"] != mpi.nb_proc:
                     raise ValueError("process number is different from files")
-                if file.attrs["dims_order"] != self.dims_order:
+                if not np.allclose(file.attrs["dims_order"], self.dims_order):
                     raise ValueError("dimensions order is different from files")
                 if not (
                     np.allclose(file["probes_kx_seq"][:], self.probes_kx_seq)
@@ -156,7 +164,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                 self.path_file = paths[-1]
                 with h5py.File(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
-                    self.probes_kx_loc = file["probes_xk_loc"][:]
+                    self.probes_kx_loc = file["probes_kx_loc"][:]
                     self.probes_ky_loc = file["probes_ky_loc"][:]
                     self.probes_kz_loc = file["probes_kz_loc"][:]
                     self.probes_ik0_loc = file["probes_ik0_loc"][:]
@@ -221,6 +229,7 @@ class SpatiotemporalSpectra(SpecificOutput):
         if self.SAVE_AS_FLOAT32:
             size_1_number = 4e-6
         else:
+            # what is the size of a complex in python?
             size_1_number = 8e-6
 
         # size of a single write: nb_fields * probes_nb_loc + time
@@ -259,6 +268,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                     f"spect_{key}_loc",
                     (self.probes_nb_loc, 1),
                     maxshape=(self.probes_nb_loc, None),
+                    dtype="complex",
                 )
             create_ds("times", (1,), maxshape=(None,))
 
@@ -270,12 +280,12 @@ class SpatiotemporalSpectra(SpecificOutput):
                 if k.startswith("times"):
                     dset.resize((self.number_times_in_file,))
                     if self.SAVE_AS_FLOAT32:
-                        v = np.array(v, dtype="float32")
+                        raise NotImplementedError
                     dset[-1] = v
                 else:
                     dset.resize((self.probes_nb_loc, self.number_times_in_file))
                     if self.SAVE_AS_FLOAT32:
-                        v = v.astype("float32")
+                        raise NotImplementedError
                     dset[:, -1] = v
 
     def _add_probes_data_to_dict(self, data_dict, key):

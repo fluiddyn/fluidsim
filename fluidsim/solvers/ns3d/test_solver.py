@@ -2,6 +2,7 @@ import unittest
 import sys
 from pathlib import Path
 
+from math import pi
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -112,6 +113,11 @@ class TestOutput(TestSimulBase):
         probes_region = (0.0, Lx, 0.0, Ly, 0.55 * Lz, Lz)
         params.output.temporal_spectra.probes_region = probes_region
         params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
+
+        kxmax = params.oper.nx * pi / (2 * Lx)
+        kymax = params.oper.ny * pi / (2 * Ly)
+        kzmax = params.oper.nz * pi / (2 * Lz)
+        params.output.spatiotemporal_spectra.probes_region = (kxmax, kymax, kzmax)
 
     def test_output(self):
 
