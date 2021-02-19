@@ -7,9 +7,11 @@
 
 """
 
+from pathlib import Path
 import numbers
 
 import numpy as np
+import pandas as pd
 
 from fluiddyn.util import mpi
 
@@ -42,14 +44,18 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         if isinstance(self.xmax_given, numbers.Number):
             self.xmax_given = [self.xmax_given]
 
-        nb_regions = len(self.xmin_given)
+        self.nb_regions = len(self.xmin_given)
 
-        if len(self.xmax_given) != nb_regions:
+        if len(self.xmax_given) != self.nb_regions:
             raise ValueError("len(self.xmax_given) != len(self.xmin_given)")
 
         oper = output.sim.oper
 
         Lx = params.oper.Lx
+        if not params.ONLY_COARSE_OPER:
+            x_seq = oper.x_seq
+        else:
+            x_seq = Lx / params.oper.nx * np.arange(params.oper.nx)
 
         self.info_regions = []
 
@@ -60,27 +66,24 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             xmin, xmax = Lx * xmin, Lx * xmax
 
-            ixmin = np.argmin(abs(oper.x_seq - xmin))
-            xmin = oper.x_seq[ixmin]
+            ixmin = np.argmin(abs(x_seq - xmin))
+            xmin = x_seq[ixmin]
 
             ixmin_loc = ixmin - ix_seq_start
             if ixmin_loc < 0 or ixmin_loc > nx_loc - 1:
                 # this limit is not in this process
                 ixmin_loc = None
 
-            ixmax = np.argmin(abs(oper.x_seq - xmax))
-            xmax = oper.x_seq[ixmax]
+            ixmax = np.argmin(abs(x_seq - xmax))
+            xmax = x_seq[ixmax]
             ixmax_loc = ixmax - ix_seq_start
             ixstop_loc = ixmax_loc + 1
             if ixmax_loc < 0 or ixmax_loc > nx_loc - 1:
                 # this limit is not in this process
                 ixmax_loc = None
 
-            mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
-            mask_loc[:, :, ixmin_loc:ixstop_loc] = 1
-
             self.info_regions.append(
-                (xmin, xmax, ixmin, ixmax, ixmin_loc, ixmax_loc, mask_loc)
+                (xmin, xmax, ixmin, ixmax, ixmin_loc, ixmax_loc, ixstop_loc)
             )
 
         super().__init__(
@@ -88,14 +91,44 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             period_save=params.output.periods_save.spatial_means_regions,
         )
 
-        if self.period_save != 0:
-            self._save_one_time()
+        if self.period_save == 0:
+            return
 
+        self._save_one_time()
+
+        self.masks = []
+        for info_region in self.info_regions:
+            (ixmin_loc, ixmax_loc, ixstop_loc) = info_region[4:]
+            mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
+            mask_loc[:, :, ixmin_loc:ixstop_loc] = 1
+            self.masks.append(mask_loc)
+
+    def _init_path_files(self):
+        self.path_dir = Path(self.output.path_run) / self._tag
+        self.paths = [
+            self.path_dir / f"data{iregion}.csv"
+            for iregion in range(self.nb_regions)
+        ]
 
     def _init_files(self, arrays_1st_time=None):
+        self.path_dir.mkdir(exist_ok=False)
 
         if mpi.rank == 0:
-            pass
+            for path, info_region in zip(self.paths, self.info_regions):
+                xmin, xmax = info_region[:2]
+                if not path.exists():
+                    with open(path, "w") as file:
+                        file.write(
+                            f"# xmin = {xmin} ; xmax = {xmax}\n"
+                            "time,EK,EKz,EA,epsK,epsA,PK,PA"
+                        )
+                else:
+                    with open(path, "r") as file:
+                        words = file.readline().split()
+                        xmin_file = words[3]
+                        xmax_file = words[7]
+                        if xmin_file != xmin or xmax_file != xmax:
+                            raise ValueError
 
     @classmethod
     def complete_params_with_default(cls, params):
@@ -131,10 +164,10 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
-        return NotImplemented
 
-    def load(self):
-        return NotImplemented
+    def load(self, iregion=0):
+        df = pd.read_csv(self.paths[iregion])
+        return df
 
     def plot(self):
         return NotImplemented
