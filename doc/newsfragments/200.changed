@@ -1,0 +1,3 @@
+(internal) :class:`fluidsim_core.info.InfoSolverCore`: `__init__` now fully
+initializes the instance (calling the method ``complete_with_classes``). New
+keyword argument `only_root` to initialize only the root level.

@@ -21,10 +21,12 @@ from fluiddyn.util import mpi
 from fluidsim.solvers.ns3d.strat.solver import Simul
 from fluidsim.base.forcing.milestone import PeriodicUniform
 
-from fluidsim.extend_simul.spatial_means_regions_milestone import SpatialMeansRegions
-from fluidsim.extend_simul import extend_Simul_class
+from fluidsim.extend_simul.spatial_means_regions_milestone import (
+    SpatialMeansRegions,
+)
+from fluidsim.extend_simul import extend_simul_class
 
-Simul = extend_Simul_class(Simul, SpatialMeansRegions)
+Simul = extend_simul_class(Simul, SpatialMeansRegions)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-N", type=float, default=0.5, help="Brunt–Väisälä frequency")

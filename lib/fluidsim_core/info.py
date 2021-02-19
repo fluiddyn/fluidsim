@@ -23,7 +23,27 @@ def create_info_simul(info_solver, params):
 
 
 class InfoSolverCore(ParamContainer):
-    """Contain the information on a solver."""
+    """Contain the information on a solver.
+
+    Parameters
+    ----------
+
+    only_root: bool (False)
+
+      If True, only initialize the root level.
+
+    Attributes
+    ----------
+
+    _modificators: list
+
+      List of functions modifying the instance at the end of ``__init__``.
+
+    _extenders: list
+
+      List of extenders (see :mod:`fluidsim_core.extend_simul`).
+
+    """
 
     def __init__(self, only_root=False, **kargs):
 

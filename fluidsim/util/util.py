@@ -51,7 +51,7 @@ from fluidsim.base.params import (
     merge_params,
 )
 from fluidsim.base.solvers.info_base import create_info_simul
-from fluidsim.extend_simul import _extend_Simul_if_needed
+from fluidsim.extend_simul import _extend_simul_class_from_path
 
 from .output import save_file
 
@@ -250,7 +250,7 @@ def load_sim_for_plot(
     fix_old_params(params)
 
     path_file = Path(path_dir) / name_file_from_time_approx(path_dir)
-    Simul = _extend_Simul_if_needed(solver.Simul, path_file)
+    Simul = _extend_simul_class_from_path(solver.Simul, path_file)
 
     with stdout_redirected(hide_stdout):
         sim = Simul(params)
@@ -397,7 +397,7 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
     if mpi.nb_proc > 1:
         params = mpi.comm.bcast(params, root=0)
 
-    Simul = _extend_Simul_if_needed(Simul, path_file)
+    Simul = _extend_simul_class_from_path(Simul, path_file)
 
     return params, Simul
 

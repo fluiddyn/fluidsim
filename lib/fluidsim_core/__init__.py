@@ -11,6 +11,7 @@ generic base classes and utilities to build new solvers.
    output
    loader
    magic
+   extend_simul
 
 """
 from ._version import __version__
