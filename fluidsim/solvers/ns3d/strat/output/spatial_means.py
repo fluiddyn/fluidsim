@@ -305,7 +305,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         # fig 1 : energies
         fig, ax = self.output.figure_axe()
-        fig.suptitle("Energy")
+        fig.suptitle("Energy\n" + self.output.summary_simul)
         ax.set_ylabel("$E(t)$")
         ax.plot(t, E, "k", linewidth=2, label="$E$")
         ax.plot(t, EA, "b", label="$E_A$")
@@ -317,7 +317,7 @@ class SpatialMeansNS3DStrat(SpatialMeansBase):
 
         # figure 2 : dissipations
         fig, ax = self.output.figure_axe()
-        fig.suptitle("Dissipation of energy")
+        fig.suptitle("Dissipation of energy\n" + self.output.summary_simul)
         ax.set_ylabel(r"$\epsilon_K(t)$")
 
         def _plot(x, y, fmt, label=None, linewidth=1, zorder=10):

@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from fluiddyn.util import mpi
+from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.output.base import SpecificOutput
 
@@ -96,6 +97,10 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
         self.masks = []
         self.nb_points = []
+
+        self.nb_points_xmin = []
+        self.nb_points_xmax = []
+
         for info_region in self.info_regions:
             (ixmin_loc, ixmax_loc, ixstop_loc) = info_region[4:]
             mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
@@ -106,6 +111,23 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             if mpi.nb_proc > 1:
                 nb_points = mpi.comm.allreduce(nb_points, op=mpi.MPI.SUM)
             self.nb_points.append(nb_points)
+
+            def compute_nb_points_surface(ixsurface_loc):
+                if ixsurface_loc is not None:
+                    nb_points_xsurface_loc = mask_loc[:, :, ixsurface_loc].sum()
+                else:
+                    nb_points_xsurface_loc = np.int8(0)
+                if mpi.nb_proc > 1:
+                    nb_points_xsurface = mpi.comm.allreduce(
+                        nb_points_xsurface_loc, op=mpi.MPI.SUM
+                    )
+                else:
+                    nb_points_xsurface = nb_points_xsurface_loc
+
+                return nb_points_xsurface
+
+            self.nb_points_xmin.append(compute_nb_points_surface(ixmin_loc))
+            self.nb_points_xmax.append(compute_nb_points_surface(ixmax_loc))
 
         self._save_one_time()
 
@@ -125,7 +147,9 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                     with open(path, "w") as file:
                         file.write(
                             f"# xmin = {xmin} ; xmax = {xmax}\n"
-                            "time,EK,EKz,EA,epsK,epsA,PK,PA\n"
+                            "time,EK,EKz,EA,epsK,epsA,PK,PA,"
+                            "flux_Pnl_xmin,flux_Pnl_xmax,flux_v2_xmin,flux_v2_xmax,"
+                            "flux_Pforcing_xmin,flux_Pforcing_xmax\n"
                         )
                 else:
                     with open(path, "r") as file:
@@ -175,10 +199,43 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             results.append(result / nb_points)
         return results
 
+    def _compute_fluxes_regions(self, field, vx):
+        """Compute for each region the fluxes over xmin and xmax surface"""
+        fluxes = []
+        for index_region, info_region in enumerate(self.info_regions):
+            xmin, xmax = info_region[:2]
+            length_region = xmax - xmin
+            ixmin_loc, ixmax_loc = info_region[4:-1]
+
+            def compute_flux(nb_points_surfaces, ixsurface_loc):
+                nb_points_surface = nb_points_surfaces[index_region]
+                if ixsurface_loc is not None:
+                    field_xsurface = field[:, :, ixsurface_loc]
+                    vx_xsurface = vx[:, :, ixsurface_loc]
+                    sum_xsurface = (vx_xsurface * field_xsurface).sum()
+                else:
+                    sum_xsurface = 0.0
+                if mpi.nb_proc > 1:
+                    sum_xsurface = mpi.comm.allreduce(
+                        sum_xsurface, op=mpi.MPI.SUM
+                    )
+                return sum_xsurface / (nb_points_surface / length_region)
+
+            flux_xmin = compute_flux(self.nb_points_xmin, ixmin_loc)
+            flux_xmax = compute_flux(self.nb_points_xmax, ixmax_loc)
+            fluxes.append((flux_xmin, flux_xmax))
+        return fluxes
+
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
         self.t_last_save = tsim
-        ifft = self.sim.oper.ifft
+
+        state = self.sim.state
+        oper = self.sim.oper
+
+        ifft = oper.ifft
+        fft = oper.fft
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
 
         from fluidsim.operators.operators3d import (
             compute_energy_from_1field,
@@ -186,21 +243,28 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             compute_energy_from_2fields,
         )
 
-        get_var = self.sim.state.state_phys.get_var
+        get_var = state.state_phys.get_var
         b = get_var("b")
         vx = get_var("vx")
         vy = get_var("vy")
         vz = get_var("vz")
 
         EAs = self._compute_means_regions(0.5 * self.sim.params.N ** 2 * b * b)
-        EKzs = self._compute_means_regions(0.5 * vz * vz)
-        EKxs = self._compute_means_regions(0.5 * vx * vx)
-        EKys = self._compute_means_regions(0.5 * vy * vy)
+
+        vx2 = 0.5 * vx * vx
+        vy2 = 0.5 * vy * vy
+        vz2 = 0.5 * vz * vz
+        v2_over_2 = vx2 + vy2 + vz2
+
+        EKxs = self._compute_means_regions(vx2)
+        EKys = self._compute_means_regions(vy2)
+        EKzs = self._compute_means_regions(vz2)
+        del vx2, vy2, vz2
 
         EKhs = [EKx + EKy for EKx, EKy in zip(EKxs, EKys)]
         EKs = [EKh + EKz for EKh, EKz in zip(EKhs, EKzs)]
 
-        get_var = self.sim.state.state_spect.get_var
+        get_var = state.state_spect.get_var
         b_fft = get_var("b_fft")
         vx_fft = get_var("vx_fft")
         vy_fft = get_var("vy_fft")
@@ -245,9 +309,73 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         else:
             PKs = [0.0] * 3
 
+        # Compute spatial fluxes
+
+        # Need to compute the pressure P = v^2/2 + p
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
+
+        omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
+            vx_fft, vy_fft, vz_fft
+        )
+
+        omegax = state.fields_tmp[3]
+        omegay = state.fields_tmp[4]
+        omegaz = state.fields_tmp[5]
+
+        ifft_as_arg_destroy(omegax_fft, omegax)
+        ifft_as_arg_destroy(omegay_fft, omegay)
+        ifft_as_arg_destroy(omegaz_fft, omegaz)
+
+        del omegax_fft, omegay_fft, omegaz_fft
+
+        f_nl_x, f_nl_y, f_nl_z = vector_product(
+            vx, vy, vz, omegax, omegay, omegaz
+        )
+
+        del omegax, omegay, omegaz
+
+        f_nl_x_fft = fft(f_nl_x)
+        f_nl_y_fft = fft(f_nl_y)
+        f_nl_z_fft = fft(f_nl_z)
+
+        f_nl_x_fft *= 1j * oper.Kx
+        dx_f_nl_x_fft = f_nl_x_fft
+        del f_nl_x_fft
+
+        f_nl_y_fft *= 1j * oper.Ky
+        dy_f_nl_y_fft = f_nl_y_fft
+        del f_nl_y_fft
+
+        f_nl_z_fft *= 1j * oper.Kz
+        dz_f_nl_z_fft = f_nl_z_fft
+        del f_nl_z_fft
+
+        P_nl_fft = -(dx_f_nl_x_fft + dy_f_nl_y_fft + dz_f_nl_z_fft) / oper.K2_not0
+        del dx_f_nl_x_fft, dy_f_nl_y_fft, dz_f_nl_z_fft
+        P_nl = ifft(P_nl_fft)
+        del P_nl_fft
+
+        if self.sim.params.forcing.enable:
+            P_forcing = -ifft(
+                oper.divfft_from_vecfft(fx_fft, fy_fft, fz_fft) / oper.K2_not0
+            )
+
+        fluxes_P_nl = self._compute_fluxes_regions(P_nl, vx)
+        fluxes_v2 = self._compute_fluxes_regions(v2_over_2, vx)
+        fluxes_P_forcing = self._compute_fluxes_regions(P_forcing, vx)
+
         for i, path in enumerate(self.paths):
+            flux_Pnl_xmin, flux_Pnl_xmax = fluxes_P_nl[i]
+            flux_v2_xmin, flux_v2_xmax = fluxes_v2[i]
+            flux_Pforcing_xmin, flux_Pforcing_xmax = fluxes_P_forcing[i]
+
             with open(path, "a") as file:
-                file.write(f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},{epsKs[i]},{epsAs[i]},{PKs[i]},0.0\n")
+                file.write(
+                    f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},"
+                    f"{epsKs[i]},{epsAs[i]},{PKs[i]},0.0,"
+                    f"{flux_Pnl_xmin},{flux_Pnl_xmax},{flux_v2_xmin},{flux_v2_xmax},"
+                    f"{flux_Pforcing_xmin},{flux_Pforcing_xmax}\n"
+                )
 
     def load(self, iregion=0):
         df = pd.read_csv(self.paths[iregion], skiprows=1)
@@ -255,4 +383,5 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
     def plot(self, keys="EK", iregion=0):
         df = self.load(iregion)
-        df.plot(x="time", y=keys)
+        ax = df.plot(x="time", y=keys)
+        ax.set_title(self.output.summary_simul)
