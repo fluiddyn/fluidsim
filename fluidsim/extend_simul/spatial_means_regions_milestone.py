@@ -12,6 +12,7 @@ import numbers
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 from fluidfft.fft3d.operators import vector_product
@@ -77,14 +78,17 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             ixmax = np.argmin(abs(x_seq - xmax))
             xmax = x_seq[ixmax]
+            xmax += x_seq[1]
             ixmax_loc = ixmax - ix_seq_start
             ixstop_loc = ixmax_loc + 1
-            if ixmax_loc < 0 or ixmax_loc > nx_loc - 1:
+            ixmax_surf = (ixmax + 1) % params.oper.nx
+            ixmax_surf_loc = ixmax_surf - ix_seq_start
+            if ixmax_surf_loc < 0 or ixmax_surf_loc > nx_loc - 1:
                 # this limit is not in this process
-                ixmax_loc = None
+                ixmax_surf_loc = None
 
             self.info_regions.append(
-                (xmin, xmax, ixmin, ixmax, ixmin_loc, ixmax_loc, ixstop_loc)
+                (xmin, xmax, ixmin, ixmax, ixmin_loc, ixmax_surf_loc, ixstop_loc)
             )
 
         super().__init__(
@@ -102,7 +106,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         self.nb_points_xmax = []
 
         for info_region in self.info_regions:
-            (ixmin_loc, ixmax_loc, ixstop_loc) = info_region[4:]
+            (ixmin_loc, _, ixstop_loc) = info_region[4:]
             mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
             mask_loc[:, :, ixmin_loc:ixstop_loc] = 1
             self.masks.append(mask_loc)
@@ -114,7 +118,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             def compute_nb_points_surface(ixsurface_loc):
                 if ixsurface_loc is not None:
-                    nb_points_xsurface_loc = mask_loc[:, :, ixsurface_loc].sum()
+                    nb_points_xsurface_loc = params.oper.ny * params.oper.nz
                 else:
                     nb_points_xsurface_loc = np.int8(0)
                 if mpi.nb_proc > 1:
@@ -149,7 +153,8 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                             f"# xmin = {xmin} ; xmax = {xmax}\n"
                             "time,EK,EKz,EA,epsK,epsA,PK,PA,"
                             "flux_Pnl_xmin,flux_Pnl_xmax,flux_v2_xmin,flux_v2_xmax,"
-                            "flux_Pforcing_xmin,flux_Pforcing_xmax\n"
+                            "flux_Pforcing_xmin,flux_Pforcing_xmax,"
+                            "flux_A_xmin,flux_A_xmax\n"
                         )
                 else:
                     with open(path, "r") as file:
@@ -162,7 +167,9 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
     @classmethod
     def complete_params_with_default(cls, params):
         params.output.periods_save._set_attrib(cls._tag, 0)
-        params.output._set_child(cls._tag, attribs={"xmin": 0.25, "xmax": 0.75})
+        params.output._set_child(
+            cls._tag, attribs={"xmin": [0.1, 0.4, 0.7], "xmax": [0.3, 0.6, 0.9]}
+        )
 
     @classmethod
     def get_modif_info_solver(cls):
@@ -222,7 +229,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                 return sum_xsurface / (nb_points_surface / length_region)
 
             flux_xmin = compute_flux(self.nb_points_xmin, ixmin_loc)
-            flux_xmax = compute_flux(self.nb_points_xmax, ixmax_loc)
+            flux_xmax = -compute_flux(self.nb_points_xmax, ixmax_loc)
             fluxes.append((flux_xmin, flux_xmax))
         return fluxes
 
@@ -237,19 +244,14 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         fft = oper.fft
         ifft_as_arg_destroy = oper.ifft_as_arg_destroy
 
-        from fluidsim.operators.operators3d import (
-            compute_energy_from_1field,
-            compute_energy_from_1field_with_coef,
-            compute_energy_from_2fields,
-        )
-
         get_var = state.state_phys.get_var
         b = get_var("b")
         vx = get_var("vx")
         vy = get_var("vy")
         vz = get_var("vz")
 
-        EAs = self._compute_means_regions(0.5 * self.sim.params.N ** 2 * b * b)
+        N2b2 = 0.5 * self.sim.params.N ** 2 * b * b
+        EAs = self._compute_means_regions(N2b2)
 
         vx2 = 0.5 * vx * vx
         vy2 = 0.5 * vy * vy
@@ -270,22 +272,20 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         vy_fft = get_var("vy_fft")
         vz_fft = get_var("vz_fft")
 
-        energyA_fft = compute_energy_from_1field_with_coef(
-            b_fft, 1.0 / self.sim.params.N ** 2
-        )
-        E_Kz_fft = compute_energy_from_1field(vz_fft)
-        E_Kh_fft = compute_energy_from_2fields(vx_fft, vy_fft)
-
-        energyK_fft = E_Kz_fft + E_Kh_fft
-
         f_d, _ = self.sim.compute_freq_diss()
 
+        f_d_vx = ifft(f_d * vx_fft)
+        f_d_vy = ifft(f_d * vy_fft)
+        f_d_vz = ifft(f_d * vz_fft)
         epsKs = self._compute_means_regions(
-            ifft((2 * f_d * energyK_fft).astype(complex))
+            vx * f_d_vx + vy * f_d_vy + vz * f_d_vz
         )
-        epsAs = self._compute_means_regions(
-            ifft((2 * f_d * energyA_fft).astype(complex))
-        )
+        del f_d_vx, f_d_vy, f_d_vz
+
+        epsAs = [
+            epsA / self.sim.params.N ** 2
+            for epsA in self._compute_means_regions(b * ifft(f_d * b_fft))
+        ]
 
         if self.sim.params.forcing.enable:
             deltat = self.sim.time_stepping.deltat
@@ -293,30 +293,27 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             fx_fft = forcing_fft.get_var("vx_fft")
             fy_fft = forcing_fft.get_var("vy_fft")
-            fz_fft = forcing_fft.get_var("vz_fft")
 
-            PK1_fft = (
-                vx_fft.conj() * fx_fft
-                + vy_fft.conj() * fy_fft
-                + vz_fft.conj() * fz_fft
-            )
-            PK2_fft = abs(fx_fft) ** 2 + abs(fy_fft) ** 2 + abs(fz_fft) ** 2
+            assert np.allclose(forcing_fft.get_var("vz_fft"), 0)
+
+            fx = ifft(fx_fft)
+            fy = ifft(fy_fft)
 
             PKs = self._compute_means_regions(
-                ifft(PK1_fft + PK2_fft * deltat / 2)
+                vx * fx + vy * fy + (abs(fx) ** 2 + abs(fy) ** 2) * deltat / 2
             )
 
         else:
             PKs = [0.0] * 3
 
         # Compute spatial fluxes
-
         # Need to compute the pressure P = v^2/2 + p
-        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
 
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft
         )
+
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
 
         omegax = state.fields_tmp[3]
         omegay = state.fields_tmp[4]
@@ -356,6 +353,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         del P_nl_fft
 
         if self.sim.params.forcing.enable:
+            fz_fft = forcing_fft.get_var("vz_fft")
             P_forcing = -ifft(
                 oper.divfft_from_vecfft(fx_fft, fy_fft, fz_fft) / oper.K2_not0
             )
@@ -363,25 +361,78 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         fluxes_P_nl = self._compute_fluxes_regions(P_nl, vx)
         fluxes_v2 = self._compute_fluxes_regions(v2_over_2, vx)
         fluxes_P_forcing = self._compute_fluxes_regions(P_forcing, vx)
+        fluxes_A = self._compute_fluxes_regions(N2b2, vx)
+
+        if mpi.rank > 0:
+            return
 
         for i, path in enumerate(self.paths):
             flux_Pnl_xmin, flux_Pnl_xmax = fluxes_P_nl[i]
             flux_v2_xmin, flux_v2_xmax = fluxes_v2[i]
             flux_Pforcing_xmin, flux_Pforcing_xmax = fluxes_P_forcing[i]
+            flux_A_xmin, flux_A_xmax = fluxes_A[i]
 
             with open(path, "a") as file:
                 file.write(
                     f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},"
                     f"{epsKs[i]},{epsAs[i]},{PKs[i]},0.0,"
                     f"{flux_Pnl_xmin},{flux_Pnl_xmax},{flux_v2_xmin},{flux_v2_xmax},"
-                    f"{flux_Pforcing_xmin},{flux_Pforcing_xmax}\n"
+                    f"{flux_Pforcing_xmin},{flux_Pforcing_xmax},"
+                    f"{flux_A_xmin},{flux_A_xmax}\n"
                 )
 
     def load(self, iregion=0):
         df = pd.read_csv(self.paths[iregion], skiprows=1)
         return df
 
+    def print_keys(self):
+        df = pd.read_csv(self.paths[0], skiprows=1, nrows=1)
+        print(df.columns)
+
     def plot(self, keys="EK", iregion=0):
         df = self.load(iregion)
         ax = df.plot(x="time", y=keys)
-        ax.set_title(self.output.summary_simul)
+        xmin, xmax = self.info_regions[iregion][:2]
+        ax.set_title(self.output.summary_simul + f"\nxmin={xmin}, xmax={xmax}")
+        return ax
+
+    def plot_budget(self, iregion=0):
+        df = self.load(iregion)
+        times = df["time"]
+
+        E_tot = df["EK"] + df["EA"]
+
+        times_cells = (times[:-1] + times[1:]) / 2
+        dt_E_tot = np.gradient(E_tot, times)
+
+        P_tot = df["PK"] + df["PA"]
+        eps = df["epsK"] + df["epsA"]
+
+        fig, ax = plt.subplots()
+
+        ax.plot(times_cells, dt_E_tot, "k--", label="$\dot{E}$")
+
+        ax.plot(times, P_tot, label="Forcing")
+        ax.plot(times, -eps, label="Viscosity")
+
+        keys = (
+            "flux_Pnl_xmin flux_Pnl_xmax flux_Pforcing_xmin flux_Pforcing_xmax "
+            "flux_A_xmin flux_A_xmax"
+        )
+        flux_tot = np.zeros_like(times)
+        for key in keys.split():
+            flux_key = df[key]
+            # ax.plot(times, flux_key, ":", label=key)
+            flux_tot += flux_key
+
+        ax.plot(times, flux_tot, label="Total flux")
+        ax.plot(times, P_tot - eps + flux_tot, label="All terms")
+
+        xmin, xmax = self.info_regions[iregion][:2]
+        ax.set_title(
+            self.output.summary_simul + f"\nxmin={xmin:.3f}, xmax={xmax:.3f}"
+        )
+        fig.legend()
+        fig.tight_layout()
+
+        return ax
