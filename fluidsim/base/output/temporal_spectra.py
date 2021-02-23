@@ -46,7 +46,7 @@ class TemporalSpectra(SpecificOutput):
                 "probes_deltaz": 0.1,  # m
                 "probes_region": None,  # m
                 "file_max_size": 10.0,  # MB
-                "SAVE_AS_FLOAT32": False,
+                "SAVE_AS_FLOAT32": True,
             },
         )
 
@@ -76,9 +76,11 @@ class TemporalSpectra(SpecificOutput):
 
                 Maximum size of one time series file, in megabytes.
 
-            SAVE_AS_FLOAT32: bool (default: False)
+            SAVE_AS_FLOAT32: bool (default: True)
 
-                If set to true, probes data is saved as float32.
+                If set to False, probes data is saved as float64.
+
+                Warning : saving as float64 reduces digital noise at high frequencies, but double the size of the output!
 
             """
         )

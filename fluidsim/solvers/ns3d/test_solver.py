@@ -118,6 +118,7 @@ class TestOutput(TestSimulBase):
         kymax = params.oper.ny * pi / (2 * Ly)
         kzmax = params.oper.nz * pi / (2 * Lz)
         params.output.spatiotemporal_spectra.probes_region = (kxmax, kymax, kzmax)
+        params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = True
 
     def test_output(self):
 
@@ -224,6 +225,7 @@ class TestOutput(TestSimulBase):
             sim3.output.temporal_spectra.save_data_as_phys_fields(
                 delta_index_times=2
             )
+            sim3.output.spatiotemporal_spectra.load_time_series()
         plt.close("all")
 
 

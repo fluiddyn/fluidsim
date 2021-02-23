@@ -43,7 +43,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                 "HAS_TO_PLOT_SAVED": False,
                 "probes_region": None,  # m
                 "file_max_size": 10.0,  # MB
-                "SAVE_AS_FLOAT32": False,
+                "SAVE_AS_COMPLEX64": True,
             },
         )
 
@@ -69,9 +69,11 @@ class SpatiotemporalSpectra(SpecificOutput):
 
                 Maximum size of one time series file, in megabytes.
 
-            SAVE_AS_FLOAT32: bool (default: False)
+            SAVE_AS_COMPLEX64: bool (default: True)
 
-                If set to true, probes data is saved as float32.
+                If set to False, probes data is saved as complex128.
+
+                Warning : saving as complex128 reduces digital noise at high frequency, but doubles the size of the output!
 
             """
         )
@@ -79,7 +81,7 @@ class SpatiotemporalSpectra(SpecificOutput):
     def __init__(self, output):
         params = output.sim.params
         try:
-            params_stspec = params.output.spatiotemporal_spectra
+            params_st_spec = params.output.spatiotemporal_spectra
         except AttributeError:
             warn(
                 "Cannot initialize spatiotemporal spectra output because "
@@ -90,7 +92,7 @@ class SpatiotemporalSpectra(SpecificOutput):
         super().__init__(
             output,
             period_save=params.output.periods_save.spatiotemporal_spectra,
-            has_to_plot_saved=params_stspec.HAS_TO_PLOT_SAVED,
+            has_to_plot_saved=params_st_spec.HAS_TO_PLOT_SAVED,
         )
 
         oper = self.sim.oper
@@ -110,8 +112,8 @@ class SpatiotemporalSpectra(SpecificOutput):
         deltaky = oper.deltaky
         deltakz = oper.deltakz
 
-        if params_stspec.probes_region is not None:
-            self.probes_region = params_stspec.probes_region
+        if params_st_spec.probes_region is not None:
+            self.probes_region = params_st_spec.probes_region
             kxmax, kymax, kzmax = self.probes_region
         else:
             kxmax = deltakx
@@ -119,8 +121,8 @@ class SpatiotemporalSpectra(SpecificOutput):
             kzmax = deltakz
             self.probes_region = kxmax, kymax, kzmax
 
-        self.file_max_size = params_stspec.file_max_size
-        self.SAVE_AS_FLOAT32 = params_stspec.SAVE_AS_FLOAT32
+        self.file_max_size = params_st_spec.file_max_size
+        self.SAVE_AS_COMPLEX64 = params_st_spec.SAVE_AS_COMPLEX64
 
         # make sure spectral region is not empty
         kxmax += 1e-15
@@ -142,6 +144,14 @@ class SpatiotemporalSpectra(SpecificOutput):
             self.path_dir.mkdir(exist_ok=True)
         if mpi.nb_proc > 1:
             mpi.comm.barrier()
+
+        # data type and size
+        if self.SAVE_AS_COMPLEX64:
+            self.datatype = np.complex64
+            size_1_number = 8e-6
+        else:
+            self.datatype = np.complex128
+            size_1_number = 16e-6
 
         # check for existing files
         paths = sorted(self.path_dir.glob("rank*.h5"))
@@ -226,12 +236,6 @@ class SpatiotemporalSpectra(SpecificOutput):
             if self.probes_nb_loc > 0:
                 self._init_new_file()
 
-        if self.SAVE_AS_FLOAT32:
-            size_1_number = 4e-6
-        else:
-            # what is the size of a complex in python?
-            size_1_number = 8e-6
-
         # size of a single write: nb_fields * probes_nb_loc + time
         probes_write_size = (
             len(self.keys_fields) * self.probes_nb_loc + 1
@@ -268,7 +272,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                     f"spect_{key}_loc",
                     (self.probes_nb_loc, 1),
                     maxshape=(self.probes_nb_loc, None),
-                    dtype="complex",
+                    dtype=self.datatype,
                 )
             create_ds("times", (1,), maxshape=(None,))
 
@@ -279,13 +283,9 @@ class SpatiotemporalSpectra(SpecificOutput):
                 dset = file[k]
                 if k.startswith("times"):
                     dset.resize((self.number_times_in_file,))
-                    if self.SAVE_AS_FLOAT32:
-                        raise NotImplementedError
                     dset[-1] = v
                 else:
                     dset.resize((self.probes_nb_loc, self.number_times_in_file))
-                    if self.SAVE_AS_FLOAT32:
-                        raise NotImplementedError
                     dset[:, -1] = v
 
     def _add_probes_data_to_dict(self, data_dict, key):
@@ -296,25 +296,26 @@ class SpatiotemporalSpectra(SpecificOutput):
 
     def _online_save(self):
         """Prepares data and writes to file"""
-        if self.probes_nb_loc > 0:
-            tsim = self.sim.time_stepping.t
-            if (
-                tsim + 1e-15
-            ) // self.period_save > self.t_last_save // self.period_save:
-                # if max write number is reached, init new file
-                if self.number_times_in_file >= self.max_number_times_in_file:
-                    self.index_file += 1
-                    self.number_times_in_file = 0
-                    self._init_new_file()
-                # get data from probes
-                data = {"times": self.sim.time_stepping.t}
-                data["times"] = self.sim.time_stepping.t
-                for key in self.keys_fields:
-                    self._add_probes_data_to_dict(data, key)
-                # write to file
-                self.number_times_in_file += 1
-                self._write_to_file(data)
-                self.t_last_save = tsim
+        if self.probes_nb_loc == 0:
+            return
+        tsim = self.sim.time_stepping.t
+        if (
+            tsim + 1e-15
+        ) // self.period_save > self.t_last_save // self.period_save:
+            # if max write number is reached, init new file
+            if self.number_times_in_file >= self.max_number_times_in_file:
+                self.index_file += 1
+                self.number_times_in_file = 0
+                self._init_new_file()
+            # get data from probes
+            data = {"times": self.sim.time_stepping.t}
+            data["times"] = self.sim.time_stepping.t
+            for key in self.keys_fields:
+                self._add_probes_data_to_dict(data, key)
+            # write to file
+            self.number_times_in_file += 1
+            self._write_to_file(data)
+            self.t_last_save = tsim
 
     def load_time_series(self, key=None, region=None, tmin=0, tmax=None):
         """load time series from files"""
