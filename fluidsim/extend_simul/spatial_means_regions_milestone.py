@@ -151,7 +151,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                     with open(path, "w") as file:
                         file.write(
                             f"# xmin = {xmin} ; xmax = {xmax}\n"
-                            "time,EK,EKz,EA,epsK,epsA,PK,PA,"
+                            "time,EK,EKz,EA,epsK,epsA,conv_K2A,PK,PA,"
                             "flux_Pnl_xmin,flux_Pnl_xmax,flux_v2_xmin,flux_v2_xmax,"
                             "flux_Pforcing_xmin,flux_Pforcing_xmax,"
                             "flux_A_xmin,flux_A_xmax\n"
@@ -204,7 +204,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             if mpi.nb_proc > 1:
                 result = mpi.comm.allreduce(result, op=mpi.MPI.SUM)
             results.append(result / nb_points)
-        return results
+        return np.array(results)
 
     def _compute_fluxes_regions(self, field, vx):
         """Compute for each region the fluxes over xmin and xmax surface"""
@@ -231,7 +231,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             flux_xmin = compute_flux(self.nb_points_xmin, ixmin_loc)
             flux_xmax = -compute_flux(self.nb_points_xmax, ixmax_loc)
             fluxes.append((flux_xmin, flux_xmax))
-        return fluxes
+        return np.array(fluxes)
 
     def _save_one_time(self):
         tsim = self.sim.time_stepping.t
@@ -250,21 +250,20 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         vy = get_var("vy")
         vz = get_var("vz")
 
-        N2b2 = 0.5 * self.sim.params.N ** 2 * b * b
+        N2b2 = 0.5 / self.sim.params.N ** 2 * b * b
         EAs = self._compute_means_regions(N2b2)
 
-        vx2 = 0.5 * vx * vx
-        vy2 = 0.5 * vy * vy
+        vh2 = 0.5 * (vx * vx + vy * vy)
         vz2 = 0.5 * vz * vz
-        v2_over_2 = vx2 + vy2 + vz2
+        v2_over_2 = vh2 + vz2
 
-        EKxs = self._compute_means_regions(vx2)
-        EKys = self._compute_means_regions(vy2)
+        EKhs = self._compute_means_regions(vh2)
         EKzs = self._compute_means_regions(vz2)
-        del vx2, vy2, vz2
+        del vh2, vz2
 
-        EKhs = [EKx + EKy for EKx, EKy in zip(EKxs, EKys)]
-        EKs = [EKh + EKz for EKh, EKz in zip(EKhs, EKzs)]
+        EKs = EKhs + EKzs
+
+        conv_K2A = -self._compute_means_regions(b * vz)
 
         get_var = state.state_spect.get_var
         b_fft = get_var("b_fft")
@@ -304,7 +303,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             )
 
         else:
-            PKs = [0.0] * 3
+            PKs = np.zeros(3)
 
         # Compute spatial fluxes
         # Need to compute the pressure P = v^2/2 + p
@@ -375,7 +374,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             with open(path, "a") as file:
                 file.write(
                     f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},"
-                    f"{epsKs[i]},{epsAs[i]},{PKs[i]},0.0,"
+                    f"{epsKs[i]},{epsAs[i]},{conv_K2A[i]},{PKs[i]},0.0,"
                     f"{flux_Pnl_xmin},{flux_Pnl_xmax},{flux_v2_xmin},{flux_v2_xmax},"
                     f"{flux_Pforcing_xmin},{flux_Pforcing_xmax},"
                     f"{flux_A_xmin},{flux_A_xmax}\n"
@@ -410,14 +409,14 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
         fig, ax = plt.subplots()
 
-        ax.plot(times_cells, dt_E_tot, "k--", label="$\dot{E}$")
+        ax.plot(times_cells, dt_E_tot, "k--", label="$d_t E$")
 
         ax.plot(times, P_tot, label="Forcing")
         ax.plot(times, -eps, label="Viscosity")
 
         keys = (
-            "flux_Pnl_xmin flux_Pnl_xmax flux_Pforcing_xmin flux_Pforcing_xmax "
-            "flux_A_xmin flux_A_xmax"
+            "flux_Pnl_xmin flux_Pnl_xmax flux_Pforcing_xmin "
+            "flux_Pforcing_xmax flux_A_xmin flux_A_xmax"
         )
         flux_tot = np.zeros_like(times)
         for key in keys.split():
@@ -425,13 +424,15 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             # ax.plot(times, flux_key, ":", label=key)
             flux_tot += flux_key
 
-        ax.plot(times, flux_tot, label="Total flux")
+        ax.plot(times, flux_tot, label="Surface fluxes")
         ax.plot(times, P_tot - eps + flux_tot, label="All terms")
 
         xmin, xmax = self.info_regions[iregion][:2]
         ax.set_title(
             self.output.summary_simul + f"\nxmin={xmin:.3f}, xmax={xmax:.3f}"
         )
+        ax.set_xlabel("time")
+
         fig.legend()
         fig.tight_layout()
 
