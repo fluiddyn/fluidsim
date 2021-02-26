@@ -152,6 +152,9 @@ class SpatiotemporalSpectra(SpecificOutput):
                 self.path_file = paths[-1]
                 with h5py.File(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
+                    self.probes_k0adim_loc = file["probes_k0adim_loc"][:]
+                    self.probes_k1adim_loc = file["probes_k1adim_loc"][:]
+                    self.probes_k2adim_loc = file["probes_k2adim_loc"][:]
                     self.probes_ik0_loc = file["probes_ik0_loc"][:]
                     self.probes_ik1_loc = file["probes_ik1_loc"][:]
                     self.probes_ik2_loc = file["probes_ik2_loc"][:]
@@ -198,6 +201,23 @@ class SpatiotemporalSpectra(SpecificOutput):
 
             self.probes_nb_loc = self.probes_ik0_loc.size
 
+            # local probes wavenumbers (nondimensional)
+            self.probes_k0adim_loc = K0_adim[
+                self.probes_ik0_loc,
+                self.probes_ik1_loc,
+                self.probes_ik2_loc,
+            ]
+            self.probes_k1adim_loc = K1_adim[
+                self.probes_ik0_loc,
+                self.probes_ik1_loc,
+                self.probes_ik2_loc,
+            ]
+            self.probes_k2adim_loc = K2_adim[
+                self.probes_ik0_loc,
+                self.probes_ik1_loc,
+                self.probes_ik2_loc,
+            ]
+
             # initialize files
             self.index_file = 0
             self.number_times_in_file = 0
@@ -228,6 +248,9 @@ class SpatiotemporalSpectra(SpecificOutput):
             file.attrs["index_file"] = self.index_file
             file.attrs["probes_region"] = self.probes_region
             create_ds = file.create_dataset
+            create_ds("probes_k0adim_loc", data=self.probes_k0adim_loc)
+            create_ds("probes_k1adim_loc", data=self.probes_k1adim_loc)
+            create_ds("probes_k2adim_loc", data=self.probes_k2adim_loc)
             create_ds("probes_ik0_loc", data=self.probes_ik0_loc)
             create_ds("probes_ik1_loc", data=self.probes_ik1_loc)
             create_ds("probes_ik2_loc", data=self.probes_ik2_loc)
@@ -281,63 +304,85 @@ class SpatiotemporalSpectra(SpecificOutput):
             self._write_to_file(data)
             self.t_last_save = tsim
 
-    def load_time_series(self, key=None, region=None, tmin=0, tmax=None):
+    def load_time_series(self, tmin=0, tmax=None):
         """load time series from files"""
-        if key is None:
-            key = self.keys_fields[0]
-        key = f"spect_{key}_loc"
-        if region is None:
-            oper = self.sim.oper
-            region = (oper.kxmax_spectra, oper.kymax_spectra, oper.kzmax_spectra)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-
-        kxmax, kymax, kzmax = region
-        kymin = 1 - kymax
-        kzmin = 1 - kzmax
 
         # get ranks
         paths = sorted(self.path_dir.glob("rank*.h5"))
         ranks = sorted({int(p.name[4:9]) for p in paths})
 
-        # get times from the files of first rank
+        # get times and dimensions order from the files of first rank
+        print(f"load times series...")
+        paths_1st_rank = [
+            p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
+        ]
+
+        with h5py.File(paths_1st_rank[0], "r") as file:
+            order = file.attrs["dims_order"]
+            region = file.attrs["probes_region"]
+
         times = []
-        for path_file in paths:
-            if not path_file.name.startswith(f"rank{ranks[0]:05}"):
-                continue
-            with h5py.File(path_file, "r") as file:
+        for path in paths_1st_rank:
+            with h5py.File(path, "r") as file:
                 times_file = file["times"][:]
                 cond_times = (times_file >= tmin) & (times_file <= tmax)
                 times.append(times_file[cond_times])
         times = np.concatenate(times)
 
-        # load series
-        series = []
-        for rank in ranks:
-            data = []
-            for path_file in paths:
-                if not path_file.name.startswith(f"rank{rank:05}"):
-                    continue
-                with h5py.File(path_file, "r") as file:
-                    probes_kx = file["probes_kx_loc"][:]
-                    probes_ky = file["probes_ky_loc"][:]
-                    probes_kz = file["probes_kz_loc"][:]
+        print(f"tmin={times.min():8.6g}, tmax={times.max():8.6g}")
 
-                    cond_region = np.where(
-                        (probes_kx <= kxmax)
-                        & (probes_ky >= kymin)
-                        & (probes_ky <= kymax)
-                        & (probes_kz >= kzmin)
-                        & (probes_kz <= kzmax)
-                    )[0]
+        # get sequential shape of Fourier space
+        ikxmax, ikymax, ikzmax = region
+        ikymin = 1 - ikymax
+        ikzmin = 1 - ikzmax
+        iksmax = np.array([ikzmax, ikymax, ikxmax]).astype("int")
+        iksmin = np.array([1 - ikzmax, 1 - ikymax, 0]).astype("int")
+        ik0max, ik1max, ik2max = [iksmax[order == j].item() for j in range(3)]
+        ik0min, ik1min, ik2min = [iksmin[order == j].item() for j in range(3)]
+        spect_shape = (
+            ik0max + 1 - ik0min,
+            ik1max + 1 - ik1min,
+            ik2max + 1 - ik2min,
+            times.size,
+        )
 
-                    tmp = file[key][cond_region, :]
+        # load series, rebuild as state_spect arrays + time
+        series = {
+            f"spect_{k}_loc": np.empty(spect_shape, dtype="complex")
+            for k in self.keys_fields
+        }
+        # loop on times
+        for time in track(times, description="Rearranging..."):
+            # loop on ranks
+            for rank in ranks:
+                for path_file in paths:
+                    if not path_file.name.startswith(f"rank{rank:05}"):
+                        continue
+                    with h5py.File(path_file, "r") as file:
+                        # check if the file contains the time we're looking for
+                        tmin_file, tmax_file = file["times"][[0, -1]]
+                        if (time < tmin_file) or (time > tmax_file):
+                            continue
 
-                    times_file = file["times"][:]
-                    cond_times = (times_file >= tmin) & (times_file <= tmax)
-                    data.append(tmp[:, cond_times])
+                        # time index
+                        it = np.where(file["times"][:] == time)[0]
 
-            series.append(np.concatenate(data, axis=1))
+                        # k_adim_loc = global probes indices!
+                        ik0 = file["probes_k0adim_loc"][:]
+                        ik1 = file["probes_k1adim_loc"][:]
+                        ik2 = file["probes_k2adim_loc"][:]
 
-        result = {key: series, "times": times}
-        return result
+                        # load data at time t for all keys_fields
+                        for key in self.keys_fields:
+                            skey = f"spect_{key}_loc"
+                            series[skey][ik0, ik1, ik2, it] = file[skey][
+                                :, it
+                            ].transpose()
+
+                        # stop opening files when we've reached the right one
+                        break
+
+        series["times"] = times
+        return series
