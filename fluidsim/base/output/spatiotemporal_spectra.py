@@ -41,7 +41,7 @@ class SpatiotemporalSpectra(SpecificOutput):
             tag,
             attribs={
                 "HAS_TO_PLOT_SAVED": False,
-                "probes_region": None,  # m
+                "probes_region": None,
                 "file_max_size": 10.0,  # MB
                 "SAVE_AS_COMPLEX64": True,
             },
@@ -49,7 +49,7 @@ class SpatiotemporalSpectra(SpecificOutput):
 
         params.output.temporal_spectra._set_doc(
             """
-            probes_region: tuple (default:None)
+            probes_region: int tuple (default:None)
 
                 Boundaries of the region to record in the spectral domain.
 
@@ -117,6 +117,11 @@ class SpatiotemporalSpectra(SpecificOutput):
 
         self.file_max_size = params_st_spec.file_max_size
         self.SAVE_AS_COMPLEX64 = params_st_spec.SAVE_AS_COMPLEX64
+
+        # region must be int tuple
+        ikxmax = int(ikxmax)
+        ikymax = int(ikymax)
+        ikzmax = int(ikzmax)
 
         # dimensions order in Fourier space
         self.dims_order = oper.oper_fft.get_dimX_K()
@@ -337,8 +342,8 @@ class SpatiotemporalSpectra(SpecificOutput):
         ikxmax, ikymax, ikzmax = region
         ikymin = 1 - ikymax
         ikzmin = 1 - ikzmax
-        iksmax = np.array([ikzmax, ikymax, ikxmax]).astype("int")
-        iksmin = np.array([1 - ikzmax, 1 - ikymax, 0]).astype("int")
+        iksmax = np.array([ikzmax, ikymax, ikxmax])
+        iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
         ik0max, ik1max, ik2max = [iksmax[order == j].item() for j in range(3)]
         ik0min, ik1min, ik2min = [iksmin[order == j].item() for j in range(3)]
         spect_shape = (

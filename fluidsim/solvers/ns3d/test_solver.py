@@ -114,10 +114,7 @@ class TestOutput(TestSimulBase):
         params.output.temporal_spectra.probes_region = probes_region
         params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
 
-        kxmax = params.oper.nx * pi / (2 * Lx)
-        kymax = params.oper.ny * pi / (2 * Ly)
-        kzmax = params.oper.nz * pi / (2 * Lz)
-        params.output.spatiotemporal_spectra.probes_region = (kxmax, kymax, kzmax)
+        params.output.spatiotemporal_spectra.probes_region = (6, 8, 10)
         params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = True
 
     def test_output(self):
