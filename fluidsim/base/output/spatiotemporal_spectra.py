@@ -53,17 +53,17 @@ class SpatiotemporalSpectra(SpecificOutput):
 
                 Boundaries of the region to record in the spectral domain.
 
-                probes_region = (kxmax, kymax, kzmax), in units of params.oper.Lx^-1.
+                probes_region = (ikxmax, ikymax, ikzmax), in nondimensional units (mode indices).
 
                 The resulting ranges for each wavevectors are :
 
-                    kx in [0 , kxmax]
+                    ikx in [0 , ikxmax]
 
-                    ky in [-kymax+1 , kymax]
+                    iky in [-ikymax+1 , ikymax]
 
-                    kz in [-kzmax+1 , kzmax]
+                    ikz in [-ikzmax+1 , ikzmax]
 
-                If None, set to kimax = deltaki.
+                If None, set all ikmax = 4.
 
             file_max_size: float (default: 10.0)
 
@@ -108,33 +108,15 @@ class SpatiotemporalSpectra(SpecificOutput):
         if self.period_save == 0.0:
             return
 
-        deltakx = oper.deltakx
-        deltaky = oper.deltaky
-        deltakz = oper.deltakz
-
         if params_st_spec.probes_region is not None:
             self.probes_region = params_st_spec.probes_region
-            kxmax, kymax, kzmax = self.probes_region
+            ikxmax, ikymax, ikzmax = self.probes_region
         else:
-            kxmax = deltakx
-            kymax = deltaky
-            kzmax = deltakz
-            self.probes_region = kxmax, kymax, kzmax
+            ikxmax = ikymax = ikzmax = 4
+            self.probes_region = ikxmax, ikymax, ikzmax
 
         self.file_max_size = params_st_spec.file_max_size
         self.SAVE_AS_COMPLEX64 = params_st_spec.SAVE_AS_COMPLEX64
-
-        # make sure spectral region is not empty
-        kxmax += 1e-15
-        kymax += 1e-15
-        kzmax += 1e-15
-
-        # global probes wavenumbers
-        kymin = 1 - kymax
-        kzmin = 1 - kzmax
-        self.probes_kx_seq = np.arange(0, kxmax, deltakx)
-        self.probes_ky_seq = np.r_[0:kymax:deltaky, kymin:0:deltaky]
-        self.probes_kz_seq = np.r_[0:kzmax:deltakz, kzmin:0:deltakz]
 
         # dimensions order in Fourier space
         self.dims_order = oper.oper_fft.get_dimX_K()
@@ -160,27 +142,20 @@ class SpatiotemporalSpectra(SpecificOutput):
             with h5py.File(paths[0], "r") as file:
                 if file.attrs["nb_proc"] != mpi.nb_proc:
                     raise ValueError("process number is different from files")
-                if not np.allclose(file.attrs["dims_order"], self.dims_order):
+                if (file.attrs["dims_order"] != self.dims_order).any():
                     raise ValueError("dimensions order is different from files")
-                if not (
-                    np.allclose(file["probes_kx_seq"][:], self.probes_kx_seq)
-                    and np.allclose(file["probes_ky_seq"][:], self.probes_ky_seq)
-                    and np.allclose(file["probes_kz_seq"][:], self.probes_kz_seq)
-                ):
-                    raise ValueError("probes position are different from files")
+                if (file.attrs["probes_region"] != self.probes_region).any():
+                    raise ValueError("probes region is different from files")
             # init from files
             paths = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
             if paths:
                 self.path_file = paths[-1]
                 with h5py.File(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
-                    self.probes_kx_loc = file["probes_kx_loc"][:]
-                    self.probes_ky_loc = file["probes_ky_loc"][:]
-                    self.probes_kz_loc = file["probes_kz_loc"][:]
                     self.probes_ik0_loc = file["probes_ik0_loc"][:]
                     self.probes_ik1_loc = file["probes_ik1_loc"][:]
                     self.probes_ik2_loc = file["probes_ik2_loc"][:]
-                    self.probes_nb_loc = self.probes_kx_loc.size
+                    self.probes_nb_loc = self.probes_ik0_loc.size
                     self.number_times_in_file = file["times"].size
                     self.t_last_save = file["times"][-1]
             else:
@@ -189,26 +164,31 @@ class SpatiotemporalSpectra(SpecificOutput):
                 self.index_file = 0
                 self.number_times_in_file = 0
                 self.probes_nb_loc = 0
-                self.probes_kx_loc = []
-                self.probes_ky_loc = []
-                self.probes_kz_loc = []
                 self.probes_ik0_loc = []
                 self.probes_ik1_loc = []
                 self.probes_ik2_loc = []
 
         else:
             # no files were found : initialize from params
+            # pair kx,ky,kz with k0,k1,k2
+            order = np.array(self.dims_order)
+            iksmax = np.array([ikzmax, ikymax, ikxmax])
+            iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
+            ik0max, ik1max, ik2max = [iksmax[order == j].item() for j in range(3)]
+            ik0min, ik1min, ik2min = [iksmin[order == j].item() for j in range(3)]
 
             # local probes indices
-            Kx = oper.Kx
-            Ky = oper.Ky
-            Kz = oper.Kz
+            k0_adim_loc, k1_adim_loc, k2_adim_loc = oper.oper_fft.get_k_adim_loc()
+            K0_adim, K1_adim, K2_adim = np.meshgrid(
+                k0_adim_loc, k1_adim_loc, k2_adim_loc, indexing="ij"
+            )
             cond_region = (
-                (Kx <= kxmax)
-                & (Ky >= kymin)
-                & (Ky <= kymax)
-                & (Kz >= kzmin)
-                & (Kz <= kzmax)
+                (K0_adim >= ik0min)
+                & (K0_adim <= ik0max)
+                & (K1_adim >= ik1min)
+                & (K1_adim <= ik1max)
+                & (K2_adim >= ik2min)
+                & (K2_adim <= ik2max)
             )
             (
                 self.probes_ik0_loc,
@@ -216,18 +196,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                 self.probes_ik2_loc,
             ) = np.where(cond_region)
 
-            # local probes wavenumbers
-            self.probes_kx_loc = Kx[
-                self.probes_ik0_loc, self.probes_ik1_loc, self.probes_ik2_loc
-            ]
-            self.probes_ky_loc = Ky[
-                self.probes_ik0_loc, self.probes_ik1_loc, self.probes_ik2_loc
-            ]
-            self.probes_kz_loc = Kz[
-                self.probes_ik0_loc, self.probes_ik1_loc, self.probes_ik2_loc
-            ]
-
-            self.probes_nb_loc = self.probes_kx_loc.size
+            self.probes_nb_loc = self.probes_ik0_loc.size
 
             # initialize files
             self.index_file = 0
@@ -257,13 +226,8 @@ class SpatiotemporalSpectra(SpecificOutput):
             file.attrs["nb_proc"] = mpi.nb_proc
             file.attrs["dims_order"] = self.dims_order
             file.attrs["index_file"] = self.index_file
+            file.attrs["probes_region"] = self.probes_region
             create_ds = file.create_dataset
-            create_ds("probes_kx_seq", data=self.probes_kx_seq)
-            create_ds("probes_ky_seq", data=self.probes_ky_seq)
-            create_ds("probes_kz_seq", data=self.probes_kz_seq)
-            create_ds("probes_kx_loc", data=self.probes_kx_loc)
-            create_ds("probes_ky_loc", data=self.probes_ky_loc)
-            create_ds("probes_kz_loc", data=self.probes_kz_loc)
             create_ds("probes_ik0_loc", data=self.probes_ik0_loc)
             create_ds("probes_ik1_loc", data=self.probes_ik1_loc)
             create_ds("probes_ik2_loc", data=self.probes_ik2_loc)
