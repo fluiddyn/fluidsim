@@ -92,8 +92,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             )
 
         super().__init__(
-            output,
-            period_save=params.output.periods_save.spatial_means_regions,
+            output, period_save=params.output.periods_save.spatial_means_regions
         )
 
         if self.period_save == 0:
@@ -153,6 +152,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                             f"# xmin = {xmin} ; xmax = {xmax}\n"
                             "time,EK,EKz,EA,epsK,epsA,conv_K2A,PK,PA,"
                             "flux_Pnl_xmin,flux_Pnl_xmax,flux_v2_xmin,flux_v2_xmax,"
+                            "flux_P_dz_b_xmin,flux_P_dz_b_xmax,"
                             "flux_Pforcing_xmin,flux_Pforcing_xmax,"
                             "flux_A_xmin,flux_A_xmax\n"
                         )
@@ -357,9 +357,12 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                 oper.divfft_from_vecfft(fx_fft, fy_fft, fz_fft) / oper.K2_not0
             )
 
+        P_dz_b = -ifft(1j * oper.Kz * b_fft / oper.K2_not0)
+
         fluxes_P_nl = self._compute_fluxes_regions(P_nl, vx)
         fluxes_v2 = self._compute_fluxes_regions(v2_over_2, vx)
         fluxes_P_forcing = self._compute_fluxes_regions(P_forcing, vx)
+        fluxes_P_dz_b = self._compute_fluxes_regions(P_dz_b, vx)
         fluxes_A = self._compute_fluxes_regions(N2b2, vx)
 
         if mpi.rank > 0:
@@ -369,6 +372,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             flux_Pnl_xmin, flux_Pnl_xmax = fluxes_P_nl[i]
             flux_v2_xmin, flux_v2_xmax = fluxes_v2[i]
             flux_Pforcing_xmin, flux_Pforcing_xmax = fluxes_P_forcing[i]
+            flux_P_dz_b_xmin, flux_P_dz_b_xmax = fluxes_P_dz_b[i]
             flux_A_xmin, flux_A_xmax = fluxes_A[i]
 
             with open(path, "a") as file:
@@ -376,6 +380,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                     f"{tsim},{EKs[i]},{EKzs[i]},{EAs[i]},"
                     f"{epsKs[i]},{epsAs[i]},{conv_K2A[i]},{PKs[i]},0.0,"
                     f"{flux_Pnl_xmin},{flux_Pnl_xmax},{flux_v2_xmin},{flux_v2_xmax},"
+                    f"{flux_P_dz_b_xmin},{flux_P_dz_b_xmax},"
                     f"{flux_Pforcing_xmin},{flux_Pforcing_xmax},"
                     f"{flux_A_xmin},{flux_A_xmax}\n"
                 )
@@ -416,7 +421,8 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
         keys = (
             "flux_Pnl_xmin flux_Pnl_xmax flux_Pforcing_xmin "
-            "flux_Pforcing_xmax flux_A_xmin flux_A_xmax"
+            "flux_Pforcing_xmax flux_A_xmin flux_A_xmax "
+            "flux_P_dz_b_xmin flux_P_dz_b_xmax"
         )
         flux_tot = np.zeros_like(times)
         for key in keys.split():
