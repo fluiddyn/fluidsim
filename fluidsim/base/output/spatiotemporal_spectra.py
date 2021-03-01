@@ -336,7 +336,9 @@ class SpatiotemporalSpectra(SpecificOutput):
                 times.append(times_file[cond_times])
         times = np.concatenate(times)
 
-        print(f"tmin={times.min():8.6g}, tmax={times.max():8.6g}")
+        print(
+            f"tmin={times.min():8.6g}, tmax={times.max():8.6g}, nit={times.size}"
+        )
 
         # get sequential shape of Fourier space
         ikxmax, ikymax, ikzmax = region
@@ -367,12 +369,15 @@ class SpatiotemporalSpectra(SpecificOutput):
                         continue
                     with h5py.File(path_file, "r") as file:
                         # check if the file contains the time we're looking for
-                        tmin_file, tmax_file = file["times"][[0, -1]]
+                        # add [:] in case file contains only one time
+                        # or else : h5py TypeError!
+                        tmin_file, tmax_file = file["times"][:][[0, -1]]
                         if (time < tmin_file) or (time > tmax_file):
                             continue
 
-                        # time index
-                        it = np.where(file["times"][:] == time)[0]
+                        # time indices
+                        it = np.where(times == time)[0]
+                        it_file = np.where(file["times"][:] == time)[0]
 
                         # k_adim_loc = global probes indices!
                         ik0 = file["probes_k0adim_loc"][:]
@@ -383,7 +388,7 @@ class SpatiotemporalSpectra(SpecificOutput):
                         for key in self.keys_fields:
                             skey = f"spect_{key}_loc"
                             series[skey][ik0, ik1, ik2, it] = file[skey][
-                                :, it
+                                :, it_file
                             ].transpose()
 
                         # stop opening files when we've reached the right one

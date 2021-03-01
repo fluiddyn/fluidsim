@@ -103,12 +103,16 @@ params.output.periods_save.spect_energy_budg = 1.0
 
 params.output.spectra.kzkh_periodicity = 1
 
-params.output.periods_save.temporal_spectra = 0.1
+params.output.periods_save.temporal_spectra = period_N / 4
 params.output.temporal_spectra.probes_deltax = 1
 params.output.temporal_spectra.probes_deltay = 1
 params.output.temporal_spectra.probes_deltaz = 0.5
 params.output.temporal_spectra.probes_region = (1, 11, 1, 11, 0, 2)
 params.output.temporal_spectra.file_max_size = 0.1
+
+params.output.periods_save.spatiotemporal_spectra = period_N / 4
+params.output.spatiotemporal_spectra.probes_region = (8, 8, 2)
+params.output.spatiotemporal_spectra.file_max_size = 0.1
 
 sim = Simul(params)
 
