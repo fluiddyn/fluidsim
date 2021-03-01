@@ -405,8 +405,6 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         times = df["time"]
 
         E_tot = df["EK"] + df["EA"]
-
-        times_cells = (times[:-1] + times[1:]) / 2
         dt_E_tot = np.gradient(E_tot, times)
 
         P_tot = df["PK"] + df["PA"]
@@ -414,24 +412,25 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
         fig, ax = plt.subplots()
 
-        ax.plot(times_cells, dt_E_tot, "k--", label="$d_t E$")
+        ax.plot(times, dt_E_tot, "k--", label="$d_t E$")
 
         ax.plot(times, P_tot, label="Forcing")
         ax.plot(times, -eps, label="Viscosity")
 
-        keys = (
-            "flux_Pnl_xmin flux_Pnl_xmax flux_Pforcing_xmin "
-            "flux_Pforcing_xmax flux_A_xmin flux_A_xmax "
-            "flux_P_dz_b_xmin flux_P_dz_b_xmax"
-        )
+        kinds = "flux_Pnl flux_Pforcing flux_A flux_P_dz_b".split()
+
         flux_tot = np.zeros_like(times)
-        for key in keys.split():
-            flux_key = df[key]
-            # ax.plot(times, flux_key, ":", label=key)
-            flux_tot += flux_key
+
+        for kind in kinds:
+            flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
+            flux_tot += flux_kind.values
 
         ax.plot(times, flux_tot, label="Surface fluxes")
         ax.plot(times, P_tot - eps + flux_tot, label="All terms")
+
+        for kind in kinds:
+            flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
+            ax.plot(times, flux_kind, ":", label=kind)
 
         xmin, xmax = self.info_regions[iregion][:2]
         ax.set_title(

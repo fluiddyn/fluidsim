@@ -83,6 +83,9 @@ class TestOutput(TestSimulBase):
         for key in periods._key_attribs:
             periods[key] = 0.2
 
+        periods.spatial_means = 0.05
+        periods.spatial_means_regions = 0.05
+
         for tag in params.output._tag_children:
             if tag.startswith("periods"):
                 continue
@@ -114,12 +117,6 @@ class TestOutput(TestSimulBase):
             sum(sim.output.compute_energies()), sim.output.compute_energy()
         )
 
-        # test energy in shear modes
-        EKhs = sim.output.spatial_means.load()["EKhs"]
-        E = sim.output.spatial_means.load()["E"]
-        ratio = EKhs[-1] / E[-1]
-        self.assertGreater(ratio, 1e-15)
-
         if mpi.nb_proc > 1:
             return
 
@@ -131,6 +128,7 @@ class TestOutput(TestSimulBase):
         sim2.output.spatial_means.load()
         sim2.output.spatial_means.load_dataset()
         sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
+        sim2.output.spatial_means.plot_dt_E()
 
         sim2.output.spatial_means_regions.load()
         sim2.output.spatial_means_regions.plot()

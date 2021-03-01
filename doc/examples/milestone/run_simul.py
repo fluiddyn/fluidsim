@@ -124,7 +124,7 @@ def main(args):
     )
 
     params.time_stepping.t_end = movement.period * args.n_periods
-    params.time_stepping.deltat_max = 0.1 * diameter / speed
+    params.time_stepping.deltat_max = 0.02 * diameter / speed
 
     params.nu_2 = 1e-6
 

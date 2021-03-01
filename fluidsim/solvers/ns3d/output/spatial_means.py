@@ -289,3 +289,37 @@ class SpatialMeansNS3D(SpatialMeansBase):
             ax.plot(t, PK_tot, "r--", label=r"$P$", zorder=0)
 
         ax.legend()
+
+    def plot_dt_E(self):
+        dict_results = self.load()
+
+        times = dict_results["t"]
+        E_tot = dict_results["E"]
+
+        dt_E_tot = np.gradient(E_tot, times)
+        try:
+            eps_tot = dict_results["eps_tot"]
+        except KeyError:
+            eps_tot = dict_results["epsK_tot"]
+
+        all_terms = -eps_tot.copy()
+
+        if "PK_tot" in dict_results:
+            P_tot = dict_results["PK_tot"]
+            if "PA_tot" in dict_results:
+                P_tot += dict_results["PA_tot"]
+            all_terms += P_tot
+
+        fig, ax = self.output.figure_axe()
+
+        ax.plot(times, dt_E_tot, "--k", label="$d_t E$")
+        if "PK_tot" in dict_results:
+            ax.plot(times, P_tot, "b", label="forcing")
+        ax.plot(times, -eps_tot, color="orange", label="viscosity")
+        ax.plot(times, all_terms, "r", label="All terms")
+
+        ax.set_title(self.output.summary_simul)
+        ax.set_xlabel("time")
+
+        fig.legend()
+        fig.tight_layout()

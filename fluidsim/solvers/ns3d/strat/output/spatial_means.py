@@ -13,10 +13,10 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from fluidsim.base.output.spatial_means import SpatialMeansBase
+from fluidsim.solvers.ns3d.output.spatial_means import SpatialMeansNS3D
 
 
-class SpatialMeansNS3DStrat(SpatialMeansBase):
+class SpatialMeansNS3DStrat(SpatialMeansNS3D):
     """Spatial means output."""
 
     def __init__(self, output):
