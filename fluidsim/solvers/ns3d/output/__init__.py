@@ -75,10 +75,10 @@ class Output(OutputBasePseudoSpectral):
         )
 
         classes._set_child(
-            "SpatiotemporalSpectra",
+            "SpatioTemporalSpectra",
             attribs={
-                "module_name": "fluidsim.base.output.spatiotemporal_spectra",
-                "class_name": "SpatiotemporalSpectra",
+                "module_name": base_name_mod + ".spatiotemporal_spectra",
+                "class_name": "SpatioTemporalSpectraNS3D",
             },
         )
 

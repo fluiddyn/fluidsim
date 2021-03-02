@@ -1,11 +1,10 @@
 """
-SpatiotemporalSpectra (:mod:`fluidsim.solvers.ns3d.output.spatiotemporal_spectra`)
-==============================================================================
-
+Spatiotemporal Spectra (:mod:`fluidsim.base.output.spatiotemporal_spectra`)
+===========================================================================
 
 Provides:
 
-.. autoclass:: TemporalSpectra
+.. autoclass:: SpatioTemporalSpectra
    :members:
    :private-members:
 
@@ -24,7 +23,7 @@ from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
 
 
-class SpatiotemporalSpectra(SpecificOutput):
+class SpatioTemporalSpectra(SpecificOutput):
     """
     Computes the spatiotemporal spectra.
     """
