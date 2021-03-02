@@ -122,7 +122,9 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             def compute_nb_points_surface(ixsurface_loc):
                 if ixsurface_loc is not None:
-                    nb_points_xsurface_loc = params.oper.ny * params.oper.nz
+                    nz_loc = oper.shapeX_loc[0]
+                    ny_loc = oper.shapeX_loc[1]
+                    nb_points_xsurface_loc = ny_loc * nz_loc
                 else:
                     nb_points_xsurface_loc = np.int8(0)
                 if mpi.nb_proc > 1:
@@ -231,7 +233,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                     sum_xsurface = mpi.comm.allreduce(
                         sum_xsurface, op=mpi.MPI.SUM
                     )
-                return sum_xsurface / (nb_points_surface / length_region)
+                return sum_xsurface / nb_points_surface / length_region
 
             flux_xmin = compute_flux(self.nb_points_xmin, ixmin_loc)
             flux_xmax = -compute_flux(self.nb_points_xmax, ixmax_surf_loc)
