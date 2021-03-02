@@ -396,3 +396,30 @@ class SpatiotemporalSpectra(SpecificOutput):
 
         series["times"] = times
         return series
+
+    def compute_spectra(self, tmin=0, tmax=None):
+        """compute spatiotemporal spectra from files"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        # load time series as state_spect arrays + times
+        series = self.load_time_series(tmin=tmin, tmax=tmax)
+
+        # get the sampling frequency
+        times = series["times"]
+        f_sample = 1 / np.mean(times[1:] - times[:-1])
+
+        # compute spectra
+        print("computing temporal spectra...")
+
+        dict_spectra = {}
+
+        for key, data in series.items():
+            if key.startswith("times"):
+                continue
+            freq, spectra = signal.periodogram(data, fs=f_sample)
+            dict_spectra[key] = spectra
+
+        dict_spectra["omegas"] = 2 * pi * freq
+
+        return dict_spectra
