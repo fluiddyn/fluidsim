@@ -4,12 +4,15 @@ cluster = Cluster()
 
 cluster.commands_setting_env = [
     "source /etc/profile",
-    'export PATH="$HOME/miniconda3/bin:$PATH"'
+    'export PATH="$HOME/miniconda3/bin:$PATH"',
     "export FLUIDSIM_PATH=/fsnet/project/watu/2020/20MILESTONE",
 ]
 
-velocities = [0.05, 0.1, 0.2]
-diameters = [0.25, 0.5]
+# velocities = [0.05, 0.1, 0.2]
+# diameters = [0.25, 0.5]
+
+velocities = [0.1]
+diameters = [0.5]
 
 for diameter in diameters:
     for speed in velocities:
