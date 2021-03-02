@@ -78,10 +78,15 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
             ixmax = np.argmin(abs(x_seq - xmax))
             xmax = x_seq[ixmax]
-            xmax += x_seq[1]
             ixmax_loc = ixmax - ix_seq_start
             ixstop_loc = ixmax_loc + 1
-            ixmax_surf = (ixmax + 1) % params.oper.nx
+
+            # special case when region == whole numerical domain
+            if ixmax == params.oper.nx - 1 and ixmin == 0:
+                xmax += x_seq[1]
+                ixmax += 1
+
+            ixmax_surf = ixmax % params.oper.nx
             ixmax_surf_loc = ixmax_surf - ix_seq_start
             if ixmax_surf_loc < 0 or ixmax_surf_loc > nx_loc - 1:
                 # this limit is not in this process
@@ -105,7 +110,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         self.nb_points_xmax = []
 
         for info_region in self.info_regions:
-            (ixmin_loc, _, ixstop_loc) = info_region[4:]
+            (ixmin_loc, ixmax_surf_loc, ixstop_loc) = info_region[4:]
             mask_loc = np.zeros(shape=oper.shapeX_loc, dtype=np.int8)
             mask_loc[:, :, ixmin_loc:ixstop_loc] = 1
             self.masks.append(mask_loc)
@@ -130,7 +135,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                 return nb_points_xsurface
 
             self.nb_points_xmin.append(compute_nb_points_surface(ixmin_loc))
-            self.nb_points_xmax.append(compute_nb_points_surface(ixmax_loc))
+            self.nb_points_xmax.append(compute_nb_points_surface(ixmax_surf_loc))
 
         self._save_one_time()
 
@@ -212,7 +217,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         for index_region, info_region in enumerate(self.info_regions):
             xmin, xmax = info_region[:2]
             length_region = xmax - xmin
-            ixmin_loc, ixmax_loc = info_region[4:-1]
+            ixmin_loc, ixmax_surf_loc = info_region[4:-1]
 
             def compute_flux(nb_points_surfaces, ixsurface_loc):
                 nb_points_surface = nb_points_surfaces[index_region]
@@ -229,7 +234,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                 return sum_xsurface / (nb_points_surface / length_region)
 
             flux_xmin = compute_flux(self.nb_points_xmin, ixmin_loc)
-            flux_xmax = -compute_flux(self.nb_points_xmax, ixmax_loc)
+            flux_xmax = -compute_flux(self.nb_points_xmax, ixmax_surf_loc)
             fluxes.append((flux_xmin, flux_xmax))
         return np.array(fluxes)
 
@@ -412,7 +417,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
         fig, ax = plt.subplots()
 
-        ax.plot(times, dt_E_tot, "k--", label="$d_t E$")
+        ax.plot(times, dt_E_tot, "k--", label="$d_t E$", linewidth=2)
 
         ax.plot(times, P_tot, label="Forcing")
         ax.plot(times, -eps, label="Viscosity")
@@ -426,7 +431,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             flux_tot += flux_kind.values
 
         ax.plot(times, flux_tot, label="Surface fluxes")
-        ax.plot(times, P_tot - eps + flux_tot, label="All terms")
+        ax.plot(times, P_tot - eps + flux_tot, label="All terms", linewidth=2)
 
         for kind in kinds:
             flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
