@@ -125,7 +125,8 @@ class TestOutput(TestSimulBase):
         sim2.output.print_stdout.plot()
         sim2.output.print_stdout.plot_clock_times()
 
-        sim2.output.spatial_means.load()
+        data = sim2.output.spatial_means.load()
+        assert "EKhs" in data
         sim2.output.spatial_means.load_dataset()
         sim2.output.spatial_means.plot(plot_injection=True, plot_hyper=True)
         sim2.output.spatial_means.plot_dt_E()
