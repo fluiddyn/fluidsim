@@ -132,7 +132,9 @@ class TestOutput(TestSimulBase):
 
         sim2.output.spatial_means_regions.load()
         sim2.output.spatial_means_regions.plot()
-        sim2.output.spatial_means_regions.plot_budget(iregion=1)
+        sim2.output.spatial_means_regions.plot_budget(
+            iregion=1, decompose_fluxes=True, plot_conversion=True
+        )
 
         sim2.output.spatial_means.plot_dimless_numbers_versus_time()
         result = sim2.output.spatial_means.get_dimless_numbers_averaged()

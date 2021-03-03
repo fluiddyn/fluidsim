@@ -466,7 +466,9 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         ax.set_title(self.output.summary_simul + f"\nxmin={xmin}, xmax={xmax}")
         return ax
 
-    def plot_budget(self, iregion=0, decompose_fluxes=False):
+    def plot_budget(
+        self, iregion=0, decompose_fluxes=False, plot_conversion=False
+    ):
         """Plot the energy budget for a given region"""
         df = self.load(iregion)
         times = df["time"]
@@ -499,6 +501,9 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
             for kind in kinds:
                 flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
                 ax.plot(times, flux_kind, ":", label=kind)
+
+        if plot_conversion:
+            ax.plot(times, df["conv_K2A"], "-.", label=r"$C_{K\rightarrow A}$")
 
         xmin, xmax = self.info_regions[iregion][:2]
         ax.set_title(
