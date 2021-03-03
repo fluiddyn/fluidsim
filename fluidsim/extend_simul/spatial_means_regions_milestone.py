@@ -23,9 +23,66 @@ from . import SimulExtender
 
 
 class SpatialMeansRegions(SimulExtender, SpecificOutput):
-    """Specific output for the MILESTONE simulations
+    r"""Specific output for the MILESTONE simulations
 
-    It is still a work in progress.
+    Notes
+    -----
+
+    .. |p| mathmacro:: \partial
+
+    .. |vv| mathmacro:: \textbf{v}
+
+    .. |Fh| mathmacro:: \textbf{F}_h
+
+    .. |ez| mathmacro:: \textbf{e}_\textbf{z}
+
+    .. |bnabla| mathmacro:: \boldsymbol{\nabla}
+
+    .. |bomega| mathmacro:: \boldsymbol{\omega}
+
+    This output is used with the solver
+    :mod:`fluidsim.solvers.ns3d.strat.solver`, which solves the incompressible
+    Navier-Stokes equations (possibly with hyper-viscosity) under the
+    Boussinesq approximation with a constant Brunt-Vaisala frequency:
+
+    .. math::
+
+      \p_t \vv + \vv \cdot \bnabla \vv = - \bnabla p + b \ez + D_\vv + \Fh,
+
+      \p_t b   + \vv \cdot \bnabla b = - N^2 v_z  + D_b,
+
+    where :math:`\vv` is the non-divergent velocity (:math:`\bnabla \cdot \vv =
+    0`), :math:`p` is the pressure, :math:`b` is the buoyancy, :math:`N` is the
+    (constant) Brunt-Vaisala frequency and :math:`D_\vv` and :math:`D_b` are
+    dissipative terms.
+
+    The total dynamic pressure :math:`P = p + |\vv|^2/2` can be computed from
+    :math:`\vv` and :math:`b` as:
+
+    .. math::
+
+      \bnabla^2 P = \bnabla \cdot (\vv \times \bomega) + \bnabla \cdot \Fh + \p_z b.
+
+    We consider the energy budget
+
+    .. math::
+
+      \p_t |\vv|^2/2 + \bnabla \cdot (\vv P) = \vv \cdot D_\vv + \vv \cdot \Fh + v_z b
+
+      \p_t e_A +  \bnabla \cdot (\vv e_A) = - v_z b + b D_b / N^2,
+
+    with :math:`e_A = b^2/(2N^2)`.
+
+    We take the average of these equations over regions delimited by surfaces
+    along the y and z axis. Some terms written as a divergence can be rewritten
+    as fluxes through 2 surfaces at :math:`x_{min}` and :math:`x_{max}`:
+
+    .. math::
+
+      \int_V \frac{dV}{V} \bnabla \cdot (\vv P) =
+      \frac{S}{V} \left( \langle v_x P \rangle_{S_{min}} - \langle v_x P \rangle_{S_{max}} \right).
+
+
 
     """
 
@@ -397,17 +454,20 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         return df
 
     def print_keys(self):
+        """Print the keys associated with the computed quantities"""
         df = pd.read_csv(self.paths[0], skiprows=1, nrows=1)
         print(df.columns)
 
     def plot(self, keys="EK", iregion=0):
+        """Plot some quantities for a given region"""
         df = self.load(iregion)
         ax = df.plot(x="time", y=keys)
         xmin, xmax = self.info_regions[iregion][:2]
         ax.set_title(self.output.summary_simul + f"\nxmin={xmin}, xmax={xmax}")
         return ax
 
-    def plot_budget(self, iregion=0):
+    def plot_budget(self, iregion=0, decompose_fluxes=False):
+        """Plot the energy budget for a given region"""
         df = self.load(iregion)
         times = df["time"]
 
@@ -435,9 +495,10 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         ax.plot(times, flux_tot, label="Surface fluxes")
         ax.plot(times, P_tot - eps + flux_tot, label="All terms", linewidth=2)
 
-        for kind in kinds:
-            flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
-            ax.plot(times, flux_kind, ":", label=kind)
+        if decompose_fluxes:
+            for kind in kinds:
+                flux_kind = df[kind + "_xmin"] + df[kind + "_xmax"]
+                ax.plot(times, flux_kind, ":", label=kind)
 
         xmin, xmax = self.info_regions[iregion][:2]
         ax.set_title(

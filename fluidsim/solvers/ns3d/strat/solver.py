@@ -85,10 +85,10 @@ class Simul(SimulNS3D):
     .. math::
 
       \p_t \vv + \vv \cdot \bnabla \vv =
-      - \bnabla p + b \ez - \nu_\alpha (-\Delta)^\alpha \vv,
+      - \bnabla p + b \ez - \nu_\alpha (-\Delta)^{\alpha/2} \vv,
 
       \p_t b   + \vv \cdot \bnabla b =
-      - N^2 v_z  - \nu_\alpha (-\Delta)^\alpha b,
+      - N^2 v_z  - \nu_\alpha (-\Delta)^{\alpha/2} b,
 
     where :math:`\vv` is the non-divergent velocity (:math:`\bnabla \cdot \vv =
     0`), :math:`p` is the pressure, :math:`\Delta` is the 3D Laplacian
