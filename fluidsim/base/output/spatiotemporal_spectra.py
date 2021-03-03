@@ -393,7 +393,23 @@ class SpatioTemporalSpectra(SpecificOutput):
                         # stop opening files when we've reached the right one
                         break
 
-        series["times"] = times
+        # add Ki_adim arrays, times and dims order
+        k0_adim = np.r_[0 : ik0max + 1, ik0min:0]
+        k1_adim = np.r_[0 : ik1max + 1, ik1min:0]
+        k2_adim = np.r_[0 : ik2max + 1, ik2min:0]
+        K0_adim, K1_adim, K2_adim = np.meshgrid(
+            k0_adim, k1_adim, k2_adim, indexing="ij"
+        )
+        series.update(
+            {
+                "K0_adim": K0_adim,
+                "K1_adim": K1_adim,
+                "K2_adim": K2_adim,
+                "times": times,
+                "dims_order": order,
+            }
+        )
+
         return series
 
     def compute_spectra(self, tmin=0, tmax=None):
@@ -411,14 +427,15 @@ class SpatioTemporalSpectra(SpecificOutput):
         # compute spectra
         print("computing temporal spectra...")
 
-        dict_spectra = {}
+        dict_spectra = {k: v for k, v in series.items() if k.startswith("K")}
 
         for key, data in series.items():
-            if key.startswith("times"):
+            if not key.startswith("spect"):
                 continue
             freq, spectra = signal.periodogram(data, fs=f_sample)
             dict_spectra[key] = spectra
 
         dict_spectra["omegas"] = 2 * pi * freq
+        dict_spectra["dims_order"] = series["dims_order"]
 
         return dict_spectra
