@@ -46,7 +46,16 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                             1 - coef_share
                         ) * value
                         spectrum_kzkhomega[ikz, ikh + 1, :] += coef_share * value
-        return spectrum_kzkhomega
+
+        # get one-sided spectrum in the omega dimension
+        nomega = nomega // 2 + 1
+        spectrum_onesided = np.zeros((nkz, nkh, nomega))
+        spectrum_onesided[:, :, 0] = spectrum_kzkhomega[:, :, 0]
+        spectrum_onesided[:, :, 1:] = 0.5 * (
+            spectrum_kzkhomega[:, :, 1:nomega]
+            + spectrum_kzkhomega[:, :, -1:-nomega:-1]
+        )
+        return spectrum_onesided / (deltakz * deltakh)
 
     def save_spectra_kzkhomega(self, tmin=0, tmax=None):
         """save the spatiotemporal spectra, with a cylindrical average in k-space"""
@@ -71,11 +80,16 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         nkh_spectra = max(2, int(khmax_spectra / deltakh))
         kh_spectra = deltakh * np.arange(nkh_spectra)
 
+        # get one-sided frequencies
+        omegas = dict_spectra["omegas"]
+        nomegas = omegas.size // 2 + 1
+        omegas_onesided = abs(omegas[:nomegas])
+
         # perform cylindrical average
         dict_spectra_kzkhomega = {
             "kz_spectra": kz_spectra,
             "kh_spectra": kh_spectra,
-            "omegas": dict_spectra["omegas"],
+            "omegas": omegas_onesided,
         }
         for key, data in dict_spectra.items():
             if not key.startswith("spect"):
@@ -90,9 +104,106 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             for key, val in dict_spectra_kzkhomega.items():
                 file.create_dataset(key, data=val)
 
-    def plot_kzkhomega(self, tmin=0, tmax=None):
+    def plot_kzkhomega(self, key_field=None, tmin=0, tmax=None, equation=None):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
+        if key_field is None:
+            key_field = self.keys_fields[0]
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        # load time
+        path_file = path_file = (
+            Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
+        )
+
+        dict_spectra_kzkhomega = {}
+
+        key_spect = "spect_" + key_field
+
+        # load spectra from file if it exists
+        if path_file.is_file():
+            # we should check if times match?
+            print("loading spectra from file...")
+            with h5py.File(path_file, "r") as file:
+                for key in file.keys():
+                    dict_spectra_kzkhomega[key] = file[key][...]
+        else:
+            # compute spectra and save to file, then load
+            self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax)
+            with h5py.File(path_file, "r") as file:
+                for key in file.keys():
+                    dict_spectra_kzkhomega[key] = file[key][...]
+
+        # slice along equation
+        if equation is None:
+            equation = f"omega=0"
+        if equation.startswith("omega="):
+            omega = eval(equation[len("omega=") :])
+            omegas = dict_spectra_kzkhomega["omegas"]
+            iomega = abs(omegas - omega).argmin()
+            spect = dict_spectra_kzkhomega[key_spect][:, :, iomega]
+            xaxis = dict_spectra_kzkhomega["kh_spectra"]
+            yaxis = dict_spectra_kzkhomega["kz_spectra"]
+            xlabel = r"$k_h$"
+            ylabel = r"$k_z$"
+            omega = omegas[iomega]
+            equation = r"$\omega=$" + f"{omega:.2g}"
+        elif equation.startswith("kh="):
+            kh = eval(equation[len("kh=") :])
+            kh_spectra = dict_spectra_kzkhomega["kh_spectra"]
+            ikh = abs(kh_spectra - kh).argmin()
+            spect = dict_spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+            xaxis = dict_spectra_kzkhomega["kz_spectra"]
+            yaxis = dict_spectra_kzkhomega["omegas"]
+            xlabel = r"$k_z$"
+            ylabel = r"$\omega$"
+            kh = kh_spectra[ikh]
+            equation = r"$k_h=$" + f"{kh:.2g}"
+        elif equation.startswith("kz="):
+            kz = eval(equation[len("kz=") :])
+            kz_spectra = dict_spectra_kzkhomega["kz_spectra"]
+            ikz = abs(kz_spectra - kz).argmin()
+            spect = dict_spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+            xaxis = dict_spectra_kzkhomega["kh_spectra"]
+            yaxis = dict_spectra_kzkhomega["omegas"]
+            xlabel = r"$k_h$"
+            ylabel = r"$\omega$"
+            kz = kz_spectra[ikz]
+            equation = r"$k_z=$" + f"{kz:.2g}"
+        else:
+            raise NotImplementedError(
+                "equation must start with 'omega=', 'kh=' or 'kz='"
+            )
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+
+        im = ax.pcolormesh(xaxis, yaxis, np.log10(spect))
+        fig.colorbar(im)
+
+        ax.set_title(
+            f"spatiotemporal spectra {equation}\n"
+            f"tmin={tmin:.2g}, tmax={tmax:.2g}\n" + self.output.summary_simul
+        )
+
+        # add dispersion relation : omega = N * kh / sqrt(kh ** 2 + kz ** 2)
+        try:
+            N = self.sim.params.N
+        except AttributeError:
+            return
+        if equation.startswith(r"$\omega"):
+            kz_disp = (N ** 2 / omega ** 2 - 1) * xaxis
+            ax.plot(xaxis, kz_disp, "k:", linewidth=2)
+        elif equation.startswith(r"$k_h"):
+            omega_disp = N * kh / np.sqrt(kh ** 2 + xaxis ** 2)
+            ax.plot(xaxis, omega_disp, "k:", linewidth=2)
+        elif equation.startswith(r"$k_z"):
+            omega_disp = N * xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
+            ax.plot(xaxis, omega_disp, "k:", linewidth=2)
+        else:
+            raise ValueError("wrong equation for dispersion relation")
+
+        # reset axis limits after plotting dispersion relation
+        ax.set_xlim((xaxis.min(), xaxis.max()))
+        ax.set_ylim((yaxis.min(), yaxis.max()))

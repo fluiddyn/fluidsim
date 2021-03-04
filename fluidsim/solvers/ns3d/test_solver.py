@@ -222,7 +222,7 @@ class TestOutput(TestSimulBase):
             sim3.output.temporal_spectra.save_data_as_phys_fields(
                 delta_index_times=2
             )
-            sim3.output.spatiotemporal_spectra.save_spectra_kzkhomega()
+            sim3.output.spatiotemporal_spectra.plot_kzkhomega(equation="kh=1")
         plt.close("all")
 
 

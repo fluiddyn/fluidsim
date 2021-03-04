@@ -356,7 +356,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         # load series, rebuild as state_spect arrays + time
         series = {
-            f"spect_{k}_loc": np.empty(spect_shape, dtype="complex")
+            f"spect_{k}": np.empty(spect_shape, dtype="complex")
             for k in self.keys_fields
         }
         # loop on times
@@ -385,8 +385,8 @@ class SpatioTemporalSpectra(SpecificOutput):
 
                         # load data at time t for all keys_fields
                         for key in self.keys_fields:
-                            skey = f"spect_{key}_loc"
-                            series[skey][ik0, ik1, ik2, it] = file[skey][
+                            skey = f"spect_{key}"
+                            series[skey][ik0, ik1, ik2, it] = file[skey + "_loc"][
                                 :, it_file
                             ].transpose()
 
