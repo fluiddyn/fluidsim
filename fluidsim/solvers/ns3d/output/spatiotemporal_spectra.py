@@ -104,12 +104,23 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             for key, val in dict_spectra_kzkhomega.items():
                 file.create_dataset(key, data=val)
 
-    def plot_kzkhomega(self, key_field=None, tmin=0, tmax=None, equation=None):
+    def plot_kzkhomega(
+        self,
+        key_field=None,
+        tmin=0,
+        tmax=None,
+        equation=None,
+        cmap=None,
+        vmin=None,
+        vmax=None,
+    ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
         if key_field is None:
             key_field = self.keys_fields[0]
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
+        if cmap is None:
+            cmap = "viridis"
 
         path_file = path_file = (
             Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
@@ -179,7 +190,14 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
 
-        im = ax.pcolormesh(xaxis, yaxis, np.log10(spect))
+        if vmin is None:
+            vmin = np.log10(spect[np.isfinite(spect)].min())
+        if vmax is None:
+            vmax = np.log10(spect[np.isfinite(spect)].max())
+
+        im = ax.pcolormesh(
+            xaxis, yaxis, np.log10(spect), cmap=cmap, vmin=vmin, vmax=vmax
+        )
         fig.colorbar(im)
 
         ax.set_title(
