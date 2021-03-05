@@ -98,6 +98,22 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                 data, kh_spectra, KH, kz_spectra, KZ
             )
 
+        # total kinetic/potential energy
+        dict_spectra_kzkhomega["spect_K"] = 0.5 * (
+            dict_spectra_kzkhomega["spect_vx"]
+            + dict_spectra_kzkhomega["spect_vy"]
+            + dict_spectra_kzkhomega["spect_vz"]
+        )
+
+        # potential energy
+        try:
+            N = self.sim.params.N
+            dict_spectra_kzkhomega["spect_A"] = (
+                0.5 / N ** 2 * dict_spectra_kzkhomega["spect_b"]
+            )
+        except AttributeError:
+            pass
+
         # save to file
         path_file = Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
         with h5py.File(path_file, "w") as file:
