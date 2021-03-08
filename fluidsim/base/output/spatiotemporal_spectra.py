@@ -123,7 +123,7 @@ class SpatioTemporalSpectra(SpecificOutput):
         ikzmax = int(ikzmax)
 
         # dimensions order in Fourier space
-        self.dims_order = oper.oper_fft.get_dimX_K()
+        self.dims_order = np.array(oper.oper_fft.get_dimX_K())
 
         # data directory
         if mpi.rank == 0:
@@ -178,11 +178,10 @@ class SpatioTemporalSpectra(SpecificOutput):
         else:
             # no files were found : initialize from params
             # pair kx,ky,kz with k0,k1,k2
-            order = np.array(self.dims_order)
             iksmax = np.array([ikzmax, ikymax, ikxmax])
             iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
-            ik0max, ik1max, ik2max = [iksmax[order == j].item() for j in range(3)]
-            ik0min, ik1min, ik2min = [iksmin[order == j].item() for j in range(3)]
+            ik0max, ik1max, ik2max = iksmax[self.dims_order]
+            ik0min, ik1min, ik2min = iksmin[self.dims_order]
 
             # local probes indices
             k0_adim_loc, k1_adim_loc, k2_adim_loc = oper.oper_fft.get_k_adim_loc()
@@ -345,8 +344,8 @@ class SpatioTemporalSpectra(SpecificOutput):
         ikzmin = 1 - ikzmax
         iksmax = np.array([ikzmax, ikymax, ikxmax])
         iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
-        ik0max, ik1max, ik2max = [iksmax[order == j].item() for j in range(3)]
-        ik0min, ik1min, ik2min = [iksmin[order == j].item() for j in range(3)]
+        ik0max, ik1max, ik2max = iksmax[order]
+        ik0min, ik1min, ik2min = iksmin[order]
         spect_shape = (
             ik0max + 1 - ik0min,
             ik1max + 1 - ik1min,
