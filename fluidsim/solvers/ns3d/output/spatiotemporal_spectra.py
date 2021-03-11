@@ -250,13 +250,13 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             return
         if equation.startswith(r"$\omega"):
             kz_disp = (N ** 2 / omega ** 2 - 1) * xaxis
-            ax.plot(xaxis, kz_disp, "k:", linewidth=2)
+            ax.step(xaxis, kz_disp, "k", linewidth=2)
         elif equation.startswith(r"$k_h"):
             omega_disp = kh / np.sqrt(kh ** 2 + xaxis ** 2)
-            ax.plot(xaxis, omega_disp, "k:", linewidth=2)
+            ax.step(xaxis, omega_disp, "k", linewidth=2)
         elif equation.startswith(r"$k_z"):
             omega_disp = xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
-            ax.plot(xaxis, omega_disp, "k:", linewidth=2)
+            ax.step(xaxis, omega_disp, "k", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
 
