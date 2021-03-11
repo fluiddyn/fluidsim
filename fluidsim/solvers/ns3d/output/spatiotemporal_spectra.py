@@ -117,6 +117,8 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         # save to file
         path_file = Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
         with h5py.File(path_file, "w") as file:
+            file.attrs["tmin"] = tmin
+            file.attrs["tmax"] = tmax
             for key, val in dict_spectra_kzkhomega.items():
                 file.create_dataset(key, data=val)
 

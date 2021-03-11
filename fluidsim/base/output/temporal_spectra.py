@@ -579,3 +579,21 @@ class TemporalSpectra(SpecificOutput):
                     create_ds(k, data=v)
                 # sim info
                 self.sim.info._save_as_hdf5(hdf5_parent=file)
+
+    def save_spectra(self, region=None, tmin=0, tmax=None):
+        """compute temporal spectra from files"""
+        if region is None:
+            oper = self.sim.oper
+            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        dict_spectra = self.compute_spectra(region=region, tmin=tmin, tmax=tmax)
+
+        path_file = Path(self.sim.output.path_run) / "temporal_spectra.h5"
+        with h5py.File(path_file, "w") as file:
+            file.attrs["region"] = region
+            file.attrs["tmin"] = tmin
+            file.attrs["tmax"] = tmax
+            for key, val in dict_spectra.items():
+                file.create_dataset(key, data=val)
