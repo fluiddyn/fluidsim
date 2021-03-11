@@ -174,15 +174,29 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             ylabel = r"$k_z$"
             omega = omegas[iomega]
             equation = r"$\omega=$" + f"{omega:.2g}"
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                equation = r"$\omega/N=$" + f"{omega/N:.2g}"
+            except AttributeError:
+                pass
         elif equation.startswith("kh="):
             kh = eval(equation[len("kh=") :])
             kh_spectra = dict_spectra_kzkhomega["kh_spectra"]
             ikh = abs(kh_spectra - kh).argmin()
             spect = dict_spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+
             xaxis = dict_spectra_kzkhomega["kz_spectra"]
             yaxis = dict_spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
             xlabel = r"$k_z$"
-            ylabel = r"$\omega$"
+            ylabel = r"$\omega/N$"
             kh = kh_spectra[ikh]
             equation = r"$k_h=$" + f"{kh:.2g}"
         elif equation.startswith("kz="):
@@ -190,10 +204,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             kz_spectra = dict_spectra_kzkhomega["kz_spectra"]
             ikz = abs(kz_spectra - kz).argmin()
             spect = dict_spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+
             xaxis = dict_spectra_kzkhomega["kh_spectra"]
             yaxis = dict_spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
             xlabel = r"$k_h$"
-            ylabel = r"$\omega$"
+            ylabel = r"$\omega/N$"
             kz = kz_spectra[ikz]
             equation = r"$k_z=$" + f"{kz:.2g}"
         else:
@@ -230,10 +252,10 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             kz_disp = (N ** 2 / omega ** 2 - 1) * xaxis
             ax.plot(xaxis, kz_disp, "k:", linewidth=2)
         elif equation.startswith(r"$k_h"):
-            omega_disp = N * kh / np.sqrt(kh ** 2 + xaxis ** 2)
+            omega_disp = kh / np.sqrt(kh ** 2 + xaxis ** 2)
             ax.plot(xaxis, omega_disp, "k:", linewidth=2)
         elif equation.startswith(r"$k_z"):
-            omega_disp = N * xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
+            omega_disp = xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
             ax.plot(xaxis, omega_disp, "k:", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
