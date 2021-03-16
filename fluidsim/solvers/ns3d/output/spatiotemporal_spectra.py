@@ -12,7 +12,9 @@ Provides:
 
 from pathlib import Path
 
+from math import pi
 import numpy as np
+from scipy import signal
 import h5py
 
 from fluidsim.base.output.spatiotemporal_spectra import SpatioTemporalSpectra
@@ -57,20 +59,26 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         )
         return spectrum_onesided / (deltakz * deltakh)
 
-    def save_spectra_kzkhomega(self, tmin=0, tmax=None):
+    def save_spectra_kzkhomega(self, tmin=0, tmax=None, save_urud=False):
         """save the spatiotemporal spectra, with a cylindrical average in k-space"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
         # compute spectra
+        print("Computing spectra...")
         dict_spectra = self.compute_spectra(tmin=tmin, tmax=tmax)
+
+        # toroidal/poloidal decomposition
+        if save_urud:
+            print("Computing ur, ud spectra...")
+            dict_spectra.update(self.compute_spectra_urud(tmin=tmin, tmax=tmax))
 
         # get kz, kh
         oper = self.sim.oper
         order = dict_spectra["dims_order"]
         KZ = oper.deltakz * dict_spectra[f"K{order[0]}_adim"]
         KY = oper.deltaky * dict_spectra[f"K{order[1]}_adim"]
-        KX = oper.deltaky * dict_spectra[f"K{order[1]}_adim"]
+        KX = oper.deltakx * dict_spectra[f"K{order[2]}_adim"]
         KH = np.sqrt(KX ** 2 + KY ** 2)
 
         kz_spectra = np.arange(0, KZ.max() + 1e-15, oper.deltakz)
@@ -98,7 +106,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                 data, kh_spectra, KH, kz_spectra, KZ
             )
 
-        # total kinetic/potential energy
+        # total kinetic energy
         dict_spectra_kzkhomega["spect_K"] = 0.5 * (
             dict_spectra_kzkhomega["spect_vx"]
             + dict_spectra_kzkhomega["spect_vy"]
@@ -157,7 +165,11 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                     dict_spectra_kzkhomega[key] = file[key][...]
         else:
             # compute spectra and save to file, then load
-            self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax)
+            if key_spect.startswith("spect_Kh"):
+                save_urud = True
+            else:
+                save_urud = False
+            self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax, save_urud=save_urud)
             with h5py.File(path_file, "r") as file:
                 for key in file.keys():
                     dict_spectra_kzkhomega[key] = file[key][...]
@@ -241,7 +253,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         fig.colorbar(im)
 
         ax.set_title(
-            f"spatiotemporal spectra {equation}\n"
+            f"{key_field} spatiotemporal spectra {equation}\n"
             f"tmin={tmin:.2g}, tmax={tmax:.2g}\n" + self.output.summary_simul
         )
 
@@ -265,3 +277,65 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         # reset axis limits after plotting dispersion relation
         ax.set_xlim((xaxis.min(), xaxis.max()))
         ax.set_ylim((yaxis.min(), yaxis.max()))
+
+    def compute_spectra_urud(self, tmin=0, tmax=None):
+        """compute the spectra of ur, ud from files"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        # load time series as state_spect arrays + times
+        series = self.load_time_series(tmin=tmin, tmax=tmax)
+
+        # get the sampling frequency
+        times = series["times"]
+        f_sample = 1 / np.mean(times[1:] - times[:-1])
+
+        # toroidal/poloidal decomposition
+        # urx_fft, ury_fft contain shear modes!
+        oper = self.sim.oper
+        order = series["dims_order"]
+        KY = oper.deltaky * series[f"K{order[1]}_adim"]
+        KX = oper.deltakx * series[f"K{order[2]}_adim"]
+
+        vx_fft = series["spect_vx"]
+        vy_fft = series["spect_vx"]
+        udx_fft = np.zeros_like(vx_fft)
+        udy_fft = np.zeros_like(vx_fft)
+        urx_fft = np.zeros_like(vx_fft)
+        ury_fft = np.zeros_like(vx_fft)
+
+        inv_Kh_square_nozero = KX ** 2 + KY ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+
+        for it in range(times.size):
+            kdotu_fft = KX * vx_fft[:, :, :, it] + KY * vy_fft[:, :, :, it]
+            udx_fft[:, :, :, it] = kdotu_fft * KX * inv_Kh_square_nozero
+            udy_fft[:, :, :, it] = kdotu_fft * KY * inv_Kh_square_nozero
+
+            urx_fft[:, :, :, it] = vx_fft[:, :, :, it] - udx_fft[:, :, :, it]
+            ury_fft[:, :, :, it] = vy_fft[:, :, :, it] - udy_fft[:, :, :, it]
+
+        # perform time fft
+        print("computing temporal spectra...")
+
+        dict_spectra = {k: v for k, v in series.items() if k.startswith("K")}
+
+        # ud
+        dict_spectra["spect_Khd"] = np.zeros(udx_fft.shape)
+        freq, spectra = signal.periodogram(udx_fft, fs=f_sample)
+        dict_spectra["spect_Khd"] += 0.5 * spectra
+        freq, spectra = signal.periodogram(udy_fft, fs=f_sample)
+        dict_spectra["spect_Khd"] += 0.5 * spectra
+
+        # ur
+        dict_spectra["spect_Khr"] = np.zeros(udx_fft.shape)
+        freq, spectra = signal.periodogram(urx_fft, fs=f_sample)
+        dict_spectra["spect_Khr"] += 0.5 * spectra
+        freq, spectra = signal.periodogram(ury_fft, fs=f_sample)
+        dict_spectra["spect_Khr"] += 0.5 * spectra
+
+        dict_spectra["omegas"] = 2 * pi * freq
+        dict_spectra["dims_order"] = order
+
+        return dict_spectra
