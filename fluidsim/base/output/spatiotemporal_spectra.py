@@ -358,39 +358,34 @@ class SpatioTemporalSpectra(SpecificOutput):
             f"spect_{k}": np.empty(spect_shape, dtype="complex")
             for k in self.keys_fields
         }
-        # loop on times
-        for time in track(times, description="Rearranging..."):
-            # loop on ranks
-            for rank in ranks:
-                for path_file in paths:
-                    if not path_file.name.startswith(f"rank{rank:05}"):
-                        continue
-                    with h5py.File(path_file, "r") as file:
-                        # check if the file contains the time we're looking for
-                        # add [:] in case file contains only one time
-                        # or else : h5py TypeError!
-                        tmin_file, tmax_file = file["times"][:][[0, -1]]
-                        if (time < tmin_file) or (time > tmax_file):
-                            continue
+        # loop on all files
+        for path_file in track(paths, description="Rearranging..."):
+            with h5py.File(path_file, "r") as file:
+                # check if the file contains the time we're looking for
+                tmin_file = file["times"][0]
+                tmax_file = file["times"][-1]
+                if (tmin_file > tmax) or (tmax_file < tmin):
+                    continue
 
-                        # time indices
-                        it = np.where(times == time)[0]
-                        it_file = np.where(file["times"][:] == time)[0]
+                # time indices
+                times_file = file["times"][:]
+                cond_file = (times_file >= tmin) & (times_file <= tmax)
+                its_file = np.where(cond_file)[0]
+                its = np.where(times == times_file[cond_file])[0]
 
-                        # k_adim_loc = global probes indices!
-                        ik0 = file["probes_k0adim_loc"][:]
-                        ik1 = file["probes_k1adim_loc"][:]
-                        ik2 = file["probes_k2adim_loc"][:]
+                # k_adim_loc = global probes indices!
+                ik0 = file["probes_k0adim_loc"][:]
+                ik1 = file["probes_k1adim_loc"][:]
+                ik2 = file["probes_k2adim_loc"][:]
 
-                        # load data at time t for all keys_fields
-                        for key in self.keys_fields:
-                            skey = f"spect_{key}"
-                            series[skey][ik0, ik1, ik2, it] = file[skey + "_loc"][
-                                :, it_file
-                            ].transpose()
-
-                        # stop opening files when we've reached the right one
-                        break
+                # load data at desired times for all keys_fields
+                for key in self.keys_fields:
+                    skey = f"spect_{key}"
+                    data = file[skey + "_loc"][:, its_file]
+                    for i in range(its.size):
+                        series[skey][ik0, ik1, ik2, its[i]] = data[
+                            :, i
+                        ].transpose()
 
         # add Ki_adim arrays, times and dims order
         k0_adim = np.r_[0 : ik0max + 1, ik0min:0]
