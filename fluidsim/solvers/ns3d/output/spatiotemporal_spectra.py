@@ -68,11 +68,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         print("Computing spectra...")
         dict_spectra = self.compute_spectra(tmin=tmin, tmax=tmax)
 
-        # toroidal/poloidal decomposition
-        if save_urud:
-            print("Computing ur, ud spectra...")
-            dict_spectra.update(self.compute_spectra_urud(tmin=tmin, tmax=tmax))
-
         # get kz, kh
         oper = self.sim.oper
         order = dict_spectra["dims_order"]
@@ -129,6 +124,24 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             file.attrs["tmax"] = tmax
             for key, val in dict_spectra_kzkhomega.items():
                 file.create_dataset(key, data=val)
+
+        # toroidal/poloidal decomposition
+        if save_urud:
+            print("Computing ur, ud spectra...")
+            del dict_spectra, dict_spectra_kzkhomega
+            dict_spectra = self.compute_spectra_urud(tmin=tmin, tmax=tmax)
+            dict_spectra_kzkhomega = {}
+
+            for key, data in dict_spectra.items():
+                if not key.startswith("spect"):
+                    continue
+                dict_spectra_kzkhomega[key] = self.loop_spectra_kzkhomega(
+                    data, kh_spectra, KH, kz_spectra, KZ
+                )
+
+            with h5py.File(path_file, "a") as file:
+                for key, val in dict_spectra_kzkhomega.items():
+                    file.create_dataset(key, data=val)
 
     def plot_kzkhomega(
         self,
