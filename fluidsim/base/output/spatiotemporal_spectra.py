@@ -329,6 +329,12 @@ class SpatioTemporalSpectra(SpecificOutput):
         times = []
         for path in paths_1st_rank:
             with h5py.File(path, "r") as file:
+                tmax_file = file["times"][-1]
+                if tmax_file < tmin:
+                    continue
+                tmin_file = file["times"][0]
+                if tmin_file > tmax:
+                    break
                 times_file = file["times"][:]
                 cond_times = (times_file >= tmin) & (times_file <= tmax)
                 times.append(times_file[cond_times])
@@ -358,34 +364,41 @@ class SpatioTemporalSpectra(SpecificOutput):
             f"spect_{k}": np.empty(spect_shape, dtype="complex")
             for k in self.keys_fields
         }
-        # loop on all files
-        for path_file in track(paths, description="Rearranging..."):
-            with h5py.File(path_file, "r") as file:
-                # check if the file contains the time we're looking for
-                tmin_file = file["times"][0]
-                tmax_file = file["times"][-1]
-                if (tmin_file > tmax) or (tmax_file < tmin):
-                    continue
-
-                # time indices
-                times_file = file["times"][:]
-                cond_file = (times_file >= tmin) & (times_file <= tmax)
-                its_file = np.where(cond_file)[0]
-                its = np.where(times == times_file[cond_file])[0]
-
-                # k_adim_loc = global probes indices!
-                ik0 = file["probes_k0adim_loc"][:]
-                ik1 = file["probes_k1adim_loc"][:]
-                ik2 = file["probes_k2adim_loc"][:]
-
-                # load data at desired times for all keys_fields
-                for key in self.keys_fields:
-                    skey = f"spect_{key}"
-                    data = file[skey + "_loc"][:, its_file]
-                    for i in range(its.size):
-                        series[skey][ik0, ik1, ik2, its[i]] = data[
-                            :, i
-                        ].transpose()
+        # loop on all files, rank by rank
+        for rank in track(ranks, description="Rearranging..."):
+            paths_rank = [
+                p for p in paths if p.name.startswith(f"rank{rank:05}")
+            ]
+            for path_file in paths_rank:
+                # for a given rank, paths are sorted by time
+                with h5py.File(path_file, "r") as file:
+                    # check if the file contains the time we're looking for
+                    tmax_file = file["times"][-1]
+                    if tmax_file < tmin:
+                        continue
+                    tmin_file = file["times"][0]
+                    if tmin_file > tmax:
+                        break
+    
+                    # time indices
+                    times_file = file["times"][:]
+                    cond_file = (times_file >= tmin) & (times_file <= tmax)
+                    its_file = np.where(cond_file)[0]
+                    its = np.where(times == times_file[cond_file])[0]
+    
+                    # k_adim_loc = global probes indices!
+                    ik0 = file["probes_k0adim_loc"][:]
+                    ik1 = file["probes_k1adim_loc"][:]
+                    ik2 = file["probes_k2adim_loc"][:]
+    
+                    # load data at desired times for all keys_fields
+                    for key in self.keys_fields:
+                        skey = f"spect_{key}"
+                        data = file[skey + "_loc"][:, its_file]
+                        for i in range(its.size):
+                            series[skey][ik0, ik1, ik2, its[i]] = data[
+                                :, i
+                            ].transpose()
 
         # add Ki_adim arrays, times and dims order
         k0_adim = np.r_[0 : ik0max + 1, ik0min:0]
