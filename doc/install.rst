@@ -6,14 +6,14 @@ installation of Python and Python packages are discussed in `the main
 documentation of the project
 <http://fluiddyn.readthedocs.org/en/latest/install.html>`_.
 
-FluidSim requires Python >= 3.6. We recommand installing with a very recent
+FluidSim requires Python >= 3.6. We recommend installing with a very recent
 version of pip so you might want to run ``pip install pip -U`` before anything
 (if you use conda, ``conda update pip``). Then, fluidsim can be installed
 with::
 
   pip install fluidsim
 
-(The conda version of this command should also work.)
+The conda version of this command (`conda install fluidsim`) should also work.
 
 However, one have to note that (i) fluidsim builds are sensible to environment
 variables and (ii) fluidsim can optionally use `fluidfft
@@ -22,7 +22,7 @@ fluidfft can be both installed with the command::
 
   pip install fluidsim[fft]
 
-However, fluidfft builds can also be tweaked so you could have a look at
+Moreover, fluidfft builds can also be tweaked so you could have a look at
 `fluidfft documentation
 <http://fluidfft.readthedocs.io/en/latest/install.html>`_.
 
@@ -176,6 +176,14 @@ FluidSim is able to use h5py built with MPI support.
 Installing from the repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+  A good base to install Fluidsim from source can be to create and activate a
+  conda environment with::
+
+    conda create -y -n env-fluidsim -c conda-forge fluidsim "fluidfft=*=*openmpi*" pythran clangdev mako
+    conda activate env-fluidsim
+
 For fluidsim, we use the revision control software Mercurial and the main
 repository is hosted `here <https://foss.heptapod.net/fluiddyn/fluidsim>`_ in
 Heptapod. Download the source with something like::
@@ -195,7 +203,14 @@ and modify it to fit your requirements.
 
 Build/install in development mode, by running from the top-level directory::
 
+  cd lib && pip install -e .; cd ..
   pip install -e .
+
+.. note::
+
+  To install from source in a conda environment, it is actually necessary to
+  disable the isolated build by running the command ``pip install -e .
+  --no-build-isolation``.
 
 To install Fluidsim with all optional dependencies and all capacities::
 
