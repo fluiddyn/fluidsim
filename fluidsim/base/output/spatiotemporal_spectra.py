@@ -151,6 +151,7 @@ class SpatioTemporalSpectra(SpecificOutput):
                 if (file.attrs["probes_region"] != self.probes_region).any():
                     raise ValueError("probes region is different from files")
             # init from files
+            INIT_FROM_PARAMS = False
             paths = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
             if paths:
                 self.path_file = paths[-1]
@@ -177,6 +178,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         else:
             # no files were found : initialize from params
+            INIT_FROM_PARAMS = True
             # pair kx,ky,kz with k0,k1,k2
             iksmax = np.array([ikzmax, ikymax, ikxmax])
             iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
@@ -221,12 +223,10 @@ class SpatioTemporalSpectra(SpecificOutput):
                 self.probes_ik2_loc,
             ]
 
-            # initialize files
+            # initialize files info
             self.index_file = 0
             self.number_times_in_file = 0
             self.t_last_save = -self.period_save
-            if self.probes_nb_loc > 0:
-                self._init_new_file()
 
         # size of a single write: nb_fields * probes_nb_loc + time
         probes_write_size = (
@@ -236,20 +236,32 @@ class SpatioTemporalSpectra(SpecificOutput):
             self.file_max_size / probes_write_size
         )
 
+        # initialize files
+        if INIT_FROM_PARAMS and self.probes_nb_loc > 0:
+            self._init_new_file(tmin_file=self.sim.time_stepping.t)
+
     def _init_files(self, arrays_1st_time=None):
         # we don't want to do anything when this function is called.
         pass
 
-    def _init_new_file(self):
+    def _init_new_file(self, tmin_file=None):
         """Initializes a new file"""
-        self.path_file = (
-            self.path_dir / f"rank{mpi.rank:05}_file{self.index_file:04}.h5"
-        )
+        if tmin_file is not None:
+            # max number of digits = int(log10(t_end)) + 1
+            # add .3f precision = 4 additional characters
+            # +2 by anticipation of potential restarts
+            str_width = int(np.log10(self.sim.params.time_stepping.t_end)) + 7
+            ind_str = f"tmin{tmin_file:0{str_width}.3f}"
+        else:
+            ind_str = f"file{self.index_file:04}"
+        self.path_file = self.path_dir / f"rank{mpi.rank:05}_{ind_str}.h5"
         with h5py.File(self.path_file, "w") as file:
             file.attrs["nb_proc"] = mpi.nb_proc
             file.attrs["dims_order"] = self.dims_order
             file.attrs["index_file"] = self.index_file
             file.attrs["probes_region"] = self.probes_region
+            file.attrs["period_save"] = self.period_save
+            file.attrs["max_number_times_in_file"] = self.max_number_times_in_file
             create_ds = file.create_dataset
             create_ds("probes_k0adim_loc", data=self.probes_k0adim_loc)
             create_ds("probes_k1adim_loc", data=self.probes_k1adim_loc)
@@ -296,7 +308,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             if self.number_times_in_file >= self.max_number_times_in_file:
                 self.index_file += 1
                 self.number_times_in_file = 0
-                self._init_new_file()
+                self._init_new_file(tmin_file=self.sim.time_stepping.t)
             # get data from probes
             data = {"times": self.sim.time_stepping.t}
             data["times"] = self.sim.time_stepping.t
