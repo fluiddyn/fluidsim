@@ -17,7 +17,7 @@ from math import pi
 import numpy as np
 from scipy import signal
 import h5py
-from rich.progress import track
+from rich.progress import Progress
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
@@ -364,41 +364,61 @@ class SpatioTemporalSpectra(SpecificOutput):
             f"spect_{k}": np.empty(spect_shape, dtype="complex")
             for k in self.keys_fields
         }
-        # loop on all files, rank by rank
-        for rank in track(ranks, description="Rearranging..."):
-            paths_rank = [
-                p for p in paths if p.name.startswith(f"rank{rank:05}")
-            ]
-            for path_file in paths_rank:
-                # for a given rank, paths are sorted by time
-                with h5py.File(path_file, "r") as file:
-                    # check if the file contains the time we're looking for
-                    tmax_file = file["times"][-1]
-                    if tmax_file < tmin:
-                        continue
-                    tmin_file = file["times"][0]
-                    if tmin_file > tmax:
-                        break
-    
-                    # time indices
-                    times_file = file["times"][:]
-                    cond_file = (times_file >= tmin) & (times_file <= tmax)
-                    its_file = np.where(cond_file)[0]
-                    its = np.where(times == times_file[cond_file])[0]
-    
-                    # k_adim_loc = global probes indices!
-                    ik0 = file["probes_k0adim_loc"][:]
-                    ik1 = file["probes_k1adim_loc"][:]
-                    ik2 = file["probes_k2adim_loc"][:]
-    
-                    # load data at desired times for all keys_fields
-                    for key in self.keys_fields:
-                        skey = f"spect_{key}"
-                        data = file[skey + "_loc"][:, its_file]
-                        for i in range(its.size):
-                            series[skey][ik0, ik1, ik2, its[i]] = data[
-                                :, i
-                            ].transpose()
+        with Progress() as progress:
+            task_ranks = progress.add_task("Rearranging...", total=len(ranks))
+            task_files = progress.add_task(
+                "Rank 00000...", total=len(paths_1st_rank)
+            )
+            # loop on all files, rank by rank
+            for rank in ranks:
+                paths_rank = [
+                    p for p in paths if p.name.startswith(f"rank{rank:05}")
+                ]
+                npaths = len(paths_rank)
+                progress.update(
+                    task_files,
+                    description=f"Rank {rank:05}...",
+                    total=npaths,
+                    completed=0,
+                )
+                for path_file in paths_rank:
+                    # for a given rank, paths are sorted by time
+                    with h5py.File(path_file, "r") as file:
+                        # check if the file contains the time we're looking for
+                        tmax_file = file["times"][-1]
+                        if tmax_file < tmin:
+                            progress.update(task_files, advance=1)
+                            continue
+                        tmin_file = file["times"][0]
+                        if tmin_file > tmax:
+                            progress.update(task_files, completed=npaths)
+                            break
+
+                        # time indices
+                        times_file = file["times"][:]
+                        cond_file = (times_file >= tmin) & (times_file <= tmax)
+                        its_file = np.where(cond_file)[0]
+                        its = np.where(times == times_file[cond_file])[0]
+
+                        # k_adim_loc = global probes indices!
+                        ik0 = file["probes_k0adim_loc"][:]
+                        ik1 = file["probes_k1adim_loc"][:]
+                        ik2 = file["probes_k2adim_loc"][:]
+
+                        # load data at desired times for all keys_fields
+                        for key in self.keys_fields:
+                            skey = f"spect_{key}"
+                            data = file[skey + "_loc"][:, its_file]
+                            for i in range(its.size):
+                                series[skey][ik0, ik1, ik2, its[i]] = data[
+                                    :, i
+                                ].transpose()
+
+                    # update rich task
+                    progress.update(task_files, advance=1)
+
+                # update rich task
+                progress.update(task_ranks, advance=1)
 
         # add Ki_adim arrays, times and dims order
         k0_adim = np.r_[0 : ik0max + 1, ik0min:0]
