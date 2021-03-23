@@ -64,7 +64,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         return spectrum_onesided / (deltakz * deltakh)
 
     def save_spectra_kzkhomega(
-        self, tmin=0, tmax=None, dtype=None, save_urud=False
+        self, tmin=None, tmax=None, dtype=None, save_urud=False
     ):
         """save the spatiotemporal spectra, with a cylindrical average in k-space"""
         if tmax is None:
@@ -75,6 +75,9 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         # compute spectra
         print("Computing spectra...")
         spectra = self.compute_spectra(tmin=tmin, tmax=tmax, dtype=dtype)
+
+        if tmin is None:
+            tmin = spectra["tmin"]
 
         # get kz, kh
         oper = self.sim.oper
@@ -153,7 +156,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
     def plot_kzkhomega(
         self,
         key_field=None,
-        tmin=0,
+        tmin=None,
         tmax=None,
         dtype=None,
         equation=None,
@@ -185,6 +188,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             print("loading spectra from file...")
             with h5py.File(path_file, "r") as file:
                 for key in file.keys():
+                    tmin = file.attrs["tmin"]
                     spectra_kzkhomega[key] = file[key][...]
         else:
             # compute spectra and save to file, then load
@@ -197,6 +201,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             )
             with h5py.File(path_file, "r") as file:
                 for key in file.keys():
+                    tmin = file.attrs["tmin"]
                     spectra_kzkhomega[key] = file[key][...]
 
         # slice along equation
@@ -303,7 +308,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         ax.set_xlim((xaxis.min(), xaxis.max()))
         ax.set_ylim((yaxis.min(), yaxis.max()))
 
-    def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
+    def compute_spectra_urud(self, tmin=None, tmax=None, dtype=None):
         """compute the spectra of ur, ud from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end

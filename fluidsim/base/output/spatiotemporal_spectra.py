@@ -319,7 +319,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             self._write_to_file(data)
             self.t_last_save = tsim
 
-    def load_time_series(self, tmin=0, tmax=None, dtype=None):
+    def load_time_series(self, tmin=None, tmax=None, dtype=None):
         """load time series from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
@@ -329,6 +329,9 @@ class SpatioTemporalSpectra(SpecificOutput):
         # get ranks
         paths = sorted(self.path_dir.glob("rank*.h5"))
         ranks = sorted({int(p.name[4:9]) for p in paths})
+
+        if tmin is None:
+            tmin = min([float(p.name[14:-3]) for p in paths])
 
         # get times and dimensions order from the files of first rank
         print(f"load times series...")
@@ -340,18 +343,29 @@ class SpatioTemporalSpectra(SpecificOutput):
             order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
 
-        times = []
-        for path in paths_1st_rank:
-            with h5py.File(path, "r") as file:
-                tmax_file = file["times"][-1]
-                if tmax_file < tmin:
-                    continue
-                tmin_file = file["times"][0]
-                if tmin_file > tmax:
-                    break
-                times_file = file["times"][:]
-                cond_times = (times_file >= tmin) & (times_file <= tmax)
-                times.append(times_file[cond_times])
+        # get list of useful files, from tmin
+        tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
+        start = (tmins_files > tmin).argmax() - 1
+        paths_1st_rank = paths_1st_rank[start:]
+        tmins_files = tmins_files[start:]
+
+        with Progress() as progress:
+            npaths = len(paths_1st_rank)
+            task_files = progress.add_task(
+                "Getting times from rank 0...", total=npaths
+            )
+
+            times = []
+            for ip, path in enumerate(paths_1st_rank):
+                with h5py.File(path, "r") as file:
+                    if tmins_files[ip] > tmax:
+                        progress.update(task_files, completed=npaths)
+                        break
+                    times_file = file["times"][:]
+                    cond_times = (times_file >= tmin) & (times_file <= tmax)
+                    times.append(times_file[cond_times])
+                    progress.update(task_files, advance=1)
+
         times = np.concatenate(times)
 
         tmin = times.min()
@@ -380,14 +394,19 @@ class SpatioTemporalSpectra(SpecificOutput):
         }
         with Progress() as progress:
             task_ranks = progress.add_task("Rearranging...", total=len(ranks))
-            task_files = progress.add_task(
-                "Rank 00000...", total=len(paths_1st_rank)
-            )
+            task_files = progress.add_task("Rank 00000...", total=npaths)
             # loop on all files, rank by rank
             for rank in ranks:
                 paths_rank = [
                     p for p in paths if p.name.startswith(f"rank{rank:05}")
                 ]
+
+                # get list of useful files, from tmin
+                tmins_files = np.array([float(p.name[14:-3]) for p in paths_rank])
+                start = (tmins_files > tmin).argmax() - 1
+                paths_rank = paths_rank[start:]
+                tmins_files = tmins_files[start:]
+
                 npaths = len(paths_rank)
                 progress.update(
                     task_files,
@@ -395,19 +414,15 @@ class SpatioTemporalSpectra(SpecificOutput):
                     total=npaths,
                     completed=0,
                 )
-                for path_file in paths_rank:
-                    # for a given rank, paths are sorted by time
-                    with h5py.File(path_file, "r") as file:
-                        # check if the file contains the time we're looking for
-                        tmax_file = file["times"][-1]
-                        if tmax_file < tmin:
-                            progress.update(task_files, advance=1)
-                            continue
-                        tmin_file = file["times"][0]
-                        if tmin_file > tmax:
-                            progress.update(task_files, completed=npaths)
-                            break
 
+                # for a given rank, paths are sorted by time
+                for ip, path_file in enumerate(paths_rank):
+                    # break after the last useful file
+                    if tmins_files[ip] > tmax:
+                        progress.update(task_files, completed=npaths)
+                        break
+
+                    with h5py.File(path_file, "r") as file:
                         # time indices
                         times_file = file["times"][:]
                         cond_file = (times_file >= tmin) & (times_file <= tmax)
@@ -451,7 +466,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         return series
 
-    def compute_spectra(self, tmin=0, tmax=None, dtype=None):
+    def compute_spectra(self, tmin=None, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
@@ -478,5 +493,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         spectra["omegas"] = 2 * pi * freq
         spectra["dims_order"] = series["dims_order"]
+
+        spectra["tmin"] = times.min()
 
         return spectra
