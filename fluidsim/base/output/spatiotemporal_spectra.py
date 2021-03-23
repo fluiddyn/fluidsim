@@ -22,6 +22,47 @@ from rich.progress import Progress
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
 
+from transonic import boost
+
+
+# TODO: uncomment this @boost when it works well
+# @boost
+def find_index_first_leq(arr: "float[:]", value: float):
+    """find the first index such that `arr[index] >= value`"""
+    for i, v in enumerate(arr):
+        if v >= value:
+            return i
+    raise ValueError("No index such that `arr[index] >= value`")
+
+
+def filter_tmins_paths(tmin, tmins, paths):
+    start = find_index_first_leq(tmins, tmin)
+    return tmins[start:], paths[start:]
+
+
+# TODO: uncomment this @boost when it works well
+# @boost
+def get_arange_minmax(times: "float[:]", tmin: float, tmax: float):
+    """get a range of index for which `tmin <= times[i] <= tmax`
+
+    This assumes that `times` is sorted.
+
+    """
+
+    if tmin < times[0]:
+        start = 0
+    else:
+        start = find_index_first_leq(times, tmin)
+
+    if tmax < times[-1]:
+        stop = len(times)
+    else:
+        stop = find_index_first_leq(times, tmax)
+
+    return np.arange(start, stop)
+
+
+
 
 class SpatioTemporalSpectra(SpecificOutput):
     """
@@ -345,9 +386,9 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         # get list of useful files, from tmin
         tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
-        start = (tmins_files > tmin).argmax() - 1
-        paths_1st_rank = paths_1st_rank[start:]
-        tmins_files = tmins_files[start:]
+        tmins_files, paths_1st_rank = filter_tmins_paths(
+            tmin, tmins_files, paths_1st_rank
+        )
 
         with Progress() as progress:
             npaths = len(paths_1st_rank)
@@ -374,8 +415,6 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         # get sequential shape of Fourier space
         ikxmax, ikymax, ikzmax = region
-        ikymin = 1 - ikymax
-        ikzmin = 1 - ikzmax
         iksmax = np.array([ikzmax, ikymax, ikxmax])
         iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
         ik0max, ik1max, ik2max = iksmax[order]
@@ -403,9 +442,9 @@ class SpatioTemporalSpectra(SpecificOutput):
 
                 # get list of useful files, from tmin
                 tmins_files = np.array([float(p.name[14:-3]) for p in paths_rank])
-                start = (tmins_files > tmin).argmax() - 1
-                paths_rank = paths_rank[start:]
-                tmins_files = tmins_files[start:]
+                tmins_files, paths_rank = filter_tmins_paths(
+                    tmin, tmins_files, paths_rank
+                )
 
                 npaths = len(paths_rank)
                 progress.update(
