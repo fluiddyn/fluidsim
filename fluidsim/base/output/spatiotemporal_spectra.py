@@ -319,10 +319,12 @@ class SpatioTemporalSpectra(SpecificOutput):
             self._write_to_file(data)
             self.t_last_save = tsim
 
-    def load_time_series(self, tmin=0, tmax=None):
+    def load_time_series(self, tmin=0, tmax=None, dtype=None):
         """load time series from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
+        if dtype is None:
+            dtype = self.datatype
 
         # get ranks
         paths = sorted(self.path_dir.glob("rank*.h5"))
@@ -352,9 +354,9 @@ class SpatioTemporalSpectra(SpecificOutput):
                 times.append(times_file[cond_times])
         times = np.concatenate(times)
 
-        print(
-            f"tmin={times.min():8.6g}, tmax={times.max():8.6g}, nit={times.size}"
-        )
+        tmin = times.min()
+        tmax = times.max()
+        print(f"tmin={tmin:8.6g}, tmax={tmax:8.6g}, nit={times.size}")
 
         # get sequential shape of Fourier space
         ikxmax, ikymax, ikzmax = region
@@ -373,7 +375,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         # load series, rebuild as state_spect arrays + time
         series = {
-            f"spect_{k}": np.empty(spect_shape, dtype="complex")
+            f"spect_{k}": np.empty(spect_shape, dtype=dtype)
             for k in self.keys_fields
         }
         with Progress() as progress:
@@ -421,10 +423,8 @@ class SpatioTemporalSpectra(SpecificOutput):
                         for key in self.keys_fields:
                             skey = f"spect_{key}"
                             data = file[skey + "_loc"][:, its_file]
-                            for i in range(its.size):
-                                series[skey][ik0, ik1, ik2, its[i]] = data[
-                                    :, i
-                                ].transpose()
+                            for i, it in enumerate(its):
+                                series[skey][ik0, ik1, ik2, it] = data[:, i]
 
                     # update rich task
                     progress.update(task_files, advance=1)
@@ -451,13 +451,15 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         return series
 
-    def compute_spectra(self, tmin=0, tmax=None):
+    def compute_spectra(self, tmin=0, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
+        if dtype is None:
+            dtype = self.datatype
 
         # load time series as state_spect arrays + times
-        series = self.load_time_series(tmin=tmin, tmax=tmax)
+        series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
 
         # get the sampling frequency
         times = series["times"]
@@ -466,15 +468,15 @@ class SpatioTemporalSpectra(SpecificOutput):
         # compute spectra
         print("computing temporal spectra...")
 
-        dict_spectra = {k: v for k, v in series.items() if k.startswith("K")}
+        spectra = {k: v for k, v in series.items() if k.startswith("K")}
 
         for key, data in series.items():
             if not key.startswith("spect"):
                 continue
-            freq, spectra = signal.periodogram(data, fs=f_sample)
-            dict_spectra[key] = spectra
+            freq, spectrum = signal.periodogram(data, fs=f_sample)
+            spectra[key] = spectrum
 
-        dict_spectra["omegas"] = 2 * pi * freq
-        dict_spectra["dims_order"] = series["dims_order"]
+        spectra["omegas"] = 2 * pi * freq
+        spectra["dims_order"] = series["dims_order"]
 
-        return dict_spectra
+        return spectra
