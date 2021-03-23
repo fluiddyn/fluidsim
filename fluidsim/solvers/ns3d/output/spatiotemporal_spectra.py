@@ -64,20 +64,15 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         return spectrum_onesided / (deltakz * deltakh)
 
     def save_spectra_kzkhomega(
-        self, tmin=None, tmax=None, dtype=None, save_urud=False
+        self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
         """save the spatiotemporal spectra, with a cylindrical average in k-space"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if dtype is None:
-            dtype = self.datatype
 
         # compute spectra
         print("Computing spectra...")
         spectra = self.compute_spectra(tmin=tmin, tmax=tmax, dtype=dtype)
-
-        if tmin is None:
-            tmin = spectra["tmin"]
 
         # get kz, kh
         oper = self.sim.oper
@@ -156,7 +151,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
     def plot_kzkhomega(
         self,
         key_field=None,
-        tmin=None,
+        tmin=0,
         tmax=None,
         dtype=None,
         equation=None,
@@ -169,8 +164,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             key_field = self.keys_fields[0]
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if dtype is None:
-            dtype = self.datatype
         if cmap is None:
             cmap = "viridis"
 
@@ -187,9 +180,16 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             # we should check if times match?
             print("loading spectra from file...")
             with h5py.File(path_file, "r") as file:
-                for key in file.keys():
-                    tmin = file.attrs["tmin"]
-                    spectra_kzkhomega[key] = file[key][...]
+                if dtype == "complex64":
+                    spectra_kzkhomega[key_spect] = file[key_spect][...].astype(
+                        "float32"
+                    )
+                elif dtype == "complex128":
+                    spectra_kzkhomega[key_spect] = file[key_spect][...].astype(
+                        "float64"
+                    )
+                else:
+                    spectra_kzkhomega[key_spect] = file[key_spect][...]
         else:
             # compute spectra and save to file, then load
             if key_spect.startswith("spect_Kh"):
@@ -201,7 +201,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             )
             with h5py.File(path_file, "r") as file:
                 for key in file.keys():
-                    tmin = file.attrs["tmin"]
                     spectra_kzkhomega[key] = file[key][...]
 
         # slice along equation
@@ -308,12 +307,10 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         ax.set_xlim((xaxis.min(), xaxis.max()))
         ax.set_ylim((yaxis.min(), yaxis.max()))
 
-    def compute_spectra_urud(self, tmin=None, tmax=None, dtype=None):
+    def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
         """compute the spectra of ur, ud from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if dtype is None:
-            dtype = self.datatype
 
         # load time series as state_spect arrays + times
         series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
@@ -324,13 +321,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         # toroidal/poloidal decomposition
         # urx_fft, ury_fft contain shear modes!
+        vx_fft = series["spect_vx"]
+        vy_fft = series["spect_vy"]
+        if vx_fft.dtype == "complex64":
+            dtype = "float32"
+        else:
+            dtype = "float64"
+
         oper = self.sim.oper
         order = series["dims_order"]
-        KY = oper.deltaky * series[f"K{order[1]}_adim"]
-        KX = oper.deltakx * series[f"K{order[2]}_adim"]
+        KY = (oper.deltaky * series[f"K{order[1]}_adim"]).astype(dtype)
+        KX = (oper.deltakx * series[f"K{order[2]}_adim"]).astype(dtype)
 
-        vx_fft = series["spect_vx"]
-        vy_fft = series["spect_vx"]
         udx_fft = np.zeros_like(vx_fft)
         udy_fft = np.zeros_like(vx_fft)
         urx_fft = np.zeros_like(vx_fft)
@@ -354,14 +356,14 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         spectra = {k: v for k, v in series.items() if k.startswith("K")}
 
         # ud
-        spectra["spect_Khd"] = np.zeros(udx_fft.shape)
+        spectra["spect_Khd"] = np.zeros(udx_fft.shape, dtype=dtype)
         freq, spectrum = signal.periodogram(udx_fft, fs=f_sample)
         spectra["spect_Khd"] += 0.5 * spectrum
         freq, spectrum = signal.periodogram(udy_fft, fs=f_sample)
         spectra["spect_Khd"] += 0.5 * spectrum
 
         # ur
-        spectra["spect_Khr"] = np.zeros(udx_fft.shape)
+        spectra["spect_Khr"] = np.zeros(udx_fft.shape, dtype=dtype)
         freq, spectrum = signal.periodogram(urx_fft, fs=f_sample)
         spectra["spect_Khr"] += 0.5 * spectrum
         freq, spectrum = signal.periodogram(ury_fft, fs=f_sample)

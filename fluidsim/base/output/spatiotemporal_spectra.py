@@ -62,8 +62,6 @@ def get_arange_minmax(times: "float[:]", tmin: float, tmax: float):
     return np.arange(start, stop)
 
 
-
-
 class SpatioTemporalSpectra(SpecificOutput):
     """
     Computes the spatiotemporal spectra.
@@ -360,19 +358,14 @@ class SpatioTemporalSpectra(SpecificOutput):
             self._write_to_file(data)
             self.t_last_save = tsim
 
-    def load_time_series(self, tmin=None, tmax=None, dtype=None):
+    def load_time_series(self, tmin=0, tmax=None, dtype=None):
         """load time series from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if dtype is None:
-            dtype = self.datatype
 
         # get ranks
         paths = sorted(self.path_dir.glob("rank*.h5"))
         ranks = sorted({int(p.name[4:9]) for p in paths})
-
-        if tmin is None:
-            tmin = min([float(p.name[14:-3]) for p in paths])
 
         # get times and dimensions order from the files of first rank
         print(f"load times series...")
@@ -383,6 +376,8 @@ class SpatioTemporalSpectra(SpecificOutput):
         with h5py.File(paths_1st_rank[0], "r") as file:
             order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
+            if dtype is None:
+                dtype = file[f"spect_{self.keys_fields[0]}_loc"].dtype
 
         # get list of useful files, from tmin
         tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
@@ -505,12 +500,10 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         return series
 
-    def compute_spectra(self, tmin=None, tmax=None, dtype=None):
+    def compute_spectra(self, tmin=0, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if dtype is None:
-            dtype = self.datatype
 
         # load time series as state_spect arrays + times
         series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
@@ -532,7 +525,5 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         spectra["omegas"] = 2 * pi * freq
         spectra["dims_order"] = series["dims_order"]
-
-        spectra["tmin"] = times.min()
 
         return spectra
