@@ -22,12 +22,14 @@ from rich.progress import Progress
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
 
-from transonic import boost
+from transonic import boost, Array, Type
+
+Uf32f64 = Type(np.float32, np.float64)
+A = Array[Uf32f64, "1d"]
 
 
-# TODO: uncomment this @boost when it works well
-# @boost
-def find_index_first_geq(arr: "float[:]", value: float):
+@boost
+def find_index_first_geq(arr: A, value: Uf32f64):
     """find the first index such that `arr[index] >= value`"""
     for i, v in enumerate(arr):
         if v >= value:
@@ -35,9 +37,8 @@ def find_index_first_geq(arr: "float[:]", value: float):
     raise ValueError("No index such that `arr[index] >= value`")
 
 
-# TODO: uncomment this @boost when it works well
-# @boost
-def find_index_first_g(arr: "float[:]", value: float):
+@boost
+def find_index_first_g(arr: A, value: Uf32f64):
     """find the first index such that `arr[index] > value`"""
     for i, v in enumerate(arr):
         if v > value:
@@ -45,9 +46,8 @@ def find_index_first_g(arr: "float[:]", value: float):
     raise ValueError("No index such that `arr[index] > value`")
 
 
-# TODO: uncomment this @boost when it works well
-# @boost
-def find_index_first_l(arr: "float[:]", value: float):
+@boost
+def find_index_first_l(arr: A, value: Uf32f64):
     """find the first index such that `arr[index] < value`"""
     for i, v in enumerate(arr):
         if v < value:
@@ -63,9 +63,8 @@ def filter_tmins_paths(tmin, tmins, paths):
     return tmins[start:], paths[start:]
 
 
-# TODO: uncomment this @boost when it works well
-# @boost
-def get_arange_minmax(times: "float[:]", tmin: float, tmax: float):
+@boost
+def get_arange_minmax(times: A, tmin: Uf32f64, tmax: Uf32f64):
     """get a range of index for which `tmin <= times[i] <= tmax`
 
     This assumes that `times` is sorted.
