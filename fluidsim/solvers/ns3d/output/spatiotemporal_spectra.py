@@ -10,7 +10,6 @@ Provides:
 
 """
 
-from pathlib import Path
 from math import pi
 
 import numpy as np
@@ -75,6 +74,14 @@ def loop_spectra_kzkhomega(
 
 
 class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
+    def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
+        base = f"spatiotemporal_spectra_{tmin}_{tmax}"
+        if dtype is not None:
+            base += "_{dtype}"
+        if save_urud:
+            base += "_urud"
+        return self.path_dir / (base + ".h5")
+
     def save_spectra_kzkhomega(
         self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
@@ -140,7 +147,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             pass
 
         # save to file
-        path_file = Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
         with h5py.File(path_file, "w") as file:
             file.attrs["tmin"] = tmin
             file.attrs["tmax"] = tmax
@@ -184,13 +191,15 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        path_file = path_file = (
-            Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
-        )
+        key_spect = "spectrum_" + key_field
+        if key_spect.startswith("spectrum_Kh"):
+            save_urud = True
+        else:
+            save_urud = False
+
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
 
         spectra_kzkhomega = {}
-
-        key_spect = "spectrum_" + key_field
 
         if path_file.exists():
             # we should check if times match?
@@ -209,10 +218,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                 spectra_kzkhomega["omegas"] = file["omegas"][...]
         else:
             # compute spectra and save to file, then load
-            if key_spect.startswith("spectrum_Kh"):
-                save_urud = True
-            else:
-                save_urud = False
             self.save_spectra_kzkhomega(
                 tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
             )

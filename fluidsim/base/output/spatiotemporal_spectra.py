@@ -382,6 +382,12 @@ class SpatioTemporalSpectra(SpecificOutput):
 
     def load_time_series(self, keys=None, tmin=0, tmax=None, dtype=None):
         """load time series from files"""
+
+        if mpi.nb_proc > 1:
+            raise RuntimeError(
+                "This postprocessing function should not be called with MPI."
+            )
+
         if keys is None:
             keys = self.keys_fields
         if tmax is None:
