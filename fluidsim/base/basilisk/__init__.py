@@ -1,6 +1,6 @@
 """Basilisk solvers (:mod:`fluidsim.base.basilisk`)
 ===================================================
-A reference implementation to use 2D solvers in `Basilisk <basilisk.fr>`__ via
+A reference implementation to use 2D solvers in `Basilisk <http://basilisk.fr>`__ via
 FluidSim.
 
 Provides:
