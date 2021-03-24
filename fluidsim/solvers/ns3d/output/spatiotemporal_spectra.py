@@ -11,31 +11,40 @@ Provides:
 """
 
 from pathlib import Path
-
 from math import pi
+
 import numpy as np
 from scipy import signal
 import h5py
 
 from fluidsim.base.output.spatiotemporal_spectra import SpatioTemporalSpectra
 
+from transonic import boost, Array, Type
 
-def loop_spectra_kzkhomega(spectrum_k0k1k2omega, khs, KH, kzs, KZ):
+A4 = Array[Type(np.float32, np.float64), "4d", "C"]
+A3 = "float[:,:,:]"
+A1 = "float[:]"
+
+
+@boost
+def loop_spectra_kzkhomega(
+    spectrum_k0k1k2omega: A4, khs: A1, KH: A3, kzs: A1, KZ: A3
+):
     """Compute the kz-kh-omega spectrum."""
-    if spectrum_k0k1k2omega.dtype == "complex64":
-        dtype = "float32"
-    else:
-        dtype = "float64"
     deltakh = khs[1]
     deltakz = kzs[1]
+
     nkh = len(khs)
     nkz = len(kzs)
     nk0, nk1, nk2, nomega = spectrum_k0k1k2omega.shape
-    spectrum_kzkhomega = np.zeros((nkz, nkh, nomega), dtype=dtype)
+    spectrum_kzkhomega = np.zeros(
+        (nkz, nkh, nomega), dtype=spectrum_k0k1k2omega.dtype
+    )
+
     for ik0 in range(nk0):
         for ik1 in range(nk1):
             for ik2 in range(nk2):
-                value = spectrum_k0k1k2omega[ik0, ik1, ik2, :]
+                values = spectrum_k0k1k2omega[ik0, ik1, ik2, :]
                 kappa = KH[ik0, ik1, ik2]
                 ikh = int(kappa / deltakh)
                 kz = abs(KZ[ik0, ik1, ik2])
@@ -44,11 +53,15 @@ def loop_spectra_kzkhomega(spectrum_k0k1k2omega, khs, KH, kzs, KZ):
                     ikz = nkz - 1
                 if ikh >= nkh - 1:
                     ikh = nkh - 1
-                    spectrum_kzkhomega[ikz, ikh, :] += value
+                    for i, value in enumerate(values):
+                        spectrum_kzkhomega[ikz, ikh, i] += value
                 else:
                     coef_share = (kappa - khs[ikh]) / deltakh
-                    spectrum_kzkhomega[ikz, ikh, :] += (1 - coef_share) * value
-                    spectrum_kzkhomega[ikz, ikh + 1, :] += coef_share * value
+                    for i, value in enumerate(values):
+                        spectrum_kzkhomega[ikz, ikh, i] += (
+                            1 - coef_share
+                        ) * value
+                        spectrum_kzkhomega[ikz, ikh + 1, i] += coef_share * value
 
     # get one-sided spectrum in the omega dimension
     nomega = nomega // 2 + 1
@@ -105,7 +118,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             if not key.startswith("spectrum_"):
                 continue
             spectra_kzkhomega[key] = loop_spectra_kzkhomega(
-                data, kh_spectra, KH, kz_spectra, KZ
+                np.ascontiguousarray(data), kh_spectra, KH, kz_spectra, KZ
             )
 
         del spectra
@@ -144,7 +157,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                 if not key.startswith("spectrum_"):
                     continue
                 spectra_urud_kzkhomega[key] = loop_spectra_kzkhomega(
-                    data, kh_spectra, KH, kz_spectra, KZ
+                    np.ascontiguousarray(data), kh_spectra, KH, kz_spectra, KZ
                 )
                 spectra_kzkhomega[key] = spectra_urud_kzkhomega[key]
 
