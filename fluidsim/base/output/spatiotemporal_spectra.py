@@ -381,8 +381,10 @@ class SpatioTemporalSpectra(SpecificOutput):
             self._write_to_file(data)
             self.t_last_save = tsim
 
-    def load_time_series(self, tmin=0, tmax=None, dtype=None):
+    def load_time_series(self, keys=None, tmin=0, tmax=None, dtype=None):
         """load time series from files"""
+        if keys is None:
+            keys = self.keys_fields
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -400,7 +402,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
             if dtype is None:
-                dtype = file[f"spect_{self.keys_fields[0]}_loc"].dtype
+                dtype = file[f"spect_{keys[0]}_loc"].dtype
 
         # get list of useful files, from tmin
         tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
@@ -445,10 +447,7 @@ class SpatioTemporalSpectra(SpecificOutput):
         )
 
         # load series, rebuild as state_spect arrays + time
-        series = {
-            f"spect_{k}": np.empty(spect_shape, dtype=dtype)
-            for k in self.keys_fields
-        }
+        series = {f"spect_{k}": np.empty(spect_shape, dtype=dtype) for k in keys}
         with Progress() as progress:
             task_ranks = progress.add_task("Rearranging...", total=len(ranks))
             task_files = progress.add_task("Rank 00000...", total=npaths)
@@ -493,7 +492,7 @@ class SpatioTemporalSpectra(SpecificOutput):
                         ik2 = file["probes_k2adim_loc"][:]
 
                         # load data at desired times for all keys_fields
-                        for key in self.keys_fields:
+                        for key in keys:
                             skey = f"spect_{key}"
                             data = file[skey + "_loc"][:, its_file]
                             for i, it in enumerate(its):
