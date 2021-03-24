@@ -241,7 +241,7 @@ class TestNoShearModes(TestSimulBase):
         EKhs = sim.output.spatial_means.load()["EKhs"]
         E = sim.output.spatial_means.load()["E"]
         ratio = EKhs[-1] / E[-1]
-        self.assertGreater(1e-15, ratio)
+        assert ratio < 1e-15
 
         # check energy in shear modes
         spectrum = data["Khr"] + data["Khd"] + data["Kz"] + data["A"]

@@ -333,7 +333,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             create_ds("probes_ik2_loc", data=self.probes_ik2_loc)
             for key in self.keys_fields:
                 create_ds(
-                    f"spect_{key}_loc",
+                    key + "_Fourier_loc",
                     (self.probes_nb_loc, 1),
                     maxshape=(self.probes_nb_loc, None),
                     dtype=self.datatype,
@@ -352,9 +352,9 @@ class SpatioTemporalSpectra(SpecificOutput):
                     dset.resize((self.probes_nb_loc, self.number_times_in_file))
                     dset[:, -1] = v
 
-    def _add_probes_data_to_dict(self, data_dict, key):
+    def _add_probes_data_to_dict(self, data, key):
         """Probes fields in Fourier space and append data to a dict object"""
-        data_dict[f"spect_{key}_loc"] = self.sim.state.get_var(f"{key}_fft")[
+        data[key + "_Fourier_loc"] = self.sim.state.get_var(f"{key}_fft")[
             self.probes_ik0_loc, self.probes_ik1_loc, self.probes_ik2_loc
         ]
 
@@ -402,7 +402,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
             if dtype is None:
-                dtype = file[f"spect_{keys[0]}_loc"].dtype
+                dtype = file[keys[0] + "_Fourier_loc"].dtype
 
         # get list of useful files, from tmin
         tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
@@ -439,7 +439,7 @@ class SpatioTemporalSpectra(SpecificOutput):
         iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
         ik0max, ik1max, ik2max = iksmax[order]
         ik0min, ik1min, ik2min = iksmin[order]
-        spect_shape = (
+        shape_series = (
             ik0max + 1 - ik0min,
             ik1max + 1 - ik1min,
             ik2max + 1 - ik2min,
@@ -447,7 +447,9 @@ class SpatioTemporalSpectra(SpecificOutput):
         )
 
         # load series, rebuild as state_spect arrays + time
-        series = {f"spect_{k}": np.empty(spect_shape, dtype=dtype) for k in keys}
+        series = {
+            f"{k}_Fourier": np.empty(shape_series, dtype=dtype) for k in keys
+        }
         with Progress() as progress:
             task_ranks = progress.add_task("Rearranging...", total=len(ranks))
             task_files = progress.add_task("Rank 00000...", total=npaths)
@@ -493,7 +495,7 @@ class SpatioTemporalSpectra(SpecificOutput):
 
                         # load data at desired times for all keys_fields
                         for key in keys:
-                            skey = f"spect_{key}"
+                            skey = key + "_Fourier"
                             data = file[skey + "_loc"][:, its_file]
                             for i, it in enumerate(its):
                                 series[skey][ik0, ik1, ik2, it] = data[:, i]
@@ -541,10 +543,11 @@ class SpatioTemporalSpectra(SpecificOutput):
         spectra = {k: v for k, v in series.items() if k.startswith("K")}
 
         for key, data in series.items():
-            if not key.startswith("spect"):
+            if "_Fourier" not in key:
                 continue
+            key_spectrum = "spectrum_" + key.split("_Fourier")[0]
             freq, spectrum = signal.periodogram(data, fs=f_sample)
-            spectra[key] = spectrum
+            spectra[key_spectrum] = spectrum
 
         spectra["omegas"] = 2 * pi * freq
         spectra["dims_order"] = series["dims_order"]

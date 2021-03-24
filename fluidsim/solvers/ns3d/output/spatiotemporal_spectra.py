@@ -20,49 +20,48 @@ import h5py
 from fluidsim.base.output.spatiotemporal_spectra import SpatioTemporalSpectra
 
 
+def loop_spectra_kzkhomega(spectrum_k0k1k2omega, khs, KH, kzs, KZ):
+    """Compute the kz-kh-omega spectrum."""
+    if spectrum_k0k1k2omega.dtype == "complex64":
+        dtype = "float32"
+    else:
+        dtype = "float64"
+    deltakh = khs[1]
+    deltakz = kzs[1]
+    nkh = len(khs)
+    nkz = len(kzs)
+    nk0, nk1, nk2, nomega = spectrum_k0k1k2omega.shape
+    spectrum_kzkhomega = np.zeros((nkz, nkh, nomega), dtype=dtype)
+    for ik0 in range(nk0):
+        for ik1 in range(nk1):
+            for ik2 in range(nk2):
+                value = spectrum_k0k1k2omega[ik0, ik1, ik2, :]
+                kappa = KH[ik0, ik1, ik2]
+                ikh = int(kappa / deltakh)
+                kz = abs(KZ[ik0, ik1, ik2])
+                ikz = int(round(kz / deltakz))
+                if ikz >= nkz - 1:
+                    ikz = nkz - 1
+                if ikh >= nkh - 1:
+                    ikh = nkh - 1
+                    spectrum_kzkhomega[ikz, ikh, :] += value
+                else:
+                    coef_share = (kappa - khs[ikh]) / deltakh
+                    spectrum_kzkhomega[ikz, ikh, :] += (1 - coef_share) * value
+                    spectrum_kzkhomega[ikz, ikh + 1, :] += coef_share * value
+
+    # get one-sided spectrum in the omega dimension
+    nomega = nomega // 2 + 1
+    spectrum_onesided = np.zeros((nkz, nkh, nomega))
+    spectrum_onesided[:, :, 0] = spectrum_kzkhomega[:, :, 0]
+    spectrum_onesided[:, :, 1:] = 0.5 * (
+        spectrum_kzkhomega[:, :, 1:nomega]
+        + spectrum_kzkhomega[:, :, -1:-nomega:-1]
+    )
+    return spectrum_onesided / (deltakz * deltakh)
+
+
 class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
-    def loop_spectra_kzkhomega(self, spectrum_k0k1k2omega, khs, KH, kzs, KZ):
-        """Compute the kz-kh-omega spectrum."""
-        if spectrum_k0k1k2omega.dtype == "complex64":
-            dtype = "float32"
-        else:
-            dtype = "float64"
-        deltakh = khs[1]
-        deltakz = kzs[1]
-        nkh = len(khs)
-        nkz = len(kzs)
-        nk0, nk1, nk2, nomega = spectrum_k0k1k2omega.shape
-        spectrum_kzkhomega = np.zeros((nkz, nkh, nomega), dtype=dtype)
-        for ik0 in range(nk0):
-            for ik1 in range(nk1):
-                for ik2 in range(nk2):
-                    value = spectrum_k0k1k2omega[ik0, ik1, ik2, :]
-                    kappa = KH[ik0, ik1, ik2]
-                    ikh = int(kappa / deltakh)
-                    kz = abs(KZ[ik0, ik1, ik2])
-                    ikz = int(round(kz / deltakz))
-                    if ikz >= nkz - 1:
-                        ikz = nkz - 1
-                    if ikh >= nkh - 1:
-                        ikh = nkh - 1
-                        spectrum_kzkhomega[ikz, ikh, :] += value
-                    else:
-                        coef_share = (kappa - khs[ikh]) / deltakh
-                        spectrum_kzkhomega[ikz, ikh, :] += (
-                            1 - coef_share
-                        ) * value
-                        spectrum_kzkhomega[ikz, ikh + 1, :] += coef_share * value
-
-        # get one-sided spectrum in the omega dimension
-        nomega = nomega // 2 + 1
-        spectrum_onesided = np.zeros((nkz, nkh, nomega))
-        spectrum_onesided[:, :, 0] = spectrum_kzkhomega[:, :, 0]
-        spectrum_onesided[:, :, 1:] = 0.5 * (
-            spectrum_kzkhomega[:, :, 1:nomega]
-            + spectrum_kzkhomega[:, :, -1:-nomega:-1]
-        )
-        return spectrum_onesided / (deltakz * deltakh)
-
     def save_spectra_kzkhomega(
         self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
@@ -103,26 +102,26 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             "omegas": omegas_onesided,
         }
         for key, data in spectra.items():
-            if not key.startswith("spect"):
+            if not key.startswith("spectrum_"):
                 continue
-            spectra_kzkhomega[key] = self.loop_spectra_kzkhomega(
+            spectra_kzkhomega[key] = loop_spectra_kzkhomega(
                 data, kh_spectra, KH, kz_spectra, KZ
             )
 
         del spectra
 
         # total kinetic energy
-        spectra_kzkhomega["spect_K"] = 0.5 * (
-            spectra_kzkhomega["spect_vx"]
-            + spectra_kzkhomega["spect_vy"]
-            + spectra_kzkhomega["spect_vz"]
+        spectra_kzkhomega["spectrum_K"] = 0.5 * (
+            spectra_kzkhomega["spectrum_vx"]
+            + spectra_kzkhomega["spectrum_vy"]
+            + spectra_kzkhomega["spectrum_vz"]
         )
 
         # potential energy
         try:
             N = self.sim.params.N
-            spectra_kzkhomega["spect_A"] = (
-                0.5 / N ** 2 * spectra_kzkhomega["spect_b"]
+            spectra_kzkhomega["spectrum_A"] = (
+                0.5 / N ** 2 * spectra_kzkhomega["spectrum_b"]
             )
         except AttributeError:
             pass
@@ -138,19 +137,22 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         # toroidal/poloidal decomposition
         if save_urud:
             print("Computing ur, ud spectra...")
-            spectra_kzkhomega = {}
+            spectra_urud_kzkhomega = {}
             spectra = self.compute_spectra_urud(tmin=tmin, tmax=tmax, dtype=dtype)
 
             for key, data in spectra.items():
-                if not key.startswith("spect"):
+                if not key.startswith("spectrum_"):
                     continue
-                spectra_kzkhomega[key] = self.loop_spectra_kzkhomega(
+                spectra_urud_kzkhomega[key] = loop_spectra_kzkhomega(
                     data, kh_spectra, KH, kz_spectra, KZ
                 )
+                spectra_kzkhomega[key] = spectra_urud_kzkhomega[key]
 
             with h5py.File(path_file, "a") as file:
-                for key, val in spectra_kzkhomega.items():
+                for key, val in spectra_urud_kzkhomega.items():
                     file.create_dataset(key, data=val)
+
+        return spectra_kzkhomega
 
     def plot_kzkhomega(
         self,
@@ -159,7 +161,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         tmax=None,
         dtype=None,
         equation=None,
-        cmap=None,
+        cmap="viridis",
         vmin=None,
         vmax=None,
     ):
@@ -168,8 +170,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             key_field = self.keys_fields[0]
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
-        if cmap is None:
-            cmap = "viridis"
 
         path_file = path_file = (
             Path(self.sim.output.path_run) / "spatiotemporal_spectra.h5"
@@ -177,10 +177,9 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         spectra_kzkhomega = {}
 
-        key_spect = "spect_" + key_field
+        key_spect = "spectrum_" + key_field
 
-        # load spectra from file if it exists
-        if path_file.is_file():
+        if path_file.exists():
             # we should check if times match?
             print("loading spectra from file...")
             with h5py.File(path_file, "r") as file:
@@ -197,7 +196,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
                 spectra_kzkhomega["omegas"] = file["omegas"][...]
         else:
             # compute spectra and save to file, then load
-            if key_spect.startswith("spect_Kh"):
+            if key_spect.startswith("spectrum_Kh"):
                 save_urud = True
             else:
                 save_urud = False
@@ -282,7 +281,13 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             vmax = np.log10(spect[np.isfinite(spect)].max())
 
         im = ax.pcolormesh(
-            xaxis, yaxis, np.log10(spect), cmap=cmap, vmin=vmin, vmax=vmax
+            xaxis,
+            yaxis,
+            np.log10(spect),
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            shading="nearest",
         )
         fig.colorbar(im)
 
@@ -328,8 +333,8 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         # toroidal/poloidal decomposition
         # urx_fft, ury_fft contain shear modes!
-        vx_fft = series["spect_vx"]
-        vy_fft = series["spect_vy"]
+        vx_fft = series["vx_Fourier"]
+        vy_fft = series["vy_Fourier"]
         if vx_fft.dtype == "complex64":
             float_dtype = "float32"
         elif vx_fft.dtype == "complex64":
@@ -365,18 +370,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         del series
 
         # ud
-        spectra["spect_Khd"] = np.zeros(udx_fft.shape, dtype=dtype)
+        spectra["spectrum_Khd"] = np.zeros(udx_fft.shape, dtype=dtype)
         freq, spectrum = signal.periodogram(udx_fft, fs=f_sample)
-        spectra["spect_Khd"] += 0.5 * spectrum
+        spectra["spectrum_Khd"] += 0.5 * spectrum
         freq, spectrum = signal.periodogram(udy_fft, fs=f_sample)
-        spectra["spect_Khd"] += 0.5 * spectrum
+        spectra["spectrum_Khd"] += 0.5 * spectrum
 
         # ur
-        spectra["spect_Khr"] = np.zeros(udx_fft.shape, dtype=dtype)
+        spectra["spectrum_Khr"] = np.zeros(udx_fft.shape, dtype=dtype)
         freq, spectrum = signal.periodogram(urx_fft, fs=f_sample)
-        spectra["spect_Khr"] += 0.5 * spectrum
+        spectra["spectrum_Khr"] += 0.5 * spectrum
         freq, spectrum = signal.periodogram(ury_fft, fs=f_sample)
-        spectra["spect_Khr"] += 0.5 * spectrum
+        spectra["spectrum_Khr"] += 0.5 * spectrum
 
         spectra["omegas"] = 2 * pi * freq
         spectra["dims_order"] = order

@@ -120,6 +120,13 @@ class TestOutput(TestSimulBase):
     def test_output(self):
 
         sim = self.sim
+
+        # put energy in vz
+        vz = sim.state.state_phys.get_var("vz")
+        X, Y, Z = sim.oper.get_XYZ_loc()
+        vz += 0.05 * np.cos(2 * pi * X / sim.oper.Lx)
+        sim.state.statespect_from_statephys()
+
         sim.time_stepping.start()
 
         # testing phaseshift
@@ -223,6 +230,40 @@ class TestOutput(TestSimulBase):
                 delta_index_times=2
             )
             sim3.output.temporal_spectra.save_spectra()
+
+            spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
+            series = spatiotemporal_spectra.load_time_series()
+
+            spectra = spatiotemporal_spectra.save_spectra_kzkhomega(
+                save_urud=True
+            )
+
+            delta_kz = spectra["kz_spectra"][1]
+            delta_kh = spectra["kh_spectra"][1]
+            delta_omega = spectra["omegas"][1]
+            coef = delta_kz * delta_kh * delta_omega
+
+            for letter in "xyz":
+                vi_fft = series[f"v{letter}_Fourier"]
+                spectrum_vi = spectra["spectrum_v" + letter]
+
+                # TODO: compute energy from vi_fft and spectrum_vi
+                energy_fft = (0.5 * abs(vi_fft) ** 2).mean(axis=-1).sum()
+                assert energy_fft > 0, (letter, vi_fft)
+                energy_spe = coef * spectrum_vi.sum()
+                # TODO: fix this and plug this condition
+                # assert np.allclose(energy_fft, energy_spe)
+
+            spectrum_Khd = spectra["spectrum_Khd"]
+            spectrum_vz = spectra["spectrum_vz"]
+
+            # because k \cdot \hat v = 0, for kz = 0, Khd = 0
+            assert np.allclose(spectrum_Khd[0].sum(), 0.0)
+
+            # TODO: understand why we need the `1:`
+            # because k \cdot \hat v = 0, for kh = 0, Kz = 0
+            assert np.allclose(spectrum_vz[1:, 0, 1:].sum(), 0.0)
+
             sim3.output.spatiotemporal_spectra.plot_kzkhomega(
                 key_field="Khr", equation="kh=1"
             )
