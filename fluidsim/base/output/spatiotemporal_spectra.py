@@ -27,7 +27,7 @@ from transonic import boost
 
 # TODO: uncomment this @boost when it works well
 # @boost
-def find_index_first_leq(arr: "float[:]", value: float):
+def find_index_first_geq(arr: "float[:]", value: float):
     """find the first index such that `arr[index] >= value`"""
     for i, v in enumerate(arr):
         if v >= value:
@@ -35,8 +35,31 @@ def find_index_first_leq(arr: "float[:]", value: float):
     raise ValueError("No index such that `arr[index] >= value`")
 
 
+# TODO: uncomment this @boost when it works well
+# @boost
+def find_index_first_g(arr: "float[:]", value: float):
+    """find the first index such that `arr[index] > value`"""
+    for i, v in enumerate(arr):
+        if v > value:
+            return i
+    raise ValueError("No index such that `arr[index] > value`")
+
+
+# TODO: uncomment this @boost when it works well
+# @boost
+def find_index_first_l(arr: "float[:]", value: float):
+    """find the first index such that `arr[index] < value`"""
+    for i, v in enumerate(arr):
+        if v < value:
+            return i
+    raise ValueError("No index such that `arr[index] < value`")
+
+
 def filter_tmins_paths(tmin, tmins, paths):
-    start = find_index_first_leq(tmins, tmin)
+    if tmins.size == 1:
+        return tmins, paths
+    delta_tmin = np.diff(tmins).mean()
+    start = find_index_first_l(tmin - tmins, delta_tmin)
     return tmins[start:], paths[start:]
 
 
@@ -49,15 +72,15 @@ def get_arange_minmax(times: "float[:]", tmin: float, tmax: float):
 
     """
 
-    if tmin < times[0]:
+    if tmin <= times[0]:
         start = 0
     else:
-        start = find_index_first_leq(times, tmin)
+        start = find_index_first_geq(times, tmin)
 
-    if tmax < times[-1]:
+    if tmax >= times[-1]:
         stop = len(times)
     else:
-        stop = find_index_first_leq(times, tmax)
+        stop = find_index_first_g(times, tmax)
 
     return np.arange(start, stop)
 

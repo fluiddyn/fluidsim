@@ -180,16 +180,14 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             # we should check if times match?
             print("loading spectra from file...")
             with h5py.File(path_file, "r") as file:
+                spectra_kzkhomega[key_spect] = file[key_spect][...]
                 if dtype == "complex64":
-                    spectra_kzkhomega[key_spect] = file[key_spect][...].astype(
-                        "float32"
-                    )
+                    float_dtype = "float32"
                 elif dtype == "complex128":
-                    spectra_kzkhomega[key_spect] = file[key_spect][...].astype(
-                        "float64"
-                    )
-                else:
-                    spectra_kzkhomega[key_spect] = file[key_spect][...]
+                    float_dtype = "float64"
+                if dtype:
+                    spectrum = spectrum.astype(float_dtype)
+                spectra_kzkhomega[key_spect] = spectrum
         else:
             # compute spectra and save to file, then load
             if key_spect.startswith("spect_Kh"):
