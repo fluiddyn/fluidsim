@@ -58,7 +58,7 @@ def find_index_first_l(arr: "float[:]", value: float):
 def filter_tmins_paths(tmin, tmins, paths):
     if tmins.size == 1:
         return tmins, paths
-    delta_tmin = np.diff(tmins).mean()
+    delta_tmin = np.diff(tmins).min()
     start = find_index_first_l(tmin - tmins, delta_tmin)
     return tmins[start:], paths[start:]
 
@@ -482,9 +482,10 @@ class SpatioTemporalSpectra(SpecificOutput):
                     with h5py.File(path_file, "r") as file:
                         # time indices
                         times_file = file["times"][:]
-                        cond_file = (times_file >= tmin) & (times_file <= tmax)
-                        its_file = np.where(cond_file)[0]
-                        its = np.where(times == times_file[cond_file])[0]
+                        its_file = get_arange_minmax(times_file, tmin, tmax)
+                        tmin_keep = times_file[its_file[0]]
+                        tmax_keep = times_file[its_file[-1]]
+                        its = get_arange_minmax(times, tmin_keep, tmax_keep)
 
                         # k_adim_loc = global probes indices!
                         ik0 = file["probes_k0adim_loc"][:]
