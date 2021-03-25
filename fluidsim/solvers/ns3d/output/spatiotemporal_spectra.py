@@ -388,18 +388,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         del series
 
         # ud
-        spectra["spectrum_Khd"] = np.zeros(udx_fft.shape, dtype=dtype)
-        freq, spectrum = signal.periodogram(udx_fft, fs=f_sample)
-        spectra["spectrum_Khd"] += 0.5 * spectrum
-        freq, spectrum = signal.periodogram(udy_fft, fs=f_sample)
-        spectra["spectrum_Khd"] += 0.5 * spectrum
+        spectra["spectrum_Khd"] = Khd = np.zeros(udx_fft.shape, dtype=dtype)
+        freq, spectrum = self._compute_spectrum(udx_fft)
+        Khd += 0.5 * spectrum
+        freq, spectrum = self._compute_spectrum(udy_fft)
+        Khd += 0.5 * spectrum
 
         # ur
-        spectra["spectrum_Khr"] = np.zeros(udx_fft.shape, dtype=dtype)
-        freq, spectrum = signal.periodogram(urx_fft, fs=f_sample)
-        spectra["spectrum_Khr"] += 0.5 * spectrum
-        freq, spectrum = signal.periodogram(ury_fft, fs=f_sample)
-        spectra["spectrum_Khr"] += 0.5 * spectrum
+        spectra["spectrum_Khr"] = Khr = np.zeros(udx_fft.shape, dtype=dtype)
+        freq, spectrum = self._compute_spectrum(urx_fft)
+        Khr += 0.5 * spectrum
+        freq, spectrum = self._compute_spectrum(ury_fft)
+        Khr += 0.5 * spectrum
 
         spectra["omegas"] = 2 * pi * freq
         spectra["dims_order"] = order

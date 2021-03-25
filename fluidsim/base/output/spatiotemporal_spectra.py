@@ -530,6 +530,19 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         return series
 
+    def _compute_spectrum(self, data):
+        if not hasattr(self, "f_sample"):
+            # TODO: Fix this value (can be read from a data file)
+            self.f_sample = 1
+            self.domega = 2 * pi * self.f_sample / data.shape[-1]
+
+        # TODO: I'm not sure if detrend=False is good in prod, but it's much
+        # better for testing
+        freq, spectrum = signal.periodogram(
+            data, fs=self.f_sample, scaling="spectrum", detrend=False
+        )
+        return freq, spectrum / self.domega
+
     def compute_spectra(self, tmin=0, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
         if tmax is None:
@@ -537,10 +550,6 @@ class SpatioTemporalSpectra(SpecificOutput):
 
         # load time series as state_spect arrays + times
         series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
-
-        # get the sampling frequency
-        times = series["times"]
-        f_sample = 1 / np.mean(times[1:] - times[:-1])
 
         # compute spectra
         print("computing temporal spectra...")
@@ -551,7 +560,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             if "_Fourier" not in key:
                 continue
             key_spectrum = "spectrum_" + key.split("_Fourier")[0]
-            freq, spectrum = signal.periodogram(data, fs=f_sample)
+            freq, spectrum = self._compute_spectrum(data)
             spectra[key_spectrum] = spectrum
 
         spectra["omegas"] = 2 * pi * freq
