@@ -43,10 +43,10 @@ class TestSimulBase(TestSimul):
 
         Lx = 6.0
         params.oper.Lx = Lx
-        params.oper.Ly = Lx * 3 // 4
+        params.oper.Ly = Lx * params.oper.ny / params.oper.nx
         try:
             params.oper.nz = nx // 2
-            params.oper.Lz = Lx // 2
+            params.oper.Lz = Lx * params.oper.nz / params.oper.nx
         except AttributeError:
             pass
 
@@ -239,6 +239,26 @@ class TestOutput(TestSimulBase):
             spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
             series = spatiotemporal_spectra.load_time_series()
 
+            tspectra = spatiotemporal_spectra.compute_temporal_spectra()
+
+            deltakx = 2 * pi / self.params.oper.Lx
+            order = tspectra["dims_order"]
+            KX = deltakx * tspectra[f"K{order[2]}_adim"]
+            kx_max = self.params.oper.nx // 2 * deltakx
+
+            def sum_wavenumber(field):
+                n0, n1, n2 = field.shape
+                result = 0.0
+                for i0 in range(n0):
+                    for i1 in range(n1):
+                        for i2 in range(n2):
+                            value = field[i0, i1, i2]
+                            kx = KX[i0, i1, i2]
+                            if kx != 0.0 and kx != kx_max:
+                                value *= 2
+                            result += value
+                return result
+
             spectra = spatiotemporal_spectra.save_spectra_kzkhomega(
                 save_urud=True
             )
@@ -248,21 +268,29 @@ class TestOutput(TestSimulBase):
             delta_omega = spectra["omegas"][1]
             coef = delta_kz * delta_kh * delta_omega
 
-            print(spectra["kz_spectra"])
-            print(spectra["kh_spectra"])
-
             for letter in "xyz":
                 vi_fft = series[f"v{letter}_Fourier"]
+                tspectrum = tspectra["spectrum_v" + letter]
                 spectrum_vi = spectra["spectrum_v" + letter]
 
-                # TODO: compute energy from vi_fft and spectrum_vi
-                energy_fft = (0.5 * abs(vi_fft) ** 2).mean(axis=-1).sum()
-                assert energy_fft > 0, (letter, vi_fft)
+                energy_serie = 0.5 * sum_wavenumber(
+                    (abs(vi_fft) ** 2).mean(axis=-1)
+                )
+                assert energy_serie > 0, (letter, vi_fft)
+
+                energy_tspect = (
+                    0.5 * delta_omega * sum_wavenumber(tspectrum.sum(axis=-1))
+                )
                 energy_spe = 0.5 * coef * spectrum_vi.sum()
-                # TODO: fix this and plug this condition
-                assert np.allclose(energy_fft, energy_spe), (
+
+                assert np.allclose(energy_serie, energy_tspect), (
                     letter,
-                    energy_spe / energy_fft,
+                    energy_tspect / energy_serie,
+                )
+
+                assert np.allclose(energy_serie, energy_spe), (
+                    letter,
+                    energy_spe / energy_serie,
                 )
 
             spectrum_Khd = spectra["spectrum_Khd"]
@@ -271,9 +299,8 @@ class TestOutput(TestSimulBase):
             # because k \cdot \hat v = 0, for kz = 0, Khd = 0
             assert np.allclose(spectrum_Khd[0].sum(), 0.0)
 
-            # DONE: understand why we need the `1:`
-            # energy in the mode kx=ky=kz=0 is not zero, for any field in state_spect.
             # because k \cdot \hat v = 0, for kh = 0, Kz = 0
+            # `1:` because the energy in the mode kx=ky=kz=0 is not zero.
             assert np.allclose(spectrum_vz[1:, 0, :].sum(), 0.0)
 
             sim3.output.spatiotemporal_spectra.plot_kzkhomega(
