@@ -114,7 +114,12 @@ class TestOutput(TestSimulBase):
         params.output.temporal_spectra.probes_region = probes_region
         params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
 
-        params.output.spatiotemporal_spectra.probes_region = (6, 8, 10)
+        nx, ny, nz = params.oper.nx, params.oper.ny, params.oper.nz
+        params.output.spatiotemporal_spectra.probes_region = (
+            nx // 2,
+            ny // 2,
+            nz // 2,
+        )
         params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = True
 
     def test_output(self):
@@ -243,6 +248,9 @@ class TestOutput(TestSimulBase):
             delta_omega = spectra["omegas"][1]
             coef = delta_kz * delta_kh * delta_omega
 
+            print(spectra["kz_spectra"])
+            print(spectra["kh_spectra"])
+
             for letter in "xyz":
                 vi_fft = series[f"v{letter}_Fourier"]
                 spectrum_vi = spectra["spectrum_v" + letter]
@@ -250,9 +258,12 @@ class TestOutput(TestSimulBase):
                 # TODO: compute energy from vi_fft and spectrum_vi
                 energy_fft = (0.5 * abs(vi_fft) ** 2).mean(axis=-1).sum()
                 assert energy_fft > 0, (letter, vi_fft)
-                energy_spe = coef * spectrum_vi.sum()
+                energy_spe = 0.5 * coef * spectrum_vi.sum()
                 # TODO: fix this and plug this condition
-                # assert np.allclose(energy_fft, energy_spe)
+                assert np.allclose(energy_fft, energy_spe), (
+                    letter,
+                    energy_spe / energy_fft,
+                )
 
             spectrum_Khd = spectra["spectrum_Khd"]
             spectrum_vz = spectra["spectrum_vz"]
@@ -260,9 +271,10 @@ class TestOutput(TestSimulBase):
             # because k \cdot \hat v = 0, for kz = 0, Khd = 0
             assert np.allclose(spectrum_Khd[0].sum(), 0.0)
 
-            # TODO: understand why we need the `1:`
+            # DONE: understand why we need the `1:`
+            # energy in the mode kx=ky=kz=0 is not zero, for any field in state_spect.
             # because k \cdot \hat v = 0, for kh = 0, Kz = 0
-            assert np.allclose(spectrum_vz[1:, 0, 1:].sum(), 0.0)
+            assert np.allclose(spectrum_vz[1:, 0, :].sum(), 0.0)
 
             sim3.output.spatiotemporal_spectra.plot_kzkhomega(
                 key_field="Khr", equation="kh=1"

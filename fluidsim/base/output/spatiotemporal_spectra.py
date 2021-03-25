@@ -169,10 +169,16 @@ class SpatioTemporalSpectra(SpecificOutput):
             return
 
         if params_st_spec.probes_region is not None:
-            self.probes_region = params_st_spec.probes_region
-            ikxmax, ikymax, ikzmax = self.probes_region
+            ikxmax, ikymax, ikzmax = params_st_spec.probes_region
+            ikxmax = min(ikxmax, params.oper.nx // 2)
+            ikymax = min(ikymax, params.oper.ny // 2)
+            ikzmax = min(ikzmax, params.oper.nz // 2)
+            self.probes_region = ikxmax, ikymax, ikzmax
         else:
             ikxmax = ikymax = ikzmax = 4
+            ikxmax = min(ikxmax, params.oper.nx // 2)
+            ikymax = min(ikymax, params.oper.ny // 2)
+            ikzmax = min(ikzmax, params.oper.nz // 2)
             self.probes_region = ikxmax, ikymax, ikzmax
 
         self.file_max_size = params_st_spec.file_max_size
@@ -532,14 +538,18 @@ class SpatioTemporalSpectra(SpecificOutput):
 
     def _compute_spectrum(self, data):
         if not hasattr(self, "f_sample"):
-            # TODO: Fix this value (can be read from a data file)
-            self.f_sample = 1
+            paths = sorted(self.path_dir.glob("rank*.h5"))
+            with h5py.File(paths[0], "r") as file:
+                self.f_sample = 1.0 / file.attrs["period_save"]
             self.domega = 2 * pi * self.f_sample / data.shape[-1]
 
         # TODO: I'm not sure if detrend=False is good in prod, but it's much
         # better for testing
         freq, spectrum = signal.periodogram(
-            data, fs=self.f_sample, scaling="spectrum", detrend=False
+            data,
+            fs=self.f_sample,
+            scaling="spectrum",
+            detrend=False,
         )
         return freq, spectrum / self.domega
 
