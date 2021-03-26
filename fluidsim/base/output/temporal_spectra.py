@@ -18,10 +18,71 @@ from math import pi
 import numpy as np
 from scipy import signal
 import h5py
-from rich.progress import track
+from rich.progress import Progress, track
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
+
+from transonic import boost, Array, Type
+
+Uf32f64 = Type(np.float32, np.float64)
+A = Array[Uf32f64, "1d"]
+
+
+@boost
+def find_index_first_geq(arr: A, value: Uf32f64):
+    """find the first index such that `arr[index] >= value`"""
+    for i, v in enumerate(arr):
+        if v >= value:
+            return i
+    raise ValueError("No index such that `arr[index] >= value`")
+
+
+@boost
+def find_index_first_g(arr: A, value: Uf32f64):
+    """find the first index such that `arr[index] > value`"""
+    for i, v in enumerate(arr):
+        if v > value:
+            return i
+    raise ValueError("No index such that `arr[index] > value`")
+
+
+@boost
+def find_index_first_l(arr: A, value: Uf32f64):
+    """find the first index such that `arr[index] < value`"""
+    for i, v in enumerate(arr):
+        if v < value:
+            return i
+    raise ValueError("No index such that `arr[index] < value`")
+
+
+def filter_tmins_paths(tmin, tmins, paths):
+    if tmins.size == 1:
+        return tmins, paths
+    delta_tmin = np.diff(tmins).min()
+    start = find_index_first_l(tmin - tmins, delta_tmin)
+    return tmins[start:], paths[start:]
+
+
+@boost
+def get_arange_minmax(times: A, tmin: Uf32f64, tmax: Uf32f64):
+    """get a range of index for which `tmin <= times[i] <= tmax`
+
+    This assumes that `times` is sorted.
+
+    """
+
+    if tmin <= times[0]:
+        start = 0
+    else:
+        start = find_index_first_geq(times, tmin)
+
+    if tmax >= times[-1]:
+        stop = len(times)
+    else:
+        stop = find_index_first_g(times, tmax)
+
+    return np.arange(start, stop)
 
 
 class TemporalSpectra(SpecificOutput):
@@ -256,7 +317,7 @@ class TemporalSpectra(SpecificOutput):
             self.number_times_in_file = 0
             self.t_last_save = -self.period_save
             if self.probes_nb_loc > 0:
-                self._init_new_file()
+                self._init_new_file(tmin_file=self.sim.time_stepping.t)
 
         if self.SAVE_AS_FLOAT32:
             size_1_number = 4e-6
@@ -275,14 +336,21 @@ class TemporalSpectra(SpecificOutput):
         # we don't want to do anything when this function is called.
         pass
 
-    def _init_new_file(self):
+    def _init_new_file(self, tmin_file=None):
         """Initializes a new file"""
-        self.path_file = (
-            self.path_dir / f"rank{mpi.rank:05}_file{self.index_file:04}.h5"
-        )
+        if tmin_file is not None:
+            # max number of digits = int(log10(t_end)) + 1
+            # add .3f precision = 4 additional characters
+            # +2 by anticipation of potential restarts
+            str_width = int(np.log10(self.sim.params.time_stepping.t_end)) + 7
+            ind_str = f"tmin{tmin_file:0{str_width}.3f}"
+        else:
+            ind_str = f"file{self.index_file:04}"
+        self.path_file = self.path_dir / f"rank{mpi.rank:05}_{ind_str}.h5"
         with h5py.File(self.path_file, "w") as file:
             file.attrs["nb_proc"] = mpi.nb_proc
             file.attrs["index_file"] = self.index_file
+            file.attrs["period_save"] = self.period_save
             create_ds = file.create_dataset
             create_ds("probes_x_seq", data=self.probes_x_seq)
             create_ds("probes_y_seq", data=self.probes_y_seq)
@@ -348,7 +416,7 @@ class TemporalSpectra(SpecificOutput):
                 if self.number_times_in_file >= self.max_number_times_in_file:
                     self.index_file += 1
                     self.number_times_in_file = 0
-                    self._init_new_file()
+                    self._init_new_file(tmin_file=self.sim.time_stepping.t)
                 # get data from probes
                 data = {"times": self.sim.time_stepping.t}
                 data["times"] = self.sim.time_stepping.t
@@ -359,14 +427,15 @@ class TemporalSpectra(SpecificOutput):
                 self._write_to_file(data)
                 self.t_last_save = tsim
 
-    def load_time_series(self, key=None, region=None, tmin=0, tmax=None):
+    def load_time_series(
+        self, keys=None, region=None, tmin=0, tmax=None, dtype=None
+    ):
         """load time series from files"""
-        if key is None:
-            key = self.keys_fields[0]
-        key = f"probes_{key}_loc"
+        if keys is None:
+            keys = self.keys_fields
         if region is None:
-            oper = self.sim.oper
-            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+            p_oper = self.sim.params.oper
+            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -377,90 +446,174 @@ class TemporalSpectra(SpecificOutput):
         ranks = sorted({int(p.name[4:9]) for p in paths})
 
         # get times from the files of first rank
-        times = []
-        for path_file in paths:
-            if not path_file.name.startswith(f"rank{ranks[0]:05}"):
-                continue
-            with h5py.File(path_file, "r") as file:
-                times_file = file["times"][:]
-                cond_times = (times_file >= tmin) & (times_file <= tmax)
-                times.append(times_file[cond_times])
-        times = np.concatenate(times)
+        print(f"load times series...")
+        paths_1st_rank = [
+            p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
+        ]
 
-        # load series
-        series = []
-        for rank in ranks:
-            data = []
-            for path_file in paths:
-                if not path_file.name.startswith(f"rank{rank:05}"):
-                    continue
-                with h5py.File(path_file, "r") as file:
-                    probes_x = file["probes_x_loc"][:]
-                    probes_y = file["probes_y_loc"][:]
-                    probes_z = file["probes_z_loc"][:]
+        if dtype is None:
+            with h5py.File(paths_1st_rank[0], "r") as file:
+                dtype = file[f"probes_{keys[0]}_loc"].dtype
 
-                    cond_region = np.where(
-                        (probes_x >= xmin)
-                        & (probes_x <= xmax)
-                        & (probes_y >= ymin)
-                        & (probes_y <= ymax)
-                        & (probes_z >= zmin)
-                        & (probes_z <= zmax)
-                    )[0]
+        # get list of useful files, from tmin
+        tmins_files = np.array([float(p.name[14:-3]) for p in paths_1st_rank])
+        tmins_files, paths_1st_rank = filter_tmins_paths(
+            tmin, tmins_files, paths_1st_rank
+        )
 
-                    tmp = file[key][cond_region, :]
+        with Progress() as progress:
+            npaths = len(paths_1st_rank)
+            task_files = progress.add_task(
+                "Getting times from rank 0...", total=npaths
+            )
 
+            times = []
+            for ip, path in enumerate(paths_1st_rank):
+                with h5py.File(path, "r") as file:
+                    if tmins_files[ip] > tmax:
+                        progress.update(task_files, completed=npaths)
+                        break
                     times_file = file["times"][:]
                     cond_times = (times_file >= tmin) & (times_file <= tmax)
-                    data.append(tmp[:, cond_times])
+                    times.append(times_file[cond_times])
+                    progress.update(task_files, advance=1)
 
-            series.append(np.concatenate(data, axis=1))
+        times = np.concatenate(times)
 
-        result = {key: series, "times": times}
-        return result
+        tmin = times.min()
+        tmax = times.max()
+        print(f"tmin={tmin:8.6g}, tmax={tmax:8.6g}, nit={times.size}")
 
-    def compute_spectra(self, keys=None, region=None, tmin=0, tmax=None):
+        # load series
+        series = {f"probes_{k}_loc": [] for k in keys}
+        with Progress() as progress:
+            task_ranks = progress.add_task("Rearranging...", total=len(ranks))
+            task_files = progress.add_task("Rank 00000...", total=npaths)
+            # loop on all files, rank by rank
+            for rank in ranks:
+                paths_rank = [
+                    p for p in paths if p.name.startswith(f"rank{rank:05}")
+                ]
+
+                # get list of useful files, from tmin
+                tmins_files = np.array([float(p.name[14:-3]) for p in paths_rank])
+                tmins_files, paths_rank = filter_tmins_paths(
+                    tmin, tmins_files, paths_rank
+                )
+
+                npaths = len(paths_rank)
+                progress.update(
+                    task_files,
+                    description=f"Rank {rank:05}...",
+                    total=npaths,
+                    completed=0,
+                )
+
+                # for a given rank, paths are sorted by time
+                data = {f"probes_{k}_loc": [] for k in keys}
+                for path_file in paths_rank:
+                    # break after the last useful file
+                    if tmins_files[ip] > tmax:
+                        progress.update(task_files, completed=npaths)
+                        break
+
+                    with h5py.File(path_file, "r") as file:
+                        probes_x = file["probes_x_loc"][:]
+                        probes_y = file["probes_y_loc"][:]
+                        probes_z = file["probes_z_loc"][:]
+
+                        cond_region = np.where(
+                            (probes_x >= xmin)
+                            & (probes_x <= xmax)
+                            & (probes_y >= ymin)
+                            & (probes_y <= ymax)
+                            & (probes_z >= zmin)
+                            & (probes_z <= zmax)
+                        )[0]
+
+                        for key in keys:
+                            skey = f"probes_{key}_loc"
+                            tmp = file[skey][cond_region, :]
+
+                            times_file = file["times"][:]
+                            its_file = get_arange_minmax(times_file, tmin, tmax)
+                            data[skey].append(tmp[:, its_file])
+                    
+                    # update rich task
+                    progress.update(task_files, advance=1)
+
+                for key in keys:
+                    skey = f"probes_{key}_loc"
+                    series[skey].append(np.concatenate(data[skey], axis=1))
+
+                # update rich task
+                progress.update(task_ranks, advance=1)
+
+        series["times"] = times
+        return series
+
+    def _compute_spectrum(self, data):
+        if not hasattr(self, "f_sample"):
+            paths = sorted(self.path_dir.glob("rank*.h5"))
+            with h5py.File(paths[0], "r") as file:
+                self.f_sample = 1.0 / file.attrs["period_save"]
+            self.domega = 2 * pi * self.f_sample / data.shape[-1]
+
+        # TODO: I'm not sure if detrend=False is good in prod, but it's much
+        # better for testing
+        freq, spectrum = signal.periodogram(
+            data,
+            fs=self.f_sample,
+            scaling="spectrum",
+            detrend=False,
+            return_onesided=False,
+        )
+        return freq, spectrum / self.domega
+
+    def compute_temporal_spectra(
+        self, region=None, tmin=0, tmax=None, dtype=None
+    ):
         """compute temporal spectra from files"""
-        if keys is None:
-            keys = self.keys_fields
         if region is None:
-            oper = self.sim.oper
-            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+            p_oper = self.sim.params.oper
+            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        dict_spectra = {"region": region, "tmin": tmin, "tmax": tmax}
+        spectra = {"region": region, "tmin": tmin, "tmax": tmax}
 
-        for key in keys:
-            # load data
-            data = self.load_time_series(key, region, tmin, tmax)
-            series = np.concatenate(data[f"probes_{key}_loc"])
-            times = data["times"]
+        # load data
+        series = self.load_time_series(
+            region=region, tmin=tmin, tmax=tmax, dtype=dtype
+        )
+        times = series["times"]
 
-            # get sampling frequency
-            f_sample = 1 / np.mean(times[1:] - times[:-1])
+        # compute periodograms and average
+        for key in series.keys():
+            if key.startswith("probes_"):
+                freq, spectrum = self._compute_spectrum(
+                    np.concatenate(series[key])
+                )
+            spectra["spectrum_" + key[7:-4]] = spectrum.mean(0)
 
-            # compute periodograms and average
-            freq, spectra = signal.periodogram(series, fs=f_sample)
-            dict_spectra["spectra_" + key] = spectra.mean(0)
+        spectra["omegas"] = 2 * pi * freq
 
-        dict_spectra["omegas"] = 2 * pi * freq
+        return spectra
 
-        return dict_spectra
-
-    def plot_spectra(self, key=None, region=None, tmin=0, tmax=None):
+    def plot_spectra(self, key=None, region=None, tmin=0, tmax=None, dtype=None):
         """plot temporal spectra from files"""
         if key is None:
             key = self.keys_fields[0]
         if region is None:
-            oper = self.sim.oper
-            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+            p_oper = self.sim.params.oper
+            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
+        # TODO: check if spectra are saved before computing everything
         # compute spectra
-        dict_spectra = self.compute_spectra(
-            keys=[key], region=region, tmin=tmin, tmax=tmax
+        spectra = self.compute_temporal_spectra(
+            region=region, tmin=tmin, tmax=tmax, dtype=dtype
         )
 
         # plot
@@ -475,8 +628,8 @@ class TemporalSpectra(SpecificOutput):
         ax.set_yscale("log")
 
         ax.plot(
-            dict_spectra["omegas"],
-            dict_spectra["spectra_" + key],
+            spectra["omegas"],
+            spectra["spectrum_" + key],
             "k",
             linewidth=2,
         )
@@ -583,17 +736,19 @@ class TemporalSpectra(SpecificOutput):
     def save_spectra(self, region=None, tmin=0, tmax=None):
         """compute temporal spectra from files"""
         if region is None:
-            oper = self.sim.oper
-            region = (0, oper.Lx, 0, oper.Ly, 0, oper.Lz)
+            p_oper = self.sim.params.oper
+            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        dict_spectra = self.compute_spectra(region=region, tmin=tmin, tmax=tmax)
+        spectra = self.compute_temporal_spectra(
+            region=region, tmin=tmin, tmax=tmax
+        )
 
         path_file = Path(self.sim.output.path_run) / "temporal_spectra.h5"
         with h5py.File(path_file, "w") as file:
             file.attrs["region"] = region
             file.attrs["tmin"] = tmin
             file.attrs["tmax"] = tmax
-            for key, val in dict_spectra.items():
+            for key, val in spectra.items():
                 file.create_dataset(key, data=val)
