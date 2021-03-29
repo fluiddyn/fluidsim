@@ -82,7 +82,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
         base = f"spatiotemporal_spectra_{tmin}_{tmax}"
         if dtype is not None:
-            base += "_{dtype}"
+            base += f"_{dtype}"
         if save_urud:
             base += "_urud"
         return self.path_dir / (base + ".h5")
@@ -189,13 +189,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         tmax=None,
         dtype=None,
         equation=None,
+        xmax=None,
+        ymax=None,
         cmap="viridis",
         vmin=None,
         vmax=None,
     ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
+        keys_plot = self.keys_fields + ["Khd", "Khr"]
         if key_field is None:
-            key_field = self.keys_fields[0]
+            key_field = keys_plot[0]
+        if key_field not in keys_plot:
+            raise KeyError(f"possible keys are {keys_plot}")
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -206,32 +211,31 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             save_urud = False
 
         path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
+        path_urud = self._get_path_saved_spectra(tmin, tmax, dtype, True)
+        if path_urud.exists() and not path_file.exists():
+            path_file = path_urud
 
         spectra_kzkhomega = {}
 
-        if path_file.exists():
-            # we should check if times match?
-            print("loading spectra from file...")
-            with h5py.File(path_file, "r") as file:
-                spectrum = file[key_spect][...]
-                if dtype == "complex64":
-                    float_dtype = "float32"
-                elif dtype == "complex128":
-                    float_dtype = "float64"
-                if dtype:
-                    spectrum = spectrum.astype(float_dtype)
-                spectra_kzkhomega[key_spect] = spectrum
-                spectra_kzkhomega["kh_spectra"] = file["kh_spectra"][...]
-                spectra_kzkhomega["kz_spectra"] = file["kz_spectra"][...]
-                spectra_kzkhomega["omegas"] = file["omegas"][...]
-        else:
-            # compute spectra and save to file, then load
+        # compute and save spectra if needed
+        if not path_file.exists():
             self.save_spectra_kzkhomega(
                 tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
             )
-            with h5py.File(path_file, "r") as file:
-                for key in file.keys():
-                    spectra_kzkhomega[key] = file[key][...]
+
+        # load spectrum
+        with h5py.File(path_file, "r") as file:
+            spectrum = file[key_spect][...]
+            if dtype == "complex64":
+                float_dtype = "float32"
+            elif dtype == "complex128":
+                float_dtype = "float64"
+            if dtype:
+                spectrum = spectrum.astype(float_dtype)
+            spectra_kzkhomega[key_spect] = spectrum
+            spectra_kzkhomega["kh_spectra"] = file["kh_spectra"][...]
+            spectra_kzkhomega["kz_spectra"] = file["kz_spectra"][...]
+            spectra_kzkhomega["omegas"] = file["omegas"][...]
 
         # slice along equation
         if equation is None:
@@ -241,10 +245,10 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             omegas = spectra_kzkhomega["omegas"]
             iomega = abs(omegas - omega).argmin()
             spect = spectra_kzkhomega[key_spect][:, :, iomega]
-            xaxis = spectra_kzkhomega["kh_spectra"]
-            yaxis = spectra_kzkhomega["kz_spectra"]
-            xlabel = r"$k_h$"
-            ylabel = r"$k_z$"
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
+            yaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
+            xlabel = r"$k_h/\delta k_h$"
+            ylabel = r"$k_z/\delta k_z$"
             omega = omegas[iomega]
             equation = r"$\omega=$" + f"{omega:.2g}"
             # use reduced frequency for stratified fluids
@@ -259,7 +263,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             ikh = abs(kh_spectra - kh).argmin()
             spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
 
-            xaxis = spectra_kzkhomega["kz_spectra"]
+            xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
             yaxis = spectra_kzkhomega["omegas"]
             # use reduced frequency for stratified fluids
             try:
@@ -268,17 +272,17 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             except AttributeError:
                 pass
 
-            xlabel = r"$k_z$"
+            xlabel = r"$k_z/\delta k_z$"
             ylabel = r"$\omega/N$"
             kh = kh_spectra[ikh]
-            equation = r"$k_h=$" + f"{kh:.2g}"
+            equation = f"$k_h = {ikh}\\delta k_h = {kh:.2g}$"
         elif equation.startswith("kz="):
             kz = eval(equation[len("kz=") :])
             kz_spectra = spectra_kzkhomega["kz_spectra"]
             ikz = abs(kz_spectra - kz).argmin()
             spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
 
-            xaxis = spectra_kzkhomega["kh_spectra"]
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
             yaxis = spectra_kzkhomega["omegas"]
             # use reduced frequency for stratified fluids
             try:
@@ -287,13 +291,49 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             except AttributeError:
                 pass
 
-            xlabel = r"$k_h$"
+            xlabel = r"$k_h/\delta k_h$"
             ylabel = r"$\omega/N$"
             kz = kz_spectra[ikz]
-            equation = r"$k_z=$" + f"{kz:.2g}"
+            equation = f"$k_z = {ikz}\\delta k_z = {kz:.2g}$"
+        elif equation.startswith("ikh="):
+            ikh = eval(equation[len("ikh=") :])
+            kh_spectra = spectra_kzkhomega["kh_spectra"]
+            spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_z/\delta k_z$"
+            ylabel = r"$\omega/N$"
+            kh = kh_spectra[ikh]
+            equation = f"$k_h = {ikh}\\delta k_h = {kh:.2g}$"
+        elif equation.startswith("ikz="):
+            ikz = eval(equation[len("ikz=") :])
+            kz_spectra = spectra_kzkhomega["kz_spectra"]
+            spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_h/\delta k_h$"
+            ylabel = r"$\omega/N$"
+            kz = kz_spectra[ikz]
+            equation = f"$k_z = {ikz}\\delta k_z = {kz:.2g}$"
         else:
             raise NotImplementedError(
-                "equation must start with 'omega=', 'kh=' or 'kz='"
+                "equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='"
             )
 
         # plot
@@ -319,7 +359,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         ax.set_title(
             f"{key_field} spatiotemporal spectra {equation}\n"
-            f"tmin={tmin:.2g}, tmax={tmax:.2g}\n" + self.output.summary_simul
+            f"tmin={tmin:.3f}, tmax={tmax:.3f}\n" + self.output.summary_simul
         )
 
         # add dispersion relation : omega = N * kh / sqrt(kh ** 2 + kz ** 2)
@@ -328,20 +368,24 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         except AttributeError:
             return
         if equation.startswith(r"$\omega"):
-            kz_disp = (N ** 2 / omega ** 2 - 1) * xaxis
-            ax.step(xaxis, kz_disp, "k", linewidth=2)
+            kz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) * xaxis
+            ax.plot(xaxis, kz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
             omega_disp = kh / np.sqrt(kh ** 2 + xaxis ** 2)
-            ax.step(xaxis, omega_disp, "k", linewidth=2)
+            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_z"):
             omega_disp = xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
-            ax.step(xaxis, omega_disp, "k", linewidth=2)
+            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
 
-        # reset axis limits after plotting dispersion relation
-        ax.set_xlim((xaxis.min(), xaxis.max()))
-        ax.set_ylim((yaxis.min(), yaxis.max()))
+        # set axis limits after plotting dispersion relation
+        if xmax is None:
+            xmax = xaxis.max()
+        if ymax is None:
+            ymax = yaxis.max()
+        ax.set_xlim((0, xmax))
+        ax.set_ylim((0, ymax))
 
     def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
         """compute the spectra of ur, ud from files"""

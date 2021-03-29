@@ -22,67 +22,10 @@ from rich.progress import Progress, track
 
 from fluiddyn.util import mpi
 from fluidsim.base.output.base import SpecificOutput
-
-from transonic import boost, Array, Type
-
-Uf32f64 = Type(np.float32, np.float64)
-A = Array[Uf32f64, "1d"]
-
-
-@boost
-def find_index_first_geq(arr: A, value: Uf32f64):
-    """find the first index such that `arr[index] >= value`"""
-    for i, v in enumerate(arr):
-        if v >= value:
-            return i
-    raise ValueError("No index such that `arr[index] >= value`")
-
-
-@boost
-def find_index_first_g(arr: A, value: Uf32f64):
-    """find the first index such that `arr[index] > value`"""
-    for i, v in enumerate(arr):
-        if v > value:
-            return i
-    raise ValueError("No index such that `arr[index] > value`")
-
-
-@boost
-def find_index_first_l(arr: A, value: Uf32f64):
-    """find the first index such that `arr[index] < value`"""
-    for i, v in enumerate(arr):
-        if v < value:
-            return i
-    raise ValueError("No index such that `arr[index] < value`")
-
-
-def filter_tmins_paths(tmin, tmins, paths):
-    if tmins.size == 1:
-        return tmins, paths
-    delta_tmin = np.diff(tmins).min()
-    start = find_index_first_l(tmin - tmins, delta_tmin)
-    return tmins[start:], paths[start:]
-
-
-@boost
-def get_arange_minmax(times: A, tmin: Uf32f64, tmax: Uf32f64):
-    """get a range of index for which `tmin <= times[i] <= tmax`
-
-    This assumes that `times` is sorted.
-
-    """
-
-    if tmin <= times[0]:
-        start = 0
-    else:
-        start = find_index_first_geq(times, tmin)
-
-    if tmax >= times[-1]:
-        stop = len(times)
-    else:
-        stop = find_index_first_g(times, tmax)
-
-    return np.arange(start, stop)
+from fluidsim.base.output.spatiotemporal_spectra import (
+    filter_tmins_paths,
+    get_arange_minmax,
+)
 
 
 class TemporalSpectra(SpecificOutput):
@@ -538,7 +481,7 @@ class TemporalSpectra(SpecificOutput):
                             times_file = file["times"][:]
                             its_file = get_arange_minmax(times_file, tmin, tmax)
                             data[skey].append(tmp[:, its_file])
-                    
+
                     # update rich task
                     progress.update(task_files, advance=1)
 
@@ -621,7 +564,7 @@ class TemporalSpectra(SpecificOutput):
         ax.set_xlabel(r"$\omega$")
         ax.set_ylabel("spectra " + key)
         ax.set_title(
-            f"temporal spectrum (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            f"temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
         )
         ax.set_xscale("log")
