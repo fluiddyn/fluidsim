@@ -213,8 +213,11 @@ class TestNoShearModes(TestSimulBase):
         params.forcing.enable = False
 
         params.output.periods_save.spatial_means = 0.2
+        params.output.periods_save.spectra = 0.2
+        params.output.spectra.kzkh_periodicity = 1
 
         params.oper.NO_SHEAR_MODES = True
+        params.oper.NO_KZ0 = True
 
     def test_noshearmodes(self):
 
@@ -226,9 +229,12 @@ class TestNoShearModes(TestSimulBase):
         EKhs = sim.output.spatial_means.load()["EKhs"]
         E = sim.output.spatial_means.load()["E"]
         ratio = EKhs[-1] / E[-1]
-        print(ratio)
         self.assertGreater(1e-15, ratio)
 
+        # test energy in kz = 0
+        data = sim.output.spectra.load_kzkh_mean(key_to_load=["Khr", "Khd", "Kz"])
+        spectrum = data["Khr"] + data["Khd"] + data["Kz"]
+        assert np.allclose(spectrum[0, :].sum(), 0.0)
 
 if __name__ == "__main__":
     unittest.main()

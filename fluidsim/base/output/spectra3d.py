@@ -237,11 +237,15 @@ class Spectra(SpecificOutput):
             )
 
             if key_to_load is not None:
-                if key_to_load not in h5file.keys():
-                    print(key_to_load, h5file.keys())
-                    raise ValueError
-                spect = h5file[key_to_load][imin_plot : imax_plot + 1].mean(0)
-                dict_results[key_to_load] = spect
+                if isinstance(key_to_load, str):
+                    keys = [key_to_load]
+                else:
+                    keys = key_to_load
+                for key in keys:
+                    if key not in h5file.keys():
+                        raise ValueError(f"{key} not in {h5file.keys()}")
+                    spect = h5file[key][imin_plot : imax_plot + 1].mean(0)
+                    dict_results[key] = spect
                 return dict_results
 
             for key in list(h5file.keys()):
