@@ -168,7 +168,6 @@ class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
             "Lz": 2 * pi,
             "truncation_shape": "cubic",
             "NO_SHEAR_MODES": False,
-            "NO_KZ0": False,
         }
         params._set_child("oper", attribs=attribs)
         params.oper._set_doc(
@@ -280,18 +279,6 @@ Lx, Ly and Lz: float
                 COND_NOSHEAR = self.Kx ** 2 + self.Ky ** 2 == 0.0
                 self.where_dealiased = np.array(
                     np.logical_or(COND_NOSHEAR, self.where_dealiased),
-                    dtype=np.uint8,
-                )
-
-        try:
-            NO_KZ0 = self.params.oper.NO_KZ0
-        except AttributeError:
-            pass
-        else:
-            if NO_KZ0:
-                COND_NO_KZ0 = abs(self.Kz) == 0.0
-                self.where_dealiased = np.array(
-                    np.logical_or(COND_NO_KZ0, self.where_dealiased),
                     dtype=np.uint8,
                 )
 

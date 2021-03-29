@@ -12,11 +12,14 @@
 
 import sys
 
+import numpy as np
+
 from fluiddyn.util.mpi import rank
 
 from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.setofvariables import SetOfVariables
+from fluidsim.operators.operators3d import dealiasing_variable
 
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral,
@@ -121,15 +124,34 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        params._set_attrib("f", None)
+        params._set_attribs({"f": None, "no_vz_kz0": False})
         params._set_doc(
             params._doc
             + """
 f: float (default None)
 
     Coriolis parameter (effect of the system rotation).
+
+no_vz_kz0: bool (default False)
+
+    If True, vz(kz=0) is 0.
+
 """
         )
+
+    def __init__(self, params):
+        super().__init__(params)
+
+        try:
+            self.no_vz_kz0 = self.params.no_vz_kz0
+        except AttributeError:
+            self.no_vz_kz0 = False
+
+        if self.no_vz_kz0:
+            self.where_kz_0 = np.array(
+                abs(self.oper.Kz) == 0.0,
+                dtype=np.uint8,
+            )
 
     def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
         if rank == 0:
@@ -199,6 +221,9 @@ f: float (default None)
         fft_as_arg(fz, fz_fft)
 
         oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
+
+        if self.no_vz_kz0:
+            dealiasing_variable(fz_fft, self.where_kz_0)
 
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()

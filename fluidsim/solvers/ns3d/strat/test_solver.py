@@ -217,7 +217,11 @@ class TestNoShearModes(TestSimulBase):
         params.output.spectra.kzkh_periodicity = 1
 
         params.oper.NO_SHEAR_MODES = True
-        params.oper.NO_KZ0 = True
+        params.no_vz_kz0 = True
+
+        # we need delta_kx == delta_ky for this test
+        params.oper.Ly = params.oper.Lx
+        params.oper.ny = params.oper.nx
 
     def test_noshearmodes(self):
 
@@ -225,16 +229,28 @@ class TestNoShearModes(TestSimulBase):
 
         sim.time_stepping.start()
 
-        # test energy in shear modes
+        data = sim.output.spectra.load_kzkh_mean(
+            tmin=0.2, key_to_load=["Khd", "Kz", "Khr", "A"]
+        )
+
+        # check k \cdot v = 0
+        assert np.allclose(data["Khd"][0, :].sum(), 0.0)
+        assert np.allclose(data["Kz"][:, 0].sum(), 0.0)
+
+        # check energy in shear modes
         EKhs = sim.output.spatial_means.load()["EKhs"]
         E = sim.output.spatial_means.load()["E"]
         ratio = EKhs[-1] / E[-1]
         self.assertGreater(1e-15, ratio)
 
-        # test energy in kz = 0
-        data = sim.output.spectra.load_kzkh_mean(key_to_load=["Khr", "Khd", "Kz"])
-        spectrum = data["Khr"] + data["Khd"] + data["Kz"]
+        # check energy in shear modes
+        spectrum = data["Khr"] + data["Khd"] + data["Kz"] + data["A"]
+        assert np.allclose(spectrum[:, 0].sum(), 0.0)
+
+        # check energy in kz = 0
+        spectrum = data["Khd"] + data["Kz"]
         assert np.allclose(spectrum[0, :].sum(), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

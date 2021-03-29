@@ -1,6 +1,7 @@
 import numpy as np
 
 from fluidsim.base.time_stepping.pseudo_spect import TimeSteppingPseudoSpectral
+from fluidsim.operators.operators3d import dealiasing_variable
 
 
 class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):
@@ -16,6 +17,8 @@ class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):
         vy_fft = state_spect.get_var("vy_fft")
         vz_fft = state_spect.get_var("vz_fft")
         self.sim.oper.project_perpk3d(vx_fft, vy_fft, vz_fft)
+        if self.sim.no_vz_kz0:
+            dealiasing_variable(vz_fft, self.sim.where_kz_0)
         self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(state_spect[0])):

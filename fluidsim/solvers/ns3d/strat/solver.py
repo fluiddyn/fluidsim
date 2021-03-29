@@ -18,6 +18,7 @@ from transonic import boost
 from fluidfft.fft3d.operators import vector_product
 
 from fluidsim.base.setofvariables import SetOfVariables
+from fluidsim.operators.operators3d import dealiasing_variable
 
 from ..solver import InfoSolverNS3D, Simul as SimulNS3D
 
@@ -197,6 +198,9 @@ class Simul(SimulNS3D):
         fz_fft += b_fft
 
         oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
+
+        if self.no_vz_kz0:
+            dealiasing_variable(fz_fft, self.where_kz_0)
 
         if state_spect is None:
             b = self.state.state_phys.get_var("b")
