@@ -214,7 +214,7 @@ class Spectra(SpecificOutput):
         pass
 
     def _load_mean_file(self, path, tmin=None, tmax=None, key_to_load=None):
-        dict_results = {}
+        results = {}
         with h5py.File(path, "r") as h5file:
             times = h5file["times"][...]
             nt = len(times)
@@ -245,28 +245,28 @@ class Spectra(SpecificOutput):
                     if key not in h5file.keys():
                         raise ValueError(f"{key} not in {h5file.keys()}")
                     spect = h5file[key][imin_plot : imax_plot + 1].mean(0)
-                    dict_results[key] = spect
-                return dict_results
+                    results[key] = spect
+                return results
 
             for key in list(h5file.keys()):
                 if key.startswith("spectr"):
                     dset_key = h5file[key]
                     spect = dset_key[imin_plot : imax_plot + 1].mean(0)
-                    dict_results[key] = spect
-        return dict_results
+                    results[key] = spect
+        return results
 
     def load3d_mean(self, tmin=None, tmax=None):
-        dict_results = self._load_mean_file(self.path_file3d, tmin, tmax)
+        results = self._load_mean_file(self.path_file3d, tmin, tmax)
         with h5py.File(self.path_file3d, "r") as h5file:
-            dict_results["k"] = h5file["k_spectra3d"][...]
-        return dict_results
+            results["k"] = h5file["k_spectra3d"][...]
+        return results
 
     def load1d_mean(self, tmin=None, tmax=None):
-        dict_results = self._load_mean_file(self.path_file1d, tmin, tmax)
+        results = self._load_mean_file(self.path_file1d, tmin, tmax)
         with h5py.File(self.path_file1d, "r") as h5file:
             for key in ("kx", "ky", "kz"):
-                dict_results[key] = h5file[key][...]
-        return dict_results
+                results[key] = h5file[key][...]
+        return results
 
     def load_kzkh_mean(self, tmin=None, tmax=None, key_to_load=None):
 
@@ -276,14 +276,14 @@ class Spectra(SpecificOutput):
                 + " does not exist. Can't load values from it."
             )
 
-        dict_results = self._load_mean_file(
+        results = self._load_mean_file(
             self.path_file_kzkh, tmin, tmax, key_to_load
         )
         with h5py.File(self.path_file_kzkh, "r") as h5file:
             for key in ("kz", "kh_spectra"):
-                dict_results[key] = h5file[key][...]
+                results[key] = h5file[key][...]
 
-        return dict_results
+        return results
 
     def plot1d(self):
         pass
