@@ -12,8 +12,8 @@ Provides:
 
 from pathlib import Path
 from logging import warn
-
 from math import pi
+
 import numpy as np
 from scipy import signal
 import h5py
@@ -90,7 +90,6 @@ class SpatioTemporalSpectra(SpecificOutput):
     """
 
     _tag = "spatiotemporal_spectra"
-    # _name_file = _tag + ".h5"
 
     @staticmethod
     def _complete_params_with_default(params):

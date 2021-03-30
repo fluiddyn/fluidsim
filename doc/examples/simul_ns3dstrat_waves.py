@@ -41,6 +41,8 @@ params.oper.nz = nz
 params.oper.Lx = lx = lz / nz * nx
 params.oper.Ly = ly = lz / nz * ny
 params.oper.Lz = lz
+params.oper.NO_SHEAR_MODES = True
+params.no_vz_kz0 = True
 
 r"""
 

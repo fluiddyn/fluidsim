@@ -45,8 +45,10 @@ def compute_spectrum_kzkhomega(
             for ik2 in range(nk2):
                 values = field_k0k1k2omega[ik0, ik1, ik2, :]
                 kx = KX[ik0, ik1, ik2]
-                # TODO: other condition (kx != kx_max)
                 if kx != 0.0:
+                    # warning: we should also consider another condition
+                    # (kx != kx_max) but it is not necessary here mainly
+                    # because of dealiasing
                     values = 2 * values
 
                 kappa = KH[ik0, ik1, ik2]
@@ -80,7 +82,7 @@ def compute_spectrum_kzkhomega(
 
 class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
-        base = f"spatiotemporal_spectra_{tmin}_{tmax}"
+        base = f"periodogram_{tmin}_{tmax}"
         if dtype is not None:
             base += f"_{dtype}"
         if save_urud:

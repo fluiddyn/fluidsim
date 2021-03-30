@@ -1,8 +1,10 @@
 import unittest
 import sys
 from pathlib import Path
-
 from math import pi
+
+import pytest
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -126,6 +128,7 @@ class TestOutput(TestSimulBase):
         )
         params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = True
 
+    @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
 
         sim = self.sim
