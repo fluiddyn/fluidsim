@@ -99,16 +99,16 @@ class SpectraMultiDim(SpecificOutput):
     def load_mean(self, tmin=None, tmax=None):
         """Loads time averaged data between tmin and tmax."""
 
-        dict_results = {}
+        results = {}
 
         # Load data
         with h5py.File(self.path_file, "r") as file:
             for key in file.keys():
                 if not key.startswith("info"):
-                    dict_results[key] = file[key][...]
+                    results[key] = file[key][...]
 
         # Time average spectra
-        times = dict_results["times"]
+        times = results["times"]
         nt = len(times)
         if tmin is None:
             imin_plot = 0
@@ -125,19 +125,17 @@ class SpectraMultiDim(SpecificOutput):
 
         print(
             "compute mean of multidimensional spectra\n"
-            + (
-                "tmin = {0:8.6g} ; tmax = {1:8.6g}\n"
-                "imin = {2:8d} ; imax = {3:8d}"
-            ).format(tmin, tmax, imin_plot, imax_plot)
+            f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+            f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
         )
 
-        for key in dict_results.keys():
+        for key in results.keys():
             if key.startswith("spectr"):
-                spect = dict_results[key]
+                spect = results[key]
                 spect_averaged = spect[imin_plot : imax_plot + 1].mean(0)
-                dict_results[key] = spect_averaged
+                results[key] = spect_averaged
 
-        return dict_results
+        return results
 
     def plot(self):
         pass

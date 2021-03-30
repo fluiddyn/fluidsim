@@ -62,7 +62,7 @@ class PrintStdOutNS2D(PrintStdOutBase):
         if nt > 1:
             nt -= 1
 
-        it = np.zeros(nt, dtype=np.int)
+        it = np.zeros(nt, dtype=int)
         t = np.zeros(nt)
         deltat = np.zeros(nt)
 

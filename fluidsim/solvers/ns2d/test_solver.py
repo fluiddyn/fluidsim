@@ -33,7 +33,7 @@ class TestSimulBase(TestSimul):
         params.oper.Ly = Lh
 
         params.oper.coef_dealiasing = 2.0 / 3
-        params.nu_8 = 2.0
+        params.nu_8 = 2.0e-5
 
         params.time_stepping.t_end = 0.5
 
@@ -118,6 +118,8 @@ class TestForcingOutput(TestSimulBase):
         params = super().init_params()
 
         params.oper.truncation_shape = "no_multiple_aliases"
+        params.oper.NO_SHEAR_MODES = True
+        params.oper.NO_KY0 = True
 
         params.forcing.enable = True
         params.forcing.type = "tcrandom"
@@ -170,78 +172,6 @@ class TestForcingOutput(TestSimulBase):
         sim.state.init_statespect_from(ux_fft=ux_fft)
         sim.state.init_statespect_from(uy_fft=uy_fft)
 
-        if mpi.nb_proc == 1:
-            plt.close("all")
-            sim.output.spectra.plot1d()
-            sim.output.spectra.plot2d()
-            sim.output.spectra.load2d_mean()
-            sim.output.spectra.load1d_mean()
-
-            sim.output.spatial_means.plot()
-            sim.output.spatial_means.plot_dt_energy()
-            sim.output.spatial_means.plot_dt_enstrophy()
-            sim.output.spatial_means.compute_time_means()
-            sim.output.spatial_means.load_dataset()
-            sim.output.spatial_means.time_first_saved()
-            sim.output.spatial_means.time_last_saved()
-
-            plt.close("all")
-
-            sim.output.print_stdout.plot_energy()
-            sim.output.print_stdout.plot_deltat()
-            sim.output.print_stdout.plot_clock_times()
-
-            sim.output.spectra_multidim.plot()
-
-            sim.output.spect_energy_budg.plot()
-            with self.assertRaises(ValueError):
-                sim.state.get_var("test")
-
-            sim2 = fls.load_sim_for_plot(sim.output.path_run)
-            sim2.output
-
-            sim2.output.increments.load()
-            sim2.output.increments.plot()
-            sim2.output.increments.load_pdf_from_file()
-            sim2.output.increments.plot_pdf()
-
-            sim2.output.phys_fields.animate(
-                "ux",
-                dt_frame_in_sec=1e-6,
-                dt_equations=0.3,
-                repeat=False,
-                clim=(-1, 1),
-                save_file=False,
-                numfig=1,
-            )
-            sim2.output.phys_fields.plot()
-            sim2.plot_freq_diss("y")
-
-            # `compute('q')` two times for better coverage...
-            sim.state.get_var("q")
-            sim.state.get_var("q")
-            sim.state.get_var("div")
-
-            path_run = sim.output.path_run
-            if mpi.nb_proc > 1:
-                path_run = mpi.comm.bcast(path_run)
-
-            sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
-            sim3.params.time_stepping.t_end += 0.2
-            sim3.time_stepping.start()
-
-            if mpi.nb_proc == 1:
-                sim3.output.phys_fields.animate(
-                    "ux",
-                    dt_frame_in_sec=1e-6,
-                    dt_equations=0.3,
-                    repeat=False,
-                    clim=(-1, 1),
-                    save_file=False,
-                    numfig=1,
-                )
-        plt.close("all")
-
         # test_enstrophy_conservation
         # Verify that the enstrophy growth rate due to nonlinear tendencies
         # (advection term) must be zero.
@@ -255,6 +185,87 @@ class TestForcingOutput(TestSimulBase):
         T_rot = (Frot_fft.conj() * rot_fft + Frot_fft * rot_fft.conj()).real / 2.0
         sum_T = oper.sum_wavenumbers(T_rot)
         self.assertAlmostEqual(sum_T, 0, places=14)
+        self.sim.params.forcing.enable = True
+
+        if mpi.nb_proc > 1:
+            return
+
+        plt.close("all")
+        sim.output.spectra.plot1d()
+        sim.output.spectra.plot2d()
+        sim.output.spectra.load2d_mean()
+        sim.output.spectra.load1d_mean()
+
+        sim.output.spatial_means.plot()
+        sim.output.spatial_means.plot_dt_energy()
+        sim.output.spatial_means.plot_dt_enstrophy()
+        sim.output.spatial_means.compute_time_means()
+        sim.output.spatial_means.load_dataset()
+        sim.output.spatial_means.time_first_saved()
+        sim.output.spatial_means.time_last_saved()
+
+        plt.close("all")
+
+        sim.output.print_stdout.plot_energy()
+        sim.output.print_stdout.plot_deltat()
+        sim.output.print_stdout.plot_clock_times()
+
+        data = sim.output.spectra_multidim.load_mean(tmin=0.2)
+        spectrum = data["spectrumkykx_E"]
+
+        assert spectrum.sum() > 1e-14
+        # check NO_KY0
+        assert np.allclose(spectrum[0, :].sum(), 0.0)
+        # check NO_SHEAR_MODES
+        assert np.allclose(spectrum[:, 0].sum(), 0.0)
+
+        sim.output.spectra_multidim.plot()
+
+        sim.output.spect_energy_budg.plot()
+        with self.assertRaises(ValueError):
+            sim.state.get_var("test")
+
+        sim2 = fls.load_sim_for_plot(sim.output.path_run)
+        sim2.output
+
+        sim2.output.increments.load()
+        sim2.output.increments.plot()
+        sim2.output.increments.load_pdf_from_file()
+        sim2.output.increments.plot_pdf()
+
+        sim2.output.phys_fields.animate(
+            "ux",
+            dt_frame_in_sec=1e-6,
+            dt_equations=0.3,
+            repeat=False,
+            clim=(-1, 1),
+            save_file=False,
+            numfig=1,
+        )
+        sim2.output.phys_fields.plot()
+        sim2.plot_freq_diss("y")
+
+        # `compute('q')` two times for better coverage...
+        sim.state.get_var("q")
+        sim.state.get_var("q")
+        sim.state.get_var("div")
+
+        path_run = sim.output.path_run
+
+        sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+        sim3.params.time_stepping.t_end += 0.2
+        sim3.time_stepping.start()
+
+        sim3.output.phys_fields.animate(
+            "ux",
+            dt_frame_in_sec=1e-6,
+            dt_equations=0.3,
+            repeat=False,
+            clim=(-1, 1),
+            save_file=False,
+            numfig=1,
+        )
+        plt.close("all")
 
 
 class TestSolverNS2DInitJet(TestSimulBase):
