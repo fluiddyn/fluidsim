@@ -5,8 +5,11 @@
 .. autofunction:: import_cls_simul
 
 """
-
-import entrypoints
+import sys
+if sys.version_info[:2] < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 
 
 def available_solvers(entrypoint_grp):
@@ -22,7 +25,7 @@ def available_solvers(entrypoint_grp):
         The name of the entrypoint group listing the solvers.
 
     """  # noqa
-    return entrypoints.get_group_named(entrypoint_grp)
+    return entry_points(group=entrypoint_grp)
 
 
 def import_module_solver(key, entrypoint_grp):
