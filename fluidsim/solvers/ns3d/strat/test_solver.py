@@ -1,5 +1,7 @@
 import unittest
 
+import pytest
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -95,6 +97,7 @@ class TestOutput(TestSimulBase):
 
         params.output.spectra.kzkh_periodicity = 2
 
+    @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
 
         sim = self.sim
@@ -232,14 +235,17 @@ class TestNoShearModes(TestSimulBase):
         data = sim.output.spectra.load_kzkh_mean(
             tmin=0.2, key_to_load=["Khd", "Kz", "Khr", "A"]
         )
+        means = sim.output.spatial_means.load()
+        if mpi.nb_proc > 1:
+            mpi.comm.barrier()
 
         # check k \cdot v = 0
         assert np.allclose(data["Khd"][0, :].sum(), 0.0)
         assert np.allclose(data["Kz"][:, 0].sum(), 0.0)
 
         # check energy in shear modes
-        EKhs = sim.output.spatial_means.load()["EKhs"]
-        E = sim.output.spatial_means.load()["E"]
+        EKhs = means["EKhs"]
+        E = means["E"]
         ratio = EKhs[-1] / E[-1]
         assert ratio < 1e-15
 
