@@ -21,8 +21,32 @@ from fluiddyn.util import mpi
 from .phys_fields2d import MoviesBasePhysFields2D, PhysFieldsBase2D
 
 
+def _get_xylabels_from_equation(equation):
+    if equation.startswith("iz=") or equation.startswith("z="):
+        xlabel = "x"
+        ylabel = "y"
+    elif equation.startswith("iy=") or equation.startswith("y="):
+        xlabel = "x"
+        ylabel = "z"
+    elif equation.startswith("ix=") or equation.startswith("x="):
+        xlabel = "y"
+        ylabel = "z"
+    else:
+        raise NotImplementedError
+    return xlabel, ylabel
+
+
 class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
-    pass
+    def _init_labels(self, xlabel=None, ylabel=None):
+        """Initialize the labels."""
+        if xlabel is None or ylabel is None:
+            _xlabel, _ylabel = _get_xylabels_from_equation(self._equation)
+        if xlabel is None:
+            xlabel = _xlabel
+        if ylabel is None:
+            ylabel = _ylabel
+        self.ax.set_xlabel(xlabel, fontdict=self.font)
+        self.ax.set_ylabel(ylabel, fontdict=self.font)
 
 
 class PhysFieldsBase3D(PhysFieldsBase2D):
@@ -128,17 +152,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         assert key_field is not None
 
-        if equation.startswith("iz=") or equation.startswith("z="):
-            xlabel = "x"
-            ylabel = "y"
-        elif equation.startswith("iy=") or equation.startswith("y="):
-            xlabel = "x"
-            ylabel = "z"
-        elif equation.startswith("ix=") or equation.startswith("x="):
-            xlabel = "y"
-            ylabel = "z"
-        else:
-            raise NotImplementedError
+        xlabel, ylabel = _get_xylabels_from_equation(equation)
         vecx = vector + xlabel
         vecy = vector + ylabel
 
@@ -318,17 +332,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         assert key_field is not None
 
-        if equation.startswith("iz=") or equation.startswith("z="):
-            xlabel = "x"
-            ylabel = "y"
-        elif equation.startswith("iy=") or equation.startswith("y="):
-            xlabel = "x"
-            ylabel = "z"
-        elif equation.startswith("ix=") or equation.startswith("x="):
-            xlabel = "y"
-            ylabel = "z"
-        else:
-            raise NotImplementedError
+        xlabel, ylabel = _get_xylabels_from_equation(equation)
         vecx = vector + xlabel
         vecy = vector + ylabel
 
