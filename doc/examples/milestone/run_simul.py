@@ -1,6 +1,12 @@
 """
 # A simple MILESTONE simulation
 
+Launch for example with:
+
+```
+python run_simul.py -nypc 20 -np 2
+```
+
 Notes for profiling:
 
 https://github.com/benfred/py-spy

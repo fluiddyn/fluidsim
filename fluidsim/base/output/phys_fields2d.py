@@ -179,8 +179,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         )
 
         field = field[::step, ::step]
-        # tricky: https://stackoverflow.com/questions/29009743/using-set-array-with-pyplot-pcolormesh-ruins-figure
-        field = field[:-1, :-1]
 
         # Update figure, quiver and colorbar
         self._im.set_array(field.flatten())
@@ -301,8 +299,6 @@ class PhysFieldsBase2D(PhysFieldsBase):
                 uy, _ = self.get_field_to_plot_from_state("uy")
 
             if mpi.rank == 0:
-                field = field[:-1, :-1]
-
                 # Update figure, quiver and colorbar
                 self.movies._im.set_array(field.flatten())
                 if self._has_uxuy:
