@@ -19,6 +19,11 @@ class TimeSteppingPseudoSpectralNS3D(TimeSteppingPseudoSpectral):
         self.sim.oper.project_perpk3d(vx_fft, vy_fft, vz_fft)
         if self.sim.no_vz_kz0:
             dealiasing_variable(vz_fft, self.sim.where_kz_0)
+            if "b_fft" in state_spect.keys:
+                dealiasing_variable(
+                    state_spect.get_var("b_fft"), self.sim.where_kz_0
+                )
+
         self.sim.state.statephys_from_statespect()
         # np.isnan(np.sum seems to be really fast
         if np.isnan(np.sum(state_spect[0])):
