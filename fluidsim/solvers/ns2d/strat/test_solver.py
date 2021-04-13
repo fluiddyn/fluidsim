@@ -136,22 +136,24 @@ class TestForcingOutput(TestSimulBase):
         # save all outputs!
         periods = params.output.periods_save
         for key in periods._key_attribs:
-            periods[key] = 0.2
+            periods[key] = 0.1
 
         params.output.ONLINE_PLOT_OK = True
         params.output.periods_print.print_stdout = 0.2
         params.output.periods_plot.phys_fields = 0.2
 
-        # Spatio-temporal spectra
-        params.output.spatio_temporal_spectra.size_max_file = 0.01
-        params.output.spatio_temporal_spectra.time_decimate = 1
-        params.output.spatio_temporal_spectra.spatial_decimate = 1
-        params.output.spatio_temporal_spectra.time_start = 0
+        Lx, Ly = params.oper.Lx, params.oper.Ly
+        nx, ny = params.oper.nx, params.oper.ny
+        params.output.temporal_spectra.probes_region = (0.0, Lx, 0.0, Ly)
+        params.output.temporal_spectra.probes_deltax = Lx / nx
+        params.output.temporal_spectra.probes_deltay = Ly / ny
+        params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
 
-        params.output.frequency_spectra.size_max_file = 0.004
-        params.output.frequency_spectra.time_start = 0
-        params.output.frequency_spectra.time_decimate = 1
-        params.output.frequency_spectra.spatial_decimate = 2
+        # TODO: replug a spatiotemporal_spectra output
+        # params.output.spatio_temporal_spectra.size_max_file = 0.01
+        # params.output.spatio_temporal_spectra.time_decimate = 1
+        # params.output.spatio_temporal_spectra.spatial_decimate = 1
+        # params.output.spatio_temporal_spectra.time_start = 0
 
         for tag in params.output._tag_children:
             if tag.startswith("periods"):
@@ -185,8 +187,6 @@ class TestForcingOutput(TestSimulBase):
 
             plt.close("all")
 
-            sim.output.frequency_spectra.compute_frequency_spectra()
-
             sim.output.plot_summary()
 
             sim.output.spectra.plot2d()
@@ -209,14 +209,28 @@ class TestForcingOutput(TestSimulBase):
             sim2 = fls.load_sim_for_plot(sim.output.path_run)
             sim2.output
 
-            spatio_temporal_spectra = sim2.output.spatio_temporal_spectra
-            spatio_temporal_spectra.compute_frequency_spectra()
-            spatio_temporal_spectra.print_info_frequency_spectra()
-            spatio_temporal_spectra.plot_frequency_spectra_individual_mode(
-                mode=(1, 1)
+            # TODO: add spatiotemporal_spectra calls
+
+            means = sim2.output.spatial_means.load()
+            energy_K_mean = means["EK"].mean()
+
+            sim2.output.temporal_spectra.load_time_series()
+            tspectra_mean = (
+                sim2.output.temporal_spectra.compute_temporal_spectra()
             )
-            spatio_temporal_spectra.plot_kx_omega_cross_section()
-            spatio_temporal_spectra.plot_kz_omega_cross_section()
+            omegas = tspectra_mean["omegas"]
+            delta_omega = omegas[1]
+            sim2.output.temporal_spectra.plot_spectra()
+
+            tspectrum_mean = (
+                tspectra_mean["spectrum_ux"] + tspectra_mean["spectrum_uy"]
+            )
+
+            energy_tspect_mean = 0.5 * delta_omega * tspectrum_mean.sum()
+
+            assert np.allclose(energy_K_mean, energy_tspect_mean), (
+                energy_K_mean / energy_tspect_mean
+            )
 
             sim2.output.increments.load()
             sim2.output.increments.plot()

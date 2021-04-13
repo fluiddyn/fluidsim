@@ -5,7 +5,11 @@ FrequencySpectra (:mod:`fluidsim.solvers.ns3d.output.temporal_spectra`)
 
 Provides:
 
-.. autoclass:: TemporalSpectra
+.. autoclass:: TemporalSpectra3D
+   :members:
+   :private-members:
+
+.. autoclass:: TemporalSpectra2D
    :members:
    :private-members:
 
@@ -28,45 +32,42 @@ from fluidsim.base.output.spatiotemporal_spectra import (
 )
 
 
-class TemporalSpectra(SpecificOutput):
+class TemporalSpectra3D(SpecificOutput):
     """
     Computes the temporal spectra.
     """
 
     _tag = "temporal_spectra"
-    # _name_file = _tag + ".h5"
+    nb_dim = 3
 
-    @staticmethod
-    def _complete_params_with_default(params):
+    @classmethod
+    def _complete_params_with_default(cls, params):
         tag = "temporal_spectra"
 
         params.output.periods_save._set_attrib(tag, 0)
+
+        attribs = {
+            "HAS_TO_PLOT_SAVED": False,
+            "probes_deltax": 0.1,  # m
+            "probes_deltay": 0.1,  # m
+            "probes_region": None,  # m
+            "file_max_size": 10.0,  # MB
+            "SAVE_AS_FLOAT32": True,
+        }
+
+        if cls.nb_dim == 3:
+            attribs["probes_deltaz"] = 0.1  # m
+
         params.output._set_child(
             tag,
-            attribs={
-                "HAS_TO_PLOT_SAVED": False,
-                "probes_deltax": 0.1,  # m
-                "probes_deltay": 0.1,  # m
-                "probes_deltaz": 0.1,  # m
-                "probes_region": None,  # m
-                "file_max_size": 10.0,  # MB
-                "SAVE_AS_FLOAT32": True,
-            },
+            attribs=attribs,
         )
 
         params.output.temporal_spectra._set_doc(
             """
-            probes_deltax: float (default: 0.1)
+            probes_deltax, probes_deltay and probes_deltaz: float (default: 0.1)
 
-                Probes spacing in the x direction, in params.oper.Lx unit.
-
-            probes_deltay: float (default: 0.1)
-
-                Probes spacing in the y direction.
-
-            probes_deltaz: float (default: 0.1)
-
-                Probes spacing in the x direction.
+                Probes spacing in the x, y and z directions (in params.oper.Li unit).
 
             probes_region: tuple (default:None)
 
@@ -111,7 +112,9 @@ class TemporalSpectra(SpecificOutput):
         # Parameters
         self.probes_deltax = params_tspec.probes_deltax
         self.probes_deltay = params_tspec.probes_deltay
-        self.probes_deltaz = params_tspec.probes_deltaz
+        if self.nb_dim == 3:
+            self.probes_deltaz = params_tspec.probes_deltaz
+
         self.period_save = params.output.periods_save.temporal_spectra
 
         self.path_dir = Path(self.sim.output.path_run) / "probes"
@@ -124,18 +127,31 @@ class TemporalSpectra(SpecificOutput):
 
         if params_tspec.probes_region is not None:
             self.probes_region = params_tspec.probes_region
-            xmin, xmax, ymin, ymax, zmin, zmax = self.probes_region
+            if self.nb_dim == 3:
+                xmin, xmax, ymin, ymax, zmin, zmax = self.probes_region
+            else:
+                xmin, xmax, ymin, ymax = self.probes_region
+                zmin, zmax = 0.0, 0.0
         else:
             xmin = ymin = zmin = 0.0
             xmax = oper.Lx
             ymax = oper.Ly
-            zmax = oper.Lz
-            self.probes_region = xmin, xmax, ymin, ymax, zmin, zmax
+
+            if self.nb_dim == 3:
+                zmax = oper.Lz
+                self.probes_region = xmin, xmax, ymin, ymax, zmin, zmax
+            else:
+                zmax = 0.0
+                self.probes_region = xmin, xmax, ymin, ymax
 
         self.file_max_size = params_tspec.file_max_size
         self.SAVE_AS_FLOAT32 = params_tspec.SAVE_AS_FLOAT32
 
-        X, Y, Z = oper.get_XYZ_loc()
+        if self.nb_dim == 3:
+            X, Y, Z = oper.get_XYZ_loc()
+        else:
+            X = oper.X
+            Y = oper.Y
 
         # round probes positions to gridpoints
         # probes spacing should at least be oper grid spacing
@@ -149,10 +165,14 @@ class TemporalSpectra(SpecificOutput):
         )
         ymin = oper.deltay * round(ymin / oper.deltay)
 
-        self.probes_deltaz = max(
-            oper.deltaz, oper.deltaz * round(self.probes_deltaz / oper.deltaz)
-        )
-        zmin = oper.deltaz * round(zmin / oper.deltaz)
+        if self.nb_dim == 3:
+            self.probes_deltaz = max(
+                oper.deltaz, oper.deltaz * round(self.probes_deltaz / oper.deltaz)
+            )
+            zmin = oper.deltaz * round(zmin / oper.deltaz)
+        else:
+            self.probes_deltaz = None
+            zmin = 0.0
 
         # make sure probes region is not empty, and xmax is included
         xmax += 1e-15
@@ -220,9 +240,17 @@ class TemporalSpectra(SpecificOutput):
             self.probes_y_loc = self.probes_y_seq[
                 (self.probes_y_seq >= Y.min()) & (self.probes_y_seq <= Y.max())
             ]
-            self.probes_z_loc = self.probes_z_seq[
-                (self.probes_z_seq >= Z.min()) & (self.probes_z_seq <= Z.max())
-            ]
+
+            if self.nb_dim == 3:
+                self.probes_z_loc = self.probes_z_seq[
+                    (self.probes_z_seq >= Z.min())
+                    & (self.probes_z_seq <= Z.max())
+                ]
+            else:
+                self.probes_z_loc = self.probes_z_seq
+
+            if self.nb_dim == 2:
+                assert self.probes_z_loc.size == 1
 
             self.probes_nb_loc = (
                 self.probes_x_loc.size
@@ -233,27 +261,24 @@ class TemporalSpectra(SpecificOutput):
             # local probes indices
             self.probes_ix_loc = np.empty(self.probes_nb_loc, dtype=int)
             self.probes_iy_loc = np.empty_like(self.probes_ix_loc)
-            self.probes_iz_loc = np.empty_like(self.probes_ix_loc)
+            self.probes_iz_loc = np.zeros_like(self.probes_ix_loc)
             probe_i = 0
             for probe_x in self.probes_x_loc:
                 for probe_y in self.probes_y_loc:
                     for probe_z in self.probes_z_loc:
                         probe_ix = int((probe_x - X.min()) / oper.deltax)
                         probe_iy = int((probe_y - Y.min()) / oper.deltay)
-                        probe_iz = int((probe_z - Z.min()) / oper.deltaz)
                         self.probes_ix_loc[probe_i] = probe_ix
                         self.probes_iy_loc[probe_i] = probe_iy
-                        self.probes_iz_loc[probe_i] = probe_iz
+                        if self.nb_dim == 3:
+                            probe_iz = int((probe_z - Z.min()) / oper.deltaz)
+                            self.probes_iz_loc[probe_i] = probe_iz
                         probe_i += 1
-            self.probes_x_loc = X[
-                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
-            ]
-            self.probes_y_loc = Y[
-                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
-            ]
-            self.probes_z_loc = Z[
-                self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
-            ]
+
+            self.probes_x_loc = self._get_data_probe_from_field(X)
+            self.probes_y_loc = self._get_data_probe_from_field(Y)
+            if self.nb_dim == 3:
+                self.probes_z_loc = self._get_data_probe_from_field(Z)
 
             # initialize files
             self.index_file = 0
@@ -298,33 +323,23 @@ class TemporalSpectra(SpecificOutput):
             create_ds("probes_x_seq", data=self.probes_x_seq)
             create_ds("probes_y_seq", data=self.probes_y_seq)
             create_ds("probes_z_seq", data=self.probes_z_seq)
+
             create_ds("probes_x_loc", data=self.probes_x_loc)
             create_ds("probes_y_loc", data=self.probes_y_loc)
             create_ds("probes_z_loc", data=self.probes_z_loc)
+
             create_ds("probes_ix_loc", data=self.probes_ix_loc)
             create_ds("probes_iy_loc", data=self.probes_iy_loc)
             create_ds("probes_iz_loc", data=self.probes_iz_loc)
-            create_ds(
-                "probes_vx_loc",
-                (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, None),
-            )
-            create_ds(
-                "probes_vy_loc",
-                (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, None),
-            )
-            create_ds(
-                "probes_vz_loc",
-                (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, None),
-            )
-            create_ds(
-                "probes_b_loc",
-                (self.probes_nb_loc, 1),
-                maxshape=(self.probes_nb_loc, None),
-            )
+
             create_ds("times", (1,), maxshape=(None,))
+
+            for key in self.keys_fields:
+                create_ds(
+                    f"probes_{key}_loc",
+                    (self.probes_nb_loc, 1),
+                    maxshape=(self.probes_nb_loc, None),
+                )
 
     def _write_to_file(self, data):
         """Writes a file with the temporal data"""
@@ -342,11 +357,14 @@ class TemporalSpectra(SpecificOutput):
                         v = v.astype("float32")
                     dset[:, -1] = v
 
+    def _get_data_probe_from_field(self, field):
+        return field[self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc]
+
     def _add_probes_data_to_dict(self, data_dict, key):
         """Probes fields and append data to a dict object"""
-        data_dict[f"probes_{key}_loc"] = self.sim.state.get_var(key)[
-            self.probes_iz_loc, self.probes_iy_loc, self.probes_ix_loc
-        ]
+        data_dict[f"probes_{key}_loc"] = self._get_data_probe_from_field(
+            self.sim.state.get_var(key)
+        )
 
     def _online_save(self):
         """Prepares data and writes to file"""
@@ -377,12 +395,14 @@ class TemporalSpectra(SpecificOutput):
         if keys is None:
             keys = self.keys_fields
         if region is None:
-            p_oper = self.sim.params.oper
-            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
+            region = self._get_default_region()
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        xmin, xmax, ymin, ymax, zmin, zmax = region
+        if self.nb_dim == 3:
+            xmin, xmax, ymin, ymax, zmin, zmax = region
+        else:
+            xmin, xmax, ymin, ymax = region
 
         # get ranks
         paths = sorted(self.path_dir.glob("rank*.h5"))
@@ -465,14 +485,21 @@ class TemporalSpectra(SpecificOutput):
                         probes_y = file["probes_y_loc"][:]
                         probes_z = file["probes_z_loc"][:]
 
-                        cond_region = np.where(
+                        cond_region = (
                             (probes_x >= xmin)
                             & (probes_x <= xmax)
                             & (probes_y >= ymin)
                             & (probes_y <= ymax)
-                            & (probes_z >= zmin)
-                            & (probes_z <= zmax)
-                        )[0]
+                        )
+
+                        if self.nb_dim == 3:
+                            cond_region = (
+                                cond_region
+                                & (probes_z >= zmin)
+                                & (probes_z <= zmax)
+                            )
+
+                        cond_region = np.where(cond_region)[0]
 
                         for key in keys:
                             skey = f"probes_{key}_loc"
@@ -518,8 +545,7 @@ class TemporalSpectra(SpecificOutput):
     ):
         """compute temporal spectra from files"""
         if region is None:
-            p_oper = self.sim.params.oper
-            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
+            region = self._get_default_region()
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -529,7 +555,6 @@ class TemporalSpectra(SpecificOutput):
         series = self.load_time_series(
             region=region, tmin=tmin, tmax=tmax, dtype=dtype
         )
-        times = series["times"]
 
         # compute periodograms and average
         for key in series.keys():
@@ -543,13 +568,16 @@ class TemporalSpectra(SpecificOutput):
 
         return spectra
 
+    def _get_default_region(self):
+        p_oper = self.sim.params.oper
+        return (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
+
     def plot_spectra(self, key=None, region=None, tmin=0, tmax=None, dtype=None):
         """plot temporal spectra from files"""
         if key is None:
             key = self.keys_fields[0]
         if region is None:
-            p_oper = self.sim.params.oper
-            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
+            region = self._get_default_region()
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -679,8 +707,7 @@ class TemporalSpectra(SpecificOutput):
     def save_spectra(self, region=None, tmin=0, tmax=None):
         """compute temporal spectra from files"""
         if region is None:
-            p_oper = self.sim.params.oper
-            region = (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
+            region = self._get_default_region()
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -695,3 +722,18 @@ class TemporalSpectra(SpecificOutput):
             file.attrs["tmax"] = tmax
             for key, val in spectra.items():
                 file.create_dataset(key, data=val)
+
+
+class TemporalSpectra2D(TemporalSpectra3D):
+    nb_dim = 2
+
+    def _get_data_probe_from_field(self, field):
+        return field[self.probes_iy_loc, self.probes_ix_loc]
+
+    def save_data_as_phys_fields(self, delta_index_times=1):
+        """load temporal data and save as phys_fields array"""
+        raise NotImplementedError
+
+    def _get_default_region(self):
+        p_oper = self.sim.params.oper
+        return (0, p_oper.Lx, 0, p_oper.Ly)

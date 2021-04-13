@@ -54,41 +54,33 @@ class OutputStrat(Output):
         classes.PhysFields.module_name = base_name_mod + ".phys_fields"
         classes.PhysFields.class_name = "PhysFields2DStrat"
 
-        attribs = {
-            "module_name": base_name_mod + ".spectra",
-            "class_name": "SpectraNS2DStrat",
-        }
-        classes.Spectra._set_attribs(attribs)
+        classes.Spectra._set_attribs(
+            {
+                "module_name": base_name_mod + ".spectra",
+                "class_name": "SpectraNS2DStrat",
+            }
+        )
 
-        attribs = {
-            "module_name": base_name_mod + ".spectra_multidim",
-            "class_name": "SpectraMultiDimNS2DStrat",
-        }
-        classes.SpectraMultiDim._set_attribs(attribs)
+        classes.SpectraMultiDim._set_attribs(
+            {
+                "module_name": base_name_mod + ".spectra_multidim",
+                "class_name": "SpectraMultiDimNS2DStrat",
+            }
+        )
 
-        attribs = {
-            "module_name": base_name_mod + ".spatial_means",
-            "class_name": "SpatialMeansNS2DStrat",
-        }
-        classes.spatial_means._set_attribs(attribs)
+        classes.SpatialMeans._set_attribs(
+            {
+                "module_name": base_name_mod + ".spatial_means",
+                "class_name": "SpatialMeansNS2DStrat",
+            }
+        )
 
-        attribs = {
-            "module_name": base_name_mod + ".spect_energy_budget",
-            "class_name": "SpectralEnergyBudgetNS2DStrat",
-        }
-        classes.spect_energy_budg._set_attribs(attribs)
-
-        attribs = {
-            "module_name": base_name_mod + ".spatio_temporal_spectra",
-            "class_name": "SpatioTempSpectra",
-        }
-        classes._set_child("spatio_temporal_spectra", attribs=attribs)
-
-        attribs = {
-            "module_name": base_name_mod + ".frequency_spectra",
-            "class_name": "FrequencySpectra",
-        }
-        classes._set_child("frequency_spectra", attribs=attribs)
+        classes.SpectEnergyBudg._set_attribs(
+            {
+                "module_name": base_name_mod + ".spect_energy_budget",
+                "class_name": "SpectralEnergyBudgetNS2DStrat",
+            }
+        )
 
     def compute_energies_fft(self):
         """Compute the kinetic and potential energy (k)"""
@@ -207,6 +199,7 @@ class OutputStrat(Output):
         """
         Plots summary of all outputs of a simulation.
         """
+        # pylint: disable=maybe-no-member
         self.phys_fields.plot(field=field, time=time_phys, QUIVER=False)
         self.print_stdout.plot()
         self.spatial_means.plot()

@@ -70,7 +70,7 @@ class Output(OutputBasePseudoSpectral):
             "TemporalSpectra",
             attribs={
                 "module_name": "fluidsim.base.output.temporal_spectra",
-                "class_name": "TemporalSpectra",
+                "class_name": "TemporalSpectra3D",
             },
         )
 
@@ -109,6 +109,7 @@ class Output(OutputBasePseudoSpectral):
         return self.sum_wavenumbers(energy_fft)
 
     def plot_summary(self, tmin=0, key_field=None):
+        # pylint: disable=maybe-no-member
         self.spatial_means.plot()
         self.spectra.plot1d(tmin=tmin)
         self.spect_energy_budg.plot_fluxes(tmin=tmin)

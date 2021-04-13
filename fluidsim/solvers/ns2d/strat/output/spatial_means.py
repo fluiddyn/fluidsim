@@ -183,8 +183,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             if line.startswith("E_shear ="):
                 lines_E_shear.append(line)
         nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
 
         t = np.empty(nt)
         Z = np.empty(nt)

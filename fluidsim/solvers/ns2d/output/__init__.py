@@ -59,24 +59,36 @@ class Output(OutputBasePseudoSpectral):
         )
 
         classes._set_child(
-            "spatial_means",
+            "SpatialMeans",
             attribs={
                 "module_name": base_name_mod + ".spatial_means",
                 "class_name": "SpatialMeansNS2D",
             },
         )
 
-        attribs = {
-            "module_name": base_name_mod + ".spect_energy_budget",
-            "class_name": "SpectralEnergyBudgetNS2D",
-        }
-        classes._set_child("spect_energy_budg", attribs=attribs)
+        classes._set_child(
+            "SpectEnergyBudg",
+            attribs={
+                "module_name": base_name_mod + ".spect_energy_budget",
+                "class_name": "SpectralEnergyBudgetNS2D",
+            },
+        )
 
-        attribs = {
-            "module_name": "fluidsim.base.output.increments",
-            "class_name": "Increments",
-        }
-        classes._set_child("increments", attribs=attribs)
+        classes._set_child(
+            "Increments",
+            attribs={
+                "module_name": "fluidsim.base.output.increments",
+                "class_name": "Increments",
+            },
+        )
+
+        classes._set_child(
+            "TemporalSpectra",
+            attribs={
+                "module_name": "fluidsim.base.output.temporal_spectra",
+                "class_name": "TemporalSpectra2D",
+            },
+        )
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):

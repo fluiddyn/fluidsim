@@ -21,7 +21,9 @@ class TestSimulBase(TestSimul):
     @classmethod
     def init_params(cls):
 
-        params = cls.params = cls.Simul.create_default_params()
+        params = (
+            cls.params
+        ) = cls.Simul.create_default_params()  # pylint: disable=maybe-no-member
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
 
