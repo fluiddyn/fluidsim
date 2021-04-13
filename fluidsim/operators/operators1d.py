@@ -50,7 +50,7 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         assert kx_max == self.kx.max()
 
         CONDKX = abs(self.kx) > self.coef_dealiasing * kx_max
-        self.where_dealiased = np.array(CONDKX, dtype=np.bool)
+        self.where_dealiased = np.array(CONDKX, dtype=bool)
 
         # for spectra
         self.nkxE = self.nx // 2 + 1
