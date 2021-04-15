@@ -540,9 +540,7 @@ class TemporalSpectra3D(SpecificOutput):
         )
         return freq, spectrum / self.domega
 
-    def compute_temporal_spectra(
-        self, region=None, tmin=0, tmax=None, dtype=None
-    ):
+    def compute_spectra(self, region=None, tmin=0, tmax=None, dtype=None):
         """compute temporal spectra from files"""
         if region is None:
             region = self._get_default_region()
@@ -583,7 +581,7 @@ class TemporalSpectra3D(SpecificOutput):
 
         # TODO: check if spectra are saved before computing everything
         # compute spectra
-        spectra = self.compute_temporal_spectra(
+        spectra = self.compute_spectra(
             region=region, tmin=tmin, tmax=tmax, dtype=dtype
         )
 
@@ -711,9 +709,7 @@ class TemporalSpectra3D(SpecificOutput):
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        spectra = self.compute_temporal_spectra(
-            region=region, tmin=tmin, tmax=tmax
-        )
+        spectra = self.compute_spectra(region=region, tmin=tmin, tmax=tmax)
 
         path_file = Path(self.sim.output.path_run) / "temporal_spectra.h5"
         with h5py.File(path_file, "w") as file:

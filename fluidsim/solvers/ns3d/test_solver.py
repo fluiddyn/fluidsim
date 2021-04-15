@@ -244,18 +244,19 @@ class TestOutput(TestSimulBase):
             sim3.output.temporal_spectra.save_spectra()
 
             spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
-            series = spatiotemporal_spectra.load_time_series()
+            series_kxkykz = spatiotemporal_spectra.load_time_series()
 
-            tspectra_kxyz = spatiotemporal_spectra.compute_temporal_spectra()
-            tspectra_mean = (
-                sim3.output.temporal_spectra.compute_temporal_spectra()
+            spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
+            spectra_omega = sim3.output.temporal_spectra.compute_spectra()
+            spectra_omega_from_spatiotemp = (
+                spatiotemporal_spectra.compute_temporal_spectra()
             )
 
             means = sim3.output.spatial_means.load()
 
             deltakx = 2 * pi / self.params.oper.Lx
-            order = tspectra_kxyz["dims_order"]
-            KX = deltakx * tspectra_kxyz[f"K{order[2]}_adim"]
+            order = spectra_kxkykzomega["dims_order"]
+            KX = deltakx * spectra_kxkykzomega[f"K{order[2]}_adim"]
             kx_max = self.params.oper.nx // 2 * deltakx
 
             def sum_wavenumber(field):
@@ -281,44 +282,56 @@ class TestOutput(TestSimulBase):
             coef = delta_kz * delta_kh * delta_omega
 
             for letter in "xyz":
-                vi_fft = series[f"v{letter}_Fourier"]
-                tspectrum_kxyz = tspectra_kxyz["spectrum_v" + letter]
-                tspectrum_mean = tspectra_mean["spectrum_v" + letter]
+                vi_fft = series_kxkykz[f"v{letter}_Fourier"]
+                spectrum_kxkykzomega = spectra_kxkykzomega["spectrum_v" + letter]
+                spectrum_omega = spectra_omega["spectrum_v" + letter]
+                spectrum_omega_from_spatiotemp = spectra_omega_from_spatiotemp[
+                    "spectrum_v" + letter
+                ]
                 spectrum_kzkhomega = spectra_kzkhomega["spectrum_v" + letter]
 
-                energy_series = 0.5 * sum_wavenumber(
+                Etot_series_kxkykz = 0.5 * sum_wavenumber(
                     (abs(vi_fft) ** 2).mean(axis=-1)
                 )
-                assert energy_series > 0, (letter, vi_fft)
+                assert Etot_series_kxkykz > 0, (letter, vi_fft)
 
-                energy_tspect_kxyz = (
+                Etot_kxkykzomega = (
                     0.5
                     * delta_omega
-                    * sum_wavenumber(tspectrum_kxyz.sum(axis=-1))
+                    * sum_wavenumber(spectrum_kxkykzomega.sum(axis=-1))
                 )
-                energy_tspect_mean = 0.5 * delta_omega * tspectrum_mean.sum()
-                energy_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
+                Etot_omega = 0.5 * delta_omega * spectrum_omega.sum()
+                Etot_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
                 # `:-1` because the last time is saved twice in spatial_means
-                energy_mean = means["E" + letter][:-1].mean()
+                Etot_mean = means["E" + letter][:-1].mean()
 
-                assert np.allclose(energy_tspect_mean, energy_tspect_kxyz), (
+                assert np.allclose(Etot_omega, Etot_kxkykzomega), (
                     letter,
-                    energy_tspect_kxyz / energy_mean,
+                    Etot_kxkykzomega / Etot_mean,
                 )
 
-                assert np.allclose(energy_series, energy_tspect_kxyz), (
+                assert np.allclose(Etot_series_kxkykz, Etot_kxkykzomega), (
                     letter,
-                    energy_tspect_kxyz / energy_series,
+                    Etot_kxkykzomega / Etot_series_kxkykz,
                 )
 
-                assert np.allclose(energy_series, energy_kzkhomega), (
+                assert np.allclose(Etot_series_kxkykz, Etot_kzkhomega), (
                     letter,
-                    energy_kzkhomega / energy_series,
+                    Etot_kzkhomega / Etot_series_kxkykz,
                 )
 
-                assert np.allclose(energy_mean, energy_series), (
+                assert np.allclose(Etot_mean, Etot_series_kxkykz), (
                     letter,
-                    energy_series / energy_mean,
+                    Etot_series_kxkykz / Etot_mean,
+                )
+
+                assert np.allclose(
+                    spectrum_omega, spectrum_omega_from_spatiotemp
+                ), (
+                    letter,
+                    spectrum_omega,
+                    spectrum_omega_from_spatiotemp,
+                    spectrum_omega / spectrum_omega_from_spatiotemp,
                 )
 
             spectrum_Khd = spectra_kzkhomega["spectrum_Khd"]

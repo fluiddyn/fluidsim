@@ -553,7 +553,7 @@ class SpatioTemporalSpectra(SpecificOutput):
         )
         return freq, spectrum / self.domega
 
-    def compute_temporal_spectra(self, tmin=0, tmax=None, dtype=None):
+    def compute_spectra(self, tmin=0, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
@@ -562,7 +562,7 @@ class SpatioTemporalSpectra(SpecificOutput):
         series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
 
         # compute spectra
-        print("computing temporal spectra...")
+        print("performing time fft...")
 
         spectra = {k: v for k, v in series.items() if k.startswith("K")}
 
