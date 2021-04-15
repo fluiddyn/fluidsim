@@ -111,8 +111,13 @@ max_elapsed: number or str (default None)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
 
-        if self.params.time_stepping.max_elapsed is not None:
+        try:
             param_max_elapsed = self.params.time_stepping.max_elapsed
+        except AttributeError:
+            # loading an old simulation?
+            param_max_elapsed = None
+
+        if param_max_elapsed is not None:
             try:
                 self.max_elapsed = float(param_max_elapsed)
             except ValueError:
