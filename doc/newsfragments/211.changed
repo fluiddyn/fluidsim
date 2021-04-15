@@ -1,0 +1,2 @@
+Replace for ns2d solvers the output ``frequency_spectra`` (nearly not used) by
+the newer output ```temporal_spectra` written for ns3d solvers.
