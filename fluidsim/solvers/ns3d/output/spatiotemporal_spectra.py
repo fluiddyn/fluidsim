@@ -369,14 +369,18 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             N = self.sim.params.N
         except AttributeError:
             return
+        dkz_dkh = (
+            spectra_kzkhomega["kz_spectra"][1]
+            / spectra_kzkhomega["kh_spectra"][1]
+        )
         if equation.startswith(r"$\omega"):
-            kz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) * xaxis
-            ax.plot(xaxis, kz_disp, "k+", linewidth=2)
+            ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkz_dkh * xaxis
+            ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
-            omega_disp = kh / np.sqrt(kh ** 2 + xaxis ** 2)
+            omega_disp = ikh / np.sqrt(ikh ** 2 + dkz_dkh ** 2 * xaxis ** 2)
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_z"):
-            omega_disp = xaxis / np.sqrt(xaxis ** 2 + kz ** 2)
+            omega_disp = xaxis / np.sqrt(xaxis ** 2 + dkz_dkh ** 2 * ikz ** 2)
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")

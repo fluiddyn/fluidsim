@@ -417,7 +417,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         imax_plot_spatial_times = np.argmin(abs(t - tmax))
 
         eps_tot_time_average = eps_tot[
-            imin_plot_spatial_times:imax_plot_spatial_times + 1
+            imin_plot_spatial_times : imax_plot_spatial_times + 1
         ].mean(0)
 
         # calculate forcing wave-number k_f to normalize k_x and k_z
