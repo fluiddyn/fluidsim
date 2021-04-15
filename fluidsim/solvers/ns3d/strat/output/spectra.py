@@ -145,7 +145,7 @@ class SpectraNS3DStrat(SpectraNS3D):
 
         _plot(spectrumK, "r", f"$E_K(k_{direction})$")
         _plot(spectrumA, "b", f"$E_A(k_{direction})$")
-        _plot(spectrumKhd + spectrumKz, "y", "poloidal", 0.8)
+        _plot(spectrumKhd + spectrumKz, "m", "poloidal", 1)
 
     def plot_kzkh_cumul_diss(self, tmin=0, tmax=None):
         path_file = self.path_file_kzkh

@@ -296,7 +296,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ylim=None,
     ):
 
-        self._plot_ndim(
+        ax = self._plot_ndim(
             tmin,
             tmax,
             coef_compensate=coef_compensate,
@@ -307,6 +307,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             ylim=ylim,
             ndim=3,
         )
+
+        return ax
 
     def _plot_ndim(
         self,
@@ -405,6 +407,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         if ndim == 1:
             fig.legend()
+
+        return ax
 
     def _plot1d_direction(
         self, direction, imin_plot, imax_plot, coef_compensate, ax
