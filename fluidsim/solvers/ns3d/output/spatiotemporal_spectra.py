@@ -198,7 +198,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         vmax=None,
     ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
-        keys_plot = self.keys_fields + ["Khd", "Khr"]
+        keys_plot = self.keys_fields + ["Khd", "Khr", "Kp"]
         if key_field is None:
             key_field = keys_plot[0]
         if key_field not in keys_plot:
@@ -207,7 +207,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             tmax = self.sim.params.time_stepping.t_end
 
         key_spect = "spectrum_" + key_field
-        if key_spect.startswith("spectrum_Kh"):
+        if key_field.startswith("Kh") or key_field.startswith("Kp"):
             save_urud = True
         else:
             save_urud = False
@@ -227,7 +227,10 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         # load spectrum
         with h5py.File(path_file, "r") as file:
-            spectrum = file[key_spect][...]
+            if key_spect.startswith("spectrum_Kp"):
+                spectrum = file["spectrum_Khd"][:] + 0.5 * file["spectrum_vz"][:]
+            else:
+                spectrum = file[key_spect][...]
             if dtype == "complex64":
                 float_dtype = "float32"
             elif dtype == "complex128":
@@ -347,6 +350,9 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
             vmin = np.log10(spect[np.isfinite(spect)].min())
         if vmax is None:
             vmax = np.log10(spect[np.isfinite(spect)].max())
+
+        # no log(0)
+        spect += 1e-15
 
         im = ax.pcolormesh(
             xaxis,
