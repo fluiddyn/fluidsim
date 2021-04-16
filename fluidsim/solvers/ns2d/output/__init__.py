@@ -90,6 +90,14 @@ class Output(OutputBasePseudoSpectral):
             },
         )
 
+        classes._set_child(
+            "SpatioTemporalSpectra",
+            attribs={
+                "module_name": base_name_mod + ".spatiotemporal_spectra",
+                "class_name": "SpatioTemporalSpectraNS2D",
+            },
+        )
+
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """Complete the `params` container (static method)."""

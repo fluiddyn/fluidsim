@@ -4,7 +4,11 @@ Spatiotemporal Spectra (:mod:`fluidsim.base.output.spatiotemporal_spectra`)
 
 Provides:
 
-.. autoclass:: SpatioTemporalSpectra
+.. autoclass:: SpatioTemporalSpectra3D
+   :members:
+   :private-members:
+
+.. autoclass:: SpatioTemporalSpectra2D
    :members:
    :private-members:
 
@@ -84,20 +88,19 @@ def get_arange_minmax(times: A, tmin: Uf32f64, tmax: Uf32f64):
     return np.arange(start, stop)
 
 
-class SpatioTemporalSpectra(SpecificOutput):
+class SpatioTemporalSpectra3D(SpecificOutput):
     """
     Computes the spatiotemporal spectra.
     """
 
     _tag = "spatiotemporal_spectra"
+    nb_dim = 3
 
-    @staticmethod
-    def _complete_params_with_default(params):
-        tag = "spatiotemporal_spectra"
-
-        params.output.periods_save._set_attrib(tag, 0)
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.output.periods_save._set_attrib(cls._tag, 0)
         params.output._set_child(
-            tag,
+            cls._tag,
             attribs={
                 "HAS_TO_PLOT_SAVED": False,
                 "probes_region": None,
@@ -168,17 +171,23 @@ class SpatioTemporalSpectra(SpecificOutput):
             return
 
         if params_st_spec.probes_region is not None:
-            ikxmax, ikymax, ikzmax = params_st_spec.probes_region
-            ikxmax = min(ikxmax, params.oper.nx // 2)
-            ikymax = min(ikymax, params.oper.ny // 2)
+            if self.nb_dim == 3:
+                ikxmax, ikymax, ikzmax = params_st_spec.probes_region
+            else:
+                ikxmax, ikymax = params_st_spec.probes_region
+        else:
+            ikxmax = ikymax = 4
+            if self.nb_dim == 3:
+                ikzmax = 4
+
+        ikxmax = min(ikxmax, params.oper.nx // 2)
+        ikymax = min(ikymax, params.oper.ny // 2)
+
+        if self.nb_dim == 3:
             ikzmax = min(ikzmax, params.oper.nz // 2)
             self.probes_region = ikxmax, ikymax, ikzmax
         else:
-            ikxmax = ikymax = ikzmax = 4
-            ikxmax = min(ikxmax, params.oper.nx // 2)
-            ikymax = min(ikymax, params.oper.ny // 2)
-            ikzmax = min(ikzmax, params.oper.nz // 2)
-            self.probes_region = ikxmax, ikymax, ikzmax
+            self.probes_region = ikxmax, ikymax
 
         self.file_max_size = params_st_spec.file_max_size
         self.SAVE_AS_COMPLEX64 = params_st_spec.SAVE_AS_COMPLEX64
@@ -186,10 +195,16 @@ class SpatioTemporalSpectra(SpecificOutput):
         # region must be int tuple
         ikxmax = int(ikxmax)
         ikymax = int(ikymax)
-        ikzmax = int(ikzmax)
+        if self.nb_dim == 3:
+            ikzmax = int(ikzmax)
 
         # dimensions order in Fourier space
-        self.dims_order = np.array(oper.oper_fft.get_dimX_K())
+        if self.nb_dim == 3:
+            self.dims_order = np.array(oper.oper_fft.get_dimX_K())
+        else:
+            self.dims_order = np.arange(2)
+            if oper.oper_fft.get_is_transposed():
+                self.dims_order = self.dims_order[::-1]
 
         # data directory
         if mpi.rank == 0:
@@ -224,11 +239,14 @@ class SpatioTemporalSpectra(SpecificOutput):
                 with h5py.File(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
                     self.probes_k0adim_loc = file["probes_k0adim_loc"][:]
-                    self.probes_k1adim_loc = file["probes_k1adim_loc"][:]
-                    self.probes_k2adim_loc = file["probes_k2adim_loc"][:]
                     self.probes_ik0_loc = file["probes_ik0_loc"][:]
+                    self.probes_k1adim_loc = file["probes_k1adim_loc"][:]
                     self.probes_ik1_loc = file["probes_ik1_loc"][:]
-                    self.probes_ik2_loc = file["probes_ik2_loc"][:]
+
+                    if self.nb_dim == 3:
+                        self.probes_k2adim_loc = file["probes_k2adim_loc"][:]
+                        self.probes_ik2_loc = file["probes_ik2_loc"][:]
+
                     self.probes_nb_loc = self.probes_ik0_loc.size
                     self.number_times_in_file = file["times"].size
                     self.t_last_save = file["times"][-1]
@@ -243,51 +261,76 @@ class SpatioTemporalSpectra(SpecificOutput):
                 self.probes_ik2_loc = []
 
         else:
+            # TODO 2D!
+
             # no files were found : initialize from params
             INIT_FROM_PARAMS = True
-            # pair kx,ky,kz with k0,k1,k2
-            iksmax = np.array([ikzmax, ikymax, ikxmax])
-            iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
-            ik0max, ik1max, ik2max = iksmax[self.dims_order]
-            ik0min, ik1min, ik2min = iksmin[self.dims_order]
 
-            # local probes indices
-            k0_adim_loc, k1_adim_loc, k2_adim_loc = oper.oper_fft.get_k_adim_loc()
-            K0_adim, K1_adim, K2_adim = np.meshgrid(
-                k0_adim_loc, k1_adim_loc, k2_adim_loc, indexing="ij"
-            )
+            if self.nb_dim == 3:
+                # pair kx,ky,kz with k0,k1,k2
+                iksmax = np.array([ikzmax, ikymax, ikxmax])
+                iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
+                ik0max, ik1max, ik2max = iksmax[self.dims_order]
+                ik0min, ik1min, ik2min = iksmin[self.dims_order]
+
+                # local probes indices
+                (
+                    k0_adim_loc,
+                    k1_adim_loc,
+                    k2_adim_loc,
+                ) = oper.oper_fft.get_k_adim_loc()
+                K0_adim, K1_adim, K2_adim = np.meshgrid(
+                    k0_adim_loc, k1_adim_loc, k2_adim_loc, indexing="ij"
+                )
+            else:
+                iksmax = np.array([ikymax, ikxmax])
+                iksmin = np.array([1 - ikymax, 0])
+                ik0max, ik1max = iksmax[self.dims_order]
+                ik0min, ik1min = iksmin[self.dims_order]
+
+                if oper.oper_fft.get_is_transposed():
+                    k0_adim_loc = oper.kx_loc
+                    k1_adim_loc = oper.ky_loc
+                else:
+                    k0_adim_loc = oper.ky_loc
+                    k1_adim_loc = oper.kx_loc
+
+                K0_adim, K1_adim = np.meshgrid(
+                    k0_adim_loc, k1_adim_loc, indexing="ij"
+                )
+
             cond_region = (
                 (K0_adim >= ik0min)
                 & (K0_adim <= ik0max)
                 & (K1_adim >= ik1min)
                 & (K1_adim <= ik1max)
-                & (K2_adim >= ik2min)
-                & (K2_adim <= ik2max)
             )
-            (
-                self.probes_ik0_loc,
-                self.probes_ik1_loc,
-                self.probes_ik2_loc,
-            ) = np.where(cond_region)
+
+            if self.nb_dim == 3:
+                cond_region = (
+                    cond_region & (K2_adim >= ik2min) & (K2_adim <= ik2max)
+                )
+
+            if self.nb_dim == 3:
+                (
+                    self.probes_ik0_loc,
+                    self.probes_ik1_loc,
+                    self.probes_ik2_loc,
+                ) = np.where(cond_region)
+            else:
+                (
+                    self.probes_ik0_loc,
+                    self.probes_ik1_loc,
+                ) = np.where(cond_region)
 
             self.probes_nb_loc = self.probes_ik0_loc.size
 
             # local probes wavenumbers (nondimensional)
-            self.probes_k0adim_loc = K0_adim[
-                self.probes_ik0_loc,
-                self.probes_ik1_loc,
-                self.probes_ik2_loc,
-            ]
-            self.probes_k1adim_loc = K1_adim[
-                self.probes_ik0_loc,
-                self.probes_ik1_loc,
-                self.probes_ik2_loc,
-            ]
-            self.probes_k2adim_loc = K2_adim[
-                self.probes_ik0_loc,
-                self.probes_ik1_loc,
-                self.probes_ik2_loc,
-            ]
+            self.probes_k0adim_loc = self._get_data_probe_from_field(K0_adim)
+            self.probes_k1adim_loc = self._get_data_probe_from_field(K1_adim)
+
+            if self.nb_dim == 3:
+                self.probes_k2adim_loc = self._get_data_probe_from_field(K2_adim)
 
             # initialize files info
             self.index_file = 0
@@ -330,11 +373,12 @@ class SpatioTemporalSpectra(SpecificOutput):
             file.attrs["max_number_times_in_file"] = self.max_number_times_in_file
             create_ds = file.create_dataset
             create_ds("probes_k0adim_loc", data=self.probes_k0adim_loc)
-            create_ds("probes_k1adim_loc", data=self.probes_k1adim_loc)
-            create_ds("probes_k2adim_loc", data=self.probes_k2adim_loc)
             create_ds("probes_ik0_loc", data=self.probes_ik0_loc)
+            create_ds("probes_k1adim_loc", data=self.probes_k1adim_loc)
             create_ds("probes_ik1_loc", data=self.probes_ik1_loc)
-            create_ds("probes_ik2_loc", data=self.probes_ik2_loc)
+            if self.nb_dim == 3:
+                create_ds("probes_k2adim_loc", data=self.probes_k2adim_loc)
+                create_ds("probes_ik2_loc", data=self.probes_ik2_loc)
             for key in self.keys_fields:
                 create_ds(
                     key + "_Fourier_loc",
@@ -358,9 +402,9 @@ class SpatioTemporalSpectra(SpecificOutput):
 
     def _add_probes_data_to_dict(self, data, key):
         """Probes fields in Fourier space and append data to a dict object"""
-        data[key + "_Fourier_loc"] = self.sim.state.get_var(f"{key}_fft")[
-            self.probes_ik0_loc, self.probes_ik1_loc, self.probes_ik2_loc
-        ]
+        data[key + "_Fourier_loc"] = self._get_data_probe_from_field(
+            self.sim.state.get_var(f"{key}_fft")
+        )
 
     def _online_save(self):
         """Prepares data and writes to file"""
@@ -377,7 +421,6 @@ class SpatioTemporalSpectra(SpecificOutput):
                 self._init_new_file(tmin_file=self.sim.time_stepping.t)
             # get data from probes
             data = {"times": self.sim.time_stepping.t}
-            data["times"] = self.sim.time_stepping.t
             for key in self.keys_fields:
                 self._add_probes_data_to_dict(data, key)
             # write to file
@@ -577,3 +620,376 @@ class SpatioTemporalSpectra(SpecificOutput):
         spectra["dims_order"] = series["dims_order"]
 
         return spectra
+
+    def _get_data_probe_from_field(self, field):
+        return field[
+            self.probes_ik0_loc,
+            self.probes_ik1_loc,
+            self.probes_ik2_loc,
+        ]
+
+
+class SpatioTemporalSpectra2D(SpatioTemporalSpectra3D):
+    nb_dim = 2
+
+    def _get_data_probe_from_field(self, field):
+        return field[
+            self.probes_ik0_loc,
+            self.probes_ik1_loc,
+        ]
+
+
+class SpatioTemporalSpectraNS:
+    def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
+        base = f"periodogram_{tmin}_{tmax}"
+        if dtype is not None:
+            base += f"_{dtype}"
+        if save_urud:
+            base += "_urud"
+        return self.path_dir / (base + ".h5")
+
+    def save_spectra_kzkhomega(
+        self, tmin=0, tmax=None, dtype=None, save_urud=False
+    ):
+        """save the spatiotemporal spectra, with a cylindrical average in k-space"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        # compute spectra
+        print("Computing spectra...")
+        spectra = self.compute_spectra(tmin=tmin, tmax=tmax, dtype=dtype)
+
+        # get kz, kh
+        params_oper = self.sim.params.oper
+        deltakz = 2 * pi / params_oper.Lz
+        deltaky = 2 * pi / params_oper.Ly
+        deltakx = 2 * pi / params_oper.Lx
+        order = spectra["dims_order"]
+        KZ = deltakz * spectra[f"K{order[0]}_adim"]
+        KY = deltaky * spectra[f"K{order[1]}_adim"]
+        KX = deltakx * spectra[f"K{order[2]}_adim"]
+        KH = np.sqrt(KX ** 2 + KY ** 2)
+
+        kz_spectra = np.arange(0, KZ.max() + 1e-15, deltakz)
+
+        deltakh = max(deltakx, deltaky)
+        khmax_spectra = min(KX.max(), KY.max())
+        nkh_spectra = max(2, int(khmax_spectra / deltakh))
+        kh_spectra = deltakh * np.arange(nkh_spectra)
+
+        del KY
+
+        # get one-sided frequencies
+        omegas = spectra["omegas"]
+        nomegas = omegas.size // 2 + 1
+        omegas_onesided = abs(omegas[:nomegas])
+
+        # perform cylindrical average
+        spectra_kzkhomega = {
+            "kz_spectra": kz_spectra,
+            "kh_spectra": kh_spectra,
+            "omegas": omegas_onesided,
+        }
+        for key, data in spectra.items():
+            if not key.startswith("spectrum_"):
+                continue
+            spectra_kzkhomega[key] = self.compute_spectrum_kzkhomega(
+                np.ascontiguousarray(data), kh_spectra, kz_spectra, KX, KZ, KH
+            )
+
+        del spectra
+
+        # total kinetic energy
+        spectra_kzkhomega["spectrum_K"] = 0.5 * (
+            spectra_kzkhomega["spectrum_vx"]
+            + spectra_kzkhomega["spectrum_vy"]
+            + spectra_kzkhomega["spectrum_vz"]
+        )
+
+        # potential energy
+        try:
+            N = self.sim.params.N
+            spectra_kzkhomega["spectrum_A"] = (
+                0.5 / N ** 2 * spectra_kzkhomega["spectrum_b"]
+            )
+        except AttributeError:
+            pass
+
+        # save to file
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
+        with h5py.File(path_file, "w") as file:
+            file.attrs["tmin"] = tmin
+            file.attrs["tmax"] = tmax
+            for key, val in spectra_kzkhomega.items():
+                file.create_dataset(key, data=val)
+
+        # toroidal/poloidal decomposition
+        if save_urud:
+            print("Computing ur, ud spectra...")
+            spectra_urud_kzkhomega = {}
+            spectra = self.compute_spectra_urud(tmin=tmin, tmax=tmax, dtype=dtype)
+
+            for key, data in spectra.items():
+                if not key.startswith("spectrum_"):
+                    continue
+                spectra_urud_kzkhomega[key] = self.compute_spectrum_kzkhomega(
+                    np.ascontiguousarray(data), kh_spectra, kz_spectra, KX, KZ, KH
+                )
+                spectra_kzkhomega[key] = spectra_urud_kzkhomega[key]
+
+            with h5py.File(path_file, "a") as file:
+                for key, val in spectra_urud_kzkhomega.items():
+                    file.create_dataset(key, data=val)
+
+        return spectra_kzkhomega
+
+    def plot_kzkhomega(
+        self,
+        key_field=None,
+        tmin=0,
+        tmax=None,
+        dtype=None,
+        equation=None,
+        xmax=None,
+        ymax=None,
+        cmap="viridis",
+        vmin=None,
+        vmax=None,
+    ):
+        """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
+        keys_plot = self.keys_fields + ["Khd", "Khr", "Kp"]
+        if key_field is None:
+            key_field = keys_plot[0]
+        if key_field not in keys_plot:
+            raise KeyError(f"possible keys are {keys_plot}")
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        key_spect = "spectrum_" + key_field
+        if key_field.startswith("Kh") or key_field.startswith("Kp"):
+            save_urud = True
+        else:
+            save_urud = False
+
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
+        path_urud = self._get_path_saved_spectra(tmin, tmax, dtype, True)
+        if path_urud.exists() and not path_file.exists():
+            path_file = path_urud
+
+        spectra_kzkhomega = {}
+
+        # compute and save spectra if needed
+        if not path_file.exists():
+            self.save_spectra_kzkhomega(
+                tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
+            )
+
+        # load spectrum
+        with h5py.File(path_file, "r") as file:
+            if key_spect.startswith("spectrum_Kp"):
+                spectrum = file["spectrum_Khd"][:] + 0.5 * file["spectrum_vz"][:]
+            else:
+                spectrum = file[key_spect][...]
+            if dtype == "complex64":
+                float_dtype = "float32"
+            elif dtype == "complex128":
+                float_dtype = "float64"
+            if dtype:
+                spectrum = spectrum.astype(float_dtype)
+            spectra_kzkhomega[key_spect] = spectrum
+            spectra_kzkhomega["kh_spectra"] = file["kh_spectra"][...]
+            spectra_kzkhomega["kz_spectra"] = file["kz_spectra"][...]
+            spectra_kzkhomega["omegas"] = file["omegas"][...]
+
+        # slice along equation
+        if equation is None:
+            equation = f"omega=0"
+        if equation.startswith("omega="):
+            omega = eval(equation[len("omega=") :])
+            omegas = spectra_kzkhomega["omegas"]
+            iomega = abs(omegas - omega).argmin()
+            spect = spectra_kzkhomega[key_spect][:, :, iomega]
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
+            yaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
+            xlabel = r"$k_h/\delta k_h$"
+            ylabel = r"$k_z/\delta k_z$"
+            omega = omegas[iomega]
+            equation = r"$\omega=$" + f"{omega:.2g}"
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                equation = r"$\omega/N=$" + f"{omega/N:.2g}"
+            except AttributeError:
+                pass
+        elif equation.startswith("kh="):
+            kh = eval(equation[len("kh=") :])
+            kh_spectra = spectra_kzkhomega["kh_spectra"]
+            ikh = abs(kh_spectra - kh).argmin()
+            spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_z/\delta k_z$"
+            ylabel = r"$\omega/N$"
+            kh = kh_spectra[ikh]
+            equation = f"$k_h = {ikh}\\delta k_h = {kh:.2g}$"
+        elif equation.startswith("kz="):
+            kz = eval(equation[len("kz=") :])
+            kz_spectra = spectra_kzkhomega["kz_spectra"]
+            ikz = abs(kz_spectra - kz).argmin()
+            spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_h/\delta k_h$"
+            ylabel = r"$\omega/N$"
+            kz = kz_spectra[ikz]
+            equation = f"$k_z = {ikz}\\delta k_z = {kz:.2g}$"
+        elif equation.startswith("ikh="):
+            ikh = eval(equation[len("ikh=") :])
+            kh_spectra = spectra_kzkhomega["kh_spectra"]
+            spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_z/\delta k_z$"
+            ylabel = r"$\omega/N$"
+            kh = kh_spectra[ikh]
+            equation = f"$k_h = {ikh}\\delta k_h = {kh:.2g}$"
+        elif equation.startswith("ikz="):
+            ikz = eval(equation[len("ikz=") :])
+            kz_spectra = spectra_kzkhomega["kz_spectra"]
+            spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+
+            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
+            yaxis = spectra_kzkhomega["omegas"]
+            # use reduced frequency for stratified fluids
+            try:
+                N = self.sim.params.N
+                yaxis /= N
+            except AttributeError:
+                pass
+
+            xlabel = r"$k_h/\delta k_h$"
+            ylabel = r"$\omega/N$"
+            kz = kz_spectra[ikz]
+            equation = f"$k_z = {ikz}\\delta k_z = {kz:.2g}$"
+        else:
+            raise NotImplementedError(
+                "equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='"
+            )
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+
+        if vmin is None:
+            vmin = np.log10(spect[np.isfinite(spect)].min())
+        if vmax is None:
+            vmax = np.log10(spect[np.isfinite(spect)].max())
+
+        # no log(0)
+        spect += 1e-15
+
+        im = ax.pcolormesh(
+            xaxis,
+            yaxis,
+            np.log10(spect),
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            shading="nearest",
+        )
+        fig.colorbar(im)
+
+        ax.set_title(
+            f"{key_field} spatiotemporal spectra {equation}\n"
+            f"tmin={tmin:.3f}, tmax={tmax:.3f}\n" + self.output.summary_simul
+        )
+
+        # add dispersion relation : omega = N * kh / sqrt(kh ** 2 + kz ** 2)
+        try:
+            N = self.sim.params.N
+        except AttributeError:
+            return
+        dkh_over_dkz = (
+            spectra_kzkhomega["kz_spectra"][1]
+            / spectra_kzkhomega["kh_spectra"][1]
+        )
+        if equation.startswith(r"$\omega"):
+            ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkh_over_dkz * xaxis
+            ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
+        elif equation.startswith(r"$k_h"):
+            omega_disp = ikh / np.sqrt(ikh ** 2 + dkh_over_dkz ** 2 * xaxis ** 2)
+            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+        elif equation.startswith(r"$k_z"):
+            omega_disp = xaxis / np.sqrt(
+                xaxis ** 2 + dkh_over_dkz ** 2 * ikz ** 2
+            )
+            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+        else:
+            raise ValueError("wrong equation for dispersion relation")
+
+        # set axis limits after plotting dispersion relation
+        if xmax is None:
+            xmax = xaxis.max()
+        if ymax is None:
+            ymax = yaxis.max()
+        ax.set_xlim((0, xmax))
+        ax.set_ylim((0, ymax))
+
+    def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
+        raise NotImplementedError
+
+    def compute_temporal_spectra(
+        self, tmin=0, tmax=None, dtype=None, compute_urud=False
+    ):
+        """compute the temporal spectra by averaging over Fourier space"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        tspectra = {}
+
+        # compute kxkykzomega spectra
+        spectra = self.compute_spectra(tmin=tmin, tmax=tmax, dtype=dtype)
+        if compute_urud:
+            spectra.update(
+                self.compute_spectra_urud(tmin=tmin, tmax=tmax, dtype=dtype)
+            )
+
+        order = spectra["dims_order"]
+        KX = spectra[f"K{order[2]}_adim"]
+        deltakx = 2 * pi / self.sim.params.oper.Lx
+        kx_max = self.sim.params.oper.nx // 2 * deltakx
+
+        # average over Fourier space (kx,ky,kz)
+        for key, spectrum in spectra.items():
+            if not key.startswith("spectrum_"):
+                continue
+            tspectra[key] = self._sum_wavenumber(spectrum, KX, kx_max)
+
+        tspectra["omegas"] = spectra["omegas"]
+
+        return tspectra
