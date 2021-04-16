@@ -80,6 +80,20 @@ def compute_spectrum_kzkhomega(
     return spectrum_onesided / (deltakz * deltakh)
 
 
+def _sum_wavenumber3D(field, KX, kx_max):
+    n0, n1, n2 = field.shape[:3]
+    result = 0.0
+    for i0 in range(n0):
+        for i1 in range(n1):
+            for i2 in range(n2):
+                value = field[i0, i1, i2]
+                kx = KX[i0, i1, i2]
+                if kx != 0.0 and kx != kx_max:
+                    value *= 2
+                result += value
+    return result
+
+
 class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
         base = f"periodogram_{tmin}_{tmax}"
@@ -488,26 +502,15 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
 
         order = spectra["dims_order"]
         KX = spectra[f"K{order[2]}_adim"]
-        kx_max = self.sim.params.oper.nx // 2 * 2 * pi / self.sim.params.oper.Lx
-
-        def _sum_wavenumber(field):
-            n0, n1, n2 = field.shape[:3]
-            result = 0.0
-            for i0 in range(n0):
-                for i1 in range(n1):
-                    for i2 in range(n2):
-                        value = field[i0, i1, i2]
-                        kx = KX[i0, i1, i2]
-                        if kx != 0.0 and kx != kx_max:
-                            value *= 2
-                        result += value
-            return result
+        deltakx = 2 * pi / self.sim.params.oper.Lx
+        kx_max = self.sim.params.oper.nx // 2 * deltakx
+        print(f"in compute_temporal_spectra {kx_max = }")
 
         # average over Fourier space (kx,ky,kz)
         for key, spectrum in spectra.items():
             if not key.startswith("spectrum_"):
                 continue
-            tspectra[key] = _sum_wavenumber(spectrum)
+            tspectra[key] = _sum_wavenumber3D(spectrum, KX, kx_max)
 
         tspectra["omegas"] = spectra["omegas"]
 

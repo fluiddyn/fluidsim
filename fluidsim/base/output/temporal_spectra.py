@@ -147,6 +147,13 @@ class TemporalSpectra3D(SpecificOutput):
         self.file_max_size = params_tspec.file_max_size
         self.SAVE_AS_FLOAT32 = params_tspec.SAVE_AS_FLOAT32
 
+        if self.SAVE_AS_FLOAT32:
+            size_1_number = 4e-6
+            self.datatype = np.float32
+        else:
+            size_1_number = 8e-6
+            self.datatype = np.float64
+
         if self.nb_dim == 3:
             X, Y, Z = oper.get_XYZ_loc()
         else:
@@ -287,11 +294,6 @@ class TemporalSpectra3D(SpecificOutput):
             if self.probes_nb_loc > 0:
                 self._init_new_file(tmin_file=self.sim.time_stepping.t)
 
-        if self.SAVE_AS_FLOAT32:
-            size_1_number = 4e-6
-        else:
-            size_1_number = 8e-6
-
         # size of a single write: nb_fields * probes_nb_loc + time
         probes_write_size = (
             len(self.keys_fields) * self.probes_nb_loc + 1
@@ -339,6 +341,7 @@ class TemporalSpectra3D(SpecificOutput):
                     f"probes_{key}_loc",
                     (self.probes_nb_loc, 1),
                     maxshape=(self.probes_nb_loc, None),
+                    dtype=self.datatype,
                 )
 
     def _write_to_file(self, data):

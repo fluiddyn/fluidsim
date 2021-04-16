@@ -118,7 +118,7 @@ class TestOutput(TestSimulBase):
         params.output.temporal_spectra.probes_deltax = Lx / nx
         params.output.temporal_spectra.probes_deltay = Ly / ny
         params.output.temporal_spectra.probes_deltaz = Lz / nz
-        params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
+        params.output.temporal_spectra.SAVE_AS_FLOAT32 = False
 
         nx, ny, nz = params.oper.nx, params.oper.ny, params.oper.nz
         params.output.spatiotemporal_spectra.probes_region = (
@@ -126,7 +126,7 @@ class TestOutput(TestSimulBase):
             ny // 2,
             nz // 2,
         )
-        params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = True
+        params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = False
 
     @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
@@ -259,18 +259,14 @@ class TestOutput(TestSimulBase):
             KX = deltakx * spectra_kxkykzomega[f"K{order[2]}_adim"]
             kx_max = self.params.oper.nx // 2 * deltakx
 
+            assert kx_max == KX.max()
+
+            from fluidsim.solvers.ns3d.output.spatiotemporal_spectra import (
+                _sum_wavenumber3D,
+            )
+
             def sum_wavenumber(field):
-                n0, n1, n2 = field.shape
-                result = 0.0
-                for i0 in range(n0):
-                    for i1 in range(n1):
-                        for i2 in range(n2):
-                            value = field[i0, i1, i2]
-                            kx = KX[i0, i1, i2]
-                            if kx != 0.0 and kx != kx_max:
-                                value *= 2
-                            result += value
-                return result
+                return _sum_wavenumber3D(field, KX, kx_max)
 
             spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega(
                 save_urud=True
@@ -301,6 +297,10 @@ class TestOutput(TestSimulBase):
                     * sum_wavenumber(spectrum_kxkykzomega.sum(axis=-1))
                 )
                 E_omega = 0.5 * delta_omega * spectrum_omega.sum()
+                E_omega_from_spatiotemp = (
+                    0.5 * delta_omega * spectrum_omega_from_spatiotemp.sum()
+                )
+
                 E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
                 # `:-1` because the last time is saved twice in spatial_means
                 E_mean = means["E" + letter][:-1].mean()
@@ -325,6 +325,15 @@ class TestOutput(TestSimulBase):
                     E_series_kxkykz / E_mean,
                 )
 
+                assert np.allclose(E_omega, E_omega_from_spatiotemp), (
+                    letter,
+                    E_omega,
+                    E_omega_from_spatiotemp,
+                )
+
+                # print(f"{spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum() = }")
+
+                # this condition is not exactly fulfilled (why?)
                 # assert np.allclose(
                 #     spectrum_omega, spectrum_omega_from_spatiotemp
                 # ), (
@@ -332,15 +341,8 @@ class TestOutput(TestSimulBase):
                 #     spectrum_omega,
                 #     spectrum_omega_from_spatiotemp,
                 #     spectrum_omega / spectrum_omega_from_spatiotemp,
+                #     spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum(),
                 # )
-
-                assert (
-                    spectrum_omega.sum() == spectrum_omega_from_spatiotemp.sum()
-                ), (
-                    letter,
-                    spectrum_omega.sum(),
-                    spectrum_omega_from_spatiotemp.sum(),
-                )
 
             spectrum_Khd = spectra_kzkhomega["spectrum_Khd"]
             spectrum_vz = spectra_kzkhomega["spectrum_vz"]
