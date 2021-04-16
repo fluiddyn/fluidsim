@@ -504,7 +504,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectra):
         KX = spectra[f"K{order[2]}_adim"]
         deltakx = 2 * pi / self.sim.params.oper.Lx
         kx_max = self.sim.params.oper.nx // 2 * deltakx
-        print(f"in compute_temporal_spectra {kx_max = }")
 
         # average over Fourier space (kx,ky,kz)
         for key, spectrum in spectra.items():

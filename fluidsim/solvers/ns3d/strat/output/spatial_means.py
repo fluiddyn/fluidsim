@@ -31,8 +31,10 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         # shear modes
         COND_SHEAR = self.oper.Kx ** 2 + self.oper.Ky ** 2 == 0.0
         nrj_Khs = nrj_Khr * COND_SHEAR
+        nrj_As = nrj_A * COND_SHEAR
         energyA_fft = nrj_A
         nrj_A = self.sum_wavenumbers(nrj_A)
+        nrj_As = self.sum_wavenumbers(nrj_As)
         nrj_Kz = self.sum_wavenumbers(nrj_Kz)
         nrj_Khs = self.sum_wavenumbers(nrj_Khs)
         nrj_Khr = self.sum_wavenumbers(nrj_Khr)
@@ -99,7 +101,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
                 f"E    = {energy:11.5e}\n"
                 f"EA   = {nrj_A:11.5e} ; EKz   = {nrj_Kz:11.5e} ; "
                 f"EKhr   = {nrj_Khr:11.5e} ; EKhd   = {nrj_Khd:11.5e} ; "
-                f"EKhs   = {nrj_Khs:11.5e}\n"
+                f"EKhs   = {nrj_Khs:11.5e} ; EAs    = {nrj_As:11.5e}\n"
                 f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; "
                 f"epsA = {epsA:11.5e} ; epsA_hypo = {epsA_hypo:11.5e} ; "
                 f"eps_tot = {epsK + epsK_hypo + epsA + epsA_hypo:11.5e} \n"
@@ -183,6 +185,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         EKhr = np.empty(nt)
         EKhd = np.empty(nt)
         EKhs = np.empty(nt)
+        EAs = np.empty(nt)
         PK1 = np.zeros(nt)
         PK2 = np.zeros(nt)
         PK_tot = np.zeros(nt)
@@ -219,6 +222,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             EKhr[il] = float(words[10])
             EKhd[il] = float(words[14])
             EKhs[il] = float(words[18])
+            EAs[il] = float(words[22])
 
             if self.sim.params.forcing.enable:
                 line = lines_PK[il]
@@ -260,6 +264,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         dict_results["EKhr"] = EKhr
         dict_results["EKhd"] = EKhd
         dict_results["EKhs"] = EKhs
+        dict_results["EAs"] = EAs
 
         dict_results["PK1"] = PK1
         dict_results["PK2"] = PK2
@@ -295,6 +300,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         EKhr = dict_results["EKhr"]
         EKhd = dict_results["EKhd"]
         EKhs = dict_results["EKhs"]
+        EAs = dict_results["EAs"]
         EK = EKz + EKhr + EKhd + EKhs
 
         epsK = dict_results["epsK"]
@@ -312,6 +318,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         ax.plot(t, EK, "r", label="$E_K$")
         ax.plot(t, EKhr, "r:", label="$E_{Khr}$")
         ax.plot(t, EKhs, "m:", label="$E_{Khs}$")
+        ax.plot(t, EAs, "g:", label="$E_{As}$")
 
         ax.legend()
 
