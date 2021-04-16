@@ -215,9 +215,7 @@ class TestForcingOutput(TestSimulBase):
             energy_K_mean = means["EK"].mean()
 
             sim2.output.temporal_spectra.load_time_series()
-            tspectra_mean = (
-                sim2.output.temporal_spectra.compute_temporal_spectra()
-            )
+            tspectra_mean = sim2.output.temporal_spectra.compute_spectra()
             omegas = tspectra_mean["omegas"]
             delta_omega = omegas[1]
             sim2.output.temporal_spectra.plot_spectra()
