@@ -24,5 +24,6 @@ Third party solver interfaces:
    :toctree:
 
    basilisk
+   dedalus
 
 """

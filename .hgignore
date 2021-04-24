@@ -17,6 +17,7 @@ __pycache__
 .venv/
 .pytest_cache/
 .mypy_cache/
+.coverage/
 
 bench/launcher_*
 bench/SLURM*
@@ -38,7 +39,6 @@ dist/*.tar.gz
 dist*
 .eggs/*
 .tox/*
-.coverage/*
 
 *.so
 

@@ -26,6 +26,8 @@ Moreover, fluidfft builds can also be tweaked so you could have a look at
 `fluidfft documentation
 <http://fluidfft.readthedocs.io/en/latest/install.html>`_.
 
+.. _env_vars:
+
 Environment variables and build configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -92,6 +94,8 @@ reinstall an already produced wheel. To do this, use::
 
 ``-v`` toggles the verbose mode of pip so that we see the compilation log and
 can check that everything goes well.
+
+.. _pythranrc:
 
 About using Pythran to compile functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,7 +185,7 @@ Installing from the repository
   A good base to install Fluidsim from source can be to create and activate a
   conda environment with::
 
-    conda create -y -n env-fluidsim -c conda-forge fluidsim "fluidfft=*=*openmpi*" pythran clangdev mako
+    conda create -y -n env-fluidsim -c conda-forge "fluidfft=*=*openmpi*" pythran clangdev mako
     conda activate env-fluidsim
 
 For fluidsim, we use the revision control software Mercurial and the main

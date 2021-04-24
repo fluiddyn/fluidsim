@@ -111,6 +111,7 @@ presenting the `FluidDyn project
    tutorials
    examples
    test_bench_profile
+   faq
 
 Modules Reference
 -----------------
