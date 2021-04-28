@@ -142,7 +142,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
                 fig.canvas.draw()
 
     def load(self):
-        dict_results = {"name_solver": self.output.name_solver}
+        results = {"name_solver": self.output.name_solver}
 
         with open(self.path_file) as file_means:
             lines = file_means.readlines()
@@ -268,57 +268,57 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
                 epsK8[il] = float(words[2])
                 epsA8[il] = float(words[6])
 
-        dict_results["t"] = t
-        dict_results["E"] = E
-        dict_results["EA"] = EA
-        dict_results["EKz"] = EKz
-        dict_results["EKhr"] = EKhr
-        dict_results["EKhd"] = EKhd
-        dict_results["EKhs"] = EKhs
+        results["t"] = t
+        results["E"] = E
+        results["EA"] = EA
+        results["EKz"] = EKz
+        results["EKhr"] = EKhr
+        results["EKhd"] = EKhd
+        results["EKhs"] = EKhs
         if EAs_saved:
-            dict_results["EAs"] = EAs
+            results["EAs"] = EAs
 
-        dict_results["PK1"] = PK1
-        dict_results["PK2"] = PK2
-        dict_results["PK_tot"] = PK_tot
+        results["PK1"] = PK1
+        results["PK2"] = PK2
+        results["PK_tot"] = PK_tot
 
-        dict_results["PA1"] = PA1
-        dict_results["PA2"] = PA2
-        dict_results["PA_tot"] = PA_tot
+        results["PA1"] = PA1
+        results["PA2"] = PA2
+        results["PA_tot"] = PA_tot
 
-        dict_results["epsK"] = epsK
-        dict_results["epsK_hypo"] = epsK_hypo
-        dict_results["epsA"] = epsA
-        dict_results["epsA_hypo"] = epsA_hypo
-        dict_results["eps_tot"] = eps_tot
+        results["epsK"] = epsK
+        results["epsK_hypo"] = epsK_hypo
+        results["epsA"] = epsA
+        results["epsA_hypo"] = epsA_hypo
+        results["eps_tot"] = eps_tot
 
         if lines_epsK4:
-            dict_results["epsK4"] = epsK4
-            dict_results["epsA4"] = epsA4
+            results["epsK4"] = epsK4
+            results["epsA4"] = epsA4
 
         if lines_epsK8:
-            dict_results["epsK8"] = epsK8
-            dict_results["epsA8"] = epsA8
+            results["epsK8"] = epsK8
+            results["epsA8"] = epsA8
 
-        return dict_results
+        return results
 
     def plot(self, plot_injection=True, plot_hyper=False):
-        dict_results = self.load()
+        results = self.load()
 
-        t = dict_results["t"]
-        E = dict_results["E"]
-        EA = dict_results["EA"]
-        EKz = dict_results["EKz"]
-        EKhr = dict_results["EKhr"]
-        EKhd = dict_results["EKhd"]
-        EKhs = dict_results["EKhs"]
+        t = results["t"]
+        E = results["E"]
+        EA = results["EA"]
+        EKz = results["EKz"]
+        EKhr = results["EKhr"]
+        EKhd = results["EKhd"]
+        EKhs = results["EKhs"]
         EK = EKz + EKhr + EKhd + EKhs
 
-        epsK = dict_results["epsK"]
-        epsK_hypo = dict_results["epsK_hypo"]
-        epsA = dict_results["epsA"]
-        epsA_hypo = dict_results["epsA_hypo"]
-        eps_tot = dict_results["eps_tot"]
+        epsK = results["epsK"]
+        epsK_hypo = results["epsK_hypo"]
+        epsA = results["epsA"]
+        epsA_hypo = results["epsA_hypo"]
+        eps_tot = results["eps_tot"]
 
         # fig 1 : energies
         fig, ax = self.output.figure_axe()
@@ -331,7 +331,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         ax.plot(t, EKhs, "m:", label="$E_{Khs}$")
 
         try:
-            EAs = dict_results["EAs"]
+            EAs = results["EAs"]
         except KeyError:
             pass
         else:
@@ -355,23 +355,23 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         if max(eps_hypo) > 0:
             _plot(t, eps_hypo, "g", r"$\epsilon_{hypo}$")
 
-        if "epsK4" in dict_results and plot_hyper:
-            epsK4 = dict_results["epsK4"]
-            epsA4 = dict_results["epsA4"]
+        if "epsK4" in results and plot_hyper:
+            epsK4 = results["epsK4"]
+            epsA4 = results["epsA4"]
             if not np.allclose(epsK, epsK4):
                 _plot(t, epsK4, "r:", r"$\epsilon_{K4}$")
                 _plot(t, epsA4, "b:", r"$\epsilon_{A4}$")
 
-        if "epsK8" in dict_results and plot_hyper:
-            epsK8 = dict_results["epsK8"]
-            epsA8 = dict_results["epsA8"]
+        if "epsK8" in results and plot_hyper:
+            epsK8 = results["epsK8"]
+            epsA8 = results["epsA8"]
             if not np.allclose(epsK, epsK8):
                 _plot(t, epsK8, "r:", r"$\epsilon_{K8}$")
                 _plot(t, epsA8, "b:", r"$\epsilon_{A8}$")
 
-        if "PK_tot" in dict_results and plot_injection:
-            PK_tot = dict_results["PK_tot"]
-            PA_tot = dict_results["PA_tot"]
+        if "PK_tot" in results and plot_injection:
+            PK_tot = results["PK_tot"]
+            PA_tot = results["PA_tot"]
             ax.plot(t, PK_tot, "r--", label=r"$P_K$", zorder=0)
             ax.plot(t, PA_tot, "b--", label=r"$P_A$", zorder=0)
 
