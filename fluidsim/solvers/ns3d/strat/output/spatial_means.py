@@ -178,6 +178,15 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         if nt > 1:
             nt -= 1
 
+        # support files saved without EAs
+        words = lines_EA[0].split()
+        try:
+            words[22]
+        except IndexError:
+            EAs_saved = False
+        else:
+            EAs_saved = True
+
         t = np.empty(nt)
         E = np.empty(nt)
         EA = np.empty(nt)
@@ -185,7 +194,8 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         EKhr = np.empty(nt)
         EKhd = np.empty(nt)
         EKhs = np.empty(nt)
-        EAs = np.empty(nt)
+        if EAs_saved:
+            EAs = np.empty(nt)
         PK1 = np.zeros(nt)
         PK2 = np.zeros(nt)
         PK_tot = np.zeros(nt)
@@ -222,7 +232,8 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             EKhr[il] = float(words[10])
             EKhd[il] = float(words[14])
             EKhs[il] = float(words[18])
-            EAs[il] = float(words[22])
+            if EAs_saved:
+                EAs[il] = float(words[22])
 
             if self.sim.params.forcing.enable:
                 line = lines_PK[il]
@@ -264,7 +275,8 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         dict_results["EKhr"] = EKhr
         dict_results["EKhd"] = EKhd
         dict_results["EKhs"] = EKhs
-        dict_results["EAs"] = EAs
+        if EAs_saved:
+            dict_results["EAs"] = EAs
 
         dict_results["PK1"] = PK1
         dict_results["PK2"] = PK2
@@ -300,7 +312,6 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         EKhr = dict_results["EKhr"]
         EKhd = dict_results["EKhd"]
         EKhs = dict_results["EKhs"]
-        EAs = dict_results["EAs"]
         EK = EKz + EKhr + EKhd + EKhs
 
         epsK = dict_results["epsK"]
@@ -318,7 +329,13 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         ax.plot(t, EK, "r", label="$E_K$")
         ax.plot(t, EKhr, "r:", label="$E_{Khr}$")
         ax.plot(t, EKhs, "m:", label="$E_{Khs}$")
-        ax.plot(t, EAs, "g:", label="$E_{As}$")
+
+        try:
+            EAs = dict_results["EAs"]
+        except KeyError:
+            pass
+        else:
+            ax.plot(t, EAs, "g:", label="$E_{As}$")
 
         ax.legend()
 
