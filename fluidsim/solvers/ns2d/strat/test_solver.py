@@ -149,11 +149,11 @@ class TestForcingOutput(TestSimulBase):
         params.output.temporal_spectra.probes_deltay = Ly / ny
         params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
 
-        # TODO: replug a spatiotemporal_spectra output
-        # params.output.spatio_temporal_spectra.size_max_file = 0.01
-        # params.output.spatio_temporal_spectra.time_decimate = 1
-        # params.output.spatio_temporal_spectra.spatial_decimate = 1
-        # params.output.spatio_temporal_spectra.time_start = 0
+        params.output.spatiotemporal_spectra.probes_region = (
+            nx // 2,
+            ny // 2,
+        )
+        params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = False
 
         for tag in params.output._tag_children:
             if tag.startswith("periods"):
@@ -206,45 +206,6 @@ class TestForcingOutput(TestSimulBase):
             with self.assertRaises(ValueError):
                 sim.state.get_var("test")
 
-            sim2 = fls.load_sim_for_plot(sim.output.path_run)
-            sim2.output
-
-            # TODO: add spatiotemporal_spectra calls
-
-            means = sim2.output.spatial_means.load()
-            energy_K_mean = means["EK"].mean()
-
-            sim2.output.temporal_spectra.load_time_series()
-            tspectra_mean = sim2.output.temporal_spectra.compute_spectra()
-            omegas = tspectra_mean["omegas"]
-            delta_omega = omegas[1]
-            sim2.output.temporal_spectra.plot_spectra()
-
-            tspectrum_mean = (
-                tspectra_mean["spectrum_ux"] + tspectra_mean["spectrum_uy"]
-            )
-
-            energy_tspect_mean = 0.5 * delta_omega * tspectrum_mean.sum()
-
-            assert np.allclose(energy_K_mean, energy_tspect_mean), (
-                energy_K_mean / energy_tspect_mean
-            )
-
-            sim2.output.increments.load()
-            sim2.output.increments.plot()
-            sim2.output.increments.load_pdf_from_file()
-
-            sim2.output.phys_fields.animate(
-                "ux",
-                dt_frame_in_sec=1e-6,
-                dt_equations=0.3,
-                repeat=False,
-                clim=(-1, 1),
-                save_file=False,
-                numfig=1,
-            )
-            sim2.output.phys_fields.plot()
-
         # `compute('q')` two times for better coverage...
         sim.state.get_var("q")
         sim.state.get_var("q")
@@ -258,16 +219,59 @@ class TestForcingOutput(TestSimulBase):
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
 
-        if mpi.nb_proc == 1:
-            sim3.output.phys_fields.animate(
-                "ux",
-                dt_frame_in_sec=1e-6,
-                dt_equations=0.3,
-                repeat=False,
-                clim=(-1, 1),
-                save_file=False,
-                numfig=1,
-            )
+        if mpi.nb_proc > 1:
+            plt.close("all")
+            return
+
+        sim3.output.phys_fields.animate(
+            "ux",
+            dt_frame_in_sec=1e-6,
+            dt_equations=0.3,
+            repeat=False,
+            clim=(-1, 1),
+            save_file=False,
+            numfig=1,
+        )
+
+        sim2 = fls.load_sim_for_plot(sim.output.path_run)
+        sim2.output
+
+        # TODO: add spatiotemporal_spectra calls
+
+        means = sim2.output.spatial_means.load()
+        energy_K_mean = means["EK"].mean()
+
+        sim2.output.temporal_spectra.load_time_series()
+        tspectra_mean = sim2.output.temporal_spectra.compute_spectra()
+        omegas = tspectra_mean["omegas"]
+        delta_omega = omegas[1]
+        sim2.output.temporal_spectra.plot_spectra()
+
+        tspectrum_mean = (
+            tspectra_mean["spectrum_ux"] + tspectra_mean["spectrum_uy"]
+        )
+
+        energy_tspect_mean = 0.5 * delta_omega * tspectrum_mean.sum()
+
+        assert np.allclose(energy_K_mean, energy_tspect_mean), (
+            energy_K_mean / energy_tspect_mean
+        )
+
+        sim2.output.increments.load()
+        sim2.output.increments.plot()
+        sim2.output.increments.load_pdf_from_file()
+
+        sim2.output.phys_fields.animate(
+            "ux",
+            dt_frame_in_sec=1e-6,
+            dt_equations=0.3,
+            repeat=False,
+            clim=(-1, 1),
+            save_file=False,
+            numfig=1,
+        )
+        sim2.output.phys_fields.plot()
+
         plt.close("all")
 
 

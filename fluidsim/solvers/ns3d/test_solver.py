@@ -224,139 +224,140 @@ class TestOutput(TestSimulBase):
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
 
-        if mpi.nb_proc == 1:
-            sim3.output.phys_fields.animate(
-                "vx",
-                dt_frame_in_sec=1e-6,
-                dt_equations=0.3,
-                repeat=False,
-                clim=(-1, 1),
-                save_file=False,
-                numfig=1,
+        if mpi.nb_proc > 1:
+            plt.close("all")
+            return
+
+        sim3.output.phys_fields.animate(
+            "vx",
+            dt_frame_in_sec=1e-6,
+            dt_equations=0.3,
+            repeat=False,
+            clim=(-1, 1),
+            save_file=False,
+            numfig=1,
+        )
+
+        sys.argv = ["fluidsim-create-xml-description", path_run]
+        run()
+        sim3.output.temporal_spectra.plot_spectra()
+        sim3.output.temporal_spectra.save_data_as_phys_fields(delta_index_times=2)
+        sim3.output.temporal_spectra.save_spectra()
+
+        spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
+        series_kxkykz = spatiotemporal_spectra.load_time_series()
+
+        spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
+        spectra_omega_from_spatiotemp = (
+            spatiotemporal_spectra.compute_temporal_spectra()
+        )
+        spectra_omega = sim3.output.temporal_spectra.compute_spectra()
+
+        means = sim3.output.spatial_means.load()
+
+        deltakx = 2 * pi / self.params.oper.Lx
+        order = spectra_kxkykzomega["dims_order"]
+        KX = deltakx * spectra_kxkykzomega[f"K{order[2]}_adim"]
+        kx_max = self.params.oper.nx // 2 * deltakx
+
+        assert kx_max == KX.max()
+
+        from fluidsim.solvers.ns3d.output.spatiotemporal_spectra import (
+            _sum_wavenumber3D,
+        )
+
+        def sum_wavenumber(field):
+            return _sum_wavenumber3D(field, KX, kx_max)
+
+        spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega(
+            save_urud=True
+        )
+
+        delta_kz = spectra_kzkhomega["kz_spectra"][1]
+        delta_kh = spectra_kzkhomega["kh_spectra"][1]
+        delta_omega = spectra_kzkhomega["omegas"][1]
+        coef = delta_kz * delta_kh * delta_omega
+
+        for letter in "xyz":
+            vi_fft = series_kxkykz[f"v{letter}_Fourier"]
+            spectrum_kxkykzomega = spectra_kxkykzomega["spectrum_v" + letter]
+            spectrum_omega = spectra_omega["spectrum_v" + letter]
+            spectrum_omega_from_spatiotemp = spectra_omega_from_spatiotemp[
+                "spectrum_v" + letter
+            ]
+            spectrum_kzkhomega = spectra_kzkhomega["spectrum_v" + letter]
+
+            E_series_kxkykz = 0.5 * sum_wavenumber(
+                (abs(vi_fft) ** 2).mean(axis=-1)
+            )
+            assert E_series_kxkykz > 0, (letter, vi_fft)
+
+            E_kxkykzomega = (
+                0.5
+                * delta_omega
+                * sum_wavenumber(spectrum_kxkykzomega.sum(axis=-1))
+            )
+            E_omega = 0.5 * delta_omega * spectrum_omega.sum()
+            E_omega_from_spatiotemp = (
+                0.5 * delta_omega * spectrum_omega_from_spatiotemp.sum()
             )
 
-            sys.argv = ["fluidsim-create-xml-description", path_run]
-            run()
-            sim3.output.temporal_spectra.plot_spectra()
-            sim3.output.temporal_spectra.save_data_as_phys_fields(
-                delta_index_times=2
-            )
-            sim3.output.temporal_spectra.save_spectra()
+            E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
+            # `:-1` because the last time is saved twice in spatial_means
+            E_mean = means["E" + letter][:-1].mean()
 
-            spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
-            series_kxkykz = spatiotemporal_spectra.load_time_series()
-
-            spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
-            spectra_omega = sim3.output.temporal_spectra.compute_spectra()
-            spectra_omega_from_spatiotemp = (
-                spatiotemporal_spectra.compute_temporal_spectra()
+            assert np.allclose(E_omega, E_kxkykzomega), (
+                letter,
+                E_kxkykzomega / E_mean,
             )
 
-            means = sim3.output.spatial_means.load()
-
-            deltakx = 2 * pi / self.params.oper.Lx
-            order = spectra_kxkykzomega["dims_order"]
-            KX = deltakx * spectra_kxkykzomega[f"K{order[2]}_adim"]
-            kx_max = self.params.oper.nx // 2 * deltakx
-
-            assert kx_max == KX.max()
-
-            from fluidsim.solvers.ns3d.output.spatiotemporal_spectra import (
-                _sum_wavenumber3D,
+            assert np.allclose(E_series_kxkykz, E_kxkykzomega), (
+                letter,
+                E_kxkykzomega / E_series_kxkykz,
             )
 
-            def sum_wavenumber(field):
-                return _sum_wavenumber3D(field, KX, kx_max)
-
-            spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega(
-                save_urud=True
+            assert np.allclose(E_series_kxkykz, E_kzkhomega), (
+                letter,
+                E_kzkhomega / E_series_kxkykz,
             )
 
-            delta_kz = spectra_kzkhomega["kz_spectra"][1]
-            delta_kh = spectra_kzkhomega["kh_spectra"][1]
-            delta_omega = spectra_kzkhomega["omegas"][1]
-            coef = delta_kz * delta_kh * delta_omega
-
-            for letter in "xyz":
-                vi_fft = series_kxkykz[f"v{letter}_Fourier"]
-                spectrum_kxkykzomega = spectra_kxkykzomega["spectrum_v" + letter]
-                spectrum_omega = spectra_omega["spectrum_v" + letter]
-                spectrum_omega_from_spatiotemp = spectra_omega_from_spatiotemp[
-                    "spectrum_v" + letter
-                ]
-                spectrum_kzkhomega = spectra_kzkhomega["spectrum_v" + letter]
-
-                E_series_kxkykz = 0.5 * sum_wavenumber(
-                    (abs(vi_fft) ** 2).mean(axis=-1)
-                )
-                assert E_series_kxkykz > 0, (letter, vi_fft)
-
-                E_kxkykzomega = (
-                    0.5
-                    * delta_omega
-                    * sum_wavenumber(spectrum_kxkykzomega.sum(axis=-1))
-                )
-                E_omega = 0.5 * delta_omega * spectrum_omega.sum()
-                E_omega_from_spatiotemp = (
-                    0.5 * delta_omega * spectrum_omega_from_spatiotemp.sum()
-                )
-
-                E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
-                # `:-1` because the last time is saved twice in spatial_means
-                E_mean = means["E" + letter][:-1].mean()
-
-                assert np.allclose(E_omega, E_kxkykzomega), (
-                    letter,
-                    E_kxkykzomega / E_mean,
-                )
-
-                assert np.allclose(E_series_kxkykz, E_kxkykzomega), (
-                    letter,
-                    E_kxkykzomega / E_series_kxkykz,
-                )
-
-                assert np.allclose(E_series_kxkykz, E_kzkhomega), (
-                    letter,
-                    E_kzkhomega / E_series_kxkykz,
-                )
-
-                assert np.allclose(E_mean, E_series_kxkykz), (
-                    letter,
-                    E_series_kxkykz / E_mean,
-                )
-
-                assert np.allclose(E_omega, E_omega_from_spatiotemp), (
-                    letter,
-                    E_omega,
-                    E_omega_from_spatiotemp,
-                )
-
-                # print(f"{spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum() = }")
-
-                # this condition is not exactly fulfilled (why?)
-                # assert np.allclose(
-                #     spectrum_omega, spectrum_omega_from_spatiotemp
-                # ), (
-                #     letter,
-                #     spectrum_omega,
-                #     spectrum_omega_from_spatiotemp,
-                #     spectrum_omega / spectrum_omega_from_spatiotemp,
-                #     spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum(),
-                # )
-
-            spectrum_Khd = spectra_kzkhomega["spectrum_Khd"]
-            spectrum_vz = spectra_kzkhomega["spectrum_vz"]
-
-            # because k \cdot \hat v = 0, for kz = 0, Khd = 0
-            assert np.allclose(spectrum_Khd[0].sum(), 0.0)
-
-            # because k \cdot \hat v = 0, for kh = 0, Kz = 0
-            # `1:` because the energy in the mode kx=ky=kz=0 is not zero.
-            assert np.allclose(spectrum_vz[1:, 0, :].sum(), 0.0)
-
-            sim3.output.spatiotemporal_spectra.plot_kzkhomega(
-                key_field="Khr", equation="kh=1"
+            assert np.allclose(E_mean, E_series_kxkykz), (
+                letter,
+                E_series_kxkykz / E_mean,
             )
+
+            assert np.allclose(E_omega, E_omega_from_spatiotemp), (
+                letter,
+                E_omega,
+                E_omega_from_spatiotemp,
+            )
+
+            # print(f"{spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum() = }")
+
+            # this condition is not exactly fulfilled (why?)
+            # assert np.allclose(
+            #     spectrum_omega, spectrum_omega_from_spatiotemp
+            # ), (
+            #     letter,
+            #     spectrum_omega,
+            #     spectrum_omega_from_spatiotemp,
+            #     spectrum_omega / spectrum_omega_from_spatiotemp,
+            #     spectrum_omega.sum() / spectrum_omega_from_spatiotemp.sum(),
+            # )
+
+        spectrum_Khd = spectra_kzkhomega["spectrum_Khd"]
+        spectrum_vz = spectra_kzkhomega["spectrum_vz"]
+
+        # because k \cdot \hat v = 0, for kz = 0, Khd = 0
+        assert np.allclose(spectrum_Khd[0].sum(), 0.0)
+
+        # because k \cdot \hat v = 0, for kh = 0, Kz = 0
+        # `1:` because the energy in the mode kx=ky=kz=0 is not zero.
+        assert np.allclose(spectrum_vz[1:, 0, :].sum(), 0.0)
+
+        sim3.output.spatiotemporal_spectra.plot_kzkhomega(
+            key_field="Khr", equation="kh=1"
+        )
         plt.close("all")
 
 
