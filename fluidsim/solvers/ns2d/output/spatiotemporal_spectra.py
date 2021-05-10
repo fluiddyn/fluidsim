@@ -34,6 +34,8 @@ def compute_spectrum_kzkhomega(
     deltakh = khs[1]
     deltakz = kzs[1]
 
+    raise NotImplementedError
+
     nkh = len(khs)
     nkz = len(kzs)
     nk0, nk1, nk2, nomega = field_k0k1k2omega.shape
@@ -82,7 +84,7 @@ def compute_spectrum_kzkhomega(
 
 
 def _sum_wavenumber2D(field, KX, kx_max):
-    n0, n1 = field.shape[:3]
+    n0, n1 = field.shape[:-1]
     result = 0.0
     for i0 in range(n0):
         for i1 in range(n1):

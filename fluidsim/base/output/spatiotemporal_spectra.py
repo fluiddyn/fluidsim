@@ -288,12 +288,18 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                 ik0max, ik1max = iksmax[self.dims_order]
                 ik0min, ik1min = iksmin[self.dims_order]
 
+                kx_adim_loc = np.array(
+                    (oper.kx_loc / oper.deltakx).round(), dtype=int
+                )
+                ky_adim_loc = np.array(
+                    (oper.ky_loc / oper.deltaky).round(), dtype=int
+                )
                 if oper.oper_fft.get_is_transposed():
-                    k0_adim_loc = oper.kx_loc
-                    k1_adim_loc = oper.ky_loc
+                    k0_adim_loc = kx_adim_loc
+                    k1_adim_loc = ky_adim_loc
                 else:
-                    k0_adim_loc = oper.ky_loc
-                    k1_adim_loc = oper.kx_loc
+                    k0_adim_loc = ky_adim_loc
+                    k1_adim_loc = kx_adim_loc
 
                 K0_adim, K1_adim = np.meshgrid(
                     k0_adim_loc, k1_adim_loc, indexing="ij"
@@ -452,7 +458,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         ]
 
         with h5py.File(paths_1st_rank[0], "r") as file:
-            order = file.attrs["dims_order"]
+            dims_order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
             if dtype is None:
                 dtype = file[keys[0] + "_Fourier_loc"].dtype
@@ -487,17 +493,29 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         print(f"tmin={tmin:8.6g}, tmax={tmax:8.6g}, nit={times.size}")
 
         # get sequential shape of Fourier space
-        ikxmax, ikymax, ikzmax = region
-        iksmax = np.array([ikzmax, ikymax, ikxmax])
-        iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
-        ik0max, ik1max, ik2max = iksmax[order]
-        ik0min, ik1min, ik2min = iksmin[order]
-        shape_series = (
-            ik0max + 1 - ik0min,
-            ik1max + 1 - ik1min,
-            ik2max + 1 - ik2min,
-            times.size,
-        )
+        if self.nb_dim == 3:
+            ikxmax, ikymax, ikzmax = region
+            iksmax = np.array([ikzmax, ikymax, ikxmax])
+            iksmin = np.array([1 - ikzmax, 1 - ikymax, 0])
+            ik0max, ik1max, ik2max = iksmax[dims_order]
+            ik0min, ik1min, ik2min = iksmin[dims_order]
+            shape_series = (
+                ik0max + 1 - ik0min,
+                ik1max + 1 - ik1min,
+                ik2max + 1 - ik2min,
+                times.size,
+            )
+        else:
+            ikxmax, ikymax = region
+            iksmax = np.array([ikymax, ikxmax])
+            iksmin = np.array([1 - ikymax, 0])
+            ik0max, ik1max = iksmax[dims_order]
+            ik0min, ik1min = iksmin[dims_order]
+            shape_series = (
+                ik0max + 1 - ik0min,
+                ik1max + 1 - ik1min,
+                times.size,
+            )
 
         # load series, rebuild as state_spect arrays + time
         series = {
@@ -544,14 +562,20 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                         # k_adim_loc = global probes indices!
                         ik0 = file["probes_k0adim_loc"][:]
                         ik1 = file["probes_k1adim_loc"][:]
-                        ik2 = file["probes_k2adim_loc"][:]
+                        if self.nb_dim == 3:
+                            ik2 = file["probes_k2adim_loc"][:]
 
                         # load data at desired times for all keys_fields
                         for key in keys:
                             skey = key + "_Fourier"
                             data = file[skey + "_loc"][:, its_file]
-                            for i, it in enumerate(its):
-                                series[skey][ik0, ik1, ik2, it] = data[:, i]
+
+                            if self.nb_dim == 3:
+                                for i, it in enumerate(its):
+                                    series[skey][ik0, ik1, ik2, it] = data[:, i]
+                            else:
+                                for i, it in enumerate(its):
+                                    series[skey][ik0, ik1, it] = data[:, i]
 
                     # update rich task
                     progress.update(task_files, advance=1)
@@ -562,19 +586,25 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         # add Ki_adim arrays, times and dims order
         k0_adim = np.r_[0 : ik0max + 1, ik0min:0]
         k1_adim = np.r_[0 : ik1max + 1, ik1min:0]
-        k2_adim = np.r_[0 : ik2max + 1, ik2min:0]
-        K0_adim, K1_adim, K2_adim = np.meshgrid(
-            k0_adim, k1_adim, k2_adim, indexing="ij"
-        )
+
+        if self.nb_dim == 3:
+            k2_adim = np.r_[0 : ik2max + 1, ik2min:0]
+            K0_adim, K1_adim, K2_adim = np.meshgrid(
+                k0_adim, k1_adim, k2_adim, indexing="ij"
+            )
+        else:
+            K0_adim, K1_adim = np.meshgrid(k0_adim, k1_adim, indexing="ij")
+
         series.update(
             {
                 "K0_adim": K0_adim,
                 "K1_adim": K1_adim,
-                "K2_adim": K2_adim,
                 "times": times,
-                "dims_order": order,
+                "dims_order": dims_order,
             }
         )
+        if self.nb_dim == 3:
+            series["K2_adim"] = K2_adim
 
         return series
 
@@ -980,7 +1010,7 @@ class SpatioTemporalSpectraNS:
             )
 
         order = spectra["dims_order"]
-        KX = spectra[f"K{order[2]}_adim"]
+        KX = spectra[f"K{order[-1]}_adim"]
         deltakx = 2 * pi / self.sim.params.oper.Lx
         kx_max = self.sim.params.oper.nx // 2 * deltakx
 

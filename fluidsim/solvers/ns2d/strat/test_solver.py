@@ -150,8 +150,8 @@ class TestForcingOutput(TestSimulBase):
         params.output.temporal_spectra.SAVE_AS_FLOAT32 = True
 
         params.output.spatiotemporal_spectra.probes_region = (
-            nx // 2,
-            ny // 2,
+            nx // 2 + 1,
+            ny // 2 + 1,
         )
         params.output.spatiotemporal_spectra.SAVE_AS_COMPLEX64 = False
 
@@ -239,13 +239,21 @@ class TestForcingOutput(TestSimulBase):
         # TODO: add spatiotemporal_spectra calls
 
         means = sim2.output.spatial_means.load()
-        energy_K_mean = means["EK"].mean()
+        energy_K_mean = means["EK"][:-1].mean()
 
         sim2.output.temporal_spectra.load_time_series()
         tspectra_mean = sim2.output.temporal_spectra.compute_spectra()
         omegas = tspectra_mean["omegas"]
         delta_omega = omegas[1]
         sim2.output.temporal_spectra.plot_spectra()
+
+        spatiotemporal_spectra = sim2.output.spatiotemporal_spectra
+        series_kxky = spatiotemporal_spectra.load_time_series()
+
+        spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
+        spectra_omega_from_spatiotemp = (
+            spatiotemporal_spectra.compute_temporal_spectra()
+        )
 
         tspectrum_mean = (
             tspectra_mean["spectrum_ux"] + tspectra_mean["spectrum_uy"]
