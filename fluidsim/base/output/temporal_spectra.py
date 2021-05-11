@@ -73,7 +73,7 @@ class TemporalSpectra3D(SpecificOutput):
 
                 Boundaries of the region in the simulation domain were probes are set.
 
-                probes_region = (xmax, xmin, ymax, ymin, zmax, zmin), in params.oper.Lx unit.
+                probes_region = (xmin, xmax, ymin, ymax, zmin, zmax), in params.oper.Lx unit.
 
                 If None, set to the whole simulation domain.
 

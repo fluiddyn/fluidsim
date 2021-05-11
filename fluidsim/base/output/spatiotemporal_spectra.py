@@ -106,7 +106,7 @@ class SpatioTemporalSpectra(SpecificOutput):
             },
         )
 
-        params.output.temporal_spectra._set_doc(
+        params.output.spatiotemporal_spectra._set_doc(
             """
             probes_region: int tuple (default:None)
 
