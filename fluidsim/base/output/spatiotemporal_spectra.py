@@ -261,8 +261,6 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                 self.probes_ik2_loc = []
 
         else:
-            # TODO 2D!
-
             # no files were found : initialize from params
             INIT_FROM_PARAMS = True
 
@@ -414,8 +412,6 @@ class SpatioTemporalSpectra3D(SpecificOutput):
 
     def _online_save(self):
         """Prepares data and writes to file"""
-        if self.probes_nb_loc == 0:
-            return
         tsim = self.sim.time_stepping.t
         if (
             tsim + 1e-15
@@ -431,7 +427,8 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                 self._add_probes_data_to_dict(data, key)
             # write to file
             self.number_times_in_file += 1
-            self._write_to_file(data)
+            if self.probes_nb_loc > 0:
+                self._write_to_file(data)
             self.t_last_save = tsim
 
     def load_time_series(self, keys=None, tmin=0, tmax=None, dtype=None):
