@@ -242,27 +242,100 @@ class TestForcingOutput(TestSimulBase):
         energy_K_mean = means["EK"][:-1].mean()
 
         sim2.output.temporal_spectra.load_time_series()
-        tspectra_mean = sim2.output.temporal_spectra.compute_spectra()
-        omegas = tspectra_mean["omegas"]
+        spectra_omega = sim2.output.temporal_spectra.compute_spectra()
+        omegas = spectra_omega["omegas"]
         delta_omega = omegas[1]
+
         sim2.output.temporal_spectra.plot_spectra()
 
         spatiotemporal_spectra = sim2.output.spatiotemporal_spectra
         series_kxky = spatiotemporal_spectra.load_time_series()
 
-        spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
+        spectra_kxkyomega = spatiotemporal_spectra.compute_spectra()
         spectra_omega_from_spatiotemp = (
             spatiotemporal_spectra.compute_temporal_spectra()
         )
 
+        deltakx = 2 * np.pi / self.params.oper.Lx
+        order = spectra_kxkyomega["dims_order"]
+        KX = deltakx * spectra_kxkyomega[f"K{order[1]}_adim"]
+        kx_max = self.params.oper.nx // 2 * deltakx
+
+        assert kx_max == KX.max()
+
+        from fluidsim.solvers.ns2d.output.spatiotemporal_spectra import (
+            _sum_wavenumber2D,
+        )
+
+        def sum_wavenumber(field):
+            return _sum_wavenumber2D(field, KX, kx_max)
+
         tspectrum_mean = (
-            tspectra_mean["spectrum_ux"] + tspectra_mean["spectrum_uy"]
+            spectra_omega["spectrum_ux"] + spectra_omega["spectrum_uy"]
         )
 
         energy_tspect_mean = 0.5 * delta_omega * tspectrum_mean.sum()
 
         assert np.allclose(energy_K_mean, energy_tspect_mean), (
             energy_K_mean / energy_tspect_mean
+        )
+
+        spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega()
+
+        delta_kz = spectra_kzkhomega["kz_spectra"][1]
+        delta_kh = spectra_kzkhomega["kh_spectra"][1]
+        delta_omega = spectra_kzkhomega["omegas"][1]
+        coef = delta_kz * delta_kh * delta_omega
+
+        for letter in "xy":
+            vi_fft = series_kxky[f"u{letter}_Fourier"]
+            spectrum_kxkykzomega = spectra_kxkyomega["spectrum_u" + letter]
+            spectrum_omega = spectra_omega["spectrum_u" + letter]
+            spectrum_omega_from_spatiotemp = spectra_omega_from_spatiotemp[
+                "spectrum_u" + letter
+            ]
+            spectrum_kzkhomega = spectra_kzkhomega["spectrum_u" + letter]
+
+            E_series_kxkykz = 0.5 * sum_wavenumber(
+                (abs(vi_fft) ** 2).mean(axis=-1)
+            )
+            assert E_series_kxkykz > 0, (letter, vi_fft)
+
+            E_kxkykzomega = (
+                0.5
+                * delta_omega
+                * sum_wavenumber(spectrum_kxkykzomega.sum(axis=-1))
+            )
+            E_omega = 0.5 * delta_omega * spectrum_omega.sum()
+            E_omega_from_spatiotemp = (
+                0.5 * delta_omega * spectrum_omega_from_spatiotemp.sum()
+            )
+
+            E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
+
+            assert np.allclose(E_omega, E_kxkykzomega), (
+                letter,
+                E_kxkykzomega / E_omega,
+            )
+
+            assert np.allclose(E_series_kxkykz, E_kxkykzomega), (
+                letter,
+                E_kxkykzomega / E_series_kxkykz,
+            )
+
+            assert np.allclose(E_series_kxkykz, E_kzkhomega), (
+                letter,
+                E_kzkhomega / E_series_kxkykz,
+            )
+
+            assert np.allclose(E_omega, E_omega_from_spatiotemp), (
+                letter,
+                E_omega,
+                E_omega_from_spatiotemp,
+            )
+
+        sim2.output.spatiotemporal_spectra.plot_kzkhomega(
+            key_field="ux", equation="kh=1"
         )
 
         sim2.output.increments.load()

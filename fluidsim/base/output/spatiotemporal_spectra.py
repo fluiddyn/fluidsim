@@ -688,23 +688,31 @@ class SpatioTemporalSpectraNS:
 
         # get kz, kh
         params_oper = self.sim.params.oper
-        deltakz = 2 * pi / params_oper.Lz
-        deltaky = 2 * pi / params_oper.Ly
         deltakx = 2 * pi / params_oper.Lx
         order = spectra["dims_order"]
+        KX = deltakx * spectra[f"K{order[-1]}_adim"]
+
+        if self.nb_dim == 3:
+            deltaky = 2 * pi / params_oper.Ly
+            deltakz = 2 * pi / params_oper.Lz
+            KY = deltaky * spectra[f"K{order[1]}_adim"]
+            KH = np.sqrt(KX ** 2 + KY ** 2)
+            deltakh = max(deltakx, deltaky)
+            khmax_spectra = min(KX.max(), KY.max())
+            del KY
+        else:
+            # in 2d, vertical (here "z") is y
+            deltakz = 2 * pi / params_oper.Ly
+            KH = abs(KX)
+            deltakh = deltakx
+            khmax_spectra = KX.max()
+
         KZ = deltakz * spectra[f"K{order[0]}_adim"]
-        KY = deltaky * spectra[f"K{order[1]}_adim"]
-        KX = deltakx * spectra[f"K{order[2]}_adim"]
-        KH = np.sqrt(KX ** 2 + KY ** 2)
 
         kz_spectra = np.arange(0, KZ.max() + 1e-15, deltakz)
 
-        deltakh = max(deltakx, deltaky)
-        khmax_spectra = min(KX.max(), KY.max())
         nkh_spectra = max(2, int(khmax_spectra / deltakh))
         kh_spectra = deltakh * np.arange(nkh_spectra)
-
-        del KY
 
         # get one-sided frequencies
         omegas = spectra["omegas"]
@@ -727,11 +735,17 @@ class SpatioTemporalSpectraNS:
         del spectra
 
         # total kinetic energy
-        spectra_kzkhomega["spectrum_K"] = 0.5 * (
-            spectra_kzkhomega["spectrum_vx"]
-            + spectra_kzkhomega["spectrum_vy"]
-            + spectra_kzkhomega["spectrum_vz"]
-        )
+        if self.nb_dim == 3:
+            spectra_kzkhomega["spectrum_K"] = 0.5 * (
+                spectra_kzkhomega["spectrum_vx"]
+                + spectra_kzkhomega["spectrum_vy"]
+                + spectra_kzkhomega["spectrum_vz"]
+            )
+        else:
+            spectra_kzkhomega["spectrum_K"] = 0.5 * (
+                spectra_kzkhomega["spectrum_ux"]
+                + spectra_kzkhomega["spectrum_uy"]
+            )
 
         # potential energy
         try:
