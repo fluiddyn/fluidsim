@@ -91,3 +91,6 @@ class SpatioTemporalSpectraNS2D(SpatioTemporalSpectraNS, SpatioTemporalSpectra2D
 
     compute_spectrum_kzkhomega = staticmethod(compute_spectrum_kzkhomega)
     _sum_wavenumber = staticmethod(_sum_wavenumber2D)
+
+    def save_spectra_kzkhomega(self, tmin=0, tmax=None, dtype=None):
+        return super().save_spectra_kzkhomega(tmin, tmax, dtype)

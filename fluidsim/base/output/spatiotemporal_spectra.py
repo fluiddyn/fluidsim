@@ -798,7 +798,10 @@ class SpatioTemporalSpectraNS:
         vmax=None,
     ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
-        keys_plot = self.keys_fields + ["Khd", "Khr", "Kp"]
+        keys_plot = self.keys_fields
+        if self.nb_dim == 3:
+            keys_plot.extend(["Khd", "Khr", "Kp"])
+
         if key_field is None:
             key_field = keys_plot[0]
         if key_field not in keys_plot:
@@ -821,9 +824,12 @@ class SpatioTemporalSpectraNS:
 
         # compute and save spectra if needed
         if not path_file.exists():
-            self.save_spectra_kzkhomega(
-                tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
-            )
+            if self.nb_dim == 3:
+                self.save_spectra_kzkhomega(
+                    tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
+                )
+            else:
+                self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax, dtype=dtype)
 
         # load spectrum
         with h5py.File(path_file, "r") as file:
