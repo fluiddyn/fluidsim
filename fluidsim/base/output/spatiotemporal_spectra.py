@@ -102,7 +102,6 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         params.output._set_child(
             cls._tag,
             attribs={
-                "HAS_TO_PLOT_SAVED": False,
                 "probes_region": None,
                 "file_max_size": 10.0,  # MB
                 "SAVE_AS_COMPLEX64": True,
@@ -154,7 +153,6 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         super().__init__(
             output,
             period_save=params.output.periods_save.spatiotemporal_spectra,
-            has_to_plot_saved=params_st_spec.HAS_TO_PLOT_SAVED,
         )
 
         oper = self.sim.oper
@@ -797,7 +795,11 @@ class SpatioTemporalSpectraNS:
         vmin=None,
         vmax=None,
     ):
-        """plot the spatiotemporal spectra, with a cylindrical average in k-space"""
+        """plot the spatiotemporal spectra, with a cylindrical average in k-space
+
+        equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='.
+
+        """
         keys_plot = self.keys_fields
         if self.nb_dim == 3:
             keys_plot.extend(["Khd", "Khr", "Kp"])
@@ -951,11 +953,6 @@ class SpatioTemporalSpectraNS:
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-
-        if vmin is None:
-            vmin = np.log10(spect[np.isfinite(spect)].min())
-        if vmax is None:
-            vmax = np.log10(spect[np.isfinite(spect)].max())
 
         # no log(0)
         spect += 1e-15

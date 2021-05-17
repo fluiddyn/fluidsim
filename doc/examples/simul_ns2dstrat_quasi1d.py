@@ -12,10 +12,9 @@ params = Simul.create_default_params()
 
 gamma = 1.0
 nb_wavelength = 2
-nz = nb_wavelength * 30 * 2
-nx = 6 * nz
-
-params.time_stepping.t_end = 100.0
+nz = nb_wavelength * 30
+inv_aspect_ratio = 6
+nx = inv_aspect_ratio * nz
 
 params.short_name_type_run = "quasi1d"
 
@@ -38,6 +37,9 @@ params.oper.coef_dealiasing = 0.65
 
 # Brunt Vaisala frequency
 params.N = gamma * omega_af / F
+period_N = 2 * pi / params.N
+
+params.time_stepping.t_end = 500 * period_N
 
 k_max = params.oper.coef_dealiasing * pi * nx / Lx
 omega_max = (forcing_rate * k_max ** 2) ** (1 / 3)
@@ -74,6 +76,19 @@ params.output.periods_save.spect_energy_budg = 0.5
 params.output.periods_save.spectra_multidim = 1.0
 params.output.periods_save.increments = 1.0
 
+params.output.periods_save.temporal_spectra = period_N / 4
+params.output.periods_save.spatiotemporal_spectra = period_N / 4
+
+temporal_spectra = params.output.temporal_spectra
+temporal_spectra.file_max_size = 20.0
+temporal_spectra.probes_deltax = temporal_spectra.probes_deltay = Lz / 10
+
+spatiotemporal_spectra = params.output.spatiotemporal_spectra
+spatiotemporal_spectra.file_max_size = 20.0
+ikz_max = 16
+ikx_max = inv_aspect_ratio * ikz_max
+spatiotemporal_spectra.probes_region = (ikx_max, ikz_max)
+
 sim = Simul(params)
 
 sim.time_stepping.start()
@@ -82,13 +97,10 @@ mpi.printby0(
     "\nTo display a video of this simulation, you can do:\n"
     f"cd {sim.output.path_run}"
     + """
-ipython
+ipython --matplotlib -i -c "from fluidsim import load_sim_for_plot as load; sim=load();"
 
-# then in ipython (copy the 3 lines in the terminal):
+# then in ipython (copy the line in the terminal):
 
-from fluidsim import load_sim_for_plot
-sim = load_sim_for_plot()
-
-sim.output.phys_fields.animate('b', dt_frame_in_sec=0.1, dt_equations=0.1)
+sim.output.phys_fields.animate('b', dt_frame_in_sec=0.1, dt_equations=0.25)
 """
 )

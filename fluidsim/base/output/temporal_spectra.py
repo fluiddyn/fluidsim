@@ -47,7 +47,6 @@ class TemporalSpectra3D(SpecificOutput):
         params.output.periods_save._set_attrib(tag, 0)
 
         attribs = {
-            "HAS_TO_PLOT_SAVED": False,
             "probes_deltax": 0.1,  # m
             "probes_deltay": 0.1,  # m
             "probes_region": None,  # m
@@ -104,7 +103,6 @@ class TemporalSpectra3D(SpecificOutput):
         super().__init__(
             output,
             period_save=params.output.periods_save.temporal_spectra,
-            has_to_plot_saved=params_tspec.HAS_TO_PLOT_SAVED,
         )
 
         oper = self.sim.oper
