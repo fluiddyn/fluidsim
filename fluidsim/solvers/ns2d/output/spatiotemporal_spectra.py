@@ -10,8 +10,6 @@ Provides:
 
 """
 
-from math import pi
-
 import numpy as np
 
 from fluidsim.base.output.spatiotemporal_spectra import (
@@ -22,13 +20,13 @@ from fluidsim.base.output.spatiotemporal_spectra import (
 from transonic import boost, Array, Type
 
 A3 = Array[Type(np.float32, np.float64), "3d", "C"]
-A3f64 = Array[np.float64, "3d", "C"]
+A2 = Array[np.float64, "2d", "C"]
 A1 = "float[:]"
 
 
-# @boost
+@boost
 def compute_spectrum_kzkhomega(
-    field_k0k1omega: A3, khs: A1, kzs: A1, KX: A3f64, KZ: A3f64, KH: A3f64
+    field_k0k1omega: A3, khs: A1, kzs: A1, KX: A2, KZ: A2, KH: A2
 ):
     """Compute the kz-kh-omega spectrum."""
     deltakh = khs[1]
@@ -37,9 +35,7 @@ def compute_spectrum_kzkhomega(
     nkh = len(khs)
     nkz = len(kzs)
     nk0, nk1, nomega = field_k0k1omega.shape
-    spectrum_kzkhomega = np.zeros(
-        (nkz, nkh, nomega), dtype=field_k0k1omega.dtype
-    )
+    spectrum_kzkhomega = np.zeros((nkz, nkh, nomega), dtype=field_k0k1omega.dtype)
 
     for ik0 in range(nk0):
         for ik1 in range(nk1):
@@ -64,9 +60,7 @@ def compute_spectrum_kzkhomega(
             else:
                 coef_share = (kappa - khs[ikh]) / deltakh
                 for i, value in enumerate(values):
-                    spectrum_kzkhomega[ikz, ikh, i] += (
-                        1 - coef_share
-                    ) * value
+                    spectrum_kzkhomega[ikz, ikh, i] += (1 - coef_share) * value
                     spectrum_kzkhomega[ikz, ikh + 1, i] += coef_share * value
 
     # get one-sided spectrum in the omega dimension

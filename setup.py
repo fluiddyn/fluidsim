@@ -134,6 +134,7 @@ def transonize():
         "fluidsim/util/mini_oper_modif_resol.py",
         "fluidsim/base/output/spatiotemporal_spectra.py",
         "fluidsim/solvers/ns3d/output/spatiotemporal_spectra.py",
+        "fluidsim/solvers/ns2d/output/spatiotemporal_spectra.py",
     ]
     make_backend_files([here / path for path in paths], backend=TRANSONIC_BACKEND)
 

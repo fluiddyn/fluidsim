@@ -13,7 +13,6 @@ Provides:
 from math import pi
 
 import numpy as np
-import h5py
 
 from fluidsim.base.output.spatiotemporal_spectra import (
     SpatioTemporalSpectra3D,
