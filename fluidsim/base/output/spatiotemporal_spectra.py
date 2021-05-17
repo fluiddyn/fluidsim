@@ -853,6 +853,17 @@ class SpatioTemporalSpectraNS:
         # slice along equation
         if equation is None:
             equation = f"omega=0"
+        elif equation.startswith("kh="):
+            kh = eval(equation[len("kh=") :])
+            kh_spectra = spectra_kzkhomega["kh_spectra"]
+            ikh = abs(kh_spectra - kh).argmin()
+            equation = f"ikh={ikh}"
+        elif equation.startswith("kz="):
+            kz = eval(equation[len("kz=") :])
+            kz_spectra = spectra_kzkhomega["kz_spectra"]
+            ikz = abs(kz_spectra - kz).argmin()
+            equation = f"ikz={ikz}"
+
         if equation.startswith("omega="):
             omega = eval(equation[len("omega=") :])
             omegas = spectra_kzkhomega["omegas"]
@@ -870,44 +881,6 @@ class SpatioTemporalSpectraNS:
                 equation = r"$\omega/N=$" + f"{omega/N:.2g}"
             except AttributeError:
                 pass
-        elif equation.startswith("kh="):
-            kh = eval(equation[len("kh=") :])
-            kh_spectra = spectra_kzkhomega["kh_spectra"]
-            ikh = abs(kh_spectra - kh).argmin()
-            spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
-
-            xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
-            yaxis = spectra_kzkhomega["omegas"]
-            # use reduced frequency for stratified fluids
-            try:
-                N = self.sim.params.N
-                yaxis /= N
-            except AttributeError:
-                pass
-
-            xlabel = r"$k_z/\delta k_z$"
-            ylabel = r"$\omega/N$"
-            kh = kh_spectra[ikh]
-            equation = f"$k_h = {ikh}\\delta k_h = {kh:.2g}$"
-        elif equation.startswith("kz="):
-            kz = eval(equation[len("kz=") :])
-            kz_spectra = spectra_kzkhomega["kz_spectra"]
-            ikz = abs(kz_spectra - kz).argmin()
-            spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
-
-            xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
-            yaxis = spectra_kzkhomega["omegas"]
-            # use reduced frequency for stratified fluids
-            try:
-                N = self.sim.params.N
-                yaxis /= N
-            except AttributeError:
-                pass
-
-            xlabel = r"$k_h/\delta k_h$"
-            ylabel = r"$\omega/N$"
-            kz = kz_spectra[ikz]
-            equation = f"$k_z = {ikz}\\delta k_z = {kz:.2g}$"
         elif equation.startswith("ikh="):
             ikh = eval(equation[len("ikh=") :])
             kh_spectra = spectra_kzkhomega["kh_spectra"]
@@ -983,8 +956,9 @@ class SpatioTemporalSpectraNS:
             / spectra_kzkhomega["kh_spectra"][1]
         )
         if equation.startswith(r"$\omega"):
-            ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkh_over_dkz * xaxis
-            ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
+            if omega > 0:
+                ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkh_over_dkz * xaxis
+                ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
             omega_disp = ikh / np.sqrt(ikh ** 2 + dkh_over_dkz ** 2 * xaxis ** 2)
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
