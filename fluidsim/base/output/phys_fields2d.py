@@ -258,6 +258,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
         self._skip_quiver = skip
         return skip
 
+    def set_skip_quiver(self, skip):
+        self._skip_quiver = skip
+
     def _init_movies(self):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 
@@ -329,6 +332,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         vmax=None,
         cmap="viridis",
         numfig=None,
+        skip_quiver=None,
     ):
         """Plot a field.
 
@@ -464,7 +468,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
             ax = None
 
         if QUIVER:
-            quiver, vmax = self._quiver_plot(ax, vecx, vecy)
+            quiver, vmax = self._quiver_plot(ax, vecx, vecy, skip=skip_quiver)
         else:
             vmax = None
 
@@ -480,7 +484,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
             fig.canvas.draw()
             plt.pause(1e-3)
 
-    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None):
+    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None, skip=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -505,7 +509,8 @@ class PhysFieldsBase2D(PhysFieldsBase):
             vmax = np.max(np.sqrt(vecx ** 2 + vecy ** 2))
             # Quiver is normalized by the vmax
             # copy to avoid a bug
-            skip = self._skip_quiver
+            if skip is None:
+                skip = self._skip_quiver
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
             quiver = ax.quiver(

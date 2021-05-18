@@ -188,9 +188,10 @@ class MoviesBase:
         >>> animate = sim.output.spectra.animate
         >>> animate('E')
         >>> animate('rot')
-        >>> animate('rot', dt_equations=0.1, dt_frame_in_sec=50, clim=(-5,5))
-        >>> animate('rot', tmax=25, clim=(-5,5), save_file='True')
-        >>> animate('rot', clim=(-5,5), save_file='~/fluidsim.gif', codec='imagemagick')
+        >>> animate('rot', dt_equations=0.1, dt_frame_in_sec=50, clim=(-5, 5))
+        >>> animate('rot', clim=(-300, 300), fig_kw={"figsize": (14, 4)})
+        >>> animate('rot', tmax=25, clim=(-5, 5), save_file='True')
+        >>> animate('rot', clim=(-5, 5), save_file='~/fluidsim.gif', codec='imagemagick')
 
         .. TODO: Use FuncAnimation with blit=True option.
 
