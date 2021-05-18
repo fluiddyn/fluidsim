@@ -326,7 +326,7 @@ class MoviesBase:
 
         path_file = os.path.expandvars(path_file)
         path_file = os.path.expanduser(path_file)
-        avail = animation.writers.avail
+        avail = animation.writers.list()
         if len(avail) == 0:
             raise ValueError(
                 "Please install a codec library. For e.g. ffmpeg, mencoder, "
