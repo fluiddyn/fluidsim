@@ -299,7 +299,6 @@ class SpectraNS2DStrat(Spectra):
         # Plot forcing wave-number k_f
         nkmax = self.sim.params.forcing.nkmax_forcing
         nkmin = self.sim.params.forcing.nkmin_forcing
-        k_f = ((nkmax + nkmin) / 2) * self.sim.oper.deltak
         pforcing = self.sim.params.forcing
         if pforcing.enable and pforcing.type == "tcrandom_anisotropic":
             angle = pforcing.tcrandom_anisotropic.angle
@@ -308,15 +307,15 @@ class SpectraNS2DStrat(Spectra):
                     angle = np.pi / 180 * float(angle[:-1])
             except AttributeError:
                 pass
-            k_fx = np.sin(angle) * k_f
-            k_fy = np.cos(angle) * k_f
 
             # Band forcing region kx
             k_fxmin = nkmin * self.sim.oper.deltak * np.sin(angle)
+            k_fxmin = max(k_fxmin, self.sim.oper.deltakx)
             k_fxmax = nkmax * self.sim.oper.deltak * np.sin(angle)
 
             # Band forcing region ky
             k_fymin = nkmin * self.sim.oper.deltak * np.cos(angle)
+            k_fymin = max(k_fymin, self.sim.oper.deltaky)
             k_fymax = nkmax * self.sim.oper.deltak * np.cos(angle)
 
             # Plot forcing band
