@@ -394,7 +394,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax1.set_xscale("log")
         ax1.set_yscale("linear")
         ax1.set_title("Spectral energy budget\n" + self.output.summary_simul)
-        ax1.set_xlim(left=1e-1, right=5e1)
 
         # Parameters of figure 2
         fig, ax2 = self.output.figure_axe()
@@ -403,7 +402,6 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         ax2.set_xscale("log")
         ax2.set_yscale("linear")
         ax2.set_title("Spectral energy budget\n" + self.output.summary_simul)
-        ax2.set_xlim(left=1e-1, right=5e1)
 
         # Compute time average dissipation to normalize fluxes
         spatial_mean_results = self.output.spatial_means.load()
@@ -437,10 +435,12 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
 
             # Band forcing region kx
             k_fxmin = nkmin * self.sim.oper.deltak * np.sin(angle)
+            k_fxmin = max(k_fxmin, self.sim.oper.deltakx)
             k_fxmax = nkmax * self.sim.oper.deltak * np.sin(angle)
 
             # Band forcing region ky
             k_fymin = nkmin * self.sim.oper.deltak * np.cos(angle)
+            k_fymin = max(k_fymin, self.sim.oper.deltaky)
             k_fymax = nkmax * self.sim.oper.deltak * np.cos(angle)
 
             # plot forcing range
