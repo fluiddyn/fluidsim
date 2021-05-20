@@ -95,6 +95,7 @@ install_requires = [
     "setuptools_scm",
     "xarray",
     "rich",
+    "matplotlib>=3.3",
 ]
 
 if FFTW3:
