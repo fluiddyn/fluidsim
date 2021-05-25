@@ -58,8 +58,7 @@ class TemporalSpectra3D(SpecificOutput):
             attribs["probes_deltaz"] = 0.1  # m
 
         params.output._set_child(
-            tag,
-            attribs=attribs,
+            tag, attribs=attribs,
         )
 
         params.output.temporal_spectra._set_doc(
@@ -101,8 +100,7 @@ class TemporalSpectra3D(SpecificOutput):
             return
 
         super().__init__(
-            output,
-            period_save=params.output.periods_save.temporal_spectra,
+            output, period_save=params.output.periods_save.temporal_spectra,
         )
 
         oper = self.sim.oper
@@ -561,9 +559,18 @@ class TemporalSpectra3D(SpecificOutput):
                 freq, spectrum = self._compute_spectrum(
                     np.concatenate(series[key])
                 )
-            spectra["spectrum_" + key[7:-4]] = spectrum.mean(0)
+                spectrum = spectrum.mean(0)
+                # get one-sided spectra
+                nomega = freq.size // 2 + 1
+                spectrum_onesided = np.zeros(nomega)
+                spectrum_onesided[0] = spectrum[0]
+                spectrum_onesided[1:] = (
+                    spectrum[1:nomega] + spectrum[-1:-nomega:-1]
+                )
 
-        spectra["omegas"] = 2 * pi * freq
+                spectra["spectrum_" + key[7:-4]] = spectrum_onesided
+
+        spectra["omegas"] = 2 * pi * freq[:nomega]
 
         return spectra
 
@@ -598,10 +605,7 @@ class TemporalSpectra3D(SpecificOutput):
         ax.set_yscale("log")
 
         ax.plot(
-            spectra["omegas"],
-            spectra["spectrum_" + key],
-            "k",
-            linewidth=2,
+            spectra["omegas"], spectra["spectrum_" + key], "k", linewidth=2,
         )
 
     def save_data_as_phys_fields(self, delta_index_times=1):
