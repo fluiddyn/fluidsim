@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-N", type=float, default=0.5, help="Brunt–Väisälä frequency")
 
 parser.add_argument(
-    "-D", "--diameter", type=float, default=0.5, help="Diameter of the cylinders"
+    "-D", "--diameter", type=float, default=0.25, help="Diameter of the cylinders"
 )
 
 parser.add_argument(
@@ -159,9 +159,14 @@ def main(args):
     periods_save.spatial_means_regions = movement.period / 1000.0
     periods_save.spect_energy_budg = movement.period / 50.0
     periods_save.spectra = movement.period / 100.0
+    periods_save.spatiotemporal_spectra = 4 * 2 * pi / params.N
 
     params.output.spatial_means_regions.xmin = [0, 0.1, 0.4, 0.7]
     params.output.spatial_means_regions.xmax = [1, 0.3, 0.6, 0.9]
+
+    spatiotemporal_spectra = params.output.spatiotemporal_spectra
+    spatiotemporal_spectra.file_max_size = 20.0
+    spatiotemporal_spectra.probes_region = (10, 10, 10)
 
     sim = Simul(params)
 

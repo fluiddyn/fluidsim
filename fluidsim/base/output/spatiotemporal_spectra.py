@@ -696,7 +696,7 @@ class SpatioTemporalSpectraNS:
             KY = deltaky * spectra[f"K{order[1]}_adim"]
             KH = np.sqrt(KX ** 2 + KY ** 2)
             deltakh = max(deltakx, deltaky)
-            khmax_spectra = min(KX.max(), KY.max())
+            khmax_spectra = max(KX.max(), KY.max())
             del KY
         else:
             # in 2d, vertical (here "z") is y
