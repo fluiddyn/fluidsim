@@ -9,7 +9,26 @@ import numpy as np
 from fluiddyn.util import mpi
 
 from fluidsim.util.test_util import skip_if_no_fluidfft
+from fluidsim.util.testing import FLUIDFFT_INSTALLED
 from .test_operators2d import TestCoarse as _TestCoarse
+
+
+def xfail_if_fluidfft_class_not_importable(func):
+    if not FLUIDFFT_INSTALLED or "FLUIDSIM_TYPE_FFT" not in os.environ:
+        return func
+
+    from fluidfft.fft3d import import_fft_class
+
+    try:
+        import_fft_class(os.environ["FLUIDSIM_TYPE_FFT"])
+    except ImportError:
+        ImportError_fft_class = True
+    else:
+        ImportError_fft_class = False
+
+    return pytest.mark.xfail(
+        ImportError_fft_class, reason="FluidFFT class can't be imported"
+    )(func)
 
 
 @pytest.fixture(scope="module")
@@ -29,6 +48,7 @@ def oper():
     return OperatorsPseudoSpectral3D(params=p)
 
 
+@xfail_if_fluidfft_class_not_importable
 @skip_if_no_fluidfft
 def test_projection(oper):
     from fluidsim.operators.operators3d import (
@@ -154,6 +174,7 @@ def test_projection(oper):
     print("Projections seems to be Ok.")
 
 
+@xfail_if_fluidfft_class_not_importable
 @skip_if_no_fluidfft
 def test_divh_rotz(oper):
     lx = ly = oper.Lx = oper.Ly = oper.Lz
@@ -196,6 +217,7 @@ def test_divh_rotz(oper):
     assert divh[0, oper.ny // 2, oper.nx // 2] < 0.0
 
 
+@xfail_if_fluidfft_class_not_importable
 @skip_if_no_fluidfft
 def test_where_is_wavenumber(oper):
     from fluidsim.operators.operators3d import _ik_from_ikc
@@ -273,6 +295,7 @@ def test_where_is_wavenumber(oper):
                 assert np.allclose(kzc, kz)
 
 
+@xfail_if_fluidfft_class_not_importable
 class TestCoarse(_TestCoarse):
     nb_dim = 3
 
