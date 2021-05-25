@@ -997,6 +997,10 @@ class SpatioTemporalSpectraNS:
                 self.compute_spectra_urud(tmin=tmin, tmax=tmax, dtype=dtype)
             )
 
+        # one-sided frequencies
+        nomegas = spectra["omegas"].size // 2 + 1
+        tspectra["omegas"] = spectra["omegas"][:nomegas]
+
         order = spectra["dims_order"]
         KX = spectra[f"K{order[-1]}_adim"]
         deltakx = 2 * pi / self.sim.params.oper.Lx
@@ -1006,8 +1010,131 @@ class SpatioTemporalSpectraNS:
         for key, spectrum in spectra.items():
             if not key.startswith("spectrum_"):
                 continue
-            tspectra[key] = self._sum_wavenumber(spectrum, KX, kx_max)
+            tspectrum = self._sum_wavenumber(spectrum, KX, kx_max)
+            # one-sided frequencies
+            tspectrum_onesided = np.zeros(nomegas)
+            tspectrum_onesided[0] = tspectrum[0]
+            tspectrum_onesided[1:] = (
+                tspectrum[1:nomegas] + tspectrum[-1:-nomegas:-1]
+            )
+            tspectra[key] = tspectrum_onesided
 
-        tspectra["omegas"] = spectra["omegas"]
+        # total kinetic energy
+        if self.nb_dim == 3:
+            tspectra["spectrum_K"] = 0.5 * (
+                tspectra["spectrum_vx"]
+                + tspectra["spectrum_vy"]
+                + tspectra["spectrum_vz"]
+            )
+        else:
+            tspectra["spectrum_K"] = 0.5 * (
+                tspectra["spectrum_ux"] + tspectra["spectrum_uy"]
+            )
+
+        # potential energy
+        try:
+            N = self.sim.params.N
+            tspectra["spectrum_A"] = 0.5 / N ** 2 * tspectra["spectrum_b"]
+        except AttributeError:
+            pass
 
         return tspectra
+
+    def plot_temporal_spectra(
+        self,
+        key_field=None,
+        tmin=0,
+        tmax=None,
+        dtype=None,
+    ):
+        """plot the temporal spectra computed from the 4d spectra"""
+        keys_plot = self.keys_fields.copy()
+        if self.nb_dim == 3:
+            keys_plot.extend(["Khd", "Khr", "Kp"])
+        if key_field is None:
+            key_field = keys_plot[0]
+        if key_field not in keys_plot:
+            raise KeyError(f"possible keys are {keys_plot}")
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        # TODO: save/load spectra instead of computing everytime
+        tspectra = self.compute_temporal_spectra(
+            tmin=tmin, tmax=tmax, dtype=dtype, compute_urud=True
+        )
+
+        # plot
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(r"$\omega$")
+        ax.set_ylabel("spectrum")
+        ax.set_title(
+            f"{key_field} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
+            + self.output.summary_simul
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        # specific to strat
+        try:
+            N = self.sim.params.N
+        except AttributeError:
+            ax.plot(
+                tspectra["omegas"],
+                tspectra["spectrum_" + key_field],
+                "k",
+                linewidth=2,
+            )
+        else:
+            # polo/toro/potential decomposition
+            EKp = tspectra["spectrum_Khd"] + 0.5 * tspectra["spectrum_vz"]
+            EKhr = tspectra["spectrum_Khr"]
+            EA = tspectra["spectrum_A"]
+            omegas = tspectra["omegas"] / N
+            EKpN = EKp[abs(omegas - 1).argmin()]  # value @N
+
+            ax.plot(omegas, EKp, "m", linewidth=2, label=r"$E_{K,polo}$")
+            ax.plot(omegas, EKhr, "r:", linewidth=2, label=r"$E_{K,toro}$")
+            ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
+            ax.set_title(
+                f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
+                + self.output.summary_simul
+            )
+
+            # resonant modes
+            if self.nb_dim == 3:
+                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
+            else:
+                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
+
+            def modes(nx, nz):
+                return np.sqrt(nx ** 2 / (nx ** 2 + aspect_ratio ** 2 * nz ** 2))
+
+            nxs = np.arange(1, 11)
+            modes_nz1 = modes(nxs, 1)
+            modes_nz2 = modes(nxs, 2)
+            modes_y = np.full_like(modes_nz1, fill_value=10 * EKpN)
+
+            ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
+            ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
+
+            # omega^-2 scaling
+            omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
+            scaling_y = EKpN * omegas_scaling ** -2
+
+            ax.plot(omegas_scaling, scaling_y, "k--")
+
+            # eye guide @N
+            ymin = EKpN / 10
+            _, ymax = ax.get_ylim()
+            ax.vlines(1, ymin, ymax, linestyle="dotted")
+
+            # eye guide @omega_f (specific to watu_coriolis)
+            if self.sim.params.forcing.type == "watu_coriolis":
+                omega_f = self.sim.params.forcing.watu_coriolis.omega_f
+                ax.vlines(omega_f / N, ymin, ymax, linestyle="dotted")
+
+            ax.set_xlabel(r"$\omega/N$")
+            ax.set_ylim(ymin, ymax)
+            ax.set_xlim(omegas[1], 1.5)
+
+            ax.legend()

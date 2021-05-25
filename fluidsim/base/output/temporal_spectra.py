@@ -623,12 +623,12 @@ class TemporalSpectra3D(SpecificOutput):
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
         ax.set_ylabel("spectrum")
+        ax.set_xscale("log")
+        ax.set_yscale("log")
         ax.set_title(
             f"{key} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
         )
-        ax.set_xscale("log")
-        ax.set_yscale("log")
 
         # specific to strat
         try:
@@ -650,6 +650,10 @@ class TemporalSpectra3D(SpecificOutput):
 
             ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
             ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
+            ax.set_title(
+                f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
+                + self.output.summary_simul
+            )
 
             # resonant modes
             if self.nb_dim == 3:
