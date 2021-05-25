@@ -14,7 +14,6 @@ Provides:
 
 """
 
-from copy import deepcopy
 from pathlib import Path
 from logging import warn
 from math import pi
@@ -801,7 +800,7 @@ class SpatioTemporalSpectraNS:
         equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='.
 
         """
-        keys_plot = deepcopy(self.keys_fields)
+        keys_plot = self.keys_fields.copy()
         if self.nb_dim == 3:
             keys_plot.extend(["Khd", "Khr", "Kp"])
 
