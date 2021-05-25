@@ -58,7 +58,8 @@ class TemporalSpectra3D(SpecificOutput):
             attribs["probes_deltaz"] = 0.1  # m
 
         params.output._set_child(
-            tag, attribs=attribs,
+            tag,
+            attribs=attribs,
         )
 
         params.output.temporal_spectra._set_doc(
@@ -100,7 +101,8 @@ class TemporalSpectra3D(SpecificOutput):
             return
 
         super().__init__(
-            output, period_save=params.output.periods_save.temporal_spectra,
+            output,
+            period_save=params.output.periods_save.temporal_spectra,
         )
 
         oper = self.sim.oper
@@ -633,9 +635,11 @@ class TemporalSpectra3D(SpecificOutput):
             N = self.sim.params.N
         except AttributeError:
             omegas = spectra["omegas"]
-            xlabel = r"$\omega$"
             ax.plot(
-                spectra["omegas"], spectra["spectrum_" + key], "k", linewidth=2,
+                spectra["omegas"],
+                spectra["spectrum_" + key],
+                "k",
+                linewidth=2,
             )
         else:
             # kinetic/potential decomposition
@@ -648,8 +652,12 @@ class TemporalSpectra3D(SpecificOutput):
             ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
 
             # resonant modes
-            def modes(nx, nz):
+            if self.nb_dim == 3:
                 aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
+            else:
+                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
+
+            def modes(nx, nz):
                 return np.sqrt(nx ** 2 / (nx ** 2 + aspect_ratio ** 2 * nz ** 2))
 
             nxs = np.arange(1, 11)
