@@ -572,6 +572,25 @@ class TemporalSpectra3D(SpecificOutput):
 
         spectra["omegas"] = 2 * pi * freq[:nomega]
 
+        # total kinetic energy
+        if self.nb_dim == 3:
+            spectra["spectrum_K"] = 0.5 * (
+                spectra["spectrum_vx"]
+                + spectra["spectrum_vy"]
+                + spectra["spectrum_vz"]
+            )
+        else:
+            spectra["spectrum_K"] = 0.5 * (
+                spectra["spectrum_ux"] + spectra["spectrum_uy"]
+            )
+
+        # potential energy
+        try:
+            N = self.sim.params.N
+            spectra["spectrum_A"] = 0.5 / N ** 2 * spectra["spectrum_b"]
+        except AttributeError:
+            pass
+
         return spectra
 
     def _get_default_region(self):
@@ -596,17 +615,65 @@ class TemporalSpectra3D(SpecificOutput):
         # plot
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
-        ax.set_ylabel("spectra " + key)
+        ax.set_ylabel("spectrum ")
         ax.set_title(
-            f"temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
+            f"{key} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
         )
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-        ax.plot(
-            spectra["omegas"], spectra["spectrum_" + key], "k", linewidth=2,
-        )
+        # specific to strat + watu_coriolis
+        try:
+            N = self.sim.params.N
+            omega_f = self.sim.params.forcing.watu_coriolis.omega_f / N
+        except AttributeError:
+            omegas = spectra["omegas"]
+            xlabel = r"$\omega$"
+            ax.plot(
+                spectra["omegas"], spectra["spectrum_" + key], "k", linewidth=2,
+            )
+        else:
+            # kinetic/potential decomposition
+            EK = spectra["spectrum_K"]
+            EA = spectra["spectrum_A"]
+            omegas = spectra["omegas"] / N
+            EKf = EK[abs(omegas - omega_f).argmin()]  # value @omega_f
+            EKN = EK[abs(omegas - 1).argmin()]  # value @N
+
+            ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
+            ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
+
+            # resonant modes
+            def modes(nx, nz):
+                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
+                return np.sqrt(nx ** 2 / (nx ** 2 + aspect_ratio ** 2 * nz ** 2))
+
+            nxs = np.arange(1, 11)
+            modes_nz1 = modes(nxs, 1)
+            modes_nz2 = modes(nxs, 2)
+            modes_y = np.full_like(modes_nz1, fill_value=EKf / 10)
+
+            ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
+            ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
+
+            # omega^-2 scaling
+            omegas_scaling = np.arange(omega_f, 1 + 1e-15, 0.01)
+            coef = omega_f ** 2 * EKf / 100
+            scaling_y = coef * omegas_scaling ** -2
+
+            ax.plot(omegas_scaling, scaling_y, "k--")
+
+            # eye guides @omega_f and @N
+            ymin = EKN / 10
+            _, ymax = ax.get_ylim()
+            ax.vlines([omega_f, 1], ymin, ymax, linestyle="dotted")
+
+            ax.set_xlabel(r"$\omega/N$")
+            ax.set_ylim(ymin, ymax)
+            ax.set_xlim(omegas[1], 1.5)
+
+            ax.legend()
 
     def save_data_as_phys_fields(self, delta_index_times=1):
         """load temporal data and save as phys_fields array"""
