@@ -620,7 +620,7 @@ class TemporalSpectra3D(SpecificOutput):
         # plot
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
-        ax.set_ylabel("spectrum ")
+        ax.set_ylabel("spectrum")
         ax.set_title(
             f"{key} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
@@ -628,10 +628,9 @@ class TemporalSpectra3D(SpecificOutput):
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-        # specific to strat + watu_coriolis
+        # specific to strat
         try:
             N = self.sim.params.N
-            omega_f = self.sim.params.forcing.watu_coriolis.omega_f / N
         except AttributeError:
             omegas = spectra["omegas"]
             xlabel = r"$\omega$"
@@ -643,7 +642,6 @@ class TemporalSpectra3D(SpecificOutput):
             EK = spectra["spectrum_K"]
             EA = spectra["spectrum_A"]
             omegas = spectra["omegas"] / N
-            EKf = EK[abs(omegas - omega_f).argmin()]  # value @omega_f
             EKN = EK[abs(omegas - 1).argmin()]  # value @N
 
             ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
@@ -657,22 +655,26 @@ class TemporalSpectra3D(SpecificOutput):
             nxs = np.arange(1, 11)
             modes_nz1 = modes(nxs, 1)
             modes_nz2 = modes(nxs, 2)
-            modes_y = np.full_like(modes_nz1, fill_value=EKf / 10)
+            modes_y = np.full_like(modes_nz1, fill_value=100 * EKN)
 
             ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
             ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
 
             # omega^-2 scaling
-            omegas_scaling = np.arange(omega_f, 1 + 1e-15, 0.01)
-            coef = omega_f ** 2 * EKf / 100
-            scaling_y = coef * omegas_scaling ** -2
+            omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
+            scaling_y = EKN * omegas_scaling ** -2
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 
-            # eye guides @omega_f and @N
+            # eye guide @N
             ymin = EKN / 10
             _, ymax = ax.get_ylim()
-            ax.vlines([omega_f, 1], ymin, ymax, linestyle="dotted")
+            ax.vlines(1, ymin, ymax, linestyle="dotted")
+
+            # eye guide @omega_f (specific to watu_coriolis)
+            if self.sim.params.forcing.type == "watu_coriolis":
+                omega_f = self.sim.params.forcing.watu_coriolis.omega_f
+                ax.vlines(omega_f / N, ymin, ymax, linestyle="dotted")
 
             ax.set_xlabel(r"$\omega/N$")
             ax.set_ylim(ymin, ymax)
