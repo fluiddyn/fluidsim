@@ -606,11 +606,16 @@ class TemporalSpectra3D(SpecificOutput):
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        # TODO: check if spectra are saved before computing everything
-        # compute spectra
-        spectra = self.compute_spectra(
-            region=region, tmin=tmin, tmax=tmax, dtype=dtype
-        )
+        # load or compute spectra
+        path_file = self._get_path_saved_spectra(region, tmin, tmax, dtype)
+        if path_file.exists():
+            spectra = self.load_spectra(
+                region=region, tmin=tmin, tmax=tmax, dtype=dtype
+            )
+        else:
+            spectra = self.save_spectra(
+                region=region, tmin=tmin, tmax=tmax, dtype=dtype
+            )
 
         # plot
         fig, ax = self.output.figure_axe()
@@ -774,22 +779,50 @@ class TemporalSpectra3D(SpecificOutput):
                 # sim info
                 self.sim.info._save_as_hdf5(hdf5_parent=file)
 
-    def save_spectra(self, region=None, tmin=0, tmax=None):
+    def _get_path_saved_spectra(self, region, tmin, tmax, dtype):
+        base = (
+            "periodogram_" + "_".join(str(x) for x in region) + f"_{tmin}_{tmax}"
+        )
+        if dtype is not None:
+            base += f"_{dtype}"
+        return self.path_dir / (base + ".h5")
+
+    def save_spectra(self, region=None, tmin=0, tmax=None, dtype=None):
         """compute temporal spectra from files"""
         if region is None:
             region = self._get_default_region()
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        spectra = self.compute_spectra(region=region, tmin=tmin, tmax=tmax)
+        spectra = self.compute_spectra(
+            region=region, tmin=tmin, tmax=tmax, dtype=dtype
+        )
 
-        path_file = Path(self.sim.output.path_run) / "temporal_spectra.h5"
+        path_file = self._get_path_saved_spectra(region, tmin, tmax, dtype)
         with h5py.File(path_file, "w") as file:
             file.attrs["region"] = region
             file.attrs["tmin"] = tmin
             file.attrs["tmax"] = tmax
             for key, val in spectra.items():
                 file.create_dataset(key, data=val)
+
+        return spectra
+
+    def load_spectra(self, region=None, tmin=0, tmax=None, dtype=None):
+        """load temporal spectra from file"""
+        if region is None:
+            region = self._get_default_region()
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        spectra = {"region": region, "tmin": tmin, "tmax": tmax}
+
+        path_file = self._get_path_saved_spectra(region, tmin, tmax, dtype)
+        with h5py.File(path_file, "r") as file:
+            for key in file.keys():
+                spectra[key] = file[key][...]
+
+        return spectra
 
 
 class TemporalSpectra2D(TemporalSpectra3D):
