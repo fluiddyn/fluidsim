@@ -280,7 +280,8 @@ class TestForcingOutput(TestSimulBase):
             energy_K_mean / energy_tspect_mean
         )
 
-        spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega()
+        _ = spatiotemporal_spectra.save_spectra_kzkhomega()
+        spectra_kzkhomega = spatiotemporal_spectra.load_spectra_kzkhomega()
 
         delta_kz = spectra_kzkhomega["kz_spectra"][1]
         delta_kh = spectra_kzkhomega["kh_spectra"][1]
