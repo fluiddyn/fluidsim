@@ -1133,7 +1133,10 @@ class SpatioTemporalSpectraNS:
 
         # TODO: should we always set save_urud = True?
         # I think it's complicated not to (in 3d).
-        save_urud = True
+        if self.nb_dim == 3:
+            save_urud = True
+        else:
+            save_urud = False
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         if path_file.exists():
             tspectra = self.load_temporal_spectra(
@@ -1166,15 +1169,21 @@ class SpatioTemporalSpectraNS:
                 linewidth=2,
             )
         else:
-            # polo/toro/potential decomposition
-            EKp = tspectra["spectrum_Khd"] + 0.5 * tspectra["spectrum_vz"]
-            EKhr = tspectra["spectrum_Khr"]
-            EA = tspectra["spectrum_A"]
             omegas = tspectra["omegas"] / N
-            EKpN = EKp[abs(omegas - 1).argmin()]  # value @N
+            if self.nb_dim == 3:
+                # polo/toro/potential decomposition
+                EKp = tspectra["spectrum_Khd"] + 0.5 * tspectra["spectrum_vz"]
+                EKhr = tspectra["spectrum_Khr"]
+                ax.plot(omegas, EKp, "m", linewidth=2, label=r"$E_{K,polo}$")
+                ax.plot(omegas, EKhr, "r:", linewidth=2, label=r"$E_{K,toro}$")
+                EKN = EKp[abs(omegas - 1).argmin()]  # value @N
+            else:
+                # kinetic energy
+                EK = tspectra["spectrum_K"]
+                ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
+                EKN = EK[abs(omegas - 1).argmin()]  # value @N
+            EA = tspectra["spectrum_A"]
 
-            ax.plot(omegas, EKp, "m", linewidth=2, label=r"$E_{K,polo}$")
-            ax.plot(omegas, EKhr, "r:", linewidth=2, label=r"$E_{K,toro}$")
             ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
             ax.set_title(
                 f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
@@ -1193,19 +1202,19 @@ class SpatioTemporalSpectraNS:
             nxs = np.arange(1, 11)
             modes_nz1 = modes(nxs, 1)
             modes_nz2 = modes(nxs, 2)
-            modes_y = np.full_like(modes_nz1, fill_value=10 * EKpN)
+            modes_y = np.full_like(modes_nz1, fill_value=10 * EKN)
 
             ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
             ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EKpN * omegas_scaling ** -2
+            scaling_y = EKN * omegas_scaling ** -2
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 
             # eye guide @N
-            ymin = EKpN / 10
+            ymin = EKN / 10
             _, ymax = ax.get_ylim()
             ax.vlines(1, ymin, ymax, linestyle="dotted")
 

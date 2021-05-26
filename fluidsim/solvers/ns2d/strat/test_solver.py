@@ -351,6 +351,7 @@ class TestForcingOutput(TestSimulBase):
         sim2.output.spatiotemporal_spectra.plot_kzkhomega(
             key_field="ux", equation="ikz=1"
         )
+        sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
         sim2.output.increments.load()
         sim2.output.increments.plot()
