@@ -839,6 +839,22 @@ class SpatioTemporalSpectraNS:
 
         return spectra_kzkhomega, tspectra
 
+    def load_spectra_kzkhomega(
+        self, tmin=0, tmax=None, dtype=None, save_urud=False
+    ):
+        """load kzkhomega spectra from file"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        spectra = {}
+
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
+        with h5py.File(path_file, "r") as file:
+            for key in file.keys():
+                spectra[key] = file[key][...]
+
+        return spectra
+
     def plot_kzkhomega(
         self,
         key_field=None,
@@ -1115,7 +1131,8 @@ class SpatioTemporalSpectraNS:
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        # TODO: save/load spectra instead of computing everytime
+        # TODO: should we always set save_urud = True?
+        # I think it's complicated not to (in 3d).
         save_urud = True
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         if path_file.exists():
