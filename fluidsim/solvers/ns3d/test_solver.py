@@ -245,6 +245,7 @@ class TestOutput(TestSimulBase):
         sim3.output.temporal_spectra.save_spectra()
 
         spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
+        spatiotemporal_spectra.plot_temporal_spectra()
         series_kxkykz = spatiotemporal_spectra.load_time_series()
 
         spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
@@ -269,7 +270,7 @@ class TestOutput(TestSimulBase):
         def sum_wavenumber(field):
             return _sum_wavenumber3D(field, KX, kx_max)
 
-        spectra_kzkhomega = spatiotemporal_spectra.save_spectra_kzkhomega(
+        spectra_kzkhomega, _ = spatiotemporal_spectra.save_spectra_kzkhomega(
             save_urud=True
         )
 

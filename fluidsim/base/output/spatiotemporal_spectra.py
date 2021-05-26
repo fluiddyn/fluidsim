@@ -673,10 +673,22 @@ class SpatioTemporalSpectraNS:
             base += "_urud"
         return self.path_dir / (base + ".h5")
 
+    def _get_path_saved_tspectra(self, tmin, tmax, dtype, save_urud):
+        base = f"periodogram_temporal_{tmin}_{tmax}"
+        if dtype is not None:
+            base += f"_{dtype}"
+        if save_urud:
+            base += "_urud"
+        return self.path_dir / (base + ".h5")
+
     def save_spectra_kzkhomega(
         self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
-        """save the spatiotemporal spectra, with a cylindrical average in k-space"""
+        """
+        save:
+            - the spatiotemporal spectra, with a cylindrical average in k-space
+            - the temporal spectra, with an average on the whole k-space
+        """
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
@@ -689,6 +701,7 @@ class SpatioTemporalSpectraNS:
         deltakx = 2 * pi / params_oper.Lx
         order = spectra["dims_order"]
         KX = deltakx * spectra[f"K{order[-1]}_adim"]
+        kx_max = self.sim.params.oper.nx // 2 * deltakx
 
         if self.nb_dim == 3:
             deltaky = 2 * pi / params_oper.Ly
@@ -717,18 +730,28 @@ class SpatioTemporalSpectraNS:
         nomegas = omegas.size // 2 + 1
         omegas_onesided = abs(omegas[:nomegas])
 
-        # perform cylindrical average
+        # kzkhomega : perform cylindrical average
+        # temporal spectra : average on Fourier space
         spectra_kzkhomega = {
             "kz_spectra": kz_spectra,
             "kh_spectra": kh_spectra,
             "omegas": omegas_onesided,
         }
+        tspectra = {"omegas": omegas_onesided}
         for key, data in spectra.items():
             if not key.startswith("spectrum_"):
                 continue
             spectra_kzkhomega[key] = self.compute_spectrum_kzkhomega(
                 np.ascontiguousarray(data), kh_spectra, kz_spectra, KX, KZ, KH
             )
+            tspectrum = self._sum_wavenumber(data, KX, kx_max)
+            # one-sided frequencies
+            tspectrum_onesided = np.zeros(nomegas)
+            tspectrum_onesided[0] = tspectrum[0]
+            tspectrum_onesided[1:] = (
+                tspectrum[1:nomegas] + tspectrum[-1:-nomegas:-1]
+            )
+            tspectra[key] = tspectrum_onesided
 
         del spectra
 
@@ -739,10 +762,18 @@ class SpatioTemporalSpectraNS:
                 + spectra_kzkhomega["spectrum_vy"]
                 + spectra_kzkhomega["spectrum_vz"]
             )
+            tspectra["spectrum_K"] = 0.5 * (
+                tspectra["spectrum_vx"]
+                + tspectra["spectrum_vy"]
+                + tspectra["spectrum_vz"]
+            )
         else:
             spectra_kzkhomega["spectrum_K"] = 0.5 * (
                 spectra_kzkhomega["spectrum_ux"]
                 + spectra_kzkhomega["spectrum_uy"]
+            )
+            tspectra["spectrum_K"] = 0.5 * (
+                tspectra["spectrum_ux"] + tspectra["spectrum_uy"]
             )
 
         # potential energy
@@ -751,10 +782,11 @@ class SpatioTemporalSpectraNS:
             spectra_kzkhomega["spectrum_A"] = (
                 0.5 / N ** 2 * spectra_kzkhomega["spectrum_b"]
             )
+            tspectra["spectrum_A"] = 0.5 / N ** 2 * tspectra["spectrum_b"]
         except AttributeError:
             pass
 
-        # save to file
+        # save to files
         path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
         with h5py.File(path_file, "w") as file:
             file.attrs["tmin"] = tmin
@@ -762,10 +794,18 @@ class SpatioTemporalSpectraNS:
             for key, val in spectra_kzkhomega.items():
                 file.create_dataset(key, data=val)
 
+        path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
+        with h5py.File(path_file, "w") as file:
+            file.attrs["tmin"] = tmin
+            file.attrs["tmax"] = tmax
+            for key, val in tspectra.items():
+                file.create_dataset(key, data=val)
+
         # toroidal/poloidal decomposition
         if save_urud:
             print("Computing ur, ud spectra...")
             spectra_urud_kzkhomega = {}
+            tspectra_urud = {}
             spectra = self.compute_spectra_urud(tmin=tmin, tmax=tmax, dtype=dtype)
 
             for key, data in spectra.items():
@@ -775,12 +815,29 @@ class SpatioTemporalSpectraNS:
                     np.ascontiguousarray(data), kh_spectra, kz_spectra, KX, KZ, KH
                 )
                 spectra_kzkhomega[key] = spectra_urud_kzkhomega[key]
+                tspectrum = self._sum_wavenumber(data, KX, kx_max)
+                # one-sided frequencies
+                tspectrum_onesided = np.zeros(nomegas)
+                tspectrum_onesided[0] = tspectrum[0]
+                tspectrum_onesided[1:] = (
+                    tspectrum[1:nomegas] + tspectrum[-1:-nomegas:-1]
+                )
+                tspectra_urud[key] = tspectrum_onesided
+                tspectra[key] = tspectra_urud[key]
 
+            path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
             with h5py.File(path_file, "a") as file:
                 for key, val in spectra_urud_kzkhomega.items():
                     file.create_dataset(key, data=val)
 
-        return spectra_kzkhomega
+            path_file = self._get_path_saved_tspectra(
+                tmin, tmax, dtype, save_urud
+            )
+            with h5py.File(path_file, "a") as file:
+                for key, val in tspectra_urud.items():
+                    file.create_dataset(key, data=val)
+
+        return spectra_kzkhomega, tspectra
 
     def plot_kzkhomega(
         self,
@@ -1059,9 +1116,16 @@ class SpatioTemporalSpectraNS:
             tmax = self.sim.params.time_stepping.t_end
 
         # TODO: save/load spectra instead of computing everytime
-        tspectra = self.compute_temporal_spectra(
-            tmin=tmin, tmax=tmax, dtype=dtype, compute_urud=True
-        )
+        save_urud = True
+        path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
+        if path_file.exists():
+            tspectra = self.load_temporal_spectra(
+                tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
+            )
+        else:
+            tspectra = self.save_temporal_spectra(
+                tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
+            )
 
         # plot
         fig, ax = self.output.figure_axe()
@@ -1138,3 +1202,39 @@ class SpatioTemporalSpectraNS:
             ax.set_xlim(omegas[1], 1.5)
 
             ax.legend()
+
+    def load_temporal_spectra(
+        self, tmin=0, tmax=None, dtype=None, save_urud=False
+    ):
+        """load temporal spectra from file"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        tspectra = {}
+
+        path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
+        with h5py.File(path_file, "r") as file:
+            for key in file.keys():
+                tspectra[key] = file[key][...]
+
+        return tspectra
+
+    def save_temporal_spectra(
+        self, tmin=0, tmax=None, dtype=None, save_urud=False
+    ):
+        """compute temporal spectra from files"""
+        if tmax is None:
+            tmax = self.sim.params.time_stepping.t_end
+
+        tspectra = self.compute_temporal_spectra(
+            tmin=tmin, tmax=tmax, dtype=dtype, compute_urud=save_urud
+        )
+
+        path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
+        with h5py.File(path_file, "w") as file:
+            file.attrs["tmin"] = tmin
+            file.attrs["tmax"] = tmax
+            for key, val in tspectra.items():
+                file.create_dataset(key, data=val)
+
+        return tspectra
