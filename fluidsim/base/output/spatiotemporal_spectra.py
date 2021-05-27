@@ -939,7 +939,11 @@ class SpatioTemporalSpectraNS:
             equation = f"ikz={ikz}"
 
         if equation.startswith("omega="):
-            omega = eval(equation[len("omega=") :])
+            try:
+                variables = dict(N=self.sim.params.N)
+            except AttributeError:
+                variables = dict()
+            omega = eval(equation[len("omega=") :], variables)
             omegas = spectra_kzkhomega["omegas"]
             iomega = abs(omegas - omega).argmin()
             spect = spectra_kzkhomega[key_spect][:, :, iomega]
