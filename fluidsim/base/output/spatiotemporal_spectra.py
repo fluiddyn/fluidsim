@@ -1131,9 +1131,8 @@ class SpatioTemporalSpectraNS:
         if tmax is None:
             tmax = self.sim.params.time_stepping.t_end
 
-        # TODO: should we always set save_urud = True?
-        # I think it's complicated not to (in 3d).
         if self.nb_dim == 3:
+            # much simpler for 3d
             save_urud = True
         else:
             save_urud = False
@@ -1174,14 +1173,15 @@ class SpatioTemporalSpectraNS:
                 # polo/toro/potential decomposition
                 EKp = tspectra["spectrum_Khd"] + 0.5 * tspectra["spectrum_vz"]
                 EKhr = tspectra["spectrum_Khr"]
-                ax.plot(omegas, EKp, "m", linewidth=2, label=r"$E_{K,polo}$")
-                ax.plot(omegas, EKhr, "r:", linewidth=2, label=r"$E_{K,toro}$")
-                EKN = EKp[abs(omegas - 1).argmin()]  # value @N
+                EK = EKhr + EKp
+                ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
+                ax.plot(omegas, EKhr, "r--", linewidth=1, label=r"$E_{K,toro}$")
+                ax.plot(omegas, EKp, "r-.", linewidth=1, label=r"$E_{K,polo}$")
             else:
                 # kinetic energy
                 EK = tspectra["spectrum_K"]
                 ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
-                EKN = EK[abs(omegas - 1).argmin()]  # value @N
+            EK_N = EK[abs(omegas - 1).argmin()]  # value at N
             EA = tspectra["spectrum_A"]
 
             ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
@@ -1202,25 +1202,30 @@ class SpatioTemporalSpectraNS:
             nxs = np.arange(1, 11)
             modes_nz1 = modes(nxs, 1)
             modes_nz2 = modes(nxs, 2)
-            modes_y = np.full_like(modes_nz1, fill_value=10 * EKN)
+            modes_y = np.full_like(modes_nz1, fill_value=10 * EK_N)
 
             ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
             ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EKN * omegas_scaling ** -2
+            scaling_y = EK_N * omegas_scaling ** -2
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 
-            # eye guide @N
-            ymin = EKN / 10
+            # eye guide at N
+            ymin = EK_N / 10
             _, ymax = ax.get_ylim()
             ax.vlines(1, ymin, ymax, linestyle="dotted")
 
-            # eye guide @omega_f (specific to watu_coriolis)
-            if self.sim.params.forcing.type == "watu_coriolis":
-                omega_f = self.sim.params.forcing.watu_coriolis.omega_f
+            # eye guide at omega_f (specific to some forcing types)
+            forcing_type = self.sim.params.forcing.type
+            if forcing_type in ["watu_coriolis", "milestone"]:
+                if forcing_type == "watu_coriolis":
+                    omega_f = self.sim.params.forcing.watu_coriolis.omega_f
+                elif forcing_type == "milestone":
+                    period = self.sim.forcing.get_info()["period"]
+                    omega_f = 2 * pi / period
                 ax.vlines(omega_f / N, ymin, ymax, linestyle="dotted")
 
             ax.set_xlabel(r"$\omega/N$")

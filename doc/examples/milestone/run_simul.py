@@ -159,7 +159,7 @@ def main(args):
     periods_save.spatial_means_regions = movement.period / 1000.0
     periods_save.spect_energy_budg = movement.period / 50.0
     periods_save.spectra = movement.period / 100.0
-    periods_save.spatiotemporal_spectra = 4 * 2 * pi / params.N
+    periods_save.spatiotemporal_spectra = 2 * pi / params.N / 4
 
     params.output.spatial_means_regions.xmin = [0, 0.1, 0.4, 0.7]
     params.output.spatial_means_regions.xmax = [1, 0.3, 0.6, 0.9]
