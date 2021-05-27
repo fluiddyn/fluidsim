@@ -24,6 +24,7 @@ import h5py
 from rich.progress import Progress
 
 from fluiddyn.util import mpi
+from fluidsim.util.util import open_patient
 from fluidsim.base.output.base import SpecificOutput
 
 from transonic import boost, Array, Type
@@ -222,7 +223,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         paths = sorted(self.path_dir.glob("rank*.h5"))
         if paths:
             # check values in files
-            with h5py.File(paths[0], "r") as file:
+            with open_patient(paths[0], "r") as file:
                 if file.attrs["nb_proc"] != mpi.nb_proc:
                     raise ValueError("process number is different from files")
                 if (file.attrs["dims_order"] != self.dims_order).any():
@@ -234,7 +235,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
             paths = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
             if paths:
                 self.path_file = paths[-1]
-                with h5py.File(self.path_file, "r") as file:
+                with open_patient(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
                     self.probes_k0adim_loc = file["probes_k0adim_loc"][:]
                     self.probes_ik0_loc = file["probes_ik0_loc"][:]
@@ -366,7 +367,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         else:
             ind_str = f"file{self.index_file:04}"
         self.path_file = self.path_dir / f"rank{mpi.rank:05}_{ind_str}.h5"
-        with h5py.File(self.path_file, "w") as file:
+        with open_patient(self.path_file, "w") as file:
             file.attrs["nb_proc"] = mpi.nb_proc
             file.attrs["dims_order"] = self.dims_order
             file.attrs["index_file"] = self.index_file
@@ -392,7 +393,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
 
     def _write_to_file(self, data):
         """Writes a file with the temporal data"""
-        with h5py.File(self.path_file, "a") as file:
+        with open_patient(self.path_file, "a") as file:
             for k, v in data.items():
                 dset = file[k]
                 if k.startswith("times"):
@@ -452,7 +453,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
             p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
         ]
 
-        with h5py.File(paths_1st_rank[0], "r") as file:
+        with open_patient(paths_1st_rank[0], "r") as file:
             dims_order = file.attrs["dims_order"]
             region = file.attrs["probes_region"]
             if dtype is None:
@@ -472,7 +473,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
 
             times = []
             for ip, path in enumerate(paths_1st_rank):
-                with h5py.File(path, "r") as file:
+                with open_patient(path, "r") as file:
                     if tmins_files[ip] > tmax:
                         progress.update(task_files, completed=npaths)
                         break
@@ -546,7 +547,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                         progress.update(task_files, completed=npaths)
                         break
 
-                    with h5py.File(path_file, "r") as file:
+                    with open_patient(path_file, "r") as file:
                         # time indices
                         times_file = file["times"][:]
                         its_file = get_arange_minmax(times_file, tmin, tmax)
@@ -727,7 +728,7 @@ class SpatioTemporalSpectraNS:
 
         # get one-sided frequencies
         omegas = spectra["omegas"]
-        nomegas = omegas.size // 2 + 1
+        nomegas = (omegas.size + 1) // 2
         omegas_onesided = abs(omegas[:nomegas])
 
         # kzkhomega : perform cylindrical average
@@ -1071,7 +1072,7 @@ class SpatioTemporalSpectraNS:
             )
 
         # one-sided frequencies
-        nomegas = spectra["omegas"].size // 2 + 1
+        nomegas = (spectra["omegas"].size + 1) // 2
         tspectra["omegas"] = spectra["omegas"][:nomegas]
 
         order = spectra["dims_order"]
@@ -1214,9 +1215,7 @@ class SpatioTemporalSpectraNS:
             ax.plot(omegas_scaling, scaling_y, "k--")
 
             # eye guide at N
-            ymin = EK_N / 10
-            _, ymax = ax.get_ylim()
-            ax.vlines(1, ymin, ymax, linestyle="dotted")
+            ax.axvline(1, linestyle="dotted")
 
             # eye guide at omega_f (specific to some forcing types)
             forcing_type = self.sim.params.forcing.type
@@ -1226,11 +1225,9 @@ class SpatioTemporalSpectraNS:
                 elif forcing_type == "milestone":
                     period = self.sim.forcing.get_info()["period"]
                     omega_f = 2 * pi / period
-                ax.vlines(omega_f / N, ymin, ymax, linestyle="dotted")
+                ax.axvline(omega_f / N, linestyle="dotted")
 
             ax.set_xlabel(r"$\omega/N$")
-            ax.set_ylim(ymin, ymax)
-            ax.set_xlim(omegas[1], 1.5)
 
             ax.legend()
 
