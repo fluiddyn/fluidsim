@@ -64,7 +64,7 @@ def compute_spectrum_kzkhomega(
                     spectrum_kzkhomega[ikz, ikh + 1, i] += coef_share * value
 
     # get one-sided spectrum in the omega dimension
-    nomega = nomega // 2 + 1
+    nomega = (nomega + 1) // 2
     spectrum_onesided = np.zeros((nkz, nkh, nomega))
     spectrum_onesided[:, :, 0] = spectrum_kzkhomega[:, :, 0]
     spectrum_onesided[:, :, 1:] = (

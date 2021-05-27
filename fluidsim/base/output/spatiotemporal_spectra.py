@@ -707,10 +707,12 @@ class SpatioTemporalSpectraNS:
         if self.nb_dim == 3:
             deltaky = 2 * pi / params_oper.Ly
             deltakz = 2 * pi / params_oper.Lz
+            _deltakhs = [deltakx, deltaky]
+            _ideltakh = np.argmax(_deltakhs)
+            deltakh = _deltakhs[_ideltakh]
             KY = deltaky * spectra[f"K{order[1]}_adim"]
             KH = np.sqrt(KX ** 2 + KY ** 2)
-            deltakh = max(deltakx, deltaky)
-            khmax_spectra = max(KX.max(), KY.max())
+            khmax_spectra = [KX, KY][_ideltakh].max()
             del KY
         else:
             # in 2d, vertical (here "z") is y

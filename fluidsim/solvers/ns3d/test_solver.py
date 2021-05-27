@@ -356,10 +356,10 @@ class TestOutput(TestSimulBase):
         # `1:` because the energy in the mode kx=ky=kz=0 is not zero.
         assert np.allclose(spectrum_vz[1:, 0, :].sum(), 0.0)
 
+        sim3.output.spatiotemporal_spectra.plot_temporal_spectra()
         sim3.output.spatiotemporal_spectra.plot_kzkhomega(
             key_field="Khr", equation="kh=1"
         )
-        sim3.output.spatiotemporal_spectra.plot_temporal_spectra()
 
         plt.close("all")
 

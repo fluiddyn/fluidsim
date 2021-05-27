@@ -101,7 +101,9 @@ def main(args):
     lz = params.oper.Lz = mesh
     params.oper.nz = round(lz / dx)
 
+    params.oper.coef_dealiasing = 0.8
     params.oper.NO_SHEAR_MODES = True
+    params.no_vz_kz0 = True
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
@@ -166,7 +168,7 @@ def main(args):
 
     spatiotemporal_spectra = params.output.spatiotemporal_spectra
     spatiotemporal_spectra.file_max_size = 20.0
-    spatiotemporal_spectra.probes_region = (10, 10, 10)
+    spatiotemporal_spectra.probes_region = (10 * lx / ly, 10, 10)
 
     sim = Simul(params)
 
@@ -175,9 +177,10 @@ def main(args):
 
         mpi.printby0(
             "For a video, run something like:\n\n"
-            f"cd {sim.output.path_run}; "
-            'ipython -i -c "from fluidsim import load_sim_for_plot as load; '
-            "sim=load(); sim.output.phys_fields.animate('vx')\""
+            f"cd {sim.output.path_run}\n"
+            'ipython -i -c "from fluidsim import load_sim_for_plot as load; sim=load()"\n'
+            "Then, in IPython:\n"
+            "sim.output.phys_fields.animate('vx')"
         )
 
     return params, sim

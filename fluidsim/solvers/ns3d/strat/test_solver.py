@@ -74,7 +74,7 @@ class TestOutput(TestSimulBase):
     @classmethod
     def init_params(self):
         params = super().init_params()
-
+        params.time_stepping.t_end = 0.3
         params.init_fields.type = "noise"
 
         params.forcing.enable = True
@@ -84,6 +84,8 @@ class TestOutput(TestSimulBase):
         periods = params.output.periods_save
         for key in periods._key_attribs:
             periods[key] = 0.2
+
+        periods.spatiotemporal_spectra = 0.01
 
         periods.spatial_means = 0.05
         periods.spatial_means_regions = 0.05
@@ -96,6 +98,12 @@ class TestOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
         params.output.spectra.kzkh_periodicity = 2
+
+        params.output.spatiotemporal_spectra.probes_region = (
+            params.oper.nx // 2,
+            params.oper.ny // 2,
+            params.oper.nz // 2,
+        )
 
     @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
@@ -173,6 +181,11 @@ class TestOutput(TestSimulBase):
         sim2.output.phys_fields.set_equation_crosssection(f"x={sim.oper.Lx/4}")
         sim2.output.phys_fields.animate("vx")
         sim2.output.phys_fields.plot(field="vx", time=10)
+
+        sim2.output.spatiotemporal_spectra.plot_kzkhomega(
+            key_field="Kp", equation="omega=200 * N"
+        )
+        sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
         plt.close("all")
 
