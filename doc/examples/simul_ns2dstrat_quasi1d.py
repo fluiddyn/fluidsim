@@ -50,6 +50,7 @@ params.init_fields.type = "noise"
 params.init_fields.noise.velo_max = 0.05 * Uf
 
 params.oper.NO_SHEAR_MODES = True
+params.oper.NO_KY0 = True
 
 # forcing params
 # key_forced = "rot_fft"

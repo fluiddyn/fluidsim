@@ -178,11 +178,11 @@ class SpatioTemporalSpectra3D(SpecificOutput):
             if self.nb_dim == 3:
                 ikzmax = 4
 
-        ikxmax = min(ikxmax, params.oper.nx // 2)
-        ikymax = min(ikymax, params.oper.ny // 2)
+        ikxmax = min(int(round(ikxmax)), params.oper.nx // 2)
+        ikymax = min(int(round(ikymax)), params.oper.ny // 2)
 
         if self.nb_dim == 3:
-            ikzmax = min(ikzmax, params.oper.nz // 2)
+            ikzmax = min(int(round(ikzmax)), params.oper.nz // 2)
             self.probes_region = ikxmax, ikymax, ikzmax
         else:
             self.probes_region = ikxmax, ikymax
