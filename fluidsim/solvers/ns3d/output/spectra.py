@@ -330,7 +330,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
 
         if ndim == 1:
             key_k = "k" + directions[0]
-            key_k_label = "k_" + key_k[-1]
+            key_k_label = r",\ ".join(["k_" + letter for letter in directions])
         else:
             key_k = "k_spectra3d"
             key_k_label = "k"
