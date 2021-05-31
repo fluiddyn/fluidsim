@@ -11,6 +11,9 @@ develop_lib:
 develop_user:
 	pip install -v -e .[dev] --user | grep -v link
 
+develop_no-build-isolation: develop_lib
+	pip install -e .[dev] --no-build-isolation
+
 dist:
 	cd lib && python setup.py sdist bdist_wheel
 	python setup.py sdist
