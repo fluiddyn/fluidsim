@@ -56,11 +56,11 @@ class MoviesBase:
             tmax = self.sim.time_stepping.t
 
         if tmin is None:
-            tmin = 0
+            tmin = self.phys_fields.set_of_phys_files.get_min_time()
 
         if tmin > tmax:
             raise ValueError(
-                "Error tmin > tmax. " "Value tmin should be smaller than tmax"
+                "Error tmin > tmax. Value tmin should be smaller than tmax"
             )
 
         if dt_equations is None:
@@ -210,10 +210,17 @@ class MoviesBase:
         self.init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
+
+        if isinstance(repeat, int):
+            nb_repeat = repeat
+            repeat = False
+        else:
+            nb_repeat = 1
+
         self._animation = animation.FuncAnimation(
             self.fig,
             self.update_animation,
-            len(self.ani_times),
+            nb_repeat * len(self.ani_times),
             fargs=fargs.items(),
             interval=dt_frame_in_sec * 1000,
             blit=False,
@@ -374,7 +381,7 @@ class MoviesBase1D(MoviesBase):
     def update_animation(self, frame, **fargs):
         """Loads contour data and updates figure."""
         print("update_animation for frame", frame, "       ", end="\r")
-        time = self.ani_times[frame]
+        time = self.ani_times[frame % len(self.ani_times)]
         get_field_to_plot = self.phys_fields.get_field_to_plot
         y, time = get_field_to_plot(time=time, key=self.key_field)
         x = self._get_axis_data()

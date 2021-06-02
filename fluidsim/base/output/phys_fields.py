@@ -315,6 +315,11 @@ class SetOfPhysFieldFiles:
         self.path_files = sorted(path_files)
         self.times = np.array([time_from_path(path) for path in self.path_files])
 
+    def get_min_time(self):
+        if hasattr(self, "times"):
+            return self.times.min()
+        return 0.
+
     def get_field_to_plot(
         self,
         time=None,

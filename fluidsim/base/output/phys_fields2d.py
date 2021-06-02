@@ -167,7 +167,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         """Loads data and updates figure."""
 
         print("update_animation for frame", frame, "       ", end="\r")
-        time = self.ani_times[frame]
+        time = self.ani_times[frame % len(self.ani_times)]
         step = self._step
         get_field_to_plot = self.phys_fields.get_field_to_plot
 
@@ -227,7 +227,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             self._ani_cbar.set_ticks(ticks)
 
     def _get_spatial_means(self, key_spatial="E"):
-        """ Get field for the inset plot."""
+        """Get field for the inset plot."""
         # Check if key_spatial can be loaded.
         keys_spatial = ["E", "EK", "EA"]
         if key_spatial not in keys_spatial:
