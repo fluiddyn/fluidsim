@@ -1126,6 +1126,7 @@ class SpatioTemporalSpectraNS:
         tmin=0,
         tmax=None,
         dtype=None,
+        xscale="log",
     ):
         """plot the temporal spectra computed from the 4d spectra"""
         keys_plot = self.keys_fields.copy()
@@ -1161,7 +1162,7 @@ class SpatioTemporalSpectraNS:
             f"{key_field} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
         )
-        ax.set_xscale("log")
+        ax.set_xscale(xscale)
         ax.set_yscale("log")
 
         # specific to strat
