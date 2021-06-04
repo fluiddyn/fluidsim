@@ -40,7 +40,7 @@ def solve(Simul, nx, time_scheme, coef_dealiasing):
     params.time_stepping.type_time_scheme = time_scheme
     params.init_fields.type = "in_script"
 
-    params.output.periods_print.print_stdout = 0.5
+    params.output.periods_print.print_stdout = 0.1
 
     sim = Simul(params)
 
@@ -67,11 +67,14 @@ def solve(Simul, nx, time_scheme, coef_dealiasing):
 
     sim.time_stepping.start()
 
-    E_final = sim.output.compute_energy()
-
-    print("Final Energy / Initial Energy =", E_final / E_initial)
-
     ax.plot(x, sim.state.state_phys.get_var("u"))
+
+    E_final = sim.output.compute_energy()
+    print("Final Energy / Initial Energy =", E_final / E_initial)
+    sim.output.print_stdout.plot_energy()
+    ax2 = plt.gca()
+    ax2.set(yscale="log")
+
     plt.show()
 
 
