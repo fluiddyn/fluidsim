@@ -1,17 +1,30 @@
 #!/usr/bin/env python
+"""Simulate Burgers equation with a sine-wave as an initial condition.
+
+Notes
+-----
+- A stark difference in the final energy is observed between the convective and
+  skew symmetric Burgers solver is evident a nx=101 is chosen.
+- This contrast is less evident if nx=64, 128 etc. which is indeed puzzling.
+- As suggested in the reference below the foolproof solution is to apply
+  dealiasing which guarantees energy conservation.
+
+.. seealso: https://kth-nek5000.github.io/kthNekBook/_notebooks/burgers.html
+
+"""
 import click
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def solve(Simul, coef_dealiasing):
+def solve(Simul, nx, coef_dealiasing):
     params = Simul.create_default_params()
     params.output.sub_directory = "bench_skew_sym"
 
     params.output.periods_save.phys_fields = 1.0
     params.short_name_type_run = f"test_coef_dealias={coef_dealiasing:.2f}"
     params.oper.Lx = 2 * np.pi
-    params.oper.nx = 128
+    params.oper.nx = nx
     params.oper.coef_dealiasing = coef_dealiasing
     params.nu_2 = 0.0
     params.time_stepping.USE_CFL = False
@@ -47,14 +60,15 @@ def solve(Simul, coef_dealiasing):
 
 @click.command()
 @click.option("--solver", type=click.Choice(["conv", "skew_sym"]))
+@click.option("--nx", type=int, default=101)
 @click.option("--dealias/--no-dealias", type=bool, default=False)
-def run(solver, dealias):
+def run(solver, nx, dealias):
     if solver == "conv":
         from fluidsim.solvers.burgers1d.solver import Simul
     else:
         from fluidsim.solvers.burgers1d.skew_sym.solver import Simul
 
-    solve(Simul, 2./3 if dealias else 1.0)
+    solve(Simul, nx, 2./3 if dealias else 1.0)
 
 
 if __name__ == "__main__":

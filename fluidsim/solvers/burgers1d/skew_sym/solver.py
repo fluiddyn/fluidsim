@@ -10,10 +10,21 @@ Provides:
 
 """
 from fluidsim.base.setofvariables import SetOfVariables
-from ..solver import Simul as SimulBurgers
+from ..solver import Simul as SimulBurgers, InfoSolver as InfoSolverBurgers
+
+
+class InfoSolver(InfoSolverBurgers):
+    def _init_root(self):
+        super()._init_root()
+
+        package = "fluidsim.solvers.burgers1d.skew_sym"
+        self.module_name = package + ".solver"
+        self.class_name = "Simul"
+        self.short_name = "BurgersSkewSym1D"
 
 
 class Simul(SimulBurgers):
+    InfoSolver = InfoSolver
 
     def tendencies_nonlin(self, state_spect=None, old=None):
 

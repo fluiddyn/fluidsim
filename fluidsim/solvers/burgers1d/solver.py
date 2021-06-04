@@ -43,7 +43,7 @@ class InfoSolver(InfoSolverPseudoSpectral):
         package = "fluidsim.solvers.burgers1d"
         self.module_name = package + ".solver"
         self.class_name = "Simul"
-        self.short_name = "AD1D"
+        self.short_name = "Burgers1D"
 
         classes = self.classes
 
