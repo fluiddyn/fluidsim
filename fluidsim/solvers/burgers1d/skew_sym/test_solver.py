@@ -1,14 +1,14 @@
 import unittest
 
-from fluidsim.solvers.burgers1d.solver import Simul
-
 from fluiddyn.util import mpi
+from fluidsim.util.testing import skip_if_no_fluidfft
 
-from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft
+from fluidsim.solvers.burgers1d.test_solver import TestSolverSquare1D
+from fluidsim.solvers.burgers1d.skew_sym.solver import Simul
 
 
 @skip_if_no_fluidfft
-class TestSolverSquare1D(TestSimul):
+class TestSolverSkewSym1D(TestSolverSquare1D):
     Simul = Simul
 
     @classmethod
