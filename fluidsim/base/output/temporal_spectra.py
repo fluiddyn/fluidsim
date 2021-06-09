@@ -599,7 +599,9 @@ class TemporalSpectra3D(SpecificOutput):
         p_oper = self.sim.params.oper
         return (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
 
-    def plot_spectra(self, key=None, region=None, tmin=0, tmax=None, dtype=None):
+    def plot_spectra(
+        self, key=None, region=None, tmin=0, tmax=None, dtype=None, xscale="log"
+    ):
         """plot temporal spectra from files"""
         if key is None:
             key = self.keys_fields[0]
@@ -623,7 +625,7 @@ class TemporalSpectra3D(SpecificOutput):
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
         ax.set_ylabel("spectrum")
-        ax.set_xscale("log")
+        ax.set_xscale(xscale)
         ax.set_yscale("log")
         ax.set_title(
             f"{key} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
