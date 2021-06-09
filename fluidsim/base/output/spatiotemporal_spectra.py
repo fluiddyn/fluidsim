@@ -1036,7 +1036,7 @@ class SpatioTemporalSpectraNS:
             / spectra_kzkhomega["kh_spectra"][1]
         )
         if equation.startswith(r"$\omega"):
-            if omega > 0:
+            if omega > 0 and omega <= N:
                 ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkh_over_dkz * xaxis
                 ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
