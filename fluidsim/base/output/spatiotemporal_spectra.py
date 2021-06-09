@@ -867,7 +867,7 @@ class SpatioTemporalSpectraNS:
         equation=None,
         xmax=None,
         ymax=None,
-        cmap="viridis",
+        cmap=None,
         vmin=None,
         vmax=None,
     ):

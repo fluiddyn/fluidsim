@@ -330,7 +330,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         type_plot="pcolor",
         vmin=None,
         vmax=None,
-        cmap="viridis",
+        cmap=None,
         numfig=None,
         skip_quiver=None,
     ):
@@ -359,7 +359,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
         vmax : None
 
-        cmap : 'viridis'
+        cmap : None (usually viridis)
 
         numfig : None
 

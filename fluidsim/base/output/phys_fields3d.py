@@ -98,7 +98,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         type_plot="contourf",
         vmin=None,
         vmax=None,
-        cmap="viridis",
+        cmap=None,
         numfig=None,
         SCALED=True,
     ):
@@ -125,7 +125,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         vmax : None
 
-        cmap : 'viridis'
+        cmap : None (usually 'viridis')
 
         numfig : None
 
@@ -281,7 +281,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         type_plot="contourf",
         vmin=None,
         vmax=None,
-        cmap="viridis",
+        cmap=None,
         numfig=None,
         SCALED=True,
     ):
@@ -310,7 +310,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         vmax : None
 
-        cmap : 'viridis'
+        cmap : None (usually 'viridis')
 
         numfig : None
 
