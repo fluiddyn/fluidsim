@@ -207,7 +207,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
 
     def _init_files(self, arrays_1st_time=None):
         if mpi.rank == 0:
-            self.path_dir.mkdir(exist_ok=False)
+            self.path_dir.mkdir(exist_ok=True)
             for path, info_region in zip(self.paths, self.info_regions):
                 xmin, xmax = info_region[:2]
                 if not path.exists():
