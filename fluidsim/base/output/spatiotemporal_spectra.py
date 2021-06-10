@@ -235,9 +235,9 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                     raise ValueError("probes region is different from files")
             # init from files
             INIT_FROM_PARAMS = False
-            paths = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
-            if paths:
-                self.path_file = paths[-1]
+            paths_rank = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
+            if paths_rank:
+                self.path_file = paths_rank[-1]
                 with open_patient(self.path_file, "r") as file:
                     self.index_file = file.attrs["index_file"]
                     self.probes_k0adim_loc = file["probes_k0adim_loc"][:]
@@ -261,6 +261,9 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                 self.probes_ik0_loc = []
                 self.probes_ik1_loc = []
                 self.probes_ik2_loc = []
+
+                with open_patient(paths[-1], "r") as file:
+                    self.t_last_save = file["times"][-1]
 
         else:
             # no files were found : initialize from params

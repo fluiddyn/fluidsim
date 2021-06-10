@@ -359,7 +359,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
         vmax : None
 
-        cmap : None (usually viridis)
+        cmap : None (usually 'viridis')
 
         numfig : None
 
