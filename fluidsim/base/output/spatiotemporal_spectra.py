@@ -225,7 +225,10 @@ class SpatioTemporalSpectra3D(SpecificOutput):
             # check values in files
             with open_patient(paths[0], "r") as file:
                 if file.attrs["nb_proc"] != mpi.nb_proc:
-                    raise ValueError("process number is different from files")
+                    raise ValueError(
+                        f"process number ({mpi.nb_proc}) is different from "
+                        f"process number in file ({file.attrs['nb_proc']})"
+                    )
                 if (file.attrs["dims_order"] != self.dims_order).any():
                     raise ValueError("dimensions order is different from files")
                 if (file.attrs["probes_region"] != self.probes_region).any():

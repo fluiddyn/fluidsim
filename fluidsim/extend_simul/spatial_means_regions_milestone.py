@@ -223,10 +223,13 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
                 else:
                     with open(path, "r") as file:
                         words = file.readline().split()
-                        xmin_file = words[3]
-                        xmax_file = words[7]
+                        xmin_file = float(words[3])
+                        xmax_file = float(words[7])
                         if xmin_file != xmin or xmax_file != xmax:
-                            raise ValueError
+                            raise ValueError(
+                                "xmin_file != xmin or xmax_file != xmax\n"
+                                f"{xmin_file} != {xmin} or {xmax_file} != {xmax}"
+                            )
 
     @classmethod
     def complete_params_with_default(cls, params):
