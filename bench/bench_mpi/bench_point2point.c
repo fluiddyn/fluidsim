@@ -2,9 +2,11 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <iostream>
 #include <time.h>
 
+using std::cout;
+using std::endl;
 
 int main(int argc, char** argv) {
 
@@ -21,6 +23,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "World size must be greater than 1 for %s\n", argv[0]);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    if (world_rank == 0) {
+        char version[MPI_MAX_LIBRARY_VERSION_STRING];
+        int resultlen;
+        MPI_Get_library_version(version, &resultlen);
+        cout << version << endl;
+    }
+
     int size = 100;
     double* numbers;
 
@@ -44,7 +54,6 @@ int main(int argc, char** argv) {
             MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
         if (world_rank == 0) {
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tend);
             double duration = (double)tend.tv_sec + 1.0e-9*tend.tv_nsec - (double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec;
