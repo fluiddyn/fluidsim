@@ -31,10 +31,10 @@ int main(int argc, char** argv) {
         cout << version << endl;
     }
 
-    int size = 100;
+    int size = 51200;
     double* numbers;
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 14; i++) {
         size = 2 * size;
 
         numbers = (double*) malloc(size * sizeof(double));
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
         if (world_rank == 0) {
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tend);
             double duration = (double)tend.tv_sec + 1.0e-9*tend.tv_nsec - (double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec;
-            printf("%.3e s for %8d floats (%.3f Gb/s)\n", duration, size, 64e-9 * size / duration);
+            printf("%.3e s for %10d floats (%.3f Gb/s)\n", duration, size, 64e-9 * size / duration);
         }
 
         free(numbers);

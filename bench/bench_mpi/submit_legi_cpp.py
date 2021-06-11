@@ -6,16 +6,15 @@ infiniband = True
 
 cluster.commands_setting_env = [
     "source /etc/profile",
-    'export PATH="$HOME/miniconda3/bin:$PATH"',
-    "source $HOME/init_conda.sh",
 ]
 
 if infiniband:
     cluster.commands_setting_env.extend(
-        ["conda activate env_fluidsim_ib", "module load openmpi/4.0.5-ib"]
+        ["module load openmpi/4.0.5-ib"]
     )
     resource_conditions = "net='ib' and os='buster'"
     name_run = "bench_mpi_ib"
+    command = "./bench_ib.out"
 else:
     cluster.commands_setting_env.extend(
         [
@@ -24,14 +23,14 @@ else:
     )
     name_run = "bench_mpi_no_ib"
     resource_conditions = "os='stretch'"
+    command = "./bench_no_ib.out"
 
 resource_conditions = "net='ib' and os='buster'"
 
 nb_nodes = 2
 
-
-cluster.submit_script(
-    f"bench_point2point.py",
+cluster.submit_command(
+    command,
     name_run=name_run,
     nb_nodes=nb_nodes,
     nb_cores_per_node=1,
