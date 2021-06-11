@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     int size = 51200;
     double* numbers;
 
-    for (int i = 0; i < 14; i++) {
+    for (int i = 0; i < 12; i++) {
         size = 2 * size;
 
         numbers = (double*) malloc(size * sizeof(double));
@@ -46,18 +46,15 @@ int main(int argc, char** argv) {
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tstart);
 
         if (world_rank == 0) {
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tstart);
             MPI_Send(numbers, size, MPI_DOUBLE, 1, 77, MPI_COMM_WORLD);
-        } else if (world_rank == 1) {
-            MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-
-        if (world_rank == 0) {
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tend);
             double duration = (double)tend.tv_sec + 1.0e-9*tend.tv_nsec - (double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec;
             printf("%.3e s for %10d floats (%.3f Gb/s)\n", duration, size, 64e-9 * size / duration);
+        } else if (world_rank == 1) {
+            MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
         free(numbers);
