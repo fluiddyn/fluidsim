@@ -47,7 +47,7 @@ for _ in range(16):
 
     if rank == 0:
         print(
-            f"{duration:.3e} s for {size:8d} floats ({8e-9 * size / duration:.3f} Go/s)"
+            f"{duration:.3e} s for {size:8d} floats ({64e-9 * size / duration:.3f} Gb/s)"
         )
 
 if rank > 0:
@@ -58,8 +58,8 @@ print(times)
 
 poly = Polynomial.fit(sizes, times, 1, window=(min(sizes), max(sizes)))
 print(poly)
-bandwidth = 8e-9 / poly.coef[1]
-print(f"{bandwidth = :.3g} Go/s")
+bandwidth = 64e-9 / poly.coef[1]
+print(f"{bandwidth = :.3g} Gb/s")
 
 # fig, ax = plt.subplots()
 # ax.plot(sizes, times, "ok")
