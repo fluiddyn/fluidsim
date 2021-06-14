@@ -11,6 +11,7 @@ using std::endl;
 int main(int argc, char** argv) {
 
     double t_start, duration;
+    int version, sub_version;
 
     MPI_Init(NULL, NULL);
 
@@ -25,10 +26,12 @@ int main(int argc, char** argv) {
     }
 
     if (world_rank == 0) {
-        char version[MPI_MAX_LIBRARY_VERSION_STRING];
+        char lib_version[MPI_MAX_LIBRARY_VERSION_STRING];
         int resultlen;
-        MPI_Get_library_version(version, &resultlen);
-        cout << version << endl;
+        MPI_Get_library_version(lib_version, &resultlen);
+        cout << lib_version << endl;
+        MPI_Get_version(&version, &sub_version);
+        printf("MPI Version %d.%d\n", version, sub_version);
     }
 
     int size = 51200;

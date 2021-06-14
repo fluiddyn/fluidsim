@@ -12,6 +12,7 @@ rank = comm.Get_rank()
 if rank == 0:
     print("Benchmark MPI with mpi4py")
     print(MPI.Get_library_version())
+    print("MPI Version", MPI.Get_version())
 
 # 8 bytes
 dtype = np.float64
