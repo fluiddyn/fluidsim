@@ -34,25 +34,19 @@ int main(int argc, char** argv) {
     int size = 51200;
     double* numbers;
 
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < 11; i++) {
         size = 2 * size;
 
         numbers = (double*) malloc(size * sizeof(double));
 
         if (world_rank == 0) {
             MPI_Send(numbers, size, MPI_DOUBLE, 1, 77, MPI_COMM_WORLD);
-        } else if (world_rank == 1) {
-            MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        if (world_rank == 0) {
             t_start = MPI_Wtime();
             MPI_Send(numbers, size, MPI_DOUBLE, 1, 77, MPI_COMM_WORLD);
             duration = MPI_Wtime() - t_start;
             printf("%.3e s for %10d floats (%.3f Gb/s)\n", duration, size, 64e-9 * size / duration);
         } else if (world_rank == 1) {
+            MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 

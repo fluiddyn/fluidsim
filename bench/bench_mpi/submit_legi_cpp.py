@@ -1,8 +1,15 @@
+import sys
+
 from fluiddyn.clusters.legi import Calcul2 as Cluster
 
 cluster = Cluster()
 
-infiniband = True
+if "infiniband" in sys.argv:
+    infiniband = True
+else:
+    infiniband = False
+
+print(f"{infiniband = }")
 
 cluster.commands_setting_env = [
     "source /etc/profile",
@@ -13,7 +20,7 @@ if infiniband:
         ["module load openmpi/4.0.5-ib"]
     )
     resource_conditions = "net='ib' and os='buster'"
-    name_run = "bench_mpi_ib"
+    name_run = "bench_cpp_mpi_ib"
     command = "./bench_ib.out"
 else:
     cluster.commands_setting_env.extend(
@@ -21,7 +28,7 @@ else:
             "conda activate env_fluidsim_no_ib",
         ]
     )
-    name_run = "bench_mpi_no_ib"
+    name_run = "bench_cpp_mpi_no_ib"
     resource_conditions = "os='stretch'"
     command = "./bench_no_ib.out"
 
