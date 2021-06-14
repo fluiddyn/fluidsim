@@ -24,15 +24,18 @@ sizes = []
 for _ in range(11):
     size *= 2
     sizes.append(size)
-    if rank == 0:
-        data = np.arange(size, dtype=dtype)
-        comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
-    elif rank == 1:
-        data = np.empty(size, dtype=dtype)
-        comm.Recv([data, MPI.DOUBLE], source=0, tag=77)
-        assert np.allclose(data, np.arange(size, dtype=dtype))
 
-    comm.barrier()
+    data = np.empty(size, dtype=dtype)
+
+    # if rank == 0:
+    #     data = np.arange(size, dtype=dtype)
+    #     comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
+    # elif rank == 1:
+    #     data = np.empty(size, dtype=dtype)
+    #     comm.Recv([data, MPI.DOUBLE], source=0, tag=77)
+    #     assert np.allclose(data, np.arange(size, dtype=dtype))
+
+    # comm.barrier()
     if rank == 0:
         comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
         t0 = MPI.Wtime()
