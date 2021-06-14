@@ -10,7 +10,7 @@ using std::endl;
 
 int main(int argc, char** argv) {
 
-    struct timespec tstart={0,0}, tend={0,0};
+    double t_start, duration;
 
     MPI_Init(NULL, NULL);
 
@@ -48,10 +48,9 @@ int main(int argc, char** argv) {
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (world_rank == 0) {
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tstart);
+            t_start = MPI_Wtime();
             MPI_Send(numbers, size, MPI_DOUBLE, 1, 77, MPI_COMM_WORLD);
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tend);
-            double duration = (double)tend.tv_sec + 1.0e-9*tend.tv_nsec - (double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec;
+            duration = MPI_Wtime() - t_start;
             printf("%.3e s for %10d floats (%.3f Gb/s)\n", duration, size, 64e-9 * size / duration);
         } else if (world_rank == 1) {
             MPI_Recv(numbers, size, MPI_DOUBLE, 0, 77, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -59,7 +58,6 @@ int main(int argc, char** argv) {
 
         free(numbers);
     }
-
 
     MPI_Finalize();
 }

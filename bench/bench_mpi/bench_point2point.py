@@ -1,11 +1,10 @@
-from time import perf_counter
 import sys
 
 from mpi4py import MPI
 import numpy as np
-from numpy.polynomial import Polynomial
+# from numpy.polynomial import Polynomial
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -16,12 +15,12 @@ if rank == 0:
 # 8 bytes
 dtype = np.float64
 
-size = 100
+size = 51200
 
 times = []
 sizes = []
 
-for _ in range(16):
+for _ in range(11):
     size *= 2
     sizes.append(size)
     if rank == 0:
@@ -33,7 +32,7 @@ for _ in range(16):
         assert np.allclose(data, np.arange(size, dtype=dtype))
 
     comm.barrier()
-    t0 = perf_counter()
+    t0 = MPI.Wtime()
     if rank == 0:
         comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
     elif rank == 1:
@@ -41,25 +40,27 @@ for _ in range(16):
 
     comm.barrier()
 
-    duration = perf_counter() - t0
+    duration = MPI.Wtime() - t0
 
     times.append(duration)
 
     if rank == 0:
         print(
-            f"{duration:.3e} s for {size:8d} floats ({64e-9 * size / duration:.3f} Gb/s)"
+            f"{duration:.3e} s for {size:9d} floats ({64e-9 * size / duration:.3f} Gb/s)"
         )
+
+    del data
 
 if rank > 0:
     sys.exit()
 
-print(sizes)
-print(times)
+# print(sizes)
+# print(times)
 
-poly = Polynomial.fit(sizes, times, 1, window=(min(sizes), max(sizes)))
-print(poly)
-bandwidth = 64e-9 / poly.coef[1]
-print(f"{bandwidth = :.3g} Gb/s")
+# poly = Polynomial.fit(sizes, times, 1, window=(min(sizes), max(sizes)))
+# print(poly)
+# bandwidth = 64e-9 / poly.coef[1]
+# print(f"{bandwidth = :.3g} Gb/s")
 
 # fig, ax = plt.subplots()
 # ax.plot(sizes, times, "ok")
