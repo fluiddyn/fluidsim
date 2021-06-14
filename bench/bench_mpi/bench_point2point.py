@@ -10,6 +10,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 if rank == 0:
+    print("Benchmark MPI with mpi4py")
     print(MPI.Get_library_version())
 
 # 8 bytes

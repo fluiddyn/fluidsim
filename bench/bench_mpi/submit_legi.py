@@ -13,22 +13,23 @@ print(f"{infiniband = }")
 
 cluster.commands_setting_env = [
     "source /etc/profile",
-    'export PATH="$HOME/miniconda3/bin:$PATH"',
-    "source $HOME/init_conda.sh",
 ]
 
 if infiniband:
-    cluster.commands_setting_env.extend(
-        ["conda activate env_fluidsim_ib", "module load openmpi/4.0.5-ib"]
-    )
-    name_run = "bench_py_mpi_ib"
+    name_venv = "mpi_ib"
 else:
-    cluster.commands_setting_env.extend(
-        [
-            "conda activate env_fluidsim_no_ib",
-        ]
+    name_venv = "mpi_noib"
+
+name_run = "bench_py_" + name_venv
+
+cluster.commands_setting_env.append(
+    f"source /home/users/augier3pi/envs/{name_venv}/bin/activate"
+)
+
+if infiniband:
+    cluster.commands_setting_env.append(
+        "module load openmpi/4.0.5-ib"
     )
-    name_run = "bench_py_mpi_no_ib"
 
 resource_conditions = "net='ib' and os='buster'"
 
