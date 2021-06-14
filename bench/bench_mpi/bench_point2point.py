@@ -32,22 +32,18 @@ for _ in range(11):
         assert np.allclose(data, np.arange(size, dtype=dtype))
 
     comm.barrier()
-    t0 = MPI.Wtime()
     if rank == 0:
         comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
-    elif rank == 1:
-        comm.Recv([data, MPI.DOUBLE], source=0, tag=77)
-
-    comm.barrier()
-
-    duration = MPI.Wtime() - t0
-
-    times.append(duration)
-
-    if rank == 0:
+        t0 = MPI.Wtime()
+        comm.Send([data, MPI.DOUBLE], dest=1, tag=77)
+        duration = MPI.Wtime() - t0
         print(
             f"{duration:.3e} s for {size:9d} floats ({64e-9 * size / duration:.3f} Gb/s)"
         )
+        times.append(duration)
+    elif rank == 1:
+        comm.Recv([data, MPI.DOUBLE], source=0, tag=77)
+        comm.Recv([data, MPI.DOUBLE], source=0, tag=77)
 
     del data
 
