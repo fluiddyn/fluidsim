@@ -153,7 +153,10 @@ def main(args):
     params.nu_4 = freq_nu4 / kmax ** 4
 
     params.output.sub_directory = "milestone"
-    params.output.periods_print.print_stdout = movement.period / 10.0
+    if nx > 500:
+        params.output.periods_print.print_stdout = movement.period / 50.0
+    else:
+        params.output.periods_print.print_stdout = movement.period / 20.0
 
     periods_save = params.output.periods_save
     periods_save.phys_fields = movement.period / 10.0
