@@ -13,6 +13,7 @@ print(f"{infiniband = }")
 
 cluster.commands_setting_env = [
     "source /etc/profile",
+    "export MPI4PY_RC_THREAD_LEVEL=serialized",
 ]
 
 if infiniband:
@@ -27,9 +28,7 @@ cluster.commands_setting_env.append(
 )
 
 if infiniband:
-    cluster.commands_setting_env.append(
-        "module load openmpi/4.0.5-ib"
-    )
+    cluster.commands_setting_env.append("module load openmpi/4.0.5-ib")
 
 resource_conditions = "net='ib' and os='buster'"
 
