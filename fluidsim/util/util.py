@@ -113,7 +113,7 @@ def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
 
     """
     if name_dir is None:
-        return os.getcwd()
+        return Path.cwd()
 
     if not isinstance(name_dir, Path):
         name_dir = Path(name_dir)
@@ -373,6 +373,8 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
     name_file = name_file_from_time_approx(path_dir, t_approx)
     path_file = os.path.join(path_dir, name_file)
 
+    Simul = _extend_simul_class_from_path(Simul, path_file)
+
     if merge_missing_params:
         # this has to be done by all processes otherwise there is a problem
         # with Transonic (see https://foss.heptapod.net/fluiddyn/fluidsim/issues/26)
@@ -401,8 +403,6 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
 
     if mpi.nb_proc > 1:
         params = mpi.comm.bcast(params, root=0)
-
-    Simul = _extend_simul_class_from_path(Simul, path_file)
 
     return params, Simul
 
@@ -552,7 +552,7 @@ def modif_resolution_from_dir_memory_efficient(
     path_file = path_dir / name_file
     print(f"Changing resolution of the state contained in\n{path_file}")
 
-    Simul = solver.Simul
+    Simul = _extend_simul_class_from_path(solver.Simul, path_file)
     try:
         info_solver = Simul.info_solver
     except AttributeError:
