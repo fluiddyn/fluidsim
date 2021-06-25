@@ -235,7 +235,9 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                     raise ValueError("probes region is different from files")
             # init from files
             INIT_FROM_PARAMS = False
-            paths_rank = [p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")]
+            paths_rank = [
+                p for p in paths if p.name.startswith(f"rank{mpi.rank:05}")
+            ]
             if paths_rank:
                 self.path_file = paths_rank[-1]
                 with open_patient(self.path_file, "r") as file:
@@ -1037,20 +1039,20 @@ class SpatioTemporalSpectraNS:
             N = self.sim.params.N
         except AttributeError:
             return
-        dkh_over_dkz = (
+        dkz_over_dkh = (
             spectra_kzkhomega["kz_spectra"][1]
             / spectra_kzkhomega["kh_spectra"][1]
         )
         if equation.startswith(r"$\omega"):
             if omega > 0 and omega <= N:
-                ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkh_over_dkz * xaxis
+                ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkz_over_dkh * xaxis
                 ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
-            omega_disp = ikh / np.sqrt(ikh ** 2 + dkh_over_dkz ** 2 * xaxis ** 2)
+            omega_disp = ikh / np.sqrt(ikh ** 2 + dkz_over_dkh ** 2 * xaxis ** 2)
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_z"):
             omega_disp = xaxis / np.sqrt(
-                xaxis ** 2 + dkh_over_dkz ** 2 * ikz ** 2
+                xaxis ** 2 + dkz_over_dkh ** 2 * ikz ** 2
             )
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         else:
