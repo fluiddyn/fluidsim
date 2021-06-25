@@ -1,6 +1,7 @@
 import h5py
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from fluidsim.base.output.spectra3d import Spectra
 
@@ -81,6 +82,7 @@ class SpectraNS3D(Spectra):
         xlim=None,
         ylim=None,
         only_time_average=False,
+        cmap=None,
     ):
 
         self._plot_times(
@@ -97,6 +99,7 @@ class SpectraNS3D(Spectra):
             ylim=ylim,
             ndim=1,
             only_time_average=only_time_average,
+            cmap=cmap,
         )
 
     def plot3d_times(
@@ -112,6 +115,7 @@ class SpectraNS3D(Spectra):
         xlim=None,
         ylim=None,
         only_time_average=False,
+        cmap=None,
     ):
 
         self._plot_times(
@@ -127,6 +131,7 @@ class SpectraNS3D(Spectra):
             ylim=ylim,
             ndim=3,
             only_time_average=only_time_average,
+            cmap=cmap,
         )
 
     def _plot_times(
@@ -144,6 +149,7 @@ class SpectraNS3D(Spectra):
         ylim=None,
         only_time_average=False,
         ndim=1,
+        cmap=None,
     ):
 
         if ndim not in [1, 3]:
@@ -204,14 +210,24 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ax.set_xscale("log")
         ax.set_yscale("log")
 
+        if cmap is None:
+            cmap = "viridis"
+        cmapper = getattr(plt.cm, cmap)
+        nb_plots = imax_plot - imin_plot + 1
+        colors = cmapper(np.linspace(0, 1, nb_plots))
+        print(colors)
+
         with h5py.File(path_file, "r") as h5file:
             dset_spectra = h5file[key_spectra]
             coef_norm = ks_no0 ** (coef_compensate)
             if not only_time_average:
-                for it in range(imin_plot, imax_plot + 1, delta_i_plot):
+                for ic, it in enumerate(
+                    range(imin_plot, imax_plot + 1, delta_i_plot)
+                ):
+                    print(ic, it)
                     spectrum = dset_spectra[it]
                     spectrum[spectrum < 10e-16] = 0.0
-                    ax.plot(ks, spectrum * coef_norm)
+                    ax.plot(ks, spectrum * coef_norm, color=colors[ic])
 
             spectra = dset_spectra[imin_plot : imax_plot + 1]
         spectrum = spectra.mean(0)
