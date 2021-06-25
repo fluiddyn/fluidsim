@@ -1,7 +1,7 @@
 import h5py
 
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 from fluidsim.base.output.spectra3d import Spectra
 
@@ -211,11 +211,10 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ax.set_yscale("log")
 
         if cmap is None:
-            cmap = "viridis"
-        cmapper = getattr(plt.cm, cmap)
+            cmap = mpl.rcParams["image.cmap"]
+        cmapper = getattr(mpl.pyplot.cm, cmap)
         nb_plots = imax_plot - imin_plot + 1
         colors = cmapper(np.linspace(0, 1, nb_plots))
-        print(colors)
 
         with h5py.File(path_file, "r") as h5file:
             dset_spectra = h5file[key_spectra]
@@ -224,7 +223,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
                 for ic, it in enumerate(
                     range(imin_plot, imax_plot + 1, delta_i_plot)
                 ):
-                    print(ic, it)
                     spectrum = dset_spectra[it]
                     spectrum[spectrum < 10e-16] = 0.0
                     ax.plot(ks, spectrum * coef_norm, color=colors[ic])
