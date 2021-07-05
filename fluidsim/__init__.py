@@ -105,6 +105,9 @@ except ImportError:
 
 del util
 
+# useful alias
+load = load_sim_for_plot
+
 __citation__ = r"""
 @article{fluiddyn,
 doi = {10.5334/jors.237},
@@ -142,6 +145,7 @@ journal = {Journal of Open Research Software}
 
 __all__ = [
     "__version__",
+    "available_solver_keys",
     "get_local_version",
     "path_dir_results",
     "import_module_solver_from_key",
@@ -149,6 +153,7 @@ __all__ = [
     "load_sim_for_plot",
     "load_state_phys_file",
     "modif_resolution_from_dir",
+    "modif_resolution_from_dir_memory_efficient",
     "modif_resolution_all_dir",
     "load_params_simul",
     "load_for_restart",

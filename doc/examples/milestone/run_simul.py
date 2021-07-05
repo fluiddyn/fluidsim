@@ -64,7 +64,7 @@ parser.add_argument(
 parser.add_argument(
     "-np",
     "--n_periods",
-    type=int,
+    type=float,
     default=5,
     help="Number of periods",
 )
@@ -97,6 +97,7 @@ def main(args):
     assert nx == nx_float
 
     dx = lx / nx
+    mpi.printby0(f"{dx = }")
 
     lz = params.oper.Lz = mesh
     params.oper.nz = round(lz / dx)
@@ -107,12 +108,15 @@ def main(args):
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
-    params.forcing.milestone.nx_max = 64
+    params.forcing.milestone.nx_max = min(nx, round(16 * number_cylinders * nx / ny))
+    mpi.printby0(f"{params.forcing.milestone.nx_max = }")
+
     objects = params.forcing.milestone.objects
 
     objects.number = number_cylinders
     objects.diameter = diameter
-    objects.width_boundary_layers = 0.1
+    objects.width_boundary_layers = 0.02
+    assert objects.width_boundary_layers < diameter / 4
 
     movement = params.forcing.milestone.movement
 
@@ -132,7 +136,8 @@ def main(args):
     )
 
     params.time_stepping.t_end = movement.period * args.n_periods
-    params.time_stepping.deltat_max = 0.02 * diameter / speed
+    params.time_stepping.deltat_max = 0.04 * diameter / speed
+    mpi.printby0(f"{params.time_stepping.deltat_max = }")
 
     params.nu_2 = 1e-6
 

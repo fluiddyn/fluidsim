@@ -61,5 +61,9 @@ def import_cls_simul(key, entrypoint_grp):
         The name of the entrypoint group listing the solvers.
 
     """
+
+    if key.startswith(entrypoint_grp + "."):
+        key = key[len(entrypoint_grp) + 1:]
+
     solver = import_module_solver(key, entrypoint_grp)
     return solver.Simul
