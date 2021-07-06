@@ -68,6 +68,7 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
     @classmethod
     def init_params(self):
         params = super().init_params()
+        params.oper.NO_SHEAR_MODES = True
         params.time_stepping.t_end = 2.0
         params.forcing.milestone.nx_max = 16
         movement = params.forcing.milestone.movement

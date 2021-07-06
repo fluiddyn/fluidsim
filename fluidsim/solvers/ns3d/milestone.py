@@ -107,6 +107,9 @@ class ForcingMilestone3D(ForcingMilestone):
         fy = -self.sigma * solid * sim.state.state_phys.get_var("vy")
         fy_fft = sim.oper.fft(fy)
 
+        if sim.params.oper.NO_SHEAR_MODES:
+            sim.oper.dealiasing(fx_fft, fy_fft)
+
         self.fstate.init_statespect_from(vx_fft=fx_fft, vy_fft=fy_fft)
 
 

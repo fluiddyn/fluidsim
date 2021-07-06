@@ -110,7 +110,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         for key, value in results.items():
             if key.startswith("transfer_A"):
                 try:
-                    assert value.sum() < 1e-14
+                    assert value.sum() < 1e-12
                 except AssertionError:
                     warn(
                         f"spect_energy_budg: transfer_A.sum() is too big {value.sum()}"

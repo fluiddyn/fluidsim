@@ -318,7 +318,14 @@ class ForcingMilestone(Base):
 
         self.compute(time)
 
-        fx = self.fstate.state_phys.get_var("ux")
+        try:
+            fx = self.fstate.state_phys.get_var("ux")
+        except ValueError:
+            raise NotImplementedError(
+                "check_plot_forcing is not implemented for this solver. "
+                "You can try check_plot_solid or check_with_animation."
+            )
+
         fy = self.fstate.state_phys.get_var("uy")
 
         rot_f = self.fstate.state_phys.get_var("rot")
@@ -388,7 +395,7 @@ class ForcingMilestone(Base):
             pcmesh.set_array(solid.flatten())
             return (pcmesh, scat)
 
-        animation.FuncAnimation(
+        self._animation = animation.FuncAnimation(
             fig,
             update_plot,
             frames=range(number_frames),
@@ -441,12 +448,14 @@ class ForcingMilestone(Base):
             uy = sim.state.state_phys.get_var("uy")
             fy = -self.sigma * solid * uy
             fy_fft = sim.oper.fft(fy)
+            if sim.params.oper.NO_SHEAR_MODES:
+                sim.oper.dealiasing(fx_fft, fy_fft)
             self.fstate.init_statespect_from(ux_fft=fx_fft, uy_fft=fy_fft)
 
 
 if __name__ == "__main__":
 
-    from time import perf_counter
+    # from time import perf_counter
 
     from fluidsim.solvers.ns2d.with_uxuy import Simul
 
