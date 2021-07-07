@@ -76,6 +76,14 @@ parser.add_argument(
     help="Only run initialization phase",
 )
 
+parser.add_argument(
+    "-wbl",
+    "--width_boundary_layers",
+    type=float,
+    default=0.02,
+    help="width boundary layers",
+)
+
 
 def main(args):
 
@@ -108,14 +116,16 @@ def main(args):
 
     params.forcing.enable = True
     params.forcing.type = "milestone"
-    params.forcing.milestone.nx_max = min(nx, round(16 * number_cylinders * nx / ny))
+    params.forcing.milestone.nx_max = min(
+        nx, round(16 * number_cylinders * nx / ny)
+    )
     mpi.printby0(f"{params.forcing.milestone.nx_max = }")
 
     objects = params.forcing.milestone.objects
 
     objects.number = number_cylinders
     objects.diameter = diameter
-    objects.width_boundary_layers = 0.02
+    objects.width_boundary_layers = args.width_boundary_layers
     assert objects.width_boundary_layers < diameter / 4
 
     movement = params.forcing.milestone.movement
