@@ -417,10 +417,6 @@ def modif_resolution_from_dir(
 ):
     """Save a file with a modified resolution."""
 
-    path_dir = pathdir_from_namedir(name_dir)
-
-    solver = _import_solver_from_path(path_dir)
-
     sim = load_state_phys_file(name_dir, t_approx)
 
     params2 = _deepcopy(sim.params)
@@ -440,15 +436,13 @@ def modif_resolution_from_dir(
     sim2 = sim.__class__(params2)
     sim2.init_fields.get_state_from_simul(sim)
 
-    print(sim2.params.path_run)
-
     oper_new = sim2.params.oper
     if dimension == 3:
         dir_new_file = f"/State_phys_{oper_new.nx}x{oper_new.ny}x{oper_new.nz}"
     else:
         dir_new_file = f"/State_phys_{oper_new.nx}x{oper_new.ny}"
 
-    sim2.output.path_run = str(path_dir) + dir_new_file
+    sim2.output.path_run = str(sim.output.path_run) + dir_new_file
     print("Save file in directory\n" + sim2.output.path_run)
     sim2.output.phys_fields.save(particular_attr="modif_resolution")
 
