@@ -49,8 +49,11 @@ class SpatialMeansBase(SpecificOutput):
         )
 
         if self.period_save != 0:
-            self._save_one_time()
-            self.t_last_save = self.sim.time_stepping.t
+            if self.file.tell() == 0:
+                self._save_one_time()
+                self.t_last_save = self.sim.time_stepping.t
+            else:
+                self.t_last_save = self.time_last_saved()
 
     def _init_files(self, arrays_1st_time=None):
 
@@ -66,7 +69,7 @@ class SpatialMeansBase(SpecificOutput):
         self()
 
     def __call__(self):
-        """Save the values at one time. """
+        """Save the values at one time."""
         tsim = self.sim.time_stepping.t
         if (
             tsim + 1e-15

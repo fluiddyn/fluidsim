@@ -236,10 +236,8 @@ class TestForcingOutput(TestSimulBase):
         sim2 = fls.load_sim_for_plot(sim.output.path_run)
         sim2.output
 
-        # TODO: add spatiotemporal_spectra calls
-
         means = sim2.output.spatial_means.load()
-        energy_K_mean = means["EK"][:-1].mean()
+        energy_K_mean = means["EK"].mean()
 
         sim2.output.temporal_spectra.load_time_series()
         spectra_omega = sim2.output.temporal_spectra.compute_spectra()

@@ -304,8 +304,7 @@ class TestOutput(TestSimulBase):
             )
 
             E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
-            # `:-1` because the last time is saved twice in spatial_means
-            E_mean = means["E" + letter][:-1].mean()
+            E_mean = means["E" + letter].mean()
 
             assert np.allclose(E_omega, E_kxkykzomega), (
                 letter,
