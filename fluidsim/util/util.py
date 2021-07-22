@@ -437,7 +437,7 @@ def modif_resolution_from_dir(
 
     params2.init_fields.type = "from_simul"
 
-    sim2 = solver.Simul(params2)
+    sim2 = sim.__class__(params2)
     sim2.init_fields.get_state_from_simul(sim)
 
     print(sim2.params.path_run)
