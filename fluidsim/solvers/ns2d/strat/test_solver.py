@@ -237,7 +237,9 @@ class TestForcingOutput(TestSimulBase):
         sim2.output
 
         means = sim2.output.spatial_means.load()
-        energy_K_mean = means["EK"].mean()
+        # `:-1` because the last time is saved twice in spatial_means
+        # (see SpatialMeansBase.__init__)
+        energy_K_mean = means["EK"][:-1].mean()
 
         sim2.output.temporal_spectra.load_time_series()
         spectra_omega = sim2.output.temporal_spectra.compute_spectra()

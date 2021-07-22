@@ -49,11 +49,9 @@ class SpatialMeansBase(SpecificOutput):
         )
 
         if self.period_save != 0:
-            if self.file.tell() == 0:
-                self._save_one_time()
-                self.t_last_save = self.sim.time_stepping.t
-            else:
-                self.t_last_save = self.time_last_saved()
+            # saved for each initialization to help detecting bugs
+            self._save_one_time()
+            self.t_last_save = self.sim.time_stepping.t
 
     def _init_files(self, arrays_1st_time=None):
 
