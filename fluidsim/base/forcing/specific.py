@@ -46,6 +46,7 @@ from copy import deepcopy
 from math import radians
 import types
 from warnings import warn
+from pathlib import Path
 
 import numpy as np
 
@@ -848,7 +849,28 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         super().__init__(sim)
 
         if mpi.rank == 0:
+
+            self._forcing_state_file_path = (
+                Path(sim.output.path_run) / "_forcing_state.txt"
+            )
+
+            if self._forcing_state_file_path.exists():
+                with open(self._forcing_state_file_path) as file:
+                    lines = file.readlines()
+
+                t_last_change, seed0, seed1 = lines[-1].split()
+                self.t_last_change = float(t_last_change)
+                self._seed0 = int(seed0)
+                self._seed1 = int(seed1)
+            else:
+                self.t_last_change = self.sim.time_stepping.t
+                self._seed0 = np.random.randint(0, 2 ** 32)
+                self._seed1 = np.random.randint(0, 2 ** 32)
+                self._save_state()
+
+            np.random.seed(self._seed0)
             self.forcing0 = self.compute_forcingc_raw()
+            np.random.seed(self._seed1)
             self.forcing1 = self.compute_forcingc_raw()
 
             pforcing = self.params.forcing
@@ -861,7 +883,6 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self.period_change_f0f1 = self.forcing_rate ** (-1.0 / 3)
             else:
                 self.period_change_f0f1 = time_correlation
-            self.t_last_change = self.sim.time_stepping.t
 
     def forcingc_raw_each_time(self, a_fft):
         """Return a coarse forcing as a linear combination of 2 random arrays
@@ -872,11 +893,21 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_change >= self.period_change_f0f1:
             self.t_last_change = tsim
+            self._seed0 = self._seed1
             self.forcing0 = self.forcing1
+            self._seed1 = np.random.randint(0, 2 ** 32)
             self.forcing1 = self.compute_forcingc_raw()
+            self._save_state()
 
         f_fft = self.forcingc_from_f0f1()
         return f_fft
+
+    def _save_state(self):
+        with open(self._forcing_state_file_path, "w") as file:
+            file.write(
+                "# do not modify by hand\n# t_last_change seed0 seed1\n"
+                f"{self.t_last_change} {self._seed0} {self._seed1}\n"
+            )
 
     def forcingc_from_f0f1(self):
         """Return a coarse forcing as a linear combination of 2 random arrays"""
