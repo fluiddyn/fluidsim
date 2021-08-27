@@ -91,14 +91,17 @@ def _extend_simul_class_from_path(Simul, path_file):
 
     if mpi.rank == 0:
         if path_file.suffix == ".xml":
-            info_solver = ParamContainer(path_file="info_solver.xml")
+            # we assume that it is a info_solver.xml file
+            info_solver = ParamContainer(path_file=path_file)
             if hasattr(info_solver, "extenders"):
                 extenders = info_solver.extenders
             else:
                 extenders = []
         else:
             with h5py.File(path_file, "r") as file:
-                extenders = list(file["/info_simul/solver"].attrs.get("extenders", []))
+                extenders = list(
+                    file["/info_simul/solver"].attrs.get("extenders", [])
+                )
     else:
         extenders = None
 
