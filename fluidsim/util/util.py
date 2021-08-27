@@ -252,10 +252,10 @@ def load_sim_for_plot(
     try:
         path_file = Path(path_dir) / name_file_from_time_approx(path_dir)
     except ValueError:
-        # no file to extend the simul class (yet, we could use the .xml file).
-        Simul = solver.Simul
-    else:
-        Simul = _extend_simul_class_from_path(solver.Simul, path_file)
+        # no state_phys file to extend the simul class. Let's try with info_solver.xml
+        path_file = "info_solver.xml"
+
+    Simul = _extend_simul_class_from_path(solver.Simul, path_file)
 
     with stdout_redirected(hide_stdout):
         sim = Simul(params)

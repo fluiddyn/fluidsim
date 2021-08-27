@@ -10,9 +10,11 @@
 """
 
 from logging import warn
+from pathlib import Path
 
 import h5py
 
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util import import_class
 from fluiddyn.util import mpi
 
@@ -85,9 +87,18 @@ class SimulExtender:
 def _extend_simul_class_from_path(Simul, path_file):
     """Extend a Simul if needed from a path file (internal API)."""
 
+    path_file = Path(path_file)
+
     if mpi.rank == 0:
-        with h5py.File(path_file, "r") as file:
-            extenders = list(file["/info_simul/solver"].attrs.get("extenders", []))
+        if path_file.suffix == ".xml":
+            info_solver = ParamContainer(path_file="info_solver.xml")
+            if hasattr(info_solver, "extenders"):
+                extenders = info_solver.extenders
+            else:
+                extenders = []
+        else:
+            with h5py.File(path_file, "r") as file:
+                extenders = list(file["/info_simul/solver"].attrs.get("extenders", []))
     else:
         extenders = None
 
