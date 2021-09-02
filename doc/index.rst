@@ -38,21 +38,22 @@ Fluidsim is a young package but the list of solvers already implemented (see
 framework. However, currently, Fluidsim excels in particular in solving
 equations over a periodic space:
 
-  * 2d and 3d incompressible Navier-Stokes equations,
+* 2d and 3d incompressible Navier-Stokes equations,
 
-  * 2d and 3d incompressible Navier-Stokes equations under the Boussinesq
-    approximation (with a buoyancy variable),
+* 2d and 3d incompressible Navier-Stokes equations under the Boussinesq
+  approximation (with a buoyancy variable),
 
-  * 2d and 3d stratified Navier-Stokes equations under the Boussinesq
-    approximation with constant Brunt-Väisälä frequency,
+* 2d and 3d stratified Navier-Stokes equations under the Boussinesq
+  approximation with constant Brunt-Väisälä frequency,
 
-  * 2d one-layer shallow-water equations + modified versions of these
-    equations,
+* 2d one-layer shallow-water equations + modified versions of these
+  equations,
 
-  * 2d Föppl-von Kármán equations (elastic thin plate).
+* 2d Föppl-von Kármán equations (elastic thin plate).
 
 Being a framework, Fluidsim can easily be extended in other packages to develop
-other solvers (see for example the package `fluidsim_ocean
+other solvers (see for example the packages `snek5000
+<https://github.com/exabl/snek5000/>`_ and `fluidsim_ocean
 <https://foss.heptapod.net/fluiddyn/fluidsim_ocean>`_).
 
 
@@ -147,7 +148,6 @@ supporting classes and functions.
    to_do
    authors
 
-
 Links
 -----
 
@@ -155,18 +155,14 @@ Links
    :target: https://pypi.org/project/fluidsim/
    :alt: Latest version
 
-.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/fluiddyn/fluidsim/branch/master/
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/default/graph/badge.svg
+   :target: https://codecov.io/gh/fluiddyn/fluidsim/
    :alt: Code coverage
-
-.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg?branch=master
-    :target: https://travis-ci.org/fluiddyn/fluidsim
 
 - `FluidDyn documentation <http://fluiddyn.readthedocs.io>`_
 - `Fluidsim forge on Heptapod <https://foss.heptapod.net/fluiddyn/fluidsim>`_
 - Fluidsim in PyPI |release|
 - Unittest coverage |coverage|
-- Continuous integration with travis |travis|
 - FluidDyn user chat room in
   `Riot <https://riot.im/app/#/room/#fluiddyn-users:matrix.org>`_ or
   `Slack <https://fluiddyn.slack.com>`_
