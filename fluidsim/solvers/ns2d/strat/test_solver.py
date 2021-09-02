@@ -236,6 +236,8 @@ class TestForcingOutput(TestSimulBase):
         sim2 = fls.load_sim_for_plot(sim.output.path_run)
         sim2.output
 
+        sim2.output.spect_energy_budg.load_mean()
+
         means = sim2.output.spatial_means.load()
         # `:-1` because the last time is saved twice in spatial_means
         # (see SpatialMeansBase.__init__)
