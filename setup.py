@@ -104,7 +104,7 @@ if FFTW3:
 
     fft_extras_msg = dedent(
         """
-        *********************************************************************
+        ---------------------------------------------------------------------
 
         FFTW was detected, but pyfftw and fluidfft will not be auto-installed
         (which was the case in previous fluidsim versions). To do so, instead
@@ -116,7 +116,7 @@ if FFTW3:
 
             pip install "fluidsim[fft]"
 
-        *********************************************************************
+        -----------------------------------------------------------------------
     """
     )
     warn(fft_extras_msg)
