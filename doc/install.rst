@@ -13,7 +13,7 @@ with::
 
   pip install fluidsim
 
-The conda version of this command (`conda install fluidsim`) should also work.
+The conda version of this command (``conda install fluidsim``) should also work.
 
 However, one have to note that (i) fluidsim builds are sensible to environment
 variables and (ii) fluidsim can optionally use `fluidfft

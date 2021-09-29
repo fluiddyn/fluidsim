@@ -16,3 +16,6 @@ The main contributors are:
   <http://www.legi.grenoble-inp.fr/web/spip.php?auteur223>`_
 - `Miguel Calpe Linares (LEGI, CNRS, UGA)
   <http://www.legi.grenoble-inp.fr/web/spip.php?auteur328>`_
+- `Jason Reneuve (ENS Lyon)
+  <http://www.ens-lyon.fr/PHYSIQUE/presentation/anciens/reneuve-jason>`_
+- Antoine Bardant (LEGI)

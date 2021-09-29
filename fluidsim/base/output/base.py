@@ -6,6 +6,7 @@ Provides:
 .. autoclass:: OutputBase
    :members:
    :private-members:
+   :noindex:
 
 .. autoclass:: OutputBasePseudoSpectral
    :members:
@@ -15,6 +16,10 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: SimReprMaker
+   :members:
+   :private-members:
+   :noindex:
 """
 
 import datetime
@@ -40,6 +45,8 @@ from fluidsim.util.util import open_patient
 
 
 class SimReprMaker(SimReprMakerCore):
+    """Produce a string representing the simulation"""
+
     def get_time_as_str(self):
         params = self.sim.params
         if not params.NEW_DIR_RESULTS and (
@@ -496,7 +503,7 @@ class SpecificOutput:
         self.t_last_save = self.sim.time_stepping.t
 
     def _online_save(self):
-        """Save the values at one time. """
+        """Save the values at one time."""
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_save >= self.period_save:
             self.t_last_save = tsim

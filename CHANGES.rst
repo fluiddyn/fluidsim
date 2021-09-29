@@ -22,14 +22,57 @@ Unreleased_
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...branch%2Fdefault
+
+0.5.0_ (2021-09-29)
+-------------------
+
+Added
+~~~~~
+
+* `!200 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/200>`__ :
+  New mechanism to easily extend a Simul class (subpackage
+  :mod:`fluidsim.extend_simul`).
+
+* `!201 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/201>`__ :
+  Improve FluidSim Core API with a warning and a convenience function
+
+  - Warnings added when ``_set_attrib`` is called instead of ``_set_child`` by
+    a InfoSolver instance
+  - New function ``iter_complete_params``
+
+* Output ``spatial_means_regions_milestone.py`` using :mod:`fluidsim.extend_simul`.
+
+* New options ``no_vz_kz0`` and ``NO_KY0``.
+
+* Spatiotemporal spectra and many improvements for the temporal spectra for
+  ns3d and ns2d solvers by Jason Reneuve (`!202
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/202>`__, ...)
+
+* Better Burgers1d solvers (by Ashwin Vishnu)
+
+Changed
+~~~~~~~
+
+* `!200 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/200>`__ :
+  (internal) :class:`fluidsim_core.info.InfoSolverCore`: ``__init__`` now fully
+  initializes the instance (calling the method ``complete_with_classes``). New
+  keyword argument ``only_root`` to initialize only the root level.
+
+* `!211 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/211>`__ :
+  Replace for ns2d solvers the output ``frequency_spectra`` (nearly not used) by
+  the newer output ``temporal_spectra`` written for ns3d solvers.
+
+Fixed
+~~~~~
+
+* Many bugfixes!
 
 0.4.1_ (2021-02-02)
 -------------------
 
-Few bugfixes and `!192
-<https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/192>` (temporal
-spectra for ns3d solvers).
+Few bugfixes and `!192 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/192>`__
+(temporal spectra for ns3d solvers).
 
 0.4.0_ (2021-01-11)
 -------------------
@@ -149,6 +192,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
+.. _0.5.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...0.5.0
 .. _0.4.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...0.4.1
 .. _0.4.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...0.4.0
 .. _0.3.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.2...0.3.3

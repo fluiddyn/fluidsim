@@ -104,7 +104,7 @@ if FFTW3:
 
     fft_extras_msg = dedent(
         """
-        *********************************************************************
+        ---------------------------------------------------------------------
 
         FFTW was detected, but pyfftw and fluidfft will not be auto-installed
         (which was the case in previous fluidsim versions). To do so, instead
@@ -116,7 +116,7 @@ if FFTW3:
 
             pip install "fluidsim[fft]"
 
-        *********************************************************************
+        ---------------------------------------------------------------------
     """
     )
     warn(fft_extras_msg)
@@ -192,15 +192,12 @@ setup(
         "Topic :: Scientific/Engineering",
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         # actually CeCILL License (GPL compatible license for French laws)
-        #
-        # Specify the Python versions you support here. In particular,
-        # ensure that you indicate whether you support Python 2,
-        # Python 3 or both.
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     packages=find_packages(exclude=["doc", "examples"]),
     setup_requires=setup_requires,
