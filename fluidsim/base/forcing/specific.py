@@ -864,8 +864,8 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self._seed1 = int(seed1)
             else:
                 self.t_last_change = self.sim.time_stepping.t
-                self._seed0 = np.random.randint(0, 2 ** 32)
-                self._seed1 = np.random.randint(0, 2 ** 32)
+                self._seed0 = np.random.randint(0, 2 ** 31)
+                self._seed1 = np.random.randint(0, 2 ** 31)
                 self._save_state()
 
             np.random.seed(self._seed0)
@@ -895,7 +895,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self.t_last_change = tsim
             self._seed0 = self._seed1
             self.forcing0 = self.forcing1
-            self._seed1 = np.random.randint(0, 2 ** 32)
+            self._seed1 = np.random.randint(0, 2 ** 31)
             self.forcing1 = self.compute_forcingc_raw()
             self._save_state()
 
