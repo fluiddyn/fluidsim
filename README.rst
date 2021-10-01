@@ -2,7 +2,7 @@
 |logo|
 ======
 
-|release| |pyversions| |docs| |coverage| |heptapod_ci| |travis| |chat|
+|release| |pyversions| |docs| |coverage| |heptapod_ci| |chat|
 
 .. |logo| image:: https://foss.heptapod.net/fluiddyn/fluidsim/raw/branch/default/doc/logo.svg
    :alt: FluidSim
@@ -25,10 +25,6 @@
 .. |heptapod_ci| image:: https://foss.heptapod.net/fluiddyn/fluidsim/badges/branch/default/pipeline.svg
    :target: https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
    :alt: Heptapod CI
-
-.. |travis| image:: https://travis-ci.org/fluiddyn/fluidsim.svg
-   :target: https://travis-ci.org/fluiddyn/fluidsim
-   :alt: Travis CI status
 
 .. |chat| image:: https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg
    :target: https://matrix.to/#/#fluiddyn-users:matrix.org
@@ -56,6 +52,10 @@ To try fluidsim without installation: |binder|
 For a **basic installation** it should be sufficient to run::
 
   pip install fluidsim
+
+or with conda::
+
+  conda install -c conda-forge fluidsim
 
 Much more detailed instructions are given in `the documentation
 <https://fluidsim.readthedocs.io/en/latest/install.html>`__.

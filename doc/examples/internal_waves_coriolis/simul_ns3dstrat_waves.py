@@ -134,5 +134,9 @@ sim.output.phys_fields.animate('b')
 """
 )
 
+if mpi.rank == 0:
+    sim.output.spect_energy_budg.plot_fluxes(key_k="kh")
 
-sim.output.spect_energy_budg.plot_fluxes(key_k="kh")
+
+import matplotlib.pyplot as plt
+plt.show()

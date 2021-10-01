@@ -1,24 +1,47 @@
 Installation
 ============
 
-FluidSim is part of the FluidDyn project. Some issues regarding the
-installation of Python and Python packages are discussed in `the main
-documentation of the project
+FluidSim is part of the FluidDyn project and requires Python >= 3.6. Some
+issues regarding the installation of Python and Python packages are discussed
+in `the main documentation of the project
 <http://fluiddyn.readthedocs.org/en/latest/install.html>`_.
 
-FluidSim requires Python >= 3.6. We recommend installing with a very recent
-version of pip so you might want to run ``pip install pip -U`` before anything
-(if you use conda, ``conda update pip``). Then, fluidsim can be installed
-with::
+We don't upload wheels on PyPI, so the simplest and fastest procedure is to
+use ``conda`` (no compilation needed). Alternatively, one can compile fluidsim
+and fluidfft using ``pip``.
+
+Installing the conda-forge packages with conda or mamba
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The fluidsim packages are in the conda-forge channels, so if it is not already
+done, one needs to add it::
+
+  conda config --add channels conda-forge
+
+If you just want to run sequential simulations and/or analyze the results of
+simulations, you can just install the fluidsim package::
+
+  conda install fluidsim
+
+For parallel simulations using MPI, let's create a dedicated environment::
+
+  conda create -n env_fluidsim ipython fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
+
+The environment can then be activated with ``conda activate env_fluidsim``.
+
+Build/install using pip
+~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend installing with a recent version of pip so you might want to
+run ``pip install pip -U`` before anything (if you use conda, ``conda update
+pip``). Then, fluidsim can be installed with::
 
   pip install fluidsim
 
-The conda version of this command (``conda install fluidsim``) should also work.
-
 However, one have to note that (i) fluidsim builds are sensible to environment
-variables and (ii) fluidsim can optionally use `fluidfft
-<http://fluidfft.readthedocs.io>`_ for pseudospectral solvers. Fluidsim and
-fluidfft can be both installed with the command::
+variables (see below) and (ii) fluidsim can optionally use
+`fluidfft <http://fluidfft.readthedocs.io>`_ for pseudospectral solvers.
+Fluidsim and fluidfft can be both installed with the command::
 
   pip install fluidsim[fft]
 
