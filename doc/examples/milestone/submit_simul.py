@@ -4,7 +4,8 @@ cluster = Cluster()
 
 cluster.commands_setting_env = [
     "source /etc/profile",
-    'export PATH="$HOME/miniconda3/bin:$PATH"',
+    ". $HOME/miniconda3/etc/profile.d/conda.sh",
+    "conda activate env_fluidsim",
     "export FLUIDSIM_PATH=/fsnet/project/watu/2020/20MILESTONE",
 ]
 
