@@ -4,6 +4,9 @@
 .. autoclass:: ForcingInternalWavesWatuCoriolis
    :members:
 
+.. autoclass:: ForcingTaylorGreen
+   :members:
+
 .. autoclass:: ForcingNS3D
    :members:
 
@@ -225,11 +228,81 @@ def compute_watu_coriolis_forcing_component(
     return out
 
 
+class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
+    """Forcing by a large scale Taylor-Green flow.
+
+    vx = V0 * sin(X / Lx) * cos(Y / Ly) * cos(Z / Lz)
+    vy = -V0 * cos(X / Lx) * sin(Y / Ly) * cos(Z / Lz)
+
+    """
+
+    tag = "taylor_green"
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.forcing.available_types.append(cls.tag)
+        params.forcing._set_child(
+            cls.tag,
+            dict(
+                amplitude=1.0,  # V0
+            ),
+        )
+
+    @classmethod
+    def _modify_sim_repr_maker(cls, sim_repr_maker):
+        p_taylor_green = sim_repr_maker.sim.params.forcing[cls.tag]
+        sim_repr_maker.add_parameters({"ampl": p_taylor_green.amplitude})
+
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        self.amplitude = sim.params.forcing.taylor_green.amplitude
+        if not isinstance(self.amplitude, (float, int)):
+            raise NotImplementedError
+
+        amplitude = sim.params.forcing.taylor_green.amplitude
+        lx = sim.params.oper.Lx
+        ly = sim.params.oper.Ly
+        lz = sim.params.oper.Lz
+
+        X, Y, Z = sim.oper.get_XYZ_loc()
+
+        # Definition of the Taylor Green velocity field which forces the flow
+        vxtarget = (
+            amplitude
+            * np.sin(2 * np.pi * X / lx)
+            * np.cos(2 * np.pi * Y / ly)
+            * np.cos(2 * np.pi * Z / lz)
+        )
+        vytarget = (
+            -amplitude
+            * np.cos(2 * np.pi * X / lx)
+            * np.sin(2 * np.pi * Y / ly)
+            * np.cos(2 * np.pi * Z / lz)
+        )
+        # Computation of its Fourier transform
+        self.vxtarget_fft = sim.oper.fft(vxtarget)
+        self.vytarget_fft = sim.oper.fft(vytarget)
+
+    def compute_forcing_fft_each_time(self):
+        dt = self.sim.time_stepping.deltat
+
+        fx_fft = self.vxtarget_fft * dt
+        fy_fft = self.vytarget_fft * dt
+
+        return {"vx_fft": fx_fft, "vy_fft": fy_fft}
+
+
 class ForcingNS3D(ForcingBasePseudoSpectral):
     """Main forcing class for the ns3d solver."""
 
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         ForcingBasePseudoSpectral._complete_info_solver(
-            info_solver, [ForcingInternalWavesWatuCoriolis, ForcingMilestone3D]
+            info_solver,
+            [
+                ForcingInternalWavesWatuCoriolis,
+                ForcingTaylorGreen,
+                ForcingMilestone3D,
+            ],
         )
