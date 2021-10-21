@@ -14,12 +14,11 @@
 
 
 from pathlib import Path
-
 from math import pi
+
 import numpy as np
 import h5netcdf
 from scipy.interpolate import interp1d
-from math import pi
 
 from transonic import boost, Array
 
@@ -242,12 +241,7 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
     @classmethod
     def _complete_params_with_default(cls, params):
         params.forcing.available_types.append(cls.tag)
-        params.forcing._set_child(
-            cls.tag,
-            dict(
-                amplitude=1.0,  # F0
-            ),
-        )
+        params.forcing._set_child(cls.tag, {"amplitude": 1.0})
 
     @classmethod
     def _modify_sim_repr_maker(cls, sim_repr_maker):
@@ -264,11 +258,10 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
     def __init__(self, sim):
         super().__init__(sim)
 
-        self.amplitude = sim.params.forcing.taylor_green.amplitude
-        if not isinstance(self.amplitude, (float, int)):
+        amplitude = sim.params.forcing.taylor_green.amplitude
+        if not isinstance(amplitude, (float, int)):
             raise NotImplementedError
 
-        amplitude = sim.params.forcing.taylor_green.amplitude
         lx = sim.params.oper.Lx
         ly = sim.params.oper.Ly
         lz = sim.params.oper.Lz
@@ -292,8 +285,8 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
         self.fx_fft = sim.oper.fft(fx)
         self.fy_fft = sim.oper.fft(fy)
 
-    def compute_forcing_fft_each_time(self):
-        return {"vx_fft": self.fx_fft, "vy_fft": self.fy_fft}
+    def compute(self):
+        self.fstate.init_statespect_from(vx_fft=self.fx_fft, vy_fft=self.fy_fft)
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
