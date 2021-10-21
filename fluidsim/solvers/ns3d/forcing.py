@@ -15,6 +15,7 @@
 
 from pathlib import Path
 
+from math import pi
 import numpy as np
 import h5netcdf
 from scipy.interpolate import interp1d
@@ -229,10 +230,10 @@ def compute_watu_coriolis_forcing_component(
 
 
 class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
-    """Forcing by a large scale Taylor-Green flow.
+    """Forcing proportional to a large scale Taylor-Green flow.
 
-    vx = V0 * sin(X / Lx) * cos(Y / Ly) * cos(Z / Lz)
-    vy = -V0 * cos(X / Lx) * sin(Y / Ly) * cos(Z / Lz)
+    fx = F0 * sin(X / Lx) * cos(Y / Ly) * cos(Z / Lz)
+    fy = -F0 * cos(X / Lx) * sin(Y / Ly) * cos(Z / Lz)
 
     """
 
@@ -244,14 +245,21 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
         params.forcing._set_child(
             cls.tag,
             dict(
-                amplitude=1.0,  # V0
+                amplitude=1.0,  # F0
             ),
         )
 
     @classmethod
     def _modify_sim_repr_maker(cls, sim_repr_maker):
-        p_taylor_green = sim_repr_maker.sim.params.forcing[cls.tag]
-        sim_repr_maker.add_parameters({"ampl": p_taylor_green.amplitude})
+        params = sim_repr_maker.sim.params
+        p_taylor_green = params.forcing[cls.tag]
+        F0 = p_taylor_green.amplitude
+        parameters = {"ampl": F0}
+        nu_2 = params.nu_2
+        if nu_2 != 0:
+            lx = params.oper.Lx
+            parameters["Re"] = np.sqrt(F0) * lx ** (3 / 2) / nu_2
+        sim_repr_maker.add_parameters(parameters)
 
     def __init__(self, sim):
         super().__init__(sim)
@@ -268,29 +276,24 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
         X, Y, Z = sim.oper.get_XYZ_loc()
 
         # Definition of the Taylor Green velocity field which forces the flow
-        vxtarget = (
+        fx = (
             amplitude
-            * np.sin(2 * np.pi * X / lx)
-            * np.cos(2 * np.pi * Y / ly)
-            * np.cos(2 * np.pi * Z / lz)
+            * np.sin(2 * pi * X / lx)
+            * np.cos(2 * pi * Y / ly)
+            * np.cos(2 * pi * Z / lz)
         )
-        vytarget = (
+        fy = (
             -amplitude
-            * np.cos(2 * np.pi * X / lx)
-            * np.sin(2 * np.pi * Y / ly)
-            * np.cos(2 * np.pi * Z / lz)
+            * np.cos(2 * pi * X / lx)
+            * np.sin(2 * pi * Y / ly)
+            * np.cos(2 * pi * Z / lz)
         )
         # Computation of its Fourier transform
-        self.vxtarget_fft = sim.oper.fft(vxtarget)
-        self.vytarget_fft = sim.oper.fft(vytarget)
+        self.fx_fft = sim.oper.fft(fx)
+        self.fy_fft = sim.oper.fft(fy)
 
     def compute_forcing_fft_each_time(self):
-        dt = self.sim.time_stepping.deltat
-
-        fx_fft = self.vxtarget_fft * dt
-        fy_fft = self.vytarget_fft * dt
-
-        return {"vx_fft": fx_fft, "vy_fft": fy_fft}
+        return {"vx_fft": self.fx_fft, "vy_fft": self.fy_fft}
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
