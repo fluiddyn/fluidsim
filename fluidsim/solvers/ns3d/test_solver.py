@@ -398,6 +398,23 @@ class TestInitInScript(TestSimulBase):
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
 
 
+class TestForcingTaylorGreen(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.nu_2 = 0.001
+        params.init_fields.type = "noise"
+        params.init_fields.noise.velo_max = 0.001
+        params.forcing.enable = True
+        params.forcing.type = "taylor_green"
+        params.forcing.taylor_green.amplitude = 1.0
+        params.output.periods_save.phys_fields = 2.0
+
+    def test_forcing(self):
+        sim = self.sim
+        sim.time_stepping.start()
+
+
 class TestForcingWatuCoriolis(TestSimulBase):
     @classmethod
     def init_params(self):
