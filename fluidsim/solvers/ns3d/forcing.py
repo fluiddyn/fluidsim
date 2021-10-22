@@ -262,31 +262,24 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
         if not isinstance(amplitude, (float, int)):
             raise NotImplementedError
 
-        lx = sim.params.oper.Lx
-        ly = sim.params.oper.Ly
-        lz = sim.params.oper.Lz
-
         X, Y, Z = sim.oper.get_XYZ_loc()
+        p_oper = sim.params.oper
+        lx, ly, lz = p_oper.Lx, p_oper.Ly, p_oper.Lz
+        phase_x = 2 * pi * X / lx
+        phase_y = 2 * pi * Y / ly
+        phase_z = 2 * pi * Z / lz
 
-        # Definition of the Taylor Green velocity field which forces the flow
-        fx = (
-            amplitude
-            * np.sin(2 * pi * X / lx)
-            * np.cos(2 * pi * Y / ly)
-            * np.cos(2 * pi * Z / lz)
+        # Definition of the Taylor Green field which forces the flow
+        fx = amplitude * np.sin(phase_x) * np.cos(phase_y) * np.cos(phase_z)
+        fy = -amplitude * np.cos(phase_x) * np.sin(phase_y) * np.cos(phase_z)
+
+        self.fstate.init_statespect_from(
+            vx_fft=sim.oper.fft(fx), vy_fft=sim.oper.fft(fy)
         )
-        fy = (
-            -amplitude
-            * np.cos(2 * pi * X / lx)
-            * np.sin(2 * pi * Y / ly)
-            * np.cos(2 * pi * Z / lz)
-        )
-        # Computation of its Fourier transform
-        self.fx_fft = sim.oper.fft(fx)
-        self.fy_fft = sim.oper.fft(fy)
 
     def compute(self):
-        self.fstate.init_statespect_from(vx_fft=self.fx_fft, vy_fft=self.fy_fft)
+        # stationary forcing: nothing to do here!
+        pass
 
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
