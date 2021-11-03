@@ -60,11 +60,13 @@ class Parameters(ParamContainer):
             )
 
         params = cls(tag="params")
-        dict_classes = info_solver.import_classes()
 
-        dict_classes["Solver"] = import_class(
-            info_solver.module_name, info_solver.class_name
-        )
+        dict_classes = {
+            "Solver": import_class(
+                info_solver.module_name, info_solver.class_name
+            )
+        }
+        dict_classes.update(info_solver.import_classes())
 
         iter_complete_params(params, info_solver, dict_classes.values())
         return params
