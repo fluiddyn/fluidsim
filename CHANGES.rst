@@ -22,7 +22,15 @@ Unreleased_
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...branch%2Fdefault
+
+0.5.1_ (2021-11-05)
+-------------------
+
+- `!244 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/244>`__:
+  Taylor Green forcing for ns3d solvers
+- fluidsim-core: change order for the initialization of the parameters: Simul
+  class before the subclasses.
 
 0.5.0_ (2021-09-29)
 -------------------
@@ -192,6 +200,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
+.. _0.5.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...0.5.1
 .. _0.5.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...0.5.0
 .. _0.4.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...0.4.1
 .. _0.4.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.3.3...0.4.0
