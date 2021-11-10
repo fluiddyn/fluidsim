@@ -558,12 +558,15 @@ Lx, Ly and Lz: float
         The resulting vector is divergence-free and has no azimutal component.
 
         """
-        Kh_square = inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
-        inv_K_square_nozero = inv_Kh_square_nozero + self.Kz ** 2
-        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
-        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
-        inv_K_square_nozero[inv_K_square_nozero == 0] = 1e-14
-        inv_K_square_nozero = 1 / inv_K_square_nozero
+        Kh_square = self.Kx ** 2 + self.Ky ** 2
+        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square_nozero = Kh_square.copy()
+
+        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
+        K_square_nozero[K_square_nozero == 0] = 1e-14
+
+        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
+        inv_K_square_nozero = 1.0 / K_square_nozero
 
         cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
         sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
@@ -589,12 +592,14 @@ Lx, Ly and Lz: float
         The resulting vector is divergence-free and has no polar component.
 
         """
-        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
-        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
-        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+        Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
+        del Kh_square_nozero
 
-        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
-        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+        tmp = np.sqrt(inv_Kh_square_nozero)
+        cos_phi_k = self.Kx * tmp
+        sin_phi_k = self.Ky * tmp
 
         tmp = -sin_phi_k * vx_fft + cos_phi_k * vy_fft
 
