@@ -96,11 +96,7 @@ def compute_energy_from_2fields(vx: Ac, vy: Ac):
 
 
 @boost
-def compute_energy_from_3fields(
-    vx: Ac,
-    vy: Ac,
-    vz: Ac,
-):
+def compute_energy_from_3fields(vx: Ac, vy: Ac, vz: Ac):
     return 0.5 * (np.abs(vx) ** 2 + np.abs(vy) ** 2 + np.abs(vz) ** 2)
 
 
@@ -554,6 +550,59 @@ Lx, Ly and Lz: float
         ury_fft = vy_fft - udy_fft
 
         return urx_fft, ury_fft, udx_fft, udy_fft
+
+    @boost
+    def project_polar3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Project (inplace) a vector parallel to the polar wavevector.
+
+        The resulting vector is divergence-free and has no azimutal component.
+
+        """
+        Kh_square = inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_K_square_nozero = inv_Kh_square_nozero + self.Kz ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+        inv_K_square_nozero[inv_K_square_nozero == 0] = 1e-14
+        inv_K_square_nozero = 1 / inv_K_square_nozero
+
+        cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
+        sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
+        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
+        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+
+        tmp = (
+            cos_theta_k * cos_phi_k * vx_fft
+            + cos_theta_k * sin_phi_k * vy_fft
+            - sin_theta_k * vz_fft
+        )
+
+        ux_fft = cos_theta_k * cos_phi_k * tmp
+        uy_fft = cos_theta_k * sin_phi_k * tmp
+        uz_fft = -sin_theta_k * tmp
+
+        return ux_fft, uy_fft, uz_fft
+
+    @boost
+    def project_azim3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Project (inplace) a vector parallel to the azimutal wavevector.
+
+        The resulting vector is divergence-free and has no polar component.
+
+        """
+        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+
+        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
+        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+
+        tmp = -sin_phi_k * vx_fft + cos_phi_k * vy_fft
+
+        ux_fft = -sin_phi_k * tmp
+        uy_fft = cos_phi_k * tmp
+        uz_fft = vz_fft
+
+        return ux_fft, uy_fft, uz_fft
 
     @boost
     def divhfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
