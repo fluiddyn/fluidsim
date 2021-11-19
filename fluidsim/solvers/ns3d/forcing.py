@@ -7,14 +7,24 @@
 .. autoclass:: ForcingTaylorGreen
    :members:
 
+.. autoclass:: ForcingInternalWaves
+   :members:
+
 .. autoclass:: ForcingNS3D
    :members:
 
 """
 
 
+# from _typeshed import Self
 from pathlib import Path
 from math import pi
+from math import degrees
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 import numpy as np
 import h5netcdf
@@ -27,6 +37,8 @@ from fluidsim.util.frequency_modulation import FrequencyModulatedSignalMaker
 
 from fluidsim.base.forcing.base import ForcingBasePseudoSpectral
 from fluidsim.base.forcing.specific import SpecificForcingPseudoSpectralSimple
+from fluidsim.base.forcing.specific import TimeCorrelatedRandomPseudoSpectral
+
 
 from .milestone import ForcingMilestone3D
 
@@ -188,12 +200,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         vx = sim.state.state_phys.get_var("vx")
         tmp = self._tmp_forcing
         fx = compute_watu_coriolis_forcing_component(
-            self.sigma,
-            self.maskx,
-            coef_forcing_time_x,
-            self.vxtarget,
-            vx,
-            tmp,
+            self.sigma, self.maskx, coef_forcing_time_x, self.vxtarget, vx, tmp
         )
         fx_fft = sim.oper.fft(fx)
         if self.nb_wave_makers == 1:
@@ -201,12 +208,7 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
         coef_forcing_time_y = float(self.interpolents[1](time))
         vy = sim.state.state_phys.get_var("vy")
         fy = compute_watu_coriolis_forcing_component(
-            self.sigma,
-            self.masky,
-            coef_forcing_time_y,
-            self.vytarget,
-            vy,
-            tmp,
+            self.sigma, self.masky, coef_forcing_time_y, self.vytarget, vy, tmp
         )
         return {"vx_fft": fx_fft, "vy_fft": sim.oper.fft(fy)}
 
@@ -282,6 +284,87 @@ class ForcingTaylorGreen(SpecificForcingPseudoSpectralSimple):
         pass
 
 
+class ForcingInternalWaves(TimeCorrelatedRandomPseudoSpectral):
+    """Random normalized anisotropic forcing for internal waves.
+
+    .. inheritance-diagram:: ForcingInternalWaves
+
+    """
+
+    tag = "internal_waves"
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.forcing.available_types.append(cls.tag)
+        params.forcing._set_child(
+            cls.tag,
+            {
+                "angle": "45°",
+                "delta_angle": "10°",
+                "thetaf_min": None,
+                "thetaf_max": None,
+                "kz_negative_enable": False,
+                "kf_min": 1.0,
+                "kf_max": 2.0,
+                "PROJECT_ON_POLAR_EACH_TIME": False,
+            },
+        )
+
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        self.params.forcing.internal_waves.thetaf_min = (
+            self.params.forcing.internal_waves.angle
+            - 0.5 * self.params.forcing.internal_waves.delta_angle
+        )
+        self.params.forcing.internal_waves.thetaf_max = (
+            self.params.forcing.internal_waves.angle
+            + 0.5 * self.params.forcing.internal_waves.delta_angle
+        )
+
+    def _compute_cond_no_forcing(self):
+        """Computes condition no forcing of the internal waves case."""
+        angle = self.params.forcing.internal_waves.angle
+        delta_angle = self.params.forcing.internal_waves.delta_angle
+        kf_min = self.params.forcing.internal_waves.kf_min
+        kf_max = self.params.forcing.internal_waves.kf_max
+
+        K = np.sqrt(
+            self.oper_coarse.Kx ** 2
+            + self.oper_coarse.Ky ** 2
+            + self.oper_coarse.Kz ** 2
+        )
+        K_nozero = K.copy()
+        K_nozero[K_nozero == 0] = 1e-14
+
+        theta = np.arccos(self.oper_coarse.Kz / K_nozero)
+        del K_nozero
+
+        COND_NO_F_K = np.logical_or(
+            K > kf_max,
+            K < kf_min,
+        )
+
+        COND_NO_F_THETA = np.logical_or(
+            theta > angle + 0.5 * delta_angle,
+            theta < angle - 0.5 * delta_angle,
+        )
+
+        if self.params.forcing.internal_waves.kz_negative_enable:
+            COND_NO_F_THETA = np.logical_and(
+                COND_NO_F_THETA,
+                np.logical_or(
+                    theta < pi - angle - 0.5 * delta_angle,
+                    theta > pi - angle + 0.5 * delta_angle,
+                ),
+            )
+
+        COND_NO_F = np.logical_or(COND_NO_F_K, COND_NO_F_THETA)
+        COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
+        COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
+        return COND_NO_F
+
+
 class ForcingNS3D(ForcingBasePseudoSpectral):
     """Main forcing class for the ns3d solver."""
 
@@ -293,5 +376,6 @@ class ForcingNS3D(ForcingBasePseudoSpectral):
                 ForcingInternalWavesWatuCoriolis,
                 ForcingTaylorGreen,
                 ForcingMilestone3D,
+                ForcingInternalWaves,
             ],
         )

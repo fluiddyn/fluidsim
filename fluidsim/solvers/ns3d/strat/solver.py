@@ -220,6 +220,18 @@ class Simul(SimulNS3D):
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 
+    def compute_dispersion_relation(self):
+        """
+        Computes the pulsation of internal gravity waves solver
+        ns3d.strat.
+
+        Returns
+        -------
+        omega_dispersion_relation : arr
+        pulsation in rad.
+        """
+        return self.params.N * np.sqrt( (self.oper.Kx ** 2 + self.oper.Ky ** 2) * self.oper.inv_K_square_nozero)
+
 
 if __name__ == "__main__":
 

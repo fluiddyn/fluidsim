@@ -29,7 +29,14 @@ class StateNS3D(StatePseudoSpectral):
                 "keys_state_spect": [k + "_fft" for k in keys_state_phys],
                 "keys_state_phys": keys_state_phys,
                 "keys_phys_needed": keys_state_phys,
-                "keys_computable": ["rotz", "divh", "rotz_fft", "divh_fft"],
+                "keys_computable": [
+                    "rotz",
+                    "divh",
+                    "rotz_fft",
+                    "divh_fft",
+                    "vp",
+                    "va",
+                ],
                 "keys_linear_eigenmodes": ["rot_fft"],
             }
         )
@@ -51,6 +58,10 @@ class StateNS3D(StatePseudoSpectral):
         if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
+        elif key == "rotz_fft":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            result = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
         if key == "rotz":
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
@@ -61,14 +72,27 @@ class StateNS3D(StatePseudoSpectral):
             vy_fft = self.get_var("vy_fft")
             divh_fft = self.oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
             result = self.oper.ifft3d(divh_fft)
-        elif key == "rotz_fft":
-            vx_fft = self.get_var("vx_fft")
-            vy_fft = self.get_var("vy_fft")
-            result = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
         elif key == "divh_fft":
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
             result = self.oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
+        elif key == "vp_fft":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            vz_fft = self.get_var("vz_fft")
+            result = self.oper.project_polar3d_scalar(vx_fft, vy_fft, vz_fft)
+        elif key == "vp":
+            vp_fft = self.compute("vp_fft")
+            result = self.oper.ifft3d(vp_fft)
+        elif key == "va_fft":
+            vx_fft = self.get_var("vx_fft")
+            vy_fft = self.get_var("vy_fft")
+            vz_fft = self.get_var("vz_fft")
+            result = self.oper.project_azim3d_scalar(vx_fft, vy_fft, vz_fft)
+        elif key == "va":
+            va_fft = self.compute("va_fft")
+            result = self.oper.ifft3d(va_fft)
+
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
@@ -125,9 +149,28 @@ class StateNS3D(StatePseudoSpectral):
 
         """
 
-        if len(kwargs) == 1 and next(iter(kwargs.keys())) == "rotz_fft":
+        if len(kwargs) == 1:
             self.state_spect[:] = 0.0
-            vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(kwargs["rotz_fft"])
-            super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
+            if next(iter(kwargs.keys())) == "rotz_fft":
+                vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(
+                    kwargs["rotz_fft"]
+                )
+                super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
+            elif next(iter(kwargs.keys())) == "vp_fft":
+                vx_fft, vy_fft, vz_fft = self.oper.vxvyvzfft_from_vpfft(
+                    kwargs["vp_fft"]
+                )
+                super().init_statespect_from(
+                    vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
+                )
+            elif next(iter(kwargs.keys())) == "va_fft":
+                vx_fft, vy_fft, vz_fft = self.oper.vxvyvzfft_from_vafft(
+                    kwargs["va_fft"]
+                )
+                super().init_statespect_from(
+                    vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
+                )
+            else:
+                return super().init_statespect_from(**kwargs)
         else:
             return super().init_statespect_from(**kwargs)

@@ -607,6 +607,65 @@ Lx, Ly and Lz: float
         return ux_fft, uy_fft, uz_fft
 
     @boost
+    def project_polar3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Projection of a vector on the polar direction of the wavevector.
+
+        Return the the scalar vktheta_fft.
+        Note: This function is closely related to project_polar3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)
+
+        """
+        Kh_square = self.Kx ** 2 + self.Ky ** 2
+        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square_nozero = Kh_square.copy()
+
+        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
+        K_square_nozero[K_square_nozero == 0] = 1e-14
+
+        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
+        inv_K_square_nozero = 1.0 / K_square_nozero
+
+        cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
+        sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
+        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
+        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+
+        result = (
+            cos_theta_k * cos_phi_k * vx_fft
+            + cos_theta_k * sin_phi_k * vy_fft
+            - sin_theta_k * vz_fft
+        )
+
+        return result
+
+    @boost
+    def vxvyvzfft_from_vpfft(self, vp_fft: Ac):
+        """Obtain a velocity field from its polar component (in k space).
+
+        Return the the scalar vx_fft, vy_fft, vz_fft corresponding to vktheta_fft.
+
+        """
+        Kh_square = self.Kx ** 2 + self.Ky ** 2
+        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square_nozero = Kh_square.copy()
+
+        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
+        K_square_nozero[K_square_nozero == 0] = 1e-14
+
+        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
+        inv_K_square_nozero = 1.0 / K_square_nozero
+
+        cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
+        sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
+        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
+        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+
+        ux_fft = cos_theta_k * cos_phi_k * vp_fft
+        uy_fft = cos_theta_k * sin_phi_k * vp_fft
+        uz_fft = -sin_theta_k * vp_fft
+
+        return ux_fft, uy_fft, uz_fft
+
+    @boost
     def project_azim3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
         """Project a vector parallel to the azimutal wavevector.
 
@@ -631,36 +690,12 @@ Lx, Ly and Lz: float
         return ux_fft, uy_fft, uz_fft
 
     @boost
-    def compute_apfft_from_vbfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac, b_fft: Ac, N: float):
-        """
-        Computes the linear mode ap_fft from vx_fft, vy_fft, vz_fft  and b_fft.
-        
-        """
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
-        Kh_square_nozero = Kh_square.copy()
+    def project_azim3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Projection of a vector on the azimutal direction of the wavevector.
 
-        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
-        K_square_nozero[K_square_nozero == 0] = 1e-14
+        Return the the scalar vkphi_fft.
+        Note: This function is closely related to project_azim3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)
 
-        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
-        inv_K_square_nozero = 1.0 / K_square_nozero
-
-        cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
-        sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
-        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
-        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
-
-        #ap_fft = (self.Kx * self.Kz * vx_fft +  self.Ky * self.Kz * vy_fft - vz_fft / inv_Kh_square_nozero) * 0.5 * np.sqrt(inv_K_square_nozero * inv_Kh_square_nozero) + 0.5 * 1j * b_fft / N
-        ap_fft = 0.5 * (cos_phi_k * cos_theta_k * vx_fft + sin_phi_k * cos_theta_k * vy_fft - sin_theta_k * vz_fft + 1j * b_fft / N)
-
-        return ap_fft
-
-    @boost
-    def compute_a0fft_from_vbfft(self, vx_fft: Ac, vy_fft: Ac):
-        """
-        Computes the linear mode a0_fft from vx_fft, vy_fft, vz_fft  and b_fft.
-        
         """
         Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -671,15 +706,16 @@ Lx, Ly and Lz: float
         cos_phi_k = self.Kx * tmp
         sin_phi_k = self.Ky * tmp
 
-        a0_fft = -sin_phi_k * vx_fft +  cos_phi_k * vy_fft
+        result = -sin_phi_k * vx_fft + cos_phi_k * vy_fft
 
-        return a0_fft
+        return result
 
     @boost
-    def compute_amfft_from_vbfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac, b_fft: Ac, N: float):
-        """
-        Computes the linear mode am_fft from vx_fft, vy_fft, vz_fft  and b_fft.
-        
+    def vxvyvzfft_from_vafft(self, va_fft: Ac):
+        """Obtain a velocity field from its polar component (in k space).
+
+        Return the the scalar vx_fft, vy_fft, vz_fft corresponding to vktheta_fft.
+
         """
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
@@ -689,64 +725,15 @@ Lx, Ly and Lz: float
         K_square_nozero[K_square_nozero == 0] = 1e-14
 
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
-        inv_K_square_nozero = 1.0 / K_square_nozero
 
-        cos_theta_k = self.Kz * np.sqrt(inv_K_square_nozero)
-        sin_theta_k = np.sqrt(Kh_square * inv_K_square_nozero)
         cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
         sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
 
-        #ap_fft = (self.Kx * self.Kz * vx_fft +  self.Ky * self.Kz * vy_fft - vz_fft / inv_Kh_square_nozero) * 0.5 * np.sqrt(inv_K_square_nozero * inv_Kh_square_nozero) + 0.5 * 1j * b_fft / N
-        am_fft = 0.5 * (cos_phi_k * cos_theta_k * vx_fft + sin_phi_k * cos_theta_k * vy_fft - sin_theta_k * vz_fft - 1j * b_fft / N)
+        ux_fft = -sin_phi_k * va_fft
+        uy_fft = cos_phi_k * va_fft
+        uz_fft = 0.0 * va_fft
 
-        return am_fft
-
-    @boost
-    def compute_asf_from_ffft(self, f_fft: Ac):
-        """
-        Computes shear modes asf_fft  from f_fft.
-        
-        """
-        asf_fft = f_fft.copy()
-        asf_fft[self.Kx ** 2 + self.Ky ** 2 != 0] = 0.0
-
-        return asf_fft
-
-    def compute_afft_from_vbfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac, b_fft: Ac, N: float):
-        """
-        Computes linear modes ap_fft, a0_fft, am_fft, asx_fft, and asy_fft from vx_fft, vy_fft, vz_fft  and b_fft.
-        
-        """
-        ap_fft = self.compute_apfft_from_vbfft(vx_fft, vy_fft, vz_fft, b_fft, N)
-        a0_fft = self.compute_a0fft_from_vbfft(vx_fft, vy_fft)
-        am_fft = self.compute_amfft_from_vbfft(vx_fft, vy_fft, vz_fft, b_fft, N)
-        asx_fft = self.compute_asf_from_ffft(vx_fft)
-        asy_fft = self.compute_asf_from_ffft(vy_fft)
-        asb_fft = self.compute_asf_from_ffft(b_fft)
-
-        return ap_fft, a0_fft, am_fft, asx_fft, asy_fft, asb_fft
-
-    def compute_vbfft_from_afft(self, ap_fft: Ac, a0_fft: Ac, am_fft: Ac, asx_fft: Ac, asy_fft: Ac, N: float):
-        """
-        Computes vx_fft, vy_fft, vz_fft  and b_fft from linear modes ap_fft, a0_fft, am_fft, asx_fft, and asy_fft.
-        
-        """
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
-        Kh_square_nozero = Kh_square.copy()
-
-        Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
-        K_square_nozero[K_square_nozero == 0] = 1e-14
-
-        inv_Kh_square_nozero = 1.0 / Kh_square_nozero
-        inv_K_square_nozero = 1.0 / K_square_nozero
-
-        b_fft = 1j * N * (ap_fft - am_fft)
-        uz_fft = - np.sqrt((self.Kx ** 2 + self.Ky **2) * inv_K_square_nozero) * (ap_fft + am_fft) 
-        uy_fft = self.Kx * a0_fft * np.sqrt(inv_Kh_square_nozero) - self.Ky * self.Kz * oper.inv_Kh_square_nozero * uz_fft + asy_fft
-        ux_fft = -self.Ky * a0_fft * np.sqrt(inv_Kh_square_nozero) - self.Kx * self.Kz * oper.inv_Kh_square_nozero * uz_fft + asx_fft
-
-        return ux_fft, uy_fft, uz_fft, b_fft
+        return ux_fft, uy_fft, uz_fft
 
     @boost
     def divhfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
