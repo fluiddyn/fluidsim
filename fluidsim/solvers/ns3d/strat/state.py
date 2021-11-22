@@ -23,15 +23,23 @@ class StateNS3DStrat(StateNS3D):
 
         This is a static method!
         """
-        keys_state_phys = ["vx", "vy", "vz", "b", "vp", "va"]
+        keys_state_phys = ["vx", "vy", "vz", "b"]
 
         info_solver.classes.State._set_attribs(
             {
                 "keys_state_spect": [k + "_fft" for k in keys_state_phys],
                 "keys_state_phys": keys_state_phys,
                 "keys_phys_needed": keys_state_phys,
-                "keys_computable": ["rotz", "divh"],
-                "keys_linear_eigenmodes": ["rot_fft"],
+                "keys_computable": [
+                    "rotz",
+                    "divh_fft",
+                    "divh",
+                    "vp_fft",
+                    "vp",
+                    "va_fft",
+                    "va",
+                ],
+                "keys_linear_eigenmodes": ["rot_fft", "vp_fft", "va_fft"],
             }
         )
 

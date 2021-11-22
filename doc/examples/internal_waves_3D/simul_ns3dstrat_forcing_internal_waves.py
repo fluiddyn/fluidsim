@@ -34,8 +34,7 @@ params.init_fields.noise.velo_max = 0.01
 params.forcing.enable = True
 params.forcing.type = "internal_waves"
 params.forcing.forcing_rate = 1.0
-# There is a problem here if we try to force "vp_fft" or "va_fft": Not the good energy injection rate
-params.forcing.key_forced = "rotz_fft"
+params.forcing.key_forced = "va_fft"
 params.forcing.internal_waves.angle = np.pi / 4.0
 params.forcing.internal_waves.delta_angle = 0.01
 params.forcing.internal_waves.kf_min = 1.3
