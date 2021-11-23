@@ -364,6 +364,25 @@ class ForcingInternalWaves(TimeCorrelatedRandomPseudoSpectral):
         COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
         return COND_NO_F
 
+    def compute(self):
+        """compute a forcing normalize with a 2nd degree eq."""
+
+        # If PROJECT_ON_POLAR_EACH_TIME = TRUE then we project the velocity field on the polar direction here
+        if self.params.forcing.internal_waves.PROJECT_ON_POLAR_EACH_TIME:
+            vx_fft = self.sim.state.state_spect.get_var("vx_fft")
+            vy_fft = self.sim.state.state_spect.get_var("vy_fft")
+            vz_fft = self.sim.state.state_spect.get_var("vz_fft")
+
+            ux_fft, uy_fft, uz_fft = self.oper.project_polar3d(
+                vx_fft, vy_fft, vz_fft
+            )
+
+            self.sim.state.state_spect.set_var("vx_fft", ux_fft)
+            self.sim.state.state_spect.set_var("vy_fft", uy_fft)
+            self.sim.state.state_spect.set_var("vz_fft", uz_fft)
+
+        super().compute()
+
 
 class ForcingNS3D(ForcingBasePseudoSpectral):
     """Main forcing class for the ns3d solver."""

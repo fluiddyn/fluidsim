@@ -34,13 +34,13 @@ params.init_fields.noise.velo_max = 0.01
 params.forcing.enable = True
 params.forcing.type = "internal_waves"
 params.forcing.forcing_rate = 1.0
-params.forcing.key_forced = "va_fft"
+params.forcing.key_forced = "vp_fft"
 params.forcing.internal_waves.angle = np.pi / 4.0
 params.forcing.internal_waves.delta_angle = 0.01
 params.forcing.internal_waves.kf_min = 1.3
 params.forcing.internal_waves.kf_max = 1.5
 params.forcing.internal_waves.kz_negative_enable = False
-# params.forcing.internal_waves.PROJECT_ON_POLAR_EACH_TIME = True
+params.forcing.internal_waves.PROJECT_ON_POLAR_EACH_TIME = True
 params.forcing.tcrandom.time_correlation = 1.0
 
 
