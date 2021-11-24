@@ -35,7 +35,7 @@ class StateNS3D(StatePseudoSpectral):
                     "rotz_fft",
                     "divh_fft",
                     "vp",
-                    "va",
+                    "vt",
                 ],
                 "keys_linear_eigenmodes": ["rot_fft"],
             }
@@ -80,18 +80,18 @@ class StateNS3D(StatePseudoSpectral):
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
             vz_fft = self.get_var("vz_fft")
-            result = self.oper.project_polar3d_scalar(vx_fft, vy_fft, vz_fft)
+            result = self.oper.vpfft_from_vecfft(vx_fft, vy_fft, vz_fft)
         elif key == "vp":
             vp_fft = self.compute("vp_fft")
             result = self.oper.ifft3d(vp_fft)
-        elif key == "va_fft":
+        elif key == "vt_fft":
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
             vz_fft = self.get_var("vz_fft")
-            result = self.oper.project_azim3d_scalar(vx_fft, vy_fft, vz_fft)
-        elif key == "va":
-            va_fft = self.compute("va_fft")
-            result = self.oper.ifft3d(va_fft)
+            result = self.oper.vtfft_from_vecfft(vx_fft, vy_fft, vz_fft)
+        elif key == "vt":
+            vt_fft = self.compute("vt_fft")
+            result = self.oper.ifft3d(vt_fft)
 
         else:
             to_print = 'Do not know how to compute "' + key + '".'
@@ -157,15 +157,15 @@ class StateNS3D(StatePseudoSpectral):
                 )
                 super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
             elif next(iter(kwargs.keys())) == "vp_fft":
-                vx_fft, vy_fft, vz_fft = self.oper.vxvyvzfft_from_vpfft(
+                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vpfft(
                     kwargs["vp_fft"]
                 )
                 super().init_statespect_from(
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
                 )
-            elif next(iter(kwargs.keys())) == "va_fft":
-                vx_fft, vy_fft, vz_fft = self.oper.vxvyvzfft_from_vafft(
-                    kwargs["va_fft"]
+            elif next(iter(kwargs.keys())) == "vt_fft":
+                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vtfft(
+                    kwargs["vt_fft"]
                 )
                 super().init_statespect_from(
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft

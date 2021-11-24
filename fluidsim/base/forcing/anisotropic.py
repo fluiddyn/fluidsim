@@ -9,6 +9,7 @@
 """
 
 from math import degrees
+from math import pi
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -244,3 +245,81 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
         ax.grid(linestyle="--", alpha=0.4)
         ax.legend()
+
+
+class TimeCorrelatedRandomPseudoSpectralAnisotropic3D(
+    TimeCorrelatedRandomPseudoSpectralAnisotropic
+):
+    """Random normalized anisotropic forcing.
+
+    .. inheritance-diagram:: TimeCorrelatedRandomPseudoSpectralAnisotropic3D
+
+    """
+
+    tag = "tcrandom_anisotropic"
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.forcing.available_types.append(cls.tag)
+        params.forcing._set_child(
+            cls.tag,
+            {
+                "angle": "45°",
+                "delta_angle": "10°",
+                "thetaf_min": None,
+                "thetaf_max": None,
+                "kz_negative_enable": False,
+                "kf_min": 1.0,
+                "kf_max": 2.0,
+            },
+        )
+
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        self.params.forcing.tcrandom_anisotropic.thetaf_min = (
+            self.params.forcing.tcrandom_anisotropic.angle
+            - 0.5 * self.params.forcing.tcrandom_anisotropic.delta_angle
+        )
+        self.params.forcing.tcrandom_anisotropic.thetaf_max = (
+            self.params.forcing.tcrandom_anisotropic.angle
+            + 0.5 * self.params.forcing.tcrandom_anisotropic.delta_angle
+        )
+
+    def _compute_cond_no_forcing(self):
+        """Computes condition no forcing of the tcrandom_anisotropic case."""
+        angle = self.params.forcing.tcrandom_anisotropic.angle
+        delta_angle = self.params.forcing.tcrandom_anisotropic.delta_angle
+        kf_min = self.params.forcing.tcrandom_anisotropic.kf_min
+        kf_max = self.params.forcing.tcrandom_anisotropic.kf_max
+
+        K = np.sqrt(
+            self.oper_coarse.Kx ** 2
+            + self.oper_coarse.Ky ** 2
+            + self.oper_coarse.Kz ** 2
+        )
+        K_nozero = K.copy()
+        K_nozero[K_nozero == 0] = 1e-14
+
+        theta = np.arccos(self.oper_coarse.Kz / K_nozero)
+        del K_nozero
+
+        COND_NO_F_K = np.logical_or(K > kf_max, K < kf_min)
+
+        COND_NO_F_THETA = np.logical_or(
+            theta > angle + 0.5 * delta_angle, theta < angle - 0.5 * delta_angle
+        )
+
+        if self.params.forcing.tcrandom_anisotropic.kz_negative_enable:
+            COND_NO_F_THETA = np.logical_and(
+                COND_NO_F_THETA,
+                np.logical_or(
+                    theta < pi - angle - 0.5 * delta_angle,
+                    theta > pi - angle + 0.5 * delta_angle,
+                ),
+            )
+
+        COND_NO_F = np.logical_or(COND_NO_F_K, COND_NO_F_THETA)
+        COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
+        COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
+        return COND_NO_F

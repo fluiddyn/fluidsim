@@ -553,11 +553,33 @@ Lx, Ly and Lz: float
 
     @boost
     def project_kradial3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Project a vector parallel to the wavevector.
+        r"""Project (inplace) the velocity field parallel to the k-radial direction of the wavevector for each mode.
 
-        The resulting vector is parallel to the wave vector.
+        Parameters
+        ----------
 
-        """
+            Arrays containing the velocity in Fourier
+            space.
+
+        Returns
+        -------
+
+            None
+
+        Notes
+        -----
+
+        The radial unitary vector for the mode :math:`\mathbf{k}` is
+
+        .. math:: \mathbf{e}_\mathbf{k} = \frac{\mathbf{k}}{|\mathbf{k}|} = \sin \theta_\mathbf{k} \cos \varphi_\mathbf{k} ~ \mathbf{e}_x + \sin \theta_\mathbf{k} \sin \varphi_\mathbf{k} ~ \mathbf{e}_y + \cos \theta_\textbf{k} ~ \mathbf{e}_z,
+
+        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_\mathbf{k}` is
+
+        .. math:: \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}
+
+        This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}` for all modes."""
+        # function important for the performance of 3d fluidsim solvers
+
         K_square_nozero = self.Kx ** 2 + self.Ky ** 2 + self.Kz ** 2
         K_square_nozero[K_square_nozero == 0] = 1e-14
         inv_K_square_nozero = 1.0 / K_square_nozero
@@ -566,19 +588,43 @@ Lx, Ly and Lz: float
             self.Kx * vx_fft + self.Ky * vy_fft + self.Kz * vz_fft
         ) * inv_K_square_nozero
 
-        ux_fft = self.Kx * tmp
-        uy_fft = self.Ky * tmp
-        uz_fft = self.Kz * tmp
-
-        return ux_fft, uy_fft, uz_fft
+        n0, n1, n2 = vx_fft.shape
+        for i0 in range(n0):
+            for i1 in range(n1):
+                for i2 in range(n2):
+                    vx_fft[i0, i1, i2] = self.Kx[i0, i1, i2] * tmp[i0, i1, i2]
+                    vy_fft[i0, i1, i2] = self.Ky[i0, i1, i2] * tmp[i0, i1, i2]
+                    vz_fft[i0, i1, i2] = self.Kz[i0, i1, i2] * tmp[i0, i1, i2]
 
     @boost
-    def project_polar3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Project a vector parallel to the polar wavevector.
+    def project_kpolo3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        r"""Project (inplace) the velocity field parallel to the k-poloidal (or polar) direction of the wavevector for each mode.
 
-        The resulting vector is divergence-free and has no azimutal component.
+        Parameters
+        ----------
 
-        """
+            Arrays containing the velocity in Fourier
+            space.
+
+        Returns
+        -------
+
+            None
+
+        Notes
+        -----
+
+        The poloidal unitary vector for the mode :math:`\mathbf{k}` is
+
+        .. math:: \mathbf{e}_{\mathbf{k}\theta} = \cos \theta_\mathbf{k} \cos \varphi_\mathbf{k} ~ \mathbf{e}_x + \cos \theta_\mathbf{k} \sin \varphi_\mathbf{k} ~ \mathbf{e}_y - \sin \theta_\textbf{k} ~ \mathbf{e}_z,
+
+        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_{\mathbf{k}\theta}` is
+
+        .. math:: \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}
+
+        This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}` for all modes."""
+        # function important for the performance of 3d fluidsim solvers
+
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
         Kh_square_nozero = Kh_square.copy()
@@ -600,20 +646,28 @@ Lx, Ly and Lz: float
             - sin_theta_k * vz_fft
         )
 
-        ux_fft = cos_theta_k * cos_phi_k * tmp
-        uy_fft = cos_theta_k * sin_phi_k * tmp
-        uz_fft = -sin_theta_k * tmp
-
-        return ux_fft, uy_fft, uz_fft
+        n0, n1, n2 = vx_fft.shape
+        for i0 in range(n0):
+            for i1 in range(n1):
+                for i2 in range(n2):
+                    vx_fft[i0, i1, i2] = (
+                        cos_theta_k[i0, i1, i2]
+                        * cos_phi_k[i0, i1, i2]
+                        * tmp[i0, i1, i2]
+                    )
+                    vy_fft[i0, i1, i2] = (
+                        cos_theta_k[i0, i1, i2]
+                        * sin_phi_k[i0, i1, i2]
+                        * tmp[i0, i1, i2]
+                    )
+                    vz_fft[i0, i1, i2] = (
+                        -sin_theta_k[i0, i1, i2] * tmp[i0, i1, i2]
+                    )
 
     @boost
-    def project_polar3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Projection of a vector on the polar direction of the wavevector.
+    def vpfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Does the same thing as project_kpolo3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac), but return the the scalar projection."""
 
-        Return the the scalar vktheta_fft.
-        Note: This function is closely related to project_polar3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)
-
-        """
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
         Kh_square_nozero = Kh_square.copy()
@@ -638,12 +692,9 @@ Lx, Ly and Lz: float
         return result
 
     @boost
-    def vxvyvzfft_from_vpfft(self, vp_fft: Ac):
-        """Obtain a velocity field from its polar component (in k space).
+    def vecfft_from_vpfft(self, vp_fft: Ac):
+        """Obtain a velocity field from its k-poloidal component component, as defined in project_kpolo3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)."""
 
-        Return the the scalar vx_fft, vy_fft, vz_fft corresponding to vktheta_fft.
-
-        """
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
         Kh_square_nozero = Kh_square.copy()
@@ -666,12 +717,34 @@ Lx, Ly and Lz: float
         return ux_fft, uy_fft, uz_fft
 
     @boost
-    def project_azim3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Project a vector parallel to the azimutal wavevector.
+    def project_ktoro3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        r"""Project (inplace) a the velocity field parallel to the k-toroidal (or azimutal) direction of the wavevector for each mode.
 
-        The resulting vector is divergence-free and has no polar component.
+        Parameters
+        ----------
 
-        """
+            Arrays containing the velocity in Fourier
+            space.
+
+        Returns
+        -------
+
+            None
+
+        Notes
+        -----
+
+        The toroidal unitary vector for the mode :math:`\mathbf{k}` is
+
+        .. math:: \mathbf{e}_{\mathbf{k}\varphi} = - \sin \varphi_\mathbf{k} ~ \mathbf{e}_x + \cos \varphi_\mathbf{k} ~ \mathbb{e}_y,
+
+        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_{\mathbf{k}\varphi}` is
+
+        .. math:: \hat{v}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi}
+
+        This function compute :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi}` for all modes."""
+        # function important for the performance of 3d fluidsim solvers
+
         Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
@@ -683,20 +756,18 @@ Lx, Ly and Lz: float
 
         tmp = -sin_phi_k * vx_fft + cos_phi_k * vy_fft
 
-        ux_fft = -sin_phi_k * tmp
-        uy_fft = cos_phi_k * tmp
-        uz_fft = 0.0 * vz_fft
-
-        return ux_fft, uy_fft, uz_fft
+        n0, n1, n2 = vx_fft.shape
+        for i0 in range(n0):
+            for i1 in range(n1):
+                for i2 in range(n2):
+                    vx_fft[i0, i1, i2] = -sin_phi_k[i0, i1, i2] * tmp[i0, i1, i2]
+                    vy_fft[i0, i1, i2] = cos_phi_k[i0, i1, i2] * tmp[i0, i1, i2]
+                    vz_fft[i0, i1, i2] = 0.0
 
     @boost
-    def project_azim3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Projection of a vector on the azimutal direction of the wavevector.
+    def vtfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        """Does the same thing as project_ktoro3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac), but return the the scalar projection."""
 
-        Return the the scalar vkphi_fft.
-        Note: This function is closely related to project_azim3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)
-
-        """
         Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
@@ -711,12 +782,9 @@ Lx, Ly and Lz: float
         return result
 
     @boost
-    def vxvyvzfft_from_vafft(self, va_fft: Ac):
-        """Obtain a velocity field from its polar component (in k space).
+    def vecfft_from_vtfft(self, vt_fft: Ac):
+        """Obtain a velocity field from its k-toroidal component component, as defined in project_ktoro3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)."""
 
-        Return the the scalar vx_fft, vy_fft, vz_fft corresponding to vktheta_fft.
-
-        """
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
         Kh_square_nozero = Kh_square.copy()
@@ -729,9 +797,9 @@ Lx, Ly and Lz: float
         cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
         sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
 
-        ux_fft = -sin_phi_k * va_fft
-        uy_fft = cos_phi_k * va_fft
-        uz_fft = 0.0 * va_fft
+        ux_fft = -sin_phi_k * vt_fft
+        uy_fft = cos_phi_k * vt_fft
+        uz_fft = 0.0 * vt_fft
 
         return ux_fft, uy_fft, uz_fft
 

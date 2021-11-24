@@ -1,3 +1,9 @@
+"""Script for a short simulation with the solver ns3d.strat
+
+with the forcing tcrandom_anisotropic
+
+"""
+
 from fluiddyn.util import mpi
 
 import numpy as np
@@ -23,7 +29,7 @@ params.time_stepping.t_end = 50.0
 
 # Brunt Vaisala frequency
 params.N = 1.0
-params.nu_2 = 1e-2
+params.nu_2 = 1e-1
 
 mpi.printby0(f"nu_2 = {params.nu_2:.3e}")
 
@@ -32,17 +38,15 @@ params.init_fields.noise.length = 1.0
 params.init_fields.noise.velo_max = 0.01
 
 params.forcing.enable = True
-params.forcing.type = "internal_waves"
+params.forcing.type = "tcrandom_anisotropic"
 params.forcing.forcing_rate = 1.0
 params.forcing.key_forced = "vp_fft"
-params.forcing.internal_waves.angle = np.pi / 4.0
-params.forcing.internal_waves.delta_angle = 0.01
-params.forcing.internal_waves.kf_min = 1.3
-params.forcing.internal_waves.kf_max = 1.5
-params.forcing.internal_waves.kz_negative_enable = False
-params.forcing.internal_waves.PROJECT_ON_POLAR_EACH_TIME = True
+params.forcing.tcrandom_anisotropic.angle = np.pi / 4.0
+params.forcing.tcrandom_anisotropic.delta_angle = 0.1
+params.forcing.tcrandom_anisotropic.kf_min = 1.3
+params.forcing.tcrandom_anisotropic.kf_max = 1.5
+params.forcing.tcrandom_anisotropic.kz_negative_enable = False
 params.forcing.tcrandom.time_correlation = 1.0
-
 
 params.output.periods_print.print_stdout = 1e-1
 
