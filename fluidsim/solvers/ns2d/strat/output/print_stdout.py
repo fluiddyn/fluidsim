@@ -70,7 +70,7 @@ class PrintStdOutNS2DStrat(PrintStdOutBase):
         os.fsync(self.file_memory.fileno())
 
     def plot_memory(self):
-        """ Plot memory used from memory_out.txt """
+        """Plot memory used from memory_out.txt"""
         with open(self.output.path_run + "/memory_out.txt") as file_memory:
             lines = file_memory.readlines()
 

@@ -139,4 +139,5 @@ if mpi.rank == 0:
 
 
 import matplotlib.pyplot as plt
+
 plt.show()

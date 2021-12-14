@@ -318,7 +318,7 @@ class SetOfPhysFieldFiles:
     def get_min_time(self):
         if hasattr(self, "times"):
             return self.times.min()
-        return 0.
+        return 0.0
 
     def get_field_to_plot(
         self,

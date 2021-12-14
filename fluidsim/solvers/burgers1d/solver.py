@@ -90,7 +90,7 @@ class Simul(SimulBasePseudoSpectral):
         self.oper.fft_as_arg(f_signal, f_fft)
         self.oper.dealiasing(f_fft)
         # Set "oddball mode" to zero
-        f_fft[self.oper.nkx-1] = 0.
+        f_fft[self.oper.nkx - 1] = 0.0
         return tendencies_fft
 
 

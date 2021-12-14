@@ -24,7 +24,7 @@ from fluiddyn.util import mpi
 
 
 def make_parameters_simulation(gamma, key_viscosity):
-    """ Make parameters of the first simulation. """
+    """Make parameters of the first simulation."""
     # Parameters simulation
     F = np.sin(pi / 4)
     sigma = 1
@@ -86,7 +86,7 @@ def make_parameters_simulation(gamma, key_viscosity):
 
 
 def modify_parameters(params):
-    """ Function modifies default parameters. """
+    """Function modifies default parameters."""
     # Output parameters
     params.output.HAS_TO_SAVE = True
     params.output.sub_directory = "find_diss_coef"
@@ -97,7 +97,7 @@ def modify_parameters(params):
 
 
 def compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky):
-    """Computes the number of modes between the dissipation peak and the largest modes. """
+    """Computes the number of modes between the dissipation peak and the largest modes."""
     idx_diss_max = np.argmax(abs(dissE_kx))
     idy_diss_max = np.argmax(abs(dissE_ky))
 
@@ -178,7 +178,7 @@ def normalization_initialized_field(sim, coef_norm=1e-4):
 
 
 def _compute_ikdiss(dissE_kx, dissE_ky):
-    """ Computes index peak dissipation. """
+    """Computes index peak dissipation."""
     idx_diss_max = np.argmax(abs(dissE_kx))
     idy_diss_max = np.argmax(abs(dissE_ky))
 
@@ -186,7 +186,7 @@ def _compute_ikdiss(dissE_kx, dissE_ky):
 
 
 def _compute_ikmax(kxE, kyE):
-    """ Computes index largest modes. """
+    """Computes index largest modes."""
     idx_dealiasing = np.argmin(abs(kxE - sim.oper.kxmax_dealiasing))
     idy_dealiasing = np.argmin(abs(kyE - sim.oper.kymax_dealiasing))
 
@@ -194,7 +194,7 @@ def _compute_ikmax(kxE, kyE):
 
 
 def compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky):
-    """ Computes the difference between the dissipation peak and target. """
+    """Computes the difference between the dissipation peak and target."""
     idx_diss_max, idy_diss_max = _compute_ikdiss(dissE_kx, dissE_ky)
     idx_dealiasing, idy_dealiasing = _compute_ikmax(kxE, kyE)
 
@@ -208,7 +208,7 @@ def compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky):
 
 
 def compute_energy_spatial(sim):
-    """ Compute energy without energy in shear modes """
+    """Compute energy without energy in shear modes"""
     dict_spatial = sim.output.spatial_means.load()
     E = dict_spatial["E"] - dict_spatial["E_shear"]
     t = dict_spatial["t"]
@@ -220,7 +220,7 @@ def compute_energy_spatial(sim):
 
 
 def modify_factor(sim, key_viscosity):
-    """ Modifies factor for viscosity. """
+    """Modifies factor for viscosity."""
     params = _deepcopy(sim.params)
 
     params_old = sim.params
@@ -242,13 +242,13 @@ def modify_factor(sim, key_viscosity):
 
 
 def write_to_file(path, to_print, mode="a"):
-    """ Writes to a file."""
+    """Writes to a file."""
     with open(path, mode) as file:
         file.write(to_print)
 
 
 def make_float_value_for_path(value):
-    """ Makes float. """
+    """Makes float."""
     value_not = str(value)
     if "." in value_not:
         return value_not.split(".")[0] + "_" + value_not.split(".")[1]
@@ -257,7 +257,7 @@ def make_float_value_for_path(value):
 
 
 def check_dissipation():
-    """ Checks dissipation"""
+    """Checks dissipation"""
     ratio_x = dissE_kx[idx_diss_max] / dissE_kx[idx_dealiasing - 1]
     ratio_y = dissE_ky[idy_diss_max] / dissE_ky[idy_dealiasing - 1]
 

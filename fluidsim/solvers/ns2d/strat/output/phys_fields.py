@@ -13,7 +13,7 @@ from fluidsim.base.output.phys_fields2d import PhysFieldsBase2D
 
 
 class PhysFields2DStrat(PhysFieldsBase2D):
-    """Class physical fields of solver ns2d.strat """
+    """Class physical fields of solver ns2d.strat"""
 
     def update_animation(self, frame, **fargs):
 

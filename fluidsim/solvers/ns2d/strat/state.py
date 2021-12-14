@@ -174,12 +174,12 @@ class StateNS2DStrat(StateNS2D):
         self.statephys_from_statespect()
 
     def init_from_apfft(self, ap_fft):
-        """Initialize the state from the linear mode ap_fft. """
+        """Initialize the state from the linear mode ap_fft."""
         rot_fft, b_fft = self.compute_rotbfft_from_apfft(ap_fft)
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_from_amfft(self, am_fft):
-        """Initialize the state from the linear mode am_fft. """
+        """Initialize the state from the linear mode am_fft."""
         rot_fft, b_fft = self.compute_rotbfft_from_amfft(am_fft)
         self.init_from_rotbfft(rot_fft, b_fft)
 

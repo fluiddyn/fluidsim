@@ -984,7 +984,7 @@ class SpatioTempSpectra(SpecificOutput):
         fig.tight_layout()
 
     def print_info_frequency_spectra(self):
-        """Print information frequency spectra. """
+        """Print information frequency spectra."""
 
         print("""*** Info frequency spectra ***""")
         print("dt = ", self.params.time_stepping.deltat0)

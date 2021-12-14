@@ -16,9 +16,7 @@ cluster.commands_setting_env = [
 ]
 
 if infiniband:
-    cluster.commands_setting_env.extend(
-        ["module load openmpi/4.0.5-ib"]
-    )
+    cluster.commands_setting_env.extend(["module load openmpi/4.0.5-ib"])
     resource_conditions = "net='ib' and os='buster'"
     name_run = "bench_cpp_mpi_ib"
     command = "./bench_ib.out"

@@ -198,7 +198,7 @@ def compute_delta_ik(kxE, kyE, dissE_kx, dissE_ky):
 
 
 def compute_energy_spatial(sim):
-    """ Compute energy without energy in shear modes """
+    """Compute energy without energy in shear modes"""
     dict_spatial = sim.output.spatial_means.load()
     E = dict_spatial["E"] - dict_spatial["E_shear"]
     t = dict_spatial["t"]

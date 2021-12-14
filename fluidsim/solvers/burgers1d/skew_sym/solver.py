@@ -59,5 +59,5 @@ class Simul(SimulBurgers):
 
         self.oper.dealiasing(f_fft)
         # Set "oddball mode" to zero
-        f_fft[self.oper.nkx-1] = 0.
+        f_fft[self.oper.nkx - 1] = 0.0
         return tendencies_fft

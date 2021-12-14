@@ -51,7 +51,7 @@ def solve(Simul, nx, time_scheme, coef_dealiasing):
     u = np.sin(x)
     u_fft = sim.oper.fft(u)
     # Set "oddball mode" to zero
-    u_fft[sim.oper.nkx-1] = 0.
+    u_fft[sim.oper.nkx - 1] = 0.0
 
     sim.state.init_statephys_from(u=u)
     sim.state.init_statespect_from(u_fft=u_fft)
@@ -102,7 +102,7 @@ def run(solver, nx, ts, dealias):
     else:
         from fluidsim.solvers.burgers1d.skew_sym.solver import Simul
 
-    solve(Simul, nx, ts, 2. / 3 if dealias else 1.0)
+    solve(Simul, nx, ts, 2.0 / 3 if dealias else 1.0)
 
 
 if __name__ == "__main__":

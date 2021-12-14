@@ -270,7 +270,7 @@ def plot_pie(
     for_latex=False,
     **kwargs,
 ):
-    """Plot a pie chart """
+    """Plot a pie chart"""
     percentages = []
     labels = []
     for k, v in long_functions.items():

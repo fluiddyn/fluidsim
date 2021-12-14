@@ -1,7 +1,10 @@
 import sys
 from pathlib import Path
 
-path_script = Path(__file__).absolute().parent.parent.parent / "doc/examples/milestone/run_simul.py"
+path_script = (
+    Path(__file__).absolute().parent.parent.parent
+    / "doc/examples/milestone/run_simul.py"
+)
 
 assert path_script.exists()
 

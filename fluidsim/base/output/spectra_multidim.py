@@ -61,7 +61,7 @@ class SpectraMultiDim(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
 
     def _online_save(self):
-        """Save the values at one time. """
+        """Save the values at one time."""
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_save >= self.period_save:
             self.t_last_save = tsim

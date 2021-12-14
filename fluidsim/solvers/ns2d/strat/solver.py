@@ -182,7 +182,7 @@ class Simul(SimulNS2D):
         return tendencies_fft
 
     def check_energy_conservation(self, rot_fft, b_fft, f_rot_fft, f_b_fft):
-        """ Check energy conservation for the inviscid case. """
+        """Check energy conservation for the inviscid case."""
         oper = self.oper
         params = self.params
 

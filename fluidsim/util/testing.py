@@ -213,7 +213,7 @@ class TimeLoggingTestRunner(unittest.TextTestRunner):
 
 
 def _mname(obj):
-    """ Get the full dotted name of the test method """
+    """Get the full dotted name of the test method"""
 
     mod_name = obj.__class__.__module__.replace("fluidsim.", "")
     return f"{mod_name}.{obj.__class__.__name__}.{obj._testMethodName}"

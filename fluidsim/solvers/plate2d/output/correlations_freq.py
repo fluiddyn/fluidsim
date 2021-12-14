@@ -277,7 +277,7 @@ class CorrelationsFreq(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
 
     def _online_save(self):
-        """Save the values at one time. """
+        """Save the values at one time."""
         itsim = self.sim.time_stepping.t / self.sim.time_stepping.deltat
         periods_save = self.sim.params.output.periods_save.correl_freq
 

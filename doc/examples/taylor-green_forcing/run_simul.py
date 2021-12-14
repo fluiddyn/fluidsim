@@ -71,7 +71,7 @@ def main(args):
         "sim.output.phys_fields.plot()",
         "sim.output.spect_energy_budg.plot_fluxes(tmin=16)",
         "sim.output.print_stdout.plot_clock_times()",
-        sep="\n"
+        sep="\n",
     )
 
     return params, sim

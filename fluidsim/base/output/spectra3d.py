@@ -178,7 +178,7 @@ class Spectra(SpecificOutput):
         return mpi.comm.bcast(answer, root=0)
 
     def _online_save(self):
-        """Save the values at one time. """
+        """Save the values at one time."""
         tsim = self.sim.time_stepping.t
         if self._has_to_online_save():
             self.t_last_save = tsim

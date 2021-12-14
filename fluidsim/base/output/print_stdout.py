@@ -88,7 +88,7 @@ class PrintStdOutBase:
         )
 
     def _evaluate_duration_left(self):
-        """ Computes the remaining time. """
+        """Computes the remaining time."""
         t_clock = time()
         try:
             delta_clock_time = t_clock - self.t_clock_last
