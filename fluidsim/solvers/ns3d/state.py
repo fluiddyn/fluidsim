@@ -149,23 +149,18 @@ class StateNS3D(StatePseudoSpectral):
         """
 
         if len(kwargs) == 1:
+            key, field = kwargs.popitem()
             self.state_spect[:] = 0.0
-            if next(iter(kwargs.keys())) == "rotz_fft":
-                vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(
-                    kwargs["rotz_fft"]
-                )
+            if key == "rotz_fft":
+                vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(field)
                 super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
-            elif next(iter(kwargs.keys())) == "vp_fft":
-                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vpfft(
-                    kwargs["vp_fft"]
-                )
+            elif key == "vp_fft":
+                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vpfft(field)
                 super().init_statespect_from(
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
                 )
-            elif next(iter(kwargs.keys())) == "vt_fft":
-                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vtfft(
-                    kwargs["vt_fft"]
-                )
+            elif key == "vt_fft":
+                vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vtfft(field)
                 super().init_statespect_from(
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
                 )

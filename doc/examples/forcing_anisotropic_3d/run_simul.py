@@ -69,14 +69,11 @@ fluidsim-create-xml-description {sim.output.path_run}
 # To visualize with fluidsim:
 
 cd {sim.output.path_run}
-ipython
+ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
-# in ipython:
+# in IPython:
 
-from fluidsim import load_sim_for_plot
-sim = load_sim_for_plot()
 sim.output.phys_fields.set_equation_crosssection('x={Lx/2}')
 sim.output.phys_fields.animate('b')
-
 """
 )

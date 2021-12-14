@@ -268,7 +268,7 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic3D(
                 "delta_angle": "10°",
                 "thetaf_min": None,
                 "thetaf_max": None,
-                "kz_negative_enable": False,
+                "kz_negative_enable": True,
                 "kf_min": 1.0,
                 "kf_max": 2.0,
             },
