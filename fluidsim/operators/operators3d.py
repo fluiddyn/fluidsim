@@ -553,25 +553,42 @@ Lx, Ly and Lz: float
 
     @boost
     def project_kradial3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        r"""Project (inplace) the velocity field parallel to the k-radial direction of the wavevector for each mode.
+        r"""Project (inplace) a vector field parallel to the k-radial direction of the wavevector.
 
         Parameters
         ----------
 
-            Arrays containing the velocity in Fourier space.
+        Arrays containing the velocity in Fourier space.
 
         Notes
         -----
 
-        The radial unitary vector for the mode :math:`\mathbf{k}` is
+        .. |kk| mathmacro:: \mathbf{k}
+        .. |ee| mathmacro:: \mathbf{e}
+        .. |vv| mathmacro:: \mathbf{v}
 
-        .. math:: \mathbf{e}_\mathbf{k} = \frac{\mathbf{k}}{|\mathbf{k}|} = \sin \theta_\mathbf{k} \cos \varphi_\mathbf{k} ~ \mathbf{e}_x + \sin \theta_\mathbf{k} \sin \varphi_\mathbf{k} ~ \mathbf{e}_y + \cos \theta_\textbf{k} ~ \mathbf{e}_z,
+        The radial unitary vector for the mode :math:`\kk` is
 
-        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_\mathbf{k}` is
+        .. math::
 
-        .. math:: \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}
+           \ee_\kk = \frac{\kk}{|\kk|}
+           = \sin \theta_\kk \cos \varphi_\kk ~ \ee_x
+           + \sin \theta_\kk \sin \varphi_\kk ~ \ee_y
+           + \cos \theta_\kk ~ \ee_z,
 
-        This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}` for all modes."""
+        and the projection of a velocity mode :math:`\hat{\vv}_\kk` along
+        :math:`\ee_\kk` is
+
+        .. math:: \hat{v}_\kk ~ \ee_\kk \equiv \hat{\vv}_\kk \cdot \ee_\kk ~ \ee_\kk
+
+        This function set :math:`\hat{\vv}_\kk = \hat{v}_\kk ~ \ee_\kk` for all
+        modes.
+
+        .. note:
+
+           For a divergent less vector field, the resulting vector is zero.
+
+        """
 
         K_square_nozero = self.Kx ** 2 + self.Ky ** 2 + self.Kz ** 2
         K_square_nozero[K_square_nozero == 0] = 1e-14
@@ -590,32 +607,36 @@ Lx, Ly and Lz: float
                     vz_fft[i0, i1, i2] = self.Kz[i0, i1, i2] * tmp[i0, i1, i2]
 
     @boost
-    def project_kpolo3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        r"""Project (inplace) the velocity field parallel to the k-poloidal (or polar) direction of the wavevector for each mode.
+    def project_poloidal(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        r"""Project (inplace) a vector field parallel to the k-poloidal (or polar) direction.
 
         Parameters
         ----------
 
-            Arrays containing the velocity in Fourier
-            space.
-
-        Returns
-        -------
-
-            None
+        Arrays containing the velocity in Fourier space.
 
         Notes
         -----
 
-        The poloidal unitary vector for the mode :math:`\mathbf{k}` is
+        The poloidal unitary vector for the mode :math:`\kk` is
 
-        .. math:: \mathbf{e}_{\mathbf{k}\theta} = \cos \theta_\mathbf{k} \cos \varphi_\mathbf{k} ~ \mathbf{e}_x + \cos \theta_\mathbf{k} \sin \varphi_\mathbf{k} ~ \mathbf{e}_y - \sin \theta_\textbf{k} ~ \mathbf{e}_z,
+        .. math::
 
-        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_{\mathbf{k}\theta}` is
+           \ee_{\kk\theta}
+           = \cos \theta_\kk \cos \varphi_\kk ~ \ee_x
+           + \cos \theta_\kk \sin \varphi_\kk ~ \ee_y - \sin \theta_\kk ~ \ee_z,
 
-        .. math:: \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}
+        and the projection of a velocity mode :math:`\hat{\vv}_\kk` along
+        :math:`\ee_{\kk\theta}` is
 
-        This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}` for all modes."""
+        .. math::
+
+           \hat{v}_{\kk\theta} ~ \ee_{\kk\theta}
+           \equiv \hat{\vv}_\kk \cdot \ee_{\kk\theta} ~ \ee_{\kk\theta}
+
+        This function set :math:`\hat{\vv}_\kk = \hat{v}_{\kk\theta} ~
+        \ee_{\kk\theta}` for all modes.
+        """
 
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
@@ -658,7 +679,7 @@ Lx, Ly and Lz: float
 
     @boost
     def vpfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Does the same thing as project_kpolo3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac), but return the the scalar projection."""
+        """Return the poloidal component of a vector field."""
 
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
@@ -685,7 +706,7 @@ Lx, Ly and Lz: float
 
     @boost
     def vecfft_from_vpfft(self, vp_fft: Ac):
-        """Obtain a velocity field from its k-poloidal component component, as defined in project_kpolo3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)."""
+        """Return a vector field from the poloidal component."""
 
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
@@ -709,33 +730,35 @@ Lx, Ly and Lz: float
         return ux_fft, uy_fft, uz_fft
 
     @boost
-    def project_ktoro3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        r"""Project (inplace) a the velocity field parallel to the k-toroidal (or azimutal) direction of the wavevector for each mode.
+    def project_toroidal(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
+        r"""Project (inplace) a vector field parallel to the k-toroidal (or azimutal) direction.
 
         Parameters
         ----------
 
-            Arrays containing the velocity in Fourier
-            space.
-
-        Returns
-        -------
-
-            None
+        Arrays containing the velocity in Fourier space.
 
         Notes
         -----
 
-        The toroidal unitary vector for the mode :math:`\mathbf{k}` is
+        The toroidal unitary vector for the mode :math:`\kk` is
 
-        .. math:: \mathbf{e}_{\mathbf{k}\varphi} = - \sin \varphi_\mathbf{k} ~ \mathbf{e}_x + \cos \varphi_\mathbf{k} ~ \mathbb{e}_y,
+        .. math::
 
-        and the projection of a velocity mode :math:`\hat{\mathbf{v}}_\mathbf{k}` along :math:`\mathbf{e}_{\mathbf{k}\varphi}` is
+           \ee_{\kk\varphi}
+           = - \sin \varphi_\kk ~ \ee_x + \cos \varphi_\kk ~ \mathbb{e}_y,
 
-        .. math:: \hat{v}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi}
+        and the projection of a velocity mode :math:`\hat{\vv}_\kk` along
+        :math:`\ee_{\kk\varphi}` is
 
-        This function compute :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_{\mathbf{k}\varphi} ~ \mathbf{e}_{\mathbf{k}\varphi}` for all modes."""
-        # function important for the performance of 3d fluidsim solvers
+        .. math::
+
+           \hat{v}_{\kk\varphi} ~ \ee_{\kk\varphi}
+           \equiv \hat{\vv}_\kk \cdot \ee_{\kk\varphi} ~ \ee_{\kk\varphi}
+
+        This function compute :math:`\hat{\vv}_\kk = \hat{v}_{\kk\varphi} ~
+        \ee_{\kk\varphi}` for all modes.
+        """
 
         Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -758,7 +781,7 @@ Lx, Ly and Lz: float
 
     @boost
     def vtfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
-        """Does the same thing as project_ktoro3d(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac), but return the the scalar projection."""
+        """Return the toroidal component of a vector field."""
 
         Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -775,7 +798,7 @@ Lx, Ly and Lz: float
 
     @boost
     def vecfft_from_vtfft(self, vt_fft: Ac):
-        """Obtain a velocity field from its k-toroidal component component, as defined in project_ktoro3d_scalar(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac)."""
+        """Return a 3D vector field from the toroidal component."""
 
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
