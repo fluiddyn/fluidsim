@@ -87,7 +87,7 @@ class SpectraNS3DStrat(SpectraNS3D):
             "vx": s_vx,
             "vy": s_vy,
             "vz": s_vz,
-            "E": s_vx + s_vy + s_vy,
+            "E": s_vx + s_vy + s_vz,
             "A": s_A,
             "Khr": s_Khr,
             "Khd": s_Khd,
