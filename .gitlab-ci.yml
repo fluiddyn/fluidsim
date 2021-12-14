@@ -2,7 +2,7 @@ variables:
   CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
 
 tests:
-  image: fluiddyn/python3-stable:heptapod
+  image: fluiddyn/python3-stable:testing
   script:
     - pip install -U pip tox numpy cython mpi4py --user
-    - tox -e py36,py36-fft,codecov
+    - tox -e py37,py37-fft,codecov
