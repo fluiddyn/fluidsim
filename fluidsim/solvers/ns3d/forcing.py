@@ -12,8 +12,6 @@
 
 """
 
-
-# from _typeshed import Self
 from pathlib import Path
 from math import pi
 

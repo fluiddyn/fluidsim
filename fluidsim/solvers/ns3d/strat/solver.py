@@ -230,7 +230,10 @@ class Simul(SimulNS3D):
         omega_dispersion_relation : arr
         pulsation in rad.
         """
-        return self.params.N * np.sqrt( (self.oper.Kx ** 2 + self.oper.Ky ** 2) * self.oper.inv_K_square_nozero)
+        return self.params.N * np.sqrt(
+            (self.oper.Kx ** 2 + self.oper.Ky ** 2)
+            * self.oper.inv_K_square_nozero
+        )
 
 
 if __name__ == "__main__":

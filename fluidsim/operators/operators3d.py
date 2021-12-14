@@ -558,13 +558,7 @@ Lx, Ly and Lz: float
         Parameters
         ----------
 
-            Arrays containing the velocity in Fourier
-            space.
-
-        Returns
-        -------
-
-            None
+            Arrays containing the velocity in Fourier space.
 
         Notes
         -----
@@ -578,7 +572,6 @@ Lx, Ly and Lz: float
         .. math:: \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}
 
         This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_\mathbf{k} ~ \mathbf{e}_\mathbf{k}` for all modes."""
-        # function important for the performance of 3d fluidsim solvers
 
         K_square_nozero = self.Kx ** 2 + self.Ky ** 2 + self.Kz ** 2
         K_square_nozero[K_square_nozero == 0] = 1e-14
@@ -623,7 +616,6 @@ Lx, Ly and Lz: float
         .. math:: \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta} \equiv \hat{\mathbf{v}}_\mathbf{k} \cdot \mathbf{e}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}
 
         This function set :math:`\hat{\mathbf{v}}_\mathbf{k} = \hat{v}_{\mathbf{k}\theta} ~ \mathbf{e}_{\mathbf{k}\theta}` for all modes."""
-        # function important for the performance of 3d fluidsim solvers
 
         Kh_square = self.Kx ** 2 + self.Ky ** 2
         K_square_nozero = Kh_square + self.Kz ** 2
