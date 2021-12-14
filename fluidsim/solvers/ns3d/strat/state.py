@@ -17,31 +17,17 @@ class StateNS3DStrat(StateNS3D):
 
     """
 
-    @staticmethod
-    def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
+    @classmethod
+    def _complete_info_solver(cls, info_solver):
+        """Complete the ParamContainer info_solver."""
 
-        This is a static method!
-        """
+        super()._complete_info_solver(info_solver)
+
+        info_State = info_solver.classes.State
         keys_state_phys = ["vx", "vy", "vz", "b"]
-
-        info_solver.classes.State._set_attribs(
-            {
-                "keys_state_spect": [k + "_fft" for k in keys_state_phys],
-                "keys_state_phys": keys_state_phys,
-                "keys_phys_needed": keys_state_phys,
-                "keys_computable": [
-                    "rotz",
-                    "divh_fft",
-                    "divh",
-                    "vp_fft",
-                    "vp",
-                    "vt_fft",
-                    "vt",
-                ],
-                "keys_linear_eigenmodes": ["rot_fft", "vp_fft", "vt_fft"],
-            }
-        )
+        info_State.keys_state_spect = [k + "_fft" for k in keys_state_phys]
+        info_State.keys_state_phys = keys_state_phys
+        info_State.keys_phys_needed = keys_state_phys
 
     def init_from_vxvyfft(self, vx_fft, vy_fft):
         self.state_spect.set_var("vx_fft", vx_fft)

@@ -16,12 +16,9 @@ class StateNS3D(StatePseudoSpectral):
 
     """
 
-    @staticmethod
-    def _complete_info_solver(info_solver):
-        """Complete the ParamContainer info_solver.
-
-        This is a static method!
-        """
+    @classmethod
+    def _complete_info_solver(cls, info_solver):
+        """Complete the ParamContainer info_solver."""
         keys_state_phys = ["vx", "vy", "vz"]
 
         info_solver.classes.State._set_attribs(
@@ -36,8 +33,10 @@ class StateNS3D(StatePseudoSpectral):
                     "divh_fft",
                     "vp",
                     "vt",
+                    "vp_fft",
+                    "vt_fft",
                 ],
-                "keys_linear_eigenmodes": ["rot_fft"],
+                "keys_linear_eigenmodes": ["vp_fft", "vt_fft"],
             }
         )
 
