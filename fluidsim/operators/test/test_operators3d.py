@@ -106,6 +106,44 @@ def test_projection():
         E_tk / E_v < 1e-14
     ), "Too much energy is in the toroidal projection of the k-radial field."
 
+    # Test of vpfft_from_vecfft
+    # Compute projection along the poloidal direction
+    vp_fft = oper.vpfft_from_vecfft(vx_fft, vy_fft, vz_fft)
+    E_p_s = compute_energy_from_1field(vp_fft)
+    E_p = compute_energy_from_3fields(vx_fft_p, vy_fft_p, vz_fft_p)
+    dE_p = E_p_s - E_p
+    assert np.max(
+        dE_p / E_v < 1e-14
+    ), "Too much energy difference in the poloidal projections done with vpfft_from_vecfft and project_poloidal."
+
+    # Test of vtfft_from_vecfft
+    # Compute projection along the toroidal direction
+    vt_fft = oper.vtfft_from_vecfft(vx_fft, vy_fft, vz_fft)
+    E_t_s = compute_energy_from_1field(vt_fft)
+    E_t = compute_energy_from_3fields(vx_fft_t, vy_fft_t, vz_fft_t)
+    dE_t = E_t_s - E_t
+    assert np.max(
+        dE_t / E_v < 1e-14
+    ), "Too much energy difference in the toroidal projections done with vtfft_from_vecfft and project_toroidal."
+
+    # Test of vecfft_from_vpfft
+    # Recompute the velocity field corresponding to the poloidal projection vp_fft
+    vx_fft_p, vy_fft_p, vz_fft_p = oper.vecfft_from_vpfft(vp_fft)
+    E_p = compute_energy_from_3fields(vx_fft_p, vy_fft_p, vz_fft_p)
+    dE_p = E_p_s - E_p
+    assert np.max(
+        dE_p / E_v < 1e-14
+    ), "Too much energy difference in the poloidal velocity fields computed with project_poloidal and vecfft_from_vpfft."
+
+    # Test of vecfft_from_vtfft
+    # Recompute the velocity field corresponding to the toroidal projection vt_fft
+    vx_fft_t, vy_fft_t, vz_fft_t = oper.vecfft_from_vtfft(vp_fft)
+    E_t = compute_energy_from_3fields(vx_fft_p, vy_fft_p, vz_fft_p)
+    dE_t = E_t_s - E_t
+    assert np.max(
+        dE_t / E_v < 1e-14
+    ), "Too much energy difference in the toroidal velocity fields computed with project_toroidal and vecfft_from_vtfft."
+
     print("Projections seems to be Ok.")
 
 
