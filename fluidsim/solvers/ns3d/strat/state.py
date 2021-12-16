@@ -4,8 +4,6 @@
 
 import numpy as np
 
-from fluiddyn.util import mpi
-
 from fluidsim.solvers.ns3d.state import StateNS3D
 
 
@@ -30,16 +28,9 @@ class StateNS3DStrat(StateNS3D):
         info_State.keys_phys_needed = keys_state_phys
 
     def init_from_vxvyfft(self, vx_fft, vy_fft):
+        self.state_spect.fill(0.0)
         self.state_spect.set_var("vx_fft", vx_fft)
         self.state_spect.set_var("vy_fft", vy_fft)
-        self.state_spect.set_var("vz_fft", np.zeros_like(vx_fft))
-        self.state_spect.set_var("b_fft", np.zeros_like(vx_fft))
-
-        vx = self.oper.ifft3d(vx_fft)
-        self.state_phys.set_var("vx", vx)
-        self.state_phys.set_var("vy", self.oper.ifft3d(vy_fft))
-        self.state_phys.set_var("vz", np.zeros_like(vx))
-        self.state_phys.set_var("b", np.zeros_like(vx))
 
         self.statephys_from_statespect()
         self.statespect_from_statephys()

@@ -415,6 +415,39 @@ class TestForcingTaylorGreen(TestSimulBase):
         sim.time_stepping.start()
 
 
+class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+        params.nu_2 = 0.001
+        params.init_fields.type = "noise"
+        params.init_fields.noise.velo_max = 0.001
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom_anisotropic"
+        params.forcing.forcing_rate = 1.0
+        params.forcing.key_forced = "vp_fft"
+        params.forcing.tcrandom_anisotropic.angle = np.pi / 4
+        params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 8
+        params.forcing.tcrandom_anisotropic.kf_min = 1.3
+        params.forcing.tcrandom_anisotropic.kf_max = 4.5
+        params.forcing.tcrandom_anisotropic.kz_negative_enable = True
+        params.forcing.tcrandom.time_correlation = 1.0
+
+    def test_forcing(self):
+        sim = self.sim
+        params = sim.params
+
+        sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
+
+        for key_forced in ("vt_fft", "rotz_fft", "divh_fft"):
+            params.time_stepping.t_end += 0.2
+            params.forcing.key_forced = sim.forcing.forcing_maker.key_forced = key_forced
+            sim.time_stepping.init_from_params()
+            sim.time_stepping.main_loop()
+
+        sim.time_stepping.finalize_main_loop()
+
+
 class TestForcingWatuCoriolis(TestSimulBase):
     @classmethod
     def init_params(self):

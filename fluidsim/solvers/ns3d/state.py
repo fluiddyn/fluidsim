@@ -57,11 +57,11 @@ class StateNS3D(StatePseudoSpectral):
         if key in self.vars_computed and it == self.it_computed[key]:
             return self.vars_computed[key]
 
-        elif key == "rotz_fft":
+        if key == "rotz_fft":
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
             result = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
-        if key == "rotz":
+        elif key == "rotz":
             vx_fft = self.get_var("vx_fft")
             vy_fft = self.get_var("vy_fft")
             rotz_fft = self.oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)

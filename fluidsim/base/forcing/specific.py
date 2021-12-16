@@ -243,6 +243,12 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
 
             try:
                 params_coarse.oper.nz = n
+                try:
+                    params_coarse.oper.nz = 2 * fftw_grid_size(
+                        int(self.kymax_forcing / self.oper.deltakz) + 1
+                    )
+                except AttributeError:
+                    pass
             except AttributeError:
                 pass
 
