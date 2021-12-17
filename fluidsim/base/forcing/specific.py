@@ -43,7 +43,6 @@ Provides:
 """
 
 from copy import deepcopy
-from math import radians
 import types
 from warnings import warn
 from pathlib import Path
@@ -175,9 +174,11 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
 
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
             raise ValueError(
-                "params.forcing.nkmax_forcing < \n" "params.forcing.nkmin_forcing"
+                "params.forcing.nkmax_forcing < params.forcing.nkmin_forcing"
             )
 
+        # oper.deltak is max deltak_i in the different directions
+        # i.e. based on the smallest edge of the numerical domain.
         self.kmax_forcing = self.oper.deltak * params.forcing.nkmax_forcing
         self.kmin_forcing = self.oper.deltak * params.forcing.nkmin_forcing
 
@@ -189,71 +190,18 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             self.key_forced = self._key_forced_default
 
         try:
-            n = 2 * fftw_grid_size(params.forcing.nkmax_forcing)
+            fft_size = 2 * fftw_grid_size(params.forcing.nkmax_forcing)
         except ImportError:
             warn("To use smaller forcing arrays: pip install pulp")
             i = 0
             while 2 * params.forcing.nkmax_forcing > 2 ** i:
                 i += 1
-            n = 2 ** i
+            fft_size = 2 ** i
 
-        self._check_forcing_shape([n], sim.oper.shapeX_seq)
-
-        try:
-            angle = self.params.forcing[self.tag].angle
-        except AttributeError:
-            pass
-        else:
-            if isinstance(angle, str):
-                if angle.endswith("°"):
-                    angle = radians(float(angle[:-1]))
-                else:
-                    raise ValueError(
-                        "Angle should be a string with \n"
-                        + "the degree symbol or a float in radians"
-                    )
-
-            self.angle = angle
-            self.kxmax_forcing = np.sin(angle) * self.kmax_forcing
-            self.kymax_forcing = np.cos(angle) * self.kmax_forcing
+        self._check_forcing_shape([fft_size], sim.oper.shapeX_seq)
 
         if mpi.rank == 0:
-            params_coarse = deepcopy(params)
-
-            params_coarse.oper.nx = n
-            # The "+ 1" aims to give some gap between the kxmax and
-            # the boundary of the oper_coarse.
-            try:
-                params_coarse.oper.nx = 2 * fftw_grid_size(
-                    int(self.kxmax_forcing / self.oper.deltakx) + 1
-                )
-            except AttributeError:
-                pass
-
-            try:
-                params_coarse.oper.ny = n
-                try:
-                    params_coarse.oper.ny = 2 * fftw_grid_size(
-                        int(self.kymax_forcing / self.oper.deltaky) + 1
-                    )
-                except AttributeError:
-                    pass
-            except AttributeError:
-                pass
-
-            try:
-                params_coarse.oper.nz = n
-                try:
-                    params_coarse.oper.nz = 2 * fftw_grid_size(
-                        int(self.kymax_forcing / self.oper.deltakz) + 1
-                    )
-                except AttributeError:
-                    pass
-            except AttributeError:
-                pass
-
-            params_coarse.oper.type_fft = "sequential"
-            params_coarse.oper.coef_dealiasing = 1.0
+            params_coarse = self._create_params_coarse(fft_size)
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
@@ -288,6 +236,25 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             self.shapeK_loc_coarse = mpi.comm.bcast(
                 self.shapeK_loc_coarse, root=0
             )
+
+    def _create_params_coarse(self, fft_size):
+        params_coarse = deepcopy(self.sim.params)
+        params_coarse.oper.type_fft = "sequential"
+        params_coarse.oper.coef_dealiasing = 1.0
+
+        params_coarse.oper.nx = fft_size
+
+        try:
+            params_coarse.oper.ny = fft_size
+        except AttributeError:
+            pass
+
+        try:
+            params_coarse.oper.nz = fft_size
+        except AttributeError:
+            pass
+
+        return params_coarse
 
     def _compute_cond_no_forcing(self):
         if hasattr(self.oper_coarse, "K"):

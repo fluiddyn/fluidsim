@@ -429,10 +429,12 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
         params.forcing.type = "tcrandom_anisotropic"
         params.forcing.forcing_rate = 1.0
         params.forcing.key_forced = "vp_fft"
+
+        params.forcing.nkmin_forcing = 0.9
+        params.forcing.nkmax_forcing = 3.1
+
         params.forcing.tcrandom_anisotropic.angle = np.pi / 4
         params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 8
-        params.forcing.tcrandom_anisotropic.kf_min = 1.3
-        params.forcing.tcrandom_anisotropic.kf_max = 4.5
         params.forcing.tcrandom_anisotropic.kz_negative_enable = True
         params.forcing.tcrandom.time_correlation = 1.0
 

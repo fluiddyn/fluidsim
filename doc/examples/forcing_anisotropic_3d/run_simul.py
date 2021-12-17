@@ -12,7 +12,17 @@ from fluidsim.solvers.ns3d.strat.solver import Simul
 
 params = Simul.create_default_params()
 
+kind = "polo"
+
+keys_versus_kind = {
+    "toro": "vt_fft",
+    "polo": "vp_fft",
+    "buoyancy": "b_fft",
+    "vert": "vz_fft",
+}
+
 params.output.sub_directory = "examples"
+params.short_name_type_run = "aniso_" + kind
 
 nx = ny = nz = 64
 Lx = 2.0 * np.pi
@@ -40,13 +50,14 @@ params.init_fields.noise.velo_max = 0.01
 params.forcing.enable = True
 params.forcing.type = "tcrandom_anisotropic"
 params.forcing.forcing_rate = 1.0
-params.forcing.key_forced = "vp_fft"
+params.forcing.key_forced = keys_versus_kind[kind]
+params.forcing.nkmin_forcing = 0.9
+params.forcing.nkmax_forcing = 3.1
+
+params.forcing.tcrandom.time_correlation = 1.0
 params.forcing.tcrandom_anisotropic.angle = np.pi / 4.0
 params.forcing.tcrandom_anisotropic.delta_angle = 0.1
-params.forcing.tcrandom_anisotropic.kf_min = 1.3
-params.forcing.tcrandom_anisotropic.kf_max = 1.5
 params.forcing.tcrandom_anisotropic.kz_negative_enable = True
-params.forcing.tcrandom.time_correlation = 1.0
 
 params.output.periods_print.print_stdout = 1e-1
 
