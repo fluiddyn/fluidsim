@@ -27,19 +27,11 @@ class StateNS3DStrat(StateNS3D):
         info_State.keys_state_phys = keys_state_phys
         info_State.keys_phys_needed = keys_state_phys
 
-    def init_from_vxvyfft(self, vx_fft, vy_fft):
-        self.state_spect.fill(0.0)
-        self.state_spect.set_var("vx_fft", vx_fft)
-        self.state_spect.set_var("vy_fft", vy_fft)
-
-        self.statephys_from_statespect()
-        self.statespect_from_statephys()
-
     def init_from_vxvyvzfft(self, vx_fft, vy_fft, vz_fft):
         self.state_spect.set_var("vx_fft", vx_fft)
         self.state_spect.set_var("vy_fft", vy_fft)
         self.state_spect.set_var("vz_fft", vz_fft)
-        self.state_spect.set_var("b_fft", np.zeros_like(vx_fft))
+        self.state_spect.set_var("b_fft", 0.0)
 
         self.statephys_from_statespect()
         self.statespect_from_statephys()

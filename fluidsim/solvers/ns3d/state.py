@@ -93,7 +93,7 @@ class StateNS3D(StatePseudoSpectral):
             result = self.oper.ifft3d(vt_fft)
 
         else:
-            to_print = 'Do not know how to compute "' + key + '".'
+            to_print = f'Do not know how to compute "{key}".'
             if RAISE_ERROR:
                 raise ValueError(to_print)
 
@@ -109,9 +109,9 @@ class StateNS3D(StatePseudoSpectral):
         return result
 
     def init_from_vxvyfft(self, vx_fft, vy_fft):
+        self.state_spect.fill(0.0)
         self.state_spect.set_var("vx_fft", vx_fft)
         self.state_spect.set_var("vy_fft", vy_fft)
-        self.state_spect.set_var("vz_fft", np.zeros_like(vx_fft))
 
         self.statephys_from_statespect()
         self.statespect_from_statephys()

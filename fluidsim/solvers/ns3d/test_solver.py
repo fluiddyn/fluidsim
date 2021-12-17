@@ -159,10 +159,13 @@ class TestOutput(TestSimulBase):
             phys_fields.get_field_to_plot_from_state("vx", "iy=0")
             phys_fields.get_field_to_plot_from_state("vx", "z=0")
 
+        with pytest.raises(ValueError):
+            sim.state.compute("foo")
+        sim.state.compute("foo", RAISE_ERROR=False)
+        for key in ("divh", "vt", "vp", "rotz"):
+            sim.state.compute(key)
         # compute twice for better coverage
         sim.state.compute("rotz")
-        sim.state.compute("rotz")
-        sim.state.compute("divh")
 
         sim.output.phys_fields._get_grid1d("iz=0")
         sim.output.phys_fields._get_grid1d("iy=0")
@@ -441,7 +444,9 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
 
         for key_forced in ("vt_fft", "rotz_fft", "divh_fft"):
             params.time_stepping.t_end += 0.2
-            params.forcing.key_forced = sim.forcing.forcing_maker.key_forced = key_forced
+            params.forcing.key_forced = (
+                sim.forcing.forcing_maker.key_forced
+            ) = key_forced
             sim.time_stepping.init_from_params()
             sim.time_stepping.main_loop()
 
