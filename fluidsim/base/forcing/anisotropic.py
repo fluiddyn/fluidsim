@@ -266,24 +266,10 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic3D(
             {
                 "angle": "45°",
                 "delta_angle": "10°",
-                "thetaf_min": None,
-                "thetaf_max": None,
                 "kz_negative_enable": True,
                 "kf_min": 1.0,
                 "kf_max": 2.0,
             },
-        )
-
-    def __init__(self, sim):
-        super().__init__(sim)
-
-        self.params.forcing.tcrandom_anisotropic.thetaf_min = (
-            self.params.forcing.tcrandom_anisotropic.angle
-            - 0.5 * self.params.forcing.tcrandom_anisotropic.delta_angle
-        )
-        self.params.forcing.tcrandom_anisotropic.thetaf_max = (
-            self.params.forcing.tcrandom_anisotropic.angle
-            + 0.5 * self.params.forcing.tcrandom_anisotropic.delta_angle
         )
 
     def _compute_cond_no_forcing(self):

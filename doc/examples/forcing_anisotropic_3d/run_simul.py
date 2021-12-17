@@ -45,7 +45,7 @@ params.forcing.tcrandom_anisotropic.angle = np.pi / 4.0
 params.forcing.tcrandom_anisotropic.delta_angle = 0.1
 params.forcing.tcrandom_anisotropic.kf_min = 1.3
 params.forcing.tcrandom_anisotropic.kf_max = 1.5
-params.forcing.tcrandom_anisotropic.kz_negative_enable = False
+params.forcing.tcrandom_anisotropic.kz_negative_enable = True
 params.forcing.tcrandom.time_correlation = 1.0
 
 params.output.periods_print.print_stdout = 1e-1
