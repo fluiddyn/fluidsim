@@ -51,12 +51,12 @@ params.forcing.enable = True
 params.forcing.type = "tcrandom_anisotropic"
 params.forcing.forcing_rate = 1.0
 params.forcing.key_forced = keys_versus_kind[kind]
-params.forcing.nkmin_forcing = 0.9
-params.forcing.nkmax_forcing = 3.1
+params.forcing.nkmin_forcing = 2.9
+params.forcing.nkmax_forcing = 7.2
 
 params.forcing.tcrandom.time_correlation = 1.0
-params.forcing.tcrandom_anisotropic.angle = np.pi / 4.0
-params.forcing.tcrandom_anisotropic.delta_angle = 0.1
+params.forcing.tcrandom_anisotropic.angle = np.pi / 3.0
+params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 6.0
 params.forcing.tcrandom_anisotropic.kz_negative_enable = True
 
 params.output.periods_print.print_stdout = 1e-1
