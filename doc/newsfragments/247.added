@@ -1,0 +1,8 @@
+Projection functions in 3d and anisotropic forcing for ns3d solvers
+
+- Projection functions (toroidal/poloidal) in :mod:`fluidsim.operators.operators3d`.
+
+- :class:`fluidsim.base.forcing.anisotropic.TimeCorrelatedRandomPseudoSpectralAnisotropic`
+  extended for 3d solvers.
+
+- New parameter ``params.forcing.tcrandom_anisotropic.delta_angle`` for 2d and 3d solvers.
