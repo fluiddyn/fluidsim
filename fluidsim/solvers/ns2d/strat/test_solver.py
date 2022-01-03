@@ -65,7 +65,7 @@ class TestSolverNS2DTendency(TestSimulBase):
 
 class TestForcingLinearMode(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
 
         params.forcing.enable = True
@@ -73,12 +73,21 @@ class TestForcingLinearMode(TestSimulBase):
         params.forcing.nkmin_forcing = 4
         params.forcing.nkmax_forcing = 6
         params.forcing.key_forced = "ap_fft"
+        params.forcing.tcrandom_anisotropic.kz_negative_enable = True
+        return params
 
     def test_forcing_linear_mode(self):
         sim = self.sim
         sim.time_stepping.start()
         if mpi.nb_proc == 1:
             sim.forcing.forcing_maker.plot_forcing_region()
+
+
+class TestForcingLinearModeBis(TestForcingLinearMode):
+    @classmethod
+    def init_params(cls):
+        params = super().init_params()
+        params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 8
 
 
 class TestForcingConstantRateEnergy(TestSimulBase):

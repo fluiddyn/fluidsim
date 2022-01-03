@@ -420,7 +420,7 @@ class TestForcingTaylorGreen(TestSimulBase):
 
 class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
         params.nu_2 = 0.001
         params.init_fields.type = "noise"
@@ -437,6 +437,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
         params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 8
         params.forcing.tcrandom_anisotropic.kz_negative_enable = True
         params.forcing.tcrandom.time_correlation = 1.0
+        return params
 
     def test_forcing(self):
         sim = self.sim
@@ -454,6 +455,23 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
 
         sim.time_stepping.finalize_main_loop()
 
+        if mpi.nb_proc == 1:
+            sim.forcing.forcing_maker.plot_forcing_region()
+
+
+class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
+    TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D
+):
+    @classmethod
+    def init_params(cls):
+        params = super().init_params()
+        params.forcing.tcrandom_anisotropic.delta_angle = None
+
+    def test_forcing(self):
+        sim = self.sim
+        if mpi.nb_proc == 1:
+            sim.forcing.forcing_maker.plot_forcing_region()
+        sim.time_stepping.start()
 
 class TestForcingWatuCoriolis(TestSimulBase):
     @classmethod
