@@ -834,6 +834,17 @@ Lx, Ly and Lz: float
         vy_fft = -1j * self.Kx * inv_Kh_square_nozero * rotz_fft
         return vx_fft, vy_fft
 
+    @boost
+    def vxvyfft_from_divhfft(self, divh_fft: Ac):
+
+        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
+        inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
+
+        vx_fft = -1j * self.Kx * inv_Kh_square_nozero * divh_fft
+        vy_fft = -1j * self.Ky * inv_Kh_square_nozero * divh_fft
+        return vx_fft, vy_fft
+
     def get_grid1d_seq(self, axe="x"):
 
         if axe not in ("x", "y", "z"):

@@ -2,6 +2,8 @@ import unittest
 
 import numpy as np
 
+from fluiddyn.util import mpi
+
 from .test_operators2d import TestCoarse as _TestCoarse
 
 
@@ -147,6 +149,41 @@ def test_projection():
     ), "Too much energy difference in the toroidal velocity fields computed with project_toroidal and vecfft_from_vtfft."
 
     print("Projections seems to be Ok.")
+
+
+def test_divh_rotz():
+    from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
+
+    p = OperatorsPseudoSpectral3D._create_default_params()
+
+    p.oper.nx = p.oper.ny = p.oper.nz = 16
+    lx = ly = lz = p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
+
+    oper = OperatorsPseudoSpectral3D(params=p)
+
+    X, Y, Z = oper.get_XYZ_loc()
+
+    # A given velocity field
+    vx = 60.0 * np.sin(X / lx + 4 * Y / ly)
+    vy = 30.0 * np.sin(X / lx + 3 * Y / ly)
+
+    vx_fft = oper.fft(vx)
+    vy_fft = oper.fft(vy)
+
+    if mpi.rank == 0:
+        vx_fft[0, 0, 0] = 0
+        vy_fft[0, 0, 0] = 0
+
+    divh_fft = oper.divhfft_from_vxvyfft(vx_fft, vy_fft)
+    rotz_fft = oper.rotzfft_from_vxvyfft(vx_fft, vy_fft)
+
+    vxd_fft, vyd_fft = oper.vxvyfft_from_divhfft(divh_fft)
+    vxr_fft, vyr_fft = oper.vxvyfft_from_rotzfft(rotz_fft)
+
+    assert np.allclose(divh_fft, oper.divhfft_from_vxvyfft(vxd_fft, vyd_fft))
+    assert np.allclose(rotz_fft, oper.rotzfft_from_vxvyfft(vxr_fft, vyr_fft))
+    assert np.allclose(vx_fft, vxd_fft + vxr_fft)
+    assert np.allclose(vy_fft, vyd_fft + vyr_fft)
 
 
 if __name__ == "__main__":

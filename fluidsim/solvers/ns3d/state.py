@@ -154,6 +154,9 @@ class StateNS3D(StatePseudoSpectral):
             if key == "rotz_fft":
                 vx_fft, vy_fft = self.oper.vxvyfft_from_rotzfft(field)
                 return super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
+            elif key == "divh_fft":
+                vx_fft, vy_fft = self.oper.vxvyfft_from_divhfft(field)
+                return super().init_statespect_from(vx_fft=vx_fft, vy_fft=vy_fft)
             elif key == "vp_fft":
                 vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vpfft(field)
                 return super().init_statespect_from(
