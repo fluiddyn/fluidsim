@@ -1,4 +1,6 @@
-import unittest
+from math import tau
+
+import pytest
 
 import numpy as np
 
@@ -20,20 +22,23 @@ class TestCoarse(_TestCoarse):
 del _TestCoarse
 
 
-def test_projection():
+@pytest.fixture(scope="module")
+def oper():
+    from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
+
+    p = OperatorsPseudoSpectral3D._create_default_params()
+    p.oper.nx = p.oper.ny = p.oper.nz = 16
+    p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
+    return OperatorsPseudoSpectral3D(params=p)
+
+
+def test_projection(oper):
     from fluidsim.operators.operators3d import (
-        OperatorsPseudoSpectral3D,
         compute_energy_from_3fields,
         compute_energy_from_1field,
     )
 
-    p = OperatorsPseudoSpectral3D._create_default_params()
-
-    p.oper.nx = p.oper.ny = p.oper.nz = 16
-    lx = ly = lz = p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
-
-    oper = OperatorsPseudoSpectral3D(params=p)
-
+    lx = ly = lz = oper.Lx = oper.Ly = oper.Lz
     X, Y, Z = oper.get_XYZ_loc()
 
     # A given velocity field
@@ -151,21 +156,17 @@ def test_projection():
     print("Projections seems to be Ok.")
 
 
-def test_divh_rotz():
-    from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
+def test_divh_rotz(oper):
+    lx = ly = oper.Lx = oper.Ly = oper.Lz
+    X, Y, _ = oper.get_XYZ_loc()
 
-    p = OperatorsPseudoSpectral3D._create_default_params()
+    vxd = np.sin(tau * X / lx)
+    vyd = 1.2345 * np.sin(tau * Y / ly)
+    vxr = np.sin(tau * Y / ly)
+    vyr = -np.sin(tau * X / lx)
 
-    p.oper.nx = p.oper.ny = p.oper.nz = 16
-    lx = ly = lz = p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
-
-    oper = OperatorsPseudoSpectral3D(params=p)
-
-    X, Y, Z = oper.get_XYZ_loc()
-
-    # A given velocity field
-    vx = 60.0 * np.sin(X / lx + 4 * Y / ly)
-    vy = 30.0 * np.sin(X / lx + 3 * Y / ly)
+    vx = vxd + vxr
+    vy = vyd + vyr
 
     vx_fft = oper.fft(vx)
     vy_fft = oper.fft(vy)
@@ -184,7 +185,13 @@ def test_divh_rotz():
     assert np.allclose(rotz_fft, oper.rotzfft_from_vxvyfft(vxr_fft, vyr_fft))
     assert np.allclose(vx_fft, vxd_fft + vxr_fft)
     assert np.allclose(vy_fft, vyd_fft + vyr_fft)
+    assert np.allclose(vxd_fft, oper.fft(vxd))
+    assert np.allclose(vxr_fft, oper.fft(vxr))
+    assert np.allclose(vyd_fft, oper.fft(vyd))
+    assert np.allclose(vyr_fft, oper.fft(vyr))
 
+    if mpi.nb_proc > 1:
+        return
 
-if __name__ == "__main__":
-    unittest.main()
+    divh = oper.ifft(divh_fft)
+    assert divh[0, oper.ny // 2, oper.nx // 2] < 0.0
