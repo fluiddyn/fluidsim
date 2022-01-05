@@ -71,6 +71,8 @@ class Simul(SimulNS3D):
 
     .. |kk| mathmacro:: \textbf{k}
 
+    .. |ee| mathmacro:: \mathbf{e}
+
     .. |ek| mathmacro:: \textbf{e}_\textbf{k}
 
     .. |ez| mathmacro:: \textbf{e}_\textbf{z}
@@ -121,6 +123,17 @@ class Simul(SimulNS3D):
     with :math:`P_\perp = (1 - \ek \ek \cdot)` the operator projection on the
     plane perpendicular to the wave number :math:`\kk`.
 
+    If `NO_VORTICAL_MODES = True`, the non linear term and the forcing in the velocity equation are projected on the poloidal unitary vector for each mode, i.e.
+
+    .. math::
+
+      \hat N(\vv) \rightarrow P_{polo} \hat N(\vv),
+
+    with :math:`P_{polo} = (1 - \ee_{\kk\theta} \ee_{\kk\theta} \cdot)` the operator projection on the
+    poloidal direction for mode :math:`\kk`. The inital velocity field is not projected, so the toroidal component of the velocity field is damped by viscosity, but can be different from zero.
+
+    By default `NO_VORTICAL_MODES = True`, so the Navier-Stokes equations with buoyancy term and forcing is solved. 
+
     """
     InfoSolver = InfoSolverNS3DStrat
 
@@ -128,8 +141,19 @@ class Simul(SimulNS3D):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container."""
         SimulNS3D._complete_params_with_default(params)
-        attribs = {"N": 1.0}
-        params._set_attribs(attribs)
+        params._set_attribs({"N": 1.0, "NO_VORTICAL_MODES": False})
+        params._set_doc(
+            params._doc
+            + """
+N: float (default 1.0)
+
+    Brunt-Väisälä frequency (effect of the stratification).
+
+NO_VORTICAL_MODES: bool (default False)
+
+    If True, the forcing and the non linear terms in the velocity equation are projected on the poloidal unitary vector for each mode.
+"""
+        )
 
     @classmethod
     def _modify_sim_repr_maker(cls, sim_repr_maker):
@@ -217,6 +241,9 @@ class Simul(SimulNS3D):
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        if self.params.NO_VORTICAL_MODES:
+            oper.project_poloidal(fx_fft, fy_fft, fz_fft)
+
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 
@@ -274,6 +301,8 @@ if __name__ == "__main__":
     # params.forcing.type = 'random'
     # 'Proportional'
     # params.forcing.type_normalize
+
+    # params.NO_VORTICAL_MODES = True
 
     params.output.periods_print.print_stdout = 0.00000000001
 
