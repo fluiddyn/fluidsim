@@ -197,8 +197,6 @@ class Simul(SimulNS3D):
 
         fz_fft += b_fft
 
-        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
-
         if state_spect is None:
             b = self.state.state_phys.get_var("b")
         else:
@@ -208,15 +206,12 @@ class Simul(SimulNS3D):
         div_vb_fft = oper.div_vb_fft_from_vb(vx, vy, vz, b)
         fb_fft = compute_fb_fft(div_vb_fft, self.params.N, vz_fft)
 
-        if self.no_vz_kz0:
-            dealiasing_variable(fz_fft, self.where_kz_0)
-            dealiasing_variable(fb_fft, self.where_kz_0)
-
         tendencies_fft.set_var("b_fft", fb_fft)
 
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 

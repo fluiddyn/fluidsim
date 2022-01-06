@@ -203,3 +203,8 @@ class InitFieldsNS3D(InitFieldsBase):
         InitFieldsBase._complete_info_solver(
             info_solver, classes=[InitFieldsDipole, InitFieldsNoise]
         )
+
+    def __call__(self):
+        super().__call__()
+        self.sim._init_projection()
+        self.sim.project_state_spect(self.sim.state.state_spect)

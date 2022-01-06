@@ -139,8 +139,7 @@ no_vz_kz0: bool (default False)
 """
         )
 
-    def __init__(self, params):
-        super().__init__(params)
+    def _init_projection(self):
 
         try:
             self.no_vz_kz0 = self.params.no_vz_kz0
@@ -220,16 +219,22 @@ no_vz_kz0: bool (default False)
         fft_as_arg(fy, fy_fft)
         fft_as_arg(fz, fz_fft)
 
-        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
-
-        if self.no_vz_kz0:
-            dealiasing_variable(fz_fft, self.where_kz_0)
-
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
+
+    def project_state_spect(self, state_spect):
+        vx_fft = state_spect.get_var("vx_fft")
+        vy_fft = state_spect.get_var("vy_fft")
+        vz_fft = state_spect.get_var("vz_fft")
+        self.oper.project_perpk3d(vx_fft, vy_fft, vz_fft)
+        if self.no_vz_kz0:
+            dealiasing_variable(vz_fft, self.where_kz_0)
+            if "b_fft" in state_spect.keys:
+                dealiasing_variable(state_spect.get_var("b_fft"), self.where_kz_0)
 
 
 if "sphinx" in sys.modules:
