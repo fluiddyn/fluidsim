@@ -423,6 +423,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
     def init_params(cls):
         params = super().init_params()
         params.nu_2 = 0.001
+        params.projection = "poloidal"
         params.init_fields.type = "noise"
         params.init_fields.noise.velo_max = 0.001
         params.forcing.enable = True
@@ -458,6 +459,10 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
         if mpi.nb_proc == 1:
             sim.forcing.forcing_maker.plot_forcing_region()
 
+        with pytest.raises(ValueError):
+            sim.params.projection = "popo"
+            sim._init_projection()
+
 
 class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
     TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D
@@ -466,6 +471,8 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
     def init_params(cls):
         params = super().init_params()
         params.forcing.tcrandom_anisotropic.delta_angle = None
+        params.projection = "poloidal"
+        params.forcing.key_forced = "vt_fft"
 
     def test_forcing(self):
         sim = self.sim

@@ -158,8 +158,6 @@ class Simul(SimulStrat):
 
         fz_fft += b_fft
 
-        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
-
         if state_spect is None:
             b = self.state.state_phys.get_var("b")
         else:
@@ -172,6 +170,7 @@ class Simul(SimulStrat):
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 

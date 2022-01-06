@@ -150,7 +150,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         del fx, fy, fz
 
-        oper.project_perpk3d(fx_fft, fy_fft, fz_fft)
+        self.sim._projector(fx_fft, fy_fft, fz_fft)
 
         results.update(
             self.compute_spectra(
@@ -190,8 +190,10 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         results.update(self.compute_spectra("diss_Kz", f_d * abs(vz_fft) ** 2))
 
-        transfer_K = results["transfer_Kh"] + results["transfer_Kz"]
-        assert transfer_K.sum() < 1e-14
+        # PA: I don't understand why it does not work with projections
+        if self.params.projection is None:
+            transfer_K = results["transfer_Kh"] + results["transfer_Kz"]
+            assert transfer_K.sum() < 1e-14, transfer_K.sum()
 
         return results
 

@@ -124,7 +124,7 @@ class Simul(SimulBasePseudoSpectral):
     def _complete_params_with_default(params):
         """This static method is used to complete the *params* container."""
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        params._set_attribs({"f": None, "no_vz_kz0": False})
+        params._set_attribs({"f": None, "no_vz_kz0": False, "projection": None})
         params._set_doc(
             params._doc
             + """
@@ -135,6 +135,11 @@ f: float (default None)
 no_vz_kz0: bool (default False)
 
     If True, vz(kz=0) is 0.
+
+projection: str (default None)
+
+    If "toroidal" or "vortical", the solution and the equations are projected
+    on the toroidal manifold. If "poloidal", on the poloidal one.
 
 """
         )
@@ -150,6 +155,23 @@ no_vz_kz0: bool (default False)
             self.where_kz_0 = np.array(
                 abs(self.oper.Kz) == 0.0,
                 dtype=np.uint8,
+            )
+
+        try:
+            projection = self.params.projection
+        except AttributeError:
+            projection = None
+
+        if projection is None:
+            self._projector = self.oper.project_perpk3d
+        elif projection in ("toroidal", "vortical"):
+            self._projector = self.oper.project_toroidal
+        elif projection == "poloidal":
+            self._projector = self.oper.project_poloidal
+        else:
+            raise ValueError(
+                "No known projection for params.projection = "
+                f"{self.params.projection}"
             )
 
     def _modif_omegafft_with_f(self, omegax_fft, omegay_fft, omegaz_fft):
@@ -230,7 +252,7 @@ no_vz_kz0: bool (default False)
         vx_fft = state_spect.get_var("vx_fft")
         vy_fft = state_spect.get_var("vy_fft")
         vz_fft = state_spect.get_var("vz_fft")
-        self.oper.project_perpk3d(vx_fft, vy_fft, vz_fft)
+        self._projector(vx_fft, vy_fft, vz_fft)
         if self.no_vz_kz0:
             dealiasing_variable(vz_fft, self.where_kz_0)
             if "b_fft" in state_spect.keys:
