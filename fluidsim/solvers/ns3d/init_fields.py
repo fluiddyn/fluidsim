@@ -141,9 +141,7 @@ length: float (default 0.)
     def compute_vv_fft(self):
         params_noise = self.sim.params.init_fields.noise
         return compute_solenoidal_noise_fft(
-            self.sim.oper,
-            params_noise.length,
-            params_noise.velo_max,
+            self.sim.oper, params_noise.length, params_noise.velo_max
         )
 
 
@@ -208,3 +206,4 @@ class InitFieldsNS3D(InitFieldsBase):
         super().__call__()
         self.sim._init_projection()
         self.sim.project_state_spect(self.sim.state.state_spect)
+        self.sim.state.statephys_from_statespect()

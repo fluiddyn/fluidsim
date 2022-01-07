@@ -72,7 +72,7 @@ sim = Simul(params)
 
 sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
 
-params.time_stepping.t_end += 1.0
+params.time_stepping.t_end += 10.0
 # zero dissipation so we can check energy conservation
 params.nu_2 = 0.0
 # hacky way to disable the forcing for the rest of the simulation
