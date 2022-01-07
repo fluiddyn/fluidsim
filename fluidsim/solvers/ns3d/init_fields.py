@@ -19,7 +19,14 @@ from fluiddyn.util import mpi
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields
 
 
-class InitFieldsDipole(SpecificInitFields):
+class SpecificInitFieldsNS3D(SpecificInitFields):
+    def init_state_from_fieldsfft(self, **fields):
+        self.sim.state.init_statespect_from(**fields)
+        self.sim.project_state_spect(self.sim.state.state_spect)
+        self.sim.state.statephys_from_statespect()
+
+
+class InitFieldsDipole(SpecificInitFieldsNS3D):
     tag = "dipole"
 
     @classmethod
@@ -39,8 +46,7 @@ class InitFieldsDipole(SpecificInitFields):
         vy_fft = oper.build_invariant_arrayK_from_2d_indices12X(vy2d_fft)
 
         fields = {"vx_fft": vx_fft, "vy_fft": vy_fft}
-        self.sim.state.init_statespect_from(**fields)
-        self.sim.state.statephys_from_statespect()
+        self.init_state_from_fieldsfft(**fields)
 
     def vorticity_1dipole2d(self):
         oper = self.sim.oper
@@ -70,7 +76,7 @@ class InitFieldsDipole(SpecificInitFields):
         return omega
 
 
-class InitFieldsNoise(SpecificInitFields):
+class InitFieldsNoise(SpecificInitFieldsNS3D):
     """Initialize the state with noise."""
 
     tag = "noise"
@@ -135,8 +141,7 @@ length: float (default 0.)
 
                 fields[key] = (field_max / value_max) * field_fft
 
-        self.sim.state.init_statespect_from(**fields)
-        self.sim.state.statephys_from_statespect()
+        self.init_state_from_fieldsfft(**fields)
 
     def compute_vv_fft(self):
         params_noise = self.sim.params.init_fields.noise
@@ -203,7 +208,5 @@ class InitFieldsNS3D(InitFieldsBase):
         )
 
     def __call__(self):
-        super().__call__()
         self.sim._init_projection()
-        self.sim.project_state_spect(self.sim.state.state_spect)
-        self.sim.state.statephys_from_statespect()
+        super().__call__()
