@@ -1,0 +1,4 @@
+New parameter ``params.projection`` for ns3d solvers
+
+The equations (``ns3d``, ``ns3d.strat`` and ``ns3d.bouss``) can be modified by
+projecting the solutions on the poloidal or toroidal manifolds.
