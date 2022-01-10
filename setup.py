@@ -133,7 +133,7 @@ def transonize():
         "fluidsim/operators/operators3d.py",
         "fluidsim/solvers/ns2d/solver.py",
         "fluidsim/solvers/ns3d/strat/solver.py",
-        "fluidsim/solvers/ns3d/forcing.py",
+        "fluidsim/solvers/ns3d/forcing/watu.py",
         "fluidsim/util/mini_oper_modif_resol.py",
         "fluidsim/base/output/spatiotemporal_spectra.py",
         "fluidsim/solvers/ns3d/output/spatiotemporal_spectra.py",

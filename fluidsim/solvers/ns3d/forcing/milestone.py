@@ -1,3 +1,11 @@
+"""Forcing (:mod:`fluidsim.solvers.ns3d.forcing.milestone`)
+===========================================================
+
+.. autoclass:: ForcingMilestone3D
+   :members:
+
+"""
+
 from fluiddyn.util import mpi
 
 from fluidsim.base.forcing.milestone import (
