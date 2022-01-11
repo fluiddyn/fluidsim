@@ -16,7 +16,6 @@ import matplotlib.animation as animation
 
 from fluiddyn.util import mpi
 
-from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
 from .specific import SpecificForcingPseudoSpectralSimple as Base
 
 
@@ -172,6 +171,10 @@ class ForcingMilestone(Base):
             self._is_using_coarse_oper = True
 
             if mpi.rank == 0:
+                from fluidsim.operators.operators2d import (
+                    OperatorsPseudoSpectral2D,
+                )
+
                 params = OperatorsPseudoSpectral2D._create_default_params()
                 params.oper.Lx = lx
                 params.oper.Ly = ly

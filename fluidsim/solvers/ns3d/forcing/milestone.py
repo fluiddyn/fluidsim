@@ -1,10 +1,14 @@
+"""Forcing (:mod:`fluidsim.solvers.ns3d.forcing.milestone`)
+===========================================================
+
+.. autoclass:: ForcingMilestone3D
+   :members:
+
+"""
+
 from fluiddyn.util import mpi
 
-from fluidsim.base.forcing.milestone import (
-    ForcingMilestone,
-    PeriodicUniform,
-    OperatorsPseudoSpectral2D,
-)
+from fluidsim.base.forcing.milestone import ForcingMilestone, PeriodicUniform
 
 
 class ForcingMilestone3D(ForcingMilestone):
@@ -21,6 +25,10 @@ class ForcingMilestone3D(ForcingMilestone):
             self._is_using_coarse_oper = True
 
             if mpi.rank == 0:
+                from fluidsim.operators.operators2d import (
+                    OperatorsPseudoSpectral2D,
+                )
+
                 params = OperatorsPseudoSpectral2D._create_default_params()
                 params.oper.Lx = lx
                 params.oper.Ly = ly
@@ -44,6 +52,8 @@ class ForcingMilestone3D(ForcingMilestone):
     def __init__(self, sim):
 
         if mpi.rank == 0:
+            from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
+
             params = OperatorsPseudoSpectral2D._create_default_params()
             params.oper.Lx = sim.params.oper.Lx
             params.oper.Ly = sim.params.oper.Ly
