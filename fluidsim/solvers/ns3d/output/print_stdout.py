@@ -17,19 +17,6 @@ class PrintStdOutNS3D(PrintStdOutBase):
 
         energy = self.output.compute_energy()
         if mpi.rank == 0:
-
-            if mpi.nb_proc == 1:
-                # TMP: debug
-                vx = self.sim.state.get_var("vx")
-                vy = self.sim.state.get_var("vy")
-                vz = self.sim.state.get_var("vz")
-
-                energy_tmp = 0.5 * np.mean(vx**2 + vy**2 + vz**2)
-                to_print += f"          energy_tmp = {energy_tmp:9.3e}\n"
-
-                # this does not work with some forcing schemes...
-                assert np.allclose(energy_tmp, energy)
-
             to_print += (
                 "              energy = {:9.3e} ; Delta energy = {:+9.3e}\n"
                 "".format(energy, energy - self.energy_temp)
