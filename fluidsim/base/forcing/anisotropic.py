@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from fluiddyn.calcul.easypyfft import fftw_grid_size
-from numpy.lib.function_base import angle
 
 from fluidsim.base.forcing.specific import TimeCorrelatedRandomPseudoSpectral
 

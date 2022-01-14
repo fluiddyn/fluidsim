@@ -786,9 +786,11 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         To be called only with proc 0.
         """
         f_fft = self.oper_coarse.create_arrayK_random(min_val=self._min_val)
+        # TODO: adapt to 3D!
         # fftwpy/easypyfft returns f_fft
         f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.0
         f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.0
+        #
         f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         f_fft[self.COND_NO_F] = 0.0
         return f_fft
