@@ -1,0 +1,9 @@
+
+[compiler]
+CC=clang
+CXX=clang++
+ignoreflags = -axMIC_AVX512,CORE-AVX2,SSE4.2
+
+[pythran]
+complex_hook = True
+

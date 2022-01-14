@@ -1,0 +1,15 @@
+# example user config (see "hg help config" for more info)
+[ui]
+# username=??? <???@univ-grenoble-alpes.fr>
+# editor=emacs -nw
+tweakdefaults = True
+
+[extensions]
+hgext.extdiff =
+rebase =
+evolve =
+topic =
+hgfluiddyn =
+
+[extdiff]
+cmd.meld =
