@@ -791,8 +791,8 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.0
         f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.0
         #
-        f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         f_fft[self.COND_NO_F] = 0.0
+        f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         return f_fft
 
     def forcingc_raw_each_time(self, a_fft):
