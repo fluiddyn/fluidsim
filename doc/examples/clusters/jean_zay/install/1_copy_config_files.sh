@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 
-cp -rT ../conf_files $HOME/.
+cp ../conf_files/.hgrc $HOME/.
+cp ../conf_files/.pythranrc $HOME/.

@@ -40,7 +40,7 @@ Move to the install directory and run the following commands (from this director
 cd install
 source 0_setup_env_base.sh
 ./1_copy_config_files.sh
-source ~/setup_ssh.sh
+source ~/setup_ssh.sh  # Is it necessary?
 ./2_clone_fluid.sh
 ./3_create_conda_env.sh
 source 4_setup_env_conda.sh
