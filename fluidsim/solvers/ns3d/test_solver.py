@@ -139,7 +139,9 @@ class TestOutput(TestSimulBase):
         vz += 0.05 * np.cos(2 * pi * X / sim.oper.Lx)
         sim.state.statespect_from_statephys()
 
+        sim.state.check_energy_equal_phys_spect()
         sim.time_stepping.start()
+        sim.state.check_energy_equal_phys_spect()
 
         # testing phaseshift
         phaseshift = sim.time_stepping._get_phaseshift()
@@ -399,7 +401,7 @@ class TestInitInScript(TestSimulBase):
 
         sim.state.init_from_vxvyfft(vx_fft, vy_fft)
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
-
+        sim.state.check_energy_equal_phys_spect()
 
 class TestForcingTaylorGreen(TestSimulBase):
     @classmethod
@@ -416,7 +418,7 @@ class TestForcingTaylorGreen(TestSimulBase):
     def test_forcing(self):
         sim = self.sim
         sim.time_stepping.start()
-
+        sim.state.check_energy_equal_phys_spect()
 
 class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
     @classmethod
@@ -455,6 +457,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
             sim.time_stepping.main_loop()
 
         sim.time_stepping.finalize_main_loop()
+        sim.state.check_energy_equal_phys_spect()
 
         if mpi.nb_proc == 1:
             sim.forcing.forcing_maker.plot_forcing_region()
@@ -479,6 +482,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
         if mpi.nb_proc == 1:
             sim.forcing.forcing_maker.plot_forcing_region()
         sim.time_stepping.start()
+        sim.state.check_energy_equal_phys_spect()
 
 class TestForcingWatuCoriolis(TestSimulBase):
     @classmethod
@@ -511,10 +515,13 @@ class TestForcingWatuCoriolis(TestSimulBase):
 
         sim = self.sim
         sim.time_stepping.start()
+        sim.state.check_energy_equal_phys_spect()
+
         params, Simul = load_for_restart(sim.output.path_run)
         params.time_stepping.t_end += 2.0
         sim_restart = Simul(params)
         sim_restart.time_stepping.start()
+        sim_restart.state.check_energy_equal_phys_spect()
 
         if mpi.nb_proc > 1:
             return

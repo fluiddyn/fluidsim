@@ -168,3 +168,9 @@ class StateNS3D(StatePseudoSpectral):
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
                 )
         super().init_statespect_from(**kwargs)
+
+    def compute_energy_phys(self):
+        vx = self.state_phys.get_var("vx")
+        vy = self.state_phys.get_var("vy")
+        vz = self.state_phys.get_var("vz")
+        return 0.5 * self.sim.oper.mean_space(vx ** 2 + vy ** 2 + vz ** 2)

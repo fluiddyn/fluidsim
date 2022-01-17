@@ -121,6 +121,7 @@ class TestOutput(TestSimulBase):
         )
 
         sim.time_stepping.start()
+        sim.state.check_energy_equal_phys_spect()
 
         sim.state.compute("divh")
 

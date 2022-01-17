@@ -382,3 +382,15 @@ class StatePseudoSpectral(StateBase):
                 )
 
             self.state_spect.set_var(key, value)
+
+    def check_energy_equal_phys_spect(self):
+        energy_spect = self.sim.output.compute_energy()
+        energy_phys = self.compute_energy_phys()
+        if not np.allclose(energy_spect, energy_phys):
+            raise RuntimeError(
+                "Physical and spectral states are inconsistent: "
+                f"{energy_spect} != {energy_phys}"
+            )
+
+    def compute_energy_phys(self):
+        raise NotImplementedError

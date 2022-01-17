@@ -13,6 +13,8 @@ Provides:
 
 import numpy as np
 
+from fluiddyn.util import mpi
+
 
 class OperatorBase:
     def _modify_sim_repr_maker(self, sim_repr_maker):
@@ -68,6 +70,15 @@ class OperatorBase:
                 raise ValueError(
                     'truncation_shape must be "cubic", "spherical" or "no_multiple_aliases"'
                 )
+
+    def mean_space(self, arr):
+        if mpi.nb_proc == 1 or self.is_sequential:
+            return np.mean(arr)
+        sum_local = np.sum(arr)
+        nb_points_local = arr.size
+        sum_global = mpi.comm.allreduce(sum_local, op=mpi.MPI.SUM)
+        nb_points_global = mpi.comm.allreduce(nb_points_local, op=mpi.MPI.SUM)
+        return sum_global / nb_points_global
 
 
 class OperatorsBase1D(OperatorBase):

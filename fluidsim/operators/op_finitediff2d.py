@@ -9,6 +9,8 @@ Provides:
 
 """
 
+import numpy as np
+
 from .op_finitediff1d import OperatorFiniteDiff1DPeriodic
 
 
