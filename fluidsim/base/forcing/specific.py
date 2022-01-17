@@ -878,6 +878,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         return f_fft
 
     def _save_state(self):
+        if not self.params.output.HAS_TO_SAVE:
+            return
+
         with open(self._forcing_state_file_path, "w") as file:
             file.write(
                 "# do not modify by hand\n# t_last_change seed0 seed1\n"

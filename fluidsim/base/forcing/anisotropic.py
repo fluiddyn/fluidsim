@@ -294,7 +294,7 @@ kz_negative_enable: bool
         title = (
             pforcing.type
             + "; "
-            + fr"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_h$; "
+            + fr"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
             + fr"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
             + r"$\theta = {:.0f}^\circ$; ".format(degrees(self.angle))
             + fr"Forced modes = {self.nb_forced_modes}"
