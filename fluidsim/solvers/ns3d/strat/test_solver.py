@@ -218,6 +218,7 @@ class TestInitInScript(TestSimulBase):
 
         sim.state.init_from_vxvyfft(vx_fft, vy_fft)
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
+        sim.state.check_energy_equal_phys_spect()
 
 
 class TestNoShearModes(TestSimulBase):
@@ -245,6 +246,7 @@ class TestNoShearModes(TestSimulBase):
         sim = self.sim
 
         sim.time_stepping.start()
+        sim.state.check_energy_equal_phys_spect()
 
         data = sim.output.spectra.load_kzkh_mean(
             tmin=0.2, key_to_load=["Khd", "Kz", "Khr", "A"]

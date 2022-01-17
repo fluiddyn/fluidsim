@@ -78,6 +78,7 @@ class TestForcingProportional(TestSimulBase):
         self.sim.time_stepping.start()
         self.sim.forcing.forcing_maker.verify_injection_rate()
         self.sim.forcing.forcing_maker.verify_injection_rate_coarse()
+        self.sim.state.check_energy_equal_phys_spect()
 
 
 class TestForcing(TestSimulBase):
@@ -90,6 +91,7 @@ class TestForcing(TestSimulBase):
 
     def test_(self):
         self.sim.time_stepping.start()
+        self.sim.state.check_energy_equal_phys_spect()
 
 
 class TestForcingConstantRateEnergy(TestSimulBase):
@@ -104,6 +106,7 @@ class TestForcingConstantRateEnergy(TestSimulBase):
 
     def test_(self):
         self.sim.time_stepping.start()
+        self.sim.state.check_energy_equal_phys_spect()
 
         if mpi.rank == 0:
             # Does the energy injection rate have the correct value at all times ?
@@ -155,6 +158,7 @@ class TestForcingOutput(TestSimulBase):
         assert f"{sim.params.oper.nx}x{sim.params.oper.ny}" in sim.name_run
 
         sim.time_stepping.start()
+        self.sim.state.check_energy_equal_phys_spect()
 
         # testing phaseshift
         phaseshift = sim.time_stepping._get_phaseshift()
