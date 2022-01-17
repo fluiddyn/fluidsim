@@ -403,6 +403,7 @@ class TestInitInScript(TestSimulBase):
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
         sim.state.check_energy_equal_phys_spect()
 
+
 class TestForcingTaylorGreen(TestSimulBase):
     @classmethod
     def init_params(self):
@@ -420,6 +421,7 @@ class TestForcingTaylorGreen(TestSimulBase):
         sim.time_stepping.start()
         sim.state.check_energy_equal_phys_spect()
 
+
 class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
     @classmethod
     def init_params(cls):
@@ -433,11 +435,11 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
         params.forcing.forcing_rate = 1.0
         params.forcing.key_forced = "vp_fft"
 
+        # keep these values (catching a potential bug #93)
         params.forcing.nkmin_forcing = 0.9
-        params.forcing.nkmax_forcing = 3.1
-
+        params.forcing.nkmax_forcing = 1.5
         params.forcing.tcrandom_anisotropic.angle = np.pi / 4
-        params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 8
+        params.forcing.tcrandom_anisotropic.delta_angle = np.pi / 6
         params.forcing.tcrandom_anisotropic.kz_negative_enable = True
         params.forcing.tcrandom.time_correlation = 1.0
         return params
@@ -483,6 +485,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
             sim.forcing.forcing_maker.plot_forcing_region()
         sim.time_stepping.start()
         sim.state.check_energy_equal_phys_spect()
+
 
 class TestForcingWatuCoriolis(TestSimulBase):
     @classmethod

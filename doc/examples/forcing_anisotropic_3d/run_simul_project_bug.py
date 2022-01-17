@@ -40,11 +40,7 @@ params.init_fields.noise.length = 1.0
 params.init_fields.noise.velo_max = 0.1
 
 params.forcing.enable = True
-
 params.forcing.type = "tcrandom_anisotropic"
-# stronger with
-params.forcing.type = "tcrandom_anisotropic"
-
 params.forcing.forcing_rate = 1.0
 params.forcing.key_forced = "vx_fft"
 params.forcing.nkmin_forcing = 0.9
