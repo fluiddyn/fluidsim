@@ -4,7 +4,7 @@ source ../setup_env_base.sh
 
 set -e
 
-conda env remove --name env_fluidsim
+#conda env remove --name env_fluidsim
 conda create -y -n env_fluidsim python clangdev "blas-devel[build=*openblas]" \
     cython matplotlib pandas psutil ipython scipy pillow scikit-image \
     pythran colorlog

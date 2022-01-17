@@ -24,11 +24,13 @@ module load mercurial/6.0
 cd $WORK 
 ```
 
-You should be able to clone this repository without entering your password:
+You should be able to clone these repositories without entering your password:
 
 ```bash
 mkdir Dev
 cd Dev
+hg clone https://foss.heptapod.net/fluiddyn/fluiddyn
+hg clone https://foss.heptapod.net/fluiddyn/fluidfft
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 ```
 
@@ -37,7 +39,7 @@ hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 Move to the install directory and run the following commands (from this directory):
 
 ```bash
-cd install
+cd fluidsim/doc/examples/clusters/jean_zay/install
 source 0_setup_env_base.sh
 ./1_copy_config_files.sh
 source ~/setup_ssh.sh  # Is it necessary?
