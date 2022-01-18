@@ -1,4 +1,4 @@
-from math import pi, tan, asin
+from math import pi, tan, asin, sin
 
 import argparse
 
@@ -125,7 +125,7 @@ def create_params(args):
 
     if args.projection is not None:
         params.projection = args.projection
-        # TODO: change short_name_type_run
+        params.short_name_type_run += "_" + args.projection
 
     params.no_vz_kz0 = True
     params.oper.NO_SHEAR_MODES = True
@@ -137,8 +137,12 @@ def create_params(args):
     nh = nz * args.ratio_nh_nz
 
     # TODO: more checks on the value args.ratio_nh_nz
-    if args.ratio_nh_nz < 1:
+    if args.ratio_nh_nz < 1 and not isinstance(args.ratio_nh_nz, int):
         raise ValueError
+    if nh > 2048:
+        mpi.printby0("nh > 2048, Maybe you should choose a smaller ratio_nh_nz, a smaller nz. You can also comment this line if your are sure of your resolution.")
+        raise ValueError    # Not sure what is best between an assert and raise ValueError
+
 
     params.oper.nx = params.oper.ny = nh
 
@@ -158,20 +162,26 @@ def create_params(args):
     params.N = args.N
     params.nu_2 = args.nu
 
-    # TODO: compute nu_4 from injection_rate and dx
-    args.coef_nu4
+    params.short_name_type_run += f"_N{args.N:.3e}"
+    
+    # TODO: check if the relation for params.nu_4 is correct (from injection_rate and dx)
+    dx = Lh / nh
+    params.nu_4 = args.coef_nu4 * (injection_rate ** dx ** 10) ** (1./3.) 
     # Kolmogorov length scale
     eta = (args.nu ** 3 / injection_rate) ** 0.25
     delta_kz = 2 * pi / params.oper.Lz
     k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
 
-    print(f"{eta * k_max = :.3e}")
+    mpi.printby0(f"{eta * k_max = :.3e}")
 
     if eta * k_max > 1:
-        print("Well resolved simulation, no need for nu_4")
+        mpi.printby0("Well resolved simulation, no need for nu_4.")
         params.nu_4 = 0.0
+        params.short_name_type_run += f"_nu{params.nu_2:.3e}"
     else:
-        ...
+        mpi.printby0(f"Not enough resolution with a normal viscosity nu_2={params.nu_2:.3e}, we use nu_4={params.nu_4:.3e} instead.")
+        params.nu_2 = 0.0
+        params.short_name_type_run += f"_nuf{params.nu_4:.3e}"
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = 1.0
@@ -205,8 +215,8 @@ def create_params(args):
     )
     params.forcing.nkmax_forcing = round3(nkz_forcing + args.delta_nz_forcing)
 
-    # TODO: compute time_correlation from forced wave time
-    params.forcing.tcrandom.time_correlation = 1.0
+    # time_correlation is fixed to forced wave period
+    params.forcing.tcrandom.time_correlation = 2 * pi / (args.N * sin(angle))
     params.forcing.tcrandom_anisotropic.angle = angle
     params.forcing.tcrandom_anisotropic.delta_angle = delta_angle
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
@@ -218,8 +228,12 @@ def create_params(args):
     params.output.periods_save.spectra = 0.1
     params.output.periods_save.spect_energy_budg = 0.1
     params.output.spectra.kzkh_periodicity = 1
+    # TODO: Spatiotemporal aquisition frequency depends on the Brunt Vaisala frenquency (maybe there is a better choice)
+    params.output.periods_save.spatiotemporal_spectra = 0.1 / max(1.0, args.N)
 
-    # TODO: params.output.spatiotemporal_spectra
+    # TODO: Maybe we could implement a smarter probes_region, depending on the number of modes?
+    params.output.spatiotemporal_spectra.file_max_size = 80.0
+    params.output.spatiotemporal_spectra.probes_region = (20, 20, 10)
 
     return params
 
@@ -258,7 +272,7 @@ ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # in IPython:
 
-sim.output.phys_fields.set_equation_crosssection('x={Lx/2}')
+sim.output.phys_fields.set_equation_crosssection('x={sim.params.oper.Lx/2}')
 sim.output.phys_fields.animate('b')
 """
     )

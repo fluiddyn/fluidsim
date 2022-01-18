@@ -65,7 +65,7 @@ sim = Simul(params)
 sim.time_stepping.start()
 
 params, Simul = load_for_restart(sim.output.path_run)
-params.time_stepping.t_end += 0.1
+params.time_stepping.t_end += 0.5
 sim = Simul(params)
 sim.time_stepping.start()
 
