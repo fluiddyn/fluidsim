@@ -4,27 +4,32 @@ source ../setup_env_base.sh
 
 set -e
 
+#### Problème pour la création de l'environnement... Utiliser conda-app?
+
 #conda env remove --name env_fluidsim
-conda create -y -n env_fluidsim python clangdev "blas-devel[build=*openblas]" \
+conda create -y -n env_fluidsim -c python clangdev "blas-devel[build=*openblas]" \
     cython matplotlib pandas psutil ipython scipy pillow scikit-image \
     pythran colorlog
 
+
 conda activate env_fluidsim
 
-module load mercurial/6.0 python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi
-module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi # p3dfft/2.7.9-mpi # For now, p3dfft/2.7.9-mpi cannot be used
+
+module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi
+module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi p3dfft/2.7.9-mpi # For now, p3dfft/2.7.9-mpi cannot be used
 
 
-pip install mpi4py
+pip install setuptools -U
+pip install Cython
+
+pip install mpi4py --no-binary mpi4py
+python -c "from mpi4py import MPI"
 
 pip install pyfftw
 pip install pytest
 
-# to install h5py parallel
-export CC=mpicc
-export HDF5_MPI="ON"
-unset HDF5_LIBDIR
-export LDFLAGS="-Wl,--no-as-needed"
-pip install h5py --no-binary h5py
-unset CC
+# to install hdf5 and h5py parallel
+export export HDF5_DIR=/gpfslocalsup/spack_soft/hdf5/1.12.0/gcc-8.3.1-qj43pa5rathksrgn4sx2ici42tg75nun
+CC="mpicc" HDF5_MPI="ON" pip install --no-deps --no-binary=h5py h5py
+python -c "import h5py; print(h5py.h5.get_config().mpi)"   # Should return True
 
