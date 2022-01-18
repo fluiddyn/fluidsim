@@ -166,7 +166,7 @@ def create_params(args):
     
     # TODO: check if the relation for params.nu_4 is correct (from injection_rate and dx)
     dx = Lh / nh
-    params.nu_4 = args.coef_nu4 * (injection_rate ** dx ** 10) ** (1./3.) 
+    params.nu_4 = args.coef_nu4 * (injection_rate * (dx ** 10)) ** (1./3.) 
     # Kolmogorov length scale
     eta = (args.nu ** 3 / injection_rate) ** 0.25
     delta_kz = 2 * pi / params.oper.Lz
