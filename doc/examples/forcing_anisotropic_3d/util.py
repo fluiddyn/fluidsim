@@ -149,7 +149,7 @@ def create_params(args):
 
     if args.projection is not None:
         params.projection = args.projection
-        # TODO: change short_name_type_run
+        params.short_name_type_run += "_proj"
 
     # TODO: could be parameters of the script
     params.no_vz_kz0 = True
@@ -182,6 +182,7 @@ def create_params(args):
     # Brunt Vaisala frequency
     params.N = args.N
     params.nu_2 = args.nu
+    params.short_name_type_run += f"_N{args.N:.3e}"
 
     if args.nu4 is not None:
         params.nu_4 = args.nu4
@@ -192,10 +193,10 @@ def create_params(args):
         delta_kz = 2 * pi / params.oper.Lz
         k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
 
-        print(f"{eta * k_max = :.3e}")
+        mpi.printby0(f"{eta * k_max = :.3e}")
 
         if eta * k_max > 1:
-            print("Well resolved simulation, no need for nu_4")
+            mpi.printby0("Well resolved simulation, no need for nu_4")
             params.nu_4 = 0.0
         else:
             # TODO: more clever injection_rate_4 (tends to 0 when eta*k_max = 1)
@@ -204,6 +205,7 @@ def create_params(args):
             params.nu_4 = (
                 args.coef_nu4 * injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
             )
+            mpi.printby0(f"Resolution too coarse, we add {params.nu_4 = :.3e}.")
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = 1.0
@@ -226,7 +228,7 @@ def create_params(args):
         return round(number, 3)
 
     angle = asin(args.F)
-    print(f"{angle = }")
+    mpi.printby0(f"angle = {angle / pi * 180:.2f}°")
 
     delta_angle = asin(args.delta_F)
 
@@ -239,10 +241,10 @@ def create_params(args):
     params.forcing.nkmin_forcing = max(0, round3(kf_min / delta_kz))
     params.forcing.nkmax_forcing = min(nz//2, max(1, round3(kf_max / delta_kz)))
 
-    print(f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }")
+    mpi.printby0(f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }")
 
-    # TODO: compute time_correlation from forced wave time
-    params.forcing.tcrandom.time_correlation = 1.0
+    # time_correlation is fixed to forced wave period
+    params.forcing.tcrandom.time_correlation = 2 * pi / (args.N * sin(angle))
     params.forcing.tcrandom_anisotropic.angle = round3(angle)
     params.forcing.tcrandom_anisotropic.delta_angle = round3(delta_angle)
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
@@ -255,8 +257,12 @@ def create_params(args):
     params.output.periods_save.spect_energy_budg = 0.1
 
     params.output.spectra.kzkh_periodicity = 1
+    # TODO: Spatiotemporal aquisition frequency depends on the Brunt Vaisala frenquency (maybe there is a better choice)
+    params.output.periods_save.spatiotemporal_spectra = 0.1 / max(1.0, args.N)
 
-    # TODO: params.output.spatiotemporal_spectra
+    # TODO: Maybe we could implement a smarter probes_region, depending on the number of modes?
+    params.output.spatiotemporal_spectra.file_max_size = 80.0
+    params.output.spatiotemporal_spectra.probes_region = (20, 20, 10)
 
     return params
 
