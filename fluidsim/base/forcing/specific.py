@@ -150,7 +150,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         ----------
         shape_forcing: array-like
             A single-element array containing index of largest forcing
-            wavenumber or a tuple indincating shape of the forcing array.
+            wavenumber or a tuple indicating shape of the forcing array.
 
         shape: array-like
             A tuple indicating the shape of an array or Operators instance.
@@ -159,7 +159,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         if any(np.greater(shape_forcing, shape)):
             raise NotImplementedError(
                 "The resolution is too small for the required forcing: "
-                f"any(np.greater({shape_forcing}, {shape}))"
+                f"any(np.greater({shape_forcing = }, {shape = }))"
             )
 
     def __init__(self, sim):
@@ -174,7 +174,8 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
 
         if params.forcing.nkmax_forcing < params.forcing.nkmin_forcing:
             raise ValueError(
-                "params.forcing.nkmax_forcing < params.forcing.nkmin_forcing"
+                f"params.forcing.nkmax_forcing = {params.forcing.nkmax_forcing} < "
+                f"params.forcing.nkmin_forcing = {params.forcing.nkmin_forcing}"
             )
 
         # oper.deltak is max deltak_i in the different directions
@@ -190,7 +191,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             self.key_forced = self._key_forced_default
 
         try:
-            fft_size = 2 * fftw_grid_size(params.forcing.nkmax_forcing)
+            fft_size = 2 * fftw_grid_size(int(round(params.forcing.nkmax_forcing)))
         except ImportError:
             warn("To use smaller forcing arrays: pip install pulp")
             i = 0

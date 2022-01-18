@@ -1,6 +1,19 @@
 """Script for simulations with the solver ns3d.strat and the forcing
 tcrandom_anisotropic.
 
+## Examples
+
+```
+python run_simul.py --only-print-params
+python run_simul.py --only-print-params-as-code
+
+python run_simul.py -F 0.3 --delta-F 0.1 --ratio-kfmin-kf 0.8 --ratio-kfmax-kf 1.5 -opf
+python run_simul.py -F 1.0 --delta-F 0.1 --ratio-kfmin-kf 0.8 --ratio-kfmax-kf 1.5 -opf
+
+mpirun -np 2 python run_simul.py
+
+```
+
 This script is designed to study stratified turbulence forced with an
 anisotropic forcing in toroidal or poloidal modes.
 

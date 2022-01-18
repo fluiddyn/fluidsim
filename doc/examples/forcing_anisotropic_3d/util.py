@@ -1,6 +1,8 @@
-from math import pi, tan, asin
+from math import pi, asin, sin
 
 import argparse
+
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
@@ -18,13 +20,20 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--t_end", type=float, default=50.0, help="End time")
+    parser.add_argument("--t_end", type=float, default=10.0, help="End time")
 
     parser.add_argument(
-        "-N", type=float, default=2.0, help="Brunt-Väisälä frequency"
+        "-N", type=float, default=10.0, help="Brunt-Väisälä frequency"
     )
 
     parser.add_argument("-nu", type=float, default=1e-3, help="Viscosity")
+
+    parser.add_argument(
+        "--nu4",
+        type=float,
+        default=None,
+        help="Order-4 hyper viscosity",
+    )
 
     parser.add_argument(
         "--coef-nu4",
@@ -34,8 +43,15 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-oi",
-        "--only_init",
+        "-oppac",
+        "--only-print-params-as-code",
+        action="store_true",
+        help="Only run initialization phase and print params as code",
+    )
+
+    parser.add_argument(
+        "-opp",
+        "--only-print-params",
         action="store_true",
         help="Only run initialization phase and print params",
     )
@@ -70,14 +86,22 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--delta-nz-forcing",
-        type=int,
-        default=3,
-        help="... not nice... physics change with ratio-nh-nz",
+        "--ratio-kfmin-kf",
+        type=float,
+        default=0.5,
+        help="",
+    )
+
+    parser.add_argument(
+        "--ratio-kfmax-kf",
+        type=float,
+        default=2.0,
+        help="",
     )
 
     parser.add_argument(
         "-F",
+        type=float,
         default=0.3,
         help="Ratio omega_f / N, fixing the mean angle between the vertical and the forced wavenumber",
     )
@@ -127,10 +151,10 @@ def create_params(args):
         params.projection = args.projection
         # TODO: change short_name_type_run
 
+    # TODO: could be parameters of the script
     params.no_vz_kz0 = True
     params.oper.NO_SHEAR_MODES = True
-
-    params.oper.coef_dealiasing = 0.8
+    params.oper.coef_dealiasing = 0.95
     params.oper.truncation_shape = "no_multiple_aliases"
 
     params.oper.nz = nz = args.nz
@@ -153,25 +177,33 @@ def create_params(args):
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
+    params.time_stepping.deltat_max = 0.1
 
     # Brunt Vaisala frequency
     params.N = args.N
     params.nu_2 = args.nu
 
-    # TODO: compute nu_4 from injection_rate and dx
-    args.coef_nu4
-    # Kolmogorov length scale
-    eta = (args.nu ** 3 / injection_rate) ** 0.25
-    delta_kz = 2 * pi / params.oper.Lz
-    k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
-
-    print(f"{eta * k_max = :.3e}")
-
-    if eta * k_max > 1:
-        print("Well resolved simulation, no need for nu_4")
-        params.nu_4 = 0.0
+    if args.nu4 is not None:
+        params.nu_4 = args.nu4
     else:
-        ...
+        # compute nu_4 from injection_rate and dx
+        # Kolmogorov length scale
+        eta = (args.nu ** 3 / injection_rate) ** 0.25
+        delta_kz = 2 * pi / params.oper.Lz
+        k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
+
+        print(f"{eta * k_max = :.3e}")
+
+        if eta * k_max > 1:
+            print("Well resolved simulation, no need for nu_4")
+            params.nu_4 = 0.0
+        else:
+            # TODO: more clever injection_rate_4 (tends to 0 when eta*k_max = 1)
+            injection_rate_4 = injection_rate
+            # only valid if R4 >> 1 (isotropic turbulence at small scales)
+            params.nu_4 = (
+                args.coef_nu4 * injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
+            )
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = 1.0
@@ -193,30 +225,35 @@ def create_params(args):
     def round3(number):
         return round(number, 3)
 
-    angle = round3(asin(args.F))
-    delta_angle = round3(asin(args.delta_F))
+    angle = asin(args.F)
+    print(f"{angle = }")
+
+    delta_angle = asin(args.delta_F)
 
     kfh = 2 * pi / Lfh
-    kfz = kfh * tan(angle)
-    nkz_forcing = kfz / delta_kz
+    kf = kfh / sin(angle)
 
-    params.forcing.nkmin_forcing = round3(
-        max(1, nkz_forcing - args.delta_nz_forcing)
-    )
-    params.forcing.nkmax_forcing = round3(nkz_forcing + args.delta_nz_forcing)
+    kf_min = kf * args.ratio_kfmin_kf
+    kf_max = kf * args.ratio_kfmax_kf
+
+    params.forcing.nkmin_forcing = max(0, round3(kf_min / delta_kz))
+    params.forcing.nkmax_forcing = min(nz//2, max(1, round3(kf_max / delta_kz)))
+
+    print(f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }")
 
     # TODO: compute time_correlation from forced wave time
     params.forcing.tcrandom.time_correlation = 1.0
-    params.forcing.tcrandom_anisotropic.angle = angle
-    params.forcing.tcrandom_anisotropic.delta_angle = delta_angle
+    params.forcing.tcrandom_anisotropic.angle = round3(angle)
+    params.forcing.tcrandom_anisotropic.delta_angle = round3(delta_angle)
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
 
     params.output.periods_print.print_stdout = 1e-1
 
     params.output.periods_save.phys_fields = 0.5
-    params.output.periods_save.spatial_means = 0.1
-    params.output.periods_save.spectra = 0.1
+    params.output.periods_save.spatial_means = 0.02
+    params.output.periods_save.spectra = 0.05
     params.output.periods_save.spect_energy_budg = 0.1
+
     params.output.spectra.kzkh_periodicity = 1
 
     # TODO: params.output.spatiotemporal_spectra
@@ -230,17 +267,26 @@ def main():
 
     params = create_params(args)
 
-    if args.only_plot_forcing or args.only_init:
+    if (
+        args.only_plot_forcing
+        or args.only_print_params_as_code
+        or args.only_print_params
+    ):
         params.output.HAS_TO_SAVE = False
 
     sim = Simul(params)
 
-    if args.only_init:
+    if args.only_print_params_as_code:
         params._print_as_code()
+        return params, sim
+
+    if args.only_print_params:
+        print(params)
         return params, sim
 
     if args.only_plot_forcing:
         sim.forcing.forcing_maker.plot_forcing_region()
+        plt.show()
         return params, sim
 
     sim.time_stepping.start()
@@ -258,7 +304,7 @@ ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # in IPython:
 
-sim.output.phys_fields.set_equation_crosssection('x={Lx/2}')
+sim.output.phys_fields.set_equation_crosssection('x={params.oper.Lx/2}')
 sim.output.phys_fields.animate('b')
 """
     )

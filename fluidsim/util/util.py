@@ -30,6 +30,7 @@ from importlib import import_module
 from pathlib import Path
 from time import perf_counter
 from typing import Union
+from math import radians
 
 import fluiddyn as fld
 import h5netcdf
@@ -700,3 +701,16 @@ def open_patient(
                 raise
             time.sleep(time_wait_once)
     return file
+
+
+def ensure_radians(angle):
+    """Convert strings like "45°" to radians (as float)"""
+    if isinstance(angle, str):
+        if angle.endswith("°"):
+            angle = radians(float(angle[:-1]))
+        else:
+            raise ValueError(
+                "Angle should be a string with \n"
+                + "the degree symbol or a float in radians"
+            )
+    return angle

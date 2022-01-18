@@ -9,7 +9,7 @@
 """
 
 from math import degrees
-from math import pi, radians
+from math import pi
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,18 +18,7 @@ import matplotlib.patches as patches
 from fluiddyn.calcul.easypyfft import fftw_grid_size
 
 from fluidsim.base.forcing.specific import TimeCorrelatedRandomPseudoSpectral
-
-
-def ensure_radians(angle):
-    if isinstance(angle, str):
-        if angle.endswith("°"):
-            angle = radians(float(angle[:-1]))
-        else:
-            raise ValueError(
-                "Angle should be a string with \n"
-                + "the degree symbol or a float in radians"
-            )
-    return angle
+from fluidsim.util import ensure_radians
 
 
 class TimeCorrelatedRandomPseudoSpectralAnisotropic(
