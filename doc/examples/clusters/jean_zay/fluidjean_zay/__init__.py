@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from fluiddyn.clusters.cines import Occigen
+from fluiddyn.clusters.idris import JeanZay
 
 here = Path(__file__).parent.absolute()
 
@@ -17,7 +17,7 @@ code_setup_env.append("conda activate env_" + USER)
 # print(code)
 
 try:
-    cluster = Occigen()
+    cluster = JeanZay()
 except ValueError as error:
     print("warning: " + str(error))
     cluster = False

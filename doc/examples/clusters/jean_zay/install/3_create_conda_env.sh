@@ -4,13 +4,12 @@ source ../setup_env_base.sh
 
 set -e
 
-#### Problème pour la création de l'environnement... Utiliser conda-app?
-
 #conda env remove --name env_fluidsim
 conda create -y -n env_fluidsim -c python clangdev "blas-devel[build=*openblas]" \
     cython matplotlib pandas psutil ipython scipy pillow scikit-image \
     pythran colorlog
 
+# There are some troubles when creating the environment... It still does not work.
 
 conda activate env_fluidsim
 
@@ -23,7 +22,6 @@ pip install setuptools -U
 pip install Cython
 
 pip install mpi4py --no-binary mpi4py
-python -c "from mpi4py import MPI"
 
 pip install pyfftw
 pip install pytest

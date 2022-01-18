@@ -3,23 +3,20 @@ set -e
 
 cd $WORK/Dev/fluiddyn
 hg pull
-hg up default
+hg up cluster-jean-zay # cluster-jean-zay should be replaced by default when merged 
 make clean
 pip install -e .
 
 cd $WORK/Dev/fluidfft
 hg pull
-hg up default
+hg up default 
 cp $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/conf_files/.fluidfft-site.cfg site.cfg
+# pip install -e .   seems to run something with mpi, which is forbidden 
 python setup.py develop
-
-# this should work!
-python -c "import fluidfft.fft3d.mpi_with_fftw3d"
-# python -c "import fluidfft.fft3d.mpi_with_p3dfft" # Still not work
 
 cd $WORK/Dev/fluidsim
 hg pull
-hg up default
+hg up install-clusters # install-clusters should be replaced by default when merged 
 make cleanall
 pip install -e .
 

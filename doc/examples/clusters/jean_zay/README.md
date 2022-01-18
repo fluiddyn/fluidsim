@@ -21,17 +21,20 @@ Load the mercurial environment and move to the work directory:
 
 ```bash
 module load mercurial/6.0
+(hg debuginstall -T "{pythonexe}") -m pip install hg-fluiddyn hg-evolve hg-git
 cd $WORK 
 ```
 
-You should be able to clone these repositories without entering your password:
+You should be able to clone this repository without entering your password:
 
 ```bash
 mkdir Dev
 cd Dev
-hg clone https://foss.heptapod.net/fluiddyn/fluiddyn
-hg clone https://foss.heptapod.net/fluiddyn/fluidfft
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
+# It should work to clone the packages with ssh. 
+cd fluidsim
+hg pull
+hg up install-clusters # install-clusters should be replaced by default when merged (or we can remove this line)
 ```
 
 ## Installation
@@ -39,12 +42,14 @@ hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 Move to the install directory and run the following commands (from this directory):
 
 ```bash
-cd fluidsim/doc/examples/clusters/jean_zay/install
+cd doc/examples/clusters/jean_zay/install
 source 0_setup_env_base.sh
 ./1_copy_config_files.sh
 source ~/setup_ssh.sh  # Is it necessary?
 ./2_clone_fluid.sh
 ./3_create_conda_env.sh
+
+# Still don't work here
 source 4_setup_env_conda.sh
 ./5_update_install_fluid.sh
 cd .. && make
