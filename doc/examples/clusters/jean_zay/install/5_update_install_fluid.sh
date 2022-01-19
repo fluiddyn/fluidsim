@@ -15,9 +15,8 @@ cp $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/conf_files/.fluidfft-site.c
 python setup.py develop
 
 cd $WORK/Dev/fluidsim
-hg pull
-hg up install-clusters # install-clusters should be replaced by default when merged 
 make cleanall
-pip install -e .
+# pip install -e .
+python setup.py develop
 
 pytest fluidsim

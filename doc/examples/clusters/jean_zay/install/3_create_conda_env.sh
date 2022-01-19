@@ -13,16 +13,14 @@ conda create -y -n env_fluidsim -c conda-forge pythran clangdev mako
 
 conda activate env_fluidsim
 
-conda install pyfftw
+conda install pyfftw transonic ipython
 
 #module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi         # Not sure that these two lines are usefull because the modules are loaded at the begining of the file.
 #module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi # p3dfft/2.7.9-mpi # For now, p3dfft/2.7.9-mpi cannot be us
 
 pip install setuptools -U
 pip install Cython
-
 pip install mpi4py --no-binary mpi4py
-
 pip install pytest
 
 # to install hdf5 and h5py parallel

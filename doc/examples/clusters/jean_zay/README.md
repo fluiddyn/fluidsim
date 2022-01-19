@@ -25,6 +25,9 @@ module load mercurial/6.0 python/3.8.8
 cd $WORK 
 ```
 
+# TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg
+
+
 Configure conda
 
 ```bash
