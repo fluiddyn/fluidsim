@@ -17,13 +17,25 @@ Source these files:
 . ~/setup_ssh.sh
 ```
 
-Load the mercurial environment and move to the work directory:
+Load the mercurial and python environments and move to the work directory:
 
 ```bash
-module load mercurial/6.0
-(hg debuginstall -T "{pythonexe}") -m pip install hg-fluiddyn hg-evolve hg-git
+module load mercurial/6.0 python/3.8.8
+# (hg debuginstall -T "{pythonexe}") to check which python is used by hg: it could be different from 3.8.8
 cd $WORK 
 ```
+
+Configure conda
+
+```bash
+conda activate base
+pip install conda-app     
+export PATH=$PATH:$HOME/.local/bin/  
+mkdir $WORK/.conda   
+ln -s $WORK/.conda $HOME
+conda config --add channels conda-forge
+```
+
 
 You should be able to clone this repository without entering your password:
 
@@ -48,14 +60,12 @@ source 0_setup_env_base.sh
 source ~/setup_ssh.sh  # Is it necessary?
 ./2_clone_fluid.sh
 ./3_create_conda_env.sh
-
-# Still don't work here
 source 4_setup_env_conda.sh
 ./5_update_install_fluid.sh
+# An import issue with transonic at this point... 
 cd .. && make
 ```
-
-### Continuer ici
+# Continue here
 **Note:** you may experience an error like `remote: ssh: Could not resolve
 hostname foss.heptapod.net: Temporary failure in name resolution`. Just retry
 and it's going to work.
