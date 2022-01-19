@@ -64,27 +64,24 @@ source ~/setup_ssh.sh  # Is it necessary?
 ./2_clone_fluid.sh
 ./3_create_conda_env.sh
 source 4_setup_env_conda.sh
-./5_update_install_fluid.sh
-# An import issue with transonic at this point... 
-cd .. && make
+./5_update_install_fluid.sh 
+# cd .. && make  # does not work
 ```
-# Continue here
-**Note:** you may experience an error like `remote: ssh: Could not resolve
-hostname foss.heptapod.net: Temporary failure in name resolution`. Just retry
-and it's going to work.
 
-During the last step, some tests should be run, for me (Pierre), one
-of the test fails (in
-fluidsim/solvers/ad1d/pseudo_spect/test_solver.py) but it does not
-seem to be a big problem.
+**Note:** # TODO: put somes notes here if there are some troubles during the installation
+
 
 ## Submit the MPI test suite
 
-Finally, you can submit the tests using MPI by doing
+Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd ..
+cd ../scripts
+python submit_check_fluidfft.py
 python submit_tests.py
+# TODO: "RuntimeError: Undefined plan with nthreads. This is a bug"
+python submit_simul.py
+# TODO: 
 ```
 
 ## Setup Mercurial
@@ -133,19 +130,3 @@ scontrol show job $JOBID
 find -maxdepth 1 -type d | while read -r dir; do printf "%s:\t" "$dir"; find "$dir" -type f | wc -l; done
 ```
 
-## Install h5py parallel (to modify environments created before 24/11/2020)
-
-Activate the conda environment and run:
-```bash
-conda uninstall h5py
-export CC=mpicc
-export HDF5_MPI="ON"
-unset HDF5_LIBDIR
-export LDFLAGS="-Wl,--no-as-needed"
-pip install h5py --no-binary h5py
-```
-
-You can check that h5py parallel is correctly installed by running
-```bash
-python -c "import h5py; cfg = h5py.get_config(); print(cfg.mpi)"
-```

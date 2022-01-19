@@ -4,12 +4,21 @@ submit_check_fluidfft.py
 
 """
 
-from fluidjean_zay import cluster
+from fluiddyn.clusters.idris import JeanZay as Cluster
+
+cluster = Cluster()
 
 nb_proc = nb_cores = 2
 walltime = "00:10:00"
 
-libraries = ["fftw1d", "fftwmpi3d", "p3dfft", "pfft"]
+libraries = ["fftw1d", "fftwmpi3d", "pfft"] # TODO: add p3dfft when the librairy is implemented
+
+
+cluster.commands_setting_env += [
+    "conda activate env_fluidsim",  # TODO: maybe this line should go into fluiddyn
+    "export FLUIDSIM_PATH=$WORK/Fluidsim_Data/check_fluidfft",
+]
+
 
 for lib in libraries:
 
@@ -20,5 +29,5 @@ for lib in libraries:
         walltime=walltime,
         nb_mpi_processes=nb_proc,
         omp_num_threads=1,
-        ask=False,
+        ask=True,
     )

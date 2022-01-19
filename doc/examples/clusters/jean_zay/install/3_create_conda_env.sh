@@ -4,19 +4,20 @@ source ../setup_env_base.sh
 
 set -e
 
-#conda env remove --name env_fluidsim
+conda env remove --name env_fluidsim
 #conda create -y -n env_fluidsim -c python clangdev "blas-devel[build=*openblas]" \
-#    cython matplotlib pandas psutil ipython scipy pillow scikit-image \
+#    cython transonic matplotlib pandas psutil ipython scipy pillow scikit-image \
 #    pythran colorlog
 
-conda create -y -n env_fluidsim -c conda-forge pythran clangdev mako
+conda create -y -n env_fluidsim -c conda-forge pythran clangdev mako ipython scipy "blas-devel[build=*openblas]"
 
 conda activate env_fluidsim
 
-conda install pyfftw transonic ipython
+module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi         # Not sure that these two lines are usefull because the modules are loaded at the begining of the file.
+module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi # p3dfft/2.7.9-mpi # TODO: For now, p3dfft/2.7.9-mpi cannot be used
 
-#module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi         # Not sure that these two lines are usefull because the modules are loaded at the begining of the file.
-#module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi # p3dfft/2.7.9-mpi # For now, p3dfft/2.7.9-mpi cannot be us
+conda install transonic # Should not ask to download fftw !
+pip install pyfftw # Better than with conda install?
 
 pip install setuptools -U
 pip install Cython
