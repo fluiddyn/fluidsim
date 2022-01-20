@@ -124,6 +124,7 @@ python scripts/submit_tests.py
 sbatch
 squeue -u $USER
 scancel
+squeue -u $USER | grep * | awk '{print $1}' | xargs scancel
 scontrol hold <job_list>
 scontrol release <job_list>
 scontrol show job $JOBID
