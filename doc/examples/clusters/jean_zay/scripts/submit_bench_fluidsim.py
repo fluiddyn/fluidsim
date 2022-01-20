@@ -8,7 +8,7 @@ Once you have runned many runs, you can run fluidsim-bench-analysis
 Exemple:
 python submit_bench_fluidsim.py
 cd $WORK/fluidsim_bench
-fluidsim-bench-analysis 512 512 512 -i . -s ns3d.strat
+fluidsim-bench-analysis 1280 1280 320 -i . -s ns3d.strat
 
 """
 
@@ -21,32 +21,23 @@ cluster.commands_setting_env += [
 ]
 
 
-def submit(nb_nodes, nb_cores_per_node=None):
-    if nb_cores_per_node is None:
-        nb_cores_per_node = cluster.nb_cores_per_node
-    nb_mpi = nb_cores_per_node*nb_nodes
+def submit(nb_nodes):
+    nb_cores_per_node = cluster.nb_cores_per_node
+    nb_mpi = nb_procs = nb_nodes * nb_cores_per_node
+
     cluster.submit_command(
-        'fluidsim-bench -s ns3d.strat 512 512 512 '
+        'fluidsim-bench -s ns3d.strat 320 320 320 '
         '-o $WORK/fluidsim_bench '
-        #'-t "all" '
-        '-it 2',
+        #'-t "all" ' # TODO: Does not work, I don't know why...
+        '-it 4',
         name_run='fluidsim-bench_{:02d}'.format(nb_mpi),
         nb_nodes=nb_nodes,
-        # nb_cores_per_node=nb_cores_per_node,
-        nb_cores_per_node=cluster.nb_cores_per_node,
-        walltime='00:40:00',
+        nb_cores_per_node=nb_cores_per_node,
+        walltime='02:00:00',
         nb_mpi_processes=nb_mpi, omp_num_threads=1,
         ask=False,
         delay_signal_walltime=None)
 
 
-nb_nodes = 1
-for nb_cores_per_node in [20]: #[2, 4, 8, 10, 12, 16, 20]:
-    if nb_cores_per_node > cluster.nb_cores_per_node:
-        continue
-    submit(nb_nodes, nb_cores_per_node)
-
-#for nb_nodes in [2, 4]:
-#    submit(nb_nodes)
-
-
+for nb_nodes in [1, 2, 3, 4]:
+    submit(nb_nodes)

@@ -23,9 +23,9 @@ keys_versus_kind = {
 
 params.output.sub_directory = "examples"
 params.short_name_type_run = "aniso_" + kind
-params.projection = "poloidal"
+#params.projection = "poloidal"
 
-nx = ny = nz = 64
+nx = ny = nz = 120
 Lx = 2.0 * np.pi
 params.oper.nx = nx
 params.oper.ny = ny
@@ -36,13 +36,14 @@ params.oper.Lz = Lz = Lx / nx * nz
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.cfl_coef = 0.2
-params.time_stepping.t_end = 2.0
+params.time_stepping.t_end = 10.0
 
 # Brunt Vaisala frequency
-params.N = 1.0
-params.nu_2 = 1e-1
+params.N = 2.0
+# Viscosity
+params.nu_2 = 1e-3
 
-mpi.printby0(f"nu_2 = {params.nu_2:.3e}")
+mpi.printby0(f"N = {params.N:.3e}, nu_2 = {params.nu_2:.3e}")
 
 params.init_fields.type = "noise"
 params.init_fields.noise.length = 1.0
@@ -70,19 +71,7 @@ params.output.spectra.kzkh_periodicity = 1
 
 sim = Simul(params)
 
-sim.time_stepping.main_loop(print_begin=True, save_init_field=True)
-
-params.time_stepping.t_end += 2.0
-# zero dissipation so we can check energy conservation
-params.nu_2 = 0.0
-# hacky way to disable the forcing for the rest of the simulation
-sim.is_forcing_enabled = 0.0
-sim.forcing.forcing_maker.forcing_fft.fill(0.0)
-
-sim.time_stepping.init_from_params()
-sim.time_stepping.main_loop()
-
-sim.time_stepping.finalize_main_loop()
+sim.time_stepping.start()
 
 mpi.printby0(
     f"""
