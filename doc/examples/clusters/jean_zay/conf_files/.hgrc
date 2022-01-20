@@ -11,9 +11,7 @@ rebase =
 evolve =
 topic =
 git =
-#hgfluiddyn = # Still not available on Jean-Zay
+hgfluiddyn =
 
 [extdiff]
 cmd.meld =
-
-

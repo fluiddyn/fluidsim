@@ -1,5 +1,3 @@
-#!/bin/bash
-set -e
 
 cd $WORK/Dev
 rm -rf fluiddyn fluidfft
