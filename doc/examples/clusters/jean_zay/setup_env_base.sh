@@ -13,3 +13,6 @@ unset CC
 unset CXX
 
 export FLUIDSIM_PATH=$WORK
+
+
+conda activate base

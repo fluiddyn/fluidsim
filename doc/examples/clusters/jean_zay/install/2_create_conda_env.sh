@@ -6,9 +6,11 @@ set -e
 
 conda env remove --name env_fluidsim -y
 
-conda install mamba -y
+#conda install mamba -y    # It takes too much time... try with conda-app
+pip install conda-app
 
-mamba create -y -n env_fluidsim -c conda-forge \
+# replace conda by mambda
+conda create -y -n env_fluidsim -c conda-forge \
     ipython scipy "blas-devel[build=*openblas]" \
     matplotlib pandas psutil pillow scikit-image \
     mako pythran clangdev \

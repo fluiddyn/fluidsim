@@ -21,12 +21,13 @@ mkdir -p $WORK/Dev
 cd $WORK/Dev
 # It should work to clone the packages with ssh.
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
+cd fluidsim
 hg up install-clusters # TODO: remove this line before merge
 # we won't use the mercurial environment in the following
 module purge
 ```
 
-# TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg
+# TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg (we need to load automake/1.16.1 and libtool/2.4.6 for this)
 
 Configure conda
 
@@ -60,7 +61,7 @@ source 4_clone_fluid.sh
 Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd ../scripts
+cd scripts
 python submit_check_fluidfft.py
 python submit_tests.py
 # TODO: "RuntimeError: Undefined plan with nthreads. This is a bug"

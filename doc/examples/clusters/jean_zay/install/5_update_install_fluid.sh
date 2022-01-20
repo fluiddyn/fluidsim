@@ -16,7 +16,9 @@ python setup.py develop
 
 cd $WORK/Dev/fluidsim
 make cleanall
-# pip install -e .
+#pip install -e .
 python setup.py develop
 
 pytest fluidsim
+
+cd doc/examples/clusters/jean_zay/
