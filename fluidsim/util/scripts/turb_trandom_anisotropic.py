@@ -359,8 +359,12 @@ def create_params(args):
     return params
 
 
-def main(default_params=None):
+def main(**defaults):
     parser = create_parser()
+
+    if defaults:
+        parser.set_defaults(**defaults)
+
     args = parse_args(parser)
 
     from fluidsim.solvers.ns3d.strat.solver import Simul

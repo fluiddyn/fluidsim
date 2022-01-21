@@ -60,9 +60,9 @@ class SimReprMakerCore:
                     default_fmt = ""
                 fmt = self.formats.get(name_parameter, default_fmt)
                 str_parameter = ("{:" + fmt + "}").format(parameter)
-                if fmt[-1] in ["e", "g"] and "e+" in str_parameter:
+                if fmt and fmt[-1] in ["e", "g"] and "e+" in str_parameter:
                     str_parameter = str_parameter.replace("e+", "e")
-                if "e" not in str_parameter:
+                if "e" not in str_parameter and "." in str_parameter:
                     str_parameter = str_parameter.rstrip("0")
                 if str_parameter.endswith("."):
                     str_parameter = str_parameter[:-1]
