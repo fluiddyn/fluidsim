@@ -1,12 +1,52 @@
+"""Utilities to define scripts for simulations with the solver ns3d.strat and
+the forcing tcrandom_anisotropic.
+
+## Examples
+
+```
+./run_simul.py --only-print-params
+./run_simul.py --only-print-params-as-code
+
+./run_simul.py -F 0.3 --delta-F 0.1 --ratio-kfmin-kf 0.8 --ratio-kfmax-kf 1.5 -opf
+./run_simul.py -F 1.0 --delta-F 0.1 --ratio-kfmin-kf 0.8 --ratio-kfmax-kf 1.5 -opf
+
+mpirun -np 2 ./run_simul.py
+
+```
+
+This script is designed to study stratified turbulence forced with an
+anisotropic forcing in toroidal or poloidal modes.
+
+The regime depends on the value of the horizontal Froude number Fh and buoyancy
+Reynolds numbers R and R4:
+
+- Fh = epsK / (Uh^2 N)
+- R = epsK / (N^2 nu)
+- R4 = epsK Uh^2 / (nu4 N^4)
+
+Fh has to be very small to be in a strongly stratified regime. R and R4 has to
+be "large" to be in a turbulent regime.
+
+For this forcing, we fix the injection rate P (very close to epsK). We will
+work at P = 1.0, such that N, nu and nu4 determine the non dimensional numbers.
+
+Note that Uh is not directly fixed by the forcing but should be a function of
+the other input parameters. Dimensionally, we can write Uh = (P Lfh)**(1/3).
+
+For simplicity, we'd like to have Lfh=1.0. We want to force at "large
+horizontal scale" (compared to the size of the numerical domain). This length
+(params.oper.Lx = params.oper.Ly) is computed with this condition.
+
+"""
+
+
 from math import pi, asin, sin
 
 import argparse
 
-import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
-from fluidsim.solvers.ns3d.strat.solver import Simul
 
 keys_versus_kind = {
     "toro": "vt_fft",
@@ -16,9 +56,55 @@ keys_versus_kind = {
 }
 
 
-def parse_args():
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
-    parser = argparse.ArgumentParser()
+    # parameters to study the input parameters without running the simulation
+
+    parser.add_argument(
+        "-oppac",
+        "--only-print-params-as-code",
+        action="store_true",
+        help="Only run initialization phase and print params as code",
+    )
+
+    parser.add_argument(
+        "-opp",
+        "--only-print-params",
+        action="store_true",
+        help="Only run initialization phase and print params",
+    )
+
+    parser.add_argument(
+        "-opf",
+        "--only-plot-forcing",
+        action="store_true",
+        help="Only run initialization phase and plot forcing",
+    )
+
+    # grid parameter
+
+    parser.add_argument(
+        "-nz",
+        "--nz",
+        type=int,
+        default=32,
+        help="Number of numerical points over one vertical axis",
+    )
+
+    # physical parameters
+
+    parser.add_argument(
+        "--ratio-nh-nz",
+        type=int,
+        default=4,
+        help=(
+            "Ratio nh / nz (has to be a positive integer, "
+            "fixes the aspect ratio of the numerical domain)"
+        ),
+    )
 
     parser.add_argument("--t_end", type=float, default=10.0, help="End time")
 
@@ -43,40 +129,13 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-oppac",
-        "--only-print-params-as-code",
-        action="store_true",
-        help="Only run initialization phase and print params as code",
+        "--forced-field",
+        type=str,
+        default="polo",
+        help='Forced field (can be "polo", "toro", ...)',
     )
 
-    parser.add_argument(
-        "-opp",
-        "--only-print-params",
-        action="store_true",
-        help="Only run initialization phase and print params",
-    )
-
-    parser.add_argument(
-        "-opf",
-        "--only-plot-forcing",
-        action="store_true",
-        help="Only run initialization phase and plot forcing",
-    )
-
-    parser.add_argument(
-        "-nz",
-        "--nz",
-        type=int,
-        default=32,
-        help="Number of numerical points over one vertical axis",
-    )
-
-    parser.add_argument(
-        "--ratio-nh-nz",
-        type=int,
-        default=4,
-        help="Ratio nh / nz (has to be a positive integer)",
-    )
+    # shape of the forcing region in spectral space
 
     parser.add_argument(
         "--nh-forcing",
@@ -113,18 +172,33 @@ def parse_args():
         help="delta F, fixing angle_max - angle_min",
     )
 
+    # Output parameters
+
     parser.add_argument(
-        "--forced-field",
-        type=str,
-        default="polo",
-        help='Forced field (can be "polo", "toro", ...)',
+        "--spatiotemporal-spectra",
+        action="store_true",
+        help="Activate the output spatiotemporal_spectra",
     )
+
+    # Other parameters
 
     parser.add_argument(
         "--projection",
         type=str,
         default=None,
-        help="Type of projection",
+        help="Type of projection (changes the equations solved)",
+    )
+
+    parser.add_argument(
+        "--disable-no-vz-kz0",
+        action="store_true",
+        help="Disable params.no_vz_kz0",
+    )
+
+    parser.add_argument(
+        "--disable-NO-SHEAR-MODES",
+        action="store_true",
+        help="Disable params.oper.NO_SHEAR_MODES",
     )
 
     parser.add_argument(
@@ -135,18 +209,24 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--spatiotemporal-spectra",
-        action="store_true",
-        help="Activate the output spatiotemporal_spectra",
+        "--coef-dealiasing",
+        type=float,
+        default=0.95,
+        help="params.oper.coef_dealiasing",
     )
 
+    return parser
+
+
+def parse_args(parser):
     args = parser.parse_args()
     mpi.printby0(args)
-
     return args
 
 
 def create_params(args):
+
+    from fluidsim.solvers.ns3d.strat.solver import Simul
 
     params = Simul.create_default_params()
 
@@ -157,10 +237,10 @@ def create_params(args):
         params.projection = args.projection
         params.short_name_type_run += "_proj"
 
-    # TODO: could be parameters of the script
-    params.no_vz_kz0 = True
-    params.oper.NO_SHEAR_MODES = True
-    params.oper.coef_dealiasing = 0.95
+    params.no_vz_kz0 = not args.disable_no_vz_kz0
+    params.oper.NO_SHEAR_MODES = not args.disable_NO_SHEAR_MODES
+    params.oper.coef_dealiasing = args.coef_dealiasing
+
     params.oper.truncation_shape = "no_multiple_aliases"
 
     params.oper.nz = nz = args.nz
@@ -187,7 +267,6 @@ def create_params(args):
     # Brunt Vaisala frequency
     params.N = args.N
     params.nu_2 = args.nu
-    params.short_name_type_run += f"_N{args.N:.3e}"
 
     if args.nu4 is not None:
         params.nu_4 = args.nu4
@@ -280,9 +359,11 @@ def create_params(args):
     return params
 
 
-def main():
+def main(default_params=None):
+    parser = create_parser()
+    args = parse_args(parser)
 
-    args = parse_args()
+    from fluidsim.solvers.ns3d.strat.solver import Simul
 
     params = create_params(args)
 
@@ -305,6 +386,8 @@ def main():
 
     if args.only_plot_forcing:
         sim.forcing.forcing_maker.plot_forcing_region()
+        import matplotlib.pyplot as plt
+
         plt.show()
         return params, sim
 
