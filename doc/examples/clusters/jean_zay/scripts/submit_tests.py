@@ -12,7 +12,6 @@ nb_proc = nb_cores = 2
 walltime = "00:10:00"
 
 cluster.commands_setting_env += [
-    "conda activate env_fluidsim",  # TODO: maybe this line should go into fluiddyn
     "export FLUIDSIM_PATH=$WORK/Fluidsim_Data/tests_fluidfft",
 ]
 

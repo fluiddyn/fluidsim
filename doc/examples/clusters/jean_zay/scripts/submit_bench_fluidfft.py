@@ -16,17 +16,12 @@ from fluiddyn.clusters.idris import JeanZay as Cluster
 
 cluster = Cluster()
 
-cluster.commands_setting_env += [
-    "conda activate env_fluidsim",  # TODO: maybe this line should go into fluiddyn
-]
-
-
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi = nb_procs = nb_nodes * nb_cores_per_node
 
     cluster.submit_command(
-        'fluidsim-bench -s ns3d.strat 320 320 320 '
+        'fluidfft-bench 1280 1280 320 '
         '-o $WORK/fluidfft_bench '
         '-n 20',
         name_run='fluidfft-bench_{:02d}'.format(nb_mpi),
@@ -38,7 +33,7 @@ def submit(nb_nodes):
         delay_signal_walltime=None)
 
 
-for nb_nodes in [1, 2, 3, 4]:
+for nb_nodes in [32, 64]:
     submit(nb_nodes)
 
 

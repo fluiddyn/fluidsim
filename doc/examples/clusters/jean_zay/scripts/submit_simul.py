@@ -4,16 +4,15 @@ from fluiddyn.clusters.idris import JeanZay as Cluster
 
 cluster = Cluster()
 
-nb_nodes = 1
+nb_nodes = 8
 nb_cores_per_node = cluster.nb_cores_per_node
 nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 
-walltime = "00:40:00"
+walltime = "00:20:00"
 
-cluster.commands_setting_env += [
-    "conda activate env_fluidsim",  # TODO: maybe this line should go into fluiddyn
-    "export FLUIDSIM_PATH=$WORK/Fluidsim_Data",
-]
+cluster.commands_setting_env.append(
+    "export TRANSONIC_MPI_TIMEOUT=100"
+)
 
 # TODO: We could do a more usefull example with several runs like for occigen
 

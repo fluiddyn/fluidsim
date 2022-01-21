@@ -33,13 +33,6 @@ hg up install-clusters # TODO: remove this line before merge
 module purge
 ```
 
-### Install p3dfft-2.7.6 in $WORK
-
-TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg (we need to load automake/1.16.1 and libtool/2.4.6 for this)
-
-TODO: we also need to change the environment variable LD_LIBRARY_PATH in
-setup_env_base.sh (as in the occigen directory).
-
 ### Configure conda
 
 ```bash
@@ -49,6 +42,17 @@ mkdir $WORK/.conda
 ln -s $WORK/.conda $HOME
 conda config --add channels conda-forge
 ```
+
+### Install p3dfft-2.7.6 in $WORK/.local/p3dfft/2.7.6
+
+We configured the installation of p3dfft-2.7.6 in $WORK such that you simply have to run a bash script:
+
+```bash
+module load automake/1.16.1 libtool/2.4.6
+./$WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
+```
+
+TODO: install_p3dfft.sh define the variable CC=mpicc and FC='mpif90 -nofor_main'. Check that this consistant with the installation. 
 
 ## Installation
 
@@ -75,7 +79,6 @@ Finally, you can submit the checks and tests using MPI by doing
 cd scripts
 python submit_check_fluidfft.py
 python submit_tests.py
-# TODO: "RuntimeError: Undefined plan with nthreads. This is a bug"
 python submit_simul.py
 # TODO:
 ```
