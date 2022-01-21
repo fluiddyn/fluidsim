@@ -11,10 +11,7 @@ with open(here.parent / "setup_env_base.sh") as file:
     code_setup_env = file.readlines()
 
 code_setup_env = [line.strip() for line in code_setup_env if line.strip()]
-code_setup_env.append("conda activate env_" + USER)
-
-# code = "\n".join(code_setup_env)
-# print(code)
+code_setup_env.append("conda activate env_fluidsim")
 
 try:
     cluster = JeanZay()

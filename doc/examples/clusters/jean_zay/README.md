@@ -1,8 +1,12 @@
 ## Let's start on Jean-Zay
 
+### SSH key
+
 First, create a ssh key
 (https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and
 copy the public key in https://foss.heptapod.net.
+
+### Download setup files
 
 Download and source setup file:
 
@@ -12,6 +16,8 @@ wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/install-clu
 . ~/setup_ssh.sh
 wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/install-clusters/doc/examples/clusters/jean_zay/conf_files/.hgrc
 ```
+
+### Clone the fluidsim repository
 
 Load the mercurial environment, move to the work directory and clone the fluidsim repository:
 
@@ -27,9 +33,14 @@ hg up install-clusters # TODO: remove this line before merge
 module purge
 ```
 
-# TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg (we need to load automake/1.16.1 and libtool/2.4.6 for this)
+### Install p3dfft-2.7.6 in $WORK
 
-Configure conda
+TODO: Document the installation of p3dfft-2.7.6 in $WORK and modify conf_files/.fluidfft-site.cfg (we need to load automake/1.16.1 and libtool/2.4.6 for this)
+
+TODO: we also need to change the environment variable LD_LIBRARY_PATH in
+setup_env_base.sh (as in the occigen directory).
+
+### Configure conda
 
 ```bash
 module load python/3.8.8
