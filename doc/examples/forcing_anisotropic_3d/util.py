@@ -68,7 +68,7 @@ def parse_args():
         "--nz",
         type=int,
         default=32,
-        help="Number of numerical points over one horizontal axis",
+        help="Number of numerical points over one vertical axis",
     )
 
     parser.add_argument(
@@ -134,6 +134,12 @@ def parse_args():
         help="Max elapsed time",
     )
 
+    parser.add_argument(
+        "--spatiotemporal-spectra",
+        action="store_true",
+        help="Activate the output spatiotemporal_spectra",
+    )
+
     args = parser.parse_args()
     mpi.printby0(args)
 
@@ -160,9 +166,8 @@ def create_params(args):
     params.oper.nz = nz = args.nz
     nh = nz * args.ratio_nh_nz
 
-    # TODO: more checks on the value args.ratio_nh_nz
     if args.ratio_nh_nz < 1:
-        raise ValueError
+        raise ValueError("args.ratio_nh_nz < 1")
 
     params.oper.nx = params.oper.ny = nh
 
@@ -239,12 +244,17 @@ def create_params(args):
     kf_max = kf * args.ratio_kfmax_kf
 
     params.forcing.nkmin_forcing = max(0, round3(kf_min / delta_kz))
-    params.forcing.nkmax_forcing = min(nz//2, max(1, round3(kf_max / delta_kz)))
+    params.forcing.nkmax_forcing = min(nz // 2, max(1, round3(kf_max / delta_kz)))
 
-    mpi.printby0(f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }")
+    mpi.printby0(
+        f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
+    )
+
+    period_N = 2 * pi / args.N
+    omega_l = args.N * args.F
 
     # time_correlation is fixed to forced wave period
-    params.forcing.tcrandom.time_correlation = 2 * pi / (args.N * sin(angle))
+    params.forcing.tcrandom.time_correlation = 2 * pi / omega_l
     params.forcing.tcrandom_anisotropic.angle = round3(angle)
     params.forcing.tcrandom_anisotropic.delta_angle = round3(delta_angle)
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
@@ -257,12 +267,15 @@ def create_params(args):
     params.output.periods_save.spect_energy_budg = 0.1
 
     params.output.spectra.kzkh_periodicity = 1
-    # TODO: Spatiotemporal aquisition frequency depends on the Brunt Vaisala frenquency (maybe there is a better choice)
-    params.output.periods_save.spatiotemporal_spectra = 0.1 / max(1.0, args.N)
 
-    # TODO: Maybe we could implement a smarter probes_region, depending on the number of modes?
-    params.output.spatiotemporal_spectra.file_max_size = 80.0
-    params.output.spatiotemporal_spectra.probes_region = (20, 20, 10)
+    if args.spatiotemporal_spectra:
+        params.output.periods_save.spatiotemporal_spectra = period_N / 2
+
+    params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
+    # probes_region in nondimensional units (mode indices).
+    ikzmax = 10
+    ikhmax = ikzmax * args.ratio_nh_nz
+    params.output.spatiotemporal_spectra.probes_region = (ikhmax, ikhmax, ikzmax)
 
     return params
 
