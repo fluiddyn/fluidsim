@@ -6,6 +6,8 @@ First, create a ssh key
 (https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and
 copy the public key in https://foss.heptapod.net.
 
+TODO: the links don't work.
+
 ### Download setup files
 
 Download and source setup file:
@@ -25,13 +27,14 @@ Load the mercurial environment, move to the work directory and clone the fluidsi
 module load mercurial/6.0
 mkdir -p $WORK/Dev
 cd $WORK/Dev
-# It should work to clone the packages with ssh.
+# TODO: It should work to clone the packages with ssh. It should be tested.
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 cd fluidsim
-hg up install-clusters # TODO: remove this line before merge
-# we won't use the mercurial environment in the following
+hg up install-clusters # TODO: remove this line before merging
 module purge
 ```
+
+**Note:** Mercurial will be installed inside the conda environment for fluidsim, so we will not use the mercurial module later.
 
 ### Configure conda
 
@@ -43,17 +46,15 @@ ln -s $WORK/.conda $HOME
 conda config --add channels conda-forge
 ```
 
-### Install p3dfft-2.7.6 in $WORK/.local/p3dfft/2.7.6
+### Install p3dfft-2.7.6 in your $WORK directory
 
 We configured the installation of p3dfft-2.7.6 in $WORK such that you simply have to run a bash script:
 
 ```bash
 module load automake/1.16.1 libtool/2.4.6
-./$WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
+bash $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
 ```
-
-TODO: install_p3dfft.sh define the variable CC=mpicc and FC='mpif90 -nofor_main'. Check that this consistant with the installation. 
-
+ 
 ## Installation
 
 Move to the install directory and run the following commands (from this directory):
@@ -65,7 +66,7 @@ source 0_setup_env_base.sh
 source ~/setup_ssh.sh  # Is it necessary?
 ./2_create_conda_env.sh
 source 3_setup_env_conda.sh
-source 4_clone_fluid.sh
+./4_clone_fluid.sh
 ./5_update_install_fluid.sh
 ```
 
@@ -76,11 +77,10 @@ source 4_clone_fluid.sh
 Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd scripts
+cd ../scripts
 python submit_check_fluidfft.py
 python submit_tests.py
 python submit_simul.py
-# TODO:
 ```
 
 ## Setup Mercurial

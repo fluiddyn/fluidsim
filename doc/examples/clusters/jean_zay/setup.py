@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name="fluidoccigen",
-    description="Launch jobs on Occigen",
+    name="fluidjean_zay",
+    description="Launch jobs on Jean-Zay",
     author="Pierre Augier",
-    packages=["fluidoccigen"],
+    packages=["fluidjean_zay"],
 )

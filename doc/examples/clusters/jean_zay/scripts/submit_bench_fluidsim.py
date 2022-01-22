@@ -31,15 +31,15 @@ def submit(nb_nodes):
         'fluidsim-bench -s ns3d.strat 640 1280 1280 '
         '-o $WORK/fluidsim_bench '
         '-t "fft3d.mpi_with_pfft" '
-        '-it 100',
+        '-it 20',
         name_run='fluidsim-bench_640_1280_1280_{:02d}'.format(nb_mpi),
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
-        walltime='01:30:00',
+        walltime='01:00:00',
         nb_mpi_processes=nb_mpi, omp_num_threads=1,
         ask=False,
         delay_signal_walltime=None)
 
 
-for nb_nodes in [4, 8, 16, 32, 64]:
+for nb_nodes in [1, 2, 4, 8]:
     submit(nb_nodes)

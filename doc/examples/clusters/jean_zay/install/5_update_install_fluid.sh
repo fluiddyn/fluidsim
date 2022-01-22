@@ -3,7 +3,7 @@ set -e
 
 cd $WORK/Dev/fluiddyn
 hg pull
-hg up cluster-jean-zay # cluster-jean-zay should be replaced by default when merged
+hg up cluster-jean-zay # TODO: cluster-jean-zay should be replaced by default before merging
 make clean
 pip install -e .
 
@@ -27,6 +27,7 @@ cd $WORK/Dev/fluidsim
 make cleanall
 # --no-build-isolation to use pythran already installed in the environment
 pip install -e . --no-build-isolation
+
 pytest fluidsim
 
 cd doc/examples/clusters/jean_zay/

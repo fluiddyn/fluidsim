@@ -12,7 +12,6 @@ pkgdir="${WORK}/.local/${pkgname}/${pkgver}"
 
 # C and Fortran 90 MPI compilers
 CC=mpicc
-#FC=mpif90
 #FC='mpif90 -nofor_main'
 
 # FFTW

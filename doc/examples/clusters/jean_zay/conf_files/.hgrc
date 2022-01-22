@@ -1,6 +1,6 @@
 # example user config (see "hg help config" for more info)
-[ui]
-username=vlabarre <Vincent.Labarre@oca.eu>
+#[ui]
+#username=user <email>
 editor=nano
 tweakdefaults = True
 

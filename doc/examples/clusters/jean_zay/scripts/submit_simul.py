@@ -8,15 +8,11 @@ nb_nodes = 1
 nb_cores_per_node = cluster.nb_cores_per_node
 nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 
-walltime = "00:10:00"
+walltime = "00:40:00"
 
 cluster.commands_setting_env.append(
     "export TRANSONIC_MPI_TIMEOUT=100"
 )
-
-# TODO: We could do a more usefull example with several runs like for occigen
-
-# TODO: Check number of mpi processes (like assert not ny % nb_mpi_processes)
 
 cluster.submit_script(
     "run_simul.py",

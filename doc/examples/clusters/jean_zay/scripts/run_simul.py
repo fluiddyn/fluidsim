@@ -5,9 +5,6 @@ with the forcing tcrandom_anisotropic
 """
 
 from fluiddyn.util import mpi
-#mpi.comm.barrier()
-#mpi.print_sorted("starting")
-
 
 import numpy as np
 
@@ -44,7 +41,7 @@ params.time_stepping.t_end = 2.0
 # Brunt Vaisala frequency
 params.N = 2.0
 # Viscosity
-params.nu_2 = 1e-2
+params.nu_2 = 5e-2
 
 mpi.printby0(f"N = {params.N:.3e}, nu_2 = {params.nu_2:.3e}")
 

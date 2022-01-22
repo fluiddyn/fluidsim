@@ -1,4 +1,3 @@
-
 alias duh1='du -h --max-depth=1'
 
 module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi
@@ -20,4 +19,3 @@ export FLUIDSIM_PATH=$WORK
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WORK/.local/p3dfft/2.7.6/lib
 
 
-#conda activate base
