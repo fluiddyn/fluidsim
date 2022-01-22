@@ -13,7 +13,7 @@ pkgdir="${WORK}/.local/${pkgname}/${pkgver}"
 # C and Fortran 90 MPI compilers
 CC=mpicc
 #FC=mpif90
-FC='mpif90 -nofor_main'
+#FC='mpif90 -nofor_main'
 
 # FFTW
 # ----
@@ -54,7 +54,7 @@ build() {
 
   LDFLAGS="-lm" ./configure --enable-gnu --enable-openmpi --enable-fftw \
       --with-fftw=/gpfslocalsup/spack_soft/fftw/3.3.8/gcc-8.3.1-yancwmvy7k2qaxtswmzlvyda5bsahmoh/ \
-      --prefix=${pkgdir} CC=${CC} CCLD=${FC}
+      --prefix=${pkgdir} CC=${CC} CCLD='mpif90 -nofor_main'
 
   make
 }

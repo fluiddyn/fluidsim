@@ -6,7 +6,7 @@ with the forcing tcrandom_anisotropic
 
 from fluiddyn.util import mpi
 #mpi.comm.barrier()
-mpi.print_sorted("starting")
+#mpi.print_sorted("starting")
 
 
 import numpy as np
@@ -28,7 +28,7 @@ params.output.sub_directory = "Fluidsim_Data/examples"
 params.short_name_type_run = "aniso_" + kind
 #params.projection = "poloidal"
 
-nx = ny = nz = 320 * 2
+nx = ny = nz = 160
 Lx = 2.0 * np.pi
 params.oper.nx = nx
 params.oper.ny = ny
@@ -39,12 +39,12 @@ params.oper.Lz = Lz = Lx / nx * nz
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.cfl_coef = 0.2
-params.time_stepping.t_end = 0.2
+params.time_stepping.t_end = 2.0
 
 # Brunt Vaisala frequency
 params.N = 2.0
 # Viscosity
-params.nu_2 = 1e-3
+params.nu_2 = 1e-2
 
 mpi.printby0(f"N = {params.N:.3e}, nu_2 = {params.nu_2:.3e}")
 

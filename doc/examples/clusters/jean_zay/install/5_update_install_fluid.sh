@@ -7,20 +7,21 @@ hg up cluster-jean-zay # cluster-jean-zay should be replaced by default when mer
 make clean
 pip install -e .
 
-# TODO: Remove the line with transonic when fix-bug-mpi-barrier-jean-zay is merged
+
 cd $WORK/Dev/transonic
 hg pull
-hg up fix-bug-mpi-barrier-jean-zay
+hg up default
 make clean
 pip install -e .
+
 
 cd $WORK/Dev/fluidfft
 hg pull
 hg up default
-# pip install -e .   seems to run something with mpi, which is forbidden
 python setup.py develop
 # TODO: QUESTION for Vincent: does this work for fluidfft?
 # pip install -e . --no-build-isolation
+# Vincent: No
 
 cd $WORK/Dev/fluidsim
 make cleanall
