@@ -135,6 +135,13 @@ def create_parser():
         help='Forced field (can be "polo", "toro", ...)',
     )
 
+    parser.add_argument(
+        "--init-velo-max",
+        type=float,
+        default=0.01,
+        help="params.init_fields.noise.max",
+    )
+
     # shape of the forcing region in spectral space
 
     parser.add_argument(
@@ -293,7 +300,7 @@ def create_params(args):
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = 1.0
-    params.init_fields.noise.velo_max = 0.01
+    params.init_fields.noise.velo_max = args.init_velo_max
 
     params.forcing.enable = True
     params.forcing.type = "tcrandom_anisotropic"
@@ -323,7 +330,7 @@ def create_params(args):
     kf_max = kf * args.ratio_kfmax_kf
 
     params.forcing.nkmin_forcing = max(0, round3(kf_min / delta_kz))
-    params.forcing.nkmax_forcing = min(nz // 2, max(1, round3(kf_max / delta_kz)))
+    params.forcing.nkmax_forcing = min(nz // 2, round3(kf_max / delta_kz))
 
     mpi.printby0(
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
@@ -367,8 +374,6 @@ def main(**defaults):
 
     args = parse_args(parser)
 
-    from fluidsim.solvers.ns3d.strat.solver import Simul
-
     params = create_params(args)
 
     if (
@@ -378,7 +383,7 @@ def main(**defaults):
     ):
         params.output.HAS_TO_SAVE = False
 
-    sim = Simul(params)
+    sim = None
 
     if args.only_print_params_as_code:
         params._print_as_code()
@@ -387,6 +392,10 @@ def main(**defaults):
     if args.only_print_params:
         print(params)
         return params, sim
+
+    from fluidsim.solvers.ns3d.strat.solver import Simul
+
+    sim = Simul(params)
 
     if args.only_plot_forcing:
         sim.forcing.forcing_maker.plot_forcing_region()
