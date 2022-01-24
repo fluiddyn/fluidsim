@@ -1,27 +1,12 @@
 #!/bin/bash
 set -e
 
-cd $WORK/Dev/fluiddyn
-hg pull
-hg up cluster-jean-zay # TODO: cluster-jean-zay should be replaced by default before merging
-make clean
-pip install -e .
-
-
-cd $WORK/Dev/transonic
-hg pull
-hg up default
-make clean
-pip install -e .
-
-
 cd $WORK/Dev/fluidfft
 hg pull
 hg up default
 python setup.py develop
-# TODO: QUESTION for Vincent: does this work for fluidfft?
+# Does not work with (uses MPI, which is forbidden on the frontales)
 # pip install -e . --no-build-isolation
-# Vincent: No
 
 cd $WORK/Dev/fluidsim
 make cleanall
