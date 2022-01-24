@@ -44,6 +44,7 @@ from math import pi, asin, sin
 
 import argparse
 
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
@@ -265,6 +266,7 @@ def create_params(args):
 
     params.oper.Lx = params.oper.Ly = Lh
     params.oper.Lz = Lh / args.ratio_nh_nz
+    delta_kz = 2 * pi / params.oper.Lz
 
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
@@ -281,7 +283,6 @@ def create_params(args):
         # compute nu_4 from injection_rate and dx
         # Kolmogorov length scale
         eta = (args.nu ** 3 / injection_rate) ** 0.25
-        delta_kz = 2 * pi / params.oper.Lz
         k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
 
         mpi.printby0(f"{eta * k_max = :.3e}")
@@ -399,7 +400,6 @@ def main(**defaults):
 
     if args.only_plot_forcing:
         sim.forcing.forcing_maker.plot_forcing_region()
-        import matplotlib.pyplot as plt
 
         plt.show()
         return params, sim
