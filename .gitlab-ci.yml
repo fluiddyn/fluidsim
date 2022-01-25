@@ -4,5 +4,5 @@ variables:
 tests:
   image: fluiddyn/python3-stable:testing
   script:
-    - pip install -U pip tox numpy cython mpi4py --user
+    - pip install -U pip tox --user
     - tox -e py38,py38-fft,codecov
