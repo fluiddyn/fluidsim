@@ -68,6 +68,7 @@ source ~/setup_ssh.sh  # Is it necessary?
 source 3_setup_env_conda.sh
 ./4_clone_fluid.sh
 ./5_update_install_fluid.sh
+cd .. && make
 ```
 
 **Note:** # TODO: put some notes here if there are some troubles during the installation

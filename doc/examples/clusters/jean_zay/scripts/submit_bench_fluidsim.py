@@ -12,10 +12,7 @@ fluidsim-bench-analysis 640 1280 1280 -i . -s ns3d.strat
 
 """
 
-from fluiddyn.clusters.idris import JeanZay as Cluster
-
-cluster = Cluster()
-
+from fluidjean_zay import cluster, JeanZay
 
 # Usefull to solve the problem of long import # TODO: Remove it when it is solved.
 cluster.commands_setting_env.append(

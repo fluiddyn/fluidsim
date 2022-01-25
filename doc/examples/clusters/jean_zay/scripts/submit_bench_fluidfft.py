@@ -12,9 +12,7 @@ fluidfft-bench-analysis 640 1280 1280 -i .
 
 """
 
-from fluiddyn.clusters.idris import JeanZay as Cluster
-
-cluster = Cluster()
+from fluidjean_zay import cluster, JeanZay
 
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node

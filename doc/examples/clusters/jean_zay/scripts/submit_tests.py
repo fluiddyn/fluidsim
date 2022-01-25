@@ -4,7 +4,7 @@ submit_tests.py
 
 """
 
-from fluiddyn.clusters.idris import JeanZay as Cluster
+from fluidjean_zay import cluster
 
 cluster = Cluster()
 

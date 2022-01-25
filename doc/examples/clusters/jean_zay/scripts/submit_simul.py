@@ -1,8 +1,6 @@
 import sys
 
-from fluiddyn.clusters.idris import JeanZay as Cluster
-
-cluster = Cluster()
+from fluidjean_zay import cluster, JeanZay
 
 nb_nodes = 1
 nb_cores_per_node = cluster.nb_cores_per_node

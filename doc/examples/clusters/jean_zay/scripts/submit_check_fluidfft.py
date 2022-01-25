@@ -4,9 +4,7 @@ submit_check_fluidfft.py
 
 """
 
-from fluiddyn.clusters.idris import JeanZay as Cluster
-
-cluster = Cluster()
+from fluidjean_zay import cluster
 
 nb_proc = nb_cores = 2
 walltime = "00:10:00"
