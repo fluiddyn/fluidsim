@@ -5,4 +5,4 @@ tests:
   image: fluiddyn/python3-stable:testing
   script:
     - pip install -U pip tox numpy cython mpi4py --user
-    - tox -e py37,py37-fft,codecov
+    - tox -e py38,py38-fft,codecov
