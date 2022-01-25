@@ -2,7 +2,7 @@ variables:
   CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
 
 tests:
-  image: fluiddyn/python3-stable:testing
+  image: fluiddyn/python3-stable:lastest
   script:
     - pip install -U pip tox --user
     - tox -e py38,py38-fft,codecov
