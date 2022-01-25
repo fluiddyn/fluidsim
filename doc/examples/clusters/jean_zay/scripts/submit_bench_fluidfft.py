@@ -12,7 +12,7 @@ fluidfft-bench-analysis 640 1280 1280 -i .
 
 """
 
-from fluidjean_zay import cluster, JeanZay
+from fluidjean_zay import cluster
 
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
@@ -33,5 +33,3 @@ def submit(nb_nodes):
 
 for nb_nodes in [1, 2, 4, 8]:
     submit(nb_nodes)
-
-

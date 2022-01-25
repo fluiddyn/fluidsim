@@ -6,13 +6,11 @@ submit_tests.py
 
 from fluidjean_zay import cluster
 
-cluster = Cluster()
-
 nb_proc = nb_cores = 2
 walltime = "00:10:00"
 
 cluster.commands_setting_env += [
-    "export FLUIDSIM_PATH=$WORK/Fluidsim_Data/tests_fluidfft",
+    "export FLUIDSIM_PATH=$WORK/Fluidsim_Data/tests_fluidsim",
 ]
 
 cluster.submit_command(

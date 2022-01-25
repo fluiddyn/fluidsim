@@ -1,16 +1,10 @@
-import sys
-
-from fluidjean_zay import cluster, JeanZay
+from fluidjean_zay import cluster
 
 nb_nodes = 1
 nb_cores_per_node = cluster.nb_cores_per_node
 nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 
 walltime = "00:40:00"
-
-cluster.commands_setting_env.append(
-    "export TRANSONIC_MPI_TIMEOUT=100"
-)
 
 cluster.submit_script(
     "run_simul.py",
@@ -22,5 +16,3 @@ cluster.submit_script(
     ask=True,
     walltime=walltime,
 )
-
-

@@ -11,7 +11,12 @@ with open(here.parent / "setup_env_base.sh") as file:
     code_setup_env = file.readlines()
 
 code_setup_env = [line.strip() for line in code_setup_env if line.strip()]
-code_setup_env.append("conda activate env_fluidsim")
+code_setup_env.extend(
+    [
+        "conda activate env_fluidsim",
+        "export TRANSONIC_MPI_TIMEOUT=100",
+    ]
+)
 
 try:
     cluster = JeanZay()
