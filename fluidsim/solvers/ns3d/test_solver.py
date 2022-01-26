@@ -32,6 +32,15 @@ class TestSimulBase(TestSimul):
 
         return Simul
 
+    @staticmethod
+    def _init_grid(params, nx):
+        params.oper.nx = nx
+        params.oper.ny = nx * 3 // 4
+        try:
+            params.oper.nz = nx // 2
+        except AttributeError:
+            pass
+
     @classmethod
     def init_params(cls):
 
@@ -39,15 +48,12 @@ class TestSimulBase(TestSimul):
 
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        nx = 32
-        params.oper.nx = nx
-        params.oper.ny = nx * 3 // 4
+        cls._init_grid(params, nx=16)
 
         Lx = 6.0
         params.oper.Lx = Lx
         params.oper.Ly = Lx * params.oper.ny / params.oper.nx
         try:
-            params.oper.nz = nx // 2
             params.oper.Lz = Lx * params.oper.nz / params.oper.nx
         except AttributeError:
             pass
@@ -56,7 +62,7 @@ class TestSimulBase(TestSimul):
         params.nu_4 = 2.0
         params.nu_8 = 2.0
 
-        params.time_stepping.t_end = 0.2
+        params.time_stepping.t_end = 1.5 * params.time_stepping.deltat_max
         params.init_fields.type = "noise"
 
         return params
@@ -64,8 +70,9 @@ class TestSimulBase(TestSimul):
 
 class TestTendency(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
+        cls._init_grid(params, nx=20)
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
@@ -90,7 +97,7 @@ class TestTendency(TestSimulBase):
 
 class TestOutput(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
 
         params.oper.truncation_shape = "no_multiple_aliases"
@@ -544,7 +551,7 @@ class TestForcingWatuCoriolis(TestSimulBase):
 
 class TestForcingMilestone(TestSimulBase):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
         params.forcing.enable = True
         params.forcing.type = "milestone"
@@ -563,11 +570,11 @@ class TestForcingMilestone(TestSimulBase):
 
 class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
     @classmethod
-    def init_params(self):
+    def init_params(cls):
         params = super().init_params()
         params.oper.NO_SHEAR_MODES = True
         params.time_stepping.t_end = 2.0
-        params.forcing.milestone.nx_max = 24
+        params.forcing.milestone.nx_max = 16
         movement = params.forcing.milestone.movement
         movement.type = "periodic_uniform"
         movement.periodic_uniform.length = 2.0
