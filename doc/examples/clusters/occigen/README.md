@@ -1,7 +1,7 @@
 ## Let's start on Occigen
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and
+(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and
 copy the public key in https://foss.heptapod.net and https://heptapod.host.
 
 Download setup files:

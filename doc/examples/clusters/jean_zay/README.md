@@ -3,10 +3,8 @@
 ### SSH key
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and
+(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and
 copy the public key in https://foss.heptapod.net.
-
-TODO: the links don't work.
 
 ### Download setup files
 
@@ -54,7 +52,7 @@ We configured the installation of p3dfft-2.7.6 in $WORK such that you simply hav
 module load automake/1.16.1 libtool/2.4.6
 bash $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
 ```
- 
+
 ## Installation
 
 Move to the install directory and run the following commands (from this directory):
