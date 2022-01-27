@@ -113,7 +113,14 @@ def create_parser():
         "-N", type=float, default=10.0, help="Brunt-Väisälä frequency"
     )
 
-    parser.add_argument("-nu", type=float, default=1e-3, help="Viscosity")
+    parser.add_argument("-nu", type=float, default=None, help="Viscosity")
+
+    parser.add_argument(
+        "-Rb",
+        type=float,
+        default=None,
+        help="Input buoyancy Reynolds number (injection_rate / (nu * N^2))",
+    )
 
     parser.add_argument(
         "--nu4",
@@ -261,6 +268,7 @@ def create_params(args):
 
     Lfh = 1.0
     injection_rate = 1.0
+    Uh = (injection_rate * Lfh) ** (1 / 3)
 
     Lh = args.nh_forcing * Lfh
 
@@ -275,14 +283,31 @@ def create_params(args):
 
     # Brunt Vaisala frequency
     params.N = args.N
-    params.nu_2 = args.nu
+    Fh = Uh / (args.N * Lfh)
+
+    mpi.printby0(f"Input horizontal Froude number: {Fh:.3g}")
+
+    nu = None
+    if args.nu is not None and args.Rb is not None:
+        raise ValueError("args.nu is not None and args.Rb is not None")
+
+    if args.nu is not None:
+        nu = args.nu
+        Rb = injection_rate / (nu * args.N ** 2)
+    else:
+        Rb = args.Rb or 5.0
+        nu = injection_rate / (Rb * args.N ** 2)
+
+    mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+
+    params.nu_2 = nu
 
     if args.nu4 is not None:
         params.nu_4 = args.nu4
     else:
         # compute nu_4 from injection_rate and dx
         # Kolmogorov length scale
-        eta = (args.nu ** 3 / injection_rate) ** 0.25
+        eta = (nu ** 3 / injection_rate) ** 0.25
         k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
 
         mpi.printby0(f"{eta * k_max = :.3e}")
