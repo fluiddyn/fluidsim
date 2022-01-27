@@ -226,7 +226,7 @@ def create_parser():
     parser.add_argument(
         "--coef-dealiasing",
         type=float,
-        default=0.95,
+        default=0.8,
         help="params.oper.coef_dealiasing",
     )
 
