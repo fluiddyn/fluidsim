@@ -10,6 +10,9 @@
 import numpy as np
 
 from warnings import warn
+
+from fluiddyn.util import mpi
+
 from fluidsim.solvers.ns3d.output.spect_energy_budget import (
     SpectralEnergyBudgetNS3D,
 )
@@ -107,14 +110,11 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             self.compute_spectra("transfer_A", np.real(b_fft.conj() * fb_fft))
         )
 
-        for key, value in results.items():
-            if key.startswith("transfer_A"):
-                try:
-                    assert value.sum() < 1e-12
-                except AssertionError:
-                    warn(
-                        f"spect_energy_budg: transfer_A.sum() is too big {value.sum()}"
-                    )
+        transfer_A = results["transfer_A"]
+        if mpi.rank == 0 and transfer_A.sum() > 1e-12:
+            warn(
+                f"spect_energy_budg: transfer_A.sum() is too big {transfer_A.sum()}"
+            )
 
         return results
 
