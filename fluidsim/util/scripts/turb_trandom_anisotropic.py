@@ -381,7 +381,7 @@ def create_params(args):
     params.output.spectra.kzkh_periodicity = 1
 
     if args.spatiotemporal_spectra:
-        params.output.periods_save.spatiotemporal_spectra = period_N / 2
+        params.output.periods_save.spatiotemporal_spectra = period_N / 4
 
     params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
     # probes_region in nondimensional units (mode indices).
