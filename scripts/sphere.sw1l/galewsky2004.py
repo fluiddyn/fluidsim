@@ -31,7 +31,7 @@ params.oper.lmax = N // 3
 params.oper.nlat = N // 2
 params.oper.nlon = N
 
-hour = 60 ** 2
+hour = 60**2
 params.time_stepping.USE_CFL = False
 params.time_stepping.deltat0 = dt = 10  # 150 seconds for 3rd order AB scheme
 params.time_stepping.t_end = 150 * hour

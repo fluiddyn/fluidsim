@@ -71,8 +71,8 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
             skew_eta = 0.0
             kurt_eta = 0.0
         else:
-            skew_eta = np.mean(eta ** 3) / meaneta2 ** (3.0 / 2)
-            kurt_eta = np.mean(eta ** 4) / meaneta2 ** (2)
+            skew_eta = np.mean(eta**3) / meaneta2 ** (3.0 / 2)
+            kurt_eta = np.mean(eta**4) / meaneta2 ** (2)
 
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")
@@ -88,15 +88,15 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
             skew_rot = 0.0
             kurt_rot = 0.0
         else:
-            skew_rot = np.mean(rot ** 3) / meanrot2 ** (3.0 / 2)
-            kurt_rot = np.mean(rot ** 4) / meanrot2 ** (2)
+            skew_rot = np.mean(rot**3) / meanrot2 ** (3.0 / 2)
+            kurt_rot = np.mean(rot**4) / meanrot2 ** (2)
 
         if meandiv2 == 0:
             skew_div = 0.0
             kurt_div = 0.0
         else:
-            skew_div = np.mean(div ** 3) / meandiv2 ** (3.0 / 2)
-            kurt_div = np.mean(div ** 4) / meandiv2 ** (2)
+            skew_div = np.mean(div**3) / meandiv2 ** (3.0 / 2)
+            kurt_div = np.mean(div**4) / meandiv2 ** (2)
 
         if mpi.rank == 0:
             self._result.update(
@@ -136,10 +136,10 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         div = self.sim.state.get_var("div")
         h = eta + 1
 
-        Conv = c2 / 2 * mean_global(h ** 2 * div)
+        Conv = c2 / 2 * mean_global(h**2 * div)
         c2eta1d = c2 * mean_global(eta * div)
-        c2eta2d = c2 * mean_global(eta ** 2 * div)
-        c2eta3d = c2 * mean_global(eta ** 3 * div)
+        c2eta2d = c2 * mean_global(eta**2 * div)
+        c2eta3d = c2 * mean_global(eta**3 * div)
 
         if mpi.rank == 0:
             self._result.update(
@@ -446,7 +446,7 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")
 
-        EKquad = 0.5 * (ux ** 2 + uy ** 2)
+        EKquad = 0.5 * (ux**2 + uy**2)
         EKquad_fft = self.sim.oper.fft2(EKquad)
 
         eta_fft = self.sim.state.get_var("eta_fft")

@@ -152,7 +152,7 @@ class TimeSignalsK(SpecificOutput):
 
         if mpi.rank == 0:
             self.kh_array_ik = np.sqrt(
-                self.kx_array_ik ** 2 + self.ky_array_ik ** 2
+                self.kx_array_ik**2 + self.ky_array_ik**2
             )
 
             self.omega_array_ik = self.output.omega_from_wavenumber(

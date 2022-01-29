@@ -61,7 +61,7 @@ def update(context):
 
 if __name__ == "__main__":
     Re = 1e4
-    U = 2 ** 0.5
+    U = 2**0.5
     L = 1.0
     dt = 1e-12
     config.update(

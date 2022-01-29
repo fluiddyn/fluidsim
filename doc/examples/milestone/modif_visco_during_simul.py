@@ -66,13 +66,13 @@ movement = PeriodicUniform(
 params.time_stepping.t_end = movement.period * 0.25
 params.time_stepping.deltat_max = 0.1 * diameter / speed
 
-epsilon_eval = 0.02 * speed ** 3 / mesh
+epsilon_eval = 0.02 * speed**3 / mesh
 kmax = params.oper.coef_dealiasing * pi / dx
 eta_kmax = 2 * pi / kmax
-nu_2_needed = (epsilon_eval * eta_kmax ** 4) ** (1 / 3)
-freq_nu4 = 0.5 * (nu_2_needed - params.nu_2) * kmax ** 2
+nu_2_needed = (epsilon_eval * eta_kmax**4) ** (1 / 3)
+freq_nu4 = 0.5 * (nu_2_needed - params.nu_2) * kmax**2
 
-nu_4_needed = freq_nu4 / kmax ** 4
+nu_4_needed = freq_nu4 / kmax**4
 
 # for the first main time loop, nearly no viscosity!
 # warning: not exactly 0 otherwise, output methods get lost

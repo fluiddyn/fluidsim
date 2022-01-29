@@ -42,7 +42,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-np", "--n-periods", type=int, default=4, help="Number of periods",
+    "-np", "--n-periods", type=int, default=4, help="Number of periods"
 )
 
 parser.add_argument(
@@ -127,21 +127,21 @@ def main(args):
 
     params.nu_2 = 1e-6
 
-    epsilon_eval = 0.02 * speed ** 3 / mesh
-    eta_elav = (params.nu_2 ** 3 / epsilon_eval) ** (1 / 4)
+    epsilon_eval = 0.02 * speed**3 / mesh
+    eta_elav = (params.nu_2**3 / epsilon_eval) ** (1 / 4)
 
     kmax = params.oper.coef_dealiasing * pi / dx
     eta_kmax = 2 * pi / kmax
-    nu_2_needed = (epsilon_eval * eta_kmax ** 4) ** (1 / 3)
+    nu_2_needed = (epsilon_eval * eta_kmax**4) ** (1 / 3)
 
     mpi.printby0("eta_elav * kmax:", eta_elav * kmax)
 
-    freq_nu4 = 0.5 * (nu_2_needed - params.nu_2) * kmax ** 2
+    freq_nu4 = 0.5 * (nu_2_needed - params.nu_2) * kmax**2
 
     mpi.printby0("freq_nu4", freq_nu4)
-    mpi.printby0("freq_nu4 / freq_nu2", freq_nu4 / (params.nu_2 * kmax ** 2))
+    mpi.printby0("freq_nu4 / freq_nu2", freq_nu4 / (params.nu_2 * kmax**2))
 
-    params.nu_4 = freq_nu4 / kmax ** 4
+    params.nu_4 = freq_nu4 / kmax**4
 
     params.output.sub_directory = "milestone"
     params.output.periods_print.print_stdout = movement.period / 50.0

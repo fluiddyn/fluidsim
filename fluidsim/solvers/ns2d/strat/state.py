@@ -92,7 +92,7 @@ class StateNS2DStrat(StateNS2D):
             b_fft = self.state_spect.get_var("b_fft")
             N = self.sim.params.N
             omega_k = self.sim.compute_dispersion_relation()
-            result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
+            result = (N**2) * uy_fft + 1j * omega_k * b_fft
             # result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
         elif key == "am_fft":
             rot_fft = self.state_spect.get_var("rot_fft")
@@ -108,7 +108,7 @@ class StateNS2DStrat(StateNS2D):
             # print("omega_k", omega_k)
             # print("1j * omega_k * b_fft", 1j * omega_k * b_fft)
             # print("(N ** 2) * uy_fft", (N ** 2) * uy_fft)
-            result = (N ** 2) * uy_fft - 1j * omega_k * b_fft
+            result = (N**2) * uy_fft - 1j * omega_k * b_fft
             # result = (N ** 2) * uy_fft + 1j * omega_k * b_fft
         # result = np.zeros(self.oper.shapeK, dtype="complex")
         elif key == "ap":
@@ -191,7 +191,7 @@ class StateNS2DStrat(StateNS2D):
         """
         # it should be (ap_fft + am_fft)
         # but ap_fft is assumed to be null
-        uy_fft = (1.0 / (2 * self.params.N ** 2)) * am_fft
+        uy_fft = (1.0 / (2 * self.params.N**2)) * am_fft
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]
@@ -215,7 +215,7 @@ class StateNS2DStrat(StateNS2D):
         """
         # it should be (ap_fft + am_fft)
         # but am_fft is assumed to be null
-        uy_fft = (1.0 / (2 * self.params.N ** 2)) * ap_fft
+        uy_fft = (1.0 / (2 * self.params.N**2)) * ap_fft
         cond = self.oper.KX != 0
         division = np.zeros_like(self.oper.KY)
         division[cond] = self.oper.KY[cond] / self.oper.KX[cond]

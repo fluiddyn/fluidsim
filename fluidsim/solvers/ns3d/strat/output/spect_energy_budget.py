@@ -87,7 +87,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
         b_fft = state_spect.get_var("b_fft")
 
         results.update(
-            self.compute_spectra("diss_A", 1 / N ** 2 * f_d * abs(b_fft) ** 2)
+            self.compute_spectra("diss_A", 1 / N**2 * f_d * abs(b_fft) ** 2)
         )
 
         results.update(
@@ -101,7 +101,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
 
         fb_fft = (
             -1
-            / N ** 2
+            / N**2
             * oper.div_vb_fft_from_vb(vx, vy, vz, state_phys.get_var("b"))
         )
         del vx, vy, vz
@@ -149,7 +149,7 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
             fig, ax = self.output.figure_axe()
 
         xlabel = "k_" + key_k[1]
-        ylabel = fr"$\Pi({xlabel})/\epsilon$"
+        ylabel = rf"$\Pi({xlabel})/\epsilon$"
         ax.set_xlabel(f"${xlabel}$")
         ax.set_ylabel(ylabel)
         ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")

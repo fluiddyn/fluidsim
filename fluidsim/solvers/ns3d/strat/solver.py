@@ -29,7 +29,7 @@ Ac = "complex128[:,:,:]"
 @boost
 def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac):
     fb_fft = div_vb_fft
-    fb_fft[:] = -div_vb_fft - N ** 2 * vz_fft
+    fb_fft[:] = -div_vb_fft - N**2 * vz_fft
     return fb_fft
 
 
@@ -226,7 +226,7 @@ class Simul(SimulNS3D):
         pulsation in rad.
         """
         return self.params.N * np.sqrt(
-            (self.oper.Kx ** 2 + self.oper.Ky ** 2)
+            (self.oper.Kx**2 + self.oper.Ky**2)
             * self.oper.inv_K_square_nozero
         )
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-    params.nu_8 = 2.0 * 10e-1 * delta_x ** 8
+    params.nu_8 = 2.0 * 10e-1 * delta_x**8
 
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = 6.0

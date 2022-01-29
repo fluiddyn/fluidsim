@@ -58,7 +58,7 @@ class ForcingNS2DStrat(ForcingNS2D):
         if constant_rate_of == "energyK":
             return a, b
 
-        N2 = self.sim.params.N ** 2
+        N2 = self.sim.params.N**2
         a += deltat / 2 * sum_k(abs(fb_fft) ** 2) / N2
         b += sum_k((b_fft.conj() * fb_fft).real) / N2
 

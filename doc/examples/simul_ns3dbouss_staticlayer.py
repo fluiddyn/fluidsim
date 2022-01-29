@@ -105,7 +105,7 @@ d_forcing_b = 1.2 * d_forcing
 
 b = (
     -0.5
-    * (1 - np.tanh((Rh2 - r0 ** 2) / 0.2 ** 2))
+    * (1 - np.tanh((Rh2 - r0**2) / 0.2**2))
     * step_func(Z - d_forcing_b)
     * step_func(-(Z - (lz - d_forcing_b)))
 )

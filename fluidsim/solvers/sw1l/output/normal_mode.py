@@ -31,13 +31,13 @@ class NormalModeBase:
         self.oper = output.oper
 
         f = self.params.f
-        c = self.params.c2 ** 0.5
+        c = self.params.c2**0.5
         ck = c * self.oper.K_not0
 
         if f == 0:
             self.sigma = ck
         else:
-            self.sigma = np.sqrt(f ** 2 + (ck) ** 2)
+            self.sigma = np.sqrt(f**2 + ck**2)
 
         self.bvec_fft = None
         self.it_bvec_fft_computed = -1
@@ -64,14 +64,14 @@ class NormalModeBase:
     def bvecfft_from_qapamfft(self, q_fft, ap_fft, am_fft):
         r"""Compute normal mode vector :math:`\mathbf{B}`
         with dimensions of velocity from diagonalized linear modes."""
-        c = self.params.c2 ** 0.5
+        c = self.params.c2**0.5
         c2 = self.params.c2
         K = self.oper.K_not0
         sigma = self.sigma
 
         q_fft = -q_fft * c / sigma
-        ap_fft = ap_fft * 2 ** 0.5 * c2 / (sigma * K)
-        am_fft = am_fft * 2 ** 0.5 * c2 / (sigma * K)
+        ap_fft = ap_fft * 2**0.5 * c2 / (sigma * K)
+        am_fft = am_fft * 2**0.5 * c2 / (sigma * K)
         bvec_fft = np.array([q_fft, ap_fft, am_fft])
         if mpi.rank == 0 or self.oper.is_sequential:
             bvec_fft[:, 0, 0] = 0.0
@@ -123,7 +123,7 @@ class NormalModeDecomposition(NormalModeBase):
         sigma = self.sigma
 
         f = float(self.params.f)
-        c = self.params.c2 ** 0.5
+        c = self.params.c2**0.5
         KX = oper.KX
         KY = oper.KY
         K = oper.K
@@ -131,24 +131,21 @@ class NormalModeDecomposition(NormalModeBase):
         K_not0 = oper.K_not0
         ck = c * K_not0
 
-        qmat = (
-            np.array(
+        qmat = np.array(
+            [
                 [
-                    [
-                        -1j * 2.0 ** 0.5 * ck * KY,
-                        +1j * f * KY + KX * sigma,
-                        +1j * f * KY - KX * sigma,
-                    ],
-                    [
-                        +1j * 2.0 ** 0.5 * ck * KX,
-                        -1j * f * KX + KY * sigma,
-                        -1j * f * KX - KY * sigma,
-                    ],
-                    [2.0 ** 0.5 * f * K, c * K2, c * K2],
-                ]
-            )
-            / (2.0 ** 0.5 * sigma * K_not0)
-        )
+                    -1j * 2.0**0.5 * ck * KY,
+                    +1j * f * KY + KX * sigma,
+                    +1j * f * KY - KX * sigma,
+                ],
+                [
+                    +1j * 2.0**0.5 * ck * KX,
+                    -1j * f * KX + KY * sigma,
+                    -1j * f * KX - KY * sigma,
+                ],
+                [2.0**0.5 * f * K, c * K2, c * K2],
+            ]
+        ) / (2.0**0.5 * sigma * K_not0)
 
         if mpi.rank == 0 or oper.is_sequential:
             qmat[:, :, 0, 0] = 0.0
@@ -196,7 +193,7 @@ class NormalModeDecomposition(NormalModeBase):
                     )
 
             if "eta" in key:
-                normal_mode_vec_fft = normal_mode_vec_fft / self.params.c2 ** 0.5
+                normal_mode_vec_fft = normal_mode_vec_fft / self.params.c2**0.5
 
         return key_modes, normal_mode_vec_fft
 

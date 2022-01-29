@@ -83,7 +83,7 @@ for path in path_simulations:
     )
     print("lx", lx)
     # Compute eta_8
-    eta_8 = (sim.params.nu_8 ** 3 / epsK_tmean) ** (1 / 22)
+    eta_8 = (sim.params.nu_8**3 / epsK_tmean) ** (1 / 22)
     print("eta_8", eta_8)
 
     # Compute Re_8
@@ -91,11 +91,11 @@ for path in path_simulations:
     print("Re_8", Re_8)
 
     # Compute horizontal Froude
-    F_h = ((epsK_tmean / lx ** 2) ** (1 / 3)) * (1 / sim.params.N)
+    F_h = ((epsK_tmean / lx**2) ** (1 / 3)) * (1 / sim.params.N)
     print("F_h", F_h)
 
     # Reynolds buoyancy 8
-    Rb8 = Re_8 * F_h ** 8
+    Rb8 = Re_8 * F_h**8
     print("Rb8", Rb8)
 
     if MAKE_TABLE:

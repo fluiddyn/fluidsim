@@ -18,7 +18,7 @@ dir_base = create_fig.path_base_dir + "/Results_SW1lw"
 
 c = 40
 
-resol = 240 * 2 ** 5
+resol = 240 * 2**5
 
 str_resol = repr(resol)
 str_to_find_path = (
@@ -138,8 +138,8 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
             linewidth=1,
         )
 
-        plt.text(1, 6 * 10 ** 0, f"order = {order:.2f}", fontsize=16)
-        plt.text(0.11, 4 * 10 ** -1, f"expo = {expo:.3f}", fontsize=16)
+        plt.text(1, 6 * 10**0, f"order = {order:.2f}", fontsize=16)
+        plt.text(0.11, 4 * 10**-1, f"expo = {expo:.3f}", fontsize=16)
 
         plt.rc("legend", numpoints=1)
         leg1 = ax1.legend(

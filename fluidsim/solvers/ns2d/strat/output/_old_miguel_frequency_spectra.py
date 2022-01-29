@@ -87,7 +87,7 @@ class FrequencySpectra(SpecificOutput):
 
         # Compute number array in file
         nb_bytes = np.empty([n0, n1], dtype=float).nbytes
-        self.nb_arr_in_file = int(self.size_max_file * (1024 ** 2) // nb_bytes)
+        self.nb_arr_in_file = int(self.size_max_file * (1024**2) // nb_bytes)
         mpi.printby0("nb_arr_in_file", self.nb_arr_in_file)
 
         # Check: duration file <= duration simulation

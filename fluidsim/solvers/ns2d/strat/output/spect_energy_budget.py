@@ -80,7 +80,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         if self.params.N == 0:
             transferEA_fft = np.zeros_like(transferZ_fft)
         else:
-            transferEA_fft = (1 / self.params.N ** 2) * np.real(
+            transferEA_fft = (1 / self.params.N**2) * np.real(
                 b_fft.conj() * Fb_fft
             )
 
@@ -100,7 +100,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
         if self.params.N == 0:
             dissEA_fft = np.zeros_like(dissEK_fft)
         else:
-            dissEA_fft = (1 / self.params.N ** 2) * np.real(
+            dissEA_fft = (1 / self.params.N**2) * np.real(
                 freq_diss_EK * (b_fft.conj() * b_fft)
             )
 
@@ -448,7 +448,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             ax2.axvspan(k_fymin / k_fy, k_fymax / k_fy, alpha=0.15, color="black")
 
             # Plot ozmidov scale
-            k_o = (self.params.N ** 3 / self.params.forcing.forcing_rate) ** (
+            k_o = (self.params.N**3 / self.params.forcing.forcing_rate) ** (
                 1 / 2
             )
             ax1.axvline(x=k_o / k_fx, color="black", linestyle="--")

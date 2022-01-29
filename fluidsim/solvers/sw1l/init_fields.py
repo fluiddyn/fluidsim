@@ -127,7 +127,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         amp = params.omega_max
 
         def wz_gaussian(x, y, sign):
-            return sign * amp * np.exp(-(x ** 2 + y ** 2) / (2 * SD ** 2))
+            return sign * amp * np.exp(-(x**2 + y**2) / (2 * SD**2))
 
         omega = np.zeros(oper.shapeX_loc)
         for i in range(0, N_vort):
@@ -143,7 +143,7 @@ class InitFieldsVortexGrid(SpecificInitFields):
         """
         Returns a list with of length n_vort^2, with equal number of pluses and minuses.
         """
-        N = self.sim.params.init_fields.vortex_grid.n_vort ** 2
+        N = self.sim.params.init_fields.vortex_grid.n_vort**2
         if mpi.rank == 0:
             pm = np.ones(N)
             pm[::2] = -1

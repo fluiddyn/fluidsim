@@ -81,8 +81,8 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             PA1_fft = np.real(b_fft.conj() * Fb_fft)
             PA2_fft = abs(Fb_fft) ** 2
 
-            PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N ** 2
-            PA2 = deltat / 2 / self.params.N ** 2 * self.sum_wavenumbers(PA2_fft)
+            PA1 = self.sum_wavenumbers(PA1_fft) / self.params.N**2
+            PA2 = deltat / 2 / self.params.N**2 * self.sum_wavenumbers(PA2_fft)
 
         if mpi.rank == 0:
             epsK_tot = epsK + epsK_hypo

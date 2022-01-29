@@ -152,7 +152,7 @@ class SimulSphereSW1L(SimulSphericalHarmo):
         # Subtract laplacian of K.E. + hydrostatic pressure term from
         # divergence tendency
         Fdiv_sh += oper.laplacian_sh(
-            oper.sht(0.5 * (ux ** 2 + uy ** 2) + c2 * eta), negative=True
+            oper.sht(0.5 * (ux**2 + uy**2) + c2 * eta), negative=True
         )
 
         # Calculate Feta_sh = \nabla.(hu) = \nabla.((1 + \eta)u)

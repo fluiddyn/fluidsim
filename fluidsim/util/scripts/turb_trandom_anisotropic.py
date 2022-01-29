@@ -293,10 +293,10 @@ def create_params(args):
 
     if args.nu is not None:
         nu = args.nu
-        Rb = injection_rate / (nu * args.N ** 2)
+        Rb = injection_rate / (nu * args.N**2)
     else:
         Rb = args.Rb or 5.0
-        nu = injection_rate / (Rb * args.N ** 2)
+        nu = injection_rate / (Rb * args.N**2)
 
     mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
 
@@ -307,7 +307,7 @@ def create_params(args):
     else:
         # compute nu_4 from injection_rate and dx
         # Kolmogorov length scale
-        eta = (nu ** 3 / injection_rate) ** 0.25
+        eta = (nu**3 / injection_rate) ** 0.25
         k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
 
         mpi.printby0(f"{eta * k_max = :.3e}")

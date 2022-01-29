@@ -240,7 +240,7 @@ if __name__ == "__main__":
     x0 = y0 = z0 = L / 2.0
     R2 = (X - x0) ** 2 + (Y - y0) ** 2 + (Z - z0) ** 2
     r0 = 0.5
-    b = -np.exp(-R2 / r0 ** 2)
+    b = -np.exp(-R2 / r0**2)
     variables["b"] = b
 
     sim.state.init_statephys_from(**variables)

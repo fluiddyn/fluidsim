@@ -306,7 +306,7 @@ class SpectraSW1L(Spectra):
             ax.set_yscale("log")
 
             if coef_norm is None:
-                coef_norm = kh ** coef_compensate
+                coef_norm = kh**coef_compensate
 
             machine_zero = 1e-15
             if delta_t != 0.0:
@@ -394,7 +394,7 @@ class SpectraSW1L(Spectra):
             dset_khE = h5file["khE"]
             kh = dset_khE[...]
 
-        coef_norm = 2 * nu * kh ** order
+        coef_norm = 2 * nu * kh**order
         keys = ["E" + k.lstrip("D") for k in keys]
         self.plot2d(
             tmin, tmax, delta_t, 0, coef_norm, keys, colors, kh_norm, ax, False

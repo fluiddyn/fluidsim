@@ -105,7 +105,7 @@ for _f, _r, _a, _d, _m in zip(
     scatter = ax.scatter(
         _f,
         _r,
-        s=2000 * (_a ** 1) + 20,
+        s=2000 * (_a**1) + 20,
         c=_d,
         vmin=0,
         vmax=1,

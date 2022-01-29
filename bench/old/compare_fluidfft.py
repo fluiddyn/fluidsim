@@ -34,7 +34,7 @@ def modif_params(params, old=False):
 
     delta_x = lh / nh
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
     )
 
     try:

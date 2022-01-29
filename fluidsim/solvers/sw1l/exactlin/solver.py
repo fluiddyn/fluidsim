@@ -68,7 +68,7 @@ class Simul(SimulSW1L):
         N1x = +rot * uy
         N1y = -rot * ux
         gradu2_x_fft, gradu2_y_fft = oper.gradfft_from_fft(
-            fft2(ux ** 2 + uy ** 2) / 2
+            fft2(ux**2 + uy**2) / 2
         )
 
         Nx_fft = fft2(N1x) - gradu2_x_fft
@@ -112,9 +112,9 @@ class Simul(SimulSW1L):
         if key == "q_fft":
             omega = self.oper.create_arrayK(value=0)
         elif key == "ap_fft":
-            omega = 1.0j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
+            omega = 1.0j * np.sqrt(self.params.f**2 + self.params.c2 * K2)
         elif key == "am_fft":
-            omega = -1.0j * np.sqrt(self.params.f ** 2 + self.params.c2 * K2)
+            omega = -1.0j * np.sqrt(self.params.f**2 + self.params.c2 * K2)
         return omega
 
     # def verify_tendencies(
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
     )
 
     params.time_stepping.t_end = 2.0

@@ -148,4 +148,4 @@ class StateNS2D(StatePseudoSpectral):
     def compute_energy_phys(self):
         vx = self.state_phys.get_var("ux")
         vy = self.state_phys.get_var("uy")
-        return 0.5 * self.sim.oper.mean_space(vx ** 2 + vy ** 2)
+        return 0.5 * self.sim.oper.mean_space(vx**2 + vy**2)

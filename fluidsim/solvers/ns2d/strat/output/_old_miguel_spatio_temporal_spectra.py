@@ -125,7 +125,7 @@ class SpatioTempSpectra(SpecificOutput):
         # Compute size in bytes of one array
         # self.size_max_file is given in Mbytes. 1 Mbyte == 1024 ** 2 bytes
         nb_bytes = np.empty([nK0_dec, nK1_dec], dtype=complex).nbytes
-        self.nb_arr_in_file = int(self.size_max_file * (1024 ** 2) // nb_bytes)
+        self.nb_arr_in_file = int(self.size_max_file * (1024**2) // nb_bytes)
         mpi.printby0("nb_arr_in_file", self.nb_arr_in_file)
 
         # Check: duration file <= duration simulation
@@ -685,7 +685,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax.set_ylabel(r"$\omega / N$", fontsize=16)
         ax.tick_params(axis="x", labelsize=16)
         ax.tick_params(axis="y", labelsize=16)
-        ax.set_title(fr"$log_{{10}} E(k_x, {kz_decimate[ikz_plot]}, \omega)$")
+        ax.set_title(rf"$log_{{10}} E(k_x, {kz_decimate[ikz_plot]}, \omega)$")
 
         # Compute index array corresponding to field.
         if field == "ap_fft":
@@ -875,7 +875,7 @@ class SpatioTempSpectra(SpecificOutput):
         ax.set_ylabel(r"$\omega / N$", fontsize=16)
         ax.tick_params(axis="x", labelsize=16)
         ax.tick_params(axis="y", labelsize=16)
-        ax.set_title(fr"$log_{{10}} E({kx_decimate[ikx_plot]}, k_z, \omega)$")
+        ax.set_title(rf"$log_{{10}} E({kx_decimate[ikx_plot]}, k_z, \omega)$")
 
         # Compute index array corresponding to field.
         if field == "ap_fft":
@@ -1050,7 +1050,7 @@ class SpatioTempSpectra(SpecificOutput):
         # Linear frequency. Used for compensation of the plots..
         N = self.sim.params.N
         f_l = N / (2 * np.pi)
-        iw = (N / (2 * np.pi)) * kx_mode / (np.sqrt(kx_mode ** 2 + kz_mode ** 2))
+        iw = (N / (2 * np.pi)) * kx_mode / (np.sqrt(kx_mode**2 + kz_mode**2))
 
         # Plot omega +
         fig1, ax1 = plt.subplots()

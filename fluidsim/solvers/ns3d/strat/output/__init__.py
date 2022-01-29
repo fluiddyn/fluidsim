@@ -64,7 +64,7 @@ class Output(OutputNS3D):
         )
 
         nrj_A = compute_energy_from_1field_with_coef(
-            b_fft, 1.0 / self.sim.params.N ** 2
+            b_fft, 1.0 / self.sim.params.N**2
         )
         nrj_Kz = compute_energy_from_1field(vz_fft)
         nrj_Khr = compute_energy_from_2fields(urx_fft, ury_fft)
@@ -78,7 +78,7 @@ class Output(OutputNS3D):
         vy_fft = get_var("vy_fft")
         vz_fft = get_var("vz_fft")
         nrj_A = compute_energy_from_1field_with_coef(
-            b_fft, 1.0 / self.sim.params.N ** 2
+            b_fft, 1.0 / self.sim.params.N**2
         )
         nrj_K = compute_energy_from_3fields(vx_fft, vy_fft, vz_fft)
         return nrj_A + nrj_K

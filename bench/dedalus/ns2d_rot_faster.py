@@ -80,7 +80,7 @@ rot = domain.new_field()
 rot["g"] = gausspulse(np.sqrt((x - 0.5) ** 2 + (y - 0.5) ** 2), fc=1)
 kx = domain.elements(0)
 ky = domain.elements(1)
-k2 = kx ** 2 + ky ** 2
+k2 = kx**2 + ky**2
 psi["c"][k2 != 0] = rot["c"][k2 != 0] / k2[k2 != 0]
 
 # psi['g'] = 10 * y

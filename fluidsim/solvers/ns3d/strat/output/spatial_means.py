@@ -20,7 +20,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
     """Spatial means output."""
 
     def __init__(self, output):
-        self.one_over_N2 = 1.0 / output.sim.params.N ** 2
+        self.one_over_N2 = 1.0 / output.sim.params.N**2
         super().__init__(output)
 
     def _save_one_time(self):
@@ -29,7 +29,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         nrj_A, nrj_Kz, nrj_Khr, nrj_Khd = self.output.compute_energies_fft()
         energyK_fft = nrj_Kz + nrj_Khr + nrj_Khd
         # shear modes
-        COND_SHEAR = self.oper.Kx ** 2 + self.oper.Ky ** 2 == 0.0
+        COND_SHEAR = self.oper.Kx**2 + self.oper.Ky**2 == 0.0
         nrj_Khs = nrj_Khr * COND_SHEAR
         nrj_As = nrj_A * COND_SHEAR
         energyA_fft = nrj_A
@@ -398,12 +398,12 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         results["Fh"] = epsK / (Uh2 * N)
 
         if nu_2:
-            results["R2"] = epsK / (nu_2 * N ** 2)
+            results["R2"] = epsK / (nu_2 * N**2)
         if nu_4:
-            results["R4"] = epsK * Uh2 / (nu_4 * N ** 4)
+            results["R4"] = epsK * Uh2 / (nu_4 * N**4)
             epsK_hyper += data["epsK4"]
         if nu_8:
-            results["R8"] = epsK * Uh2 ** 3 / (nu_8 * N ** 8)
+            results["R8"] = epsK * Uh2**3 / (nu_8 * N**8)
             epsK_hyper += data["epsK8"]
 
         if nu_2 and (nu_4 or nu_8):

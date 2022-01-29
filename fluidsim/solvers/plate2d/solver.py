@@ -303,10 +303,10 @@ if __name__ == "__main__":
     params.oper.coef_dealiasing = 2.0 / 3
 
     delta_x = Lh / nh
-    params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+    params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
 
     kmax = np.sqrt(2) * np.pi / delta_x
-    deltat = 2 * np.pi / kmax ** 2 / 2
+    deltat = 2 * np.pi / kmax**2 / 2
 
     params.time_stepping.USE_CFL = False
     params.time_stepping.deltat0 = deltat

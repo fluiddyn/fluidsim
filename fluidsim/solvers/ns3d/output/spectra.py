@@ -466,12 +466,12 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         deltak = k[1]
 
         # nu_2 dissipation flux
-        fd = self.sim.params.nu_2 * k ** 2
+        fd = self.sim.params.nu_2 * k**2
         diss = fd * spectra_K
         flux_diss_nu2 = deltak * np.cumsum(diss)
 
         # nu_4 dissipation flux
-        fd = self.sim.params.nu_4 * k ** 4
+        fd = self.sim.params.nu_4 * k**4
         diss = fd * spectra_K
         flux_diss_nu4 = deltak * np.cumsum(diss)
 

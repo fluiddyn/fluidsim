@@ -318,8 +318,8 @@ class Increments(SpecificOutput):
         S4_ux = self.strfunc_from_pdf(pdf_ux, values_inc_ux, 4)
         S4_uy = self.strfunc_from_pdf(pdf_uy, values_inc_uy, 4)
 
-        flatnessL_bis = S4_ux / S2_ux ** 2
-        flatnessT_bis = S4_uy / S2_uy ** 2
+        flatnessL_bis = S4_ux / S2_ux**2
+        flatnessT_bis = S4_uy / S2_uy**2
 
         ax2.plot(rxs, flatnessL_bis, "c--", linewidth=2)
         ax2.plot(rxs, flatnessT_bis, "m--", linewidth=2)
@@ -475,7 +475,7 @@ class Increments(SpecificOutput):
 
             ax1.plot(
                 val_inc,
-                pdf_timemean[irxp] * val_inc ** order,
+                pdf_timemean[irxp] * val_inc**order,
                 colors[irxp] + "x-",
                 linewidth=1,
             )

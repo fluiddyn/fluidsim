@@ -91,8 +91,8 @@ ax1.set_xlabel("$2E/c^2$")
 ax1.set_ylabel(r"$\epsilon / P$")
 ax1.hold(True)
 
-coef_norm = Froude_numbers ** -1.54
-ax1.loglog(Froude_numbers, Froude_numbers ** 1.5 * coef_norm, "k--", linewidth=2)
+coef_norm = Froude_numbers**-1.54
+ax1.loglog(Froude_numbers, Froude_numbers**1.5 * coef_norm, "k--", linewidth=2)
 
 # coef_norm = Froude_numbers**-3
 # ax1.loglog(Froude_numbers, Froude_numbers**3*coef_norm, 'k--', linewidth=2)

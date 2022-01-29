@@ -96,12 +96,12 @@ def compute_buoyancy_reynolds(path_simulation, tmin=None):
     epsK = _compute_epsilon_from_path(path_simulation, tmin=tmin)
     lx = _compute_lx_from_path(path_simulation, tmin=tmin)
 
-    F_h = ((epsK / lx ** 2) ** (1 / 3)) * (1 / params.N)
+    F_h = ((epsK / lx**2) ** (1 / 3)) * (1 / params.N)
 
-    eta_8 = (params.nu_8 ** 3 / epsK) ** (1 / 22)
+    eta_8 = (params.nu_8**3 / epsK) ** (1 / 22)
     Re_8 = (lx / eta_8) ** (22 / 3)
 
-    R_b = Re_8 * F_h ** 8
+    R_b = Re_8 * F_h**8
     return F_h, Re_8, R_b
 
 

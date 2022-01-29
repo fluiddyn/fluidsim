@@ -42,7 +42,7 @@ ax1.set_xscale("log")
 ax1.set_yscale("log")
 
 coef_compensate = 5.0 / 3
-coef_norm = kh ** coef_compensate
+coef_norm = kh**coef_compensate
 
 l_Etot = ax1.plot(kh, E_tot * coef_norm, "k", linewidth=4)
 l_EK = ax1.plot(kh, EK * coef_norm, "r", linewidth=2)

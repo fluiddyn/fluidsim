@@ -317,7 +317,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         vy = get_var("vy")
         vz = get_var("vz")
 
-        N2b2 = 0.5 / self.sim.params.N ** 2 * b * b
+        N2b2 = 0.5 / self.sim.params.N**2 * b * b
         EAs = self._compute_means_regions(N2b2)
 
         vh2 = 0.5 * (vx * vx + vy * vy)
@@ -349,7 +349,7 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         del f_d_vx, f_d_vy, f_d_vz
 
         epsAs = [
-            epsA / self.sim.params.N ** 2
+            epsA / self.sim.params.N**2
             for epsA in self._compute_means_regions(b * ifft(f_d * b_fft))
         ]
 

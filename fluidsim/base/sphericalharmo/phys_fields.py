@@ -36,7 +36,7 @@ class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
             key
             + f", $t = {time:.3f}$, "
             + self.output.name_solver
-            + fr", $l_\max = {self.params.oper.lmax:d}$"
+            + rf", $l_\max = {self.params.oper.lmax:d}$"
         )
         if vmax is not None:
             title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"

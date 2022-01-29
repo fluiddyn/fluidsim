@@ -45,7 +45,7 @@ def compute_Frot(rot: A, ux: A, uy: A, f: float):
 
 @jit
 def compute_pressure(c2: float, eta: A, ux: A, uy: A):
-    return c2 * eta + 0.5 * (ux ** 2 + uy ** 2)
+    return c2 * eta + 0.5 * (ux**2 + uy**2)
 
 
 class InfoSolverSW1L(InfoSolverPseudoSpectral):
@@ -145,7 +145,7 @@ class Simul(SimulBasePseudoSpectral):
         params.f = float(params.f)
         params.c2 = float(params.c2)
 
-        params.kd2 = params.f ** 2 / params.c2
+        params.kd2 = params.f**2 / params.c2
         if params.beta != 0:
             raise NotImplementedError(
                 "Do not use this solver for beta-plane! "
@@ -267,7 +267,7 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
     )
 
     params.time_stepping.t_end = 1.0

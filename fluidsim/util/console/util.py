@@ -81,7 +81,7 @@ def modif_box_size(params, n0, n1, n2=None):
 
 
 def modif_params2d(
-    params, n0=3 * 2 ** 8, n1=None, name_run="profile", type_fft=None, it_end=20
+    params, n0=3 * 2**8, n1=None, name_run="profile", type_fft=None, it_end=20
 ):
     """Modify parameters for 2D benchmarks.
 

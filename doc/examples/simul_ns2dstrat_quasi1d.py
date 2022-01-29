@@ -24,7 +24,7 @@ F = np.sin(theta)
 
 kf = 2 * pi
 omega_af = 2 * pi
-forcing_rate = omega_af ** 3 / kf ** 2
+forcing_rate = omega_af**3 / kf**2
 
 Lx = 2 * pi / kf * np.sqrt(1 + (nb_wavelength / aspect_ratio) ** 2)
 Lz = aspect_ratio * Lx
@@ -42,8 +42,8 @@ period_N = 2 * pi / params.N
 params.time_stepping.t_end = 500 * period_N
 
 k_max = params.oper.coef_dealiasing * pi * nx / Lx
-omega_max = (forcing_rate * k_max ** 2) ** (1 / 3)
-params.nu_8 = 8e0 * omega_max / k_max ** 8
+omega_max = (forcing_rate * k_max**2) ** (1 / 3)
+params.nu_8 = 8e0 * omega_max / k_max**8
 
 Uf = (forcing_rate / kf) ** (1 / 3)
 params.init_fields.type = "noise"

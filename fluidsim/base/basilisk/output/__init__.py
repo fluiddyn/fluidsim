@@ -31,9 +31,9 @@ class OutputBasilisk(OutputBase):
         """Compute the spatially averaged energy."""
         ux = self.sim.state.get_var("ux")
         uy = self.sim.state.get_var("uy")
-        return 0.5 * (ux ** 2 + uy ** 2).mean()
+        return 0.5 * (ux**2 + uy**2).mean()
 
     def compute_enstrophy(self):
         """Compute the spatially averaged enstrophy."""
         rot = self.sim.state.get_var("rot")
-        return 0.5 * (rot ** 2).mean()
+        return 0.5 * (rot**2).mean()

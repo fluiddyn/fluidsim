@@ -31,7 +31,7 @@ class PeriodicUniform:
         sign = np.sign(speed_max)
         x_uni = length - 2 * length_acc
         t_uni = x_uni / abs(speed_max)
-        self.acc = sign * speed_max ** 2 / (2 * length_acc)
+        self.acc = sign * speed_max**2 / (2 * length_acc)
         t_a = speed_max / self.acc
         self.period = 4 * t_a + 2 * t_uni
 
@@ -86,21 +86,21 @@ class PeriodicUniform:
 
         # acceleration
         if time <= t_1:
-            return self.x_0 + acc / 2 * time ** 2
+            return self.x_0 + acc / 2 * time**2
         # uniform
         elif (time > t_1) and (time <= t_2):
             return self.x_1 + speed_max * (time - t_1)
         # acceleration 2
         elif (time > t_2) and (time <= t_3):
             t = time - t_2
-            return self.x_2 + speed_max * t - acc / 2 * t ** 2
+            return self.x_2 + speed_max * t - acc / 2 * t**2
         # uniform 2
         elif (time > t_3) and (time <= t_4):
             return self.x_3 - speed_max * (time - t_3)
         # acceleration 3
         elif time > t_4:
             t = time - t_4
-            return self.x_4 - speed_max * t + acc / 2 * t ** 2
+            return self.x_4 - speed_max * t + acc / 2 * t**2
 
 
 class ForcingMilestone(Base):

@@ -272,7 +272,7 @@ Lx, Ly and Lz: float
             pass
         else:
             if NO_SHEAR_MODES:
-                COND_NOSHEAR = self.Kx ** 2 + self.Ky ** 2 == 0.0
+                COND_NOSHEAR = self.Kx**2 + self.Ky**2 == 0.0
                 self.where_dealiased = np.array(
                     np.logical_or(COND_NOSHEAR, self.where_dealiased),
                     dtype=np.uint8,
@@ -297,7 +297,7 @@ Lx, Ly and Lz: float
 
     @property
     def K4(self):
-        return self.K2 ** 2
+        return self.K2**2
 
     def build_invariant_arrayX_from_2d_indices12X(self, arr2d, oper2d=None):
         """Build a 3D array from a 2D array"""
@@ -538,7 +538,7 @@ Lx, Ly and Lz: float
         urx_fft, ury_fft contain shear modes!
 
         """
-        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero = self.Kx**2 + self.Ky**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
 
@@ -590,7 +590,7 @@ Lx, Ly and Lz: float
 
         """
 
-        K_square_nozero = self.Kx ** 2 + self.Ky ** 2 + self.Kz ** 2
+        K_square_nozero = self.Kx**2 + self.Ky**2 + self.Kz**2
         K_square_nozero[K_square_nozero == 0] = 1e-14
         inv_K_square_nozero = 1.0 / K_square_nozero
 
@@ -638,8 +638,8 @@ Lx, Ly and Lz: float
         \ee_{\kk\theta}` for all modes.
         """
 
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square = self.Kx**2 + self.Ky**2
+        K_square_nozero = Kh_square + self.Kz**2
         Kh_square_nozero = Kh_square.copy()
 
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -681,8 +681,8 @@ Lx, Ly and Lz: float
     def vpfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
         """Return the poloidal component of a vector field."""
 
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square = self.Kx**2 + self.Ky**2
+        K_square_nozero = Kh_square + self.Kz**2
         Kh_square_nozero = Kh_square.copy()
 
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -708,8 +708,8 @@ Lx, Ly and Lz: float
     def vecfft_from_vpfft(self, vp_fft: Ac):
         """Return a vector field from the poloidal component."""
 
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square = self.Kx**2 + self.Ky**2
+        K_square_nozero = Kh_square + self.Kz**2
         Kh_square_nozero = Kh_square.copy()
 
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -760,7 +760,7 @@ Lx, Ly and Lz: float
         \ee_{\kk\varphi}` for all modes.
         """
 
-        Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        Kh_square_nozero = self.Kx**2 + self.Ky**2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
         del Kh_square_nozero
@@ -783,7 +783,7 @@ Lx, Ly and Lz: float
     def vtfft_from_vecfft(self, vx_fft: Ac, vy_fft: Ac, vz_fft: Ac):
         """Return the toroidal component of a vector field."""
 
-        Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        Kh_square_nozero = self.Kx**2 + self.Ky**2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
         del Kh_square_nozero
@@ -800,8 +800,8 @@ Lx, Ly and Lz: float
     def vecfft_from_vtfft(self, vt_fft: Ac):
         """Return a 3D vector field from the toroidal component."""
 
-        Kh_square = self.Kx ** 2 + self.Ky ** 2
-        K_square_nozero = Kh_square + self.Kz ** 2
+        Kh_square = self.Kx**2 + self.Ky**2
+        K_square_nozero = Kh_square + self.Kz**2
         Kh_square_nozero = Kh_square.copy()
 
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
@@ -826,7 +826,7 @@ Lx, Ly and Lz: float
     @boost
     def vxvyfft_from_rotzfft(self, rotz_fft: Ac):
 
-        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero = self.Kx**2 + self.Ky**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
 
@@ -837,7 +837,7 @@ Lx, Ly and Lz: float
     @boost
     def vxvyfft_from_divhfft(self, divh_fft: Ac):
 
-        inv_Kh_square_nozero = self.Kx ** 2 + self.Ky ** 2
+        inv_Kh_square_nozero = self.Kx**2 + self.Ky**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
 

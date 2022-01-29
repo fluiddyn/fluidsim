@@ -71,7 +71,7 @@ kx = 2 * pi * np.fft.fftfreq(nx, Lx / nx)
 kz = 2 * pi * np.fft.fftfreq(nz, Lz / nz)
 KX, KZ = np.meshgrid(kx, kz)
 
-omega_k = sim.params.N * (KX / np.sqrt(KX ** 2 + KZ ** 2))
+omega_k = sim.params.N * (KX / np.sqrt(KX**2 + KZ**2))
 
 # Create 3D_arrays
 ux_fft_arr = np.empty([itmax - itmin, nz, nx], dtype="complex")
@@ -90,10 +90,10 @@ for ifile, path_file in enumerate(paths_files[itmin:itmax]):
         ux_fft_arr[ifile, :, :] = np.fft.fft2(ux)
         uz_fft_arr[ifile, :, :] = np.fft.fft2(uz)
         b_fft_arr[ifile, :, :] = np.fft.fft2(b)
-        ap_fft_arr[ifile, :, :] = N ** 2 * np.fft.fft2(
+        ap_fft_arr[ifile, :, :] = N**2 * np.fft.fft2(
             uz
         ) + 1j * omega_k * np.fft.fft2(b)
-        am_fft_arr[ifile, :, :] = N ** 2 * np.fft.fft2(
+        am_fft_arr[ifile, :, :] = N**2 * np.fft.fft2(
             uz
         ) - 1j * omega_k * np.fft.fft2(b)
 

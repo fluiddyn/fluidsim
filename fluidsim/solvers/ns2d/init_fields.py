@@ -96,7 +96,7 @@ length: float (default 0.)
 
         ux = oper.ifft2(ux_fft)
         uy = oper.ifft2(uy_fft)
-        velo_max = np.sqrt(ux ** 2 + uy ** 2).max()
+        velo_max = np.sqrt(ux**2 + uy**2).max()
         if mpi.nb_proc > 1:
             velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
         ux = params.init_fields.noise.velo_max * ux / velo_max
@@ -171,8 +171,8 @@ class InitFieldsDipole(SpecificInitFields):
         omega = np.zeros(oper.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return 2 * np.exp(-(XX ** 2 + (YY - b / 2.0) ** 2)) - 2 * np.exp(
-                -(XX ** 2 + (YY + b / 2.0) ** 2)
+            return 2 * np.exp(-(XX**2 + (YY - b / 2.0) ** 2)) - 2 * np.exp(
+                -(XX**2 + (YY + b / 2.0) ** 2)
             )
 
         for ip in range(-1, 2):

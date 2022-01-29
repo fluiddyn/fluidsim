@@ -55,13 +55,13 @@ def make_figures(coef_dealiasing=0.66, nx=32):
     ax.set_xlabel("dt")
 
     x = np.linspace(10 ** (-2.5), 0.03, 2)
-    ax.plot(x, 2e-1 * x ** 1, "-k")
+    ax.plot(x, 2e-1 * x**1, "-k")
     x = np.linspace(10 ** (-2.5), 0.1, 2)
-    ax.plot(x, x ** 2, "-.k")
+    ax.plot(x, x**2, "-.k")
     x = np.linspace(0.04, 0.2, 2)
-    ax.plot(x, x ** 3, "--k")
+    ax.plot(x, x**3, "--k")
     x = np.linspace(0.1, 1, 2)
-    ax.plot(x, 2e-1 * x ** 5, ":k")
+    ax.plot(x, 2e-1 * x**5, ":k")
 
     for ax in axes:
         ax.set_xscale("log")

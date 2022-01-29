@@ -131,7 +131,7 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectraNS, SpatioTemporalSpectra3D
         KY[..., 0] = deltaky * series[f"K{order[1]}_adim"]
         KX[..., 0] = deltakx * series[f"K{order[2]}_adim"]
 
-        inv_Kh_square_nozero = KX ** 2 + KY ** 2
+        inv_Kh_square_nozero = KX**2 + KY**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
 

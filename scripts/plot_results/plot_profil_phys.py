@@ -76,7 +76,7 @@ px_h_fft, py_h_fft = oper.gradfft_from_fft(eta_fft)
 
 px_h = oper.ifft2(px_h_fft)
 py_h = oper.ifft2(py_h_fft)
-gradh2 = px_h ** 2 + py_h ** 2
+gradh2 = px_h**2 + py_h**2
 
 # sim.output.phys_fields.plot(field=gradh2)
 
@@ -88,7 +88,7 @@ Usy = divJ * py_h / gradh2
 Usx[abs(gradh2) < gradh2_limit] = 0
 Usy[abs(gradh2) < gradh2_limit] = 0
 
-Us_over_c = np.sqrt(Usx ** 2 + Usy ** 2) / c
+Us_over_c = np.sqrt(Usx**2 + Usy**2) / c
 
 
 def limit_maxmin(var, minv, maxv):

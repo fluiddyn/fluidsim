@@ -14,21 +14,22 @@ fluidfft-bench-analysis 640 1280 1280 -i .
 
 from fluidjean_zay import cluster
 
+
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi = nb_procs = nb_nodes * nb_cores_per_node
 
     cluster.submit_command(
-        'fluidfft-bench 640 1280 1280 '
-        '-o $WORK/fluidfft_bench '
-        '-n 20',
-        name_run='fluidfft-bench_640_1280_1280_{:02d}'.format(nb_mpi),
+        "fluidfft-bench 640 1280 1280 -o $WORK/fluidfft_bench -n 20",
+        name_run=f"fluidfft-bench_640_1280_1280_{nb_mpi:02d}",
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
-        walltime='00:40:00',
-        nb_mpi_processes=nb_mpi, omp_num_threads=1,
+        walltime="00:40:00",
+        nb_mpi_processes=nb_mpi,
+        omp_num_threads=1,
         ask=False,
-        delay_signal_walltime=None)
+        delay_signal_walltime=None,
+    )
 
 
 for nb_nodes in [1, 2, 4, 8]:

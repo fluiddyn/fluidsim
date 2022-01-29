@@ -179,7 +179,7 @@ class SpectraNS2D(Spectra):
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
-            coef_norm = kh2 ** coef_compensate
+            coef_norm = kh2**coef_compensate
 
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):

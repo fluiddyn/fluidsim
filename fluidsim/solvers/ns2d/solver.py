@@ -224,7 +224,7 @@ if __name__ == "__main__":
     delta_x = Lh / nh
 
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
     )
 
     params.time_stepping.t_end = 10.0

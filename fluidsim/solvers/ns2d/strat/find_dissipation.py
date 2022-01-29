@@ -54,7 +54,7 @@ def make_parameters_simulation(gamma, key_viscosity):
     # Compute other parameters (Normalization by the energy..)
     tau_af = 1  # Forcing time equal to 1
     k_f = ((nkmax_forcing + nkmin_forcing) / 2) * max(2 * pi / Lx, 2 * pi / Lz)
-    forcing_rate = (1 / tau_af ** 3) * ((2 * pi) / k_f) ** 2
+    forcing_rate = (1 / tau_af**3) * ((2 * pi) / k_f) ** 2
     omega_af = 2 * pi / tau_af
 
     params.N = (gamma / F) * omega_af

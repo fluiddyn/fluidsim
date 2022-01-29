@@ -38,10 +38,10 @@ class IncrementsSW1L(Increments):
             inc_uy = self.oper.compute_increments_dim1(uy, rx)
             inc_eta = self.oper.compute_increments_dim1(eta, rx)
             inc_Jx = self.oper.compute_increments_dim1(Jx, rx)
-            inc_uy2 = inc_uy ** 2
-            S_uL2JL[irx] = np.mean(inc_ux ** 2 * inc_Jx)
+            inc_uy2 = inc_uy**2
+            S_uL2JL[irx] = np.mean(inc_ux**2 * inc_Jx)
             S_uT2JL[irx] = np.mean(inc_uy2 * inc_Jx)
-            S_c2h2uL[irx] = self.params.c2 * np.mean(inc_eta ** 2 * inc_ux)
+            S_c2h2uL[irx] = self.params.c2 * np.mean(inc_eta**2 * inc_ux)
             S_uT2uL[irx] = np.mean(inc_uy2 * inc_ux)
 
         dict_results["struc_func_uL2JL"] = S_uL2JL
@@ -226,9 +226,9 @@ imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
         S4_ux = self.strfunc_from_pdf(pdf_ux, values_inc_ux, 4)
         S4_uy = self.strfunc_from_pdf(pdf_uy, values_inc_uy, 4)
 
-        flatnessL_bis = S4_ux / S2_ux ** 2
-        flatnessT_bis = S4_uy / S2_uy ** 2
-        flatness_eta = S4_eta / S2_eta ** 2
+        flatnessL_bis = S4_ux / S2_ux**2
+        flatnessT_bis = S4_uy / S2_uy**2
+        flatness_eta = S4_eta / S2_eta**2
 
         ax2.plot(rxs, flatnessL_bis, "c--", linewidth=2)
         ax2.plot(rxs, flatnessT_bis, "m--", linewidth=2)

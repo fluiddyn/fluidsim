@@ -488,7 +488,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             Negative of the result.
 
         """
-        sign = 1j ** order
+        sign = 1j**order
         if sign.imag != 0:
             raise ValueError(f"Order={order} should be even!")
 
@@ -516,7 +516,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             Negative of the result.
 
         """
-        sign = 1.0 / 1j ** order
+        sign = 1.0 / 1j**order
         if sign.imag != 0:
             raise ValueError(f"Order={order} should be even!")
 

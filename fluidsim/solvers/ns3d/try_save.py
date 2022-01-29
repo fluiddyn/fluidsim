@@ -21,7 +21,7 @@ params.oper.type_fft = "fluidfft.fft3d.mpi_with_fftwmpi3d"
 
 delta_x = params.oper.Lx / params.oper.nx
 # params.nu_8 = 2.*10e-1*params.forcing.forcing_rate**(1./3)*delta_x**8
-params.nu_8 = 2.0 * 10e-1 * delta_x ** 8
+params.nu_8 = 2.0 * 10e-1 * delta_x**8
 
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 5.0

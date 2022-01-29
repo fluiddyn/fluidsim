@@ -9,7 +9,7 @@ from fluiddyn.util import time_as_str
 from fluiddyn.util import mpi
 
 
-def modif_params_profile2d(params, nh=3 ** 2 * 2 ** 7):
+def modif_params_profile2d(params, nh=3**2 * 2**7):
     params.short_name_type_run = "profile"
 
     params.oper.nx = nh

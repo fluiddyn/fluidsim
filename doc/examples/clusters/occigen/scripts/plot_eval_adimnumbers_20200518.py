@@ -16,9 +16,9 @@ for N in Ns:
     for diameter in diameters:
         for speed in velocities:
             mesh = 3 * diameter
-            epsilon = 0.35 * speed ** 3 / mesh *diameter / Lf
+            epsilon = 0.35 * speed**3 / mesh * diameter / Lf
             R = epsilon / (nu * N)
-            U2 = 0.1 * speed ** 2
+            U2 = 0.1 * speed**2
             Fh = epsilon / (U2 * N)
 
             # if R < 1 or Fh > 0.2:

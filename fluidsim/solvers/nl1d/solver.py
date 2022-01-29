@@ -59,7 +59,7 @@ class Simul(SimulBasePseudoSpectral):
             s_fft = state_spect.get_var("s_fft")
             signal = self.oper.ifft(s_fft)
 
-        f_signal = -np.sign(signal) * self.params.sigma * signal ** 2
+        f_signal = -np.sign(signal) * self.params.sigma * signal**2
 
         if old is None:
             tendencies_fft = SetOfVariables(

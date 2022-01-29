@@ -38,6 +38,6 @@ class StateNS3DStrat(StateNS3D):
         vx = self.state_phys.get_var("vx")
         vy = self.state_phys.get_var("vy")
         vz = self.state_phys.get_var("vz")
-        E_K = 0.5 * (vx ** 2 + vy ** 2 + vz ** 2)
-        E_A = 0.5 / self.sim.params.N ** 2 * self.state_phys.get_var("b") ** 2
+        E_K = 0.5 * (vx**2 + vy**2 + vz**2)
+        E_A = 0.5 / self.sim.params.N**2 * self.state_phys.get_var("b") ** 2
         return self.sim.oper.mean_space(E_K + E_A)

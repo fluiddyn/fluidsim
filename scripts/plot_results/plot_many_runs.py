@@ -26,7 +26,7 @@ set_of_dir_results = solveq2d.SetOfDirResults(dir_base=dir_base)
 values_c = np.array([10, 1000])
 
 # values_c2 = set_of_dir_results.values_c2
-values_c2 = values_c ** 2
+values_c2 = values_c**2
 values_solver = set_of_dir_results.values_solver
 # values_solver = ['SW1l']
 

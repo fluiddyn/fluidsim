@@ -24,7 +24,7 @@ delta_x = Lh / nh
 
 # -----Numerical method parameters----
 params.f = 0.0
-params.c2 = 10.0 ** 2
+params.c2 = 10.0**2
 params.oper.coef_dealiasing = 8.0 / 9
 params.time_stepping.USE_T_END = True
 params.time_stepping.t_end = 5.0

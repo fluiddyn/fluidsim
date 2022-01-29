@@ -29,9 +29,9 @@ assert not ny_per_cylinder % nb_mpi_processes
 
 def submit_simul(N, diameter, speed):
     mesh = 3 * diameter
-    epsilon = 0.02 * speed ** 3 / mesh
+    epsilon = 0.02 * speed**3 / mesh
     R = epsilon / (nu * N)
-    U2 = 0.04 * speed ** 2
+    U2 = 0.04 * speed**2
     Fh = epsilon / (U2 * N)
 
     if R < 1 or Fh > 0.2:

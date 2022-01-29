@@ -173,4 +173,4 @@ class StateNS3D(StatePseudoSpectral):
         vx = self.state_phys.get_var("vx")
         vy = self.state_phys.get_var("vy")
         vz = self.state_phys.get_var("vz")
-        return 0.5 * self.sim.oper.mean_space(vx ** 2 + vy ** 2 + vz ** 2)
+        return 0.5 * self.sim.oper.mean_space(vx**2 + vy**2 + vz**2)

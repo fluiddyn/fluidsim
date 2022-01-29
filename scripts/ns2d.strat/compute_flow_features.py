@@ -50,7 +50,7 @@ for ipath, path in enumerate(path_simulations):
         with h5py.File(path_file, "r") as f:
             ux = f["state_phys"]["ux"][...]
             uz = f["state_phys"]["uy"][...]
-            anisotropies.append(np.mean(ux ** 2) / np.mean(uz ** 2))
+            anisotropies.append(np.mean(ux**2) / np.mean(uz**2))
     anisotropies_gammas.append(np.mean(anisotropies))
 
     # Compute ratio D(k_x)/epsilon

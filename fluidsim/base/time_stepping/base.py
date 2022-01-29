@@ -366,12 +366,12 @@ class TimeSteppingBase(TimeSteppingBase0):
 
         # Phase speed of the fastest wave from dispersion relation
         if f == 0:
-            cph = params.c2 ** 0.5
+            cph = params.c2**0.5
         else:
             Lh = max(params.oper.Lx, params.oper.Ly)
             k_min = 2 * pi / Lh
 
-            cph = (f ** 2 / k_min ** 2 + params.c2) ** 0.5
+            cph = (f**2 / k_min**2 + params.c2) ** 0.5
 
         max_ux = max_abs(ux)
         max_uy = max_abs(uy)

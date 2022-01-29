@@ -59,7 +59,7 @@ x0 = lx / 2
 y0 = ly / 2
 blob_height = 0.4
 blob_width = 0.5
-b = -np.exp(-((X - x0) ** 2) / blob_width ** 2 - (Y - y0) ** 2 / blob_height ** 2)
+b = -np.exp(-((X - x0) ** 2) / blob_width**2 - (Y - y0) ** 2 / blob_height**2)
 sim.state.init_from_rotb(rot, b)
 
 # in this case (params.init_fields.type = 'manual') if we want to plot the
@@ -76,7 +76,7 @@ if rank == 0:
     oper = forcing_maker.oper_coarse
     Y = oper.Y
     d = ly / 6
-    alpha = -80 * (np.exp(-(Y ** 2) / d ** 2) + np.exp(-((Y - ly) ** 2) / d ** 2))
+    alpha = -80 * (np.exp(-(Y**2) / d**2) + np.exp(-((Y - ly) ** 2) / d**2))
 
     # on-the-fly plot
     has_to_animate = 1

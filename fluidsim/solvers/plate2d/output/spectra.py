@@ -212,7 +212,7 @@ class SpectraPlate2D(Spectra):
             ax1.set_xscale("log")
             ax1.set_yscale("log")
 
-            coef_norm = kh_not0 ** coef_compensate
+            coef_norm = kh_not0**coef_compensate
 
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot + 1, delta_i_plot):

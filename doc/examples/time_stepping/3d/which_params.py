@@ -16,7 +16,7 @@ nu = V0 * L / Re
 # A result from a simulation
 epsilon = 0.012
 # epsilon = 0.008
-eta = (nu ** 3 / epsilon) ** (1 / 4)
+eta = (nu**3 / epsilon) ** (1 / 4)
 
 coefficients = np.array([2 / 3, 0.90, 1.0])
 

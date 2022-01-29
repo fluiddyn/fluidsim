@@ -78,7 +78,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = np.array([-2, 1, 1]) / dx ** 2
+        values = np.array([-2, 1, 1]) / dx**2
         self.sparse_pxx = self._create_sparse(values, func_i1_mat)
 
         def func_i1_mat(i0_mat, iv):
@@ -110,7 +110,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
 
             return i1_mat
 
-        values = np.array([-2, 1, 1]) / dx ** 2
+        values = np.array([-2, 1, 1]) / dx**2
         self.sparse_pyy = self._create_sparse(values, func_i1_mat)
 
     def _create_sparse(self, values, func_i1_mat):

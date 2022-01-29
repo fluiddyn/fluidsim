@@ -226,7 +226,7 @@ class SpectraNS2DStrat(Spectra):
         ax.axvline(x=k_b, color="y", linestyle="--", label="$k_b$")
 
         # Plot ozmidov scale
-        k_o = (self.sim.params.N ** 3 / self.sim.params.forcing.forcing_rate) ** (
+        k_o = (self.sim.params.N**3 / self.sim.params.forcing.forcing_rate) ** (
             1 / 2
         )
         ax.axvline(x=k_o, color="y", linestyle=":", label="$k_o$")
@@ -236,13 +236,13 @@ class SpectraNS2DStrat(Spectra):
         # )
         ax.plot(
             kx_plot,
-            EK_kx_plot * kx_plot ** coef_compensate,
+            EK_kx_plot * kx_plot**coef_compensate,
             "r",
             label="$E_K(k_x)$",
         )
         ax.plot(
             kx_plot,
-            EA_kx_plot * kx_plot ** coef_compensate,
+            EA_kx_plot * kx_plot**coef_compensate,
             "b",
             label="$E_A(k_x)$",
         )
@@ -268,13 +268,13 @@ class SpectraNS2DStrat(Spectra):
         # )
         ax.plot(
             ky_plot,
-            EK_ky_plot * ky_plot ** coef_compensate,
+            EK_ky_plot * ky_plot**coef_compensate,
             "r--",
             label="$E_K(k_z)$",
         )
         ax.plot(
             ky_plot,
-            EA_ky_plot * ky_plot ** coef_compensate,
+            EA_ky_plot * ky_plot**coef_compensate,
             "b--",
             label="$E_A(k_z)$",
         )
@@ -284,14 +284,14 @@ class SpectraNS2DStrat(Spectra):
         if level3:
             ax.plot(
                 kx,
-                level3 * kx ** (-3) * kx ** coef_compensate,
+                level3 * kx ** (-3) * kx**coef_compensate,
                 "k:",
                 label=r"$k^{-3}$",
             )
         if level2:
             ax.plot(
                 kx,
-                level2 * kx ** (-2) * kx ** coef_compensate,
+                level2 * kx ** (-2) * kx**coef_compensate,
                 "k-.",
                 label=r"$k^{-2}$",
             )
@@ -325,8 +325,8 @@ class SpectraNS2DStrat(Spectra):
         # Set limits axis y
         if yrange is not None:
             ymax = 2 * max(
-                (E_kx_plot * kx_plot ** coef_compensate).max(),
-                (E_ky_plot * ky_plot ** coef_compensate).max(),
+                (E_kx_plot * kx_plot**coef_compensate).max(),
+                (E_ky_plot * ky_plot**coef_compensate).max(),
             )
             ax.set_ylim((10 ** (-yrange) * ymax, ymax))
 

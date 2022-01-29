@@ -17,7 +17,7 @@ nkx = nx / 2.0 + 1
 
 kx = 2 * np.pi / Lx * np.arange(nkx)
 
-omega_theo = np.sqrt(f ** 2 + (c * kx) ** 2)
+omega_theo = np.sqrt(f**2 + (c * kx) ** 2)
 
 # numerical results
 k_num = np.array([0.63, 1.88, 2.51, 4.19])

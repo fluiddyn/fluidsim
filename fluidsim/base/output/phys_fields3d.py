@@ -478,7 +478,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
             #      np.min(np.sqrt(vecx**2 + vecy**2))) /
             #     np.max(np.sqrt(vecx**2 + vecy**2)))
-            vmax = np.max(np.sqrt(vecx ** 2 + vecy ** 2))
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
             # Quiver is normalized by the vmax
             # copy to avoid a bug
             skip = self._skip_quiver

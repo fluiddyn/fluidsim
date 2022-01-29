@@ -57,8 +57,8 @@ class InitFieldsDipole(SpecificInitFieldsNS3D):
         omega = np.zeros(oper.oper2d.shapeX_loc)
 
         def wz_2LO(XX, YY, b):
-            return 2 * np.exp(-(XX ** 2 + (YY - (b / 2.0)) ** 2)) - 2 * np.exp(
-                -(XX ** 2 + (YY + (b / 2.0)) ** 2)
+            return 2 * np.exp(-(XX**2 + (YY - (b / 2.0)) ** 2)) - 2 * np.exp(
+                -(XX**2 + (YY + (b / 2.0)) ** 2)
             )
 
         XX = oper.oper2d.XX

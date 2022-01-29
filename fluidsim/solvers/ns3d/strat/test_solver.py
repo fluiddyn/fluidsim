@@ -49,7 +49,7 @@ class TestTendency(TestSimulBase):
         b_fft = sim.state.get_var(key)
         F_fft = tend.get_var(key)
 
-        T_tot += 1.0 / sim.params.N ** 2 * np.real(F_fft.conj() * b_fft)
+        T_tot += 1.0 / sim.params.N**2 * np.real(F_fft.conj() * b_fft)
 
         ratio = sim.oper.sum_wavenumbers(T_tot) / sim.oper.sum_wavenumbers(
             abs(T_tot)

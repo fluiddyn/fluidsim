@@ -68,7 +68,7 @@ class TestSolverPlate2DOutput(TestSimulBase):
         delta_x = cls.Lh / cls.nh
 
         kmax = np.sqrt(2) * np.pi / delta_x
-        deltat = 2 * np.pi / kmax ** 2 / 2
+        deltat = 2 * np.pi / kmax**2 / 2
 
         params.time_stepping.deltat0 = deltat
         params.time_stepping.it_end = 10
@@ -85,7 +85,7 @@ class TestSolverPlate2DOutput(TestSimulBase):
         params.forcing.tcrandom.time_correlation = 100 * deltat
 
         params.nu_8 = (
-            2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+            2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
         )
         params.output.HAS_TO_SAVE = True
         params.output.periods_print.print_stdout = 2 * deltat

@@ -59,7 +59,7 @@ def make_parameters_simulation(
 
     # Compute other parameters
     k_f = ((nkmax_forcing + nkmin_forcing) / 2) * max(2 * pi / Lx, 2 * pi / Lz)
-    forcing_rate = (1 / tau_af ** 7) * ((2 * pi) / k_f) ** 2
+    forcing_rate = (1 / tau_af**7) * ((2 * pi) / k_f) ** 2
     omega_af = 2 * pi / tau_af
     params.N = (gamma / F) * omega_af
     params.nu_8 = nu_8

@@ -9,7 +9,7 @@ params.oper.nx = params.oper.ny = nh = 32 * 2
 params.oper.Lx = params.oper.Ly = Lh = 10.0
 
 delta_x = Lh / nh
-params.nu_8 = 2e-3 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+params.nu_8 = 2e-3 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
 
 params.time_stepping.t_end = 10.0
 

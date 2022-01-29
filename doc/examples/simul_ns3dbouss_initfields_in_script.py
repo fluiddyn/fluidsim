@@ -97,7 +97,7 @@ y0 = Ly / 2.0
 z0 = Lz / 2.0
 R2 = (X - x0) ** 2 + (Y - y0) ** 2 + (Z - z0) ** 2
 r0 = 0.5
-b = -0.5 * (1 - np.tanh((R2 - r0 ** 2) / 0.2 ** 2))
+b = -0.5 * (1 - np.tanh((R2 - r0**2) / 0.2**2))
 variables["b"] = b
 
 sim.state.init_statephys_from(**variables)

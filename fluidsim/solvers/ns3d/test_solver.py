@@ -546,7 +546,7 @@ class TestForcingWatuCoriolis(TestSimulBase):
         for key in self.sim.state.keys_state_phys:
             var = sim_restart.state.get_var(key)
             var_big = sim_big.state.get_var(key)
-            assert np.allclose(np.mean(var ** 2), np.mean(var_big ** 2))
+            assert np.allclose(np.mean(var**2), np.mean(var_big**2))
 
 
 class TestForcingMilestone(TestSimulBase):

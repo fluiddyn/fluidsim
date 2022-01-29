@@ -46,10 +46,10 @@ class Converter:
         self.L = L
         self.sigma = sigma
 
-        self.tilde_T = L ** 2 / np.sqrt(C)
+        self.tilde_T = L**2 / np.sqrt(C)
         self.tilde_Z = h / np.sqrt(6 * (1 - sigma))
         self.tilde_L = L
-        self.tilde_nu4 = L ** 4 / self.tilde_T
+        self.tilde_nu4 = L**4 / self.tilde_T
 
     def compute_time_adim(self, t):
         """Compute the dimensional time."""
@@ -86,7 +86,7 @@ class Converter:
 
 if __name__ == "__main__":
 
-    converter = Converter(C=0.648 ** 2, h=4e-4)
+    converter = Converter(C=0.648**2, h=4e-4)
 
     amplitude_z = 0.001
     print("amplitude z: {:6.2f}".format(converter.compute_z_adim(amplitude_z)))

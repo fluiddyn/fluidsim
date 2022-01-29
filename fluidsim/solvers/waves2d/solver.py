@@ -119,7 +119,7 @@ class Simul(SimulBasePseudoSpectral):
             omega = self.oper.create_arrayK(value=0)
         elif key == "g_fft":
             omega = 1.0j * np.sqrt(
-                self.params.f ** 2 + self.params.c2 * self.oper.K2
+                self.params.f**2 + self.params.c2 * self.oper.K2
             )
         return omega
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1 / 3) * delta_x**8
     )
 
     params.time_stepping.t_end = 1.0

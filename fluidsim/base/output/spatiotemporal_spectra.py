@@ -719,7 +719,7 @@ class SpatioTemporalSpectraNS:
             _ideltakh = np.argmax(_deltakhs)
             deltakh = _deltakhs[_ideltakh]
             KY = deltaky * spectra[f"K{order[1]}_adim"]
-            KH = np.sqrt(KX ** 2 + KY ** 2)
+            KH = np.sqrt(KX**2 + KY**2)
             khmax_spectra = [KX, KY][_ideltakh].max()
             del KY
         else:
@@ -791,9 +791,9 @@ class SpatioTemporalSpectraNS:
         try:
             N = self.sim.params.N
             spectra_kzkhomega["spectrum_A"] = (
-                0.5 / N ** 2 * spectra_kzkhomega["spectrum_b"]
+                0.5 / N**2 * spectra_kzkhomega["spectrum_b"]
             )
-            tspectra["spectrum_A"] = 0.5 / N ** 2 * tspectra["spectrum_b"]
+            tspectra["spectrum_A"] = 0.5 / N**2 * tspectra["spectrum_b"]
         except AttributeError:
             pass
 
@@ -1045,14 +1045,14 @@ class SpatioTemporalSpectraNS:
         )
         if equation.startswith(r"$\omega"):
             if omega > 0 and omega <= N:
-                ikz_disp = np.sqrt(N ** 2 / omega ** 2 - 1) / dkz_over_dkh * xaxis
+                ikz_disp = np.sqrt(N**2 / omega**2 - 1) / dkz_over_dkh * xaxis
                 ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_h"):
-            omega_disp = ikh / np.sqrt(ikh ** 2 + dkz_over_dkh ** 2 * xaxis ** 2)
+            omega_disp = ikh / np.sqrt(ikh**2 + dkz_over_dkh**2 * xaxis**2)
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         elif equation.startswith(r"$k_z"):
             omega_disp = xaxis / np.sqrt(
-                xaxis ** 2 + dkz_over_dkh ** 2 * ikz ** 2
+                xaxis**2 + dkz_over_dkh**2 * ikz**2
             )
             ax.plot(xaxis, omega_disp, "k+", linewidth=2)
         else:
@@ -1122,7 +1122,7 @@ class SpatioTemporalSpectraNS:
         # potential energy
         try:
             N = self.sim.params.N
-            tspectra["spectrum_A"] = 0.5 / N ** 2 * tspectra["spectrum_b"]
+            tspectra["spectrum_A"] = 0.5 / N**2 * tspectra["spectrum_b"]
         except AttributeError:
             pass
 
@@ -1213,7 +1213,7 @@ class SpatioTemporalSpectraNS:
                 aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
             def modes(nx, nz):
-                return np.sqrt(nx ** 2 / (nx ** 2 + aspect_ratio ** 2 * nz ** 2))
+                return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
 
             nxs = np.arange(1, 11)
             modes_nz1 = modes(nxs, 1)
@@ -1225,7 +1225,7 @@ class SpatioTemporalSpectraNS:
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EK_N * omegas_scaling ** -2
+            scaling_y = EK_N * omegas_scaling**-2
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 

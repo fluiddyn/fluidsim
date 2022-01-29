@@ -37,7 +37,7 @@ def linear_eigenmode_from_values_1k(
     div_fft = 1j * (kx * ux_fft + ky * uy_fft)
     rot_fft = 1j * (kx * uy_fft - ky * ux_fft)
     q_fft = rot_fft - f * eta_fft
-    k2 = kx ** 2 + ky ** 2
+    k2 = kx**2 + ky**2
     ageo_fft = f * rot_fft / c2 + k2 * eta_fft
     return q_fft, div_fft, ageo_fft
 
@@ -131,7 +131,7 @@ class OutputBaseSW1L(OutputBasePseudoSpectral):
         .. math:: \omega = \sqrt{f ^ 2 + (ck)^2}
 
         """
-        return np.sqrt(self.sim.params.f ** 2 + self.sim.params.c2 * k ** 2)
+        return np.sqrt(self.sim.params.f**2 + self.sim.params.c2 * k**2)
 
     def compute_enstrophy_fft(self):
         r"""Calculate enstrophy from vorticity in the spectral space."""

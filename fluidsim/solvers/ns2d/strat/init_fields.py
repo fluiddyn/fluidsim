@@ -111,7 +111,7 @@ class InitFieldsLinearMode(SpecificInitFields):
 
         i_mode = params.init_fields.linear_mode.i_mode
         delta_k_adim = params.init_fields.linear_mode.delta_k_adim
-        amplitude = params.init_fields.linear_mode.amplitude * params.N ** 2
+        amplitude = params.init_fields.linear_mode.amplitude * params.N**2
 
         # Define linear mode to put energy
         linear_mode = np.zeros(oper.shapeK, dtype="complex")

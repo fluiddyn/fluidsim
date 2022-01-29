@@ -23,7 +23,7 @@ def tendencies_nonlin_ns2dstrat(
     ux: AF, uy: AF, px_rot: AF, py_rot: AF, px_b: AF, py_b: AF, N: float
 ):
     Frot = -ux * px_rot - uy * py_rot
-    Fb = -ux * px_b - uy * py_b - N ** 2 * uy
+    Fb = -ux * px_b - uy * py_b - N**2 * uy
     return Frot, Fb
 
 
@@ -194,7 +194,7 @@ class Simul(SimulNS2D):
         pt_energyK_fft = 0.5 * division * np.real(rot_fft.conj() * f_rot_fft)
 
         # Compute time derivative potential energy
-        pt_energyA_fft = (1.0 / (2 * params.N ** 2)) * np.real(
+        pt_energyA_fft = (1.0 / (2 * params.N**2)) * np.real(
             b_fft.conj() * f_b_fft
         )
 

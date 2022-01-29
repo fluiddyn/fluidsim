@@ -175,7 +175,7 @@ nu_m4: float
             f_d += self.params.nu_8 * self.oper.K8
 
         if self.params.nu_m4 != 0.0:
-            f_d_hypo = self.params.nu_m4 / self.oper.K2_not0 ** 2
+            f_d_hypo = self.params.nu_m4 / self.oper.K2_not0**2
             # mode K2 = 0 !
             dim = len(self.oper.shapeK)
             if dim == 2:
@@ -215,22 +215,22 @@ nu_m4: float
         f_d_tot = np.zeros_like(ks)
 
         if self.params.nu_2 > 0:
-            f_d_2 = self.params.nu_2 * ks ** 2
+            f_d_2 = self.params.nu_2 * ks**2
             ax.plot(ks, f_d_2, "r", linewidth=2, label=r"$\nu_2$")
             f_d_tot += f_d_2
 
         if self.params.nu_4 > 0.0:
-            f_d_4 = self.params.nu_4 * ks ** 4
+            f_d_4 = self.params.nu_4 * ks**4
             ax.plot(ks, f_d_4, "m", linewidth=2, label=r"$\nu_4$")
             f_d_tot += f_d_4
 
         if self.params.nu_8 > 0.0:
-            f_d_8 = self.params.nu_8 * ks ** 8
+            f_d_8 = self.params.nu_8 * ks**8
             ax.plot(ks, f_d_8, "b", linewidth=2, label=r"$\nu_8$")
             f_d_tot += f_d_8
 
         if self.params.nu_m4 != 0.0:
-            f_d_hypo = self.params.nu_m4 / ks_not0 ** 4
+            f_d_hypo = self.params.nu_m4 / ks_not0**4
             ax.plot(ks, f_d_hypo, "g", linewidth=2, label=r"$\nu_{-4}$")
             f_d_tot += f_d_hypo
 
@@ -279,7 +279,7 @@ if __name__ == "__main__":
 
     delta_x = params.oper.Lx / params.oper.nx
     params.nu_8 = (
-        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x ** 8
+        2.0 * 10e-1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
     )
 
     params.time_stepping.t_end = 5.0

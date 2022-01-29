@@ -37,7 +37,7 @@ class OperatorFiniteDiff1DPeriodic(OperatorsBase1D):
             offsets=[-1, 0, 1, nx - 1, -(nx - 1)],
         )
 
-        self.sparse_pxx = self.sparse_pxx / dx ** 2
+        self.sparse_pxx = self.sparse_pxx / dx**2
 
     def px(self, a):
         return self.sparse_px.dot(a.flat)

@@ -36,7 +36,7 @@ class SpectraNS3DStrat(SpectraNS3D):
         nrj_vy_fft = 0.5 * np.abs(vy_fft) ** 2
         nrj_vz_fft = 0.5 * np.abs(vz_fft) ** 2
 
-        nrj_A_fft = 0.5 / self.sim.params.N ** 2 * np.abs(b_fft) ** 2
+        nrj_A_fft = 0.5 / self.sim.params.N**2 * np.abs(b_fft) ** 2
         nrj_Khr_fft = 0.5 * (np.abs(urx_fft) ** 2 + np.abs(ury_fft) ** 2)
         nrj_Khd_fft = 0.5 * (np.abs(udx_fft) ** 2 + np.abs(udy_fft) ** 2)
 
@@ -169,8 +169,8 @@ class SpectraNS3DStrat(SpectraNS3D):
         deltakh = kh[1]
         deltakz = kz[1]
         KH, KZ = np.meshgrid(kh, kz)
-        K2 = KH ** 2 + KZ ** 2
-        K4 = K2 ** 2
+        K2 = KH**2 + KZ**2
+        K4 = K2**2
 
         del KH, KZ
 

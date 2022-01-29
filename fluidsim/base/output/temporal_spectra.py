@@ -589,7 +589,7 @@ class TemporalSpectra3D(SpecificOutput):
         # potential energy
         try:
             N = self.sim.params.N
-            spectra["spectrum_A"] = 0.5 / N ** 2 * spectra["spectrum_b"]
+            spectra["spectrum_A"] = 0.5 / N**2 * spectra["spectrum_b"]
         except AttributeError:
             pass
 
@@ -664,7 +664,7 @@ class TemporalSpectra3D(SpecificOutput):
                 aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
             def modes(nx, nz):
-                return np.sqrt(nx ** 2 / (nx ** 2 + aspect_ratio ** 2 * nz ** 2))
+                return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
 
             nxs = np.arange(1, 11)
             modes_nz1 = modes(nxs, 1)
@@ -676,7 +676,7 @@ class TemporalSpectra3D(SpecificOutput):
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EKN * omegas_scaling ** -2
+            scaling_y = EKN * omegas_scaling**-2
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 

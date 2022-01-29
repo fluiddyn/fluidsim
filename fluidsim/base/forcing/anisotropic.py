@@ -173,7 +173,7 @@ kz_negative_enable: bool
                 Kh = self.oper_coarse.KX
                 Kv = self.oper_coarse.KY
             else:
-                Kh = np.sqrt(self.oper_coarse.Kx ** 2 + self.oper_coarse.Ky ** 2)
+                Kh = np.sqrt(self.oper_coarse.Kx**2 + self.oper_coarse.Ky**2)
                 Kv = self.oper_coarse.Kz
 
             COND_NO_F_KH = np.logical_or(
@@ -199,13 +199,13 @@ kz_negative_enable: bool
         else:
 
             if ndim == 2:
-                K = np.sqrt(self.oper_coarse.KX ** 2 + self.oper_coarse.KY ** 2)
+                K = np.sqrt(self.oper_coarse.KX**2 + self.oper_coarse.KY**2)
                 Kv = self.oper_coarse.KY
             else:
                 K = np.sqrt(
-                    self.oper_coarse.Kx ** 2
-                    + self.oper_coarse.Ky ** 2
-                    + self.oper_coarse.Kz ** 2
+                    self.oper_coarse.Kx**2
+                    + self.oper_coarse.Ky**2
+                    + self.oper_coarse.Kz**2
                 )
                 Kv = self.oper_coarse.Kz
 
@@ -272,7 +272,7 @@ kz_negative_enable: bool
             deltakh = self.oper.deltakx
             deltakv = self.oper.deltaky
         else:
-            Kh = np.sqrt(self.oper_coarse.Kx ** 2 + self.oper_coarse.Ky ** 2)
+            Kh = np.sqrt(self.oper_coarse.Kx**2 + self.oper_coarse.Ky**2)
             Kv = self.oper_coarse.Kz
             deltakh = self.oper.deltakx
             deltakv = self.oper.deltakz
@@ -283,10 +283,10 @@ kz_negative_enable: bool
         title = (
             pforcing.type
             + "; "
-            + fr"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
-            + fr"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
+            + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
+            + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
             + r"$\theta = {:.0f}^\circ$; ".format(degrees(self.angle))
-            + fr"Forced modes = {self.nb_forced_modes}"
+            + rf"Forced modes = {self.nb_forced_modes}"
         )
 
         ax.set_title(title)

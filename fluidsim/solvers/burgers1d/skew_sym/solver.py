@@ -42,7 +42,7 @@ class Simul(SimulBurgers):
         f_signal = -0.5 * signal * pxu
 
         # Half from conservative form (in spectral space)
-        f_fft_cons = -0.25 * self.oper.pxffft_from_fft(self.oper.fft(signal ** 2))
+        f_fft_cons = -0.25 * self.oper.pxffft_from_fft(self.oper.fft(signal**2))
 
         if old is None:
             tendencies_fft = SetOfVariables(

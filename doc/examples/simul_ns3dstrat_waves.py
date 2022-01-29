@@ -72,7 +72,7 @@ C = 1.0
 dx = lx / nx
 U = amplitude * omega_f
 H = 1
-eps = 1e-2 * U ** 3 / H
+eps = 1e-2 * U**3 / H
 params.nu_4 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 
 params.nu_2 = 1e-6

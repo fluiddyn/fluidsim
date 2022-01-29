@@ -65,7 +65,7 @@ class InitFieldsNoise(SpecificInitFields):
 
         w = oper.ifft2(w_fft)
         z = oper.ifft2(z_fft)
-        velo_max = np.sqrt(w ** 2 + z ** 2).max()
+        velo_max = np.sqrt(w**2 + z**2).max()
         if mpi.nb_proc > 1:
             velo_max = oper.comm.allreduce(velo_max, op=mpi.MPI.MAX)
         w = params.init_fields.noise.velo_max * w / velo_max

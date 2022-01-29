@@ -196,10 +196,10 @@ class PreprocessPseudoSpectral(PreprocessBase):
             self.sim.params.forcing.forcing_rate = C
         elif forcing_scale == "energy":
             energy_0 = self.output.compute_energy()
-            self.sim.params.forcing.forcing_rate = C * energy_0 ** 1.5 * k_f
+            self.sim.params.forcing.forcing_rate = C * energy_0**1.5 * k_f
         elif forcing_scale == "enstrophy":
             omega_0 = self.output.compute_enstrophy()
-            self.sim.params.forcing.forcing_rate = C * omega_0 ** 1.5 / k_f ** 2
+            self.sim.params.forcing.forcing_rate = C * omega_0**1.5 / k_f**2
         else:
             raise ValueError("Unknown forcing scale: %s" % forcing_scale)
 
@@ -299,7 +299,7 @@ def calcul_viscosity(
 
     if viscosity_scale == "enstrophy":
         omega_0 = args[0]
-        eta = omega_0 ** 1.5
+        eta = omega_0**1.5
         time_scale = eta ** (-1.0 / 3)
     elif viscosity_scale == "energy":
         energy_0 = args[0]
@@ -307,7 +307,7 @@ def calcul_viscosity(
         time_scale = epsilon ** (-1.0 / 3) * length_scale ** (2.0 / 3)
     elif viscosity_scale == "enstrophy_forcing":
         omega_0 = args[0]
-        eta = omega_0 ** 1.5
+        eta = omega_0**1.5
         t1 = eta ** (-1.0 / 3)
         # Energy dissipation rate
         epsilon = args[1]
@@ -344,11 +344,11 @@ def calcul_viscosity(
         for k, v in dict_visc.items():
             if k in viscosity_type:
                 attr, order = v
-                nu = length_scale ** order / time_scale
+                nu = length_scale**order / time_scale
                 v.append(nu)
                 if verbose:
                     kolmo_len.append(
-                        (nu ** 3 / epsilon) ** (1.0 / (3 * order - 2))
+                        (nu**3 / epsilon) ** (1.0 / (3 * order - 2))
                     )
             else:
                 v.append(0.0)

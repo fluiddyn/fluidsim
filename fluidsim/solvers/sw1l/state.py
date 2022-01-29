@@ -99,7 +99,7 @@ class StateSW1L(StatePseudoSpectral):
             h = self.compute("h")
             ux = self.state_phys.get_var("ux")
             uy = self.state_phys.get_var("uy")
-            result = np.sqrt((ux ** 2 + uy ** 2) / (self.sim.params.c2 * h))
+            result = np.sqrt((ux**2 + uy**2) / (self.sim.params.c2 * h))
 
         else:
             to_print = 'Do not know how to compute "' + key + '".'
@@ -275,7 +275,7 @@ class StateSW1L(StatePseudoSpectral):
         tempx_fft = -self.oper.fft2(rot_abs * uy)
         tempy_fft = self.oper.fft2(rot_abs * ux)
 
-        uu2_fft = self.oper.fft2(ux ** 2 + uy ** 2)
+        uu2_fft = self.oper.fft2(ux**2 + uy**2)
 
         eta_fft = (
             1.0j * self.oper.KX * tempx_fft / K2_not0

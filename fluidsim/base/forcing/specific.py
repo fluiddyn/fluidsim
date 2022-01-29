@@ -191,13 +191,15 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             self.key_forced = self._key_forced_default
 
         try:
-            fft_size = 2 * fftw_grid_size(int(round(params.forcing.nkmax_forcing)))
+            fft_size = 2 * fftw_grid_size(
+                int(round(params.forcing.nkmax_forcing))
+            )
         except ImportError:
             warn("To use smaller forcing arrays: pip install pulp")
             i = 0
-            while 2 * params.forcing.nkmax_forcing > 2 ** i:
+            while 2 * params.forcing.nkmax_forcing > 2**i:
                 i += 1
-            fft_size = 2 ** i
+            fft_size = 2**i
 
         self._check_forcing_shape([fft_size], sim.oper.shapeX_seq)
 
@@ -840,8 +842,8 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self._seed1 = int(seed1)
             else:
                 self.t_last_change = self.sim.time_stepping.t
-                self._seed0 = np.random.randint(0, 2 ** 31)
-                self._seed1 = np.random.randint(0, 2 ** 31)
+                self._seed0 = np.random.randint(0, 2**31)
+                self._seed1 = np.random.randint(0, 2**31)
                 self._save_state()
 
             np.random.seed(self._seed0)
@@ -871,7 +873,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self.t_last_change = tsim
             self._seed0 = self._seed1
             self.forcing0 = self.forcing1
-            self._seed1 = np.random.randint(0, 2 ** 31)
+            self._seed1 = np.random.randint(0, 2**31)
             self.forcing1 = self.compute_forcingc_raw()
             self._save_state()
 

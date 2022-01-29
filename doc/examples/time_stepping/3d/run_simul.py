@@ -249,7 +249,7 @@ if __name__ == "__main__":
             continue
         str_for_sha += f"{k}: {v}, "
     sha = int(hashlib.sha256(str_for_sha.encode("utf-8")).hexdigest(), 16)
-    sha = sha % 10 ** 16
+    sha = sha % 10**16
     name_file += f"_{sha}.txt"
 
     path_idempotent_file = path_dir / name_file

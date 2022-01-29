@@ -137,7 +137,7 @@ eps = eps[itmin_spatial:].mean(0)
 forcing_rate = pforcing.forcing_rate
 l_f = 2 * np.pi / (pforcing.nkmax_forcing * sim.oper.deltaky)
 # energy_f = 100 * (forcing_rate ** 6 * l_f**2)**(1/7)
-energy_f = ((forcing_rate ** 2) * (l_f ** 10)) ** (1 / 7)
+energy_f = ((forcing_rate**2) * (l_f**10)) ** (1 / 7)
 
 # Compute energy
 energies_ap = np.empty_like(times)
