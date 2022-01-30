@@ -11,6 +11,7 @@ Provides:
 
 import os
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import h5py
@@ -159,6 +160,8 @@ path: str
         params = self.sim.params
 
         path_file = params.init_fields.from_file.path
+        if isinstance(path_file, Path):
+            path_file = str(path_file)
 
         if mpi.rank == 0:
             try:
@@ -166,7 +169,7 @@ path: str
                     h5file = h5netcdf.File(path_file, "r")
                 else:
                     h5file = h5py.File(path_file, "r")
-            except:
+            except Exception:
                 raise ValueError(
                     "Is file " + path_file + " really a netCDF4/HDF5 file?"
                 )
@@ -175,14 +178,14 @@ path: str
 
             try:
                 group_oper = h5file["/info_simul/params/oper"]
-            except:
+            except Exception:
                 raise ValueError(
                     "The file " + path_file + " does not contain a params object"
                 )
 
             try:
                 group_state_phys = h5file["/state_phys"]
-            except:
+            except Exception:
                 raise ValueError(
                     "The file "
                     + path_file

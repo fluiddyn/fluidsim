@@ -368,16 +368,18 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
       version.
 
     """
+    if name_dir is not None and Path(name_dir).is_file():
+        path_file = Path(name_dir)
+        path_dir = path_file.parent
+    else:
+        path_dir = pathdir_from_namedir(name_dir)
+        # choose the file with the time closer to t_approx
+        name_file = name_file_from_time_approx(path_dir, t_approx)
+        path_file = os.path.join(path_dir, name_file)
 
-    path_dir = pathdir_from_namedir(name_dir)
     solver = _import_solver_from_path(path_dir)
-    Simul = solver.Simul
 
-    # choose the file with the time closer to t_approx
-    name_file = name_file_from_time_approx(path_dir, t_approx)
-    path_file = os.path.join(path_dir, name_file)
-
-    Simul = _extend_simul_class_from_path(Simul, path_file)
+    Simul = _extend_simul_class_from_path(solver.Simul, path_file)
 
     if merge_missing_params:
         # this has to be done by all processes otherwise there is a problem
