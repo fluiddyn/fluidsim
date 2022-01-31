@@ -874,6 +874,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self._seed0 = self._seed1
             self.forcing0 = self.forcing1
             self._seed1 = np.random.randint(0, 2**31)
+            np.random.seed(self._seed1)
             self.forcing1 = self.compute_forcingc_raw()
             self._save_state()
 
