@@ -1,9 +1,6 @@
 """
 ...
 
-
-params.output.periods_save.spatiotemporal_spectra = 2 * pi / (4 * params.N)
-
 """
 
 import argparse
@@ -78,22 +75,35 @@ def create_parser():
         help="Number of steps added to params.time_stepping.it_end",
     )
 
+    parser.add_argument(
+        "--t_end",
+        type=float,
+        default=None,
+        help="params.time_stepping.t_end",
+    )
+    parser.add_argument(
+        "--it_end",
+        type=int,
+        default=None,
+        help="params.time_stepping.it_end",
+    )
+
     return parser
 
 
-def parse_args(parser):
-    args = parser.parse_args()
+def parse_args(parser, args):
+    args = parser.parse_args(args)
     mpi.printby0(args)
     return args
 
 
-def main(**defaults):
+def restart(args=None, **defaults):
     parser = create_parser()
 
     if defaults:
         parser.set_defaults(**defaults)
 
-    args = parse_args(parser)
+    args = parse_args(parser, args)
 
     params, Simul = load_for_restart(
         args.path, args.t_approx, args.merge_missing_params
@@ -107,13 +117,19 @@ def main(**defaults):
     if args.add_to_it_end is not None:
         params.time_stepping.it_end += args.add_to_it_end
 
+    if args.t_end is not None:
+        params.time_stepping.t_end = args.t_end
+
+    if args.it_end is not None:
+        params.time_stepping.it_end += args.it_end
+
     if args.only_check or args.only_init:
         params.output.HAS_TO_SAVE = False
 
     path_file = Path(params.init_fields.from_file.path)
     mpi.printby0(path_file)
 
-    # TODO: modif params as for...
+    # TODO: add a mechanism to modify params as for...
     # params.output.periods_save.spatiotemporal_spectra = 2 * pi / (4 * params.N)
     ...
 
@@ -131,9 +147,7 @@ def main(**defaults):
         with h5py.File(path_file, "r") as file:
             it_file = file["/state_phys"].attrs["it"]
         if params.time_stepping.it_end <= it_file:
-            mpi.printby0(
-                f"{params.time_stepping.it_end = } <= {it_file = }"
-            )
+            mpi.printby0(f"{params.time_stepping.it_end = } <= {it_file = }")
             sys.exit()
 
     sim = Simul(params)
@@ -142,7 +156,8 @@ def main(**defaults):
         sys.exit()
 
     sim.time_stepping.start()
+    return params, sim
 
 
 if __name__ == "__main__":
-    main()
+    restart()

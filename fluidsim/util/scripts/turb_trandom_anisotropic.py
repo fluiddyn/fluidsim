@@ -230,6 +230,13 @@ def create_parser():
         help="params.oper.coef_dealiasing",
     )
 
+    parser.add_argument(
+        "--periods_save-phys_fields",
+        type=float,
+        default=1.0,
+        help="params.output.periods_save.phys_fields",
+    )
+
     return parser
 
 
@@ -376,7 +383,7 @@ def create_params(args):
 
     params.output.periods_print.print_stdout = 1e-1
 
-    params.output.periods_save.phys_fields = 0.5
+    params.output.periods_save.phys_fields = args.periods_save_phys_fields
     params.output.periods_save.spatial_means = 0.02
     params.output.periods_save.spectra = 0.05
     params.output.periods_save.spect_energy_budg = 0.1
