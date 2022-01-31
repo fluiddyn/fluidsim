@@ -213,10 +213,6 @@ def plot_scaling(
 
     set_label_scale(ax0)
     ax0.legend()
-    ax0.set_title(
-        f"Best for {nb_proc_min_filter} processes: "
-        f"{name_min_filter}, {key_min_filter}={t_min_filter * 1000:.2f} ms"
-    )
 
     # Plot efficiency
     for name in df_filter.index.levels[0]:
@@ -238,6 +234,15 @@ def plot_scaling(
     add_hline(ax1, efficiency, 100)
 
     set_label_scale(ax1, "linear")
+
+    title_dim = f"dim {n0}x{n1}"
+    if n2 is not None:
+        title_dim += f"x{n2}"
+
+    fig.suptitle(
+        f"Best for {nb_proc_min_filter} processes and {title_dim} :\n"
+        f"{name_min_filter}, {key_min_filter}={t_min_filter * 1000:.2f} ms"
+    )
 
     if show:
         plt.show()
