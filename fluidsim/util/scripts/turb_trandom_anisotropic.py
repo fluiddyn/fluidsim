@@ -284,6 +284,7 @@ def create_params(args):
     # Brunt Vaisala frequency
     params.N = args.N
     Fh = Uh / (args.N * Lfh)
+    params.short_name_type_run += f"_Fh{Fh:.3e}"
 
     mpi.printby0(f"Input horizontal Froude number: {Fh:.3g}")
 
@@ -294,9 +295,11 @@ def create_params(args):
     if args.nu is not None:
         nu = args.nu
         Rb = injection_rate / (nu * args.N**2)
+        params.short_name_type_run += f"_nu{nu:.3e}"
     else:
         Rb = args.Rb or 5.0
         nu = injection_rate / (Rb * args.N**2)
+        params.short_name_type_run += f"_Rb{Rb:.3g}"
 
     mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
 
