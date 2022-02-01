@@ -378,7 +378,6 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
         path_file = os.path.join(path_dir, name_file)
 
     solver = _import_solver_from_path(path_dir)
-
     Simul = _extend_simul_class_from_path(solver.Simul, path_file)
 
     if merge_missing_params:

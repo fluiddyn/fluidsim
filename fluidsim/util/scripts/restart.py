@@ -88,6 +88,13 @@ def create_parser():
         help="params.time_stepping.it_end",
     )
 
+    parser.add_argument(
+        "--modify-params",
+        type=str,
+        default=None,
+        help="Code or path towards a Python file modifying the `params` object.",
+    )
+
     return parser
 
 
@@ -129,9 +136,8 @@ def restart(args=None, **defaults):
     path_file = Path(params.init_fields.from_file.path)
     mpi.printby0(path_file)
 
-    # TODO: add a mechanism to modify params as for...
-    # params.output.periods_save.spatiotemporal_spectra = 2 * pi / (4 * params.N)
-    ...
+    if args.modify_params is not None:
+        exec(args.modify_params)
 
     if args.only_check:
         mpi.printby0(params)
@@ -156,8 +162,18 @@ def restart(args=None, **defaults):
         sys.exit()
 
     sim.time_stepping.start()
+
+    mpi.printby0(
+        f"""
+# To visualize with IPython:
+
+cd {sim.output.path_run}
+ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
+"""
+    )
+
     return params, sim
 
 
-if __name__ == "__main__":
+def main():
     restart()
