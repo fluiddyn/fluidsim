@@ -9,6 +9,7 @@ Provides:
    util
    testing
    console
+   scripts
    mini_oper_modif_resol
 
 """

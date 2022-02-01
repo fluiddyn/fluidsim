@@ -1,7 +1,26 @@
-"""Utilities to define scripts for simulations with the solver ns3d.strat and
+"""Simulations with the solver ns3d.strat and the forcing tcrandom_anisotropic.
+
+.. autofunction:: create_parser
+
+.. autofunction:: parse_args
+
+.. autofunction:: main
+
+"""
+
+from math import pi, asin, sin
+import argparse
+import sys
+
+import matplotlib.pyplot as plt
+
+from fluiddyn.util import mpi
+
+doc = """Launcher for simulations with the solver ns3d.strat and
 the forcing tcrandom_anisotropic.
 
-## Examples
+Examples
+--------
 
 ```
 ./run_simul.py --only-print-params
@@ -11,8 +30,10 @@ the forcing tcrandom_anisotropic.
 ./run_simul.py -F 1.0 --delta-F 0.1 --ratio-kfmin-kf 0.8 --ratio-kfmax-kf 1.5 -opf
 
 mpirun -np 2 ./run_simul.py
-
 ```
+
+Notes
+-----
 
 This script is designed to study stratified turbulence forced with an
 anisotropic forcing in toroidal or poloidal modes.
@@ -39,16 +60,6 @@ horizontal scale" (compared to the size of the numerical domain). This length
 
 """
 
-
-from math import pi, asin, sin
-
-import argparse
-
-import matplotlib.pyplot as plt
-
-from fluiddyn.util import mpi
-
-
 keys_versus_kind = {
     "toro": "vt_fft",
     "polo": "vp_fft",
@@ -58,8 +69,9 @@ keys_versus_kind = {
 
 
 def create_parser():
+    """Create the argument parser with default arguments"""
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=doc, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     # parameters to study the input parameters without running the simulation
@@ -241,12 +253,14 @@ def create_parser():
 
 
 def parse_args(parser):
+    """Parse the arguments"""
     args = parser.parse_args()
     mpi.printby0(args)
     return args
 
 
 def create_params(args):
+    """Create the params object from the script arguments"""
 
     from fluidsim.solvers.ns3d.strat.solver import Simul
 
@@ -403,6 +417,7 @@ def create_params(args):
 
 
 def main(**defaults):
+    """Main function for the scripts based on turb_trandom_anisotropic"""
     parser = create_parser()
 
     if defaults:
@@ -460,6 +475,22 @@ sim.output.phys_fields.animate('b')
     )
 
     return params, sim
+
+
+if "sphinx" in sys.modules:
+    from textwrap import indent
+
+    parser = create_parser()
+
+    __doc__ += """
+Example of help message
+-----------------------
+
+.. code-block::
+
+""" + indent(
+        parser.format_help(), "    "
+    )
 
 
 if __name__ == "__main__":

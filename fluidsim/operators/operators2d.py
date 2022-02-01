@@ -11,6 +11,7 @@ Provides
 
 from warnings import warn
 from random import uniform
+import sys
 
 import numpy as np
 
@@ -25,7 +26,12 @@ from .base import OperatorBase
 
 ts = Transonic()
 
-if not ts.is_transpiling and not ts.is_compiled and not _is_testing:
+if (
+    not ts.is_transpiling
+    and not ts.is_compiled
+    and not _is_testing
+    and "sphinx" not in sys.modules
+):
     warn(
         "operators2d.py has to be pythranized to be efficient! "
         "Install pythran and recompile."

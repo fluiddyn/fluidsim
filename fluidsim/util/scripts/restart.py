@@ -1,11 +1,21 @@
-"""
-...
+"""Restart a fluidsim simulation (:mod:`fluidsim.util.scripts.restart`)
+=======================================================================
+
+.. autofunction:: create_parser
+
+.. autofunction:: parse_args
+
+.. autofunction:: restart
+
+.. autofunction:: main
 
 """
 
 import argparse
 import sys
 from pathlib import Path
+
+# import potentially needed for the exec
 from math import pi
 
 import h5py
@@ -17,8 +27,10 @@ from fluidsim.base.output.phys_fields import time_from_path
 
 
 def create_parser():
+    """Create the argument parser with default arguments"""
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description="Restart a fluidsim simulation",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
@@ -92,19 +104,21 @@ def create_parser():
         "--modify-params",
         type=str,
         default=None,
-        help="Code or path towards a Python file modifying the `params` object.",
+        help="Code modifying the `params` object.",
     )
 
     return parser
 
 
 def parse_args(parser, args):
+    """Parse the arguments"""
     args = parser.parse_args(args)
     mpi.printby0(args)
     return args
 
 
 def restart(args=None, **defaults):
+    """Restart a simulation"""
     parser = create_parser()
 
     if defaults:
@@ -176,4 +190,21 @@ ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 
 def main():
+    """Entry point fluidsim-restart"""
     restart()
+
+
+if "sphinx" in sys.modules:
+    from textwrap import indent
+
+    parser = create_parser()
+
+    __doc__ += """
+Example of help message
+-----------------------
+
+.. code-block::
+
+""" + indent(
+        parser.format_help(), "    "
+    )
