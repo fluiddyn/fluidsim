@@ -196,12 +196,14 @@ def main():
 
 if "sphinx" in sys.modules:
     from textwrap import indent
+    from unittest.mock import patch
 
-    parser = create_parser()
+    with patch.object(sys, "argv", ["fluidsim-restart"]):
+        parser = create_parser()
 
     __doc__ += """
-Example of help message
------------------------
+Help message
+------------
 
 .. code-block::
 

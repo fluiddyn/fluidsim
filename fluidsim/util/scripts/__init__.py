@@ -7,6 +7,7 @@ Provides:
    :toctree:
 
     restart
+    modif_resolution
     turb_trandom_anisotropic
 
 """

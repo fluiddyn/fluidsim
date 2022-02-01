@@ -12,7 +12,7 @@ from fluidsim.solvers.ns2d.solver import Simul
 from fluidsim.util.scripts.restart import main, restart
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="package")
 def path_simul():
     params = Simul.create_default_params()
     params.nu_2 = 1e-3

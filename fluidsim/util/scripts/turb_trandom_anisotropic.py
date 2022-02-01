@@ -479,8 +479,10 @@ sim.output.phys_fields.animate('b')
 
 if "sphinx" in sys.modules:
     from textwrap import indent
+    from unittest.mock import patch
 
-    parser = create_parser()
+    with patch.object(sys, "argv", ["run_simul.py"]):
+        parser = create_parser()
 
     __doc__ += """
 Example of help message
