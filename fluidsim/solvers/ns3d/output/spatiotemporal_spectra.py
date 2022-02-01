@@ -102,9 +102,6 @@ class SpatioTemporalSpectraNS3D(SpatioTemporalSpectraNS, SpatioTemporalSpectra3D
 
     def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
         """compute the spectra of ur, ud from files"""
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
-
         # load time series as state_spect arrays + times
         series = self.load_time_series(
             keys=("vx", "vy"), tmin=tmin, tmax=tmax, dtype=dtype

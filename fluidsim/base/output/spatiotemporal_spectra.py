@@ -68,6 +68,16 @@ def filter_tmins_paths(tmin, tmins, paths):
     return tmins[start:], paths[start:]
 
 
+def sort_files_tmin(paths, tmins=None):
+    if not isinstance(paths, list):
+        paths = list(paths)
+    if tmins is None:
+        tmins = np.array([float(p.name[14:-3]) for p in paths])
+    return [
+        path for (path, _) in sorted(zip(paths, tmins), key=lambda pair: pair[1])
+    ]
+
+
 @boost
 def get_arange_minmax(times: A, tmin: Uf32f64, tmax: Uf32f64):
     """get a range of index for which `tmin <= times[i] <= tmax`
@@ -220,7 +230,7 @@ class SpatioTemporalSpectra3D(SpecificOutput):
             size_1_number = 16e-6
 
         # check for existing files
-        paths = sorted(self.path_dir.glob("rank*.h5"))
+        paths = sort_files_tmin(self.path_dir.glob("rank*.h5"))
         if paths:
             # check values in files
             with open_patient(paths[0], "r") as file:
@@ -448,15 +458,13 @@ class SpatioTemporalSpectra3D(SpecificOutput):
 
         if keys is None:
             keys = self.keys_fields
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
 
         # get ranks
-        paths = sorted(self.path_dir.glob("rank*.h5"))
+        paths = sort_files_tmin(self.path_dir.glob("rank*.h5"))
         ranks = sorted({int(p.name[4:9]) for p in paths})
 
         # get times and dimensions order from the files of first rank
-        print(f"load times series...")
+        print("load times series...")
         paths_1st_rank = [
             p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
         ]
@@ -472,6 +480,13 @@ class SpatioTemporalSpectra3D(SpecificOutput):
         tmins_files, paths_1st_rank = filter_tmins_paths(
             tmin, tmins_files, paths_1st_rank
         )
+
+        paths_1st_rank = sort_files_tmin(paths_1st_rank, tmins_files)
+        tmins_files = sorted(tmins_files)
+
+        if tmax is None:
+            with open_patient(paths_1st_rank[-1], "r") as file:
+                tmax = file["/times"][-1]
 
         with Progress() as progress:
             npaths = len(paths_1st_rank)
@@ -632,9 +647,6 @@ class SpatioTemporalSpectra3D(SpecificOutput):
 
     def compute_spectra(self, tmin=0, tmax=None, dtype=None):
         """compute spatiotemporal spectra from files"""
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
-
         # load time series as state_spect arrays + times
         series = self.load_time_series(tmin=tmin, tmax=tmax, dtype=dtype)
 
@@ -675,6 +687,8 @@ class SpatioTemporalSpectra2D(SpatioTemporalSpectra3D):
 
 class SpatioTemporalSpectraNS:
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
+        if tmax is None:
+            tmax = self._get_default_tmax()
         base = f"periodogram_{tmin}_{tmax}"
         if dtype is not None:
             base += f"_{dtype}"
@@ -683,6 +697,8 @@ class SpatioTemporalSpectraNS:
         return self.path_dir / (base + ".h5")
 
     def _get_path_saved_tspectra(self, tmin, tmax, dtype, save_urud):
+        if tmax is None:
+            tmax = self._get_default_tmax()
         base = f"periodogram_temporal_{tmin}_{tmax}"
         if dtype is not None:
             base += f"_{dtype}"
@@ -699,7 +715,7 @@ class SpatioTemporalSpectraNS:
             - the temporal spectra, with an average on the whole k-space
         """
         if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
+            tmax = self._get_default_tmax()
 
         # compute spectra
         print("Computing spectra...")
@@ -854,9 +870,6 @@ class SpatioTemporalSpectraNS:
         self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
         """load kzkhomega spectra from file"""
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
-
         spectra = {}
 
         path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
@@ -893,7 +906,7 @@ class SpatioTemporalSpectraNS:
         if key_field not in keys_plot:
             raise KeyError(f"possible keys are {keys_plot}")
         if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
+            tmax = self._get_default_tmax()
 
         key_spect = "spectrum_" + key_field
         if key_field.startswith("Kh") or key_field.startswith("Kp"):
@@ -1073,9 +1086,6 @@ class SpatioTemporalSpectraNS:
         self, tmin=0, tmax=None, dtype=None, compute_urud=False
     ):
         """compute the temporal spectra by averaging over Fourier space"""
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
-
         tspectra = {}
 
         # compute kxkykzomega spectra
@@ -1145,7 +1155,7 @@ class SpatioTemporalSpectraNS:
         if key_field not in keys_plot:
             raise KeyError(f"possible keys are {keys_plot}")
         if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
+            tmax = self._get_default_tmax()
 
         if self.nb_dim == 3:
             # much simpler for 3d
@@ -1250,9 +1260,6 @@ class SpatioTemporalSpectraNS:
         self, tmin=0, tmax=None, dtype=None, save_urud=False
     ):
         """load temporal spectra from file"""
-        if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
-
         tspectra = {}
 
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
@@ -1267,7 +1274,7 @@ class SpatioTemporalSpectraNS:
     ):
         """compute temporal spectra from files"""
         if tmax is None:
-            tmax = self.sim.params.time_stepping.t_end
+            tmax = self._get_default_tmax()
 
         tspectra = self.compute_temporal_spectra(
             tmin=tmin, tmax=tmax, dtype=dtype, compute_urud=save_urud
@@ -1281,3 +1288,14 @@ class SpatioTemporalSpectraNS:
                 file.create_dataset(key, data=val)
 
         return tspectra
+
+    def _get_default_tmax(self):
+        paths = list(self.path_dir.glob("rank*.h5"))
+        if not paths:
+            return self.sim.params.time_stepping.t_end
+        ranks = sorted({int(p.name[4:9]) for p in paths})
+        paths_1st_rank = sort_files_tmin(
+            p for p in paths if p.name.startswith(f"rank{ranks[0]:05}")
+        )
+        with open_patient(paths_1st_rank[-1], "r") as file:
+            return file["/times"][-1]

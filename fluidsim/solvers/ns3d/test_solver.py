@@ -256,12 +256,14 @@ class TestOutput(TestSimulBase):
         sim3.output.temporal_spectra.save_data_as_phys_fields(delta_index_times=2)
         sim3.output.temporal_spectra.save_spectra()
 
-        spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
-        series_kxkykz = spatiotemporal_spectra.load_time_series()
+        t_end = sim3.params.time_stepping.t_end
 
-        spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra()
+        spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
+        series_kxkykz = spatiotemporal_spectra.load_time_series(tmax=t_end)
+
+        spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra(tmax=t_end)
         spectra_omega_from_spatiotemp = (
-            spatiotemporal_spectra.compute_temporal_spectra()
+            spatiotemporal_spectra.compute_temporal_spectra(tmax=t_end)
         )
         spectra_omega = sim3.output.temporal_spectra.compute_spectra()
 
@@ -281,9 +283,11 @@ class TestOutput(TestSimulBase):
         def sum_wavenumber(field):
             return _sum_wavenumber3D(field, KX, kx_max)
 
-        _ = spatiotemporal_spectra.save_spectra_kzkhomega(save_urud=True)
+        _ = spatiotemporal_spectra.save_spectra_kzkhomega(
+            save_urud=True, tmax=t_end
+        )
         spectra_kzkhomega = spatiotemporal_spectra.load_spectra_kzkhomega(
-            save_urud=True
+            save_urud=True, tmax=t_end
         )
 
         delta_kz = spectra_kzkhomega["kz_spectra"][1]
