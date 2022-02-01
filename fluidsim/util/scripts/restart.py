@@ -155,25 +155,25 @@ def restart(args=None, **defaults):
 
     if args.only_check:
         mpi.printby0(params)
-        sys.exit()
+        return params, None
 
     if params.time_stepping.USE_T_END:
         if params.time_stepping.t_end <= time_from_path(path_file):
             mpi.printby0(
                 f"{params.time_stepping.t_end = } <= {time_from_path(path_file) = }"
             )
-            sys.exit()
+            return params, None
     else:
         with h5py.File(path_file, "r") as file:
             it_file = file["/state_phys"].attrs["it"]
         if params.time_stepping.it_end <= it_file:
             mpi.printby0(f"{params.time_stepping.it_end = } <= {it_file = }")
-            sys.exit()
+            return params, None
 
     sim = Simul(params)
 
     if args.only_init:
-        sys.exit()
+        return params, sim
 
     sim.time_stepping.start()
 
