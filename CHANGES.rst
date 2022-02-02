@@ -20,6 +20,11 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased_
 -----------
 
+New subpackage :mod:`fluidsim.util.scripts`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Entry points ``fluidsim-restart`` and ``fluidsim-modif-resolution``
+
 .. towncrier release notes start
 
 .. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...branch%2Fdefault
