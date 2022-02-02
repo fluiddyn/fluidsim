@@ -253,9 +253,15 @@ are called.
 
     def _save_info_solver_params_xml(self, replace=False):
         """Save files with information on the solver and on the run."""
-        super()._save_info_solver_params_xml(
-            replace=replace, comment=f"FluidSim {fluidsim.get_local_version()}"
-        )
+        if (
+            mpi.rank == 0
+            and self._has_to_save
+            and self.sim.params.NEW_DIR_RESULTS
+        ):
+            super()._save_info_solver_params_xml(
+                replace=replace,
+                comment=f"FluidSim {fluidsim.get_local_version()}",
+            )
 
     def init_with_initialized_state(self):
 
