@@ -9,8 +9,8 @@ from setuptools import setup, find_packages
 
 from transonic.dist import make_backend_files, init_transonic_extensions
 
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
+if sys.version_info[:2] < (3, 8):
+    raise RuntimeError("Python version >= 3.8 required.")
 
 here = Path(__file__).parent.absolute()
 
@@ -196,8 +196,6 @@ setup(
         # actually CeCILL License (GPL compatible license for French laws)
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ],
