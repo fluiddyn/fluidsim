@@ -25,7 +25,7 @@ if "READTHEDOCS" in os.environ:
     from bash_kernel.install import main
     from unittest.mock import patch
 
-    with patch.object(sys, "argv", []):
+    with patch.object(sys, "argv", [sys.argv[0]]):
         main()
 
 
