@@ -38,11 +38,6 @@ mock_modules(
     )
 )
 
-from fluiddoc.ipynb_maker import execute_notebooks
-
-execute_notebooks("ipynb")
-nbsphinx_execute = "never"
-
 os.environ["TRANSONIC_NO_REPLACE"] = "1"
 import fluidsim
 import fluidsim.operators.operators2d
@@ -73,14 +68,29 @@ extensions = [
     "numpydoc",
     "fluiddoc.mathmacro",
     "sphinx.ext.inheritance_diagram",
-    "nbsphinx",
+    "myst_nb",
+    "sphinx_copybutton",
+]
+
+# Execute ipynb files into with a cache ...
+jupyter_execute_notebooks = "cache"
+jupyter_cache = "./_build/jupyter_cache"
+os.makedirs(jupyter_cache, exist_ok=True)
+# ... except these ipynb files
+execution_excludepatterns = [
+    "ipynb/executed/*",
+    "ipynb/executed/parametric_study_ns3dstrat/*",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
+}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -114,15 +124,7 @@ release = fluidsim.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build"]
-paths_notebooks = Path("ipynb").glob("*.ipynb")
-exclude_patterns.extend(
-    [
-        f"ipynb/{path.name}"
-        for path in paths_notebooks
-        if not path.name.endswith(".executed.ipynb")
-    ]
-)
+exclude_patterns = ["_build", "examples/clusters/*"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -234,7 +236,6 @@ html_context = {
     ],
 }
 
-
 # If false, no module index is generated.
 # html_domain_indices = True
 
@@ -263,7 +264,6 @@ html_context = {
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "fluiddyndoc"
-
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -358,3 +358,11 @@ autodoc_default_options = {"show-inheritance": None}
 autodoc_member_order = "bysource"
 
 todo_include_todos = True
+
+# CSS selector which modifies the sphinx-copybutton feature
+copybutton_selector = ",".join(
+    [
+        f"div.highlight-{css_class} div.highlight pre"
+        for css_class in ("python", "ipython3", "default")
+    ]
+)
