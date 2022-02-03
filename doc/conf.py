@@ -100,6 +100,7 @@ source_suffix = {
 }
 # nb_render_plugin = "default"
 nb_merge_streams = True
+execution_show_tb = True
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
