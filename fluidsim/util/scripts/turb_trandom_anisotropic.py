@@ -494,6 +494,10 @@ sim.output.phys_fields.animate('b')
     return params, sim
 
 
+def main_entry_point():
+    main()
+
+
 if "sphinx" in sys.modules:
     from textwrap import indent
     from unittest.mock import patch
