@@ -41,7 +41,7 @@ shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
 black:
-	black -l 82 fluidsim scripts bench doc lib --exclude __pythran__
+	black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|doc/_build|\.ipynb_checkpoints/*)/"
 
 tests:
 	pytest -v lib

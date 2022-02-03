@@ -69,6 +69,19 @@ import_simul_class_from_key = partial(
 )
 
 
+# A bad hack to silence a h5netcdf warning
+h5netcdf.File = partial(h5netcdf.File, decode_vlen_strings=True)
+# FutureWarning: String decoding changed with h5py >= 3.0. See
+# https://docs.h5py.org/en/latest/strings.html and
+# https://github.com/h5netcdf/h5netcdf/issues/132 for more details. Currently
+# backwards compatibility with h5py < 3.0 is kept by decoding vlen strings per
+# default. This will change in future versions for consistency with h5py >= 3.0.
+# To silence this warning set kwarg ``decode_vlen_strings=False`` which will
+# return Python bytes from variables containing vlen strings. Setting
+# ``decode_vlen_strings=True`` forces vlen string decoding which returns Python
+# strings from variables containing vlen strings.
+
+
 def print_memory_usage_seq(message, flush=None):
     mem = get_memory_usage()
     print(message, f"{mem/1024: 7.3f} Go", flush=flush)
