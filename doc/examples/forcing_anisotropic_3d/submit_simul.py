@@ -1,13 +1,11 @@
-from fluiddyn.clusters.licallo import Licallo as Cluster
-
-cluster = Cluster()
+from fluidlicallo import cluster
 
 # Ns = [10, 20, 40]
 # Rbs = [10, 20, 40]
 # projs = ["None", "poloidal"]
 
 Ns = [40]
-Rbs = [40]
+Rbs = [30]
 projs = ["poloidal"]
 
 nz = 120

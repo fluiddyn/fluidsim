@@ -12,9 +12,9 @@ Download and source setup file:
 
 ```bash
 cd $HOME
-wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/install-clusters/doc/examples/clusters/jean_zay/conf_files/setup_ssh.sh
+wget https://foss.heptapod.net/fluiddyn/fluidsim/doc/examples/clusters/jean_zay/conf_files/setup_ssh.sh
 . ~/setup_ssh.sh
-wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/install-clusters/doc/examples/clusters/jean_zay/conf_files/.hgrc
+wget https://foss.heptapod.net/fluiddyn/fluidsim/doc/examples/clusters/jean_zay/conf_files/.hgrc
 ```
 
 ### Clone the fluidsim repository
@@ -25,10 +25,8 @@ Load the mercurial environment, move to the work directory and clone the fluidsi
 module load mercurial/6.0
 mkdir -p $WORK/Dev
 cd $WORK/Dev
-# TODO: It should work to clone the packages with ssh. It should be tested.
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 cd fluidsim
-hg up install-clusters # TODO: remove this line before merging
 module purge
 ```
 
@@ -49,6 +47,8 @@ conda config --add channels conda-forge
 We configured the installation of p3dfft-2.7.6 in $WORK such that you simply have to run a bash script:
 
 ```bash
+module load python/3.8.8 gcc/8.3.1 openmpi/4.1.1 hdf5/1.12.0-mpi
+module load fftw/3.3.8-mpi pfft/1.0.8-alpha-mpi
 module load automake/1.16.1 libtool/2.4.6
 bash $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
 ```
@@ -61,12 +61,12 @@ Move to the install directory and run the following commands (from this director
 cd $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install
 source 0_setup_env_base.sh
 ./1_copy_config_files.sh
-source ~/setup_ssh.sh  # Is it necessary?
 ./2_create_conda_env.sh
 source 3_setup_env_conda.sh
 ./4_clone_fluid.sh
 ./5_update_install_fluid.sh
-cd .. && make
+cd .. 
+make
 ```
 
 **Note:** # TODO: put some notes here if there are some troubles during the installation
@@ -76,7 +76,7 @@ cd .. && make
 Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd ../scripts
+cd scripts
 python submit_check_fluidfft.py
 python submit_tests.py
 python submit_simul.py
