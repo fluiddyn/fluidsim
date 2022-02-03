@@ -13,7 +13,6 @@
 
 import sys
 import os
-from pathlib import Path
 
 import matplotlib as mpl
 
@@ -21,6 +20,12 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 plt.ioff()
+
+if "READTHEDOCS" in os.environ:
+    from bash_kernel.install import main
+
+    main()
+
 
 from fluiddoc import mock_modules
 
