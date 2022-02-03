@@ -249,6 +249,20 @@ def create_parser():
         help="params.output.periods_save.phys_fields",
     )
 
+    parser.add_argument(
+        "--sub-directory",
+        type=str,
+        default="aniso",
+        help="Sub directory where the simulation will be saved",
+    )
+
+    parser.add_argument(
+        "--modify-params",
+        type=str,
+        default=None,
+        help="Code modifying the `params` object.",
+    )
+
     return parser
 
 
@@ -266,7 +280,7 @@ def create_params(args):
 
     params = Simul.create_default_params()
 
-    params.output.sub_directory = "aniso"
+    params.output.sub_directory = args.sub_directory
     params.short_name_type_run = args.forced_field
 
     if args.projection is not None:
@@ -412,6 +426,9 @@ def create_params(args):
     ikzmax = 10
     ikhmax = ikzmax * args.ratio_nh_nz
     params.output.spatiotemporal_spectra.probes_region = (ikhmax, ikhmax, ikzmax)
+
+    if args.modify_params is not None:
+        exec(args.modify_params)
 
     return params
 
