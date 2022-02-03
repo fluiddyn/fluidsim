@@ -91,6 +91,7 @@ source_suffix = {
     ".ipynb": "myst-nb",
     ".myst": "myst-nb",
 }
+# nb_render_plugin = "default"
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
