@@ -99,6 +99,7 @@ source_suffix = {
     ".myst": "myst-nb",
 }
 # nb_render_plugin = "default"
+nb_merge_streams = True
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
