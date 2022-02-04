@@ -1,13 +1,13 @@
 from fluidlicallo import cluster
 
 nb_nodes = 1
-nb_cores_per_node = 8  # cluster.nb_cores_per_node
+nb_cores_per_node = 4  # cluster.nb_cores_per_node
 nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 
 walltime = "00:20:00"
 
 cluster.submit_command(
-    f"run_simul.py -N 10 -nz 80",
+    f"run_simul.py -N 3 -nz 20",
     name_run=f"ns3d.strat_test",
     nb_nodes=nb_nodes,
     nb_cores_per_node=nb_cores_per_node,
