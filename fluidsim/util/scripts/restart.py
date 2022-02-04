@@ -3,8 +3,6 @@
 
 .. autofunction:: create_parser
 
-.. autofunction:: parse_args
-
 .. autofunction:: restart
 
 .. autofunction:: main
@@ -22,8 +20,9 @@ import h5py
 
 from fluiddyn.util import mpi
 
-from fluidsim.util.util import load_for_restart
 from fluidsim.base.output.phys_fields import time_from_path
+from fluidsim.util.util import load_for_restart
+from fluidsim.util.scripts import parse_args
 
 
 def create_parser():
@@ -108,13 +107,6 @@ def create_parser():
     )
 
     return parser
-
-
-def parse_args(parser, args):
-    """Parse the arguments"""
-    args = parser.parse_args(args)
-    mpi.printby0(args)
-    return args
 
 
 def restart(args=None, **defaults):

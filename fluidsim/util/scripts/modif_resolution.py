@@ -4,8 +4,6 @@ Create a new file with another resolution (:mod:`fluidsim.util.scripts.modif_res
 
 .. autofunction:: create_parser
 
-.. autofunction:: parse_args
-
 .. autofunction:: main
 
 """
@@ -16,6 +14,8 @@ import sys
 from fluiddyn.util import mpi
 
 from fluidsim.util.util import modif_resolution_from_dir_memory_efficient
+
+from fluidsim.util.scripts import parse_args
 
 
 def create_parser():
@@ -45,13 +45,6 @@ def create_parser():
     )
 
     return parser
-
-
-def parse_args(parser, args):
-    """Parse the arguments"""
-    args = parser.parse_args(args)
-    mpi.printby0(args)
-    return args
 
 
 def main(args=None, **defaults):

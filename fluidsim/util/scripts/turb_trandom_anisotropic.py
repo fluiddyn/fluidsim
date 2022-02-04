@@ -2,8 +2,6 @@
 
 .. autofunction:: create_parser
 
-.. autofunction:: parse_args
-
 .. autofunction:: main
 
 """
@@ -15,6 +13,7 @@ import sys
 import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
+from fluidsim.util.scripts import parse_args
 
 doc = """Launcher for simulations with the solver ns3d.strat and
 the forcing tcrandom_anisotropic.
@@ -266,13 +265,6 @@ def create_parser():
     return parser
 
 
-def parse_args(parser):
-    """Parse the arguments"""
-    args = parser.parse_args()
-    mpi.printby0(args)
-    return args
-
-
 def create_params(args):
     """Create the params object from the script arguments"""
 
@@ -433,14 +425,14 @@ def create_params(args):
     return params
 
 
-def main(**defaults):
+def main(args=None, **defaults):
     """Main function for the scripts based on turb_trandom_anisotropic"""
     parser = create_parser()
 
     if defaults:
         parser.set_defaults(**defaults)
 
-    args = parse_args(parser)
+    args = parse_args(parser, args)
 
     params = create_params(args)
 
@@ -492,10 +484,6 @@ sim.output.phys_fields.animate('b')
     )
 
     return params, sim
-
-
-def main_entry_point():
-    main()
 
 
 if "sphinx" in sys.modules:

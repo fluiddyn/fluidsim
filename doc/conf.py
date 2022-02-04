@@ -21,13 +21,12 @@ import matplotlib.pyplot as plt
 
 plt.ioff()
 
-if "READTHEDOCS" in os.environ:
-    from bash_kernel.install import main
-    from unittest.mock import patch
+# if "READTHEDOCS" in os.environ:
+#     from bash_kernel.install import main
+#     from unittest.mock import patch
 
-    with patch.object(sys, "argv", [sys.argv[0]]):
-        main()
-
+#     with patch.object(sys, "argv", [sys.argv[0]]):
+#         main()
 
 from fluiddoc import mock_modules
 
