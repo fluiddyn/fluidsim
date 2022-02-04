@@ -17,17 +17,44 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 .. Fixed      Fixed for any bug fixes.
 .. Security   Security in case of vulnerabilities.
 
-Unreleased_
------------
-
-New subpackage :mod:`fluidsim.util.scripts`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Entry points ``fluidsim-restart`` and ``fluidsim-modif-resolution``
+..
+  Unreleased_
+  -----------
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0b0...branch%2Fdefault
+
+0.6.0b0_ (2022-02-04)
+---------------------
+
+- New subpackage :mod:`fluidsim.util.scripts` and module
+  :mod:`fluidsim.util.scripts.turb_trandom_anisotropic` (`!255
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/255>`__).
+
+- Entry points console_scripts ``fluidsim-restart`` (`!261
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/261>`__) and
+  ``fluidsim-modif-resolution`` (`!263
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/263>`__).
+
+- Forcing :class:`fluidsim.base.forcing.anisotropic.TimeCorrelatedRandomPseudoSpectralAnisotropic`
+  (extension for 3d solvers + new parameter ``params.forcing.tcrandom_anisotropic.delta_angle``)
+  (`!247 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/247>`__).
+
+- New projection functions (toroidal/poloidal) in
+  :mod:`fluidsim.operators.operators3d` (`!247
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/247>`__).
+
+- `! 250 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/250>`__:
+  New parameter ``params.projection`` for ns3d solvers.
+
+  The equations (``ns3d``, ``ns3d.strat`` and ``ns3d.bouss``) can be modified by
+  projecting the solutions on the poloidal or toroidal manifolds.
+
+- Faster loading at Python start (`!264
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/264>`__)
+
+- Various bugfixes, in particular related to restart.
 
 0.5.1_ (2021-11-05)
 -------------------
@@ -205,6 +232,8 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0b0...branch%2Fdefault
+.. _0.6.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...0.6.0b0
 .. _0.5.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...0.5.1
 .. _0.5.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...0.5.0
 .. _0.4.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.0...0.4.1
