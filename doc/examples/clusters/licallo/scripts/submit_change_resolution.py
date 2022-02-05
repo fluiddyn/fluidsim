@@ -37,11 +37,10 @@ for path in paths:
         f'params.output.periods_print.print_stdout = 0.05; params.output.periods_save.spatial_means = 0.01;"'        
     )
 
-
     print(f"Restart the simulation with doubled resolution and viscosity divided by two, submitting:\n {command}")
 
     cluster.submit_command(
-        f"{command}",
+        f'{command}',
         name_run=f"restart_reso_" + title,
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
@@ -49,6 +48,7 @@ for path in paths:
         omp_num_threads=1,
         ask=True,
         walltime="12:00:00",
+        dependency="singleton",
     )
 
   
