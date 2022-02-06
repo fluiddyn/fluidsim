@@ -1,10 +1,20 @@
 from math import pi
+import os
 
 from fluidsim.solvers.ns2d.solver import Simul
 
+if os.environ.get("FLUIDSIM_TESTS_EXAMPLES", False):
+    sub_directory = "tests_examples"
+    nh = 24
+else:
+    sub_directory = "examples"
+    nh = 32
+
 params = Simul.create_default_params()
 
-params.oper.nx = params.oper.ny = nh = 32
+params.output.sub_directory = sub_directory
+
+params.oper.nx = params.oper.ny = nh
 params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 
 delta_x = Lh / nh
@@ -16,8 +26,6 @@ params.init_fields.type = "dipole"
 
 params.forcing.enable = True
 params.forcing.type = "proportional"
-
-params.output.sub_directory = "examples"
 
 params.output.periods_print.print_stdout = 0.25
 

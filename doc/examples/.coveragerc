@@ -1,0 +1,7 @@
+[run]
+source = .
+include =
+    simul*.py
+    test_run_examples.py
+omit =
+    launch*.py

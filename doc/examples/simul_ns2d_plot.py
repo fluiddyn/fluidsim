@@ -1,24 +1,34 @@
+import os
+
 import fluiddyn as fld
 from fluidsim.solvers.ns2d.solver import Simul
 
 params = Simul.create_default_params()
 
-params.short_name_type_run = "test"
+if os.environ.get("FLUIDSIM_TESTS_EXAMPLES", False):
+    t_end = 2.0
+    sub_directory = "tests_examples"
+    nh = 24
+else:
+    t_end = 10.0
+    sub_directory = "examples"
+    nh = 32
 
-params.oper.nx = params.oper.ny = nh = 32
+params.short_name_type_run = "examples"
+params.output.sub_directory = sub_directory
+
+params.oper.nx = params.oper.ny = nh
 params.oper.Lx = params.oper.Ly = Lh = 10
 
 delta_x = Lh / nh
 params.nu_8 = 2.0 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
 
-params.time_stepping.t_end = 10.0
+params.time_stepping.t_end = t_end
 
 params.init_fields.type = "dipole"
 
 params.forcing.enable = True
 params.forcing.type = "tcrandom"
-
-params.output.sub_directory = "examples"
 
 params.output.periods_print.print_stdout = 0.5
 
