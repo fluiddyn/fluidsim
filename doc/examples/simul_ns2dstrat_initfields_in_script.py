@@ -3,11 +3,17 @@
 The field initialization is done in the script.
 
 """
+import os
 import numpy as np
 
 from fluiddyn.util.mpi import rank
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    t_end = 2.0
+else:
+    t_end = 10.0
 
 params = Simul.create_default_params()
 

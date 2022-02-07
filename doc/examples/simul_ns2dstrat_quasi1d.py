@@ -1,6 +1,9 @@
 """Script for a short simulation with the solver ns2d.strat
 
 """
+
+import os
+
 import numpy as np
 from math import pi
 
@@ -9,6 +12,9 @@ from fluiddyn.util import mpi
 from fluidsim.solvers.ns2d.strat.solver import Simul
 
 params = Simul.create_default_params()
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    params.time_stepping.max_elapsed = "00:00:04"
 
 gamma = 1.0
 nb_wavelength = 2

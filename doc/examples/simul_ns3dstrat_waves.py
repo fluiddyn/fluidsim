@@ -6,12 +6,19 @@ Launch with::
   mpirun -np 4 python simul_ns3dstrat_waves.py
 
 """
-
+import os
 from math import pi
 
 from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    nz = 8
+    t_end = 1.0
+else:
+    nz = 16
+    t_end = 10.0
 
 # main input parameters
 N = 0.6  # rad/s
@@ -30,7 +37,6 @@ params.N = N
 
 params.output.sub_directory = "waves_coriolis"
 
-nz = 8
 aspect_ratio = 6
 nx = ny = nz * aspect_ratio
 lz = 2
@@ -78,7 +84,7 @@ params.nu_4 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 params.nu_2 = 1e-6
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 10 * 2 * pi / omega_f
+params.time_stepping.t_end = t_end * 2 * pi / omega_f
 params.time_stepping.deltat_max = deltat_max = period_N / 40
 
 params.init_fields.type = "noise"
@@ -129,14 +135,11 @@ fluidsim-create-xml-description {sim.output.path_run}
 # To visualize with fluidsim:
 
 cd {sim.output.path_run}
-ipython
+ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # in ipython:
 
-from fluidsim import load_sim_for_plot
-sim = load_sim_for_plot()
 sim.output.phys_fields.set_equation_crosssection('x={lx/2}')
 sim.output.phys_fields.animate('b')
-
 """
 )

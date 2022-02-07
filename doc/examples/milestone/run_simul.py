@@ -35,7 +35,7 @@ from fluidsim.extend_simul import extend_simul_class
 Simul = extend_simul_class(Simul, SpatialMeansRegions)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-N", type=float, default=0.5, help="Brunt–Väisälä frequency")
+parser.add_argument("-N", type=float, default=0.5, help="Brunt-Väisälä frequency")
 
 parser.add_argument(
     "-D", "--diameter", type=float, default=0.25, help="Diameter of the cylinders"

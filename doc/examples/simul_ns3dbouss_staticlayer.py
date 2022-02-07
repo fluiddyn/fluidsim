@@ -8,6 +8,8 @@ Launch with::
 
 """
 
+import os
+
 import numpy as np
 
 from fluiddyn.util.mpi import printby0
@@ -16,9 +18,16 @@ from fluidsim.solvers.ns3d.bouss.solver import Simul
 
 params = Simul.create_default_params()
 
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    t_end = 2.0
+    nx = 36
+    params.time_stepping.max_elapsed = "00:00:04"
+else:
+    t_end = 10.0
+    nx = 144 // 2
+
 params.output.sub_directory = "examples"
 
-nx = 144 // 2
 ny = nx
 nz = nx // 2
 lz = 2
@@ -166,12 +175,10 @@ fluidsim-create-xml-description {sim.output.path_run}
 # To visualize with fluidsim:
 
 cd {sim.output.path_run}
-ipython
+ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # in ipython:
 
-from fluidsim import load_sim_for_plot
-sim = load_sim_for_plot()
 sim.output.phys_fields.set_equation_crosssection('x={lx/2}')
 sim.output.phys_fields.animate('b')
 

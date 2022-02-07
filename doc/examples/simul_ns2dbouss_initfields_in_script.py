@@ -3,7 +3,7 @@
 The field initialization is done in the script.
 
 """
-from math import pi
+import os
 
 import numpy as np
 
@@ -11,9 +11,16 @@ from fluiddyn.util.mpi import rank
 
 from fluidsim.solvers.ns2d.bouss.solver import Simul
 
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    nx = 24
+    t_end = 1.0
+else:
+    nx = 64
+    t_end = 5.0
+
 params = Simul.create_default_params()
 
-params.oper.nx = nx = 64
+params.oper.nx = nx
 params.oper.ny = nx // 2
 params.oper.Lx = lx = 2
 params.oper.Ly = lx
@@ -21,7 +28,7 @@ params.oper.coef_dealiasing = 0.7
 
 params.nu_8 = 1e-10
 
-params.time_stepping.t_end = 5.0
+params.time_stepping.t_end = t_end
 
 params.init_fields.type = "in_script"
 

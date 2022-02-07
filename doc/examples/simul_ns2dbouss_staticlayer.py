@@ -7,14 +7,21 @@ the top and the bottom of the numerical domain.
 
 """
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 from fluiddyn.util.mpi import rank
 
-# from fluiddyn.io.query import query_yes_no
-
 from fluidsim.solvers.ns2d.bouss.solver import Simul
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    t_end = 1.0
+    nx = 24
+else:
+    t_end = 10.0
+    nx = 128
 
 params = Simul.create_default_params()
 
@@ -98,9 +105,6 @@ if rank == 0:
 
         plt.pause(1e-3)
 
-        # if not query_yes_no('Does the function alpha look ok?'):
-        #     sys.exit()
-
     def compute_forcingc_fft_each_time(self):
         """This function is called by the forcing_maker to compute the forcing"""
         rot_fft = self.sim.state.state_spect.get_var("rot_fft")
@@ -127,7 +131,7 @@ if rank == 0:
 
             for (i0, i1), arr in np.ndenumerate(arrays):
                 pmesh = pmeshs[i0, i1]
-                pmesh.set_array(arr[:-1, :-1].ravel())
+                pmesh.set_array(arr.ravel())
                 pmesh.set_clim(arr.min(), arr.max())
 
             title.set_text(f"time {self.sim.time_stepping.t:.2f}")

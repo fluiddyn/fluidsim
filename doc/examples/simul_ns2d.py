@@ -1,18 +1,12 @@
 from math import pi
-import os
 
 from fluidsim.solvers.ns2d.solver import Simul
 
-if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
-    nh = 24
-else:
-    nh = 32
-
 params = Simul.create_default_params()
 
-params.output.sub_directory = "examples"
+params.output.sub_directory = "examples_restart"
 
-params.oper.nx = params.oper.ny = nh
+params.oper.nx = params.oper.ny = nh = 24
 params.oper.Lx = params.oper.Ly = Lh = 2 * pi
 
 delta_x = Lh / nh

@@ -1,12 +1,21 @@
+import os
+
 from fluiddyn.util.mpi import printby0
 
 from fluidsim.solvers.ns3d.strat.solver import Simul
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    t_end = 1.0
+    nx = 24
+else:
+    t_end = 10.0
+    nx = 96
 
 params = Simul.create_default_params()
 
 params.output.sub_directory = "examples"
 
-nx = ny = nz = 96
+ny = nz = nx
 Lx = 3
 params.oper.nx = nx
 params.oper.ny = ny
@@ -16,7 +25,7 @@ params.oper.Ly = Ly = Lx / nx * ny
 params.oper.Lz = Lz = Lx / nx * nz
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 10.0
+params.time_stepping.t_end = t_end
 
 n = 8
 C = 1.0

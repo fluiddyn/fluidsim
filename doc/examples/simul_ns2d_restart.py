@@ -1,8 +1,8 @@
 from fluidsim import load_for_restart, path_dir_results
 
-path_dir_root = path_dir_results / "examples"
+path_dir_root = path_dir_results / "examples_restart"
 
-path_dir = sorted(path_dir_root.glob("NS2D_32x32_S2pix2pi*"))[-1]
+path_dir = sorted(path_dir_root.glob("NS2D_24x24_S2pix2pi*"))[-1]
 
 params, Simul = load_for_restart(path_dir)
 
