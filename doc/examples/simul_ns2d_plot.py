@@ -3,19 +3,17 @@ import os
 import fluiddyn as fld
 from fluidsim.solvers.ns2d.solver import Simul
 
-params = Simul.create_default_params()
-
-if os.environ.get("FLUIDSIM_TESTS_EXAMPLES", False):
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
     t_end = 2.0
-    sub_directory = "tests_examples"
     nh = 24
 else:
     t_end = 10.0
-    sub_directory = "examples"
     nh = 32
 
+params = Simul.create_default_params()
+
 params.short_name_type_run = "examples"
-params.output.sub_directory = sub_directory
+params.output.sub_directory = "examples"
 
 params.oper.nx = params.oper.ny = nh
 params.oper.Lx = params.oper.Ly = Lh = 10

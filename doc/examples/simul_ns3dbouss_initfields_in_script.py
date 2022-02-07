@@ -7,12 +7,18 @@ Launch with::
   mpirun -np 4 python simul_ns3dbouss_initfields_in_script.py
 
 """
+import os
 
 import numpy as np
 
 from fluiddyn.util.mpi import printby0
 
 from fluidsim.solvers.ns3d.bouss.solver import Simul
+
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
+    t_end = 2.0
+else:
+    t_end = 10.0
 
 params = Simul.create_default_params()
 
@@ -36,7 +42,6 @@ fft = "fftwmpi3d"
 # for sequential runs, just comment these 2 lines
 params.oper.type_fft = "fluidfft.fft3d.mpi_with_" + fft
 params.short_name_type_run = fft
-
 
 r"""
 
@@ -72,7 +77,7 @@ params.nu_8 = (dx / C) ** ((3 * n - 2) / 3) * eps ** (1 / 3)
 printby0(f"nu_8 = {params.nu_8:.3e}")
 
 params.time_stepping.USE_T_END = True
-params.time_stepping.t_end = 10.0
+params.time_stepping.t_end = t_end
 
 params.init_fields.type = "in_script"
 

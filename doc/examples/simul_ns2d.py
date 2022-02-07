@@ -3,16 +3,14 @@ import os
 
 from fluidsim.solvers.ns2d.solver import Simul
 
-if os.environ.get("FLUIDSIM_TESTS_EXAMPLES", False):
-    sub_directory = "tests_examples"
+if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
     nh = 24
 else:
-    sub_directory = "examples"
     nh = 32
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = sub_directory
+params.output.sub_directory = "examples"
 
 params.oper.nx = params.oper.ny = nh
 params.oper.Lx = params.oper.Ly = Lh = 2 * pi

@@ -1,13 +1,9 @@
-import os
 
 from fluidsim.solvers.ad1d.solver import Simul
 
 params = Simul.create_default_params()
 
-if os.environ.get("FLUIDSIM_TESTS_EXAMPLES", False):
-    params.output.sub_directory = "tests_examples"
-else:
-    params.output.sub_directory = "examples"
+params.output.sub_directory = "examples"
 
 params.U = 1.0
 

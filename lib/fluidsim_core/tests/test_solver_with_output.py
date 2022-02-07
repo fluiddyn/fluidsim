@@ -132,7 +132,7 @@ def test_init_sim_output():
         params = SimulTestWithOutput.create_default_params()
 
     assert_default_params(params)
-
+    params.output.sub_directory = "tests"
     sim = SimulTestWithOutput(params)
 
     assert hasattr(sim.output, "working")
