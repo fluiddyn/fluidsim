@@ -1,4 +1,4 @@
-Simulation with one static layer at z = 0
-=========================================
+Simulation with one dense layer
+===============================
 
 .. literalinclude:: simul_ns2dbouss_staticlayer.py

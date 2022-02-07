@@ -19,3 +19,5 @@ The main contributors are:
 - `Jason Reneuve (ENS Lyon)
   <http://www.ens-lyon.fr/PHYSIQUE/presentation/anciens/reneuve-jason>`_
 - Antoine Bardant (LEGI)
+- `Vincent Labarre <https://www.researchgate.net/profile/Vincent-Labarre>`__
+  (`OCA <https://www.oca.eu/fr/fluid>`__)
