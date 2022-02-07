@@ -35,7 +35,7 @@ params = Simul.create_default_params()
 
 params.N = N
 
-params.output.sub_directory = "waves_coriolis"
+params.output.sub_directory = "examples"
 
 aspect_ratio = 6
 nx = ny = nz * aspect_ratio

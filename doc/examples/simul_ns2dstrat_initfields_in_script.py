@@ -6,7 +6,7 @@ The field initialization is done in the script.
 import os
 import numpy as np
 
-from fluiddyn.util.mpi import rank
+from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns2d.strat.solver import Simul
 
@@ -56,7 +56,9 @@ ux = (
 
 uy = 5e-2 * sim.oper.create_arrayX_random()
 
-sim.state.init_statespect_from(ux_fft=sim.oper.fft(ux), uy_fft=sim.oper.fft(uy))
+sim.state.init_statespect_from(
+    rot_fft=sim.oper.rotfft_from_vecfft(sim.oper.fft(ux), sim.oper.fft(uy))
+)
 
 # In this case (params.init_fields.type = 'in_script') if we want to plot the
 # result of the initialization before the time_stepping, we need to manually
@@ -65,29 +67,22 @@ sim.state.init_statespect_from(ux_fft=sim.oper.fft(ux), uy_fft=sim.oper.fft(uy))
 # sim.output.init_with_initialized_state()
 # sim.output.phys_fields.plot(field="ux")
 
-# import sys
-
-# sys.exit()
-
 sim.time_stepping.start()
 
-
-if rank == 0:
-
-    print(
-        "\nTo display a video of this simulation, you can do:\n"
-        f"cd {sim.output.path_run}"
-        + """
+mpi.printby0(
+    "\nTo display a video of this simulation, you can do:\n"
+    f"cd {sim.output.path_run}"
+    + """
 ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # then in ipython (copy the line in the terminal):
 
 sim.output.phys_fields.animate('b', dt_frame_in_sec=0.3, dt_equations=0.1)
 """
-    )
+)
 
-    sim.output.phys_fields.plot(field="uy")
+sim.output.phys_fields.plot(field="uy")
 
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-    plt.show()
+plt.show()

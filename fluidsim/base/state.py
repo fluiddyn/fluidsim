@@ -378,9 +378,9 @@ class StatePseudoSpectral(StateBase):
         for key, value in list(kwargs.items()):
             if key not in self.keys_state_spect:
                 raise ValueError(
-                    f'Do not know how to initialize with key "{key}".'
+                    f"Do not know how to initialize with key '{key}'. "
+                    f"({self.keys_state_spect = })"
                 )
-
             self.state_spect.set_var(key, value)
 
     def check_energy_equal_phys_spect(self):

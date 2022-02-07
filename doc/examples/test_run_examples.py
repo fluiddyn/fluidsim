@@ -28,7 +28,8 @@ from runpy import run_path
 
 def teardown_module(module):
     if mpi.rank == 0:
-        shutil.rmtree(path_dir_results / "tests_examples", ignore_errors=True)
+        shutil.rmtree(path_dir_results / "examples", ignore_errors=True)
+        shutil.rmtree(path_dir_results / "examples_restart", ignore_errors=True)
 
 
 @unittest.skipIf(mpi.nb_proc > 1, "MPI not implemented")
@@ -39,6 +40,7 @@ def test_simul_ad1d():
 @pytest.mark.parametrize(
     "script",
     [
+        "simul_ns2dstrat_initfields_in_script.py",
         "simul_ns2d_plot.py",
         "simul_ns2d_plotphys.py",
         "simul_ns2dstrat_forcing_in_script.py",
@@ -55,17 +57,6 @@ def test_simul_ad1d():
     ],
 )
 def test_script(script):
-    run_path(script)
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "script",
-    [
-        "simul_ns2dstrat_initfields_in_script.py",
-    ],
-)
-def test_script_xfail(script):
     run_path(script)
 
 
