@@ -4,7 +4,7 @@
 
 Code not covered should be removed, except for very good reasons.
 
-- fluidsim-core should be at >95%, with proper unittests.
+- fluidsim-core should be >~95%, with proper unittests.
 
 - code for using third-party programs (Dedalus and Basilisk) should be
   removed from the fluidsim package.
@@ -42,7 +42,7 @@ Specialized in pseudo-spectral Fourier.
   - [Gross–Pitaevskii equation](https://en.wikipedia.org/wiki/Gross%E2%80%93Pitaevskii_equation)
   - ... (?)
 
-- Linear NS (as in [NS3D](NS3D-2.13 (26/05/2014).))
+- Linear stability (as in [NS3D](NS3D-2.13 (26/05/2014).))
 
 - FFT accelerated with GPU and MPI+GPU (fluidfft)
 
@@ -50,3 +50,23 @@ Specialized in pseudo-spectral Fourier.
 
 - Shear as in [Snoopy](https://ipag.osug.fr/~lesurg/snoopy.html) (see
   [#99](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/99))
+
+## Long term
+
+- API to dynamically define a solver
+
+"Ability to dynamically and concisely build a solver is what Dedalus is good
+at. And performance and batteries-included approach is where FluidSim shines.
+Our InfoSolver + Parameters approach is flexible but requires a lot of
+boilerplate code. Even today I always need to refer to documentation while
+creating a new solver. It must be possible to create intuitive factory classes
+which dynamically generate InfoSolver, Parameters, Simul classes for us. We
+could refer to some well known design patterns for inspiration." (Ashwin V.
+Mohanan)
+
+- Explore use of type hints
+
+Inline or separate *.pyi files? Use MonkeyType or similar to autogenerate type
+hints from tests? Some inspiration: [FOSDEM
+talk](https://fosdem.org/2022/schedule/event/python_type_safety/) and [this
+blog post](https://nskm.xyz/posts/stcmp2/)
