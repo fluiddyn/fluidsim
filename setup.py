@@ -82,7 +82,7 @@ __about__ = version["__about__"]
 # Get the development status from the version string
 if "a" in __version__:
     devstatus = "Development Status :: 3 - Alpha"
-elif "b" in __version__:
+elif "b" in __version__ or "rc" in __version__:
     devstatus = "Development Status :: 4 - Beta"
 else:
     devstatus = "Development Status :: 5 - Production/Stable"
@@ -179,7 +179,6 @@ setup(
     long_description=long_description(),
     author="Pierre Augier",
     author_email="pierre.augier@legi.cnrs.fr",
-    url="https://foss.heptapod.net/fluiddyn/fluidsim",
     license="CeCILL",
     classifiers=[
         # How mature is this project? Common values are
@@ -196,6 +195,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     packages=find_packages(exclude=["doc", "examples"]),
     setup_requires=setup_requires,

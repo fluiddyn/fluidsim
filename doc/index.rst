@@ -148,6 +148,7 @@ supporting classes and functions.
    Advice for FluidDyn developers <http://fluiddyn.readthedocs.io/en/latest/advice_developers.html>
    to_do
    authors
+   roadmap
 
 Links
 -----
