@@ -38,9 +38,9 @@ else:
 
 
 def skip_if_no_fluidfft(func):
-    return unittest.skipUnless(FLUIDFFT_INSTALLED, "FluidFFT is not installed")(
-        func
-    )
+    return pytest.mark.skipif(
+        not FLUIDFFT_INSTALLED, reason="FluidFFT is not installed"
+    )(func)
 
 
 class classproperty:
