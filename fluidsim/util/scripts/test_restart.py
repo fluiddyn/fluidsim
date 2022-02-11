@@ -1,3 +1,4 @@
+import unittest
 import shutil
 import sys
 from unittest.mock import patch
@@ -37,6 +38,7 @@ def path_simul():
         shutil.rmtree(sim.output.path_run, ignore_errors=True)
 
 
+@unittest.skipIf(mpi.nb_proc > 1, "No sense with mpi")
 def test_only_check(path_simul):
     argv = ["fluidsim-restart", path_simul, "-oc", "--it_end", "1"]
     argv.extend(["--add-to-it_end", "1"])
