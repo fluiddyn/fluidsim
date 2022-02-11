@@ -31,4 +31,4 @@ class OutputDedalus(OutputBase):
         """Compute the spatially averaged energy."""
         vx = self.sim.state.get_var("vx")
         vz = self.sim.state.get_var("vz")
-        return 0.5 * (vx ** 2 + vz ** 2).mean()
+        return 0.5 * (vx**2 + vz**2).mean()

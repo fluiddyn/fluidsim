@@ -38,8 +38,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
     ):
-        """Initialize list of files and times, pcolor plot, quiver and colorbar.
-        """
+        """Initialize list of files and times, pcolor plot, quiver and colorbar."""
         self.phys_fields.set_of_phys_files.update_times()
         self.time_files = self.phys_fields.set_of_phys_files.times
 
@@ -110,9 +109,10 @@ class MoviesBasePhysFields2D(MoviesBase2D):
         self._ANI_INSET = INSET
         if self._ANI_INSET:
             try:
-                self._ani_spatial_means_t, self._ani_spatial_means_key = (
-                    self._get_spatial_means()
-                )
+                (
+                    self._ani_spatial_means_t,
+                    self._ani_spatial_means_key,
+                ) = self._get_spatial_means()
             except FileNotFoundError:
                 print("No spatial means file => no inset plot.")
                 self._ANI_INSET = False
@@ -198,7 +198,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
                 equation=self._equation,
                 interpolate_time=True,
             )
-            vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+            vmax = np.max(np.sqrt(ux**2 + uy**2))
             skip = self.phys_fields._skip_quiver
             self._ani_quiver.set_UVC(
                 ux[::skip, ::skip] / vmax, uy[::skip, ::skip] / vmax
@@ -230,7 +230,7 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             self._ani_cbar.set_ticks(ticks)
 
     def _get_spatial_means(self, key_spatial="E"):
-        """ Get field for the inset plot."""
+        """Get field for the inset plot."""
         # Check if key_spatial can be loaded.
         keys_spatial = ["E", "EK", "EA"]
         if key_spatial not in keys_spatial:
@@ -312,7 +312,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
                 # Update figure, quiver and colorbar
                 self.movies._im.set_array(field.flatten())
                 if self._has_uxuy:
-                    vmax = np.max(np.sqrt(ux ** 2 + uy ** 2))
+                    vmax = np.max(np.sqrt(ux**2 + uy**2))
                     skip = self._skip_quiver
                     self.movies._ani_quiver.set_UVC(
                         ux[::skip, ::skip] / vmax, uy[::skip, ::skip] / vmax
@@ -504,7 +504,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
             #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
             #      np.min(np.sqrt(vecx**2 + vecy**2))) /
             #     np.max(np.sqrt(vecx**2 + vecy**2)))
-            vmax = np.max(np.sqrt(vecx ** 2 + vecy ** 2))
+            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
             # Quiver is normalized by the vmax
             # copy to avoid a bug
             skip = self._skip_quiver

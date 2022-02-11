@@ -19,15 +19,11 @@ from fluiddyn.util import mpi
 
 
 class TimeSteppingBase0:
-    """Universal time stepping class used for all solvers.
-
-
-    """
+    """Universal time stepping class used for all solvers."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         attribs = {
             "USE_T_END": True,
             "t_end": 10.0,
@@ -113,7 +109,9 @@ max_elapsed: number or str (default None)
                 self.max_elapsed = float(param_max_elapsed)
             except ValueError:
                 t = datetime.strptime(param_max_elapsed, "%H:%M:%S")
-                delta_t = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+                delta_t = timedelta(
+                    hours=t.hour, minutes=t.minute, seconds=t.second
+                )
                 self.max_elapsed = delta_t.total_seconds()
 
             t_start = None
@@ -185,12 +183,15 @@ max_elapsed: number or str (default None)
             if mpi.nb_proc > 1:
                 now = mpi.comm.bcast(now, root=0)
             if now > self._time_should_stop:
-                self.sim.output.print_stdout("Maximum elapsed time reached. Should stop soon.")
+                self.sim.output.print_stdout(
+                    "Maximum elapsed time reached. Should stop soon."
+                )
                 self._has_to_stop = True
         self.sim.output.one_time_step()
         self.one_time_step_computation()
         self.t += self.deltat
         self.it += 1
+
 
 class TimeSteppingBase(TimeSteppingBase0):
     def _init_compute_time_step(self):
@@ -331,12 +332,12 @@ class TimeSteppingBase(TimeSteppingBase0):
 
         # Phase speed of the fastest wave from dispersion relation
         if f == 0:
-            cph = params.c2 ** 0.5
+            cph = params.c2**0.5
         else:
             Lh = max(params.oper.Lx, params.oper.Ly)
             k_min = 2 * pi / Lh
 
-            cph = (f ** 2 / k_min ** 2 + params.c2) ** 0.5
+            cph = (f**2 / k_min**2 + params.c2) ** 0.5
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()

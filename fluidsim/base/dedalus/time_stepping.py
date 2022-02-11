@@ -15,14 +15,11 @@ from fluidsim.base.time_stepping.base import TimeSteppingBase0
 
 
 class TimeSteppingDedalus(TimeSteppingBase0):
-    """Time stepping class to handle Dedalus's event loop and FluidSim output.
-
-    """
+    """Time stepping class to handle Dedalus's event loop and FluidSim output."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
         TimeSteppingBase0._complete_params_with_default(params)
 
     def __init__(self, sim):

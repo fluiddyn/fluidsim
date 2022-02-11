@@ -15,14 +15,11 @@ from dedalus import public as dedalus
 
 
 class OperatorsDedalus2D:
-    """2D operators.
-
-    """
+    """2D operators."""
 
     @staticmethod
     def _complete_params_with_default(params):
-        """This static method is used to complete the *params* container.
-        """
+        """This static method is used to complete the *params* container."""
 
         attribs = {"nx": 128, "nz": 64, "Lx": 4, "Lz": 1}
         params._set_child("oper", attribs=attribs)
@@ -53,7 +50,7 @@ class OperatorsDedalus2D:
 
         self.params = params
 
-        self.x_seq, self.y_seq = self.domain.grids(scales=1.)
+        self.x_seq, self.y_seq = self.domain.grids(scales=1.0)
         self.x_seq = self.x_seq.flatten()
         self.y_seq = self.y_seq.flatten()
         self.X, self.Y = np.meshgrid(self.x_seq, self.y_seq)

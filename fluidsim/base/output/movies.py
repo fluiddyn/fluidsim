@@ -43,8 +43,7 @@ class MoviesBase:
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
     ):
-        """Initializes animated fig. and list of times of save files to load.
-        """
+        """Initializes animated fig. and list of times of save files to load."""
         self._set_key_field(key_field)
         self._init_ani_times(tmin, tmax, dt_equations)
         self.fig, self.ax = plt.subplots(num=numfig, **fig_kw)
@@ -383,7 +382,7 @@ class MoviesBase1D(MoviesBase):
         )
 
         ax = self.ax
-        self._ani_line, = ax.plot([], [])
+        (self._ani_line,) = ax.plot([], [])
 
         if "xmax" in kwargs:
             ax.set_xlim(0, kwargs["xmax"])
