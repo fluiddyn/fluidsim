@@ -17,12 +17,17 @@ import time
 import unittest
 from importlib import import_module
 from warnings import warn
+from pathlib import Path
+
+import pytest
 
 import numpy as np
 
 from fluiddyn.io import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.compat import cached_property
+
+import fluidsim
 
 try:
     import fluidfft
@@ -167,238 +172,14 @@ class TestSimulConserveOutput(TestSimulConserve):
         plt.close("all")
 
 
-class TimeLoggingTestResult(unittest.TextTestResult):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.test_timings = []
+def run():
+    if len(sys.argv) == 1 or not Path(sys.argv[1]).exists():
+        sys.argv.insert(1, str(Path(fluidsim.__file__).parent))
 
-    def startTest(self, test):
-        self._test_started_at = time.time()
-        super().startTest(test)
+    if not any("--durations=" in arg for arg in sys.argv):
+        sys.argv.append("--durations=10")
 
-    def addSuccess(self, test):
-        elapsed = time.time() - self._test_started_at
-        name = self.getDescription(test)
-        self.test_timings.append((name, elapsed))
-        super().addSuccess(test)
-
-    def getTestTimings(self):
-        return self.test_timings
-
-
-class TimeLoggingTestRunner(unittest.TextTestRunner):
-    def __init__(self, slow_test_threshold=0.3, *args, **kwargs):
-        self.slow_test_threshold = slow_test_threshold
-        return super().__init__(
-            resultclass=TimeLoggingTestResult, *args, **kwargs
-        )
-
-    def run(self, tests):
-        result = super().run(tests)
-        msg = f"\n\nSlow tests (>{self.slow_test_threshold:.3f}s):"
-        self.write_result(msg)
-        self.write_result("-" * len(msg))
-
-        for name, elapsed in result.getTestTimings():
-            if elapsed > self.slow_test_threshold:
-                self.write_result(f"({elapsed:.3f}s) {name}")
-
-        return result
-
-    def write_result(self, *strs):
-        """Write strings to the result stream."""
-        if mpi.rank == 0:
-            msg = " ".join(strs)
-            self.stream.writeln(msg)
-
-
-def _mname(obj):
-    """Get the full dotted name of the test method"""
-
-    mod_name = obj.__class__.__module__.replace("fluidsim.", "")
-    return f"{mod_name}.{obj.__class__.__name__}.{obj._testMethodName}"
-
-
-def deactivate_redirect_stdout(tests):
-    TestCase.has_to_redirect_stdout = False
-
-
-def _run(tests, verbose=False, no_capture=False):
-    """Run a set of tests using unittest."""
-
-    if mpi.rank == 0:
-        verbosity = 2
-    else:
-        verbosity = 0
-
-    if verbose:
-        TestRunner = TimeLoggingTestRunner
-    else:
-        TestRunner = unittest.runner.TextTestRunner
-
-    testRunner = TestRunner(verbosity=verbosity)
-
-    if no_capture:
-        deactivate_redirect_stdout(tests)
-
-    result = testRunner.run(tests)
-    if verbose:
-        msg = "Skipped tests"
-        testRunner.write_result("\n", msg, "\n", "-" * len(msg))
-        for (case, reason) in result.skipped:
-            testRunner.write_result("S  {} ({})".format(_mname(case), reason))
-        for (case, reason) in result.expectedFailures:
-            testRunner.write_result("X  %s" % _mname(case))
-
-    return result
-
-
-def import_test_module(module_name: str):
-    """Smarter import handling common mistakes with warnings."""
-    if not module_name.startswith("fluidsim"):
-        warn(
-            f"Assuming you forgot to add fluidsim in front of module name: {module_name}"
-        )
-        module_name = ".".join(("fluidsim", module_name))
-
-    try:
-        module = import_module(module_name)
-    except ModuleNotFoundError:
-        module_name = ".".join(module_name.split(".")[:-1])
-        # warn(f"Module not found. Attempting {module_name} instead")
-        module = import_module(module_name)
-    finally:
-        return module
-
-
-def discover_tests(
-    verbose=False, no_capture=False, module_name="fluidsim", path=None
-):
-    """Discovers all tests under a module or directory.
-    Similar to `python -m unittest discover`.
-
-    Parameters
-    ----------
-    module_name: str
-
-        Tests are discovered under this module
-
-    start_dir: str
-
-        Tests are discovered under this directory. Overrides `module_name`
-        parameter.
-
-    verbose: bool
-
-        For verbose output
-
-    """
-    if path is None:
-        module = import_test_module(module_name)
-        path_src = inspect.getfile(module)
-        path = os.path.dirname(path_src)
-
-    if os.path.isdir(path):
-        loader = unittest.TestLoader()
-        tests = loader.discover(path)
-    else:
-        module = path.replace(os.path.sep, ".")
-        module = import_test_module(module)
-        tests = unittest.defaultTestLoader.loadTestsFromModule(module)
-        suite = unittest.TestSuite()
-        suite.addTests(tests)
-
-    return _run(tests, verbose, no_capture)
-
-
-def collect_tests(verbose, no_capture, *modules):
-    """Creates a `TestSuite` from several modules.
-
-    Parameters
-    ----------
-    modules: str, str, ...
-
-        Strings representing modules containing atleast one unittest.TestCase
-        class.
-
-    Examples
-    --------
-    >>> collect_tests(
-            'fluidsim.solvers.test.test_ns',
-            'fluidsim.solvers.test.test_sw1l',
-            'fluidsim.operators.test.test_operators2d')
-
-    """
-    suite = unittest.TestSuite()
-    for module in modules:
-        module = module.replace(os.path.sep, ".")
-        module = import_test_module(module)
-        tests = unittest.defaultTestLoader.loadTestsFromModule(module)
-        suite.addTests(tests)
-
-    return _run(suite, verbose, no_capture)
-
-
-def init_parser(parser):
-    """Initialize argument parser for `fluidsim-test`."""
-
-    parser.add_argument(
-        "-m",
-        "--module",
-        default="fluidsim",
-        help="tests are discovered under this module",
-    )
-    parser.add_argument(
-        "-p",
-        "--path",
-        default=None,
-        help=(
-            "tests are discovered under this directory/file and overrides -m"
-            " option."
-        ),
-    )
-    parser.add_argument(
-        "-c",
-        "--collect",
-        nargs="+",
-        default=[],
-        help=(
-            "create a TestSuite by collecting multiple modules containing"
-            "TestCases"
-        ),
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="for verbose output"
-    )
-    parser.add_argument(
-        "-nc", "--no-capture", action="store_true", help="No stdout capture"
-    )
-
-
-def run(args=None):
-    """Run fluidsim-test command."""
-
-    if args is None:
-        parser = argparse.ArgumentParser(
-            prog="fluidsim-test",
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            description="Run FluidSim tests using unittest from any directory.",
-        )
-
-        init_parser(parser)
-        args = parser.parse_args()
-
-    if len(args.collect) > 0:
-        result = collect_tests(args.verbose, args.no_capture, *args.collect)
-    else:
-        result = discover_tests(
-            args.verbose, args.no_capture, args.module, args.path
-        )
-
-    if result.wasSuccessful():
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    pytest.main()
 
 
 if __name__ == "__main__":

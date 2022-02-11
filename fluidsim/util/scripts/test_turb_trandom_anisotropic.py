@@ -1,14 +1,15 @@
 import sys
 import shutil
-
+import unittest
 from unittest.mock import MagicMock, patch
+
+from fluiddyn.util import mpi
 
 from fluidsim.util.scripts import turb_trandom_anisotropic
 from fluidsim.util.scripts.turb_trandom_anisotropic import main
 
-from fluiddyn.util import mpi
 
-
+@unittest.skipIf(mpi.nb_proc > 1, "Modif resolution do not work with mpi")
 @patch.object(turb_trandom_anisotropic.plt, "show", MagicMock)
 @patch.object(sys, "argv", ["./prog", "-opf"])
 def test_only_plot_forcing():
