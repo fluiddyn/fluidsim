@@ -1,4 +1,3 @@
-
 from fluidsim.solvers.ad1d.solver import Simul
 
 params = Simul.create_default_params()

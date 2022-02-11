@@ -1206,9 +1206,13 @@ class SpatioTemporalSpectraNS:
                 except AttributeError:
                     projection = None
                 if projection != "poloidal":
-                    ax.plot(omegas, EKhr, "r--", linewidth=1, label=r"$E_{K,toro}$")
+                    ax.plot(
+                        omegas, EKhr, "r--", linewidth=1, label=r"$E_{K,toro}$"
+                    )
                 if projection != "toroidal":
-                    ax.plot(omegas, EKp, "r-.", linewidth=1, label=r"$E_{K,polo}$")
+                    ax.plot(
+                        omegas, EKp, "r-.", linewidth=1, label=r"$E_{K,polo}$"
+                    )
             else:
                 # kinetic energy
                 EK = tspectra["spectrum_K"]
