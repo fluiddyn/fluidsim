@@ -8,12 +8,13 @@ import pytest
 
 from fluiddyn.util import mpi
 
+from fluidsim.util.testing import skip_if_no_fluidfft
 from fluidsim.solvers.ns2d.solver import Simul
-
 from fluidsim.util.scripts.restart import main, restart
 
 
 @pytest.fixture(scope="package")
+@skip_if_no_fluidfft
 def path_simul():
     params = Simul.create_default_params()
     params.nu_2 = 1e-3
@@ -39,6 +40,7 @@ def path_simul():
 
 
 @unittest.skipIf(mpi.nb_proc > 1, "No sense with mpi")
+@skip_if_no_fluidfft
 def test_only_check(path_simul):
     argv = ["fluidsim-restart", path_simul, "-oc", "--it_end", "1"]
     argv.extend(["--add-to-it_end", "1"])
@@ -46,6 +48,7 @@ def test_only_check(path_simul):
         main()
 
 
+@skip_if_no_fluidfft
 def test_check_t_end(path_simul):
     path_simul = Path(path_simul)
     path_last_time = str(sorted(path_simul.glob("state_phys*"))[-1])
@@ -53,6 +56,7 @@ def test_check_t_end(path_simul):
     restart(argv, add_to_it_end=2)
 
 
+@skip_if_no_fluidfft
 def test_only_init(path_simul):
     path_simul = Path(path_simul)
     path_last_time = str(sorted(path_simul.glob("state_phys*"))[-1])
@@ -61,6 +65,7 @@ def test_only_init(path_simul):
         main()
 
 
+@skip_if_no_fluidfft
 def test_check_it_end(path_simul):
     path_simul = Path(path_simul)
     path_last_time = str(sorted(path_simul.glob("state_phys*"))[-1])
@@ -74,6 +79,7 @@ def test_check_it_end(path_simul):
         main()
 
 
+@skip_if_no_fluidfft
 def test_simul(path_simul):
     argv = ["fluidsim-restart", path_simul, "--t_end", "1.0"]
     argv.extend(["--add-to-t_end", "1.0"])

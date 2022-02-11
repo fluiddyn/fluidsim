@@ -179,7 +179,7 @@ def run():
     if not any("--durations=" in arg for arg in sys.argv):
         sys.argv.append("--durations=10")
 
-    pytest.main()
+    return pytest.main()
 
 
 if __name__ == "__main__":

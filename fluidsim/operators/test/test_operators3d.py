@@ -6,6 +6,7 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
+from fluidsim.util.test_util import skip_if_no_fluidfft
 from .test_operators2d import TestCoarse as _TestCoarse
 
 
@@ -32,6 +33,7 @@ def oper():
     return OperatorsPseudoSpectral3D(params=p)
 
 
+@skip_if_no_fluidfft
 def test_projection(oper):
     from fluidsim.operators.operators3d import (
         compute_energy_from_3fields,
@@ -156,6 +158,7 @@ def test_projection(oper):
     print("Projections seems to be Ok.")
 
 
+@skip_if_no_fluidfft
 def test_divh_rotz(oper):
     lx = ly = oper.Lx = oper.Ly = oper.Lz
     X, Y, _ = oper.get_XYZ_loc()
