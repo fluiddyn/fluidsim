@@ -4,8 +4,8 @@ Script to execute the notebook notebook_analyse_Fr_Rb_proj.ipynb for several val
 
 import papermill as pm
 
-Fhs = [1, 5]
-Rbs = [2, 10]
+Fhs = [20, 40]
+Rbs = [20, 40]
 projs = ["None", "poloidal"]
 
 
