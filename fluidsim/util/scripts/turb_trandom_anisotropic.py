@@ -256,6 +256,13 @@ def create_parser():
     )
 
     parser.add_argument(
+        "--type_fft",
+        type=str,
+        default="default",
+        help="fft type used to perform the Fourier transforms",
+    )
+
+    parser.add_argument(
         "--modify-params",
         type=str,
         default=None,
@@ -362,6 +369,8 @@ def create_params(args):
     params.forcing.type = "tcrandom_anisotropic"
     params.forcing.forcing_rate = injection_rate
     params.forcing.key_forced = keys_versus_kind[args.forced_field]
+
+    params.oper.type_fft = args.type_fft
 
     """
     Since args.ratio_nh_nz > 1,
