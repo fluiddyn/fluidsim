@@ -198,3 +198,24 @@ def test_divh_rotz(oper):
 
     divh = oper.ifft(divh_fft)
     assert divh[0, oper.ny // 2, oper.nx // 2] < 0.0
+
+
+@skip_if_no_fluidfft
+def test_coarse_functions(oper):
+    # A given random field
+    f_fft = oper.create_arrayK_random()
+    nk0, nk1, nk2 = oper.Kx.shape   
+
+    # We create coarsed field(s) from f_fft
+    nk0c, nk1c, nk2c = int(nk0/2), int(nk1/4), int(nk2/3)
+    fc_fft = oper.coarse_seq_from_fft_loc(f_fft, (nk0c, nk1c, nk2c))
+
+    # The initial field is compared to the field recomposed with the coarsed one(s)
+    f_fft_bis = 0.0 * f_fft
+    oper.put_coarse_array_in_array_fft(fc_fft, f_fft_bis, oper, (nk0c, nk1c, nk2c))
+
+    assert 1<0, fc_fft  # TODO: Remove this line before merging
+    assert 1<0, f_fft - f_fft_bis  # TODO: Remove this line before merging
+    assert 1<0, f"{f_fft.shape},  {fc_fft.shape}"  # TODO: Remove this line before merging  
+    assert np.sum(np.abs(f_fft - f_fft_bis)) != 0.0, "Errors in coarse functions"
+
