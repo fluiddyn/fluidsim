@@ -52,7 +52,7 @@ hg up install-clusters-licallo # TODO: remove this line before merging
 
 ### Install pfft in your $HOME directory
 
-We configured the installation of pdfft in $HOME such that you simply have to run a bash script:
+We configured the installation of pfft in $HOME such that you simply have to run a bash script:
 
 ```bash
 source $HOME/Dev/fluidsim/doc/examples/clusters/licallo/setup_env_base.sh
