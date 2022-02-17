@@ -207,15 +207,15 @@ def test_coarse_functions(oper):
     nk0, nk1, nk2 = oper.Kx.shape   
 
     # We create coarsed field(s) from f_fft
-    nk0c, nk1c, nk2c = int(nk0/2), int(nk1/4), int(nk2/3)
+    nk0c, nk1c, nk2c = int(nk0/4), int(nk1), int(nk2)
     fc_fft = oper.coarse_seq_from_fft_loc(f_fft, (nk0c, nk1c, nk2c))
 
     # The initial field is compared to the field recomposed with the coarsed one(s)
-    f_fft_bis = 0.0 * f_fft
+    f_fft_bis = oper.create_arrayK(value=0.)
     oper.put_coarse_array_in_array_fft(fc_fft, f_fft_bis, oper, (nk0c, nk1c, nk2c))
 
-    assert 1<0, fc_fft  # TODO: Remove this line before merging
-    assert 1<0, f_fft - f_fft_bis  # TODO: Remove this line before merging
-    assert 1<0, f"{f_fft.shape},  {fc_fft.shape}"  # TODO: Remove this line before merging  
-    assert np.sum(np.abs(f_fft - f_fft_bis)) != 0.0, "Errors in coarse functions"
+    print(fc_fft) 
+    print(f_fft.shape)
+    print(f_fft - f_fft_bis)  # TODO: Remove this line before merging  
+    assert np.sum(np.abs(f_fft - f_fft_bis)) == 0.0, "Errors in coarse functions"
 
