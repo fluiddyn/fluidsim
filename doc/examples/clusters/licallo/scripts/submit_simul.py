@@ -4,27 +4,27 @@ from fluidlicallo import cluster
 # Rbs = [10, 20, 40]
 # projs = ["None", "poloidal"]
 
-Ns = [40]
-Rbs = [80]
+Ns = [3]
+Rbs = [300000000]
 projs = ["None"]
-nz = 80
+nz = 20
 
 nb_nodes = 1
-nb_cores_per_node = 40 # cluster.nb_cores_per_node
-nb_procs = nb_mpi_processes = 40 # nb_nodes * nb_cores_per_node
+nb_cores_per_node = 2 # cluster.nb_cores_per_node
+nb_procs = nb_mpi_processes = 2 # nb_nodes * nb_cores_per_node
 
 walltime = "00:30:00"
 max_elapsed = "00:25:00"
-type_fft = "'fluidfft.fft3d.mpi_with_pfft'"
+# type_fft = "default" #"'fluidfft.fft3d.mpi_with_fftw1d'"
 
 
 for N in Ns:
     for Rb in Rbs:
         for proj in projs:
             if proj == "None":
-                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 100 --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft}"'
+                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 10 --max-elapsed {max_elapsed}'
             else:
-                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 100 --projection={proj} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft}"'
+                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 10 --projection={proj} --max-elapsed {max_elapsed}'
             cluster.submit_script(
                 f"{command}",
                 name_run=f"ns3d.strat_N{N}_Rb{Rb}",

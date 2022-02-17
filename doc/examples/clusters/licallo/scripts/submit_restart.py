@@ -5,17 +5,17 @@ from fluidlicallo import cluster
 
 # Parameters of the simulation 
 dir_path = "/scratch/vlabarre/aniso/"
-Fh = 0.01
-Rb = 40
-nz = 120
-nh = 480
-add_time = 40.0
+Fh = 1./3. #0.01
+Rb = 3 # 40
+nz = 20
+nh = 80
+add_time = 10.0
 
 paths = glob.glob(dir_path + f"ns3d.strat_polo_Fh{Fh:.3e}_Rb{Rb:.3g}_{nh:d}x{nh:d}x{nz:d}_" + '*')
 
-nb_nodes = 1
-nb_cores_per_node = cluster.nb_cores_per_node
-nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
+nb_nodes = 1 # 4
+nb_cores_per_node = 4 # cluster.nb_cores_per_node
+nb_procs = nb_mpi_processes = 4 # nb_nodes * nb_cores_per_node
 
 
 for path in paths:
