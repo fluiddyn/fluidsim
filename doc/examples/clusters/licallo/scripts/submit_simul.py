@@ -15,7 +15,7 @@ nb_procs = nb_mpi_processes = 2 # nb_nodes * nb_cores_per_node
 
 walltime = "23:55:00"
 max_elapsed = "23:45:00"
-type_fft = "'fluidfft.fft3d.mpi_with_fftw1d'"
+type_fft = "'fluidfft.fft3d.mpi_with_fftwmpi3d'"
 
 
 for N in Ns:
@@ -23,15 +23,17 @@ for N in Ns:
     for Rb in Rbs:
         for proj in projs:
             if proj == "None":
-                t_end = 20.
-                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
+                t_end = 2.
+                command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
+                #command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --max-elapsed {max_elapsed}'
             elif proj == "poloidal":
-                t_end = 5.
-                command = f'run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --projection "poloidal" --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
+                t_end = 1.
+                command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --projection={proj} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
+                #command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --projection={proj} --max-elapsed {max_elapsed}'
             else:
                 print('Projection (variable proj) must be "None" or "poloidal"')
  
-            cluster.submit_script(
+            cluster.submit_command(
                 f"{command}",
                 name_run=f"ns3d.strat_proj{proj}_Fh{Fh:.3e}_Rb{Rb:.3g}",
                 nb_nodes=nb_nodes,

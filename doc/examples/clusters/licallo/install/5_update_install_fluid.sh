@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-#unset CC
-#unset CXX
+unset CC
+unset CXX
 
 cd $HOME/Dev
 

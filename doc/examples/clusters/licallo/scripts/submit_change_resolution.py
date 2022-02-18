@@ -13,7 +13,7 @@ proj = "None"
 nz = 20
 nh = 4 * nz
 add_time = 10.0
-type_fft = "'fluidfft.fft3d.mpi_with_fftw1d'" #default  # Usefull when it is necessary to change the type of decomposition for fft (example: fftw3d -> p3dfft)
+type_fft = "'fluidfft.fft3d.mpi_with_fftwmpi3d'" #default  # Usefull when it is necessary to change the type of decomposition for fft (example: fftw3d -> p3dfft)
 coef_reso = 2 # 4/3
 coef_nu_4 = 1. / (coef_reso ** (10./3.))
 
@@ -44,7 +44,7 @@ for path in paths:
 
     command = f"fluidsim-modif-resolution {path} {coef_reso}"
 
-    #os.system(command)
+    os.system(command)
  
     """
     cluster.submit_command(

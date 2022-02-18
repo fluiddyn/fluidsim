@@ -4,8 +4,8 @@ from fluidlicallo import cluster
 # Rbs = [10, 20, 40]
 # projs = ["None", "poloidal"]
 
-Ns = [40]
-Rbs = [30]
+Ns = [4]
+Rbs = [3]
 projs = ["poloidal"]
 
 nz = 120
