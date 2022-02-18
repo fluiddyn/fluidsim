@@ -6,27 +6,36 @@ from fluidlicallo import cluster
 
 # Parameters of the simulation
 dir_path = f"/scratch/vlabarre/aniso/"
-Fh = 1/40
-Rb = 20
-nz = 120
+N = 3.
+Fh = 1./N
+Rb = 3
+proj = "None"
+nz = 20
 nh = 4 * nz
 add_time = 10.0
-#type_fft = "default" #"'fluidfft.fft3d.mpi_with_fftw1d'"  # Usefull when it is necessary to change the type of decomposition for fft (example: fftw3d -> p3dfft)
-coef_reso = 4/3
+type_fft = "'fluidfft.fft3d.mpi_with_fftw1d'" #default  # Usefull when it is necessary to change the type of decomposition for fft (example: fftw3d -> p3dfft)
+coef_reso = 2 # 4/3
 coef_nu_4 = 1. / (coef_reso ** (10./3.))
 
-paths = glob.glob(dir_path + f"ns3d.strat_polo_proj_Fh{Fh:.3e}_Rb{Rb:.3g}_{nh:d}x{nh:d}x{nz:d}_" + '*')
-
-nb_nodes = 2 
-nb_cores_per_node = cluster.nb_cores_per_node
-nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
-max_elapsed = "11:50:00"
-walltime = "12:00:00"
+nb_nodes = 1 # 2 
+nb_cores_per_node = 4 # cluster.nb_cores_per_node
+nb_procs = nb_mpi_processes = 4 # nb_nodes * nb_cores_per_node
+walltime = "23:55:00"
 
 
+# Path of the simulation
+if proj	== "None":
+    paths = glob.glob(dir_path + f"ns3d.strat_polo_Fh{Fh:.3e}_Rb{Rb:.3g}_{nh:d}x{nh:d}x{nz:d}_" + '*')
+elif proj == "poloidal":
+    paths = glob.glob(dir_path + f"ns3d.strat_polo_proj_Fh{Fh:.3e}_Rb{Rb:.3g}_{nh:d}x{nh:d}x{nz:d}_" + '*')
+else:
+    print('Projection (variable proj) must be "None" or "poloidal"')
+ 
+
+
+# Change resolution and hyperviscosity, then restart
 for path in paths:
     print(path)
-    title = f"Fh{Fh:.3e}_Rb{Rb:.3g}"
 
     if not cluster:
         continue
@@ -35,12 +44,12 @@ for path in paths:
 
     command = f"fluidsim-modif-resolution {path} {coef_reso}"
 
-    os.system(command)
+    #os.system(command)
  
     """
     cluster.submit_command(
         f'{command}',
-        name_run=f"modif_reso_" + title,
+        name_run=f"ns3d.strat_proj{proj}_Fh{Fh:.3e}_Rb{Rb:.3g}",
         nb_nodes=1,
         nb_cores_per_node=1,
         nb_mpi_processes=1,
@@ -60,7 +69,8 @@ for path in paths:
         f'fluidsim-restart {path_new_state} --add-to-t_end {add_time} '
         f'--modify-params "params.NEW_DIR_RESULTS = True; '
         f'params.output.periods_print.print_stdout = 0.05; '
-        f'params.nu_4 *= {coef_nu_4};"' 
+        f'params.nu_4 *= {coef_nu_4}; '
+        f'params.oper.type_fft = {type_fft};"'  
     )
 
     print(command)
@@ -69,7 +79,7 @@ for path in paths:
 
     cluster.submit_command(
         f'{command}',
-        name_run=f"modif_reso_" + title,
+        name_run=f"ns3d.strat_proj{proj}_Fh{Fh:.3e}_Rb{Rb:.3g}",
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
         nb_mpi_processes=nb_mpi_processes,
