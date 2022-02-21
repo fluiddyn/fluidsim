@@ -1,4 +1,5 @@
 from math import tau
+import os
 
 import pytest
 
@@ -30,6 +31,10 @@ def oper():
     p = OperatorsPseudoSpectral3D._create_default_params()
     p.oper.nx = p.oper.ny = p.oper.nz = 16
     p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
+
+    if "FLUIDSIM_TYPE_FFT" in os.environ:
+        p.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
+
     return OperatorsPseudoSpectral3D(params=p)
 
 

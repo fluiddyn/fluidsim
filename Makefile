@@ -1,5 +1,7 @@
 # Second tag after tip is usually the latest release
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
+MPI_NUM_PROCS ?= 2
+
 .PHONY: black clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
 develop: develop_lib
@@ -86,9 +88,25 @@ pytest_cov_html:
 pytest_cov_html_full:
 	rm -rf .coverage
 	mkdir -p .coverage
-	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
+	TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m pytest -v $(PYTEST_ARGS) --durations=10
 	coverage combine
+	coverage html
+	@echo "Code coverage analysis complete. View detailed report:"
+	@echo "file://${PWD}/.coverage/index.html"
+
+pytest_pfft:
+	rm -rf .coverage
+	mkdir -p .coverage
+	FLUIDSIM_TYPE_FFT="fft3d.mpi_with_pfft" TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
+	coverage html
+	@echo "Code coverage analysis complete. View detailed report:"
+	@echo "file://${PWD}/.coverage/index.html"
+
+pytest_p3dfft:
+	rm -rf .coverage
+	mkdir -p .coverage
+	FLUIDSIM_TYPE_FFT="fft3d.mpi_with_p3dfft" TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
