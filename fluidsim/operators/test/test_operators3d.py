@@ -216,6 +216,8 @@ def test_coarse_functions(oper):
     )
     fc_fft_bis = oper.coarse_seq_from_fft_loc(f_fft_bis, (nk0c, nk1c, nk2c))
 
+    if mpi.rank > 0:
+        return
     assert np.allclose(fc_fft, fc_fft_bis)
     # check that the coarse arrays are not full of zeros
     assert (abs(fc_fft_bis) ** 2).mean() > 0.1

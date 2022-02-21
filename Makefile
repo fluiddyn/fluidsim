@@ -82,3 +82,13 @@ pytest_cov_html:
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
+
+pytest_cov_html_full:
+	rm -rf .coverage
+	mkdir -p .coverage
+	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
+	TRANSONIC_NO_REPLACE=1 coverage run -p -m pytest -v $(PYTEST_ARGS) --durations=10
+	coverage combine
+	coverage html
+	@echo "Code coverage analysis complete. View detailed report:"
+	@echo "file://${PWD}/.coverage/index.html"
