@@ -385,11 +385,16 @@ are called.
             except OSError:
                 pass
 
+            i = 1
+            while new_path_run.exists():
+                new_path_run = new_path_run.with_name(self.sim.name_run + f"_{i}")
+                i += 1
+
             if mpi.rank == 0 and path_run.exists():
                 if not path_base.exists():
                     os.makedirs(path_base)
 
-                shutil.move(self.path_run, path_base)
+                shutil.move(self.path_run, new_path_run)
                 print(f"move result directory in directory:\n{new_path_run}")
 
             self.path_run = str(new_path_run)
