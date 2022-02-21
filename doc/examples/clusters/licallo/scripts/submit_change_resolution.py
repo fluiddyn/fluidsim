@@ -6,20 +6,20 @@ from fluidlicallo import cluster
 
 # Parameters of the simulation
 dir_path = f"/scratch/vlabarre/aniso/"
-N = 3.
+N = 40.
 Fh = 1./N
-Rb = 3
-proj = "None"
-nz = 20
+Rb = 20
+proj = "poloidal"
+nz = 120
 nh = 4 * nz
 add_time = 10.0
 type_fft = "'fluidfft.fft3d.mpi_with_fftwmpi3d'" #default  # Usefull when it is necessary to change the type of decomposition for fft (example: fftw3d -> p3dfft)
-coef_reso = 2 # 4/3
+coef_reso = 4/3
 coef_nu_4 = 1. / (coef_reso ** (10./3.))
 
-nb_nodes = 1 # 2 
-nb_cores_per_node = 4 # cluster.nb_cores_per_node
-nb_procs = nb_mpi_processes = 4 # nb_nodes * nb_cores_per_node
+nb_nodes = 2 
+nb_cores_per_node = cluster.nb_cores_per_node
+nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 walltime = "23:55:00"
 
 

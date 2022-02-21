@@ -6,20 +6,20 @@ from math import pi
 
 # Parameters of the simulation 
 dir_path = "/scratch/vlabarre/aniso/"
-N = 3.
+N = 100.
 Fh = 1./N
-Rb = 3
-proj = "None"
-nz = 120
+Rb = 40
+proj = "poloidal"
+nz = 160
 nh = 4 * nz
-add_time = 20.0
+add_time = 10.0
 
-nb_nodes = 1
+nb_nodes = 2
 nb_cores_per_node = cluster.nb_cores_per_node
 nb_procs = nb_mpi_processes = nb_nodes * nb_cores_per_node
 
 walltime = "23:55:00"
-type_fft = "'fluidfft.fft3d.mpi_with_fftw1d'"
+type_fft = "'fluidfft.fft3d.mpi_with_fftwmpi3d'"
 
 
 # Path of the simulation
@@ -37,7 +37,11 @@ assert len(paths) <= 1, "More than one simulation with N={N}, Rb={Rb}, proj={pro
 # Restart
 for path in paths:
     period_save_spatiotemporal_spectra = 2 * pi / (8 * N)
-    command = f'fluidsim-restart {path} --add-to-t_end {add_time} --modify-params "params.oper.type_fft = {type_fft}; params.output.periods_save.spatiotemporal_spectra = {period_save_spatiotemporal_spectra};"'
+    command = ( 
+        f'fluidsim-restart {path} --add-to-t_end {add_time} '
+        f'--modify-params "params.oper.type_fft = {type_fft}; '
+        f'params.output.periods_save.spatiotemporal_spectra = {period_save_spatiotemporal_spectra};"'
+    )
 
     print(f"submitting:\npython {command}")
 
