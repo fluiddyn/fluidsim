@@ -47,16 +47,17 @@ mkdir Dev
 cd Dev	
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 cd fluidsim
-hg up install-clusters-licallo # TODO: remove this line before merging
+hg up pfft-and-forcing-specific  # TODO: remove before merging 
 ```
 
 ### Install pfft in your $HOME directory
 
-We configured the installation of pfft in $HOME such that you simply have to run a bash script:
+We configured the installation of pfft and p3dfft in $HOME such that you simply have to run a bash script:
 
 ```bash
 source $HOME/Dev/fluidsim/doc/examples/clusters/licallo/setup_env_base.sh
 bash $HOME/Dev/fluidsim/doc/examples/clusters/licallo/install/install_pfft.sh
+bash $HOME/Dev/fluidsim/doc/examples/clusters/licallo/install/install_p3dfft.sh
 ```
 
 ## Installation

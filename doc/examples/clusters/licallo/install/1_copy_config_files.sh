@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-cp -rTn ../conf_files $HOME/.
+cp -rT ../conf_files $HOME/.
 
