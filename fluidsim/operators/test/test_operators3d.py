@@ -30,8 +30,8 @@ def oper():
     from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
 
     p = OperatorsPseudoSpectral3D._create_default_params()
-    p.oper.nx = 8
-    p.oper.ny = 12
+    p.oper.nx = 12
+    p.oper.ny = 8
     p.oper.nz = 24
     p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
 
