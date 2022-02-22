@@ -4,13 +4,9 @@
 
 Code not covered should be removed, except for very good reasons.
 
-- fluidsim-core should be >~95%, with proper unittests.
+fluidsim-core should be >~95%, with proper unittests.
 
-- code for using third-party programs (Dedalus and Basilisk) should be
-  removed from the fluidsim package.
-
-- scripts should be moved outside of the package (in particular
-  `fluidsim/solvers/ns2d/strat/find_dissipation.py`)
+See <https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/100>
 
 ## Fluidsim-core and fluidsim-... packages for using third-party programs
 
@@ -34,6 +30,9 @@ Specialized in pseudo-spectral Fourier.
 
 - SVV (Spectral Vanishing Viscosity)
 
+- Different diffusivity coefficients for different variables (Prandtl/Schmidt
+  numbers), in particular for ns3d.strat.
+
 - cos/sin transform (how? options operators?)
 
 - More 3D solvers:
@@ -42,7 +41,7 @@ Specialized in pseudo-spectral Fourier.
   - [Gross–Pitaevskii equation](https://en.wikipedia.org/wiki/Gross%E2%80%93Pitaevskii_equation)
   - ... (?)
 
-- Linear stability (as in [NS3D](NS3D-2.13 (26/05/2014).))
+- Linear stability (as in [NS3D](http://yakari.polytechnique.fr/people/deloncle/ns3d.html)
 
 - FFT accelerated with GPU and MPI+GPU (fluidfft)
 
@@ -50,6 +49,9 @@ Specialized in pseudo-spectral Fourier.
 
 - Shear as in [Snoopy](https://ipag.osug.fr/~lesurg/snoopy.html) (see
   [#99](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/99))
+
+- Simul class made of 2 (or n) interacting Simul classes. For example, ns2d +
+  passive scalar at higher resolution.
 
 ## Long term
 
