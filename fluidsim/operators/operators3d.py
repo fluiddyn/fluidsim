@@ -494,7 +494,7 @@ Lx, Ly and Lz: float
         nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
 
         if ik0 >= nk0_seq:
-            raise ValueError("not good :-) ik0_seq >= nk0_seq")
+            raise ValueError(f"not good :-) {ik0=} >= {nk0_seq=}")
 
         if nb_proc == 1:
             rank_k = 0

@@ -214,15 +214,23 @@ def test_coarse_functions(oper):
     f_fft = oper.create_arrayK_random()
     nk0, nk1, nk2 = oper.shapeK_loc
 
+    params_coarse = deepcopy(oper.params)
+    params_coarse.oper.type_fft = "sequential"
+    params_coarse.oper.coef_dealiasing = 1.0
+
+    params_coarse.oper.nx = oper.params.oper.nx // 4
+    params_coarse.oper.ny = oper.params.oper.ny // 8
+    params_coarse.oper.nz = oper.params.oper.nz // 2
+
+    oper_coarse = oper.__class__(params=params_coarse)
+    shapeK_coarse = oper_coarse.shapeK
+
     # We create coarse field(s) from f_fft
-    nk0c, nk1c, nk2c = nk0 // 4, nk1 // 2, nk2
-    fc_fft = oper.coarse_seq_from_fft_loc(f_fft, (nk0c, nk1c, nk2c))
+    fc_fft = oper.coarse_seq_from_fft_loc(f_fft, shapeK_coarse)
 
     f_fft_bis = oper.create_arrayK(value=0.0)
-    oper.put_coarse_array_in_array_fft(
-        fc_fft, f_fft_bis, oper, (nk0c, nk1c, nk2c)
-    )
-    fc_fft_bis = oper.coarse_seq_from_fft_loc(f_fft_bis, (nk0c, nk1c, nk2c))
+    oper.put_coarse_array_in_array_fft(fc_fft, f_fft_bis, oper, shapeK_coarse)
+    fc_fft_bis = oper.coarse_seq_from_fft_loc(f_fft_bis, shapeK_coarse)
 
     if mpi.rank > 0:
         return
