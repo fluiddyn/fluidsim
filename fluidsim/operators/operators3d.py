@@ -343,7 +343,7 @@ Lx, Ly and Lz: float
                 dealiasing_variable(thing, self.where_dealiased)
 
     def put_coarse_array_in_array_fft(
-        self, arr_coarse, arr, oper_coarse, shapeK_loc_coarse
+        self, arr_coarse, arr, oper_coarse, shapeK_coarse
     ):
         """Put the values contained in a coarse array in an array.
 
@@ -361,11 +361,11 @@ Lx, Ly and Lz: float
                 else:
                     arr3d_coarse = None
                 self.put_coarse_array_in_array_fft(
-                    arr3d_coarse, arr[ikey], oper_coarse, shapeK_loc_coarse
+                    arr3d_coarse, arr[ikey], oper_coarse, shapeK_coarse
                 )
             return
 
-        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        nkzc, nkyc, nkxc = shapeK_coarse
 
         if nb_proc > 1:
             nk0, nk1, nk2 = self.shapeK_seq
@@ -383,9 +383,9 @@ Lx, Ly and Lz: float
                                 fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
 
             if self.dimX_K == (1, 0, 2):
-                nk1c, nk0c, nk2c = shapeK_loc_coarse
+                nk1c, nk0c, nk2c = shapeK_coarse
             elif self.dimX_K == (2, 1, 0):
-                nk2c, nk1c, nk0c = shapeK_loc_coarse
+                nk2c, nk1c, nk0c = shapeK_coarse
 
             for ik0c in range(nk0c):
                 ik1c = 0
@@ -423,17 +423,17 @@ Lx, Ly and Lz: float
                     for ikxc in range(nkxc):
                         arr[ikz, iky, ikxc] = arr_coarse[ikzc, ikyc, ikxc]
 
-    def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
+    def coarse_seq_from_fft_loc(self, f_fft, shapeK_coarse):
         """Return a coarse field in K space."""
-        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        nkzc, nkyc, nkxc = shapeK_coarse
         if nb_proc > 1:
             if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
                 raise NotImplementedError()
 
             if self.dimX_K == (1, 0, 2):
-                nk1c, nk0c, nk2c = shapeK_loc_coarse
+                nk1c, nk0c, nk2c = shapeK_coarse
             elif self.dimX_K == (2, 1, 0):
-                nk2c, nk1c, nk0c = shapeK_loc_coarse
+                nk2c, nk1c, nk0c = shapeK_coarse
 
             fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
             nk0, nk1, nk2 = self.shapeK_seq
@@ -467,7 +467,7 @@ Lx, Ly and Lz: float
                 if rank == 0:
                     # copy into fc_fft
                     fc_fft_tmp[ik0c] = f1d_temp.copy()
-            fc_fft = np.zeros(shapeK_loc_coarse, dtype=np.complex128)
+            fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
             if rank == 0:
                 if self.dimX_K == (1, 0, 2):
                     for i0 in range(nkzc):
@@ -479,7 +479,7 @@ Lx, Ly and Lz: float
                             for i2 in range(nkxc):
                                 fc_fft[i0, i1, i2] = fc_fft_tmp[i2, i1, i0]
         else:
-            fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
+            fc_fft = np.empty(shapeK_coarse, np.complex128)
             nkz, nky, nkx = self.shapeK_seq
             for ikzc in range(nkzc):
                 ikz = _ik_from_ikc(ikzc, nkzc, nkz)
@@ -511,7 +511,7 @@ Lx, Ly and Lz: float
 
             else:
                 rank_k = 0
-                while rank_k < self.nb_proc - 1 and (
+                while rank_k < nb_proc - 1 and (
                     not (
                         self.iK0loc_start_rank[rank_k] <= ik0
                         and ik0 < self.iK0loc_start_rank[rank_k + 1]
@@ -953,6 +953,36 @@ Lx, Ly and Lz: float
             + beta_z * self.deltaz * self.Kz
         )
         return phase_alpha, phase_beta
+
+    def i012_from_ixyz(self, ix, iy, iz):
+        if self.is_sequential:
+            return iz, iy, ix
+        dimX_K = self.dimX_K
+        if dimX_K == (1, 0, 2):
+            return iy, iz, ix
+        elif dimX_K == (0, 1, 2):
+            return iz, iy, ix
+        elif dimX_K == (2, 1, 0):
+            return ix, iy, iz
+        else:
+            raise NotImplementedError(
+                f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
+            )
+
+    def ixyz_from_i012(self, i0, i1, i2):
+        if self.is_sequential:
+            return i2, i1, i0
+        dimX_K = self.dimX_K
+        if dimX_K == (1, 0, 2):  # yzx
+            return i2, i0, i1
+        elif dimX_K == (0, 1, 2):  # zyx
+            return i2, i1, i0
+        elif dimX_K == (2, 1, 0):  # xyz
+            return i0, i1, i2
+        else:
+            raise NotImplementedError(
+                f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
+            )
 
 
 def _ik_from_ikc(ikc, nkc, nk):
