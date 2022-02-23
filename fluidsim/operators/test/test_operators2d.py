@@ -1,4 +1,3 @@
-
 import numpy as np
 import sys
 from copy import deepcopy
@@ -211,6 +210,7 @@ class TestCoarse:
                 field_coarse_fft[:, :, nkxc - 1] = 0
 
             field_coarse = oper_coarse.ifft(field_coarse_fft)
+
             energy = oper_coarse.compute_energy_from_X(field_coarse)
         else:
             oper_coarse = None
@@ -231,13 +231,25 @@ class TestCoarse:
             mpi.comm.Bcast(buffer, root=0)
         field_coarse_fft = buffer.reshape(oper_coarse_shapeK)
 
+        print(f"{mpi.rank = }")
+        print(f"{oper.shapeK_seq = }")
+        print(f"{oper.shapeK_loc = }")
+        if hasattr(oper, "dimX_K"):
+            mpi.printby0(f"{oper.dimX_K = }")
+
+        mpi.print_sorted(f"{oper_coarse_shapeK = }")
+        mpi.printby0(f"{field_coarse_fft     =}")
+
         field_fft = oper.create_arrayK(value=0)
         oper.put_coarse_array_in_array_fft(
             field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK
         )
+        mpi.print_sorted(f"{field_fft            =}")
         field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
             field_fft, oper_coarse_shapeK
         )
+
+        mpi.printby0(f"{field_coarse_fft_back=}")
 
         if mpi.rank == 0:
             buffer = field_coarse_fft_back.flatten()
@@ -263,6 +275,7 @@ class TestCoarse:
         field = oper.ifft(field_fft)
         field_fft_back = oper.fft(field)
         # Test if field_fft corresponds to a real field
+
         assert allclose(field_fft.real, field_fft_back.real)
         assert allclose(field_fft.imag, field_fft_back.imag)
         # assert np.allclose(field_fft, field_fft_back)

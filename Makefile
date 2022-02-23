@@ -114,7 +114,7 @@ _pytest_mpi_operators3d:
 	@echo bench $(FLUIDSIM_TYPE_FFT)
 	rm -rf .coverage
 	mkdir -p .coverage
-	FLUIDSIM_TYPE_FFT=$(FLUIDSIM_TYPE_FFT) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v -s --exitfirst fluidsim/operators/test/test_operators3d.py
+	FLUIDSIM_TYPE_FFT=$(FLUIDSIM_TYPE_FFT) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
 	coverage combine
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
