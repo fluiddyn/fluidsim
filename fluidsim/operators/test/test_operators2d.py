@@ -1,5 +1,4 @@
 
-import unittest
 import numpy as np
 import sys
 from copy import deepcopy
@@ -62,7 +61,6 @@ def compute_increments_dim1_old(var, irx):
 
 
 @skip_if_no_fluidfft
-@unittest.skipIf(sys.platform.startswith("win"), "Untested on Windows")
 class TestOperators(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -159,7 +157,7 @@ class TestOperatorsDealiasing(TestCase):
 
 
 @skip_if_no_fluidfft
-class TestCoarse(unittest.TestCase):
+class TestCoarse:
     nb_dim = 2
 
     @property
@@ -168,13 +166,13 @@ class TestCoarse(unittest.TestCase):
 
         return OperatorsPseudoSpectral2D
 
-    def test_coarse(self):
+    def test_coarse(self, allclose):
 
         params = self.Oper._create_default_params()
-        params.oper.nx = 32
-        params.oper.ny = 48
+        params.oper.nx = 8
+        params.oper.ny = 8
         if self.nb_dim == 3:
-            params.oper.nz = 12
+            params.oper.nz = 8
 
         params.oper.truncation_shape = "spherical"
 
@@ -249,7 +247,9 @@ class TestCoarse(unittest.TestCase):
             mpi.comm.Bcast(buffer, root=0)
         field_coarse_fft_back = buffer.reshape(oper_coarse_shapeK)
 
-        assert np.allclose(field_coarse_fft, field_coarse_fft_back)
+        assert allclose(field_coarse_fft.real, field_coarse_fft_back.real)
+        assert allclose(field_coarse_fft.imag, field_coarse_fft_back.imag)
+        # assert np.allclose(field_coarse_fft, field_coarse_fft_back)
 
         energy_big_fft = oper.compute_energy_from_K(field_fft)
 
@@ -258,17 +258,19 @@ class TestCoarse(unittest.TestCase):
             + (2 * "{:.8f}    ").format(energy, energy_big_fft)
         )
         assert energy > 0
-        assert np.allclose(energy, energy_big_fft)
+        assert allclose(energy, energy_big_fft)
 
         field = oper.ifft(field_fft)
         field_fft_back = oper.fft(field)
         # Test if field_fft corresponds to a real field
-        assert np.allclose(field_fft, field_fft_back)
+        assert allclose(field_fft.real, field_fft_back.real)
+        assert allclose(field_fft.imag, field_fft_back.imag)
+        # assert np.allclose(field_fft, field_fft_back)
 
         energy_big = oper.compute_energy_from_X(field)
 
         if mpi.rank == 0:
-            assert np.allclose(energy, energy_big)
+            assert allclose(energy, energy_big)
 
         if mpi.rank == 0:
             field_coarse_back = oper_coarse.ifft(field_coarse_fft_back)
@@ -285,8 +287,4 @@ class TestCoarse(unittest.TestCase):
                 energy, energy_back, energy_big_fft, energy_big
             )
         )
-        assert np.allclose(energy, energy_back)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert allclose(energy, energy_back)
