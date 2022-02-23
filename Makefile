@@ -94,6 +94,7 @@ pytest_cov_html_mpi:
 	rm -rf .coverage
 	mkdir -p .coverage
 	TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
+	coverage combine
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
@@ -114,6 +115,7 @@ _pytest_mpi_operators3d:
 	rm -rf .coverage
 	mkdir -p .coverage
 	FLUIDSIM_TYPE_FFT=$(FLUIDSIM_TYPE_FFT) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v -s --exitfirst fluidsim/operators/test/test_operators3d.py
+	coverage combine
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"

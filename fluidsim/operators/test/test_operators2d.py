@@ -1,8 +1,10 @@
+
 import unittest
 import numpy as np
 import sys
 from copy import deepcopy
 import os
+from math import prod
 
 import fluiddyn.util.mpi as mpi
 
@@ -183,29 +185,29 @@ class TestCoarse(unittest.TestCase):
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
-        params_coarse.oper.nx = 2 * 8
-        params_coarse.oper.ny = 2 * 12
+        params_coarse.oper.nx = 4
+        params_coarse.oper.ny = 4
         if self.nb_dim == 3:
-            params_coarse.oper.nz = 2 * 4
+            params_coarse.oper.nz = 4
 
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0
 
         if mpi.rank == 0:
             oper_coarse = oper.__class__(params=params_coarse)
-            oper_coarse_shapeK_loc = oper_coarse.shapeK_loc
+            oper_coarse_shapeK = oper_coarse.shapeK_loc
 
             field_coarse = oper_coarse.create_arrayX_random()
             field_coarse_fft = oper_coarse.fft(field_coarse)
 
+            # zeros because of conditions in put_coarse_array_in_array_fft
+            # this corresponds to the largest values of kx, ky and kz
             if self.nb_dim == 2:
-
-                nkyc, nkxc = oper_coarse_shapeK_loc
-                # zeros because of conditions in put_coarse_array_in_array_fft
+                nkyc, nkxc = oper_coarse_shapeK
                 field_coarse_fft[nkyc // 2, :] = 0
                 field_coarse_fft[:, nkxc - 1] = 0
             elif self.nb_dim == 3:
-                nkzc, nkyc, nkxc = oper_coarse_shapeK_loc
+                nkzc, nkyc, nkxc = oper_coarse_shapeK
                 field_coarse_fft[nkzc // 2, :] = 0
                 field_coarse_fft[:, nkyc // 2, :] = 0
                 field_coarse_fft[:, :, nkxc - 1] = 0
@@ -213,53 +215,77 @@ class TestCoarse(unittest.TestCase):
             field_coarse = oper_coarse.ifft(field_coarse_fft)
             energy = oper_coarse.compute_energy_from_X(field_coarse)
         else:
-            field_coarse_fft = None
             oper_coarse = None
-            oper_coarse_shapeK_loc = None
+            oper_coarse_shapeK = None
+            energy = None
 
         if mpi.nb_proc > 1:
-            oper_coarse_shapeK_loc = mpi.comm.bcast(
-                oper_coarse_shapeK_loc, root=0
-            )
+            oper_coarse_shapeK = mpi.comm.bcast(oper_coarse_shapeK, root=0)
+            energy = mpi.comm.bcast(energy, root=0)
+
+        oper_coarse_sizeK = prod(oper_coarse_shapeK)
+
+        if mpi.rank == 0:
+            buffer = field_coarse_fft.flatten()
+        else:
+            buffer = np.empty(oper_coarse_sizeK, dtype=np.complex128)
+        if mpi.nb_proc > 1:
+            mpi.comm.Bcast(buffer, root=0)
+        field_coarse_fft = buffer.reshape(oper_coarse_shapeK)
 
         field_fft = oper.create_arrayK(value=0)
         oper.put_coarse_array_in_array_fft(
-            field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK_loc
+            field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK
         )
+        field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
+            field_fft, oper_coarse_shapeK
+        )
+
+        if mpi.rank == 0:
+            buffer = field_coarse_fft_back.flatten()
+        else:
+            buffer = np.empty(oper_coarse_sizeK, dtype=np.complex128)
+        if mpi.nb_proc > 1:
+            mpi.comm.Bcast(buffer, root=0)
+        field_coarse_fft_back = buffer.reshape(oper_coarse_shapeK)
+
+        assert np.allclose(field_coarse_fft, field_coarse_fft_back)
 
         energy_big_fft = oper.compute_energy_from_K(field_fft)
 
-        if mpi.rank == 0:
-            print(
-                "energy,  energy_big_fft\n"
-                + (2 * "{:.8f}    ").format(energy, energy_big_fft)
-            )
-            assert energy > 0
-            assert np.allclose(energy, energy_big_fft)
-            print("OK np.allclose(energy, energy_big_fft)")
+        mpi.printby0(
+            "energy,  energy_big_fft\n"
+            + (2 * "{:.8f}    ").format(energy, energy_big_fft)
+        )
+        assert energy > 0
+        assert np.allclose(energy, energy_big_fft)
 
         field = oper.ifft(field_fft)
-        energy_big = oper.compute_energy_from_X(field)
-
         field_fft_back = oper.fft(field)
+        # Test if field_fft corresponds to a real field
         assert np.allclose(field_fft, field_fft_back)
 
-        field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
-            field_fft, oper_coarse_shapeK_loc
-        )
+        energy_big = oper.compute_energy_from_X(field)
+
+        if mpi.rank == 0:
+            assert np.allclose(energy, energy_big)
 
         if mpi.rank == 0:
             field_coarse_back = oper_coarse.ifft(field_coarse_fft_back)
             energy_back = oper_coarse.compute_energy_from_X(field_coarse_back)
-            print(
-                "energy,  energy_back,  energy_big_fft,  energy_big\n"
-                + (4 * "{:.8f}    ").format(
-                    energy, energy_back, energy_big_fft, energy_big
-                )
+        else:
+            energy_back = None
+
+        if mpi.nb_proc > 1:
+            energy_back = mpi.comm.bcast(energy_back, root=0)
+
+        mpi.printby0(
+            "energy,  energy_back,  energy_big_fft,  energy_big\n"
+            + (4 * "{:.8f}    ").format(
+                energy, energy_back, energy_big_fft, energy_big
             )
-            assert np.allclose(energy, energy_back)
-            print("OK np.allclose(energy, energy_back)")
-            assert np.allclose(energy, energy_big)
+        )
+        assert np.allclose(energy, energy_back)
 
 
 if __name__ == "__main__":
