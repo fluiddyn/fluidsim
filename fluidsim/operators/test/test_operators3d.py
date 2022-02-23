@@ -12,19 +12,6 @@ from fluidsim.util.test_util import skip_if_no_fluidfft
 from .test_operators2d import TestCoarse as _TestCoarse
 
 
-class TestCoarse(_TestCoarse):
-    nb_dim = 3
-
-    @property
-    def Oper(self):
-        from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
-
-        return OperatorsPseudoSpectral3D
-
-
-del _TestCoarse
-
-
 @pytest.fixture(scope="module")
 def oper():
     from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
@@ -37,6 +24,7 @@ def oper():
 
     if "FLUIDSIM_TYPE_FFT" in os.environ:
         p.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
+    print(f"{p.oper.type_fft = }")
 
     return OperatorsPseudoSpectral3D(params=p)
 
@@ -209,37 +197,6 @@ def test_divh_rotz(oper):
 
 
 @skip_if_no_fluidfft
-def test_coarse_functions(oper):
-    # A given random field
-    f_fft = oper.create_arrayK_random()
-    nk0, nk1, nk2 = oper.shapeK_loc
-
-    params_coarse = deepcopy(oper.params)
-    params_coarse.oper.type_fft = "sequential"
-    params_coarse.oper.coef_dealiasing = 1.0
-
-    params_coarse.oper.nx = oper.params.oper.nx // 4
-    params_coarse.oper.ny = oper.params.oper.ny // 8
-    params_coarse.oper.nz = oper.params.oper.nz // 2
-
-    oper_coarse = oper.__class__(params=params_coarse)
-    shapeK_coarse = oper_coarse.shapeK
-
-    # We create coarse field(s) from f_fft
-    fc_fft = oper.coarse_seq_from_fft_loc(f_fft, shapeK_coarse)
-
-    f_fft_bis = oper.create_arrayK(value=0.0)
-    oper.put_coarse_array_in_array_fft(fc_fft, f_fft_bis, oper, shapeK_coarse)
-    fc_fft_bis = oper.coarse_seq_from_fft_loc(f_fft_bis, shapeK_coarse)
-
-    if mpi.rank > 0:
-        return
-    assert np.allclose(fc_fft, fc_fft_bis)
-    # check that the coarse arrays are not full of zeros
-    assert (abs(fc_fft_bis) ** 2).mean() > 0.1
-
-
-@skip_if_no_fluidfft
 def test_where_is_wavenumber(oper):
     from fluidsim.operators.operators3d import _ik_from_ikc
 
@@ -303,3 +260,47 @@ def test_where_is_wavenumber(oper):
                 assert np.allclose(kxc, kx)
                 assert np.allclose(kyc, ky)
                 assert np.allclose(kzc, kz)
+
+
+class TestCoarse(_TestCoarse):
+    nb_dim = 3
+
+    @property
+    def Oper(self):
+        from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
+
+        return OperatorsPseudoSpectral3D
+
+
+del _TestCoarse
+
+
+@skip_if_no_fluidfft
+def test_coarse_functions(oper):
+    # A given random field
+    f_fft = oper.create_arrayK_random()
+    nk0, nk1, nk2 = oper.shapeK_loc
+
+    params_coarse = deepcopy(oper.params)
+    params_coarse.oper.type_fft = "sequential"
+    params_coarse.oper.coef_dealiasing = 1.0
+
+    params_coarse.oper.nx = oper.params.oper.nx // 4
+    params_coarse.oper.ny = oper.params.oper.ny // 8
+    params_coarse.oper.nz = oper.params.oper.nz // 2
+
+    oper_coarse = oper.__class__(params=params_coarse)
+    shapeK_coarse = oper_coarse.shapeK
+
+    # We create coarse field(s) from f_fft
+    fc_fft = oper.coarse_seq_from_fft_loc(f_fft, shapeK_coarse)
+
+    f_fft_bis = oper.create_arrayK(value=0.0)
+    oper.put_coarse_array_in_array_fft(fc_fft, f_fft_bis, oper, shapeK_coarse)
+    fc_fft_bis = oper.coarse_seq_from_fft_loc(f_fft_bis, shapeK_coarse)
+
+    if mpi.rank > 0:
+        return
+    assert np.allclose(fc_fft, fc_fft_bis)
+    # check that the coarse arrays are not full of zeros
+    assert (abs(fc_fft_bis) ** 2).mean() > 0.1

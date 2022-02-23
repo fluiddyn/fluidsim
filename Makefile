@@ -1,3 +1,4 @@
+SHELL := bash
 # Second tag after tip is usually the latest release
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
 MPI_NUM_PROCS ?= 2
@@ -55,6 +56,10 @@ tests_mpi:
 _tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m pytest -v -s lib
+	for TYPE_FFT in "fft3d.mpi_with_fftwmpi3d" "fft3d.mpi_with_fftw1d" "fft3d.mpi_with_pfft" "fft3d.mpi_with_p3dfft" ; do \
+	  echo $$TYPE_FFT; \
+	  FLUIDSIM_TYPE_FFT=$$TYPE_FFT TRANSONIC_NO_REPLACE=1 mpirun -np 2 coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py; \
+    done
 	coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst
@@ -85,28 +90,39 @@ pytest_cov_html:
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
+pytest_cov_html_mpi:
+	rm -rf .coverage
+	mkdir -p .coverage
+	TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
+	coverage html
+	@echo "Code coverage analysis complete. View detailed report:"
+	@echo "file://${PWD}/.coverage/index.html"
+
 pytest_cov_html_full:
 	rm -rf .coverage
 	mkdir -p .coverage
-	TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
+	TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst $(PYTEST_ARGS)
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m pytest -v $(PYTEST_ARGS) --durations=10
 	coverage combine
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
-pytest_pfft:
+
+_pytest_mpi_operators3d:
+	@echo bench $(FLUIDSIM_TYPE_FFT)
 	rm -rf .coverage
 	mkdir -p .coverage
-	FLUIDSIM_TYPE_FFT="fft3d.mpi_with_pfft" TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
+	FLUIDSIM_TYPE_FFT=$(FLUIDSIM_TYPE_FFT) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v -s --exitfirst fluidsim/operators/test/test_operators3d.py
 	coverage html
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
-pytest_p3dfft:
-	rm -rf .coverage
-	mkdir -p .coverage
-	FLUIDSIM_TYPE_FFT="fft3d.mpi_with_p3dfft" TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) --oversubscribe coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
-	coverage html
-	@echo "Code coverage analysis complete. View detailed report:"
-	@echo "file://${PWD}/.coverage/index.html"
+pytest_mpi_with_pfft: FLUIDSIM_TYPE_FFT="fft3d.mpi_with_pfft"
+pytest_mpi_with_pfft: _pytest_mpi_operators3d
+
+pytest_mpi_with_p3dfft: FLUIDSIM_TYPE_FFT="fft3d.mpi_with_p3dfft"
+pytest_mpi_with_p3dfft: _pytest_mpi_operators3d
+
+pytest_mpi_with_fftw1d: FLUIDSIM_TYPE_FFT="fft3d.mpi_with_fftw1d"
+pytest_mpi_with_fftw1d: _pytest_mpi_operators3d

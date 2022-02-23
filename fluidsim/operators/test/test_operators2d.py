@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import sys
 from copy import deepcopy
+import os
 
 import fluiddyn.util.mpi as mpi
 
@@ -31,6 +32,10 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
     Lh = 6.0
     params.oper.Lx = Lh
     params.oper.Ly = Lh
+
+    if "FLUIDSIM_TYPE_FFT" in os.environ:
+        type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
+        print(f"{type_fft = }")
 
     if type_fft is not None:
         params.oper.type_fft = type_fft
@@ -171,6 +176,10 @@ class TestCoarse(unittest.TestCase):
 
         params.oper.truncation_shape = "spherical"
 
+        if "FLUIDSIM_TYPE_FFT" in os.environ:
+            params.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
+            print(f"{params.oper.type_fft = }")
+
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
@@ -233,8 +242,7 @@ class TestCoarse(unittest.TestCase):
         energy_big = oper.compute_energy_from_X(field)
 
         field_fft_back = oper.fft(field)
-        if not np.allclose(field_fft, field_fft_back):
-            print("Buggy! field_fft != field_fft_back")
+        assert np.allclose(field_fft, field_fft_back)
 
         field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
             field_fft, oper_coarse_shapeK_loc

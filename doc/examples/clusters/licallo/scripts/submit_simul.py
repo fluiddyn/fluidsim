@@ -10,7 +10,7 @@ projs = ['"poloidal"']
 
 nz = 80
 max_elapsed = "00:15:00"
-type_fft = "default" # "fluidfft.fft3d.mpi_with_pfft"
+type_fft = "default"  # "fluidfft.fft3d.mpi_with_pfft"
 
 nb_nodes = 1
 nb_cores_per_node = 8  # cluster.nb_cores_per_node
