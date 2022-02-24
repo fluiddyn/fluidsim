@@ -987,6 +987,8 @@ Lx, Ly and Lz: float
             return iz, iy, ix
         elif dimX_K == (2, 1, 0):
             return ix, iy, iz
+        elif dimX_K == (1, 2, 0):
+            return iy, ix, iz
         else:
             raise NotImplementedError(
                 f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
@@ -1002,6 +1004,8 @@ Lx, Ly and Lz: float
             return i2, i1, i0
         elif dimX_K == (2, 1, 0):  # xyz
             return i0, i1, i2
+        elif dimX_K == (1, 2, 0):  # yxz
+            return i1, i0, i2
         else:
             raise NotImplementedError(
                 f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"

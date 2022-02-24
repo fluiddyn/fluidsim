@@ -53,13 +53,17 @@ tests:
 tests_mpi:
 	mpirun -np 2 --oversubscribe fluidsim-test -v --exitfirst
 
+define _test_mpi_fft_lib
+	FLUIDSIM_TYPE_FFT=$(1) TRANSONIC_NO_REPLACE=1 mpirun -np 2 coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
+endef
+
 _tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m pytest -v -s lib
-	for TYPE_FFT in "fft3d.mpi_with_fftwmpi3d" "fft3d.mpi_with_fftw1d" "fft3d.mpi_with_pfft" "fft3d.mpi_with_p3dfft" ; do \
-	  echo $$TYPE_FFT; \
-	  FLUIDSIM_TYPE_FFT=$$TYPE_FFT TRANSONIC_NO_REPLACE=1 mpirun -np 2 coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py; \
-    done
+	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftwmpi3d)
+	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftw1d)
+	$(call _test_mpi_fft_lib,fft3d.mpi_with_pfft)
+	$(call _test_mpi_fft_lib,fft3d.mpi_with_p3dfft)
 	coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst
