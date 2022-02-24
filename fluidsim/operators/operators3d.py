@@ -378,9 +378,6 @@ Lx, Ly and Lz: float
                         arr[ikz, iky, ikxc] = arr_coarse[ikzc, ikyc, ikxc]
             return
 
-        if self.shapeK_loc[2] != self.shapeK_seq[2]:
-            raise NotImplementedError
-
         if self.dimX_K == (1, 0, 2):
             if rank == 0:
                 fck_fft = np.zeros((nkyc, nkzc, nkxc), dtype=np.complex128)
@@ -403,7 +400,7 @@ Lx, Ly and Lz: float
         else:
             raise NotImplementedError
 
-        if self.shapeK_loc[1] == self.shapeK_seq[1]:
+        if self.shapeK_loc[1:2] == self.shapeK_seq[1:2]:
             ik1c = 0
             ik2c = 0
             for ik0c in range(min(nk0c, nk0)):
@@ -440,7 +437,7 @@ Lx, Ly and Lz: float
                                 print(f"{ik0loc, ik1, ik2 = }; {ik1c, ik2c = }")
                                 arr[ik0loc, ik1, ik2] = fc1D[ik1c, ik2c]
 
-        else:
+        elif self.shapeK_loc[2] == self.shapeK_seq[2]:
             ik2c = 0
             for ik0c in range(min(nk0c, nk0)):
                 ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
@@ -449,9 +446,9 @@ Lx, Ly and Lz: float
                     rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                         ik0, ik1c, ik2c
                     )
-                    print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
+                    # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
                     if mpi.rank == 0:
-                        fc1D = fck_fft[ik0c, ik1loc, :]
+                        fc1D = fck_fft[ik0c, ik1c, :]
                     if rank_ik != 0:
                         # message fc1D
                         if mpi.rank == rank_ik:
@@ -471,6 +468,33 @@ Lx, Ly and Lz: float
                         if self.dimX_K == (0, 1, 2):
                             arr[ik0loc, ik1loc, 0:nk2c] = fc1D
 
+        else:
+            for ik0c in range(min(nk0c, nk0)):
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                for ik1c in range(min(nk1c, nk1)):
+                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                    for ik2c in range(min(nk2c, nk2)):
+                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                        (
+                            rank_ik,
+                            ik0loc,
+                            ik1loc,
+                            ik2loc,
+                        ) = self.where_is_wavenumber(ik0, ik1c, ik2c)
+                        # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
+                        if mpi.rank == 0:
+                            fc0D = fck_fft[ik0c, ik1c, ik2c]
+                        if rank_ik != 0:
+                            # message fc0D
+                            if mpi.rank == 0:
+                                comm.send(fc0D, dest=rank_ik, tag=ik0c)
+                            elif mpi.rank == rank_ik:
+                                fc0D = comm.recv(source=0, tag=ik0c)
+                        if mpi.rank == rank_ik:
+                            # copy
+                            if self.dimX_K == (0, 1, 2):
+                                arr[ik0loc, ik1loc, ik2loc] = fc0D
+
     def coarse_seq_from_fft_loc(self, f_fft, shapeK_coarse):
         """Return a coarse field in K space."""
         nkzc, nkyc, nkxc = shapeK_coarse
@@ -486,68 +510,97 @@ Lx, Ly and Lz: float
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
             return fc_fft
 
-        if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
-            raise NotImplementedError()
-
         if self.dimX_K == (1, 0, 2):
             nk1c, nk0c, nk2c = shapeK_coarse
         elif self.dimX_K == (2, 1, 0):
             nk2c, nk1c, nk0c = shapeK_coarse
+        elif self.dimX_K == (0, 1, 2):
+            nk0c, nk1c, nk2c = shapeK_coarse
+        else:
+            raise NotImplementedError
 
         fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
         nk0, nk1, nk2 = self.shapeK_seq
-        f1d_temp = np.empty([nk1c, nk2c], np.complex128)
+        if self.shapeK_seq[1:2] == self.shapeK_loc[1:2]:
 
-        for ik0c in range(min(nk0c, nk0)):
-            ik1c = 0
-            ik2c = 0
-            ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
-            rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
-                ik0, ik1c, ik2c
-            )
-            if rank == rank_ik:
-                # create f1d_temp
-                if self.dimX_K == (1, 0, 2):
-                    for ik1c in range(nk1c):
-                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
-                        f1d_temp[ik1c, :] = f_fft[ik0loc, ik1, 0:nk2c]
-                else:
-                    for ik1c in range(nk1c):
-                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
-                        for ik2c in range(nk2c):
-                            ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
-                            f1d_temp[ik1c, ik2c] = f_fft[ik0loc, ik1, ik2]
+            f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
-            if rank_ik != 0:
-                # message f1d_temp
+            for ik0c in range(min(nk0c, nk0)):
+                ik1c = 0
+                ik2c = 0
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
+                    ik0, ik1c, ik2c
+                )
+                if rank == rank_ik:
+                    # create f1d_temp
+                    if self.dimX_K == (1, 0, 2):
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            f1d_temp[ik1c, :] = f_fft[ik0loc, ik1, 0:nk2c]
+                    else:
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            for ik2c in range(nk2c):
+                                ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                                f1d_temp[ik1c, ik2c] = f_fft[ik0loc, ik1, ik2]
+
+                if rank_ik != 0:
+                    # message f1d_temp
+                    if rank == 0:
+                        comm.Recv(
+                            [f1d_temp, MPI.DOUBLE_COMPLEX],
+                            source=rank_ik,
+                            tag=ik0c,
+                        )
+                    elif rank == rank_ik:
+                        comm.Send(
+                            [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ik0c
+                        )
                 if rank == 0:
-                    comm.Recv(
-                        [f1d_temp, MPI.DOUBLE_COMPLEX],
-                        source=rank_ik,
-                        tag=ik0c,
-                    )
-                elif rank == rank_ik:
-                    comm.Send(
-                        [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ik0c
-                    )
-            if rank == 0:
-                # copy into fc_fft
-                fc_fft_tmp[ik0c] = f1d_temp.copy()
+                    # copy into fc_fft
+                    fc_fft_tmp[ik0c] = f1d_temp.copy()
+        else:
 
-        # if rank == 0:
-        #     print(f"{fc_fft_tmp = }")
+            for ik0c in range(min(nk0c, nk0)):
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                for ik1c in range(min(nk1c, nk1)):
+                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                    for ik2c in range(min(nk2c, nk2)):
+                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                        (
+                            rank_ik,
+                            ik0loc,
+                            ik1loc,
+                            ik2loc,
+                        ) = self.where_is_wavenumber(ik0, ik1c, ik2c)
+                        if rank == rank_ik:
+                            f0d_temp = f_fft[ik0loc, ik1loc, ik2loc]
+
+                        if rank_ik != 0:
+                            # message f0d_temp
+                            if rank == rank_ik:
+                                comm.send(f0d_temp, dest=0, tag=ik2c)
+                            elif rank == 0:
+                                f0d_temp = comm.recv(source=rank_ik, tag=ik2c)
+                                fc_fft_tmp[ik0c, ik1c, ik2c] = f0d_temp
 
         if rank == 0:
+            # print(f"{fc_fft_tmp = }")
             fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
             if self.dimX_K == (1, 0, 2):
                 for i0 in range(nkzc):
                     for i1 in range(nkyc):
                         fc_fft[i0, i1, :] = fc_fft_tmp[i1, i0, :]
-            if self.dimX_K == (2, 1, 0):
+            elif self.dimX_K == (2, 1, 0):
                 for i0 in range(nkzc):
                     for i1 in range(nkyc):
                         for i2 in range(nkxc):
                             fc_fft[i0, i1, i2] = fc_fft_tmp[i2, i1, i0]
+            elif self.dimX_K == (0, 1, 2):
+                fc_fft = fc_fft_tmp
+            else:
+                raise NotImplementedError
             return fc_fft
 
     def where_is_wavenumber(self, ik0, ik1, ik2):
