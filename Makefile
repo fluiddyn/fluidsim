@@ -126,6 +126,9 @@ define _pytest_mpi_operators3d
 	$(call _end_coverage_combine)
 endef
 
+pytest_mpi_with_fftwmpi3d:
+	$(call _pytest_mpi_operators3d,fft3d.mpi_with_fftwmpi3d)
+
 pytest_mpi_with_fftw1d:
 	$(call _pytest_mpi_operators3d,fft3d.mpi_with_fftw1d)
 
