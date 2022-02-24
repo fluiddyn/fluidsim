@@ -12,7 +12,6 @@ Download and source setup file:
 
 ```bash
 cd $HOME
-# TODO: Modify the urls before merging
 wget https://heptapod.host/meige/milestone-sim/raw/branch/default/occigen/conf_files/setup_hg.sh --no-check-certificate
 . ~/setup_ssh.sh
 wget https://foss.heptapod.net/fluiddyn/fluidsim/-/blob/branch/default/doc/examples/clusters/occigen/conf_files/.hgrc --no-check-certificate
@@ -46,8 +45,7 @@ nano ~/.hgrc
 mkdir Dev
 cd Dev	
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
-cd fluidsim
-hg up pfft-and-forcing-specific  # TODO: remove before merging 
+cd fluidsim 
 ```
 
 ### Install pfft in your $HOME directory
@@ -73,7 +71,8 @@ source ~/setup_ssh.sh
 source 3_setup_env_conda.sh
 ./4_clone_fluid.sh
 ./5_update_install_fluid.sh
-cd .. && make
+cd ..
+make
 ```
 
 ## Submit the MPI test suite
@@ -81,7 +80,7 @@ cd .. && make
 Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd ../scripts
+cd scripts
 python submit_check_fluidfft.py
 python submit_tests.py
 python submit_simul.py
