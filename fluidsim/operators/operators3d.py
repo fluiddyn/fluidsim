@@ -418,7 +418,6 @@ Lx, Ly and Lz: float
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
                             arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
                     else:
-                        print(f"{fc1D=}")
                         for ik1c in range(nk1c):
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
                             for ik2c in range(nk2c):
@@ -1014,8 +1013,8 @@ Lx, Ly and Lz: float
 
 def _ik_from_ikc(ikc, nkc, nk):
     # for debug
-    if ikc >= nk:
-        raise ValueError
+    # if ikc >= nk:
+    #     raise ValueError
 
     if ikc <= nkc / 2.0:
         ik = ikc

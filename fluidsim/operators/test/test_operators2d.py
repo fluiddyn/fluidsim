@@ -168,10 +168,10 @@ class TestCoarse:
     def test_coarse(self, allclose):
 
         params = self.Oper._create_default_params()
-        params.oper.nx = 8
-        params.oper.ny = 8
+        params.oper.nx = 32
+        params.oper.ny = 48
         if self.nb_dim == 3:
-            params.oper.nz = 8
+            params.oper.nz = 12
 
         params.oper.truncation_shape = "spherical"
 
@@ -182,8 +182,8 @@ class TestCoarse:
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
-        params_coarse.oper.nx = 4
-        params_coarse.oper.ny = 4
+        params_coarse.oper.nx = 8
+        params_coarse.oper.ny = 12
         if self.nb_dim == 3:
             params_coarse.oper.nz = 4
 

@@ -20,7 +20,11 @@ for N in Ns:
     for Rb in Rbs:
         for proj in projs:
             cluster.submit_command(
-                f"./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 20 --projection={proj} --spatiotemporal-spectra --max-elapsed {max_elapsed} --type_fft {type_fft}",
+                (
+                    f"./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end 20 "
+                    f"--projection={proj} --spatiotemporal-spectra "
+                    f"--max-elapsed {max_elapsed} --type_fft {type_fft}"
+                ),
                 name_run=f"ns3d.strat_N{N}_Rb{Rb}_proj{proj}",
                 nb_nodes=nb_nodes,
                 nb_cores_per_node=nb_cores_per_node,
