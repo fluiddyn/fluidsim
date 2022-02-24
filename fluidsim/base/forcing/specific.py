@@ -266,8 +266,15 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             K = np.sqrt(self.oper_coarse.K2)
         COND_NO_F = np.logical_or(K > self.kmax_forcing, K < self.kmin_forcing)
 
-        COND_NO_F[self.oper_coarse.shapeK_loc[0] // 2] = True
-        COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
+        if len(self.oper.axes) == 2:
+            nkyc, nkxc = self.oper_coarse.shapeK_loc
+            COND_NO_F[nkyc // 2, :] = True
+            COND_NO_F[:, nkxc - 1] = True
+        elif len(self.oper.axes) == 3:
+            nkzc, nkyc, nkxc = self.oper_coarse.shapeK_loc
+            COND_NO_F[nkzc // 2, :, :] = True
+            COND_NO_F[:, nkyc // 2, :] = True
+            COND_NO_F[:, :, nkxc - 1] = True
 
         return COND_NO_F
 
@@ -789,11 +796,6 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         To be called only with proc 0.
         """
         f_fft = self.oper_coarse.create_arrayK_random(min_val=self._min_val)
-        # TODO: adapt to 3D!
-        # fftwpy/easypyfft returns f_fft
-        f_fft[self.oper_coarse.shapeK_loc[0] // 2] = 0.0
-        f_fft[:, self.oper_coarse.shapeK_loc[1] - 1] = 0.0
-        #
         f_fft[self.COND_NO_F] = 0.0
         f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         return f_fft

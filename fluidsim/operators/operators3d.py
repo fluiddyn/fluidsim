@@ -343,7 +343,7 @@ Lx, Ly and Lz: float
                 dealiasing_variable(thing, self.where_dealiased)
 
     def put_coarse_array_in_array_fft(
-        self, arr_coarse, arr, oper_coarse, shapeK_loc_coarse
+        self, arr_coarse, arr, oper_coarse, shapeK_coarse
     ):
         """Put the values contained in a coarse array in an array.
 
@@ -361,11 +361,11 @@ Lx, Ly and Lz: float
                 else:
                     arr3d_coarse = None
                 self.put_coarse_array_in_array_fft(
-                    arr3d_coarse, arr[ikey], oper_coarse, shapeK_loc_coarse
+                    arr3d_coarse, arr[ikey], oper_coarse, shapeK_coarse
                 )
             return
 
-        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        nkzc, nkyc, nkxc = shapeK_coarse
 
         if nb_proc > 1:
             nk0, nk1, nk2 = self.shapeK_seq
@@ -383,17 +383,20 @@ Lx, Ly and Lz: float
                                 fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
 
             if self.dimX_K == (1, 0, 2):
-                nk1c, nk0c, nk2c = shapeK_loc_coarse
+                nk1c, nk0c, nk2c = shapeK_coarse
             elif self.dimX_K == (2, 1, 0):
-                nk2c, nk1c, nk0c = shapeK_loc_coarse
+                nk2c, nk1c, nk0c = shapeK_coarse
+            else:
+                raise NotImplementedError
 
-            for ik0c in range(nk0c):
+            for ik0c in range(min(nk0c, nk0)):
                 ik1c = 0
                 ik2c = 0
                 ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                     ik0, ik1c, ik2c
                 )
+                # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
                 if mpi.rank == 0:
                     fc1D = fck_fft[ik0c, :, :]
                 if rank_ik != 0:
@@ -410,9 +413,17 @@ Lx, Ly and Lz: float
                         mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX], source=0, tag=ik0c)
                 if mpi.rank == rank_ik:
                     # copy
-                    for ik1c in range(nk1c):
-                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
-                        arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
+                    if self.dimX_K == (1, 0, 2):
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
+                    else:
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            for ik2c in range(nk2c):
+                                ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                                print(f"{ik0loc, ik1, ik2 = }; {ik1c, ik2c = }")
+                                arr[ik0loc, ik1, ik2] = fc1D[ik1c, ik2c]
 
         else:
             nkz, nky, nkx = self.shapeK_seq
@@ -423,23 +434,23 @@ Lx, Ly and Lz: float
                     for ikxc in range(nkxc):
                         arr[ikz, iky, ikxc] = arr_coarse[ikzc, ikyc, ikxc]
 
-    def coarse_seq_from_fft_loc(self, f_fft, shapeK_loc_coarse):
+    def coarse_seq_from_fft_loc(self, f_fft, shapeK_coarse):
         """Return a coarse field in K space."""
-        nkzc, nkyc, nkxc = shapeK_loc_coarse
+        nkzc, nkyc, nkxc = shapeK_coarse
         if nb_proc > 1:
             if self.shapeK_seq[1:2] != self.shapeK_loc[1:2]:
                 raise NotImplementedError()
 
             if self.dimX_K == (1, 0, 2):
-                nk1c, nk0c, nk2c = shapeK_loc_coarse
+                nk1c, nk0c, nk2c = shapeK_coarse
             elif self.dimX_K == (2, 1, 0):
-                nk2c, nk1c, nk0c = shapeK_loc_coarse
+                nk2c, nk1c, nk0c = shapeK_coarse
 
             fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
             nk0, nk1, nk2 = self.shapeK_seq
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
-            for ik0c in range(nk0c):
+            for ik0c in range(min(nk0c, nk0)):
                 ik1c = 0
                 ik2c = 0
                 ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
@@ -448,9 +459,16 @@ Lx, Ly and Lz: float
                 )
                 if rank == rank_ik:
                     # create f1d_temp
-                    for ik1c in range(nk1c):
-                        ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
-                        f1d_temp[ik1c, :] = f_fft[ik0loc, ik1, 0:nk2c]
+                    if self.dimX_K == (1, 0, 2):
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            f1d_temp[ik1c, :] = f_fft[ik0loc, ik1, 0:nk2c]
+                    else:
+                        for ik1c in range(nk1c):
+                            ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                            for ik2c in range(nk2c):
+                                ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                                f1d_temp[ik1c, ik2c] = f_fft[ik0loc, ik1, ik2]
 
                 if rank_ik != 0:
                     # message f1d_temp
@@ -467,7 +485,11 @@ Lx, Ly and Lz: float
                 if rank == 0:
                     # copy into fc_fft
                     fc_fft_tmp[ik0c] = f1d_temp.copy()
-            fc_fft = np.zeros(shapeK_loc_coarse, dtype=np.complex128)
+
+            # if rank == 0:
+            #     print(f"{fc_fft_tmp = }")
+
+            fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
             if rank == 0:
                 if self.dimX_K == (1, 0, 2):
                     for i0 in range(nkzc):
@@ -479,7 +501,7 @@ Lx, Ly and Lz: float
                             for i2 in range(nkxc):
                                 fc_fft[i0, i1, i2] = fc_fft_tmp[i2, i1, i0]
         else:
-            fc_fft = np.empty(shapeK_loc_coarse, np.complex128)
+            fc_fft = np.empty(shapeK_coarse, np.complex128)
             nkz, nky, nkx = self.shapeK_seq
             for ikzc in range(nkzc):
                 ikz = _ik_from_ikc(ikzc, nkzc, nkz)
@@ -494,7 +516,7 @@ Lx, Ly and Lz: float
         nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
 
         if ik0 >= nk0_seq:
-            raise ValueError("not good :-) ik0_seq >= nk0_seq")
+            raise ValueError(f"not good :-) {ik0=} >= {nk0_seq=}")
 
         if nb_proc == 1:
             rank_k = 0
@@ -511,7 +533,7 @@ Lx, Ly and Lz: float
 
             else:
                 rank_k = 0
-                while rank_k < self.nb_proc - 1 and (
+                while rank_k < nb_proc - 1 and (
                     not (
                         self.iK0loc_start_rank[rank_k] <= ik0
                         and ik0 < self.iK0loc_start_rank[rank_k + 1]
@@ -954,8 +976,46 @@ Lx, Ly and Lz: float
         )
         return phase_alpha, phase_beta
 
+    def i012_from_ixyz(self, ix, iy, iz):
+        if self.is_sequential:
+            return iz, iy, ix
+        dimX_K = self.dimX_K
+        if dimX_K == (1, 0, 2):
+            return iy, iz, ix
+        elif dimX_K == (0, 1, 2):
+            return iz, iy, ix
+        elif dimX_K == (2, 1, 0):
+            return ix, iy, iz
+        elif dimX_K == (1, 2, 0):
+            return iy, ix, iz
+        else:
+            raise NotImplementedError(
+                f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
+            )
+
+    def ixyz_from_i012(self, i0, i1, i2):
+        if self.is_sequential:
+            return i2, i1, i0
+        dimX_K = self.dimX_K
+        if dimX_K == (1, 0, 2):  # yzx
+            return i2, i0, i1
+        elif dimX_K == (0, 1, 2):  # zyx
+            return i2, i1, i0
+        elif dimX_K == (2, 1, 0):  # xyz
+            return i0, i1, i2
+        elif dimX_K == (1, 2, 0):  # yxz
+            return i1, i0, i2
+        else:
+            raise NotImplementedError(
+                f"dimX_K={dimX_K} not implemented ({self.oper_fft.__class__})"
+            )
+
 
 def _ik_from_ikc(ikc, nkc, nk):
+    # for debug
+    # if ikc >= nk:
+    #     raise ValueError
+
     if ikc <= nkc / 2.0:
         ik = ikc
     else:

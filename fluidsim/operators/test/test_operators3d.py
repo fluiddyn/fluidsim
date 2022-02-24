@@ -1,4 +1,6 @@
 from math import tau
+import os
+from copy import deepcopy
 
 import pytest
 
@@ -10,26 +12,20 @@ from fluidsim.util.test_util import skip_if_no_fluidfft
 from .test_operators2d import TestCoarse as _TestCoarse
 
 
-class TestCoarse(_TestCoarse):
-    nb_dim = 3
-
-    @property
-    def Oper(self):
-        from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
-
-        return OperatorsPseudoSpectral3D
-
-
-del _TestCoarse
-
-
 @pytest.fixture(scope="module")
 def oper():
     from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
 
     p = OperatorsPseudoSpectral3D._create_default_params()
-    p.oper.nx = p.oper.ny = p.oper.nz = 16
+    p.oper.nx = 12
+    p.oper.ny = 8
+    p.oper.nz = 24
     p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
+
+    if "FLUIDSIM_TYPE_FFT" in os.environ:
+        p.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
+    print(f"{p.oper.type_fft = }")
+
     return OperatorsPseudoSpectral3D(params=p)
 
 
@@ -198,3 +194,82 @@ def test_divh_rotz(oper):
 
     divh = oper.ifft(divh_fft)
     assert divh[0, oper.ny // 2, oper.nx // 2] < 0.0
+
+
+@skip_if_no_fluidfft
+def test_where_is_wavenumber(oper):
+    from fluidsim.operators.operators3d import _ik_from_ikc
+
+    nkx_seq, nky_seq, nkz_seq = oper.ixyz_from_i012(*oper.shapeK_seq)
+
+    params_coarse = deepcopy(oper.params)
+    params_coarse.oper.type_fft = "sequential"
+    params_coarse.oper.coef_dealiasing = 1.0
+
+    params_coarse.oper.nx = oper.params.oper.nx // 4
+    params_coarse.oper.ny = oper.params.oper.ny // 8
+    params_coarse.oper.nz = oper.params.oper.nz // 2
+
+    oper_coarse = oper.__class__(params=params_coarse)
+    assert oper_coarse.oper_fft.get_dimX_K() == (0, 1, 2)
+    nkzc, nkyc, nkxc = oper_coarse.shapeK
+
+    sendbuf = np.empty(4, dtype="i")
+    recvbuf = None
+    if mpi.rank == 0:
+        recvbuf = np.empty([mpi.nb_proc, 4], dtype="i")
+
+    for ikcz in range(nkzc):
+        for ikcy in range(nkyc):
+            for ikcx in range(nkxc):
+
+                ikz = _ik_from_ikc(ikcz, nkzc, nkz_seq)
+                iky = _ik_from_ikc(ikcy, nkyc, nky_seq)
+                ikx = _ik_from_ikc(ikcx, nkxc, nkx_seq)
+
+                ik0, ik1, ik2 = oper.i012_from_ixyz(ikx, iky, ikz)
+
+                rank_k, ik0_loc, ik1_loc, ik2_loc = oper.where_is_wavenumber(
+                    ik0, ik1, ik2
+                )
+
+                if mpi.nb_proc == 1:
+                    assert rank_k == 0
+                else:
+                    sendbuf[:] = (rank_k, ik0_loc, ik1_loc, ik2_loc)
+                    mpi.comm.Gather(sendbuf, recvbuf, root=0)
+                    if mpi.rank == 0:
+                        assert abs(np.diff(recvbuf, axis=0)).max() == 0
+
+                kxc = oper_coarse.Kx[ikcz, ikcy, ikcx]
+                kyc = oper_coarse.Ky[ikcz, ikcy, ikcx]
+                kzc = oper_coarse.Kz[ikcz, ikcy, ikcx]
+
+                if mpi.rank == rank_k:
+                    kx = oper.Kx[ik0_loc, ik1_loc, ik2_loc]
+                    ky = oper.Ky[ik0_loc, ik1_loc, ik2_loc]
+                    kz = oper.Kz[ik0_loc, ik1_loc, ik2_loc]
+                    data = np.array([kx, ky, kz])
+                else:
+                    data = np.empty(3, dtype=np.float64)
+
+                if mpi.nb_proc > 1:
+                    mpi.comm.Bcast(data, root=rank_k)
+
+                kx, ky, kz = data
+                assert np.allclose(kxc, kx)
+                assert np.allclose(kyc, ky)
+                assert np.allclose(kzc, kz)
+
+
+class TestCoarse(_TestCoarse):
+    nb_dim = 3
+
+    @property
+    def Oper(self):
+        from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
+
+        return OperatorsPseudoSpectral3D
+
+
+del _TestCoarse

@@ -12,7 +12,6 @@ Download and source setup file:
 
 ```bash
 cd $HOME
-# TODO: Modify the urls before merging
 wget https://heptapod.host/meige/milestone-sim/raw/branch/default/occigen/conf_files/setup_hg.sh --no-check-certificate
 . ~/setup_ssh.sh
 wget https://foss.heptapod.net/fluiddyn/fluidsim/-/blob/branch/default/doc/examples/clusters/occigen/conf_files/.hgrc --no-check-certificate
@@ -46,18 +45,17 @@ nano ~/.hgrc
 mkdir Dev
 cd Dev	
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
-cd fluidsim
-hg up install-clusters-licallo # TODO: remove this line before merging
+cd fluidsim 
 ```
 
-### Install p3dfft-2.7.6 in your $HOME directory
+### Install pfft in your $HOME directory
 
-We configured the installation of p3dfft-2.7.6 in $HOME such that you simply have to run a bash script:
+We configured the installation of pfft and p3dfft in $HOME such that you simply have to run a bash script:
 
 ```bash
 source $HOME/Dev/fluidsim/doc/examples/clusters/licallo/setup_env_base.sh
+bash $HOME/Dev/fluidsim/doc/examples/clusters/licallo/install/install_pfft.sh
 bash $HOME/Dev/fluidsim/doc/examples/clusters/licallo/install/install_p3dfft.sh
-TODO: Write install_p3dfft.sh p3dfft (see https://fluidfft.readthedocs.io/en/latest/install/occigen.html)
 ```
 
 ## Installation
@@ -73,7 +71,8 @@ source ~/setup_ssh.sh
 source 3_setup_env_conda.sh
 ./4_clone_fluid.sh
 ./5_update_install_fluid.sh
-cd .. && make
+cd ..
+make
 ```
 
 ## Submit the MPI test suite
@@ -81,7 +80,7 @@ cd .. && make
 Finally, you can submit the checks and tests using MPI by doing
 
 ```bash
-cd ../scripts
+cd scripts
 python submit_check_fluidfft.py
 python submit_tests.py
 python submit_simul.py

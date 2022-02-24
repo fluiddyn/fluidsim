@@ -256,6 +256,13 @@ def create_parser():
     )
 
     parser.add_argument(
+        "--type_fft",
+        type=str,
+        default="default",
+        help="fft type used to perform the Fourier transforms",
+    )
+
+    parser.add_argument(
         "--modify-params",
         type=str,
         default=None,
@@ -302,11 +309,6 @@ def create_params(args):
     params.oper.Lx = params.oper.Ly = Lh
     params.oper.Lz = Lh / args.ratio_nh_nz
     delta_kz = 2 * pi / params.oper.Lz
-
-    params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = args.t_end
-    params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = 0.1
 
     # Brunt Vaisala frequency
     params.N = args.N
@@ -363,6 +365,8 @@ def create_params(args):
     params.forcing.forcing_rate = injection_rate
     params.forcing.key_forced = keys_versus_kind[args.forced_field]
 
+    params.oper.type_fft = args.type_fft
+
     """
     Since args.ratio_nh_nz > 1,
 
@@ -394,6 +398,11 @@ def create_params(args):
 
     period_N = 2 * pi / args.N
     omega_l = args.N * args.F
+
+    params.time_stepping.USE_T_END = True
+    params.time_stepping.t_end = args.t_end
+    params.time_stepping.max_elapsed = args.max_elapsed
+    params.time_stepping.deltat_max = min(0.1, period_N / 2)
 
     # time_correlation is fixed to forced wave period
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_l

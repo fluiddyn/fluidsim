@@ -9,7 +9,7 @@ conda env remove --name env_fluidsim
 
 # Create and install the usefull modules for fluidsim
 conda create --name env_fluidsim python ipython scipy "blas-devel[build=*openblas]" \
-    matplotlib pandas psutil pillow scikit-image mako clangdev
+    matplotlib pandas psutil pillow scikit-image mako clangdev jupyterlab papermill
 
 # Activate the environement
 source activate $HOME/miniconda3/envs/env_fluidsim
