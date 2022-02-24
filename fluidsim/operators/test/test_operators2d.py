@@ -168,10 +168,10 @@ class TestCoarse:
     def test_coarse(self, allclose):
 
         params = self.Oper._create_default_params()
-        params.oper.nx = 32
-        params.oper.ny = 48
+        params.oper.nx = 8
+        params.oper.ny = 8
         if self.nb_dim == 3:
-            params.oper.nz = 12
+            params.oper.nz = 2
 
         params.oper.truncation_shape = "spherical"
 
@@ -182,10 +182,10 @@ class TestCoarse:
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
-        params_coarse.oper.nx = 8
-        params_coarse.oper.ny = 12
+        params_coarse.oper.nx = 2
+        params_coarse.oper.ny = 2
         if self.nb_dim == 3:
-            params_coarse.oper.nz = 4
+            params_coarse.oper.nz = 2
 
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0
