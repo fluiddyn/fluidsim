@@ -205,7 +205,7 @@ class TestCoarse:
                 field_coarse_fft[:, nkxc - 1] = 0
             elif self.nb_dim == 3:
                 nkzc, nkyc, nkxc = oper_coarse_shapeK
-                field_coarse_fft[nkzc // 2, :] = 0
+                field_coarse_fft[nkzc // 2, :, :] = 0
                 field_coarse_fft[:, nkyc // 2, :] = 0
                 field_coarse_fft[:, :, nkxc - 1] = 0
 
