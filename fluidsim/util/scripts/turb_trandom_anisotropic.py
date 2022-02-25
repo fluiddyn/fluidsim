@@ -143,7 +143,7 @@ def create_parser():
     parser.add_argument(
         "--coef-nu4",
         type=float,
-        default=1.0,
+        default=20.0,
         help="Coefficient used to compute the order-4 hyper viscosity",
     )
 
@@ -303,11 +303,6 @@ def create_params(args):
     params.oper.Lz = Lh / args.ratio_nh_nz
     delta_kz = 2 * pi / params.oper.Lz
 
-    params.time_stepping.USE_T_END = True
-    params.time_stepping.t_end = args.t_end
-    params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = 0.1
-
     # Brunt Vaisala frequency
     params.N = args.N
     Fh = Uh / (args.N * Lfh)
@@ -316,19 +311,27 @@ def create_params(args):
     mpi.printby0(f"Input horizontal Froude number: {Fh:.3g}")
 
     nu = None
+    Rb = None
     if args.nu is not None and args.Rb is not None:
         raise ValueError("args.nu is not None and args.Rb is not None")
 
-    if args.nu is not None:
+    if args.nu is not None: 
         nu = args.nu
-        Rb = injection_rate / (nu * args.N**2)
-        params.short_name_type_run += f"_nu{nu:.3e}"
-    else:
-        Rb = args.Rb or 5.0
+        if args.nu != 0.0:
+            Rb = injection_rate / (nu * args.N**2)
+            params.short_name_type_run += f"_nu{nu:.3e}"
+        else:
+            # Rb will be fixed with hyperviscosity, resolution and forcing
+            params.short_name_type_run += f"_nonu"
+        mpi.printby0(f"Input viscosity: {nu:.3e}")
+    elif args.Rb is not None:
+        Rb = args.Rb
         nu = injection_rate / (Rb * args.N**2)
         params.short_name_type_run += f"_Rb{Rb:.3g}"
-
-    mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+        mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+    else:
+        Rb = 5.0
+        nu = injection_rate / (Rb * args.N**2)
 
     params.nu_2 = nu
 
@@ -392,8 +395,20 @@ def create_params(args):
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
     )
 
+    # Rb is None if nu = 0.0, then we compute it with the hyperviscosity
+    if Rb is None:
+        Rb = injection_rate ** (1 / 3) / (kf_max ** (10 / 3) * params.nu_4 * Fh ** 2) 
+        params.short_name_type_run += f"_Rbh{Rb:.3g}"
+        mpi.printby0(f"Buoyancy Reynolds number based on hyperviscosity: {Rb:.3g}")
+
     period_N = 2 * pi / args.N
     omega_l = args.N * args.F
+
+    # time_stepping fixed to follow waves
+    params.time_stepping.USE_T_END = True
+    params.time_stepping.t_end = args.t_end
+    params.time_stepping.max_elapsed = args.max_elapsed
+    params.time_stepping.deltat_max = min(0.1, period_N / 4)
 
     # time_correlation is fixed to forced wave period
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_l
