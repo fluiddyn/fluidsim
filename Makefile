@@ -63,9 +63,15 @@ _tests_coverage:
 	coverage run -p -m pytest -v -s lib
 	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftwmpi3d)
 	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftw1d)
-	# TODO: uncomment tests with pfft and p3dfft
-	# $(call _test_mpi_fft_lib,fft3d.mpi_with_pfft)
+	# tests with p3dfft cannot be run together...
 	# $(call _test_mpi_fft_lib,fft3d.mpi_with_p3dfft)
+	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe \
+	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py::TestCoarse
+	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe \
+	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py -k "not TestCoarse"
+
+	$(call _test_mpi_fft_lib,fft3d.mpi_with_pfft)
+
 	coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
 	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst
