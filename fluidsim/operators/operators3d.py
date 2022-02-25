@@ -309,13 +309,13 @@ Lx, Ly and Lz: float
                 oper2d.oper_fft, arr2d
             )
 
-        if mpi.rank > 0:
+        if rank > 0:
             assert arr2d is None
         arr2d = mpi.comm.bcast(arr2d, root=0)
 
         n0_loc, n1_loc, n2_loc = self.shapeX_loc
 
-        if mpi.rank == 0:
+        if rank == 0:
             shapeX_loc_2d = oper2d.shapeX_loc
         else:
             shapeX_loc_2d = None
@@ -365,7 +365,7 @@ Lx, Ly and Lz: float
                 )
             return
 
-        nkzc, nkyc, nkxc = shapeK_coarse
+        nkzc, nkyc, nkxc = nk0c, nk1c, nk2c = shapeK_coarse
         nk0, nk1, nk2 = self.shapeK_seq
 
         if nb_proc == 1:
@@ -388,7 +388,7 @@ Lx, Ly and Lz: float
                 for i0 in range(nkzc):
                     for i1 in range(nkyc):
                         fck_fft[i1, i0, :] = arr_coarse[i0, i1, :]
-            nk1c, nk0c, nk2c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkyc, nkzc, nkxc
             assert position_x_K == 2
         elif self.dimX_K == (2, 1, 0):
             if rank == 0:
@@ -397,15 +397,27 @@ Lx, Ly and Lz: float
                     for i1 in range(nkyc):
                         for i2 in range(nkxc):
                             fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
-            nk2c, nk1c, nk0c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkxc, nkyc, nkzc
             assert position_x_K == 0
         elif self.dimX_K == (0, 1, 2):
             if rank == 0:
                 fck_fft = arr_coarse
-            nk0c, nk1c, nk2c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkzc, nkyc, nkxc
             assert position_x_K == 2
+        elif self.dimX_K == (1, 2, 0):
+            if rank == 0:
+                fck_fft = np.zeros((nkyc, nkxc, nkzc), dtype=np.complex128)
+                for iz in range(nkzc):
+                    for iy in range(nkyc):
+                        for ix in range(nkxc):
+                            fck_fft[iy, ix, iz] = arr_coarse[iz, iy, ix]
+            nk0c, nk1c, nk2c = nkyc, nkxc, nkzc
+            assert position_x_K == 1
         else:
             raise NotImplementedError
+
+        # if rank == 0:
+        #     print(f"{fck_fft = }")
 
         if self.shapeK_loc[1:2] == self.shapeK_seq[1:2]:
             ik1c = 0
@@ -417,33 +429,33 @@ Lx, Ly and Lz: float
                     ik0, ik1c, ik2c
                 )
                 # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
-                if mpi.rank == 0:
-                    fc1D = fck_fft[ik0c, :, :]
+                if rank == 0:
+                    fc2d = fck_fft[ik0c, :, :]
                 if rank_ik != 0:
-                    # message fc1D
-                    if mpi.rank == rank_ik:
-                        fc1D = np.empty([nk1c, nk2c], dtype=np.complex128)
-                    if mpi.rank == 0 or mpi.rank == rank_ik:
-                        fc1D = np.ascontiguousarray(fc1D)
-                    if mpi.rank == 0:
+                    # message fc2d
+                    if rank == rank_ik:
+                        fc2d = np.empty([nk1c, nk2c], dtype=np.complex128)
+                    if rank == 0 or rank == rank_ik:
+                        fc2d = np.ascontiguousarray(fc2d)
+                    if rank == 0:
                         mpi.comm.Send(
-                            [fc1D, mpi.MPI.COMPLEX], dest=rank_ik, tag=ik0c
+                            [fc2d, mpi.MPI.COMPLEX], dest=rank_ik, tag=ik0c
                         )
-                    elif mpi.rank == rank_ik:
-                        mpi.comm.Recv([fc1D, mpi.MPI.COMPLEX], source=0, tag=ik0c)
-                if mpi.rank == rank_ik:
+                    elif rank == rank_ik:
+                        mpi.comm.Recv([fc2d, mpi.MPI.COMPLEX], source=0, tag=ik0c)
+                if rank == rank_ik:
                     # copy
                     if self.dimX_K == (1, 0, 2):
                         for ik1c in range(nk1c):
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
-                            arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
+                            arr[ik0loc, ik1, 0:nk2c] = fc2d[ik1c, :]
                     elif self.dimX_K == (2, 1, 0):
                         for ik1c in range(nk1c):
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
                             for ik2c in range(nk2c):
                                 ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
                                 # print(f"{ik0loc, ik1, ik2 = }; {ik1c, ik2c = }")
-                                arr[ik0loc, ik1, ik2] = fc1D[ik1c, ik2c]
+                                arr[ik0loc, ik1, ik2] = fc2d[ik1c, ik2c]
                     else:
                         raise NotImplementedError
 
@@ -456,27 +468,24 @@ Lx, Ly and Lz: float
                     rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                         ik0, ik1, ik2c
                     )
-                    # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
-                    if mpi.rank == 0:
-                        fc1D = fck_fft[ik0c, ik1c, :]
+                    if rank == 0:
+                        fc1d = fck_fft[ik0c, ik1c, :]
+
                     if rank_ik != 0:
-                        # message fc1D
-                        if mpi.rank == rank_ik:
-                            fc1D = np.empty(nk2c, dtype=np.complex128)
-                        if mpi.rank == 0 or mpi.rank == rank_ik:
-                            fc1D = np.ascontiguousarray(fc1D)
-                        if mpi.rank == 0:
+                        # message fc1d
+                        if rank == rank_ik:
+                            fc1d = np.empty(nk2c, dtype=np.complex128)
+                        if rank == 0:
+                            fc1d = np.ascontiguousarray(fc1d)
                             mpi.comm.Send(
-                                [fc1D, mpi.MPI.COMPLEX], dest=rank_ik, tag=ik0c
+                                [fc1d, mpi.MPI.COMPLEX], dest=rank_ik, tag=ik0c
                             )
-                        elif mpi.rank == rank_ik:
+                        elif rank == rank_ik:
                             mpi.comm.Recv(
-                                [fc1D, mpi.MPI.COMPLEX], source=0, tag=ik0c
+                                [fc1d, mpi.MPI.COMPLEX], source=0, tag=ik0c
                             )
-                    if mpi.rank == rank_ik:
-                        # copy
-                        if self.dimX_K == (0, 1, 2):
-                            arr[ik0loc, ik1loc, 0:nk2c] = fc1D
+                    if rank == rank_ik:
+                        arr[ik0loc, ik1loc, 0:nk2c] = fc1d
 
         else:
             for ik0c in range(min(nk0c, nk0)):
@@ -494,18 +503,20 @@ Lx, Ly and Lz: float
                             ik2loc,
                         ) = self.where_is_wavenumber(ik0, ik1c, ik2c)
                         # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
-                        if mpi.rank == 0:
+                        if rank == 0:
                             fc0D = fck_fft[ik0c, ik1c, ik2c]
                         if rank_ik != 0:
                             # message fc0D
-                            if mpi.rank == 0:
+                            if rank == 0:
                                 comm.send(fc0D, dest=rank_ik, tag=ik0c)
-                            elif mpi.rank == rank_ik:
+                            elif rank == rank_ik:
                                 fc0D = comm.recv(source=0, tag=ik0c)
-                        if mpi.rank == rank_ik:
+                        if rank == rank_ik:
                             # copy
                             if self.dimX_K == (0, 1, 2):
                                 arr[ik0loc, ik1loc, ik2loc] = fc0D
+                            else:
+                                raise NotImplementedError
 
     def coarse_seq_from_fft_loc(self, f_fft, shapeK_coarse):
         """Return a coarse field in K space."""
@@ -526,12 +537,15 @@ Lx, Ly and Lz: float
             if self.dimX_K[position_x_K] == 2:
                 break
 
+        nkzc, nkyc, nkxc = shapeK_coarse
         if self.dimX_K == (1, 0, 2):
-            nk1c, nk0c, nk2c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkyc, nkzc, nkxc
         elif self.dimX_K == (2, 1, 0):
-            nk2c, nk1c, nk0c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkxc, nkyc, nkzc
         elif self.dimX_K == (0, 1, 2):
-            nk0c, nk1c, nk2c = shapeK_coarse
+            nk0c, nk1c, nk2c = nkzc, nkyc, nkxc
+        elif self.dimX_K == (1, 2, 0):
+            nk0c, nk1c, nk2c = nkyc, nkxc, nkzc
         else:
             raise NotImplementedError
 
@@ -583,7 +597,9 @@ Lx, Ly and Lz: float
                 for ik1c in range(min(nk1c, nk1)):
                     ik1 = _ik_from_ikc(ik1c, nk1c, nk1, is_x=(position_x_K == 1))
                     for ik2c in range(min(nk2c, nk2)):
-                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2, is_x=(position_x_K == 2))
+                        ik2 = _ik_from_ikc(
+                            ik2c, nk2c, nk2, is_x=(position_x_K == 2)
+                        )
                         (
                             rank_ik,
                             ik0loc,
@@ -606,7 +622,9 @@ Lx, Ly and Lz: float
                             fc_fft_tmp[ik0c, ik1c, ik2c] = f0d_temp
 
         if rank == 0:
-            # print(f"{fc_fft_tmp = }")
+
+            print(f"{fc_fft_tmp = }")
+
             fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
             if self.dimX_K == (1, 0, 2):
                 for i0 in range(nkzc):
@@ -619,11 +637,17 @@ Lx, Ly and Lz: float
                             fc_fft[i0, i1, i2] = fc_fft_tmp[i2, i1, i0]
             elif self.dimX_K == (0, 1, 2):
                 fc_fft = fc_fft_tmp
+            elif self.dimX_K == (1, 2, 0):
+                for iz in range(nkzc):
+                    for iy in range(nkyc):
+                        for ix in range(nkxc):
+                            print(f"{(iz, iy, ix) = }; {fc_fft_tmp[iy, ix, iz] = }")
+                            fc_fft[iz, iy, ix] = fc_fft_tmp[iy, ix, iz]
             else:
                 raise NotImplementedError
             return fc_fft
 
-    @lru_cache(maxsize=32**2)
+    # @lru_cache(maxsize=32 ** 2)
     def where_is_wavenumber(self, ik0, ik1, ik2):
         """Give local indices and rank from the sequential indices"""
 
@@ -651,7 +675,18 @@ Lx, Ly and Lz: float
                 and iki_first[2] <= ik2 < iki_first[2] + self.shapeK_loc[2]
             )
             tmp = comm.allgather(rank_k_equal_rank)
-            rank_k = tmp.index(True)
+
+            try:
+                rank_k = tmp.index(True)
+            except ValueError:
+                print(
+                    f"ValueError for {(ik0, ik1, ik2) = }\n"
+                    f"{iki_first[0]=}, {ik0=}, {iki_first[0]+self.shapeK_loc[0]=}\n"
+                    f"{iki_first[1]=}, {ik1=}, {iki_first[1]+self.shapeK_loc[1]=}\n"
+                    f"{iki_first[2]=}, {ik2=}, {iki_first[2]+self.shapeK_loc[2]=}\n"
+                )
+                raise
+
             if rank == rank_k:
                 ik0_loc = ik0 - iki_first[0]
                 ik1_loc = ik1 - iki_first[1]
@@ -1051,7 +1086,7 @@ Lx, Ly and Lz: float
         ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
             kx_adim, ky_adim, kz_adim
         )
-        if mpi.rank != rank_k or from_rank != 0:
+        if rank != rank_k or from_rank != 0:
             raise NotImplementedError
         # print("-" * 20)
         # print(f"ik0, ik1, ik2             = ({ik0:4d}, {ik1:4d}, {ik2:4d})")
@@ -1062,7 +1097,7 @@ Lx, Ly and Lz: float
         ik0, ik1, ik2, rank_k = self.ik012rank_from_kadim(
             kx_adim, ky_adim, kz_adim
         )
-        if mpi.rank != rank_k or to_rank != 0:
+        if rank != rank_k or to_rank != 0:
             raise NotImplementedError
         return arr_fft[ik0, ik1, ik2]
 

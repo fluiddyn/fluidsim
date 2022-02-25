@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 from copy import deepcopy
 import os
 from math import prod

@@ -314,9 +314,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                         tag=ikxc,
                     )
                 elif rank == rank_ikx:
-                    comm.Send(
-                        [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ikxc
-                    )
+                    comm.Send([f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ikxc)
             if rank == 0:
                 # copy into fc_trans
                 fc_trans[ikxc] = f1d_temp.copy()

@@ -219,7 +219,6 @@ def test_where_is_wavenumber(oper):
     if mpi.rank == 0:
         recvbuf = np.empty([mpi.nb_proc, 4], dtype="i")
 
-
     print(f"{oper.shapeK_seq = }")
     print(f"{oper.shapeK_loc = }")
     if hasattr(oper, "dimX_K"):
