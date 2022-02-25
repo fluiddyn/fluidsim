@@ -256,10 +256,9 @@ Lx, Ly and Lz: float
             self.nk0_loc, self.nk1_loc, self.nk2_loc = self.shapeK_loc
 
             self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
-            nk2_loc = self.shapeK_loc[2]
-            nk2_loc_rank = np.array(comm.allgather(nk2_loc))
-            a = nk2_loc_rank
-            self.SAME_SIZE_IN_ALL_PROC = (a >= a.max()).all()
+            nk0_loc = self.shapeK_loc[0]
+            nk0_loc_versus_rank = comm.allgather(nk0_loc)
+            self.SAME_SIZE_IN_ALL_PROC = not any(np.diff(nk0_loc_versus_rank))
             self.dimX_K = self.oper_fft.get_dimX_K()
         else:
             self.SAME_SIZE_IN_ALL_PROC = True
@@ -573,7 +572,7 @@ Lx, Ly and Lz: float
                             ik0loc,
                             ik1loc,
                             ik2loc,
-                        ) = self.where_is_wavenumber(ik0, ik1c, ik2c)
+                        ) = self.where_is_wavenumber(ik0, ik1, ik2)
                         if rank == rank_ik:
                             f0d_temp = f_fft[ik0loc, ik1loc, ik2loc]
 
@@ -605,43 +604,24 @@ Lx, Ly and Lz: float
 
     def where_is_wavenumber(self, ik0, ik1, ik2):
         """Give local indices and rank from the sequential indices"""
-        nk0_seq, nk1_seq, nk2_seq = self.shapeK_seq
-
-        if ik0 >= nk0_seq:
-            raise ValueError(f"not good :-) {ik0=} >= {nk0_seq=}")
 
         if nb_proc == 1:
             rank_k = 0
-            ik0_loc = ik0
-        else:
+            return rank_k, ik0, ik1, ik2
+
+        if self.shapeK_loc[1:2] == self.shapeK_seq[1:2]:
             if self.SAME_SIZE_IN_ALL_PROC:
                 rank_k = int(np.floor(float(ik0) / self.nk0_loc))
-                if ik0 >= self.nk0_loc * nb_proc:
-                    raise ValueError(
-                        "not good :-) ik0_seq >= self.nk0_loc * mpi.nb_proc\n"
-                        "ik0_seq, self.nk0_loc, mpi.nb_proc = "
-                        f"{ik0}, {self.nk0_loc}, {nb_proc}"
-                    )
-
             else:
-                rank_k = 0
-                while rank_k < nb_proc - 1 and (
-                    not (
-                        self.iK0loc_start_rank[rank_k] <= ik0
-                        and ik0 < self.iK0loc_start_rank[rank_k + 1]
-                    )
-                ):
-                    rank_k += 1
-
+                for rank_k, iK0loc_start in enumerate(self.iK0loc_start_rank):
+                    if ik0 < iK0loc_start:
+                        rank_k -= 1
+                        break
             ik0_loc = ik0 - self.iK0loc_start_rank[rank_k]
-
-        ik1_loc = ik1
-        if ik1_loc < 0:
-            ik1_loc = self.nk1_loc + ik1_loc
-
-        ik2_loc = ik2
-        if ik2_loc < 0:
-            ik2_loc = self.nk2_loc + ik2_loc
+            ik1_loc = ik1
+            ik2_loc = ik2
+        else:
+            raise NotImplementedError
 
         return rank_k, ik0_loc, ik1_loc, ik2_loc
 

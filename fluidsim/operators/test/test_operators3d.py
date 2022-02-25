@@ -17,9 +17,9 @@ def oper():
     from fluidsim.operators.operators3d import OperatorsPseudoSpectral3D
 
     p = OperatorsPseudoSpectral3D._create_default_params()
-    p.oper.nx = 12
-    p.oper.ny = 8
-    p.oper.nz = 24
+    p.oper.nx = 16
+    p.oper.ny = 11
+    p.oper.nz = 4
     p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
 
     if "FLUIDSIM_TYPE_FFT" in os.environ:
@@ -219,19 +219,29 @@ def test_where_is_wavenumber(oper):
     if mpi.rank == 0:
         recvbuf = np.empty([mpi.nb_proc, 4], dtype="i")
 
+
+    print(f"{oper.shapeK_seq = }")
+    print(f"{oper.shapeK_loc = }")
+    if hasattr(oper, "dimX_K"):
+        mpi.printby0(f"{oper.dimX_K = }")
+
+    print(f"{oper.SAME_SIZE_IN_ALL_PROC = }")
+
+    # print(f"{oper_coarse.Kx[0, 0] = }")
+    # print(f"{oper.Kx = }")
+
     for ikcz in range(nkzc):
         for ikcy in range(nkyc):
             for ikcx in range(nkxc):
-
                 ikz = _ik_from_ikc(ikcz, nkzc, nkz_seq)
                 iky = _ik_from_ikc(ikcy, nkyc, nky_seq)
-                ikx = _ik_from_ikc(ikcx, nkxc, nkx_seq)
+                ikx = ikcx
 
                 ik0, ik1, ik2 = oper.i012_from_ixyz(ikx, iky, ikz)
-
                 rank_k, ik0_loc, ik1_loc, ik2_loc = oper.where_is_wavenumber(
                     ik0, ik1, ik2
                 )
+                print(f"{(ik0, ik1, ik2) = } => {(rank_k, ik0_loc, ik1_loc, ik2_loc) = }")
 
                 if mpi.nb_proc == 1:
                     assert rank_k == 0
