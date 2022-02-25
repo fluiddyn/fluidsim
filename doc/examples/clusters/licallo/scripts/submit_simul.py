@@ -4,10 +4,11 @@ from fluidlicallo import cluster
 # Rbs = [5, 10, 20, 40]
 # projs = ["None", "poloidal"]
 
-Ns = [100]
-Rbs = [5, 10, 20]
-projs = ["None", "poloidal"]
+Ns = [200]
+Rbs = [5]
+projs = ["poloidal"]
 nz = 160
+
 
 nb_nodes = 2
 nb_cores_per_node = cluster.nb_cores_per_node
@@ -25,11 +26,9 @@ for N in Ns:
             if proj == "None":
                 t_end = 20.
                 command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
-                #command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --max-elapsed {max_elapsed}'
             elif proj == "poloidal":
                 t_end = 5.
                 command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --projection={proj} --max-elapsed {max_elapsed} --modify-params "params.oper.type_fft = {type_fft};"'
-                #command = f'./run_simul.py -N {N} -Rb {Rb} -nz {nz} --t_end {t_end} --projection={proj} --max-elapsed {max_elapsed}'
             else:
                 print('Projection (variable proj) must be "None" or "poloidal"')
  
