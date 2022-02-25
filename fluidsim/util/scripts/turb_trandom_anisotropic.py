@@ -321,38 +321,21 @@ def create_params(args):
 
     if args.nu is not None:
         nu = args.nu
-        Rb = injection_rate / (nu * args.N**2)
-        params.short_name_type_run += f"_nu{nu:.3e}"
+        if nu != 0.0:
+            Rb = injection_rate / (nu * args.N**2)
+            params.short_name_type_run += f"_nu{nu:.3e}"
+            mpi.printby0(f"Input viscosity: {nu:.3e}")
+    elif args.Rb is not None:
+        if Rb > 0.0:
+            Rb = args.Rb or 5.0
+            nu = injection_rate / (Rb * args.N**2)
+            params.short_name_type_run += f"_Rb{Rb:.3g}"
+            mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+        raise ValueError("args.Rb must be strictly positive")
     else:
-        Rb = args.Rb or 5.0
-        nu = injection_rate / (Rb * args.N**2)
-        params.short_name_type_run += f"_Rb{Rb:.3g}"
-
-    mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+        nu = 0.0
 
     params.nu_2 = nu
-
-    if args.nu4 is not None:
-        params.nu_4 = args.nu4
-    else:
-        # compute nu_4 from injection_rate and dx
-        # Kolmogorov length scale
-        eta = (nu**3 / injection_rate) ** 0.25
-        k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
-
-        mpi.printby0(f"{eta * k_max = :.3e}")
-
-        if eta * k_max > 1:
-            mpi.printby0("Well resolved simulation, no need for nu_4")
-            params.nu_4 = 0.0
-        else:
-            # TODO: more clever injection_rate_4 (tends to 0 when eta*k_max = 1)
-            injection_rate_4 = injection_rate
-            # only valid if R4 >> 1 (isotropic turbulence at small scales)
-            params.nu_4 = (
-                args.coef_nu4 * injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
-            )
-            mpi.printby0(f"Resolution too coarse, we add {params.nu_4 = :.3e}.")
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = 1.0
@@ -391,6 +374,31 @@ def create_params(args):
     mpi.printby0(
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
     )
+
+    if args.nu4 is not None:
+        params.nu_4 = args.nu4
+    else:
+	# compute nu_4 from injection_rate and dx
+        # Kolmogorov length scale
+        eta = (nu**3 / injection_rate) ** 0.25
+        k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
+
+        mpi.printby0(f"{eta * k_max = :.3e}")
+
+        if eta * k_max > 1:
+            mpi.printby0("Well resolved simulation, no need for nu_4")
+            params.nu_4 = 0.0
+        else:
+            # TODO: more clever injection_rate_4 (tends to 0 when eta*k_max = 1)
+            injection_rate_4 = injection_rate
+            # only valid if R4 >> 1 (isotropic turbulence at small scales)
+            params.nu_4 = (
+                args.coef_nu4 * injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
+            )
+            # compute Reynolds number based on hyperviscosity
+            Rbh = injection_rate_4 ** (1 / 3) / (kf_max ** (10 / 3) * params.nu_4)
+            params.short_name_type_run += f"_Rbh{Rbh:.3e}"
+            mpi.printby0(f"Resolution too coarse, we add {params.nu_4 = :.3e}.")
 
     period_N = 2 * pi / args.N
     omega_l = args.N * args.F
