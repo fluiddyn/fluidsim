@@ -12,6 +12,7 @@ Provides
 from math import pi
 from copy import deepcopy
 from random import uniform
+from functools import lru_cache
 
 import numpy as np
 
@@ -256,9 +257,9 @@ Lx, Ly and Lz: float
             self.nk0_loc, self.nk1_loc, self.nk2_loc = self.shapeK_loc
 
             self.iK0loc_start_rank = np.array(comm.allgather(self.iK0loc_start))
-            nk0_loc = self.shapeK_loc[0]
-            nk0_loc_versus_rank = comm.allgather(nk0_loc)
-            self.SAME_SIZE_IN_ALL_PROC = not any(np.diff(nk0_loc_versus_rank))
+            size_loc = np.prod(self.shapeK_loc)
+            size_loc_versus_rank = comm.allgather(size_loc)
+            self.SAME_SIZE_IN_ALL_PROC = not any(np.diff(size_loc_versus_rank))
             self.dimX_K = self.oper_fft.get_dimX_K()
         else:
             self.SAME_SIZE_IN_ALL_PROC = True
@@ -483,7 +484,9 @@ Lx, Ly and Lz: float
                 for ik1c in range(min(nk1c, nk1)):
                     ik1 = _ik_from_ikc(ik1c, nk1c, nk1, is_x=(position_x_K == 1))
                     for ik2c in range(min(nk2c, nk2)):
-                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2, is_x=(position_x_K == 2))
+                        ik2 = _ik_from_ikc(
+                            ik2c, nk2c, nk2, is_x=(position_x_K == 2)
+                        )
                         (
                             rank_ik,
                             ik0loc,
@@ -519,6 +522,10 @@ Lx, Ly and Lz: float
                         fc_fft[ikzc, ikyc, ikxc] = f_fft[ikz, iky, ikxc]
             return fc_fft
 
+        for position_x_K in range(3):
+            if self.dimX_K[position_x_K] == 2:
+                break
+
         if self.dimX_K == (1, 0, 2):
             nk1c, nk0c, nk2c = shapeK_coarse
         elif self.dimX_K == (2, 1, 0):
@@ -528,7 +535,7 @@ Lx, Ly and Lz: float
         else:
             raise NotImplementedError
 
-        fc_fft_tmp = np.empty([nk0c, nk1c, nk2c], np.complex128)
+        fc_fft_tmp = np.zeros([nk0c, nk1c, nk2c], np.complex128)
         nk0, nk1, nk2 = self.shapeK_seq
         if self.shapeK_seq[1:2] == self.shapeK_loc[1:2]:
 
@@ -537,7 +544,7 @@ Lx, Ly and Lz: float
             for ik0c in range(min(nk0c, nk0)):
                 ik1c = 0
                 ik2c = 0
-                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
                 rank_ik, ik0loc, ik1loc, ik1loc = self.where_is_wavenumber(
                     ik0, ik1c, ik2c
                 )
@@ -572,17 +579,19 @@ Lx, Ly and Lz: float
         else:
 
             for ik0c in range(min(nk0c, nk0)):
-                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
                 for ik1c in range(min(nk1c, nk1)):
-                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1, is_x=(position_x_K == 1))
                     for ik2c in range(min(nk2c, nk2)):
-                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2, is_x=(position_x_K == 2))
                         (
                             rank_ik,
                             ik0loc,
                             ik1loc,
                             ik2loc,
                         ) = self.where_is_wavenumber(ik0, ik1, ik2)
+                        # print(f"{(ik0, ik1, ik2) = } => {(rank_ik, ik0loc, ik1loc, ik2loc) = }")
+
                         if rank == rank_ik:
                             f0d_temp = f_fft[ik0loc, ik1loc, ik2loc]
 
@@ -592,7 +601,9 @@ Lx, Ly and Lz: float
                                 comm.send(f0d_temp, dest=0, tag=ik2c)
                             elif rank == 0:
                                 f0d_temp = comm.recv(source=rank_ik, tag=ik2c)
-                                fc_fft_tmp[ik0c, ik1c, ik2c] = f0d_temp
+
+                        if rank == 0:
+                            fc_fft_tmp[ik0c, ik1c, ik2c] = f0d_temp
 
         if rank == 0:
             # print(f"{fc_fft_tmp = }")
@@ -612,6 +623,7 @@ Lx, Ly and Lz: float
                 raise NotImplementedError
             return fc_fft
 
+    @lru_cache(maxsize=32**2)
     def where_is_wavenumber(self, ik0, ik1, ik2):
         """Give local indices and rank from the sequential indices"""
 
@@ -631,7 +643,24 @@ Lx, Ly and Lz: float
             ik1_loc = ik1
             ik2_loc = ik2
         else:
-            raise NotImplementedError
+
+            iki_first = self.seq_indices_first_K
+            rank_k_equal_rank = (
+                iki_first[0] <= ik0 < iki_first[0] + self.shapeK_loc[0]
+                and iki_first[1] <= ik1 < iki_first[1] + self.shapeK_loc[1]
+                and iki_first[2] <= ik2 < iki_first[2] + self.shapeK_loc[2]
+            )
+            tmp = comm.allgather(rank_k_equal_rank)
+            rank_k = tmp.index(True)
+            if rank == rank_k:
+                ik0_loc = ik0 - iki_first[0]
+                ik1_loc = ik1 - iki_first[1]
+                ik2_loc = ik2 - iki_first[2]
+                buffer = np.array([ik0_loc, ik1_loc, ik2_loc], dtype=int)
+            else:
+                buffer = np.empty(3, dtype=int)
+            comm.Bcast(buffer, root=rank_k)
+            ik0_loc, ik1_loc, ik2_loc = buffer
 
         return rank_k, ik0_loc, ik1_loc, ik2_loc
 

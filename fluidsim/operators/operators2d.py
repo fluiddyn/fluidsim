@@ -270,46 +270,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         nkyc = shapeK_loc_coarse[0]
         nkxc = shapeK_loc_coarse[1]
 
-        if nb_proc > 1:
-            if not self.is_transposed:
-                raise NotImplementedError()
-
-            fc_trans = np.empty([nkxc, nkyc], np.complex128)
-            nky = self.shapeK_seq[1]
-            f1d_temp = np.empty([nkyc], np.complex128)
-
-            for ikxc in range(nkxc):
-                kx = self.deltakx * ikxc
-                rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.0)
-                if rank == rank_ikx:
-                    # create f1d_temp
-                    for ikyc in range(nkyc):
-                        if ikyc <= nkyc / 2:
-                            iky = ikyc
-                        else:
-                            kynodim = ikyc - nkyc
-                            iky = kynodim + nky
-                        f1d_temp[ikyc] = f_fft[ikxloc, iky]
-
-                if rank_ikx != 0:
-                    # message f1d_temp
-                    if rank == 0:
-                        # print('f1d_temp', f1d_temp, f1d_temp.dtype)
-                        comm.Recv(
-                            [f1d_temp, MPI.DOUBLE_COMPLEX],
-                            source=rank_ikx,
-                            tag=ikxc,
-                        )
-                    elif rank == rank_ikx:
-                        comm.Send(
-                            [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ikxc
-                        )
-                if rank == 0:
-                    # copy into fc_trans
-                    fc_trans[ikxc] = f1d_temp.copy()
-            fc_fft = fc_trans.transpose()
-
-        else:
+        if nb_proc == 1:
             nky = self.shapeK_seq[0]
             fc_fft = np.empty([nkyc, nkxc], np.complex128)
             for ikyc in range(nkyc):
@@ -321,14 +282,45 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                 for ikxc in range(nkxc):
                     fc_fft[ikyc, ikxc] = f_fft[iky, ikxc]
 
-        # fc_fft[nkyc//2] *= 2
+            return fc_fft
 
-        # energy_coarse = self.sum_wavenumbers(abs(fc_fft)**2)
-        # energy_global = self.sum_wavenumbers(abs(f_fft)**2)
-        # print('energy_coarse = {}'.format(energy_coarse))
-        # print('energy_global = {}'.format(energy_global))
+        if not self.is_transposed:
+            raise NotImplementedError()
 
-        # assert energy_global == energy_coarse
+        fc_trans = np.empty([nkxc, nkyc], np.complex128)
+        nky = self.shapeK_seq[1]
+        f1d_temp = np.empty([nkyc], np.complex128)
+
+        for ikxc in range(nkxc):
+            kx = self.deltakx * ikxc
+            rank_ikx, ikxloc, ikyloc = self.where_is_wavenumber(kx, 0.0)
+            if rank == rank_ikx:
+                # create f1d_temp
+                for ikyc in range(nkyc):
+                    if ikyc <= nkyc / 2:
+                        iky = ikyc
+                    else:
+                        kynodim = ikyc - nkyc
+                        iky = kynodim + nky
+                    f1d_temp[ikyc] = f_fft[ikxloc, iky]
+
+            if rank_ikx != 0:
+                # message f1d_temp
+                if rank == 0:
+                    # print('f1d_temp', f1d_temp, f1d_temp.dtype)
+                    comm.Recv(
+                        [f1d_temp, MPI.DOUBLE_COMPLEX],
+                        source=rank_ikx,
+                        tag=ikxc,
+                    )
+                elif rank == rank_ikx:
+                    comm.Send(
+                        [f1d_temp, MPI.DOUBLE_COMPLEX], dest=0, tag=ikxc
+                    )
+            if rank == 0:
+                # copy into fc_trans
+                fc_trans[ikxc] = f1d_temp.copy()
+        fc_fft = fc_trans.transpose()
 
         return fc_fft
 
