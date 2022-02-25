@@ -377,6 +377,10 @@ Lx, Ly and Lz: float
                         arr[ikz, iky, ikxc] = arr_coarse[ikzc, ikyc, ikxc]
             return
 
+        for position_x_K in range(3):
+            if self.dimX_K[position_x_K] == 2:
+                break
+
         if self.dimX_K == (1, 0, 2):
             if rank == 0:
                 fck_fft = np.zeros((nkyc, nkzc, nkxc), dtype=np.complex128)
@@ -384,6 +388,7 @@ Lx, Ly and Lz: float
                     for i1 in range(nkyc):
                         fck_fft[i1, i0, :] = arr_coarse[i0, i1, :]
             nk1c, nk0c, nk2c = shapeK_coarse
+            assert position_x_K == 2
         elif self.dimX_K == (2, 1, 0):
             if rank == 0:
                 fck_fft = np.zeros((nkxc, nkyc, nkzc), dtype=np.complex128)
@@ -392,10 +397,12 @@ Lx, Ly and Lz: float
                         for i2 in range(nkxc):
                             fck_fft[i2, i1, i0] = arr_coarse[i0, i1, i2]
             nk2c, nk1c, nk0c = shapeK_coarse
+            assert position_x_K == 0
         elif self.dimX_K == (0, 1, 2):
             if rank == 0:
                 fck_fft = arr_coarse
             nk0c, nk1c, nk2c = shapeK_coarse
+            assert position_x_K == 2
         else:
             raise NotImplementedError
 
@@ -403,7 +410,8 @@ Lx, Ly and Lz: float
             ik1c = 0
             ik2c = 0
             for ik0c in range(min(nk0c, nk0)):
-                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
+
                 rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                     ik0, ik1c, ik2c
                 )
@@ -428,22 +436,24 @@ Lx, Ly and Lz: float
                         for ik1c in range(nk1c):
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
                             arr[ik0loc, ik1, 0:nk2c] = fc1D[ik1c, :]
-                    else:
+                    elif self.dimX_K == (2, 1, 0):
                         for ik1c in range(nk1c):
                             ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
                             for ik2c in range(nk2c):
                                 ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
-                                print(f"{ik0loc, ik1, ik2 = }; {ik1c, ik2c = }")
+                                # print(f"{ik0loc, ik1, ik2 = }; {ik1c, ik2c = }")
                                 arr[ik0loc, ik1, ik2] = fc1D[ik1c, ik2c]
+                    else:
+                        raise NotImplementedError
 
         elif self.shapeK_loc[2] == self.shapeK_seq[2]:
             ik2c = 0
             for ik0c in range(min(nk0c, nk0)):
-                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
                 for ik1c in range(min(nk1c, nk1)):
-                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1, is_x=(position_x_K == 1))
                     rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
-                        ik0, ik1c, ik2c
+                        ik0, ik1, ik2c
                     )
                     # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
                     if mpi.rank == 0:
@@ -469,11 +479,11 @@ Lx, Ly and Lz: float
 
         else:
             for ik0c in range(min(nk0c, nk0)):
-                ik0 = _ik_from_ikc(ik0c, nk0c, nk0)
+                ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
                 for ik1c in range(min(nk1c, nk1)):
-                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1)
+                    ik1 = _ik_from_ikc(ik1c, nk1c, nk1, is_x=(position_x_K == 1))
                     for ik2c in range(min(nk2c, nk2)):
-                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2)
+                        ik2 = _ik_from_ikc(ik2c, nk2c, nk2, is_x=(position_x_K == 2))
                         (
                             rank_ik,
                             ik0loc,
@@ -1083,12 +1093,12 @@ Lx, Ly and Lz: float
             )
 
 
-def _ik_from_ikc(ikc, nkc, nk):
+def _ik_from_ikc(ikc, nkc, nk, is_x=False):
     # for debug
     # if ikc >= nk:
     #     raise ValueError
 
-    if ikc <= nkc / 2.0:
+    if ikc <= nkc / 2.0 or is_x:
         ik = ikc
     else:
         knodim = ikc - nkc
