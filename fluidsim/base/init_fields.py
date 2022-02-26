@@ -196,7 +196,8 @@ path: str
                 axes = h5file.attrs["axes"]
                 for r in axes:
                     # for example r can be: 'z', 'y', 'x'
-                    r = r.decode("utf-8")
+                    if hasattr(r, "decode"):
+                        r = r.decode("utf-8")
                     nr = f"n{r}"
                     nr_file = group_oper.attrs[nr]
                     if params.oper[nr] != nr_file:
