@@ -181,10 +181,10 @@ class TestCoarse:
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
-        params_coarse.oper.nx = 2
+        params_coarse.oper.nx = 4
         params_coarse.oper.ny = 4
         if self.nb_dim == 3:
-            params_coarse.oper.nz = 2
+            params_coarse.oper.nz = 4
 
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0

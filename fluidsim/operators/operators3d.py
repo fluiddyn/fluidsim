@@ -468,6 +468,7 @@ Lx, Ly and Lz: float
                     rank_ik, ik0loc, ik1loc, ik2loc = self.where_is_wavenumber(
                         ik0, ik1, ik2c
                     )
+                    # print(f"{(ik0, ik1, ik2c) = } => {(rank_ik, ik0loc, ik1loc, ik2loc) = }")
                     if rank == 0:
                         fc1d = fck_fft[ik0c, ik1c, :]
 
@@ -485,7 +486,13 @@ Lx, Ly and Lz: float
                                 [fc1d, mpi.MPI.COMPLEX], source=0, tag=ik0c
                             )
                     if rank == rank_ik:
-                        arr[ik0loc, ik1loc, 0:nk2c] = fc1d
+                        if position_x_K == 2:
+                            arr[ik0loc, ik1loc, :nk2c] = fc1d
+                        else:
+                            tmp = nk2c // 2 + 1
+                            arr[ik0loc, ik1loc, :tmp] = fc1d[:tmp]
+                            tmp = -nk2c // 2 + 1
+                            arr[ik0loc, ik1loc, tmp:] = fc1d[tmp:]
 
         else:
             for ik0c in range(min(nk0c, nk0)):
@@ -502,7 +509,7 @@ Lx, Ly and Lz: float
                             ik1loc,
                             ik2loc,
                         ) = self.where_is_wavenumber(ik0, ik1, ik2)
-                        # print(f"{(ik0, ik1, ik2) = } => {(rank_ik, ik0loc) = }")
+                        # print(f"{(ik0, ik1, ik2) = } => {(rank_ik, ik0loc, ik1loc, ik2loc) = }")
                         if rank == 0:
                             fc0D = fck_fft[ik0c, ik1c, ik2c]
                         if rank_ik != 0:
