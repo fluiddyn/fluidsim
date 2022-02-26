@@ -501,8 +501,8 @@ Lx, Ly and Lz: float
                             ik0loc,
                             ik1loc,
                             ik2loc,
-                        ) = self.where_is_wavenumber(ik0, ik1c, ik2c)
-                        # print(f"{ik0 = } => {(rank_ik, ik0loc) = }")
+                        ) = self.where_is_wavenumber(ik0, ik1, ik2)
+                        # print(f"{(ik0, ik1, ik2) = } => {(rank_ik, ik0loc) = }")
                         if rank == 0:
                             fc0D = fck_fft[ik0c, ik1c, ik2c]
                         if rank_ik != 0:
@@ -600,6 +600,7 @@ Lx, Ly and Lz: float
                         ik2 = _ik_from_ikc(
                             ik2c, nk2c, nk2, is_x=(position_x_K == 2)
                         )
+                        # print(f"{(ik0c, ik1c, ik2c) = }")
                         (
                             rank_ik,
                             ik0loc,
@@ -610,6 +611,7 @@ Lx, Ly and Lz: float
 
                         if rank == rank_ik:
                             f0d_temp = f_fft[ik0loc, ik1loc, ik2loc]
+                            # print(f"{(rank_ik, ik0loc, ik1loc, ik2loc) = }, {f0d_temp = }")
 
                         if rank_ik != 0:
                             # message f0d_temp
@@ -623,7 +625,7 @@ Lx, Ly and Lz: float
 
         if rank == 0:
 
-            print(f"{fc_fft_tmp = }")
+            # print(f"{fc_fft_tmp = }")
 
             fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
             if self.dimX_K == (1, 0, 2):
@@ -641,9 +643,6 @@ Lx, Ly and Lz: float
                 for iz in range(nkzc):
                     for iy in range(nkyc):
                         for ix in range(nkxc):
-                            print(
-                                f"{(iz, iy, ix) = }; {fc_fft_tmp[iy, ix, iz] = }"
-                            )
                             fc_fft[iz, iy, ix] = fc_fft_tmp[iy, ix, iz]
             else:
                 raise NotImplementedError
@@ -1189,32 +1188,3 @@ def _ik_from_kadim(k_adim, nk, first=False):
     if first or k_adim >= 0:
         return k_adim
     return nk + k_adim
-
-
-if __name__ == "__main__":
-    n = 4
-
-    p = OperatorsPseudoSpectral3D._create_default_params()
-
-    p.oper.nx = n
-    p.oper.ny = 2 * n
-    p.oper.nz = 4 * n
-
-    # p.oper.type_fft = 'fftwpy'
-    p.oper.type_fft2d = "fft2d.with_pyfftw"
-
-    oper = OperatorsPseudoSpectral3D(params=p)
-
-    field = np.ones(oper.shapeX_loc)
-
-    print(oper.shapeX_loc)
-    print(oper.oper2d.shapeX_loc)
-
-    field_fft = oper.fft3d(field)
-
-    assert field_fft.shape == oper.shapeK_loc
-
-    oper.project_perpk3d(field_fft, field_fft, field_fft)
-
-    a2d = np.arange(oper.nx * oper.ny).reshape(oper.oper2d.shapeX_loc)
-    a3d = oper.build_invariant_arrayX_from_2d_indices12X(a2d)

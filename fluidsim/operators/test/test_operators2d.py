@@ -167,8 +167,8 @@ class TestCoarse:
     def test_coarse(self, allclose):
 
         params = self.Oper._create_default_params()
-        params.oper.nx = 12
-        params.oper.ny = 8
+        params.oper.nx = 4
+        params.oper.ny = 6
         if self.nb_dim == 3:
             params.oper.nz = 2
 
@@ -181,8 +181,8 @@ class TestCoarse:
         oper = self.Oper(params)
 
         params_coarse = deepcopy(params)
-        params_coarse.oper.nx = 4
-        params_coarse.oper.ny = 2
+        params_coarse.oper.nx = 2
+        params_coarse.oper.ny = 4
         if self.nb_dim == 3:
             params_coarse.oper.nz = 2
 
@@ -237,13 +237,22 @@ class TestCoarse:
             mpi.printby0(f"{oper.dimX_K = }")
 
         mpi.print_sorted(f"{oper_coarse_shapeK = }")
-        mpi.printby0(f"{field_coarse_fft     =}")
+        mpi.print_sorted(f"{field_coarse_fft     =}")
 
         field_fft = oper.create_arrayK(value=0)
         oper.put_coarse_array_in_array_fft(
             field_coarse_fft, field_fft, oper_coarse, oper_coarse_shapeK
         )
         mpi.print_sorted(f"{field_fft            =}")
+
+        energy_big_fft = oper.compute_energy_from_K(field_fft)
+        mpi.printby0(
+            "energy,  energy_big_fft\n"
+            + (2 * "{:.8f}    ").format(energy, energy_big_fft)
+        )
+        assert energy > 0
+        assert allclose(energy, energy_big_fft)
+
         field_coarse_fft_back = oper.coarse_seq_from_fft_loc(
             field_fft, oper_coarse_shapeK
         )
@@ -262,19 +271,9 @@ class TestCoarse:
         assert allclose(field_coarse_fft.imag, field_coarse_fft_back.imag)
         # assert np.allclose(field_coarse_fft, field_coarse_fft_back)
 
-        energy_big_fft = oper.compute_energy_from_K(field_fft)
-
-        mpi.printby0(
-            "energy,  energy_big_fft\n"
-            + (2 * "{:.8f}    ").format(energy, energy_big_fft)
-        )
-        assert energy > 0
-        assert allclose(energy, energy_big_fft)
-
         field = oper.ifft(field_fft)
         field_fft_back = oper.fft(field)
         # Test if field_fft corresponds to a real field
-
         assert allclose(field_fft.real, field_fft_back.real)
         assert allclose(field_fft.imag, field_fft_back.imag)
         # assert np.allclose(field_fft, field_fft_back)
