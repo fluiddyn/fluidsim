@@ -12,7 +12,6 @@ Provides
 from math import pi
 from copy import deepcopy
 from random import uniform
-from functools import lru_cache
 
 import numpy as np
 
@@ -263,6 +262,7 @@ Lx, Ly and Lz: float
             self.dimX_K = self.oper_fft.get_dimX_K()
         else:
             self.SAME_SIZE_IN_ALL_PROC = True
+        self._cache_where_is_wavenumber = {}
 
         self._reinit_truncation()
 
@@ -641,19 +641,26 @@ Lx, Ly and Lz: float
                 for iz in range(nkzc):
                     for iy in range(nkyc):
                         for ix in range(nkxc):
-                            print(f"{(iz, iy, ix) = }; {fc_fft_tmp[iy, ix, iz] = }")
+                            print(
+                                f"{(iz, iy, ix) = }; {fc_fft_tmp[iy, ix, iz] = }"
+                            )
                             fc_fft[iz, iy, ix] = fc_fft_tmp[iy, ix, iz]
             else:
                 raise NotImplementedError
             return fc_fft
 
-    # @lru_cache(maxsize=32 ** 2)
     def where_is_wavenumber(self, ik0, ik1, ik2):
         """Give local indices and rank from the sequential indices"""
 
         if nb_proc == 1:
             rank_k = 0
             return rank_k, ik0, ik1, ik2
+
+        # cannot use lru_cache because it can lead to blocking with MPI
+        try:
+            return self._cache_where_is_wavenumber[(ik0, ik1, ik2)]
+        except KeyError:
+            pass
 
         if self.shapeK_loc[1:2] == self.shapeK_seq[1:2]:
             if self.SAME_SIZE_IN_ALL_PROC:
@@ -697,7 +704,9 @@ Lx, Ly and Lz: float
             comm.Bcast(buffer, root=rank_k)
             ik0_loc, ik1_loc, ik2_loc = buffer
 
-        return rank_k, ik0_loc, ik1_loc, ik2_loc
+        result = (rank_k, ik0_loc, ik1_loc, ik2_loc)
+        self._cache_where_is_wavenumber[(ik0, ik1, ik2)] = result
+        return result
 
     @boost
     def urudfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):
