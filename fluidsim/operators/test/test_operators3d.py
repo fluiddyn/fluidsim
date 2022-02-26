@@ -125,7 +125,7 @@ def test_projection(oper):
     vt_fft = oper.vtfft_from_vecfft(vx_fft, vy_fft, vz_fft)
     E_t_s = compute_energy_from_1field(vt_fft)
     E_t = compute_energy_from_3fields(vx_fft_t, vy_fft_t, vz_fft_t)
-    assert np.sum(E_t) > 0.1 * np.sum(E_v)
+    assert np.sum(E_t) > 0.05 * np.sum(E_v)
     dE_t = E_t_s - E_t
     assert np.max(
         dE_t / E_v < 1e-14
@@ -135,7 +135,7 @@ def test_projection(oper):
     # Recompute the velocity field corresponding to the poloidal projection vp_fft
     vx_fft_p, vy_fft_p, vz_fft_p = oper.vecfft_from_vpfft(vp_fft)
     E_p = compute_energy_from_3fields(vx_fft_p, vy_fft_p, vz_fft_p)
-    assert np.sum(E_p) > 0.1 * np.sum(E_v)
+    assert np.sum(E_p) > 0.05 * np.sum(E_v)
 
     dE_p = E_p_s - E_p
     assert np.max(
