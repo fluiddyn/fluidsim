@@ -45,13 +45,15 @@ Specialized in pseudo-spectral Fourier.
 
 - FFT accelerated with GPU and MPI+GPU (fluidfft)
 
-- Particles and Lagrangian dynamics
-
 - Shear as in [Snoopy](https://ipag.osug.fr/~lesurg/snoopy.html) (see
   [#99](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/99))
 
 - Simul class made of 2 (or n) interacting Simul classes. For example, ns2d +
-  passive scalar at higher resolution.
+passive scalar at higher resolution. Or fluid-structure interaction as in
+[FLUSI](https://github.com/pseudospectators/FLUSI) (see
+[!104](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/104))
+
+- Particles and Lagrangian dynamics
 
 ## Long term
 
