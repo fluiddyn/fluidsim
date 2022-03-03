@@ -12,6 +12,10 @@ Provides:
    :members:
    :private-members:
 
+.. autoclass:: SpatioTemporalSpectraNS
+   :members:
+   :private-members:
+
 """
 
 from pathlib import Path
@@ -879,6 +883,52 @@ class SpatioTemporalSpectraNS:
 
         return spectra
 
+    def compute_omega_emp_vs_kzkh(
+        self,
+        spectra_kzkhomega,
+        key_spect,
+    ):
+        r"""Compute empirical frequency and fluctuation from the spatiotemporal spectra:
+
+        .. math::
+
+          \omega_{emp}(k_h, k_z) =
+            \frac{\int ~ \omega ~ S(k_h, k_z, \omega)
+            ~ \mathrm{d}\omega}{\int ~ S(k_h, k_z, \omega) ~ \mathrm{d}\omega},
+
+          \delta \omega_{emp}(k_h, k_z) =
+            \sqrt{\frac{\int ~ (\omega - \omega_{emp})^2 ~ S(k_h, k_z, \omega)
+            ~ \mathrm{d}\omega}{\int ~ S(k_h, k_z, \omega) ~ \mathrm{d}\omega}},
+
+        where :math:`\omega_{emp}` is the empirical frequency and :math:`\delta
+        \omega_{emp}` is the empirical frequency fluctuation.
+        """
+        # TODO: Differenciate the cases where projection are poloidal or not
+
+        spectrum = spectra_kzkhomega[key_spect]
+        kh_spectra = spectra_kzkhomega["kh_spectra"]
+        kz_spectra = spectra_kzkhomega["kz_spectra"]
+        omegas = spectra_kzkhomega["omegas"]
+
+        # khv, kzv = np.meshgrid(kh_spectra, kz_spectra)
+        omega_emp = np.zeros((len(kz_spectra), len(kh_spectra)))
+        delta_omega_emp = np.zeros((len(kz_spectra), len(kh_spectra)))
+        omega_norm = np.zeros((len(kz_spectra), len(kh_spectra)))
+
+        # we compute omega_emp first
+        for io in range(len(omegas)):
+            omega_emp += omegas[io] * spectrum[:, :, io]
+            omega_norm += spectrum[:, :, io]
+        omega_emp = omega_emp / omega_norm
+
+        # then we conpute delta_omega_emp
+        for io in range(len(omegas)):
+            delta_omega_emp += ((omegas[io] - omega_emp) ** 2) * spectrum[
+                :, :, io
+            ]
+        delta_omega_emp = (np.divide(delta_omega_emp, omega_norm)) ** 0.5
+        return omega_emp, delta_omega_emp
+
     def plot_kzkhomega(
         self,
         key_field=None,
@@ -891,6 +941,7 @@ class SpatioTemporalSpectraNS:
         cmap=None,
         vmin=None,
         vmax=None,
+        plot_omega_emp=False,
     ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space
 
@@ -947,6 +998,12 @@ class SpatioTemporalSpectraNS:
             spectra_kzkhomega["kz_spectra"] = file["kz_spectra"][...]
             spectra_kzkhomega["omegas"] = file["omegas"][...]
 
+        # compute omega_emp if asked
+        if plot_omega_emp:
+            omega_emp, delta_omega_emp = self.compute_omega_emp_vs_kzkh(
+                spectra_kzkhomega=spectra_kzkhomega, key_spect=key_spect
+            )
+
         # slice along equation
         if equation is None:
             equation = f"omega=0"
@@ -986,6 +1043,9 @@ class SpatioTemporalSpectraNS:
             ikh = eval(equation[len("ikh=") :])
             kh_spectra = spectra_kzkhomega["kh_spectra"]
             spect = spectra_kzkhomega[key_spect][:, ikh, :].transpose()
+            if plot_omega_emp:
+                omega_emp = omega_emp[:, ikh]
+                delta_omega_emp = delta_omega_emp[:, ikh]
 
             xaxis = np.arange(spectra_kzkhomega["kz_spectra"].size)
             yaxis = spectra_kzkhomega["omegas"]
@@ -1004,6 +1064,9 @@ class SpatioTemporalSpectraNS:
             ikz = eval(equation[len("ikz=") :])
             kz_spectra = spectra_kzkhomega["kz_spectra"]
             spect = spectra_kzkhomega[key_spect][ikz, :, :].transpose()
+            if plot_omega_emp:
+                omega_emp = omega_emp[ikz, :]
+                delta_omega_emp = delta_omega_emp[ikz, :]
 
             xaxis = np.arange(spectra_kzkhomega["kh_spectra"].size)
             yaxis = spectra_kzkhomega["omegas"]
@@ -1078,6 +1141,16 @@ class SpatioTemporalSpectraNS:
             ymax = yaxis.max()
         ax.set_xlim((0, xmax))
         ax.set_ylim((0, ymax))
+
+        # add empirical omega and broadening
+        if plot_omega_emp:
+            ax.plot(xaxis, omega_emp / N, "r-", linewidth=2)
+            ax.plot(
+                xaxis, (omega_emp + 0.5 * delta_omega_emp) / N, "r--", linewidth=1
+            )
+            ax.plot(
+                xaxis, (omega_emp - 0.5 * delta_omega_emp) / N, "r--", linewidth=1
+            )
 
     def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
         raise NotImplementedError

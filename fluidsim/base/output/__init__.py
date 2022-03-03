@@ -19,7 +19,8 @@ Provides:
    increments
    print_stdout
    spect_energy_budget
-
+   spatiotemporal_spectra
+   temporal_spectra
 
 .. autoclass:: OutputBase
    :members:
