@@ -120,4 +120,7 @@ def _extend_simul_class_from_path(Simul, path_file):
         else:
             extender_classes.append(extender_class)
 
-    return extend_simul_class(Simul, extender_classes)
+    if extender_classes:
+        return extend_simul_class(Simul, extender_classes)
+    else:
+        return Simul
