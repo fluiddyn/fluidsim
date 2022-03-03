@@ -462,8 +462,13 @@ class PhysFieldsBase2D(PhysFieldsBase):
                     cmap=cmap,
                 )
                 fig.colorbar(pc)
+            elif type_plot is None:
+                pass
             else:
-                print(f"`type_plot = {type_plot}` not implemented")
+                print(
+                    f"`{type_plot = }` not implemented. It has to be in "
+                    '["contourf", "pcolor", "pcolormesh", None]'
+                )
         else:
             ax = None
 

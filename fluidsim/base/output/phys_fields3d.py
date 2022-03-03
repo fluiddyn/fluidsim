@@ -119,7 +119,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         nb_contours : 20
 
-        type_plot : 'contourf'
+        type_plot : "pcolor" or "contourf"
 
         vmin : None
 
@@ -238,7 +238,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                 )
                 fig.colorbar(contours)
                 fig.contours = contours
-            elif type_plot == "pcolor":
+            elif type_plot in ["pcolor", "pcolormesh"]:
                 pc = ax.pcolormesh(
                     x_seq,
                     y_seq,
@@ -249,6 +249,13 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                     cmap=cmap,
                 )
                 fig.colorbar(pc)
+            elif type_plot is None:
+                pass
+            else:
+                print(
+                    f"`{type_plot = }` not implemented. It has to be in "
+                    '["contourf", "pcolor", "pcolormesh", None]'
+                )
         else:
             ax = None
 
