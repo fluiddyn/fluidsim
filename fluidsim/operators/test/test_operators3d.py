@@ -240,7 +240,9 @@ def test_where_is_wavenumber(oper):
                 rank_k, ik0_loc, ik1_loc, ik2_loc = oper.where_is_wavenumber(
                     ik0, ik1, ik2
                 )
-                print(f"{(ik0, ik1, ik2) = } => {(rank_k, ik0_loc, ik1_loc, ik2_loc) = }")
+                print(
+                    f"{(ik0, ik1, ik2) = } => {(rank_k, ik0_loc, ik1_loc, ik2_loc) = }"
+                )
 
                 if mpi.nb_proc == 1:
                     assert rank_k == 0
