@@ -51,7 +51,7 @@ tests:
 	fluidsim-test -v
 
 tests_mpi:
-	mpirun -np 2 --oversubscribe fluidsim-test -v --exitfirst
+	mpirun -np 2 fluidsim-test -v --exitfirst
 
 define _test_mpi_fft_lib
 	FLUIDSIM_TYPE_FFT=$(1) TRANSONIC_NO_REPLACE=1 mpirun -np $(2) --oversubscribe \
