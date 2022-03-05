@@ -96,6 +96,7 @@ install_requires = [
     "xarray",
     "rich",
     "matplotlib>=3.3",
+    "scipy",
 ]
 
 if FFTW3:
