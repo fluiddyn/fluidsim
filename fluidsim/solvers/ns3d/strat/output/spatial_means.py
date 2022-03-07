@@ -443,7 +443,10 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         for key, quantity in numbers_vs_time.items():
             if key in ["t", "dimensional"]:
                 continue
-            ax.plot(times, quantity[itmin:stop], label=key)
+            quantity = quantity[itmin:stop]
+            ax.plot(times, quantity, label=key)
+            print(f"<{key}> = {np.mean(quantity):.3g}")
+
 
         ax.set_yscale("log")
         ax.set_xlabel("$t$")
