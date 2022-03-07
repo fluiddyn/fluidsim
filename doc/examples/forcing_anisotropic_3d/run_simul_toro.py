@@ -19,5 +19,5 @@ if __name__ == "__main__":
         ratio_kfmin_kf=0.9,
         ratio_kfmax_kf=1.5,
         init_velo_max=2.0,
-        t_end=15.0,
+        t_end=20.0,
     )
