@@ -291,6 +291,11 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             state_spect, self.forcing_fft, oper_coarse, self.shapeK_loc_coarse
         )
 
+        # TODO: remove this temporary (and very expensive) fix
+        # for i in range(self.forcing_fft.shape[0]):
+        #     self.forcing_fft[i] = self.oper.project_fft_on_realX(self.forcing_fft[i])
+
+
     def verify_injection_rate(self):
         """Verify injection rate."""
         f_fft = self.forcing_fft.get_var(self.key_forced)

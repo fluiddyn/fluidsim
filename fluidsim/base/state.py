@@ -389,7 +389,7 @@ class StatePseudoSpectral(StateBase):
         if not np.allclose(energy_spect, energy_phys):
             raise RuntimeError(
                 "Physical and spectral states are inconsistent: "
-                f"{energy_spect} != {energy_phys}"
+                f"{energy_spect} != {energy_phys} ({self.sim.time_stepping.it = })"
             )
 
     def compute_energy_phys(self):

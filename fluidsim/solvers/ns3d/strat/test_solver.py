@@ -224,8 +224,19 @@ class TestNoShearModes(TestSimulBase):
         params = super().init_params()
 
         params.init_fields.type = "noise"
+        params.init_fields.noise.length = 1.0
+        params.init_fields.noise.velo_max = 0.01
 
-        params.forcing.enable = False
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom_anisotropic"
+        params.forcing.forcing_rate = 1.0
+        params.forcing.key_forced = "vt_fft"
+        params.forcing.nkmax_forcing = 1.125
+        params.forcing.nkmin_forcing = 0.675
+
+        params.forcing.tcrandom.time_correlation = 0.15
+        params.forcing.tcrandom_anisotropic.angle = 1.571
+        params.forcing.tcrandom_anisotropic.delta_angle = 0.1
 
         params.output.periods_save.spatial_means = 0.2
         params.output.periods_save.spectra = 0.2
@@ -234,9 +245,17 @@ class TestNoShearModes(TestSimulBase):
         params.oper.NO_SHEAR_MODES = True
         params.no_vz_kz0 = True
 
+        params.oper.coef_dealiasing = 0.8
+
         # we need delta_kx == delta_ky for this test
-        params.oper.Ly = params.oper.Lx
-        params.oper.ny = params.oper.nx
+        params.oper.Ly = params.oper.Lx = 3.0
+        params.oper.ny = params.oper.nx = 8
+        params.oper.nz = 4
+        params.oper.Lz = params.oper.Lx / params.oper.nx * params.oper.nz
+
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 4
+        params.time_stepping.deltat_max = 0.08
 
     def test_noshearmodes(self):
 
