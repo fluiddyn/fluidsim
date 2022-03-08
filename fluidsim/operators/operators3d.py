@@ -975,7 +975,7 @@ Lx, Ly and Lz: float
         cos_phi_k = self.Kx * tmp
         sin_phi_k = self.Ky * tmp
 
-        result = -sin_phi_k * vx_fft + cos_phi_k * vy_fft
+        result = -1j * sin_phi_k * vx_fft + 1j * cos_phi_k * vy_fft
 
         return result
 
@@ -991,11 +991,10 @@ Lx, Ly and Lz: float
         cos_phi_k = self.Kx * tmp
         sin_phi_k = self.Ky * tmp
 
-        ux_fft = -sin_phi_k * vt_fft
-        uy_fft = cos_phi_k * vt_fft
-        uz_fft = np.zeros_like(vt_fft)
+        ux_fft = 1j * sin_phi_k * vt_fft
+        uy_fft = -1j * cos_phi_k * vt_fft
 
-        return ux_fft, uy_fft, uz_fft
+        return ux_fft, uy_fft, np.zeros_like(vt_fft)
 
     @boost
     def divhfft_from_vxvyfft(self, vx_fft: Ac, vy_fft: Ac):

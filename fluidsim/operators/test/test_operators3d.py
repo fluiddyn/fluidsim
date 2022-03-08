@@ -50,7 +50,7 @@ def oper():
 
 @xfail_if_fluidfft_class_not_importable
 @skip_if_no_fluidfft
-def test_projection(oper):
+def test_projection(oper, allclose):
     from fluidsim.operators.operators3d import (
         compute_energy_from_3fields,
         compute_energy_from_1field,
@@ -171,7 +171,13 @@ def test_projection(oper):
         dE_t / E_v < 1e-14
     ), "Too much energy difference in the toroidal velocity fields computed with project_toroidal and vecfft_from_vtfft."
 
-    print("Projections seems to be Ok.")
+    def allclose_c(a, b):
+        allclose(a.real, b.real)
+        allclose(a.imag, b.imag)
+
+    allclose_c(vx_fft_t, vx_fft_pt)
+    allclose_c(vy_fft_t, vy_fft_pt)
+    allclose_c(vz_fft_t, vz_fft_pt)
 
 
 @xfail_if_fluidfft_class_not_importable

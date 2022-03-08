@@ -238,10 +238,6 @@ class TestNoShearModes(TestSimulBase):
         params.forcing.tcrandom_anisotropic.angle = 1.571
         params.forcing.tcrandom_anisotropic.delta_angle = 0.1
 
-        params.output.periods_save.spatial_means = 0.2
-        params.output.periods_save.spectra = 0.2
-        params.output.spectra.kzkh_periodicity = 1
-
         params.oper.NO_SHEAR_MODES = True
         params.no_vz_kz0 = True
 
@@ -255,14 +251,18 @@ class TestNoShearModes(TestSimulBase):
 
         params.time_stepping.USE_T_END = False
         params.time_stepping.it_end = 4
-        params.time_stepping.deltat_max = 0.08
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.deltat0 = deltat = 0.08
+
+        params.output.periods_save.spatial_means = deltat
+        params.output.periods_save.spectra = deltat
+        params.output.spectra.kzkh_periodicity = 1
 
     def test_noshearmodes(self):
 
         sim = self.sim
 
         sim.time_stepping.start()
-        sim.state.check_energy_equal_phys_spect()
 
         data = sim.output.spectra.load_kzkh_mean(
             tmin=0.2, key_to_load=["Khd", "Kz", "Khr", "A"]
@@ -288,6 +288,11 @@ class TestNoShearModes(TestSimulBase):
         # check energy in kz = 0
         spectrum = data["Khd"] + data["Kz"]
         assert np.allclose(spectrum[0, :].sum(), 0.0)
+
+        PK_tot = means["PK_tot"]
+        assert np.allclose(PK_tot, 1.0)
+
+        sim.state.check_energy_equal_phys_spect()
 
 
 if __name__ == "__main__":

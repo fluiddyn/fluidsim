@@ -391,7 +391,3 @@ class TestSolverNS2DInitLinearMode(TestSimulBase):
 
     def test_init_linear_mode(self):
         pass
-
-
-if __name__ == "__main__":
-    unittest.main()
