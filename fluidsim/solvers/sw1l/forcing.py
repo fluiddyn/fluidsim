@@ -63,13 +63,9 @@ class Waves(RandomSimplePseudoSpectral):
     tag = "waves"
     _key_forced_default = "a_fft"
 
-    def normalize_forcingc_2nd_degree_eq(self, fstate_c, state_c):
+    def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
         """Normalize the forcing Fa_fft such that the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
-
-        # TODO: FIXME
-        Fa_fft = fstate_c.initialized_with[self.key_forced]
-        a_fft = state_c.initialized_with[self.key_forced]
 
         oper_c = self.oper_coarse
         params = self.params
@@ -89,7 +85,7 @@ class Waves(RandomSimplePseudoSpectral):
         b = bx + by + bA
 
         c = -self.forcing_rate
-        fstate_c.state_spect *= self.coef_normalization_from_abc(a, b, c)
+        Fa_fft *= self.coef_normalization_from_abc(a, b, c)
 
 
 class WavesVortices(Waves):

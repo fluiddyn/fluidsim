@@ -232,7 +232,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             )
 
             self.fstate_coarse = sim.state.__class__(sim, oper=self.oper_coarse)
-            self._state_coarse = sim.state.__class__(sim, oper=self.oper_coarse)
         else:
             self.shapeK_loc_coarse = None
 
@@ -500,17 +499,11 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
                 )
 
             if mpi.rank == 0:
-                kwargs = {key_forced: a_fft}
-                self._state_coarse.init_statespect_from(**kwargs)
-                self._state_coarse.initialized_with = kwargs
-
                 fa_fft = self.forcingc_raw_each_time(a_fft)
+                self.normalize_forcingc(fa_fft, a_fft, key_forced)
 
                 kwargs = {key_forced: fa_fft}
                 self.fstate_coarse.init_statespect_from(**kwargs)
-                self.fstate_coarse.initialized_with = kwargs
-
-                self.normalize_forcingc(self.fstate_coarse, self._state_coarse)
 
                 state_spect += self.fstate_coarse.state_spect
 
@@ -518,19 +511,19 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         self.put_forcingc_in_forcing()
 
-    def normalize_forcingc(self, fstate_c, state_c):
+    def normalize_forcingc(self, fa_fft, a_fft, key_forced=None):
         """Normalize the coarse forcing"""
         type_normalize = self.params.forcing.normalized.type
         if type_normalize == "2nd_degree_eq":
-            self.normalize_forcingc_2nd_degree_eq(fstate_c, state_c)
+            self.normalize_forcingc_2nd_degree_eq(fa_fft, a_fft, key_forced)
         elif type_normalize == "particular_k":
-            self.normalize_forcingc_part_k(fstate_c, state_c)
+            self.normalize_forcingc_part_k(fa_fft, a_fft, key_forced)
         else:
             ValueError(
                 "Bad value for parameter forcing.type_normalize:", type_normalize
             )
 
-    def normalize_forcingc_part_k(self, fstate_c, state_c):
+    def normalize_forcingc_part_k(self, fvc_fft, vc_fft, key_forced=None):
         """Modify the array fvc_fft to fixe the injection rate.
 
         To be called only with proc 0.
@@ -545,9 +538,8 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             The forced variable at the coarse resolution.
 
         """
-        # FIXME
-        fvc_fft = fstate_c.initialized_with[self.key_forced]
-        vc_fft = state_c.initialized_with[self.key_forced]
+        if key_forced is not None:
+            raise NotImplementedError(f"{key_forced =} is not None")
 
         oper_c = self.oper_coarse
 
@@ -596,9 +588,9 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             * self.sim.time_stepping.deltat
             / 2
         )
-        fstate_c.state_spect *= np.sqrt(float(self.forcing_rate) / PZ_nonorm)
+        fvc_fft *= np.sqrt(float(self.forcing_rate) / PZ_nonorm)
 
-    def normalize_forcingc_2nd_degree_eq(self, fstate_c, state_c):
+    def normalize_forcingc_2nd_degree_eq(self, fvc_fft, vc_fft, key_forced=None):
         r"""Modify the array fvc_fft to fixe the injection rate.
 
         To be called only with proc 0.
@@ -672,16 +664,12 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
         oper_c = self.oper_coarse
         deltat = self.sim.time_stepping.deltat
 
-        # TODO: FIXME
-        fvc_fft = fstate_c.initialized_with[self.key_forced]
-        vc_fft = state_c.initialized_with[self.key_forced]
-
         if self.params.forcing.normalized.constant_rate_of is not None:
             if not hasattr(self.sim.forcing, "compute_coef_ab_normalize"):
                 raise NotImplementedError
             a, b = self.sim.forcing.compute_coef_ab_normalize(
                 self.params.forcing.normalized.constant_rate_of,
-                self.key_forced,
+                key_forced,
                 fvc_fft,
                 vc_fft,
                 deltat,
@@ -692,12 +680,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
 
         c = -self.forcing_rate
 
-        fstate_c.state_spect *= self.coef_normalization_from_abc(a, b, c)
-
-        # P1 = deltat / 2 * oper_c.sum_wavenumbers(abs(fvc_fft)**2)
-        # P2 = oper_c.sum_wavenumbers((vc_fft.conj() * fvc_fft).real)
-        # print('forcing after normalization:', (P1 + P2)/self.forcing_rate,
-        #       P1/self.forcing_rate)
+        fvc_fft *= self.coef_normalization_from_abc(a, b, c)
 
     def coef_normalization_from_abc(self, a, b, c):
         """Compute the roots of a quadratic equation
