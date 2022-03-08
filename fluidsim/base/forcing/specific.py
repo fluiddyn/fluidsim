@@ -538,9 +538,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             The forced variable at the coarse resolution.
 
         """
-        if key_forced is not None:
-            raise NotImplementedError(f"{key_forced =} is not None")
-
         oper_c = self.oper_coarse
 
         oper_c.project_fft_on_realX(fvc_fft)

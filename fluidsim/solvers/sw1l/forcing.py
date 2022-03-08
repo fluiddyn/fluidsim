@@ -63,10 +63,10 @@ class Waves(RandomSimplePseudoSpectral):
     tag = "waves"
     _key_forced_default = "a_fft"
 
-    def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft):
+    def normalize_forcingc_2nd_degree_eq(self, Fa_fft, a_fft, key_forced=None):
         """Normalize the forcing Fa_fft such that the forcing rate of
-        quadratic energy is equal to self.forcing_rate."""
-
+        quadratic energy is equal to self.forcing_rate.
+        """
         oper_c = self.oper_coarse
         params = self.params
         deltat = self.sim.time_stepping.deltat
@@ -137,7 +137,7 @@ class WavesVortices(Waves):
         """Normalize the forcing Fa_fft such as the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
 
-        Fa_fft = self.normalize_forcingc_2nd_degree_eq(Fa_fft, a_fft)
+        self.normalize_forcingc_2nd_degree_eq(Fa_fft, a_fft)
 
         oper_c = self.oper_coarse
         params = self.params
@@ -172,7 +172,9 @@ class Potential(Waves):
     tag = "potential"
     _key_forced_default = "eta_fft"
 
-    def normalize_forcingc_2nd_degree_eq(self, Feta_fft, eta_fft):
+    def normalize_forcingc_2nd_degree_eq(
+        self, Feta_fft, eta_fft, key_forced=None
+    ):
         """Normalize the forcing Fa_fft such as the forcing rate of
         quadratic energy is equal to self.forcing_rate."""
         if "eta_fft" not in self.key_forced:
