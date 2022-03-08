@@ -165,8 +165,8 @@ class StateNS3D(StatePseudoSpectral):
             elif key == "vt_fft":
                 vx_fft, vy_fft, vz_fft = self.oper.vecfft_from_vtfft(field)
                 # TODO: remove these lines?
-                vx_fft = self.oper.project_fft_on_realX(vx_fft)
-                vy_fft = self.oper.project_fft_on_realX(vy_fft)
+                # vx_fft = self.oper.project_fft_on_realX(vx_fft)
+                # vy_fft = self.oper.project_fft_on_realX(vy_fft)
 
                 return super().init_statespect_from(
                     vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
