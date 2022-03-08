@@ -284,9 +284,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         if mpi.rank == 0:
             state_spect = self.fstate_coarse.state_spect
             oper_coarse = self.oper_coarse
-            # TODO: remove this temporary fix
-            # for i in range(state_spect.shape[0]):
-                # state_spect[i] = oper_coarse.project_fft_on_realX(state_spect[i])
         else:
             state_spect = None
             oper_coarse = None
@@ -423,20 +420,6 @@ class Proportional(SpecificForcingPseudoSpectralCoarse):
 
         Z_fft = abs(fvc_fft) ** 2 / 2.0
 
-        # # possibly "kill" the largest mode
-        # nb_kill = 0
-        # for ik in xrange(nb_kill):
-        #     imax = Z_fft.argmax()
-        #     Z_fft.flat[imax] = 0.
-        #     fvc_fft.flat[imax] = 0.
-
-        # # possibly add randomness: random kill!
-        # nb_kill = self.nb_forced_modes-10
-        # ind_kill = random.sample(self.ind_forcing,nb_kill)
-        # for ik in ind_kill:
-        #     Z_fft.flat[ik] = 0.
-        #     fvc_fft.flat[ik] = 0.
-
         Z = self.oper_coarse.sum_wavenumbers(Z_fft)
         deltat = self.sim.time_stepping.deltat
         alpha = (np.sqrt(1 + deltat * self.forcing_rate / Z) - 1.0) / deltat
@@ -493,35 +476,46 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
-        try:
-            a_fft = self.sim.state.state_spect.get_var(self.key_forced)
-        except ValueError:
-            a_fft = self.sim.state.get_var(self.key_forced)
-
-        try:
-            a_fft = self.oper.coarse_seq_from_fft_loc(
-                a_fft, self.shapeK_loc_coarse
-            )
-        except IndexError:
-            raise ValueError(
-                "rank={}, shapeK_loc(coarse)={}, shapeK_loc={}".format(
-                    self.oper.rank, self.shapeK_loc_coarse, self.oper.shapeK_loc
-                )
-            )
+        if isinstance(self.key_forced, (list, tuple)):
+            keys_forced = self.key_forced
+        else:
+            keys_forced = [self.key_forced]
 
         if mpi.rank == 0:
-            # TODO: support self.key_forced list of keys
-            fa_fft = self.forcingc_raw_each_time(a_fft)
+            state_spect = np.zeros_like(self.fstate_coarse.state_spect)
+        for key_forced in keys_forced:
+            try:
+                a_fft = self.sim.state.state_spect.get_var(key_forced)
+            except ValueError:
+                a_fft = self.sim.state.get_var(key_forced)
 
-            kwargs = {self.key_forced: fa_fft}
-            self.fstate_coarse.init_statespect_from(**kwargs)
-            self.fstate_coarse.initialized_with = kwargs
+            try:
+                a_fft = self.oper.coarse_seq_from_fft_loc(
+                    a_fft, self.shapeK_loc_coarse
+                )
+            except IndexError:
+                raise ValueError(
+                    f"rank={self.oper.rank}; {self.shapeK_loc_coarse = }; "
+                    f"{self.oper.shapeK_loc = }"
+                )
 
-            kwargs = {self.key_forced: a_fft}
-            self._state_coarse.init_statespect_from(**kwargs)
-            self._state_coarse.initialized_with = kwargs
+            if mpi.rank == 0:
+                kwargs = {key_forced: a_fft}
+                self._state_coarse.init_statespect_from(**kwargs)
+                self._state_coarse.initialized_with = kwargs
 
-            self.normalize_forcingc(self.fstate_coarse, self._state_coarse)
+                fa_fft = self.forcingc_raw_each_time(a_fft)
+
+                kwargs = {key_forced: fa_fft}
+                self.fstate_coarse.init_statespect_from(**kwargs)
+                self.fstate_coarse.initialized_with = kwargs
+
+                self.normalize_forcingc(self.fstate_coarse, self._state_coarse)
+
+                state_spect += self.fstate_coarse.state_spect
+
+                self.fstate_coarse.state_spect[:] = state_spect
+
         self.put_forcingc_in_forcing()
 
     def normalize_forcingc(self, fstate_c, state_c):
@@ -791,7 +785,7 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
         f_fft = self.oper_coarse.project_fft_on_realX(f_fft)
         return f_fft
 
-    def forcingc_raw_each_time(self, a_fft):
+    def forcingc_raw_each_time(self, _):
         return self.compute_forcingc_raw()
 
 
