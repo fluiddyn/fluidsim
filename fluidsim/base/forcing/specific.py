@@ -283,6 +283,9 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         if mpi.rank == 0:
             state_spect = self.fstate_coarse.state_spect
             oper_coarse = self.oper_coarse
+            # TODO: remove this temporary fix
+            # for i in range(state_spect.shape[0]):
+                # state_spect[i] = oper_coarse.project_fft_on_realX(state_spect[i])
         else:
             state_spect = None
             oper_coarse = None
@@ -290,11 +293,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         self.oper.put_coarse_array_in_array_fft(
             state_spect, self.forcing_fft, oper_coarse, self.shapeK_loc_coarse
         )
-
-        # TODO: remove this temporary (and very expensive) fix
-        # for i in range(self.forcing_fft.shape[0]):
-        #     self.forcing_fft[i] = self.oper.project_fft_on_realX(self.forcing_fft[i])
-
 
     def verify_injection_rate(self):
         """Verify injection rate."""
@@ -515,6 +513,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             fa_fft = self.normalize_forcingc(fa_fft, a_fft)
             kwargs = {self.key_forced: fa_fft}
             self.fstate_coarse.init_statespect_from(**kwargs)
+
         # print('check forcing injection')
         # self.verify_injection_rate_coarse(a_fft)
 

@@ -983,21 +983,17 @@ Lx, Ly and Lz: float
     def vecfft_from_vtfft(self, vt_fft: Ac):
         """Return a 3D vector field from the toroidal component."""
 
-        Kh_square = self.Kx**2 + self.Ky**2
-        K_square_nozero = Kh_square + self.Kz**2
-        Kh_square_nozero = Kh_square.copy()
-
+        Kh_square_nozero = self.Kx**2 + self.Ky**2
         Kh_square_nozero[Kh_square_nozero == 0] = 1e-14
-        K_square_nozero[K_square_nozero == 0] = 1e-14
-
         inv_Kh_square_nozero = 1.0 / Kh_square_nozero
 
-        cos_phi_k = self.Kx * np.sqrt(inv_Kh_square_nozero)
-        sin_phi_k = self.Ky * np.sqrt(inv_Kh_square_nozero)
+        tmp = np.sqrt(inv_Kh_square_nozero)
+        cos_phi_k = self.Kx * tmp
+        sin_phi_k = self.Ky * tmp
 
         ux_fft = -sin_phi_k * vt_fft
         uy_fft = cos_phi_k * vt_fft
-        uz_fft = 0.0 * vt_fft
+        uz_fft = np.zeros_like(vt_fft)
 
         return ux_fft, uy_fft, uz_fft
 
