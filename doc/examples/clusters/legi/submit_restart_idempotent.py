@@ -10,16 +10,13 @@ cluster.commands_setting_env = [
 ]
 
 cluster.submit_command(
-    (
-        "fluidsim-restart . --new-dir-results --add-to-t_end 4 "
-        "--modify-params 'params.nu_4 /= 10; params.output.periods_save.phys_fields = 0.5; "
-        "params.output.periods_save.spatiotemporal_spectra = 2 * pi / (params.N * 4)'"
-    ),
+    "fluidsim-restart . --t_end 30",
     name_run="fluiddyn",
     nb_nodes=1,
-    walltime="24:00:00",
+    walltime="04:00:00",
     nb_mpi_processes=cluster.nb_cores_per_node,
     omp_num_threads=1,
     delay_signal_walltime=300,
+    idempotent=True,
     ask=True,
 )

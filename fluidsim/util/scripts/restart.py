@@ -106,6 +106,13 @@ def create_parser():
         help="Code modifying the `params` object.",
     )
 
+    parser.add_argument(
+        "--max-elapsed",
+        type=str,
+        default=None,
+        help="Maximum elapsed time.",
+    )
+
     return parser
 
 
@@ -138,6 +145,9 @@ def restart(args=None, **defaults):
 
     if args.only_check or args.only_init:
         params.output.HAS_TO_SAVE = False
+
+    if args.max_elapsed is not None:
+        params.time_stepping.max_elapsed = args.max_elapsed
 
     path_file = Path(params.init_fields.from_file.path)
     mpi.printby0(path_file)
@@ -183,7 +193,13 @@ ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 def main():
     """Entry point fluidsim-restart"""
-    restart()
+    params, sim = restart()
+
+    if sim is not None and sim.time_stepping._has_to_stop:
+        mpi.printby0(
+            "Simulation is not completed and could be relaunched"
+        )
+        sys.exit(99)
 
 
 if "sphinx" in sys.modules:
