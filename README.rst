@@ -2,7 +2,7 @@
 |logo|
 ======
 
-|release| |pyversions| |docs| |coverage| |heptapod_ci| |chat|
+|release| |pyversions| |docs| |chat| |coverage| |heptapod_ci| |github_actions|
 
 .. |logo| image:: https://foss.heptapod.net/fluiddyn/fluidsim/raw/branch/default/doc/logo.svg
    :alt: FluidSim
@@ -18,6 +18,10 @@
    :target: http://fluidsim.readthedocs.org
    :alt: Documentation status
 
+.. |chat| image:: https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg
+   :target: https://matrix.to/#/#fluiddyn-users:matrix.org
+   :alt: Chat room
+
 .. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidsim/branch/branch%2Fdefault/graph/badge.svg
    :target: https://codecov.io/gh/fluiddyn/fluidsim
    :alt: Code coverage
@@ -26,9 +30,9 @@
    :target: https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
    :alt: Heptapod CI
 
-.. |chat| image:: https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg
-   :target: https://matrix.to/#/#fluiddyn-users:matrix.org
-   :alt: Chat room
+.. |github_actions| image:: https://github.com/fluiddyn/fluidsim/actions/workflows/ci.yml/badge.svg?branch=branch/default
+   :target: https://github.com/fluiddyn/fluidsim/actions
+   :alt: Github Actions
 
 .. description
 
