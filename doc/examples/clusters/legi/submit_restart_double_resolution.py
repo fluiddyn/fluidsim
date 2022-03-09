@@ -11,7 +11,8 @@ cluster.commands_setting_env = [
 
 cluster.submit_command(
     (
-        "./run_simul_toro.py -nz 80 -N 20 -R 40"
+        "fluidsim-restart . --new-dir-results --add-to-t_end 0.5 "
+        "--modify-params 'params.nu_4 /= 10; params.output.periods_save.phys_fields = 0.1'"
     ),
     name_run="fluiddyn",
     nb_nodes=1,
@@ -20,4 +21,5 @@ cluster.submit_command(
     omp_num_threads=1,
     delay_signal_walltime=300,
     ask=True,
+    submit=True,
 )
