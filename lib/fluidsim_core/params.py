@@ -78,37 +78,37 @@ class Parameters(ParamContainer):
             params = None
         else:
             if path is None:
-                path = os.getcwd()
+                path = Path.cwd()
+            else:
+                path = Path(path)
 
             path_xml = None
-            if os.path.isdir(path):
-                path_xml = os.path.join(path, "params_simul.xml")
-            elif path.endswith(".xml"):
-                if not os.path.exists(path):
-                    raise ValueError("The file " + path + "does not exists.")
+            if path.is_dir():
+                path_xml = path / "params_simul.xml"
+            elif path.name.endswith(".xml"):
+                if not path.exists():
+                    raise ValueError(f"The file {path} does not exists.")
 
                 path_xml = path
 
-            if path_xml is not None and os.path.exists(path_xml):
+            if path_xml is not None and path_xml.exists():
                 params = cls(path_file=path_xml)
             else:
-                if os.path.isfile(path):
+                if path.is_file():
                     paths = [path]
                 else:
-                    paths = glob(os.path.join(path, "state_*"))
+                    paths = list(path.glob("state_*"))
                 if paths:
                     path = sorted(paths)[0]
-
-                    if len(path) > 100:
-                        str_path = "[...]" + path[-100:]
-                    else:
-                        str_path = path
+                    str_path = str(path)
+                    if len(str_path) > 100:
+                        str_path = "[...]" + str_path[-100:]
 
                     print("Loading params from file\n" + str_path)
                     with h5py.File(path, "r") as h5file:
                         params = cls(hdf5_object=h5file["/info_simul/params"])
                 else:
-                    raise ValueError
+                    raise ValueError(f"No state files found in {path = }")
 
         if mpi.nb_proc > 1 and not only_mpi_rank0:
             params = mpi.comm.bcast(params, root=0)
@@ -118,7 +118,7 @@ class Parameters(ParamContainer):
     def _load_info_solver(cls, path_dir=None):
         """Load the solver information, return an InfoSolverCore instance."""
         if path_dir is None:
-            path_dir = os.getcwd()
+            path_dir = Path.cwd()
 
         if not isinstance(path_dir, Path):
             path_dir = Path(path_dir)
@@ -135,12 +135,9 @@ class Parameters(ParamContainer):
         if not paths:
             raise ValueError("No result files in dir " + str(path_dir))
 
-        path = str(paths[0])
-
+        str_path = path = str(paths[0])
         if len(path) > 100:
             str_path = "[...]" + path[-100:]
-        else:
-            str_path = path
 
         mpi.printby0("load params from file\n" + str_path)
         with h5py.File(path, "r") as h5file:
