@@ -358,17 +358,18 @@ are called.
 
     def end_of_simul(self, total_time):
         # self.path_run: str
-        path_run = Path(self.path_run)
-        self.print_stdout(
-            f"Computation completed in {total_time:8.6g} s\n"
-            f"path_run =\n{path_run}"
-        )
         if self._has_to_save:
             if hasattr(self.sim, "forcing"):
                 self.sim.forcing.compute()
             self.one_time_step()
             if self.sim.output.phys_fields.t_last_save < self.sim.time_stepping.t:
                 self.phys_fields.save()
+
+        path_run = Path(self.path_run)
+        self.print_stdout(
+            f"Computation completed in {total_time:8.6g} s\n"
+            f"path_run =\n{path_run}"
+        )
 
         self.close_files()
 

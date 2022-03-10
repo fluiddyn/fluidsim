@@ -112,6 +112,9 @@ class PrintStdOutBase:
                 self.params.time_stepping.it_end - self.sim.time_stepping.it
             ) * self.sim.time_stepping.deltat
 
+        if remaining_equation_time < 0:
+            return
+
         remaining_clock_time = round(
             remaining_equation_time / delta_equation_time * delta_clock_time
         )
