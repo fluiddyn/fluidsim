@@ -100,16 +100,19 @@ max_elapsed: number or str (default None)
         self.it = 0
         self.t = 0
 
-        self._has_to_stop = False
+        self._stop_signal_received = False
 
         def handler_signals(signal_number, stack):
-            print(f"signal {signal_number} received.")
-            self._has_to_stop = True
+            print(f"signal {signal_number} received (rank {mpi.rank}).")
+            self._stop_signal_received = True
 
         try:
+            # 12 is SIGUSR2 (warning: not propagated by MPICH)
             signal(12, handler_signals)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
+
+        self._has_to_stop = False
 
         try:
             param_max_elapsed = self.params.time_stepping.max_elapsed
@@ -218,6 +221,20 @@ max_elapsed: number or str (default None)
                     "Maximum elapsed time reached. Should stop soon."
                 )
                 self._has_to_stop = True
+
+        if mpi.nb_proc > 1:
+            # 1 bcast per timestep, but at least it's robust
+            stop_signal_received = mpi.comm.bcast(
+                self._stop_signal_received, root=0
+            )
+        else:
+            stop_signal_received = self._stop_signal_received
+        if stop_signal_received:
+            self.sim.output.print_stdout(
+                "Stop signal (12) received so _has_to_stop set to True"
+            )
+            self._has_to_stop = True
+
         self.sim.output.one_time_step()
         self.one_time_step_computation()
         self.t += self.deltat
