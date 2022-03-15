@@ -357,7 +357,7 @@ def create_params(args):
             mpi.printby0(f"Resolution too coarse, we add {params.nu_4 = :.3e}.")
 
     params.init_fields.type = "noise"
-    params.init_fields.noise.length = 1.0
+    params.init_fields.noise.length = params.oper.Lz / 2
     params.init_fields.noise.velo_max = args.init_velo_max
 
     params.forcing.enable = True
