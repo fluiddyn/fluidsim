@@ -13,8 +13,13 @@ Provides:
 
 """
 from time import time
+import atexit
+from pathlib import Path
 
 import numpy as np
+import filelock
+
+from fluiddyn.util import mpi
 from fluidsim_core.solver import SimulCore
 
 from ..setofvariables import SetOfVariables
@@ -94,6 +99,28 @@ nu_2: float (default = 0.)
             self.time_stepping._time_beginning_simul = time()
             self._end_of_simul = False
 
+        if mpi.rank == 0 and self.params.output.HAS_TO_SAVE:
+            self._lockfile = filelock.FileLock(
+                Path(self.output.path_run) / "is_running.lock", timeout=0
+            )
+            try:
+                self._lockfile.acquire()
+            except filelock.Timeout:
+                raise RuntimeError(
+                    f"File {self._lockfile} could not be acquired. It could "
+                    "mean that this simulation is already being advanced by "
+                    "another process or that an old lockfile has not been "
+                    "deleted (which is a bug). If no process is advancing "
+                    "the simulation, the lockfile can be safely removed."
+                )
+
+            def release_lock():
+                self._lockfile.release()
+
+            atexit.register(release_lock)
+        else:
+            self._lockfile = None
+
         return self
 
     def __exit__(self, *args):
@@ -102,6 +129,9 @@ nu_2: float (default = 0.)
             self.time_stepping.time_simul_in_sec = total_time_simul
             self.output.end_of_simul(total_time_simul)
             self._end_of_simul = True
+
+        if self._lockfile is not None:
+            self._lockfile.release()
 
     def __init__(self, params):
         super().__init__(params)
