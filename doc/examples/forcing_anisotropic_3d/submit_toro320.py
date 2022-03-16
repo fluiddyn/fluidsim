@@ -46,6 +46,13 @@ for N in [10, 20, 40]:
             idempotent = False
             walltime = "00:10:00"
         else:
+            lockfile = path / "is_running.lock"
+            if lockfile.exists():
+                print(
+                    f"Nothing to do for {path} because a job is already "
+                    "advancing this simulation"
+                )
+                continue
             command = f"fluidsim-restart {path}"
             idempotent = True
             walltime = "01:00:00"
@@ -53,7 +60,7 @@ for N in [10, 20, 40]:
         name_run = command.split()[0]
         if name_run.startswith("./"):
             name_run = "run_simul_toro"
-            
+
         cluster.submit_command(
             command,
             name_run=name_run,
