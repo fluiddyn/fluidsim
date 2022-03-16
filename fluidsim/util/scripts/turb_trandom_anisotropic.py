@@ -424,7 +424,7 @@ def create_params(args):
 
     params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
     # probes_region in nondimensional units (mode indices).
-    ikzmax = 10
+    ikzmax = 16
     ikhmax = ikzmax * args.ratio_nh_nz
     params.output.spatiotemporal_spectra.probes_region = (ikhmax, ikhmax, ikzmax)
 
