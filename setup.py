@@ -97,7 +97,6 @@ install_requires = [
     "rich",
     "matplotlib>=3.3",
     "scipy",
-    "filelock",
 ]
 
 if FFTW3:

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from fluiddyn.clusters.legi import Calcul8 as C
-from fluidsim.util import times_start_end_from_path
+from fluidsim.util import times_start_last_from_path
 
 cluster = C()
 
@@ -48,7 +48,7 @@ for N in [10, 20, 40]:
             idempotent = False
             walltime = "00:10:00"
         else:
-            lockfile = path / "is_running.lock"
+            lockfile = path / "is_being_advanced.lock"
             if lockfile.exists():
                 print(
                     f"Nothing to do for {path} because a job is already "
@@ -56,7 +56,7 @@ for N in [10, 20, 40]:
                 )
                 continue
 
-            t_start, t_last = times_start_end_from_path(path)
+            t_start, t_last = times_start_last_from_path(path)
             if t_last > t_end:
                 print(f"Nothing to do for {path} because t_last > t_end")
                 continue
@@ -68,6 +68,8 @@ for N in [10, 20, 40]:
         name_run = command.split()[0]
         if name_run.startswith("./"):
             name_run = "run_simul_toro"
+
+        name_run += f"_nx{nh}_Rb{Rb}_N{N}"
 
         cluster.submit_command(
             command,

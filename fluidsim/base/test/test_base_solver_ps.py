@@ -16,7 +16,7 @@ from fluidsim import (
     load_state_phys_file,
 )
 
-from fluidsim.util import times_start_end_from_path
+from fluidsim.util import times_start_last_from_path
 
 from fluidsim.base.params import load_info_solver
 
@@ -76,7 +76,7 @@ class TestBaseSolverPS(TestSimul):
             self.sim.output.path_run, coef_modif_resol=3.0 / 2, PLOT=True
         )
 
-        times_start_end_from_path(self.sim.output.path_run)
+        times_start_last_from_path(self.sim.output.path_run)
 
         path_new = os.path.join(self.sim.output.path_run, "State_phys_12x12")
         os.chdir(path_new)

@@ -31,6 +31,7 @@ from pathlib import Path
 from time import perf_counter
 from typing import Union
 from math import radians
+import warnings
 
 import fluiddyn as fld
 import h5netcdf
@@ -637,12 +638,12 @@ def modif_resolution_from_dir_memory_efficient(
     )
 
 
-def times_start_end_from_path(path):
-    """Return the start and end times from a result directory path."""
+def times_start_last_from_path(path):
+    """Return the start and last times from a result directory path."""
 
-    path_file = path + "/stdout.txt"
-    if not os.path.exists(path_file):
-        print("Given path does not exist:\n " + path)
+    path_file = Path(path) / "stdout.txt"
+    if not path_file.exists():
+        print(f"Given path does not exist:\n{path}")
         return 666, 666
 
     with open(path_file, "r") as file_stdout:
@@ -670,14 +671,20 @@ def times_start_end_from_path(path):
             name_file = last_line.split()[-1]
             name_file, ext = os.path.splitext(name_file)
             word = name_file.split("_it=")[0].split("state_phys_t")[-1]
-            t_e = float(word.replace(ext, ""))
+            t_last = float(word.replace(ext, ""))
         else:
             words = line_it.split()
-            t_e = float(words[6])
+            t_last = float(words[6])
 
-    # print('t_s = {0:.3f}, t_e = {1:.3f}'.format(t_s, t_e))
+    return t_s, t_last
 
-    return t_s, t_e
+
+def times_start_end_from_path(path):
+    warnings.warn(
+        "times_start_end_from_path is deprecated please use times_start_last_from_path",
+        category=DeprecationWarning,
+    )
+    return times_start_last_from_path(path)
 
 
 def open_patient(

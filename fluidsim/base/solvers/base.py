@@ -15,9 +15,9 @@ Provides:
 from time import time
 import atexit
 from pathlib import Path
+from fluiddyn import time_as_str
 
 import numpy as np
-import filelock
 
 from fluiddyn.util import mpi
 from fluidsim_core.solver import SimulCore
@@ -98,29 +98,6 @@ nu_2: float (default = 0.)
         if not hasattr(self, "_end_of_simul") or self._end_of_simul:
             self.time_stepping._time_beginning_simul = time()
             self._end_of_simul = False
-
-        if mpi.rank == 0 and self.params.output.HAS_TO_SAVE:
-            self._lockfile = filelock.FileLock(
-                Path(self.output.path_run) / "is_running.lock", timeout=0
-            )
-            try:
-                self._lockfile.acquire()
-            except filelock.Timeout:
-                raise RuntimeError(
-                    f"File {self._lockfile} could not be acquired. It could "
-                    "mean that this simulation is already being advanced by "
-                    "another process or that an old lockfile has not been "
-                    "deleted (which is a bug). If no process is advancing "
-                    "the simulation, the lockfile can be safely removed."
-                )
-
-            def release_lock():
-                self._lockfile.release()
-
-            atexit.register(release_lock)
-        else:
-            self._lockfile = None
-
         return self
 
     def __exit__(self, *args):
@@ -130,8 +107,8 @@ nu_2: float (default = 0.)
             self.output.end_of_simul(total_time_simul)
             self._end_of_simul = True
 
-        if self._lockfile is not None:
-            self._lockfile.release()
+        if self._lockfile is not None and self._lockfile.exists():
+            self._lockfile.unlink()
 
     def __init__(self, params):
         super().__init__(params)
@@ -150,6 +127,29 @@ nu_2: float (default = 0.)
         # initialization output
         Output = dict_classes["Output"]
         self.output = Output(self)
+
+        if mpi.rank == 0 and self.params.output.HAS_TO_SAVE:
+            self._lockfile = Path(self.output.path_run) / "is_being_advanced.lock"
+
+            if self._lockfile.exists():
+                raise RuntimeError(
+                    f"File {self._lockfile} already exists. It could "
+                    "mean that this simulation is already being advanced by "
+                    "another process or that an old lockfile has not been "
+                    "deleted (which is a bug). If no process is advancing "
+                    "the simulation, the lockfile can be safely removed."
+                )
+            else:
+                with open(self._lockfile, "w") as file:
+                    file.write(time_as_str())
+
+            def release_lock():
+                if self._lockfile.exists():
+                    self._lockfile.unlink()
+
+            atexit.register(release_lock)
+        else:
+            self._lockfile = None
 
         self.output.print_stdout(
             "*************************************\nProgram fluidsim"
