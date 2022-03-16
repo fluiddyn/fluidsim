@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fluiddyn.clusters.legi import Calcul8 as C
+from fluidsim.util import times_start_end_from_path
 
 cluster = C()
 
@@ -14,6 +15,7 @@ cluster.commands_setting_env = [
 ]
 
 nh = 160
+t_end = 20.0
 
 paths = sorted(path_base.glob(f"aniso/ns3d.strat*_{nh}x{nh}*"))
 
@@ -42,7 +44,7 @@ for N in [10, 20, 40]:
                 p for p in paths if f"_Rb{Rb}_" in p.name and f"_N{N}_" in p.name
             ][0]
         except IndexError:
-            command = f"./run_simul_toro.py -R {Rb} -N {N} --ratio-nh-nz {ratio_nh_nz} -nz {nz}"
+            command = f"./run_simul_toro.py -R {Rb} -N {N} --ratio-nh-nz {ratio_nh_nz} -nz {nz} --t_end {t_end}"
             idempotent = False
             walltime = "00:10:00"
         else:
@@ -53,9 +55,15 @@ for N in [10, 20, 40]:
                     "advancing this simulation"
                 )
                 continue
+
+            t_start, t_last = times_start_end_from_path(path)
+            if t_last > t_end:
+                print(f"Nothing to do for {path} because t_last > t_end")
+                continue
+
             command = f"fluidsim-restart {path}"
             idempotent = True
-            walltime = "01:00:00"
+            walltime = "00:10:00"
 
         name_run = command.split()[0]
         if name_run.startswith("./"):
