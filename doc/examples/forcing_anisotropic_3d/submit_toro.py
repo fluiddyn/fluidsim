@@ -28,9 +28,7 @@ else:
 nz = nh // ratio_nh_nz
 
 cluster.submit_command(
-    (
-        f"./run_simul_toro.py -R {R} -N {N} --ratio-nh-nz {ratio_nh_nz} -nz {nz}"
-    ),
+    f"./run_simul_toro.py -R {R} -N {N} --ratio-nh-nz {ratio_nh_nz} -nz {nz}",
     name_run="fluiddyn",
     nb_nodes=1,
     walltime="10:00:00",

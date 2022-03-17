@@ -114,6 +114,7 @@ class SimReprMakerCore:
 
 class OutputCore(ABC):
     """Base Output class"""
+
     SimReprMaker = SimReprMakerCore
 
     @abstractstaticmethod

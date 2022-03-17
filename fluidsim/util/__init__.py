@@ -18,4 +18,3 @@ from .util import times_start_last_from_path, ensure_radians
 
 # deprecated
 from .util import times_start_end_from_path
-

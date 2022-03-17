@@ -447,7 +447,6 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             ax.plot(times, quantity, label=key)
             print(f"<{key}> = {np.mean(quantity):.3g}")
 
-
         ax.set_yscale("log")
         ax.set_xlabel("$t$")
         ax.set_title(f"dimensionless numbers\n{self.output.summary_simul}")
