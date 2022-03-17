@@ -15,10 +15,11 @@ Provides:
 from time import time
 import atexit
 from pathlib import Path
-from fluiddyn import time_as_str
+from warnings import warn
 
 import numpy as np
 
+from fluiddyn import time_as_str
 from fluiddyn.util import mpi
 from fluidsim_core.solver import SimulCore
 
@@ -132,12 +133,12 @@ nu_2: float (default = 0.)
             self._lockfile = Path(self.output.path_run) / "is_being_advanced.lock"
 
             if self._lockfile.exists():
-                raise RuntimeError(
+                warn(
                     f"File {self._lockfile} already exists. It could "
                     "mean that this simulation is already being advanced by "
                     "another process or that an old lockfile has not been "
                     "deleted (which is a bug). If no process is advancing "
-                    "the simulation, the lockfile can be safely removed."
+                    "the simulation, the lockfile can safely be removed."
                 )
             else:
                 with open(self._lockfile, "w") as file:
