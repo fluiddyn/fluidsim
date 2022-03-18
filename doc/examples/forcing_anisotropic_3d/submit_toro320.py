@@ -3,7 +3,10 @@ from time import sleep
 
 from fluiddyn.clusters.legi import Calcul8 as C
 from fluiddyn.clusters.oar import get_job_id
-from fluidsim.util import times_start_last_from_path
+from fluidsim.util import (
+    times_start_last_from_path,
+    get_last_estimated_remaining_duration,
+)
 
 cluster = C()
 
@@ -82,15 +85,21 @@ for N in [10, 20, 40]:
                 print(f"Nothing to do for {path.name} because t_last > t_end")
                 continue
 
-            print(f"{path.name}: {t_last = }")
+            try:
+                estimated_remaining_duration = (
+                    get_last_estimated_remaining_duration(path)
+                )
+            except RuntimeError:
+                estimated_remaining_duration = "?"
+
+            print(f"{path.name}: {t_last = }, {estimated_remaining_duration = }")
 
             command = f"fluidsim-restart {path}"
             name_run = command.split()[0] + f"_nx{nh}_Rb{Rb}_N{N}"
 
             if get_job_id(name_run) is not None:
                 print(
-                    f"Nothing to do for {path.name} because the idempotent job is "
-                    "already launched"
+                    f"Nothing to do because the idempotent job is already launched"
                 )
                 continue
 

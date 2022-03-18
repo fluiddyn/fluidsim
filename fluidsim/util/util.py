@@ -680,11 +680,35 @@ def times_start_last_from_path(path):
 
 
 def times_start_end_from_path(path):
+    """deprecated, use times_start_last_from_path instead"""
     warnings.warn(
         "times_start_end_from_path is deprecated please use times_start_last_from_path",
         category=DeprecationWarning,
     )
     return times_start_last_from_path(path)
+
+
+def get_last_estimated_remaining_duration(path):
+    """Get last estimated remaining duration written in stdout.txt"""
+    path_file = Path(path) / "stdout.txt"
+    if not path_file.exists():
+        raise ValueError(f"No file stdout.txt in {path}")
+
+    with open(path_file, "r") as file_stdout:
+        # in order to get the information at the end of the file,
+        # we do not want to read the full file...
+        file_stdout.seek(0, os.SEEK_END)  # go to the end
+        nb_caract = file_stdout.tell()
+        nb_caract_to_read = min(nb_caract, 3000)
+        file_stdout.seek(file_stdout.tell() - nb_caract_to_read, os.SEEK_SET)
+        txt = file_stdout.read()
+
+    for line in txt.split("\n")[::-1]:
+        line = line.strip()
+        if line.startswith("estimated remaining duration"):
+            return line.split(" = ")[1].strip()
+
+    raise RuntimeError(f"No estimated remaining duration in file {path_file}")
 
 
 def open_patient(

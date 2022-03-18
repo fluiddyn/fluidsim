@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import fluidsim as fls
 
 import fluiddyn.util.mpi as mpi
-
+from fluidsim.util import get_last_estimated_remaining_duration
 from fluidsim.util.testing import TestSimul, classproperty, skip_if_no_fluidfft
 
 
@@ -195,6 +195,8 @@ class TestForcingOutput(TestSimulBase):
 
         if mpi.nb_proc > 1:
             return
+
+        get_last_estimated_remaining_duration(sim.output.path_run)
 
         plt.close("all")
         sim.output.spectra.plot1d()

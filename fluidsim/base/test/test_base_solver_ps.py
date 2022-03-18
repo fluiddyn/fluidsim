@@ -25,6 +25,8 @@ from fluidsim.util.testing import TestSimul, classproperty, skip_if_no_fluidfft
 
 @skip_if_no_fluidfft
 class TestBaseSolverPS(TestSimul):
+    """Test of the base class for pseudo_spect solvers"""
+
     @classproperty
     def Simul(cls):
         from fluidsim.base.solvers.pseudo_spect import SimulBasePseudoSpectral
