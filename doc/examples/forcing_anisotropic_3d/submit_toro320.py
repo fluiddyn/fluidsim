@@ -21,6 +21,8 @@ t_end = 20.0
 
 paths = sorted(path_base.glob(f"aniso/ns3d.strat*_{nh}x{nh}*"))
 
+walltime = "04:00:00"
+
 
 def get_ratio_nh_nz(N):
     "Get the ratio nh/nz"
@@ -51,7 +53,6 @@ for N in [10, 20, 40]:
         except IndexError:
             if job_id is None:
                 command = f"./run_simul_toro.py -R {Rb} -N {N} --ratio-nh-nz {ratio_nh_nz} -nz {nz} --t_end {t_end}"
-                walltime = "04:00:00"
 
                 cluster.submit_command(
                     command,
@@ -81,6 +82,8 @@ for N in [10, 20, 40]:
                 print(f"Nothing to do for {path.name} because t_last > t_end")
                 continue
 
+            print(f"{path.name}: {t_last = }")
+
             command = f"fluidsim-restart {path}"
             name_run = command.split()[0] + f"_nx{nh}_Rb{Rb}_N{N}"
 
@@ -95,7 +98,7 @@ for N in [10, 20, 40]:
                 command,
                 name_run=name_run,
                 nb_nodes=1,
-                walltime="04:00:00",
+                walltime=walltime,
                 nb_mpi_processes=10,
                 omp_num_threads=1,
                 delay_signal_walltime=300,

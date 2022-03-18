@@ -196,6 +196,8 @@ def main():
     params, sim = restart()
 
     if sim is not None and sim.time_stepping._has_to_stop:
+        if mpi.nb_proc > 1:
+            mpi.comm.barrier()
         mpi.printby0("Simulation is not completed and could be relaunched")
         sys.exit(99)
 

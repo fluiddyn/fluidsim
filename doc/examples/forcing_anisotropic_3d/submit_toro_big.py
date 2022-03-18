@@ -72,7 +72,7 @@ for N in [10, 20, 40]:
                 t_start, t_last = times_start_last_from_path(path_init)
                 if t_last < t_init:
                     print(
-                        f"Cannot do anything for nx{nh}_Rb{Rb}_N{N} because t_last < t_init"
+                        f"Cannot do anything for nx{nh}_Rb{Rb}_N{N} because {t_last=} < {t_init=}"
                     )
                     continue
 
@@ -120,8 +120,9 @@ for N in [10, 20, 40]:
 
             t_start, t_last = times_start_last_from_path(path)
             if t_last > t_end:
-                print(f"Nothing to do for {path.name} because t_last > t_end")
+                print(f"Nothing to do for {path.name} because {t_last=} > {t_end=}")
                 continue
+            print(f"{path.name}: {t_last = }")
 
             command = f"fluidsim-restart {path}"
             name_run = command.split()[0] + f"_nx{nh}_Rb{Rb}_N{N}"

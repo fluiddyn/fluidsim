@@ -101,20 +101,17 @@ max_elapsed: number or str (default None)
         self.t = 0
 
         self._stop_signal_received = False
-
-        if mpi.rank == 0:
-
-            def handler_signals(signal_number, stack):
-                print(f"signal {signal_number} received (rank {mpi.rank}).")
-                self._stop_signal_received = True
-
-            try:
-                # 12 is SIGUSR2 (warning: not propagated by MPICH)
-                signal(12, handler_signals)
-            except ValueError:
-                warn("Cannot handle signals - is multithreading on?")
-
         self._has_to_stop = False
+
+        def handler_signals(signal_number, stack):
+            print(f"signal {signal_number} received (rank {mpi.rank}).")
+            self._stop_signal_received = True
+
+        try:
+            # 12 is SIGUSR2 (warning: not propagated by MPICH)
+            signal(12, handler_signals)
+        except ValueError:
+            warn("Cannot handle signals - is multithreading on?")
 
         try:
             param_max_elapsed = self.params.time_stepping.max_elapsed
@@ -231,6 +228,7 @@ max_elapsed: number or str (default None)
             )
         else:
             stop_signal_received = self._stop_signal_received
+        # mpi.printby0(f"rank 0, it {self.it}: {stop_signal_received = }")
         if stop_signal_received:
             self.sim.output.print_stdout(
                 "Stop signal (12) received so _has_to_stop set to True"
