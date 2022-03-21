@@ -693,7 +693,7 @@ class SpatioTemporalSpectraNS:
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_{tmin}_{tmax}"
+        base = f"periodogram_{float(tmin)}_{float(tmax)}"
         if dtype is not None:
             base += f"_{dtype}"
         if save_urud:
@@ -703,7 +703,7 @@ class SpatioTemporalSpectraNS:
     def _get_path_saved_tspectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_temporal_{tmin}_{tmax}"
+        base = f"periodogram_temporal_{float(tmin)}_{float(tmax)}"
         if dtype is not None:
             base += f"_{dtype}"
         if save_urud:
