@@ -245,6 +245,8 @@ kz_negative_enable: bool
         khmax_forcing = self.khmax_forcing
         kvmin_forcing = self.kvmin_forcing
         kvmax_forcing = self.kvmax_forcing
+        kf_min = self.kmin_forcing
+        kf_max = self.kmax_forcing  
 
         tmp = self.params.forcing.tcrandom_anisotropic
         try:
@@ -285,7 +287,8 @@ kz_negative_enable: bool
             + "; "
             + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
             + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
-            + r"$\theta = {:.0f}^\circ$; ".format(degrees(self.angle))
+            + '\n'
+            + r"$\theta_f = {:.0f}^\circ$; ".format(degrees(self.angle))
             + rf"Forced modes = {self.nb_forced_modes}"
         )
 
@@ -294,23 +297,14 @@ kz_negative_enable: bool
         ax.set_ylabel(r"$k_v$")
 
         # Parameters figure
-        ax.set_xlim([abs(Kh).min(), abs(Kh).max()])
-        ax.set_ylim([abs(Kv).min(), abs(Kv).max()])
 
-        # Set ticks 10% of the KX.max and KY.max
-        factor = 0.1
-        sep_x = abs(Kh).max() * factor
-        sep_y = abs(Kv).max() * factor
-        nb_deltakx = int(sep_x // deltakh)
-        nb_deltaky = int(sep_y // deltakv)
+        # Set limits to 125% of the kf_max
+        factor = 1.2
+        ax.set_xlim([0.0, factor * kf_max])
+        ax.set_ylim([0.0, factor * kf_max])
 
-        if not nb_deltakx:
-            nb_deltakx = 1
-        if not nb_deltaky:
-            nb_deltaky = 1
-
-        xticks = np.arange(abs(Kh).min(), abs(Kh).max(), nb_deltakx * deltakh)
-        yticks = np.arange(abs(Kv).min(), abs(Kv).max(), nb_deltaky * deltakv)
+        xticks = np.arange(0.0, factor * kf_max, deltakv)
+        yticks = np.arange(0.0, factor * kf_max, deltakv)
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
 
@@ -363,20 +357,20 @@ kz_negative_enable: bool
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=self.kmax_forcing * 0.5,
-                    height=self.kmax_forcing * 0.5,
-                    angle=0,
+                    width=(kf_min + kf_max),
+                    height=(kf_min + kf_max),
+                    angle=0, 
                     theta1=90.0 - degrees(self.angle),
                     theta2=90.0,
-                    linestyle="--",
+                    linestyle="dotted",
                 )
             )
 
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=2.1 * self.kmax_forcing,
-                    height=2.1 * self.kmax_forcing,
+                    width=2.1 * kf_max,
+                    height=2.1 * kf_max,
                     angle=0,
                     theta1=90.0
                     - degrees(self.angle)
@@ -391,8 +385,8 @@ kz_negative_enable: bool
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=2 * self.kmin_forcing,
-                    height=2 * self.kmin_forcing,
+                    width=2 * kf_min,
+                    height=2 * kf_min,
                     angle=0,
                     theta1=90.0
                     - degrees(self.angle)
@@ -406,8 +400,8 @@ kz_negative_enable: bool
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=2 * self.kmax_forcing,
-                    height=2 * self.kmax_forcing,
+                    width=2 * kf_max,
+                    height=2 * kf_max,
                     angle=0,
                     theta1=90.0
                     - degrees(self.angle)
@@ -423,8 +417,8 @@ kz_negative_enable: bool
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=2 * self.kmin_forcing,
-                    height=2 * self.kmin_forcing,
+                    width=2 * kf_min,
+                    height=2 * kf_min,
                     angle=0,
                     theta1=0.0,
                     theta2=90.0,
@@ -434,8 +428,8 @@ kz_negative_enable: bool
             ax.add_patch(
                 patches.Arc(
                     xy=(0, 0),
-                    width=2 * self.kmax_forcing,
-                    height=2 * self.kmax_forcing,
+                    width=2 * kf_max,
+                    height=2 * kf_max,
                     angle=0,
                     theta1=0.0,
                     theta2=90.0,
@@ -457,27 +451,26 @@ kz_negative_enable: bool
             ax.plot([xmin, xmax], [ymin, ymax], color="k", linewidth=1)
 
             # Location labels kmin and kmax
-            factor = 0.008
+            factor = 0.015
             loc_label_y = abs(Kv).max() * factor
             loc_label_x = abs(Kh).max() * factor
 
-            ax.text(loc_label_y + self.kmin_forcing, loc_label_y, r"$k_{min}$")
-            ax.text(loc_label_x + self.kmax_forcing, loc_label_y, r"$k_{max}$")
+            ax.text(loc_label_y + self.kmin_forcing, loc_label_y, r"$k_{f,min}$")
+            ax.text(loc_label_x + self.kmax_forcing, loc_label_y, r"$k_{f,max}$")
 
             # Location label angle \theta
-            factor_x = 0.015
-            factor_y = 0.15
-            loc_label_y = abs(Kv).max() * factor_y
-            loc_label_x = abs(Kh).max() * factor_x
+            factor = 1.1
+            loc_label_y = (kf_min + kf_max) * 0.5 * np.cos(self.angle * 0.5) * factor
+            loc_label_x = (kf_min + kf_max) * 0.5 * np.sin(self.angle * 0.5) * factor
 
-            ax.text(loc_label_x, loc_label_y, r"$\theta$")
+            ax.text(loc_label_x, loc_label_y, r"$\theta_f$")
 
             # Location label delta_angle \delta \theta
-            factor = 1.05
-            loc_label_y = self.kmax_forcing * np.cos(self.angle) * factor
-            loc_label_x = self.kmax_forcing * np.sin(self.angle) * factor
+            factor = 1.1
+            loc_label_y = kf_max * np.cos(self.angle) * factor
+            loc_label_x = kf_max * np.sin(self.angle) * factor
 
-            ax.text(loc_label_x, loc_label_y, r"$\delta \theta$")
+            ax.text(loc_label_x, loc_label_y, r"$\delta \theta_f$")
 
         # Plot forced modes in red
         indices_forcing = np.argwhere(self.COND_NO_F == False)
