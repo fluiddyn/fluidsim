@@ -1218,6 +1218,7 @@ class SpatioTemporalSpectraNS:
         tmax=None,
         dtype=None,
         xscale="log",
+        coef_compensate=0,
     ):
         """plot the temporal spectra computed from the 4d spectra"""
         keys_plot = self.keys_fields.copy()
@@ -1245,10 +1246,21 @@ class SpatioTemporalSpectraNS:
                 tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
             )
 
-        # plot
+        omegas = tspectra["omegas"]
+        ylabel = "spectrum"
+
+        if coef_compensate == 0:
+            norm = 1.0
+        else:
+            omegas_no_0 = omegas.copy()
+            omegas_no_0[0] = 1e-15
+            norm = omegas_no_0**-coef_compensate
+            norm[0] = np.nan
+            ylabel = f"$E(\omega) \omega^{{{coef_compensate}}}$"
+
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
-        ax.set_ylabel("spectrum")
+        ax.set_ylabel(ylabel)
         ax.set_title(
             f"{key_field} temporal spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
             + self.output.summary_simul
@@ -1261,39 +1273,47 @@ class SpatioTemporalSpectraNS:
             N = self.sim.params.N
         except AttributeError:
             ax.plot(
-                tspectra["omegas"],
-                tspectra["spectrum_" + key_field],
+                omegas,
+                tspectra["spectrum_" + key_field] / norm,
                 "k",
                 linewidth=2,
             )
         else:
-            omegas = tspectra["omegas"] / N
+            omegas = omegas / N
             if self.nb_dim == 3:
                 # polo/toro/potential decomposition
                 EKp = tspectra["spectrum_Khd"] + 0.5 * tspectra["spectrum_vz"]
                 EKhr = tspectra["spectrum_Khr"]
                 EK = EKhr + EKp
-                ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
+                ax.plot(omegas, EK / norm, "r", linewidth=2, label=r"$E_K$")
                 try:
                     projection = self.sim.params.projection
                 except AttributeError:
                     projection = None
                 if projection != "poloidal":
                     ax.plot(
-                        omegas, EKhr, "r--", linewidth=1, label=r"$E_{K,toro}$"
+                        omegas,
+                        EKhr / norm,
+                        "r--",
+                        linewidth=1,
+                        label=r"$E_{K,toro}$",
                     )
                 if projection != "toroidal":
                     ax.plot(
-                        omegas, EKp, "r-.", linewidth=1, label=r"$E_{K,polo}$"
+                        omegas,
+                        EKp / norm,
+                        "r-.",
+                        linewidth=1,
+                        label=r"$E_{K,polo}$",
                     )
             else:
                 # kinetic energy
                 EK = tspectra["spectrum_K"]
-                ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
-            EK_N = EK[abs(omegas - 1).argmin()]  # value at N
+                ax.plot(omegas, EK / norm, "r", linewidth=2, label=r"$E_K$")
+            EK_N = (EK / norm)[abs(omegas - 1).argmin()]  # value at N
             EA = tspectra["spectrum_A"]
 
-            ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
+            ax.plot(omegas, EA / norm, "b", linewidth=2, label=r"$E_A$")
             ax.set_title(
                 f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
                 + self.output.summary_simul
@@ -1318,7 +1338,7 @@ class SpatioTemporalSpectraNS:
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EK_N * omegas_scaling**-2
+            scaling_y = EK_N * omegas_scaling ** (-2 + coef_compensate)
 
             ax.plot(omegas_scaling, scaling_y, "k--")
 

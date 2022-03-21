@@ -193,7 +193,6 @@ class TestOutput(TestSimulBase):
         df.I_dissipation
 
 
-
 class TestInitInScript(TestSimulBase):
     @classmethod
     def init_params(self):
