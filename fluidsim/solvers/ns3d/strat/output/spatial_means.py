@@ -413,9 +413,12 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             results["R8"] = epsK * Uh2**3 / (nu_8 * N**8)
             epsK_hyper += data["epsK8"]
 
-        if nu_2 and (nu_4 or nu_8):
-            epsK2 = epsK - epsK_hyper
-            results["epsK2/epsK"] = epsK2 / epsK
+        if nu_2:
+            if nu_4 or nu_8:
+                epsK2 = epsK - epsK_hyper
+                results["epsK2/epsK"] = epsK2 / epsK
+            else:
+                results["epsK2/epsK"] = np.ones_like(epsK)
 
         results["Gamma"] = epsA / epsK
         results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
@@ -479,5 +482,8 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
 def _compute_indices_tmin_tmax(times, tmin, tmax):
     if tmax is None:
         itmax = len(times) - 1
+    else:
+        itmax = abs(times - tmax).argmin()
+
     itmin = abs(times - tmin).argmin()
     return itmin, itmax

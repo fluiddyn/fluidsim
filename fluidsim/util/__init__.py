@@ -18,6 +18,7 @@ from .util import (
     times_start_last_from_path,
     ensure_radians,
     get_last_estimated_remaining_duration,
+    get_dataframe_from_paths,
 )
 
 # deprecated

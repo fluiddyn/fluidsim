@@ -28,6 +28,7 @@ import shutil
 import numbers
 from copy import copy
 from warnings import warn
+import json
 
 import numpy as np
 import h5py
@@ -421,6 +422,57 @@ are called.
         if mpi.nb_proc > 1:
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
         self.print_stdout(string.ljust(30) + f": {mem} Mo")
+
+    def get_mean_values(self, tmin=None, tmax=None, use_cache=True):
+
+        if tmin is None:
+            t_start, _ = self.print_stdout.get_times_start_last()
+            tmin = t_start + 1
+
+        if tmax is None:
+            t_last = self.spatial_means.time_last_saved()
+            tmax = t_last
+
+        cache_dir = Path(self.path_run) / ".cache"
+        cache_dir.mkdir(exist_ok=True)
+        cache_file = cache_dir / "mean_values_tmin{tmin}_tmax{tmax}.json"
+        if use_cache and cache_file.exists():
+            with open(cache_file, "r") as file:
+                return json.load(file)
+
+        result = self._compute_mean_values(tmin, tmax)
+        with open(cache_file, "w") as file:
+            json.dump(result, file, indent=2)
+        return result
+
+    def _compute_mean_values(self, tmin, tmax):
+
+        result = {}
+
+        averages = self.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )
+
+        for key in ["Uh2", "epsK"]:
+            result[key] = averages["dimensional"][key]
+
+        for key in ["Gamma", "Fh", "R2", "k_max*eta", "epsK2/epsK"]:
+            try:
+                result[key] = averages[key]
+            except KeyError:
+                pass
+
+        try:
+            result["R4"] = averages["R4"]
+        except KeyError:
+            result["R4"] = np.inf
+
+        result["I_velocity"] = self.spectra.compute_isotropy_velocities(tmin)
+        result[
+            "I_dissipation"
+        ] = self.spect_energy_budg.compute_isotropy_dissipation(tmin)
+
+        return result
 
 
 class OutputBasePseudoSpectral(OutputBase):

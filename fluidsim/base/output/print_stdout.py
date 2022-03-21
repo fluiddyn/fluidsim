@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi, print_memory_usage
 
+from fluidsim.util import times_start_last_from_path
+
 
 class PrintStdOutBase:
     """A :class:`PrintStdOutBase` object is used to print in both the
@@ -280,3 +282,6 @@ class PrintStdOutBase:
 
         fig.suptitle(self.output.summary_simul, fontsize=8)
         fig.tight_layout()
+
+    def get_times_start_last(self):
+        return times_start_last_from_path(self.sim.output.path_run)

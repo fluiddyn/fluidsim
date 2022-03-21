@@ -134,9 +134,7 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
 
         t_start, t_last = times_start_last_from_path(path)
         if t_last > t_end:
-            print(
-                f"Simulation {path.name} done! {t_last=} > {t_end=}"
-            )
+            print(f"Simulation {path.name} done! {t_last=} > {t_end=}")
             continue
 
         try:
@@ -149,7 +147,9 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
         print(f"{path.name}: {t_last = }, {estimated_remaining_duration = }")
 
         if get_job_id(name_run) is not None:
-            print("  Nothing to do because the idempotent job is already launched")
+            print(
+                "  Nothing to do because the idempotent job is already launched"
+            )
             continue
 
         cluster.submit_command(

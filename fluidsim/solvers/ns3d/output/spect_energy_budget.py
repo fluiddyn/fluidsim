@@ -355,32 +355,32 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         ax.legend()
 
+    def compute_isotropy_dissipation(self, tmin=None, tmax=None, verbose=False):
+        data = self.load_mean(tmin, tmax, verbose=verbose)
 
-def compute_isotropy_dissipation(self, tmin=None, tmax=None, verbose=True):
-    data = self.load_mean(tmin, tmax, verbose)
+        kh = data["kh"]
+        kz = data["kz"]
 
-    kh = data["kh"]
-    kz = data["kz"]
+        KH, KZ = np.meshgrid(kh, kz)
+        assert np.allclose(KH[0, :], kh)
+        assert np.allclose(KZ[:, 0], kz)
+        K2 = KH**2 + KZ**2
+        K4 = K2**2
 
-    KH, KZ = np.meshgrid(kh, kz)
-    assert np.allclose(KH[0, :], kh)
-    assert np.allclose(KZ[:, 0], kz)
-    K2 = KH**2 + KZ**2
-    K4 = K2**2
+        params = self.output.sim.params
+        nu_2 = params.nu_2
+        nu_4 = params.nu_4
+        freq_diss = nu_2 * K2 + nu_4 * K4
+        freq_diss[0, 0] = 1e-16
 
-    nu_2 = sim.params.nu_2
-    nu_4 = sim.params.nu_4
-    freq_diss = nu_2 * K2 + nu_4 * K4
-    freq_diss[0, 0] = 1e-16
+        diss_K = data["diss_Kh"] + data["diss_Kz"]
+        assert diss_K.shape == KH.shape
 
-    diss_K = data["diss_Kh"] + data["diss_Kz"]
-    assert diss_K.shape == KH.shape
+        EK = diss_K / freq_diss
 
-    EK = diss_K / freq_diss
+        epsK_kz = ((nu_2 * KZ**2 + nu_4 * KZ**4) * EK).sum()
 
-    epsK_kz = ((nu_2 * KZ**2 + nu_4 * KZ**4) * EK).sum()
+        ratio = epsK_kz / diss_K.sum()
 
-    ratio = epsK_kz / diss_K.sum()
-
-    ratio_iso = 0.215
-    return (1 - ratio) / (1 - ratio_iso)
+        ratio_iso = 0.215
+        return (1 - ratio) / (1 - ratio_iso)

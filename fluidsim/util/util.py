@@ -33,10 +33,13 @@ from typing import Union
 from math import radians
 import warnings
 
-import fluiddyn as fld
 import h5netcdf
 import h5py
-import numpy as _np
+from matplotlib import use
+import numpy as np
+from rich.progress import track
+
+import fluiddyn as fld
 from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util.util import get_memory_usage
@@ -194,7 +197,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     else:
         ind_start_time = len("state_phys_t")
 
-    times = _np.empty([nb_files])
+    times = np.empty([nb_files])
     for ii, name in enumerate(name_files):
         tmp = ".".join(name[ind_start_time:].split(".")[:2])
         if "_" in tmp:
@@ -764,3 +767,28 @@ def ensure_radians(angle):
                 + "the degree symbol or a float in radians"
             )
     return angle
+
+
+def get_dataframe_from_paths(paths, tmin=None, tmax=None, use_cache=True):
+    """Produce a dataframe from a set of simulations.
+
+    Uses `sim.output.get_mean_values`
+
+    """
+
+    from pandas import DataFrame
+
+    values = []
+    for path in track(paths, "Getting the mean values"):
+        sim = load_sim_for_plot(path, hide_stdout=True)
+        try:
+            values.append(sim.output.get_mean_values(tmin, tmax, use_cache))
+        except ValueError:
+            pass
+
+    df = DataFrame(values)
+
+    if "R2" in df.columns and "R4" in df.columns:
+        df["min_R"] = np.array([df.R2, df.R4]).min(axis=0)
+
+    return df
