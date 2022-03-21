@@ -781,10 +781,7 @@ def get_dataframe_from_paths(paths, tmin=None, tmax=None, use_cache=True):
     values = []
     for path in track(paths, "Getting the mean values"):
         sim = load_sim_for_plot(path, hide_stdout=True)
-        try:
-            values.append(sim.output.get_mean_values(tmin, tmax, use_cache))
-        except ValueError:
-            pass
+        values.append(sim.output.get_mean_values(tmin, tmax, use_cache))
 
     df = DataFrame(values)
 

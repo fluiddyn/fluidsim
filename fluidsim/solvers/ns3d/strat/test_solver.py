@@ -10,6 +10,7 @@ import fluiddyn.util.mpi as mpi
 import fluidsim as fls
 
 from fluidsim.extend_simul import extend_simul_class
+from fluidsim.util import get_dataframe_from_paths
 
 from ..test_solver import TestSimulBase as _Base, classproperty
 
@@ -186,6 +187,11 @@ class TestOutput(TestSimulBase):
         sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
         plt.close("all")
+
+        df = get_dataframe_from_paths([sim.output.path_run])
+        df.I_velocity
+        df.I_dissipation
+
 
 
 class TestInitInScript(TestSimulBase):

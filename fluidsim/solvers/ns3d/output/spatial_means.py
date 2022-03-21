@@ -8,7 +8,9 @@
 """
 
 import os
+
 import numpy as np
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
@@ -323,3 +325,109 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         fig.legend()
         fig.tight_layout()
+
+    def get_dimless_numbers_versus_time(self, data=None):
+        """Compute dimensionless numbers"""
+        if data is None:
+            data = self.load()
+        results = {"t": data["t"]}
+
+        try:
+            Uh2 = data["Ex"] + data["Ey"] + data["Ez"]
+        except KeyError:
+            EKhr = data["EKhr"]
+            EKhd = data["EKhd"]
+            EKhs = data["EKhs"]
+            Uh2 = EKhr + EKhd + EKhs
+
+        epsK = data["epsK"]
+        epsK_hyper = np.zeros_like(epsK)
+
+        nu_2 = self.params.nu_2
+        nu_4 = self.params.nu_4
+        nu_8 = self.params.nu_8
+
+        if nu_2:
+            eta = (nu_2**3 / epsK) ** (1 / 4)
+            delta_kz = 2 * np.pi / self.params.oper.Lz
+            coef_dealiasing = self.params.oper.coef_dealiasing
+            k_max = coef_dealiasing * delta_kz * self.params.oper.nz / 2
+            results["k_max*eta"] = k_max * eta
+        if nu_4:
+            epsK_hyper += data["epsK4"]
+        if nu_8:
+            epsK_hyper += data["epsK8"]
+
+        if nu_2:
+            if nu_4 or nu_8:
+                epsK2 = epsK - epsK_hyper
+                results["epsK2/epsK"] = epsK2 / epsK
+            else:
+                results["epsK2/epsK"] = np.ones_like(epsK)
+
+        results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
+
+        if nu_2:
+            results["dimensional"]["eta"] = eta
+
+        return results
+
+    def get_dimless_numbers_averaged(self, tmin=0, tmax=None):
+        """Compute averaged dimensionless numbers"""
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+
+        result = {
+            k: q[itmin:stop].mean()
+            for k, q in numbers_vs_time.items()
+            if k not in ["t", "dimensional"]
+        }
+        result["dimensional"] = {
+            k: q[itmin:stop].mean()
+            for k, q in numbers_vs_time["dimensional"].items()
+        }
+        return result
+
+    def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
+        """Plot dimensionless numbers"""
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+        times = times[itmin:stop]
+
+        fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True)
+
+        keys_ax1 = ["k_max*eta", "epsK2/epsK", "Gamma"]
+
+        for key, quantity in numbers_vs_time.items():
+            if key in ["t", "dimensional"]:
+                continue
+            quantity = quantity[itmin:stop]
+
+            if key in keys_ax1:
+                ax = ax1
+            else:
+                ax = ax0
+
+            ax.plot(times, quantity, label=key)
+            print(f"<{key}> = {np.mean(quantity):.3g}")
+
+        for ax in (ax0, ax1):
+            ax.set_yscale("log")
+            ax.legend()
+
+        ax0.set_xlabel("$t$")
+        fig.suptitle(f"dimensionless numbers\n{self.output.summary_simul}")
+
+
+def _compute_indices_tmin_tmax(times, tmin, tmax):
+    if tmax is None:
+        itmax = len(times) - 1
+    else:
+        itmax = abs(times - tmax).argmin()
+
+    itmin = abs(times - tmin).argmin()
+    return itmin, itmax

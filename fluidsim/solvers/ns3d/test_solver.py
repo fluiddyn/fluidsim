@@ -8,9 +8,10 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
-import fluidsim as fls
-
 import fluiddyn.util.mpi as mpi
+
+import fluidsim as fls
+from fluidsim.util import get_dataframe_from_paths
 
 
 from fluidsim import (
@@ -380,6 +381,11 @@ class TestOutput(TestSimulBase):
         )
 
         plt.close("all")
+
+        df = get_dataframe_from_paths([sim.output.path_run])
+        df.I_velocity
+        df.I_dissipation
+        sim.output.get_mean_values()
 
 
 class TestInitInScript(TestSimulBase):
