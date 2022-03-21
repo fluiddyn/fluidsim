@@ -196,10 +196,15 @@ def main():
     params, sim = restart()
 
     if sim is not None and sim.time_stepping._has_to_stop:
+        if (Path(sim.output.path_run) / "IDEMPOTENT_NO_RELAUNCH").exists():
+            exit_code = 0
+        else:
+            exit_code = 99
+
         if mpi.nb_proc > 1:
             mpi.comm.barrier()
         mpi.printby0("Simulation is not completed and could be relaunched")
-        sys.exit(99)
+        sys.exit(exit_code)
 
 
 if "sphinx" in sys.modules:
