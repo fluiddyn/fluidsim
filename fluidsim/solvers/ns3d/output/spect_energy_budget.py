@@ -195,7 +195,7 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         return results
 
-    def load_mean(self, tmin=0, tmax=None, keys_to_load=None):
+    def load_mean(self, tmin=0, tmax=None, keys_to_load=None, verbose=True):
         means = {}
         with h5py.File(self.path_file, "r") as file:
             times = file["times"][...]
@@ -212,11 +212,12 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
             tmin = times[imin_plot]
             tmax = times[imax_plot]
 
-            print(
-                "compute mean spectral energy budget\n"
-                f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
-                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
-            )
+            if verbose:
+                print(
+                    "compute mean spectral energy budget\n"
+                    f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+                    f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
+                )
 
             for key in list(file.keys()):
                 if key.startswith("k"):
@@ -353,3 +354,33 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         )
 
         ax.legend()
+
+
+def compute_isotropy_dissipation(self, tmin=None, tmax=None, verbose=True):
+    data = self.load_mean(tmin, tmax, verbose)
+
+    kh = data["kh"]
+    kz = data["kz"]
+
+    KH, KZ = np.meshgrid(kh, kz)
+    assert np.allclose(KH[0, :], kh)
+    assert np.allclose(KZ[:, 0], kz)
+    K2 = KH**2 + KZ**2
+    K4 = K2**2
+
+    nu_2 = sim.params.nu_2
+    nu_4 = sim.params.nu_4
+    freq_diss = nu_2 * K2 + nu_4 * K4
+    freq_diss[0, 0] = 1e-16
+
+    diss_K = data["diss_Kh"] + data["diss_Kz"]
+    assert diss_K.shape == KH.shape
+
+    EK = diss_K / freq_diss
+
+    epsK_kz = ((nu_2 * KZ**2 + nu_4 * KZ**4) * EK).sum()
+
+    ratio = epsK_kz / diss_K.sum()
+
+    ratio_iso = 0.215
+    return (1 - ratio) / (1 - ratio_iso)

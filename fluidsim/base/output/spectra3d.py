@@ -213,7 +213,9 @@ class Spectra(SpecificOutput):
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass
 
-    def _load_mean_file(self, path, tmin=None, tmax=None, key_to_load=None):
+    def _load_mean_file(
+        self, path, tmin=None, tmax=None, key_to_load=None, verbose=True
+    ):
         results = {}
         with h5py.File(path, "r") as h5file:
             times = h5file["times"][...]
@@ -230,11 +232,12 @@ class Spectra(SpecificOutput):
             tmin = times[imin_plot]
             tmax = times[imax_plot]
 
-            print(
-                "compute mean of spectra\n"
-                f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
-                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
-            )
+            if verbose:
+                print(
+                    "compute mean of spectra\n"
+                    f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}\n"
+                    f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
+                )
 
             if key_to_load is not None:
                 if isinstance(key_to_load, str):
@@ -255,14 +258,18 @@ class Spectra(SpecificOutput):
                     results[key] = spect
         return results
 
-    def load3d_mean(self, tmin=None, tmax=None):
-        results = self._load_mean_file(self.path_file3d, tmin, tmax)
+    def load3d_mean(self, tmin=None, tmax=None, verbose=True):
+        results = self._load_mean_file(
+            self.path_file3d, tmin, tmax, verbose=verbose
+        )
         with h5py.File(self.path_file3d, "r") as h5file:
             results["k"] = h5file["k_spectra3d"][...]
         return results
 
-    def load1d_mean(self, tmin=None, tmax=None):
-        results = self._load_mean_file(self.path_file1d, tmin, tmax)
+    def load1d_mean(self, tmin=None, tmax=None, verbose=True):
+        results = self._load_mean_file(
+            self.path_file1d, tmin, tmax, verbose=verbose
+        )
         with h5py.File(self.path_file1d, "r") as h5file:
             for key in ("kx", "ky", "kz"):
                 results[key] = h5file[key][...]
@@ -290,3 +297,19 @@ class Spectra(SpecificOutput):
 
     def plot3d(self):
         pass
+
+    def compute_isotropy_velocities(self, tmin=None, tmax=None, verbose=False):
+        data = self.load1d_mean(tmin, tmax, verbose)
+        kz = data["kz"]
+        delta_kz = kz[1]
+        EKx_kz = data["spectra_vx_kz"] * delta_kz
+        EKy_kz = data["spectra_vy_kz"] * delta_kz
+        EKz_kz = data["spectra_vz_kz"] * delta_kz
+
+        EKx_kz[0] = 0
+        EKy_kz[0] = 0
+
+        EKz = EKz_kz.sum()
+        EK = EKx_kz.sum() + EKy_kz.sum() + EKz
+
+        return 3 * EKz / EK
