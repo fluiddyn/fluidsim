@@ -449,6 +449,11 @@ are called.
 
         result = {}
 
+        try:
+            result["N"] = self.sim.params.N
+        except AttributeError:
+            pass
+
         averages = self.spatial_means.get_dimless_numbers_averaged(
             tmin=tmin, tmax=tmax
         )
