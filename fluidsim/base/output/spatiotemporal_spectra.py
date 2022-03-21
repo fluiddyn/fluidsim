@@ -942,6 +942,7 @@ class SpatioTemporalSpectraNS:
         vmin=None,
         vmax=None,
         plot_omega_emp=False,
+        linscale=False,
     ):
         """plot the spatiotemporal spectra, with a cylindrical average in k-space
 
@@ -1095,10 +1096,15 @@ class SpatioTemporalSpectraNS:
         # no log(0)
         spect += 1e-15
 
+        if not linscale:
+            spect_to_plot = np.log10(spect)
+        else:
+            spect_to_plot = spect
+
         im = ax.pcolormesh(
             xaxis,
             yaxis,
-            np.log10(spect),
+            spect_to_plot,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
