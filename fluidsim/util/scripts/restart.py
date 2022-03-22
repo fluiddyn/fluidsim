@@ -12,6 +12,7 @@
 import argparse
 import sys
 from pathlib import Path
+from time import sleep
 
 # import potentially needed for the exec
 from math import pi
@@ -196,14 +197,18 @@ def main():
     params, sim = restart()
 
     if sim is not None and sim.time_stepping._has_to_stop:
-        if (Path(sim.output.path_run) / "IDEMPOTENT_NO_RELAUNCH").exists():
-            exit_code = 0
-        else:
-            exit_code = 99
-
         if mpi.nb_proc > 1:
             mpi.comm.barrier()
-        mpi.printby0("Simulation is not completed and could be relaunched")
+
+        if mpi.rank > 0:
+            # processes with rank>0 exit early with exit code 0
+            sys.exit()
+
+        exit_code = 0
+        if not (Path(sim.output.path_run) / "IDEMPOTENT_NO_RELAUNCH").exists():
+            exit_code = 99
+            sleep(0.2)
+        print("Simulation is not completed and could be relaunched")
         sys.exit(exit_code)
 
 
