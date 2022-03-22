@@ -1350,7 +1350,7 @@ class SpatioTemporalSpectraNS:
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
             scaling_y = EK_N * omegas_scaling ** (-2 + coef_compensate)
 
-            ax.plot(omegas_scaling, scaling_y, "k--", label=r"$\omega^{-2}$")
+            ax.plot(omegas_scaling, scaling_y, "k--", label=r"$\propto \omega^{-2}$")
 
             # eye guide at N
             ax.axvline(1, linestyle="dotted")

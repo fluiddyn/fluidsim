@@ -403,15 +403,15 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         if coef_plot_k3 is not None:
             to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k--")
+            ax.plot(ks[1:], to_plot[1:], "k--", label=r"$\propto k^{-3}$")
 
         if coef_plot_k53 is not None:
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k-.")
+            ax.plot(ks[1:], to_plot[1:], "k-.", label=r"$\propto k^{-5/3}$")
 
         if coef_plot_k2 is not None:
             to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k-.")
+            ax.plot(ks[1:], to_plot[1:], "k:", label=r"$\propto k^{-2}$")
 
         if xlim is not None:
             ax.set_xlim(xlim)
@@ -420,7 +420,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             ax.set_ylim(ylim)
 
         if ndim == 1:
-            fig.legend()
+            ax.legend(loc='lower left')
 
         return ax
 
