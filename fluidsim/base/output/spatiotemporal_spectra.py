@@ -1380,8 +1380,8 @@ class SpatioTemporalSpectraNS:
                 omega_fmax = N * np.sin(angle + 0.5 * delta_angle)
                 omegas_f = np.logspace(-3, 3, 100)
 
-                ax.fill_between(omegas_f, 0, 1, where=np.logical_and(omegas_f > omega_fmin/N, omegas_f < omega_fmax/N), alpha=0.5)  
-                ax.text(0.5 * (omega_fmin + omega_fmax)/N, 1e-3, r"$\omega_{f}/N$", ha="center", va="center", size=10)
+                ax.fill_between(omegas_f, 0, 1e1, where=np.logical_and(omegas_f > omega_fmin/N, omegas_f < omega_fmax/N), alpha=0.5)  
+                ax.text(0.5 * (omega_fmin + omega_fmax)/N, 2e-6, r"$\omega_{f}/N$", ha="center", va="center", size=10)
 
             ax.set_xlabel(r"$\omega/N$")
 
