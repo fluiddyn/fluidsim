@@ -7,6 +7,7 @@
 
 """
 
+from cmath import pi
 import numpy as np
 import h5py
 from fluidsim.util import ensure_radians
@@ -233,6 +234,7 @@ class SpectraNS3DStrat(SpectraNS3D):
         ylim=None,
         directions=("x", "z"),
         plot_forcing_region=False,
+        plot_dissipative_scales=False,
     ):
 
         ax = self._plot_ndim(
@@ -288,7 +290,6 @@ class SpectraNS3DStrat(SpectraNS3D):
                         np.cos(angle - 0.5 * delta_angle) * kf_max
                     )
 
-
                 if "x" in directions:
                     ax.fill_between(Kx, 0, 1, where=np.logical_and(Kx > khmin_forcing, Kx < khmax_forcing), facecolor='gray', alpha=0.5)  
                     ax.text(0.45 * (khmin_forcing + khmax_forcing), 1e-7, "x forcing", ha="center", va="center", size=10)
@@ -300,4 +301,27 @@ class SpectraNS3DStrat(SpectraNS3D):
                     ax.text(0.45 * (kvmin_forcing + kvmax_forcing), 1e-7, "z forcing", ha="center", va="center", size=10)
             else:
                 raise NotImplementedError
+
+        if plot_dissipative_scales:
+            nu_2 = self.params.nu_2
+            nu_4 = self.params.nu_4
+            nu_8 = self.params.nu_8
+            Pf = self.params.forcing.forcing_rate
+            if nu_2 is not None and nu_2 != 0.0:
+                eta_2 = (nu_2 / (Pf ** (1./3.))) ** (3./4.)
+                kd_2 = 1./eta_2
+                ax.axvline(x=kd_2, color='k')
+                ax.text(1.1 * kd_2, 1e-3, r"$k_{d2}$", ha="left", va="center", size=10)
+            if nu_4 is not None and nu_4 != 0.0:
+                eta_4 = (nu_4 / (Pf ** (1./3.))) ** (3./10.)
+                kd_4 = 1./eta_4
+                ax.axvline(x=kd_4, color='k')
+                ax.text(1.1 * kd_4, 1e-2, r"$k_{d4}$", ha="left", va="center", size=10)
+            if nu_8 is not None and nu_8 != 0.0:
+                eta_8 = (nu_8 / (Pf ** (1./3.))) ** (3./22.)
+                kd_8 = 1./eta_8
+                ax.axvline(x=kd_8, color='k')
+                ax.text(1.1 * kd_8, 1e-1, r"$k_{d8}$", ha="left", va="center", size=10)
+
+
             
