@@ -13,7 +13,7 @@ Provides:
 
 """
 
-from signal import signal
+import signal
 from warnings import warn
 from math import pi
 from datetime import datetime, timedelta
@@ -108,8 +108,8 @@ max_elapsed: number or str (default None)
             self._stop_signal_received = True
 
         try:
-            # 12 is SIGUSR2 (warning: not propagated by MPICH)
-            signal(12, handler_signals)
+            # warning: SIGUSR2 (12) not propagated by MPICH
+            signal.signal(signal.SIGUSR2, handler_signals)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
 
@@ -228,10 +228,10 @@ max_elapsed: number or str (default None)
             )
         else:
             stop_signal_received = self._stop_signal_received
-        # mpi.printby0(f"rank 0, it {self.it}: {stop_signal_received = }")
         if stop_signal_received:
+            stop_signal_received = signal.Signals(stop_signal_received).name
             self.sim.output.print_stdout(
-                "Stop signal (12) received so _has_to_stop set to True"
+                f"Stop signal ({stop_signal_received}) received so _has_to_stop set to True"
             )
             self._has_to_stop = True
 

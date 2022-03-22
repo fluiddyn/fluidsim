@@ -16,6 +16,7 @@ from time import time
 import atexit
 from pathlib import Path
 from warnings import warn
+import signal
 
 import numpy as np
 
@@ -149,6 +150,17 @@ nu_2: float (default = 0.)
                     self._lockfile.unlink()
 
             atexit.register(release_lock)
+
+            def sig_handler(signo, frame):
+                release_lock()
+                if signo == signal.SIGINT:
+                    signal.default_int_handler(signo, frame)
+                elif signo == signal.SIGTERM:
+                    self.time_stepping._stop_signal_received = signo
+
+            for sig in (signal.SIGTERM, signal.SIGINT):
+                signal.signal(sig, sig_handler)
+
         else:
             self._lockfile = None
 
