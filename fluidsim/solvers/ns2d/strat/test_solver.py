@@ -262,6 +262,9 @@ class TestForcingOutput(TestSimulBase):
         spatiotemporal_spectra = sim2.output.spatiotemporal_spectra
         series_kxky = spatiotemporal_spectra.load_time_series()
 
+        spatiotemporal_spectra.get_spectra()
+        spatiotemporal_spectra.get_spectra()
+
         spectra_kxkyomega = spatiotemporal_spectra.compute_spectra()
         spectra_omega_from_spatiotemp = (
             spatiotemporal_spectra.compute_temporal_spectra()

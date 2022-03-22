@@ -262,6 +262,9 @@ class TestOutput(TestSimulBase):
         spatiotemporal_spectra = sim3.output.spatiotemporal_spectra
         series_kxkykz = spatiotemporal_spectra.load_time_series(tmax=t_end)
 
+        spatiotemporal_spectra.get_spectra(tmax=t_end)
+        spatiotemporal_spectra.get_spectra(tmax=t_end)
+
         spectra_kxkykzomega = spatiotemporal_spectra.compute_spectra(tmax=t_end)
         spectra_omega_from_spatiotemp = (
             spatiotemporal_spectra.compute_temporal_spectra(tmax=t_end)

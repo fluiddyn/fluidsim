@@ -947,6 +947,8 @@ class SpatioTemporalSpectraNS:
 
         equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='.
 
+        For 3d solvers, `key_field` can be in `State.keys_state_phys + ["Khd", "Khr", "Kp"]`.
+
         """
         keys_plot = self.keys_fields.copy()
         if self.nb_dim == 3:
@@ -970,8 +972,6 @@ class SpatioTemporalSpectraNS:
         if path_urud.exists() and not path_file.exists():
             path_file = path_urud
 
-        spectra_kzkhomega = {}
-
         # compute and save spectra if needed
         if not path_file.exists():
             if self.nb_dim == 3:
@@ -982,6 +982,7 @@ class SpatioTemporalSpectraNS:
                 self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax, dtype=dtype)
 
         # load spectrum
+        spectra_kzkhomega = {}
         with h5py.File(path_file, "r") as file:
             if key_spect.startswith("spectrum_Kp"):
                 spectrum = file["spectrum_Khd"][:] + 0.5 * file["spectrum_vz"][:]
@@ -1402,3 +1403,19 @@ class SpatioTemporalSpectraNS:
         )
         with open_patient(paths_1st_rank[-1], "r") as file:
             return file["/times"][-1]
+
+    def get_spectra(self, tmin=0, tmax=None, dtype=None):
+        save_urud = True
+        path_file = self._get_path_saved_spectra(tmin, tmax, dtype, save_urud)
+        if not path_file.exists():
+            if self.nb_dim == 3:
+                return self.save_spectra_kzkhomega(
+                    tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
+                )
+            else:
+                return self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax, dtype=dtype)
+
+        spectra_kzkhomega = self.load_spectra_kzkhomega(tmin, tmax, dtype, save_urud)
+        tspectra = self.load_temporal_spectra(tmin, tmax, dtype, save_urud)
+
+        return spectra_kzkhomega, tspectra

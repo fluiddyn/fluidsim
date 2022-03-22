@@ -63,23 +63,4 @@ for path in paths:
 
     # compute spatiotemporal spectra
     sim = load(path)
-    st_spectra = sim.output.spatiotemporal_spectra
-    st_tmax = st_spectra._get_default_tmax()
-
-    if (
-        st_spectra._get_path_saved_spectra(
-            t_statio, st_tmax, None, False
-        ).exists()
-        and st_spectra._get_path_saved_spectra(
-            t_statio, st_tmax, None, True
-        ).exists()
-        and st_spectra._get_path_saved_tspectra(
-            t_statio, st_tmax, None, False
-        ).exists()
-        and st_spectra._get_path_saved_tspectra(
-            t_statio, st_tmax, None, True
-        ).exists()
-    ):
-        continue
-    st_spectra.plot_kzkhomega(key_field=None, tmin=t_statio, tmax=st_tmax)
-    st_spectra.plot_kzkhomega(key_field="Kp", tmin=t_statio, tmax=st_tmax)
+    sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
