@@ -250,6 +250,8 @@ class SpectraNS3DStrat(SpectraNS3D):
 
         if plot_forcing_region:
 
+            # TODO: Check if we always have Kx = k1 , ... or not
+            # TODO: Here I rewrite partially the code in plot_forcing_region(), but there may be a better way to do 
             Kx = self.oper.k1
             Ky = self.oper.k2
             Kz = self.oper.k0
@@ -286,12 +288,16 @@ class SpectraNS3DStrat(SpectraNS3D):
                         np.cos(angle - 0.5 * delta_angle) * kf_max
                     )
 
+
                 if "x" in directions:
                     ax.fill_between(Kx, 0, 1, where=np.logical_and(Kx > khmin_forcing, Kx < khmax_forcing), facecolor='gray', alpha=0.5)  
+                    ax.text(0.45 * (khmin_forcing + khmax_forcing), 1e-7, "x forcing", ha="center", va="center", size=10)
                 if "y" in directions:
                     ax.fill_between(Ky, 0, 1, where=np.logical_and(Ky > khmin_forcing, Ky < khmax_forcing), facecolor='gray', alpha=0.5)
+                    ax.text(0.45 * (khmin_forcing + khmax_forcing), 1e-7, "y forcing", ha="center", va="center", size=10)
                 if "x" in directions:
                     ax.fill_between(Kz, 0, 1, where=np.logical_and(Kz > kvmin_forcing, Kz < kvmax_forcing), facecolor='gray', alpha=0.5)  
+                    ax.text(0.45 * (kvmin_forcing + kvmax_forcing), 1e-7, "z forcing", ha="center", va="center", size=10)
             else:
                 raise NotImplementedError
             
