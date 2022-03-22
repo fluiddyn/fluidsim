@@ -4,7 +4,7 @@ Needs some memory:
 ```
 oarsub -I -l "{cluster='calcul2'}/nodes=1/core=4"
 conda activate env_fluidsim
-python submit_toro_big.py
+python submit640.py
 ```
 
 """
