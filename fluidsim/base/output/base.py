@@ -42,7 +42,7 @@ from fluidsim_core.output import OutputCore, SimReprMakerCore
 from fluidsim_core.params import iter_complete_params
 
 import fluidsim
-from fluidsim.util.util import open_patient
+from fluidsim.util import open_patient
 
 
 class SimReprMaker(SimReprMakerCore):

@@ -2,7 +2,7 @@ import os
 import argparse
 import fluidsim
 from fluidsim.base.params import Parameters
-from fluidsim.util.util import available_solver_keys
+from fluidsim.util import available_solver_keys
 import numpy as np
 
 

@@ -22,7 +22,7 @@ import h5py
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.phys_fields import time_from_path
-from fluidsim.util.util import load_for_restart
+from fluidsim import load_for_restart
 from fluidsim.util.scripts import parse_args
 
 

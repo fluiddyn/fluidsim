@@ -12,7 +12,7 @@ from fluidsim.solvers.ns3d.test_solver import (
     classproperty,
 )
 
-from fluidsim.util.util import (
+from fluidsim.util import (
     modif_resolution_from_dir,
     modif_resolution_from_dir_memory_efficient,
 )

@@ -15,7 +15,7 @@ from IPython.core.magic_arguments import (
     parse_argstring,
 )
 
-from fluidsim.util.util import load_sim_for_plot, load_state_phys_file
+from fluidsim import load_sim_for_plot, load_state_phys_file
 
 
 @magics_class

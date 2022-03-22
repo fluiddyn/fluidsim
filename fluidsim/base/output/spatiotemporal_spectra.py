@@ -28,7 +28,7 @@ import h5py
 from rich.progress import Progress
 
 from fluiddyn.util import mpi
-from fluidsim.util.util import open_patient
+from fluidsim.util import open_patient
 from fluidsim.base.output.base import SpecificOutput
 
 from transonic import boost, Array, Type
@@ -1413,9 +1413,13 @@ class SpatioTemporalSpectraNS:
                     tmin=tmin, tmax=tmax, dtype=dtype, save_urud=save_urud
                 )
             else:
-                return self.save_spectra_kzkhomega(tmin=tmin, tmax=tmax, dtype=dtype)
+                return self.save_spectra_kzkhomega(
+                    tmin=tmin, tmax=tmax, dtype=dtype
+                )
 
-        spectra_kzkhomega = self.load_spectra_kzkhomega(tmin, tmax, dtype, save_urud)
+        spectra_kzkhomega = self.load_spectra_kzkhomega(
+            tmin, tmax, dtype, save_urud
+        )
         tspectra = self.load_temporal_spectra(tmin, tmax, dtype, save_urud)
 
         return spectra_kzkhomega, tspectra

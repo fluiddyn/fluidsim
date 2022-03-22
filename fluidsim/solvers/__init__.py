@@ -37,7 +37,7 @@ def pkgload():
     import.
 
     """
-    from ..util.util import available_solver_keys
+    from ..util import available_solver_keys
 
     solvers = available_solver_keys()
 

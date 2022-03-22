@@ -1,24 +1,6 @@
 """Utilities for the numerical simulations (:mod:`fluidsim.util.util`)
 ======================================================================
 
-Public API
-----------
-
-.. autofunction:: load_sim_for_plot
-
-.. autofunction:: load_state_phys_file
-
-.. autofunction:: load_for_restart
-
-.. autofunction:: modif_resolution_from_dir
-
-.. autofunction:: modif_resolution_from_dir_memory_efficient
-
-Internal API
-------------
-
-.. autofunction:: open_patient
-
 """
 
 import os
@@ -35,14 +17,13 @@ import warnings
 
 import h5netcdf
 import h5py
-from matplotlib import use
 import numpy as np
 from rich.progress import track
 
 import fluiddyn as fld
 from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
-from fluiddyn.util.util import get_memory_usage
+from fluiddyn.util import get_memory_usage
 
 from fluidsim_core import loader
 

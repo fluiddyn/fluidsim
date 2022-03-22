@@ -86,6 +86,7 @@ os.makedirs(jupyter_cache, exist_ok=True)
 execution_excludepatterns = [
     "ipynb/executed/*",
     "ipynb/executed/parametric_study_ns3dstrat/*",
+    "examples/forcing_anisotropic_3d/toro2022/*",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -133,7 +134,11 @@ release = fluidsim.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "examples/clusters/*"]
+exclude_patterns = [
+    "_build",
+    "examples/clusters/*",
+    "examples/forcing_anisotropic_3d/toro2022/*",
+]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

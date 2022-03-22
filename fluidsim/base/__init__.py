@@ -18,12 +18,4 @@ Provides:
    preprocess
    sphericalharmo
 
-Third party solver interfaces:
-
-.. autosummary::
-   :toctree:
-
-   basilisk
-   dedalus
-
 """

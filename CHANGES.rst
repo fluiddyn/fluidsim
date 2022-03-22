@@ -25,6 +25,15 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...branch%2Fdefault
 
+* `!289 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/289>`__
+
+  - File ``is_being_advanced.lock`` in the result directory during the runs
+  - Better handling of signals (``SIGINT``, ``SIGTERM`` and ``SIGUSR2``)
+  - ``fluidsim-restart`` supports idempotent jobs (OAR scheduler)
+  - :func:`fluidsim.util.get_dataframe_from_paths` using ``sim.output.get_mean_values``
+  - :func:`fluidsim.util.get_last_estimated_remaining_duration`
+  - ``sim.output.spatiotemporal_spectra.get_spectra``
+
 0.6.0_ (2022-02-07)
 -------------------
 

@@ -8,7 +8,7 @@ Solver ns2d.strat
 
 # To do by hand:
 1. Go to directory of the first simulation
-2. `from fluidsim.util.util import modif_resolution_from_dir`
+2. `from fluidsim.util import modif_resolution_from_dir`
 3. `modif_resolution_from_dir(coef_modif_resol=3/2)`
 4. Change path in `coeff_diss.py`
 """

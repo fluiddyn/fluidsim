@@ -80,7 +80,7 @@ except TypeError:
     # to be able to import for transonic
     path_dir_results = None
 
-from .util.util import (
+from .util import (
     available_solver_keys,
     import_module_solver_from_key,
     import_simul_class_from_key,
@@ -90,6 +90,7 @@ from .util.util import (
     modif_resolution_all_dir,
     modif_resolution_from_dir_memory_efficient,
     load_for_restart,
+    load_params_simul,
 )
 
 from .base.params import load_params_simul

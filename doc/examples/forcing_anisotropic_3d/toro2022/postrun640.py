@@ -17,8 +17,7 @@ rsync -rvz /fsnet/project/meige/2022/22STRATURBANIS/init_occigen augier@occigen.
 
 from pathlib import Path
 from shutil import copyfile
-from fluidsim.util import times_start_last_from_path
-from fluidsim.util.util import load_params_simul
+from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 t_end = 30.0

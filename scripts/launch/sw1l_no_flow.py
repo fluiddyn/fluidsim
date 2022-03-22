@@ -4,7 +4,7 @@
 
 from math import pi
 from fluidsim.solvers.sw1l.solver import Simul
-from fluidsim.util.util import mpi
+from fluidsim.util import mpi
 
 params = Simul.create_default_params()
 
