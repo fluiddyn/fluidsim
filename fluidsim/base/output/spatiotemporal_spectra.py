@@ -26,6 +26,7 @@ import numpy as np
 from scipy import signal
 import h5py
 from rich.progress import Progress
+from fluidsim.util import ensure_radians
 
 from fluiddyn.util import mpi
 from fluidsim.util import open_patient
@@ -1223,6 +1224,8 @@ class SpatioTemporalSpectraNS:
         key_field=None,
         tmin=0,
         tmax=None,
+        xlim=None,
+        ylim=None,
         dtype=None,
         xscale="log",
         coef_compensate=0,
@@ -1347,7 +1350,7 @@ class SpatioTemporalSpectraNS:
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
             scaling_y = EK_N * omegas_scaling ** (-2 + coef_compensate)
 
-            ax.plot(omegas_scaling, scaling_y, "k--")
+            ax.plot(omegas_scaling, scaling_y, "k--", label=r"$\omega^{-2}$")
 
             # eye guide at N
             ax.axvline(1, linestyle="dotted")
@@ -1362,7 +1365,31 @@ class SpatioTemporalSpectraNS:
                     omega_f = 2 * pi / period
                 ax.axvline(omega_f / N, linestyle="dotted")
 
+            elif forcing_type == "tcrandom_anisotropic":
+                angle = ensure_radians(self.params.forcing.tcrandom_anisotropic.angle)
+                tmp = self.params.forcing.tcrandom_anisotropic
+                try:
+                    delta_angle = tmp.delta_angle
+                except AttributeError:
+                    # loading old simul with delta_angle
+                    delta_angle = 0.0
+                else:
+                    delta_angle = ensure_radians(delta_angle)
+                
+                omega_fmin = N * np.sin(angle - 0.5 * delta_angle)
+                omega_fmax = N * np.sin(angle + 0.5 * delta_angle)
+                omegas_f = np.logspace(-3, 3, 100)
+
+                ax.fill_between(omegas_f, 0, 1, where=np.logical_and(omegas_f > omega_fmin/N, omegas_f < omega_fmax/N), alpha=0.5)  
+                ax.text(0.5 * (omega_fmin + omega_fmax)/N, 1e-3, r"$\omega_{f}/N$", ha="center", va="center", size=10)
+
             ax.set_xlabel(r"$\omega/N$")
+
+            if xlim is not None:
+                ax.set_xlim(xlim)
+
+            if ylim is not None:
+                ax.set_ylim(ylim)
 
             ax.legend()
 

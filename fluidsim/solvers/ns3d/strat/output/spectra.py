@@ -292,13 +292,13 @@ class SpectraNS3DStrat(SpectraNS3D):
 
                 if "x" in directions:
                     ax.fill_between(Kx, 0, 1, where=np.logical_and(Kx > khmin_forcing, Kx < khmax_forcing), facecolor='gray', alpha=0.5)  
-                    ax.text(0.45 * (khmin_forcing + khmax_forcing), 1e-7, "x forcing", ha="center", va="center", size=10)
+                    ax.text(0.5 * (khmin_forcing + khmax_forcing), 1e-7, r"$k_{f,x}$", ha="center", va="center", size=10)
                 if "y" in directions:
                     ax.fill_between(Ky, 0, 1, where=np.logical_and(Ky > khmin_forcing, Ky < khmax_forcing), facecolor='gray', alpha=0.5)
-                    ax.text(0.45 * (khmin_forcing + khmax_forcing), 1e-7, "y forcing", ha="center", va="center", size=10)
+                    ax.text(0.5 * (khmin_forcing + khmax_forcing), 1e-7, r"$k_{f,y}$", ha="center", va="center", size=10)
                 if "x" in directions:
-                    ax.fill_between(Kz, 0, 1, where=np.logical_and(Kz > kvmin_forcing, Kz < kvmax_forcing), facecolor='gray', alpha=0.5)  
-                    ax.text(0.45 * (kvmin_forcing + kvmax_forcing), 1e-7, "z forcing", ha="center", va="center", size=10)
+                    ax.fill_between(Kz, 0, 1, where=np.logical_and(Kz > kvmin_forcing, Kz < kvmax_forcing), facecolor='silver', alpha=0.5)  
+                    ax.text(0.5 * (kvmin_forcing + kvmax_forcing), 1e-7, r"$k_{f,z}$", ha="center", va="center", size=10)
             else:
                 raise NotImplementedError
 
