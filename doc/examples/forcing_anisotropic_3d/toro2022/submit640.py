@@ -15,7 +15,7 @@ from time import sleep
 from itertools import product
 
 from fluiddyn.clusters.legi import Calcul8 as C
-from fluiddyn.clusters.oar import get_job_id
+from fluiddyn.clusters.oar import get_job_id, get_job_info
 from fluidsim.util import (
     times_start_last_from_path,
     get_last_estimated_remaining_duration,
@@ -147,8 +147,10 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
         print(f"{path.name}: {t_last = }, {estimated_remaining_duration = }")
 
         if get_job_id(name_run) is not None:
+            info = get_job_info(name_run)
             print(
-                "  Nothing to do because the idempotent job is already launched"
+                "  Nothing to do because the idempotent job is already launched "
+                f"(job {info['id']}, {info['status']}, {info['duration']} / {info['walltime']})"
             )
             continue
 
