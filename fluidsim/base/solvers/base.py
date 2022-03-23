@@ -17,6 +17,7 @@ import atexit
 from pathlib import Path
 from warnings import warn
 import signal
+import os
 
 import numpy as np
 
@@ -143,7 +144,7 @@ nu_2: float (default = 0.)
                 )
             else:
                 with open(self._lockfile, "w") as file:
-                    file.write(time_as_str())
+                    file.write(time_as_str() + f"\n{os.getpid()}\n")
 
             def release_lock():
                 if self._lockfile.exists():
