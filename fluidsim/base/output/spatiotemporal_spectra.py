@@ -1355,6 +1355,12 @@ class SpatioTemporalSpectraNS:
             # eye guide at N
             ax.axvline(1, linestyle="dotted")
 
+            if xlim is not None:
+                ax.set_xlim(xlim)
+
+            if ylim is not None:
+                ax.set_ylim(ylim)
+
             # eye guide at omega_f (specific to some forcing types)
             forcing_type = self.sim.params.forcing.type
             if forcing_type in ["watu_coriolis", "milestone"]:
@@ -1366,30 +1372,33 @@ class SpatioTemporalSpectraNS:
                 ax.axvline(omega_f / N, linestyle="dotted")
 
             elif forcing_type == "tcrandom_anisotropic":
+                ymin, ymax = ax.get_ybound()
+                factor = 2
                 angle = ensure_radians(self.params.forcing.tcrandom_anisotropic.angle)
                 tmp = self.params.forcing.tcrandom_anisotropic
                 try:
                     delta_angle = tmp.delta_angle
                 except AttributeError:
                     # loading old simul with delta_angle
-                    delta_angle = 0.0
+                    delta_angle = None
+                    omega_f = N * np.sin(angle)
+                    ax.axvline(omega_f / N, linestyle="dotted")
+                    ax.text(omega_f/N, factor * ymin, r"$\omega_{f}/N$", ha="center", va="center", size=10)
                 else:
                     delta_angle = ensure_radians(delta_angle)
-                
-                omega_fmin = N * np.sin(angle - 0.5 * delta_angle)
-                omega_fmax = N * np.sin(angle + 0.5 * delta_angle)
-                omegas_f = np.logspace(-3, 3, 100)
+                    omega_fmin = N * np.sin(angle - 0.5 * delta_angle)
+                    omega_fmax = N * np.sin(angle + 0.5 * delta_angle)
+                    omegas_f = N * np.logspace(-3, 3, 1000)
 
-                ax.fill_between(omegas_f, 0, 1e1, where=np.logical_and(omegas_f > omega_fmin/N, omegas_f < omega_fmax/N), alpha=0.5)  
-                ax.text(0.5 * (omega_fmin + omega_fmax)/N, 2e-6, r"$\omega_{f}/N$", ha="center", va="center", size=10)
+                    mpi.printby0(omega_fmin, omega_fmax)
+
+                    ax.fill_between(omegas_f/N, ymin, ymax, where=np.logical_and(omegas_f/N > omega_fmin/N, omegas_f/N < omega_fmax/N), alpha=0.5)  
+                    ax.text(0.5 * (omega_fmin + omega_fmax)/N, factor * ymin, r"$\omega_{f}/N$", ha="center", va="center", size=10)
+
+                
+                
 
             ax.set_xlabel(r"$\omega/N$")
-
-            if xlim is not None:
-                ax.set_xlim(xlim)
-
-            if ylim is not None:
-                ax.set_ylim(ylim)
 
             ax.legend()
 

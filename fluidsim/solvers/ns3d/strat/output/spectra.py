@@ -7,10 +7,8 @@
 
 """
 
-from cmath import inf, pi
 import numpy as np
 import h5py
-from fluidsim.util import ensure_radians
 
 from fluidsim.solvers.ns3d.output.spectra import (
     SpectraNS3D,
@@ -221,114 +219,5 @@ class SpectraNS3DStrat(SpectraNS3D):
         )
         ax.set_xscale("log")
         fig.legend()
-
-    def plot1d(
-        self,
-        tmin=0,
-        tmax=None,
-        coef_compensate=0,
-        coef_plot_k3=None,
-        coef_plot_k53=None,
-        coef_plot_k2=None,
-        xlim=None,
-        ylim=None,
-        directions=("x", "z"),
-        plot_forcing_region=False,
-        plot_dissipative_scales=False,
-    ):
-
-        ax = self._plot_ndim(
-            tmin,
-            tmax,
-            coef_compensate=coef_compensate,
-            coef_plot_k3=coef_plot_k3,
-            coef_plot_k53=coef_plot_k53,
-            coef_plot_k2=coef_plot_k2,
-            xlim=xlim,
-            ylim=ylim,
-            ndim=1,
-            directions=directions,
-        )
-
-        if plot_forcing_region:
-
-            # TODO: Check if we always have Kx = k1 , ... or not
-            # TODO: Here I rewrite partially the code in plot_forcing_region(), but there may be a better way to do 
-            Kx = self.oper.k1
-            Ky = self.oper.k2
-            Kz = self.oper.k0
-
-            ymin, ymax = ax.get_ybound()
-            
-            if self.params.forcing.type == "tcrandom_anisotropic":
-                angle = ensure_radians(self.params.forcing.tcrandom_anisotropic.angle)
-
-                kf_min = self.params.forcing.nkmin_forcing * self.oper.deltak
-                kf_max = self.params.forcing.nkmax_forcing * self.oper.deltak
-
-                tmp = self.params.forcing.tcrandom_anisotropic
-                try:
-                    delta_angle = tmp.delta_angle
-                except AttributeError:
-                    # loading old simul with delta_angle
-                    delta_angle = None
-                else:
-                    delta_angle = ensure_radians(delta_angle)
-
-                if delta_angle is None:
-                    khmax_forcing = np.sin(angle) * kf_max
-                    kvmax_forcing = np.cos(angle) * kf_max
-                else:
-                    khmin_forcing = (
-                        np.sin(angle - 0.5 * delta_angle) * kf_min
-                    )
-                    kvmin_forcing = (
-                        np.cos(angle + 0.5 * delta_angle) * kf_min
-                    )
-                    khmax_forcing = (
-                        np.sin(angle + 0.5 * delta_angle) * kf_max
-                    )
-                    kvmax_forcing = (
-                        np.cos(angle - 0.5 * delta_angle) * kf_max
-                    )
-                
-                khmean_forcing = 0.5 * (khmin_forcing + khmax_forcing)
-                kvmean_forcing = 0.5 * (kvmin_forcing + kvmax_forcing)
-
-                factor=2
-
-                if "x" in directions:
-                    ax.fill_between(Kx, ymin, ymax, where=np.logical_and(Kx > khmin_forcing, Kx < khmax_forcing), facecolor='gray', alpha=0.5)  
-                    ax.text(khmean_forcing, factor * ymin, r"$k_{f,x}$", ha="center", va="center", size=10)
-                if "y" in directions:
-                    ax.fill_between(Ky, ymin, ymax, where=np.logical_and(Ky > khmin_forcing, Ky < khmax_forcing), facecolor='gray', alpha=0.5)
-                    ax.text(khmean_forcing, factor * ymin, r"$k_{f,y}$", ha="center", va="center", size=10)
-                if "x" in directions:
-                    ax.fill_between(Kz, ymin, ymax, where=np.logical_and(Kz > kvmin_forcing, Kz < kvmax_forcing), facecolor='silver', alpha=0.5)  
-                    ax.text(kvmean_forcing, factor * ymin, r"$k_{f,z}$", ha="center", va="center", size=10)
-            else:
-                raise NotImplementedError
-
-        if plot_dissipative_scales:
-            nu_2 = self.params.nu_2
-            nu_4 = self.params.nu_4
-            nu_8 = self.params.nu_8
-            Pf = self.params.forcing.forcing_rate
-            if nu_2 is not None and nu_2 != 0.0:
-                eta_2 = (nu_2 / (Pf ** (1./3.))) ** (3./4.)
-                kd_2 = 1./eta_2
-                ax.axvline(x=kd_2, color='k')
-                ax.text(1.1 * kd_2, factor * ymin, r"$k_{d2}$", ha="left", va="center", size=10)
-            if nu_4 is not None and nu_4 != 0.0:
-                eta_4 = (nu_4 / (Pf ** (1./3.))) ** (3./10.)
-                kd_4 = 1./eta_4
-                ax.axvline(x=kd_4, color='k')
-                ax.text(1.1 * kd_4, factor * ymin, r"$k_{d4}$", ha="left", va="center", size=10)
-            if nu_8 is not None and nu_8 != 0.0:
-                eta_8 = (nu_8 / (Pf ** (1./3.))) ** (3./22.)
-                kd_8 = 1./eta_8
-                ax.axvline(x=kd_8, color='k')
-                ax.text(1.1 * kd_8, factor * ymin, r"$k_{d8}$", ha="left", va="center", size=10)
-
 
             
