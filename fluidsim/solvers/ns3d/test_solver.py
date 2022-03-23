@@ -385,10 +385,14 @@ class TestOutput(TestSimulBase):
 
         plt.close("all")
 
-        df = get_dataframe_from_paths([sim.output.path_run])
+        def customize(result, sim):
+            result["foo"] = len(sim.output.path_run)
+
+        df = get_dataframe_from_paths([sim.output.path_run], customize=customize)
         df.I_velocity
         df.I_dissipation
-        sim.output.get_mean_values()
+        assert df.loc[0, "foo"] > 0
+        sim.output.get_mean_values(customize=customize)
 
 
 class TestInitInScript(TestSimulBase):

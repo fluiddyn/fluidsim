@@ -29,6 +29,8 @@ import numbers
 from copy import copy
 from warnings import warn
 import json
+import hashlib
+import inspect
 
 import numpy as np
 import h5py
@@ -423,24 +425,71 @@ are called.
             mem = mpi.comm.allreduce(mem, op=mpi.MPI.SUM)
         self.print_stdout(string.ljust(30) + f": {mem} Mo")
 
-    def get_mean_values(self, tmin=None, tmax=None, use_cache=True):
+    def get_mean_values(
+        self, tmin=None, tmax=None, use_cache=True, customize=None
+    ):
+        """Get a dict of scalar values characterizing the simulation
+
+        Parameters
+        ----------
+
+        tmin: float
+          Minimum time
+
+        tmax: float
+          Maximum time
+
+        use_cache: bool
+          If True, return the cached result
+
+        customize: callable
+
+          If not None, called as ``customize(result, self.sim)`` to modify the
+          returned dict.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            def customize(result, sim):
+                result["Rb"] = float(sim.params.short_name_type_run.split("_Rb")[-1])
+            sim.output.get_mean_values(customize=customize)
+
+        """
 
         if tmin is None:
             t_start, _ = self.print_stdout.get_times_start_last()
-            tmin = t_start + 1
+            tmin = t_start
+        tmin = float(tmin)
 
         if tmax is None:
             t_last = self.spatial_means.time_last_saved()
             tmax = t_last
+        tmax = float(tmax)
 
         cache_dir = Path(self.path_run) / ".cache"
         cache_dir.mkdir(exist_ok=True)
-        cache_file = cache_dir / "mean_values_tmin{tmin}_tmax{tmax}.json"
+
+        if customize is not None:
+            hash = hashlib.sha256(
+                inspect.getsource(customize).encode()
+            ).hexdigest()[:16]
+            part_customize = f"_customize{hash}"
+        else:
+            part_customize = ""
+
+        cache_file = cache_dir / (
+            f"mean_values_tmin{tmin}_tmax{tmax}{part_customize}.json"
+        )
         if use_cache and cache_file.exists():
             with open(cache_file, "r") as file:
                 return json.load(file)
 
         result = self._compute_mean_values(tmin, tmax)
+        if customize is not None:
+            customize(result, self.sim)
+
         with open(cache_file, "w") as file:
             json.dump(result, file, indent=2)
         return result

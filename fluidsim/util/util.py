@@ -750,7 +750,9 @@ def ensure_radians(angle):
     return angle
 
 
-def get_dataframe_from_paths(paths, tmin=None, tmax=None, use_cache=True):
+def get_dataframe_from_paths(
+    paths, tmin=None, tmax=None, use_cache=True, customize=None
+):
     """Produce a dataframe from a set of simulations.
 
     Uses `sim.output.get_mean_values`
@@ -762,7 +764,9 @@ def get_dataframe_from_paths(paths, tmin=None, tmax=None, use_cache=True):
     values = []
     for path in track(paths, "Getting the mean values"):
         sim = load_sim_for_plot(path, hide_stdout=True)
-        values.append(sim.output.get_mean_values(tmin, tmax, use_cache))
+        values.append(
+            sim.output.get_mean_values(tmin, tmax, use_cache, customize)
+        )
 
     df = DataFrame(values)
 
