@@ -246,7 +246,7 @@ kz_negative_enable: bool
         kvmin_forcing = self.kvmin_forcing
         kvmax_forcing = self.kvmax_forcing
         kf_min = self.kmin_forcing
-        kf_max = self.kmax_forcing  
+        kf_max = self.kmax_forcing
 
         tmp = self.params.forcing.tcrandom_anisotropic
         try:
@@ -287,7 +287,7 @@ kz_negative_enable: bool
             + "; "
             + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
             + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
-            + '\n'
+            + "\n"
             + r"$\theta_f = {:.0f}^\circ$; ".format(degrees(self.angle))
             + rf"Forced modes = {self.nb_forced_modes}"
         )
@@ -359,7 +359,7 @@ kz_negative_enable: bool
                     xy=(0, 0),
                     width=(kf_min + kf_max),
                     height=(kf_min + kf_max),
-                    angle=0, 
+                    angle=0,
                     theta1=90.0 - degrees(self.angle),
                     theta2=90.0,
                     linestyle="dotted",
@@ -460,8 +460,12 @@ kz_negative_enable: bool
 
             # Location label angle \theta
             factor = 1.1
-            loc_label_y = (kf_min + kf_max) * 0.5 * np.cos(self.angle * 0.5) * factor
-            loc_label_x = (kf_min + kf_max) * 0.5 * np.sin(self.angle * 0.5) * factor
+            loc_label_y = (
+                (kf_min + kf_max) * 0.5 * np.cos(self.angle * 0.5) * factor
+            )
+            loc_label_x = (
+                (kf_min + kf_max) * 0.5 * np.sin(self.angle * 0.5) * factor
+            )
 
             ax.text(loc_label_x, loc_label_y, r"$\theta_f$")
 

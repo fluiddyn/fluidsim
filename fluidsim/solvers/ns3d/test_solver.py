@@ -201,6 +201,7 @@ class TestOutput(TestSimulBase):
                 coef_plot_k53=1.0,
                 xlim=(0.1, 1),
                 ylim=(0.1, 1),
+                plot_dissipative_scales=True,
             )
             sim2.output.spectra.plot1d_times(
                 tmin=0.1,
@@ -380,7 +381,7 @@ class TestOutput(TestSimulBase):
 
         sim3.output.spatiotemporal_spectra.plot_temporal_spectra()
         sim3.output.spatiotemporal_spectra.plot_kzkhomega(
-            key_field="Khr", equation="kh=1"
+            key_field="Khr", equation="kh=1", plot_omega_emp=True
         )
 
         plt.close("all")
@@ -502,6 +503,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
         params.forcing.tcrandom_anisotropic.delta_angle = None
         params.projection = "poloidal"
         params.forcing.key_forced = "vt_fft"
+        params.output.periods_save.spectra = 0.1
 
     def test_forcing(self):
         sim = self.sim
@@ -509,6 +511,19 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3DBis(
             sim.forcing.forcing_maker.plot_forcing_region()
         sim.time_stepping.start()
         sim.state.check_energy_equal_phys_spect()
+
+        if mpi.nb_proc > 1:
+            return
+
+        sim.output.spectra.plot1d(
+            coef_plot_k2=1.0,
+            coef_plot_k3=1.0,
+            coef_plot_k53=1.0,
+            xlim=(0.1, 1),
+            ylim=(0.1, 1),
+            plot_forcing_region=True,
+            plot_dissipative_scales=True,
+        )
 
 
 class TestForcingWatuCoriolis(TestSimulBase):

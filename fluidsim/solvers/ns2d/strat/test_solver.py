@@ -360,7 +360,7 @@ class TestForcingOutput(TestSimulBase):
             key_field="ux", equation="kz=1"
         )
         sim2.output.spatiotemporal_spectra.plot_kzkhomega(
-            key_field="ux", equation="ikh=1"
+            key_field="ux", equation="ikh=1", plot_omega_emp=True
         )
         sim2.output.spatiotemporal_spectra.plot_kzkhomega(
             key_field="ux", equation="ikz=1"

@@ -1,8 +1,9 @@
-import h5py
+from functools import partial
 
 import numpy as np
 import matplotlib as mpl
-from cmath import inf, pi
+import h5py
+
 from fluidsim.util import ensure_radians
 
 from fluidsim.base.output.spectra3d import Spectra
@@ -302,18 +303,20 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             directions=directions,
         )
 
+        factor = 2
+        ymin, ymax = ax.get_ybound()
+
         if plot_forcing_region:
 
-            # TODO: Check if we always have Kx = k1 , ... or not
-            # TODO: Here I rewrite partially the code in plot_forcing_region(), but there may be a better way to do 
-            Kx = self.oper.k1
-            Ky = self.oper.k2
-            Kz = self.oper.k0
+            with h5py.File(self.path_file1d, "r") as h5file:
+                kx = h5file["kx"][...]
+                ky = h5file["ky"][...]
+                kz = h5file["kz"][...]
 
-            ymin, ymax = ax.get_ybound()
-            
             if self.params.forcing.type == "tcrandom_anisotropic":
-                angle = ensure_radians(self.params.forcing.tcrandom_anisotropic.angle)
+                angle = ensure_radians(
+                    self.params.forcing.tcrandom_anisotropic.angle
+                )
 
                 kf_min = self.params.forcing.nkmin_forcing * self.oper.deltak
                 kf_max = self.params.forcing.nkmax_forcing * self.oper.deltak
@@ -328,36 +331,36 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
                     delta_angle = ensure_radians(delta_angle)
 
                 if delta_angle is None:
+                    khmin_forcing = np.sin(angle) * kf_min
+                    kvmin_forcing = np.cos(angle) * kf_min
                     khmax_forcing = np.sin(angle) * kf_max
                     kvmax_forcing = np.cos(angle) * kf_max
                 else:
-                    khmin_forcing = (
-                        np.sin(angle - 0.5 * delta_angle) * kf_min
-                    )
-                    kvmin_forcing = (
-                        np.cos(angle + 0.5 * delta_angle) * kf_min
-                    )
-                    khmax_forcing = (
-                        np.sin(angle + 0.5 * delta_angle) * kf_max
-                    )
-                    kvmax_forcing = (
-                        np.cos(angle - 0.5 * delta_angle) * kf_max
-                    )
-                
+                    khmin_forcing = np.sin(angle - 0.5 * delta_angle) * kf_min
+                    kvmin_forcing = np.cos(angle + 0.5 * delta_angle) * kf_min
+                    khmax_forcing = np.sin(angle + 0.5 * delta_angle) * kf_max
+                    kvmax_forcing = np.cos(angle - 0.5 * delta_angle) * kf_max
+
                 khmean_forcing = 0.5 * (khmin_forcing + khmax_forcing)
                 kvmean_forcing = 0.5 * (kvmin_forcing + kvmax_forcing)
 
-                factor = 2
+                fill_between = partial(
+                    ax.fill_between, facecolor="gray", alpha=0.5
+                )
+                text = partial(ax.text, ha="center", va="center", size=10)
 
                 if "x" in directions:
-                    ax.fill_between(Kx, ymin, ymax, where=np.logical_and(Kx > khmin_forcing, Kx < khmax_forcing), facecolor='gray', alpha=0.5)  
-                    ax.text(khmean_forcing, factor * ymin, r"$k_{f,x}$", ha="center", va="center", size=10)
+                    where = (kx > khmin_forcing) & (kx < khmax_forcing)
+                    fill_between(kx, ymin, ymax, where=where)
+                    text(khmean_forcing, factor * ymin, r"$k_{f,x}$")
                 if "y" in directions:
-                    ax.fill_between(Ky, ymin, ymax, where=np.logical_and(Ky > khmin_forcing, Ky < khmax_forcing), facecolor='gray', alpha=0.5)
-                    ax.text(khmean_forcing, factor * ymin, r"$k_{f,y}$", ha="center", va="center", size=10)
-                if "x" in directions:
-                    ax.fill_between(Kz, ymin, ymax, where=np.logical_and(Kz > kvmin_forcing, Kz < kvmax_forcing), facecolor='silver', alpha=0.5)  
-                    ax.text(kvmean_forcing, factor * ymin, r"$k_{f,z}$", ha="center", va="center", size=10)
+                    where = (ky > khmin_forcing) & (ky < khmax_forcing)
+                    fill_between(ky, ymin, ymax, where=where)
+                    text(khmean_forcing, factor * ymin, r"$k_{f,y}$")
+                if "z" in directions:
+                    where = (kz > kvmin_forcing) & (kz < kvmax_forcing)
+                    fill_between(kz, ymin, ymax, where=where)
+                    text(kvmean_forcing, factor * ymin, r"$k_{f,z}$")
             else:
                 raise NotImplementedError
 
@@ -365,23 +368,26 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             nu_2 = self.params.nu_2
             nu_4 = self.params.nu_4
             nu_8 = self.params.nu_8
+            # warning: this wrongly assumes that it is an energy forcing rate
             Pf = self.params.forcing.forcing_rate
-            if nu_2 is not None and nu_2 != 0.0:
-                eta_2 = (nu_2 / (Pf ** (1./3.))) ** (3./4.)
-                kd_2 = 1./eta_2
-                ax.axvline(x=kd_2, color='k')
-                ax.text(1.1 * kd_2, factor * ymin, r"$k_{d2}$", ha="left", va="center", size=10)
-            if nu_4 is not None and nu_4 != 0.0:
-                eta_4 = (nu_4 / (Pf ** (1./3.))) ** (3./10.)
-                kd_4 = 1./eta_4
-                ax.axvline(x=kd_4, color='k')
-                ax.text(1.1 * kd_4, factor * ymin, r"$k_{d4}$", ha="left", va="center", size=10)
-            if nu_8 is not None and nu_8 != 0.0:
-                eta_8 = (nu_8 / (Pf ** (1./3.))) ** (3./22.)
-                kd_8 = 1./eta_8
-                ax.axvline(x=kd_8, color='k')
-                ax.text(1.1 * kd_8, factor * ymin, r"$k_{d8}$", ha="left", va="center", size=10)
 
+            text = partial(ax.text, ha="left", va="center", size=10)
+
+            if nu_2 is not None and nu_2 != 0.0:
+                eta_2 = (nu_2 / (Pf ** (1.0 / 3.0))) ** (3.0 / 4.0)
+                kd_2 = 1.0 / eta_2
+                ax.axvline(x=kd_2, color="k")
+                text(1.1 * kd_2, factor * ymin, r"$k_{d2}$")
+            if nu_4 is not None and nu_4 != 0.0:
+                eta_4 = (nu_4 / (Pf ** (1.0 / 3.0))) ** (3.0 / 10.0)
+                kd_4 = 1.0 / eta_4
+                ax.axvline(x=kd_4, color="k")
+                text(1.1 * kd_4, factor * ymin, r"$k_{d4}$")
+            if nu_8 is not None and nu_8 != 0.0:
+                eta_8 = (nu_8 / (Pf ** (1.0 / 3.0))) ** (3.0 / 22.0)
+                kd_8 = 1.0 / eta_8
+                ax.axvline(x=kd_8, color="k")
+                text(1.1 * kd_8, factor * ymin, r"$k_{d8}$")
 
     def plot3d(
         self,
@@ -505,7 +511,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             ax.set_ylim(ylim)
 
         if ndim == 1:
-            ax.legend(loc='lower left')
+            ax.legend(loc="lower left")
 
         return ax
 

@@ -219,5 +219,3 @@ class SpectraNS3DStrat(SpectraNS3D):
         )
         ax.set_xscale("log")
         fig.legend()
-
-            
