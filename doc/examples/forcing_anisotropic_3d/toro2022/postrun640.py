@@ -1,4 +1,11 @@
 """
+Needs some memory:
+
+```
+oarsub -I -l "{cluster='calcul2'}/nodes=1/core=10"
+conda activate env_fluidsim
+python postrun640.py
+```
 
 For each finished simulations:
 
@@ -17,6 +24,9 @@ rsync -rvz /fsnet/project/meige/2022/22STRATURBANIS/init_occigen augier@occigen.
 
 from pathlib import Path
 from shutil import copyfile
+
+import papermill as pm
+
 from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
@@ -47,7 +57,7 @@ for path in paths:
     path_new = path_init / path_to_copy.name
 
     if not path_new.exists():
-        print("copying in {path_new}")
+        print(f"copying in {path_new}")
         copyfile(path_to_copy, path_new)
 
     # delete some useless restart files
@@ -63,3 +73,12 @@ for path in paths:
     # compute spatiotemporal spectra
     sim = load(path)
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
+
+    # TODO: better place, better name
+    path_out = path / "analyze_1simul.ipynb"
+    if not path_out.exists():
+        pm.execute_notebook(
+            "analyse_1simul.ipynb",
+            path_out,
+            parameters=dict(path_dir=str(path)),
+        )
