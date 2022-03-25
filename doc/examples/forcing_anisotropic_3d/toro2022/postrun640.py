@@ -7,10 +7,10 @@ conda activate env_fluidsim
 python postrun640.py
 ```
 
-For each finished simulations:
+For each finished simulation:
 
-- clean up the directory
-- prepare a directory with initial states for simulations on Occigen
+1. clean up the directory
+2. prepare a directory with initial states for simulations on Occigen
 
 This directory can be synchronized on Occigen with:
 
@@ -18,15 +18,19 @@ This directory can be synchronized on Occigen with:
 rsync -rvz /fsnet/project/meige/2022/22STRATURBANIS/init_occigen augier@occigen.cines.fr:/scratch/cnt0022/egi2153/augier/2022/aniso
 ```
 
-- compute the spatiotemporal spectra
+3. compute the spatiotemporal spectra
+
+4. execute and save a notebook analyzing the simulation
 
 """
 
 from pathlib import Path
 from shutil import copyfile
+import re
 
 import papermill as pm
 
+from fluiddyn.util import modification_date
 from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
@@ -36,6 +40,9 @@ t_statio = 21.0
 deltat = 0.1
 
 path_base = Path("/fsnet/project/meige/2022/22STRATURBANIS")
+
+path_output_papermill = path_base / "results_papermill"
+path_output_papermill.mkdir(exist_ok=True)
 
 path_init_occigen = path_base / "init_occigen"
 path_init_occigen.mkdir(exist_ok=True)
@@ -74,11 +81,26 @@ for path in paths:
     sim = load(path)
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
-    # TODO: better place, better name
-    path_out = path / "analyze_1simul.ipynb"
-    if not path_out.exists():
+    N = float(sim.params.N)
+    nx = sim.params.oper.nx
+    Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
+
+    path_in = "analyse_1simul_papermill.ipynb"
+    path_out = (
+        path_output_papermill
+        / f"analyze_N{N:05.2f}_Rb{Rb:03.0f}_nx{nx:04d}.ipynb"
+    )
+
+    date_in = modification_date(path_in)
+    try:
+        date_out = modification_date(path_out)
+    except FileNotFoundError:
+        has_to_run = True
+    else:
+        has_to_run = date_in > date_out
+
+    if has_to_run:
         pm.execute_notebook(
-            "analyse_1simul.ipynb",
-            path_out,
-            parameters=dict(path_dir=str(path)),
+            path_in, path_out, parameters=dict(path_dir=str(path))
         )
+        print(f"{path_out} saved")
