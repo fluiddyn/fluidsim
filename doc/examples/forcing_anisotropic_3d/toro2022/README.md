@@ -50,13 +50,13 @@ The resolution is doubled in all direction (8 times more grid points) and the hy
 
 These simulations are done on a LEGI cluster (calcul8) on 10 cores. They last from ~2 day (480 h.CPU) to 10 days (2400 h.CPU).
 
-## nh = 960 (t_end = 40)
+## nh = 896 (t_end = 40)
 
-The resolution is multiplied by 3/2 and the hyperviscosity in decreased by 3.86.
+The resolution is multiplied by 1.4 and the hyperviscosity in decreased by 3.07.
 
 | N | 10          | 20          | 40          |
 |---|-------------|-------------|-------------|
-|   | 960x960x480 | 960x960x240 | 960x960x120 |
+|   | 896x896x448 | 896x896x224 | 896x896x112 |
 
 We just need 8 simulations for
 
@@ -64,9 +64,7 @@ We just need 8 simulations for
 - N = 20, Rb = 20, 40, 80
 - N = 40, Rb = 10, 20, 40
 
-The simulations for N = 40 have to be done on 1 node (20 cores) on the Occigen cluster.
-
-For N = 20 and 10, one can use 2 nodes (40 cores).
+The simulations can be carried out on 4 nodes (28*4 = 112 cores) on the Occigen cluster.
 
 ## nh = 1280 (t_end = 44?)
 
