@@ -1,11 +1,7 @@
-import sys
 
-from fluidsim import FLUIDSIM_PATH
-from fluidoccigen import cluster, Occigen
+from fluidoccigen import cluster
 
-
-# cluster
 job_id = 11939832
-nb_jobs_added = 13
+nb_jobs_added = 1
 
 cluster.launch_more_dependant_jobs(job_id, nb_jobs_added, path_launcher=None)
