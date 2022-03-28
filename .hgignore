@@ -69,7 +69,7 @@ bench/FourierFlows/statprof/*
 **/oar_launcher_*
 
 **/SLURM*
-**/launcher_*.sh
+**/launcher_*.sh*
 
 site.cfg
 
