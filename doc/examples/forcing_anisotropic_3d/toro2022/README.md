@@ -58,11 +58,11 @@ The resolution is multiplied by 1.4 and the hyperviscosity in decreased by 3.07.
 |---|-------------|-------------|-------------|
 |   | 896x896x448 | 896x896x224 | 896x896x112 |
 
-We just need 8 simulations for
+We just need 9 simulations:
 
 - N = 10, Rb = 80 and 160
 - N = 20, Rb = 20, 40, 80
-- N = 40, Rb = 10, 20, 40
+- N = 40, Rb = 10, 20, 40, 80
 
 The simulations can be carried out on 4 nodes (28*4 = 112 cores) on the Occigen cluster.
 
