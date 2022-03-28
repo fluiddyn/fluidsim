@@ -101,10 +101,12 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
                     path_init.glob(f"State_phys_{nh}x{nh}*/state_phys_t*.h5")
                 )
 
+            period_spatiotemp = min(2 * pi / (N * 8), 0.03)
+
             command = (
                 f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
                 "--modify-params 'params.nu_4 /= 10; params.output.periods_save.phys_fields = 0.5; "
-                "params.output.periods_save.spatiotemporal_spectra = 2 * pi / (params.N * 4)'"
+                f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"
             )
 
             cluster.submit_command(

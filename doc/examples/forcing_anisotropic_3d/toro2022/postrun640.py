@@ -27,6 +27,7 @@ rsync -rvz /fsnet/project/meige/2022/22STRATURBANIS/init_occigen augier@occigen.
 from pathlib import Path
 from shutil import copyfile
 import re
+import subprocess
 
 import papermill as pm
 
@@ -78,7 +79,7 @@ for path in paths:
             path_file.unlink()
 
     # compute spatiotemporal spectra
-    sim = load(path)
+    sim = load(path, hide_stdout=True)
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
     N = float(sim.params.N)
@@ -86,10 +87,11 @@ for path in paths:
     Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
 
     path_in = "analyse_1simul_papermill.ipynb"
-    path_out = (
+    path_ipynb = path_out = (
         path_output_papermill
         / f"analyze_N{N:05.2f}_Rb{Rb:03.0f}_nx{nx:04d}.ipynb"
     )
+    path_pdf = path_ipynb.with_suffix(".pdf")
 
     date_in = modification_date(path_in)
     try:
@@ -104,3 +106,14 @@ for path in paths:
             path_in, path_out, parameters=dict(path_dir=str(path))
         )
         print(f"{path_out} saved")
+
+    date_in = modification_date(path_ipynb)
+    try:
+        date_out = modification_date(path_pdf)
+    except FileNotFoundError:
+        has_to_run = True
+    else:
+        has_to_run = date_in > date_out
+
+    if has_to_run:
+        p = subprocess.run(f"jupyter-nbconvert --to pdf {path_ipynb}".split(), check=True)
