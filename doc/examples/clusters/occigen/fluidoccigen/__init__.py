@@ -16,6 +16,13 @@ code_setup_env.append("conda activate env_" + USER)
 # code = "\n".join(code_setup_env)
 # print(code)
 
+# sbatch: error: You asked for HSW24 nodes which are no more available on
+# OCCIGEN since (3/1/2022). Ask BDW28 instead and eventually adapt you scripts to
+# submit new jobs. WARNING : no node exceed 64 GB now on the machine.
+
+Occigen.constraint = "BDW28"
+Occigen.nb_cores_per_node = 28
+
 try:
     cluster = Occigen()
 except ValueError as error:

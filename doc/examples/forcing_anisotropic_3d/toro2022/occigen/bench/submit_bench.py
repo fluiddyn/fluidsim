@@ -1,9 +1,6 @@
 from fluidoccigen import cluster
 
-# ask for 128Go memory
-cluster.commands_setting_env.insert(0, "#SBATCH --mem=118000")
-
-nh = 960
+nh = 896
 
 out_dir = "$SCRATCHDIR/2022bench"
 
