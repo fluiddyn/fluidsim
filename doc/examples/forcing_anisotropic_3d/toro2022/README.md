@@ -54,50 +54,51 @@ These simulations are done on a LEGI cluster (calcul8) on 10 cores. They last fr
 
 The resolution is multiplied by 1.4 and the hyperviscosity in decreased by 3.07.
 
-| N | 10          | 20          | 40          |
-|---|-------------|-------------|-------------|
-|   | 896x896x448 | 896x896x224 | 896x896x112 |
+| N            | 10            | 20            | 40             |
+|--------------|---------------|---------------|----------------|
+|              | 896x896x448   | 896x896x224   | 896x896x112    |
+| Rb           | 80, 160       | 20, 40, 80    | 10, 20, 40, 80 |
+| # nodes      | 4             | 4             | 4              |
+| # cores      | 112           | 112           | 112            |
+| fft lib      | fftw1d        | fftw1d        | fftw1d         |
+| time fft (s) | 0.19          | 0.11          | 0.06           |
+| time / simul | 5 days        | 2.5 days      | 1.25 day       |
+| h.CPU        | 27000         | 20000         | 13000          |
 
-We just need 9 simulations:
+This should cost something like 22.5 days * 112 cores = 60_000 h.CPU
 
-- N = 10, Rb = 80 and 160
-- N = 20, Rb = 20, 40, 80
-- N = 40, Rb = 10, 20, 40, 80
-
-The simulations can be carried out on 4 nodes (28*4 = 112 cores) on the Occigen cluster.
-
-## nh = 1280 (t_end = 44?)
-
-The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
-
-| N | 10            | 20            | 40            |
-|---|---------------|---------------|---------------|
-|   | 1280x1280x640 | 1280x1280x320 | 1280x1280x160 |
-
-- N = 10, Rb = 160
-- N = 20, Rb = 40, 80
-- N = 40, Rb = 10, 20, 40
-
-We should be able to run these simulations on 4 nodes (80 cores).
-
-## nh = 1920 (t_end = 48?)
+## nh = 1344 (t_end = 44?)
 
 The resolution is multiplied by 3/2 and the hyperviscosity in decreased by 3.86.
 
-| N | 20            | 40            |
-|---|---------------|---------------|
-|   | 1920x1920x480 | 1920x1920x240 |
+| N            | 10            | 20            | 40            |
+|--------------|---------------|---------------|---------------|
+|              | 1344x1344x672 | 1344x1344x336 | 1344x1344x168 |
+| Rb           | 160           | 40, 80        | 10, 20, 40    |
+| # nodes      | 8             | 4             | 8             |
+| fft lib      | fftw1d        | fftw1d        | p3dfft        |
+| time fft (s) | 0.33          | 0.31          | 0.11          |
 
-- N = 20, Rb = 40, 80
-- N = 40, Rb = 10, 20, 40
-
-## nh = 2560 (t_end = 50?)
+## nh = 1792 (t_end = 48?)
 
 The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
 
-| N | 20            | 40            |
-|---|---------------|---------------|
-|   | 2560x2560x480 | 2560x2560x320 |
+| N            | 20            | 40            |
+|--------------|---------------|---------------|
+|              | 1792x1792x448 | 1792x1792x224 |
+| Rb           | 40, 80        | 10, 20, 40    |
+| # nodes      | 16            | 16            |
+| fft lib      | fftw1d        | p3dfft        |
+| time fft (s) | 0.30          | 0.16          |
 
-- N = 20, Rb = 80
-- N = 40, Rb = 20, 40
+
+## nh = 2240 (t_end = 50?)
+
+The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
+
+| N       | 20            | 40            |
+|---------|---------------|---------------|
+|         | 2240x2240x560 | 2240x2240x280 |
+| Rb      | 80            | 20, 40        |
+| # nodes | 16            | 16            |
+| fft lib | ?             | ?             |

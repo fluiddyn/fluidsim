@@ -25,9 +25,10 @@ rsync -rvz /fsnet/project/meige/2022/22STRATURBANIS/init_occigen augier@occigen.
 """
 
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, rmtree
 import re
 import subprocess
+from itertools import product
 
 import papermill as pm
 
@@ -51,22 +52,23 @@ path_init_occigen.mkdir(exist_ok=True)
 paths = sorted(path_base.glob("aniso/ns3d*_toro_*_640x640x*"))
 
 
+def lprod(a, b):
+    return list(product(a, b))
+
+
+couples_for_occigen = set(
+    lprod([10], [80, 160])
+    + lprod([20], [20, 40, 80])
+    + lprod([40], [10, 20, 40, 80])
+)
+
+
 for path in paths:
     t_start, t_last = times_start_last_from_path(path)
 
     if t_last < t_end:
         continue
     print(f"{path.name} {t_last}")
-
-    path_init = path_init_occigen / path.name
-    path_init.mkdir(exist_ok=True)
-
-    path_to_copy = next(path.glob(f"state_phys_t00{t_end}*"))
-    path_new = path_init / path_to_copy.name
-
-    if not path_new.exists():
-        print(f"copying in {path_new}")
-        copyfile(path_to_copy, path_new)
 
     # delete some useless restart files
     params = load_params_simul(path)
@@ -85,6 +87,21 @@ for path in paths:
     N = float(sim.params.N)
     nx = sim.params.oper.nx
     Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
+
+    path_init = path_init_occigen / path.name
+    if (N, Rb) in couples_for_occigen:
+        path_init.mkdir(exist_ok=True)
+
+        path_to_copy = next(path.glob(f"state_phys_t00{t_end}*"))
+        path_new = path_init / path_to_copy.name
+
+        if not path_new.exists():
+            print(f"copying in {path_new}")
+            copyfile(path_to_copy, path_new)
+    else:
+        if path_init.exists():
+            print(f"deleting {path_init}")
+            rmtree(path_init, ignore_errors=True)
 
     path_in = "analyse_1simul_papermill.ipynb"
     path_ipynb = path_out = (
@@ -116,4 +133,6 @@ for path in paths:
         has_to_run = date_in > date_out
 
     if has_to_run:
-        p = subprocess.run(f"jupyter-nbconvert --to pdf {path_ipynb}".split(), check=True)
+        p = subprocess.run(
+            f"jupyter-nbconvert --to pdf {path_ipynb}".split(), check=True
+        )
