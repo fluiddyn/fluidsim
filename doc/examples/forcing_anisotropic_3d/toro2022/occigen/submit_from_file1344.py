@@ -1,4 +1,3 @@
-
 import re
 from math import pi
 
@@ -13,9 +12,11 @@ nh = 1344
 
 paths_in = sorted(
     path_scratch.glob(
-        "aniso/ns3d.strat_toro*_{nh_small}x{nh_small}*/State_phys_{nh}x{nh}*"
+        f"aniso/ns3d.strat_toro*_{nh_small}x{nh_small}*/State_phys_{nh}x{nh}*"
     )
 )
+
+print(f"{paths_in=}")
 
 path_simuls = sorted(
     (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
@@ -27,15 +28,23 @@ jobs_id, jobs_name, jobs_runtime = get_info_jobs()
 
 
 for path_init_dir in paths_in:
-
-    nb_nodes = 4
-
+    path_init_dir = path_init_dir.parent
     name_old_sim = path_init_dir.name
 
     N_str = re.search(r"_N(.*?)_", name_old_sim).group(1)
     N = float(N_str)
     Rb_str = re.search(r"_Rb(.*?)_", name_old_sim).group(1)
     Rb = float(Rb_str)
+
+    if N == 40:
+        type_fft = "p3dfft"
+    else:
+        type_fft = "fftw1d"
+
+    if N == 20:
+        nb_nodes = 4
+    else:
+        nb_nodes = 8
 
     N_str = "_N" + N_str
     Rb_str = "_Rb" + Rb_str
@@ -60,16 +69,16 @@ for path_init_dir in paths_in:
 
     command = (
         f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
-        "--max-elapsed 23:50:00 "
-        "--modify-params 'params.nu_4 /= 3.07; params.output.periods_save.phys_fields = 0.5; "
-        'params.oper.type_fft = "fft3d.mpi_with_fftw1d"; '
+        "--max-elapsed 23:30:00 "
+        "--modify-params 'params.nu_4 /= 3.86; params.output.periods_save.phys_fields = 0.5; "
+        f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
         f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"
     )
 
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi_processes = nb_cores_per_node * nb_nodes
 
-    print(f"Submitting command\n{command}")
+    print(f"Submitting command ({nb_nodes=})\n{command}")
 
     cluster.submit_command(
         command,
@@ -79,5 +88,5 @@ for path_init_dir in paths_in:
         nb_mpi_processes=nb_mpi_processes,
         omp_num_threads=1,
         ask=False,
-        walltime="23:59:58",
+        walltime="23:59:59",
     )

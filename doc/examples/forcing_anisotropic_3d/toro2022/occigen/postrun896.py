@@ -29,7 +29,6 @@ from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 t_end = 40.0
-t_statio = 31.0
 nh = 896
 nh_larger = 1344
 
@@ -74,6 +73,7 @@ for path in paths:
 
     # compute spatiotemporal spectra
     sim = load(path, hide_stdout=True)
+    t_statio = round(t_start) + 1.0
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
     N = float(params.N)
