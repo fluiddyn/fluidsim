@@ -6,12 +6,17 @@ from fluidoccigen import cluster
 
 from util import get_info_jobs, path_scratch
 
-t_end = 40.0
-nh = 896
-nb_nodes = 4
-path_init = path_scratch / "2022/aniso/init_occigen"
+t_end = 44.0
 
-paths_in = sorted(path_init.glob("ns3d.strat_toro*_640x640*"))
+nh_small = 896
+nh = 1344
+
+paths_in = sorted(
+    path_scratch.glob(
+        "aniso/ns3d.strat_toro*_{nh_small}x{nh_small}*/State_phys_{nh}x{nh}*"
+    )
+)
+
 path_simuls = sorted(
     (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
 )
@@ -20,9 +25,10 @@ print(f"{path_simuls=}")
 
 jobs_id, jobs_name, jobs_runtime = get_info_jobs()
 
-print(f"{jobs_name=}")
 
 for path_init_dir in paths_in:
+
+    nb_nodes = 4
 
     name_old_sim = path_init_dir.name
 
