@@ -84,7 +84,7 @@ The resolution is multiplied by 3/2 and the hyperviscosity in decreased by 3.86.
 | N            | 10            | 20            | 40            |
 |--------------|---------------|---------------|---------------|
 |              | 1344x1344x672 | 1344x1344x336 | 1344x1344x168 |
-| Rb           | 160           | 40, 80        | 10, 20, 40    |
+| Rb           | 160           | 40, 80        | 10, 20, 40, 80|
 | # nodes      | 8             | 4             | 8             |
 | # cores      | 224           | 112           | 224           |
 | fft lib      | fftw1d        | fftw1d        | p3dfft        |

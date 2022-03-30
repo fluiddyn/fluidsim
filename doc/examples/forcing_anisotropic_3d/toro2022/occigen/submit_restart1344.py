@@ -12,12 +12,10 @@ from fluidoccigen import cluster
 
 from util import get_info_jobs, path_scratch
 
-t_end = 40.0
-nh = 896
-nb_nodes = 4
+t_end = 44.0
+nh = 1344
 nb_cores_per_node = 28
-nb_mpi_processes = nb_nodes * nb_cores_per_node
-max_elapsed_time = pytimeparse.parse("23:50:00")
+max_elapsed_time = pytimeparse.parse("23:30:00")
 
 path_simuls = sorted(
     (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
@@ -46,6 +44,12 @@ for path_simul in path_simuls:
     Rb = float(Rb_str)
 
     name_run = f"N{N}_Rb{Rb}_{nh}"
+
+    if N == 20:
+        nb_nodes = 4
+    else:
+        nb_nodes = 8
+    nb_mpi_processes = nb_nodes * nb_cores_per_node
 
     jobs_simul = {
         key: value for key, value in jobs_name.items() if value == name_run
