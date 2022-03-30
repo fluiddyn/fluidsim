@@ -48,9 +48,7 @@ def lprod(a, b):
 
 
 couples_larger_resolution = set(
-    lprod([10], [160])
-    + lprod([20], [40, 80])
-    + lprod([40], [10, 20, 40])
+    lprod([10], [160]) + lprod([20], [40, 80]) + lprod([40], [10, 20, 40])
 )
 
 

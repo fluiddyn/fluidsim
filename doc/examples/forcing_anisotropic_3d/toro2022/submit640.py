@@ -47,7 +47,9 @@ paths_init = sorted(path_base.glob(f"aniso/ns3d.strat*_{nh_init}x{nh_init}*"))
 
 
 def filter_path(paths, Rb, N):
-    return [p for p in paths if f"_Rb{Rb:.3g}_" in p.name and f"_N{N}_" in p.name][0]
+    return [
+        p for p in paths if f"_Rb{Rb:.3g}_" in p.name and f"_N{N}_" in p.name
+    ][0]
 
 
 def lprod(a, b):
@@ -57,7 +59,9 @@ def lprod(a, b):
 couples = (
     lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
     + lprod([30], [10, 20, 40])
+    + lprod([6.5], [100, 200])
     + lprod([4], [250, 500])
+    + lprod([3], [450, 900])
     + lprod([2], [1000, 2000])
     + lprod([0.66], [9000, 18000])
 )
@@ -149,7 +153,9 @@ for N, Rb in couples:
             continue
 
         try:
-            estimated_remaining_duration = get_last_estimated_remaining_duration(path)
+            estimated_remaining_duration = get_last_estimated_remaining_duration(
+                path
+            )
         except RuntimeError:
             estimated_remaining_duration = "?"
 
