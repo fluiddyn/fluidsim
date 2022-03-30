@@ -47,15 +47,24 @@ paths_init = sorted(path_base.glob(f"aniso/ns3d.strat*_{nh_init}x{nh_init}*"))
 
 
 def filter_path(paths, Rb, N):
-    return [p for p in paths if f"_Rb{Rb}_" in p.name and f"_N{N}_" in p.name][0]
+    return [p for p in paths if f"_Rb{Rb:.3g}_" in p.name and f"_N{N}_" in p.name][0]
 
 
-for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
-    if N == 40 and Rb == 160:
-        continue
+def lprod(a, b):
+    return list(product(a, b))
 
-    if Rb == 5 and N == 10:
-        continue
+
+couples = (
+    lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
+    + lprod([30], [10, 20, 40])
+    + lprod([4], [250, 500])
+    + lprod([2], [1000, 2000])
+    + lprod([0.66], [9000, 18000])
+)
+couples.remove((40, 160))
+couples.remove((10, 5))
+
+for N, Rb in couples:
 
     name_1st_run = f"from_modified_resol_nx{nh}_Rb{Rb}_N{N}"
     job_id = get_job_id(name_1st_run)
@@ -140,9 +149,7 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
             continue
 
         try:
-            estimated_remaining_duration = get_last_estimated_remaining_duration(
-                path
-            )
+            estimated_remaining_duration = get_last_estimated_remaining_duration(path)
         except RuntimeError:
             estimated_remaining_duration = "?"
 

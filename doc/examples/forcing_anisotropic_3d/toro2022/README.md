@@ -13,13 +13,23 @@ nu_4 ~ injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
 We start by `nh = 320` for:
 
 ```python
-for N in [10, 20, 40]:
-    for Rb in [5, 10, 20, 40, 80, 160]:
-        if N == 40 and Rb == 160:
-            continue
+from itertools import product
+
+def lprod(a, b):
+    return list(product(a, b))
+
+couples = (
+    lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
+    + lprod([30], [10, 20, 40])
+    + lprod([4], [250, 500])
+    + lprod([2], [1000, 2000])
+    + lprod([0.66], [9000, 18000])
+)
+couples.remove((40, 160))
+N, Rb = couples[0]
 ```
 
-This corresponds to 17 simulations.
+This corresponds to 23 simulations.
 
 The aspect ratio is set by:
 
@@ -28,15 +38,15 @@ def get_ratio_nh_nz(N):
     "Get the ratio nh/nz"
     if N == 40:
         return 8
-    elif N == 20:
+    elif N in [20, 30]:
         return 4
-    elif N == 10:
+    elif N <= 10:
         return 2
     else:
         raise NotImplementedError
 ```
 
-| N | 10          | 20         | 40         |
+| N | <10         | 20, 30     | 40         |
 |---|-------------|------------|------------|
 |   | 320x320x160 | 320x320x80 | 320x320x40 |
 
@@ -44,11 +54,11 @@ def get_ratio_nh_nz(N):
 
 The resolution is doubled in all direction (8 times more grid points) and the hyperviscosity in decreased by 10 (`~2**(10/3)`).
 
-| N | 10          | 20          | 40         |
+| N | <10         | 20, 30      | 40         |
 |---|-------------|-------------|------------|
 |   | 640x640x320 | 640x640x160 | 640x640x80 |
 
-These simulations are done on a LEGI cluster (calcul8) on 10 cores. They last from ~2 day (480 h.CPU) to 10 days (2400 h.CPU).
+These simulations are done on a LEGI cluster (calcul8) on 20 cores.
 
 ## nh = 896 (t_end = 40)
 
@@ -65,7 +75,7 @@ The resolution is multiplied by 1.4 and the hyperviscosity in decreased by 3.07.
 | time / simul | 5 days        | 2.5 days      | 1.25 day       |
 | h.CPU        | 27000         | 20000         | 13000          |
 
-This should cost something like 22.5 days * 112 cores = 60_000 h.CPU
+This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.
 
 ## nh = 1344 (t_end = 44?)
 

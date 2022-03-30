@@ -32,17 +32,28 @@ def get_ratio_nh_nz(N):
     "Get the ratio nh/nz"
     if N == 40:
         return 8
-    elif N == 20:
+    elif N in [20, 30]:
         return 4
-    elif N == 10:
+    elif N <= 10:
         return 2
     else:
         raise NotImplementedError
 
 
-for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
-    if N == 40 and Rb == 160:
-        continue
+def lprod(a, b):
+    return list(product(a, b))
+
+
+couples = (
+    lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
+    + lprod([30], [10, 20, 40])
+    + lprod([4], [250, 500])
+    + lprod([2], [1000, 2000])
+    + lprod([0.66], [9000, 18000])
+)
+couples.remove((40, 160))
+
+for N, Rb in couples:
 
     ratio_nh_nz = get_ratio_nh_nz(N)
     nz = nh // ratio_nh_nz
@@ -51,7 +62,7 @@ for N, Rb in product([10, 20, 40], [5, 10, 20, 40, 80, 160]):
     job_id = get_job_id(name_1st_run)
     try:
         path = [
-            p for p in paths if f"_Rb{Rb}_" in p.name and f"_N{N}_" in p.name
+            p for p in paths if f"_Rb{Rb:.3g}_" in p.name and f"_N{N}_" in p.name
         ][0]
     except IndexError:
         if job_id is None:
