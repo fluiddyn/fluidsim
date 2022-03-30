@@ -458,9 +458,17 @@ are called.
 
         """
 
-        if tmin is None:
+        if tmin is None or isinstance(tmin, str):
             t_start, _ = self.print_stdout.get_times_start_last()
+
+        if tmin is None:
             tmin = t_start
+        elif isinstance(tmin, str):
+            if tmin.startswith("t_start+"):
+                tmin = t_start + float(tmin.split("t_start+")[-1])
+            else:
+                raise ValueError('if isinstance(tmin, str): assert tmin.startswith("t_start=")')
+
         tmin = float(tmin)
 
         if tmax is None:
