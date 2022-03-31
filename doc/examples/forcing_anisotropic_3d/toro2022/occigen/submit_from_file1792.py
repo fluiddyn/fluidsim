@@ -1,4 +1,4 @@
-from util import submit_from_file, nb_nodes_from_N_1344
+from util import submit_from_file, nb_nodes_from_N_1792
 
 
 def type_fft_from_N(N):
@@ -9,9 +9,9 @@ def type_fft_from_N(N):
 
 
 submit_from_file(
-    nh=1344,
-    nh_small=896,
-    t_end=44.0,
-    nb_nodes_from_N=nb_nodes_from_N_1344,
+    nh=1792,
+    nh_small=1344,
+    t_end=48.0,
+    nb_nodes_from_N=nb_nodes_from_N_1792,
     type_fft_from_N=type_fft_from_N,
 )

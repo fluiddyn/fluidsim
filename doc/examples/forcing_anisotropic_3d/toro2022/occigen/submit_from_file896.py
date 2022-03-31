@@ -1,6 +1,6 @@
-
 import re
 from math import pi
+from pprint import pprint
 
 from fluidoccigen import cluster
 
@@ -12,14 +12,17 @@ nb_nodes = 4
 path_init = path_scratch / "2022/aniso/init_occigen"
 
 paths_in = sorted(path_init.glob("ns3d.strat_toro*_640x640*"))
+print("paths_in :")
+pprint([p.parent.name for p in paths_in])
+
 path_simuls = sorted(
     (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
 )
-
-print(f"{path_simuls=}")
+print("path_simuls:")
+pprint([p.name for p in path_simuls])
 
 jobs_id, jobs_name, jobs_runtime = get_info_jobs()
-
+jobs_name = set(jobs_name.values())
 print(f"{jobs_name=}")
 
 for path_init_dir in paths_in:
@@ -54,7 +57,7 @@ for path_init_dir in paths_in:
 
     command = (
         f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
-        "--max-elapsed 23:50:00 "
+        "--max-elapsed 23:30:00 "
         "--modify-params 'params.nu_4 /= 3.07; params.output.periods_save.phys_fields = 0.5; "
         'params.oper.type_fft = "fft3d.mpi_with_fftw1d"; '
         f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"

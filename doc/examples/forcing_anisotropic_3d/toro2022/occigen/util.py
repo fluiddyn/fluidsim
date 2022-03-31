@@ -3,6 +3,8 @@ import subprocess
 from pathlib import Path
 from itertools import product
 import re
+from math import pi
+from pprint import pprint
 
 import pytimeparse
 from capturer import CaptureOutput
@@ -50,7 +52,7 @@ def lprod(a, b):
     return list(product(a, b))
 
 
-def submit_restart(nh, t_end, max_elapsed_time="23:30:00", nb_nodes=4):
+def submit_restart(nh, t_end, nb_nodes_from_N, max_elapsed_time="23:30:00"):
 
     nb_cores_per_node = 28
     max_elapsed_time = pytimeparse.parse(max_elapsed_time)
@@ -84,9 +86,7 @@ def submit_restart(nh, t_end, max_elapsed_time="23:30:00", nb_nodes=4):
 
         name_run = f"N{N}_Rb{Rb}_{nh}"
 
-        if not isinstance(nb_nodes, int):
-            nb_nodes = nb_nodes(N)
-
+        nb_nodes = nb_nodes_from_N(N)
         nb_mpi_processes = nb_nodes * nb_cores_per_node
 
         jobs_simul = {
@@ -144,3 +144,94 @@ def submit_restart(nh, t_end, max_elapsed_time="23:30:00", nb_nodes=4):
                 text = capturer.get_text()
 
             job_id = text.split()[-1].strip()
+
+
+def submit_from_file(nh, nh_small, t_end, nb_nodes_from_N, type_fft_from_N):
+
+    paths_in = sorted(
+        path_scratch.glob(
+            f"aniso/ns3d.strat_toro*_{nh_small}x{nh_small}*/State_phys_{nh}x{nh}*"
+        )
+    )
+    print("paths_in :")
+    pprint([p.parent.name for p in paths_in])
+
+    path_simuls = sorted(
+        (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
+    )
+    print("path_simuls:")
+    pprint([p.name for p in path_simuls])
+
+    jobs_id, jobs_name, jobs_runtime = get_info_jobs()
+    jobs_name = set(jobs_name.values())
+
+    for path_init_dir in paths_in:
+        path_init_dir = path_init_dir.parent
+        name_old_sim = path_init_dir.name
+
+        N_str = re.search(r"_N(.*?)_", name_old_sim).group(1)
+        N = float(N_str)
+        Rb_str = re.search(r"_Rb(.*?)_", name_old_sim).group(1)
+        Rb = float(Rb_str)
+
+        type_fft = type_fft_from_N(N)
+        nb_nodes = nb_nodes_from_N(N)
+
+        N_str = "_N" + N_str
+        Rb_str = "_Rb" + Rb_str
+
+        if [p for p in path_simuls if N_str in p.name and Rb_str in p.name]:
+            print(f"Simulation directory for {N=} and {Rb=} already created")
+            continue
+
+        name_run = f"N{N}_Rb{Rb}_{nh}"
+        if name_run in jobs_name:
+            print(f"Job {name_run} already submitted")
+            continue
+
+        path_init_file = next(
+            path_init_dir.glob(f"State_phys_{nh}x{nh}*/state_phys*")
+        )
+
+        assert path_init_file.exists()
+        print(path_init_file)
+
+        period_spatiotemp = min(2 * pi / (N * 8), 0.03)
+
+        coef_decrease_nu4 = (nh / nh_small) ** (10 / 3)
+
+        command = (
+            f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
+            "--max-elapsed 23:30:00 "
+            f"--modify-params 'params.nu_4 /= {coef_decrease_nu4}; "
+            "params.output.periods_save.phys_fields = 0.5; "
+            f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+            f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"
+        )
+
+        nb_cores_per_node = cluster.nb_cores_per_node
+        nb_mpi_processes = nb_cores_per_node * nb_nodes
+
+        print(f"Submitting command ({nb_nodes=})\n{command}")
+
+        cluster.submit_command(
+            command,
+            name_run=f"N{N}_Rb{Rb}_{nh}",
+            nb_nodes=nb_nodes,
+            nb_cores_per_node=nb_cores_per_node,
+            nb_mpi_processes=nb_mpi_processes,
+            omp_num_threads=1,
+            ask=False,
+            walltime="23:59:59",
+        )
+
+
+def nb_nodes_from_N_1344(N):
+    if N == 20:
+        return 4
+    else:
+        return 8
+
+
+def nb_nodes_from_N_1792(N):
+    return 16
