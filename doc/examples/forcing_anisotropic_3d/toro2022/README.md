@@ -54,7 +54,7 @@ def get_ratio_nh_nz(N):
 
 ## nh = 640 (t_end = 30)
 
-The resolution is doubled in all direction (8 times more grid points) and the hyperviscosity in decreased by 10 (`~2**(10/3)`).
+The resolution is doubled in all direction (8 times more grid points) and the hyperviscosity is decreased by 10 (`~2**(10/3)`).
 
 | N | <10         | 20, 30      | 40         |
 |---|-------------|-------------|------------|
@@ -64,7 +64,7 @@ These simulations are done on a LEGI cluster (calcul8) on 20 cores.
 
 ## nh = 896 (t_end = 40)
 
-The resolution is multiplied by 1.4 and the hyperviscosity in decreased by 3.07.
+The resolution is multiplied by 1.4 and the hyperviscosity is decreased by 3.07.
 
 | N            | 10            | 20            | 40             |
 |--------------|---------------|---------------|----------------|
@@ -81,7 +81,7 @@ This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.
 
 ## nh = 1344 (t_end = 44?)
 
-The resolution is multiplied by 3/2 and the hyperviscosity in decreased by 3.86.
+The resolution is multiplied by 3/2 and the hyperviscosity is decreased by 3.86.
 
 | N            | 10            | 20            | 40            |
 |--------------|---------------|---------------|---------------|
@@ -94,7 +94,7 @@ The resolution is multiplied by 3/2 and the hyperviscosity in decreased by 3.86.
 
 ## nh = 1792 (t_end = 48?)
 
-The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
+The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 
 | N            | 20            | 40            |
 |--------------|---------------|---------------|
@@ -107,7 +107,7 @@ The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
 
 ## nh = 2240 (t_end = 50?)
 
-The resolution is multiplied by 4/3 and the hyperviscosity in decreased by 2.61.
+The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 
 | N       | 20            | 40            |
 |---------|---------------|---------------|
