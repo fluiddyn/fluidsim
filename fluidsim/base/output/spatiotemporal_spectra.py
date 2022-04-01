@@ -44,7 +44,8 @@ def find_index_first_geq(arr: A, value: Uf32f64):
     for i, v in enumerate(arr):
         if v >= value:
             return i
-    raise ValueError("No index such that `arr[index] >= value`")
+    print("arr", arr)
+    raise ValueError(f"No index such that `arr[index] >= value (={value:.8g})`")
 
 
 @boost
@@ -53,7 +54,8 @@ def find_index_first_g(arr: A, value: Uf32f64):
     for i, v in enumerate(arr):
         if v > value:
             return i
-    raise ValueError("No index such that `arr[index] > value`")
+    print("arr", arr)
+    raise ValueError(f"No index such that `arr[index] >= value (={value:.8g})`")
 
 
 @boost
@@ -62,7 +64,8 @@ def find_index_first_l(arr: A, value: Uf32f64):
     for i, v in enumerate(arr):
         if v < value:
             return i
-    raise ValueError("No index such that `arr[index] < value`")
+    print("arr", arr)
+    raise ValueError(f"No index such that `arr[index] >= value (={value:.8g})`")
 
 
 def filter_tmins_paths(tmin, tmins, paths):
