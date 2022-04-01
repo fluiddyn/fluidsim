@@ -115,3 +115,46 @@ The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 | Rb      | 80            | 20, 40        |
 | # nodes | 16            | 16            |
 | fft lib | ?             | ?             |
+
+## Distribution of the data
+
+### Links
+
+#### How to
+
+- https://www.datacc.org/vos-besoins/valoriser-ses-donnees/deposer-ses-donnees-en-ligne-ou-et-comment/
+- https://creativecommons.org/share-your-work/
+- https://creativecommons.org/about/cclicenses/
+
+#### Database
+
+- https://turbase.cineca.it
+- http://turbulence.pha.jhu.edu/
+- https://www.seanoe.org
+- https://www.data-terra.org/nous-connaitre/presentation-de-data-terra/
+
+#### Snapshot of the code
+
+- https://doc.archives-ouvertes.fr/deposer/deposer-le-code-source/
+- https://www.softwareheritage.org
+
+### Setup for opening
+
+1. Data for the papers with [UGA cloud](https://cloud.univ-grenoble-alpes.fr)
+   (warning: limited to 50 Go)
+
+2. HAL/Software Heritage for a DOI for Fluidsim 0.7.0
+
+3. A dataset on a database ([Turbase](https://turbase.cineca.it) would be great)
+
+   3 directories:
+
+   - "Small" data for plot
+   - 1 notebook per simulation (ipynb + html + pdf)
+   - 1 state file per simulation (warning: big)
+
+4. Full data at LEGI (access?)
+
+5. 1 paper describing the dataset and the regimes
+
+6. Other papers based on this dataset (mixing, spatiotemporal, ...)
