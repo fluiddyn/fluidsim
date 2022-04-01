@@ -581,6 +581,9 @@ class SpatioTemporalSpectra3D(SpecificOutput):
                     with open_patient(path_file, "r") as file:
                         # time indices
                         times_file = file["times"][:]
+                        if times_file[-1] < tmin:
+                            progress.update(task_files, advance=1)
+                            continue
                         its_file = get_arange_minmax(times_file, tmin, tmax)
                         tmin_keep = times_file[its_file[0]]
                         tmax_keep = times_file[its_file[-1]]
