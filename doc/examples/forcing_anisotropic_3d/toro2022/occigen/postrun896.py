@@ -37,8 +37,9 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         t_start, t_last = times_start_last_from_path(path)
 
         if t_last < t_end:
+            print(f"{path.name:90s} not finished ({t_last=})")
             continue
-        print(f"{path.name} done ({t_last=})")
+        print(f"{path.name:90s} done ({t_last=})")
 
         # delete some useless restart files
         params = load_params_simul(path)

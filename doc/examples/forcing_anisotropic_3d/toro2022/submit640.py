@@ -13,6 +13,7 @@ import subprocess
 from pathlib import Path
 from time import sleep
 from itertools import product
+from math import pi
 
 from fluiddyn.clusters.legi import Calcul8 as C
 from fluiddyn.clusters.oar import get_job_id, get_job_info
@@ -119,6 +120,7 @@ for N, Rb in couples:
             command = (
                 f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
                 "--modify-params 'params.nu_4 /= 10; params.output.periods_save.phys_fields = 0.5; "
+                "params.output.periods_print.print_stdout = 0.02; "
                 f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"
             )
 
