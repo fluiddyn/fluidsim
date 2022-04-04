@@ -47,3 +47,27 @@ def get_ratio_nh_nz(N):
         return 2
     else:
         raise NotImplementedError
+
+
+couples896 = (
+    lprod([10], [80, 160])
+    + lprod([20], [20, 40, 80])
+    + lprod([40], [10, 20, 40, 80])
+)
+
+couples1344 = (
+    lprod([10], [160]) + lprod([20], [40, 80]) + lprod([40], [10, 20, 40, 80])
+)
+
+couples1792 = lprod([20], [40, 80]) + lprod([40], [10, 20, 40])
+
+couples2240 = lprod([20], [80]) + lprod([40], [20, 40])
+
+couples = {
+    320: couples320,
+    640: couples640,
+    896: couples896,
+    1344: couples1344,
+    1792: couples1792,
+    2240: couples2240,
+}
