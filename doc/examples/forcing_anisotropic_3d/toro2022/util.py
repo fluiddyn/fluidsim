@@ -20,7 +20,7 @@ def lprod(a, b):
     return list(product(a, b))
 
 
-couples320 = (
+couples320 = set(
     lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
     + lprod([30], [10, 20, 40])
     + lprod([6.5], [100, 200])
@@ -49,19 +49,18 @@ def get_ratio_nh_nz(N):
         raise NotImplementedError
 
 
-couples896 = (
+couples896 = set(
     lprod([10], [80, 160])
     + lprod([20], [20, 40, 80])
     + lprod([40], [10, 20, 40, 80])
 )
 
-couples1344 = (
+couples1344 = set(
     lprod([10], [160]) + lprod([20], [40, 80]) + lprod([40], [10, 20, 40, 80])
 )
 
-couples1792 = lprod([20], [40, 80]) + lprod([40], [10, 20, 40])
-
-couples2240 = lprod([20], [80]) + lprod([40], [20, 40])
+couples1792 = set(lprod([20], [40, 80]) + lprod([40], [10, 20, 40]))
+couples2240 = set(lprod([20], [80]) + lprod([40], [20, 40]))
 
 couples = {
     320: couples320,
