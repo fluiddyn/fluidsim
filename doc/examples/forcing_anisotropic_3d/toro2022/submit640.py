@@ -10,28 +10,16 @@ python submit640.py
 """
 
 import subprocess
-from pathlib import Path
 from time import sleep
-from itertools import product
 from math import pi
 
-from fluiddyn.clusters.legi import Calcul8 as C
 from fluiddyn.clusters.oar import get_job_id, get_job_info
 from fluidsim.util import (
     times_start_last_from_path,
     get_last_estimated_remaining_duration,
 )
 
-cluster = C()
-
-path_base = Path("/fsnet/project/meige/2022/22STRATURBANIS")
-
-cluster.commands_setting_env = [
-    "source /etc/profile",
-    ". $HOME/miniconda3/etc/profile.d/conda.sh",
-    "conda activate env_fluidsim",
-    f"export FLUIDSIM_PATH={path_base}",
-]
+from util import cluster, path_base, couples640
 
 nh = 640
 
@@ -53,23 +41,7 @@ def filter_path(paths, Rb, N):
     ][0]
 
 
-def lprod(a, b):
-    return list(product(a, b))
-
-
-couples = (
-    lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
-    + lprod([30], [10, 20, 40])
-    + lprod([6.5], [100, 200])
-    + lprod([4], [250, 500])
-    + lprod([3], [450, 900])
-    + lprod([2], [1000, 2000])
-    + lprod([0.66], [9000, 18000])
-)
-couples.remove((40, 160))
-couples.remove((10, 5))
-
-for N, Rb in couples:
+for N, Rb in sorted(couples640):
 
     name_1st_run = f"from_modified_resol_nx{nh}_Rb{Rb}_N{N}"
     job_id = get_job_id(name_1st_run)
