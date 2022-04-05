@@ -1095,7 +1095,6 @@ class SpatioTemporalSpectraNS:
                 "equation must start with 'omega=', 'kh=', 'kz=', 'ikh=' or 'ikz='"
             )
 
-        # plot
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -1235,6 +1234,7 @@ class SpatioTemporalSpectraNS:
         dtype=None,
         xscale="log",
         coef_compensate=0,
+        plot_resonant_modes=True,
     ):
         """plot the temporal spectra computed from the 4d spectra"""
         keys_plot = self.keys_fields.copy()
@@ -1335,22 +1335,24 @@ class SpatioTemporalSpectraNS:
                 + self.output.summary_simul
             )
 
-            # resonant modes
-            if self.nb_dim == 3:
-                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
-            else:
-                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
+            if plot_resonant_modes:
+                if self.nb_dim == 3:
+                    aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
+                else:
+                    aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
-            def modes(nx, nz):
-                return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
+                def modes(nx, nz):
+                    return np.sqrt(
+                        nx**2 / (nx**2 + aspect_ratio**2 * nz**2)
+                    )
 
-            nxs = np.arange(1, 11)
-            modes_nz1 = modes(nxs, 1)
-            modes_nz2 = modes(nxs, 2)
-            modes_y = np.full_like(modes_nz1, fill_value=10 * EK_N)
+                nxs = np.arange(1, 11)
+                modes_nz1 = modes(nxs, 1)
+                modes_nz2 = modes(nxs, 2)
+                modes_y = np.full_like(modes_nz1, fill_value=10 * EK_N)
 
-            ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
-            ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
+                ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
+                ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
 
             # omega^-2 scaling
             omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
