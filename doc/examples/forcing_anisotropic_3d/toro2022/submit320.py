@@ -57,8 +57,9 @@ for N, Rb in sorted(couples320):
     else:
 
         t_start, t_last = times_start_last_from_path(path)
-        if t_last > t_end:
-            print(f"Nothing to do for {path.name} because t_last > t_end")
+        if t_last >= t_end:
+            params = f"{N=} {Rb=} {nh=}"
+            print(f"{params:40s}: completed")
             continue
 
         try:

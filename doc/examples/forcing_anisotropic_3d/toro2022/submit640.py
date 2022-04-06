@@ -123,7 +123,8 @@ for N, Rb in sorted(couples640):
 
         t_start, t_last = times_start_last_from_path(path)
         if t_last >= t_end:
-            print(f"Simulation {path.name} done! {t_last=} >= {t_end=}")
+            params = f"{N=} {Rb=} {nh=}"
+            print(f"{params:40s}: completed")
             continue
 
         try:
