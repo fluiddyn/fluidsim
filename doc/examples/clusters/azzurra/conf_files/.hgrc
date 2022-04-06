@@ -1,0 +1,17 @@
+# example user config (see "hg help config" for more info)
+#[ui]
+#username=user <email>
+editor=nano
+tweakdefaults = True
+
+[extensions]
+hgext.extdiff =
+# more advanced extensions (really useful for FluidDyn dev)
+rebase =
+evolve =
+topic =
+git =
+hgfluiddyn =
+
+[extdiff]
+cmd.meld =

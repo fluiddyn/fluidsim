@@ -1,0 +1,5 @@
+all:
+	pip install -e .
+
+clean:
+	rm -f launcher_*.sh* SLURM.*.std*
