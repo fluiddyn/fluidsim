@@ -10,7 +10,7 @@ cd $HOME/Dev
 # Install fluiddyn from sources
 cd fluiddyn
 hg up install_azzurra
-python setup.py develop
+pip install -e . --no-build-isolation
 
 # Install fluidfft from sources
 cd ../fluidfft

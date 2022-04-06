@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from fluiddyn.clusters.azzurra import azzurra
+from fluiddyn.clusters.azzurra import Azzurra
 
 here = Path(__file__).parent.absolute()
 

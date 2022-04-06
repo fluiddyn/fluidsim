@@ -4,12 +4,13 @@ submit_check_fluidfft.py
 
 """
 
-from fluidlicallo import cluster
+from fluidazzurra import cluster
 
 nb_proc = nb_cores = 2
+
 walltime = "00:10:00"
 
-libraries = ["fftw1d", "fftwmpi3d"]  # , "pfft", "p3dfft"]
+libraries = ["fftw1d", "fftwmpi3d", "pfft"]  # , "p3dfft"]
 
 for lib in libraries:
 
