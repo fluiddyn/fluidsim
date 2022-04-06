@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name="fluidlicallo",
-    description="Launch jobs on Licallo",
+    name="fluidazzurra",
+    description="Launch jobs on Azzurra",
     author="Vincent Labarre",
-    packages=["fluidlicallo"],
+    packages=["fluidazzurra"],
 )

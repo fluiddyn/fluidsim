@@ -6,8 +6,14 @@ set -e
 
 cd $HOME/Dev
 
+# TODO: Remove when the topic is merged
+# Install fluiddyn from sources
+cd fluiddyn
+hg up install_azzurra
+python setup.py develop
+
 # Install fluidfft from sources
-cd fluidfft
+cd ../fluidfft
 hg up default
 python setup.py develop
 
