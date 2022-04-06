@@ -1,13 +1,15 @@
 from fluidoccigen import cluster
 
-nh = 896
+nh = 1344
 
 out_dir = "$SCRATCHDIR/2022bench"
 
-aspect_ratios = [2, 4, 8]
+# aspect_ratios = [2, 4, 8]
+aspect_ratios = [2]
 
 nb_cores_per_node = cluster.nb_cores_per_node
-nbs_nodes = (1, 2, 4, 8)
+# nbs_nodes = (1, 2, 4, 8)
+nbs_nodes = (12, 16)
 
 for aspect_ratio in aspect_ratios:
     nz = nh // aspect_ratio
