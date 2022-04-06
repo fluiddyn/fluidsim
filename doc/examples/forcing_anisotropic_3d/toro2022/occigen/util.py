@@ -75,7 +75,7 @@ def submit_restart(nh, t_end, nb_nodes_from_N, max_elapsed_time="23:30:00"):
     for path_simul in path_simuls:
         t_start, t_last = times_start_last_from_path(path_simul)
         if t_last >= t_end:
-            print(f"simulation {path_simul} finished ({t_last=}).")
+            print(f"{path_simul.name:90s}: completed ({t_last=}).")
             continue
 
         try:
@@ -260,6 +260,9 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
     path_output_papermill = path_base / "results_papermill"
     path_output_papermill.mkdir(exist_ok=True)
 
+    path_end_states = path_base / "end_states"
+    path_end_states.mkdir(exist_ok=True)
+
     paths = sorted(path_base.glob(f"ns3d*_toro_*_{nh}x{nh}x*"))
 
     for path in paths:
@@ -268,26 +271,34 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         if t_last < t_end:
             print(f"{path.name:90s} not finished ({t_last=})")
             continue
-        print(f"{path.name:90s} done ({t_last=})")
+
+        params = load_params_simul(path)
+        N = float(params.N)
+        nx = params.oper.nx
+        Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
+
+        tmp = f"{N=} {Rb=} {nh=}"
+        print(f"{tmp:40s}: completed")
 
         # delete some useless restart files
-        params = load_params_simul(path)
         deltat_file = params.output.periods_save.phys_fields
-        path_files = sorted(path.glob(f"state_phys*"))
+        path_files = sorted(path.glob("state_phys*"))
         for path_file in path_files:
             time = float(path_file.name.rsplit("_t", 1)[1][:-3])
             if time % deltat_file > deltat:
                 print(f"deleting {path_file.name}")
                 path_file.unlink()
 
+        path_end_state = path_file
+        link_last_state = path_end_states / path.name / path_end_state.name
+        if not link_last_state.exists():
+            link_last_state.parent.mkdir(exist_ok=True)
+            link_last_state.symlink_to(path_end_state)
+
         # compute spatiotemporal spectra
         sim = load(path, hide_stdout=True)
         t_statio = round(t_start) + 1.0
         sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
-
-        N = float(params.N)
-        nx = params.oper.nx
-        Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
 
         try:
             next(path.glob(f"State_phys_{nh_larger}x{nh_larger}*"))
