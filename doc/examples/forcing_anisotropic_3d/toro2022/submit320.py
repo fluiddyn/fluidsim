@@ -19,6 +19,10 @@ for N, Rb in sorted(couples320):
     ratio_nh_nz = get_ratio_nh_nz(N)
     nz = nh // ratio_nh_nz
 
+    nb_mpi_processes = int(round(nz / 2))
+    assert nb_mpi_processes == nz / 2
+    nb_mpi_processes = min(20, nb_mpi_processes)
+
     name_1st_run = f"run_simul_toro_nx{nh}_Rb{Rb}_N{N}"
     job_id = get_job_id(name_1st_run)
     try:
@@ -34,7 +38,7 @@ for N, Rb in sorted(couples320):
                 name_run=name_1st_run,
                 nb_nodes=1,
                 walltime=walltime,
-                nb_mpi_processes=20,
+                nb_mpi_processes=nb_mpi_processes,
                 omp_num_threads=1,
                 delay_signal_walltime=300,
                 ask=False,
@@ -78,7 +82,7 @@ for N, Rb in sorted(couples320):
             name_run=name_run,
             nb_nodes=1,
             walltime=walltime,
-            nb_mpi_processes=20,
+            nb_mpi_processes=nb_mpi_processes,
             omp_num_threads=1,
             delay_signal_walltime=300,
             ask=False,

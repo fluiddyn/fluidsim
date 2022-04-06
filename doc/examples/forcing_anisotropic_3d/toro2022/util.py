@@ -31,6 +31,8 @@ couples320 = set(
     + [(14.5, 20), (5.2, 150), (2.9, 475), (1.12, 3200), (0.25, 64000)]
 )
 
+couples320.add((80, 10))
+couples320.add((120, 10))
 couples320.remove((40, 160))
 
 couples640 = deepcopy(couples320)
@@ -39,7 +41,9 @@ couples640.remove((10, 5))
 
 def get_ratio_nh_nz(N):
     "Get the ratio nh/nz"
-    if N == 40:
+    if N >= 80:
+        return 16
+    elif N == 40:
         return 8
     elif N in [20, 30]:
         return 4

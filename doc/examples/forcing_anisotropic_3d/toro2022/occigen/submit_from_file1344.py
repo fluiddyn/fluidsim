@@ -2,7 +2,7 @@ from util import submit_from_file, nb_nodes_from_N_1344
 
 
 def type_fft_from_N(N):
-    if N == 40:
+    if N in [20, 40]:
         return "p3dfft"
     else:
         return "fftw1d"

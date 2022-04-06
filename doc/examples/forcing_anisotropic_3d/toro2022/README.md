@@ -87,10 +87,10 @@ The resolution is multiplied by 3/2 and the hyperviscosity is decreased by 3.86.
 |--------------|---------------|---------------|---------------|
 |              | 1344x1344x672 | 1344x1344x336 | 1344x1344x168 |
 | Rb           | 160           | 40, 80        | 10, 20, 40, 80|
-| # nodes      | 8             | 4             | 8             |
-| # cores      | 224           | 112           | 224           |
-| fft lib      | fftw1d        | fftw1d        | p3dfft        |
-| time fft (s) | 0.33          | 0.31          | 0.11          |
+| # nodes      | 8             | 8             | 8             |
+| # cores      | 224           | 224           | 224           |
+| fft lib      | fftw1d        | p3dfft        | p3dfft        |
+| time fft (s) | 0.33          | 0.25          | 0.11          |
 
 ## nh = 1792 (t_end = 48?)
 

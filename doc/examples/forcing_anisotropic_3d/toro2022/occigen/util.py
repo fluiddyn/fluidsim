@@ -319,10 +319,7 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
 
 
 def nb_nodes_from_N_1344(N):
-    if N == 20:
-        return 4
-    else:
-        return 8
+    return 8
 
 
 def nb_nodes_from_N_1792(N):
