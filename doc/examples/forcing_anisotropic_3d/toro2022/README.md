@@ -48,17 +48,17 @@ def get_ratio_nh_nz(N):
         raise NotImplementedError
 ```
 
-| N | <10         | 20, 30     | 40         |
-|---|-------------|------------|------------|
-|   | 320x320x160 | 320x320x80 | 320x320x40 |
+| N | <10         | 20, 30     | 40         | 80 & 120   |
+|---|-------------|------------|------------|------------|
+|   | 320x320x160 | 320x320x80 | 320x320x40 | 320x320x20 |
 
 ## nh = 640 (t_end = 30)
 
 The resolution is doubled in all direction (8 times more grid points) and the hyperviscosity is decreased by 10 (`~2**(10/3)`).
 
-| N | <10         | 20, 30      | 40         |
-|---|-------------|-------------|------------|
-|   | 640x640x320 | 640x640x160 | 640x640x80 |
+| N | <10         | 20, 30      | 40         | 80 & 120   |
+|---|-------------|-------------|------------|------------|
+|   | 640x640x320 | 640x640x160 | 640x640x80 | 640x640x40 |
 
 These simulations are done on a LEGI cluster (calcul8) on 20 cores.
 
@@ -66,16 +66,16 @@ These simulations are done on a LEGI cluster (calcul8) on 20 cores.
 
 The resolution is multiplied by 1.4 and the hyperviscosity is decreased by 3.07.
 
-| N            | 10            | 20            | 40             |
-|--------------|---------------|---------------|----------------|
-|              | 896x896x448   | 896x896x224   | 896x896x112    |
-| Rb           | 80, 160       | 20, 40, 80    | 10, 20, 40, 80 |
-| # nodes      | 4             | 4             | 4              |
-| # cores      | 112           | 112           | 112            |
-| fft lib      | fftw1d        | fftw1d        | fftw1d         |
-| time fft (s) | 0.19          | 0.11          | 0.06           |
-| time / simul | 5 days        | 2.5 days      | 1.25 day       |
-| h.CPU        | 27000         | 20000         | 13000          |
+| N            | 10            | 20            | 40             | 80 & 120   |
+|--------------|---------------|---------------|----------------|------------|
+|              | 896x896x448   | 896x896x224   | 896x896x112    | 896x896x56 |
+| Rb           | 80, 160       | 20, 40, 80    | 10, 20, 40, 80 | 10         |
+| # nodes      | 4             | 4             | 4              | 1          |
+| # cores      | 112           | 112           | 112            | 28         |
+| fft lib      | fftw1d        | fftw1d        | fftw1d         | fftw1d     |
+| time fft (s) | 0.19          | 0.11          | 0.06           |            |
+| time / simul | 5 days        | 2.5 days      | 1.25 day       |            |
+| h.CPU        | 27000         | 20000         | 13000          |            |
 
 This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.
 
@@ -83,38 +83,39 @@ This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.
 
 The resolution is multiplied by 3/2 and the hyperviscosity is decreased by 3.86.
 
-| N            | 10            | 20            | 40            |
-|--------------|---------------|---------------|---------------|
-|              | 1344x1344x672 | 1344x1344x336 | 1344x1344x168 |
-| Rb           | 160           | 40, 80        | 10, 20, 40, 80|
-| # nodes      | 8             | 8             | 8             |
-| # cores      | 224           | 224           | 224           |
-| fft lib      | fftw1d        | p3dfft        | p3dfft        |
-| time fft (s) | 0.33          | 0.25          | 0.11          |
+| N            | 10            | 20            | 40            | 80 & 120     |
+|--------------|---------------|---------------|---------------|--------------|
+|              | 1344x1344x672 | 1344x1344x336 | 1344x1344x168 | 1344x1344x84 |
+| Rb           | 160           | 40, 80        | 10, 20, 40, 80| 10           |
+| # nodes      | 8             | 8             | 8             | 4            |
+| # cores      | 224           | 224           | 224           | 112          |
+| fft lib      | fftw1d        | p3dfft        | p3dfft        | p3dfft       |
+| time fft (s) | 0.33          | 0.25          | 0.11          | ?            |
 
 ## nh = 1792 (t_end = 48?)
 
 The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 
-| N            | 20            | 40            |
-|--------------|---------------|---------------|
-|              | 1792x1792x448 | 1792x1792x224 |
-| Rb           | 40, 80        | 10, 20, 40    |
-| # nodes      | 16            | 16            |
-| fft lib      | fftw1d        | p3dfft        |
-| time fft (s) | 0.30          | 0.16          |
+| N            | 20            | 40            | 80 & 120      |
+|--------------|---------------|---------------|---------------|
+|              | 1792x1792x448 | 1792x1792x224 | 1792x1792x112 |
+| Rb           | 40, 80        | 10, 20, 40    | 10            |
+| # nodes      | 16            | 16            | 8             |
+| # cores      | 448           | 448           | 224           |
+| fft lib      | fftw1d        | p3dfft        | p3dfft        |
+| time fft (s) | 0.30          | 0.16          | ?             |
 
 
 ## nh = 2240 (t_end = 50?)
 
 The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 
-| N       | 20            | 40            |
-|---------|---------------|---------------|
-|         | 2240x2240x560 | 2240x2240x280 |
-| Rb      | 80            | 20, 40        |
-| # nodes | 16            | 16            |
-| fft lib | ?             | ?             |
+| N       | 20            | 40            | 80 & 120      |
+|---------|---------------|---------------|---------------|
+|         | 2240x2240x560 | 2240x2240x280 | 2240x2240x140 |
+| Rb      | 80            | 20, 40        | 10            |
+| # nodes | 16            | 16            | 8             |
+| fft lib | p3dfft        | p3dfft        | p3dfft        |
 
 ## Distribution of the data
 
