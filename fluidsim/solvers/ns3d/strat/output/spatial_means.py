@@ -381,7 +381,8 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
     def get_dimless_numbers_versus_time(self):
         data = self.load()
         results = super().get_dimless_numbers_versus_time(data)
-        epsA = data["epsA"]
+
+        results["dimensional"]["epsA"] = epsA = data["epsA"]
 
         epsK = results["dimensional"]["epsK"]
         Uh2 = results["dimensional"]["Uh2"]

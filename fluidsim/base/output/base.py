@@ -520,6 +520,12 @@ are called.
         for key in ["Uh2", "epsK"]:
             result[key] = averages["dimensional"][key]
 
+        key = "epsA"
+        try:
+            result[key] = averages["dimensional"][key]
+        except KeyError:
+            pass
+
         for key in ["Gamma", "Fh", "R2", "k_max*eta", "epsK2/epsK"]:
             try:
                 result[key] = averages[key]
