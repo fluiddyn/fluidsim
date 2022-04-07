@@ -269,7 +269,16 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         t_start, t_last = times_start_last_from_path(path)
 
         if t_last < t_end:
-            print(f"{path.name:90s} not finished ({t_last=})")
+            try:
+                estimated_remaining_duration = (
+                    get_last_estimated_remaining_duration(path)
+                )
+            except RuntimeError:
+                estimated_remaining_duration = "?"
+
+            print(
+                f"{path.name:90s} not finished ({t_last=}, {estimated_remaining_duration=})"
+            )
             continue
 
         params = load_params_simul(path)
