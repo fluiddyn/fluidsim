@@ -1,5 +1,6 @@
 import os
 from textwrap import dedent
+from math import sqrt, tau
 
 import numpy as np
 import h5py
@@ -298,8 +299,11 @@ class Spectra(SpecificOutput):
     def plot3d(self):
         pass
 
-    def compute_isotropy_velocities(self, tmin=None, tmax=None, verbose=False):
-        data = self.load1d_mean(tmin, tmax, verbose)
+    def compute_isotropy_velocities(
+        self, tmin=None, tmax=None, verbose=False, data=None
+    ):
+        if data is None:
+            data = self.load1d_mean(tmin, tmax, verbose)
         kz = data["kz"]
         delta_kz = kz[1]
         EKx_kz = data["spectra_vx_kz"] * delta_kz
@@ -313,3 +317,27 @@ class Spectra(SpecificOutput):
         EK = EKx_kz.sum() + EKy_kz.sum() + EKz
 
         return 3 * EKz / EK
+
+    def compute_length_scales(
+        self, tmin=None, tmax=None, verbose=False, data=None
+    ):
+        if data is None:
+            data = self.load1d_mean(tmin, tmax, verbose)
+
+        lengths = {}
+
+        def add_lengths_i(letter):
+            ki = data[f"k{letter}"]
+            EK_ki = data[f"spectra_E_k{letter}"]
+            sum0i = EK_ki.sum()
+            sum1i = (EK_ki * ki).sum()
+            sum2i = (EK_ki * ki**2).sum()
+            # tau == 2*pi
+            lengths[f"l{letter}1"] = tau * sum0i / sum1i
+            lengths[f"l{letter}2"] = tau * sqrt(sum0i / sum2i)
+
+        add_lengths_i("x")
+        add_lengths_i("y")
+        add_lengths_i("z")
+
+        return lengths

@@ -467,7 +467,9 @@ are called.
             if tmin.startswith("t_start+"):
                 tmin = t_start + float(tmin.split("t_start+")[-1])
             else:
-                raise ValueError('if isinstance(tmin, str): assert tmin.startswith("t_start=")')
+                raise ValueError(
+                    'if isinstance(tmin, str): assert tmin.startswith("t_start=")'
+                )
 
         tmin = float(tmin)
 
@@ -529,7 +531,13 @@ are called.
         except KeyError:
             result["R4"] = np.inf
 
-        result["I_velocity"] = self.spectra.compute_isotropy_velocities(tmin)
+        data_spectra = self.spectra.load1d_mean(tmin, tmax, verbose=False)
+        result["I_velocity"] = self.spectra.compute_isotropy_velocities(
+            data=data_spectra
+        )
+        lengths = self.spectra.compute_length_scales(data=data_spectra)
+        result.update(lengths)
+
         result[
             "I_dissipation"
         ] = self.spect_energy_budg.compute_isotropy_dissipation(tmin)
