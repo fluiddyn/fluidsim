@@ -70,11 +70,11 @@ The resolution is multiplied by 1.4 and the hyperviscosity is decreased by 3.07.
 |--------------|---------------|---------------|----------------|------------|
 |              | 896x896x448   | 896x896x224   | 896x896x112    | 896x896x56 |
 | Rb           | 80, 160       | 20, 40, 80    | 10, 20, 40, 80 | 10         |
-| # nodes      | 4             | 4             | 4              | 1          |
-| # cores      | 112           | 112           | 112            | 28         |
-| fft lib      | fftw1d        | fftw1d        | fftw1d         | fftw1d     |
-| time fft (s) | 0.19          | 0.11          | 0.06           |            |
-| time / simul | 5 days        | 2.5 days      | 1.25 day       |            |
+| # nodes      | 4             | 4             | 4              | 2          |
+| # cores      | 112           | 112           | 112            | 56         |
+| fft lib      | fftw1d        | fftw1d        | fftw1d         | fftwmpi3d  |
+| time fft (s) | 0.19          | 0.11          | 0.06           | 0.042      |
+| time / simul | 5 days        | 2.5 days      | 1.25 day       | ?          |
 | h.CPU        | 27000         | 20000         | 13000          |            |
 
 This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.

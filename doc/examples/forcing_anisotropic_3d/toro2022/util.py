@@ -57,14 +57,22 @@ couples896 = set(
     lprod([10], [80, 160])
     + lprod([20], [20, 40, 80])
     + lprod([40], [10, 20, 40, 80])
+    + lprod([80, 120], [10])
 )
 
 couples1344 = set(
-    lprod([10], [160]) + lprod([20], [40, 80]) + lprod([40], [10, 20, 40, 80])
+    lprod([10], [160])
+    + lprod([20], [40, 80])
+    + lprod([40], [10, 20, 40, 80])
+    + lprod([80, 120], [10])
 )
 
-couples1792 = set(lprod([20], [40, 80]) + lprod([40], [10, 20, 40]))
-couples2240 = set(lprod([20], [80]) + lprod([40], [20, 40]))
+couples1792 = set(
+    lprod([20], [40, 80]) + lprod([40], [10, 20, 40]) + lprod([80, 120], [10])
+)
+couples2240 = set(
+    lprod([20], [80]) + lprod([40], [20, 40]) + lprod([80, 120], [10])
+)
 
 couples = {
     320: couples320,

@@ -338,6 +338,12 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
             print(f"{path_out} saved")
 
 
+def nb_nodes_from_N_896(N):
+    if N >= 80:
+        return 2
+    return 4
+
+
 def nb_nodes_from_N_1344(N):
     return 8
 

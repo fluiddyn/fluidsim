@@ -4,16 +4,16 @@ from pprint import pprint
 
 from fluidoccigen import cluster
 
-from util import get_info_jobs, path_scratch
+from util import get_info_jobs, path_scratch, nb_nodes_from_N_896
 
 t_end = 40.0
 nh = 896
-nb_nodes = 4
 path_init = path_scratch / "2022/aniso/init_occigen"
+print(f"{path_init = }")
 
 paths_in = sorted(path_init.glob("ns3d.strat_toro*_640x640*"))
 print("paths_in :")
-pprint([p.parent.name for p in paths_in])
+pprint([p.name for p in paths_in])
 
 path_simuls = sorted(
     (path_scratch / "aniso").glob(f"ns3d.strat_toro*_{nh}x{nh}*")
@@ -24,6 +24,14 @@ pprint([p.name for p in path_simuls])
 jobs_id, jobs_name, jobs_runtime = get_info_jobs()
 jobs_name = set(jobs_name.values())
 print(f"{jobs_name=}")
+
+
+def type_fft_from_N(N):
+    if N >= 80:
+        return "fftwmpi3d"
+    else:
+        return "fftw1d"
+
 
 for path_init_dir in paths_in:
 
@@ -55,11 +63,14 @@ for path_init_dir in paths_in:
 
     period_spatiotemp = min(2 * pi / (N * 8), 0.03)
 
+    type_fft = type_fft_from_N(N)
+    nb_nodes = nb_nodes_from_N_896(N)
+
     command = (
         f"fluidsim-restart {path_init_file} --t_end {t_end} --new-dir-results "
         "--max-elapsed 23:30:00 "
         "--modify-params 'params.nu_4 /= 3.07; params.output.periods_save.phys_fields = 0.5; "
-        'params.oper.type_fft = "fft3d.mpi_with_fftw1d"; '
+        f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
         f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}'"
     )
 
