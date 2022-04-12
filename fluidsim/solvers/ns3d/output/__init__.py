@@ -82,6 +82,14 @@ class Output(OutputBasePseudoSpectral):
             },
         )
 
+        classes._set_child(
+            "CrossCorrelations",
+            attribs={
+                "module_name": "fluidsim.base.output.cross_corr3d",
+                "class_name": "CrossCorrelations",
+            },
+        )
+
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container."""

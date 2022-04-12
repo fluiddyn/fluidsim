@@ -60,11 +60,46 @@ class SpectraNS3D(Spectra):
         }
         dict_spectra3d = {"spectra_" + k: v for k, v in dict_spectra3d.items()}
 
+        get_var = self.sim.state.state_spect.get_var
+        vx_fft = get_var("vx_fft")
+        vy_fft = get_var("vy_fft")
+
+        urx_fft, ury_fft, udx_fft, udy_fft = self.sim.oper.urudfft_from_vxvyfft(
+            vx_fft, vy_fft
+        )
+        nrj_Khr_fft = 0.5 * (np.abs(urx_fft) ** 2 + np.abs(ury_fft) ** 2)
+        nrj_Khd_fft = 0.5 * (np.abs(udx_fft) ** 2 + np.abs(udy_fft) ** 2)
+
+        s_Khr_kx, s_Khr_ky, s_Khr_kz = self.oper.compute_1dspectra(nrj_Khr_fft)
+        s_Khd_kx, s_Khd_ky, s_Khd_kz = self.oper.compute_1dspectra(nrj_Khd_fft)
+
+        dict_spectra1d.update(
+            {
+                "Khr_kx": s_Khr_kx,
+                "Khr_ky": s_Khr_ky,
+                "Khr_kz": s_Khr_kz,
+                "Khd_kx": s_Khd_kx,
+                "Khd_ky": s_Khd_ky,
+                "Khd_kz": s_Khd_kz,
+            }
+        )
+
+        s_Khr = self.oper.compute_3dspectrum(nrj_Khr_fft)
+        s_Khd = self.oper.compute_3dspectrum(nrj_Khd_fft)
+
+        dict_spectra3d.update(
+            {
+                "Khr": s_Khr,
+                "Khd": s_Khd,
+            }
+        )
         if self.has_to_save_kzkh():
             dict_kzkh = {
                 "K": self.oper.compute_spectrum_kzkh(
                     nrj_vx_fft + nrj_vy_fft + nrj_vz_fft
-                )
+                ),
+                "Khr": self.oper.compute_spectrum_kzkh(nrj_Khr_fft),
+                "Khd": self.oper.compute_spectrum_kzkh(nrj_Khd_fft),
             }
         else:
             dict_kzkh = None

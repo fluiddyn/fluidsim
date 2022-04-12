@@ -119,6 +119,8 @@ class TestOutput(TestSimulBase):
         for key in periods._key_attribs:
             periods[key] = 0.1
 
+        params.output.spectra.kzkh_periodicity = 2
+
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
         nx, ny, nz = params.oper.nx, params.oper.ny, params.oper.nz
         probes_region = (0.0, Lx, 0.0, Ly, 0.0, Lz)
@@ -223,6 +225,9 @@ class TestOutput(TestSimulBase):
                 coef_plot_k53=1.0,
             )
             sim2.output.spectra.plot3d_cumul_diss(tmin=0.1, tmax=10)
+
+            sim2.output.spectra.plot_kzkh(key="Khd")
+            sim2.output.cross_corr.plot_kzkh()
 
             sim2.output.phys_fields.set_equation_crosssection(
                 f"x={sim.oper.Lx/4}"
