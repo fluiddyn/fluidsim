@@ -105,10 +105,9 @@ The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 | fft lib      | fftw1d        | p3dfft        | p3dfft        |
 | time fft (s) | 0.30          | 0.16          | ?             |
 
-
 ## nh = 2240 (t_end = 50?)
 
-The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
+The resolution is multiplied by 5/4 and the hyperviscosity is decreased by 2.10.
 
 | N       | 20            | 40            | 80 & 120      |
 |---------|---------------|---------------|---------------|
