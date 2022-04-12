@@ -13,7 +13,7 @@ import sys
 
 from fluiddyn.util import mpi
 
-from fluidsim.util.util import modif_resolution_from_dir_memory_efficient
+from fluidsim.util import modif_resolution_from_dir_memory_efficient
 
 from fluidsim.util.scripts import parse_args
 

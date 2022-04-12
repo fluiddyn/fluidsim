@@ -71,18 +71,16 @@ class MoviesSpectra(MoviesBase1D):
         self.key_field = key_field
 
 
-class Spectra(SpecificOutput):
+class BaseSpectra(SpecificOutput):
     """Used for the saving of spectra."""
 
     _tag = "spectra"
 
-    @staticmethod
-    def _complete_params_with_default(params):
-        tag = "spectra"
-
-        params.output.periods_save._set_attrib(tag, 0)
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params.output.periods_save._set_attrib(cls._tag, 0)
         p_spectra = params.output._set_child(
-            tag, attribs={"HAS_TO_PLOT_SAVED": False, "kzkh_periodicity": 0}
+            cls._tag, attribs={"HAS_TO_PLOT_SAVED": False, "kzkh_periodicity": 0}
         )
         p_spectra._set_doc(
             dedent(
@@ -120,9 +118,9 @@ class Spectra(SpecificOutput):
 
     def _init_path_files(self):
         path_run = self.output.path_run
-        self.path_file1d = path_run + "/spectra1d.h5"
-        self.path_file3d = path_run + "/spectra3d.h5"
-        self.path_file_kzkh = path_run + "/spectra_kzkh.h5"
+        self.path_file1d = path_run + f"/{self._tag}1d.h5"
+        self.path_file3d = path_run + f"/{self._tag}3d.h5"
+        self.path_file_kzkh = path_run + f"/{self._tag}_kzkh.h5"
 
     def _init_files(self, arrays_1st_time=None):
         dict_spectra1d, dict_spectra3d, dict_kzkh = self.compute()
@@ -209,7 +207,7 @@ class Spectra(SpecificOutput):
             self.axe = axe
             axe.set_xlabel("$k$")
             axe.set_ylabel("$E(k)$")
-            axe.set_title("spectra\n" + self.output.summary_simul)
+            axe.set_title(f"{self._tag}\n{self.output.summary_simul}")
 
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass
@@ -299,6 +297,8 @@ class Spectra(SpecificOutput):
     def plot3d(self):
         pass
 
+
+class Spectra(BaseSpectra):
     def compute_isotropy_velocities(
         self, tmin=None, tmax=None, verbose=False, data=None
     ):
