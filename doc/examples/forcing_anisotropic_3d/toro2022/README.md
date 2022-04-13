@@ -10,39 +10,20 @@ nu_4 ~ injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
 
 ## nh = 320 (t_end = 20)
 
-We start by `nh = 320` for:
+We start by small simulations for `nh = 320`. The couples `N, Rb` are defined in `util.py` (and `occigen/util.py`).
 
-```python
-from itertools import product
-
-def lprod(a, b):
-    return list(product(a, b))
-
-couples = (
-    lprod([10, 20, 40], [5, 10, 20, 40, 80, 160])
-    + lprod([30], [10, 20, 40])
-    + lprod([6.5], [100, 200])
-    + lprod([4], [250, 500])
-    + lprod([3], [450, 900])
-    + lprod([2], [1000, 2000])
-    + lprod([0.66], [9000, 18000])
-)
-couples.remove((40, 160))
-N, Rb = couples[0]
-```
-
-This corresponds to 23 simulations.
-
-The aspect ratio is set by:
+The aspect ratio is set by something like (see `util.py`):
 
 ```python
 def get_ratio_nh_nz(N):
     "Get the ratio nh/nz"
-    if N == 40:
+    if N >= 80:
+        return 16
+    elif N == 40:
         return 8
     elif N in [20, 30]:
         return 4
-    elif N <= 10:
+    elif N <= 15:
         return 2
     else:
         raise NotImplementedError
@@ -143,7 +124,7 @@ The resolution is multiplied by 5/4 and the hyperviscosity is decreased by 2.10.
 1. Data for the papers with [UGA cloud](https://cloud.univ-grenoble-alpes.fr)
    (warning: limited to 50 Go)
 
-2. HAL/Software Heritage for a DOI for Fluidsim 0.7.0
+2. HAL/Software Heritage for a DOI for Fluidsim 0.7.0 (or Zenodo?)
 
 3. A dataset on a database ([Turbase](https://turbase.cineca.it) would be great)
 
@@ -153,8 +134,10 @@ The resolution is multiplied by 5/4 and the hyperviscosity is decreased by 2.10.
    - 1 notebook per simulation (ipynb + html + pdf)
    - 1 state file per simulation (warning: big)
 
-4. Full data at LEGI (access?)
+4. Dataset (selection < 50 Go) on Zenodo
 
-5. 1 paper describing the dataset and the regimes
+5. Full data at LEGI (access?)
 
-6. Other papers based on this dataset (mixing, spatiotemporal, ...)
+6. 1 paper describing the dataset and the regimes
+
+7. Other papers based on this dataset (mixing, spatiotemporal, ...)
