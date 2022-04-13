@@ -10,7 +10,8 @@ nu_4 ~ injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
 
 ## nh = 320 (t_end = 20)
 
-We start by small simulations for `nh = 320`. The couples `N, Rb` are defined in `util.py` (and `occigen/util.py`).
+We start by small simulations for `nh = 320`. The couples `N, Rb` are defined
+in `util.py` (and `occigen/util.py`).
 
 The aspect ratio is set by something like (see `util.py`):
 
@@ -35,7 +36,8 @@ def get_ratio_nh_nz(N):
 
 ## nh = 640 (t_end = 30)
 
-The resolution is doubled in all direction (8 times more grid points) and the hyperviscosity is decreased by 10 (`~2**(10/3)`).
+The resolution is doubled in all direction (8 times more grid points) and the
+hyperviscosity is decreased by 10 (`~2**(10/3)`).
 
 | N | <10         | 20, 30      | 40         | 80 & 120   |
 |---|-------------|-------------|------------|------------|

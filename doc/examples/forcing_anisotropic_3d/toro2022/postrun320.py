@@ -16,10 +16,9 @@ For each finished simulation:
 """
 
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import rmtree
 import re
 import subprocess
-from itertools import product
 
 import papermill as pm
 
