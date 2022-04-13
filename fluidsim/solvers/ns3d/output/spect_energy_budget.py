@@ -382,5 +382,5 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
 
         ratio = epsK_kz / diss_K.sum()
 
-        ratio_iso = 0.215
+        ratio_iso = 1 / 3
         return (1 - ratio) / (1 - ratio_iso)
