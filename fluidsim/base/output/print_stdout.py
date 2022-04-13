@@ -283,5 +283,10 @@ class PrintStdOutBase:
         fig.suptitle(self.output.summary_simul, fontsize=8)
         fig.tight_layout()
 
+        print(
+            "Mean clock time per time step: "
+            f"{np.mean(clock_times_per_timestep2):.3g} s"
+        )
+
     def get_times_start_last(self):
         return times_start_last_from_path(self.sim.output.path_run)

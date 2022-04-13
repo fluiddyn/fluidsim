@@ -12,4 +12,7 @@ from fluidsim.util.scripts.turb_trandom_anisotropic import main
 
 if __name__ == "__main__":
 
-    params, sim = main(N=100, nz=160)
+    params, sim = main(
+        N=10,
+        forced_field="polo",
+    )

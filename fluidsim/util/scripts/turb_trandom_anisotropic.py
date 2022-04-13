@@ -127,6 +127,13 @@ def create_parser():
     parser.add_argument("-nu", type=float, default=None, help="Viscosity")
 
     parser.add_argument(
+        "--nu4",
+        type=float,
+        default=None,
+        help="Order-4 hyper viscosity",
+    )
+
+    parser.add_argument(
         "-Rb",
         type=float,
         default=None,
@@ -134,10 +141,10 @@ def create_parser():
     )
 
     parser.add_argument(
-        "--nu4",
+        "--Rb4",
         type=float,
         default=None,
-        help="Order-4 hyper viscosity",
+        help="Input order-4 buoyancy Reynolds number (injection_rate / (nu_4 * N^4))",
     )
 
     parser.add_argument(
@@ -256,13 +263,6 @@ def create_parser():
     )
 
     parser.add_argument(
-        "--type_fft",
-        type=str,
-        default="default",
-        help="fft type used to perform the Fourier transforms",
-    )
-
-    parser.add_argument(
         "--modify-params",
         type=str,
         default=None,
@@ -318,24 +318,37 @@ def create_params(args):
     mpi.printby0(f"Input horizontal Froude number: {Fh:.3g}")
 
     nu = None
+    Rb = None
     if args.nu is not None and args.Rb is not None:
         raise ValueError("args.nu is not None and args.Rb is not None")
 
     if args.nu is not None:
         nu = args.nu
-        Rb = injection_rate / (nu * args.N**2)
+        if nu != 0.0:
+            Rb = injection_rate / (nu * args.N**2)
         params.short_name_type_run += f"_nu{nu:.3e}"
-    else:
-        Rb = args.Rb or 5.0
+        mpi.printby0(f"Input viscosity: {nu:.3e}")
+    elif args.Rb is not None:
+        Rb = args.Rb
         nu = injection_rate / (Rb * args.N**2)
         params.short_name_type_run += f"_Rb{Rb:.3g}"
-
-    mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
-
+        mpi.printby0(f"Input buoyancy Reynolds number: {Rb:.3g}")
+    else:
+        Rb = 5.0
+        nu = injection_rate / (Rb * args.N**2)
     params.nu_2 = nu
 
+    if args.nu4 is not None and args.Rb4 is not None:
+        raise ValueError("args.nu4 is not None and args.Rb4 is not None")
     if args.nu4 is not None:
         params.nu_4 = args.nu4
+        params.short_name_type_run += f"_nuh{params.nu_4:.3e}"
+        mpi.printby0(f"Input order-4 hyper viscosity: {params.nu_4:.3e}")
+    elif args.Rb4 is not None:
+        Rb_4 = args.Rb4
+        params.nu_4 = injection_rate / (Rb_4 * args.N**4)
+        params.short_name_type_run += f"_Rbh{Rb_4:.3g}"
+        mpi.printby0(f"Input order-4 buoyancy Reynolds number: {Rb_4:.3g}")
     else:
         # compute nu_4 from injection_rate and dx
         # Kolmogorov length scale
@@ -354,7 +367,10 @@ def create_params(args):
             params.nu_4 = (
                 args.coef_nu4 * injection_rate_4 ** (1 / 3) / k_max ** (10 / 3)
             )
-            mpi.printby0(f"Resolution too coarse, we add {params.nu_4 = :.3e}.")
+            Rb_4 = injection_rate / (params.nu_4 * args.N**4)
+            mpi.printby0(
+                f"Resolution too coarse, we add order-4 hyper viscosity nu_4={params.nu_4:.3e}."
+            )
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = params.oper.Lz / 2
@@ -364,8 +380,6 @@ def create_params(args):
     params.forcing.type = "tcrandom_anisotropic"
     params.forcing.forcing_rate = injection_rate
     params.forcing.key_forced = keys_versus_kind[args.forced_field]
-
-    params.oper.type_fft = args.type_fft
 
     """
     Since args.ratio_nh_nz > 1,
@@ -399,10 +413,11 @@ def create_params(args):
     period_N = 2 * pi / args.N
     omega_l = args.N * args.F
 
+    # time_stepping fixed to follow waves
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = min(0.1, period_N / 2)
+    params.time_stepping.deltat_max = min(0.1, period_N / 16)
 
     # time_correlation is fixed to forced wave period
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_l
@@ -420,7 +435,7 @@ def create_params(args):
     params.output.spectra.kzkh_periodicity = 1
 
     if args.spatiotemporal_spectra:
-        params.output.periods_save.spatiotemporal_spectra = period_N / 4
+        params.output.periods_save.spatiotemporal_spectra = period_N / 8
 
     params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
     # probes_region in nondimensional units (mode indices).

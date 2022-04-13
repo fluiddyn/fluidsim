@@ -1164,6 +1164,7 @@ class SpatioTemporalSpectraNS:
             ax.plot(
                 xaxis, (omega_emp - 0.5 * delta_omega_emp) / N, "r--", linewidth=1
             )
+            return omega_emp, delta_omega_emp, omega_disp
 
     def compute_spectra_urud(self, tmin=0, tmax=None, dtype=None):
         raise NotImplementedError

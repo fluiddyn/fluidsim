@@ -32,6 +32,14 @@ def test_only_print_params_as_code():
     main()
 
 
+@patch.object(
+    sys, "argv", ["./prog", "-oppac", "--Rb4", "10", "--spatiotemporal-spectra"]
+)
+@skip_if_no_fluidfft
+def test_only_print_params_as_code_Rb4():
+    main()
+
+
 @patch.object(sys, "argv", ["./prog"])
 @skip_if_no_fluidfft
 def test_simul():
