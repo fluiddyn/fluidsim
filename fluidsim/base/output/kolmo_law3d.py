@@ -8,19 +8,101 @@ Provides:
    :private-members:
 
 """
+import itertools
 
-# import numpy as np
-# import h5py
+import numpy as np
 
-# from fluiddyn.util import mpi
+from fluiddyn.util import mpi
 
 from .base import SpecificOutput
 
 
+class OperKolmoLaw:
+    def __init__(self, X, Y, Z, params):
+        self.cos_theta_cos_phi = ...
+        self.cos_theta_sin_phi = ...
+        self.sin_theta = ...
+        self.sin_phi = ...
+        self.cos_phi = ...
+
+        self.rh = ...
+        self.rz = ...
+
+    def vec_rthetaphi_from_vec_xyz(self, vx, vy, vz):
+
+        v_r = ...
+
+        v_theta = (
+            self.cos_theta_cos_phi * vx
+            + self.cos_theta_sin_phi * vy
+            - self.sin_theta * vz
+        )
+
+        v_phi = self.sin_phi * vx + self.cos_phi * vy
+
+        return v_r, v_theta, v_phi
+
+    def average_azimutal(arr):
+        self.rh
+        self.rz
+        avg_arr = None
+        mpi
+        return avg_arr
+
+
 class KolmoLaw(SpecificOutput):
-    """Kolmogorov law 3d."""
+    r"""Kolmogorov law 3d.
+
+    .. |J| mathmacro:: {\mathbf J}
+    .. |v| mathmacro:: {\mathbf v}
+    .. |x| mathmacro:: {\mathbf x}
+    .. |r| mathmacro:: {\mathbf r}
+    .. |Sum| mathmacro:: \sum_{\mathbf k}
+    .. |bnabla| mathmacro:: \boldsymbol{\nabla}
+
+    .. |epsK| mathmacro:: \varepsilon_K
+    .. |epsA| mathmacro:: \varepsilon_A
+
+    We want to test the prediction :
+
+    .. math::
+
+        \bnabla \cdot \left( \J_K + \J_A \right) = -4 \left( \epsK + \epsA \right),
+
+    where
+
+    .. math::
+
+        \J_K(\r) \equiv
+          \left\langle | \delta \v |^2 \delta \v \right\rangle_\x, \\
+        \J_A(\r) \equiv
+          \frac{1}{N^2} \left\langle | \delta b |^2 \delta \v \right\rangle_\x.
+
+    This output saves the components in the spherical basis of the vectors
+    :math:`\J_\alpha` averaged over the azimutal angle (i.e. as a function of
+    :math:`r_h` and :math:`r_z`).
+
+    We can take the example of the quantity :math:`\langle | \delta b |^2
+    \delta \v \rangle_\x` to explain how these quantities are computed. Using
+    the relation
+
+    .. math::
+
+        \left\langle a' b \right\rangle_\x(\r) =
+          TF^{-1} \left\{ \hat{a} \hat{b}^* \right\}(\r),
+
+    it is easy to show that
+
+    .. math::
+
+        \left\langle |\delta b|^2 \delta\v \right\rangle_\x(\r) =
+          TF^{-1} \left\{ \Im \left[ 4 \widehat{(b \v)}^* \hat{b} +
+          2 \widehat{(b^2)}^* \hat{\v} \right] \right\}.
+
+    """
 
     _tag = "kolmo_law"
+    _name_file = "kolmo_law.h5"
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -31,7 +113,16 @@ class KolmoLaw(SpecificOutput):
 
         # dict containing rh and rz
         # TODO: complete arrays_1st_time
-        arrays_1st_time = {}
+
+        if params.output.periods_save.kolmo_law != 0.0:
+            X, Y, Z = output.sim.oper.get_XYZ_loc()
+            self.oper_kolmo_law = OperKolmoLaw(X, Y, Z, params)
+            arrays_1st_time = {
+                "rh": self.oper_kolmo_law.rh,
+                "rz": self.oper_kolmo_law.rz,
+            }
+        else:
+            arrays_1st_time = None
 
         super().__init__(
             output,
@@ -41,5 +132,50 @@ class KolmoLaw(SpecificOutput):
 
     def compute(self):
         """compute the values at one time."""
-        # TODO: has to return a dictionnary containing the data for 1 instant
-        return {}
+        state = self.sim.state
+        state_phys = state.state_phys
+        state_spect = state.state_spect
+
+        fft = self.sim.oper.fft
+
+        letters = "xyz"
+
+        tf_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
+        tf_vjvi = np.empty((3, 3), dtype=object)
+        tf_K = None
+
+        for index, letter in enumerate(letters):
+            vi = state_phys.get_var("v" + letter)
+            vi2 = vi * vi
+            tf_vjvi[index, index] = tmp = fft(vi2)
+            if tf_K is None:
+                tf_K = tmp
+            else:
+                tf_K += tmp
+
+        for ind_i, ind_j in itertools.combinations(range(3), 2):
+            letter_i = letters[ind_i]
+            letter_j = letters[ind_j]
+            vi = state_phys.get_var("v" + letter_i)
+            vj = state_phys.get_var("v" + letter_j)
+            tf_vjvi[ind_i, ind_j] = tf_vjvi[ind_j, ind_i] = fft(vi * vj)
+
+        J_xyz = [None] * 3
+
+        for ind_i in range(3):
+            tmp = tf_vi[ind_i] * tf_K.conj()
+            for ind_j in range(3):
+                tmp += tf_vi[ind_j] * tf_vjvi[ind_i, ind_j].conj()
+            tmp.real = 0.0
+            J_xyz[ind_i] = 4 * self.sim.oper.ifft(tmp)
+
+        J_rthetaphi = self.oper_kolmo_law.vec_rthetaphi_from_vec_xyz(*J_xyz)
+
+        result = {}
+        keys = ["r", "theta", "phi"]
+        for index, key in enumerate(keys):
+            result["J_K_" + key] = self.oper_kolmo_law.average_azimutal(
+                J_rthetaphi[index]
+            )
+
+        return result

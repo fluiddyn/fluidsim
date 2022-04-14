@@ -21,6 +21,7 @@ Provides:
    spect_energy_budget
    spatiotemporal_spectra
    temporal_spectra
+   kolmo_law3d
 
 .. autoclass:: OutputBase
    :members:
