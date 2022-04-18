@@ -5,6 +5,7 @@ from itertools import product
 import re
 from math import pi
 from pprint import pprint
+import sys
 
 import pytimeparse
 from capturer import CaptureOutput
@@ -14,6 +15,8 @@ from fluidsim.util import (
     get_last_estimated_remaining_duration,
 )
 from fluidoccigen import cluster
+
+COMPUTE_SPATIOTEMP_SPECTRA = "--no-spatiotemp-spectra" not in sys.argv
 
 path_scratch = Path(os.environ["SCRATCHDIR"])
 path_base = path_scratch / "aniso"
@@ -312,7 +315,11 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         # compute spatiotemporal spectra
         sim = load(path, hide_stdout=True)
         t_statio = round(t_start) + 1.0
-        sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
+        if nh == 896 and N >= 80:
+            t_statio += 4
+
+        if COMPUTE_SPATIOTEMP_SPECTRA:
+            sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
         try:
             next(path.glob(f"State_phys_{nh_larger}x{nh_larger}*"))
@@ -336,7 +343,7 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         else:
             has_to_run = date_in > date_out
 
-        if has_to_run:
+        if has_to_run and COMPUTE_SPATIOTEMP_SPECTRA:
             pm.execute_notebook(
                 path_in, path_out, parameters=dict(path_dir=str(path))
             )
