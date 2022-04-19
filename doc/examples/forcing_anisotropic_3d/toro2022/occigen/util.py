@@ -318,7 +318,7 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         if nh == 896 and N >= 80:
             t_statio += 4
 
-        if COMPUTE_SPATIOTEMP_SPECTRA:
+        if COMPUTE_SPATIOTEMP_SPECTRA and not (nh == 896 and N >= 80):
             sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
         try:
@@ -343,7 +343,7 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         else:
             has_to_run = date_in > date_out
 
-        if has_to_run and COMPUTE_SPATIOTEMP_SPECTRA:
+        if has_to_run and COMPUTE_SPATIOTEMP_SPECTRA and not (nh == 896 and N >= 80):
             pm.execute_notebook(
                 path_in, path_out, parameters=dict(path_dir=str(path))
             )
