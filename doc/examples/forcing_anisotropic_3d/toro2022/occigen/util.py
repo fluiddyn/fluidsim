@@ -359,6 +359,8 @@ def nb_nodes_from_N_896(N):
 def nb_nodes_from_N_1344(N):
     if N >= 80:
         return 4
+    elif N == 10:
+        return 12
     return 8
 
 
