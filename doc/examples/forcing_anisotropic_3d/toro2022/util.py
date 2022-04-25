@@ -35,6 +35,11 @@ couples320.add((80, 10))
 couples320.add((120, 10))
 couples320.remove((40, 160))
 
+# Small Rb
+couples320.update(lprod([20], [1, 2]))
+couples320.update(lprod([40], [1, 2]))
+couples320.update(lprod([80], [0.5, 1]))
+
 couples640 = deepcopy(couples320)
 couples640.remove((10, 5))
 
