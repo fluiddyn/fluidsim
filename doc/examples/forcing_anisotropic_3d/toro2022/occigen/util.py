@@ -243,7 +243,7 @@ def submit_restart(nh, t_end, nb_nodes_from_N, max_elapsed_time="23:30:00"):
             job_id = text.split()[-1].strip()
 
 
-def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
+def postrun(t_end, nh, coef_modif_resol=None, couples_larger_resolution=None):
     """
     For each finished simulation:
 
@@ -259,7 +259,8 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
     from fluidsim.util import times_start_last_from_path, load_params_simul
     from fluidsim import load
 
-    nh_larger = int(nh * eval(coef_modif_resol))
+    if coef_modif_resol is not None:
+        nh_larger = int(nh * eval(coef_modif_resol))
 
     deltat = 0.05
 
@@ -338,13 +339,14 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
             if list(path_spatiotemp.glob("rank*.h5")):
                 sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
-        try:
-            next(path.glob(f"State_phys_{nh_larger}x{nh_larger}*"))
-        except StopIteration:
-            if (N, Rb) in couples_larger_resolution:
-                subprocess.run(
-                    f"fluidsim-modif-resolution {path} {coef_modif_resol}".split()
-                )
+        if coef_modif_resol is not None:
+            try:
+                next(path.glob(f"State_phys_{nh_larger}x{nh_larger}*"))
+            except StopIteration:
+                if (N, Rb) in couples_larger_resolution:
+                    subprocess.run(
+                        f"fluidsim-modif-resolution {path} {coef_modif_resol}".split()
+                    )
 
         path_in = "../analyse_1simul_papermill.ipynb"
         path_out = (
