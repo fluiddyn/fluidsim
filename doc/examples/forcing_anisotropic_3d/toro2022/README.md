@@ -62,7 +62,7 @@ The resolution is multiplied by 1.4 and the hyperviscosity is decreased by 3.07.
 
 This should cost something like 22.5 days * 112 cores = 60_000 h.CPU.
 
-## nh = 1344 (t_end = 44?)
+## nh = 1344 (t_end = 44)
 
 The resolution is multiplied by 3/2 and the hyperviscosity is decreased by 3.86.
 
@@ -75,7 +75,7 @@ The resolution is multiplied by 3/2 and the hyperviscosity is decreased by 3.86.
 | fft lib      | fftw1d        | p3dfft        | p3dfft        | p3dfft       |
 | time fft (s) | ?             | 0.25          | 0.11          | ?            |
 
-## nh = 1792 (t_end = 48?)
+## nh = 1792 (t_end = 48)
 
 The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 
@@ -88,7 +88,7 @@ The resolution is multiplied by 4/3 and the hyperviscosity is decreased by 2.61.
 | fft lib      | fftw1d        | p3dfft        | p3dfft        |
 | time fft (s) | 0.30          | 0.16          | ?             |
 
-## nh = 2240 (t_end = 50?)
+## nh = 2240 (t_end = 50)
 
 The resolution is multiplied by 5/4 and the hyperviscosity is decreased by 2.10.
 

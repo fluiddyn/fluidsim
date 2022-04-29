@@ -28,13 +28,21 @@ path_base = Path("/fsnet/project/meige/2022/22STRATURBANIS/from_occigen/aniso")
 paths_largeN = [
     p
     for p in sorted(path_base.glob("ns3d*_N[81]*"))
-    if "_N80" in p.name or "_N120" in p.name
+    if (
+        ("_N80_" in p.name or "_N120_" in p.name)
+        and ("896x896" in p.name or "1344x1344" in p.name)
+    )
 ]
-t_end = 40.0
-nh = 896
 
 for path in paths_largeN:
     t_start, t_last = times_start_last_from_path(path)
+
+    if "896x896" in path.name:
+        nh = 896
+        t_end = 40.0
+    elif "1344x1344" in path.name:
+        nh = 1344
+        t_end = 44.0
 
     if t_last < t_end:
         try:
@@ -51,7 +59,6 @@ for path in paths_largeN:
 
     params = load_params_simul(path)
     N = float(params.N)
-    nx = params.oper.nx
     Rb = float(re.search(r"_Rb(.*?)_", path.name).group(1))
 
     tmp = f"{N=} {Rb=} {nh=}"
@@ -69,7 +76,7 @@ for path in paths_largeN:
     path_output_papermill = path_base / "results_papermill"
     path_out = (
         path_output_papermill
-        / f"analyze_N{N:05.2f}_Rb{Rb:03.0f}_nx{nx:04d}.ipynb"
+        / f"analyze_N{N:05.2f}_Rb{Rb:03.0f}_nx{nh:04d}.ipynb"
     )
 
     date_in = modification_date(path_in)
