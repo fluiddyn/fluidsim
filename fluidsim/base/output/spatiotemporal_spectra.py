@@ -1458,6 +1458,13 @@ class SpatioTemporalSpectraNS:
     def _get_default_tmax(self):
         paths = list(self.path_dir.glob("rank*.h5"))
         if not paths:
+            paths_periodo = list(self.path_dir.glob("periodogram_*.h5"))
+            if paths_periodo:
+                tmax = 0.
+                for path in paths_periodo:
+                    with open_patient(path, "r") as file:
+                        tmax = max(tmax, file.attrs["tmax"])
+                return tmax
             return self.sim.params.time_stepping.t_end
         ranks = sorted({int(p.name[4:9]) for p in paths})
         paths_1st_rank = sort_files_tmin(
