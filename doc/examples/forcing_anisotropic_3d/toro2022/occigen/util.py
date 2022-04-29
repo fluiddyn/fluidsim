@@ -319,7 +319,9 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
             t_statio += 4
 
         if COMPUTE_SPATIOTEMP_SPECTRA and not (nh == 896 and N >= 80):
-            sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
+            path_spatiotemp = path / "spatiotemporal"
+            if list(path_spatiotemp.glob("rank*.h5")):
+                sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
         try:
             next(path.glob(f"State_phys_{nh_larger}x{nh_larger}*"))
