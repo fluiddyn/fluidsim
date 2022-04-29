@@ -287,6 +287,21 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
             print(
                 f"{path.name:90s} not finished ({t_last=}, {estimated_remaining_duration=})"
             )
+
+            if (path / "is_being_advanced.lock").exists():
+                continue
+
+            # soft link of the last file (to be able to restart)
+            path_files = sorted(path.glob("state_phys*"))
+            if not path_files:
+                continue
+
+            path_last_state = path_files[-1]
+            link_last_state = path_end_states / path.name / path_last_state.name
+            if not link_last_state.exists():
+                link_last_state.parent.mkdir(exist_ok=True)
+                link_last_state.symlink_to(path_last_state)
+                print(f"Link {link_last_state} created")
             continue
 
         params = load_params_simul(path)
@@ -345,7 +360,11 @@ def postrun(t_end, nh, coef_modif_resol, couples_larger_resolution):
         else:
             has_to_run = date_in > date_out
 
-        if has_to_run and COMPUTE_SPATIOTEMP_SPECTRA and not (nh == 896 and N >= 80):
+        if (
+            has_to_run
+            and COMPUTE_SPATIOTEMP_SPECTRA
+            and not (nh == 896 and N >= 80)
+        ):
             pm.execute_notebook(
                 path_in, path_out, parameters=dict(path_dir=str(path))
             )
