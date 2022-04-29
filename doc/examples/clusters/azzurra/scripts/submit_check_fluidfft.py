@@ -6,6 +6,8 @@ submit_check_fluidfft.py
 
 from fluidazzurra import cluster
 
+account = "turbulence"
+
 nb_proc = nb_cores = 2
 
 walltime = "00:10:00"
@@ -16,6 +18,7 @@ for lib in libraries:
 
     cluster.submit_script(
         f"check_fluidfft.py fft3d.mpi_with_{lib}",
+        account=account,
         name_run=f"check_fluidfft_{lib}",
         nb_cores_per_node=nb_cores,
         walltime=walltime,

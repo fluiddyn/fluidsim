@@ -9,8 +9,10 @@ For help, run
 
 """
 
-from fluidsim.util.scripts.turb_trandom_anisotropic import main
+import mpi4py
+mpi4py.rc(thread_level = 'single')
 
+from fluidsim.util.scripts.turb_trandom_anisotropic import main
 
 if __name__ == "__main__":
     params, sim = main(

@@ -6,8 +6,6 @@ module load openmpi
 module load hdf5/1.12.1-ompi412
 module load fftw/3.3.8
 
-conda activate base
-
 # needed to use clang for Pythran
 unset CC
 unset CXX
@@ -16,8 +14,3 @@ export LD_LIBRARY_PATH=$HOME/opt/p3dfft/2.7.5/lib:$HOME/opt/pfft/lib:$LD_LIBRARY
 export FLUIDSIM_PATH=/workspace/$USER
 
 export TRANSONIC_MPI_TIMEOUT=300
-
-
-
-
-

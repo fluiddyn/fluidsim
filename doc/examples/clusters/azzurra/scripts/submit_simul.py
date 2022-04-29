@@ -1,4 +1,5 @@
-from fluidlicallo import cluster
+from fluidazzurra import cluster
+import mpi4py
 
 # Ns = [10, 20, 40]
 # Rbs = [10, 20, 40]
@@ -11,6 +12,11 @@ projs = ['"poloidal"']
 nz = 80
 max_elapsed = "00:15:00"
 type_fft = "default"  # "fluidfft.fft3d.mpi_with_pfft"
+
+#Mpi4py.rc.multiple_thread = 'single'
+#mpi4py.rc.threads = False
+#mpi4py.rc.thread_level = 'single'
+mpi4py.rc(thread_level = 'single')
 
 nb_nodes = 1
 nb_cores_per_node = 8  # cluster.nb_cores_per_node
@@ -25,6 +31,7 @@ for N in Ns:
                     f"--projection={proj} --spatiotemporal-spectra "
                     f"--max-elapsed {max_elapsed} --type_fft {type_fft}"
                 ),
+                account="turbulence",
                 name_run=f"ns3d.strat_N{N}_Rb{Rb}_proj{proj}",
                 nb_nodes=nb_nodes,
                 nb_cores_per_node=nb_cores_per_node,
