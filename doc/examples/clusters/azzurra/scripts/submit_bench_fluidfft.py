@@ -7,25 +7,26 @@ Once you have runned many runs, you can run fluidfft-bench-analysis
 
 Exemple:
 python submit_bench_fluidfft.py
-cd /scratch/$USER/fluidfft_bench
-fluidfft-bench-analysis 320 640 640 -i .
+cd /workspace/$USER/fluidfft_bench
+fluidfft-bench-analysis 160 640 640 -i .
 
 """
 
-from fluidlicallo import cluster
+from fluidazzurra import cluster
 
 
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
-    nb_mpi = nb_nodes * nb_cores_per_node
+    nb_mpi_processes = nb_nodes * nb_cores_per_node
 
     cluster.submit_command(
-        "fluidfft-bench 160 640 640 -o /scratch/$USER/fluidfft_bench -n 20",
-        name_run=f"fluidfft-bench_160_640_640_{nb_mpi:02d}",
+        "fluidfft-bench 320 1280 1280 -o /workspace/$USER/fluidfft_bench -n 20",
+        name_run=f"fluidfft-bench_320_1280_1280_{nb_mpi_processes:02d}",
+        account="turbulence",
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
         walltime="00:20:00",
-        nb_mpi_processes=nb_mpi,
+        nb_mpi_processes=nb_mpi_processes,
         omp_num_threads=1,
         ask=False,
         delay_signal_walltime=None,
