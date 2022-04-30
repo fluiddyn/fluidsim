@@ -12,7 +12,8 @@ conda create --name env_fluidsim python ipython scipy "blas-devel[build=*openbla
     matplotlib pandas psutil pillow scikit-image mako clangdev jupyterlab papermill
 
 # Activate the environement
-source activate $HOME/miniconda3/envs/env_fluidsim
+source $HOME/miniconda3/etc/profile.d/conda.sh
+conda activate env_fluidsim
 
 # Using Pythran master > 0.11.0 (possible performance boost)
 pip install git+https://github.com/serge-sans-paille/pythran#egg=pythran --force-reinstall

@@ -13,4 +13,5 @@ unset CXX
 export LD_LIBRARY_PATH=$HOME/opt/p3dfft/2.7.5/lib:$HOME/opt/pfft/lib:$LD_LIBRARY_PATH
 export FLUIDSIM_PATH=/workspace/$USER
 
+export MPI4PY_RC_THREAD_LEVEL=single
 export TRANSONIC_MPI_TIMEOUT=300
