@@ -13,3 +13,4 @@ rsync -rv \
   --exclude "**/state_phys_t*.h5" \
   --exclude "end_states/*" \
   --exclude "results_papermill/*"
+  --exclude "*/State_phys_*"
