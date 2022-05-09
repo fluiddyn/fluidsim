@@ -5,7 +5,7 @@ import sys
 
 import matplotlib.pyplot as plt
 
-from fluidsim.util import times_start_last_from_path
+from fluidsim.util import times_start_last_from_path, get_dataframe_from_paths
 
 path_base = os.environ["STRAT_TURB_TORO2022"]
 
@@ -20,7 +20,7 @@ height = 3.7
 plt.rc("figure", figsize=(1.33 * height, height))
 
 
-def get_path_finer_resol(N, Rb):
+def get_paths_couple(N, Rb, reverse=False):
     str_N = f"_N{N}_"
     str_Rb = f"_Rb{Rb:.3g}_"
     str_Rb2 = f"_Rb{Rb}_"
@@ -29,7 +29,12 @@ def get_path_finer_resol(N, Rb):
         for p in paths_all
         if str_N in p.name and (str_Rb in p.name or str_Rb2 in p.name)
     ]
-    paths_couple.sort(key=lambda p: int(p.name.split("x")[1]), reverse=True)
+    paths_couple.sort(key=lambda p: int(p.name.split("x")[1]), reverse=reverse)
+    return paths_couple
+
+
+def get_path_finer_resol(N, Rb):
+    paths_couple = get_paths_couple(N, Rb, reverse=True)
     for path in paths_couple:
         t_start, t_last = times_start_last_from_path(path)
         if t_last > t_start + 1:
@@ -66,3 +71,63 @@ has_to_save = "SAVE" in sys.argv
 def save_fig(fig, name):
     if has_to_save:
         fig.savefig(tmp_dir / name)
+
+
+def customize(result, sim):
+    result["Rb"] = float(sim.params.short_name_type_run.split("_Rb")[-1])
+    result["nx"] = sim.params.oper.nx
+    result["nz"] = sim.params.oper.nz
+
+
+def get_customized_dataframe(paths):
+
+    df = get_dataframe_from_paths(
+        paths, tmin="t_start+2", use_cache=1, customize=customize
+    )
+    df["Re"] = df.Rb * df.N**2
+
+    columns_old = df.columns.tolist()
+
+    # fmt: off
+    first_columns = [
+        "N", "Rb", "Re", "nx", "nz", "Fh", "R2", "k_max*eta", "epsK2/epsK", "Gamma",
+        "lx1", "lx2", "lz1", "lz2", "I_velocity", "I_dissipation"]
+    # fmt: on
+
+    columns = first_columns.copy()
+    for key in columns_old:
+        if key not in columns:
+            columns.append(key)
+
+    df = df[columns]
+    return df
+
+
+def plot(
+    df,
+    x,
+    y,
+    logx=True,
+    logy=False,
+    c=None,
+    vmin=None,
+    vmax=None,
+    s=None,
+):
+    ax = df.plot.scatter(
+        x=x,
+        y=y,
+        logx=logx,
+        logy=logy,
+        c=c,
+        edgecolors="k",
+        vmin=vmin,
+        vmax=vmax,
+        s=s,
+    )
+    pc = ax.collections[0]
+    pc.set_cmap("inferno")
+
+    if c is not None:
+        plt.colorbar(pc, ax=ax)
+    return ax

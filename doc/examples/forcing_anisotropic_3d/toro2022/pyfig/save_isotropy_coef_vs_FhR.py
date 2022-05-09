@@ -1,8 +1,9 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
-from util import save_fig, plt
+from util import save_fig, plot
 
-from util_dataframe import plot, df
+from util_dataframe import df
 
 ax = plot(
     df,
