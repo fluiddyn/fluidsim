@@ -12,5 +12,7 @@ rsync -rv \
   --exclude "**/spatiotemporal/rank*_tmin*.h5" \
   --exclude "**/state_phys_t*.h5" \
   --exclude "end_states/*" \
-  --exclude "results_papermill/*"
+  --exclude "results_papermill/*" \
+  --exclude "**/*_uncompressed.h5" \
   --exclude "*/State_phys_*"
+
