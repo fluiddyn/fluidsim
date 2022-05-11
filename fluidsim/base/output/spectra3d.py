@@ -297,6 +297,32 @@ class BaseSpectra(SpecificOutput):
     def plot3d(self):
         pass
 
+    def plot_kzkh(
+        self, tmin=0, tmax=None, key="xz", ax=None, vmin=None, vmax=None
+    ):
+        data = self.load_kzkh_mean(tmin, tmax, key)
+        if self._tag == "cross_corr":
+            plotted = np.sign(data[key]) * np.log10(abs(data[key]))
+        else:
+            plotted = np.log10(data[key])
+
+        kz = data["kz"]
+        kh = data["kh_spectra"]
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+        else:
+            fig = ax.figure
+
+        ax.set_xlabel(r"$\kappa_h$")
+        ax.set_ylabel("$k_z$")
+        ax.set_title("log10 spectra\n" + self.output.summary_simul)
+
+        qmesh = ax.pcolormesh(
+            kh, kz, plotted, shading="nearest", vmin=vmin, vmax=vmax
+        )
+        fig.colorbar(qmesh)
+
 
 class Spectra(BaseSpectra):
     def compute_isotropy_velocities(

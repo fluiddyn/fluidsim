@@ -56,25 +56,3 @@ class CrossCorrelations(BaseSpectra):
         dict_spectra1d = {"spectra_" + k: v for k, v in dict_spectra1d.items()}
         dict_spectra3d = {"spectra_" + k: v for k, v in dict_spectra3d.items()}
         return dict_spectra1d, dict_spectra3d, dict_kzkh
-
-    def plot_kzkh(
-        self, tmin=0, tmax=None, key="xz", ax=None, vmin=None, vmax=None
-    ):
-        data = self.load_kzkh_mean(tmin, tmax, key)
-        spectrum = np.sign(data[key]) * np.log10(abs(data[key]))
-        kz = data["kz"]
-        kh = data["kh_spectra"]
-
-        if ax is None:
-            fig, ax = self.output.figure_axe()
-        else:
-            fig = ax.figure
-
-        ax.set_xlabel(r"$\kappa_h$")
-        ax.set_ylabel("$k_z$")
-        ax.set_title("log10 spectra\n" + self.output.summary_simul)
-
-        qmesh = ax.pcolormesh(
-            kh, kz, spectrum, shading="nearest", vmin=vmin, vmax=vmax
-        )
-        fig.colorbar(qmesh)

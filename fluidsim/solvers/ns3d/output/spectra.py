@@ -288,28 +288,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-    def plot_kzkh(
-        self, tmin=0, tmax=None, key="K", ax=None, vmin=None, vmax=None
-    ):
-        data = self.load_kzkh_mean(tmin, tmax, key)
-        spectrum = np.log10(data[key])
-        kz = data["kz"]
-        kh = data["kh_spectra"]
-
-        if ax is None:
-            fig, ax = self.output.figure_axe()
-        else:
-            fig = ax.figure
-
-        ax.set_xlabel(r"$\kappa_h$")
-        ax.set_ylabel("$k_z$")
-        ax.set_title("log10 spectra\n" + self.output.summary_simul)
-
-        qmesh = ax.pcolormesh(
-            kh, kz, spectrum, shading="nearest", vmin=vmin, vmax=vmax
-        )
-        fig.colorbar(qmesh)
-
     def plot1d(
         self,
         tmin=0,
