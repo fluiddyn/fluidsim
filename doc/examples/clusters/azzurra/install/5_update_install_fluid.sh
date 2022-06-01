@@ -6,15 +6,8 @@ unset CXX
 
 cd $HOME/Dev
 
-# TODO: Remove when the topic is merged
-# Install fluiddyn from sources
-cd fluiddyn
-make clean
-hg up install_azzurra
-pip install -e . --no-build-isolation
-
 # Install fluidfft from sources
-cd ../fluidfft
+cd fluidfft
 make clean
 hg up default
 python setup.py develop 

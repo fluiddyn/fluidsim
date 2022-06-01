@@ -32,6 +32,5 @@ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/softs/hdf5-ompi412-shared \
 # Test if h5py has been installed correctly
 python -c "import h5py; assert h5py.h5.get_config().mpi, 'h5py not built with MPI support'"
 
-# TODO: uncomment the next line before merging
-#pip install hg+https://foss.heptapod.net/fluiddyn/fluiddyn#egg=fluiddyn
+pip install hg+https://foss.heptapod.net/fluiddyn/fluiddyn#egg=fluiddyn
 pip install hg+https://foss.heptapod.net/fluiddyn/transonic#egg=transonic
