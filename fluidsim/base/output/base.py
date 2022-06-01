@@ -517,14 +517,14 @@ are called.
             tmin=tmin, tmax=tmax
         )
 
-        for key in ["Uh2", "epsK"]:
+        for key in ["Uh2", "epsK", "EKh", "EKz", "k_max"]:
             result[key] = averages["dimensional"][key]
 
-        key = "epsA"
-        try:
-            result[key] = averages["dimensional"][key]
-        except KeyError:
-            pass
+        for key in ["epsA", "EA"]:
+            try:
+                result[key] = averages["dimensional"][key]
+            except KeyError:
+                pass
 
         for key in ["Gamma", "Fh", "R2", "k_max*eta", "epsK2/epsK"]:
             try:

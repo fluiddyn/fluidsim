@@ -333,12 +333,14 @@ class SpatialMeansNS3D(SpatialMeansBase):
         results = {"t": data["t"]}
 
         try:
-            Uh2 = data["Ex"] + data["Ey"] + data["Ez"]
+            EKh = Uh2 = data["Ex"] + data["Ey"]
+            EKz = data["Ez"]
         except KeyError:
             EKhr = data["EKhr"]
             EKhd = data["EKhd"]
             EKhs = data["EKhs"]
-            Uh2 = EKhr + EKhd + EKhs
+            EKh = Uh2 = EKhr + EKhd + EKhs
+            EKz = data["EKz"]
 
         epsK = data["epsK"]
         epsK_hyper = np.zeros_like(epsK)
@@ -365,7 +367,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             else:
                 results["epsK2/epsK"] = np.ones_like(epsK)
 
-        results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
+        results["dimensional"] = {
+            "Uh2": Uh2,
+            "epsK": epsK,
+            "EKh": EKh,
+            "EKz": EKz,
+        }
 
         if nu_2:
             results["dimensional"]["eta"] = eta
@@ -388,6 +395,11 @@ class SpatialMeansNS3D(SpatialMeansBase):
             k: q[itmin:stop].mean()
             for k, q in numbers_vs_time["dimensional"].items()
         }
+
+        delta_kz = 2 * np.pi / self.params.oper.Lz
+        coef_dealiasing = self.params.oper.coef_dealiasing
+        result["dimensional"]["k_max"] = coef_dealiasing * delta_kz * self.params.oper.nz / 2
+
         return result
 
     def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
