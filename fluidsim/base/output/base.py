@@ -458,24 +458,41 @@ are called.
 
         """
 
-        if tmin is None or isinstance(tmin, str):
+        if (
+            tmin is None
+            or isinstance(tmin, str)
+            or tmax is None
+            or isinstance(tmax, str)
+        ):
             t_start, _ = self.print_stdout.get_times_start_last()
+            t_last = self.spatial_means.time_last_saved()
 
         if tmin is None:
             tmin = t_start
         elif isinstance(tmin, str):
             if tmin.startswith("t_start+"):
                 tmin = t_start + float(tmin.split("t_start+")[-1])
+            elif tmin.startswith("t_last-"):
+                tmin = t_last - float(tmin.split("t_last-")[-1])
             else:
                 raise ValueError(
-                    'if isinstance(tmin, str): assert tmin.startswith("t_start=")'
+                    'if isinstance(tmin, str): assert tmin.startswith("t_start+")'
+                    ' or tmin.startswith("t_last-")'
                 )
-
         tmin = float(tmin)
 
         if tmax is None:
-            t_last = self.spatial_means.time_last_saved()
             tmax = t_last
+        elif isinstance(tmax, str):
+            if tmax.startswith("t_start+"):
+                tmax = t_start + float(tmax.split("t_start+")[-1])
+            elif tmax.startswith("t_last-"):
+                tmax = t_last - float(tmax.split("t_last-")[-1])
+            else:
+                raise ValueError(
+                    'if isinstance(tmax, str): assert tmax.startswith("t_start+")'
+                    ' or tmax.startswith("t_last-")'
+                )
         tmax = float(tmax)
 
         cache_dir = Path(self.path_run) / ".cache"
