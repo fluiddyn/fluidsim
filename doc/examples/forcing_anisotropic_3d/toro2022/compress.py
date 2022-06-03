@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from subprocess import run
@@ -9,7 +8,9 @@ with open(here / "occigen/simuls_not_finished.txt", "r") as file:
     simuls_not_finished = [line.strip() for line in file.readlines()]
 
 path_base = Path("/fsnet/project/meige/2022/22STRATURBANIS")
-paths = sorted(path_base.glob("aniso/ns3d*")) + sorted(path_base.glob("from_occigen/aniso/ns3d*"))
+paths = sorted(path_base.glob("aniso/ns3d*")) + sorted(
+    path_base.glob("from_occigen/aniso/ns3d*")
+)
 
 names = ("spect_energy_budg.h5", "spectra_kzkh.h5")
 

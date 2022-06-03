@@ -398,7 +398,9 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         delta_kz = 2 * np.pi / self.params.oper.Lz
         coef_dealiasing = self.params.oper.coef_dealiasing
-        result["dimensional"]["k_max"] = coef_dealiasing * delta_kz * self.params.oper.nz / 2
+        result["dimensional"]["k_max"] = (
+            coef_dealiasing * delta_kz * self.params.oper.nz / 2
+        )
 
         return result
 

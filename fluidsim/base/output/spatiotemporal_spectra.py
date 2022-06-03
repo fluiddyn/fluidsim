@@ -1460,7 +1460,7 @@ class SpatioTemporalSpectraNS:
         if not paths:
             paths_periodo = list(self.path_dir.glob("periodogram_*.h5"))
             if paths_periodo:
-                tmax = 0.
+                tmax = 0.0
                 for path in paths_periodo:
                     with open_patient(path, "r") as file:
                         tmax = max(tmax, file.attrs["tmax"])

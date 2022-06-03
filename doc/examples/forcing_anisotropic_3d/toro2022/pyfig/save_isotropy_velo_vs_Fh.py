@@ -5,7 +5,9 @@ from util import save_fig, plot
 
 from util_dataframe import df
 
-ax = plot(df, "Fh", "I_velocity", c=np.log10(df["R2"]), vmin=0.5, vmax=2, logy=True)
+ax = plot(
+    df, "Fh", "I_velocity", c=np.log10(df["R2"]), vmin=0.5, vmax=2, logy=True
+)
 
 ax.set_xlabel("$F_h$")
 ax.set_ylabel(r"$I_{velocity}$")
