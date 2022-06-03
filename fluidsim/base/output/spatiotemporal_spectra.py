@@ -893,7 +893,7 @@ class SpatioTemporalSpectraNS:
     def compute_omega_emp_vs_kzkh(
         self,
         spectra_kzkhomega,
-        key_spect,
+        key_spect="spectrum_b",
     ):
         r"""Compute empirical frequency and fluctuation from the spatiotemporal spectra:
 
@@ -908,9 +908,9 @@ class SpatioTemporalSpectraNS:
             ~ \mathrm{d}\omega}{\int ~ S(k_h, k_z, \omega) ~ \mathrm{d}\omega}},
 
         where :math:`\omega_{emp}` is the empirical frequency and :math:`\delta
-        \omega_{emp}` is the empirical frequency fluctuation.
+        \omega_{emp}` is the empirical frequency fluctuation. :math:`S(k_h, k_z, \omega)` is the spectra
+        of `key_spect`.
         """
-        # TODO: Differenciate the cases where projection are poloidal or not
 
         spectrum = spectra_kzkhomega[key_spect]
         kh_spectra = spectra_kzkhomega["kh_spectra"]
@@ -938,7 +938,7 @@ class SpatioTemporalSpectraNS:
 
     def plot_kzkhomega(
         self,
-        key_field=None,
+        key_field="b",
         tmin=0,
         tmax=None,
         dtype=None,
@@ -1135,15 +1135,15 @@ class SpatioTemporalSpectraNS:
         if equation.startswith(r"$\omega"):
             if omega > 0 and omega <= N:
                 ikz_disp = np.sqrt(N**2 / omega**2 - 1) / dkz_over_dkh * xaxis
-                ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
+                ax.plot(xaxis, ikz_disp, "k-", linewidth=2)
         elif equation.startswith(r"$k_h"):
             omega_disp = ikh / np.sqrt(ikh**2 + dkz_over_dkh**2 * xaxis**2)
-            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+            ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         elif equation.startswith(r"$k_z"):
             omega_disp = xaxis / np.sqrt(
                 xaxis**2 + dkz_over_dkh**2 * ikz**2
             )
-            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+            ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
 
