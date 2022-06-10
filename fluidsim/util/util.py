@@ -14,6 +14,9 @@ from time import perf_counter
 from typing import Union
 from math import radians
 import warnings
+import json
+import hashlib
+import inspect
 
 import h5netcdf
 import h5py
@@ -750,6 +753,121 @@ def ensure_radians(angle):
     return angle
 
 
+def get_last_time_spatial_means_from_path(path):
+
+    path_file = Path(path) / "spatial_means.txt"
+
+    if path_file.exists():
+        with open(path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
+            line = file_means.readline()
+            while line != b"":
+                if line.startswith(b"time ="):
+                    line_time = line
+                line = file_means.readline()
+
+        words = line_time.split()
+        return float(words[2])
+
+    path_file = path_file.with_suffix(".json")
+    if path_file.exists():
+        with open(path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
+            line = file_means.readline()
+            while line != b"":
+                line_prev = line
+                line = file_means.readline()
+
+        return json.loads(line_prev)["t"]
+
+
+def get_mean_values_from_path(
+    path, tmin=None, tmax=None, use_cache=True, customize=None
+):
+
+    """Get a dict of scalar values characterizing the simulation
+
+    Parameters
+    ----------
+
+    tmin: float
+        Minimum time
+
+    tmax: float
+        Maximum time
+
+    use_cache: bool
+        If True, return the cached result
+
+    customize: callable
+
+        If not None, called as ``customize(result, self.sim)`` to modify the
+        returned dict.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        def customize(result, sim):
+            result["Rb"] = float(sim.params.short_name_type_run.split("_Rb")[-1])
+        get_mean_values_from_path(path, customize=customize)
+
+    """
+
+    if tmin is None or isinstance(tmin, str):
+        t_start, _ = times_start_last_from_path(path)
+
+    if tmin is None:
+        tmin = t_start
+    elif isinstance(tmin, str):
+        if tmin.startswith("t_start+"):
+            tmin = t_start + float(tmin.split("t_start+")[-1])
+        else:
+            raise ValueError(
+                'if isinstance(tmin, str): assert tmin.startswith("t_start=")'
+            )
+
+    tmin = float(tmin)
+
+    if tmax is None:
+        t_last = get_last_time_spatial_means_from_path(path)
+        tmax = t_last
+    tmax = float(tmax)
+
+    cache_dir = Path(path) / ".cache"
+    cache_dir.mkdir(exist_ok=True)
+
+    if customize is not None:
+        hash = hashlib.sha256(inspect.getsource(customize).encode()).hexdigest()[
+            :16
+        ]
+        part_customize = f"_customize{hash}"
+    else:
+        part_customize = ""
+
+    cache_file = cache_dir / (
+        f"mean_values_tmin{tmin}_tmax{tmax}{part_customize}.json"
+    )
+    if use_cache and cache_file.exists():
+        with open(cache_file, "r") as file:
+            return json.load(file)
+
+    sim = load_sim_for_plot(path, hide_stdout=True)
+
+    result = sim.output._compute_mean_values(tmin, tmax)
+    if customize is not None:
+        customize(result, sim)
+
+    with open(cache_file, "w") as file:
+        json.dump(result, file, indent=2)
+    return result
+
+
 def get_dataframe_from_paths(
     paths, tmin=None, tmax=None, use_cache=True, customize=None
 ):
@@ -763,9 +881,8 @@ def get_dataframe_from_paths(
 
     values = []
     for path in track(paths, "Getting the mean values"):
-        sim = load_sim_for_plot(path, hide_stdout=True)
         values.append(
-            sim.output.get_mean_values(tmin, tmax, use_cache, customize)
+            get_mean_values_from_path(path, tmin, tmax, use_cache, customize)
         )
 
     df = DataFrame(values)

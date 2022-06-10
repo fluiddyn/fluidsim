@@ -28,6 +28,8 @@ Provides:
 
 .. autofunction:: ensure_radians
 
+.. autofunction:: get_mean_values_from_path
+
 .. autofunction:: get_dataframe_from_paths
 
 .. autofunction:: get_last_estimated_remaining_duration
@@ -44,6 +46,7 @@ from .util import (
     times_start_last_from_path,
     ensure_radians,
     get_last_estimated_remaining_duration,
+    get_mean_values_from_path,
     get_dataframe_from_paths,
     get_memory_usage,
     available_solver_keys,
@@ -63,6 +66,7 @@ __all__ = [
     "times_start_last_from_path",
     "ensure_radians",
     "get_last_estimated_remaining_duration",
+    "get_mean_values_from_path",
     "get_dataframe_from_paths",
     "get_memory_usage",
     "available_solver_keys",
