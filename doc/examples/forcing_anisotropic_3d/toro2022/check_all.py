@@ -16,8 +16,8 @@ paths_all = sorted(
 
 for couple in sorted(couples320):
     N, Rb = couple
-    str_N = f"_N{N}"
-    str_Rb = f"_Rb{Rb:.3g}"
+    str_N = f"_N{N}_"
+    str_Rb = f"_Rb{Rb:.3g}_"
     paths_couple = [p for p in paths_all if str_N in p.name and str_Rb in p.name]
     paths_couple.sort(key=lambda p: int(p.name.split("x")[1]))
     print("--------")

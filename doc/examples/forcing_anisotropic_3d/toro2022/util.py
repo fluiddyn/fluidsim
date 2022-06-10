@@ -1,6 +1,7 @@
 from pathlib import Path
 from itertools import product
 from copy import deepcopy
+from math import sqrt
 
 from fluiddyn.clusters.legi import Calcul8 as C
 
@@ -87,3 +88,22 @@ couples = {
     1792: couples1792,
     2240: couples2240,
 }
+
+
+def customize(result, sim):
+
+    EKh = result["EKh"]
+    EKz = result["EKz"]
+    EK = EKh + EKz
+    U = sqrt(2 * EK / 3)
+    nu_2 = sim.params.nu_2
+    epsK = result["epsK"]
+
+    result["name"] = sim.output.name_run
+
+    result["lambda"] = sqrt(U**2 * nu_2 / epsK)
+    result["Re_lambda"] = U * result["lambda"] / nu_2
+
+    result["Rb"] = float(sim.params.short_name_type_run.split("_Rb")[-1])
+    result["nx"] = sim.params.oper.nx
+    result["nz"] = sim.params.oper.nz
