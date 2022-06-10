@@ -843,7 +843,8 @@ def get_mean_values_from_path(
     cache_dir.mkdir(exist_ok=True)
 
     if customize is not None:
-        hash = hashlib.sha256(inspect.getsource(customize).encode()).hexdigest()[
+        source = inspect.getsource(customize).encode().strip()
+        hash = hashlib.sha256(source).hexdigest()[
             :16
         ]
         part_customize = f"_customize{hash}"
@@ -853,6 +854,7 @@ def get_mean_values_from_path(
     cache_file = cache_dir / (
         f"mean_values_tmin{tmin}_tmax{tmax}{part_customize}.json"
     )
+
     if use_cache and cache_file.exists():
         with open(cache_file, "r") as file:
             return json.load(file)
@@ -863,6 +865,7 @@ def get_mean_values_from_path(
     if customize is not None:
         customize(result, sim)
 
+    print("saving", cache_file)
     with open(cache_file, "w") as file:
         json.dump(result, file, indent=2)
     return result
