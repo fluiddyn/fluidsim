@@ -62,7 +62,7 @@ for nhovernz, nzs in possible_nz_versus_nhovernz.items():
         print(f"{nh=}, {nz=}, {nb_nodes_ok=}")
 
         # really bad estimation!
-        estimation_memory = nh ** 2 * nz * 8 / 1024**3 * (4*2 + 60)
+        estimation_memory = nh**2 * nz * 8 / 1024**3 * (4 * 2 + 60)
         nb_cores_min = np.ceil(estimation_memory / memory_per_node)
 
         print(f"{estimation_memory=:.0f} GB, {nb_cores_min=:.0f}")
