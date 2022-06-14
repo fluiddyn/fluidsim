@@ -1,15 +1,4 @@
-from pathlib import Path
-from runpy import run_path
-
-import pandas as pd
-
-new_simuls = pd.read_csv("new_simulations20220613.csv")
-
-
-here = Path(__file__).absolute().parent
-
-util_main = run_path(here.parent / "util.py")
-path_base = util_main["path_base"]
+from util import new_simuls, path_base
 
 path_init_tgcc = path_base / "init_tgcc"
 
