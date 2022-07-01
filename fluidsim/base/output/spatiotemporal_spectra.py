@@ -696,26 +696,48 @@ class SpatioTemporalSpectra2D(SpatioTemporalSpectra3D):
         ]
 
 
+def _complete_name(name, dtype, save_urud):
+    if dtype is not None:
+        name += f"_{dtype}"
+    if save_urud:
+        name += "_urud"
+    return name + ".h5"
+
+
 class SpatioTemporalSpectraNS:
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_{float(tmin)}_{float(tmax)}"
-        if dtype is not None:
-            base += f"_{dtype}"
-        if save_urud:
-            base += "_urud"
-        return self.path_dir / (base + ".h5")
+
+        # we first check if a file corresponds to tmin and tmax
+        # but we don't know how tmin/tmax are formatted
+        for_glob = _complete_name("periodogram_*_*", dtype, save_urud)
+        for path in self.path_dir.glob(for_glob):
+            if "_temporal" in path.name:
+                continue
+            if (tmin, tmax) == tuple(float(s) for s in path.stem.split("_")[1:3]):
+                return path
+
+        name = _complete_name(
+            f"periodogram_{float(tmin)}_{float(tmax)}", dtype, save_urud
+        )
+        return self.path_dir / name
 
     def _get_path_saved_tspectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_temporal_{float(tmin)}_{float(tmax)}"
-        if dtype is not None:
-            base += f"_{dtype}"
-        if save_urud:
-            base += "_urud"
-        return self.path_dir / (base + ".h5")
+
+        # we first check if a file corresponds to tmin and tmax
+        # but we don't know how tmin/tmax are formatted
+        for_glob = _complete_name("periodogram_temporal_*_*", dtype, save_urud)
+        for path in self.path_dir.glob(for_glob):
+            if (tmin, tmax) == tuple(float(s) for s in path.stem.split("_")[2:4]):
+                return path
+
+        name = _complete_name(
+            f"periodogram_temporal_{float(tmin)}_{float(tmax)}", dtype, save_urud
+        )
+        return self.path_dir / name
 
     def save_spectra_kzkhomega(
         self, tmin=0, tmax=None, dtype=None, save_urud=False
