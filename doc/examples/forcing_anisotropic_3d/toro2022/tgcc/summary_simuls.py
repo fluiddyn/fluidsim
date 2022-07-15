@@ -1,6 +1,5 @@
 """
-
-
+Print some data about the simulations to be done on TGCC clusters
 
 """
 
