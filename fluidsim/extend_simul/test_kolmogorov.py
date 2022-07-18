@@ -20,7 +20,6 @@ class TestKolmo(TestSimulBase):
     @classmethod
     def init_params(cls):
         params = super().init_params()
-
         params.forcing.enable = True
         params.forcing.type = "kolmogorov_flow"
         params.forcing.kolmo.ik = 3
@@ -30,5 +29,14 @@ class TestKolmo(TestSimulBase):
 
     def test_kolmo(self):
         sim = self.sim
-
         sim.time_stepping.start()
+
+
+class TestKolmoNormalized(TestKolmo):
+    nx = 24
+
+    @classmethod
+    def init_params(cls):
+        params = super().init_params()
+        params.forcing.type = "kolmogorov_flow_normalized"
+        params.forcing.nkmax_forcing = 6

@@ -13,6 +13,8 @@
 
 import numpy as np
 
+from fluiddyn.util import mpi
+
 from fluidsim_core.extend_simul import SimulExtender
 
 from fluidsim.base.forcing.specific import (
@@ -47,6 +49,51 @@ class _KolmogorovFlowBase(SimulExtender):
                 attribs={"ik": 3, "amplitude": None, "letter_gradient": "z"},
             )
 
+    def __init__(self, sim):
+        super().__init__(sim)
+
+        if self.tag == "kolmogorov_flow_normalized" and mpi.rank > 0:
+            return
+
+        params = sim.params
+
+        ik = params.forcing.kolmo.ik
+        amplitude = params.forcing.kolmo.amplitude
+        if amplitude is None:
+            amplitude = 1.0
+
+        key_forced = params.forcing.key_forced
+        if key_forced is None:
+            key_forced = "vx"
+        elif key_forced.ends_with("_fft"):
+            key_forced = key_forced[: -len("_fft")]
+
+        letter_gradient = params.forcing.kolmo.letter_gradient
+
+        oper = self._get_oper()
+
+        if len(oper.axes) == 3:
+            coords = oper.get_XYZ_loc()
+            lengths = [params.oper.Lx, params.oper.Ly, params.oper.Lz]
+            letters = "xyz"
+        else:
+            raise NotImplementedError
+
+        if letter_gradient not in letters:
+            raise ValueError
+
+        index = letters.index(letter_gradient)
+        variable = coords[index]
+        length = lengths[index]
+
+        self._init_forcing(key_forced, amplitude, ik, length, variable)
+
+    def _get_oper(self):
+        raise NotImplementedError
+
+    def _init_forcing(self, key_forced, amplitude, ik, length, variable):
+        raise NotImplementedError
+
 
 class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
     """Kolmogorov flow forcing
@@ -65,37 +112,11 @@ class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
 
     """
 
-    def __init__(self, sim):
-        super().__init__(sim)
-        params = sim.params
+    def _get_oper(self):
+        return self.sim.oper
 
-        ik = params.forcing.kolmo.ik
-        amplitude = params.forcing.kolmo.amplitude
-        if amplitude is None:
-            amplitude = 1.0
-
-        letter_gradient = params.forcing.kolmo.letter_gradient
-
-        key_forced = params.forcing.key_forced
-        if key_forced is None:
-            key_forced = "vx"
-
+    def _init_forcing(self, key_forced, amplitude, ik, length, variable):
         field = self.fstate.state_phys.get_var(key_forced)
-
-        if len(sim.oper.axes) == 3:
-            coords = sim.oper.get_XYZ_loc()
-            lengths = [params.oper.Lx, params.oper.Ly, params.oper.Lz]
-            letters = "xyz"
-        else:
-            raise NotImplementedError
-
-        if letter_gradient not in letters:
-            raise ValueError
-
-        index = letters.index(letter_gradient)
-        variable = coords[index]
-        length = lengths[index]
-
         field[:] = amplitude * np.sin(2 * np.pi * ik / length * variable)
         self.fstate.statespect_from_statephys()
 
@@ -106,3 +127,16 @@ class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
 
 class KolmogorovFlowNormalized(_KolmogorovFlowBase, NormalizedForcing):
     tag = "kolmogorov_flow_normalized"
+    _key_forced_default = "vx_fft"
+
+    def _get_oper(self):
+        return self.oper_coarse
+
+    def _init_forcing(self, key_forced, amplitude, ik, length, variable):
+        del key_forced
+        field = amplitude * np.sin(2 * np.pi * ik / length * variable)
+        self._f_fft = self.oper_coarse.fft(field)
+
+    def forcingc_raw_each_time(self, _):
+        # nothing to do here
+        return self._f_fft

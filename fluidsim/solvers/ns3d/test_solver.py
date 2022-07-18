@@ -27,6 +27,8 @@ from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 @skip_if_no_fluidfft
 class TestSimulBase(TestSimul):
+    nx = 16
+
     @classproperty
     def Simul(cls):
         from fluidsim.solvers.ns3d.solver import Simul
@@ -49,7 +51,7 @@ class TestSimulBase(TestSimul):
 
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        cls._init_grid(params, nx=16)
+        cls._init_grid(params, nx=cls.nx)
 
         Lx = 6.0
         params.oper.Lx = Lx
