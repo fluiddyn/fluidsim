@@ -11,6 +11,7 @@
    :toctree:
 
    spatial_means_regions_milestone
+   kolmogorov
 
 """
 

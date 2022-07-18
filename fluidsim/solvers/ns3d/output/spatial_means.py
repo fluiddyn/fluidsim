@@ -239,10 +239,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
         ax.set_title("Energy and enstrophy\n" + self.output.summary_simul)
         ax.set_ylabel("$E(t)$")
         ax.set_xlabel("$t$")
-        ax.plot(t, E, "k", linewidth=2)
-        ax.plot(t, Ex, "b")
-        ax.plot(t, Ey, "r")
-        ax.plot(t, Ez, "c")
+        ax.plot(t, E, "k", linewidth=2, label="Energy")
+        ax.plot(t, Ex, "b", label="$E_x$")
+        ax.plot(t, Ey, "r", label="$E_y$")
+        ax.plot(t, Ez, "c", label="$E_z$")
+
+        ax.legend()
 
         fig, ax = self.output.figure_axe()
         ax.set_title(
