@@ -1,42 +1,52 @@
 from math import pi
+import sys
 
 from fluiddyn.util.mpi import rank
 
-from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
+from fluidsim.solvers.ns2d.strat.solver import Simul as SimulNotExtended
 
 from fluidsim.extend_simul import extend_simul_class
-from fluidsim.extend_simul.kolmogorov import KolmogorovFlow
+from fluidsim.extend_simul.kolmogorov import (
+    KolmogorovFlow,
+    KolmogorovFlowNormalized,
+)
 
 
-Simul = extend_simul_class(SimulNotExtended, KolmogorovFlow)
+Simul = extend_simul_class(
+    SimulNotExtended, [KolmogorovFlow, KolmogorovFlowNormalized]
+)
 
 params = Simul.create_default_params()
 
 params.output.sub_directory = "examples"
 params.short_name_type_run = "kolmo"
 
-params.oper.nx = params.oper.ny = nh = 64
-params.oper.nz = nh
+params.oper.nx = nx = 64
+params.oper.ny = nx
 
-params.oper.Lx = params.oper.Ly = Lh = 10.0
-params.oper.Lz = Lh * params.oper.nz / params.oper.nx
+params.oper.Lx = Lx = 10.0
+params.oper.Ly = Lx * params.oper.ny / params.oper.nx
 
 params.oper.coef_dealiasing = 2 / 3
 params.time_stepping.t_end = 20.0
 
 params.init_fields.type = "noise"
 params.init_fields.noise.length = 1.0
-params.init_fields.noise.velo_max = 1e-5
+params.init_fields.noise.velo_max = 1e-2
 
 params.forcing.enable = True
 params.forcing.type = "kolmogorov_flow"
+
+if "normalized" in sys.argv:
+    params.forcing.type += "_normalized"
+
 params.forcing.kolmo.ik = 3
 params.forcing.kolmo.amplitude = F = 1.0
 
-L = params.oper.Lz / (2 * params.forcing.kolmo.ik)
+L = params.oper.Ly / (2 * params.forcing.kolmo.ik)
 injection_rate = (F * L) ** (3 / 2) / L
 
-kmax = params.oper.coef_dealiasing * pi / Lh * nh
+kmax = params.oper.coef_dealiasing * pi / Lx * nx
 eta = 1 / kmax
 
 order = 4
