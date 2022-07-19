@@ -99,6 +99,15 @@ class SpatialMeansBase(SpecificOutput):
             axe.set_xlabel("$t$")
             axe.set_ylabel(r"$\epsilon(t)$")
 
+    def _get_nb_points_from_lines(self, lines_t, *liness):
+        nt = len(lines_t)
+        liness = [lines for lines in liness if lines]
+        if all(len(lines) == nt for lines in liness):
+            return nt
+        else:
+            # the last line for a quantity has not yet been saved?
+            return nt - 1
+
     def load(self):
         dict_results = {}
         return dict_results

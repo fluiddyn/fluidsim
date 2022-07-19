@@ -135,9 +135,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 lines_epsZ.append(line)
 
         nt = len(lines_t)
-        # pa: why ?
-        # if nt > 1:
-        #     nt -= 1
 
         t = np.empty(nt)
         E = np.empty(nt)

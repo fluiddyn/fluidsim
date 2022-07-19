@@ -175,9 +175,12 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             elif line.startswith("epsK8 ="):
                 lines_epsK8.append(line)
 
-        nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
+        # fmt: off
+        nt = self._get_nb_points_from_lines(
+            lines_t, lines_E, lines_EA, lines_PK, lines_PA,
+            lines_epsK, lines_epsK4, lines_epsK8
+        )
+        # fmt: on
 
         # support files saved without EAs
         words = lines_EA[0].split()

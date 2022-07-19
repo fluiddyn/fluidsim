@@ -172,8 +172,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
                 lines_epsK.append(line)
 
         nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
 
         t = np.empty(nt)
         E = np.empty(nt)

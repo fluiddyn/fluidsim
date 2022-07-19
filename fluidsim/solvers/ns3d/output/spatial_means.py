@@ -140,9 +140,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             elif line.startswith("epsK8 ="):
                 lines_epsK8.append(line)
 
-        nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
+        # fmt: off
+        nt = self._get_nb_points_from_lines(
+            lines_t, lines_E, lines_Ex, lines_PK, lines_epsK,
+            lines_epsK4, lines_epsK8
+        )
+        # fmt: on
 
         t = np.empty(nt)
         E = np.empty(nt)
