@@ -2,8 +2,8 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from fluidsim.extend_simul import extend_simul_class
-from fluidsim.extend_simul.kolmogorov import (
+from fluidsim.base.forcing.kolmogorov import (
+    extend_simul_class,
     KolmogorovFlow,
     KolmogorovFlowNormalized,
 )
@@ -60,7 +60,7 @@ class TestKolmo(TestSimulBase):
         PK_tot = data["PK_tot"]
         PK2 = data["PK2"]
         dt = sim.params.time_stepping.deltat_max
-        PK2_theo = sim.params.forcing.kolmo.amplitude ** 2 * dt / 2 / 2
+        PK2_theo = sim.params.forcing.kolmo.amplitude**2 * dt / 2 / 2
         assert np.allclose(PK2, PK2_theo)
         PK_tot_theo = PK2_theo + np.array([0, 2, 4]) * dt
         assert np.allclose(PK_tot, PK_tot_theo)

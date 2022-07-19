@@ -15,8 +15,8 @@ from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
 
-from fluidsim.extend_simul import extend_simul_class
-from fluidsim.extend_simul.kolmogorov import (
+from fluidsim.base.forcing.kolmogorov import (
+    extend_simul_class,
     KolmogorovFlow,
     KolmogorovFlowNormalized,
 )

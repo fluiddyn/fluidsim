@@ -16,16 +16,18 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from fluidsim_core.extend_simul import SimulExtender
+from fluidsim_core.extend_simul import SimulExtender, extend_simul_class
 
 from fluidsim.base.forcing.specific import (
     SpecificForcingPseudoSpectralSimple,
     NormalizedForcing,
 )
 
+__all__ = ["extend_simul_class", "KolmogorovFlow", "KolmogorovFlowNormalized"]
+
 
 class _KolmogorovFlowBase(SimulExtender):
-    _module_name = "fluidsim.extend_simul.kolmogorov"
+    _module_name = "fluidsim.base.forcing.kolmogorov"
     tag = "kolmogorov_flow"
 
     @classmethod
@@ -132,8 +134,7 @@ class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
 
         from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
 
-        from fluidsim.extend_simul import extend_simul_class
-        from fluidsim.extend_simul.kolmogorov import KolmogorovFlow
+        from fluidsim.base.forcing.kolmogorov import extend_simul_class, KolmogorovFlow
 
         Simul = extend_simul_class(SimulNotExtended, KolmogorovFlow)
 
@@ -183,10 +184,9 @@ class KolmogorovFlowNormalized(_KolmogorovFlowBase, NormalizedForcing):
 
         from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
 
-        from fluidsim.extend_simul import extend_simul_class
-        from fluidsim.extend_simul.kolmogorov import KolmogorovFlow
+        from fluidsim.base.forcing.kolmogorov import extend_simul_class, KolmogorovFlowNormalized
 
-        Simul = extend_simul_class(SimulNotExtended, KolmogorovFlow)
+        Simul = extend_simul_class(SimulNotExtended, KolmogorovFlowNormalized)
 
         params = Simul.create_default_params()
 
