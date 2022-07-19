@@ -1,7 +1,17 @@
+"""
+Examples of commands:
+
+```
+python simul_ns2d_strat_kolmo.py
+python simul_ns2d_strat_kolmo.py normalized
+mpirun -np 4 python simul_ns2d_strat_kolmo.py
+```
+"""
+
 from math import pi
 import sys
 
-from fluiddyn.util.mpi import rank
+from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns2d.strat.solver import Simul as SimulNotExtended
 
@@ -52,7 +62,7 @@ eta = 1 / kmax
 order = 4
 params.nu_4 = eta ** (order - 2 / 3) * injection_rate ** (1 / 3)
 
-print(f"{params.nu_4 = :.2e}")
+mpi.printby0(f"{params.nu_4 = :.2e}")
 
 params.output.periods_print.print_stdout = 0.5
 params.output.periods_save.phys_fields = 0.5
@@ -64,20 +74,17 @@ sim = Simul(params)
 
 sim.time_stepping.start()
 
-
-if rank == 0:
-    print(
-        "\nTo visualize the results, you can do:\n"
-        f"cd {sim.output.path_run}; "
-        + """ipython -i -c "from fluidsim import load; sim = load()"
+mpi.printby0(
+    "\nTo visualize the results, you can do:\n"
+    f"cd {sim.output.path_run}; "
+    + """ipython -i -c "from fluidsim import load; sim = load()"
 
 sim.output.spatial_means.plot()
 
-sim.output.phys_fields.set_equation_crosssection("y=0")
 sim.output.phys_fields.animate('vx', dt_frame_in_sec=0.3, dt_equations=0.25)
 
 tmin = 15
 sim.output.spectra.plot1d(coef_compensate=5/3, tmin=tmin)
-sim.output.spect_energy_budg.plot_fluxes(tmin=tmin)
+sim.output.spect_energy_budg.plot(tmin=tmin)
 """
-    )
+)

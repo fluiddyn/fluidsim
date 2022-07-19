@@ -10,6 +10,7 @@
    :private-members:
 
 """
+from warnings import warn
 
 import numpy as np
 
@@ -65,6 +66,14 @@ class _KolmogorovFlowBase(SimulExtender):
 
         ik = params.forcing.kolmo.ik
         amplitude = params.forcing.kolmo.amplitude
+
+        if self.tag == "kolmogorov_flow_normalized" and amplitude is not None:
+            warn(
+                "For this forcing type ('kolmogorov_flow_normalized'), "
+                "the parameter `params.forcing.kolmo.amplitude` has no effect. "
+                "The amplitude is controlled with `params.forcing.forcing_rate`."
+            )
+
         if amplitude is None:
             amplitude = 1.0
 
@@ -111,6 +120,11 @@ class _KolmogorovFlowBase(SimulExtender):
 class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
     """Kolmogorov flow forcing
 
+    This forcing can be used with solvers based on ns2d or ns3d.
+
+    By default, the flow is forced along the x axis with a gradient along the z
+    axis for 3D solvers and the y axis for the 2D solvers.
+
     Examples
     --------
 
@@ -122,6 +136,21 @@ class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
         from fluidsim.extend_simul.kolmogorov import KolmogorovFlow
 
         Simul = extend_simul_class(SimulNotExtended, KolmogorovFlow)
+
+        params = Simul.create_default_params()
+
+        params.forcing.enable = True
+        params.forcing.type = "kolmogorov_flow"
+
+    The parameters can be modified as follow:
+
+    .. code-block:: python
+
+        params.forcing.kolmo.ik = 3
+        params.forcing.kolmo.amplitude = 2.0
+
+        params.forcing.key_forced = "ux_fft"
+        params.forcing.kolmo.letter_gradient = "y"
 
     """
 
@@ -140,6 +169,42 @@ class KolmogorovFlow(_KolmogorovFlowBase, SpecificForcingPseudoSpectralSimple):
 
 
 class KolmogorovFlowNormalized(_KolmogorovFlowBase, NormalizedForcing):
+    """Kolmogorov flow forcing with constant energy injection rate
+
+    This forcing can be used with solvers based on ns2d or ns3d.
+
+    By default, the flow is forced along the x axis with a gradient along the z
+    axis for 3D solvers and the y axis for the 2D solvers.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
+
+        from fluidsim.extend_simul import extend_simul_class
+        from fluidsim.extend_simul.kolmogorov import KolmogorovFlow
+
+        Simul = extend_simul_class(SimulNotExtended, KolmogorovFlow)
+
+        params = Simul.create_default_params()
+
+        params.forcing.enable = True
+        params.forcing.type = "kolmogorov_flow_normalized"
+
+    The parameters can be modified as follow:
+
+    .. code-block:: python
+
+        params.forcing.kolmo.ik = 3
+        params.forcing.forcing_rate = 10.0
+
+    Note that ``params.forcing.kolmo.amplitude`` has no effect for this forcing
+    type.
+
+    """
+
     tag = "kolmogorov_flow_normalized"
 
     def _get_oper(self):

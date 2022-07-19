@@ -105,7 +105,7 @@ class SpatialMeansBase(SpecificOutput):
         if all(len(lines) == nt for lines in liness):
             return nt
         else:
-            # the last line for a quantity has not yet been saved?
+            # the last line for a quantity may not have been saved yet
             return nt - 1
 
     def load(self):
