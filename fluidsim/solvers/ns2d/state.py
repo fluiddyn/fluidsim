@@ -141,9 +141,33 @@ class StateNS2D(StatePseudoSpectral):
             elif key == "uy_fft":
                 self.init_from_uyfft(arr)
             else:
-                super().init_statespect_from(**kwargs)
+                super().init_statespect_from(**{key: arr})
         else:
             super().init_statespect_from(**kwargs)
+
+    def init_statephys_from_ux(self, ux):
+        ux_fft = self.oper.fft(ux)
+        uy_fft = self.oper.create_arrayK(value=0.0)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        self.state_phys.set_var("rot", self.oper.ifft(rot_fft))
+
+    def init_statephys_from_uy(self, uy):
+        uy_fft = self.oper.fft(uy)
+        ux_fft = self.oper.create_arrayK(value=0.0)
+        rot_fft = self.oper.rotfft_from_vecfft(ux_fft, uy_fft)
+        self.state_phys.set_var("rot", self.oper.ifft(rot_fft))
+
+    def init_statephys_from(self, **kwargs):
+        if len(kwargs) == 1:
+            key, arr = kwargs.popitem()
+            if key == "ux":
+                self.init_statephys_from_ux(arr)
+            elif key == "uy":
+                self.init_statephys_from_uy(arr)
+            else:
+                super().init_statephys_from(**{key: arr})
+        else:
+            return super().init_statephys_from(**kwargs)
 
     def compute_energy_phys(self):
         vx = self.state_phys.get_var("ux")
