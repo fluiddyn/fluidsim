@@ -185,31 +185,31 @@ nu_2: float (default = 0.)
         self.init_fields = InitFields(self)
         self.init_fields()
 
-        # initialisation forcing
-        self.is_forcing_enabled = False
-        try:
-            params.forcing
-        except AttributeError:
-            pass
-        else:
-            if params.forcing.enable:
-                self.is_forcing_enabled = True
-                Forcing = dict_classes["Forcing"]
-                self.forcing = Forcing(self)
-        # we can not yet compute a forcing...
-        # self.forcing.compute()
-
-        # initialisation turbulent modeling
-        self.is_turb_model_enabled = False
-        try:
-            params.turb_model
-        except AttributeError:
-            pass
-        else:
-            if params.turb_model.enable:
-                self.is_turb_model_enabled = True
-                TurbModel = dict_classes["TurbModel"]
-                self.turb_model = TurbModel(self)
+        # initialisation forcing and potential other classes (like turb_model)
+        keys_simple_classes = (
+            "Operators",
+            "Output",
+            "State",
+            "TimeStepping",
+            "InitFields",
+            "Preprocess",
+        )
+        other_classes = {
+            key: cls
+            for key, cls in dict_classes.items()
+            if key not in keys_simple_classes
+        }
+        for cls in other_classes.values():
+            name_task = cls._name_task
+            setattr(self, f"is_{name_task}_enabled", False)
+            try:
+                params_cls = getattr(params, name_task)
+            except AttributeError:
+                pass
+            else:
+                if params_cls.enable:
+                    setattr(self, f"is_{name_task}_enabled", True)
+                    setattr(self, name_task, cls(self))
 
         # complete the initialisation of the object output
         self.output.post_init()

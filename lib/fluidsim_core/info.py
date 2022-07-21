@@ -103,7 +103,7 @@ class InfoSolverCore(ParamContainer):
 
     def import_classes(self):
         """Import the classes and return a dictionary."""
-        if hasattr(self, "_cached_imported_classes"):
+        if getattr(self, "_cached_imported_classes", None) is not None:
             return self._cached_imported_classes
 
         dict_classes = {}

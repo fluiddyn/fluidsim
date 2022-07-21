@@ -844,9 +844,7 @@ def get_mean_values_from_path(
 
     if customize is not None:
         source = inspect.getsource(customize).encode().strip()
-        hash = hashlib.sha256(source).hexdigest()[
-            :16
-        ]
+        hash = hashlib.sha256(source).hexdigest()[:16]
         part_customize = f"_customize{hash}"
     else:
         part_customize = ""

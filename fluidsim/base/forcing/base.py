@@ -32,6 +32,8 @@ from .specific import (
 class ForcingBase:
     """Organize the forcing schemes (base class)"""
 
+    _name_task = "forcing"
+
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         """Complete the ParamContainer info_solver."""
