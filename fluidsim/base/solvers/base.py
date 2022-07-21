@@ -199,6 +199,18 @@ nu_2: float (default = 0.)
         # we can not yet compute a forcing...
         # self.forcing.compute()
 
+        # initialisation turbulent modeling
+        self.is_turb_model_enabled = False
+        try:
+            params.turb_model
+        except AttributeError:
+            pass
+        else:
+            if params.turb_model.enable:
+                self.is_turb_model_enabled = True
+                TurbModel = dict_classes["TurbModel"]
+                self.turb_model = TurbModel(self)
+
         # complete the initialisation of the object output
         self.output.post_init()
 

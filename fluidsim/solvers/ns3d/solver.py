@@ -244,6 +244,9 @@ projection: str (default None)
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        if self.is_turb_model_enabled:
+            tendencies_fft += self.turb_model.get_model()
+
         self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
