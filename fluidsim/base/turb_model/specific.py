@@ -2,9 +2,9 @@ from fluidsim.extend_simul import SimulExtender
 from fluidsim.base.setofvariables import SetOfVariables
 
 
-class SmagorinskyModel(SimulExtender):
+class SpecificTurbModel(SimulExtender):
     _module_name = "fluidsim.base.turb_model.specific"
-    tag = "smagorinsky"
+    tag = "specific_turb_model"
 
     @classmethod
     def get_modif_info_solver(cls):
@@ -33,9 +33,13 @@ class SmagorinskyModel(SimulExtender):
 
         return modif_info_solver
 
+
+class SmagorinskyModel(SpecificTurbModel):
+    tag = "smagorinsky"
+
     @classmethod
     def complete_params_with_default(cls, params):
-        pass
+        params.turb_model._set_child(cls.tag, attribs={"C": 0.18})
 
     def __init__(self, sim):
         self.sim = sim

@@ -26,6 +26,7 @@ class TestSmagorinsky(TestSimulBase):
 
         params.turb_model.enable = True
         params.turb_model.type = "smagorinsky"
+        params.turb_model.smagorinsky.C = 0.18
 
     def test_smagorinsky(self):
         sim = self.sim

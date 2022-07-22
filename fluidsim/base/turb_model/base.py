@@ -1,3 +1,6 @@
+from fluidsim_core.params import iter_complete_params
+
+
 def modif_infosolver_turb_model(info_solver):
 
     try:
@@ -23,14 +26,32 @@ class TurbModel:
 
     @classmethod
     def _complete_params_with_default(cls, params, info_solver):
-        """This static method is used to complete the *params* container."""
-        params._set_child(
+        """Complete the *params* container."""
+        p_turb_model = params._set_child(
             cls._name_task,
-            attribs={
-                "enable": False,
-                "type": "",
-                "available_types": [],
-            },
+            attribs={"enable": False, "type": ""},
+        )
+
+        p_turb_model._set_doc(
+            """
+        See :mod:`fluidsim.base.turb_model`.
+
+        enable: bool
+
+          Enable the use of a turbulent model.
+
+        type : str
+
+          Type of turb model.
+        """
+        )
+
+        dict_classes = info_solver.classes.TurbModel.import_classes()
+        # iter on the dict in a determined order
+        iter_complete_params(
+            params,
+            info_solver,
+            (dict_classes[key] for key in sorted(dict_classes)),
         )
 
     def __init__(self, sim):
@@ -42,7 +63,10 @@ class TurbModel:
         try:
             cls_model = dict_classes[self.type_model]
         except KeyError:
-            raise
+            raise ValueError(
+                f"Wrong value ('{self.type_model}') of params.turb_model.type. "
+                f"It should be in {dict_classes.keys()}"
+            )
 
         self._model = cls_model(sim)
 
