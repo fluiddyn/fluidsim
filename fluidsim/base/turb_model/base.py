@@ -1,3 +1,14 @@
+"""Class for sim.turb_model (:mod:`fluidsim.base.turb_model.base`)
+==================================================================
+
+Provides:
+
+.. autoclass:: TurbModel
+   :members:
+   :private-members:
+
+"""
+
 from fluidsim_core.params import iter_complete_params
 
 
@@ -47,7 +58,6 @@ class TurbModel:
         )
 
         dict_classes = info_solver.classes.TurbModel.import_classes()
-        # iter on the dict in a determined order
         iter_complete_params(params, info_solver, dict_classes)
 
     def __init__(self, sim):

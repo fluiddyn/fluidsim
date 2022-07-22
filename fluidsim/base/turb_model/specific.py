@@ -1,3 +1,22 @@
+"""Specific turbulent models (:mod:`fluidsim.base.turb_model.specific`)
+=======================================================================
+
+Provides:
+
+.. autoclass:: SpecificTurbModel
+   :members:
+   :private-members:
+
+.. autoclass:: SpecificTurbModelSpectral
+   :members:
+   :private-members:
+
+.. autoclass:: SmagorinskyModel
+   :members:
+   :private-members:
+
+"""
+
 from fluidsim.extend_simul import SimulExtender
 from fluidsim.base.setofvariables import SetOfVariables
 
@@ -34,19 +53,21 @@ class SpecificTurbModel(SimulExtender):
         return modif_info_solver
 
 
-class SmagorinskyModel(SpecificTurbModel):
-    tag = "smagorinsky"
-
-    @classmethod
-    def complete_params_with_default(cls, params):
-        params.turb_model._set_child(cls.tag, attribs={"C": 0.18})
-
+class SpecificTurbModelSpectral(SpecificTurbModel):
     def __init__(self, sim):
         self.sim = sim
 
         self.forcing_fft = SetOfVariables(
             like=sim.state.state_spect, info="forcing_fft", value=0.0
         )
+
+
+class SmagorinskyModel(SpecificTurbModelSpectral):
+    tag = "smagorinsky"
+
+    @classmethod
+    def complete_params_with_default(cls, params):
+        params.turb_model._set_child(cls.tag, attribs={"C": 0.18})
 
     def get_forcing(self, **kwargs):
         return self.forcing_fft
