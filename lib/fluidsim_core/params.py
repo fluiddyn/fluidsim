@@ -7,9 +7,9 @@
    :private-members:
 
 """
-import os
-from glob import glob
 from pathlib import Path
+
+from typing import Iterable
 
 import h5py
 from fluiddyn.util import import_class, mpi
@@ -18,7 +18,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from .info import InfoSolverCore
 
 
-def iter_complete_params(params, info_solver, classes):
+def iter_complete_params(params, info_solver, classes: dict or Iterable):
     """Iterate over a collection of classes and invoke the static method
     ``_complete_params_with_default`` to populate an instance of
     :class:`Parameters` in-place.
@@ -29,9 +29,13 @@ def iter_complete_params(params, info_solver, classes):
 
     info_solver : :class:`fluidsim_core.info.InfoSolverCore` or its subclass
 
-    classes : iterable
+    classes : dict or iterable
 
     """
+
+    if isinstance(classes, dict):
+        classes = [classes[key] for key in sorted(classes.keys())]
+
     for Class in classes:
         if hasattr(Class, "_complete_params_with_default"):
             try:

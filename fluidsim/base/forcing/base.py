@@ -89,12 +89,7 @@ key_forced: {None} or str
         )
 
         dict_classes = info_solver.classes.Forcing.import_classes()
-        # iter on the dict in a determined order
-        iter_complete_params(
-            params,
-            info_solver,
-            (dict_classes[key] for key in sorted(dict_classes)),
-        )
+        iter_complete_params(params, info_solver, dict_classes)
 
     @staticmethod
     def _modify_sim_repr_maker(sim_repr_maker):

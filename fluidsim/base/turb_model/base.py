@@ -48,11 +48,7 @@ class TurbModel:
 
         dict_classes = info_solver.classes.TurbModel.import_classes()
         # iter on the dict in a determined order
-        iter_complete_params(
-            params,
-            info_solver,
-            (dict_classes[key] for key in sorted(dict_classes)),
-        )
+        iter_complete_params(params, info_solver, dict_classes)
 
     def __init__(self, sim):
         params = sim.params
