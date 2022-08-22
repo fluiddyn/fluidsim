@@ -63,6 +63,26 @@ class SpecificTurbModelSpectral(SpecificTurbModel):
 
 
 class SmagorinskyModel(SpecificTurbModelSpectral):
+    r"""Smagorinsky turbulence model
+
+    .. |p| mathmacro:: \partial
+
+    .. |Sij| mathmacro:: \bar{S}_{ij}
+
+    .. math::
+
+      \p_t v_i = ... + \p_j(2 \nu_T \Sij),
+
+    where :math:`\Sij = (\p_i v_j + \p_j v_i) / 2`. The turbulent viscosity
+    :math:`\nu_T` is computed for this model as
+
+    .. math::
+
+      \nu_T = C \Delta^2 \sqrt{2 \Sij \Sij},
+
+    with :math:`C = 0.18` and :math:`\Delta = L_x / n_x`.
+
+    """
     tag = "smagorinsky"
 
     @classmethod
