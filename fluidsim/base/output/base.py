@@ -684,3 +684,6 @@ class SpecificOutput:
 
     def _online_plot_saving(self, dict_results):
         pass
+
+    def compute(self):
+        raise NotImplementedError
