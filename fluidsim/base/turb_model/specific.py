@@ -97,7 +97,7 @@ class SmagorinskyModel(SpecificTurbModelSpectral):
         super().__init__(sim)
         self.stress_tensor = StressTensorComputer3D(sim.oper)
 
-        C = 0.18
+        C = sim.params.turb_model.smagorinsky.C
         delta = sim.params.oper.Lx / sim.params.oper.nx
 
         self.C_nu_T = C * delta**2 * sqrt(2)

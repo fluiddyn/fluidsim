@@ -9,6 +9,11 @@ https://www.grc.nasa.gov/hiocfd/wp-content/uploads/sites/22/case_c3.3.pdf
 import numpy as np
 
 from fluidsim.solvers.ns3d.solver import Simul
+from fluidsim.base.turb_model import extend_simul_class, SmagorinskyModel
+
+from run_simul import run_simul
+
+Simul = extend_simul_class(Simul, [SmagorinskyModel])
 
 params = Simul.create_default_params()
 
@@ -21,9 +26,13 @@ params.init_fields.type = "in_script"
 
 params.time_stepping.t_end = 20.0 * L / V0
 
-nx = 256 * 2
+nx = 128
 params.oper.nx = params.oper.ny = params.oper.nz = nx
 lx = params.oper.Lx = params.oper.Ly = params.oper.Lz = 2 * np.pi * L
+
+params.turb_model.enable = True
+params.turb_model.type = "smagorinsky"
+params.turb_model.smagorinsky.C = 0.18
 
 params.output.sub_directory = "taylor-green"
 
@@ -53,34 +62,6 @@ def init_simul(params):
     sim.state.statephys_from_statespect()
 
     return sim
-
-
-def run_simul(sim):
-
-    sim.time_stepping.start()
-
-    from fluiddyn.util.mpi import printby0
-
-    printby0(
-        f"""
-To visualize the output with Paraview, create a file states_phys.xmf with:
-
-fluidsim-create-xml-description {sim.output.path_run}
-
-# To visualize with fluidsim:
-
-cd {sim.output.path_run}; ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
-
-sim.output.spatial_means.plot()
-sim.output.spectra.plot1d(tmin=12, tmax=16, coef_compensate=5/3)
-
-sim.output.phys_fields.set_equation_crosssection(f'x={{sim.oper.Lx/4}}')
-sim.output.phys_fields.plot(field="vx", time=10)
-
-sim.output.phys_fields.animate('vx')
-
-"""
-    )
 
 
 if __name__ == "__main__":
