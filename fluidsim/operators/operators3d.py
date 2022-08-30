@@ -1023,6 +1023,27 @@ Lx, Ly and Lz: float
         vy_fft = -1j * self.Ky * inv_Kh_square_nozero * divh_fft
         return vx_fft, vy_fft
 
+    @boost
+    def grad_fft_from_arr_fft(self, arr_fft: Ac):
+        dx_arr_fft = np.empty_like(arr_fft)
+        dy_arr_fft = np.empty_like(arr_fft)
+        dz_arr_fft = np.empty_like(arr_fft)
+
+        dx_arr_fft_flat = dx_arr_fft.ravel()
+        dy_arr_fft_flat = dy_arr_fft.ravel()
+        dz_arr_fft_flat = dz_arr_fft.ravel()
+
+        Kx = self.Kx.ravel()
+        Ky = self.Ky.ravel()
+        Kz = self.Kz.ravel()
+
+        for i, value in enumerate(arr_fft.flat):
+            dx_arr_fft_flat[i] = 1j * Kx[i] * value
+            dy_arr_fft_flat[i] = 1j * Ky[i] * value
+            dz_arr_fft_flat[i] = 1j * Kz[i] * value
+
+        return dx_arr_fft, dy_arr_fft, dz_arr_fft
+
     def get_grid1d_seq(self, axe="x"):
 
         if axe not in ("x", "y", "z"):
