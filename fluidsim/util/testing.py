@@ -159,7 +159,10 @@ class TestSimulConserveOutput(TestSimulConserve):
             except AttributeError:
                 pass
             else:
-                results = method()
+                try:
+                    results = method()
+                except NotImplementedError:
+                    pass
         return results
 
     @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")
