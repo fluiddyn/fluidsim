@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Examples of commands:
 
@@ -56,12 +57,12 @@ params.forcing.kolmo.amplitude = F = 1.0
 L = params.oper.Lz / (2 * params.forcing.kolmo.ik)
 injection_rate = (F * L) ** (3 / 2) / L
 
-kmax = params.oper.coef_dealiasing * pi / Lh * nh
+nh_target = nh
+kmax = params.oper.coef_dealiasing * pi / Lh * nh_target
 eta = 1 / kmax
 
 order = 4
 params.nu_4 = eta ** (order - 2 / 3) * injection_rate ** (1 / 3)
-
 mpi.printby0(f"{params.nu_4 = :.2e}")
 
 params.output.periods_print.print_stdout = 0.5
