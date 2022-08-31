@@ -1,38 +1,16 @@
 import numpy as np
-import h5py
 
 from fluiddyn.util import mpi
+
 from fluidsim.extend_simul import SimulExtender, extend_simul_class
 
 from .base import SpecificOutput
 
 
-__all__ = ["extend_simul_class", "ProfilesSpatialMeans"]
+__all__ = ["extend_simul_class", "ZProfilesSpatialMeans"]
 
 
-def _add_to_data_3d(arr3d, name: str, data: dict):
-    mx = _add_to_data_x(arr3d, name, data)
-    my = _add_to_data_y(arr3d, name, data)
-    mz = _add_to_data_z(arr3d, name, data)
-    return mx, my, mz
-
-
-def _add_to_data_x(arr3d, name: str, data: dict):
-    result = data[name + "_meanx"] = np.mean(arr3d, axis=(0, 1))
-    return result
-
-
-def _add_to_data_y(arr3d, name: str, data: dict):
-    result = data[name + "_meany"] = np.mean(arr3d, axis=(0, 2))
-    return result
-
-
-def _add_to_data_z(arr3d, name: str, data: dict):
-    result = data[name + "_meanz"] = np.mean(arr3d, axis=(1, 2))
-    return result
-
-
-class ProfilesSpatialMeans(SpecificOutput, SimulExtender):
+class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
 
     _tag = "profiles_spatial_means"
     _module_name = "fluidsim.base.output.profiles_spatial_means"
@@ -65,6 +43,20 @@ class ProfilesSpatialMeans(SpecificOutput, SimulExtender):
     def _complete_params_with_default(cls, params):
         params.output.periods_save._set_attrib(cls._tag, 0)
 
+    def _compute_z_profile(self, arr3d):
+        if mpi.nb_proc == 1:
+            return np.mean(arr3d, axis=(1, 2))
+
+        raise NotImplementedError
+
+    def _z_profile_to_3d_local(self, profile):
+        if mpi.nb_proc == 1:
+            return np.broadcast_to(
+                profile[:, np.newaxis, np.newaxis], self.shapeX_loc
+            )
+
+        raise NotImplementedError
+
     def __init__(self, output):
         self.output = output
         params = output.sim.params
@@ -72,6 +64,7 @@ class ProfilesSpatialMeans(SpecificOutput, SimulExtender):
         dx = params.oper.Lx / params.oper.nx
         dy = params.oper.Ly / params.oper.ny
         dz = params.oper.Lz / params.oper.nz
+        self.shapeX_loc = output.sim.oper.get_shapeX_loc()
 
         x = dx * np.arange(params.oper.nx)
         y = dy * np.arange(params.oper.ny)
@@ -86,13 +79,32 @@ class ProfilesSpatialMeans(SpecificOutput, SimulExtender):
     def compute(self):
         data = {}
         get_var = self.sim.state.state_phys.get_var
-
         vx = get_var("vx")
         vy = get_var("vy")
         vz = get_var("vz")
 
-        vx_meanx, vx_meany, vx_meanz = _add_to_data_3d(vx, "vx", data)
-        vy_meanx, vy_meany, vy_meanz = _add_to_data_3d(vy, "vy", data)
-        vz_meanx, vz_meany, vz_meanz = _add_to_data_3d(vz, "vz", data)
+        def _extend_data_with_z_profile(arr3d, name: str):
+            result = data[name + "_meanz"] = self._compute_z_profile(arr3d)
+            return result
+
+        vx_mean = _extend_data_with_z_profile(vx, "vx")
+        vy_mean = _extend_data_with_z_profile(vy, "vy")
+        vz_mean = _extend_data_with_z_profile(vz, "vz")
+
+        vx_mean3d = self._z_profile_to_3d_local(vx_mean)
+        vy_mean3d = self._z_profile_to_3d_local(vy_mean)
+        vz_mean3d = self._z_profile_to_3d_local(vz_mean)
+
+        vxp = vx - vx_mean3d
+        vyp = vy - vy_mean3d
+        vzp = vz - vz_mean3d
+
+        _extend_data_with_z_profile(vxp**2, "vxp_vxp")
+        _extend_data_with_z_profile(vyp**2, "vyp_vyp")
+        _extend_data_with_z_profile(vzp**2, "vzp_vzp")
+
+        _extend_data_with_z_profile(vyp * vxp, "vyp_vxp")
+        _extend_data_with_z_profile(vzp * vxp, "vzp_vxp")
+        _extend_data_with_z_profile(vzp * vyp, "vzp_vyp")
 
         return data
