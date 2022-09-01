@@ -21,10 +21,11 @@ from fluidsim.base.forcing.kolmogorov import (
     KolmogorovFlow,
     KolmogorovFlowNormalized,
 )
+from fluidsim.base.output.z_profiles_spatial_means import ZProfilesSpatialMeans
 
 
 Simul = extend_simul_class(
-    SimulNotExtended, [KolmogorovFlow, KolmogorovFlowNormalized]
+    SimulNotExtended, [KolmogorovFlow, KolmogorovFlowNormalized, ZProfilesSpatialMeans]
 )
 
 params = Simul.create_default_params()
@@ -70,6 +71,7 @@ params.output.periods_save.phys_fields = 0.5
 params.output.periods_save.spatial_means = 0.1
 params.output.periods_save.spectra = 0.5
 params.output.periods_save.spect_energy_budg = 0.5
+params.output.periods_save.z_profiles_spatial_means = 0.1
 
 sim = Simul(params)
 
@@ -87,6 +89,9 @@ sim.output.phys_fields.set_equation_crosssection("y=0")
 sim.output.phys_fields.animate('vx', dt_frame_in_sec=0.3, dt_equations=0.25)
 
 tmin = 15
+sim.output.z_profiles_spatial_means.plot(tmax=tmin)
+sim.output.z_profiles_spatial_means.plot(tmin=tmin)
+
 sim.output.spectra.plot1d(coef_compensate=5/3, tmin=tmin)
 sim.output.spect_energy_budg.plot_fluxes(tmin=tmin)
 """
