@@ -49,24 +49,69 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         if mpi.nb_proc == 1:
             return np.mean(arr3d, axis=(1, 2))
 
-        raise NotImplementedError
+        # here (MPI case) it gets a bit more complicated!
+        sum_local = np.sum(arr3d, axis=(1, 2))
+        if mpi.rank == 0:
+            sum_global = np.zeros(self.nz)
+
+        # MPI messages and summation
+        for rank in range(mpi.nb_proc):
+            if mpi.rank == 0:
+                nz_loc = self.nzs_local[rank]
+
+            if rank == 0 and mpi.rank == 0:
+                data = sum_local
+            else:
+                if mpi.rank == 0:
+                    data = np.empty(nz_loc)
+                    mpi.comm.Recv(data, source=rank, tag=42 * rank)
+                elif mpi.rank == rank:
+                    mpi.comm.Send(sum_local, dest=0, tag=42 * rank)
+
+            if mpi.rank == 0:
+                iz_start = self.izs_start[rank]
+                sum_global[iz_start : iz_start + nz_loc] += data
+
+        if mpi.rank == 0:
+            return sum_global / self.nh
 
     def _z_profile_to_3d_local(self, profile):
-        if mpi.nb_proc == 1:
-            return np.broadcast_to(
-                profile[:, np.newaxis, np.newaxis], self.shapeX_loc
-            )
+        if mpi.nb_proc != 1:
+            profile = mpi.comm.bcast(profile, root=0)
+            profile = profile[self.iz_start : self.iz_start + self.nz_local]
 
-        raise NotImplementedError
+        return np.broadcast_to(
+            profile[:, np.newaxis, np.newaxis], self.shapeX_loc
+        )
 
     def __init__(self, output):
         self.output = output
-        params = output.sim.params
+        sim = output.sim
+        params = sim.params
 
-        self.shapeX_loc = output.sim.oper.shapeX_loc
+        self.shapeX_loc = sim.oper.shapeX_loc
 
-        dz = params.oper.Lz / params.oper.nz
-        z = dz * np.arange(params.oper.nz)
+        if mpi.nb_proc > 1:
+            self.iz_start, _, _ = sim.oper.oper_fft.get_seq_indices_first_X()
+            self.izs_start = mpi.comm.gather(self.iz_start, root=0)
+
+            nh_local = self.shapeX_loc[1] * self.shapeX_loc[2]
+            self.nhs_local = mpi.comm.gather(nh_local, root=0)
+
+            self.nz_local = self.shapeX_loc[0]
+            self.nzs_local = mpi.comm.gather(self.nz_local, root=0)
+
+            if mpi.rank == 0:
+                assert len(self.izs_start) == mpi.nb_proc
+                assert len(self.nhs_local) == mpi.nb_proc
+                assert len(self.nzs_local) == mpi.nb_proc
+
+                print(self.izs_start, self.nhs_local, self.nzs_local)
+
+        self.nz = params.oper.nz
+        self.nh = params.oper.nx * params.oper.ny
+        dz = params.oper.Lz / self.nz
+        z = dz * np.arange(self.nz)
 
         super().__init__(
             output,
@@ -163,7 +208,9 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
 
         for l0, l1 in ("yx", "zx", "zy"):
             name = f"v{l0}p_v{l1}p"
-            ax_right.plot(data[name], z, "--", label=f"$<v_{l0}' v_{l1}'>_{{xy}}$")
+            ax_right.plot(
+                data[name], z, "--", label=f"$<v_{l0}' v_{l1}'>_{{xy}}$"
+            )
 
         ax_right.legend()
 
