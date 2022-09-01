@@ -1,4 +1,6 @@
 import numpy as np
+import h5py
+import matplotlib.pyplot as plt
 
 from fluiddyn.util import mpi
 
@@ -104,3 +106,65 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         _extend_data_with_z_profile(vzp * vyp, "vzp_vyp")
 
         return data
+
+    def load(self, tmin=None, tmax=None, verbose=False):
+        with h5py.File(self.path_file, "r") as file:
+            dset_times = file["times"]
+            times = dset_times[...]
+            nt = len(times)
+
+            z = file["z"][...]
+
+            if tmin is None:
+                imin_plot = 0
+            else:
+                imin_plot = np.argmin(abs(times - tmin))
+
+            if tmax is None:
+                imax_plot = nt - 1
+            else:
+                imax_plot = np.argmin(abs(times - tmax))
+
+            tmin = times[imin_plot]
+            tmax = times[imax_plot]
+
+            if verbose:
+                print(
+                    "compute time average with\n"
+                    + (
+                        f"tmin = {tmin:8.6g} ; tmax = {tmax:8.6g}"
+                        f"imin = {imin_plot:8d} ; imax = {imax_plot:8d}"
+                    )
+                )
+
+            data = {"z": z}
+            for key in list(file.keys()):
+                if key.startswith("v"):
+                    dset_key = file[key]
+                    profile = dset_key[imin_plot : imax_plot + 1].mean(0)
+                    data[key] = profile
+        return data
+
+    def plot(self, tmin=None, tmax=None, verbose=False):
+        data = self.load(tmin, tmax, verbose)
+        z = data.pop("z")
+
+        fig, (ax_left, ax_right) = plt.subplots(ncols=2, sharey=True)
+
+        for letter in "xyz":
+            arr = data.pop("v" + letter)
+            ax_left.plot(arr, z, label=f"$<v_{letter}>_{{xy}}$")
+
+            arr = data.pop(f"v{letter}p_v{letter}p")
+            ax_right.plot(arr, z, label=f"$<v_{letter}' v_{letter}'>_{{xy}}$")
+
+        ax_left.legend()
+        ax_left.set_ylabel("$z$")
+
+        for l0, l1 in ("yx", "zx", "zy"):
+            name = f"v{l0}p_v{l1}p"
+            ax_right.plot(data[name], z, "--", label=f"$<v_{l0}' v_{l1}'>_{{xy}}$")
+
+        ax_right.legend()
+
+        fig.tight_layout()

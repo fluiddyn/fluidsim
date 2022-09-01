@@ -95,6 +95,7 @@ sim.output.phys_fields.set_equation_crosssection("y=0")
 sim.output.phys_fields.animate('vx', dt_frame_in_sec=0.3, dt_equations=0.25)
 
 tmin = 15
+sim.output.z_profiles_spatial_means.plot(tmin=tmin)
 sim.output.spectra.plot1d(coef_compensate=5/3, tmin=tmin)
 sim.output.spect_energy_budg.plot_fluxes(tmin=tmin)
 """
