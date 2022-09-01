@@ -12,8 +12,8 @@ __all__ = ["extend_simul_class", "ZProfilesSpatialMeans"]
 
 class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
 
-    _tag = "profiles_spatial_means"
-    _module_name = "fluidsim.base.output.profiles_spatial_means"
+    _tag = "z_profiles_spatial_means"
+    _module_name = "fluidsim.base.output.z_profiles_spatial_means"
     _name_file = _tag + ".h5"
 
     @classmethod
@@ -61,19 +61,15 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         self.output = output
         params = output.sim.params
 
-        dx = params.oper.Lx / params.oper.nx
-        dy = params.oper.Ly / params.oper.ny
-        dz = params.oper.Lz / params.oper.nz
-        self.shapeX_loc = output.sim.oper.get_shapeX_loc()
+        self.shapeX_loc = output.sim.oper.shapeX_loc
 
-        x = dx * np.arange(params.oper.nx)
-        y = dy * np.arange(params.oper.ny)
+        dz = params.oper.Lz / params.oper.nz
         z = dz * np.arange(params.oper.nz)
 
         super().__init__(
             output,
-            period_save=params.output.periods_save.profiles_spatial_means,
-            arrays_1st_time={"x": x, "y": y, "z": z},
+            period_save=params.output.periods_save.z_profiles_spatial_means,
+            arrays_1st_time={"z": z},
         )
 
     def compute(self):
@@ -84,7 +80,7 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         vz = get_var("vz")
 
         def _extend_data_with_z_profile(arr3d, name: str):
-            result = data[name + "_meanz"] = self._compute_z_profile(arr3d)
+            result = data[name] = self._compute_z_profile(arr3d)
             return result
 
         vx_mean = _extend_data_with_z_profile(vx, "vx")

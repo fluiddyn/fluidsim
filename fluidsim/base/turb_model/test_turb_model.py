@@ -2,6 +2,7 @@ from fluidsim.util.testing import classproperty
 from fluidsim.solvers.ns3d.test_solver import TestSimulBase
 
 from fluidsim.base.turb_model import extend_simul_class, SmagorinskyModel
+from fluidsim.base.output.z_profiles_spatial_means import ZProfilesSpatialMeans
 
 
 class TestSmagorinsky(TestSimulBase):
@@ -9,7 +10,7 @@ class TestSmagorinsky(TestSimulBase):
     def Simul(cls):
         from fluidsim.solvers.ns3d.solver import Simul as SimulNotExtended
 
-        return extend_simul_class(SimulNotExtended, [SmagorinskyModel])
+        return extend_simul_class(SimulNotExtended, [SmagorinskyModel, ZProfilesSpatialMeans])
 
     @classmethod
     def init_params(cls):
@@ -23,6 +24,7 @@ class TestSmagorinsky(TestSimulBase):
         params.time_stepping.t_end = 1.5 * dt
         params.output.periods_print.print_stdout = dt
         params.output.periods_save.spatial_means = dt
+        params.output.periods_save.z_profiles_spatial_means = dt
 
         params.turb_model.enable = True
         params.turb_model.type = "smagorinsky"

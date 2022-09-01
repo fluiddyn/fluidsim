@@ -24,9 +24,11 @@ from fluidsim.base.forcing.kolmogorov import (
 
 from fluidsim.base.turb_model import SmagorinskyModel
 
+from fluidsim.base.output.z_profiles_spatial_means import ZProfilesSpatialMeans
+
 
 Simul = extend_simul_class(
-    SimulNotExtended, [KolmogorovFlow, KolmogorovFlowNormalized, SmagorinskyModel]
+    SimulNotExtended, [KolmogorovFlow, KolmogorovFlowNormalized, SmagorinskyModel, ZProfilesSpatialMeans]
 )
 
 params = Simul.create_default_params()
@@ -75,6 +77,7 @@ params.output.periods_save.phys_fields = 0.5
 params.output.periods_save.spatial_means = 0.1
 params.output.periods_save.spectra = 0.5
 params.output.periods_save.spect_energy_budg = 0.5
+params.output.periods_save.z_profiles_spatial_means = 0.1
 
 sim = Simul(params)
 
