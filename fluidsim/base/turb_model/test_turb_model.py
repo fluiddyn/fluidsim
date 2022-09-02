@@ -1,3 +1,5 @@
+from fluiddyn.util import mpi
+
 from fluidsim.util.testing import classproperty
 from fluidsim.solvers.ns3d.test_solver import TestSimulBase
 
@@ -37,3 +39,8 @@ class TestSmagorinsky(TestSimulBase):
         sim.info_solver.classes.TurbModel.classes
         sim.turb_model
         sim.time_stepping.start()
+
+        if mpi.nb_proc > 1:
+            return
+
+        sim.output.horiz_means.plot()

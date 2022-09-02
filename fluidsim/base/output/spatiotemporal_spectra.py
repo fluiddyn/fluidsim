@@ -1295,7 +1295,7 @@ class SpatioTemporalSpectraNS:
             omegas_no_0[0] = 1e-15
             norm = omegas_no_0**-coef_compensate
             norm[0] = np.nan
-            ylabel = f"$E(\omega) \omega^{{{coef_compensate}}}$"
+            ylabel = rf"$E(\omega) \omega^{{{coef_compensate}}}$"
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
