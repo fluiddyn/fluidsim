@@ -9,7 +9,7 @@ conda env remove --name env_fluidsim
 conda create -n env_fluidsim \
     ipython python=3.8.8 scipy "blas-devel[build=*openblas]" \
     matplotlib pandas psutil pillow scikit-image mako \
-    clangdev pythran \
+    clangdev pythran jupyterlab black[jupyter] papermill \
     mercurial hg-git hg-evolve
 
 conda activate env_fluidsim
@@ -17,7 +17,7 @@ conda activate env_fluidsim
 # Using Pythran master > 0.11.0 (possible performance boost)
 pip install git+https://github.com/serge-sans-paille/pythran#egg=pythran --force-reinstall
 
-pip install hg-fluiddyn setuptools cython pytest
+pip install hg-fluiddyn setuptools setuptools-scm cython pytest pytest-allclose
 
 pip install pyfftw  # Better than with conda install because we don't want the fftw conda package
 
