@@ -1,3 +1,16 @@
+"""Spectral multidimensional
+============================
+
+Provides:
+
+.. autoclass:: SpectraMultiDim
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import os
 
 import numpy as np

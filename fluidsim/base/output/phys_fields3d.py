@@ -1,15 +1,17 @@
-"""Physical fields output 3d (:mod:`fluidsim.base.output.phys_fields3d`)
-========================================================================
+"""Physical fields output 3d
+============================
 
 Provides:
 
 .. autoclass:: MoviesBasePhysFields3D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: PhysFieldsBase3D
    :members:
    :private-members:
+   :undoc-members:
 
 """
 

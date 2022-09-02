@@ -1,3 +1,22 @@
+"""Spatial means
+================
+
+Provides:
+
+.. autoclass:: SpatialMeansBase
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+.. autoclass:: SpatialMeansJSON
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import os
 import numpy as np
 import json

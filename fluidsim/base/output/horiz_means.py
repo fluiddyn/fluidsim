@@ -1,5 +1,5 @@
-"""Horizontal means (:mod:`fluidsim.base.output.horiz_means`)
-=============================================================
+"""Horizontal means
+===================
 
 Provides:
 

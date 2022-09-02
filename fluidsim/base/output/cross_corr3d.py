@@ -1,3 +1,17 @@
+"""Cross correlations
+=====================
+
+Provides:
+
+.. autoclass:: CrossCorrelations
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
+
 import itertools
 
 import numpy as np

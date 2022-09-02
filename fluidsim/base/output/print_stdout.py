@@ -1,3 +1,16 @@
+"""Standard output saving
+=========================
+
+Provides:
+
+.. autoclass:: PrintStdOutBase
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 from time import time
 import os
 import sys

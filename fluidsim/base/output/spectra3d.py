@@ -1,3 +1,29 @@
+"""Spectra 3d
+=============
+
+Provides:
+
+.. autoclass:: MoviesSpectra
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+.. autoclass:: BaseSpectra
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+.. autoclass:: Spectra
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
+
 import os
 from textwrap import dedent
 from math import sqrt, tau

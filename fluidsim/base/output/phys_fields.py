@@ -1,15 +1,17 @@
-"""Physical fields output (:mod:`fluidsim.base.output.phys_fields`)
-===================================================================
+"""Physical fields output
+=========================
 
 Provides:
 
 .. autoclass:: PhysFieldsBase
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: SetOfPhysFieldFiles
    :members:
    :private-members:
+   :undoc-members:
 
 """
 

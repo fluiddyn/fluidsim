@@ -1,24 +1,25 @@
-"""Movies output (:mod:`fluidsim.base.output.movies`)
-=====================================================
+"""Movies output
+================
 
 Contains base classes which acts as a framework to
 implement the method `animate` to make movies.
-
 
 Provides:
 
 .. autoclass:: MoviesBase
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: MoviesBase1D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: MoviesBase2D
    :members:
    :private-members:
-
+   :undoc-members:
 """
 
 import os

@@ -1,3 +1,14 @@
+"""Old spatio-temporal spectra
+==============================
+
+.. autoclass:: TimeSignalsK
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import h5py
 
 import os
@@ -10,8 +21,7 @@ from fluidsim.base.output.base import SpecificOutput
 
 
 class TimeSignalsK(SpecificOutput):
-    """A :class:`TimeSignalK` object handles the saving of time signals
-    in spectral space.
+    """Handles the saving of time signals in spectral space.
 
     This class uses the particular functions defined by some solvers
     :func:`linear_eigenmode_from_values_1k` and

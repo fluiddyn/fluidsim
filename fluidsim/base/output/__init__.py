@@ -7,29 +7,34 @@ Provides:
    :toctree:
 
    base
-   prob_dens_func
-   spectra
+   cross_corr3d
+   horiz_means
+   increments
+   movies
    phys_fields
    phys_fields1d
    phys_fields2d
    phys_fields3d
-   movies
-   spatial_means
-   time_signals_fft
-   increments
    print_stdout
-   spect_energy_budget
+   prob_dens_func
+   spatial_means
    spatiotemporal_spectra
+   spect_energy_budget
+   spectra_multidim
+   spectra
+   spectra3d
    temporal_spectra
-   horiz_means
+   time_signals_fft
 
 .. autoclass:: OutputBase
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: OutputBasePseudoSpectral
    :members:
    :private-members:
+   :undoc-members:
 
 """
 

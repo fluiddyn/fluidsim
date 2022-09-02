@@ -1,3 +1,16 @@
+"""Increments
+=============
+
+Provides:
+
+.. autoclass:: Increments
+    :members:
+    :private-members:
+    :noindex:
+    :undoc-members:
+
+"""
+
 import h5py
 import os
 import numpy as np
@@ -15,10 +28,7 @@ Af = Array[float, "2d"]
 def strfunc_from_pdf(
     rxs: Ai, pdf: Af, values: Af, order: float, absolute: bool = False
 ):
-    """Compute structure function of specified order from pdf for increments
-    module.
-
-    """
+    """Compute structure function of specified order from pdf"""
     S_order = np.empty(rxs.shape)
     if absolute:
         values = abs(values)
@@ -30,9 +40,7 @@ def strfunc_from_pdf(
 
 
 class Increments(SpecificOutput):
-    """A :class:`Increments` object handles the saving of pdf of
-    increments.
-    """
+    """Handles the saving of pdf of increments."""
 
     _tag = "increments"
     _name_file = _tag + ".h5"
@@ -331,15 +339,18 @@ class Increments(SpecificOutput):
 
     def strfunc_from_pdf(self, pdf, values, order, absolute=False):
         r"""Following the identity:
+
         .. math::
             E(x^m) = \int_{-\inf}^{\inf} x^m p(x) dx
 
         In this case, replace x with increments,
+
         .. math::
             \delta u(r, x) = u(x+r) - u(x)
 
         Thus, for a every value of r the mean of increments are computed
         as follows:
+
         .. math::
             <(\delta u)^m>
                 = \int_{-\inf}^{\inf} (\delta u)^m p(\delta u) d(\delta u)

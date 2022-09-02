@@ -1,15 +1,17 @@
-"""Physical fields output 2d (:mod:`fluidsim.base.output.phys_fields2d`)
-========================================================================
+"""Physical fields output 2d
+============================
 
 Provides:
 
 .. autoclass:: MoviesBasePhysFields2D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: PhysFieldsBase2D
    :members:
    :private-members:
+   :undoc-members:
 
 """
 

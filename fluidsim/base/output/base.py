@@ -1,5 +1,5 @@
-"""Base module for the output (:mod:`fluidsim.base.output.base`)
-================================================================
+"""Base module for the output
+=============================
 
 Provides:
 

@@ -1,3 +1,16 @@
+"""Probability density functions
+================================
+
+Provides:
+
+.. autoclass:: ProbaDensityFunc
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import h5py
 import numpy as np
 

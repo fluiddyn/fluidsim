@@ -1,3 +1,23 @@
+"""Spectra
+==========
+
+Provides:
+
+.. autoclass:: MoviesSpectra
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+.. autoclass:: Spectra
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
+
 import os
 
 import numpy as np

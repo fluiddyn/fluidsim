@@ -1,21 +1,23 @@
 """
-Spatiotemporal Spectra (:mod:`fluidsim.base.output.spatiotemporal_spectra`)
-===========================================================================
+Spatiotemporal Spectra
+======================
 
 Provides:
 
 .. autoclass:: SpatioTemporalSpectra3D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: SpatioTemporalSpectra2D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: SpatioTemporalSpectraNS
    :members:
    :private-members:
-
+   :undoc-members:
 """
 
 from pathlib import Path

@@ -1,17 +1,17 @@
-"""
-FrequencySpectra (:mod:`fluidsim.solvers.ns3d.output.temporal_spectra`)
-==============================================================================
-
+"""Temporal spectra
+===================
 
 Provides:
 
 .. autoclass:: TemporalSpectra3D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: TemporalSpectra2D
    :members:
    :private-members:
+   :undoc-members:
 
 """
 

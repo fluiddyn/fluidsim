@@ -1,3 +1,16 @@
+"""Spectral energy budget
+=========================
+
+Provides:
+
+.. autoclass:: SpectralEnergyBudgetBase
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import numpy as np
 
 from fluiddyn.util import mpi
