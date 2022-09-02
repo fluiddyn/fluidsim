@@ -1,3 +1,14 @@
+"""Horizontal means (:mod:`fluidsim.base.output.horiz_means`)
+=============================================================
+
+Provides:
+
+.. autoclass:: HorizontalMeans
+   :members:
+   :private-members:
+   :noindex:
+
+"""
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -9,13 +20,13 @@ from fluidsim.extend_simul import SimulExtender, extend_simul_class
 from .base import SpecificOutput
 
 
-__all__ = ["extend_simul_class", "ZProfilesSpatialMeans"]
+__all__ = ["extend_simul_class", "HorizontalMeans"]
 
 
-class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
+class HorizontalMeans(SpecificOutput, SimulExtender):
 
-    _tag = "z_profiles_spatial_means"
-    _module_name = "fluidsim.base.output.z_profiles_spatial_means"
+    _tag = "horiz_means"
+    _module_name = "fluidsim.base.output.horiz_means"
     _name_file = _tag + ".h5"
 
     @classmethod
@@ -45,7 +56,7 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
     def _complete_params_with_default(cls, params):
         params.output.periods_save._set_attrib(cls._tag, 0)
 
-    def _compute_z_profile(self, arr3d):
+    def _compute_hmean(self, arr3d):
         if mpi.nb_proc == 1:
             return np.mean(arr3d, axis=(1, 2))
 
@@ -75,7 +86,7 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         if mpi.rank == 0:
             return sum_global / self.nh
 
-    def _z_profile_to_3d_local(self, profile):
+    def _hmean_to_3d_local(self, profile):
         if mpi.nb_proc != 1:
             profile = mpi.comm.bcast(profile, root=0)
             profile = profile[self.iz_start : self.iz_start + self.nz_local]
@@ -115,7 +126,7 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
 
         super().__init__(
             output,
-            period_save=params.output.periods_save.z_profiles_spatial_means,
+            period_save=params.output.periods_save.horiz_means,
             arrays_1st_time={"z": z},
         )
 
@@ -126,29 +137,29 @@ class ZProfilesSpatialMeans(SpecificOutput, SimulExtender):
         vy = get_var("vy")
         vz = get_var("vz")
 
-        def _extend_data_with_z_profile(arr3d, name: str):
-            result = data[name] = self._compute_z_profile(arr3d)
+        def _extend_data_with_hmean(arr3d, name: str):
+            result = data[name] = self._compute_hmean(arr3d)
             return result
 
-        vx_mean = _extend_data_with_z_profile(vx, "vx")
-        vy_mean = _extend_data_with_z_profile(vy, "vy")
-        vz_mean = _extend_data_with_z_profile(vz, "vz")
+        vx_mean = _extend_data_with_hmean(vx, "vx")
+        vy_mean = _extend_data_with_hmean(vy, "vy")
+        vz_mean = _extend_data_with_hmean(vz, "vz")
 
-        vx_mean3d = self._z_profile_to_3d_local(vx_mean)
-        vy_mean3d = self._z_profile_to_3d_local(vy_mean)
-        vz_mean3d = self._z_profile_to_3d_local(vz_mean)
+        vx_mean3d = self._hmean_to_3d_local(vx_mean)
+        vy_mean3d = self._hmean_to_3d_local(vy_mean)
+        vz_mean3d = self._hmean_to_3d_local(vz_mean)
 
         vxp = vx - vx_mean3d
         vyp = vy - vy_mean3d
         vzp = vz - vz_mean3d
 
-        _extend_data_with_z_profile(vxp**2, "vxp_vxp")
-        _extend_data_with_z_profile(vyp**2, "vyp_vyp")
-        _extend_data_with_z_profile(vzp**2, "vzp_vzp")
+        _extend_data_with_hmean(vxp**2, "vxp_vxp")
+        _extend_data_with_hmean(vyp**2, "vyp_vyp")
+        _extend_data_with_hmean(vzp**2, "vzp_vzp")
 
-        _extend_data_with_z_profile(vyp * vxp, "vyp_vxp")
-        _extend_data_with_z_profile(vzp * vxp, "vzp_vxp")
-        _extend_data_with_z_profile(vzp * vyp, "vzp_vyp")
+        _extend_data_with_hmean(vyp * vxp, "vyp_vxp")
+        _extend_data_with_hmean(vzp * vxp, "vzp_vxp")
+        _extend_data_with_hmean(vzp * vyp, "vzp_vyp")
 
         return data
 
