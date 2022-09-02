@@ -7,7 +7,8 @@ Provides:
    :toctree:
 
    base
-   specific
+   smagorinsky
+   stress_tensor
 
 Examples
 --------

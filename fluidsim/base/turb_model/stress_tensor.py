@@ -1,3 +1,16 @@
+"""Stress tensor 3D (:mod:`fluidsim.base.turb_model.stress_tensor`)
+===================================================================
+
+Provides:
+
+.. autoclass:: StressTensorComputer3D
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import numpy as np
 
 

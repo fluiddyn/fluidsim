@@ -7,6 +7,7 @@ Provides:
    :members:
    :private-members:
    :noindex:
+   :undoc-members:
 
 """
 import numpy as np
@@ -24,6 +25,7 @@ __all__ = ["extend_simul_class", "HorizontalMeans"]
 
 
 class HorizontalMeans(SpecificOutput, SimulExtender):
+    """Horizontal means as functions of the z coordinate"""
 
     _tag = "horiz_means"
     _module_name = "fluidsim.base.output.horiz_means"

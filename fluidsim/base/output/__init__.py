@@ -21,6 +21,7 @@ Provides:
    spect_energy_budget
    spatiotemporal_spectra
    temporal_spectra
+   horiz_means
 
 .. autoclass:: OutputBase
    :members:
