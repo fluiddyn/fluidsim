@@ -25,7 +25,38 @@ __all__ = ["extend_simul_class", "HorizontalMeans"]
 
 
 class HorizontalMeans(SpecificOutput, SimulExtender):
-    """Horizontal means as functions of the z coordinate"""
+    """Horizontal means as functions of the z coordinate
+
+    Examples
+    --------
+
+    This is an output class to compute/save/load/plot horizontally averaged
+    quantities. Since this is useful only for particular simulations, it is a
+    ``SimulExtender``, meaning that it should be used this way:
+
+    .. code-block:: python
+
+        from fluidsim.solvers.ns3d.solver import Simul
+        from fluidsim.base.output.horiz_means import HorizontalMeans, extend_simul_class
+
+        Simul = extend_simul_class(Simul, HorizontalMeans)
+
+        params = Simul.create_default_params()
+
+        ...
+
+        params.output.periods_save.horiz_means = 0.1
+
+        sim = Simul(params)
+
+    Then, during or after the simulation:
+
+    .. code-block:: python
+
+        sim.output.horiz_means.plot(tmin=10)
+        data = sim.output.horiz_means.load(tmin=10)
+
+    """
 
     _tag = "horiz_means"
     _module_name = "fluidsim.base.output.horiz_means"

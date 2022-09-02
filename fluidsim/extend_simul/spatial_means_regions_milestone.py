@@ -82,8 +82,6 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
       \int_V \frac{dV}{V} \bnabla \cdot (\vv P) =
       \frac{S}{V} \left( \langle v_x P \rangle_{S_{min}} - \langle v_x P \rangle_{S_{max}} \right).
 
-
-
     """
 
     _tag = "spatial_means_regions"
