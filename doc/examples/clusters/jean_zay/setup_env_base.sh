@@ -15,7 +15,7 @@ conda activate base
 unset CC
 unset CXX
 
-export FLUIDSIM_PATH=$WORK
+export FLUIDSIM_PATH=$SCRATCH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WORK/.local/p3dfft/2.7.6/lib
 
 

@@ -22,7 +22,7 @@ def submit(nb_nodes):
     cluster.submit_command(
         "fluidsim-bench -s ns3d.strat 640 1280 1280 "
         "-o $WORK/fluidsim_bench "
-        '-t "fft3d.mpi_with_pfft" '
+        '-t "fft3d.mpi_with_p3dfft" '
         "-it 20",
         name_run=f"fluidsim-bench_640_1280_1280_{nb_mpi:02d}",
         nb_nodes=nb_nodes,
@@ -35,5 +35,5 @@ def submit(nb_nodes):
     )
 
 
-for nb_nodes in [1, 2, 4, 8]:
+for nb_nodes in [128]:
     submit(nb_nodes)

@@ -47,6 +47,7 @@ conda config --add channels conda-forge
 We configured the installation of p3dfft-2.7.6 in $WORK such that you simply have to run a bash script:
 
 ```bash
+source $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/0_setup_env_base.sh
 module load automake/1.16.1 libtool/2.4.6
 bash $WORK/Dev/fluidsim/doc/examples/clusters/jean_zay/install/install_p3dfft.sh
 ```
