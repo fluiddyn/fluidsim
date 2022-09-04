@@ -149,6 +149,7 @@ supporting classes and functions.
    to_do
    authors
    roadmap
+   release_process
 
 Links
 -----
