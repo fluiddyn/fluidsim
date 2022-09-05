@@ -23,9 +23,26 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...branch%2Fdefault
 
-* `!289 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/289>`__
+0.6.1_ (2022-09-05)
+-------------------
+
+- Turbulence models with ``extend_simul_class`` (`!308
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/308>`__, see
+  :mod:`fluidsim.base.turb_model`)
+
+- Kolmogorov forcing (`!307
+  <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/307>`__, see
+  :mod:`fluidsim.base.forcing.kolmogorov`)
+
+- Output :mod:`fluidsim.base.output.horiz_means` (`!309 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/309>`__)
+
+- Output :mod:`fluidsim.base.output.cross_corr3d` (`!295 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/295>`__)
+
+- Better support for 3d FFT libs based on pencil decompositions (`!283 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/283>`__)
+
+- `!289 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/289>`__
 
   - File ``is_being_advanced.lock`` in the result directory during the runs
   - Better handling of signals (``SIGINT``, ``SIGTERM`` and ``SIGUSR2``)
@@ -33,6 +50,12 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
   - :func:`fluidsim.util.get_dataframe_from_paths` using ``sim.output.get_mean_values``
   - :func:`fluidsim.util.get_last_estimated_remaining_duration`
   - ``sim.output.spatiotemporal_spectra.get_spectra``
+
+- CI also running on Github Actions (`!224 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/224>`__)
+
+- Various fixes (in particular energy steps with ``fluidsim-restart``)
+
+- Various plot improvements (in particular ``plot_omega_emp`` in :mod:`fluidsim.base.output.spatiotemporal_spectra`)
 
 0.6.0_ (2022-02-07)
 -------------------
@@ -241,7 +264,8 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...branch%2Fdefault
+.. _0.6.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...0.6.1
 .. _0.6.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...0.6.0
 .. _0.5.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...0.5.1
 .. _0.5.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.4.1...0.5.0

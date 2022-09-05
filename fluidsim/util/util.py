@@ -891,7 +891,7 @@ def get_dataframe_from_paths(
 ):
     """Produce a dataframe from a set of simulations.
 
-    Uses `sim.output.get_mean_values`
+    Uses ``sim.output.get_mean_values``
 
     """
 
