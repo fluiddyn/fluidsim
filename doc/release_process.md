@@ -79,7 +79,8 @@
 
 - [ ] Push to PyPI (no wheel for fluidsim!)
 
-- [ ] PRs on <https://github.com/conda-forge/fluidsim-core-feedstock> and
-  <https://github.com/conda-forge/fluidsim-feedstock> (special rc channel)
+- [ ] PR on <https://github.com/conda-forge/fluidsim-core-feedstock>
+
+- [ ] PR on <https://github.com/conda-forge/fluidsim-feedstock>
 
 - [ ] Communicate to the community...

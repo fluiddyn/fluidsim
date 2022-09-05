@@ -23,9 +23,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...branch%2Fdefault
-
-0.6.1_ (2022-09-05)
+0.6.1_ (2022-09-0?)
 -------------------
 
 - Turbulence models with ``extend_simul_class`` (`!308
