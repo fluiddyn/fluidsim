@@ -18,19 +18,36 @@
 
 - [ ] Tag `0.6.1rc0` in the repo
 
-- [ ] Push the release candidate to PyPI (no wheel for fluidsim!)
+- [ ] Push `fluidsim-core` release candidates to PyPI
 
   ```bash
   cd lib
+  rm -rf dist
   python setup.py sdist bdist_wheel
   twine upload dist/*
+  ```
+
+- [ ] Push `fluidsim` release candidates to PyPI (no wheel!)
+
+  ```bash
   cd ..
+  rm -rf dist
   python setup.py sdist
   twine upload dist/*
   ```
 
-- [ ] PRs on <https://github.com/conda-forge/fluidsim-core-feedstock> and
-  <https://github.com/conda-forge/fluidsim-feedstock> (special rc channel)
+- [ ] PR on <https://github.com/conda-forge/fluidsim-core-feedstock> (rc channel)
+
+  In `recipe/conda_build_config.yaml` (see <https://conda-forge.org/docs/maintainer/knowledge_base.html#creating-a-pre-release-build>):
+
+  ```yaml
+  channel_targets:
+    - conda-forge fluidsim-core_rc
+  ```
+
+  Check with `conda search fluidsim-core -c conda-forge/label/fluidsim-core_rc`
+
+- [ ] PR on <https://github.com/conda-forge/fluidsim-feedstock> (rc channel)
 
   In `recipe/conda_build_config.yaml`:
 
@@ -42,13 +59,16 @@
     - conda-forge fluidsim_rc
   ```
 
-  - <https://conda-forge.org/docs/maintainer/knowledge_base.html#creating-a-pre-release-build>
-  - <https://github.com/conda-forge/fluidsim-feedstock/pull/14/files#diff-ff61408cdc05bc9667deeadb55e4aaceb1371972076b6bf6934f9008920f2bd2>
+  Check with `conda search fluidsim -c conda-forge/label/fluidsim_rc`
 
 - [ ] Check the rc (with conda and doc/examples)
 
+  Create new environment with
+
   ```bash
-  conda create -n env_fluidsim_rc -c conda-forge/label/fluidsim-core_rc -c conda-forge/label/fluidsim_rc fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
+  conda create -n env_fluidsim_rc \
+    -c conda-forge/label/fluidsim-core_rc -c conda-forge/label/fluidsim_rc \
+    fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
   ```
 
 - [ ] Communicate to the community...
