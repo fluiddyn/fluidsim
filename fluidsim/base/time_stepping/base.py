@@ -112,6 +112,9 @@ max_elapsed: number or str (default None)
             signal.signal(signal.SIGUSR2, handler_signals)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
+        except AttributeError:
+            # no SIGUSR2 on Windows
+            pass
 
         try:
             param_max_elapsed = self.params.time_stepping.max_elapsed
