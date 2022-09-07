@@ -23,7 +23,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
-0.6.1_ (2022-09-0?)
+0.6.1_ (2022-09-07)
 -------------------
 
 - Turbulence models with ``extend_simul_class`` (`!308
