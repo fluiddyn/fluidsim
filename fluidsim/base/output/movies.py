@@ -26,6 +26,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from matplotlib.widgets import Button
+import mpl_toolkits.axes_grid1
+
 from fluiddyn.util import mpi, is_run_from_jupyter
 
 
@@ -49,6 +52,52 @@ class MoviesBase:
         self._init_ani_times(tmin, tmax, dt_equations)
         self.fig, self.ax = plt.subplots(num=numfig, **fig_kw)
         self._init_labels()
+
+        if not self._interactive:
+            return
+
+        # see https://stackoverflow.com/a/44989063
+        playerax = self.fig.add_axes([0.05, 0.015, 0.22, 0.04])
+        divider = mpl_toolkits.axes_grid1.make_axes_locatable(playerax)
+        bax = divider.append_axes("right", size="80%", pad=0.05)
+        sax = divider.append_axes("right", size="80%", pad=0.05)
+        fax = divider.append_axes("right", size="80%", pad=0.05)
+        ofax = divider.append_axes("right", size="100%", pad=0.05)
+
+        def init_button(ax, label, method):
+            button = Button(ax, label=label)
+            button.on_clicked(method)
+            return button
+
+        self._button_oneback = init_button(playerax, "$\u29CF$", self._one_backward)
+        self._button_back = init_button(bax, "$\u25C0$", self._backward)
+        self._button_stop = init_button(sax, "$\u25A0$", self.pause)
+        self._button_forward = init_button(fax, "$\u25B6$", self._forward)
+        self._button_oneforward = init_button(ofax, "$\u29D0$", self._one_forward)
+
+    def resume(self):
+        self.paused = False
+        self._animation.resume()
+
+    def pause(self, event=None):
+        self.paused = True
+        self._animation.pause()
+
+    def _forward(self, event=None):
+        self._forwards = True
+        self.resume()
+
+    def _backward(self, event=None):
+        self._forwards = False
+        self.resume()
+
+    def _one_forward(self, event=None):
+        self._forwards = True
+        self.onestep()
+
+    def _one_backward(self, event=None):
+        self._forwards = False
+        self.onestep()
 
     def _init_ani_times(self, tmin, tmax, dt_equations):
         """Initialization of the variable ani_times for one animation."""
@@ -132,6 +181,7 @@ class MoviesBase:
         repeat=True,
         save_file=False,
         numfig=None,
+        interactive=None,
         fargs={},
         fig_kw={},
         **kwargs,
@@ -208,6 +258,7 @@ class MoviesBase:
         if mpi.rank > 0:
             raise NotImplementedError("Do NOT use this function with MPI !")
 
+        self._interactive = interactive
         self.init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
@@ -218,10 +269,17 @@ class MoviesBase:
         else:
             nb_repeat = 1
 
+        self._min = 0
+        frames = self._max = nb_repeat * len(self.ani_times) - 1
+        if interactive:
+            frames = self._frames_iterative
+            self._forwards = True
+            self._index = self._min = 0
+
         self._animation = animation.FuncAnimation(
             self.fig,
             self.update_animation,
-            nb_repeat * len(self.ani_times),
+            frames=frames,
             fargs=fargs.items(),
             interval=dt_frame_in_sec * 1000,
             blit=False,
@@ -233,6 +291,40 @@ class MoviesBase:
                 save_file = r"~/fluidsim_movie.mp4"
 
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
+            return
+
+        # pause/resume code
+        self.paused = False
+        self.fig.canvas.mpl_connect("button_press_event", self._toggle_pause)
+
+    def _frames_iterative(self):
+        while not self.paused:
+            self._index += self._forwards - (not self._forwards)
+            frame = self._index
+            if frame > self._min and frame < self._max:
+                yield frame
+            else:
+                self._animation.pause()
+                self.paused = True
+                yield frame
+
+    def onestep(self):
+        if self._index > self._min and self._index < self._max:
+            self._index += self._forwards - (not self._forwards)
+        elif self._index == self._min and self._forwards:
+            self._index += 1
+        elif self._index == self._max and not self._forwards:
+            self._index -= 1
+        self.update_animation(self._index)
+        self.fig.canvas.draw_idle()
+        self.pause()
+
+    def _toggle_pause(self, *args, **kwargs):
+        if self.paused:
+            self._animation.resume()
+        else:
+            self._animation.pause()
+        self.paused = not self.paused
 
     def interact(
         self,
@@ -306,6 +398,7 @@ class MoviesBase:
         if not is_run_from_jupyter():
             raise ValueError("Works only inside Jupyter.")
 
+        self._interactive = False
         self.init_animation(
             key_field, 0, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
