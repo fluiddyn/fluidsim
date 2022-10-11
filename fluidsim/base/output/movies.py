@@ -211,6 +211,8 @@ class MoviesBase:
             from the filename extension.
         numfig : int
             Figure number on the window
+        interactive : bool
+            Add player buttons (pause, step by step and forward/backward)
         fargs : dict
             Dictionary of arguments for `update_animation`. Matplotlib
             requirement.
@@ -295,7 +297,6 @@ class MoviesBase:
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
             return
 
-        # pause/resume code
         self.paused = False
         self.fig.canvas.mpl_connect("button_press_event", self._toggle_pause)
 
