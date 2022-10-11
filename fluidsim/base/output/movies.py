@@ -265,7 +265,7 @@ class MoviesBase:
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
         )
 
-        if isinstance(repeat, int):
+        if isinstance(repeat, int) and repeat:
             nb_repeat = repeat
             repeat = False
         else:

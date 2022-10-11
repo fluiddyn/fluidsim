@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -243,13 +244,54 @@ class TestForcingOutput(TestSimulBase):
 
         sim2.output.phys_fields.animate(
             "ux",
-            dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_frame_in_sec=1e-4,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,
             numfig=1,
+            interactive=True,
         )
+        movies = sim2.output.phys_fields.movies
+        assert len(movies.ani_times) > 3
+        print(movies.ani_times)
+
+        @dataclass
+        class Event:
+            inaxes: object
+
+        movies._toggle_pause(Event(movies.fig.axes[1]))
+        event = Event(movies.fig.axes[0])
+        movies._toggle_pause(event)
+        movies._toggle_pause(event)
+
+        iterator = movies._frames_iterative()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._max
+        movies._forward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._max
+        movies._one_forward()
+        assert movies._index == movies._min
+        movies._one_forward()
+        assert movies._index == movies._min + 1
+        movies._one_forward()
+        movies._backward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._min
+        movies._backward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._min
+        movies._one_backward()
+        assert movies._index == movies._max
+        movies._one_backward()
+        assert movies._index == movies._max - 1
+        movies._one_backward()
+
         sim2.output.phys_fields.plot()
         sim2.plot_freq_diss("y")
 
