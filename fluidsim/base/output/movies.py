@@ -64,16 +64,18 @@ class MoviesBase:
         fax = divider.append_axes("right", size="80%", pad=0.05)
         ofax = divider.append_axes("right", size="100%", pad=0.05)
 
+        self._buttons = []
+
         def init_button(ax, label, method):
             button = Button(ax, label=label)
             button.on_clicked(method)
-            return button
+            self._buttons.append(button)
 
-        self._button_oneback = init_button(playerax, "$\u29CF$", self._one_backward)
-        self._button_back = init_button(bax, "$\u25C0$", self._backward)
-        self._button_stop = init_button(sax, "$\u25A0$", self.pause)
-        self._button_forward = init_button(fax, "$\u25B6$", self._forward)
-        self._button_oneforward = init_button(ofax, "$\u29D0$", self._one_forward)
+        init_button(playerax, "$\u29CF$", self._one_backward)
+        init_button(bax, "$\u25C0$", self._backward)
+        init_button(sax, "$\u25A0$", self.pause)
+        init_button(fax, "$\u25B6$", self._forward)
+        init_button(ofax, "$\u29D0$", self._one_forward)
 
     def resume(self):
         self.paused = False
@@ -116,7 +118,7 @@ class MoviesBase:
         if dt_equations is None:
             dt_equations = self.params.periods_save.phys_fields
 
-        self.ani_times = np.arange(tmin, tmax + dt_equations, dt_equations)
+        self.ani_times = np.arange(tmin, tmax, dt_equations)
 
     def update_animation(self, frame, **fargs):
         """Replace this function to load data for next frame and update the
@@ -301,25 +303,35 @@ class MoviesBase:
         while not self.paused:
             self._index += self._forwards - (not self._forwards)
             frame = self._index
-            if frame > self._min and frame < self._max:
-                yield frame
-            else:
-                self._animation.pause()
-                self.paused = True
-                yield frame
+            if frame < self._min:
+                self._index = frame = self._max
+            elif frame > self._max:
+                self._index = frame = self._min
+            elif frame == self._max or frame == self._min:
+                self.pause()
+            yield frame
 
     def onestep(self):
+        self.pause()
         if self._index > self._min and self._index < self._max:
             self._index += self._forwards - (not self._forwards)
-        elif self._index == self._min and self._forwards:
-            self._index += 1
-        elif self._index == self._max and not self._forwards:
-            self._index -= 1
+        elif self._index == self._min:
+            if self._forwards:
+                self._index += 1
+            else:
+                self._index = self._max
+        elif self._index == self._max:
+            if not self._forwards:
+                self._index -= 1
+            else:
+                self._index = self._min
+
         self.update_animation(self._index)
         self.fig.canvas.draw_idle()
-        self.pause()
 
-    def _toggle_pause(self, *args, **kwargs):
+    def _toggle_pause(self, event):
+        if event.inaxes != self.fig.axes[0]:
+            return
         if self.paused:
             self._animation.resume()
         else:
@@ -474,7 +486,6 @@ class MoviesBase1D(MoviesBase):
 
     def update_animation(self, frame, **fargs):
         """Loads contour data and updates figure."""
-        print("update_animation for frame", frame, "       ", end="\r")
         time = self.ani_times[frame % len(self.ani_times)]
         get_field_to_plot = self.phys_fields.get_field_to_plot
         y, time = get_field_to_plot(time=time, key=self.key_field)

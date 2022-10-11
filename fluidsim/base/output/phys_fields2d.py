@@ -167,8 +167,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
 
     def update_animation(self, frame, **fargs):
         """Loads data and updates figure."""
-
-        print("update_animation for frame", frame, "       ", end="\r")
         time = self.ani_times[frame % len(self.ani_times)]
         step = self._step
         get_field_to_plot = self.phys_fields.get_field_to_plot
