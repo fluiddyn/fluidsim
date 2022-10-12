@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
 from fluiddyn.util import mpi
-from .movies import MoviesBase2D
+from fluidsim_core.movies import MoviesBase2D
 from ..params import Parameters
 
 from .phys_fields import PhysFieldsBase

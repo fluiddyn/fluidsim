@@ -34,7 +34,7 @@ import h5py
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
-from .movies import MoviesBase1D
+from fluidsim_core.movies import MoviesBase1D
 
 
 class MoviesSpectra(MoviesBase1D):

@@ -342,7 +342,6 @@ class MoviesBase:
     def interact(
         self,
         key_field=None,
-        dt_frame_in_sec=0.3,
         dt_equations=None,
         tmin=None,
         tmax=None,
@@ -355,8 +354,6 @@ class MoviesBase:
         ----------
         key_field : str
             Specifies which field to animate
-        dt_frame_in_sec : float
-            Interval between animated frames in seconds
         dt_equations : float
             Approx. interval between saved files to load in simulation time
             units
@@ -403,10 +400,10 @@ class MoviesBase:
         """
         try:
             from ipywidgets import interact, widgets
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
-                "See fluidsim.base.output.movies.interact docstring."
-            )
+                "See fluidsim_core.movies.interact docstring."
+            ) from exc
 
         if not is_run_from_jupyter():
             raise ValueError("Works only inside Jupyter.")

@@ -19,7 +19,7 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from .movies import MoviesBase1D
+from fluidsim_core.movies import MoviesBase1D
 
 from .phys_fields import PhysFieldsBase
 
