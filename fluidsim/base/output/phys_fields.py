@@ -59,6 +59,10 @@ class PhysFieldsBase(SpecificOutput):
             self.animate = self.movies.animate
             self.interact = self.movies.interact
 
+        self.key_vec_xaxis = "ux"
+        self.key_vec_yaxis = "uy"
+        self._equation = None
+
         super().__init__(
             output,
             period_save=params.output.periods_save.phys_fields,
@@ -253,7 +257,7 @@ class PhysFieldsBase(SpecificOutput):
         else:
             field = field_loc
 
-        if equation is None:
+        if equation is None or len(self.sim.oper.axes) == 2:
             return field, key_field
 
         elif equation.startswith("iz="):
@@ -281,6 +285,9 @@ class PhysFieldsBase(SpecificOutput):
             raise NotImplementedError
 
         return field, key_field
+
+    def get_vector_for_plot(self):
+        raise NotImplementedError
 
 
 def time_from_path(path):

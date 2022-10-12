@@ -15,7 +15,7 @@ Provides:
 
 """
 
-import os
+from pathlib import Path
 
 import numpy as np
 
@@ -23,89 +23,30 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
 from fluiddyn.util import mpi
-from fluidsim_core.movies import MoviesBase2D
+from fluidsim_core.movies import MoviesBasePhysFields
 from ..params import Parameters
 
 from .phys_fields import PhysFieldsBase
 
 
-class MoviesBasePhysFields2D(MoviesBase2D):
+class MoviesBasePhysFields2D(MoviesBasePhysFields):
     """Methods required to animate physical fields HDF5 files."""
 
-    def __init__(self, output, phys_fields):
-        self.phys_fields = phys_fields
-        super().__init__(output)
-        self._equation = None
-
-    def init_animation(
-        self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
-    ):
-        """Initialize list of files and times, pcolor plot, quiver and colorbar."""
-        self.phys_fields.set_of_phys_files.update_times()
-        self.time_files = self.phys_fields.set_of_phys_files.times
-
-        if dt_equations is None:
-            dt_equations = np.median(np.diff(self.time_files))
-            print(f"dt_equations = {dt_equations:.4f}")
-
-        if tmax is None:
-            tmax = self.time_files.max()
-
-        super().init_animation(
-            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
-        )
-
-        dt_file = (self.time_files[-1] - self.time_files[0]) / len(
-            self.time_files
-        )
-        if dt_equations < dt_file / 4:
-            raise ValueError("dt_equations < dt_file / 4")
-
-        self._has_uxuy = self.sim.state.has_vars("ux", "uy")
-
-        get_field_to_plot = self.phys_fields.get_field_to_plot
-        field, time = get_field_to_plot(self.key_field)
-        if self._has_uxuy:
-            ux, time = get_field_to_plot("ux")
-            uy, time = get_field_to_plot("uy")
-        else:
-            ux = uy = None
-
-        INSET = True if "INSET" not in kwargs else kwargs["INSET"]
-        self._init_fig(field, ux, uy, INSET, **kwargs)
-
-        self._clim = kwargs.get("clim")
-        self._set_clim()
-
-    def _init_fig(self, field, ux=None, uy=None, INSET=True, **kwargs):
+    def _init_fig(self, field, vec_xaxis=None, vec_yaxis=None, **kwargs):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
 
         """
-        self._step = step = 1 if "step" not in kwargs else kwargs["step"]
-        self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+        super()._init_fig(field, vec_xaxis, vec_yaxis, **kwargs)
 
-        x, y = self._get_axis_data(shape=field.shape)
-        XX, YY = np.meshgrid(x[::step], y[::step])
-        field = field[::step, ::step]
-
-        self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")
-        self._ani_cbar = self.fig.colorbar(self._im)
-
-        self._has_uxuy = self.sim.state.has_vars("ux", "uy")
-
-        if self._has_uxuy and self._QUIVER:
-            self._ani_quiver, vmax = self.phys_fields._quiver_plot(
-                self.ax, ux, uy, XX, YY
-            )
-
+        INSET = True if "INSET" not in kwargs else kwargs["INSET"]
         try:
             self.output.spatial_means
         except AttributeError:
             INSET = False
 
-        if INSET and not self.sim.time_stepping.is_simul_completed():
+        if not self.sim.time_stepping.is_simul_completed():
             INSET = False
 
         self._ANI_INSET = INSET
@@ -153,59 +94,9 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             )
             self._im_inset = ax2.plot([0], [0], color="red")
 
-    def _get_axis_data(self, shape=None):
-        """Get 1D arrays for setting the axes."""
-
-        x, y = super()._get_axis_data()
-        if shape is not None and (y.shape[0], x.shape[0]) != shape:
-            path_file = os.path.join(self.output.path_run, "params_simul.xml")
-            params = Parameters(path_file=path_file)
-            x = np.arange(0, params.oper.Lx, params.oper.nx)
-            y = np.arange(0, params.oper.Ly, params.oper.ny)
-
-        return x, y
-
     def update_animation(self, frame, **fargs):
         """Loads data and updates figure."""
-        time = self.ani_times[frame % len(self.ani_times)]
-        step = self._step
-        get_field_to_plot = self.phys_fields.get_field_to_plot
-
-        field, time = get_field_to_plot(
-            time=time,
-            key=self.key_field,
-            equation=self._equation,
-            interpolate_time=True,
-        )
-
-        field = field[::step, ::step]
-
-        # Update figure, quiver and colorbar
-        self._im.set_array(field.flatten())
-
-        if self._has_uxuy and self._QUIVER:
-            ux, time = get_field_to_plot(
-                time=time,
-                key="ux",
-                equation=self._equation,
-                interpolate_time=True,
-            )
-            uy, time = get_field_to_plot(
-                time=time,
-                key="uy",
-                equation=self._equation,
-                interpolate_time=True,
-            )
-            vmax = np.max(np.sqrt(ux**2 + uy**2))
-            skip = self.phys_fields._skip_quiver
-            self._ani_quiver.set_UVC(
-                ux[::skip, ::skip] / vmax, uy[::skip, ::skip] / vmax
-            )
-        else:
-            vmax = None
-
-        self._im.autoscale()
-        self._set_clim()
+        super().update_animation(frame, **fargs)
 
         # INLET ANIMATION
         if self._ANI_INSET:
@@ -214,17 +105,6 @@ class MoviesBasePhysFields2D(MoviesBase2D):
             E = self._ani_spatial_means_key
 
             self._im_inset[0].set_data(t[:idx_spatial], E[:idx_spatial])
-
-        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
-
-    def _set_clim(self):
-        """Maintains a constant colorbar throughout the animation."""
-
-        clim = self._clim
-        if clim is not None:
-            self._im.set_clim(*clim)
-            ticks = np.linspace(*clim, num=21, endpoint=True)
-            self._ani_cbar.set_ticks(ticks)
 
     def _get_spatial_means(self, key_spatial="E"):
         """Get field for the inset plot."""
@@ -261,6 +141,25 @@ class PhysFieldsBase2D(PhysFieldsBase):
     def set_skip_quiver(self, skip):
         self._skip_quiver = skip
 
+    def get_vector_for_plot(
+        self, from_state=False, time=None, interpolate_time=True
+    ):
+        if from_state:
+            vecx, _ = self.get_field_to_plot_from_state(self.key_vec_xaxis)
+            vecy, _ = self.get_field_to_plot_from_state(self.key_vec_yaxis)
+        else:
+            vecx, _ = self.get_field_to_plot(
+                key=self.key_vec_xaxis,
+                time=time,
+                interpolate_time=interpolate_time,
+            )
+            vecy, _ = self.get_field_to_plot(
+                key=self.key_vec_yaxis,
+                time=time,
+                interpolate_time=interpolate_time,
+            )
+        return vecx, vecy
+
     def _init_movies(self):
         self.movies = MoviesBasePhysFields2D(self.output, self)
 
@@ -273,19 +172,20 @@ class PhysFieldsBase2D(PhysFieldsBase):
     def _init_online_plot(self):
         self.key_field = self.params.output.phys_fields.field_to_plot
 
-        self._has_uxuy = self.sim.state.has_vars("ux", "uy")
-
         field, _ = self.get_field_to_plot_from_state(self.key_field)
-        if self._has_uxuy:
-            ux, _ = self.get_field_to_plot_from_state("ux")
-            uy, _ = self.get_field_to_plot_from_state("uy")
+
+        try:
+            vec_xaxis, vec_yaxis = self.get_vector_for_plot()
+        except ValueError:
+            self._can_plot_quiver = False
+            vec_xaxis = vec_yaxis = None
         else:
-            ux = uy = None
+            self._can_plot_quiver = True
 
         if mpi.rank == 0:
             movies = self.movies
             movies.fig, movies.ax = plt.subplots()
-            movies._init_fig(field, ux, uy)
+            movies._init_fig(field, vec_xaxis, vec_yaxis)
             movies._im.autoscale()
             movies.fig.canvas.draw()
             plt.pause(1e-6)
@@ -297,18 +197,18 @@ class PhysFieldsBase2D(PhysFieldsBase):
             self.t_last_plot = tsim
             key_field = self.params.output.phys_fields.field_to_plot
             field, _ = self.get_field_to_plot_from_state(key_field)
-            if self._has_uxuy:
-                ux, _ = self.get_field_to_plot_from_state("ux")
-                uy, _ = self.get_field_to_plot_from_state("uy")
+            if self._can_plot_quiver:
+                vec_xaxis, vec_yaxis = self.get_vector_for_plot()
 
             if mpi.rank == 0:
                 # Update figure, quiver and colorbar
                 self.movies._im.set_array(field.flatten())
-                if self._has_uxuy:
-                    vmax = np.max(np.sqrt(ux**2 + uy**2))
+                if self._can_plot_quiver:
+                    vmax = np.max(np.sqrt(vec_xaxis**2 + vec_yaxis**2))
                     skip = self._skip_quiver
                     self.movies._ani_quiver.set_UVC(
-                        ux[::skip, ::skip] / vmax, uy[::skip, ::skip] / vmax
+                        vec_xaxis[::skip, ::skip] / vmax,
+                        vec_yaxis[::skip, ::skip] / vmax,
                     )
                 else:
                     vmax = None
@@ -366,8 +266,6 @@ class PhysFieldsBase2D(PhysFieldsBase):
         """
 
         is_field_ready = False
-
-        self._has_uxuy = self.sim.state.has_vars("ux", "uy")
 
         key_field = None
         if field is None:

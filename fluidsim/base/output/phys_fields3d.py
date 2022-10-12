@@ -42,7 +42,9 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
     def _init_labels(self, xlabel=None, ylabel=None):
         """Initialize the labels."""
         if xlabel is None or ylabel is None:
-            _xlabel, _ylabel = _get_xylabels_from_equation(self._equation)
+            _xlabel, _ylabel = _get_xylabels_from_equation(
+                self.phys_fields._equation
+            )
         if xlabel is None:
             xlabel = _xlabel
         if ylabel is None:
@@ -71,7 +73,17 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         """
         self._equation = equation
-        self.movies._equation = equation
+        if equation.startswith("iz=") or equation.startswith("z="):
+            self.key_vec_xaxis = "vx"
+            self.key_vec_yaxis = "vy"
+        elif equation.startswith("iy=") or equation.startswith("y="):
+            self.key_vec_xaxis = "vx"
+            self.key_vec_yaxis = "vz"
+        elif equation.startswith("ix=") or equation.startswith("x="):
+            self.key_vec_xaxis = "vy"
+            self.key_vec_yaxis = "vz"
+        else:
+            raise NotImplementedError
 
     def _get_grid1d(self, equation):
 
@@ -138,8 +150,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         equation = self._equation
 
         is_field_ready = False
-
-        self._has_uxuy = self.sim.state.has_vars("vx", "vy")
 
         key_field = None
         if field is None:
@@ -330,8 +340,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         if equation is not None:
             self.set_equation_crosssection(equation)
         equation = self._equation
-
-        self._has_uxuy = self.sim.state.has_vars("vx", "vy")
 
         key_field = None
         if field is None:
