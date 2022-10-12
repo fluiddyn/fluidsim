@@ -15,15 +15,13 @@ Provides:
 
 """
 
-from pathlib import Path
-
 import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
 from fluiddyn.util import mpi
-from fluidsim_core.movies import MoviesBasePhysFields
+from fluidsim_core.output.movies import MoviesBasePhysFields
 from ..params import Parameters
 
 from .phys_fields import PhysFieldsBase

@@ -2,7 +2,7 @@
 ================
 
 Contains base classes which acts as a framework to
-implement the method `animate` to make movies.
+implement the method ``animate`` to make movies.
 
 Provides:
 
@@ -402,7 +402,7 @@ class MoviesBase:
             from ipywidgets import interact, widgets
         except ImportError as exc:
             raise ImportError(
-                "See fluidsim_core.movies.interact docstring."
+                "See fluidsim_core.output.movies.interact docstring."
             ) from exc
 
         if not is_run_from_jupyter():

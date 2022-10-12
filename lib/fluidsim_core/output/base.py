@@ -18,7 +18,7 @@ import fluiddyn
 from fluiddyn.io import FLUIDDYN_PATH_SCRATCH, FLUIDSIM_PATH
 from fluiddyn.util import time_as_str, mpi
 
-from . import __version__
+from fluidsim_core import __version__
 
 
 class SimReprMakerCore:
@@ -299,7 +299,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
         Returns
         -------
-        :any:`fluidsim_core.output.SimReprMakerCore`
+        :any:`fluidsim_core.output.base.SimReprMakerCore`
 
         """
         sim = self.sim
@@ -313,7 +313,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
     def _init_name_run(self):
         """Initialize the ``name_run`` and ``summary_simul`` attributes by
-        calling :any:`fluidsim_core.output.SimReprMakerCore.make_representations`
+        calling :any:`fluidsim_core.output.base.SimReprMakerCore.make_representations`
 
         """
         if not hasattr(self, "_sim_repr_maker"):

@@ -41,7 +41,8 @@ class PreprocessPseudoSpectral(PreprocessBase):
         A non-dimensionalization procedure for the initialized fields.
 
         Parameters
-        ----------------
+        ----------
+
         init_field_scale : string (use 'energy', 'unity')
             Set quantity to normalize initialized fields with.
         """
