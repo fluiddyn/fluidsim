@@ -5,6 +5,7 @@
 
    base
    movies
+   phys_fields
 
 """
 

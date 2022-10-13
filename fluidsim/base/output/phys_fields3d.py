@@ -85,22 +85,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         else:
             raise NotImplementedError
 
-    def _get_grid1d(self, equation):
-
-        if equation.startswith("iz=") or equation.startswith("z="):
-            x_seq = self.oper.get_grid1d_seq("x")
-            y_seq = self.oper.get_grid1d_seq("y")
-        elif equation.startswith("iy=") or equation.startswith("y="):
-            x_seq = self.oper.get_grid1d_seq("x")
-            y_seq = self.oper.get_grid1d_seq("z")
-        elif equation.startswith("ix=") or equation.startswith("x="):
-            x_seq = self.oper.get_grid1d_seq("y")
-            y_seq = self.oper.get_grid1d_seq("z")
-        else:
-            raise NotImplementedError
-
-        return x_seq, y_seq
-
     def plot(
         self,
         field=None,
@@ -225,7 +209,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            x_seq, y_seq = self._get_grid1d(equation)
+            x_seq, y_seq = self._get_axis_data(equation)
 
             [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
@@ -412,7 +396,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            x_seq, y_seq = self._get_grid1d(equation)
+            x_seq, y_seq = self._get_axis_data(equation)
 
             [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
@@ -485,7 +469,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         if XX is None and YY is None:
             equation = self._equation
 
-            x_seq, y_seq = self._get_grid1d(equation)
+            x_seq, y_seq = self._get_axis_data(equation)
 
             [XX, YY] = np.meshgrid(x_seq, y_seq)
 

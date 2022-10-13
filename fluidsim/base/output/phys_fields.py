@@ -265,21 +265,21 @@ class PhysFieldsBase(SpecificOutput):
             field = field[iz, ...]
         elif equation.startswith("z="):
             z = eval(equation[len("z=") :])
-            iz = abs(self.output.sim.oper.get_grid1d_seq("z") - z).argmin()
+            iz = abs(self._get_grid1d_seq("z") - z).argmin()
             field = field[iz, ...]
         elif equation.startswith("iy="):
             iy = eval(equation[len("iy=") :])
             field = field[:, iy, :]
         elif equation.startswith("y="):
             y = eval(equation[len("y=") :])
-            iy = abs(self.output.sim.oper.get_grid1d_seq("y") - y).argmin()
+            iy = abs(self._get_grid1d_seq("y") - y).argmin()
             field = field[:, iy, :]
         elif equation.startswith("ix="):
             ix = eval(equation[len("ix=") :])
             field = field[..., ix]
         elif equation.startswith("x="):
             x = eval(equation[len("x=") :])
-            ix = abs(self.output.sim.oper.get_grid1d_seq("x") - x).argmin()
+            ix = abs(self._get_grid1d_seq("x") - x).argmin()
             field = field[..., ix]
         else:
             raise NotImplementedError
@@ -288,6 +288,46 @@ class PhysFieldsBase(SpecificOutput):
 
     def get_vector_for_plot(self):
         raise NotImplementedError
+
+    def _get_axis_data(self, equation=None):
+        """Get axis data.
+
+        Returns
+        -------
+
+        x : array
+          x-axis data.
+
+        y : array
+          y-axis data.
+
+        """
+        if equation is None:
+            try:
+                equation = self._equation
+            except AttributeError:
+                pass
+
+        if (
+            equation is None
+            or equation.startswith("iz=")
+            or equation.startswith("z=")
+        ):
+            x_seq = self._get_grid1d_seq("x")
+            y_seq = self._get_grid1d_seq("y")
+        elif equation.startswith("iy=") or equation.startswith("y="):
+            x_seq = self._get_grid1d_seq("x")
+            y_seq = self._get_grid1d_seq("z")
+        elif equation.startswith("ix=") or equation.startswith("x="):
+            x_seq = self._get_grid1d_seq("y")
+            y_seq = self._get_grid1d_seq("z")
+        else:
+            raise NotImplementedError
+
+        return x_seq, y_seq
+
+    def _get_grid1d_seq(self, axis):
+        return self.oper.get_grid1d_seq(axis)
 
 
 def time_from_path(path):
@@ -307,14 +347,19 @@ def time_from_path(path):
 class SetOfPhysFieldFiles:
     """A set of physical field files."""
 
-    def __init__(self, path_dir=os.curdir, output=None):
+    def __init__(self, path_dir=None, output=None):
         self.output = output
-        self.path_dir = path_dir if output is None else output.path_run
+        if path_dir is None:
+            if output is None:
+                path_dir = Path.cwd()
+            else:
+                path_dir = Path(output.path_run)
+        self.path_dir = Path(path_dir)
         self.update_times()
 
     def update_times(self):
         """Initialize the times by globing and analyzing the file names."""
-        path_files = glob(os.path.join(self.path_dir, "state_phys*.[hn]*"))
+        path_files = sorted(self.path_dir.glob("state_phys*.[hn]*"))
 
         if hasattr(self, "path_files") and len(self.path_files) == len(
             path_files
@@ -328,6 +373,9 @@ class SetOfPhysFieldFiles:
         if hasattr(self, "times"):
             return self.times.min()
         return 0.0
+
+    def get_max_time(self):
+        return self.times.max()
 
     def get_field_to_plot(
         self,
@@ -345,8 +393,7 @@ class SetOfPhysFieldFiles:
         # Assert files are available
         if self.times.size == 0:
             raise FileNotFoundError(
-                "No state_phys files were detected in directory: "
-                f"{self.path_dir}"
+                f"No phys files were detected in directory: {self.path_dir}"
             )
 
         if not interpolate_time and time is not None:
@@ -387,9 +434,13 @@ class SetOfPhysFieldFiles:
 
             return field0 * weight0 + field1 * weight1, time
 
-        # print(idx_time, 'Using file', self.path_files[idx_time])
+        return self._get_field_to_plot_from_file(
+            self.path_files[idx_time], key, equation
+        )
 
-        with h5py.File(self.path_files[idx_time], "r") as file:
+    def _get_field_to_plot_from_file(self, path_file, key, equation):
+
+        with h5py.File(path_file, "r") as file:
             time = file["state_phys"].attrs["time"]
             dset = file["state_phys"][key]
 

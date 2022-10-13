@@ -181,8 +181,8 @@ class TestOutput(TestSimulBase):
         # compute twice for better coverage
         sim.state.compute("rotz")
 
-        sim.output.phys_fields._get_grid1d("iz=0")
-        sim.output.phys_fields._get_grid1d("iy=0")
+        sim.output.phys_fields._get_axis_data("iz=0")
+        sim.output.phys_fields._get_axis_data("iy=0")
 
         path_run = sim.output.path_run
         if mpi.nb_proc > 1:

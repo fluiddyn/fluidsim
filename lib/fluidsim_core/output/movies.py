@@ -20,6 +20,12 @@ Provides:
    :members:
    :private-members:
    :undoc-members:
+
+.. autoclass:: MoviesBasePhysFields
+   :members:
+   :private-members:
+   :undoc-members:
+
 """
 
 import os
@@ -43,6 +49,19 @@ class MoviesBase:
         self.oper = self.sim.oper
 
         self._set_font()
+
+    def _set_font(self, family="serif", size=12):
+        """Use to set font attribute. May be either an alias (generic name
+        is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
+        monospace, a real font name or a list of real font names.
+
+        """
+        self.font = {
+            "family": family,
+            "color": "black",
+            "weight": "normal",
+            "size": size,
+        }
 
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
@@ -101,11 +120,17 @@ class MoviesBase:
         self._forwards = False
         self.onestep()
 
+    def _get_default_tmax(self):
+        try:
+            return self.sim.time_stepping.t
+        except AttributeError:
+            return self.phys_fields.set_of_phys_files.get_max_time()
+
     def _init_ani_times(self, tmin, tmax, dt_equations):
         """Initialization of the variable ani_times for one animation."""
         self.phys_fields.set_of_phys_files.update_times()
         if tmax is None:
-            tmax = self.sim.time_stepping.t
+            tmax = self._get_default_tmax()
 
         if tmin is None:
             tmin = self.phys_fields.set_of_phys_files.get_min_time()
@@ -126,19 +151,6 @@ class MoviesBase:
 
         """
         pass
-
-    def _set_font(self, family="serif", size=12):
-        """Use to set font attribute. May be either an alias (generic name
-        is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
-        monospace, a real font name or a list of real font names.
-
-        """
-        self.font = {
-            "family": family,
-            "color": "black",
-            "weight": "normal",
-            "size": size,
-        }
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
         """
@@ -529,29 +541,7 @@ class MoviesBase2D(MoviesBase):
           y-axis data.
 
         """
-
-        try:
-            equation = self.phys_fields._equation
-        except AttributeError:
-            equation = None
-
-        if (
-            equation is None
-            or equation.startswith("iz=")
-            or equation.startswith("z=")
-        ):
-            x = self.oper.get_grid1d_seq("x")
-            y = self.oper.get_grid1d_seq("y")
-        elif equation.startswith("iy=") or equation.startswith("y="):
-            x = self.oper.get_grid1d_seq("x")
-            y = self.oper.get_grid1d_seq("z")
-        elif equation.startswith("ix=") or equation.startswith("x="):
-            x = self.oper.get_grid1d_seq("y")
-            y = self.oper.get_grid1d_seq("z")
-        else:
-            raise NotImplementedError
-
-        return x, y
+        return self.phys_fields._get_axis_data()
 
 
 class MoviesBasePhysFields(MoviesBase2D):
@@ -605,13 +595,10 @@ class MoviesBasePhysFields(MoviesBase2D):
         self._step = step = 1 if "step" not in kwargs else kwargs["step"]
         self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
 
-        x, y = self._get_axis_data()  # (shape=field.shape)
+        x, y = self._get_axis_data()
         x, y = x[::step], y[::step]
         XX, YY = np.meshgrid(x, y)
         field = field[::step, ::step]
-
-        print(f"{(len(y), len(x)) = }, {field.shape = }, {self.phys_fields._equation = }")
-
         assert (len(y), len(x)) == field.shape
 
         self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")

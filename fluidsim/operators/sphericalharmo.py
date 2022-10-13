@@ -61,8 +61,8 @@ class OperatorsSphericalHarmonics(_Operator):
         """
         return 2.0 * self.params.omega * np.sin(self.LATS)
 
-    def get_grid1d_seq(self, axe="lat"):
-        if axe not in self.axes:
+    def get_grid1d_seq(self, axis="lat"):
+        if axis not in self.axes:
             raise ValueError
 
         # TODO: implement
@@ -70,7 +70,7 @@ class OperatorsSphericalHarmonics(_Operator):
         # set_grid based on params.nlat and params.nlon and other flags
         # rebuild lats and lons
         # else:
-        return getattr(self, axe + "s")
+        return getattr(self, axis + "s")
 
 
 if __name__ == "__main__":

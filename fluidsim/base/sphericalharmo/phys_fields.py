@@ -21,8 +21,8 @@ class Movies2DSphericalHarmo(MoviesBasePhysFields2D):
         if shape:
             warn("_get_axis_data: shape parameter ignored.")
 
-        x = self.oper.get_grid1d_seq("lon")
-        y = self.oper.get_grid1d_seq("lat")
+        x = self._get_grid1d_seq("lon")
+        y = self._get_grid1d_seq("lat")
 
         return x, y
 

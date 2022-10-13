@@ -1044,17 +1044,17 @@ Lx, Ly and Lz: float
 
         return dx_arr_fft, dy_arr_fft, dz_arr_fft
 
-    def get_grid1d_seq(self, axe="x"):
+    def get_grid1d_seq(self, axis="x"):
 
-        if axe not in ("x", "y", "z"):
+        if axis not in ("x", "y", "z"):
             raise ValueError
 
         if self.params.ONLY_COARSE_OPER:
-            number_points = getattr(self.params.oper, "n" + axe)
-            length = getattr(self, "L" + axe)
+            number_points = getattr(self.params.oper, "n" + axis)
+            length = getattr(self, "L" + axis)
             return np.linspace(0, length, number_points)
         else:
-            return getattr(self, axe + "_seq")
+            return getattr(self, axis + "_seq")
 
     def project_fft_on_realX(self, f_fft):
         return self.fft(self.ifft(f_fft))

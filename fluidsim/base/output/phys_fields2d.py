@@ -127,9 +127,7 @@ class PhysFieldsBase2D(PhysFieldsBase):
         except AttributeError:
             skip = 1
         else:
-            skip = (
-                len(self.oper.get_grid1d_seq("x")) / self.oper.Lx
-            ) * delta_quiver
+            skip = (len(self._get_grid1d_seq("x")) / self.oper.Lx) * delta_quiver
             skip = int(np.round(skip))
             if skip < 1:
                 skip = 1
@@ -321,8 +319,8 @@ class PhysFieldsBase2D(PhysFieldsBase):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            x_seq = self.oper.get_grid1d_seq("x")
-            y_seq = self.oper.get_grid1d_seq("y")
+            x_seq = self._get_grid1d_seq("x")
+            y_seq = self._get_grid1d_seq("y")
 
             [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
@@ -398,22 +396,17 @@ class PhysFieldsBase2D(PhysFieldsBase):
 
         if XX is None and YY is None:
             [XX, YY] = np.meshgrid(
-                self.oper.get_grid1d_seq("x"), self.oper.get_grid1d_seq("y")
+                self._get_grid1d_seq("x"), self._get_grid1d_seq("y")
             )
 
         if mpi.rank == 0:
-            # local variable 'normalize_diff' is assigned to but never used
-            # normalize_diff = (
-            #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
-            #      np.min(np.sqrt(vecx**2 + vecy**2))) /
-            #     np.max(np.sqrt(vecx**2 + vecy**2)))
             vmax = np.max(np.sqrt(vecx**2 + vecy**2))
-            # Quiver is normalized by the vmax
-            # copy to avoid a bug
             if skip is None:
                 skip = self._skip_quiver
+            # copy to avoid a bug
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
+            # quiver is normalized by the vmax
             quiver = ax.quiver(
                 XX[::skip, ::skip],
                 YY[::skip, ::skip],
