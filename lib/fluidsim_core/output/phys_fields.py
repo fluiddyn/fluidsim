@@ -41,7 +41,7 @@ class PhysFieldsABC(metaclass=ABCMeta):
     set_of_phys_files: SetOfPhysFieldFilesABC
 
     @abstractmethod
-    def get_key_field_to_plot(self, forbid_compute=False, key_field_to_plot=None):
+    def get_key_field_to_plot(self, forbid_compute=False, key_prefered=None):
         ...
 
     @abstractmethod

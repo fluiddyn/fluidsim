@@ -182,7 +182,7 @@ class MoviesBase:
         Defines key_field default.
         """
         self.key_field = self.phys_fields.get_key_field_to_plot(
-            forbid_compute=True, key_field_to_plot=key_field
+            forbid_compute=True, key_prefered=key_field
         )
 
     def animate(
