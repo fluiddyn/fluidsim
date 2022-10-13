@@ -96,11 +96,11 @@ class Increments(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
-            self.axe = axe
-            axe.set_xlabel(r"$\delta u_x (x)$")
-            axe.set_ylabel("pdf")
-            axe.set_title(
+            self.fig, ax = self.output.figure_axe(numfig=5_000_000)
+            self.ax = ax
+            ax.set_xlabel(r"$\delta u_x (x)$")
+            ax.set_ylabel("pdf")
+            ax.set_title(
                 r"pdf $\delta u_x (x)$" + "\n" + self.output.summary_simul
             )
 
@@ -113,7 +113,7 @@ class Increments(SpecificOutput):
 
         for irx, rx in enumerate(self.rxs):
             values_inc = self.compute_values_inc(valmin[irx], valmax[irx])
-            self.axe.plot(values_inc + irx, pdf[irx])
+            self.ax.plot(values_inc + irx, pdf[irx])
 
     def compute(self):
         """compute the values at one time."""

@@ -99,7 +99,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if self.has_to_plot and mpi.rank == 0:
 
-            self.axe_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')
             # if self.sim.params.forcing.enable:
@@ -107,7 +107,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):

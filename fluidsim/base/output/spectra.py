@@ -171,7 +171,7 @@ class Spectra(SpecificOutput):
 
                     if tsim - self.t_last_show >= self.period_show:
                         self.t_last_show = tsim
-                        self.axe.get_figure().canvas.draw()
+                        self.ax.get_figure().canvas.draw()
 
     def compute(self):
         """compute the values at one time."""
@@ -181,11 +181,11 @@ class Spectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k_h$")
-            axe.set_ylabel("$E(k_h)$")
-            axe.set_title("spectra\n" + self.output.summary_simul)
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("$E(k_h)$")
+            ax.set_title("spectra\n" + self.output.summary_simul)
 
     def _online_plot_saving(self):
         pass

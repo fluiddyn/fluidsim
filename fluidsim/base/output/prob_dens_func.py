@@ -51,17 +51,17 @@ class ProbaDensityFunc(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
-            self.axe = axe
-            axe.set_xlabel(r"$\eta$")
-            axe.set_ylabel("pdf")
-            axe.set_title(r"pdf $\eta$" + "\n" + self.output.summary_simul)
+            self.fig, ax = self.output.figure_axe(numfig=5_000_000)
+            self.ax = ax
+            ax.set_xlabel(r"$\eta$")
+            ax.set_ylabel("pdf")
+            ax.set_title(r"pdf $\eta$" + "\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, dict_pdf):
         """online plot on pdf"""
         pdf_eta = dict_pdf["pdf_eta"]
         bin_edges_eta = dict_pdf["bin_edges_eta"]
-        self.axe.plot(bin_edges_eta[:-1], pdf_eta, "k")
+        self.ax.plot(bin_edges_eta[:-1], pdf_eta, "k")
 
     def compute(self):
         """compute the values at one time."""

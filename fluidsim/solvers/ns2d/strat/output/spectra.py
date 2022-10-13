@@ -80,11 +80,11 @@ class SpectraNS2DStrat(Spectra):
             spectrum2D = spectrum2D_EK + spectrum2D_EA
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D * coef_norm, "k")
-            lin_inf, lin_sup = self.axe.get_ylim()
+            self.ax.loglog(khE, spectrum2D * coef_norm, "k")
+            lin_inf, lin_sup = self.ax.get_ylim()
             if lin_inf < 10e-6:
                 lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.set_ylim([lin_inf, lin_sup])
         else:
             print(
                 "you need to implement the ploting "

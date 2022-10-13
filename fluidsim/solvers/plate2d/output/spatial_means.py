@@ -134,10 +134,10 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
         if self.has_to_plot and mpi.rank == 0:
 
-            self.axe_a.plot(tsim, energy, "k.")
-            self.axe_a.plot(tsim, energy_k, "r.")
-            self.axe_a.plot(tsim, energy_l, "b.")
-            self.axe_a.plot(tsim, energy_e, "y.")
+            self.ax_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy_k, "r.")
+            self.ax_a.plot(tsim, energy_l, "b.")
+            self.ax_a.plot(tsim, energy_e, "y.")
 
             self.axe_b.plot(tsim, epsK_tot, "k.")
             self.axe_b.plot(tsim, conversion_k_to_l, "c.")
@@ -147,7 +147,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
