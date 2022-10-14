@@ -63,17 +63,14 @@ class PhysFieldsBase(SpecificOutput):
         self.key_vec_xaxis = "ux"
         self.key_vec_yaxis = "uy"
         self._equation = None
+        self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
+        self.key_field_to_plot = self.get_key_field_to_plot()
 
         super().__init__(
             output,
             period_save=params.output.periods_save.phys_fields,
             period_plot=params.output.periods_plot.phys_fields,
         )
-
-        self.key_field_to_plot = self.get_key_field_to_plot()
-
-        self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
-        self._equation = None
 
         if self.period_save == 0 and self.period_plot == 0:
             self.t_last_save = -np.inf

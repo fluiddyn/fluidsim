@@ -577,7 +577,7 @@ class MoviesBasePhysFields(MoviesBase2D):
         field, time = get_field_to_plot(self.key_field)
 
         try:
-            vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot()
+            vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot(time=time)
         except ValueError:
             self.phys_fields._can_plot_quiver = False
             vec_xaxis = vec_yaxis = None

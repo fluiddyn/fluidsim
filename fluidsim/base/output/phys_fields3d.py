@@ -458,7 +458,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
     def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
-
         """
         if isinstance(vecx, str):
             vecx, time = self.get_field_to_plot(vecx)
@@ -467,22 +466,13 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             vecy, time = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
-            equation = self._equation
-
-            x_seq, y_seq = self._get_axis_data(equation)
-
+            x_seq, y_seq = self._get_axis_data(self._equation)
             [XX, YY] = np.meshgrid(x_seq, y_seq)
 
         if mpi.rank == 0:
-            # local variable 'normalize_diff' is assigned to but never used
-            # normalize_diff = (
-            #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
-            #      np.min(np.sqrt(vecx**2 + vecy**2))) /
-            #     np.max(np.sqrt(vecx**2 + vecy**2)))
             vmax = np.max(np.sqrt(vecx**2 + vecy**2))
-            # Quiver is normalized by the vmax
-            # copy to avoid a bug
             skip = self._skip_quiver
+            # copy to avoid a bug
             vecx_c = vecx[::skip, ::skip].copy()
             vecy_c = vecy[::skip, ::skip].copy()
             quiver = ax.quiver(

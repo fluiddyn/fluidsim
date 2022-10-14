@@ -57,7 +57,9 @@ class PhysFieldsABC(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def get_vector_for_plot(self):
+    def get_vector_for_plot(
+        self, from_state=False, time=None, interpolate_time=True
+    ):
         ...
 
     @abstractmethod
@@ -68,13 +70,47 @@ class PhysFieldsABC(metaclass=ABCMeta):
         """
         ...
 
-    @abstractmethod
     def _set_title(self, ax, key, time, vmax=None):
         ...
+        title = f"{key}, $t = {time:.3f}$"
+        if vmax is not None:
+            title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
+        ax.set_title(title)
 
     @abstractmethod
     def _get_axis_data(equation=None):
         ...
+
+    def set_equation_crosssection(self, equation):
+        """Set the equation defining the cross-section.
+
+        Parameters
+        ----------
+
+        equation : str
+
+          The equation can be of the shape 'iz=2', 'z=1', ...
+
+        """
+        self._equation = equation
+
+    def _init_skip_quiver(self):
+        params = self.output.sim.params
+        Lx = params.oper.Lx
+        Ly = params.oper.Ly
+        x, y = self._get_axis_data()
+        # 4% of the Lx it is a great separation between vector arrows.
+        try:
+            delta_quiver = 0.04 * min(Lx, Ly)
+        except AttributeError:
+            skip = 1
+        else:
+            skip = (len(x) / Lx) * delta_quiver
+            skip = int(np.round(skip))
+            if skip < 1:
+                skip = 1
+        self._skip_quiver = skip
+        return skip
 
 
 class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
@@ -91,11 +127,15 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
             else:
                 path_dir = Path(output.path_run)
         self.path_dir = Path(path_dir)
+        self._glob_pattern = self._get_glob_pattern()
         self.update_times()
+
+    def _get_glob_pattern(self):
+        return "state_phys*.[hn]*"
 
     def update_times(self):
         """Initialize the times by globing and analyzing the file names."""
-        path_files = sorted(self.path_dir.glob("state_phys*.[hn]*"))
+        path_files = sorted(self.path_dir.glob(self._glob_pattern))
 
         if hasattr(self, "path_files") and len(self.path_files) == len(
             path_files
