@@ -80,14 +80,14 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_plot = self.sim.time_stepping.t
 
     def get_key_field_to_plot(self, forbid_compute=False, key_prefered=None):
-        params = self.params
+        sim = self.output.sim
         if key_prefered is None:
-            key_prefered = params.output.phys_fields.field_to_plot
+            key_prefered = sim.params.output.phys_fields.field_to_plot
         key_field_to_plot = key_prefered
-        info_state = self.sim.info.solver.classes.State
+        info_state = sim.info.solver.classes.State
         keys_ok = info_state.keys_state_phys.copy()
 
-        if not params.ONLY_COARSE_OPER and not forbid_compute:
+        if not sim.params.ONLY_COARSE_OPER and not forbid_compute:
             keys_ok.extend(info_state.keys_computable)
 
         if key_field_to_plot not in keys_ok:
