@@ -573,8 +573,7 @@ class MoviesBasePhysFields(MoviesBase2D):
         if dt_equations < dt_file / 4:
             raise ValueError("dt_equations < dt_file / 4")
 
-        get_field_to_plot = self.phys_fields.get_field_to_plot
-        field, time = get_field_to_plot(self.key_field)
+        field, time = self.phys_fields.get_field_to_plot(self.key_field)
 
         try:
             vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot(time=time)
@@ -605,10 +604,11 @@ class MoviesBasePhysFields(MoviesBase2D):
         self._ani_cbar = self.fig.colorbar(self._im)
 
         if self.phys_fields._can_plot_quiver and self._QUIVER:
+            skip = self.phys_fields._skip_quiver
             self._ani_quiver, vmax = self.phys_fields._quiver_plot(
                 self.ax,
-                vec_xaxis[::step, ::step],
-                vec_yaxis[::step, ::step],
+                vec_xaxis[::skip, ::skip],
+                vec_yaxis[::skip, ::skip],
                 XX,
                 YY,
             )
@@ -620,9 +620,8 @@ class MoviesBasePhysFields(MoviesBase2D):
         """Loads data and updates figure."""
         time = self.ani_times[frame % len(self.ani_times)]
         step = self._step
-        get_field_to_plot = self.phys_fields.get_field_to_plot
 
-        field, time = get_field_to_plot(
+        field, time = self.phys_fields.get_field_to_plot(
             time=time,
             key=self.key_field,
             interpolate_time=True,
@@ -656,3 +655,48 @@ class MoviesBasePhysFields(MoviesBase2D):
             self._im.set_clim(*clim)
             ticks = np.linspace(*clim, num=21, endpoint=True)
             self._ani_cbar.set_ticks(ticks)
+
+
+class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
+    def _init_fig(self, field, vec_xaxis=None, vec_yaxis=None, **kwargs):
+        """Initialize only the figure and related matplotlib objects. This
+        method is shared by both ``animate`` and ``online_plot``
+        functionalities.
+
+        """
+        self._step = step = 1 if "step" not in kwargs else kwargs["step"]
+        self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+
+        if step != 1:
+            raise NotImplementedError
+
+        hexa_x, hexa_y = self._get_axis_data()
+
+        hexa_field = field
+
+        self._images = []
+        for i_elem, field in enumerate(hexa_field.arrays):
+
+            x_edges = hexa_x.elements[i_elem]["edges"]
+            y_edges = hexa_y.elements[i_elem]["edges"]
+
+            self._images.append(self.ax.pcolormesh(x_edges, y_edges, field[0], shading="flat", vmin=-0.5, vmax=0.5))
+
+        self._ani_cbar = self.fig.colorbar(self._images[0])
+
+        # hexa_vec_xaxis = vec_xaxis
+        # hexa_vec_yaxis = vec_yaxis
+
+    def update_animation(self, frame, **fargs):
+        """Loads data and updates figure."""
+        time = self.ani_times[frame % len(self.ani_times)]
+        # step = self._step
+
+        hexa_field, time = self.phys_fields.get_field_to_plot(
+            time=time,
+            key=self.key_field,
+            interpolate_time=True,
+        )
+
+        for image, array in zip(self._images, hexa_field.arrays):
+            image.set_array(array.flatten())
