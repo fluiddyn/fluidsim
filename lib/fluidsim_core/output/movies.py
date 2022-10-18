@@ -717,6 +717,8 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         vx_quiver = []
         vy_quiver = []
 
+        self._indices_vectors_in_elems = []
+
         # assuming 2d...
         iz = 0
 
@@ -742,6 +744,7 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             if vmax_elem > vmax:
                 vmax = vmax_elem
 
+            indices_vectors_in_elem = []
             for y_approx in self.y_approx_quiver:
                 if y_approx < ymin:
                     continue
@@ -757,9 +760,11 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
 
                     x_quiver.append(x[ix])
                     y_quiver.append(y[iy])
-
                     vx_quiver.append(vec_xaxis[iz, iy, ix])
                     vy_quiver.append(vec_yaxis[iz, iy, ix])
+                    indices_vectors_in_elem.append((iz, iy, ix))
+
+            self._indices_vectors_in_elems.append(indices_vectors_in_elem)
 
         self._ani_quiver = self.ax.quiver(
             x_quiver, y_quiver, vx_quiver / vmax, vy_quiver / vmax
@@ -795,9 +800,6 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         vx_quiver = []
         vy_quiver = []
 
-        hexa_x, hexa_y = self._get_axis_data()
-        iz = 0
-
         for i_elem, (vec_xaxis, vec_yaxis) in enumerate(
             zip(hexa_vec_xaxis.arrays, hexa_vec_yaxis.arrays)
         ):
@@ -805,32 +807,10 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             vmax_elem = np.max(np.sqrt(vec_xaxis**2 + vec_yaxis**2))
             if vmax_elem > vmax:
                 vmax = vmax_elem
-
-            XX = hexa_x.arrays[i_elem]
-            YY = hexa_y.arrays[i_elem]
-            x = XX[iz, 0]
-            y = YY[iz, :, 0]
-
-            xmin = x.min()
-            xmax = x.max()
-            ymin = y.min()
-            ymax = y.max()
-
-            for y_approx in self.y_approx_quiver:
-                if y_approx < ymin:
-                    continue
-                if y_approx > ymax:
-                    break
-                iy = abs(y - y_approx).argmin()
-                for x_approx in self.x_approx_quiver:
-                    if x_approx < xmin:
-                        continue
-                    if x_approx > xmax:
-                        break
-                    ix = abs(x - x_approx).argmin()
-
-                    vx_quiver.append(vec_xaxis[iz, iy, ix])
-                    vy_quiver.append(vec_yaxis[iz, iy, ix])
+            indices_vectors_in_elem = self._indices_vectors_in_elems[i_elem]
+            for (iz, iy, ix) in indices_vectors_in_elem:
+                vx_quiver.append(vec_xaxis[iz, iy, ix])
+                vy_quiver.append(vec_yaxis[iz, iy, ix])
 
         self._ani_quiver.set_UVC(vx_quiver / vmax, vy_quiver / vmax)
 
