@@ -38,6 +38,9 @@ class HexaField:
         elif key.startswith("temp"):
             name_attr = "temp"
             index_var = 0
+        elif key.startswith("pres"):
+            name_attr = "pres"
+            index_var = 0
         else:
             raise NotImplementedError
 

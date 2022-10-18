@@ -671,13 +671,28 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         """
         self._step = step = 1 if "step" not in kwargs else kwargs["step"]
         self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+        vmin = None if "vmin" not in kwargs else kwargs["vmin"]
+        vmax = None if "vmax" not in kwargs else kwargs["vmax"]
 
         if step != 1:
             raise NotImplementedError
 
         hexa_x, hexa_y = self._get_axis_data()
-
         hexa_field = field
+
+        if vmax is None:
+            vmax = 0
+            for arr in hexa_field.arrays:
+                max_elem = arr.max()
+                if vmax > max_elem:
+                    vmax = max_elem
+
+        if vmin is None:
+            vmin = 0
+            for arr in hexa_field.arrays:
+                min_elem = arr.min()
+                if vmin > min_elem:
+                    vmin = min_elem
 
         self._images = []
         for i_elem, arr in enumerate(hexa_field.arrays):
@@ -690,8 +705,8 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
                 y_edges,
                 arr[0],
                 shading="flat",
-                vmin=-0.5,
-                vmax=0.5,
+                vmin=vmin,
+                vmax=vmax,
             )
 
             self._images.append(im)
@@ -788,8 +803,9 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             interpolate_time=True,
         )
 
+        iz = 0
         for image, array in zip(self._images, hexa_field.arrays):
-            image.set_array(array.flatten())
+            image.set_array(array[iz].flatten())
 
         hexa_vec_xaxis, hexa_vec_yaxis = self.phys_fields.get_vector_for_plot(
             time=time
