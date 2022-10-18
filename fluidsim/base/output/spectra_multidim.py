@@ -102,9 +102,7 @@ class SpectraMultiDim(SpecificOutput):
             self.ax = ax
             ax.set_xlabel("$k_x$")
             ax.set_ylabel("$k_y$")
-            ax.set_title(
-                "Multidimensional spectra\n" + self.output.summary_simul
-            )
+            ax.set_title("Multidimensional spectra\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, arg):
         pass

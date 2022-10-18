@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def _get_edges(var):
+def get_edges(var):
     edges = np.empty(var.size + 1)
     edges[0] = var[0]
     edges[-1] = var[-1]
@@ -53,15 +53,20 @@ class HexaField:
                 if key == "x":
                     XX = arr[iz]
                     x = XX[0]
-                    edges = _get_edges(x)
+                    edges = get_edges(x)
                 elif key == "y":
                     YY = arr[iz]
                     y = YY[:, 0]
-                    edges = _get_edges(y)
+                    edges = get_edges(y)
 
                 self.elements.append(dict(edges=edges))
 
-    def __init__(self, key, hexa_data=None, arrays=None):
+        if key in "xy":
+            self.lims = hexa_data.lims.pos[index_var]
+
+        self.time = hexa_data.time
+
+    def __init__(self, key, hexa_data=None, arrays=None, time=None):
         self.key = key
 
         if hexa_data is None and arrays is not None:
@@ -71,12 +76,18 @@ class HexaField:
         else:
             raise ValueError
 
+        if time is not None:
+            self.time = time
+
     def __mul__(self, arg):
-        return self.__class__(self.key, arrays=[arg * arr for arr in self.arrays])
+        return self.__class__(
+            self.key, arrays=[arg * arr for arr in self.arrays], time=self.time
+        )
 
     def __add__(self, arg):
 
         return self.__class__(
             self.key,
             arrays=[arr0 + arr1 for arr0, arr1 in zip(arg.arrays, self.arrays)],
+            time=(self.time + arg.time) / 2,
         )

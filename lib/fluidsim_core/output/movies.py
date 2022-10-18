@@ -37,6 +37,8 @@ import mpl_toolkits.axes_grid1
 
 from fluiddyn.util import mpi, is_run_from_jupyter
 
+from ..hexa_field import get_edges
+
 
 class MoviesBase:
     """Base class defining most generic functions for movies."""
@@ -573,7 +575,9 @@ class MoviesBasePhysFields(MoviesBase2D):
         if dt_equations < dt_file / 4:
             raise ValueError("dt_equations < dt_file / 4")
 
-        field, time = self.phys_fields.get_field_to_plot(self.key_field)
+        field, time = self.phys_fields.get_field_to_plot(
+            self.key_field, time=tmin
+        )
 
         try:
             vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot(time=time)
@@ -615,6 +619,7 @@ class MoviesBasePhysFields(MoviesBase2D):
 
         self._clim = kwargs.get("clim")
         self._set_clim()
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 
     def update_animation(self, frame, **fargs):
         """Loads data and updates figure."""
@@ -675,17 +680,97 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         hexa_field = field
 
         self._images = []
-        for i_elem, field in enumerate(hexa_field.arrays):
+        for i_elem, arr in enumerate(hexa_field.arrays):
 
             x_edges = hexa_x.elements[i_elem]["edges"]
             y_edges = hexa_y.elements[i_elem]["edges"]
 
-            self._images.append(self.ax.pcolormesh(x_edges, y_edges, field[0], shading="flat", vmin=-0.5, vmax=0.5))
+            im = self.ax.pcolormesh(
+                x_edges,
+                y_edges,
+                arr[0],
+                shading="flat",
+                vmin=-0.5,
+                vmax=0.5,
+            )
+
+            self._images.append(im)
 
         self._ani_cbar = self.fig.colorbar(self._images[0])
 
-        # hexa_vec_xaxis = vec_xaxis
-        # hexa_vec_yaxis = vec_yaxis
+        hexa_vec_xaxis = vec_xaxis
+        hexa_vec_yaxis = vec_yaxis
+
+        xmin, xmax = hexa_x.lims
+        ymin, ymax = hexa_y.lims
+
+        percentage_dx_quiver = 4
+        dx_quiver = percentage_dx_quiver / 100 * (xmax - xmin)
+        nx_quiver = int((xmax - xmin) / dx_quiver)
+        ny_quiver = int((ymax - ymin) / dx_quiver)
+
+        self.x_approx_quiver = np.linspace(dx_quiver, xmax - dx_quiver, nx_quiver)
+        self.y_approx_quiver = np.linspace(dx_quiver, ymax - dx_quiver, ny_quiver)
+
+        x_quiver = []
+        y_quiver = []
+        vx_quiver = []
+        vy_quiver = []
+
+        # assuming 2d...
+        iz = 0
+
+        vmax = 0.0
+
+        for i_elem, (vec_xaxis, vec_yaxis) in enumerate(
+            zip(hexa_vec_xaxis.arrays, hexa_vec_yaxis.arrays)
+        ):
+
+            XX = hexa_x.arrays[i_elem]
+            YY = hexa_y.arrays[i_elem]
+            x = XX[iz, 0]
+            y = YY[iz, :, 0]
+            x_edges = get_edges(x)
+            y_edges = get_edges(y)
+
+            xmin = x.min()
+            xmax = x.max()
+            ymin = y.min()
+            ymax = y.max()
+
+            vmax_elem = np.max(np.sqrt(vec_xaxis**2 + vec_yaxis**2))
+            if vmax_elem > vmax:
+                vmax = vmax_elem
+
+            for y_approx in self.y_approx_quiver:
+                if y_approx < ymin:
+                    continue
+                if y_approx > ymax:
+                    break
+                iy = abs(y - y_approx).argmin()
+                for x_approx in self.x_approx_quiver:
+                    if x_approx < xmin:
+                        continue
+                    if x_approx > xmax:
+                        break
+                    ix = abs(x - x_approx).argmin()
+
+                    x_quiver.append(x[ix])
+                    y_quiver.append(y[iy])
+
+                    vx_quiver.append(vec_xaxis[iz, iy, ix])
+                    vy_quiver.append(vec_yaxis[iz, iy, ix])
+
+        self._ani_quiver = self.ax.quiver(
+            x_quiver, y_quiver, vx_quiver / vmax, vy_quiver / vmax
+        )
+
+        self._clim = kwargs.get("clim")
+        self._set_clim()
+
+        time = hexa_field.time
+        vmax = None
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 
     def update_animation(self, frame, **fargs):
         """Loads data and updates figure."""
@@ -700,3 +785,53 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
 
         for image, array in zip(self._images, hexa_field.arrays):
             image.set_array(array.flatten())
+
+        hexa_vec_xaxis, hexa_vec_yaxis = self.phys_fields.get_vector_for_plot(
+            time=time
+        )
+
+        vmax = 0.0
+
+        vx_quiver = []
+        vy_quiver = []
+
+        hexa_x, hexa_y = self._get_axis_data()
+        iz = 0
+
+        for i_elem, (vec_xaxis, vec_yaxis) in enumerate(
+            zip(hexa_vec_xaxis.arrays, hexa_vec_yaxis.arrays)
+        ):
+
+            vmax_elem = np.max(np.sqrt(vec_xaxis**2 + vec_yaxis**2))
+            if vmax_elem > vmax:
+                vmax = vmax_elem
+
+            XX = hexa_x.arrays[i_elem]
+            YY = hexa_y.arrays[i_elem]
+            x = XX[iz, 0]
+            y = YY[iz, :, 0]
+
+            xmin = x.min()
+            xmax = x.max()
+            ymin = y.min()
+            ymax = y.max()
+
+            for y_approx in self.y_approx_quiver:
+                if y_approx < ymin:
+                    continue
+                if y_approx > ymax:
+                    break
+                iy = abs(y - y_approx).argmin()
+                for x_approx in self.x_approx_quiver:
+                    if x_approx < xmin:
+                        continue
+                    if x_approx > xmax:
+                        break
+                    ix = abs(x - x_approx).argmin()
+
+                    vx_quiver.append(vec_xaxis[iz, iy, ix])
+                    vy_quiver.append(vec_yaxis[iz, iy, ix])
+
+        self._ani_quiver.set_UVC(vx_quiver / vmax, vy_quiver / vmax)
+
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
