@@ -704,12 +704,7 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             y_edges = hexa_y.elements[i_elem]["edges"]
 
             im = self.ax.pcolormesh(
-                x_edges,
-                y_edges,
-                arr,
-                shading="flat",
-                vmin=vmin,
-                vmax=vmax
+                x_edges, y_edges, arr, shading="flat", vmin=vmin, vmax=vmax
             )
 
             self._images.append(im)

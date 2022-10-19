@@ -116,3 +116,19 @@ class HexaField:
             arrays=[arr0 + arr1 for arr0, arr1 in zip(arg.arrays, self.arrays)],
             time=(self.time + arg.time) / 2,
         )
+
+    def min(self):
+        result = np.inf
+        for arr in self.arrays:
+            min_elem = arr.min()
+            if min_elem < result:
+                result = min_elem
+        return result
+
+    def max(self):
+        result = -np.inf
+        for arr in self.arrays:
+            max_elem = arr.max()
+            if max_elem > result:
+                result = max_elem
+        return result
