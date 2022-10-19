@@ -706,10 +706,10 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             im = self.ax.pcolormesh(
                 x_edges,
                 y_edges,
-                arr[0],
+                arr,
                 shading="flat",
                 vmin=vmin,
-                vmax=vmax,
+                vmax=vmax
             )
 
             self._images.append(im)
@@ -737,9 +737,6 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
 
         self._indices_vectors_in_elems = []
 
-        # assuming 2d...
-        iz = 0
-
         vmax = 0.0
 
         for i_elem, (vec_xaxis, vec_yaxis) in enumerate(
@@ -748,8 +745,8 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
 
             XX = hexa_x.arrays[i_elem]
             YY = hexa_y.arrays[i_elem]
-            x = XX[iz, 0]
-            y = YY[iz, :, 0]
+            x = XX[0]
+            y = YY[:, 0]
 
             xmin = x.min()
             xmax = x.max()
@@ -776,9 +773,9 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
 
                     x_quiver.append(x[ix])
                     y_quiver.append(y[iy])
-                    vx_quiver.append(vec_xaxis[iz, iy, ix])
-                    vy_quiver.append(vec_yaxis[iz, iy, ix])
-                    indices_vectors_in_elem.append((iz, iy, ix))
+                    vx_quiver.append(vec_xaxis[iy, ix])
+                    vy_quiver.append(vec_yaxis[iy, ix])
+                    indices_vectors_in_elem.append((iy, ix))
 
             self._indices_vectors_in_elems.append(indices_vectors_in_elem)
 
@@ -803,9 +800,8 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             interpolate_time=True,
         )
 
-        iz = 0
         for image, array in zip(self._images, hexa_field.arrays):
-            image.set_array(array[iz].flatten())
+            image.set_array(array.flatten())
 
         hexa_vec_xaxis, hexa_vec_yaxis = self.phys_fields.get_vector_for_plot(
             time=time
@@ -824,9 +820,9 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             if vmax_elem > vmax:
                 vmax = vmax_elem
             indices_vectors_in_elem = self._indices_vectors_in_elems[i_elem]
-            for (iz, iy, ix) in indices_vectors_in_elem:
-                vx_quiver.append(vec_xaxis[iz, iy, ix])
-                vy_quiver.append(vec_yaxis[iz, iy, ix])
+            for (iy, ix) in indices_vectors_in_elem:
+                vx_quiver.append(vec_xaxis[iy, ix])
+                vy_quiver.append(vec_yaxis[iy, ix])
 
         self._ani_quiver.set_UVC(vx_quiver / vmax, vy_quiver / vmax)
 

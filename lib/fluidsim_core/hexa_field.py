@@ -24,7 +24,7 @@ class HexaField:
     def _init_from_arrays(self, arrays):
         self.arrays = [arr for arr in arrays]
 
-    def _init_from_hexa_data(self, hexa_data, key):
+    def _init_from_hexa_data(self, hexa_data, key, equation):
         if key.startswith("v"):
             name_attr = "vel"
             if key == "vx":
@@ -55,17 +55,32 @@ class HexaField:
         else:
             raise NotImplementedError
 
-        iz = 0
+        if equation is None:
+            equation = "z=0"
+
+        equation.replace(" ", "")
+
         self.arrays = []
         self.elements = []
         for elem in hexa_data.elem:
-            arr = getattr(elem, name_attr)[index_var]
+            arr_3d = getattr(elem, name_attr)[index_var]
+            if equation.startswith("z="):
+                z_target = float(equation[2:])
+                z_3d = elem.pos[2]
+                z_1d = z_3d[:, 0, 0]
+                index_z = np.argmin(abs(z_1d - z_target))
+                index_y = index_x = slice(None)
+            else:
+                raise NotImplementedError
+
+            arr = arr_3d[index_z, index_y, index_x]
+
             self.arrays.append(arr)
 
             dict_elem = {"array": arr}
 
-            if key in "xy":
-                dict_elem["edges"] = get_edges_2d(arr[iz])
+            if key in "xyz":
+                dict_elem["edges"] = get_edges_2d(arr)
 
             self.elements.append(dict_elem)
 
@@ -74,13 +89,15 @@ class HexaField:
 
         self.time = hexa_data.time
 
-    def __init__(self, key, hexa_data=None, arrays=None, time=None):
+    def __init__(
+        self, key, hexa_data=None, arrays=None, time=None, equation="z=0"
+    ):
         self.key = key
 
         if hexa_data is None and arrays is not None:
             self._init_from_arrays(arrays)
         elif hexa_data is not None and arrays is None:
-            self._init_from_hexa_data(hexa_data, key)
+            self._init_from_hexa_data(hexa_data, key, equation)
         else:
             raise ValueError
 
