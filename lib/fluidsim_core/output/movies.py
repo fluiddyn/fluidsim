@@ -37,8 +37,6 @@ import mpl_toolkits.axes_grid1
 
 from fluiddyn.util import mpi, is_run_from_jupyter
 
-from ..hexa_field import get_edges
-
 
 class MoviesBase:
     """Base class defining most generic functions for movies."""
@@ -179,7 +177,7 @@ class MoviesBase:
         """Replace this function to load axis data."""
         raise NotImplementedError("_get_axis_data  function declaration missing.")
 
-    def _set_key_field(self, key_field):
+    def _set_key_field(self, key_field=None):
         """
         Defines key_field default.
         """
@@ -587,9 +585,9 @@ class MoviesBasePhysFields(MoviesBase2D):
         else:
             self.phys_fields._can_plot_quiver = True
 
-        self._init_fig(field, vec_xaxis, vec_yaxis, **kwargs)
+        self._init_fig(field, time, vec_xaxis, vec_yaxis, **kwargs)
 
-    def _init_fig(self, field, vec_xaxis=None, vec_yaxis=None, **kwargs):
+    def _init_fig(self, field, time, vec_xaxis=None, vec_yaxis=None, **kwargs):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
@@ -607,6 +605,7 @@ class MoviesBasePhysFields(MoviesBase2D):
         self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")
         self._ani_cbar = self.fig.colorbar(self._im)
 
+        vmax = None
         if self.phys_fields._can_plot_quiver and self._QUIVER:
             skip = self.phys_fields._skip_quiver
             self._ani_quiver, vmax = self.phys_fields._quiver_plot(
@@ -619,6 +618,10 @@ class MoviesBasePhysFields(MoviesBase2D):
 
         self._clim = kwargs.get("clim")
         self._set_clim()
+
+        if not hasattr(self, "key_field"):
+            self._set_key_field()
+
         self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 
     def update_animation(self, frame, **fargs):
@@ -663,7 +666,7 @@ class MoviesBasePhysFields(MoviesBase2D):
 
 
 class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
-    def _init_fig(self, field, vec_xaxis=None, vec_yaxis=None, **kwargs):
+    def _init_fig(self, field, time, vec_xaxis=None, vec_yaxis=None, **kwargs):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
@@ -747,8 +750,6 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             YY = hexa_y.arrays[i_elem]
             x = XX[iz, 0]
             y = YY[iz, :, 0]
-            x_edges = get_edges(x)
-            y_edges = get_edges(y)
 
             xmin = x.min()
             xmax = x.max()
@@ -788,7 +789,6 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         self._clim = kwargs.get("clim")
         self._set_clim()
 
-        time = hexa_field.time
         vmax = None
         self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 

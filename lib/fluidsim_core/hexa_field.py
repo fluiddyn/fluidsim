@@ -1,11 +1,22 @@
 import numpy as np
 
 
-def get_edges(var):
-    edges = np.empty(var.size + 1)
-    edges[0] = var[0]
-    edges[-1] = var[-1]
-    edges[1:-1] = 0.5 * (var[:-1] + var[1:])
+def get_edges_2d(var):
+    ny, nx = var.shape
+    edges = np.empty([ny + 1, nx + 1])
+    for iy in [0, -1]:
+        for ix in [0, -1]:
+            edges[iy, ix] = var[iy, ix]
+
+    for ix in [0, -1]:
+        edges[1:-1, ix] = 0.5 * (var[:-1, ix] + var[1:, ix])
+
+    for iy in [0, -1]:
+        edges[iy, 1:-1] = 0.5 * (var[iy, :-1] + var[iy, 1:])
+
+    edges[1:-1, 1:-1] = 0.25 * (
+        var[:-1, :-1] + var[1:, 1:] + var[1:, :-1] + var[:-1, 1:]
+    )
     return edges
 
 
@@ -51,18 +62,12 @@ class HexaField:
             arr = getattr(elem, name_attr)[index_var]
             self.arrays.append(arr)
 
+            dict_elem = {"array": arr}
+
             if key in "xy":
+                dict_elem["edges"] = get_edges_2d(arr[iz])
 
-                if key == "x":
-                    XX = arr[iz]
-                    x = XX[0]
-                    edges = get_edges(x)
-                elif key == "y":
-                    YY = arr[iz]
-                    y = YY[:, 0]
-                    edges = get_edges(y)
-
-                self.elements.append(dict(edges=edges))
+            self.elements.append(dict_elem)
 
         if key in "xy":
             self.lims = hexa_data.lims.pos[index_var]

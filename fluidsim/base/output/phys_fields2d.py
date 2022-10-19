@@ -30,13 +30,13 @@ from .phys_fields import PhysFieldsBase
 class MoviesBasePhysFields2D(MoviesBasePhysFields):
     """Methods required to animate physical fields HDF5 files."""
 
-    def _init_fig(self, field, vec_xaxis=None, vec_yaxis=None, **kwargs):
+    def _init_fig(self, field, time, vec_xaxis=None, vec_yaxis=None, **kwargs):
         """Initialize only the figure and related matplotlib objects. This
         method is shared by both ``animate`` and ``online_plot``
         functionalities.
 
         """
-        super()._init_fig(field, vec_xaxis, vec_yaxis, **kwargs)
+        super()._init_fig(field, time, vec_xaxis, vec_yaxis, **kwargs)
 
         INSET = True if "INSET" not in kwargs else kwargs["INSET"]
         try:
@@ -181,7 +181,9 @@ class PhysFieldsBase2D(PhysFieldsBase):
         if mpi.rank == 0:
             movies = self.movies
             movies.fig, movies.ax = plt.subplots()
-            movies._init_fig(field, vec_xaxis, vec_yaxis)
+            movies._init_fig(
+                field, self.output.sim.time_stepping.t, vec_xaxis, vec_yaxis
+            )
             movies._im.autoscale()
             movies.fig.canvas.draw()
             plt.pause(1e-6)
