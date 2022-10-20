@@ -680,7 +680,7 @@ class MoviesBasePhysFields(MoviesBase2D):
         clim = self._clim
         if clim is not None:
             self._im.set_clim(*clim)
-            ticks = np.linspace(*clim, num=21, endpoint=True)
+            ticks = np.linspace(*clim, num=11, endpoint=True)
             self._ani_cbar.set_ticks(ticks)
 
 
@@ -757,3 +757,13 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         self._ani_quiver.set_UVC(vx_quiver / vmax, vy_quiver / vmax)
 
         self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
+
+    def _set_clim(self):
+        """Maintains a constant colorbar throughout the animation."""
+
+        clim = self._clim
+        if clim is not None:
+            for image in self._images:
+                image.set_clim(*clim)
+            ticks = np.linspace(*clim, num=11, endpoint=True)
+            self._ani_cbar.set_ticks(ticks)
