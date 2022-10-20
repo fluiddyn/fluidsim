@@ -307,13 +307,23 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return vx_quiver, vy_quiver, vmax
 
     def plot_hexa(
-        self, time, equation="z=0", percentage_dx_quiver=4.0, vmin=None, vmax=None
+        self,
+        key=None,
+        time=None,
+        equation="z=0",
+        percentage_dx_quiver=4.0,
+        vmin=None,
+        vmax=None,
+        normalize_vectors=True,
+        quiver_kw={},
     ):
-
-        time = self.times[abs(self.times - time).argmin()]
+        if time is None:
+            time = self.times[-1]
+        else:
+            time = self.times[abs(self.times - time).argmin()]
         hexa_data = self._get_hexadata_from_time(time)
 
-        key_field = self.get_key_field_to_plot()
+        key_field = self.get_key_field_to_plot(key)
         hexa_field = HexaField(key_field, hexa_data, equation=equation)
         hexa_x = HexaField("x", hexa_data, equation=equation)
         hexa_y = HexaField("y", hexa_data, equation=equation)
@@ -327,12 +337,24 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         )
 
         indices_vectors_in_elems, x_quiver, y_quiver = self.init_quiver_1st_step(
-            hexa_x, hexa_y, percentage_dx_quiver=4.0
+            hexa_x, hexa_y, percentage_dx_quiver=percentage_dx_quiver
         )
         vx_quiver, vy_quiver, vmax = self.compute_vectors_quiver(
             hexa_vx, hexa_vy, indices_vectors_in_elems
         )
-        ax.quiver(x_quiver, y_quiver, vx_quiver / vmax, vy_quiver / vmax)
+
+        if normalize_vectors:
+            vx_quiver /= vmax
+            vy_quiver /= vmax
+
+        ax.quiver(x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw)
+
+        ax.set_xlabel("$x$")
+        ax.set_ylabel("$y$")
+        title = f"{key_field}, $t = {time:.3f}$"
+        if vmax is not None:
+            title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"
+        ax.set_title(title)
 
     def time_from_path(self, path):
         header = self.get_header(path)

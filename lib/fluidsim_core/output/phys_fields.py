@@ -62,16 +62,7 @@ class PhysFieldsABC(metaclass=ABCMeta):
     ):
         ...
 
-    @abstractmethod
-    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None, skip=None):
-        """Superimposes a quiver plot of velocity vectors with a given axis
-        object corresponding to a 2D contour plot.
-
-        """
-        ...
-
     def _set_title(self, ax, key, time, vmax=None):
-        ...
         title = f"{key}, $t = {time:.3f}$"
         if vmax is not None:
             title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"

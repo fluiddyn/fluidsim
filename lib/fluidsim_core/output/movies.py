@@ -231,7 +231,7 @@ class MoviesBase:
             Dictionary of arguments for `update_animation`. Matplotlib
             requirement.
         fig_kw : dict
-            Dictionary of arguments for arguments for the figure.
+            Dictionary for arguments for the figure.
 
         Other Parameters
         ----------------
@@ -247,6 +247,10 @@ class MoviesBase:
             Set step value to get a coarse 2D field
         QUIVER : bool
             Set quiver on or off on top of 2D pcolor plots
+        normalize_vectors : bool (default True)
+            Normalize the vectors at each time by the instantaneous maximum
+        quiver_kw: dict
+            Dictionary for arguments for the quiver call.
         codec : str
             Codec used to save into a movie file (default: ffmpeg)
 
@@ -276,6 +280,9 @@ class MoviesBase:
         if mpi.rank > 0:
             raise NotImplementedError("Do NOT use this function with MPI !")
 
+        if interactive and save_file:
+            raise ValueError("Incompatible options interactive and save_file")
+
         self._interactive = interactive
         self.init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
@@ -304,6 +311,8 @@ class MoviesBase:
             repeat=repeat,
         )
 
+        self.paused = False
+
         if save_file:
             if not isinstance(save_file, str):
                 save_file = r"~/fluidsim_movie.mp4"
@@ -311,7 +320,6 @@ class MoviesBase:
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
             return
 
-        self.paused = False
         self.fig.canvas.mpl_connect("button_press_event", self._toggle_pause)
 
     def _frames_iterative(self):
@@ -374,7 +382,7 @@ class MoviesBase:
         tmax : float
             Animate till time `tmax`.
         fig_kw : dict
-            Dictionary of arguments for arguments for the figure.
+            Dictionary for arguments for the figure.
 
         Other Parameters
         ----------------
@@ -390,6 +398,8 @@ class MoviesBase:
             Set step value to get a coarse 2D field
         QUIVER : bool
             Set quiver on or off on top of 2D pcolor plots
+        quiver_kw: dict
+            Dictionary for arguments for the quiver call.
 
         Notes
         -----
@@ -614,6 +624,9 @@ class MoviesBasePhysFields(MoviesBase2D):
         """
         self._step = step = 1 if "step" not in kwargs else kwargs["step"]
         self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+        quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        tmp_key = "normalize_vectors"
+        normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
 
         x, y = self._get_axis_data()
         x, y = x[::step], y[::step]
@@ -633,6 +646,8 @@ class MoviesBasePhysFields(MoviesBase2D):
                 vec_yaxis[::skip, ::skip],
                 XX,
                 YY,
+                normalize_vectors=normalize_vectors,
+                **quiver_kw,
             )
 
         self._clim = kwargs.get("clim")
@@ -676,7 +691,6 @@ class MoviesBasePhysFields(MoviesBase2D):
 
     def _set_clim(self):
         """Maintains a constant colorbar throughout the animation."""
-
         clim = self._clim
         if clim is not None:
             self._im.set_clim(*clim)
@@ -695,6 +709,9 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
         vmin = None if "vmin" not in kwargs else kwargs["vmin"]
         vmax = None if "vmax" not in kwargs else kwargs["vmax"]
+        quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        tmp_key = "normalize_vectors"
+        self.normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
 
         if step != 1:
             raise NotImplementedError
@@ -722,7 +739,14 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
             hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
         )
-        self._ani_quiver = ax.quiver(x_quiver, y_quiver, vx_quiver, vy_quiver)
+
+        if self.normalize_vectors:
+            vx_quiver /= vmax
+            vy_quiver /= vmax
+
+        self._ani_quiver = ax.quiver(
+            x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw
+        )
 
         self._clim = kwargs.get("clim")
         self._set_clim()
@@ -754,7 +778,11 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
         )
 
-        self._ani_quiver.set_UVC(vx_quiver / vmax, vy_quiver / vmax)
+        if self.normalize_vectors:
+            vx_quiver /= vmax
+            vy_quiver /= vmax
+
+        self._ani_quiver.set_UVC(vx_quiver, vy_quiver)
 
         self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 

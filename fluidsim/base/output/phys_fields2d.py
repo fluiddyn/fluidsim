@@ -385,7 +385,17 @@ class PhysFieldsBase2D(PhysFieldsBase):
             fig.canvas.draw()
             plt.pause(1e-3)
 
-    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None, skip=None):
+    def _quiver_plot(
+        self,
+        ax,
+        vecx="ux",
+        vecy="uy",
+        XX=None,
+        YY=None,
+        skip=None,
+        normalize_vectors=True,
+        **kwargs,
+    ):
         """Superimposes a quiver plot of velocity vectors with a given axis
         object corresponding to a 2D contour plot.
 
@@ -397,25 +407,31 @@ class PhysFieldsBase2D(PhysFieldsBase):
             vecy, time = self.get_field_to_plot(vecy)
 
         if XX is None and YY is None:
-            [XX, YY] = np.meshgrid(
-                self._get_grid1d_seq("x"), self._get_grid1d_seq("y")
-            )
+            x_seq, y_seq = self._get_axis_data(self._equation)
+            XX, YY = np.meshgrid(x_seq, y_seq)
 
-        if mpi.rank == 0:
+        if mpi.rank != 0:
+            return None, None
+
+        if skip is None:
+            skip = self._skip_quiver
+        # copy to avoid a bug
+        vecx_c = vecx[::skip, ::skip].copy()
+        vecy_c = vecy[::skip, ::skip].copy()
+
+        if normalize_vectors:
             vmax = np.max(np.sqrt(vecx**2 + vecy**2))
-            if skip is None:
-                skip = self._skip_quiver
-            # copy to avoid a bug
-            vecx_c = vecx[::skip, ::skip].copy()
-            vecy_c = vecy[::skip, ::skip].copy()
-            # quiver is normalized by the vmax
-            quiver = ax.quiver(
-                XX[::skip, ::skip],
-                YY[::skip, ::skip],
-                vecx_c / vmax,
-                vecy_c / vmax,
-            )
+            vecx_c /= vmax
+            vecy_c /= vmax
         else:
-            quiver = vmax = None
+            vmax = None
+
+        quiver = ax.quiver(
+            XX[::skip, ::skip],
+            YY[::skip, ::skip],
+            vecx_c,
+            vecy_c,
+            **kwargs,
+        )
 
         return quiver, vmax
