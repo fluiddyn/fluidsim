@@ -363,8 +363,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def get_header(self, path=None):
         if path is None:
             path = self.path_files[0]
-        with open(path, "rb") as file:
-            return read_header(file)
+        return read_header(path)
 
     def _get_glob_pattern(self):
         session_id = self.output.sim.params.output.session_id
