@@ -67,6 +67,8 @@ class HexaField:
             if equation.startswith("z="):
                 z_target = float(equation[2:])
                 z_3d = elem.pos[2]
+                if not (z_3d.min() <= z_target <= z_3d.max()):
+                    continue
                 z_1d = z_3d[:, 0, 0]
                 index_z = np.argmin(abs(z_1d - z_target))
                 index_y = index_x = slice(None)
@@ -81,6 +83,7 @@ class HexaField:
 
             if key in "xyz":
                 dict_elem["edges"] = get_edges_2d(arr)
+                dict_elem["lims"] = arr.min(), arr.max()
 
             self.elements.append(dict_elem)
 
@@ -93,7 +96,6 @@ class HexaField:
         self, key, hexa_data=None, arrays=None, time=None, equation="z=0"
     ):
         self.key = key
-
         if hexa_data is None and arrays is not None:
             self._init_from_arrays(arrays)
         elif hexa_data is not None and arrays is None:

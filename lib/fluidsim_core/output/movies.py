@@ -69,7 +69,9 @@ class MoviesBase:
         """Initializes animated fig. and list of times of save files to load."""
         self._set_key_field(key_field)
         self._init_ani_times(tmin, tmax, dt_equations)
-        self.fig, self.ax = plt.subplots(num=numfig, **fig_kw)
+        self.fig, self.ax = plt.subplots(
+            num=numfig, layout="constrained", **fig_kw
+        )
         self._init_labels()
 
         if not self._interactive:
@@ -556,12 +558,22 @@ class MoviesBasePhysFields(MoviesBase2D):
         self.phys_fields.set_of_phys_files.update_times()
         self.time_files = self.phys_fields.set_of_phys_files.times
 
+        dt_equations_reasonable = np.median(np.diff(self.time_files)) / 2
         if dt_equations is None:
-            dt_equations = np.median(np.diff(self.time_files))
+            dt_equations = dt_equations_reasonable
             print(f"{dt_equations = :.4f}")
 
         if tmax is None:
             tmax = self.time_files.max()
+        else:
+            if tmax > self.time_files.max():
+                raise ValueError(
+                    f"{tmax=} has to be smaller or equal to "
+                    f"{self.time_files.max()}."
+                )
+
+        if tmin is None:
+            tmin = self.time_files.min()
 
         super().init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
@@ -571,7 +583,14 @@ class MoviesBasePhysFields(MoviesBase2D):
             self.time_files
         )
         if dt_equations < dt_file / 4:
-            raise ValueError("dt_equations < dt_file / 4")
+            raise ValueError(f"dt_equations < {dt_file / 4 = }")
+
+        if dt_equations > (tmax - tmin) / 2:
+            raise ValueError(
+                f"{dt_equations = } > {(tmax - tmin) / 2 = }. "
+                "Set dt_equations to None to get a reasonable value "
+                f"({dt_equations_reasonable})"
+            )
 
         field, time = self.phys_fields.get_field_to_plot(
             self.key_field, time=tmin
@@ -709,7 +728,6 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         self._set_clim()
 
         self.phys_fields._set_title(ax, self.key_field, time, vmax)
-        self.fig.tight_layout()
 
     def update_animation(self, frame, **fargs):
         """Loads data and updates figure."""
