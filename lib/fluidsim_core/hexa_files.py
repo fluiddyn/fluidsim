@@ -119,6 +119,8 @@ class HexaField:
             self.key, arrays=[arg * arr for arr in self.arrays], time=self.time
         )
 
+    __rmul__ = __mul__
+
     def __add__(self, arg):
 
         return self.__class__(
@@ -145,12 +147,12 @@ class HexaField:
 
 
 class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
-    def _get_data_from_time(self, time):
+    def get_dataset_from_time(self, time):
         index = self.times.tolist().index(time)
-        return self._get_data_from_path(self.path_files[index])
+        return self.get_dataset_from_path(self.path_files[index])
 
     @lru_cache(maxsize=2)
-    def _get_data_from_path(self, path):
+    def get_dataset_from_path(self, path):
         return pymech.open_dataset(path)
 
     def _get_hexadata_from_time(self, time):
@@ -227,11 +229,22 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
                     )
                     element_touched = elements_possibly_touched[0]
                     _, color = element_touched
-                    fig.canvas.toolbar.set_message(
+
+                    message = (
                         ax.format_coord(x, y) + f" {hexa_color.key} = {color:.3f}"
                     )
 
+                    try:
+                        set_message = fig.canvas.toolbar.set_message
+                    except AttributeError:
+                        # for testing and coverage
+                        pass
+                    else:
+                        set_message(message)
+
         fig.canvas.mpl_connect("motion_notify_event", on_move)
+        # to be able to test this callback
+        fig._on_move_hexa = on_move
 
         return images, cbar
 
