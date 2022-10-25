@@ -55,11 +55,6 @@ class PhysFieldsBase(SpecificOutput):
         if hasattr(self, "_init_skip_quiver"):
             self._init_skip_quiver()
 
-        if hasattr(self, "_init_movies"):
-            self._init_movies()
-            self.animate = self.movies.animate
-            self.interact = self.movies.interact
-
         self.key_vec_xaxis = "ux"
         self.key_vec_yaxis = "uy"
         self._equation = None

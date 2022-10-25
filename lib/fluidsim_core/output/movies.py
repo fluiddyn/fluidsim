@@ -28,6 +28,7 @@ Provides:
 
 """
 
+from abc import abstractmethod
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -130,7 +131,8 @@ class MoviesBase:
 
     def _init_ani_times(self, tmin, tmax, dt_equations):
         """Initialization of the variable ani_times for one animation."""
-        self.phys_fields.set_of_phys_files.update_times()
+        if tmax is None or tmin is None:
+            self.phys_fields.set_of_phys_files.update_times()
         if tmax is None:
             tmax = self._get_default_tmax()
 
@@ -145,14 +147,17 @@ class MoviesBase:
         if dt_equations is None:
             dt_equations = self.params.periods_save.phys_fields
 
-        self.ani_times = np.arange(tmin, tmax, dt_equations)
+        if dt_equations > tmax:
+            self.ani_times = np.array([tmin, tmax])
+        else:
+            self.ani_times = np.arange(tmin, tmax, dt_equations)
 
+    @abstractmethod
     def update_animation(self, frame, **fargs):
         """Replace this function to load data for next frame and update the
         figure.
 
         """
-        pass
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
         """
@@ -172,8 +177,10 @@ class MoviesBase:
             xlabel = self.sim.oper.axes[1]
         if ylabel is None:
             ylabel = self.sim.oper.axes[0]
-        self.ax.set_xlabel(xlabel, fontdict=self.font)
-        self.ax.set_ylabel(ylabel, fontdict=self.font)
+        if xlabel:
+            self.ax.set_xlabel(xlabel, fontdict=self.font)
+        if ylabel:
+            self.ax.set_ylabel(ylabel, fontdict=self.font)
 
     def _get_axis_data(self):
         """Replace this function to load axis data."""
@@ -295,7 +302,8 @@ class MoviesBase:
             nb_repeat = 1
 
         self._min = 0
-        frames = self._max = nb_repeat * len(self.ani_times) - 1
+        self._max = nb_repeat * len(self.ani_times) - 1
+        frames = self._max + 1
         if interactive:
             frames = self._frames_iterative
             self._forwards = True
@@ -486,6 +494,14 @@ class MoviesBase:
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
 
+    def _init_labels(self, xlabel=None, ylabel=None):
+        """Initialize the labels."""
+        if xlabel is None:
+            xlabel = self.sim.oper.axes[0]
+        if ylabel is None:
+            ylabel = False
+        super()._init_labels(xlabel, ylabel)
+
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
     ):
@@ -506,11 +522,13 @@ class MoviesBase1D(MoviesBase):
         if "ymax" in kwargs:
             ax.set_ylim(1e-16, kwargs["ymax"])
 
+    def get_field_to_plot(self, time, key):
+        return self.phys_fields.get_field_to_plot(time=time, key=self.key_field)
+
     def update_animation(self, frame, **fargs):
         """Loads contour data and updates figure."""
         time = self.ani_times[frame % len(self.ani_times)]
-        get_field_to_plot = self.phys_fields.get_field_to_plot
-        y, time = get_field_to_plot(time=time, key=self.key_field)
+        y, time = self.get_field_to_plot(time=time, key=self.key_field)
         x = self._get_axis_data()
 
         self._ani_line.set_data(x, y)

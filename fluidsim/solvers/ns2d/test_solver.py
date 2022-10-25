@@ -204,6 +204,8 @@ class TestForcingOutput(TestSimulBase):
         sim.output.spectra.plot2d()
         sim.output.spectra.load2d_mean()
         sim.output.spectra.load1d_mean()
+        sim.output.spectra.animate()
+        sim.output.spectra.movies.update_animation(2)
 
         sim.output.spatial_means.plot()
         sim.output.spatial_means.plot_dt_energy()
@@ -312,7 +314,7 @@ class TestForcingOutput(TestSimulBase):
             dt_equations=0.3,
             repeat=False,
             clim=(-1, 1),
-            save_file=False,
+            save_file="/tmp/test_fluidsim_ns2d.gif",
             numfig=1,
         )
         plt.close("all")

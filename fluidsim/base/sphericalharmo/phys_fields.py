@@ -28,8 +28,7 @@ class Movies2DSphericalHarmo(MoviesBasePhysFields2D):
 
 
 class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
-    def _init_movies(self):
-        self.movies = Movies2DSphericalHarmo(self.output, self)
+    _cls_movies = Movies2DSphericalHarmo
 
     def _set_title(self, ax, key, time, vmax=None):
         title = (

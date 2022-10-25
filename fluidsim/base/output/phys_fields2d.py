@@ -98,11 +98,11 @@ class MoviesBasePhysFields2D(MoviesBasePhysFields):
 
         # INLET ANIMATION
         if self._ANI_INSET:
-            idx_spatial = np.abs(self._ani_spatial_means_t - time).argmin()
-            t = self._ani_spatial_means_t
+            time = self.ani_times[frame % len(self.ani_times)]
+            times = self._ani_spatial_means_t
+            idx_spatial = np.abs(times - time).argmin()
             E = self._ani_spatial_means_key
-
-            self._im_inset[0].set_data(t[:idx_spatial], E[:idx_spatial])
+            self._im_inset[0].set_data(times[:idx_spatial], E[:idx_spatial])
 
     def _get_spatial_means(self, key_spatial="E"):
         """Get field for the inset plot."""
@@ -120,6 +120,8 @@ class MoviesBasePhysFields2D(MoviesBasePhysFields):
 
 
 class PhysFieldsBase2D(PhysFieldsBase):
+    _cls_movies = MoviesBasePhysFields2D
+
     def _init_skip_quiver(self):
         # 4% of the Lx it is a great separation between vector arrows.
         try:
@@ -155,9 +157,6 @@ class PhysFieldsBase2D(PhysFieldsBase):
                 interpolate_time=interpolate_time,
             )
         return vecx, vecy
-
-    def _init_movies(self):
-        self.movies = MoviesBasePhysFields2D(self.output, self)
 
     def _set_title(self, ax, key, time, vmax=None):
         title = key + f", $t = {time:.3f}$"

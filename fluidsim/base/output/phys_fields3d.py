@@ -54,12 +54,11 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
 
 
 class PhysFieldsBase3D(PhysFieldsBase2D):
+    _cls_movies = MoviesBasePhysFields3D
+
     def __init__(self, output):
         super().__init__(output)
         self.set_equation_crosssection("iz=0")
-
-    def _init_movies(self):
-        self.movies = MoviesBasePhysFields3D(self.output, self)
 
     def set_equation_crosssection(self, equation):
         """Set the equation defining the cross-section.

@@ -28,11 +28,11 @@ class SetOfPhysFieldFilesABC(metaclass=ABCMeta):
 
     @abstractmethod
     def update_times(self):
-        ...
+        "Update the times of the files"
 
     @abstractmethod
     def get_min_time(self):
-        ...
+        "Get minimum time"
 
 
 class PhysFieldsABC(metaclass=ABCMeta):
@@ -42,7 +42,7 @@ class PhysFieldsABC(metaclass=ABCMeta):
 
     @abstractmethod
     def get_key_field_to_plot(self, forbid_compute=False, key_prefered=None):
-        ...
+        "Get the key corresponding to the field to be plotted"
 
     @abstractmethod
     def get_field_to_plot(
@@ -54,13 +54,12 @@ class PhysFieldsABC(metaclass=ABCMeta):
         interpolate_time=True,
     ):
         """Get the field to be plotted in process 0."""
-        ...
 
     @abstractmethod
     def get_vector_for_plot(
         self, from_state=False, time=None, interpolate_time=True
     ):
-        ...
+        "Get the vector components"
 
     def _set_title(self, ax, key, time, vmax=None):
         title = f"{key}, $t = {time:.3f}$"
@@ -70,7 +69,7 @@ class PhysFieldsABC(metaclass=ABCMeta):
 
     @abstractmethod
     def _get_axis_data(equation=None):
-        ...
+        "Get x and y axes data"
 
     def set_equation_crosssection(self, equation):
         """Set the equation defining the cross-section.
@@ -108,7 +107,7 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
     @staticmethod
     @abstractmethod
     def time_from_path(path):
-        ...
+        "Get the time corresponding to a file"
 
     def __init__(self, path_dir=None, output=None):
         self.output = output
@@ -214,4 +213,4 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
 
     @abstractmethod
     def _get_field_to_plot_from_file(self, path_file, key, equation):
-        ...
+        "Get a 2d field from a file"
