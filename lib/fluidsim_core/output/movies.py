@@ -470,16 +470,16 @@ class MoviesBase:
 
         path_file = os.path.expandvars(path_file)
         path_file = os.path.expanduser(path_file)
-        avail = animation.writers.list()
-        if len(avail) == 0:
+        avail_writers = animation.writers.list()
+        if len(avail_writers) == 0:
             raise ValueError(
                 "Please install a codec library. For e.g. ffmpeg, mencoder, "
                 "imagemagick, html"
             )
 
-        elif codec not in avail:
-            print("Using one of the available codecs: {}".format(avail.keys()))
-            codec = list(avail.keys())[0]
+        elif codec not in avail_writers:
+            print(f"Using one of the available codecs: {avail_writers}")
+            codec = avail_writers[0]
 
         Writer = animation.writers[codec]
 
