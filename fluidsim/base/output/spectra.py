@@ -36,8 +36,12 @@ class MoviesSpectra(MoviesBase1D):
 
     def __init__(self, output, spectra):
         self.spectra = spectra
-        self.path = getattr(spectra, self._name_attr_path)
         super().__init__(output)
+
+    @property
+    def path(self):
+        # needed to follow the simulation dir which can be moved
+        return getattr(self.spectra, self._name_attr_path)
 
     def _init_ani_times(self, tmin, tmax, dt_equations):
         """Initialization of the variable ani_times for one animation."""
