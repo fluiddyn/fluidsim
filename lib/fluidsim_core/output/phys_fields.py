@@ -208,7 +208,7 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
             return field0 * weight0 + field1 * weight1, time
 
         return self._get_field_to_plot_from_file(
-            self.path_files[idx_time], key, equation, skip_vars=skip_vars
+            self.path_files[idx_time], key, equation=equation, skip_vars=skip_vars
         )
 
     def get_closest_time_file(self, time):

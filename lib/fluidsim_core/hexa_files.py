@@ -121,6 +121,7 @@ class HexaField:
         self, key, hexa_data=None, arrays=None, time=None, equation="z=0"
     ):
         self.key = key
+        self.equation = equation
         if hexa_data is None and arrays is not None:
             self._init_from_arrays(arrays)
         elif hexa_data is not None and arrays is None:
@@ -133,7 +134,10 @@ class HexaField:
 
     def __mul__(self, arg):
         return self.__class__(
-            self.key, arrays=[arg * arr for arr in self.arrays], time=self.time
+            self.key,
+            arrays=[arg * arr for arr in self.arrays],
+            time=self.time,
+            equation=self.equation,
         )
 
     __rmul__ = __mul__
@@ -144,6 +148,7 @@ class HexaField:
             self.key,
             arrays=[arr0 + arr1 for arr0, arr1 in zip(arg.arrays, self.arrays)],
             time=(self.time + arg.time) / 2,
+            equation=self.equation,
         )
 
     def min(self):
@@ -205,10 +210,8 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def _get_field_to_plot_from_file(
         self, path_file, key, equation, skip_vars=()
     ):
-        if equation is not None:
-            raise NotImplementedError
         hexa_data = self._read_hexadata_from_path(path_file, skip_vars=skip_vars)
-        hexa_field = HexaField(key, hexa_data)
+        hexa_field = HexaField(key, hexa_data, equation=equation)
         return hexa_field, float(hexa_data.time)
 
     def init_hexa_pcolormesh(
@@ -305,8 +308,6 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         y_approx_quiver = np.linspace(dx_quiver, ymax - dx_quiver, ny_quiver)
 
         indices_vectors_in_elems = []
-        x_quiver = []
-        y_quiver = []
 
         for x_2d, y_2d in zip(hexa_x.arrays, hexa_y.arrays):
             xmin = x_2d.min()
@@ -334,10 +335,17 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
                     )
                     indices_vectors_in_elem.append((iy, ix))
 
-                    x_quiver.append(x_2d[iy, ix])
-                    y_quiver.append(y_2d[iy, ix])
+            indices_vectors_in_elems.append(sorted(set(indices_vectors_in_elem)))
 
-            indices_vectors_in_elems.append(indices_vectors_in_elem)
+        x_quiver = []
+        y_quiver = []
+
+        for indices_vectors_in_elem, x_2d, y_2d in zip(
+            indices_vectors_in_elems, hexa_x.arrays, hexa_y.arrays
+        ):
+            for iy, ix in indices_vectors_in_elem:
+                x_quiver.append(x_2d[iy, ix])
+                y_quiver.append(y_2d[iy, ix])
 
         return indices_vectors_in_elems, x_quiver, y_quiver
 
@@ -358,8 +366,9 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
                 vx_quiver.append(arr_vx[iy, ix])
                 vy_quiver.append(arr_vy[iy, ix])
 
-        return vx_quiver, vy_quiver, vmax
+        return np.array(vx_quiver), np.array(vy_quiver), vmax
 
+    @lru_cache
     def get_letters_axes_from_equation(self, equation):
         equation = equation.replace(" ", "")
         if equation.startswith("z="):
@@ -444,13 +453,20 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return f"session_{session_id:02d}/{case}0.f?????"
 
     def get_vector_for_plot(self, time, equation=None, skip_vars=()):
-        if equation is not None:
-            raise NotImplementedError
+        if equation is None:
+            equation = "z=0"
+        letter_x_axis, letter_y_axis = self.get_letters_axes_from_equation(
+            equation
+        )
         # temporary hack
         time = self.times[abs(self.times - time).argmin()]
         hexa_data = self.read_hexadata_from_time(time, skip_vars=skip_vars)
-        vec_xaxis = HexaField(hexa_data=hexa_data, key="vx")
-        vec_yaxis = HexaField(hexa_data=hexa_data, key="vy")
+        vec_xaxis = HexaField(
+            hexa_data=hexa_data, key="v" + letter_x_axis, equation=equation
+        )
+        vec_yaxis = HexaField(
+            hexa_data=hexa_data, key="v" + letter_y_axis, equation=equation
+        )
         return vec_xaxis, vec_yaxis
 
     def get_key_field_to_plot(self, key_prefered=None):

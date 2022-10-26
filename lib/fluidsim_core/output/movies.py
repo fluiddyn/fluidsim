@@ -571,7 +571,7 @@ class MoviesBase2D(MoviesBase):
           y-axis data.
 
         """
-        return self.phys_fields._get_axis_data()
+        return self.phys_fields._get_axis_data(self.phys_fields._equation)
 
 
 class MoviesBasePhysFields(MoviesBase2D):
@@ -585,6 +585,11 @@ class MoviesBasePhysFields(MoviesBase2D):
         """Initialize list of files and times, pcolor plot, quiver and colorbar."""
         self.phys_fields.set_of_phys_files.update_times()
         self.time_files = self.phys_fields.set_of_phys_files.times
+
+        if "equation" in kwargs:
+            equation = kwargs["equation"]
+            print(f"phys_fields.set_equation_crosssection({equation})")
+            self.phys_fields.set_equation_crosssection(equation)
 
         dt_equations_reasonable = np.median(np.diff(self.time_files)) / 2
         if dt_equations is None:
@@ -747,34 +752,42 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax
         )
 
-        (
-            self._indices_vectors_in_elems,
-            x_quiver,
-            y_quiver,
-        ) = set_of_phys_files.init_quiver_1st_step(
-            hexa_x, hexa_y, percentage_dx_quiver=4.0
-        )
-        vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
-            hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
-        )
-
-        if self.normalize_vectors:
-            vx_quiver /= vmax
-            vy_quiver /= vmax
-
-        self._ani_quiver = ax.quiver(
-            x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw
-        )
-
         self._clim = kwargs.get("clim")
         self._set_clim()
 
-        skip_vars = list("xyz")
+        skip_vars = []
         if self.key_field != "temperature":
             skip_vars.append("temperature")
         if self.key_field != "pressure":
             skip_vars.append("pressure")
         self._skip_vars = tuple(skip_vars)
+
+        if self._QUIVER:
+            assert hexa_x.equation == hexa_vec_xaxis.equation, (
+                hexa_x.equation,
+                hexa_vec_xaxis.equation,
+            )
+            (
+                self._indices_vectors_in_elems,
+                x_quiver,
+                y_quiver,
+            ) = set_of_phys_files.init_quiver_1st_step(
+                hexa_x, hexa_y, percentage_dx_quiver=4.0
+            )
+
+            vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
+                hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
+            )
+
+            if self.normalize_vectors:
+                vx_quiver /= vmax
+                vy_quiver /= vmax
+
+            self._ani_quiver = ax.quiver(
+                x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw
+            )
+        else:
+            vmax = None
 
         self.phys_fields._set_title(ax, self.key_field, time, vmax)
 
@@ -796,19 +809,22 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         for image, array in zip(self._images, hexa_field.arrays):
             image.set_array(array.flatten())
 
-        hexa_vec_xaxis, hexa_vec_yaxis = phys_fields.get_vector_for_plot(
-            time=time, skip_vars=self._skip_vars
-        )
+        if self._QUIVER:
+            hexa_vec_xaxis, hexa_vec_yaxis = phys_fields.get_vector_for_plot(
+                time=time, skip_vars=self._skip_vars
+            )
 
-        vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
-            hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
-        )
+            vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
+                hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
+            )
 
-        if self.normalize_vectors:
-            vx_quiver /= vmax
-            vy_quiver /= vmax
+            if self.normalize_vectors:
+                vx_quiver /= vmax
+                vy_quiver /= vmax
 
-        self._ani_quiver.set_UVC(vx_quiver, vy_quiver)
+            self._ani_quiver.set_UVC(vx_quiver, vy_quiver)
+        else:
+            vmax = None
 
         self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
 
@@ -821,3 +837,15 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
                 image.set_clim(*clim)
             ticks = np.linspace(*clim, num=11, endpoint=True)
             self._ani_cbar.set_ticks(ticks)
+
+    def _init_labels(self, xlabel=None, ylabel=None):
+        """Initialize the labels."""
+
+        (
+            letter_x_axis,
+            letter_y_axis,
+        ) = self.phys_fields.set_of_phys_files.get_letters_axes_from_equation(
+            self.phys_fields._equation
+        )
+
+        super()._init_labels(f"${letter_x_axis}$", f"${letter_y_axis}$")

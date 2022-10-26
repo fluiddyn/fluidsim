@@ -25,7 +25,7 @@ class PhysFields4Snek5000(PhysFieldsABC):
         self.movies = self._cls_movies(output, self)
         self.animate = self.movies.animate
         self.interact = self.movies.interact
-        self._equation = None
+        self._equation = "z=0"
 
     def get_key_field_to_plot(self, forbid_compute=False, key_prefered=None):
         return self.set_of_phys_files.get_key_field_to_plot(key_prefered)
@@ -40,6 +40,9 @@ class PhysFields4Snek5000(PhysFieldsABC):
         skip_vars=(),
     ):
         """Get the field to be plotted in process 0."""
+        if equation is None:
+            equation = self._equation
+
         return self.set_of_phys_files.get_field_to_plot(
             time=time,
             idx_time=idx_time,
@@ -63,7 +66,17 @@ class PhysFields4Snek5000(PhysFieldsABC):
         )
 
     @lru_cache(maxsize=None)
-    def _get_axis_data(self, equation=None):
-        hexa_x, _ = self.get_field_to_plot(idx_time=0, key="x", equation=equation)
-        hexa_y, _ = self.get_field_to_plot(idx_time=0, key="y", equation=equation)
+    def _get_axis_data(self, equation):
+
+        (
+            letter_x_axis,
+            letter_y_axis,
+        ) = self.set_of_phys_files.get_letters_axes_from_equation(equation)
+
+        hexa_x, _ = self.get_field_to_plot(
+            idx_time=0, key=letter_x_axis, equation=equation
+        )
+        hexa_y, _ = self.get_field_to_plot(
+            idx_time=0, key=letter_y_axis, equation=equation
+        )
         return hexa_x, hexa_y

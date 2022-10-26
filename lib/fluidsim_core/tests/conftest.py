@@ -15,7 +15,9 @@ def path_sim(tmp_path):
     path_dir = tmp_path / "session_00"
     path_dir.mkdir(exist_ok=True, parents=True)
 
-    nx = ny = nz = 2
+    nx = 2
+    ny = 4
+    nz = 6
     nx_elem = ny_elem = nz_elem = 2
 
     hexa_data = pymech.core.HexaData(
@@ -32,7 +34,8 @@ def path_sim(tmp_path):
     y1d = np.linspace(0, 1, ny)
     z1d = np.linspace(0, 1, nz)
 
-    y3d, z3d, x3d = np.meshgrid(x1d, y1d, z1d)
+    y3d, z3d, x3d = np.meshgrid(y1d, z1d, x1d)
+    assert y3d.shape == (nz, ny, nx)
 
     ielem = 0
     for iz_elem in range(nz_elem):
