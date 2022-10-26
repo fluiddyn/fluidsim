@@ -26,6 +26,11 @@ Provides:
    :private-members:
    :undoc-members:
 
+.. autoclass:: MoviesBasePhysFieldsHexa
+   :members:
+   :private-members:
+   :undoc-members:
+
 """
 
 from abc import abstractmethod

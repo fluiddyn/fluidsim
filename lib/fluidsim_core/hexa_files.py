@@ -1,3 +1,20 @@
+"""Utilities for hexahedral files
+---------------------------------
+
+.. autofunction:: get_edges_2d
+
+.. autoclass:: HexaField
+   :members:
+   :private-members:
+   :undoc-members:
+
+.. autoclass:: SetOfPhysFieldFiles
+   :members:
+   :private-members:
+   :undoc-members:
+
+"""
+
 from functools import lru_cache
 from pathlib import Path
 

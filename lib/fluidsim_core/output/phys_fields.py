@@ -1,4 +1,5 @@
 """Abstract base classes for Physical fields output
+---------------------------------------------------
 
 These classes can be used to define classes working together with
 :class:`fluidsim_core.output.movies.MoviesBasePhysFields`.

@@ -1,3 +1,12 @@
+"""Concrete PhysField class for Snek5000
+----------------------------------------
+
+.. autoclass:: PhysFields4Snek5000
+   :members:
+   :private-members:
+   :undoc-members:
+
+"""
 from functools import lru_cache
 
 from fluidsim_core.output.phys_fields import PhysFieldsABC
