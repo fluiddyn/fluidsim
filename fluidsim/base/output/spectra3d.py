@@ -34,13 +34,14 @@ import h5py
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
-from .movies import MoviesBase1D
+
+from .spectra import MoviesSpectra
 
 
-class MoviesSpectra(MoviesBase1D):
-    def __init__(self, output, spectra):
-        self.spectra = spectra
-        super().__init__(output)
+class MoviesSpectra(MoviesSpectra):
+    _name_attr_path = "path_file3d"
+    _half_key = "spectra_"
+    _key_axis = "k_spectra3d"
 
     def init_animation(self, *args, **kwargs):
         if "xmax" not in kwargs:
@@ -48,59 +49,14 @@ class MoviesSpectra(MoviesBase1D):
         if "ymax" not in kwargs:
             kwargs["ymax"] = 1.0
 
-        with h5py.File(self.spectra.path_file3d) as file:
-            self.times = file["times"][...]
-
         super().init_animation(*args, **kwargs)
-
-    def get_field_to_plot(self, time, key=None):
-        if key is None:
-            key = self.key_field
-        idx, t_file = self.get_closest_time_file(time)
-        with h5py.File(self.spectra.path_file3d) as file:
-            y = file["spectra_" + key][idx]
-        y[abs(y) < 10e-16] = 0
-        return y, t_file
-
-    def get_closest_time_file(self, time):
-        """Find the index and value of the closest actual time of the field."""
-        idx = np.abs(self.times - time).argmin()
-        return idx, self.times[idx]
-
-    def _init_labels(self, xlabel="x"):
-        """Initialize the labels."""
-        self.ax.set_xlabel(xlabel, fontdict=self.font)
-        self.ax.set_ylabel(self.key_field, fontdict=self.font)
-        self.ax.set_yscale("log")
-
-    def _get_axis_data(self):
-        """Get axis data.
-
-        Returns
-        -------
-
-        x : array
-          x-axis data.
-
-        """
-        with h5py.File(self.spectra.path_file3d) as file:
-            x = file["k_spectra3d"][...]
-
-        return x
-
-    def _set_key_field(self, key_field):
-        """
-        Defines key_field default.
-        """
-        if key_field is None:
-            key_field = "E"
-        self.key_field = key_field
 
 
 class BaseSpectra(SpecificOutput):
     """Used for the saving of spectra."""
 
     _tag = "spectra"
+    _cls_movies = MoviesSpectra
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -122,14 +78,8 @@ class BaseSpectra(SpecificOutput):
             )
         )
 
-    def _init_movies(self):
-        self.movies = MoviesSpectra(self.output, self)
-
     def __init__(self, output):
         self.output = output
-
-        if hasattr(self, "_init_movies"):
-            self._init_movies()
 
         params = output.sim.params
         self.kzkh_periodicity = params.output.spectra.kzkh_periodicity
@@ -221,7 +171,7 @@ class BaseSpectra(SpecificOutput):
 
                     if tsim - self.t_last_show >= self.period_show:
                         self.t_last_show = tsim
-                        self.axe.get_figure().canvas.draw()
+                        self.ax.get_figure().canvas.draw()
 
     def compute(self):
         """compute the values at one time."""
@@ -229,11 +179,11 @@ class BaseSpectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k$")
-            axe.set_ylabel("$E(k)$")
-            axe.set_title(f"{self._tag}\n{self.output.summary_simul}")
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k$")
+            ax.set_ylabel("$E(k)$")
+            ax.set_title(f"{self._tag}\n{self.output.summary_simul}")
 
     def _online_plot_saving(self, dict_spectra1d, dict_spectra3d):
         pass

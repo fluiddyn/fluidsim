@@ -566,6 +566,11 @@ class SpecificOutput:
 
         self._init_path_files()
 
+        if hasattr(self, "_cls_movies"):
+            self.movies = self._cls_movies(output, self)
+            self.animate = self.movies.animate
+            self.interact = self.movies.interact
+
         if self.has_to_plot:
             self._init_online_plot()
 

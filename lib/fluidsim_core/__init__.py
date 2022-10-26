@@ -12,6 +12,7 @@ generic base classes and utilities to build new solvers.
    loader
    magic
    extend_simul
+   hexa_files
 
 """
 from ._version import __version__

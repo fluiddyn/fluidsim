@@ -59,14 +59,10 @@ class SpectraPlate2D(Spectra):
             spectrum2D_Etot = spectrum2D_EK + spectrum2D_EL + spectrum2D_EE
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
-            self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r--")
-            self.axe.loglog(khE, spectrum2D_EL * coef_norm, "b--")
-            self.axe.loglog(khE, spectrum2D_EE * coef_norm, "y--")
-        # lin_inf, lin_sup = self.axe.get_ylim()
-        # if lin_inf < 10e-6:
-        #     lin_inf = 10e-6
-        # self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
+            self.ax.loglog(khE, spectrum2D_EK * coef_norm, "r--")
+            self.ax.loglog(khE, spectrum2D_EL * coef_norm, "b--")
+            self.ax.loglog(khE, spectrum2D_EE * coef_norm, "y--")
         else:
             print(
                 "you need to implement the ploting "

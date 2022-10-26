@@ -235,7 +235,7 @@ class TestForcingOutput(TestSimulBase):
         sim3.output.phys_fields.animate(
             "ux",
             dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,
@@ -374,7 +374,7 @@ class TestForcingOutput(TestSimulBase):
         sim2.output.phys_fields.animate(
             "ux",
             dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,

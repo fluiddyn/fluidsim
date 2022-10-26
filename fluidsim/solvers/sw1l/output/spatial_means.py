@@ -119,13 +119,13 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-            self.axe_a.plot(tsim, energy, "k.")
-            self.axe_a.plot(tsim, energyK, "r.")
-            self.axe_a.plot(tsim, energyA, "b.")
+            self.ax_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energyK, "r.")
+            self.ax_a.plot(tsim, energyA, "b.")
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def treat_conversion(self):

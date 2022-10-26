@@ -2,7 +2,7 @@
 ================
 
 Contains base classes which acts as a framework to
-implement the method `animate` to make movies.
+implement the method ``animate`` to make movies.
 
 Provides:
 
@@ -20,8 +20,20 @@ Provides:
    :members:
    :private-members:
    :undoc-members:
+
+.. autoclass:: MoviesBasePhysFields
+   :members:
+   :private-members:
+   :undoc-members:
+
+.. autoclass:: MoviesBasePhysFieldsHexa
+   :members:
+   :private-members:
+   :undoc-members:
+
 """
 
+from abc import abstractmethod
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,13 +56,28 @@ class MoviesBase:
 
         self._set_font()
 
+    def _set_font(self, family="serif", size=12):
+        """Use to set font attribute. May be either an alias (generic name
+        is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
+        monospace, a real font name or a list of real font names.
+
+        """
+        self.font = {
+            "family": family,
+            "color": "black",
+            "weight": "normal",
+            "size": size,
+        }
+
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
     ):
         """Initializes animated fig. and list of times of save files to load."""
         self._set_key_field(key_field)
         self._init_ani_times(tmin, tmax, dt_equations)
-        self.fig, self.ax = plt.subplots(num=numfig, **fig_kw)
+        self.fig, self.ax = plt.subplots(
+            num=numfig, layout="constrained", **fig_kw
+        )
         self._init_labels()
 
         if not self._interactive:
@@ -101,11 +128,18 @@ class MoviesBase:
         self._forwards = False
         self.onestep()
 
+    def _get_default_tmax(self):
+        try:
+            return self.sim.time_stepping.t
+        except AttributeError:
+            return self.phys_fields.set_of_phys_files.get_max_time()
+
     def _init_ani_times(self, tmin, tmax, dt_equations):
         """Initialization of the variable ani_times for one animation."""
-        self.phys_fields.set_of_phys_files.update_times()
+        if tmax is None or tmin is None:
+            self.phys_fields.set_of_phys_files.update_times()
         if tmax is None:
-            tmax = self.sim.time_stepping.t
+            tmax = self._get_default_tmax()
 
         if tmin is None:
             tmin = self.phys_fields.set_of_phys_files.get_min_time()
@@ -118,27 +152,17 @@ class MoviesBase:
         if dt_equations is None:
             dt_equations = self.params.periods_save.phys_fields
 
-        self.ani_times = np.arange(tmin, tmax, dt_equations)
+        if dt_equations > tmax:
+            self.ani_times = np.array([tmin, tmax])
+        else:
+            self.ani_times = np.arange(tmin, tmax, dt_equations)
 
+    @abstractmethod
     def update_animation(self, frame, **fargs):
         """Replace this function to load data for next frame and update the
         figure.
 
         """
-        pass
-
-    def _set_font(self, family="serif", size=12):
-        """Use to set font attribute. May be either an alias (generic name
-        is CSS parlance), such as serif, sans-serif, cursive, fantasy, or
-        monospace, a real font name or a list of real font names.
-
-        """
-        self.font = {
-            "family": family,
-            "color": "black",
-            "weight": "normal",
-            "size": size,
-        }
 
     def get_field_to_plot(self, time=None, key=None, equation=None):
         """
@@ -158,19 +182,21 @@ class MoviesBase:
             xlabel = self.sim.oper.axes[1]
         if ylabel is None:
             ylabel = self.sim.oper.axes[0]
-        self.ax.set_xlabel(xlabel, fontdict=self.font)
-        self.ax.set_ylabel(ylabel, fontdict=self.font)
+        if xlabel:
+            self.ax.set_xlabel(xlabel, fontdict=self.font)
+        if ylabel:
+            self.ax.set_ylabel(ylabel, fontdict=self.font)
 
     def _get_axis_data(self):
         """Replace this function to load axis data."""
         raise NotImplementedError("_get_axis_data  function declaration missing.")
 
-    def _set_key_field(self, key_field):
+    def _set_key_field(self, key_field=None):
         """
         Defines key_field default.
         """
         self.key_field = self.phys_fields.get_key_field_to_plot(
-            forbid_compute=True, key_field_to_plot=key_field
+            forbid_compute=True, key_prefered=key_field
         )
 
     def animate(
@@ -217,7 +243,7 @@ class MoviesBase:
             Dictionary of arguments for `update_animation`. Matplotlib
             requirement.
         fig_kw : dict
-            Dictionary of arguments for arguments for the figure.
+            Dictionary for arguments for the figure.
 
         Other Parameters
         ----------------
@@ -233,6 +259,10 @@ class MoviesBase:
             Set step value to get a coarse 2D field
         QUIVER : bool
             Set quiver on or off on top of 2D pcolor plots
+        normalize_vectors : bool (default True)
+            Normalize the vectors at each time by the instantaneous maximum
+        quiver_kw: dict
+            Dictionary for arguments for the quiver call.
         codec : str
             Codec used to save into a movie file (default: ffmpeg)
 
@@ -262,6 +292,9 @@ class MoviesBase:
         if mpi.rank > 0:
             raise NotImplementedError("Do NOT use this function with MPI !")
 
+        if interactive and save_file:
+            raise ValueError("Incompatible options interactive and save_file")
+
         self._interactive = interactive
         self.init_animation(
             key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
@@ -274,7 +307,8 @@ class MoviesBase:
             nb_repeat = 1
 
         self._min = 0
-        frames = self._max = nb_repeat * len(self.ani_times) - 1
+        self._max = nb_repeat * len(self.ani_times) - 1
+        frames = self._max + 1
         if interactive:
             frames = self._frames_iterative
             self._forwards = True
@@ -290,6 +324,8 @@ class MoviesBase:
             repeat=repeat,
         )
 
+        self.paused = False
+
         if save_file:
             if not isinstance(save_file, str):
                 save_file = r"~/fluidsim_movie.mp4"
@@ -297,7 +333,6 @@ class MoviesBase:
             self._ani_save(save_file, dt_frame_in_sec, **kwargs)
             return
 
-        self.paused = False
         self.fig.canvas.mpl_connect("button_press_event", self._toggle_pause)
 
     def _frames_iterative(self):
@@ -342,7 +377,6 @@ class MoviesBase:
     def interact(
         self,
         key_field=None,
-        dt_frame_in_sec=0.3,
         dt_equations=None,
         tmin=None,
         tmax=None,
@@ -355,15 +389,13 @@ class MoviesBase:
         ----------
         key_field : str
             Specifies which field to animate
-        dt_frame_in_sec : float
-            Interval between animated frames in seconds
         dt_equations : float
             Approx. interval between saved files to load in simulation time
             units
         tmax : float
             Animate till time `tmax`.
         fig_kw : dict
-            Dictionary of arguments for arguments for the figure.
+            Dictionary for arguments for the figure.
 
         Other Parameters
         ----------------
@@ -379,6 +411,8 @@ class MoviesBase:
             Set step value to get a coarse 2D field
         QUIVER : bool
             Set quiver on or off on top of 2D pcolor plots
+        quiver_kw: dict
+            Dictionary for arguments for the quiver call.
 
         Notes
         -----
@@ -403,10 +437,10 @@ class MoviesBase:
         """
         try:
             from ipywidgets import interact, widgets
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
-                "See fluidsim.base.output.movies.interact docstring."
-            )
+                "See fluidsim_core.output.movies.interact docstring."
+            ) from exc
 
         if not is_run_from_jupyter():
             raise ValueError("Works only inside Jupyter.")
@@ -441,16 +475,16 @@ class MoviesBase:
 
         path_file = os.path.expandvars(path_file)
         path_file = os.path.expanduser(path_file)
-        avail = animation.writers.list()
-        if len(avail) == 0:
+        avail_writers = animation.writers.list()
+        if len(avail_writers) == 0:
             raise ValueError(
                 "Please install a codec library. For e.g. ffmpeg, mencoder, "
                 "imagemagick, html"
             )
 
-        elif codec not in avail:
-            print("Using one of the available codecs: {}".format(avail.keys()))
-            codec = list(avail.keys())[0]
+        elif codec not in avail_writers:
+            print(f"Using one of the available codecs: {avail_writers}")
+            codec = avail_writers[0]
 
         Writer = animation.writers[codec]
 
@@ -464,6 +498,14 @@ class MoviesBase:
 
 class MoviesBase1D(MoviesBase):
     """Base class defining most generic functions for movies for 1D data."""
+
+    def _init_labels(self, xlabel=None, ylabel=None):
+        """Initialize the labels."""
+        if xlabel is None:
+            xlabel = self.sim.oper.axes[0]
+        if ylabel is None:
+            ylabel = False
+        super()._init_labels(xlabel, ylabel)
 
     def init_animation(
         self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
@@ -485,11 +527,13 @@ class MoviesBase1D(MoviesBase):
         if "ymax" in kwargs:
             ax.set_ylim(1e-16, kwargs["ymax"])
 
+    def get_field_to_plot(self, time, key):
+        return self.phys_fields.get_field_to_plot(time=time, key=self.key_field)
+
     def update_animation(self, frame, **fargs):
         """Loads contour data and updates figure."""
         time = self.ani_times[frame % len(self.ani_times)]
-        get_field_to_plot = self.phys_fields.get_field_to_plot
-        y, time = get_field_to_plot(time=time, key=self.key_field)
+        y, time = self.get_field_to_plot(time=time, key=self.key_field)
         x = self._get_axis_data()
 
         self._ani_line.set_data(x, y)
@@ -532,26 +576,281 @@ class MoviesBase2D(MoviesBase):
           y-axis data.
 
         """
+        return self.phys_fields._get_axis_data(self.phys_fields._equation)
 
-        if not hasattr(self, "_equation"):
-            equation = None
-        else:
-            equation = self._equation
 
-        if (
-            equation is None
-            or equation.startswith("iz=")
-            or equation.startswith("z=")
-        ):
-            x = self.oper.get_grid1d_seq("x")
-            y = self.oper.get_grid1d_seq("y")
-        elif equation.startswith("iy=") or equation.startswith("y="):
-            x = self.oper.get_grid1d_seq("x")
-            y = self.oper.get_grid1d_seq("z")
-        elif equation.startswith("ix=") or equation.startswith("x="):
-            x = self.oper.get_grid1d_seq("y")
-            y = self.oper.get_grid1d_seq("z")
+class MoviesBasePhysFields(MoviesBase2D):
+    def __init__(self, output, phys_fields):
+        self.phys_fields = phys_fields
+        super().__init__(output)
+
+    def init_animation(
+        self, key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+    ):
+        """Initialize list of files and times, pcolor plot, quiver and colorbar."""
+        self.phys_fields.set_of_phys_files.update_times()
+        self.time_files = self.phys_fields.set_of_phys_files.times
+
+        if "equation" in kwargs:
+            equation = kwargs["equation"]
+            print(f"phys_fields.set_equation_crosssection({equation})")
+            self.phys_fields.set_equation_crosssection(equation)
+
+        dt_equations_reasonable = np.median(np.diff(self.time_files)) / 2
+        if dt_equations is None:
+            dt_equations = dt_equations_reasonable
+            print(f"{dt_equations = :.4f}")
+
+        if tmax is None:
+            tmax = self.time_files.max()
         else:
+            if tmax > self.time_files.max():
+                raise ValueError(
+                    f"{tmax=} has to be smaller or equal to "
+                    f"{self.time_files.max()}."
+                )
+
+        if tmin is None:
+            tmin = self.time_files.min()
+
+        super().init_animation(
+            key_field, numfig, dt_equations, tmin, tmax, fig_kw, **kwargs
+        )
+
+        dt_file = (self.time_files[-1] - self.time_files[0]) / len(
+            self.time_files
+        )
+        if dt_equations < dt_file / 4:
+            raise ValueError(f"dt_equations < {dt_file / 4 = }")
+
+        if dt_equations > (tmax - tmin) / 2:
+            raise ValueError(
+                f"{dt_equations = } > {(tmax - tmin) / 2 = }. "
+                "Set dt_equations to None to get a reasonable value "
+                f"({dt_equations_reasonable})"
+            )
+
+        field, time = self.phys_fields.get_field_to_plot(
+            self.key_field, time=tmin
+        )
+
+        try:
+            vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot(time=time)
+        except ValueError:
+            self.phys_fields._can_plot_quiver = False
+            vec_xaxis = vec_yaxis = None
+        else:
+            self.phys_fields._can_plot_quiver = True
+
+        self._init_fig(field, time, vec_xaxis, vec_yaxis, **kwargs)
+
+    def _init_fig(self, field, time, vec_xaxis=None, vec_yaxis=None, **kwargs):
+        """Initialize only the figure and related matplotlib objects. This
+        method is shared by both ``animate`` and ``online_plot``
+        functionalities.
+
+        """
+        self._step = step = 1 if "step" not in kwargs else kwargs["step"]
+        self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+        quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        tmp_key = "normalize_vectors"
+        normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
+
+        x, y = self._get_axis_data()
+        x, y = x[::step], y[::step]
+        XX, YY = np.meshgrid(x, y)
+        field = field[::step, ::step]
+        assert (len(y), len(x)) == field.shape
+
+        self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")
+        self._ani_cbar = self.fig.colorbar(self._im)
+
+        vmax = None
+        if self.phys_fields._can_plot_quiver and self._QUIVER:
+            skip = self.phys_fields._skip_quiver
+            self._ani_quiver, vmax = self.phys_fields._quiver_plot(
+                self.ax,
+                vec_xaxis[::skip, ::skip],
+                vec_yaxis[::skip, ::skip],
+                XX,
+                YY,
+                normalize_vectors=normalize_vectors,
+                **quiver_kw,
+            )
+
+        self._clim = kwargs.get("clim")
+        self._set_clim()
+
+        if not hasattr(self, "key_field"):
+            self._set_key_field()
+
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
+
+    def update_animation(self, frame, **fargs):
+        """Loads data and updates figure."""
+        time = self.ani_times[frame % len(self.ani_times)]
+        step = self._step
+
+        field, time = self.phys_fields.get_field_to_plot(
+            time=time,
+            key=self.key_field,
+            interpolate_time=True,
+        )
+
+        field = field[::step, ::step]
+
+        # Update figure, quiver and colorbar
+        self._im.set_array(field.flatten())
+        if self.phys_fields._can_plot_quiver and self._QUIVER:
+            vec_xaxis, vec_yaxis = self.phys_fields.get_vector_for_plot(time=time)
+
+            vmax = np.max(np.sqrt(vec_xaxis**2 + vec_yaxis**2))
+            skip = self.phys_fields._skip_quiver
+            self._ani_quiver.set_UVC(
+                vec_xaxis[::skip, ::skip] / vmax, vec_yaxis[::skip, ::skip] / vmax
+            )
+        else:
+            vmax = None
+
+        self._im.autoscale()
+        self._set_clim()
+
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
+
+    def _set_clim(self):
+        """Maintains a constant colorbar throughout the animation."""
+        clim = self._clim
+        if clim is not None:
+            self._im.set_clim(*clim)
+            ticks = np.linspace(*clim, num=11, endpoint=True)
+            self._ani_cbar.set_ticks(ticks)
+
+
+class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
+    def _init_fig(self, field, time, vec_xaxis=None, vec_yaxis=None, **kwargs):
+        """Initialize only the figure and related matplotlib objects. This
+        method is shared by both ``animate`` and ``online_plot``
+        functionalities.
+
+        """
+        self._step = step = 1 if "step" not in kwargs else kwargs["step"]
+        self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
+        vmin = None if "vmin" not in kwargs else kwargs["vmin"]
+        vmax = None if "vmax" not in kwargs else kwargs["vmax"]
+        quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        tmp_key = "normalize_vectors"
+        self.normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
+
+        if step != 1:
             raise NotImplementedError
 
-        return x, y
+        hexa_x, hexa_y = self._get_axis_data()
+        hexa_field = field
+
+        hexa_vec_xaxis = vec_xaxis
+        hexa_vec_yaxis = vec_yaxis
+
+        set_of_phys_files = self.phys_fields.set_of_phys_files
+        ax = self.ax
+
+        self._images, self._ani_cbar = set_of_phys_files.init_hexa_pcolormesh(
+            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax
+        )
+
+        self._clim = kwargs.get("clim")
+        self._set_clim()
+
+        skip_vars = []
+        if self.key_field != "temperature":
+            skip_vars.append("temperature")
+        if self.key_field != "pressure":
+            skip_vars.append("pressure")
+        self._skip_vars = tuple(skip_vars)
+
+        if self._QUIVER:
+            assert hexa_x.equation == hexa_vec_xaxis.equation, (
+                hexa_x.equation,
+                hexa_vec_xaxis.equation,
+            )
+            (
+                self._indices_vectors_in_elems,
+                x_quiver,
+                y_quiver,
+            ) = set_of_phys_files.init_quiver_1st_step(
+                hexa_x, hexa_y, percentage_dx_quiver=4.0
+            )
+
+            vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
+                hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
+            )
+
+            if self.normalize_vectors:
+                vx_quiver /= vmax
+                vy_quiver /= vmax
+
+            self._ani_quiver = ax.quiver(
+                x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw
+            )
+        else:
+            vmax = None
+
+        self.phys_fields._set_title(ax, self.key_field, time, vmax)
+
+    def update_animation(self, frame, **fargs):
+        """Loads data and updates figure."""
+        time = self.ani_times[frame % len(self.ani_times)]
+        # step = self._step
+
+        phys_fields = self.phys_fields
+        set_of_phys_files = phys_fields.set_of_phys_files
+
+        hexa_field, time = phys_fields.get_field_to_plot(
+            time=time,
+            key=self.key_field,
+            interpolate_time=True,
+            skip_vars=self._skip_vars,
+        )
+
+        for image, array in zip(self._images, hexa_field.arrays):
+            image.set_array(array.flatten())
+
+        if self._QUIVER:
+            hexa_vec_xaxis, hexa_vec_yaxis = phys_fields.get_vector_for_plot(
+                time=time, skip_vars=self._skip_vars
+            )
+
+            vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(
+                hexa_vec_xaxis, hexa_vec_yaxis, self._indices_vectors_in_elems
+            )
+
+            if self.normalize_vectors:
+                vx_quiver /= vmax
+                vy_quiver /= vmax
+
+            self._ani_quiver.set_UVC(vx_quiver, vy_quiver)
+        else:
+            vmax = None
+
+        self.phys_fields._set_title(self.ax, self.key_field, time, vmax)
+
+    def _set_clim(self):
+        """Maintains a constant colorbar throughout the animation."""
+
+        clim = self._clim
+        if clim is not None:
+            for image in self._images:
+                image.set_clim(*clim)
+            ticks = np.linspace(*clim, num=11, endpoint=True)
+            self._ani_cbar.set_ticks(ticks)
+
+    def _init_labels(self, xlabel=None, ylabel=None):
+        """Initialize the labels."""
+
+        (
+            letter_x_axis,
+            letter_y_axis,
+        ) = self.phys_fields.set_of_phys_files.get_letters_axes_from_equation(
+            self.phys_fields._equation
+        )
+
+        super()._init_labels(f"${letter_x_axis}$", f"${letter_y_axis}$")

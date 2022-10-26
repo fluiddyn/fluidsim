@@ -1,5 +1,5 @@
 """Output (:mod:`fluidsim.base.output`)
-=============================================
+=======================================
 
 Provides:
 
@@ -10,7 +10,6 @@ Provides:
    cross_corr3d
    horiz_means
    increments
-   movies
    phys_fields
    phys_fields1d
    phys_fields2d

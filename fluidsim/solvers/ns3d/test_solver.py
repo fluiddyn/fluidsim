@@ -181,8 +181,8 @@ class TestOutput(TestSimulBase):
         # compute twice for better coverage
         sim.state.compute("rotz")
 
-        sim.output.phys_fields._get_grid1d("iz=0")
-        sim.output.phys_fields._get_grid1d("iy=0")
+        sim.output.phys_fields._get_axis_data("iz=0")
+        sim.output.phys_fields._get_axis_data("iy=0")
 
         path_run = sim.output.path_run
         if mpi.nb_proc > 1:
@@ -229,6 +229,9 @@ class TestOutput(TestSimulBase):
             sim2.output.spectra.plot3d_cumul_diss(tmin=0.1, tmax=10)
 
             sim2.output.spectra.plot_kzkh(key="Khd")
+
+            sim2.output.spectra.animate()
+
             sim2.output.cross_corr.plot_kzkh()
 
             sim2.output.phys_fields.set_equation_crosssection(

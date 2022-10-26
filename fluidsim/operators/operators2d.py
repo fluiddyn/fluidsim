@@ -607,17 +607,17 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
 
-    def get_grid1d_seq(self, axe="x"):
+    def get_grid1d_seq(self, axis="x"):
 
-        if axe not in ("x", "y"):
+        if axis not in ("x", "y"):
             raise ValueError
 
         if self.params.ONLY_COARSE_OPER:
-            number_points = getattr(self.params.oper, "n" + axe)
-            length = getattr(self, "L" + axe)
+            number_points = getattr(self.params.oper, "n" + axis)
+            length = getattr(self, "L" + axis)
             return np.linspace(0, length, number_points)
         else:
-            return getattr(self, axe + "_seq")
+            return getattr(self, axis + "_seq")
 
     @boost
     def get_phases_random(self):

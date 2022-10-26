@@ -86,10 +86,6 @@ _report_coverage:
 
 coverage: _tests_coverage _report_coverage
 
-coverage_short:
-	mkdir -p .coverage
-	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
-	make _report_coverage
 
 lint:
 	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero
@@ -110,9 +106,15 @@ define _end_coverage_combine
 	$(call _end_coverage)
 endef
 
+coverage_short:
+	$(call _init_coverage)
+	coverage run -p -m pytest -v -s lib
+	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v -x
+	make _report_coverage
+
 pytest_cov_html:
 	$(call _init_coverage)
-	TRANSONIC_NO_REPLACE=1 pytest -v --cov --cov-config=setup.cfg $(PYTEST_ARGS) --durations=10
+	TRANSONIC_NO_REPLACE=1 pytest -v --cov --cov-config=setup.cfg $(PYTEST_ARGS) --durations=10 -x
 	$(call _end_coverage)
 
 pytest_cov_html_mpi:

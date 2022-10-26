@@ -26,13 +26,41 @@ import h5py
 from fluiddyn.util import mpi
 
 from .base import SpecificOutput
-from .movies import MoviesBase1D
+from fluidsim_core.output.movies import MoviesBase1D
 
 
 class MoviesSpectra(MoviesBase1D):
+    _name_attr_path = "path_file2D"
+    _half_key = "spectrum2D_"
+    _key_axis = "khE"
+
     def __init__(self, output, spectra):
         self.spectra = spectra
         super().__init__(output)
+
+    @property
+    def path(self):
+        # needed to follow the simulation dir which can be moved
+        return getattr(self.spectra, self._name_attr_path)
+
+    def _init_ani_times(self, tmin, tmax, dt_equations):
+        """Initialization of the variable ani_times for one animation."""
+
+        if tmax is None:
+            tmax = self.times.max()
+
+        if tmin is None:
+            tmin = self.times.min()
+
+        if dt_equations is None:
+            dt_equations = self.params.periods_save.spectra
+            if dt_equations == 0:
+                if len(self.times) > 1:
+                    dt_equations = self.times[1] - self.times[0]
+                else:
+                    dt_equations = tmax / 2
+
+        super()._init_ani_times(tmin, tmax, dt_equations)
 
     def init_animation(self, *args, **kwargs):
         if "xmax" not in kwargs:
@@ -40,7 +68,7 @@ class MoviesSpectra(MoviesBase1D):
         if "ymax" not in kwargs:
             kwargs["ymax"] = 1.0
 
-        with h5py.File(self.spectra.path_file2D) as file:
+        with h5py.File(self.path) as file:
             self.times = file["times"][...]
 
         super().init_animation(*args, **kwargs)
@@ -49,8 +77,8 @@ class MoviesSpectra(MoviesBase1D):
         if key is None:
             key = self.key_field
         idx, t_file = self.get_closest_time_file(time)
-        with h5py.File(self.spectra.path_file2D) as file:
-            y = file["spectrum2D_" + key][idx]
+        with h5py.File(self.path) as file:
+            y = file[self._half_key + key][idx]
         y[abs(y) < 10e-16] = 0
         return y, t_file
 
@@ -75,10 +103,8 @@ class MoviesSpectra(MoviesBase1D):
           x-axis data.
 
         """
-        with h5py.File(self.spectra.path_file2D) as file:
-            x = file["khE"][...]
-
-        return x
+        with h5py.File(self.path) as file:
+            return file[self._key_axis][...]
 
     def _set_key_field(self, key_field):
         """
@@ -93,6 +119,7 @@ class Spectra(SpecificOutput):
     """Used for the saving of spectra."""
 
     _tag = "spectra"
+    _cls_movies = MoviesSpectra
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -101,14 +128,8 @@ class Spectra(SpecificOutput):
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
 
-    def _init_movies(self):
-        self.movies = MoviesSpectra(self.output, self)
-
     def __init__(self, output):
         self.output = output
-
-        if hasattr(self, "_init_movies"):
-            self._init_movies()
 
         params = output.sim.params
         self.nx = int(params.oper.nx)
@@ -171,7 +192,7 @@ class Spectra(SpecificOutput):
 
                     if tsim - self.t_last_show >= self.period_show:
                         self.t_last_show = tsim
-                        self.axe.get_figure().canvas.draw()
+                        self.ax.get_figure().canvas.draw()
 
     def compute(self):
         """compute the values at one time."""
@@ -181,11 +202,11 @@ class Spectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k_h$")
-            axe.set_ylabel("$E(k_h)$")
-            axe.set_title("spectra\n" + self.output.summary_simul)
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("$E(k_h)$")
+            ax.set_title("spectra\n" + self.output.summary_simul)
 
     def _online_plot_saving(self):
         pass

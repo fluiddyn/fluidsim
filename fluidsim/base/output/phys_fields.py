@@ -17,14 +17,15 @@ Provides:
 
 import re
 import os
-from glob import glob
 from pathlib import Path
-from math import isclose
+import math
 
 import numpy as np
 import h5py
 
 from fluiddyn.util import mpi
+
+from fluidsim_core.output.phys_fields import SetOfPhysFieldFilesBase
 
 from fluidsim.util.output import save_file, h5pack, ext
 
@@ -54,21 +55,17 @@ class PhysFieldsBase(SpecificOutput):
         if hasattr(self, "_init_skip_quiver"):
             self._init_skip_quiver()
 
-        if hasattr(self, "_init_movies"):
-            self._init_movies()
-            self.animate = self.movies.animate
-            self.interact = self.movies.interact
+        self.key_vec_xaxis = "ux"
+        self.key_vec_yaxis = "uy"
+        self._equation = None
+        self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
+        self.key_field_to_plot = self.get_key_field_to_plot()
 
         super().__init__(
             output,
             period_save=params.output.periods_save.phys_fields,
             period_plot=params.output.periods_plot.phys_fields,
         )
-
-        self.key_field_to_plot = self.get_key_field_to_plot()
-
-        self.set_of_phys_files = SetOfPhysFieldFiles(output=self.output)
-        self._equation = None
 
         if self.period_save == 0 and self.period_plot == 0:
             self.t_last_save = -np.inf
@@ -77,14 +74,15 @@ class PhysFieldsBase(SpecificOutput):
         self.t_last_save = self.sim.time_stepping.t
         self.t_last_plot = self.sim.time_stepping.t
 
-    def get_key_field_to_plot(self, forbid_compute=False, key_field_to_plot=None):
-        params = self.params
-        if key_field_to_plot is None:
-            key_field_to_plot = params.output.phys_fields.field_to_plot
-        info_state = self.sim.info.solver.classes.State
+    def get_key_field_to_plot(self, forbid_compute=False, key_prefered=None):
+        sim = self.output.sim
+        if key_prefered is None:
+            key_prefered = sim.params.output.phys_fields.field_to_plot
+        key_field_to_plot = key_prefered
+        info_state = sim.info.solver.classes.State
         keys_ok = info_state.keys_state_phys.copy()
 
-        if not params.ONLY_COARSE_OPER and not forbid_compute:
+        if not sim.params.ONLY_COARSE_OPER and not forbid_compute:
             keys_ok.extend(info_state.keys_computable)
 
         if key_field_to_plot not in keys_ok:
@@ -102,7 +100,7 @@ class PhysFieldsBase(SpecificOutput):
         # first called by the super().__init__ function when set_of_phys_files
         # is not initialized (see above). Useful when end_of_simul is called.
         if hasattr(self, "set_of_phys_files"):
-            self.set_of_phys_files.path_dir = self.output.path_run
+            self.set_of_phys_files.path_dir = Path(self.output.path_run)
 
     def _init_files(self, arrays_1st_time=None):
         # Does nothing on purpose...
@@ -217,7 +215,7 @@ class PhysFieldsBase(SpecificOutput):
 
         if (
             not self.sim.params.ONLY_COARSE_OPER
-            and (time is None or isclose(time, self.sim.time_stepping.t))
+            and (time is None or math.isclose(time, self.sim.time_stepping.t))
             and idx_time is None
         ):
             # we get the field from the state
@@ -253,7 +251,7 @@ class PhysFieldsBase(SpecificOutput):
         else:
             field = field_loc
 
-        if equation is None:
+        if equation is None or len(self.sim.oper.axes) == 2:
             return field, key_field
 
         elif equation.startswith("iz="):
@@ -261,26 +259,69 @@ class PhysFieldsBase(SpecificOutput):
             field = field[iz, ...]
         elif equation.startswith("z="):
             z = eval(equation[len("z=") :])
-            iz = abs(self.output.sim.oper.get_grid1d_seq("z") - z).argmin()
+            iz = abs(self._get_grid1d_seq("z") - z).argmin()
             field = field[iz, ...]
         elif equation.startswith("iy="):
             iy = eval(equation[len("iy=") :])
             field = field[:, iy, :]
         elif equation.startswith("y="):
             y = eval(equation[len("y=") :])
-            iy = abs(self.output.sim.oper.get_grid1d_seq("y") - y).argmin()
+            iy = abs(self._get_grid1d_seq("y") - y).argmin()
             field = field[:, iy, :]
         elif equation.startswith("ix="):
             ix = eval(equation[len("ix=") :])
             field = field[..., ix]
         elif equation.startswith("x="):
             x = eval(equation[len("x=") :])
-            ix = abs(self.output.sim.oper.get_grid1d_seq("x") - x).argmin()
+            ix = abs(self._get_grid1d_seq("x") - x).argmin()
             field = field[..., ix]
         else:
             raise NotImplementedError
 
         return field, key_field
+
+    def get_vector_for_plot(self):
+        raise NotImplementedError
+
+    def _get_axis_data(self, equation=None):
+        """Get axis data.
+
+        Returns
+        -------
+
+        x : array
+          x-axis data.
+
+        y : array
+          y-axis data.
+
+        """
+        if equation is None:
+            try:
+                equation = self._equation
+            except AttributeError:
+                pass
+
+        if (
+            equation is None
+            or equation.startswith("iz=")
+            or equation.startswith("z=")
+        ):
+            x_seq = self._get_grid1d_seq("x")
+            y_seq = self._get_grid1d_seq("y")
+        elif equation.startswith("iy=") or equation.startswith("y="):
+            x_seq = self._get_grid1d_seq("x")
+            y_seq = self._get_grid1d_seq("z")
+        elif equation.startswith("ix=") or equation.startswith("x="):
+            x_seq = self._get_grid1d_seq("y")
+            y_seq = self._get_grid1d_seq("z")
+        else:
+            raise NotImplementedError
+
+        return x_seq, y_seq
+
+    def _get_grid1d_seq(self, axis):
+        return self.oper.get_grid1d_seq(axis)
 
 
 def time_from_path(path):
@@ -297,92 +338,16 @@ def time_from_path(path):
     return time
 
 
-class SetOfPhysFieldFiles:
+class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     """A set of physical field files."""
 
-    def __init__(self, path_dir=os.curdir, output=None):
-        self.output = output
-        self.path_dir = path_dir if output is None else output.path_run
-        self.update_times()
+    time_from_path = staticmethod(time_from_path)
 
-    def update_times(self):
-        """Initialize the times by globing and analyzing the file names."""
-        path_files = glob(os.path.join(self.path_dir, "state_phys*.[hn]*"))
-
-        if hasattr(self, "path_files") and len(self.path_files) == len(
-            path_files
-        ):
-            return
-
-        self.path_files = sorted(path_files)
-        self.times = np.array([time_from_path(path) for path in self.path_files])
-
-    def get_min_time(self):
-        if hasattr(self, "times"):
-            return self.times.min()
-        return 0.0
-
-    def get_field_to_plot(
-        self,
-        time=None,
-        idx_time=None,
-        key=None,
-        equation=None,
-        interpolate_time=True,
+    def _get_field_to_plot_from_file(
+        self, path_file, key, equation, skip_vars=()
     ):
 
-        if time is None and idx_time is None:
-            self.update_times()
-            time = self.times[-1]
-
-        # Assert files are available
-        if self.times.size == 0:
-            raise FileNotFoundError(
-                "No state_phys files were detected in directory: "
-                f"{self.path_dir}"
-            )
-
-        if not interpolate_time and time is not None:
-            idx, time_closest = self.get_closest_time_file(time)
-            return self.get_field_to_plot(
-                idx_time=idx, key=key, equation=equation
-            )
-
-        if interpolate_time and time is not None:
-
-            idx_closest, time_closest = self.get_closest_time_file(time)
-
-            if isclose(time, time_closest) or self.times.size == 1:
-                return self.get_field_to_plot(
-                    idx_time=idx_closest, key=key, equation=equation
-                )
-
-            if idx_closest == self.times.size - 1:
-                idx0 = idx_closest - 1
-                idx1 = idx_closest
-            elif time_closest < time or idx_closest == 0:
-                idx0 = idx_closest
-                idx1 = idx_closest + 1
-            elif time_closest > time:
-                idx0 = idx_closest - 1
-                idx1 = idx_closest
-
-            dt_save = self.times[idx1] - self.times[idx0]
-            weight0 = 1 - np.abs(time - self.times[idx0]) / dt_save
-            weight1 = 1 - np.abs(time - self.times[idx1]) / dt_save
-
-            field0, time0 = self.get_field_to_plot(
-                idx_time=idx0, key=key, equation=equation
-            )
-            field1, time1 = self.get_field_to_plot(
-                idx_time=idx1, key=key, equation=equation
-            )
-
-            return field0 * weight0 + field1 * weight1, time
-
-        # print(idx_time, 'Using file', self.path_files[idx_time])
-
-        with h5py.File(self.path_files[idx_time], "r") as file:
+        with h5py.File(path_file, "r") as file:
             time = file["state_phys"].attrs["time"]
             dset = file["state_phys"][key]
 
@@ -418,8 +383,3 @@ class SetOfPhysFieldFiles:
 
             else:
                 raise NotImplementedError
-
-    def get_closest_time_file(self, time):
-        """Find the index and value of the closest actual time of the field."""
-        idx = np.abs(self.times - time).argmin()
-        return idx, self.times[idx]

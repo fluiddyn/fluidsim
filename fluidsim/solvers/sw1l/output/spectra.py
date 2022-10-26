@@ -22,7 +22,7 @@ class SpectraSW1L(Spectra):
     def _init_online_plot(self):
         super()._init_online_plot()
         if mpi.rank == 0:
-            self.axe.set_title("spectra\n" + self.output.summary_simul)
+            self.ax.set_title("spectra\n" + self.output.summary_simul)
 
     def compute(self):
         """compute the values at one time."""
@@ -127,15 +127,15 @@ class SpectraSW1L(Spectra):
             spectrum2D_EKd = spectrum2D_EK - spectrum2D_EKr
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D_E * coef_norm, "k")
-            self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r")
-            self.axe.loglog(khE, spectrum2D_EA * coef_norm, "b")
-            self.axe.loglog(khE, spectrum2D_EKr * coef_norm, "r--")
-            self.axe.loglog(khE, spectrum2D_EKd * coef_norm, "r:")
-            lin_inf, lin_sup = self.axe.get_ylim()
+            self.ax.loglog(khE, spectrum2D_E * coef_norm, "k")
+            self.ax.loglog(khE, spectrum2D_EK * coef_norm, "r")
+            self.ax.loglog(khE, spectrum2D_EA * coef_norm, "b")
+            self.ax.loglog(khE, spectrum2D_EKr * coef_norm, "r--")
+            self.ax.loglog(khE, spectrum2D_EKd * coef_norm, "r:")
+            lin_inf, lin_sup = self.ax.get_ylim()
             if lin_inf < 10e-6:
                 lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.set_ylim([lin_inf, lin_sup])
         else:
             print(
                 "you need to implement the ploting "

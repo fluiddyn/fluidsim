@@ -19,7 +19,7 @@ import numpy as np
 
 from fluiddyn.util import mpi
 
-from .movies import MoviesBase1D
+from fluidsim_core.output.movies import MoviesBase1D
 
 from .phys_fields import PhysFieldsBase
 
@@ -32,8 +32,7 @@ class MoviesBasePhysFields1D(MoviesBase1D):
 
 
 class PhysFieldsBase1D(PhysFieldsBase):
-    def _init_movies(self):
-        self.movies = MoviesBasePhysFields1D(self.output, self)
+    _cls_movies = MoviesBasePhysFields1D
 
     def plot(self, field=None, time=None, numfig=None):
         is_field_ready = False

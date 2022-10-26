@@ -102,21 +102,21 @@ class SpatialMeansBase(SpecificOutput):
             width_axe = 0.85
             height_axe = 0.4
             x_left_axe = 0.12
-            z_bottom_axe = 0.55
+            z_bottom_ax = 0.55
 
-            size_axe = [x_left_axe, z_bottom_axe, width_axe, height_axe]
-            fig, axe = self.output.figure_axe(size_axe=size_axe, numfig=3_000_000)
-            self.axe_a = axe
-            axe.set_xlabel("$t$")
-            axe.set_ylabel("$E(t)$")
-            axe.set_title("mean quantities\n" + self.output.summary_simul)
+            size_ax = [x_left_axe, z_bottom_ax, width_axe, height_axe]
+            fig, ax = self.output.figure_axe(size_axe=size_ax, numfig=3_000_000)
+            self.ax_a = ax
+            ax.set_xlabel("$t$")
+            ax.set_ylabel("$E(t)$")
+            ax.set_title("mean quantities\n" + self.output.summary_simul)
 
-            z_bottom_axe = 0.08
-            size_axe[1] = z_bottom_axe
-            axe = fig.add_axes(size_axe)
-            self.axe_b = axe
-            axe.set_xlabel("$t$")
-            axe.set_ylabel(r"$\epsilon(t)$")
+            z_bottom_ax = 0.08
+            size_ax[1] = z_bottom_ax
+            ax = fig.add_axes(size_ax)
+            self.axe_b = ax
+            ax.set_xlabel("$t$")
+            ax.set_ylabel(r"$\epsilon(t)$")
 
     def _get_nb_points_from_lines(self, lines_t, *liness):
         nt = len(lines_t)

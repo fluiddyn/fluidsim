@@ -17,6 +17,7 @@ import warnings
 import json
 import hashlib
 import inspect
+from importlib import import_module
 
 import h5netcdf
 import h5py
@@ -224,7 +225,16 @@ def load_sim_for_plot(
 
     """
     path_dir = pathdir_from_namedir(name_dir)
-    solver = _import_solver_from_path(path_dir)
+
+    info_solver = load_info_solver(path_dir)
+
+    if hasattr(info_solver, "loader"):
+        name_module, name_func = info_solver.loader.split(".")
+        mod = import_module(name_module)
+        loader = getattr(mod, name_func)
+        return loader(path_dir)
+
+    solver = import_module(info_solver.module_name)
     params = load_params_simul(path_dir)
 
     if merge_missing_params:

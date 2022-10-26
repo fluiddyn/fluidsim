@@ -42,7 +42,9 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
     def _init_labels(self, xlabel=None, ylabel=None):
         """Initialize the labels."""
         if xlabel is None or ylabel is None:
-            _xlabel, _ylabel = _get_xylabels_from_equation(self._equation)
+            _xlabel, _ylabel = _get_xylabels_from_equation(
+                self.phys_fields._equation
+            )
         if xlabel is None:
             xlabel = _xlabel
         if ylabel is None:
@@ -52,12 +54,11 @@ class MoviesBasePhysFields3D(MoviesBasePhysFields2D):
 
 
 class PhysFieldsBase3D(PhysFieldsBase2D):
+    _cls_movies = MoviesBasePhysFields3D
+
     def __init__(self, output):
         super().__init__(output)
         self.set_equation_crosssection("iz=0")
-
-    def _init_movies(self):
-        self.movies = MoviesBasePhysFields3D(self.output, self)
 
     def set_equation_crosssection(self, equation):
         """Set the equation defining the cross-section.
@@ -71,23 +72,17 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
 
         """
         self._equation = equation
-        self.movies._equation = equation
-
-    def _get_grid1d(self, equation):
-
         if equation.startswith("iz=") or equation.startswith("z="):
-            x_seq = self.oper.get_grid1d_seq("x")
-            y_seq = self.oper.get_grid1d_seq("y")
+            self.key_vec_xaxis = "vx"
+            self.key_vec_yaxis = "vy"
         elif equation.startswith("iy=") or equation.startswith("y="):
-            x_seq = self.oper.get_grid1d_seq("x")
-            y_seq = self.oper.get_grid1d_seq("z")
+            self.key_vec_xaxis = "vx"
+            self.key_vec_yaxis = "vz"
         elif equation.startswith("ix=") or equation.startswith("x="):
-            x_seq = self.oper.get_grid1d_seq("y")
-            y_seq = self.oper.get_grid1d_seq("z")
+            self.key_vec_xaxis = "vy"
+            self.key_vec_yaxis = "vz"
         else:
             raise NotImplementedError
-
-        return x_seq, y_seq
 
     def plot(
         self,
@@ -138,8 +133,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         equation = self._equation
 
         is_field_ready = False
-
-        self._has_uxuy = self.sim.state.has_vars("vx", "vy")
 
         key_field = None
         if field is None:
@@ -215,9 +208,8 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            x_seq, y_seq = self._get_grid1d(equation)
+            x_seq, y_seq = self._get_axis_data(equation)
 
-            [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
                 cmap = plt.get_cmap(cmap)
             except ValueError:
@@ -331,8 +323,6 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             self.set_equation_crosssection(equation)
         equation = self._equation
 
-        self._has_uxuy = self.sim.state.has_vars("vx", "vy")
-
         key_field = None
         if field is None:
             key_field = self.get_key_field_to_plot(forbid_compute=True)
@@ -404,9 +394,8 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             else:
                 fig, ax = self.output.figure_axe(numfig=numfig)
 
-            x_seq, y_seq = self._get_grid1d(equation)
+            x_seq, y_seq = self._get_axis_data(equation)
 
-            [XX_seq, YY_seq] = np.meshgrid(x_seq, y_seq)
             try:
                 cmap = plt.get_cmap(cmap)
             except ValueError:
@@ -462,44 +451,3 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
             fig.tight_layout()
             fig.canvas.draw()
             plt.pause(1e-3)
-
-    def _quiver_plot(self, ax, vecx="ux", vecy="uy", XX=None, YY=None):
-        """Superimposes a quiver plot of velocity vectors with a given axis
-        object corresponding to a 2D contour plot.
-
-        """
-        if isinstance(vecx, str):
-            vecx, time = self.get_field_to_plot(vecx)
-
-        if isinstance(vecy, str):
-            vecy, time = self.get_field_to_plot(vecy)
-
-        if XX is None and YY is None:
-            equation = self._equation
-
-            x_seq, y_seq = self._get_grid1d(equation)
-
-            [XX, YY] = np.meshgrid(x_seq, y_seq)
-
-        if mpi.rank == 0:
-            # local variable 'normalize_diff' is assigned to but never used
-            # normalize_diff = (
-            #     (np.max(np.sqrt(vecx**2 + vecy**2)) -
-            #      np.min(np.sqrt(vecx**2 + vecy**2))) /
-            #     np.max(np.sqrt(vecx**2 + vecy**2)))
-            vmax = np.max(np.sqrt(vecx**2 + vecy**2))
-            # Quiver is normalized by the vmax
-            # copy to avoid a bug
-            skip = self._skip_quiver
-            vecx_c = vecx[::skip, ::skip].copy()
-            vecy_c = vecy[::skip, ::skip].copy()
-            quiver = ax.quiver(
-                XX[::skip, ::skip],
-                YY[::skip, ::skip],
-                vecx_c / vmax,
-                vecy_c / vmax,
-            )
-        else:
-            quiver = vmax = None
-
-        return quiver, vmax

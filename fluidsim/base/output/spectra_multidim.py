@@ -88,7 +88,7 @@ class SpectraMultiDim(SpecificOutput):
 
                     if tsim - self.t_last_show >= self.period_show:
                         self.t_last_show = tsim
-                        self.axe.get_figure().canvas.draw()
+                        self.ax.get_figure().canvas.draw()
 
     def compute(self):
         """compute the values at one time."""
@@ -98,13 +98,11 @@ class SpectraMultiDim(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k_x$")
-            axe.set_ylabel("$k_y$")
-            axe.set_title(
-                "Multidimensional spectra\n" + self.output.summary_simul
-            )
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k_x$")
+            ax.set_ylabel("$k_y$")
+            ax.set_title("Multidimensional spectra\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, arg):
         pass

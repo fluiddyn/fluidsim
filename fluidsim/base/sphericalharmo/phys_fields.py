@@ -21,15 +21,14 @@ class Movies2DSphericalHarmo(MoviesBasePhysFields2D):
         if shape:
             warn("_get_axis_data: shape parameter ignored.")
 
-        x = self.oper.get_grid1d_seq("lon")
-        y = self.oper.get_grid1d_seq("lat")
+        x = self._get_grid1d_seq("lon")
+        y = self._get_grid1d_seq("lat")
 
         return x, y
 
 
 class PhysFieldsSphericalHarmo(PhysFieldsBase2D):
-    def _init_movies(self):
-        self.movies = Movies2DSphericalHarmo(self.output, self)
+    _cls_movies = Movies2DSphericalHarmo
 
     def _set_title(self, ax, key, time, vmax=None):
         title = (
