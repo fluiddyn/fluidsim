@@ -12,8 +12,15 @@ class PhysFields4Snek5000(PhysFieldsABC):
 
     def __init__(self, output=None):
 
+        self.output = output
+        self.params = output.params
+
         self.set_of_phys_files = self._cls_set_of_files(output=output)
         self.plot_hexa = self.set_of_phys_files.plot_hexa
+        self.read_hexadata = self.set_of_phys_files.read_hexadata
+        self.read_hexadata_from_time = (
+            self.set_of_phys_files.read_hexadata_from_time
+        )
 
         self.movies = self._cls_movies(output, self)
         self.animate = self.movies.animate

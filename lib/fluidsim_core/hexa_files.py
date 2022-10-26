@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -155,18 +156,38 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def get_dataset_from_path(self, path):
         return pymech.open_dataset(path)
 
-    def _get_hexadata_from_time(self, time):
-        index = self.times.tolist().index(time)
-        return self._get_hexadata_from_path(self.path_files[index])
+    def read_hexadata_from_time(self, time):
+        try:
+            index = self.times.tolist().index(time)
+        except ValueError:
+            print(f"available times: {self.times}")
+            raise
+
+        return self._read_hexadata_from_path(self.path_files[index])
+
+    def read_hexadata(self, path=None, index=None):
+        if index is not None and path is not None:
+            raise ValueError("path and index are both not None")
+        elif index is None and path is None:
+            index = -1
+        if index is not None:
+            path = self.path_files[index]
+
+        if not Path(path).exists():
+            raise ValueError(
+                f"{path = } does not exists. Available path: {self.path_files}"
+            )
+
+        return self._read_hexadata_from_path(path)
 
     @lru_cache(maxsize=2)
-    def _get_hexadata_from_path(self, path):
+    def _read_hexadata_from_path(self, path):
         return pymech.readnek(path)
 
     def _get_field_to_plot_from_file(self, path_file, key, equation):
         if equation is not None:
             raise NotImplementedError
-        hexa_data = self._get_hexadata_from_path(path_file)
+        hexa_data = self._read_hexadata_from_path(path_file)
         hexa_field = HexaField(key, hexa_data)
         return hexa_field, float(hexa_data.time)
 
@@ -334,7 +355,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             time = self.times[-1]
         else:
             time = self.times[abs(self.times - time).argmin()]
-        hexa_data = self._get_hexadata_from_time(time)
+        hexa_data = self.read_hexadata_from_time(time)
 
         key_field = self.get_key_field_to_plot(key)
         hexa_field = HexaField(key_field, hexa_data, equation=equation)
@@ -388,7 +409,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             raise NotImplementedError
         # temporary hack
         time = self.times[abs(self.times - time).argmin()]
-        hexa_data = self._get_hexadata_from_time(time)
+        hexa_data = self.read_hexadata_from_time(time)
         vec_xaxis = HexaField(hexa_data=hexa_data, key="vx")
         vec_yaxis = HexaField(hexa_data=hexa_data, key="vy")
         return vec_xaxis, vec_yaxis
