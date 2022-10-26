@@ -769,6 +769,13 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         self._clim = kwargs.get("clim")
         self._set_clim()
 
+        skip_vars = list("xyz")
+        if self.key_field != "temperature":
+            skip_vars.append("temperature")
+        if self.key_field != "pressure":
+            skip_vars.append("pressure")
+        self._skip_vars = tuple(skip_vars)
+
         self.phys_fields._set_title(ax, self.key_field, time, vmax)
 
     def update_animation(self, frame, **fargs):
@@ -783,13 +790,14 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
             time=time,
             key=self.key_field,
             interpolate_time=True,
+            skip_vars=self._skip_vars,
         )
 
         for image, array in zip(self._images, hexa_field.arrays):
             image.set_array(array.flatten())
 
         hexa_vec_xaxis, hexa_vec_yaxis = phys_fields.get_vector_for_plot(
-            time=time
+            time=time, skip_vars=self._skip_vars
         )
 
         vx_quiver, vy_quiver, vmax = set_of_phys_files.compute_vectors_quiver(

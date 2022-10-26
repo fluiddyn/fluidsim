@@ -37,6 +37,7 @@ class PhysFields4Snek5000(PhysFieldsABC):
         idx_time=None,
         equation=None,
         interpolate_time=True,
+        skip_vars=(),
     ):
         """Get the field to be plotted in process 0."""
         return self.set_of_phys_files.get_field_to_plot(
@@ -45,14 +46,21 @@ class PhysFields4Snek5000(PhysFieldsABC):
             key=key,
             equation=equation,
             interpolate_time=interpolate_time,
+            skip_vars=skip_vars,
         )
 
     def get_vector_for_plot(
-        self, from_state=False, time=None, interpolate_time=True
+        self,
+        from_state=False,
+        time=None,
+        interpolate_time=True,
+        skip_vars=(),
     ):
         if from_state:
             raise ValueError("cannot get anything from the state for this solver")
-        return self.set_of_phys_files.get_vector_for_plot(time, self._equation)
+        return self.set_of_phys_files.get_vector_for_plot(
+            time, self._equation, skip_vars=skip_vars
+        )
 
     @lru_cache(maxsize=None)
     def _get_axis_data(self, equation=None):

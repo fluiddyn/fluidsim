@@ -64,6 +64,7 @@ def false_output(path_sim):
     output.name_solver = "cbox"
     output.sim = Object()
     output.sim.params = Object()
+    output.params = Object()
     output.sim.params.output = Object()
     output.sim.oper = Object()
     output.sim.oper.axes = "zyx"

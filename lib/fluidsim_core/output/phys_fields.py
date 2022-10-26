@@ -52,6 +52,7 @@ class PhysFieldsABC(metaclass=ABCMeta):
         idx_time=None,
         equation=None,
         interpolate_time=True,
+        skip_vars=(),
     ):
         """Get the field to be plotted in process 0."""
 
@@ -152,6 +153,7 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
         key=None,
         equation=None,
         interpolate_time=True,
+        skip_vars=(),
     ):
 
         if time is None and idx_time is None:
@@ -167,7 +169,7 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
         if not interpolate_time and time is not None:
             idx, time_closest = self.get_closest_time_file(time)
             return self.get_field_to_plot(
-                idx_time=idx, key=key, equation=equation
+                idx_time=idx, key=key, equation=equation, skip_vars=skip_vars
             )
 
         if interpolate_time and time is not None:
@@ -176,7 +178,10 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
 
             if math.isclose(time, time_closest) or self.times.size == 1:
                 return self.get_field_to_plot(
-                    idx_time=idx_closest, key=key, equation=equation
+                    idx_time=idx_closest,
+                    key=key,
+                    equation=equation,
+                    skip_vars=skip_vars,
                 )
 
             if idx_closest == self.times.size - 1:
@@ -194,16 +199,16 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
             weight1 = 1 - np.abs(time - self.times[idx1]) / dt_save
 
             field0, time0 = self.get_field_to_plot(
-                idx_time=idx0, key=key, equation=equation
+                idx_time=idx0, key=key, equation=equation, skip_vars=skip_vars
             )
             field1, time1 = self.get_field_to_plot(
-                idx_time=idx1, key=key, equation=equation
+                idx_time=idx1, key=key, equation=equation, skip_vars=skip_vars
             )
 
             return field0 * weight0 + field1 * weight1, time
 
         return self._get_field_to_plot_from_file(
-            self.path_files[idx_time], key, equation
+            self.path_files[idx_time], key, equation, skip_vars=skip_vars
         )
 
     def get_closest_time_file(self, time):
@@ -212,5 +217,7 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
         return idx, self.times[idx]
 
     @abstractmethod
-    def _get_field_to_plot_from_file(self, path_file, key, equation):
+    def _get_field_to_plot_from_file(
+        self, path_file, key, equation, skip_vars=()
+    ):
         "Get a 2d field from a file"

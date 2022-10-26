@@ -343,7 +343,9 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
     time_from_path = staticmethod(time_from_path)
 
-    def _get_field_to_plot_from_file(self, path_file, key, equation):
+    def _get_field_to_plot_from_file(
+        self, path_file, key, equation, skip_vars=()
+    ):
 
         with h5py.File(path_file, "r") as file:
             time = file["state_phys"].attrs["time"]

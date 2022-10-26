@@ -156,16 +156,18 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def get_dataset_from_path(self, path):
         return pymech.open_dataset(path)
 
-    def read_hexadata_from_time(self, time):
+    def read_hexadata_from_time(self, time, skip_vars=()):
         try:
             index = self.times.tolist().index(time)
         except ValueError:
             print(f"available times: {self.times}")
             raise
 
-        return self._read_hexadata_from_path(self.path_files[index])
+        return self._read_hexadata_from_path(
+            self.path_files[index], skip_vars=skip_vars
+        )
 
-    def read_hexadata(self, path=None, index=None):
+    def read_hexadata(self, path=None, index=None, skip_vars=()):
         if index is not None and path is not None:
             raise ValueError("path and index are both not None")
         elif index is None and path is None:
@@ -178,16 +180,19 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
                 f"{path = } does not exists. Available path: {self.path_files}"
             )
 
-        return self._read_hexadata_from_path(path)
+        return self._read_hexadata_from_path(path, skip_vars=skip_vars)
 
     @lru_cache(maxsize=2)
-    def _read_hexadata_from_path(self, path):
-        return pymech.readnek(path)
+    def _read_hexadata_from_path(self, path, skip_vars=()):
+        print(f"pymech.readnek {path.name} {skip_vars=}")
+        return pymech.readnek(path, skip_vars=skip_vars)
 
-    def _get_field_to_plot_from_file(self, path_file, key, equation):
+    def _get_field_to_plot_from_file(
+        self, path_file, key, equation, skip_vars=()
+    ):
         if equation is not None:
             raise NotImplementedError
-        hexa_data = self._read_hexadata_from_path(path_file)
+        hexa_data = self._read_hexadata_from_path(path_file, skip_vars=skip_vars)
         hexa_field = HexaField(key, hexa_data)
         return hexa_field, float(hexa_data.time)
 
@@ -404,12 +409,12 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         case = self.output.name_solver
         return f"session_{session_id:02d}/{case}0.f?????"
 
-    def get_vector_for_plot(self, time, equation=None):
+    def get_vector_for_plot(self, time, equation=None, skip_vars=()):
         if equation is not None:
             raise NotImplementedError
         # temporary hack
         time = self.times[abs(self.times - time).argmin()]
-        hexa_data = self.read_hexadata_from_time(time)
+        hexa_data = self.read_hexadata_from_time(time, skip_vars=skip_vars)
         vec_xaxis = HexaField(hexa_data=hexa_data, key="vx")
         vec_yaxis = HexaField(hexa_data=hexa_data, key="vy")
         return vec_xaxis, vec_yaxis
