@@ -81,6 +81,22 @@ class HexaField:
                 z_1d = z_3d[:, 0, 0]
                 index_z = np.argmin(abs(z_1d - z_target))
                 index_y = index_x = slice(None)
+            elif equation.startswith("y="):
+                y_target = float(equation[2:])
+                y_3d = elem.pos[1]
+                if not (y_3d.min() <= y_target <= y_3d.max()):
+                    continue
+                y_1d = y_3d[:, 0, 0]
+                index_y = np.argmin(abs(y_1d - y_target))
+                index_z = index_x = slice(None)
+            elif equation.startswith("x="):
+                x_target = float(equation[2:])
+                x_3d = elem.pos[0]
+                if not (x_3d.min() <= x_target <= x_3d.max()):
+                    continue
+                x_1d = x_3d[:, 0, 0]
+                index_x = np.argmin(abs(x_1d - x_target))
+                index_z = index_y = slice(None)
             else:
                 raise NotImplementedError
 
@@ -96,7 +112,7 @@ class HexaField:
 
             self.elements.append(dict_elem)
 
-        if key in "xy":
+        if key in "xyz":
             self.lims = hexa_data.lims.pos[index_var]
 
         self.time = hexa_data.time
@@ -184,7 +200,6 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
     @lru_cache(maxsize=2)
     def _read_hexadata_from_path(self, path, skip_vars=()):
-        print(f"pymech.readnek {path.name} {skip_vars=}")
         return pymech.readnek(path, skip_vars=skip_vars)
 
     def _get_field_to_plot_from_file(
@@ -345,6 +360,21 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
         return vx_quiver, vy_quiver, vmax
 
+    def get_letters_axes_from_equation(self, equation):
+        equation = equation.replace(" ", "")
+        if equation.startswith("z="):
+            letter_x_axis = "x"
+            letter_y_axis = "y"
+        elif equation.startswith("y="):
+            letter_x_axis = "x"
+            letter_y_axis = "z"
+        elif equation.startswith("x="):
+            letter_x_axis = "z"
+            letter_y_axis = "y"
+        else:
+            raise NotImplementedError
+        return letter_x_axis, letter_y_axis
+
     def plot_hexa(
         self,
         key=None,
@@ -364,10 +394,14 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
         key_field = self.get_key_field_to_plot(key)
         hexa_field = HexaField(key_field, hexa_data, equation=equation)
-        hexa_x = HexaField("x", hexa_data, equation=equation)
-        hexa_y = HexaField("y", hexa_data, equation=equation)
-        hexa_vx = HexaField("vx", hexa_data, equation=equation)
-        hexa_vy = HexaField("vy", hexa_data, equation=equation)
+
+        letter_x_axis, letter_y_axis = self.get_letters_axes_from_equation(
+            equation
+        )
+        hexa_x = HexaField(letter_x_axis, hexa_data, equation=equation)
+        hexa_y = HexaField(letter_y_axis, hexa_data, equation=equation)
+        hexa_vx = HexaField("v" + letter_x_axis, hexa_data, equation=equation)
+        hexa_vy = HexaField("v" + letter_y_axis, hexa_data, equation=equation)
 
         fig, ax = plt.subplots(layout="constrained")
 
@@ -388,8 +422,8 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
         ax.quiver(x_quiver, y_quiver, vx_quiver, vy_quiver, **quiver_kw)
 
-        ax.set_xlabel("$x$")
-        ax.set_ylabel("$y$")
+        ax.set_xlabel(f"${letter_x_axis}$")
+        ax.set_ylabel(f"${letter_y_axis}$")
         title = f"{key_field}, $t = {time:.3f}$"
         if vmax is not None:
             title += r", $|\vec{v}|_{max} = $" + f"{vmax:.3f}"

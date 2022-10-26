@@ -6,7 +6,7 @@ import numpy as np
 
 import pymech
 
-name_solver = "cbox"
+name_solver = "testing"
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ class Object:
 @pytest.fixture
 def false_output(path_sim):
     output = Object()
-    output.name_solver = "cbox"
+    output.name_solver = name_solver
     output.sim = Object()
     output.sim.params = Object()
     output.params = Object()
