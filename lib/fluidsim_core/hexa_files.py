@@ -321,8 +321,8 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         nx_quiver = int((xmax - xmin) / dx_quiver)
         ny_quiver = int((ymax - ymin) / dx_quiver)
 
-        x_approx_quiver = np.linspace(dx_quiver, xmax - dx_quiver, nx_quiver)
-        y_approx_quiver = np.linspace(dx_quiver, ymax - dx_quiver, ny_quiver)
+        x_approx_quiver = np.linspace(xmin + dx_quiver, xmax - dx_quiver, nx_quiver)
+        y_approx_quiver = np.linspace(xmin + dx_quiver, ymax - dx_quiver, ny_quiver)
 
         indices_vectors_in_elems = []
 
