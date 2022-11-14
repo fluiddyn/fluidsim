@@ -26,6 +26,9 @@ def test_setoffiles(false_output):
     HexaField(hexa_data=hexa_data_loaded, key="vz")
     HexaField(hexa_data=hexa_data_loaded, key="pres", equation=None)
 
+    HexaField(hexa_data=hexa_data_loaded, key="scalar", equation=None)
+    HexaField(hexa_data=hexa_data_loaded, key="scalar 1", equation=None)
+
     set_of_files = SetOfPhysFieldFiles(output.path_run, output=output)
     hexa_z, time = set_of_files.get_field_to_plot(2, key="z", equation=None)
 
@@ -37,6 +40,9 @@ def test_setoffiles(false_output):
     set_of_files.plot_hexa(equation="y=0.75")
     set_of_files.plot_hexa(equation="x=0.5")
 
+    set_of_files.plot_hexa(key="scalar 1", prefix="sts")
+    set_of_files.plot_hexa(prefix="sts", time=0)
+
     ax = plt.gca()
     on_move = ax.figure._on_move_hexa
     event = MockEvent(ax, 0.5, 0.5)
@@ -44,3 +50,5 @@ def test_setoffiles(false_output):
 
     set_of_files.get_vector_for_plot(time=3)
     set_of_files.get_dataset_from_time(2.5)
+
+    set_of_files.read_hexadata()

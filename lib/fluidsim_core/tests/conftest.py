@@ -1,4 +1,5 @@
 import sys
+from shutil import copyfile
 
 import pytest
 
@@ -24,7 +25,7 @@ def path_sim(tmp_path):
         ndim=3,
         nel=nx_elem * ny_elem * nz_elem,
         lr1=(nx, ny, nz),
-        var=(3, 3, 1, 1, 0),
+        var=(3, 3, 1, 1, 2),
     )
     hexa_data.wdsz = 8
     hexa_data.istep = 0
@@ -51,7 +52,9 @@ def path_sim(tmp_path):
     time = 2.0
     for it in range(4):
         hexa_data.time = time
-        pymech.writenek(path_dir / f"{name_solver}0.f{it:05d}", hexa_data)
+        path = path_dir / f"{name_solver}0.f{it:05d}"
+        pymech.writenek(path, hexa_data)
+        copyfile(path, path.with_name("sts" + path.name))
         time += 0.5
 
     return path_dir.parent
