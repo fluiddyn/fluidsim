@@ -210,31 +210,34 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def get_dataset_from_path(self, path):
         return pymech.open_dataset(path)
 
-    def read_hexadata_from_time(self, time, skip_vars=()):
+    def read_hexadata_from_time(self, time, skip_vars=(), prefix=None):
+        sof = self._get_setoffiles_from_prefix(prefix)
         try:
-            index = self.times.tolist().index(time)
+            index = sof.times.tolist().index(time)
         except ValueError:
             print(f"available times: {self.times}")
             raise
-
-        return self._read_hexadata_from_path(
-            self.path_files[index], skip_vars=skip_vars
+        return sof._read_hexadata_from_path(
+            sof.path_files[index], skip_vars=skip_vars
         )
 
-    def read_hexadata(self, path=None, index=None, skip_vars=()):
+    def read_hexadata(self, path=None, index=None, skip_vars=(), prefix=None):
         if index is not None and path is not None:
             raise ValueError("path and index are both not None")
         elif index is None and path is None:
             index = -1
+
+        sof = self._get_setoffiles_from_prefix(prefix)
+
         if index is not None:
-            path = self.path_files[index]
+            path = sof.path_files[index]
 
         if not Path(path).exists():
             raise ValueError(
-                f"{path = } does not exists. Available path: {self.path_files}"
+                f"{path = } does not exists. Available path: {sof.path_files}"
             )
 
-        return self._read_hexadata_from_path(path, skip_vars=skip_vars)
+        return sof._read_hexadata_from_path(path, skip_vars=skip_vars)
 
     @lru_cache(maxsize=2)
     def _read_hexadata_from_path(self, path, skip_vars=()):
@@ -421,6 +424,15 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             raise NotImplementedError
         return letter_x_axis, letter_y_axis
 
+    @lru_cache
+    def _get_setoffiles_from_prefix(self, prefix):
+        if prefix is None:
+            return self
+        else:
+            return type(self)(
+                path_dir=self.path_dir, output=self.output, prefix=prefix
+            )
+
     def plot_hexa(
         self,
         key=None,
@@ -433,17 +445,8 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         quiver_kw={},
         prefix=None,
     ):
-        if prefix is None:
-            sopf_color = self
-        elif prefix in self._other_sets_of_files:
-            sopf_color = self._other_sets_of_files[prefix]
-        else:
-            sopf_color = type(self)(
-                path_dir=self.path_dir, output=self.output, prefix=prefix
-            )
-            self._other_sets_of_files[prefix] = sopf_color
-
-        times_color = sopf_color.times
+        sof_color = self._get_setoffiles_from_prefix(prefix)
+        times_color = sof_color.times
 
         if time is None:
             time = times_color[-1]
@@ -457,9 +460,9 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         if prefix is None:
             hexa_data_color = hexa_data
         else:
-            hexa_data_color = sopf_color.read_hexadata_from_time(time)
+            hexa_data_color = sof_color.read_hexadata_from_time(time)
 
-        key_field = sopf_color.get_key_field_to_plot(key)
+        key_field = sof_color.get_key_field_to_plot(key)
         hexa_field = HexaField(key_field, hexa_data_color, equation=equation)
 
         letter_x_axis, letter_y_axis = self.get_letters_axes_from_equation(

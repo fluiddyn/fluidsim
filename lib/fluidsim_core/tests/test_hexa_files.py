@@ -52,3 +52,4 @@ def test_setoffiles(false_output):
     set_of_files.get_dataset_from_time(2.5)
 
     set_of_files.read_hexadata()
+    set_of_files.read_hexadata(prefix="sts")
