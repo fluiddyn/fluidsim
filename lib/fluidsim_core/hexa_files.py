@@ -251,7 +251,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return hexa_field, float(hexa_data.time)
 
     def init_hexa_pcolormesh(
-        self, ax, hexa_color, hexa_x, hexa_y, vmin=None, vmax=None
+        self, ax, hexa_color, hexa_x, hexa_y, vmin=None, vmax=None, **kwargs
     ):
 
         images = []
@@ -270,7 +270,13 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             y_edges = elem_y["edges"]
 
             image = ax.pcolormesh(
-                x_edges, y_edges, arr, shading="flat", vmin=vmin, vmax=vmax
+                x_edges,
+                y_edges,
+                arr,
+                shading="flat",
+                vmin=vmin,
+                vmax=vmax,
+                **kwargs,
             )
 
             images.append(image)
@@ -443,6 +449,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         vmax=None,
         normalize_vectors=True,
         quiver_kw={},
+        pcolor_kw={},
         prefix=None,
     ):
         sof_color = self._get_setoffiles_from_prefix(prefix)
@@ -476,7 +483,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         fig, ax = plt.subplots(layout="constrained")
 
         self.init_hexa_pcolormesh(
-            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax
+            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax, **pcolor_kw
         )
 
         indices_vectors_in_elems, x_quiver, y_quiver = self.init_quiver_1st_step(
