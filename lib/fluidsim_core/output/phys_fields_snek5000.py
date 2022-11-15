@@ -7,7 +7,7 @@
    :undoc-members:
 
 """
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from fluidsim_core.output.phys_fields import PhysFieldsABC
 from fluidsim_core.output.movies import MoviesBasePhysFieldsHexa
@@ -26,9 +26,18 @@ class PhysFields4Snek5000(PhysFieldsABC):
 
         self.set_of_phys_files = self._cls_set_of_files(output=output)
         self.plot_hexa = self.set_of_phys_files.plot_hexa
+        self.plot_hexa_stat = partial(
+            self.set_of_phys_files.plot_hexa, prefix="sts"
+        )
         self.read_hexadata = self.set_of_phys_files.read_hexadata
+        self.read_hexadata_stat = partial(
+            self.set_of_phys_files.read_hexadata, prefix="sts"
+        )
         self.read_hexadata_from_time = (
             self.set_of_phys_files.read_hexadata_from_time
+        )
+        self.read_hexadata_from_time_stat = partial(
+            self.set_of_phys_files.read_hexadata_from_time, prefix="sts"
         )
 
         self.movies = self._cls_movies(output, self)

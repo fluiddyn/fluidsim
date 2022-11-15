@@ -78,6 +78,17 @@ class HexaField:
         elif key.startswith("pres"):
             name_attr = "pres"
             index_var = 0
+        elif key.startswith("scalar"):
+            name_attr = "scal"
+            parts = key.split()
+            if len(parts) == 1:
+                index_var = 0
+            elif len(parts) == 2:
+                index_var = int(parts[1])
+            else:
+                raise ValueError(
+                    "For scalar, key should be of the form 'scalar 2'"
+                )
         else:
             raise NotImplementedError
 
@@ -186,6 +197,11 @@ class HexaField:
 
 
 class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
+    def __init__(self, path_dir=None, output=None, prefix=None):
+        self.prefix = prefix
+        self._other_sets_of_files = {}
+        super().__init__(path_dir=path_dir, output=output)
+
     def get_dataset_from_time(self, time):
         index = self.times.tolist().index(time)
         return self.get_dataset_from_path(self.path_files[index])
@@ -194,31 +210,34 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def get_dataset_from_path(self, path):
         return pymech.open_dataset(path)
 
-    def read_hexadata_from_time(self, time, skip_vars=()):
+    def read_hexadata_from_time(self, time, skip_vars=(), prefix=None):
+        sof = self._get_setoffiles_from_prefix(prefix)
         try:
-            index = self.times.tolist().index(time)
+            index = sof.times.tolist().index(time)
         except ValueError:
             print(f"available times: {self.times}")
             raise
-
-        return self._read_hexadata_from_path(
-            self.path_files[index], skip_vars=skip_vars
+        return sof._read_hexadata_from_path(
+            sof.path_files[index], skip_vars=skip_vars
         )
 
-    def read_hexadata(self, path=None, index=None, skip_vars=()):
+    def read_hexadata(self, path=None, index=None, skip_vars=(), prefix=None):
         if index is not None and path is not None:
             raise ValueError("path and index are both not None")
         elif index is None and path is None:
             index = -1
+
+        sof = self._get_setoffiles_from_prefix(prefix)
+
         if index is not None:
-            path = self.path_files[index]
+            path = sof.path_files[index]
 
         if not Path(path).exists():
             raise ValueError(
-                f"{path = } does not exists. Available path: {self.path_files}"
+                f"{path = } does not exists. Available path: {sof.path_files}"
             )
 
-        return self._read_hexadata_from_path(path, skip_vars=skip_vars)
+        return sof._read_hexadata_from_path(path, skip_vars=skip_vars)
 
     @lru_cache(maxsize=2)
     def _read_hexadata_from_path(self, path, skip_vars=()):
@@ -232,7 +251,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return hexa_field, float(hexa_data.time)
 
     def init_hexa_pcolormesh(
-        self, ax, hexa_color, hexa_x, hexa_y, vmin=None, vmax=None
+        self, ax, hexa_color, hexa_x, hexa_y, vmin=None, vmax=None, **kwargs
     ):
 
         images = []
@@ -251,7 +270,13 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             y_edges = elem_y["edges"]
 
             image = ax.pcolormesh(
-                x_edges, y_edges, arr, shading="flat", vmin=vmin, vmax=vmax
+                x_edges,
+                y_edges,
+                arr,
+                shading="flat",
+                vmin=vmin,
+                vmax=vmax,
+                **kwargs,
             )
 
             images.append(image)
@@ -321,8 +346,12 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         nx_quiver = int((xmax - xmin) / dx_quiver)
         ny_quiver = int((ymax - ymin) / dx_quiver)
 
-        x_approx_quiver = np.linspace(dx_quiver, xmax - dx_quiver, nx_quiver)
-        y_approx_quiver = np.linspace(dx_quiver, ymax - dx_quiver, ny_quiver)
+        x_approx_quiver = np.linspace(
+            xmin + dx_quiver, xmax - dx_quiver, nx_quiver
+        )
+        y_approx_quiver = np.linspace(
+            xmin + dx_quiver, ymax - dx_quiver, ny_quiver
+        )
 
         indices_vectors_in_elems = []
 
@@ -401,6 +430,15 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             raise NotImplementedError
         return letter_x_axis, letter_y_axis
 
+    @lru_cache
+    def _get_setoffiles_from_prefix(self, prefix):
+        if prefix is None:
+            return self
+        else:
+            return type(self)(
+                path_dir=self.path_dir, output=self.output, prefix=prefix
+            )
+
     def plot_hexa(
         self,
         key=None,
@@ -411,15 +449,28 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         vmax=None,
         normalize_vectors=True,
         quiver_kw={},
+        pcolor_kw={},
+        prefix=None,
     ):
-        if time is None:
-            time = self.times[-1]
-        else:
-            time = self.times[abs(self.times - time).argmin()]
-        hexa_data = self.read_hexadata_from_time(time)
+        sof_color = self._get_setoffiles_from_prefix(prefix)
+        times_color = sof_color.times
 
-        key_field = self.get_key_field_to_plot(key)
-        hexa_field = HexaField(key_field, hexa_data, equation=equation)
+        if time is None:
+            time = times_color[-1]
+        else:
+            time = times_color[abs(times_color - time).argmin()]
+
+        if time not in self.times:
+            raise ValueError
+
+        hexa_data = self.read_hexadata_from_time(time)
+        if prefix is None:
+            hexa_data_color = hexa_data
+        else:
+            hexa_data_color = sof_color.read_hexadata_from_time(time)
+
+        key_field = sof_color.get_key_field_to_plot(key)
+        hexa_field = HexaField(key_field, hexa_data_color, equation=equation)
 
         letter_x_axis, letter_y_axis = self.get_letters_axes_from_equation(
             equation
@@ -432,7 +483,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         fig, ax = plt.subplots(layout="constrained")
 
         self.init_hexa_pcolormesh(
-            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax
+            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax, **pcolor_kw
         )
 
         indices_vectors_in_elems, x_quiver, y_quiver = self.init_quiver_1st_step(
@@ -465,9 +516,10 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return read_header(path)
 
     def _get_glob_pattern(self):
+        prefix = "" if self.prefix is None else self.prefix
         session_id = self.output.sim.params.output.session_id
         case = self.output.name_solver
-        return f"session_{session_id:02d}/{case}0.f?????"
+        return f"session_{session_id:02d}/{prefix}{case}0.f?????"
 
     def get_vector_for_plot(self, time, equation=None, skip_vars=()):
         if equation is None:
@@ -491,6 +543,9 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
             header = self.get_header()
             if "T" in header.variables:
                 return "temperature"
-            return "pressure"
+            elif "P" in header.variables:
+                return "pressure"
+            else:
+                return "scalar"
         else:
             return key_prefered

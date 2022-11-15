@@ -263,6 +263,8 @@ class MoviesBase:
             Normalize the vectors at each time by the instantaneous maximum
         quiver_kw: dict
             Dictionary for arguments for the quiver call.
+        pcolor_kw: dict
+            Dictionary for arguments for the pcolormesh call.
         codec : str
             Codec used to save into a movie file (default: ffmpeg)
 
@@ -653,6 +655,7 @@ class MoviesBasePhysFields(MoviesBase2D):
         self._step = step = 1 if "step" not in kwargs else kwargs["step"]
         self._QUIVER = True if "QUIVER" not in kwargs else kwargs["QUIVER"]
         quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        pcolor_kw = {} if "pcolor_kw" not in kwargs else kwargs["pcolor_kw"]
         tmp_key = "normalize_vectors"
         normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
 
@@ -662,7 +665,9 @@ class MoviesBasePhysFields(MoviesBase2D):
         field = field[::step, ::step]
         assert (len(y), len(x)) == field.shape
 
-        self._im = self.ax.pcolormesh(XX, YY, field, shading="nearest")
+        self._im = self.ax.pcolormesh(
+            XX, YY, field, shading="nearest", **pcolor_kw
+        )
         self._ani_cbar = self.fig.colorbar(self._im)
 
         vmax = None
@@ -738,6 +743,7 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         vmin = None if "vmin" not in kwargs else kwargs["vmin"]
         vmax = None if "vmax" not in kwargs else kwargs["vmax"]
         quiver_kw = {} if "quiver_kw" not in kwargs else kwargs["quiver_kw"]
+        pcolor_kw = {} if "pcolor_kw" not in kwargs else kwargs["pcolor_kw"]
         tmp_key = "normalize_vectors"
         self.normalize_vectors = {} if tmp_key not in kwargs else kwargs[tmp_key]
 
@@ -754,7 +760,7 @@ class MoviesBasePhysFieldsHexa(MoviesBasePhysFields):
         ax = self.ax
 
         self._images, self._ani_cbar = set_of_phys_files.init_hexa_pcolormesh(
-            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax
+            ax, hexa_field, hexa_x, hexa_y, vmin=vmin, vmax=vmax, **pcolor_kw
         )
 
         self._clim = kwargs.get("clim")
