@@ -36,79 +36,22 @@ class RestarterABC(metaclass=ABCMeta):
             help="Path of the directory or file from which to restart",
         )
         parser.add_argument(
-            "--t_approx",
-            type=float,
-            default=None,
-            help="Approximate time to choose the file from which to restart",
-        )
-
-        parser.add_argument(
-            "--merge-missing-params",
-            action="store_true",
-            help=(
-                "Can be used to load old simulations carried out with "
-                "an old fluidsim version."
-            ),
-        )
-
-        parser.add_argument(
             "-oc",
             "--only-check",
             action="store_true",
             help="Only check what should be done",
         )
-
         parser.add_argument(
             "-oi",
             "--only-init",
             action="store_true",
             help="Only run initialization phase",
         )
-
-        parser.add_argument(
-            "--new-dir-results",
-            action="store_true",
-            help="Create a new directory for the new simulation",
-        )
-
-        parser.add_argument(
-            "--add-to-t_end",
-            type=float,
-            default=None,
-            help="Time added to params.time_stepping.t_end",
-        )
-        parser.add_argument(
-            "--add-to-it_end",
-            type=int,
-            default=None,
-            help="Number of steps added to params.time_stepping.it_end",
-        )
-
-        parser.add_argument(
-            "--t_end",
-            type=float,
-            default=None,
-            help="params.time_stepping.t_end",
-        )
-        parser.add_argument(
-            "--it_end",
-            type=int,
-            default=None,
-            help="params.time_stepping.it_end",
-        )
-
         parser.add_argument(
             "--modify-params",
             type=str,
             default=None,
             help="Code modifying the `params` object.",
-        )
-
-        parser.add_argument(
-            "--max-elapsed",
-            type=str,
-            default=None,
-            help="Maximum elapsed time.",
         )
 
         return parser
@@ -126,17 +69,7 @@ class RestarterABC(metaclass=ABCMeta):
 
         params.NEW_DIR_RESULTS = args.new_dir_results
 
-        if args.add_to_t_end is not None:
-            params.time_stepping.t_end += args.add_to_t_end
-
-        if args.add_to_it_end is not None:
-            params.time_stepping.it_end += args.add_to_it_end
-
-        if args.t_end is not None:
-            params.time_stepping.t_end = args.t_end
-
-        if args.it_end is not None:
-            params.time_stepping.it_end += args.it_end
+        self._set_params_time_stepping(params, args)
 
         if args.only_check or args.only_init:
             params.output.HAS_TO_SAVE = False
@@ -166,20 +99,28 @@ class RestarterABC(metaclass=ABCMeta):
 
         self._start_sim(sim, args)
 
-        mpi.printby0(self._str_command_after_simul.format(path_run=sim.output.path_run))
+        mpi.printby0(
+            self._str_command_after_simul.format(path_run=sim.output.path_run)
+        )
 
         return params, sim
 
-    _str_command_after_simul = dedent("""
+    _str_command_after_simul = dedent(
+        """
         # To visualize with IPython:
 
         cd {path_run}
         ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
-    """)
+    """
+    )
 
     @abstractmethod
     def _get_params_simul_class(self, args):
         "Create params object and Simul class"
+
+    @abstractmethod
+    def _set_params_time_stepping(self, params, args):
+        "Set time stepping parameters"
 
     @abstractmethod
     def _start_sim(self, sim, args):
