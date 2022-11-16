@@ -79,11 +79,11 @@ extensions = [
 ]
 
 # Execute ipynb files into with a cache ...
-jupyter_execute_notebooks = "cache"
-jupyter_cache = "./_build/jupyter_cache"
-os.makedirs(jupyter_cache, exist_ok=True)
+nb_execution_mode = "cache"
+nb_execution_cache_path = "./_build/jupyter_cache"
+os.makedirs(nb_execution_cache_path, exist_ok=True)
 # ... except these ipynb files
-execution_excludepatterns = [
+nb_execution_excludepatterns = [
     "ipynb/executed/*",
     "ipynb/executed/parametric_study_ns3dstrat/*",
     "examples/forcing_anisotropic_3d/toro2022/*",
@@ -100,7 +100,7 @@ source_suffix = {
 }
 # nb_render_plugin = "default"
 nb_merge_streams = True
-execution_show_tb = True
+nb_execution_show_tb = True
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'

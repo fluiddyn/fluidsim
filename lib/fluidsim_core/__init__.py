@@ -13,6 +13,7 @@ generic base classes and utilities to build new solvers.
    magic
    extend_simul
    hexa_files
+   scripts
 
 """
 from ._version import __version__
