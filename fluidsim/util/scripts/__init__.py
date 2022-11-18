@@ -9,6 +9,7 @@ Provides:
     restart
     modif_resolution
     turb_trandom_anisotropic
+    ipy_load
 
 .. autofunction:: parse_args
 
