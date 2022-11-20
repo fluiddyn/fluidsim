@@ -23,6 +23,28 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
+0.7.0_ (2022-11-??)
+-------------------
+
+- `!316 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/316>`__
+  Interactive movies
+
+- `!317 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/317>`__
+  and `!318 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/318>`__
+
+  - Refactor movie code in fluidsim-core with several improvements and bugfixes
+    (:mod:`fluidsim_core.output.movies` and :mod:`fluidsim_core.output.phys_fields`)
+  - Movies for Snek5000
+
+- `!319 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/319>`__
+  Refactor restart code in fluidsim-core
+  (:class:`fluidsim_core.scripts.restart.RestarterABC` and
+  :class:`fluidsim.util.scripts.restart.Restarter`)
+
+- `!320 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/320>`__ Restart for Snek5000 in fluidsim-core
+
+- `!321 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/321>`__ command ``fluidsim-ipy-load``.
+
 0.6.1_ (2022-09-07)
 -------------------
 
@@ -262,7 +284,8 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.0...branch%2Fdefault
+.. _0.7.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...0.7.0
 .. _0.6.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...0.6.1
 .. _0.6.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.1...0.6.0
 .. _0.5.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.5.0...0.5.1
