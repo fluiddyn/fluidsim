@@ -7,6 +7,10 @@
 
 .. autofunction:: main
 
+.. autoclass:: Restarter
+   :members:
+   :private-members:
+
 """
 
 import sys
