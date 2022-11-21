@@ -1,6 +1,7 @@
 import unittest
 from dataclasses import dataclass
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -316,7 +317,7 @@ class TestForcingOutput(TestSimulBase):
                 dt_equations=0.3,
                 repeat=False,
                 clim=(-1, 1),
-                save_file=tmpdirname / "test_fluidsim_ns2d.gif",
+                save_file=str(Path(tmpdirname) / "test_fluidsim_ns2d.gif"),
                 numfig=1,
             )
         plt.close("all")

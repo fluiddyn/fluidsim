@@ -90,7 +90,7 @@ else:
 install_requires = [
     # tmp
     # f"fluidsim-core>={__version__}",
-    "fluidsim-core>=0.6.1rc0",
+    "fluidsim-core>=0.7.0rc0",
     "h5py",
     "h5netcdf",
     "transonic>=0.4.3",

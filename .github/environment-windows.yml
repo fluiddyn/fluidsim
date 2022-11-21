@@ -7,3 +7,4 @@ dependencies:
   - pandas
   - matplotlib
   - pytest
+  - ipython

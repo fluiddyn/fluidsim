@@ -380,7 +380,10 @@ class PhysFieldsBase2D(PhysFieldsBase):
             if self.oper.Lx != self.oper.Ly:
                 ax.set_aspect("equal")
 
-            fig.tight_layout()
+            try:
+                fig.tight_layout()
+            except RuntimeError:
+                pass
             fig.canvas.draw()
             plt.pause(1e-3)
 
