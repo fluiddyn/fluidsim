@@ -1,0 +1,10 @@
+name:
+  test
+dependencies:
+  - fluidfft
+  - pyfftw
+  - fluiddyn
+  - pandas
+  - matplotlib
+  - pytest
+  - ipython

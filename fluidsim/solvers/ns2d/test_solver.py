@@ -1,5 +1,7 @@
 import unittest
 from dataclasses import dataclass
+import tempfile
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -308,15 +310,16 @@ class TestForcingOutput(TestSimulBase):
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
 
-        sim3.output.phys_fields.animate(
-            "ux",
-            dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
-            repeat=False,
-            clim=(-1, 1),
-            save_file="/tmp/test_fluidsim_ns2d.gif",
-            numfig=1,
-        )
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            sim3.output.phys_fields.animate(
+                "ux",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=str(Path(tmpdirname) / "test_fluidsim_ns2d.gif"),
+                numfig=1,
+            )
         plt.close("all")
 
 
