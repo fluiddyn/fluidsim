@@ -23,7 +23,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
-0.7.0_ (2022-11-??)
+0.7.0_ (2022-11-23)
 -------------------
 
 - `!316 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/316>`__
