@@ -71,9 +71,8 @@ sim.time_stepping.start()
 
 mpi.printby0(
     "\nTo display a video of this simulation, you can do:\n"
-    f"cd {sim.output.path_run}"
+    f"cd {sim.output.path_run}; fluidsim-ipy-load"
     + """
-ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
 
 # then in ipython (copy the line in the terminal):
 

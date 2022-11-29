@@ -112,8 +112,7 @@ class RestarterABC(metaclass=ABCMeta):
         """
         # To visualize with IPython:
 
-        cd {path_run}
-        ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
+        cd {path_run}; fluidsim-ipy-load
     """
     )
 
