@@ -60,11 +60,6 @@ class Restarter(RestarterABC):
             help="params.time_stepping.it_end",
         )
         parser.add_argument(
-            "--new-dir-results",
-            action="store_true",
-            help="Create a new directory for the new simulation",
-        )
-        parser.add_argument(
             "--merge-missing-params",
             action="store_true",
             help=(

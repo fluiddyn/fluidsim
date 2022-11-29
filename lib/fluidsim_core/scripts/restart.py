@@ -53,7 +53,11 @@ class RestarterABC(metaclass=ABCMeta):
             default=None,
             help="Code modifying the `params` object.",
         )
-
+        parser.add_argument(
+            "--new-dir-results",
+            action="store_true",
+            help="Create a new directory for the new simulation",
+        )
         return parser
 
     def restart(self, args=None, **defaults):
@@ -74,11 +78,10 @@ class RestarterABC(metaclass=ABCMeta):
         if args.only_check or args.only_init:
             params.output.HAS_TO_SAVE = False
 
-        if args.max_elapsed is not None:
+        if hasattr(args, "max_elapsed") and args.max_elapsed is not None:
             params.time_stepping.max_elapsed = args.max_elapsed
 
-        path_file = Path(params.init_fields.from_file.path)
-        mpi.printby0(path_file)
+        path_restart_file = self._get_path_restart_file(params, args)
 
         if args.modify_params is not None:
             exec(args.modify_params)
@@ -88,7 +91,7 @@ class RestarterABC(metaclass=ABCMeta):
             return params, None
 
         try:
-            self._check_params_time_stepping(params, path_file, args)
+            self._check_params_time_stepping(params, path_restart_file, args)
         except ValueError:
             return params, None
 
@@ -129,6 +132,11 @@ class RestarterABC(metaclass=ABCMeta):
     @abstractmethod
     def _check_params_time_stepping(self, params, path_file, args):
         "Check time stepping parameters"
+
+    def _get_path_restart_file(self, params, args):
+        path_file = Path(params.init_fields.from_file.path)
+        mpi.printby0(path_file)
+        return path_file
 
     def main(self):
         """Entry point fluidsim-restart"""
