@@ -88,9 +88,7 @@ else:
     devstatus = "Development Status :: 5 - Production/Stable"
 
 install_requires = [
-    # tmp
-    # f"fluidsim-core>={__version__}",
-    "fluidsim-core>=0.7.0rc0",
+    f"fluidsim-core>={__version__}",
     "h5py",
     "h5netcdf",
     "transonic>=0.4.3",
