@@ -23,6 +23,12 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
+
+0.7.2_ (2023-01-05)
+-------------------
+
+- New module :mod:`fluidsim_core.output.remaining_clock_time`.
+
 0.7.1_ (2022-11-30)
 -------------------
 
@@ -290,7 +296,8 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...branch%2Fdefault
+.. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...0.7.2
 .. _0.7.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.0...0.7.1
 .. _0.7.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...0.7.0
 .. _0.6.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...0.6.1
