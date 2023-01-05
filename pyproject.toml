@@ -1,7 +1,7 @@
 [build-system]
 # Further build requirements - like pythran and mpi4py - come from setup.py via
 # the PEP 517 interface.
-requires = ["setuptools>=49.5.0", "setuptools_scm", "wheel", "numpy", "transonic>=0.4.7.post0", "psutil"]
+requires = ["setuptools>=49.5.0", "setuptools_scm", "wheel", "numpy", "transonic", "psutil"]
 build-backend = "setuptools.build_meta"
 
 [tool.towncrier]
