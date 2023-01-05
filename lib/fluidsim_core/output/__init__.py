@@ -7,6 +7,7 @@
    movies
    phys_fields
    phys_fields_snek5000
+   remaining_clock_time
 
 """
 

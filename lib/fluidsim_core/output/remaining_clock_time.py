@@ -1,3 +1,13 @@
+"""Helper to plot remaining clock time data
+
+Provides:
+
+.. autoclass:: RemainingClockTime
+   :members:
+   :private-members:
+   :undoc-members:
+
+"""
 from abc import ABCMeta, abstractmethod
 from datetime import timedelta
 
@@ -8,10 +18,10 @@ import matplotlib.pyplot as plt
 class RemainingClockTime(metaclass=ABCMeta):
     @abstractmethod
     def _load_times(self):
-        """Load remaining time data"""
+        """Load remaining time data."""
 
     def plot_clock_times(self):
-        """Plot the estimated full clock time and clock time per time step"""
+        """Plot the estimated full clock time and clock time per time step."""
 
         results = self._load_times()
         equation_times = results["equation_times"]
