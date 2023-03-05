@@ -6,7 +6,7 @@
 
 """
 
-from math import pi, asin, sin
+from math import pi, acos, cos
 import argparse
 import sys
 
@@ -98,7 +98,7 @@ def create_parser():
         "-n",
         "--n",
         type=int,
-        default=32,
+        default=16,
         help="Number of numerical points over one axis",
     )
 
@@ -115,28 +115,28 @@ def create_parser():
     parser.add_argument(
         "--Ro",
         type=float,
-        default=0.1,
+        default=None,
         help="Rossby number",
     )
     
     parser.add_argument(
         "--Re",
         type=float,
-        default=100,
+        default=None,
         help="Reynolds number",
     )
     
     parser.add_argument(
         "--Re4",
         type=float,
-        default=0.0,
+        default=None,
         help="order-4 hyper viscosity Reynolds number",
     )
     
     parser.add_argument(
-        "--coef-nu4",
+        "--coef_nu4",
         type=float,
-        default=None,
+        default=0.0,
         help="Coefficient used to compute the order-4 hyper viscosity",
     )
 
@@ -157,28 +157,28 @@ def create_parser():
     # shape of the forcing region in spectral space
 
     parser.add_argument(
-        "--nmin-forcing",
+        "--nkmin_forcing",
         type=int,
-        default=3,
+        default=0.5,
         help="Minimal dimensionless wavenumber forced",
     )
 
     parser.add_argument(
-        "--nmax-forcing",
+        "--nkmax_forcing",
         type=int,
-        default=5,
+        default=1.5,
         help="Maximal dimensionless wavenumber forced",
     )
 
     parser.add_argument(
         "-F",
         type=float,
-        default=0.95,
+        default=1,
         help="Ratio omega_f / f, fixing the mean angle between the vertical and the forced wavenumber",
     )
 
     parser.add_argument(
-        "--delta-F",
+        "--delta_F",
         type=float,
         default=0.1,
         help="delta F, fixing angle_max - angle_min",
@@ -195,7 +195,7 @@ def create_parser():
     # Other parameters
 
     parser.add_argument(
-        "--no-vz-kz0",
+        "--no_vz_kz0",
         type=bool,
         default=False,
         help="params.no_vz_kz0",
@@ -249,10 +249,6 @@ def create_params(args):
     params.output.sub_directory = args.sub_directory
     params.short_name_type_run = args.forced_field
 
-    if args.projection is not None:
-        params.projection = args.projection
-        params.short_name_type_run += "_proj"
-
     params.no_vz_kz0 = args.no_vz_kz0
     params.oper.NO_SHEAR_MODES = args.NO_SHEAR_MODES
     params.oper.coef_dealiasing = 2./3.
@@ -261,7 +257,6 @@ def create_params(args):
 
     params.oper.nx = params.oper.ny = params.oper.nz = n = args.n
     params.oper.Lx = params.oper.Ly = params.oper.Lz = L = 2*pi
-    params.oper.Lz = Lh / args.ratio_nh_nz
     
     delta_k = 2 * pi / L
     injection_rate = 1.0
@@ -314,46 +309,22 @@ def create_params(args):
         raise ValueError("args.nu is None and args.Re is None")
         
         
-    # Viscosity and Reynolds number
-    if args.nu is not None and args.Re is not None:
-        raise ValueError("args.nu is not None and args.Re is not None")
-    if args.nu is not None:
-        nu = args.nu
-        mpi.printby0(f"Input viscosity: {nu:.3e}")
-        if nu != 0.0:
-            Re = U * L / nu
-            params.short_name_type_run += f"_Re{Re:.3e}"
-        else:
-            params.short_name_type_run += f"_nu{nu:.3e}"
-    elif args.Re is not None:
-        Re = args.Re
-        mpi.printby0(f"Input Reynolds number: {Re:.3g}")
-        if Re != 0.0:
-            nu = U * L / Re
-            params.short_name_type_run += f"_Re{Re:.3e}"
-        else:
-            raise ValueError("Re = 0.0")
-    else:
-        raise ValueError("args.nu is None and args.Re is None") 
-        
-        
     # order-4 hyper viscosity and associated Reynolds number
-    if args.coef-nu4 is not None and args.Re4 is not None:
+    if args.coef_nu4 is not None and args.Re4 is not None:
         raise ValueError("args.coef-nu4 is not None and args.Re4 is not None")
-    if args.nu4 is not None:
-        nu4 = args.nu4
-        mpi.printby0(f"Input order-4 hyper viscosity: {params.nu_4:.3e}")
-        if nu4 != 0.0:
-            Re4 = U * L**3 / nu4
-            params.short_name_type_run += f"_Re4{Re4:.3e}"
-    elif args.coef-nu4 is not None:
-        coef-nu4 = args.coef-nu4
-        k_max = params.oper.coef_dealiasing * delta_kz * nz / 2
-        mpi.printby0(f"Input coef-nu4: {coef-nu4:.3g}")
-        if coef-nu4 != 0.0:
+    if args.Re4 is not None:
+        Re4 = args.Re4
+        mpi.printby0(f"Input order-4 hyper viscosity Reynolds number: {Re4:.3e}")
+        params.nu_4 = U * L**3 / Re4
+        params.short_name_type_run += f"_Re4{Re4:.3e}"
+    elif args.coef_nu4 is not None:
+        coef_nu4 = args.coef_nu4
+        k_max = params.oper.coef_dealiasing * delta_k * n / 2
+        mpi.printby0(f"Input coef_nu4: {coef_nu4:.3g}")
+        if coef_nu4 != 0.0:
             # only valid if R4 >> 1 (isotropic turbulence at small scales)
             params.nu_4 = (
-                coef-nu4 * injection_rate ** (1 / 3) / k_max ** (10 / 3)
+                coef_nu4 * injection_rate ** (1 / 3) / k_max ** (10 / 3)
             )
             Re4 = U * L**3 / params.nu_4
             params.short_name_type_run += f"_Re4{Re4:.3e}"
@@ -374,20 +345,19 @@ def create_params(args):
     params.forcing.key_forced = keys_versus_kind[args.forced_field]
 
 
-    kf_min = delta_k * nkmin_forcing
-    kf_max = delta_k * nkmax_forcing
-    angle = asin(args.F)
-    delta_angle = asin(args.delta_F)
-    
+    params.forcing.nkmin_forcing = delta_k * args.nkmin_forcing
+    params.forcing.nkmax_forcing = delta_k * args.nkmax_forcing
+    angle = acos(args.F)
+    delta_angle = pi/2 - acos(args.delta_F)    
     
     mpi.printby0(
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
     )
     mpi.printby0(f"angle = {angle / pi * 180:.2f}°")
+    mpi.printby0(f"delta_angle = {delta_angle / pi * 180:.2f}°")
     
-    
-    period_f = 2 * pi / args.f
-    omega_f = args.f * args.F
+    period_f = 2 * pi / f
+    omega_f = f * args.F
 
     # time_stepping fixed to follow waves
     params.time_stepping.USE_T_END = True
@@ -397,8 +367,8 @@ def create_params(args):
 
     # time_correlation is fixed to forced wave period
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_f
-    params.forcing.tcrandom_anisotropic.angle = round3(angle)
-    params.forcing.tcrandom_anisotropic.delta_angle = round3(delta_angle)
+    params.forcing.tcrandom_anisotropic.angle = angle
+    params.forcing.tcrandom_anisotropic.delta_angle = delta_angle
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
 
     params.output.periods_print.print_stdout = 1e-1
@@ -452,7 +422,7 @@ def main(args=None, **defaults):
         print(params)
         return params, sim
 
-    from fluidsim.solvers.ns3d.strat.solver import Simul
+    from fluidsim.solvers.ns3d.solver import Simul
 
     sim = Simul(params)
 
