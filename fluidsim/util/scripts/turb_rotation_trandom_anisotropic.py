@@ -1,4 +1,4 @@
-"""Simulations with the solver ns3d.strat and the forcing tcrandom_anisotropic.
+"""Simulations with the solver ns3d and the forcing tcrandom_anisotropic.
 
 .. autofunction:: create_parser
 
@@ -127,13 +127,6 @@ def create_parser():
     )
     
     parser.add_argument(
-        "--Re4",
-        type=float,
-        default=None,
-        help="order-4 hyper viscosity Reynolds number",
-    )
-    
-    parser.add_argument(
         "--coef_nu4",
         type=float,
         default=0.0,
@@ -159,21 +152,21 @@ def create_parser():
     parser.add_argument(
         "--nkmin_forcing",
         type=int,
-        default=0.5,
+        default=3.5,
         help="Minimal dimensionless wavenumber forced",
     )
 
     parser.add_argument(
         "--nkmax_forcing",
         type=int,
-        default=1.5,
+        default=5.5,
         help="Maximal dimensionless wavenumber forced",
     )
 
     parser.add_argument(
         "-F",
         type=float,
-        default=1,
+        default=0.97,
         help="Ratio omega_f / f, fixing the mean angle between the vertical and the forced wavenumber",
     )
 
@@ -284,6 +277,7 @@ def create_params(args):
             raise ValueError("Ro = 0.0")
     else:
         raise ValueError("args.f is None and args.Ro is None")
+    params.f = f
    
    
     # Viscosity and Reynolds number
@@ -307,54 +301,36 @@ def create_params(args):
             raise ValueError("Re = 0.0")
     else:
         raise ValueError("args.nu is None and args.Re is None")
+    params.nu_2 = nu
         
         
     # order-4 hyper viscosity and associated Reynolds number
-    if args.coef_nu4 is not None and args.Re4 is not None:
-        raise ValueError("args.coef-nu4 is not None and args.Re4 is not None")
-    if args.Re4 is not None:
-        Re4 = args.Re4
-        mpi.printby0(f"Input order-4 hyper viscosity Reynolds number: {Re4:.3e}")
-        params.nu_4 = U * L**3 / Re4
+    coef_nu4 = args.coef_nu4
+    k_max = params.oper.coef_dealiasing * delta_k * n / 2
+    mpi.printby0(f"Input coef_nu4: {coef_nu4:.3g}")
+    if coef_nu4 != 0.0:
+        # only valid if R4 >> 1 (isotropic turbulence at small scales)
+        nu_4_eddies = (
+            coef_nu4 * injection_rate ** (1 / 3) / k_max ** (10 / 3)
+        )
+        # dissipation frequency = maximal wave frequency
+        nu_4_waves = (
+            f * (coef_nu4 / k_max)**4
+        )
+        if nu_4_waves > nu_4_eddies:
+            print("hyperviscosity fixed by waves")
+        nu_4 = max(nu_4_eddies, nu_4_waves)
+        Re4 = U * L**3 / nu_4
         params.short_name_type_run += f"_Re4{Re4:.3e}"
-    elif args.coef_nu4 is not None:
-        coef_nu4 = args.coef_nu4
-        k_max = params.oper.coef_dealiasing * delta_k * n / 2
-        mpi.printby0(f"Input coef_nu4: {coef_nu4:.3g}")
-        if coef_nu4 != 0.0:
-            # only valid if R4 >> 1 (isotropic turbulence at small scales)
-            params.nu_4 = (
-                coef_nu4 * injection_rate ** (1 / 3) / k_max ** (10 / 3)
-            )
-            Re4 = U * L**3 / params.nu_4
-            params.short_name_type_run += f"_Re4{Re4:.3e}"
-        else:
-            params.nu_4 = 0.0
     else:
-        raise ValueError("args.nu is None and args.Re is None") 
+        nu_4 = 0.0
+    params.nu_4 = nu_4
     
      
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = L / 2
     params.init_fields.noise.velo_max = args.init_velo_max
-
-    params.forcing.enable = True
-    params.forcing.type = "tcrandom_anisotropic"
-    params.forcing.forcing_rate = injection_rate
-    params.forcing.key_forced = keys_versus_kind[args.forced_field]
-
-
-    params.forcing.nkmin_forcing = delta_k * args.nkmin_forcing
-    params.forcing.nkmax_forcing = delta_k * args.nkmax_forcing
-    angle = acos(args.F)
-    delta_angle = pi/2 - acos(args.delta_F)    
-    
-    mpi.printby0(
-        f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
-    )
-    mpi.printby0(f"angle = {angle / pi * 180:.2f}°")
-    mpi.printby0(f"delta_angle = {delta_angle / pi * 180:.2f}°")
     
     period_f = 2 * pi / f
     omega_f = f * args.F
@@ -364,12 +340,33 @@ def create_params(args):
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
     params.time_stepping.deltat_max = min(0.1, period_f / 16)
+    params.time_stepping.USE_CFL="True"
+    params.time_stepping.cfl_coef=0.01
+    params.time_stepping.type_time_scheme="RK4"
 
-    # time_correlation is fixed to forced wave period
+    # forcing
+    params.forcing.enable = True
+    params.forcing.type = "tcrandom_anisotropic"
+    params.forcing.forcing_rate = injection_rate
+    params.forcing.key_forced = keys_versus_kind[args.forced_field]
+
+
+    params.forcing.nkmin_forcing = delta_k * args.nkmin_forcing
+    params.forcing.nkmax_forcing = delta_k * args.nkmax_forcing
+    
+    angle = acos(args.F)
+    delta_angle = pi/2 - acos(args.delta_F)    
+    mpi.printby0(
+        f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
+    )
+    mpi.printby0(f"angle = {angle / pi * 180:.2f}°")
+    mpi.printby0(f"delta_angle = {delta_angle / pi * 180:.2f}°")
+    #  time_correlation is fixed to forced wave period
     params.forcing.tcrandom.time_correlation = 2 * pi / omega_f
     params.forcing.tcrandom_anisotropic.angle = angle
     params.forcing.tcrandom_anisotropic.delta_angle = delta_angle
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
+    
 
     params.output.periods_print.print_stdout = 1e-1
 
@@ -447,7 +444,7 @@ cd {sim.output.path_run}; fluidsim-ipy-load
 # in IPython:
 
 sim.output.phys_fields.set_equation_crosssection('x={params.oper.Lx/2}')
-sim.output.phys_fields.animate('b')
+sim.output.phys_fields.animate('vz')
 """
     )
 
