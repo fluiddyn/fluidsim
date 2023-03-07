@@ -627,5 +627,78 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
         self.sim.forcing.get_info()
 
 
+class TestNoGeostrophicModes(TestSimulBase):
+    @classmethod
+    def init_params(self):
+        params = super().init_params()
+
+        params.f = 1.0
+
+        params.init_fields.type = "noise"
+        params.init_fields.noise.length = 1.0
+        params.init_fields.noise.velo_max = 0.01
+
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom_anisotropic"
+        params.forcing.forcing_rate = 1.0
+        params.forcing.key_forced = "vt_fft"
+        params.forcing.nkmax_forcing = 1 * np.sqrt(2)
+        params.forcing.nkmin_forcing = 0.5 * np.sqrt(2)
+
+        params.forcing.tcrandom.time_correlation = 0.15
+        params.forcing.tcrandom_anisotropic.angle = pi/2
+        params.forcing.tcrandom_anisotropic.delta_angle = 0.1
+
+        params.oper.NO_GEOSTROPHIC_MODES = True
+
+        params.oper.coef_dealiasing = 0.8
+
+        # we need delta_kx == delta_ky for this test
+        params.oper.Ly = params.oper.Lx = 3.0
+        params.oper.ny = params.oper.nx = 8
+        params.oper.nz = 8#4
+        params.oper.Lz = params.oper.Lx / params.oper.nx * params.oper.nz
+
+        params.time_stepping.USE_T_END = False
+        params.time_stepping.it_end = 4
+        params.time_stepping.USE_CFL = False
+        params.time_stepping.deltat0 = deltat = 0.08
+
+        params.output.periods_save.spatial_means = deltat
+        params.output.periods_save.spectra = deltat
+        params.output.spectra.kzkh_periodicity = 1
+
+    def test_nogeostrophicmodes(self):
+
+        sim = self.sim
+
+        sim.time_stepping.start()
+
+        data = sim.output.spectra.load_kzkh_mean(
+            tmin=0.2, key_to_load=["Khd", "K", "Khr"]
+        )
+        means = sim.output.spatial_means.load()
+        if mpi.nb_proc > 1:
+            mpi.comm.barrier()
+
+        PK_tot = means["PK_tot"]
+        assert np.allclose(PK_tot, 1.0)
+
+        # check energy in geostrophic modes
+        Eg = means["Eg"] 
+        E = means["E"]
+        print(PK_tot)
+        print(Eg)
+        print(E-Eg)
+        ratio = Eg[-1] / E[-1]
+        assert ratio < 1e-15
+
+        # check energy in geostrophic modes
+        spectrum = data["K"] 
+        assert np.allclose(spectrum[0, :].sum(), 0.0)
+
+        sim.state.check_energy_equal_phys_spect()
+
+
 if __name__ == "__main__":
     unittest.main()

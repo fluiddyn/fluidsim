@@ -29,7 +29,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
         nrj_vy = self.sum_wavenumbers(nrj_vy_fft)
         nrj_vz = self.sum_wavenumbers(nrj_vz_fft)
         energy = nrj_vx + nrj_vy + nrj_vz
-
+        
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         epsK = self.sum_wavenumbers(f_d * 2 * energy_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energy_fft)
@@ -72,6 +72,13 @@ class SpatialMeansNS3D(SpatialMeansBase):
             PK1 = self.sum_wavenumbers(PK1_fft)
             PK2 = self.sum_wavenumbers(PK2_fft)
 
+        # geostrophic modes
+        if self.params.f != 0.0:
+            COND_GEOSTROPHIC = self.oper.Kz == 0.0
+            nrj_geostrophic = energy_fft * COND_GEOSTROPHIC
+            energy_geostrophic = self.sum_wavenumbers(nrj_geostrophic)
+
+
         if mpi.rank == 0:
 
             self.file.write(
@@ -93,6 +100,9 @@ class SpatialMeansNS3D(SpatialMeansBase):
                     f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; "
                     f"PK_tot   = {PK1 + PK2:11.5e} \n"
                 )
+
+            if self.sim.params.f != 0:
+                self.file.write(f"Eg = {energy_geostrophic:11.5e}\n")
 
             self.file.flush()
             os.fsync(self.file.fileno())
@@ -123,6 +133,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
         lines_epsK = []
         lines_epsK4 = []
         lines_epsK8 = []
+        lines_Eg = []
 
         for il, line in enumerate(lines):
             if line.startswith("time ="):
@@ -139,11 +150,13 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 lines_epsK4.append(line)
             elif line.startswith("epsK8 ="):
                 lines_epsK8.append(line)
+            if line.startswith("Eg ="):
+                lines_Eg.append(line)
 
         # fmt: off
         nt = self._get_nb_points_from_lines(
             lines_t, lines_E, lines_Ex, lines_PK, lines_epsK,
-            lines_epsK4, lines_epsK8
+            lines_epsK4, lines_epsK8, lines_Eg
         )
         # fmt: on
 
@@ -164,6 +177,9 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if lines_epsK8:
             epsK8 = np.empty(nt)
+
+        if lines_Eg:
+            Eg = np.empty(nt)
 
         for il in range(nt):
             line = lines_t[il]
@@ -203,6 +219,11 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 words = line.split()
                 epsK8[il] = float(words[2])
 
+            if lines_Eg:
+                line = lines_Eg[il]
+                words = line.split()
+                Eg[il] = float(words[2])
+
         dict_results["t"] = t
         dict_results["E"] = E
         dict_results["Ex"] = Ex
@@ -223,9 +244,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
         if lines_epsK8:
             dict_results["epsK8"] = epsK8
 
+        if lines_Eg:
+            dict_results["Eg"] = Eg
+
         return dict_results
 
-    def plot(self, plot_injection=True, plot_hyper=False):
+    def plot(self, plot_injection=True, plot_hyper=False, plot_geostrophic=False):
         dict_results = self.load()
 
         t = dict_results["t"]
@@ -246,6 +270,10 @@ class SpatialMeansNS3D(SpatialMeansBase):
         ax.plot(t, Ex, "b", label="$E_x$")
         ax.plot(t, Ey, "r", label="$E_y$")
         ax.plot(t, Ez, "c", label="$E_z$")
+
+        if "Eg" in dict_results and plot_geostrophic:
+            Eg = dict_results["Eg"]
+            ax.plot(t, Eg, "g--", label=r"$E_{geo}$")
 
         ax.legend()
 

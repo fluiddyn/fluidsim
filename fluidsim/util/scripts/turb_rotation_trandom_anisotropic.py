@@ -207,6 +207,13 @@ def create_parser():
     )
 
     parser.add_argument(
+        "--NO_GEOSTROPHIC_MODES",
+        type=bool,
+        default=False,
+        help="params.oper.NO_GEOSTROPHIC_MODES",
+    )
+
+    parser.add_argument(
         "--max-elapsed",
         type=str,
         default="23:50:00",
@@ -249,6 +256,9 @@ def create_params(args):
 
     params.no_vz_kz0 = args.no_vz_kz0
     params.oper.NO_SHEAR_MODES = args.NO_SHEAR_MODES
+    params.oper.NO_GEOSTROPHIC_MODES = args.NO_GEOSTROPHIC_MODES
+    if params.oper.NO_GEOSTROPHIC_MODES:
+        params.short_name_type_run += f"_NO_GEOSTROPHIC_MODES"
     params.oper.coef_dealiasing = coef_dealiasing = 2./3.
 
     params.oper.truncation_shape = "no_multiple_aliases"
@@ -357,9 +367,9 @@ def create_params(args):
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
     params.time_stepping.deltat_max = min(0.1, period_f * Ro / 200)
-    params.time_stepping.USE_CFL="True"
-    params.time_stepping.cfl_coef=0.1
-    params.time_stepping.type_time_scheme="RK4"
+    params.time_stepping.USE_CFL = "True"
+    params.time_stepping.cfl_coef = 0.1
+    params.time_stepping.type_time_scheme = "RK4"
 
     # forcing
     params.forcing.enable = True

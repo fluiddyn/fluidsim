@@ -164,6 +164,7 @@ class OperatorsPseudoSpectral3D(_Operators, OperatorBase):
             "Lz": 2 * pi,
             "truncation_shape": "cubic",
             "NO_SHEAR_MODES": False,
+            "NO_GEOSTROPHIC_MODES": False,
         }
         params._set_child("oper", attribs=attribs)
         params.oper._set_doc(
@@ -275,6 +276,18 @@ Lx, Ly and Lz: float
                 COND_NOSHEAR = self.Kx**2 + self.Ky**2 == 0.0
                 self.where_dealiased = np.array(
                     np.logical_or(COND_NOSHEAR, self.where_dealiased),
+                    dtype=np.uint8,
+                )
+
+        try:
+            NO_GEOSTROPHIC_MODES = self.params.oper.NO_GEOSTROPHIC_MODES
+        except AttributeError:
+            pass
+        else:
+            if NO_GEOSTROPHIC_MODES:
+                COND_NOGEOSTROPHIC = self.Kz == 0.0
+                self.where_dealiased = np.array(
+                    np.logical_or(COND_NOGEOSTROPHIC, self.where_dealiased),
                     dtype=np.uint8,
                 )
 
