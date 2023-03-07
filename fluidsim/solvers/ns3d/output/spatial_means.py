@@ -367,13 +367,15 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         try:
             EKh = Uh2 = data["Ex"] + data["Ey"]
-            EKz = data["Ez"]
+            EKz = U2 = data["Ez"]
+            E = data["E"]
         except KeyError:
             EKhr = data["EKhr"]
             EKhd = data["EKhd"]
             EKhs = data["EKhs"]
             EKh = Uh2 = EKhr + EKhd + EKhs
             EKz = data["EKz"]
+            E = U2 = EKh + EKz
 
         epsK = data["epsK"]
         epsK_hyper = np.zeros_like(epsK)
@@ -401,6 +403,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
                 results["epsK2/epsK"] = np.ones_like(epsK)
 
         results["dimensional"] = {
+            "U2": U2,
             "Uh2": Uh2,
             "epsK": epsK,
             "EKh": EKh,
@@ -409,6 +412,15 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if nu_2:
             results["dimensional"]["eta"] = eta
+
+        if self.params.oper.Lx == self.params.oper.Ly == self.params.oper.Lz:
+            if nu_2 and nu_2 != 0.0:
+                results["Re"] = self.params.oper.Lx * U2 ** 0.5 / nu_2
+            
+            f = self.params.f
+
+            if f and f != 0.0:
+                results["Ro"] = U2 ** 0.5 / ( self.params.oper.Lx * f )
 
         return results
 
@@ -447,6 +459,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True)
 
+        keys_ax1 = ["Re", "Ro"]
         keys_ax1 = ["k_max*eta", "epsK2/epsK", "Gamma"]
 
         for key, quantity in numbers_vs_time.items():
