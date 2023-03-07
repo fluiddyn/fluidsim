@@ -98,7 +98,7 @@ def create_parser():
         "-n",
         "--n",
         type=int,
-        default=16,
+        default=64,
         help="Number of numerical points over one axis",
     )
 
@@ -110,20 +110,25 @@ def create_parser():
         "-f", type=float, default=None, help="Coriolis parameter 2xOmega (frequency)"
     )
     
-    parser.add_argument("-nu", type=float, default=None, help="Viscosity")
-    
     parser.add_argument(
         "--Ro",
         type=float,
         default=None,
-        help="Rossby number",
+        help="Input Rossby number",
+    )
+    
+    parser.add_argument(
+        "-coef_nu", 
+        type=float, 
+        default=1.0, 
+        help="Coefficient used to compute the viscosity"
     )
     
     parser.add_argument(
         "--Re",
         type=float,
         default=None,
-        help="Reynolds number",
+        help="Input Reynolds number",
     )
     
     parser.add_argument(
@@ -152,14 +157,14 @@ def create_parser():
     parser.add_argument(
         "--nkmin_forcing",
         type=int,
-        default=3.5,
+        default=3,
         help="Minimal dimensionless wavenumber forced",
     )
 
     parser.add_argument(
         "--nkmax_forcing",
         type=int,
-        default=5.5,
+        default=5,
         help="Maximal dimensionless wavenumber forced",
     )
 
@@ -244,7 +249,7 @@ def create_params(args):
 
     params.no_vz_kz0 = args.no_vz_kz0
     params.oper.NO_SHEAR_MODES = args.NO_SHEAR_MODES
-    params.oper.coef_dealiasing = 2./3.
+    params.oper.coef_dealiasing = coef_dealiasing = 2./3.
 
     params.oper.truncation_shape = "no_multiple_aliases"
 
@@ -252,6 +257,7 @@ def create_params(args):
     params.oper.Lx = params.oper.Ly = params.oper.Lz = L = 2*pi
     
     delta_k = 2 * pi / L
+    k_max = coef_dealiasing * delta_k * n / 2
     injection_rate = 1.0
     U = (injection_rate * L) ** (1 / 3)
 
@@ -261,7 +267,7 @@ def create_params(args):
         raise ValueError("args.f is not None and args.Ro is not None")
     if args.f is not None:
         f = args.f
-        mpi.printby0(f"Input Coriolis parameter: {f:.3e}")
+        mpi.printby0(f"Input Coriolis parameter: {f:.3g}")
         if f != 0.0:
             Ro = U / (f * L)
             params.short_name_type_run += f"_Ro{Ro:.3e}"
@@ -281,15 +287,27 @@ def create_params(args):
    
    
     # Viscosity and Reynolds number
-    if args.nu is not None and args.Re is not None:
-        raise ValueError("args.nu is not None and args.Re is not None")
-    if args.nu is not None:
-        nu = args.nu
-        mpi.printby0(f"Input viscosity: {nu:.3e}")
-        if nu != 0.0:
+    if args.coef_nu is not None and args.Re is not None:
+        raise ValueError("args.coef_nu is not None and args.Re is not None")
+    if args.coef_nu is not None:
+        coef_nu = args.coef_nu
+        mpi.printby0(f"Input coefficient for viscosity: {coef_nu:.3g}")
+        if coef_nu != 0.0:
+            # only valid if R >> 1 (isotropic turbulence at small scales)
+            nu_eddies = (
+                injection_rate ** (1 / 3) * (coef_nu / k_max) ** (4 / 3)
+            )
+            # dissipation frequency = maximal wave frequency
+            nu_waves = (
+                f * (coef_nu / k_max) ** 2
+            )
+            if nu_waves > nu_eddies:
+                print("Viscosity fixed by waves")
+            nu = max(nu_eddies, nu_waves)
             Re = U * L / nu
             params.short_name_type_run += f"_Re{Re:.3e}"
         else:
+            nu = 0.0
             params.short_name_type_run += f"_nu{nu:.3e}"
     elif args.Re is not None:
         Re = args.Re
@@ -300,25 +318,24 @@ def create_params(args):
         else:
             raise ValueError("Re = 0.0")
     else:
-        raise ValueError("args.nu is None and args.Re is None")
+        raise ValueError("args.coef_nu is None and args.Re is None")
     params.nu_2 = nu
         
         
     # order-4 hyper viscosity and associated Reynolds number
     coef_nu4 = args.coef_nu4
-    k_max = params.oper.coef_dealiasing * delta_k * n / 2
     mpi.printby0(f"Input coef_nu4: {coef_nu4:.3g}")
     if coef_nu4 != 0.0:
         # only valid if R4 >> 1 (isotropic turbulence at small scales)
         nu_4_eddies = (
-            coef_nu4 * injection_rate ** (1 / 3) / k_max ** (10 / 3)
+            injection_rate ** (1 / 3) * (coef_nu4 / k_max) ** (10 / 3)
         )
         # dissipation frequency = maximal wave frequency
         nu_4_waves = (
             f * (coef_nu4 / k_max)**4
         )
         if nu_4_waves > nu_4_eddies:
-            print("hyperviscosity fixed by waves")
+            print("Hyperviscosity fixed by waves")
         nu_4 = max(nu_4_eddies, nu_4_waves)
         Re4 = U * L**3 / nu_4
         params.short_name_type_run += f"_Re4{Re4:.3e}"
@@ -339,9 +356,9 @@ def create_params(args):
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = min(0.1, period_f / 16)
+    params.time_stepping.deltat_max = min(0.1, period_f * Ro / 200)
     params.time_stepping.USE_CFL="True"
-    params.time_stepping.cfl_coef=0.01
+    params.time_stepping.cfl_coef=0.1
     params.time_stepping.type_time_scheme="RK4"
 
     # forcing
@@ -371,7 +388,7 @@ def create_params(args):
     params.output.periods_print.print_stdout = 1e-1
 
     params.output.periods_save.phys_fields = args.periods_save_phys_fields
-    params.output.periods_save.spatial_means = 0.02
+    params.output.periods_save.spatial_means = min(0.1, period_f / 50)
     params.output.periods_save.spectra = 0.05
     params.output.periods_save.spect_energy_budg = 0.1
 
