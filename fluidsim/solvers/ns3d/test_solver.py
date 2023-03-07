@@ -642,11 +642,11 @@ class TestNoGeostrophicModes(TestSimulBase):
         params.forcing.type = "tcrandom_anisotropic"
         params.forcing.forcing_rate = 1.0
         params.forcing.key_forced = "vt_fft"
-        params.forcing.nkmax_forcing = 1 * np.sqrt(2)
-        params.forcing.nkmin_forcing = 0.5 * np.sqrt(2)
+        params.forcing.nkmax_forcing = 1.1 * np.sqrt(2)
+        params.forcing.nkmin_forcing = 0.9 * np.sqrt(2)
 
         params.forcing.tcrandom.time_correlation = 0.15
-        params.forcing.tcrandom_anisotropic.angle = pi/2
+        params.forcing.tcrandom_anisotropic.angle = pi/4
         params.forcing.tcrandom_anisotropic.delta_angle = 0.1
 
         params.oper.NO_GEOSTROPHIC_MODES = True
@@ -656,7 +656,7 @@ class TestNoGeostrophicModes(TestSimulBase):
         # we need delta_kx == delta_ky for this test
         params.oper.Ly = params.oper.Lx = 3.0
         params.oper.ny = params.oper.nx = 8
-        params.oper.nz = 8#4
+        params.oper.nz = 4
         params.oper.Lz = params.oper.Lx / params.oper.nx * params.oper.nz
 
         params.time_stepping.USE_T_END = False
@@ -686,7 +686,7 @@ class TestNoGeostrophicModes(TestSimulBase):
 
         # check energy in geostrophic modes
         Eg = means["Eg"] 
-        E = means["E"]
+        E = means["Ex"] + means["Ey"] + means["Ez"]
         print(PK_tot)
         print(Eg)
         print(E-Eg)
