@@ -23,6 +23,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
+- Official support for only Python 3.9, 3.10 and 3.11.
 
 0.7.2_ (2023-01-05)
 -------------------
