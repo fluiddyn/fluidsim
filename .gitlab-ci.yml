@@ -5,4 +5,4 @@ tests:
   image: fluiddyn/python3-stable:lastest
   script:
     - pip install -U pip tox --user
-    - tox -e py38,py38-fft,codecov
+    - tox -e py39,py39-fft,codecov
