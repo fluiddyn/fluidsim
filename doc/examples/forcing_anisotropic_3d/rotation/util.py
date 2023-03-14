@@ -117,14 +117,16 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             f"Nothing to do for Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES} because first job is "
             "already launched"
         )
-        exit()
+        continue
 
 
     if len(path_runs) == 0:
         command = (
-            f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES} --t_end {t_end} "
+            f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
             f"--max-elapsed {max_elapsed} "
         )
+        if NO_GEOSTROPHIC_MODES:
+            command.append(f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}")
 
         cluster.submit_command(
             command,
@@ -141,7 +143,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
         t_start, t_last = times_start_last_from_path(path_runs[0])
         if t_last >= t_end:
             print(f"{params:40s}: completed")
-            exit()
+            continue
 
         try:
             estimated_remaining_duration = (

@@ -311,8 +311,8 @@ def create_params(args):
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
     params.time_stepping.deltat_max = min(0.02, period_f * Ro / 200)
-    params.time_stepping.USE_CFL = False
-    #params.time_stepping.cfl_coef = 0.1
+    params.time_stepping.USE_CFL = True
+    params.time_stepping.cfl_coef = 0.1
     params.time_stepping.type_time_scheme = "RK4"
 
     # forcing
