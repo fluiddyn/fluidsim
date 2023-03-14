@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 from fluidsim.util.scripts import parse_args
 
-doc = """Launcher for simulations with the solver ns3d and
+doc = """Launcher for simulations with the solver ns3d with rotation and
 the forcing tcrandom_anisotropic.
 
 Examples
@@ -37,17 +37,17 @@ Notes
 This script is designed to study rotating turbulence forced with an
 anisotropic forcing in toroidal or poloidal modes.
 
-The regime depends on the value of the Rossby number Ro and Reynolds numbers Re and R4:
+The regime depends on the value of the Rossby number Ro and Reynolds numbers Re:
 
 - Ro = U / (f L)
 - Re = U L / nu
-- Re4 = U L^3 / nu4
 
-Ro has to be very small to be in a strong rotation regime. Re and Re4 has to
-be "large" to be in a turbulent regime.
+where U is the rms of the velocity, L the size of the box, f the Coriolis parameter and nu is the viscosity.
 
-For this forcing, we fix the injection rate P (equal to epsK). We will
-work at P = 1.0.
+Ro has to be very small to be in a strong rotation regime and Re has to
+be large to be in a turbulent regime.
+
+For this forcing, we fix the injection rate P =1.0 (equal to epsK) and we vary f and nu
 
 Note that U is not directly fixed by the forcing but should be a function of
 the other input parameters. Dimensionally, we can write U = (P L)**(1/3).
@@ -130,26 +130,12 @@ def create_parser():
         default=None,
         help="Input Reynolds number",
     )
-    
-    parser.add_argument(
-        "--coef_nu4",
-        type=float,
-        default=0.0,
-        help="Coefficient used to compute the order-4 hyper viscosity",
-    )
 
     parser.add_argument(
         "--forced-field",
         type=str,
         default="polo",
         help='Forced field (can be "polo", "toro", or "vert")',
-    )
-
-    parser.add_argument(
-        "--init-velo-max",
-        type=float,
-        default=0.01,
-        help="params.init_fields.noise.max",
     )
 
     # shape of the forcing region in spectral space
@@ -191,20 +177,6 @@ def create_parser():
     )
 
     # Other parameters
-
-    parser.add_argument(
-        "--no_vz_kz0",
-        type=bool,
-        default=False,
-        help="params.no_vz_kz0",
-    )
-
-    parser.add_argument(
-        "--NO_SHEAR_MODES",
-        type=bool,
-        default=False,
-        help="params.oper.NO_SHEAR_MODES",
-    )
 
     parser.add_argument(
         "--NO_GEOSTROPHIC_MODES",
@@ -254,15 +226,13 @@ def create_params(args):
     params.output.sub_directory = args.sub_directory
     params.short_name_type_run = args.forced_field
 
-    params.no_vz_kz0 = args.no_vz_kz0
-    params.oper.NO_SHEAR_MODES = args.NO_SHEAR_MODES
+    params.no_vz_kz0 = False
+    params.oper.NO_SHEAR_MODES = False
     params.oper.NO_GEOSTROPHIC_MODES = args.NO_GEOSTROPHIC_MODES
     if params.oper.NO_GEOSTROPHIC_MODES:
         params.short_name_type_run += f"_NO_GEOSTROPHIC_MODES"
     params.oper.coef_dealiasing = coef_dealiasing = 2./3.
-
     params.oper.truncation_shape = "no_multiple_aliases"
-
     params.oper.nx = params.oper.ny = params.oper.nz = n = args.n
     params.oper.Lx = params.oper.Ly = params.oper.Lz = L = 2*pi
     
@@ -314,50 +284,24 @@ def create_params(args):
             if nu_waves > nu_eddies:
                 print("Viscosity fixed by waves")
             nu = max(nu_eddies, nu_waves)
-            Re = U * L / nu
-            params.short_name_type_run += f"_Re{Re:.3e}"
         else:
             nu = 0.0
-            params.short_name_type_run += f"_nu{nu:.3e}"
     elif args.Re is not None:
         Re = args.Re
         mpi.printby0(f"Input Reynolds number: {Re:.3g}")
         if Re != 0.0:
             nu = U * L / Re
-            params.short_name_type_run += f"_Re{Re:.3e}"
         else:
             raise ValueError("Re = 0.0")
     else:
         raise ValueError("args.coef_nu is None and args.Re is None")
     params.nu_2 = nu
-        
-        
-    # order-4 hyper viscosity and associated Reynolds number
-    coef_nu4 = args.coef_nu4
-    mpi.printby0(f"Input coef_nu4: {coef_nu4:.3g}")
-    if coef_nu4 != 0.0:
-        # only valid if R4 >> 1 (isotropic turbulence at small scales)
-        nu_4_eddies = (
-            injection_rate ** (1 / 3) * (coef_nu4 / k_max) ** (10 / 3)
-        )
-        # dissipation frequency = maximal wave frequency
-        nu_4_waves = (
-            f * (coef_nu4 / k_max)**4
-        )
-        if nu_4_waves > nu_4_eddies:
-            print("Hyperviscosity fixed by waves")
-        nu_4 = max(nu_4_eddies, nu_4_waves)
-        Re4 = U * L**3 / nu_4
-        params.short_name_type_run += f"_Re4{Re4:.3e}"
-    else:
-        nu_4 = 0.0
-    params.nu_4 = nu_4
     
      
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = L / 2
-    params.init_fields.noise.velo_max = args.init_velo_max
+    params.init_fields.noise.velo_max = 0.01
     
     period_f = 2 * pi / f
     omega_f = f * args.F
@@ -366,9 +310,9 @@ def create_params(args):
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = min(0.1, period_f * Ro / 200)
-    params.time_stepping.USE_CFL = "True"
-    params.time_stepping.cfl_coef = 0.1
+    params.time_stepping.deltat_max = min(0.02, period_f * Ro / 200)
+    params.time_stepping.USE_CFL = False
+    #params.time_stepping.cfl_coef = 0.1
     params.time_stepping.type_time_scheme = "RK4"
 
     # forcing
@@ -409,7 +353,7 @@ def create_params(args):
 
     params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
     # probes_region in nondimensional units (mode indices).
-    ikmax = 30
+    ikmax = 16
     params.output.spatiotemporal_spectra.probes_region = (ikmax, ikmax, ikmax)
 
     if args.modify_params is not None:
