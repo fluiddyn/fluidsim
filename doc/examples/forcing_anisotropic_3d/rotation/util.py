@@ -26,7 +26,7 @@ path_output_papermill = path_output_papermill_licallo
 
 coef_nu = 1.2
 n_target = [320, 640]
-Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2)]
+Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
 walltime = "19:59:59"
 
 def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
@@ -117,7 +117,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             f"Nothing to do for Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES} because first job is "
             "already launched"
         )
-        break
+        return
 
 
     if len(path_runs) == 0:
@@ -126,7 +126,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             f"--max-elapsed {max_elapsed} "
         )
         if NO_GEOSTROPHIC_MODES:
-            command.append(f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}")
+            command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
 
         cluster.submit_command(
             command,
@@ -143,7 +143,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
         t_start, t_last = times_start_last_from_path(path_runs[0])
         if t_last >= t_end:
             print(f"{params:40s}: completed")
-            break
+            return
 
         try:
             estimated_remaining_duration = (
