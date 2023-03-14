@@ -26,7 +26,7 @@ path_output_papermill = path_output_papermill_licallo
 
 coef_nu = 1.2
 n_target = [320, 640]
-Ro_target = [10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
+Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2)]
 walltime = "19:59:59"
 
 def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
@@ -112,79 +112,78 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     name_run = f"run_simul_polo_Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES}"
     path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False)
 
-    while True:
-        if is_job_submitted(name_run):
-            print(
-                f"Nothing to do for Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES} because first job is "
-                "already launched"
+    if is_job_submitted(name_run):
+        print(
+            f"Nothing to do for Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES} because first job is "
+            "already launched"
+        )
+        break
+
+
+    if len(path_runs) == 0:
+        command = (
+            f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
+            f"--max-elapsed {max_elapsed} "
+        )
+        if NO_GEOSTROPHIC_MODES:
+            command.append(f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}")
+
+        cluster.submit_command(
+            command,
+            name_run=name_run,
+            nb_nodes=nb_nodes,
+            walltime=walltime,
+            nb_mpi_processes=nb_mpi_processes,
+            omp_num_threads=1,
+            delay_signal_walltime=300,
+            ask=True,
+        )
+
+    elif len(path_runs) == 1:
+        t_start, t_last = times_start_last_from_path(path_runs[0])
+        if t_last >= t_end:
+            print(f"{params:40s}: completed")
+            break
+
+        try:
+            estimated_remaining_duration = (
+                get_last_estimated_remaining_duration(path_runs[0])
             )
-            continue
+        except RuntimeError:
+            estimated_remaining_duration = "?"
 
+        print(
+            f"{path_runs[0].name}: {t_last=}, {estimated_remaining_duration=}"
+        )
 
-        if len(path_runs) == 0:
-            command = (
-                f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
-                f"--max-elapsed {max_elapsed} "
+        # Remove is_being_advanced.lock file
+        try:
+            path_file_to_remove = next(
+                path_runs[0].glob(f"is_being_advanced.lock")
             )
-            if NO_GEOSTROPHIC_MODES:
-                command.append(f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}")
+            path_file_to_remove.unlink()
+        except StopIteration:
+            print("No file to remove before launching the simulation")
 
-            cluster.submit_command(
-                command,
-                name_run=name_run,
-                nb_nodes=nb_nodes,
-                walltime=walltime,
-                nb_mpi_processes=nb_mpi_processes,
-                omp_num_threads=1,
-                delay_signal_walltime=300,
-                ask=True,
-            )
+        print("we restart")
+        command = f"fluidsim-restart {path_runs[0]} --t_end {t_end} --max-elapsed {max_elapsed} "
+        print(f"run: {command} \n")
 
-        elif len(path_runs) == 1:
-            t_start, t_last = times_start_last_from_path(path_runs[0])
-            if t_last >= t_end:
-                print(f"{params:40s}: completed")
-                continue
+        cluster.submit_command(
+            command,
+            name_run=name_run,
+            nb_nodes=nb_nodes,
+            walltime=walltime,
+            nb_mpi_processes=nb_mpi_processes,
+            omp_num_threads=1,
+            delay_signal_walltime=300,
+            ask=False,
+            dependency="singleton",
+        )
 
-            try:
-                estimated_remaining_duration = (
-                    get_last_estimated_remaining_duration(path_runs[0])
-                )
-            except RuntimeError:
-                estimated_remaining_duration = "?"
-
-            print(
-                f"{path_runs[0].name}: {t_last=}, {estimated_remaining_duration=}"
-            )
-
-            # Remove is_being_advanced.lock file
-            try:
-                path_file_to_remove = next(
-                    path_runs[0].glob(f"is_being_advanced.lock")
-                )
-                path_file_to_remove.unlink()
-            except StopIteration:
-                print("No file to remove before launching the simulation")
-
-            print("we restart")
-            command = f"fluidsim-restart {path_runs[0]} --t_end {t_end} --max-elapsed {max_elapsed} "
-            print(f"run: {command} \n")
-
-            cluster.submit_command(
-                command,
-                name_run=name_run,
-                nb_nodes=nb_nodes,
-                walltime=walltime,
-                nb_mpi_processes=nb_mpi_processes,
-                omp_num_threads=1,
-                delay_signal_walltime=300,
-                ask=False,
-                dependency="singleton",
-            )
-
-        else:
-            print(
-                f"More than one simulation with "
-                f"{params:40s} \t"
-                f"Nothing is done"
-            )
+    else:
+        print(
+            f"More than one simulation with "
+            f"{params:40s} \t"
+            f"Nothing is done"
+        )
