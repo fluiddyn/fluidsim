@@ -30,11 +30,16 @@ from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 from util import (
-    path_base_jeanzay,
-    path_output_papermill_jeanzay,
+#    path_base_jeanzay,
+#    path_output_papermill_jeanzay,
     get_t_end,
     get_t_statio,
     couples2560,
+)
+
+path_base_jeanzay = Path("/gpfswork/rech/uzc/uey73qw/aniso/")
+path_output_papermill_jeanzay = Path(
+    "/gpfswork/rech/uzc/uey73qw/aniso/results_papermill"
 )
 
 from fluidjean_zay import cluster
@@ -65,7 +70,7 @@ for path in paths:
     t_statio = get_t_statio(N, nh)
 
     # Simulations with nu = 0 where just for testing on Licallo
-    if params.nu_2 == 0.0 or N==80:
+    if params.nu_2 == 0.0:
         print(f"{path.name:90s} corresponds to a simulation with nul viscosity)")
         continue
 
@@ -98,7 +103,7 @@ for path in paths:
     # compute spatiotemporal spectra
     sim = load(path, hide_stdout=True)
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
-
+"""
     Fh = 1.0 / N
     Fh_str = "_Fh" + "{Fh:.3e}"
     Rb_str = "_Rb" + "{Rb:.3g}"
@@ -134,3 +139,4 @@ for path in paths:
 
     if has_to_run:
         os.system(f"jupyter-nbconvert --to pdf {path_ipynb}")
+"""
