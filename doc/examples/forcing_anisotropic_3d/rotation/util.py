@@ -5,6 +5,7 @@ from fluidsim.util import (
 
 from pathlib import Path
 import subprocess
+import os
 
 from fluidlicallo import cluster
 
@@ -76,7 +77,9 @@ def max_elapsed_from_n(n):
 
 def get_t_end(n):
     "Get end time of the simulation with resolution n"
-    if n == 320:
+    if n == 160:
+        return 0
+    elif n == 320:
         return 20.0
     elif n == 640:
         return 30.0
@@ -106,38 +109,108 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi_processes = nb_cores_per_node* nb_nodes
     max_elapsed = max_elapsed_from_n(n)
+    n_lower = n // 2
+    t_end_lower = get_t_end(n_lower)
 
     params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
     
     name_run = f"run_simul_polo_Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES}"
     path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False)
+    path_runs_lower = list_paths(Ro, n_lower, NO_GEOSTROPHIC_MODES=False)
 
     if is_job_submitted(name_run):
         print(
-            f"Nothing to do for Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES} because first job is "
+            f"Nothing to do for {params} because first job is "
             "already launched"
         )
         return
 
 
     if len(path_runs) == 0:
-        command = (
-            f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
-            f"--max-elapsed {max_elapsed} "
-        )
-        if NO_GEOSTROPHIC_MODES:
-            command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
+        if n == 320:
+            command = (
+                f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
+                f"--max-elapsed {max_elapsed} "
+            )
+            if NO_GEOSTROPHIC_MODES:
+                command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
 
-        cluster.submit_command(
-            command,
-            name_run=name_run,
-            nb_nodes=nb_nodes,
-            walltime=walltime,
-            nb_mpi_processes=nb_mpi_processes,
-            omp_num_threads=1,
-            delay_signal_walltime=300,
-            ask=True,
-        )
+            cluster.submit_command(
+                command,
+                name_run=name_run,
+                nb_nodes=nb_nodes,
+                walltime=walltime,
+                nb_mpi_processes=nb_mpi_processes,
+                omp_num_threads=1,
+                delay_signal_walltime=300,
+                ask=True,
+            )
+        else:
+            # We must restart from lower resolution
+            if len(path_runs_lower) == 0:
+                print(
+                    f"Cannot do anything for {params} because no init directory. Need to run a simulation at smaller resolution."
+                )
+                return
+
+            elif len(path_runs_lower) == 1:
+                t_start, t_last = times_start_last_from_path(path_runs_lower[0])
+                if t_last < t_end_lower:
+                    try:
+                        estimated_remaining_duration = (
+                            get_last_estimated_remaining_duration(
+                                path_runs_lower[0]
+                            )
+                        )
+                    except RuntimeError:
+                        estimated_remaining_duration = "?"
+
+                    print(
+                        f"Cannot launch {name_run} because the coarse "
+                        "simulation is not finished\n"
+                        f"  ({t_last=} < {t_end_lower=}, {estimated_remaining_duration = })"
+                    )
+                    return
+
+                
+                path_state_lower = next(
+                    path_runs_lower[0].glob(
+                        f"State_phys_{n}x{n}x{n}*/state_phys_t*.h5"
+                    )
+                )
+
+                if len(path_state_lower) == 0: 
+                    modif_reso(path=path_runs_lower[0], n=n)
+                elif len(path_state_lower) == 1: 
+                    coef_change_reso = n / n_lower
+                    coef_reduce_nu = coef_change_reso ** 4/3
+                    command = (
+                        f"fluidsim-restart {path_runs_lower} --t_end {t_end} --new-dir-results "
+                        f"--max-elapsed {max_elapsed} "
+                        f"--modify-params 'params.nu_2 /= {coef_reduce_nu};'"
+                    )
+                    print(f"run: {command} \n")
+                    cluster.submit_command(
+                        command,
+                        name_run=name_run,
+                        nb_nodes=nb_nodes,
+                        walltime=walltime,
+                        nb_mpi_processes=nb_mpi_processes,
+                        omp_num_threads=1,
+                        delay_signal_walltime=300,
+                        ask=True,
+                    )
+                
+                else:
+                    f"More than one state files in {path_runs_lower[0]}"
+                    return
+                  
+            else:
+                print(
+                    f"Zero or more than one init directory with {params})",
+                    f"Nothing is done",
+                )
+                return
 
     elif len(path_runs) == 1:
         t_start, t_last = times_start_last_from_path(path_runs[0])
@@ -187,3 +260,35 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             f"{params:40s} \t"
             f"Nothing is done"
         )
+
+
+def modif_reso(path, n, coef_change_reso=2):
+    new_n = n * coef_change_reso
+
+    name_run = f"modif_reso_polo_{path}"
+    command = f"srun fluidsim-modif-resolution {path} {coef_change_reso}"
+    print(f"run command: {command}\n")
+
+
+    # On Licallo
+    os.system(command)
+
+    # On Jean-Zay
+    """
+    cluster.submit_command(
+        f"{command}",
+        name_run=name_run,
+        nb_nodes=1,
+        nb_cores_per_node=20,
+        nb_cpus_per_task=20,
+        nb_tasks_per_node=1,
+        nb_tasks=1,
+        nb_mpi_processes=1,
+        omp_num_threads=1,
+        ask=True,
+        walltime="00:15:00",
+        project="uzc@cpu",
+        partition="prepost",
+    )
+    """
+
