@@ -30,12 +30,18 @@ from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 from util import (
-    path_base_jeanzay,
-    path_output_papermill_jeanzay,
+#    path_base_jeanzay,
+#    path_output_papermill_jeanzay,
     get_t_end,
     get_t_statio,
     couples1280,
 )
+
+path_base_jeanzay = Path("/gpfswork/rech/uzc/uey73qw/aniso/")
+path_output_papermill_jeanzay = Path(
+    "/gpfswork/rech/uzc/uey73qw/aniso/results_papermill"
+)
+
 
 from fluidjean_zay import cluster
 
@@ -65,7 +71,7 @@ for path in paths:
     t_statio = get_t_statio(N, nh)
 
     # Simulations with nu = 0 where just for testing on Licallo
-    if params.nu_2 == 0.0 or N == 120:
+    if params.nu_2 == 0.0:
         print(f"{path.name:90s} corresponds to a simulation with nul viscosity)")
         continue
 
@@ -81,8 +87,8 @@ for path in paths:
     for path_file in path_files:
         time = float(path_file.name.rsplit("_t", 1)[1][:-3])
         if (
-            # time % deltat_file > deltat
-            time != t_last
+            time % deltat_file > deltat
+            and time != t_last
             and abs(time - t_end) > deltat
         ):
             print(f"deleting {path_file.name}")
@@ -122,6 +128,7 @@ for path in paths:
                 f"srun fluidsim-modif-resolution --t_approx {t_end} {path} 1.5"
             )
             print(f"run command: {command}\n")
+            """
             cluster.submit_command(
                 f"{command}",
                 name_run=name_run,
@@ -137,6 +144,7 @@ for path in paths:
                 project="uzc@cpu",
                 partition="prepost",
             )
+            """
 
     else:
         if path_init_file:
@@ -175,3 +183,4 @@ for path in paths:
 
     if has_to_run:
         os.system(f"jupyter-nbconvert --to pdf {path_ipynb}")
+

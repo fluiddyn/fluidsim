@@ -214,10 +214,10 @@ def get_t_end(N, nh):
 def get_t_statio(N, nh):
     "Get end time of the simulation with buoyancy frequency N and horizontal resolution nh"
     t_end = get_t_end(N, nh)
-    if nh <= 1920:
+    if nh < 2560:
         return t_end - 3.0
-    elif nh == 2560:
-        return t_end - 1.5
+    else:
+        return t_end - 2.0 
 
 
 def compute_nhstart_nhend(N, R):
