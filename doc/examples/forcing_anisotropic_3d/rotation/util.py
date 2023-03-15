@@ -9,17 +9,17 @@ import os
 
 from fluidlicallo import cluster
 
-path_base_licallo = Path("/scratch/vlabarre/rotation/")
-path_output_papermill_licallo = Path("/scratch/vlabarre/rotation/results_papermill")
+path_base_licallo = Path("/scratch/vlabarre/aniso_rotation/")
+path_output_papermill_licallo = Path("/scratch/vlabarre/rotation/aniso_results_papermill")
 
-path_base_azzurra = Path("/workspace/vlabarre/rotation/")
+path_base_azzurra = Path("/workspace/vlabarre/aniso_rotation/")
 path_output_papermill_azzurra = Path(
-    "/workspace/vlabarre/rotation/results_papermill"
+    "/workspace/vlabarre/aniso_rotation/results_papermill"
 )
 
-path_base_jeanzay = Path("/gpfsscratch/rech/uzc/uey73qw/rotation/")
+path_base_jeanzay = Path("/gpfsscratch/rech/uzc/uey73qw/aniso_rotation/")
 path_output_papermill_jeanzay = Path(
-    "/gpfsscratch/rech/uzc/uey73qw/rotation/results_papermill"
+    "/gpfsscratch/rech/uzc/uey73qw/aniso_rotation/results_papermill"
 )
 
 path_base = path_base_licallo
@@ -32,8 +32,8 @@ walltime = "19:59:59"
 
 def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
     # Find the paths of the simulations
-    paths = sorted(path_base.glob(f"ns3d.strat_polo*_{n}x{n}x{n}*"))
-
+    paths = sorted(path_base.glob(f"ns3d_polo*_{n}x{n}x{n}*"))
+    print(paths)
     pathstemp = [
         p for p in paths if f"_Ro{Ro:.3e}_" in p.name 
     ]
