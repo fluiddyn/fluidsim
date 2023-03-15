@@ -1,4 +1,4 @@
-"""Simulations with the solver ns3d and the forcing tcrandom_anisotropic.
+"""Simulations with the solver ns3d.strat and the forcing tcrandom_anisotropic.
 
 .. autofunction:: create_parser
 
@@ -6,7 +6,7 @@
 
 """
 
-from math import pi, acos, cos
+from math import pi, asin, sin
 import argparse
 import sys
 
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 from fluidsim.util.scripts import parse_args
 
-doc = """Launcher for simulations with the solver ns3d with rotation and
+doc = """Launcher for simulations with the solver ns3d.strat with stratification and
 the forcing tcrandom_anisotropic.
 
 Examples
@@ -33,31 +33,31 @@ mpirun -np 2 ./run_simul.py
 Notes
 -----
 
-This script is designed to study rotating turbulence forced with an
-anisotropic forcing in toroidal or poloidal modes.
+This script is designed to study stratified turbulence forced with an
+anisotropic forcing in poloidal or buoyancy modes.
 
-The regime depends on the value of the Rossby number Ro and Reynolds numbers Re:
+The regime depends on the value of the Froude number Fh and Reynolds numbers Re:
 
-- Ro = U / (f L)
+- Fh = U / (N L)
 - Re = U L / nu
 
-where U is the rms of the velocity, L the size of the box, f the Coriolis parameter and nu is the viscosity.
+where U is the rms of the velocity, L the size of the box, N the Brunt-Väisälä frequency and nu is the viscosity.
 
-Ro has to be very small to be in a strong rotation regime and Re has to
+Fh has to be very small to be in a strong rotation regime and Re has to
 be large to be in a turbulent regime.
 
-For this forcing, we fix the injection rate P=1.0 (equal to epsK in the steady state) and we vary f and nu
+For this forcing, we fix the injection rate P=1.0 (equal to epsK in the steady state) and we vary N and nu
 
 Note that U is not directly fixed by the forcing but should be a function of
 the other input parameters. Dimensionally, if the flow is fully turbulent, we can write U = (P L)**(1/3).
 
-The flow is forced at large spatial scales (compared to the size of the numerical domain) and at specified frequency omega=f*F. 
+The flow is forced at large spatial scales (compared to the size of the numerical domain) and at specified frequency omega=N*F. 
 
 """
 
 keys_versus_kind = {
-    "toro": "vt_fft",
     "polo": "vp_fft",
+    "buoyancy": "b_fft"
 }
 
 
@@ -105,14 +105,14 @@ def create_parser():
     parser.add_argument("--t_end", type=float, default=10.0, help="End time")
 
     parser.add_argument(
-        "-f", type=float, default=None, help="Coriolis parameter 2xOmega (frequency)"
+        "-N", type=float, default=None, help="Brunt-Väisälä frequency"
     )
     
     parser.add_argument(
-        "--Ro",
+        "--Fh",
         type=float,
         default=None,
-        help="Input Rossby number",
+        help="Input Froude number",
     )
     
     parser.add_argument(
@@ -133,7 +133,7 @@ def create_parser():
         "--forced-field",
         type=str,
         default="polo",
-        help='Forced field (can be "polo", or "toro")',
+        help='Forced field (can be "polo", "toro", or "vert")',
     )
 
     # shape of the forcing region in spectral space
@@ -156,7 +156,7 @@ def create_parser():
         "-F",
         type=float,
         default=0.97,
-        help="Ratio omega_f / f, fixing the mean angle between the vertical and the forced wavenumber",
+        help="Ratio omega_f / N, fixing the mean angle between the vertical and the forced wavenumber",
     )
 
     parser.add_argument(
@@ -177,10 +177,10 @@ def create_parser():
     # Other parameters
 
     parser.add_argument(
-        "--NO_GEOSTROPHIC_MODES",
+        "--NO_SHEAR_MODES",
         type=bool,
         default=False,
-        help="params.oper.NO_GEOSTROPHIC_MODES",
+        help="params.oper.NO_SHEAR_MODES",
     )
 
     parser.add_argument(
@@ -200,7 +200,7 @@ def create_parser():
     parser.add_argument(
         "--sub-directory",
         type=str,
-        default="aniso_rotation",
+        default="aniso_stratification",
         help="Sub directory where the simulation will be saved",
     )
 
@@ -217,7 +217,7 @@ def create_parser():
 def create_params(args):
     """Create the params object from the script arguments"""
 
-    from fluidsim.solvers.ns3d.solver import Simul
+    from fluidsim.solvers.ns3d.strat.solver import Simul
 
     params = Simul.create_default_params()
 
@@ -225,10 +225,10 @@ def create_params(args):
     params.short_name_type_run = args.forced_field
 
     params.no_vz_kz0 = False
-    params.oper.NO_SHEAR_MODES = False
-    params.oper.NO_GEOSTROPHIC_MODES = args.NO_GEOSTROPHIC_MODES
-    if params.oper.NO_GEOSTROPHIC_MODES:
-        params.short_name_type_run += f"_NO_GEOSTROPHIC_MODES"
+    params.oper.NO_SHEAR_MODES = args.NO_SHEAR_MODES
+    params.oper.NO_GEOSTROPHIC_MODES = False
+    if params.oper.NO_SHEAR_MODES:
+        params.short_name_type_run += f"_NO_SHEAR_MODES"
     params.oper.coef_dealiasing = coef_dealiasing = 2./3.
     params.oper.truncation_shape = "no_multiple_aliases"
     params.oper.nx = params.oper.ny = params.oper.nz = n = args.n
@@ -240,28 +240,28 @@ def create_params(args):
     U = (injection_rate * L) ** (1 / 3)
 
     
-    # Coriolis parameter f and Rossby number
-    if args.f is not None and args.Ro is not None:
-        raise ValueError("args.f is not None and args.Ro is not None")
-    if args.f is not None:
-        f = args.f
-        mpi.printby0(f"Input Coriolis parameter: {f:.3g}")
-        if f != 0.0:
-            Ro = U / (f * L)
-            params.short_name_type_run += f"_Ro{Ro:.3e}"
+    # Brunt-Väisälä frequency N and Froude number
+    if args.N is not None and args.Fh is not None:
+        raise ValueError("args.N is not None and args.Fh is not None")
+    if args.N is not None:
+        N = args.N
+        mpi.printby0(f"Input Brunt-Väisälä frequency: {N:.3g}")
+        if N != 0.0:
+            Fh = U / (N * L)
+            params.short_name_type_run += f"_Fh{Fh:.3e}"
         else:
-            params.short_name_type_run += f"_f{f:.3e}"
-    elif args.Ro is not None:
-        Ro = args.Ro
-        mpi.printby0(f"Input Rossby number: {Ro:.3g}")
-        if Ro != 0.0:
-            f = U / (Ro * L)
-            params.short_name_type_run += f"_Ro{Ro:.3e}"
+            params.short_name_type_run += f"_N{N:.3e}"
+    elif args.Fh is not None:
+        Fh = args.Fh
+        mpi.printby0(f"Input Froude number: {Fh:.3g}")
+        if Fh != 0.0:
+            N = U / (Fh * L)
+            params.short_name_type_run += f"_Fh{Fh:.3e}"
         else:
-            raise ValueError("Ro = 0.0")
+            raise ValueError("Fh = 0.0")
     else:
-        raise ValueError("args.f is None and args.Ro is None")
-    params.f = f
+        raise ValueError("args.N is None and args.Fh is None")
+    params.N = N
    
    
     # Viscosity and Reynolds number
@@ -277,7 +277,7 @@ def create_params(args):
             )
             # dissipation frequency = maximal wave frequency
             nu_waves = (
-                f * (coef_nu / k_max) ** 2
+                N * (coef_nu / k_max) ** 2
             )
             if nu_waves > nu_eddies:
                 print("Viscosity fixed by waves")
@@ -301,14 +301,14 @@ def create_params(args):
     params.init_fields.noise.length = L / 2
     params.init_fields.noise.velo_max = 0.01
     
-    period_f = 2 * pi / f
-    omega_f = f * args.F
+    period_N = 2 * pi / N
+    omega_f = N * args.F
 
     # time_stepping fixed to follow waves
     params.time_stepping.USE_T_END = True
     params.time_stepping.t_end = args.t_end
     params.time_stepping.max_elapsed = args.max_elapsed
-    params.time_stepping.deltat_max = min(0.02, period_f * Ro / 200)
+    params.time_stepping.deltat_max = min(0.02, period_N * Fh / 200)
     params.time_stepping.USE_CFL = True
     params.time_stepping.cfl_coef = 0.1
     params.time_stepping.type_time_scheme = "RK4"
@@ -323,8 +323,8 @@ def create_params(args):
     params.forcing.nkmin_forcing = delta_k * args.nkmin_forcing
     params.forcing.nkmax_forcing = delta_k * args.nkmax_forcing
     
-    angle = acos(args.F)
-    delta_angle = pi/2 - acos(args.delta_F)    
+    angle = asin(args.F)
+    delta_angle = asin(args.delta_F)    
     mpi.printby0(
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
     )
@@ -340,14 +340,14 @@ def create_params(args):
     params.output.periods_print.print_stdout = 1e-1
 
     params.output.periods_save.phys_fields = args.periods_save_phys_fields
-    params.output.periods_save.spatial_means = min(0.1, period_f / 50)
+    params.output.periods_save.spatial_means = min(0.1, period_N / 50)
     params.output.periods_save.spectra = 0.05
     params.output.periods_save.spect_energy_budg = 0.1
 
     params.output.spectra.kzkh_periodicity = 1
 
     if args.spatiotemporal_spectra:
-        params.output.periods_save.spatiotemporal_spectra = period_f / 8
+        params.output.periods_save.spatiotemporal_spectra = period_N / 8
 
     params.output.spatiotemporal_spectra.file_max_size = 80.0  # (Mo)
     # probes_region in nondimensional units (mode indices).
@@ -388,7 +388,7 @@ def main(args=None, **defaults):
         print(params)
         return params, sim
 
-    from fluidsim.solvers.ns3d.solver import Simul
+    from fluidsim.solvers.ns3d.strat.solver import Simul
 
     sim = Simul(params)
 
@@ -413,7 +413,7 @@ cd {sim.output.path_run}; fluidsim-ipy-load
 # in IPython:
 
 sim.output.phys_fields.set_equation_crosssection('x={params.oper.Lx/2}')
-sim.output.phys_fields.animate('vz')
+sim.output.phys_fields.animate('b')
 """
     )
 

@@ -7,19 +7,19 @@ from pathlib import Path
 import subprocess
 import os
 
-from fluidlicallo import cluster
+from fluidjeanzay import cluster
 
-path_base_licallo = Path("/scratch/vlabarre/aniso_rotation/")
-path_output_papermill_licallo = Path("/scratch/vlabarre/aniso_rotation/aniso_results_papermill")
+path_base_licallo = Path("/scratch/vlabarre/aniso_stratification/")
+path_output_papermill_licallo = Path("/scratch/vlabarre/aniso_stratification/aniso_results_papermill")
 
-path_base_azzurra = Path("/workspace/vlabarre/aniso_rotation/")
+path_base_azzurra = Path("/workspace/vlabarre/aniso_stratification/")
 path_output_papermill_azzurra = Path(
-    "/workspace/vlabarre/aniso_rotation/results_papermill"
+    "/workspace/vlabarre/aniso_stratification/results_papermill"
 )
 
-path_base_jeanzay = Path("/gpfsscratch/rech/uzc/uey73qw/aniso_rotation/")
+path_base_jeanzay = Path("/gpfsscratch/rech/uzc/uey73qw/aniso_stratification/")
 path_output_papermill_jeanzay = Path(
-    "/gpfsscratch/rech/uzc/uey73qw/aniso_rotation/results_papermill"
+    "/gpfsscratch/rech/uzc/uey73qw/aniso_stratification/results_papermill"
 )
 
 path_base = path_base_licallo
@@ -27,25 +27,25 @@ path_output_papermill = path_output_papermill_licallo
 
 coef_nu = 1.2
 n_target = [320, 640]
-Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
+Fh_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
 walltime = "19:59:59"
 
-def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
+def list_paths(Fh, n, NO_SHEAR_MODES=False):
     # Find the paths of the simulations
     paths = sorted(path_base.glob(f"ns3d_polo*_{n}x{n}x{n}*"))
     print(paths)
     pathstemp = [
-        p for p in paths if f"_Ro{Ro:.3e}_" in p.name 
+        p for p in paths if f"_Fh{Fh:.3e}_" in p.name 
     ]
 
-    if NO_GEOSTROPHIC_MODES:
-        paths = [p for p in pathstemp if f"_NO_GEOSTROPHIC_MODES_" in p.name]
+    if NO_SHEAR_MODES:
+        paths = [p for p in pathstemp if f"_NO_SHEAR_MODES_" in p.name]
     else:
-        paths = [p for p in pathstemp if f"_NO_GEOSTROPHIC_MODES_" not in p.name]
+        paths = [p for p in pathstemp if f"_NO_SHEAR_MODES_" not in p.name]
  
 
     print(
-        f"List of paths for simulations with (Ro, n, NO_GEOSTROPHIC_MODES)= ({Ro:.3e}, {n}, {NO_GEOSTROPHIC_MODES}): \n"
+        f"List of paths for simulations with (Fh, n, NO_SHEAR_MODES)= ({Fh:.3e}, {n}, {NO_SHEAR_MODES}): \n"
     )
 
     for path in paths:
@@ -103,7 +103,7 @@ def is_job_submitted(name_run):
     else:
         return False
 
-def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
+def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
     t_end = get_t_end(n)
     nb_nodes = nb_nodes_from_n(n)
     nb_cores_per_node = cluster.nb_cores_per_node
@@ -112,11 +112,11 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     n_lower = n // 2
     t_end_lower = get_t_end(n_lower)
 
-    params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
+    params = f"{Fh=} {n=} {NO_SHEAR_MODES=}"
     
-    name_run = f"run_simul_polo_Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES}"
-    path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False)
-    path_runs_lower = list_paths(Ro, n_lower, NO_GEOSTROPHIC_MODES=False)
+    name_run = f"run_simul_polo_Fh{Fh}_n{n}_NO_SHEAR_MODES{NO_SHEAR_MODES}"
+    path_runs = list_paths(Fh, n, NO_SHEAR_MODES=False)
+    path_runs_lower = list_paths(Fh, n_lower, NO_SHEAR_MODES=False)
 
     if is_job_submitted(name_run):
         print(
@@ -129,11 +129,11 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     if len(path_runs) == 0:
         if n == 320:
             command = (
-                f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
+                f"./run_simul_polo.py --Fh {Fh} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
                 f"--max-elapsed {max_elapsed} "
             )
-            if NO_GEOSTROPHIC_MODES:
-                command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
+            if NO_SHEAR_MODES:
+                command += f"--NO_SHEAR_MODES {NO_SHEAR_MODES}"
 
             cluster.submit_command(
                 command,
@@ -271,10 +271,9 @@ def modif_reso(path, n, coef_change_reso=2):
 
 
     # On Licallo
-    os.system(command)
+    #os.system(command)
 
     # On Jean-Zay
-    """
     cluster.submit_command(
         f"{command}",
         name_run=name_run,
@@ -290,5 +289,4 @@ def modif_reso(path, n, coef_change_reso=2):
         project="uzc@cpu",
         partition="prepost",
     )
-    """
 
