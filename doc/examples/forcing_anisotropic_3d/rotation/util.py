@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import os
 
-from fluidlicallo import cluster
+from fluidjean_zay import cluster
 
 path_base_licallo = Path("/scratch/vlabarre/aniso_rotation/")
 path_output_papermill_licallo = Path("/scratch/vlabarre/aniso_rotation/aniso_results_papermill")
@@ -22,11 +22,11 @@ path_output_papermill_jeanzay = Path(
     "/gpfsscratch/rech/uzc/uey73qw/aniso_rotation/results_papermill"
 )
 
-path_base = path_base_licallo
-path_output_papermill = path_output_papermill_licallo
+path_base = path_base_jeanzay
+path_output_papermill = path_output_papermill_jeanzay
 
 coef_nu = 1.2
-n_target = [320, 640]
+n_target = [320, 640, 1280]
 Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
 walltime = "19:59:59"
 
@@ -56,16 +56,23 @@ def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
 
 def type_fft_from_n(n):
     "Get the fft type to use for a given n"
-    return "fftw1d"
+    if n == 320:
+        return "fftw3d"
+    elif n == 640:
+        return "pfft"
+    elif n == 1280:
+        return "pfft"
+    else:
+        raise NotImplementedError
     
 
 def nb_nodes_from_n(n):
     if n == 320:
-        return 1
-    if n == 640:
         return 4
+    if n == 640:
+        return 16
     if n == 1280:
-        return 32
+        return 64
     
 def max_elapsed_from_n(n):
     if n == 320:
@@ -80,11 +87,11 @@ def get_t_end(n):
     if n == 160:
         return 0
     elif n == 320:
-        return 10.0
-    elif n == 640:
-        return 15.0
-    elif n == 1280:
         return 20.0
+    elif n == 640:
+        return 25.0
+    elif n == 1280:
+        return 30.0
     else:
         raise NotImplementedError
 
@@ -250,7 +257,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             nb_mpi_processes=nb_mpi_processes,
             omp_num_threads=1,
             delay_signal_walltime=300,
-            ask=False,
+            ask=True,
             dependency="singleton",
         )
 
@@ -271,10 +278,9 @@ def modif_reso(path, n, coef_change_reso=2):
 
 
     # On Licallo
-    os.system(command)
+    #os.system(command)
 
     # On Jean-Zay
-    """
     cluster.submit_command(
         f"{command}",
         name_run=name_run,
@@ -290,5 +296,4 @@ def modif_reso(path, n, coef_change_reso=2):
         project="uzc@cpu",
         partition="prepost",
     )
-    """
 
