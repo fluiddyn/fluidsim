@@ -8,20 +8,22 @@ Once you have runned many runs, you can run fluidfft-bench-analysis
 Exemple:
 python submit_bench_fluidfft.py
 cd $WORK/fluidfft_bench
-fluidfft-bench-analysis 640 1280 1280 -i .
+fluidfft-bench-analysis 1280 1280 1280 -i .
 
 """
 
 from fluidjean_zay import cluster
 
 
+n = 640
+
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi = nb_procs = nb_nodes * nb_cores_per_node
 
     cluster.submit_command(
-        "fluidfft-bench 640 1280 1280 -o $WORK/fluidfft_bench -n 20",
-        name_run=f"fluidfft-bench_640_1280_1280_{nb_mpi:02d}",
+        f"fluidfft-bench {n} {n} {n} -o $WORK/fluidfft_bench -n 20",
+        name_run=f"fluidfft-bench_{n}_{n}_{n}_{nb_mpi:02d}",
         nb_nodes=nb_nodes,
         nb_cores_per_node=nb_cores_per_node,
         walltime="00:40:00",
@@ -32,5 +34,5 @@ def submit(nb_nodes):
     )
 
 
-for nb_nodes in [1, 2, 4, 8]:
+for nb_nodes in [16, 32, 64]:
     submit(nb_nodes)

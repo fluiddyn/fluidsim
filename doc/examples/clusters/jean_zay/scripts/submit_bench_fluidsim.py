@@ -8,7 +8,7 @@ Once you have runned many runs, you can run fluidsim-bench-analysis
 Exemple:
 python submit_bench_fluidsim.py
 cd $WORK/fluidsim_bench
-fluidsim-bench-analysis 640 1280 1280 -i . -s ns3d.strat
+fluidsim-bench-analysis 1280 1280 1280 -i . -s ns3d.strat
 
 """
 
@@ -20,7 +20,7 @@ def submit(nb_nodes):
     nb_mpi = nb_nodes * nb_cores_per_node
 
     cluster.submit_command(
-        "fluidsim-bench -s ns3d.strat 640 1280 1280 "
+        "fluidsim-bench -s ns3d.strat 1280 1280 1280 "
         "-o $WORK/fluidsim_bench "
         '-t "fft3d.mpi_with_p3dfft" '
         "-it 20",
