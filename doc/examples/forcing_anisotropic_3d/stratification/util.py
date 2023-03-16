@@ -25,8 +25,8 @@ path_output_papermill_jeanzay = Path(
 path_base = path_base_licallo
 path_output_papermill = path_output_papermill_licallo
 
-coef_nu = 1.2
-n_target = [320, 640]
+coef_nu = 2.0
+n_target = [320, 640, 1280]
 Fh_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
 walltime = "19:59:59"
 
@@ -56,16 +56,23 @@ def list_paths(Fh, n, NO_SHEAR_MODES=False):
 
 def type_fft_from_n(n):
     "Get the fft type to use for a given n"
-    return "fftw1d"
+    if n == 320:
+        return "fftw3d"
+    elif n == 640:
+        return "pfft"
+    elif n == 1280:
+        return "pfft"
+    else:
+        raise NotImplementedError
     
 
 def nb_nodes_from_n(n):
     if n == 320:
-        return 1
-    if n == 640:
         return 4
+    if n == 640:
+        return 16
     if n == 1280:
-        return 32
+        return 64
     
 def max_elapsed_from_n(n):
     if n == 320:
@@ -80,18 +87,13 @@ def get_t_end(n):
     if n == 160:
         return 0
     elif n == 320:
-        return 10.0
-    elif n == 640:
-        return 15.0
-    elif n == 1280:
         return 20.0
+    elif n == 640:
+        return 25.0
+    elif n == 1280:
+        return 30.0
     else:
         raise NotImplementedError
-
-
-def get_t_statio(f, n):
-    "Get end time of the simulation with resolution n"
-    t_end = get_t_end(n) - 2.0
 
 def is_job_submitted(name_run):
     command = f"squeue -n {name_run}"
@@ -111,6 +113,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
     max_elapsed = max_elapsed_from_n(n)
     n_lower = n // 2
     t_end_lower = get_t_end(n_lower)
+    type_fft = type_fft_from_n(n)
 
     params = f"{Fh=} {n=} {NO_SHEAR_MODES=}"
     
@@ -131,6 +134,9 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
             command = (
                 f"./run_simul_polo.py --Fh {Fh} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
                 f"--max-elapsed {max_elapsed} "
+                f"--modify-params '"
+                f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                f"'"
             )
             if NO_SHEAR_MODES:
                 command += f"--NO_SHEAR_MODES {NO_SHEAR_MODES}"
@@ -145,6 +151,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                 delay_signal_walltime=300,
                 ask=True,
             )
+
         else:
             # We must restart from lower resolution
             if len(path_runs_lower) == 0:
@@ -183,11 +190,14 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                     modif_reso(path=path_runs_lower[0], n=n)
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
-                    coef_reduce_nu = coef_change_reso ** 4/3
+                    coef_reduce_nu = coef_change_reso
                     command = (
                         f"fluidsim-restart {path_runs_lower} --t_end {t_end} --new-dir-results "
                         f"--max-elapsed {max_elapsed} "
-                        f"--modify-params 'params.nu_2 /= {coef_reduce_nu};'"
+                        f"--modify-params '"
+                        f"params.nu_2 /= {coef_reduce_nu}; "
+                        f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                        f"'"
                     )
                     print(f"run: {command} \n")
                     cluster.submit_command(
@@ -263,12 +273,9 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
 
 
 def modif_reso(path, n, coef_change_reso=2):
-    new_n = n * coef_change_reso
-
     name_run = f"modif_reso_polo_{path}"
     command = f"srun fluidsim-modif-resolution {path} {coef_change_reso}"
     print(f"run command: {command}\n")
-
 
     # On Licallo
     #os.system(command)

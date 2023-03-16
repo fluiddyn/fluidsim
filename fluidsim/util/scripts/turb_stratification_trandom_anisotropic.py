@@ -118,7 +118,7 @@ def create_parser():
     parser.add_argument(
         "-coef_nu", 
         type=float, 
-        default=1.2, 
+        default=2.0, 
         help="Coefficient used to compute the viscosity. It should correspond to kmax*eta"
     )
     

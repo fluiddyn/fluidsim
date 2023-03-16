@@ -25,7 +25,7 @@ path_output_papermill_jeanzay = Path(
 path_base = path_base_jeanzay
 path_output_papermill = path_output_papermill_jeanzay
 
-coef_nu = 1.2
+coef_nu = 2.0
 n_target = [320, 640, 1280]
 Ro_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
 walltime = "19:59:59"
@@ -95,11 +95,6 @@ def get_t_end(n):
     else:
         raise NotImplementedError
 
-
-def get_t_statio(f, n):
-    "Get end time of the simulation with resolution n"
-    t_end = get_t_end(n) - 2.0
-
 def is_job_submitted(name_run):
     command = f"squeue -n {name_run}"
     out = subprocess.check_output(command, shell=True)
@@ -156,7 +151,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                 delay_signal_walltime=300,
                 ask=True,
             )
-        
+
         else:
             # We must restart from lower resolution
             if len(path_runs_lower) == 0:
@@ -195,7 +190,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     modif_reso(path=path_runs_lower[0], n=n)
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
-                    coef_reduce_nu = coef_change_reso ** 4/3
+                    coef_reduce_nu = coef_change_reso
                     command = (
                         f"fluidsim-restart {path_runs_lower} --t_end {t_end} --new-dir-results "
                         f"--max-elapsed {max_elapsed} "                 
@@ -278,12 +273,9 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
 
 
 def modif_reso(path, n, coef_change_reso=2):
-    new_n = n * coef_change_reso
-
     name_run = f"modif_reso_polo_{path}"
     command = f"srun fluidsim-modif-resolution {path} {coef_change_reso}"
     print(f"run command: {command}\n")
-
 
     # On Licallo
     #os.system(command)
