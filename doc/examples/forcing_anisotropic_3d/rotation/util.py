@@ -118,6 +118,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     max_elapsed = max_elapsed_from_n(n)
     n_lower = n // 2
     t_end_lower = get_t_end(n_lower)
+    type_fft = type_fft_from_n(n)
 
     params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
     
@@ -138,10 +139,13 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             command = (
                 f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
                 f"--max-elapsed {max_elapsed} "
+                f"--modify-params '"
+                f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                f"'"
             )
             if NO_GEOSTROPHIC_MODES:
                 command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
-
+           
             cluster.submit_command(
                 command,
                 name_run=name_run,
@@ -152,6 +156,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                 delay_signal_walltime=300,
                 ask=True,
             )
+        
         else:
             # We must restart from lower resolution
             if len(path_runs_lower) == 0:
@@ -193,8 +198,11 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     coef_reduce_nu = coef_change_reso ** 4/3
                     command = (
                         f"fluidsim-restart {path_runs_lower} --t_end {t_end} --new-dir-results "
-                        f"--max-elapsed {max_elapsed} "
-                        f"--modify-params 'params.nu_2 /= {coef_reduce_nu};'"
+                        f"--max-elapsed {max_elapsed} "                 
+                        f"--modify-params '"
+                        f"params.nu_2 /= {coef_reduce_nu}; "
+                        f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                        f"'"
                     )
                     print(f"run: {command} \n")
                     cluster.submit_command(
