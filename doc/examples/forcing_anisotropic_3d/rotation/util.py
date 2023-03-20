@@ -1,11 +1,13 @@
 from fluidsim.util import (
     times_start_last_from_path,
     get_last_estimated_remaining_duration,
+    load_params_simul
 )
 
 from pathlib import Path
 import subprocess
 import os
+from math import pi
 
 from fluidjean_zay import cluster
 
@@ -81,6 +83,19 @@ def max_elapsed_from_n(n):
     if n == 1280:
         return "18:30:00"
 
+def get_t_statio(n):
+    "Get stationarity time of the simulation with resolution n"
+    if n == 160:
+        return 0
+    elif n == 320:
+        return 20.0
+    elif n == 640:
+        return 25.0
+    elif n == 1280:
+        return 30.0
+    else:
+        raise NotImplementedError
+    
 def get_t_end(n):
     "Get end time of the simulation with resolution n"
     if n == 160:
@@ -105,13 +120,14 @@ def is_job_submitted(name_run):
         return False
 
 def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
+    t_statio = get_t_statio(n)
     t_end = get_t_end(n)
     nb_nodes = nb_nodes_from_n(n)
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi_processes = nb_cores_per_node* nb_nodes
     max_elapsed = max_elapsed_from_n(n)
     n_lower = n // 2
-    t_end_lower = get_t_end(n_lower)
+    t_statio_lower = get_t_statio(n_lower)
     type_fft = type_fft_from_n(n)
 
     params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
@@ -131,7 +147,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     if len(path_runs) == 0:
         if n == 320:
             command = (
-                f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_end} "
+                f"./run_simul_polo.py --Ro {Ro} -n {n} -coef_nu {coef_nu} --t_end {t_statio} "
                 f"--max-elapsed {max_elapsed} "
                 f"--modify-params '"
                 f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
@@ -161,7 +177,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
 
             elif len(path_runs_lower) == 1:
                 t_start, t_last = times_start_last_from_path(path_runs_lower[0])
-                if t_last < t_end_lower:
+                if t_last < t_statio_lower:
                     try:
                         estimated_remaining_duration = (
                             get_last_estimated_remaining_duration(
@@ -174,7 +190,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     print(
                         f"Cannot launch {name_run} because the coarse "
                         "simulation is not finished\n"
-                        f"  ({t_last=} < {t_end_lower=}, {estimated_remaining_duration = })"
+                        f"  ({t_last=} < {t_statio_lower=}, {estimated_remaining_duration = })"
                     )
                     return
 
@@ -190,9 +206,9 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     modif_reso(path=path_runs_lower[0], n=n)
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
-                    coef_reduce_nu = coef_change_reso
+                    coef_reduce_nu = coef_change_reso ** (4/3)
                     command = (
-                        f"fluidsim-restart {path_runs_lower} --t_end {t_end} --new-dir-results "
+                        f"fluidsim-restart {path_runs_lower} --t_end {t_statio} --new-dir-results "
                         f"--max-elapsed {max_elapsed} "                 
                         f"--modify-params '"
                         f"params.nu_2 /= {coef_reduce_nu}; "
@@ -209,8 +225,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                         omp_num_threads=1,
                         delay_signal_walltime=300,
                         ask=True,
-                    )
-                
+                    ) 
                 else:
                     f"More than one state files in {path_runs_lower[0]}"
                     return
@@ -224,8 +239,23 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
 
     elif len(path_runs) == 1:
         t_start, t_last = times_start_last_from_path(path_runs[0])
-        if t_last >= t_end:
-            print(f"{params:40s}: completed")
+        tmp = load_params_simul(path_runs[0])
+        f = float(tmp.f)
+        if t_last >= t_statio:
+            if t_last < t_end:
+                period_spatiotemp = min(2 * pi / (f * 8), 0.03)
+                iksmax = int(32 * n // 320)
+                print("we restart and save spatiotemporal spectra")
+                command = (
+                    f"fluidsim-restart {path_runs[0]} --t_end {t_end} --max-elapsed {max_elapsed} "
+                    f"--modify-params '"
+                    f"params.output.periods_save.spatiotemporal_spectra = {period_spatiotemp}; "
+                    f"params.output.spatiotemporal_spectra.probes_region = ({iksmax}, {iksmax}, {iksmax}); "
+                    f"'"
+                )
+                print(f"run: {command} \n")
+            else:
+                print(f"{params:40s}: completed")
             return
 
         try:
@@ -249,7 +279,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             print("No file to remove before launching the simulation")
 
         print("we restart")
-        command = f"fluidsim-restart {path_runs[0]} --t_end {t_end} --max-elapsed {max_elapsed} "
+        command = f"fluidsim-restart {path_runs[0]} --t_end {t_statio} --max-elapsed {max_elapsed} "
         print(f"run: {command} \n")
 
         cluster.submit_command(
