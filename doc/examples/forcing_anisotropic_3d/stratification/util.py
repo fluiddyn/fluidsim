@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import os
 
-from fluidjeanzay import cluster
+from fluidjean_zay import cluster
 
 path_base_licallo = Path("/scratch/vlabarre/aniso_stratification/")
 path_output_papermill_licallo = Path("/scratch/vlabarre/aniso_stratification/aniso_results_papermill")
@@ -22,8 +22,8 @@ path_output_papermill_jeanzay = Path(
     "/gpfsscratch/rech/uzc/uey73qw/aniso_stratification/results_papermill"
 )
 
-path_base = path_base_licallo
-path_output_papermill = path_output_papermill_licallo
+path_base = path_base_jeanzay
+path_output_papermill = path_output_papermill_jeanzay
 
 coef_nu = 2.0
 n_target = [320, 640, 1280]
@@ -32,7 +32,7 @@ walltime = "19:59:59"
 
 def list_paths(Fh, n, NO_SHEAR_MODES=False):
     # Find the paths of the simulations
-    paths = sorted(path_base.glob(f"ns3d_polo*_{n}x{n}x{n}*"))
+    paths = sorted(path_base.glob(f"ns3d.strat_polo*_{n}x{n}x{n}*"))
     print(paths)
     pathstemp = [
         p for p in paths if f"_Fh{Fh:.3e}_" in p.name 
@@ -57,7 +57,7 @@ def list_paths(Fh, n, NO_SHEAR_MODES=False):
 def type_fft_from_n(n):
     "Get the fft type to use for a given n"
     if n == 320:
-        return "fftw3d"
+        return "fftwmpi3d"
     elif n == 640:
         return "pfft"
     elif n == 1280:
@@ -118,8 +118,8 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
     params = f"{Fh=} {n=} {NO_SHEAR_MODES=}"
     
     name_run = f"run_simul_polo_Fh{Fh}_n{n}_NO_SHEAR_MODES{NO_SHEAR_MODES}"
-    path_runs = list_paths(Fh, n, NO_SHEAR_MODES=False)
-    path_runs_lower = list_paths(Fh, n_lower, NO_SHEAR_MODES=False)
+    path_runs = list_paths(Fh, n, NO_SHEAR_MODES=NO_SHEAR_MODES)
+    path_runs_lower = list_paths(Fh, n_lower, NO_SHEAR_MODES=NO_SHEAR_MODES)
 
     if is_job_submitted(name_run):
         print(
@@ -139,7 +139,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                 f"'"
             )
             if NO_SHEAR_MODES:
-                command += f"--NO_SHEAR_MODES {NO_SHEAR_MODES}"
+                command += f" --NO_SHEAR_MODES {NO_SHEAR_MODES}"
 
             cluster.submit_command(
                 command,

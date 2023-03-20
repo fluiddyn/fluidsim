@@ -33,7 +33,6 @@ walltime = "19:59:59"
 def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
     # Find the paths of the simulations
     paths = sorted(path_base.glob(f"ns3d_polo*_{n}x{n}x{n}*"))
-    print(paths)
     pathstemp = [
         p for p in paths if f"_Ro{Ro:.3e}_" in p.name 
     ]
@@ -57,7 +56,7 @@ def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
 def type_fft_from_n(n):
     "Get the fft type to use for a given n"
     if n == 320:
-        return "fftw3d"
+        return "fftwmpi3d"
     elif n == 640:
         return "pfft"
     elif n == 1280:
@@ -118,8 +117,8 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
     
     name_run = f"run_simul_polo_Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES}"
-    path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False)
-    path_runs_lower = list_paths(Ro, n_lower, NO_GEOSTROPHIC_MODES=False)
+    path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=NO_GEOSTROPHIC_MODES)
+    path_runs_lower = list_paths(Ro, n_lower, NO_GEOSTROPHIC_MODES=NO_GEOSTROPHIC_MODES)
 
     if is_job_submitted(name_run):
         print(
@@ -139,7 +138,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                 f"'"
             )
             if NO_GEOSTROPHIC_MODES:
-                command += f"--NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
+                command += f" --NO_GEOSTROPHIC_MODES {NO_GEOSTROPHIC_MODES}"
            
             cluster.submit_command(
                 command,
@@ -187,6 +186,7 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                 )
 
                 if len(path_state_lower) == 0: 
+                    print(f"We change resolution for {path_runs_lower[0]}")
                     modif_reso(path=path_runs_lower[0], n=n)
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
