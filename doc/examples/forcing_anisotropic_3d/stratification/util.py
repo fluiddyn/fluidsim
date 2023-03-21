@@ -12,20 +12,10 @@ from math import pi
 from fluidjean_zay import cluster
 
 path_base_licallo = Path("/scratch/vlabarre/aniso_stratification/")
-path_output_papermill_licallo = Path("/scratch/vlabarre/aniso_stratification/aniso_results_papermill")
-
 path_base_azzurra = Path("/workspace/vlabarre/aniso_stratification/")
-path_output_papermill_azzurra = Path(
-    "/workspace/vlabarre/aniso_stratification/results_papermill"
-)
-
 path_base_jeanzay = Path("/gpfsscratch/rech/uzc/uey73qw/aniso_stratification/")
-path_output_papermill_jeanzay = Path(
-    "/gpfsscratch/rech/uzc/uey73qw/aniso_stratification/results_papermill"
-)
 
 path_base = path_base_jeanzay
-path_output_papermill = path_output_papermill_jeanzay
 
 coef_nu = 2.0
 n_target = [320, 640, 1280]
@@ -204,6 +194,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                 if len(path_state_lower) == 0: 
                     print(f"We change resolution for {path_runs_lower[0]}")
                     modif_reso(path=path_runs_lower[0], n=n)
+                    return
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
                     coef_reduce_nu = coef_change_reso ** (4/3)
@@ -304,10 +295,10 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
 
 def modif_reso(path, n, coef_change_reso=2):
     name_run = f"modif_reso_polo_{path}"
-    command = f"srun fluidsim-modif-resolution {path} {coef_change_reso}"
+    t_statio = get_t_statio(n)
+    command = f"srun fluidsim-modif-resolution {path} {coef_change_reso} --t_approx {t_statio}"
     print(f"run command: {command}\n")
 
-    # On Licallo
     #os.system(command)
 
     # On Jean-Zay
@@ -326,4 +317,3 @@ def modif_reso(path, n, coef_change_reso=2):
         project="uzc@cpu",
         partition="prepost",
     )
-
