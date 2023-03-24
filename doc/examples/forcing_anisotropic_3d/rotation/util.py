@@ -34,14 +34,13 @@ def list_paths(Ro, n, NO_GEOSTROPHIC_MODES=False):
     else:
         paths = [p for p in pathstemp if f"_NO_GEOSTROPHIC_MODES_" not in p.name]
 
-    """
     print(
         f"List of paths for simulations with (Ro, n, NO_GEOSTROPHIC_MODES)= ({Ro:.3e}, {n}, {NO_GEOSTROPHIC_MODES}): \n"
     )
 
     for path in paths:
         print(path, "\n")
-    """
+
     return paths
 
 
@@ -113,7 +112,6 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
     type_fft = type_fft_from_n(n)
 
     params = f"{Ro=} {n=} {NO_GEOSTROPHIC_MODES=}"
-    print(params)
 
     name_run = f"run_simul_polo_Ro{Ro}_n{n}_NO_GEOSTROPHIC_MODES{NO_GEOSTROPHIC_MODES}"
     path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=NO_GEOSTROPHIC_MODES)
@@ -125,7 +123,6 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
             "already launched"
         )
         return
-
 
     if len(path_runs) == 0:
         if n == 320:
@@ -177,14 +174,12 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     )
                     return
 
-                print("path run lower: ", path_runs_lower[0])
                 path_state_lower = sorted(
                     path_runs_lower[0].glob(
                         f"State_phys_{n}x{n}x{n}*/state_phys_t*.h5"
                     )
                 )
-                print("path state lower: ", path_state_lower)
-
+                
                 if len(path_state_lower) == 0:
                     print(f"We change resolution for {path_runs_lower[0]}")
                     modif_reso(path=path_runs_lower[0], n=n_lower, Ro=Ro)
@@ -251,11 +246,8 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                     ask=True,
                     dependency="singleton",
                 )
-                return
-
             else:
                 print(f"{params:40s}: completed")
-                return
 
         else:
             print("we restart without saving spatiotemporal spectra")

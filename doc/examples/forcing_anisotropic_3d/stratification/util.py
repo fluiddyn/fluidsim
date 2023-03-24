@@ -34,7 +34,6 @@ def list_paths(Fh, n, NO_SHEAR_MODES=False):
     else:
         paths = [p for p in pathstemp if f"_NO_SHEAR_MODES_" not in p.name]
  
-
     print(
         f"List of paths for simulations with (Fh, n, NO_SHEAR_MODES)= ({Fh:.3e}, {n}, {NO_SHEAR_MODES}): \n"
     )
@@ -85,8 +84,7 @@ def get_t_statio(n, Fh):
         return 130.0
     else:
         raise NotImplementedError
-
-    
+   
 def get_t_end(n, Fh):
     "Get end time of the simulation with resolution n"
     t_statio = get_t_statio(n, Fh)
@@ -125,7 +123,6 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
             "already launched"
         )
         return
-
 
     if len(path_runs) == 0:
         if n == 320:
@@ -176,8 +173,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                         f"  ({t_last=} < {t_statio_lower=}, {estimated_remaining_duration = })"
                     )
                     return
-
-                
+              
                 path_state_lower = sorted(
                     path_runs_lower[0].glob(
                         f"State_phys_{n}x{n}x{n}*/state_phys_t*.h5"
@@ -197,6 +193,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                         f"--modify-params '"
                         f"params.nu_2 /= {coef_reduce_nu}; "
                         f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                        f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
                         f"'"
                     )
                     print(f"run: {command} \n")
@@ -247,10 +244,33 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                     omp_num_threads=1,
                     delay_signal_walltime=300,
                     ask=True,
+                    dependency="singleton",
                 )
             else:
                 print(f"{params:40s}: completed")
-            return
+
+        else:
+            print("we restart without saving spatiotemporal spectra")
+            command = (
+                f"fluidsim-restart {path_runs[0]} --t_end {t_statio} --max-elapsed {max_elapsed} "
+                f"--modify-params '"
+                f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
+                f"'"
+            )
+
+            print(f"run: {command} \n")
+
+            cluster.submit_command(
+                command,
+                name_run=name_run,
+                nb_nodes=nb_nodes,
+                walltime=walltime,
+                nb_mpi_processes=nb_mpi_processes,
+                omp_num_threads=1,
+                delay_signal_walltime=300,
+                ask=True,
+                dependency="singleton",
+            )
 
         try:
             estimated_remaining_duration = (
@@ -272,28 +292,6 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
         except StopIteration:
             print("No file to remove before launching the simulation")
 
-        print("we restart")
-        command = (
-            f"fluidsim-restart {path_runs[0]} --t_end {t_statio} --max-elapsed {max_elapsed} "
-            f"--modify-params '"
-            f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
-            f"'"
-        )
-
-        print(f"run: {command} \n")
-
-        cluster.submit_command(
-            command,
-            name_run=name_run,
-            nb_nodes=nb_nodes,
-            walltime=walltime,
-            nb_mpi_processes=nb_mpi_processes,
-            omp_num_threads=1,
-            delay_signal_walltime=300,
-            ask=True,
-            dependency="singleton",
-        )
-
     else:
         print(
             f"More than one simulation with "
@@ -302,9 +300,9 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
         )
 
 
-def modif_reso(path, n, coef_change_reso=2):
+def modif_reso(path, n, Fh, coef_change_reso=2):
     name_run = f"modif_reso_polo_{path}"
-    t_statio = get_t_statio(n)
+    t_statio = get_t_statio(n, Fh)
     command = f"srun fluidsim-modif-resolution {path} {coef_change_reso} --t_approx {t_statio}"
     print(f"run command: {command}\n")
 

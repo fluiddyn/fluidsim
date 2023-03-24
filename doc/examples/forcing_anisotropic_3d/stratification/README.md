@@ -12,38 +12,38 @@ The `Fh` and resolution `n` are defined in `util.py`, and `Re` is fixed accordin
 
 All the simulations are runned on the cluster Jean-Zay. 
 
-## n = 320 (t_statio = 20)
+## n = 320 (t_statio = 100)
 
 We start by small simulations for `n = 320`. 
 Each simulation is performed using 4 nodes (160 cores) and `fftw3d`.
 
-| Ro           | 1.000e-00     | 3.162e-01     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 3.162e-03     |
-|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| time fft (s) |               |               |               |               |               |               |
-| time / simul | ? days        | ? days        | ? days        | ? days        | ? days        | ? days        |
-| h.CPU        |               |               |               |               |               |               |
+| Fh           | 1.000e-00     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 
+|--------------|---------------|---------------|---------------|---------------|
+| time fft (s) |               |               |               |               |              
+| time / simul | ? days        | ? days        | ? days        | ? days        | 
+| h.CPU        |               |               |               |               |  
 
-## n = 640 (t_statio = 25)
+## n = 640 (t_statio = 120)
 
-We restart from the final state of the simulations with `n = 320`. We double the resolution in all direction (8 times more grid points) and the viscosity is decreased by `2`.
+We restart from the final state of the simulations with `n = 320`. We double the resolution in all direction (8 times more grid points) and the viscosity is decreased by `2^(4/3)`.
 Each simulation is performed using 16 nodes (640 cores) and `pfft`.
 
-| Fh           | 1.000e-00     | 3.162e-01     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 3.162e-03     |
-|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| time fft (s) |               |               |               |               |               |               |
-| time / simul | ? days        | ? days        | ? days        | ? days        | ? days        | ? days        |
-| h.CPU        |               |               |               |               |               |               |
+| Fh           | 1.000e-00     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 
+|--------------|---------------|---------------|---------------|---------------|
+| time fft (s) |               |               |               |               |              
+| time / simul | ? days        | ? days        | ? days        | ? days        | 
+| h.CPU        |               |               |               |               |
 
-## nh = 1280 (t_statio = 30)
+## nh = 1280 (t_statio = 130)
 
-We restart from the final state of the simulations with `n = 640`. We double the resolution in all direction (8 times more grid points) and the viscosity is decreased by `2`.
+We restart from the final state of the simulations with `n = 640`. We double the resolution in all direction (8 times more grid points) and the viscosity is decreased by `2^(4/3)`.
 Each simulation is performed using 64 nodes (2560 cores) and `pfft`.
 
-| Fh           | 1.000e-00     | 3.162e-01     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 3.162e-03     |
-|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| time fft (s) |               |               |               |               |               |               |
-| time / simul | ? days        | ? days        | ? days        | ? days        | ? days        | ? days        |
-| h.CPU        |               |               |               |               |               |               |
+| Fh           | 1.000e-00     | 1.000e-01     | 3.162e-02     | 1.000e-02     | 
+|--------------|---------------|---------------|---------------|---------------|
+| time fft (s) |               |               |               |               |              
+| time / simul | ? days        | ? days        | ? days        | ? days        | 
+| h.CPU        |               |               |               |               |
 
 
 

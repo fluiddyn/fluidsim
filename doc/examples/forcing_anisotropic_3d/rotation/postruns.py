@@ -57,7 +57,7 @@ def compute_spatiotemporal_spectra(path):
     # compute spatiotemporal spectra
     params = load_params_simul(path)
     n = params.oper.nx
-    t_statio = get_t_statio(n)
+    t_statio = get_t_statio(n, Ro)
     sim = load(path, hide_stdout=True)
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
    
@@ -104,6 +104,6 @@ for n in ns:
                 )
 
             print(f"We save the simulation in $STORE")
-            #os.system(
-            #    f"rsync -rvz -L --update {path_sim} /gpfsstore/rech/uzc/uey73qw/aniso_rotation/"
-            #)
+            os.system(
+                f"rsync -rvz -L --update {path_sim} /gpfsstore/rech/uzc/uey73qw/aniso_rotation/"
+            )
