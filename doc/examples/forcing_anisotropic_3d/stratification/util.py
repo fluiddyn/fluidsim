@@ -19,7 +19,7 @@ path_base = path_base_jeanzay
 
 coef_nu = 2.0
 n_target = [320, 640, 1280]
-Fh_target = [1.0, 10**(-0.5), 10**(-1), 10**(-1.5), 10**(-2), 10**(-2.5)]
+Fh_target = [1.0, 10**(-1), 10**(-1.5), 10**(-2)]
 walltime = "19:59:59"
 
 def list_paths(Fh, n, NO_SHEAR_MODES=False):
@@ -73,31 +73,24 @@ def max_elapsed_from_n(n):
     if n == 1280:
         return "18:30:00"
 
-def get_t_statio(n):
+def get_t_statio(n, Fh):
     "Get stationarity time of the simulation with resolution n"
     if n == 160:
-        return 0
+        return 0.0
     elif n == 320:
-        return 20.0
+        return 100.0
     elif n == 640:
-        return 25.0
+        return 120.0
     elif n == 1280:
-        return 30.0
+        return 130.0
     else:
         raise NotImplementedError
+
     
-def get_t_end(n):
+def get_t_end(n, Fh):
     "Get end time of the simulation with resolution n"
-    if n == 160:
-        return 0
-    elif n == 320:
-        return 20.0
-    elif n == 640:
-        return 25.0
-    elif n == 1280:
-        return 30.0
-    else:
-        raise NotImplementedError
+    t_statio = get_t_statio(n, Fh)
+    return t_statio + 5.0
 
 def is_job_submitted(name_run):
     command = f"squeue -n {name_run}"
@@ -110,14 +103,14 @@ def is_job_submitted(name_run):
         return False
 
 def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
-    t_statio = get_t_statio(n)
-    t_end = get_t_end(n)
+    t_statio = get_t_statio(n, Fh)
+    t_end = get_t_end(n, Fh)
     nb_nodes = nb_nodes_from_n(n)
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi_processes = nb_cores_per_node* nb_nodes
     max_elapsed = max_elapsed_from_n(n)
     n_lower = n // 2
-    t_statio_lower = get_t_statio(n_lower)
+    t_statio_lower = get_t_statio(n_lower, Fh)
     type_fft = type_fft_from_n(n)
 
     params = f"{Fh=} {n=} {NO_SHEAR_MODES=}"
@@ -185,7 +178,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                     return
 
                 
-                path_state_lower = next(
+                path_state_lower = sorted(
                     path_runs_lower[0].glob(
                         f"State_phys_{n}x{n}x{n}*/state_phys_t*.h5"
                     )
@@ -193,7 +186,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
 
                 if len(path_state_lower) == 0: 
                     print(f"We change resolution for {path_runs_lower[0]}")
-                    modif_reso(path=path_runs_lower[0], n=n)
+                    modif_reso(path=path_runs_lower[0], n=n_lower)
                     return
                 elif len(path_state_lower) == 1: 
                     coef_change_reso = n / n_lower
@@ -245,6 +238,16 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
                     f"'"
                 )
                 print(f"run: {command} \n")
+                cluster.submit_command(
+                    command,
+                    name_run=name_run,
+                    nb_nodes=nb_nodes,
+                    walltime=walltime,
+                    nb_mpi_processes=nb_mpi_processes,
+                    omp_num_threads=1,
+                    delay_signal_walltime=300,
+                    ask=True,
+                )
             else:
                 print(f"{params:40s}: completed")
             return
@@ -270,7 +273,13 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
             print("No file to remove before launching the simulation")
 
         print("we restart")
-        command = f"fluidsim-restart {path_runs[0]} --t_end {t_statio} --max-elapsed {max_elapsed} "
+        command = (
+            f"fluidsim-restart {path_runs[0]} --t_end {t_statio} --max-elapsed {max_elapsed} "
+            f"--modify-params '"
+            f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
+            f"'"
+        )
+
         print(f"run: {command} \n")
 
         cluster.submit_command(
@@ -281,7 +290,7 @@ def submit(n=320,Fh=1e-1,NO_SHEAR_MODES=False):
             nb_mpi_processes=nb_mpi_processes,
             omp_num_threads=1,
             delay_signal_walltime=300,
-            ask=False,
+            ask=True,
             dependency="singleton",
         )
 
@@ -299,8 +308,8 @@ def modif_reso(path, n, coef_change_reso=2):
     command = f"srun fluidsim-modif-resolution {path} {coef_change_reso} --t_approx {t_statio}"
     print(f"run command: {command}\n")
 
-    #os.system(command)
-
+    os.system(command)
+    """
     # On Jean-Zay
     cluster.submit_command(
         f"{command}",
@@ -317,3 +326,4 @@ def modif_reso(path, n, coef_change_reso=2):
         project="uzc@cpu",
         partition="prepost",
     )
+    """

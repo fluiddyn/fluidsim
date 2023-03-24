@@ -72,13 +72,13 @@ for n in ns:
             path_runs = list_paths(Fh, n, NO_SHEAR_MODES=NO_SHEAR_MODES)
             assert len(path_runs) == 1
             path_sim = path_runs[0]
-            print(path)
+            print(path_sim)
             t_start, t_last = times_start_last_from_path(path_sim)
             t_end = get_t_end(n)
             if t_last < t_end - 0.01:
-                print(f"{path.name:90s} not finished ({t_last=})")
-                return
-            print(f"{path.name:90s} done ({t_last=})")
+                print(f"{path_sim.name:90s} not finished ({t_last=})")
+                exit
+            print(f"{path_sim.name:90s} done ({t_last=})")
 
             # We remove useless files
             clean_sim_dir(path_sim)
