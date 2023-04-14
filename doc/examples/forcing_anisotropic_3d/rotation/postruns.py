@@ -16,12 +16,8 @@ import os
 from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
-from util import (
-    get_t_end,
-    get_t_statio,
-    Ro_target,
-    list_paths
-)
+from util import get_t_end, get_t_statio, Ro_target, list_paths
+
 
 def clean_sim_dir(path, Ro, DELETE_SPATIOTEMPORAL_SPECTRA=False):
     print("Cleaning simulation directory: ", path)
@@ -38,9 +34,9 @@ def clean_sim_dir(path, Ro, DELETE_SPATIOTEMPORAL_SPECTRA=False):
         time = float(path_file.name.rsplit("_t", 1)[1][:-3])
         if (
             # time % deltat_file > deltat
-            abs(time - t_last) > 1.1*deltat
-            and abs(time - t_statio) > 1.1*deltat
-            and abs(time - t_end) > 1.1*deltat
+            abs(time - t_last) > 1.1 * deltat
+            and abs(time - t_statio) > 1.1 * deltat
+            and abs(time - t_end) > 1.1 * deltat
         ):
             print(f"deleting {path_file.name}")
             path_file.unlink()
@@ -62,14 +58,15 @@ def compute_spatiotemporal_spectra(path):
     sim.output.spatiotemporal_spectra.get_spectra(tmin=t_statio)
 
 
-
 ns = [320, 640]
 
 for n in ns:
     for NO_GEOSTROPHIC_MODES in [False, True]:
         for Ro in sorted(Ro_target):
             print("--------------------------------------------")
-            path_runs = list_paths(Ro, n, NO_GEOSTROPHIC_MODES=NO_GEOSTROPHIC_MODES)
+            path_runs = list_paths(
+                Ro, n, NO_GEOSTROPHIC_MODES=NO_GEOSTROPHIC_MODES
+            )
             if len(path_runs) != 1:
                 continue
             path_sim = path_runs[0]
@@ -89,7 +86,9 @@ for n in ns:
                 base_command = "h5repack -f SHUF -f GZIP=4"
                 for name in names:
                     path = path_sim / name
-                    path_uncompressed = path.with_stem(path.stem + "_uncompressed")
+                    path_uncompressed = path.with_stem(
+                        path.stem + "_uncompressed"
+                    )
                     if path_uncompressed.exists():
                         continue
                     path_compressed = path.with_stem(path.stem + "_compressed")

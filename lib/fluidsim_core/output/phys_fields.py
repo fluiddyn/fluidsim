@@ -156,7 +156,6 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
         interpolate_time=True,
         skip_vars=(),
     ):
-
         if time is None and idx_time is None:
             self.update_times()
             time = self.times[-1]
@@ -174,7 +173,6 @@ class SetOfPhysFieldFilesBase(SetOfPhysFieldFilesABC):
             )
 
         if interpolate_time and time is not None:
-
             idx_closest, time_closest = self.get_closest_time_file(time)
 
             if math.isclose(time, time_closest) or self.times.size == 1:

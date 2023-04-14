@@ -122,7 +122,6 @@ class SpectraNS3D(Spectra):
         only_time_average=False,
         cmap=None,
     ):
-
         self._plot_times(
             tmin=tmin,
             tmax=tmax,
@@ -155,7 +154,6 @@ class SpectraNS3D(Spectra):
         only_time_average=False,
         cmap=None,
     ):
-
         self._plot_times(
             tmin=tmin,
             tmax=tmax,
@@ -189,7 +187,6 @@ class SpectraNS3D(Spectra):
         ndim=1,
         cmap=None,
     ):
-
         if ndim not in [1, 3]:
             raise ValueError
 
@@ -302,7 +299,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         plot_forcing_region=False,
         plot_dissipative_scales=False,
     ):
-
         ax = self._plot_ndim(
             tmin,
             tmax,
@@ -320,7 +316,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         ymin, ymax = ax.get_ybound()
 
         if plot_forcing_region:
-
             with h5py.File(self.path_file1d, "r") as h5file:
                 kx = h5file["kx"][...]
                 ky = h5file["ky"][...]
@@ -413,7 +408,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         xlim=None,
         ylim=None,
     ):
-
         ax = self._plot_ndim(
             tmin,
             tmax,
@@ -531,7 +525,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
     def _plot1d_direction(
         self, direction, imin_plot, imax_plot, coef_compensate, ax
     ):
-
         with h5py.File(self.path_file1d, "r") as h5file:
             ks = h5file["k" + direction][...]
             spectrum = _get_averaged_spectrum(

@@ -73,7 +73,6 @@ class SpatialMeansBase(SpecificOutput):
             self.t_last_save = self.sim.time_stepping.t
 
     def _init_files(self, arrays_1st_time=None):
-
         if mpi.rank == 0:
             if not os.path.exists(self.path_file):
                 self.file = open(self.path_file, "w")

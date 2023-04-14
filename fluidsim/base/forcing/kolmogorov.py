@@ -53,7 +53,6 @@ class _KolmogorovFlowBase(SimulExtender):
             )
 
     def __init__(self, sim):
-
         if len(sim.oper.axes) == 3:
             self._key_forced_default = "vx_fft"
         else:

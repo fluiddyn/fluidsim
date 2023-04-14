@@ -41,7 +41,6 @@ class OperatorsDedalus2D:
         return de.Domain([x_basis, z_basis], grid_dtype=np.float64)
 
     def __init__(self, params=None, SEQUENTIAL=None):
-
         self.domain = self.create_domain(params)
 
         self.axes = ("z", "x")
@@ -61,7 +60,6 @@ class OperatorsDedalus2D:
         self.shapeX_seq = self.shapeX_loc = (ny, nx)
 
     def get_grid1d_seq(self, axe="x"):
-
         if axe not in ("x", "y"):
             raise ValueError
 

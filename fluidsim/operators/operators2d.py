@@ -83,7 +83,6 @@ if nb_proc > 1:
 
 @boost
 class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
-
     _has_to_dealiase: bool
     where_dealiased: "uint8[:, :]"
     KX: Af
@@ -114,7 +113,6 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params):
-
         self.params = params
         self.axes = ("y", "x")
         nx = int(params.oper.nx)
@@ -608,7 +606,6 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
 
     def get_grid1d_seq(self, axis="x"):
-
         if axis not in ("x", "y"):
             raise ValueError
 

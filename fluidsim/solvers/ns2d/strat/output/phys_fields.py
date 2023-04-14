@@ -16,7 +16,6 @@ class PhysFields2DStrat(PhysFieldsBase2D):
     """Class physical fields of solver ns2d.strat"""
 
     def update_animation(self, frame, **fargs):
-
         super().update_animation(frame, **fargs)
 
         if hasattr(self, "ratio_omegas"):

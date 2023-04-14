@@ -161,7 +161,6 @@ def get_config():
 
     config_dict = {}
     for section in config.sections():
-
         section_dict = {}
         config_dict[section] = section_dict
         for option in config.options(section):

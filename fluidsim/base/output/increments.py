@@ -450,7 +450,6 @@ class Increments(SpecificOutput):
         return pdf_timemean, values_inc_timemean, nb_rx_to_plot
 
     def plot_pdf(self, tmin=0, tmax=None, key_var="ux", order=0, nb_rx_to_plot=5):
-
         irx_to_plot = np.arange(
             0, self.rxs.size, self.rxs.size / nb_rx_to_plot
         ).astype(int)
@@ -479,7 +478,6 @@ class Increments(SpecificOutput):
         colors = ["k", "y", "r", "b", "g", "m", "c"]
 
         for irxp, irx in enumerate(irx_to_plot):
-
             print("color = {}, rx = {}".format(colors[irxp], self.rxs[irx]))
 
             val_inc = values_inc_timemean[irxp]

@@ -25,7 +25,6 @@ def step(x, limit, smoothness):
 
 class PeriodicUniform:
     def __init__(self, speed_max, length, length_acc, lx):
-
         self.speed_max = speed_max
 
         sign = np.sign(speed_max)
@@ -45,7 +44,6 @@ class PeriodicUniform:
         self.x_2 = self.x_3 = self.x_0 + sign * (length_acc + x_uni)
 
     def get_speed(self, time):
-
         speed_max = self.speed_max
         acc = self.acc
         t_1 = self.t_1
@@ -74,7 +72,6 @@ class PeriodicUniform:
             return -speed_max + acc * t
 
     def get_locations(self, time):
-
         speed_max = self.speed_max
         acc = self.acc
         t_1 = self.t_1
@@ -236,7 +233,6 @@ class ForcingMilestone(Base):
             self.get_speed = self.get_speed_sinusoidal
 
         elif type_movement == "periodic_uniform":
-
             params_pu = self.params_milestone.movement.periodic_uniform
             periodic_uniform = PeriodicUniform(
                 params_pu.speed,
@@ -258,7 +254,6 @@ class ForcingMilestone(Base):
             raise NotImplementedError
 
     def get_solid_field(self, time):
-
         if mpi.rank > 0 and (self._is_using_coarse_oper or self.ndim == 3):
             return (None,) * 3
 
@@ -299,7 +294,6 @@ class ForcingMilestone(Base):
         return self._half_length * self._omega * cos(self._omega * time - pi / 2)
 
     def check_plot_solid(self, time):
-
         solid, x_coors, y_coors = self.get_solid_field(time)
 
         fig, ax = plt.subplots()
@@ -318,7 +312,6 @@ class ForcingMilestone(Base):
         fig.colorbar(pcmesh)
 
     def check_plot_forcing(self, time):
-
         self.compute(time)
 
         try:
@@ -352,7 +345,6 @@ class ForcingMilestone(Base):
         fig.colorbar(pcmesh)
 
     def check_with_animation(self, number_frames=40, interval=500):
-
         oper_c = self.oper_coarse
 
         lx = oper_c.Lx
@@ -428,7 +420,6 @@ class ForcingMilestone(Base):
         return self.solid
 
     def compute(self, time=None):
-
         sim = self.sim
 
         if time is None:
@@ -457,7 +448,6 @@ class ForcingMilestone(Base):
 
 
 if __name__ == "__main__":
-
     # from time import perf_counter
 
     from fluidsim.solvers.ns2d.with_uxuy import Simul

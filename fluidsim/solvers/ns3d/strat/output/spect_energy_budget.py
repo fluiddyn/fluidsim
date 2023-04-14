@@ -67,7 +67,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
     """
 
     def compute(self):
-
         results = super().compute()
 
         state = self.sim.state
@@ -121,7 +120,6 @@ class SpectralEnergyBudgetNS3DStrat(SpectralEnergyBudgetNS3D):
     def plot_fluxes(
         self, tmin=None, tmax=None, key_k="kh", ax=None, plot_conversion=True
     ):
-
         data = self.compute_fluxes_mean(tmin, tmax)
 
         k_plot = data[key_k]

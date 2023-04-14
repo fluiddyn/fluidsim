@@ -128,7 +128,6 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
             self.ax_a.plot(tsim, energy, "k.")
 
             self.axe_b.plot(tsim, epsK_tot, "k.")

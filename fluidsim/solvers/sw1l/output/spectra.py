@@ -152,7 +152,6 @@ class SpectraSW1L(Spectra):
         ax: Optional[mpl.axes.Axes] = None,
         help_lines: bool = True,
     ):
-
         with h5py.File(self.path_file1D, "r") as h5file:
             dset_times = h5file["times"]
             times = dset_times[...]
@@ -261,7 +260,6 @@ class SpectraSW1L(Spectra):
         ax: Optional[mpl.axes.Axes] = None,
         help_lines: bool = True,
     ):
-
         with h5py.File(self.path_file2D, "r") as h5file:
             times = h5file["times"][...]
 

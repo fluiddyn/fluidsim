@@ -23,7 +23,6 @@ class InfoSolverBasilisk(InfoSolverBase):
     """Contain the information on a Basilisk solver."""
 
     def _init_root(self):
-
         super()._init_root()
 
         mod = "fluidsim.base.basilisk"
@@ -66,7 +65,6 @@ class SimulBasilisk(SimulBase):
 Simul = SimulBasilisk
 
 if __name__ == "__main__":
-
     import matplotlib.pyplot as plt
 
     params = Simul.create_default_params()

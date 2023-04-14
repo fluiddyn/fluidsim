@@ -251,7 +251,6 @@ class BaseSpectra(SpecificOutput):
         return results
 
     def load_kzkh_mean(self, tmin=None, tmax=None, key_to_load=None):
-
         if not os.path.exists(self.path_file_kzkh):
             raise RuntimeError(
                 self.path_file_kzkh

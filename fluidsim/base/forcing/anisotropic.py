@@ -74,7 +74,6 @@ kz_negative_enable: bool
             raise NotImplementedError
 
     def _create_params_coarse(self, fft_size):
-
         params_coarse = super()._create_params_coarse(fft_size)
 
         self.angle = angle = ensure_radians(self.params.forcing[self.tag].angle)
@@ -165,7 +164,6 @@ kz_negative_enable: bool
             ndim = 3
 
         if delta_angle is None:
-
             self.khmin_forcing = np.sin(angle) * self.kmin_forcing
             self.kvmin_forcing = np.cos(angle) * self.kmin_forcing
 
@@ -197,7 +195,6 @@ kz_negative_enable: bool
             COND_NO_F[:, self.oper_coarse.shapeK_loc[1] - 1] = True
 
         else:
-
             if ndim == 2:
                 K = np.sqrt(self.oper_coarse.KX**2 + self.oper_coarse.KY**2)
                 Kv = self.oper_coarse.KY

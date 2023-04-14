@@ -170,7 +170,6 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
 
         irx_to_plot = [10, 50, 100]
         for irxp, irx in enumerate(irx_to_plot):
-
             val_inc = values_inc_timemean[irx]
 
             ax1.plot(

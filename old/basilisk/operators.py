@@ -25,7 +25,6 @@ class OperatorsBasilisk2D:
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None, SEQUENTIAL=None):
-
         self.basilisk = basilisk
 
         nx = self.nx_seq = self.ny_seq = int(params.oper.nx)

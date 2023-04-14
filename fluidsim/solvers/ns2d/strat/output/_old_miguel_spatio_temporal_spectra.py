@@ -392,7 +392,6 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Compute temporal FT
         for index, time_start in enumerate(times_start):
-
             # Compute index to start and to end FT
             it0 = np.argmin(abs(times - time_start))
             it1 = it0 + windows_size

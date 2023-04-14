@@ -17,7 +17,6 @@ class TestSimulBase(Base):
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
-
         params = super().init_params()
         params.forcing.enable = True
         params.forcing.type = "tcrandom"
@@ -41,7 +40,6 @@ class TestForcingOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
     def test_forcing_output(self):
-
         sim = self.sim
 
         sim.time_stepping.start()

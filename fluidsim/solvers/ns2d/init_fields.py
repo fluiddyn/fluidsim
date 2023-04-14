@@ -55,7 +55,6 @@ length: float (default 0.)
         self.sim.state.init_from_rotfft(rot_fft)
 
     def compute_rotuxuy_fft(self):
-
         params = self.sim.params
         oper = self.sim.oper
 

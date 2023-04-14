@@ -56,7 +56,6 @@ def _qapamfft_from_uxuyetafft(
                     ap_fft[i0, i1] = ux_fft[0, 0] + 1.0j * uy_fft[0, 0]
                     am_fft[i0, i1] = ux_fft[0, 0] - 1.0j * uy_fft[0, 0]
                 else:
-
                     rot_fft = 1j * (
                         KX[i0, i1] * uy_fft[i0, i1] - KY[i0, i1] * ux_fft[i0, i1]
                     )

@@ -24,7 +24,6 @@ class InfoSolverDedalus(InfoSolverBase):
     """Contain the information on a Dedalus solver."""
 
     def _init_root(self):
-
         super()._init_root()
 
         mod = "fluidsim.base.dedalus"
@@ -110,7 +109,6 @@ class SimulDedalus(SimulBase):
 Simul = SimulDedalus
 
 if __name__ == "__main__":
-
     params = Simul.create_default_params()
 
     params.short_name_type_run = "test"

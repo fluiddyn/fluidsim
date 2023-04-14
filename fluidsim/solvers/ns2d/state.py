@@ -38,7 +38,6 @@ class StateNS2D(StatePseudoSpectral):
         )
 
     def __init__(self, sim, oper=None):
-
         super().__init__(sim, oper)
 
         self.field_tmp0 = np.empty_like(self.state_phys[0])

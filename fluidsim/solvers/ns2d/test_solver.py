@@ -23,7 +23,6 @@ class TestSimulBase(TestSimul):
 
     @classmethod
     def init_params(cls):
-
         params = (
             cls.params
         ) = cls.Simul.create_default_params()  # pylint: disable=maybe-no-member
@@ -122,7 +121,6 @@ class TestForcingConstantRateEnergy(TestSimulBase):
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
-
         params = super().init_params()
 
         params.oper.truncation_shape = "no_multiple_aliases"
@@ -156,7 +154,6 @@ class TestForcingOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
     def test_forcing_output(self):
-
         sim = self.sim
         assert f"{sim.params.oper.nx}x{sim.params.oper.ny}" in sim.name_run
 

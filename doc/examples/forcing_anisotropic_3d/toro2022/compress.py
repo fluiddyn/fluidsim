@@ -17,7 +17,6 @@ names = ("spect_energy_budg.h5", "spectra_kzkh.h5")
 base_command = "h5repack -f SHUF -f GZIP=4"
 
 for path_sim in paths:
-
     if path_sim.name in simuls_not_finished:
         continue
 

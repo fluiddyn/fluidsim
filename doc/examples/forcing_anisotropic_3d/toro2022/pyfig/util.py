@@ -80,7 +80,6 @@ def customize(result, sim):
 
 
 def get_customized_dataframe(paths):
-
     df = get_dataframe_from_paths(
         paths, tmin="t_start+2", use_cache=1, customize=customize
     )

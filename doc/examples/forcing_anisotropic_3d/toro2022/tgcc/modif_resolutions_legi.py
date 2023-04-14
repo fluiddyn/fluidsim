@@ -6,7 +6,6 @@ from util import new_simuls, path_init_tgcc
 for name, nh_after, nz_after in zip(
     new_simuls.init, new_simuls.nh, new_simuls.nz
 ):
-
     if name.startswith("("):
         continue
 

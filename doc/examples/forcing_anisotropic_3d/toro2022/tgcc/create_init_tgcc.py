@@ -6,7 +6,6 @@ path_end_state_occigen = path_base / "from_occigen/end_states"
 path_legi = path_base / "aniso"
 
 for name in new_simuls.init:
-
     if name.startswith("("):
         continue
     nh = int(name.split("_", 1)[1].split("x", 1)[0])

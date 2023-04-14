@@ -18,7 +18,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 class InfoSolverWaves2d(InfoSolverPseudoSpectral):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.waves2d"
@@ -101,7 +100,6 @@ class Simul(SimulBasePseudoSpectral):
         params._set_attribs(attribs)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
-
         if old is None:
             tendencies_fft = SetOfVariables(
                 like=self.state.state_spect, info="tendencies_nonlin"
@@ -125,7 +123,6 @@ class Simul(SimulBasePseudoSpectral):
 
 
 if __name__ == "__main__":
-
     import fluiddyn as fld
 
     params = Simul.create_default_params()

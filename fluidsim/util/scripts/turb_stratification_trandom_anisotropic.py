@@ -55,10 +55,7 @@ The flow is forced at large spatial scales (compared to the size of the numerica
 
 """
 
-keys_versus_kind = {
-    "polo": "vp_fft",
-    "buoyancy": "b_fft"
-}
+keys_versus_kind = {"polo": "vp_fft", "buoyancy": "b_fft"}
 
 
 def create_parser():
@@ -107,21 +104,21 @@ def create_parser():
     parser.add_argument(
         "-N", type=float, default=None, help="Brunt-Väisälä frequency"
     )
-    
+
     parser.add_argument(
         "--Fh",
         type=float,
         default=None,
         help="Input Froude number",
     )
-    
+
     parser.add_argument(
-        "-coef_nu", 
-        type=float, 
-        default=2.0, 
-        help="Coefficient used to compute the viscosity. It should correspond to kmax*eta"
+        "-coef_nu",
+        type=float,
+        default=2.0,
+        help="Coefficient used to compute the viscosity. It should correspond to kmax*eta",
     )
-    
+
     parser.add_argument(
         "--Re",
         type=float,
@@ -229,17 +226,16 @@ def create_params(args):
     params.oper.NO_GEOSTROPHIC_MODES = False
     if params.oper.NO_SHEAR_MODES:
         params.short_name_type_run += f"_NO_SHEAR_MODES"
-    params.oper.coef_dealiasing = coef_dealiasing = 2./3.
+    params.oper.coef_dealiasing = coef_dealiasing = 2.0 / 3.0
     params.oper.truncation_shape = "no_multiple_aliases"
     params.oper.nx = params.oper.ny = params.oper.nz = n = args.n
-    params.oper.Lx = params.oper.Ly = params.oper.Lz = L = 2*pi
-    
+    params.oper.Lx = params.oper.Ly = params.oper.Lz = L = 2 * pi
+
     delta_k = 2 * pi / L
     k_max = coef_dealiasing * delta_k * n / 2
     injection_rate = 1.0
     U = (injection_rate * L) ** (1 / 3)
 
-    
     # Brunt-Väisälä frequency N and Froude number
     if args.N is not None and args.Fh is not None:
         raise ValueError("args.N is not None and args.Fh is not None")
@@ -262,8 +258,7 @@ def create_params(args):
     else:
         raise ValueError("args.N is None and args.Fh is None")
     params.N = N
-   
-   
+
     # Viscosity and Reynolds number
     if args.coef_nu is not None and args.Re is not None:
         raise ValueError("args.coef_nu is not None and args.Re is not None")
@@ -272,13 +267,9 @@ def create_params(args):
         mpi.printby0(f"Input coefficient for viscosity: {coef_nu:.3g}")
         if coef_nu != 0.0:
             # only valid if R >> 1 (isotropic turbulence at small scales)
-            nu_eddies = (
-                injection_rate ** (1 / 3) * (coef_nu / k_max) ** (4 / 3)
-            )
+            nu_eddies = injection_rate ** (1 / 3) * (coef_nu / k_max) ** (4 / 3)
             # dissipation frequency = maximal wave frequency
-            nu_waves = (
-                N * (coef_nu / k_max) ** 2
-            )
+            nu_waves = N * (coef_nu / k_max) ** 2
             if nu_waves > nu_eddies:
                 print("Viscosity fixed by waves")
             nu = max(nu_eddies, nu_waves)
@@ -294,13 +285,11 @@ def create_params(args):
     else:
         raise ValueError("args.coef_nu is None and args.Re is None")
     params.nu_2 = nu
-    
-     
 
     params.init_fields.type = "noise"
     params.init_fields.noise.length = L / 2
     params.init_fields.noise.velo_max = 0.01
-    
+
     period_N = 2 * pi / N
     omega_f = N * args.F
 
@@ -319,12 +308,11 @@ def create_params(args):
     params.forcing.forcing_rate = injection_rate
     params.forcing.key_forced = keys_versus_kind[args.forced_field]
 
-
     params.forcing.nkmin_forcing = delta_k * args.nkmin_forcing
     params.forcing.nkmax_forcing = delta_k * args.nkmax_forcing
-    
+
     angle = asin(args.F)
-    delta_angle = asin(args.delta_F)    
+    delta_angle = asin(args.delta_F)
     mpi.printby0(
         f"{params.forcing.nkmin_forcing = }\n{params.forcing.nkmax_forcing = }"
     )
@@ -335,7 +323,6 @@ def create_params(args):
     params.forcing.tcrandom_anisotropic.angle = angle
     params.forcing.tcrandom_anisotropic.delta_angle = delta_angle
     params.forcing.tcrandom_anisotropic.kz_negative_enable = True
-    
 
     params.output.periods_print.print_stdout = 1e-1
 
@@ -439,5 +426,4 @@ Example of help message
 
 
 if __name__ == "__main__":
-
     params, sim = main()

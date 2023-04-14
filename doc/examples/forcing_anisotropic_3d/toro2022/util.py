@@ -91,7 +91,6 @@ couples = {
 
 
 def customize(result, sim):
-
     EKh = result["EKh"]
     EKz = result["EKz"]
     EK = EKh + EKz

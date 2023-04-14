@@ -343,7 +343,6 @@ class FrequencySpectra(SpecificOutput):
         )
 
         for index, file_path in enumerate(list_files):
-
             # Generating counter
             print(
                 "Computing frequency spectra = {}/{}".format(

@@ -528,5 +528,4 @@ Example of help message
 
 
 if __name__ == "__main__":
-
     params, sim = main()

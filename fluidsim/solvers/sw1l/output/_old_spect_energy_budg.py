@@ -12,7 +12,6 @@ from fluidsim.base.output.spect_energy_budget import (
 
 class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
     def __init__(self, output):
-
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -388,7 +387,6 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         return dict_results
 
     def _online_plot_saving(self, dict_results):
-
         transfer2D_CPE = dict_results["transfer2D_CPE"]
         transfer2D_EKr = dict_results["transfer2D_EKr"]
         transfer2D_EKd = dict_results["transfer2D_EKd"]
@@ -415,9 +413,7 @@ class SpectralEnergyBudgetSW1LWaves(SpectralEnergyBudgetBase):
         self.axe_b.plot(khE + khE[1], PiCPE, "g")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_times = h5file["times"]
             times = dset_times[...]
             # nt = len(times)

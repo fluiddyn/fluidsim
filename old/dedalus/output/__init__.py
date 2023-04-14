@@ -15,7 +15,6 @@ from ...output.base import OutputBase  # , SpecificOutput
 class OutputDedalus(OutputBase):
     @staticmethod
     def _complete_info_solver(info_solver):
-
         OutputBase._complete_info_solver(info_solver)
 
         classes = info_solver.classes.Output.classes

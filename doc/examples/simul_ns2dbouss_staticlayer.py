@@ -78,7 +78,6 @@ sim.state.init_from_rotb(rot, b)
 
 # monkey-patching for forcing
 if rank == 0:
-
     forcing_maker = sim.forcing.forcing_maker
     oper = forcing_maker.oper_coarse
     Y = oper.Y

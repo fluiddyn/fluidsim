@@ -29,7 +29,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
         nrj_vy = self.sum_wavenumbers(nrj_vy_fft)
         nrj_vz = self.sum_wavenumbers(nrj_vz_fft)
         energy = nrj_vx + nrj_vy + nrj_vz
-        
+
         f_d, f_d_hypo = self.sim.compute_freq_diss()
         epsK = self.sum_wavenumbers(f_d * 2 * energy_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energy_fft)
@@ -78,9 +78,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
             nrj_geostrophic = energy_fft * COND_GEOSTROPHIC
             energy_geostrophic = self.sum_wavenumbers(nrj_geostrophic)
 
-
         if mpi.rank == 0:
-
             self.file.write(
                 f"####\ntime = {tsim:11.5e}\n"
                 f"E    = {energy:11.5e}\n"
@@ -108,7 +106,6 @@ class SpatialMeansNS3D(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
             self.ax_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')
@@ -415,12 +412,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
         if self.params.oper.Lx == self.params.oper.Ly == self.params.oper.Lz:
             if nu_2 and nu_2 != 0.0:
-                results["Re"] = self.params.oper.Lx * U2 ** 0.5 / nu_2
-            
+                results["Re"] = self.params.oper.Lx * U2**0.5 / nu_2
+
             f = self.params.f
 
             if f and f != 0.0:
-                results["Ro"] = U2 ** 0.5 / ( self.params.oper.Lx * f )
+                results["Ro"] = U2**0.5 / (self.params.oper.Lx * f)
 
         return results
 

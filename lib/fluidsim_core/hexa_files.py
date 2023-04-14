@@ -171,7 +171,6 @@ class HexaField:
     __rmul__ = __mul__
 
     def __add__(self, arg):
-
         return self.__class__(
             self.key,
             arrays=[arr0 + arr1 for arr0, arr1 in zip(arg.arrays, self.arrays)],
@@ -253,7 +252,6 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def init_hexa_pcolormesh(
         self, ax, hexa_color, hexa_x, hexa_y, vmin=None, vmax=None, **kwargs
     ):
-
         images = []
 
         if vmax is None:
@@ -262,10 +260,9 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         if vmin is None:
             vmin = hexa_color.min()
 
-        for (arr, elem_x, elem_y) in zip(
+        for arr, elem_x, elem_y in zip(
             hexa_color.arrays, hexa_x.elements, hexa_y.elements
         ):
-
             x_edges = elem_x["edges"]
             y_edges = elem_y["edges"]
 
@@ -292,7 +289,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
 
                 elements_possibly_touched = []
 
-                for (image, elem_x, elem_y) in zip(
+                for image, elem_x, elem_y in zip(
                     images, hexa_x.elements, hexa_y.elements
                 ):
                     xmin, xmax = elem_x["lims"]
@@ -335,7 +332,6 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         return images, cbar
 
     def init_quiver_1st_step(self, hexa_x, hexa_y, percentage_dx_quiver=4.0):
-
         xmin = hexa_x.min()
         xmax = hexa_x.max()
 
@@ -403,7 +399,6 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
         for indices_vectors_in_elem, arr_vx, arr_vy in zip(
             indices_vectors_in_elems, hexa_vx.arrays, hexa_vy.arrays
         ):
-
             vmax_elem = np.max(np.sqrt(arr_vx**2 + arr_vy**2))
             if vmax_elem > vmax:
                 vmax = vmax_elem

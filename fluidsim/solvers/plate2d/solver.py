@@ -285,7 +285,6 @@ class Simul(SimulBasePseudoSpectral):
 
 
 if __name__ == "__main__":
-
     np.set_printoptions(precision=2)
 
     import fluiddyn as fld

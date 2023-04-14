@@ -133,7 +133,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
             self.ax_a.plot(tsim, energy, "k.")
             self.ax_a.plot(tsim, energy_k, "r.")
             self.ax_a.plot(tsim, energy_l, "b.")
@@ -201,7 +200,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             E_e[il] = float(words[14])
 
             if self.sim.params.forcing.enable:
-
                 line = lines_P[il]
                 words = line.split()
                 P1[il] = float(words[2])
