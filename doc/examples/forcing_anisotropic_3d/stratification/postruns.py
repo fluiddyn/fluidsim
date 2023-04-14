@@ -69,7 +69,7 @@ for n in ns:
     for NO_SHEAR_MODES in [False, True]:
         for Fh in sorted(Fh_target):
             print("--------------------------------------------")
-            path_runs = list_paths(Fh, n, NO_GEOSTROPHIC_MODES=NO_SHEAR_MODES)
+            path_runs = list_paths(Fh, n, NO_SHEAR_MODES=NO_SHEAR_MODES)
             if len(path_runs) != 1:
                 continue
             path_sim = path_runs[0]
@@ -97,13 +97,13 @@ for n in ns:
                     run(command.split(), check=True, cwd=path_sim)
                     path.rename(path_uncompressed)
                     path_compressed.rename(path)
-                # Save simul
-                print(f"We save the simulation in $WORK")
-                os.system(
-                    f"rsync -rvz -L --update {path_sim} /gpfswork/rech/uzc/uey73qw/aniso_rotation/"
-                )
+            # Save simul
+            print(f"We save the simulation in $WORK")
+            os.system(
+                f"rsync -rvz -L --update {path_sim} /gpfswork/rech/uzc/uey73qw/aniso_stratification/"
+            )
 
             print(f"We save the simulation in $STORE")
             os.system(
-                f"rsync -rvz -L --update {path_sim} /gpfsstore/rech/uzc/uey73qw/aniso_rotation/"
+                f"rsync -rvz -L --update {path_sim} /gpfsstore/rech/uzc/uey73qw/aniso_stratification/"
             )

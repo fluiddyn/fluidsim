@@ -77,18 +77,18 @@ def get_t_statio(n, Ro):
     if n == 160:
         return 0.0
     elif n == 320:
-        return 100.0
+        return 150.0
     elif n == 640:
-        return 120.0
+        return 170.0
     elif n == 1280:
-        return 130.0
+        return 180.0
     else:
         raise NotImplementedError
     
 def get_t_end(n, Ro):
     "Get end time of the simulation with resolution n"
     t_statio = get_t_statio(n, Ro)
-    return t_statio + 5.0
+    return t_statio + 10.0
 
 def is_job_submitted(name_run):
     command = f"squeue -n {name_run}"
@@ -172,58 +172,53 @@ def submit(n=320,Ro=1e-1,NO_GEOSTROPHIC_MODES=False):
                         "simulation is not finished\n"
                         f"  ({t_last_lower=} < {t_statio_lower=}, {estimated_remaining_duration = })"
                     )
-                    return
+                    
+                else: 
+                    path_state_lower = sorted(
+                        path_runs_lower[0].glob(
+                            f"State_phys_{n}x{n}x{n}*/state_phys_t*.nc"
+                        )
+                    )
+                    print("path_state_lower: ", path_state_lower)
+                    if len(path_state_lower) == 0:
+                        print(f"We change resolution for {path_runs_lower[0]}")
+                        modif_reso(path=path_runs_lower[0], n=n_lower, Ro=Ro)
+                        return
+                    elif len(path_state_lower) == 1:
+                        coef_change_reso = n / n_lower
+                        coef_reduce_nu = coef_change_reso ** (4/3)
+                        command = (
+                            f"fluidsim-restart {path_runs_lower[0]} --t_end {t_statio} --new-dir-results "
+                            f"--max-elapsed {max_elapsed} "
+                            f"--modify-params '"
+                            f"params.nu_2 /= {coef_reduce_nu}; "
+                            f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
+                            f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
+                            f"'"
+                        )
+                        print(f"run: {command} \n")
+                        cluster.submit_command(
+                            command,
+                            name_run=name_run,
+                            nb_nodes=nb_nodes,
+                            walltime=walltime,
+                            nb_mpi_processes=nb_mpi_processes,
+                            omp_num_threads=1,
+                            delay_signal_walltime=300,
+                            ask=True,
+                        )
+                    else:
+                        f"More than one state files in {path_runs_lower[0]}"
 
-                path_state_lower = sorted(
-                    path_runs_lower[0].glob(
-                        f"State_phys_{n}x{n}x{n}*/state_phys_t*.h5"
-                    )
-                )
-                
-                if len(path_state_lower) == 0:
-                    print(f"We change resolution for {path_runs_lower[0]}")
-                    modif_reso(path=path_runs_lower[0], n=n_lower, Ro=Ro)
-                    return
-                elif len(path_state_lower) == 1:
-                    coef_change_reso = n / n_lower
-                    coef_reduce_nu = coef_change_reso ** (4/3)
-                    command = (
-                        f"fluidsim-restart {path_runs_lower[0]} --t_end {t_statio} --new-dir-results "
-                        f"--max-elapsed {max_elapsed} "
-                        f"--modify-params '"
-                        f"params.nu_2 /= {coef_reduce_nu}; "
-                        f'params.oper.type_fft = "fft3d.mpi_with_{type_fft}"; '
-                        f"params.output.periods_save.spatiotemporal_spectra = 0.0; "
-                        f"'"
-                    )
-                    print(f"run: {command} \n")
-                    cluster.submit_command(
-                        command,
-                        name_run=name_run,
-                        nb_nodes=nb_nodes,
-                        walltime=walltime,
-                        nb_mpi_processes=nb_mpi_processes,
-                        omp_num_threads=1,
-                        delay_signal_walltime=300,
-                        ask=True,
-                    )
-                else:
-                    f"More than one state files in {path_runs_lower[0]}"
-                return
-
-            else:
-                print(
-                    f"Zero or more than one init directory with {params})",
-                    f"Nothing is done",
-                )
-                return
 
     elif len(path_runs) == 1:
         t_start, t_last = times_start_last_from_path(path_runs[0])
         tmp = load_params_simul(path_runs[0])
         f = float(tmp.f)
         if t_last >= t_statio:
+            print("t_last >= t_statio")
             if t_last < t_end:
+                print("t_last < t_end")
                 period_spatiotemp = min(2 * pi / (f * 8), 0.03)
                 iksmax = int(32 * n // 320)
                 print("we restart and save spatiotemporal spectra")

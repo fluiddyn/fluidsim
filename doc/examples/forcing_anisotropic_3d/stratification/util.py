@@ -77,11 +77,11 @@ def get_t_statio(n, Fh):
     if n == 160:
         return 0.0
     elif n == 320:
-        return 100.0
+        return 150.0
     elif n == 640:
-        return 120.0
+        return 170.0
     elif n == 1280:
-        return 130.0
+        return 180.0
     else:
         raise NotImplementedError
    
