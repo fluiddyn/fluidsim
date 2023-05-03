@@ -797,7 +797,6 @@ def get_last_time_spatial_means_from_path(path):
 
 
 class _DataframeMakerFluidsim(DataframeMaker):
-
     def get_time_start_from_path(self, path):
         """ "Get first time"""
         t_start, _ = times_start_last_from_path(path)
@@ -810,6 +809,16 @@ class _DataframeMakerFluidsim(DataframeMaker):
     def load_sim(self, path):
         """Load a simulation object"""
         return load_sim_for_plot(path, hide_stdout=True)
+
+    def get_dataframe_from_paths(
+        self, paths, tmin=None, tmax=None, use_cache=True, customize=None
+    ):
+        df = super().get_dataframe_from_paths(
+            paths, tmin, tmax, use_cache, customize
+        )
+        if "R2" in df.columns and "R4" in df.columns:
+            df["min_R"] = np.array([df.R2, df.R4]).min(axis=0)
+        return df
 
 
 _dataframe_maker = _DataframeMakerFluidsim()

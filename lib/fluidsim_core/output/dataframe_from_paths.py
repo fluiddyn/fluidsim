@@ -1,3 +1,7 @@
+"""Utility to produce a dataframe from a set of simulations
+
+"""
+
 import json
 import hashlib
 import inspect
@@ -5,13 +9,13 @@ from abc import ABC, abstractmethod
 
 from pathlib import Path
 
-import numpy as np
 from pandas import DataFrame
 
 from rich.progress import track
 
 
-class DataframeMaker:
+class DataframeMaker(ABC):
+    """To produce a Pandas dataframe from a set of simulations"""
     @abstractmethod
     def get_time_start_from_path(self, path):
         """ "Get first time"""
@@ -135,7 +139,6 @@ class DataframeMaker:
         Uses ``sim.output.get_mean_values``
 
         """
-
         values = []
         for path in track(paths, "Getting the mean values"):
             values.append(
@@ -143,10 +146,4 @@ class DataframeMaker:
                     path, tmin, tmax, use_cache, customize
                 )
             )
-
-        df = DataFrame(values)
-
-        if "R2" in df.columns and "R4" in df.columns:
-            df["min_R"] = np.array([df.R2, df.R4]).min(axis=0)
-
-        return df
+        return DataFrame(values)
