@@ -74,5 +74,4 @@ class OperatorsSphericalHarmonics(_Operator):
 
 
 if __name__ == "__main__":
-
     oper = OperatorsSphericalHarmonics()

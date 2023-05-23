@@ -111,7 +111,6 @@ key_forced: {None} or str
         dict_classes = sim.info.solver.classes.Forcing.import_classes()
 
         if self.type_forcing not in dict_classes:
-
             # temporary trick to open old simulations
             if self.type_forcing == "random" and "tcrandom" in dict_classes:
                 self.type_forcing = "tcrandom"

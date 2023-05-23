@@ -96,7 +96,6 @@ class SpectraNS2DStrat(Spectra):
     ):
         means = {}
         with h5py.File(self.path_file1D, "r") as h5file:
-
             # Open data from file
             dset_times = h5file["times"]
             dset_kxE = h5file["kxE"]
@@ -336,7 +335,6 @@ class SpectraNS2DStrat(Spectra):
         # set_trace()
 
     def load2d_means(self, tmin=0, tmax=1000, delta_t=2):
-
         means = {}
         # Load data from file
         with h5py.File(self.path_file2D, "r") as h5file:

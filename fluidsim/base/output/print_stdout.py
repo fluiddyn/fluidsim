@@ -63,7 +63,6 @@ class PrintStdOutBase(RemainingClockTime):
                 self.file.seek(0, 2)  # go to the end of the file
 
     def complete_init_with_state(self):
-
         self.energy0 = self.output.compute_energy()
 
         if self.period_print == 0:

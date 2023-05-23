@@ -127,7 +127,6 @@ def compute_diff(idx_dealiasing, idy_dealiasing, dissE_kx, dissE_ky):
 def normalization_initialized_field(sim, coef_norm=1e-4):
     """Normalizes the initialized field. (ONLY if nx != ny)"""
     if sim.params.oper.nx != sim.params.oper.ny:
-
         if not sim.params.forcing.key_forced == "ap_fft":
             raise ValueError("sim.params.forcing.key_forced should be ap_fft.")
 
@@ -270,9 +269,7 @@ def check_dissipation():
         should_I_stop = "non_stationarity"
 
     if ratio_x > threshold_ratio and ratio_y > threshold_ratio:
-
         if delta_ikx > 0 and delta_iky > 0:
-
             if delta_ikx > delta_iky:
                 print("limited by y")
                 norm = idy_dealiasing
@@ -313,7 +310,6 @@ def check_dissipation():
                 should_I_stop = False
                 factor = 1.0
     else:
-
         factor = 1 + (1 / min(ratio_x, ratio_y))
         should_I_stop = False
 
@@ -321,7 +317,6 @@ def check_dissipation():
 
 
 if __name__ == "__main__":
-
     # SIMULATION
     nx = 240
     gamma = 0.5
@@ -518,7 +513,6 @@ if __name__ == "__main__":
     p = 1
     # Check ...
     while True:
-
         if mpi.rank == 0:
             factor, should_I_stop = check_dissipation()
         else:

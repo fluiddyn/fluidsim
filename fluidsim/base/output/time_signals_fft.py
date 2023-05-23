@@ -273,14 +273,12 @@ class TimeSignalsK(SpecificOutput):
             return dict_results
 
     def load(self):
-
         if not os.path.exists(self.path_file):
             raise ValueError(
                 "no file time_sigK.h5 in\n" + self.output.dir_save_run
             )
 
         with h5py.File(self.path_file, "r+") as file:
-
             dset_times = file["times"]
             times = dset_times[...]
 
@@ -331,7 +329,6 @@ class TimeSignalsK(SpecificOutput):
         period_shell = 2 * np.pi / omega_shell
 
         for ish in range(nb_shells):
-
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$t/T$")
             ax1.set_ylabel("signals (s$^{-1}$)")
@@ -361,7 +358,6 @@ class TimeSignalsK(SpecificOutput):
         ax1.loglog(kh_shell, omega_shell, "o", linewidth=2)
 
     def time_spectrum(self, sig_long):
-
         Nt = sig_long.size
         stepit0 = int(np.fix(self.nt / 2.0))
 

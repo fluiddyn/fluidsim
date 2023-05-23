@@ -29,7 +29,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d"
@@ -145,7 +144,6 @@ projection: str (default None)
         )
 
     def _init_projection(self):
-
         try:
             self.no_vz_kz0 = self.params.no_vz_kz0
         except AttributeError:
@@ -278,7 +276,6 @@ if "sphinx" in sys.modules:
 
 
 if __name__ == "__main__":
-
     import fluiddyn as fld
 
     params = Simul.create_default_params()

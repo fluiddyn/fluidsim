@@ -45,7 +45,6 @@ if MAKE_TABLE:
     )
 
 for path in path_simulations:
-
     # Load object simulations
     sim = load_sim_for_plot(path)
 

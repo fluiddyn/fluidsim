@@ -237,7 +237,6 @@ Simul = SimulBase
 
 
 if __name__ == "__main__":
-
     params = Simul.create_default_params()
 
     params.short_name_type_run = "test"

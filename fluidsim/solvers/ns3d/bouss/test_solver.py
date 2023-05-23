@@ -29,7 +29,6 @@ class TestOutput(TestSimulBase):
             periods[key] = 0.2
 
     def test_output(self):
-
         sim = self.sim
         sim.time_stepping.start()
 

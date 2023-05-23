@@ -142,7 +142,6 @@ class RestarterABC(metaclass=ABCMeta):
         params, sim = self.restart()
 
         if sim is not None and sim.time_stepping._has_to_stop:
-
             if mpi.rank == 0:
                 # processes with rank 0 exits early with exit code 99 or 0
                 exit_code = 99

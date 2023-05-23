@@ -46,7 +46,6 @@ class InfoSolverCore(ParamContainer):
     """
 
     def __init__(self, only_root=False, **kargs):
-
         if len(kargs) == 0 or ("path_file" in kargs and "tag" not in kargs):
             kargs["tag"] = "solver"
 
@@ -75,7 +74,6 @@ class InfoSolverCore(ParamContainer):
                     )
 
     def _init_root(self):
-
         self._set_attribs(
             {
                 "module_name": "fluidsim_core.solver",

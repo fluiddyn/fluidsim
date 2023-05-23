@@ -88,7 +88,6 @@ class ProbaDensityFunc(SpecificOutput):
     def load(self):
         """load the saved pdf and return a dictionary."""
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_pdf_eta = h5file["pdf_eta"]
             dset_bin_edges_eta = h5file["bin_edges_eta"]
 

@@ -22,7 +22,6 @@ from ..strat.solver import InfoSolverNS3DStrat, Simul as SimulStrat
 
 class InfoSolverNS3DBouss(InfoSolverNS3DStrat):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d.bouss"
@@ -176,7 +175,6 @@ class Simul(SimulStrat):
 
 
 if __name__ == "__main__":
-
     import numpy as np
 
     # import fluiddyn as fld

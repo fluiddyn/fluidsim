@@ -88,7 +88,6 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
     _module_name = "fluidsim.extend_simul.spatial_means_regions_milestone"
 
     def __init__(self, output):
-
         params = output.sim.params
 
         params_cls = params.output.spatial_means_regions
@@ -120,7 +119,6 @@ class SpatialMeansRegions(SimulExtender, SpecificOutput):
         nx_loc = oper.shapeX_loc[2]
 
         for xmin, xmax in zip(self.xmin_given, self.xmax_given):
-
             xmin, xmax = Lx * xmin, Lx * xmax
 
             ixmin = np.argmin(abs(x_seq - xmin))

@@ -93,7 +93,6 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
@@ -145,7 +144,6 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
-
                     transferE = dset_transferE[it]
                     transferZ = dset_transferZ[it]
 

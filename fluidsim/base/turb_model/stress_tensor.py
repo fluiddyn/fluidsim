@@ -26,7 +26,6 @@ class StressTensorComputer3D:
         return ifft(dx_arr_fft), ifft(dy_arr_fft), ifft(dz_arr_fft)
 
     def compute_stress_tensor(self, ux_fft, uy_fft, uz_fft):
-
         dx_ux, dy_ux, dz_ux = self.grad_from_arr_fft(ux_fft)
         dx_uy, dy_uy, dz_uy = self.grad_from_arr_fft(uy_fft)
         dx_uz, dy_uz, dz_uz = self.grad_from_arr_fft(uz_fft)

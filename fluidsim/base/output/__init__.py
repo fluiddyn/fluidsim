@@ -226,7 +226,6 @@ def create_description_xmf_file(path=None):
 
 
 def run():
-
     parser = argparse.ArgumentParser(
         prog="fluidsim-create-xml-description",
         description=create_description_xmf_file.__doc__,

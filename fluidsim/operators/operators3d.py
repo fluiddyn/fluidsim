@@ -205,7 +205,6 @@ Lx, Ly and Lz: float
         )
 
     def __init__(self, params=None):
-
         self.params = params
         self.axes = ("z", "y", "x")
 
@@ -559,7 +558,6 @@ Lx, Ly and Lz: float
         fc_fft_tmp = np.zeros([nk0c, nk1c, nk2c], np.complex128)
         nk0, nk1, nk2 = self.shapeK_seq
         if self.shapeK_seq[1:2] == self.shapeK_loc[1:2]:
-
             f1d_temp = np.empty([nk1c, nk2c], np.complex128)
 
             for ik0c in range(min(nk0c, nk0)):
@@ -598,7 +596,6 @@ Lx, Ly and Lz: float
                     # copy into fc_fft
                     fc_fft_tmp[ik0c] = f1d_temp.copy()
         else:
-
             for ik0c in range(min(nk0c, nk0)):
                 ik0 = _ik_from_ikc(ik0c, nk0c, nk0, is_x=(position_x_K == 0))
                 for ik1c in range(min(nk1c, nk1)):
@@ -631,7 +628,6 @@ Lx, Ly and Lz: float
                             fc_fft_tmp[ik0c, ik1c, ik2c] = f0d_temp
 
         if rank == 0:
-
             # print(f"{fc_fft_tmp = }")
 
             fc_fft = np.zeros(shapeK_coarse, dtype=np.complex128)
@@ -680,7 +676,6 @@ Lx, Ly and Lz: float
             ik1_loc = ik1
             ik2_loc = ik2
         else:
-
             iki_first = self.seq_indices_first_K
             rank_k_equal_rank = (
                 iki_first[0] <= ik0 < iki_first[0] + self.shapeK_loc[0]
@@ -1003,7 +998,6 @@ Lx, Ly and Lz: float
 
     @boost
     def vxvyfft_from_rotzfft(self, rotz_fft: Ac):
-
         inv_Kh_square_nozero = self.Kx**2 + self.Ky**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
@@ -1014,7 +1008,6 @@ Lx, Ly and Lz: float
 
     @boost
     def vxvyfft_from_divhfft(self, divh_fft: Ac):
-
         inv_Kh_square_nozero = self.Kx**2 + self.Ky**2
         inv_Kh_square_nozero[inv_Kh_square_nozero == 0] = 1e-14
         inv_Kh_square_nozero = 1 / inv_Kh_square_nozero
@@ -1045,7 +1038,6 @@ Lx, Ly and Lz: float
         return dx_arr_fft, dy_arr_fft, dz_arr_fft
 
     def get_grid1d_seq(self, axis="x"):
-
         if axis not in ("x", "y", "z"):
             raise ValueError
 

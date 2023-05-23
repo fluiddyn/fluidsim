@@ -108,7 +108,6 @@ class TestSolverPlate2DOutput(TestSimulBase):
         params.output.correl_freq.iomegas1 = [1, 2]
 
     def test_output(self):
-
         sim = self.sim
 
         sim.time_stepping.start()

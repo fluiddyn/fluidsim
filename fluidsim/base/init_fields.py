@@ -102,7 +102,6 @@ modif_after_init: bool (default False)
         iter_complete_params(params, info_solver, dict_classes.values())
 
     def __init__(self, sim):
-
         self.sim = sim
         params = sim.params
         oper = sim.oper
@@ -139,7 +138,6 @@ class SpecificInitFields:
 
 
 class InitFieldsFromFile(SpecificInitFields):
-
     tag = "from_file"
 
     @classmethod
@@ -153,7 +151,6 @@ path: str
         )
 
     def __call__(self):
-
         # Warning: this function is for 2d pseudo-spectral solver!
         # We have to write something more general.
 
@@ -301,7 +298,6 @@ path: str
 
 
 def fill_field_fft_2d(field_fft_in, field_fft_out):
-
     [nk0_seq, nk1_seq] = field_fft_out.shape
     [nk0_seq_in, nk1_seq_in] = field_fft_in.shape
 
@@ -319,7 +315,6 @@ def fill_field_fft_2d(field_fft_in, field_fft_out):
 
 
 def fill_field_fft_3d(field_fft_in, field_fft_out, oper_in, oper_out):
-
     [nk0, nk1, nk2] = field_fft_out.shape
     [nk0_in, nk1_in, nk2_in] = field_fft_in.shape
 
@@ -343,7 +338,6 @@ def fill_field_fft_3d(field_fft_in, field_fft_out, oper_in, oper_out):
 
 
 class InitFieldsFromSimul(SpecificInitFields):
-
     tag = "from_simul"
 
     def __call__(self):
@@ -390,7 +384,6 @@ class InitFieldsFromSimul(SpecificInitFields):
         return state_spect
 
     def _get_state_from_simul(self, sim_in):
-
         # Warning: this function is for 2d pseudo-spectral solver!
         # We have to write something more general.
         # It should be done directly in the operators.
@@ -440,7 +433,6 @@ class InitFieldsFromSimul(SpecificInitFields):
 
 
 class InitFieldsInScript(SpecificInitFields):
-
     tag = "in_script"
 
     def __call__(self):
@@ -452,7 +444,6 @@ class InitFieldsInScript(SpecificInitFields):
 
 
 class InitFieldsConstant(SpecificInitFields):
-
     tag = "constant"
 
     @classmethod

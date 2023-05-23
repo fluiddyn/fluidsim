@@ -26,7 +26,6 @@ parser.add_argument("--t_end", type=float, default=20, help="Nondimension t_end"
 
 
 def main(args):
-
     F0 = 1.0
     L = 1.0
     V0 = sqrt(F0 * L)

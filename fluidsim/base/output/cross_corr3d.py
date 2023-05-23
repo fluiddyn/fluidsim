@@ -27,7 +27,6 @@ def _make_small_key(key):
 
 
 class CrossCorrelations(BaseSpectra):
-
     _tag = "cross_corr"
 
     def compute(self):

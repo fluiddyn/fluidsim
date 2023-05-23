@@ -112,7 +112,6 @@ class SpectraNS3DStrat(SpectraNS3D):
     def _plot1d_direction(
         self, direction, imin_plot, imax_plot, coef_compensate, ax
     ):
-
         with h5py.File(self.path_file1d, "r") as h5file:
             ks = h5file["k" + direction][...]
 

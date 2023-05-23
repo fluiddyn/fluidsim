@@ -15,7 +15,6 @@ a = 0.7
 
 class Resolution:
     def __init__(self, nx=32):
-
         # Create parameters
         params = Simul.create_default_params()
 
@@ -61,7 +60,6 @@ class Resolution:
         verbose=False,
         plot_fig=False,
     ):
-
         params = self.params
         sim = self.sim
 
@@ -139,7 +137,6 @@ class Resolution:
 
 
 if __name__ == "__main__":
-
     type_time_schemes = ["RK2", "RK2_phaseshift", "Euler", "Euler_phaseshift"]
 
     dt = 0.01

@@ -120,7 +120,6 @@ parser.add_argument(
 
 
 def init_params(args):
-
     params = Simul.create_default_params()
 
     if args.truncation_shape == "cubic":
@@ -207,7 +206,6 @@ def init_state(sim, args):
 
 
 def init_new_simul(args):
-
     params = init_params(args)
 
     if args.only_print_params:

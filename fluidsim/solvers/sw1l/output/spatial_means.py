@@ -18,7 +18,6 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
     """
 
     def __init__(self, output):
-
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -179,7 +178,6 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
     def compute_dissipation_rates(
         self, f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft
     ):
-
         epsK = self.sum_wavenumbers(f_d * 2 * energyK_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energyK_fft)
         epsA = self.sum_wavenumbers(f_d * 2 * energyA_fft)
@@ -442,7 +440,6 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         return dict_eps
 
     def compute_epsK(self, f_d, f_d_hypo, energyK_fft, dict_eps):
-
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")
 
@@ -519,7 +516,6 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
-
             PK_tot = PK1 + PK2
             PA_tot = PA1 + PA2
             self._result.update(

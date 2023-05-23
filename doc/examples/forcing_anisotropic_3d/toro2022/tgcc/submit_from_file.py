@@ -26,7 +26,6 @@ nz = sim.nz
 if sim.init.startswith("("):
     raise NotImplementedError
 else:
-
     path_simul_init = next(path_init_tgcc.glob(f"*{sim.name}*"))
     print(path_simul_init)
 

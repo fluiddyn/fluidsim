@@ -46,7 +46,6 @@ class TestSimulBase(TestSimul):
 
     @classmethod
     def init_params(cls):
-
         params = cls.params = cls.Simul.create_default_params()
 
         params.short_name_type_run = "test"
@@ -79,7 +78,6 @@ class TestTendency(TestSimulBase):
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
-
         sim = self.sim
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
 
@@ -142,7 +140,6 @@ class TestOutput(TestSimulBase):
 
     @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
-
         sim = self.sim
 
         # put energy in vz
@@ -161,7 +158,6 @@ class TestOutput(TestSimulBase):
         assert sim.time_stepping._get_phaseshift() is phaseshift
 
         if mpi.nb_proc == 1:
-
             phys_fields = sim.output.phys_fields
             phys_fields.plot(equation=f"iz=0", numfig=1000)
 
@@ -413,7 +409,6 @@ class TestInitInScript(TestSimulBase):
         params.init_fields.type = "in_script"
 
     def test_init_in_script(self):
-
         sim = self.sim
 
         # here we have to initialize the flow fields
@@ -563,7 +558,6 @@ class TestForcingWatuCoriolis(TestSimulBase):
         params.output.periods_save.phys_fields = 2.0
 
     def test_forcing(self):
-
         sim = self.sim
         sim.time_stepping.start()
         sim.state.check_energy_equal_phys_spect()
