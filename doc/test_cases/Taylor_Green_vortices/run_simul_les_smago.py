@@ -47,7 +47,6 @@ params.output.spectra.kzkh_periodicity = 1
 
 
 def init_simul(params):
-
     sim = Simul(params)
 
     X, Y, Z = sim.oper.get_XYZ_loc()
@@ -65,7 +64,6 @@ def init_simul(params):
 
 
 if __name__ == "__main__":
-
     sim = init_simul(params)
 
     # only useful to plot fields before time_stepping

@@ -74,7 +74,6 @@ for scheme in schemes:
     coefs = df_1scheme.coef_dealiased.unique()
     coefs.sort()
     for coef in coefs:
-
         df_tmp = df_1scheme[df_1scheme.coef_dealiased == coef]
         if coef == 2 / 3:
             str_coef = "2/3"

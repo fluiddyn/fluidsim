@@ -68,7 +68,6 @@ class classproperty:
 
 
 class TestCase(unittest.TestCase):
-
     # True except if pytest is used...
     has_to_redirect_stdout = not any(
         any(test_tool in arg for arg in sys.argv)

@@ -163,7 +163,6 @@ for couple in sorted(couples320):
     nz_better = nz
     init = name[28:]
     for nh, nz in nhnz_new_simuls:
-
         if nh > 2000:
             t_simul = 2.5
         else:

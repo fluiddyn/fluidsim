@@ -14,7 +14,6 @@ class SpectralEnergyBudgetSW1LBase(SpectralEnergyBudgetBase):
     """Save and plot spectral energy budgets."""
 
     def __init__(self, output):
-
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -174,7 +173,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
         return dict_results
 
     def _online_plot_saving(self, dict_results):
-
         transfer2D_CPE = dict_results["transfer2D_CPE"]
         transfer2D_EK = dict_results["transfer2D_EK"]
         transfer2D_EA = dict_results["transfer2D_EA"]
@@ -190,9 +188,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
         self.axe_b.plot(khE + khE[1], PiCPE, "g")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
             khE = dset_khE[...]
@@ -478,7 +474,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
         return dict_results
 
     def _online_plot_saving(self, dict_results):
-
         # Tens = dict_results["Tens"]
         Tq_GGG = dict_results["Tq_GGG"]
         Tq_AGG = dict_results["Tq_AGG"]
@@ -549,9 +544,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             self.axe_b.set_ylabel(r"$\Sigma C(k_h)$")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
             khE = dset_khE[...] + 0.1  # Offset for semilog plots

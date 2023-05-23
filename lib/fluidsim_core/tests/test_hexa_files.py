@@ -15,7 +15,6 @@ class MockEvent:
 
 
 def test_setoffiles(false_output):
-
     output = false_output
     assert output.path_run.exists()
 

@@ -188,7 +188,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             self.freq_lin = freq_dissip
 
     def _init_time_scheme(self):
-
         type_time_scheme = self.params.time_stepping.type_time_scheme
 
         if type_time_scheme.startswith("RK"):
@@ -300,7 +299,6 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         return self._phaseshift
 
     def _init_phaseshift_random(self):
-
         params_phaseshift = self.params.time_stepping.phaseshift_random
         if params_phaseshift.nb_steps_compute_new_pair is None:
             if params_phaseshift.nb_pairs == 1:

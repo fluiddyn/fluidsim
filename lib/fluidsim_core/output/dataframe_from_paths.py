@@ -16,6 +16,7 @@ from rich.progress import track
 
 class DataframeMaker(ABC):
     """To produce a Pandas dataframe from a set of simulations"""
+
     @abstractmethod
     def get_time_start_from_path(self, path):
         """ "Get first time"""

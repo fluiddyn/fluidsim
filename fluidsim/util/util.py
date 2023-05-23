@@ -645,7 +645,6 @@ def times_start_last_from_path(path):
         return 666, 666
 
     with open(path_file, "r") as file_stdout:
-
         line = ""
         while not line.startswith("it ="):
             line = file_stdout.readline()
@@ -765,7 +764,6 @@ def ensure_radians(angle):
 
 
 def get_last_time_spatial_means_from_path(path):
-
     path_file = Path(path) / "spatial_means.txt"
 
     if path_file.exists():

@@ -9,7 +9,6 @@ from fluidsim.util.testing import TestCase, stdout_redirected, skip_if_no_fluidf
 
 
 def create_oper(type_fft=None, coef_dealiasing=2.0 / 3):
-
     params = ParamContainer(tag="params")
 
     params._set_attrib("ONLY_COARSE_OPER", False)

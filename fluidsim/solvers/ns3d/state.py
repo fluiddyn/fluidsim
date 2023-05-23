@@ -41,7 +41,6 @@ class StateNS3D(StatePseudoSpectral):
         )
 
     def __init__(self, sim, oper=None):
-
         super().__init__(sim, oper)
 
         self.fields_tmp = tuple(

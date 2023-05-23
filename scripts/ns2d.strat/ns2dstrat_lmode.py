@@ -13,7 +13,6 @@ from fluidsim.solvers.ns2d.strat.solver import Simul
 def make_parameters_simulation(
     gamma, F, sigma, nu_8, t_end=10, NO_SHEAR_MODES=False
 ):
-
     ## Operator parameters
     anisotropy_domain = 4  # anisotropy_domain = nx / nz
     nx = 240
@@ -84,7 +83,6 @@ def make_parameters_simulation(
 
 
 def modify_parameters(params):
-
     # Output parameters
     params.output.HAS_TO_SAVE = True
     params.output.sub_directory = "find_diss_coef"
@@ -94,7 +92,6 @@ def modify_parameters(params):
 
 
 if __name__ == "__main__":
-
     ##### PARAMETERS #####
     ######################
     gamma = 0.2  # gamma = omega_l / omega_af

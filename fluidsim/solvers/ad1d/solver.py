@@ -16,7 +16,6 @@ from fluidsim.base.solvers.finite_diff import InfoSolverFiniteDiff
 
 class InfoSolverAD1D(InfoSolverFiniteDiff):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ad1d"
@@ -86,7 +85,6 @@ class Simul(SimulBase):
 
 
 if __name__ == "__main__":
-
     import fluiddyn as fld
 
     params = Simul.create_default_params()

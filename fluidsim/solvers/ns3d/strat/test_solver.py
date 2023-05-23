@@ -33,7 +33,6 @@ class TestTendency(TestSimulBase):
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
-
         sim = self.sim
 
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
@@ -105,7 +104,6 @@ class TestOutput(TestSimulBase):
 
     @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
-
         sim = self.sim
 
         oper = sim.oper
@@ -266,7 +264,6 @@ class TestNoShearModes(TestSimulBase):
         params.output.spectra.kzkh_periodicity = 1
 
     def test_noshearmodes(self):
-
         sim = self.sim
 
         sim.time_stepping.start()

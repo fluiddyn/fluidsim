@@ -121,7 +121,6 @@ class Simul(SimulSW1LExactLin):
 
 
 if __name__ == "__main__":
-
     import fluiddyn as fld
 
     params = Simul.create_default_params()

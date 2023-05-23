@@ -74,7 +74,6 @@ class HorizontalMeans(SpecificOutput, SimulExtender):
         """
 
         def modif_info_solver(info_solver):
-
             info_solver.classes.Output.classes._set_child(
                 cls._tag,
                 attribs={

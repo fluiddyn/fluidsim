@@ -87,7 +87,6 @@ class InitFieldsLinearMode(SpecificInitFields):
         )
 
     def __call__(self):
-
         params = self.sim.params
 
         linear_mode = self.put_ones_linear_mode()

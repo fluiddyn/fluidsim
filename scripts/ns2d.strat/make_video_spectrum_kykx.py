@@ -61,7 +61,6 @@ pforcing = sim.params.forcing
 
 # Load data
 with h5py.File((path / "spectra_multidim.h5").as_posix(), "r") as f:
-
     times = f["times"][...]
     itmin = np.argmin(abs(times - tmin))
     itmax = np.argmin(abs(times - tmax))
@@ -208,6 +207,7 @@ ax1.legend(fontsize=14)
 cbar_ax = fig.add_axes([0.38, 0.15, 0.01, 0.7])
 colorbar = fig.colorbar(_im, cax=cbar_ax, format="%.1f")
 # colorbar.ax.ticklabel_format(style="sci")
+
 
 # ax1.plot(times[0:2], energies_ap[0:2], color="red")
 # Define iterative function _update

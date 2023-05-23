@@ -9,12 +9,10 @@ from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft
 
 @skip_if_no_fluidfft
 class TestPreprocessPS(TestSimul):
-
     Simul = SimulBasePseudoSpectral
 
     @classmethod
     def init_params(cls):
-
         cls.params = params = SimulBasePseudoSpectral.create_default_params()
         params.short_name_type_run = "test_preprocess_ps"
         nh = 16

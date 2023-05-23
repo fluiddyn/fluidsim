@@ -23,7 +23,6 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params=None):
-
         Lx = float(params.oper.Lx)
         Ly = float(params.oper.Ly)
 

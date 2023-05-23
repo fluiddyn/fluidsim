@@ -85,7 +85,6 @@ def submit_profile(
     nb_pairs=1,
     nb_steps=None,
 ):
-
     if nx < 480:
         nb_cores_per_node = 10
     else:

@@ -65,7 +65,6 @@ parser.add_argument(
 
 
 def main(args):
-
     params = Simul.create_default_params()
 
     diameter = args.diameter  # m

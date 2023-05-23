@@ -46,7 +46,6 @@ class SpectralEnergyBudgetBase(SpecificOutput):
         params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
 
     def __init__(self, output):
-
         params = output.sim.params
         self.nx = params.oper.nx
 

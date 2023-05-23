@@ -12,7 +12,6 @@ name_solver = "testing"
 
 @pytest.fixture
 def path_sim(tmp_path):
-
     path_dir = tmp_path / "session_00"
     path_dir.mkdir(exist_ok=True, parents=True)
 

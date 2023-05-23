@@ -70,7 +70,6 @@ class SpectraPlate2D(Spectra):
             )
 
     def plot1d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
-
         with h5py.File(self.path_file1D, "r") as h5file:
             dset_times = h5file["times"]
 

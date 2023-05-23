@@ -53,7 +53,6 @@ class SmagorinskyModel(SpecificTurbModelSpectral):
         self.C_nu_T = C * delta**2 * sqrt(2)
 
     def get_forcing(self, **kwargs):
-
         ux_fft = kwargs["vx_fft"]
         uy_fft = kwargs["vy_fft"]
         uz_fft = kwargs["vz_fft"]

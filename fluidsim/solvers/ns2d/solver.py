@@ -208,7 +208,6 @@ if "sphinx" in sys.modules:
 
 
 if __name__ == "__main__":
-
     from math import pi
 
     import fluiddyn as fld

@@ -192,7 +192,6 @@ are called.
         super().post_init()
 
         if mpi.rank == 0:
-
             objects_to_print = {
                 "sim.oper": sim.oper,
                 "sim.state": sim.state,
@@ -264,7 +263,6 @@ are called.
             )
 
     def init_with_initialized_state(self):
-
         if (
             hasattr(self, "_has_been_initialized_with_state")
             and self._has_been_initialized_with_state
@@ -313,7 +311,6 @@ are called.
             self.print_size_in_Mo(self.sim.state.state_phys, "state_phys")
 
     def one_time_step(self):
-
         for k in self.params.periods_print._get_key_attribs():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
@@ -459,7 +456,6 @@ are called.
         )
 
     def _compute_mean_values(self, tmin, tmax):
-
         result = {}
 
         try:
@@ -538,7 +534,6 @@ class SpecificOutput:
         has_to_plot_saved=False,
         arrays_1st_time=None,
     ):
-
         sim = output.sim
         params = sim.params
 

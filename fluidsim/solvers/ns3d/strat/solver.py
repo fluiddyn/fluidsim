@@ -35,7 +35,6 @@ def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac):
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d.strat"
@@ -232,7 +231,6 @@ class Simul(SimulNS3D):
 
 
 if __name__ == "__main__":
-
     import numpy as np
 
     import fluiddyn as fld

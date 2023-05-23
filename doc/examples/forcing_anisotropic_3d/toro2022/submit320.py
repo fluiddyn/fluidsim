@@ -15,7 +15,6 @@ paths = sorted(path_base.glob(f"aniso/ns3d.strat*_{nh}x{nh}*"))
 walltime = "04:00:00"
 
 for N, Rb in sorted(couples320):
-
     ratio_nh_nz = get_ratio_nh_nz(N)
     nz = nh // ratio_nh_nz
 
@@ -55,7 +54,6 @@ for N, Rb in sorted(couples320):
             continue
 
     else:
-
         t_start, t_last = times_start_last_from_path(path)
         if t_last >= t_end:
             params = f"{N=} {Rb=} {nh=}"

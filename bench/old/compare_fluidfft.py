@@ -14,7 +14,6 @@ from fluidsim.solvers.ns2d.solver_oper_cython import Simul as SimulOperCython
 
 
 def modif_params(params, old=False):
-
     params.short_name_type_run = "profile"
 
     nh = 512 * 2

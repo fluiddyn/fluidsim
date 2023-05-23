@@ -73,7 +73,6 @@ class SpatialMeansNS3D(SpatialMeansBase):
             PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
-
             self.file.write(
                 f"####\ntime = {tsim:11.5e}\n"
                 f"E    = {energy:11.5e}\n"
@@ -98,7 +97,6 @@ class SpatialMeansNS3D(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
             self.ax_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')

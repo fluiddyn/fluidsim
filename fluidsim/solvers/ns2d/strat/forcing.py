@@ -20,7 +20,6 @@ class ForcingNS2DStrat(ForcingNS2D):
     def compute_coef_ab_normalize(
         self, constant_rate_of, key_forced, f_fft, var_fft, deltat
     ):
-
         if constant_rate_of not in ["energy", "energyK"]:
             raise ValueError
 

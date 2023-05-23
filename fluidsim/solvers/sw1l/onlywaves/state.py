@@ -190,7 +190,6 @@ class StateSW1LWaves(StateSW1L):
         return state_phys
 
     def init_from_uxuyetafft(self, ux_fft, uy_fft, eta_fft):
-
         (q_fft, ap_fft, am_fft) = self.oper.qapamfft_from_uxuyetafft(
             ux_fft, uy_fft, eta_fft
         )
@@ -213,7 +212,6 @@ class StateSW1LWaves(StateSW1L):
         self.statephys_from_statespect()
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
-
         oper = self.oper
         ifft2 = oper.ifft2
 

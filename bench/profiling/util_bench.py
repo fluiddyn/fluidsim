@@ -83,7 +83,6 @@ def modif_params_profile3d(params, nh=256, nz=32):
 
 
 def profile(sim, nb_dim=2):
-
     t0 = time()
 
     cProfile.runctx(
@@ -111,7 +110,6 @@ def profile(sim, nb_dim=2):
 
 
 def bench(sim):
-
     t_as_str = time_as_str()
     t0 = time()
     sim.time_stepping.start()
@@ -183,7 +181,6 @@ def print_analysis(s):
                         continue
 
                 if k == "fft2d":
-
                     if (
                         "util_pythran" in key[2]
                         or "operators.py" in key[0]
@@ -255,7 +252,6 @@ def print_analysis3d(s):
 
         for k in times.keys():
             if k in name or k in key[0]:
-
                 if k == "fft3d":
                     if "pythran" in key[0] or "pythran" in key[2]:
                         continue

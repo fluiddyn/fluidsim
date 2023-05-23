@@ -22,7 +22,6 @@ from fluidsim.base.setofvariables import SetOfVariables
 
 
 def modif_infosolver_turb_model(info_solver):
-
     try:
         classes_TurbModel = getattr(info_solver.classes, "TurbModel")
     except AttributeError:
@@ -105,7 +104,6 @@ class SpecificTurbModel(SimulExtender):
         """
 
         def modif_info_solver(info_solver):
-
             from fluidsim.base.turb_model.base import modif_infosolver_turb_model
 
             modif_infosolver_turb_model(info_solver)

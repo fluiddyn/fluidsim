@@ -15,12 +15,10 @@ from fluidsim_core.hexa_files import SetOfPhysFieldFiles
 
 
 class PhysFields4Snek5000(PhysFieldsABC):
-
     _cls_movies = MoviesBasePhysFieldsHexa
     _cls_set_of_files = SetOfPhysFieldFiles
 
     def __init__(self, output=None):
-
         self.output = output
         self.params = output.params
 
@@ -85,7 +83,6 @@ class PhysFields4Snek5000(PhysFieldsABC):
 
     @lru_cache(maxsize=None)
     def _get_axis_data(self, equation):
-
         (
             letter_x_axis,
             letter_y_axis,

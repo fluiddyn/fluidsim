@@ -28,7 +28,6 @@ def tendencies_nonlin_ns2dbouss(
 
 class InfoSolverNS2DBouss(InfoSolverNS2D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns2d.bouss"
@@ -214,7 +213,6 @@ class Simul(SimulNS2D):
 
 
 if __name__ == "__main__":
-
     from math import pi
 
     import fluiddyn as fld

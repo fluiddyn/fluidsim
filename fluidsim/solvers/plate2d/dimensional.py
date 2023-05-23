@@ -85,7 +85,6 @@ class Converter:
 
 
 if __name__ == "__main__":
-
     converter = Converter(C=0.648**2, h=4e-4)
 
     amplitude_z = 0.001

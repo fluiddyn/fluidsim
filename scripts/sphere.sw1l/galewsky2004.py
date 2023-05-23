@@ -87,6 +87,7 @@ ug = ux_from_lats(lats1r)
 ug.shape = (oper.nlat, 1)
 ux = ug * oper.create_array_spat(value=1.0)  # broadcast to shape (nlats,nlons)
 
+
 # uy = self.state_phys.get_var("uy")
 def integrand_gh(phi, a, omega):
     """The balance equation (3) in Galewsky et al."""

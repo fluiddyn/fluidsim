@@ -18,7 +18,6 @@ from fluidsim.util.testing import TestSimul
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
 class TestSolverAD1D(TestSimul):
-
     Simul = Simul
 
     @classmethod
