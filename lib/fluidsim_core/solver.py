@@ -5,7 +5,6 @@
 
 """
 from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
-from warnings import warn
 
 from .info import InfoSolverCore, create_info_simul
 from .params import Parameters
@@ -30,7 +29,7 @@ class SimulCore(ABC):
         params._set_attribs(attribs)
         #  params._set_doc("""Describe docstrings for params here.""")
 
-    @abstractclassmethod
+    @classmethod
     def create_default_params(cls):
         """Sets an ``info_solver`` instance as a class attribute and returns a
         *params* container populated with default values.
