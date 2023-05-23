@@ -74,11 +74,7 @@ from ._version import __version__, get_local_version
 from fluiddyn.io import FLUIDSIM_PATH
 
 # has to be done before importing util
-try:
-    path_dir_results = Path(FLUIDSIM_PATH)
-except TypeError:
-    # to be able to import for transonic
-    path_dir_results = None
+from fluidsim_core.paths import path_dir_results
 
 from .util import (
     available_solver_keys,

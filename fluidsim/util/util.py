@@ -3,26 +3,21 @@
 
 """
 
+import json
 import os
 import time
+import warnings
 from copy import deepcopy as _deepcopy
 from datetime import timedelta
 from functools import partial
 from importlib import import_module
 from pathlib import Path
 from time import perf_counter
-from typing import Union
 from math import radians
-import warnings
-import json
-import hashlib
-import inspect
-from importlib import import_module
 
 import h5netcdf
 import h5py
 import numpy as np
-from rich.progress import track
 
 import fluiddyn as fld
 from fluiddyn.io.redirect_stdout import stdout_redirected
@@ -32,7 +27,7 @@ from fluiddyn.util import get_memory_usage
 from fluidsim_core import loader
 from fluidsim_core.output.dataframe_from_paths import DataframeMaker
 
-from fluidsim import path_dir_results
+from fluidsim_core.paths import find_pathdir
 
 from fluidsim.base.params import (
     Parameters,
@@ -107,33 +102,7 @@ def get_dim_from_solver_key(key):
     )
 
 
-def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
-    """Return the path of a result directory.
-
-    name_dir: str, optional
-
-      Can be an absolute path, a relative path, or even simply just
-      the name of the directory under $FLUIDSIM_PATH.
-
-    """
-    if name_dir is None:
-        return Path.cwd()
-
-    if not isinstance(name_dir, Path):
-        name_dir = Path(name_dir)
-
-    name_dir = name_dir.expanduser()
-
-    if name_dir.is_dir():
-        return name_dir.absolute()
-
-    if not name_dir.is_absolute():
-        name_dir = path_dir_results / name_dir
-
-    if not name_dir.is_dir():
-        raise ValueError(str(name_dir) + " is not a directory")
-
-    return name_dir
+pathdir_from_namedir = find_pathdir
 
 
 class ModulesSolvers(dict):
