@@ -14,6 +14,7 @@ generic base classes and utilities to build new solvers.
    extend_simul
    hexa_files
    scripts
+   paths
 
 """
 from ._version import __version__
