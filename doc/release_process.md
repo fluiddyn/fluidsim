@@ -23,7 +23,7 @@
   ```bash
   cd lib
   rm -rf dist
-  python setup.py sdist bdist_wheel
+  python -m build
   twine upload dist/*
   ```
 
@@ -32,7 +32,7 @@
   ```bash
   cd ..
   rm -rf dist
-  python setup.py sdist
+  python -m build -s
   twine upload dist/*
   ```
 
