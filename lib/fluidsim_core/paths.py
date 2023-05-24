@@ -10,7 +10,7 @@ except TypeError:
     path_dir_results = None
 
 
-def find_pathdir(thing: Union[str, Path, None] = None):
+def find_path_result_dir(thing: Union[str, Path, None] = None):
     """Return the path of a result directory.
 
     thing: str or Path, optional

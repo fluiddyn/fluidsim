@@ -27,7 +27,7 @@ from fluiddyn.util import get_memory_usage
 from fluidsim_core import loader
 from fluidsim_core.output.dataframe_from_paths import DataframeMaker
 
-from fluidsim_core.paths import find_pathdir
+from fluidsim_core.paths import find_path_result_dir
 
 from fluidsim.base.params import (
     Parameters,
@@ -102,7 +102,7 @@ def get_dim_from_solver_key(key):
     )
 
 
-pathdir_from_namedir = find_pathdir
+pathdir_from_namedir = find_path_result_dir
 
 
 class ModulesSolvers(dict):
