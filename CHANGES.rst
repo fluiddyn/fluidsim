@@ -23,7 +23,13 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 .. towncrier release notes start
 
+0.7.3_ (2023-05-24)
+-------------------
+
 - Official support for only Python 3.9, 3.10 and 3.11.
+
+- Few improvements for `Fluidsimfoam
+  <https://foss.heptapod.net/fluiddyn/fluidsimfoam>`_.
 
 0.7.2_ (2023-01-05)
 -------------------
@@ -297,7 +303,8 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 - Split the package fluiddyn between one base package and specialized
   packages.
 
-.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...branch%2Fdefault
+.. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...branch%2Fdefault
+.. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
 .. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...0.7.2
 .. _0.7.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.0...0.7.1
 .. _0.7.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...0.7.0

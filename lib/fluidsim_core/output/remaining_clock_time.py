@@ -18,7 +18,15 @@ import matplotlib.pyplot as plt
 class RemainingClockTime(metaclass=ABCMeta):
     @abstractmethod
     def _load_times(self):
-        """Load remaining time data."""
+        """Load remaining time data.
+
+        - equation_times
+        - remaining_clock_times
+        - clock_times_per_timestep
+        - equation_time_start
+        - full_clock_time
+
+        """
 
     def plot_clock_times(self):
         """Plot the estimated full clock time and clock time per time step."""

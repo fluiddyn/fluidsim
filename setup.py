@@ -9,8 +9,8 @@ from setuptools import setup, find_packages
 
 from transonic.dist import make_backend_files, init_transonic_extensions
 
-if sys.version_info[:2] < (3, 8):
-    raise RuntimeError("Python version >= 3.8 required.")
+if sys.version_info[:2] < (3, 9):
+    raise RuntimeError("Python version >= 3.9 required.")
 
 here = Path(__file__).parent.absolute()
 
