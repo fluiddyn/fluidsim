@@ -1249,10 +1249,16 @@ class SpatioTemporalSpectraNS:
 
         return tspectra
 
+    def _get_default_tmin_periodogram(self, tmin):
+        paths_periodo = sorted(self.path_dir.glob("periodogram_*.h5"))
+        if not paths_periodo:
+            return tmin
+        return float(paths_periodo[-1].name.split("_")[2])
+
     def plot_temporal_spectra(
         self,
         key_field=None,
-        tmin=0,
+        tmin=None,
         tmax=None,
         xlim=None,
         ylim=None,
@@ -1277,6 +1283,8 @@ class SpatioTemporalSpectraNS:
             save_urud = True
         else:
             save_urud = False
+        if tmin is None:
+            tmin = self._get_default_tmin_periodogram(tmin)
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         if path_file.exists():
             tspectra = self.load_temporal_spectra(
@@ -1447,11 +1455,12 @@ class SpatioTemporalSpectraNS:
             ax.legend()
 
     def load_temporal_spectra(
-        self, tmin=0, tmax=None, dtype=None, save_urud=False
+        self, tmin=None, tmax=None, dtype=None, save_urud=False
     ):
         """load temporal spectra from file"""
         tspectra = {}
-
+        if tmin is None:
+            tmin = self._get_default_tmin_periodogram(tmin)
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         with h5py.File(path_file, "r") as file:
             for key in file.keys():
