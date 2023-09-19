@@ -672,14 +672,14 @@ class MoviesBasePhysFields(MoviesBase2D):
 
         vmax = None
         if self.phys_fields._can_plot_quiver and self._QUIVER:
-            skip = self.phys_fields._skip_quiver
             self._ani_quiver, vmax = self.phys_fields._quiver_plot(
                 self.ax,
-                vec_xaxis[::skip, ::skip],
-                vec_yaxis[::skip, ::skip],
+                vec_xaxis,
+                vec_yaxis,
                 XX,
                 YY,
                 normalize_vectors=normalize_vectors,
+                skip=self.phys_fields._skip_quiver,
                 **quiver_kw,
             )
 
