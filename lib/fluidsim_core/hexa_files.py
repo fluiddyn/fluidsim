@@ -303,7 +303,11 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
                         i1d = distance2_2d.argmin()
                         iy, ix = np.unravel_index(i1d, distance2_2d.shape)
                         distance2_min = distance2_2d[iy, ix]
-                        color = image.get_array()[i1d]
+                        arr = image.get_array()
+                        if arr.ndim > 1:
+                            # matplotlib >= 3.8.0
+                            arr = arr.flatten()
+                        color = arr[i1d]
                         elements_possibly_touched.append((distance2_min, color))
 
                 if elements_possibly_touched:
