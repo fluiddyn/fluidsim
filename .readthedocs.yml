@@ -15,7 +15,6 @@ sphinx:
   configuration: doc/conf.py
 
 python:
-  system_packages: true
   install:
     - requirements: .readthedocs.req
     - method: pip
