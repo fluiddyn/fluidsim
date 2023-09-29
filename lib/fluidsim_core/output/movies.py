@@ -324,6 +324,7 @@ class MoviesBase:
             interval=dt_frame_in_sec * 1000,
             blit=False,
             repeat=repeat,
+            save_count=self._max,
         )
 
         self.paused = False
