@@ -196,9 +196,7 @@ class Increments(SpecificOutput):
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-            tmin, tmax, delta_t
-        )
+        to_print = f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})"
         print(to_print)
 
         to_print = (
@@ -478,7 +476,7 @@ class Increments(SpecificOutput):
         colors = ["k", "y", "r", "b", "g", "m", "c"]
 
         for irxp, irx in enumerate(irx_to_plot):
-            print("color = {}, rx = {}".format(colors[irxp], self.rxs[irx]))
+            print(f"color = {colors[irxp]}, rx = {self.rxs[irx]}")
 
             val_inc = values_inc_timemean[irxp]
 

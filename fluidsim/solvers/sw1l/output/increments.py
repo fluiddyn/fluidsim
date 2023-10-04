@@ -91,9 +91,7 @@ class IncrementsSW1L(Increments):
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-            tmin, tmax, delta_t
-        )
+        to_print = f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})"
         print(to_print)
 
         to_print = """plot structure functions
@@ -265,11 +263,9 @@ imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
             to_print = f"plot(tmin={tmin}, tmax={tmax})"
             print(to_print)
 
-            to_print = """plot structure functions
-    tmin = {:8.6g} ; tmax = {:8.6g}
-    imin = {:8d} ; imax = {:8d}""".format(
-                tmin_plot, tmax_plot, imin_plot, imax_plot
-            )
+            to_print = f"""plot structure functions
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             print(to_print)
 
             # dset_struc_func_ux = h5file['struc_func_ux']

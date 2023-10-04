@@ -207,7 +207,7 @@ are called.
 
             for key, obj in objects_to_print.items():
                 self.print_stdout(
-                    "{:20s}".format(key + ": ") + str(obj.__class__)
+                    f"{key + ': ':20s}" + str(obj.__class__)
                 )
 
             # print info on the run
@@ -299,7 +299,7 @@ are called.
         for Class in classes:
             if mpi.rank == 0:
                 self.print_stdout(
-                    "{:30s}".format("sim.output." + Class._tag + ":") + str(Class)
+                    f"{'sim.output.' + Class._tag + ':':30s}" + str(Class)
                 )
             self.__dict__[Class._tag] = Class(self)
 

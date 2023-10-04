@@ -116,9 +116,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             imin_plot = np.argmin(abs(times - tmin))
             imax_plot = np.argmin(abs(times - tmax))
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
+            to_print = f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})"
             print(to_print)
 
             tmin_plot = times[imin_plot]

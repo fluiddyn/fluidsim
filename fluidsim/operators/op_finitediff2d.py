@@ -155,8 +155,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
         else:
             str_Ly = f"{self.Ly:.3f}".rstrip("0")
         return (
-            "Finite difference operator 2D,\n"
-            "nx = {:6d} ; ny = {:6d}\n".format(self.nx, self.ny)
+            f"Finite difference operator 2D,\nnx = {self.nx:6d} ; ny = {self.ny:6d}\n"
             + "Lx = "
             + str_Lx
             + " ; Ly = "

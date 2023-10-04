@@ -318,7 +318,7 @@ def plot_pie(
 
     for label, perc in zip(labels, percentages):
         print(
-            "(label, perc) = ({:40s} {:5.2f} %)".format(repr(label) + ",", perc)
+            f"(label, perc) = ({repr(label) + ',':40s} {perc:5.2f} %)"
         )
 
     autopct = "%1.1f\\%%" if for_latex else "%1.1f%%"
@@ -415,9 +415,7 @@ def analyze_stats(
         return times, long_functions
 
     print(
-        "\nlong_functions (more than {} % of total time):".format(
-            100 * threshold_long_function
-        )
+        f"\nlong_functions (more than {100 * threshold_long_function} % of total time):"
     )
     for name, d in long_functions.items():
         print(name + ":")
@@ -436,23 +434,19 @@ def analyze_stats(
         t = times[k]
         if t > 0:
             print(
-                "time {:10s}: {:7.03f} % ({:4.02f} s)".format(
-                    k, t / total_time * 100, t
-                )
+                f"time {k:10s}: {t / total_time * 100:7.03f} % ({t:4.02f} s)"
             )
 
     print(
         "-" * 26
-        + "\n{:15s}  {:7.03f} %".format(
-            "", sum([t for t in times.values()]) / total_time * 100
-        )
+        + f"\n{'':15s}  {sum([t for t in times.values()]) / total_time * 100:7.03f} %"
     )
 
     del times[".py"]
     time_in_not_py = sum([t for t in times.values()])
     print(
-        "In not Python functions:\n{:15s}".format("")
-        + "  {:7.03f} %".format(time_in_not_py / total_time * 100)
+        f"In not Python functions:\n{'':15s}"
+        + f"  {time_in_not_py / total_time * 100:7.03f} %"
     )
 
     return times, long_functions

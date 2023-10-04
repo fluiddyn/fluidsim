@@ -217,9 +217,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
+            to_print = f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})"
             print(to_print)
 
             to_print = """plot fluxes 2D
@@ -562,9 +560,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
+            to_print = f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})"
             print(to_print)
 
             to_print = "plot fluxes 2D" + (

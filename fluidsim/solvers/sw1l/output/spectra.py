@@ -184,9 +184,7 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
-            )
+            to_print = f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
             print(to_print)
 
             to_print = """plot 1D spectra
@@ -282,9 +280,7 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
-            )
+            to_print = f"plot2d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
             print(to_print)
 
             to_print = """plot 2D spectra

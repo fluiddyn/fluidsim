@@ -340,7 +340,7 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
 
             for key, obj in objects_to_print.items():
                 self.print_stdout(
-                    "{:20s}".format(key + ": ") + str(obj.__class__)
+                    f"{key + ': ':20s}" + str(obj.__class__)
                 )
         self._save_info_solver_params_xml()
 

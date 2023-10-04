@@ -120,14 +120,12 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if params.oper.nx != nx:
             raise ValueError(
-                "params.oper.nx != int(params.oper.nx); "
-                "({})".format(params.oper.nx)
+                f"params.oper.nx != int(params.oper.nx); ({params.oper.nx})"
             )
 
         if params.oper.ny != ny:
             raise ValueError(
-                "params.oper.ny != int(params.oper.ny); "
-                "({})".format(params.oper.ny)
+                f"params.oper.ny != int(params.oper.ny); ({params.oper.ny})"
             )
 
         params.oper.nx = nx
@@ -488,7 +486,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if negative:
             sign *= -1
-        Kn = getattr(self, "K{}".format(int(order)))
+        Kn = getattr(self, f"K{int(order)}")
 
         # Avoid unnecessary multiplication by unity
         if sign == 1:
@@ -516,7 +514,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if negative:
             sign *= -1
-        Kn_not0 = getattr(self, "K{}_not0".format(int(order)))
+        Kn_not0 = getattr(self, f"K{int(order)}_not0")
 
         # Avoid unnecessary multiplication by unity
         if sign == 1:
