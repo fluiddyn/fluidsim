@@ -72,14 +72,10 @@ sim.time_stepping.start()
 if rank == 0:
     print(
         "\nTo display a video of this simulation, you can do:\n"
-        f"cd {sim.output.path_run}"
+        f"cd {sim.output.path_run}; fluidsim-ipy-load"
         + """
-ipython
 
-# then in ipython (copy the 3 lines in the terminal):
-
-from fluidsim import load_sim_for_plot
-sim = load_sim_for_plot()
+# then in ipython (copy the line in the terminal):
 
 sim.output.phys_fields.animate('b', dt_frame_in_sec=0.1, dt_equations=0.1)
 """

@@ -80,8 +80,10 @@ sim.time_stepping.start()
 
 mpi.printby0(
     "\nTo visualize the results, you can do:\n"
-    f"cd {sim.output.path_run}; "
-    + """ipython -i -c "from fluidsim import load; sim = load()"
+    f"cd {sim.output.path_run}; fluidsim-ipy-load"
+    + """
+
+# then, in ipython:
 
 sim.output.spatial_means.plot()
 
