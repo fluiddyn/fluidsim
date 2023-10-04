@@ -116,24 +116,14 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             imin_plot = np.argmin(abs(times - tmin))
             imax_plot = np.argmin(abs(times - tmax))
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
-            print(to_print)
+            print(f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})")
 
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
             print(
-                """plot spectral energy budget
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                    tmin_plot,
-                    tmax_plot,
-                    delta_t,
-                    imin_plot,
-                    imax_plot,
-                    delta_i_plot,
-                )
+                f"""plot spectral energy budget
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
 
             fig, ax1 = self.output.figure_axe()

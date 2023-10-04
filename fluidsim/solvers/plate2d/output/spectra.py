@@ -102,9 +102,7 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
+                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
                 + f" coef_compensate={coef_compensate:.3f})"
             )
 
@@ -179,9 +177,7 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
+                f"plot2d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
                 + f" coef_compensate={coef_compensate:.3f})"
             )
 

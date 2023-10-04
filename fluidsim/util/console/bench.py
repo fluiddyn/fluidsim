@@ -109,7 +109,7 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
 
     else:
         if type_fft not in d:
-            raise ConsoleError("{} not in {}".format(type_fft, list(d.keys())))
+            raise ConsoleError(f"{type_fft} not in {list(d.keys())}")
 
         ClassFFT = d[type_fft]
         if ClassFFT is None:
@@ -177,9 +177,7 @@ def estimate_shapes_weak_scaling(
     for nproc in nproc_gp:
         divisor = nproc_max // nproc
         if n2_max is None:
-            shapes[str(nproc)] = "{} {}".format(
-                shapeX_seq[0], shapeX_seq[1] // divisor
-            )
+            shapes[str(nproc)] = f"{shapeX_seq[0]} {shapeX_seq[1] // divisor}"
         else:
             shapes[str(nproc)] = "{} {}".format(
                 shapeX_seq[0], shapeX_seq[1], shapeX_seq[2] // divisor
@@ -209,9 +207,7 @@ def print_shape_loc(n0, n1, n2=None, type_fft=None):
     print("-" * 8)
     print("type fft = ", type_fft)
     old_print(
-        "rank {}: shapeX_loc = {}, shapeK_loc = {}".format(
-            rank, shapeX_loc, shapeK_loc
-        )
+        f"rank {rank}: shapeX_loc = {shapeX_loc}, shapeK_loc = {shapeK_loc}"
     )
 
 

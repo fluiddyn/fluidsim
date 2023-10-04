@@ -200,7 +200,7 @@ def plot_scaling(
                 speedup.index,
                 speedup.values,
                 "x-",
-                label="{}, {}".format(name.replace("fluidfft.", ""), name_dir),
+                label=f"{name.replace('fluidfft.', '')}, {name_dir}",
             )
 
     ax0.xaxis.set_major_locator(MaxNLocator(integer=True))

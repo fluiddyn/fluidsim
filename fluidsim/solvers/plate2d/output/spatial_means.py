@@ -91,7 +91,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             Fz_fft = forcing_fft.get_var("z_fft")
             assert np.allclose(
                 abs(Fz_fft).max(), 0.0
-            ), "abs(Fz_fft).max(): {}".format(abs(Fz_fft).max())
+            ), f"abs(Fz_fft).max(): {abs(Fz_fft).max()}"
 
             P1_fft = np.real(w_fft.conj() * Fw_fft)
             P2_fft = (abs(Fw_fft) ** 2) * deltat / 2
@@ -103,31 +103,18 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             epsK_tot = epsK + epsK_hypo
 
             self.file.write(f"####\ntime = {tsim:17.13f}\n")
-            to_print = (
-                "E    = {:31.26e} ; E_k    = {:11.6e} ; "
-                "E_l    = {:11.6e} ; E_e    = {:11.6e}\n"
-                "epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; "
-                "epsK_tot = {:11.6e}\n"
-                "conv_k_to_l = {:11.6e} : conv_l_to_e = {:11.6e}\n"
-            ).format(
-                energy,
-                energy_k,
-                energy_l,
-                energy_e,
-                epsK,
-                epsK_hypo,
-                epsK + epsK_hypo,
-                conversion_k_to_l,
-                conversion_l_to_e,
+            self.file.write(
+                f"E    = {energy:31.26e} ; E_k    = {energy_k:11.6e} ; "
+                f"E_l    = {energy_l:11.6e} ; E_e    = {energy_e:11.6e}\n"
+                f"epsK = {epsK:11.6e} ; epsK_hypo = {epsK_hypo:11.6e} ; "
+                f"epsK_tot = {epsK + epsK_hypo:11.6e}\n"
+                f"conv_k_to_l = {conversion_k_to_l:11.6e} : conv_l_to_e = {conversion_l_to_e:11.6e}\n"
             )
 
-            self.file.write(to_print)
-
             if self.sim.params.forcing.enable:
-                to_print = (
-                    "P1 = {:11.6e} ; P2 = {:11.6e} ; P_tot = {:11.6e} \n"
-                ).format(P1, P2, P1 + P2)
-                self.file.write(to_print)
+                self.file.write(
+                    f"P1 = {P1:11.6e} ; P2 = {P2:11.6e} ; P_tot = {P1 + P2:11.6e} \n"
+                )
 
             self.file.flush()
             os.fsync(self.file.fileno())

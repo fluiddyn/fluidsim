@@ -65,9 +65,7 @@ def modif_box_size(params, n0, n1, n2=None):
 
     if n2 is None:
         mpi.printby0(
-            "nh = ({}, {}); Lh = ({}, {})".format(
-                n0, n1, params.oper.Ly, params.oper.Lx
-            )
+            f"nh = ({n0}, {n1}); Lh = ({params.oper.Ly}, {params.oper.Lx})"
         )
 
     if n2 is not None and n2 != n0:
@@ -234,9 +232,7 @@ def init_parser_base(parser):
         "--solver",
         type=str,
         default=None,
-        help="Any of the following solver keys: {}".format(
-            available_solver_keys()
-        ),
+        help=f"Any of the following solver keys: {available_solver_keys()}",
     )
     parser.add_argument("-d", "--dim", default=None)
 
@@ -350,9 +346,7 @@ def bench(sim, path_dir_results):
         t_elapsed_usr = time() - t0_usr
 
     print(
-        "done.\n{} time steps computed in {:.2f} s".format(
-            sim.time_stepping.it, t_elapsed_usr
-        )
+        f"done.\n{sim.time_stepping.it} time steps computed in {t_elapsed_usr:.2f} s"
     )
 
     if sim.oper.rank != 0:

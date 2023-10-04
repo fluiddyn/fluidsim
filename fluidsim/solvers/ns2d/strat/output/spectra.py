@@ -179,7 +179,7 @@ class SpectraNS2DStrat(Spectra):
     ):
         """Plot spectra one-dimensional."""
         print(
-            "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
+            f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
             + f" coef_compensate={coef_compensate:.3f})"
         )
 
@@ -383,8 +383,8 @@ class SpectraNS2DStrat(Spectra):
         """Plot 2D spectra."""
 
         print(
-            "plot2s(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
-            + f" coef_compensate={coef_compensate:.3f})"
+            f"plot2s(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
+            f" coef_compensate={coef_compensate:.3f})"
         )
 
         means = self.load2d_means(tmin, tmax, delta_t)

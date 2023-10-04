@@ -184,17 +184,12 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f}, ...)\n"
+                f"""plot 1D spectra
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
-            print(to_print)
-
-            to_print = """plot 1D spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             if ax is None:
                 fig, ax = self.output.figure_axe()
@@ -282,17 +277,12 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot2d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f}, ...)\n"
+                f"""plot 2D spectra
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
-            print(to_print)
-
-            to_print = """plot 2D spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             if ax is None:
                 fig, ax = self.output.figure_axe()

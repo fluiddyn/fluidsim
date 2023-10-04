@@ -88,7 +88,7 @@ if __name__ == "__main__":
     converter = Converter(C=0.648**2, h=4e-4)
 
     amplitude_z = 0.001
-    print("amplitude z: {:6.2f}".format(converter.compute_z_adim(amplitude_z)))
+    print(f"amplitude z: {converter.compute_z_adim(amplitude_z):6.2f}")
 
     nu_4 = 5e-7
-    print("nu_4: {:8.3g}".format(converter.compute_nu4_adim(nu_4)))
+    print(f"nu_4: {converter.compute_nu4_adim(nu_4):8.3g}")

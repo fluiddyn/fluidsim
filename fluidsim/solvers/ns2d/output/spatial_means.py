@@ -67,29 +67,18 @@ class SpatialMeansNS2D(SpatialMeansBase):
             epsK_tot = epsK + epsK_hypo
 
             self.file.write(f"####\ntime = {tsim:11.5e}\n")
-            to_print = (
-                "E    = {:11.5e} ; Z         = {:11.5e} \n"
-                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; epsK_tot = {:11.5e} \n"
-                "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
-            ).format(
-                energy,
-                enstrophy,
-                epsK,
-                epsK_hypo,
-                epsK + epsK_hypo,
-                epsZ,
-                epsZ_hypo,
-                epsZ + epsZ_hypo,
+            self.file.write(
+                f"E    = {energy:11.5e} ; Z         = {energy:11.5e} \n"
+                f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; epsK_tot = {epsK + epsK_hypo:11.5e} \n"
+                f"epsZ = {epsZ:11.5e} ; epsZ_hypo = {epsZ_hypo:11.5e} ; epsZ_tot = {epsZ + epsZ_hypo:11.5e} \n"
             )
-            self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
-                to_print = (
-                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
-                    "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2)
-                self.file.write(to_print)
+                self.file.write(
+                    f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; PK_tot   = {PK1 + PK2:11.5e} \n"
+                    f"PZ1  = {PZ1:11.5e} ; PZ2       = {PZ2:11.5e} ; PZ_tot   = {PZ1 + PZ2:11.5e} \n"
+                )
 
             self.file.flush()
             os.fsync(self.file.fileno())

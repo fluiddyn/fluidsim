@@ -156,9 +156,7 @@ class Simul(SimulBasePseudoSpectral):
 
         if mpi.rank == 0:
             self.output.print_stdout(
-                "c2 = {:6.5g} ; f = {:6.5g} ; kd2 = {:6.5g}".format(
-                    params.c2, params.f, params.kd2
-                )
+                f"c2 = {params.c2:6.5g} ; f = {params.f:6.5g} ; kd2 = {params.kd2:6.5g}"
             )
 
     def tendencies_nonlin(self, state_spect=None, old=None):

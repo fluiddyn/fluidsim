@@ -145,7 +145,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
         elif viscosity_scale == "forcing":
             args = [self.sim.params.forcing.forcing_rate]
         else:
-            raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
+            raise ValueError(f"Unknown viscosity scale: {viscosity_scale}")
 
         result = calcul_viscosity(
             C,
@@ -202,7 +202,7 @@ class PreprocessPseudoSpectral(PreprocessBase):
             omega_0 = self.output.compute_enstrophy()
             self.sim.params.forcing.forcing_rate = C * omega_0**1.5 / k_f**2
         else:
-            raise ValueError("Unknown forcing scale: %s" % forcing_scale)
+            raise ValueError(f"Unknown forcing scale: {forcing_scale}")
 
         self.sim.forcing.__init__(self.sim)
 
@@ -318,7 +318,7 @@ def calcul_viscosity(
         epsilon = args[0]
         time_scale = epsilon ** (-1.0 / 3) * length_scale ** (2.0 / 3)
     else:
-        raise ValueError("Unknown viscosity scale: %s" % viscosity_scale)
+        raise ValueError(f"Unknown viscosity scale: {viscosity_scale}")
 
     dict_visc = {
         "laplacian": ["nu_2", 2],
@@ -339,7 +339,7 @@ def calcul_viscosity(
         kolmo_len = []
 
     if not any([k in viscosity_type for k in dict_visc]):
-        raise ValueError("Unknown viscosity type: %s" % viscosity_type)
+        raise ValueError(f"Unknown viscosity type: {viscosity_type}")
 
     else:
         for k, v in dict_visc.items():

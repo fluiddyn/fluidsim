@@ -394,7 +394,7 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         for k in keys:
             E = dict_results[k]
             dE_dt = abs(np.gradient(E, 1.0) / dt)
-            dE_dt_avg = "{:11.6e}".format(dE_dt.mean())
+            dE_dt_avg = f"{dE_dt.mean():11.6e}"
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
                 axarr[i].set_ylabel(r"$\partial_t$" + keys[i])

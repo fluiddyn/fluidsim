@@ -157,19 +157,12 @@ class ProbaDensityFunc(SpecificOutput):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
-            print(to_print)
-
-            to_print = (
+            print(
+                f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})\n"
                 "plot pdf eta\n"
-                "tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-                "imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-            ).format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+                f"tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}"
+                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"
             )
-            print(to_print)
 
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 pdf_eta = dset_pdf_eta[it]

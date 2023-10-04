@@ -88,41 +88,22 @@ class SpatialMeansNS2DStrat(SpatialMeansBase):
             epsK_tot = epsK + epsK_hypo
 
             self.file.write(f"####\ntime = {tsim:11.5e}\n")
-            to_print = (
-                "Z    = {:11.5e} \n"
-                "E    = {:11.5e} ; EK         = {:11.5e} ; EA        = {:11.5e} \n"
-                "epsA = {:11.5e} ; epsA_hypo  = {:11.5e} ; epsA_tot  = {:11.5e} \n"
-                "epsK = {:11.5e} ; epsK_hypo  = {:11.5e} ; epsK_tot  = {:11.5e} \n"
-                "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
-                "E_shear = {:11.5e} \n"
-            ).format(
-                enstrophy,
-                energy,
-                energyK,
-                energyA,
-                epsA,
-                epsA_hypo,
-                epsA + epsA_hypo,
-                epsK,
-                epsK_hypo,
-                epsK + epsK_hypo,
-                epsZ,
-                epsZ_hypo,
-                epsZ + epsZ_hypo,
-                energy_shear_modes,
+            self.file.write(
+                f"Z    = {enstrophy:11.5e} \n"
+                f"E    = {energy:11.5e} ; EK         = {energyK:11.5e} ; EA        = {energyA:11.5e} \n"
+                f"epsA = {epsA:11.5e} ; epsA_hypo  = {epsA_hypo:11.5e} ; epsA_tot  = {epsA + epsA_hypo:11.5e} \n"
+                f"epsK = {epsK:11.5e} ; epsK_hypo  = {epsK_hypo:11.5e} ; epsK_tot  = {epsK + epsK_hypo:11.5e} \n"
+                f"epsZ = {epsZ:11.5e} ; epsZ_hypo = {epsZ_hypo:11.5e} ; epsZ_tot = {epsZ + epsZ_hypo:11.5e} \n"
+                f"E_shear = {energy_shear_modes:11.5e} \n"
             )
-            self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
-                to_print = (
-                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
-                    "PA1  = {:11.5e} ; PA2       = {:11.5e} ; PA_tot   = {:11.5e} \n"
-                    "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
-                ).format(
-                    PK1, PK2, PK1 + PK2, PA1, PA2, PA1 + PA2, PZ1, PZ2, PZ1 + PZ2
+                self.file.write(
+                    f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; PK_tot   = {PK_tot:11.5e} \n"
+                    f"PA1  = {PA1:11.5e} ; PA2       = {PA1:11.5e} ; PA_tot   = {PA1 + PA2:11.5e} \n"
+                    f"PZ1  = {PZ1:11.5e} ; PZ2       = {PZ2:11.5e} ; PZ_tot   = {PZ1 + PZ2:11.5e} \n"
                 )
-                self.file.write(to_print)
 
             self.file.flush()
             os.fsync(self.file.fileno())

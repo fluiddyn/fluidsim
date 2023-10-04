@@ -538,11 +538,11 @@ while True:
 if mpi.rank == 0:
     if len(paths_sim) == 0:
         to_print = "gamma,nx,nu8 \n"
-        to_print += "{},{},{} \n".format(gamma, sim.params.oper.nx, params.nu_8)
+        to_print += f"{gamma},{sim.params.oper.nx},{params.nu_8} \n"
         mode_write = "w"
 
     else:
-        to_print = "{},{},{} \n".format(gamma, sim.params.oper.nx, params.nu_8)
+        to_print = f"{gamma},{sim.params.oper.nx},{params.nu_8} \n"
         mode_write = "a"
 
     write_to_file(path_file_write, to_print, mode=mode_write)
