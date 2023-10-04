@@ -304,7 +304,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
   packages.
 
 .. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...branch%2Fdefault
-.. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
+.. _0.7.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
 .. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...0.7.2
 .. _0.7.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.0...0.7.1
 .. _0.7.0: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.1...0.7.0

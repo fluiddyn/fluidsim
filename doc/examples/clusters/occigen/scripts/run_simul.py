@@ -165,9 +165,9 @@ def main(args):
 
         mpi.printby0(
             "For a video, run something like:\n\n"
-            f"cd {sim.output.path_run}; "
-            'ipython -i -c "from fluidsim import load_sim_for_plot as load; '
-            "sim=load(); sim.output.phys_fields.animate('vx')\""
+            f"cd {sim.output.path_run}; fluidsim-ipy-load\n"
+            "then, in ipython:\n"
+            "sim.output.phys_fields.animate('vx')"
         )
     else:
         print(sim.oper.shapeX_loc)

@@ -194,8 +194,7 @@ def main(args):
 
         mpi.printby0(
             "For a video, run something like:\n\n"
-            f"cd {sim.output.path_run}\n"
-            'ipython -i -c "from fluidsim import load; sim=load()"\n'
+            f"cd {sim.output.path_run}; fluidsim-ipy-load\n"
             "Then, in IPython:\n"
             "sim.output.phys_fields.animate('vx')"
         )

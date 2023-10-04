@@ -53,7 +53,8 @@ equations over a periodic space:
 
 Being a framework, Fluidsim can easily be extended in other packages to develop
 other solvers (see for example the packages `snek5000
-<https://github.com/exabl/snek5000/>`_ and `fluidsim_ocean
+<https://github.com/exabl/snek5000/>`_, `fluidsimfoam
+<https://foss.heptapod.net/fluiddyn/fluidsimfoam>`_ and `fluidsim_ocean
 <https://foss.heptapod.net/fluiddyn/fluidsim_ocean>`_).
 
 
