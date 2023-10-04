@@ -43,7 +43,7 @@ for ipath, path in enumerate(path_simulations):
         gammas.append(float(gamma_str))
 
     # Compute time average ratio ux**2 / uy**2 (anisotropy)
-    print("Computing anisotropy for gamma {}...".format(gammas[ipath]))
+    print(f"Computing anisotropy for gamma {gammas[ipath]}...")
     path_phys_files = glob(path + "/state_phys_t*")
     anisotropies = []
     for path_file in path_phys_files[-n_files_average:]:
@@ -54,7 +54,7 @@ for ipath, path in enumerate(path_simulations):
     anisotropies_gammas.append(np.mean(anisotropies))
 
     # Compute ratio D(k_x)/epsilon
-    print("Computing ratio dissipation for gamma {}...".format(gammas[ipath]))
+    print(f"Computing ratio dissipation for gamma {gammas[ipath]}...")
     with h5py.File(path + "/spect_energy_budg.h5", "r") as f:
         kx = f["kxE"][...]
         kz = f["kyE"][...]

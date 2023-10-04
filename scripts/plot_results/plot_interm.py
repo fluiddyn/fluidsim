@@ -105,9 +105,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
             "struct. function, solver "
             + sim.output.name_solver
             + f", nh = {sim.param.nx:5d}"
-            + ", c = {:.4g}, f = {:.4g}".format(
-                np.sqrt(sim.param.c2), sim.param.f
-            )
+            + f", c = {np.sqrt(sim.param.c2):.4g}, f = {sim.param.f:.4g}"
         )
 
         ax1.set_xlabel("$r$")
@@ -204,7 +202,7 @@ title = (
     "intermittency, solver "
     + sim.output.name_solver
     + f", nh = {sim.param.nx:5d}"
-    + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(sim.param.c2), sim.param.f)
+    + f", c = {np.sqrt(sim.param.c2):.4g}, f = {sim.param.f:.4g}"
 )
 
 ax1.set_title(title)
