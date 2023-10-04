@@ -317,9 +317,7 @@ def plot_pie(
         kwargs["startangle"] = 0
 
     for label, perc in zip(labels, percentages):
-        print(
-            f"(label, perc) = ({repr(label) + ',':40s} {perc:5.2f} %)"
-        )
+        print(f"(label, perc) = ({repr(label) + ',':40s} {perc:5.2f} %)")
 
     autopct = "%1.1f\\%%" if for_latex else "%1.1f%%"
     pie = ax.pie(percentages, labels=labels, autopct=autopct, **kwargs)
@@ -433,9 +431,7 @@ def analyze_stats(
     for k in keys:
         t = times[k]
         if t > 0:
-            print(
-                f"time {k:10s}: {t / total_time * 100:7.03f} % ({t:4.02f} s)"
-            )
+            print(f"time {k:10s}: {t / total_time * 100:7.03f} % ({t:4.02f} s)")
 
     print(
         "-" * 26

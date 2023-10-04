@@ -206,9 +206,7 @@ are called.
                 objects_to_print["sim.preprocess"] = sim.preprocess
 
             for key, obj in objects_to_print.items():
-                self.print_stdout(
-                    f"{key + ': ':20s}" + str(obj.__class__)
-                )
+                self.print_stdout(f"{key + ': ':20s}" + str(obj.__class__))
 
             # print info on the run
             if hasattr(sim.params.time_stepping, "type_time_scheme"):
