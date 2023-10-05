@@ -115,11 +115,10 @@ class MoviesSpectra(MoviesBase1D):
         self.key_field = key_field
 
 
-class Spectra(SpecificOutput):
-    """Used for the saving of spectra."""
-
+class SpectraBase(SpecificOutput):
     _tag = "spectra"
     _cls_movies = MoviesSpectra
+    _possible_ndims = (1, 2)
 
     @staticmethod
     def _complete_params_with_default(params):
@@ -127,6 +126,190 @@ class Spectra(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output._set_child(tag, attribs={"HAS_TO_PLOT_SAVED": False})
+
+    def _get_styleline(self, ndim, direction, kind=None):
+        style_line = "r"
+        if ndim == 1:
+            if direction == "y":
+                return "g"
+            elif direction == "z":
+                return "b"
+        return style_line
+
+    def _get_key_spectrum(self, ndim, direction=None, kind=None):
+        if ndim == 1:
+            return f"spectrum1Dk{direction}_E"
+        else:
+            return "spectrum2D_E"
+
+    def _get_key_wavenumber(self, ndim, direction=None):
+        if ndim == 1:
+            return f"k{direction}E"
+        else:
+            return "khE"
+
+    def _get_pathfile_from_ndim(self, ndim):
+        return getattr(self, f"path_file{ndim}D")
+
+    def _get_default_directions(self, ndim):
+        if ndim != 1:
+            return (None,)
+        else:
+            return ("x", "y")
+
+    def _plot_ndim(
+        self,
+        tmin=0,
+        tmax=None,
+        delta_t=None,
+        with_average=True,
+        coef_compensate=0,
+        coef_plot_k3=None,
+        coef_plot_k53=None,
+        coef_plot_k2=None,
+        xlim=None,
+        ylim=None,
+        ndim=1,
+        directions=None,
+    ):
+        if ndim not in self._possible_ndims:
+            raise ValueError
+
+        if directions is None:
+            directions = self._get_default_directions(ndim)
+
+        if ndim != 1:
+            directions = (None,)
+
+        path_file = self._get_pathfile_from_ndim(ndim)
+
+        key_k = self._get_key_wavenumber(ndim, directions[0])
+        if ndim == 1:
+            key_k_label = r",\ ".join(["k_" + letter for letter in directions])
+        else:
+            key_k_label = "k"
+
+        with h5py.File(path_file, "r") as h5file:
+            times = h5file["times"][...]
+            ks = h5file[key_k][...]
+
+        if tmax is None:
+            tmax = times.max()
+
+        imin_plot = np.argmin(abs(times - tmin))
+        imax_plot = np.argmin(abs(times - tmax))
+
+        tmin_plot = times[imin_plot]
+        tmax_plot = times[imax_plot]
+
+        print(
+            f"plot{ndim}d(tmin={tmin:8.6g}, tmax={tmax:8.6g},"
+            f" coef_compensate={coef_compensate:.3f})\n"
+            f"""plot {ndim}D spectra
+tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g}
+imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
+        )
+
+        if delta_t == 0:
+            delta_t = None
+
+        if delta_t is not None:
+            delta_t_save = np.mean(times[1:] - times[0:-1])
+            delta_i_plot = int(np.round(delta_t / delta_t_save))
+            delta_t = delta_t_save * delta_i_plot
+            if delta_i_plot == 0:
+                delta_i_plot = 1
+
+        fig, ax = self.output.figure_axe()
+        ax.set_xlabel(f"${key_k_label}$")
+        ax.set_ylabel("spectra")
+        ax.set_title(
+            f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
+            + self.output.summary_simul
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        for direction in directions:
+            self._plot_ndim_direction(
+                ax,
+                ndim,
+                direction,
+                imin_plot,
+                imax_plot,
+                delta_i_plot,
+                with_average,
+                coef_compensate,
+                style_line=self._get_styleline(ndim, direction),
+            )
+
+        ks = np.linspace(10 * ks[1], 0.6 * ks[-1], 4)
+
+        ks_no0 = ks.copy()
+        ks_no0[ks == 0] = np.nan
+        coef_norm = ks_no0**coef_compensate
+
+        if coef_plot_k3 is not None:
+            to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
+            ax.plot(ks, to_plot, "k--", label=r"$\propto k^{-3}$")
+
+        if coef_plot_k53 is not None:
+            to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
+            ax.plot(ks, to_plot, "k-.", label=r"$\propto k^{-5/3}$")
+
+        if coef_plot_k2 is not None:
+            to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
+            ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-2}$")
+
+        if xlim is not None:
+            ax.set_xlim(xlim)
+
+        if ylim is not None:
+            ax.set_ylim(ylim)
+
+        if ndim == 1:
+            ax.legend(loc="lower left")
+
+        return ax
+
+    def _plot_ndim_direction(
+        self,
+        ax,
+        ndim,
+        direction,
+        imin_plot,
+        imax_plot,
+        delta_i_plot,
+        with_average,
+        coef_compensate,
+        style_line,
+        linewidth=2,
+    ):
+        path_file = self._get_pathfile_from_ndim(ndim)
+        key_k = self._get_key_wavenumber(ndim, direction)
+
+        with h5py.File(path_file, "r") as h5file:
+            ks = h5file[key_k][...]
+            dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
+            spectra = dset_spectra[imin_plot : imax_plot + 1]
+            spectrum = spectra.mean(0)
+            spectrum[spectrum < 10e-16] = 0.0
+
+        ks_no0 = ks.copy()
+        ks_no0[ks == 0] = np.nan
+        coef_norm = ks_no0 ** (coef_compensate)
+
+        ax.plot(
+            ks,
+            spectrum * coef_norm,
+            style_line,
+            linewidth=linewidth,
+            label=f"$E(k_{direction})$",
+        )
+
+
+class Spectra(SpectraBase):
+    """Used for the saving of spectra."""
 
     def __init__(self, output):
         self.output = output

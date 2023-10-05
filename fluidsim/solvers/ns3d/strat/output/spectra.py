@@ -10,10 +10,9 @@
 import numpy as np
 import h5py
 
-from fluidsim.solvers.ns3d.output.spectra import (
-    SpectraNS3D,
-    _get_averaged_spectrum,
-)
+from fluidsim.solvers.ns3d.output.spectra import SpectraNS3D
+
+
 
 
 class SpectraNS3DStrat(SpectraNS3D):

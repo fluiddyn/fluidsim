@@ -9,14 +9,6 @@ from fluidsim.util import ensure_radians
 from fluidsim.base.output.spectra3d import Spectra
 
 
-def _get_averaged_spectrum(key, h5file, imin_plot, imax_plot):
-    dset_spectra = h5file[key]
-    spectra = dset_spectra[imin_plot : imax_plot + 1]
-    spectrum = spectra.mean(0)
-    spectrum[spectrum < 10e-16] = 0.0
-    return spectrum
-
-
 class SpectraNS3D(Spectra):
     """Save and plot spectra."""
 
@@ -289,19 +281,23 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         self,
         tmin=0,
         tmax=None,
+        delta_t=None,
+        with_average=True,
         coef_compensate=0,
         coef_plot_k3=None,
         coef_plot_k53=None,
         coef_plot_k2=None,
         xlim=None,
         ylim=None,
-        directions=("x", "z"),
+        directions=None,
         plot_forcing_region=False,
         plot_dissipative_scales=False,
     ):
         ax = self._plot_ndim(
-            tmin,
-            tmax,
+            tmin=tmin,
+            tmax=tmax,
+            delta_t=delta_t,
+            with_average=with_average,
             coef_compensate=coef_compensate,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
@@ -357,6 +353,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
                 )
                 text = partial(ax.text, ha="center", va="center", size=10)
 
+                if directions is None:
+                    directions = self._get_default_directions(ndim=1)
+
                 if "x" in directions:
                     where = (kx > khmin_forcing) & (kx < khmax_forcing)
                     fill_between(kx, ymin, ymax, where=where)
@@ -400,17 +399,22 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
     def plot3d(
         self,
         tmin=0,
-        tmax=None,
-        coef_compensate=0,
+        tmax=1000,
+        delta_t=None,
+        with_average=True,
+        coef_compensate=3,
         coef_plot_k3=None,
         coef_plot_k53=None,
         coef_plot_k2=None,
         xlim=None,
         ylim=None,
+        directions=None,
     ):
-        ax = self._plot_ndim(
-            tmin,
-            tmax,
+        self._plot_ndim(
+            tmin=tmin,
+            tmax=tmax,
+            delta_t=delta_t,
+            with_average=with_average,
             coef_compensate=coef_compensate,
             coef_plot_k3=coef_plot_k3,
             coef_plot_k53=coef_plot_k53,
@@ -418,133 +422,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             xlim=xlim,
             ylim=ylim,
             ndim=3,
-        )
-
-        return ax
-
-    def _plot_ndim(
-        self,
-        tmin=0,
-        tmax=None,
-        coef_compensate=0,
-        coef_plot_k3=None,
-        coef_plot_k53=None,
-        coef_plot_k2=None,
-        xlim=None,
-        ylim=None,
-        ndim=1,
-        directions=("x", "z"),
-    ):
-        if ndim not in [1, 3]:
-            raise ValueError
-
-        path_file = getattr(self, f"path_file{ndim}d")
-
-        if ndim == 1:
-            key_k = "k" + directions[0]
-            key_k_label = r",\ ".join(["k_" + letter for letter in directions])
-        else:
-            key_k = "k_spectra3d"
-            key_k_label = "k"
-
-        with h5py.File(path_file, "r") as h5file:
-            times = h5file["times"][...]
-            ks = h5file[key_k][...]
-
-        if tmax is None:
-            tmax = times.max()
-
-        imin_plot = np.argmin(abs(times - tmin))
-        imax_plot = np.argmin(abs(times - tmax))
-
-        tmin_plot = times[imin_plot]
-        tmax_plot = times[imax_plot]
-
-        print(
-            f"plot{ndim}d(tmin={tmin:8.6g}, tmax={tmax:8.6g},"
-            f" coef_compensate={coef_compensate:.3f})\n"
-            f"""plot {ndim}D spectra
-tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g}
-imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
-        )
-
-        fig, ax = self.output.figure_axe()
-        ax.set_xlabel(f"${key_k_label}$")
-        ax.set_ylabel("spectra")
-        ax.set_title(
-            f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
-            + self.output.summary_simul
-        )
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-
-        if ndim == 1:
-            for direction in directions:
-                self._plot1d_direction(
-                    direction, imin_plot, imax_plot, coef_compensate, ax
-                )
-        else:
-            ks_no0 = ks.copy()
-            ks_no0[ks == 0] = np.nan
-            with h5py.File(path_file, "r") as h5file:
-                spectrum = h5file["spectra_E"][imin_plot : imax_plot + 1].mean(0)
-                coef_norm = ks_no0 ** (coef_compensate)
-
-            spectrum[spectrum < 10e-16] = 0.0
-            ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
-
-        ks = np.linspace(ks[1], 0.8 * ks[-1], 20)
-
-        ks_no0 = ks.copy()
-        ks_no0[ks == 0] = np.nan
-        coef_norm = ks_no0 ** (coef_compensate)
-
-        if coef_plot_k3 is not None:
-            to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k--", label=r"$\propto k^{-3}$")
-
-        if coef_plot_k53 is not None:
-            to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k-.", label=r"$\propto k^{-5/3}$")
-
-        if coef_plot_k2 is not None:
-            to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
-            ax.plot(ks[1:], to_plot[1:], "k:", label=r"$\propto k^{-2}$")
-
-        if xlim is not None:
-            ax.set_xlim(xlim)
-
-        if ylim is not None:
-            ax.set_ylim(ylim)
-
-        if ndim == 1:
-            ax.legend(loc="lower left")
-
-        return ax
-
-    def _plot1d_direction(
-        self, direction, imin_plot, imax_plot, coef_compensate, ax
-    ):
-        with h5py.File(self.path_file1d, "r") as h5file:
-            ks = h5file["k" + direction][...]
-            spectrum = _get_averaged_spectrum(
-                "spectra_E_k" + direction, h5file, imin_plot, imax_plot
-            )
-
-        ks_no0 = ks.copy()
-        ks_no0[ks == 0] = np.nan
-        coef_norm = ks_no0 ** (coef_compensate)
-
-        style_line = "r"
-        if direction == "z":
-            style_line = "g"
-
-        ax.plot(
-            ks,
-            spectrum * coef_norm,
-            style_line,
-            linewidth=2,
-            label=f"$E(k_{direction})$",
+            directions=directions,
         )
 
     def plot3d_cumul_diss(self, tmin=0, tmax=None):
