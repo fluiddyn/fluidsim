@@ -203,6 +203,13 @@ class TestOutput(TestSimulBase):
                 ylim=(0.1, 1),
                 plot_dissipative_scales=True,
             )
+            sim2.output.spectra.plot3d(
+                coef_plot_k2=1.0,
+                coef_plot_k3=1.0,
+                coef_plot_k53=1.0,
+            )
+            sim2.output.spectra.plot1d(delta_t=1e-10, with_average=False)
+            sim2.output.spectra.plot3d(delta_t=1e-10, with_average=False)
             sim2.output.spectra.plot1d_times(
                 tmin=0.1,
                 tmax=10,

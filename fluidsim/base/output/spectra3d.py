@@ -33,9 +33,7 @@ import h5py
 
 from fluiddyn.util import mpi
 
-from .base import SpecificOutput
-
-from .spectra import MoviesSpectra
+from .spectra import MoviesSpectra, SpectraBase
 
 
 class MoviesSpectra(MoviesSpectra):
@@ -52,11 +50,33 @@ class MoviesSpectra(MoviesSpectra):
         super().init_animation(*args, **kwargs)
 
 
-class BaseSpectra(SpecificOutput):
+class BaseSpectra(SpectraBase):
     """Used for the saving of spectra."""
 
     _tag = "spectra"
     _cls_movies = MoviesSpectra
+    _possible_ndims = (1, 3)
+
+    def _get_key_spectrum(self, ndim, direction=None, kind=None):
+        if ndim == 1:
+            return "spectra_E_k" + direction
+        else:
+            return "spectra_E"
+
+    def _get_key_wavenumber(self, ndim, direction=None):
+        if ndim == 1:
+            return f"k{direction}"
+        else:
+            return "k_spectra3d"
+
+    def _get_pathfile_from_ndim(self, ndim):
+        return getattr(self, f"path_file{ndim}d")
+
+    def _get_default_directions(self, ndim):
+        if ndim != 1:
+            return (None,)
+        else:
+            return "xyz"
 
     @classmethod
     def _complete_params_with_default(cls, params):

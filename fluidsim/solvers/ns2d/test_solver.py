@@ -201,6 +201,8 @@ class TestForcingOutput(TestSimulBase):
         plt.close("all")
         sim.output.spectra.plot1d()
         sim.output.spectra.plot2d()
+        sim.output.spectra.plot1d(delta_t=1e-10, with_average=False)
+        sim.output.spectra.plot2d(delta_t=1e-10, with_average=False)
         sim.output.spectra.load2d_mean()
         sim.output.spectra.load1d_mean()
         sim.output.spectra.animate()
