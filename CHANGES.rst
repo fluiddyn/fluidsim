@@ -18,13 +18,22 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 .. Security   Security in case of vulnerabilities.
 
 
-Unreleased_
------------
-
-- `!325 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/342>`__
-  Refactoring and improvements spectra ns2d and ns3d.
+.. Unreleased_
+.. -----------
 
 .. towncrier release notes start
+
+0.7.4_ (2023-10-05)
+-------------------
+
+- `!342 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/342>`__
+  Refactoring and improvements spectra ns2d and ns3d.
+
+- `!335 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/335>`__
+  Improvement `fluidsim-ipy-load` which can now take a path as argument
+
+- Code improvements, bug fixes (in particular for movies) and compatibility
+  with new Matplotlib
 
 0.7.3_ (2023-05-24)
 -------------------
@@ -307,6 +316,7 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
   packages.
 
 .. _Unreleased: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...branch%2Fdefault
+.. _0.7.4: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...0.7.4
 .. _0.7.3: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
 .. _0.7.2: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...0.7.2
 .. _0.7.1: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.0...0.7.1
