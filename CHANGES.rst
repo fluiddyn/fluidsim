@@ -17,9 +17,12 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 .. Fixed      Fixed for any bug fixes.
 .. Security   Security in case of vulnerabilities.
 
-..
-  Unreleased_
-  -----------
+
+Unreleased_
+-----------
+
+- `!325 <https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/342>`__
+  Refactoring and improvements spectra ns2d and ns3d.
 
 .. towncrier release notes start
 
