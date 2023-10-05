@@ -219,6 +219,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             delta_t = delta_t_save * delta_i_plot
             if delta_i_plot == 0:
                 delta_i_plot = 1
+        else:
+            delta_i_plot = None
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"${key_k_label}$")
@@ -290,14 +292,46 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         with h5py.File(path_file, "r") as h5file:
             ks = h5file[key_k][...]
-            dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
-            spectra = dset_spectra[imin_plot : imax_plot + 1]
-            spectrum = spectra.mean(0)
-            spectrum[spectrum < 10e-16] = 0.0
 
         ks_no0 = ks.copy()
         ks_no0[ks == 0] = np.nan
         coef_norm = ks_no0 ** (coef_compensate)
+
+        if delta_i_plot is not None:
+            alpha_min = 0.1
+            alpha_max = 1.0
+            slope = (alpha_max - alpha_min) / (imax_plot - imin_plot)
+            alpha0 = alpha_min - slope * imin_plot
+
+            with h5py.File(path_file, "r") as h5file:
+                dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
+                for i_spect in range(imin_plot, imax_plot, delta_i_plot):
+                    spectrum = dset_spectra[i_spect]
+                    spectrum[spectrum < 10e-16] = np.nan
+                    alpha = alpha0 + slope * i_spect
+
+                    if i_spect == imin_plot and not with_average:
+                        label = f"$E(k_{direction})$"
+                    else:
+                        label = None
+
+                    ax.plot(
+                        ks,
+                        spectrum * coef_norm,
+                        style_line,
+                        linewidth=1,
+                        label=label,
+                        alpha=alpha,
+                    )
+
+        if not with_average:
+            return
+
+        with h5py.File(path_file, "r") as h5file:
+            dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
+            spectra = dset_spectra[imin_plot : imax_plot + 1]
+            spectrum = spectra.mean(0)
+            spectrum[spectrum < 10e-16] = np.nan
 
         ax.plot(
             ks,
