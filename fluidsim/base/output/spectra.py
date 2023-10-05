@@ -242,7 +242,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                 delta_i_plot,
                 with_average,
                 coef_compensate,
-                style_line=self._get_styleline(ndim, direction),
             )
 
         ks = np.linspace(10 * ks[1], 0.6 * ks[-1], 4)
@@ -284,7 +283,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         delta_i_plot,
         with_average,
         coef_compensate,
-        style_line,
         linewidth=2,
     ):
         path_file = self._get_pathfile_from_ndim(ndim)
@@ -297,6 +295,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         ks_no0[ks == 0] = np.nan
         coef_norm = ks_no0 ** (coef_compensate)
 
+        style_line = self._get_styleline(ndim, direction)
+
         if delta_i_plot is not None:
             alpha_min = 0.1
             alpha_max = 1.0
@@ -305,7 +305,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
             with h5py.File(path_file, "r") as h5file:
                 dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
-                for i_spect in range(imin_plot, imax_plot, delta_i_plot):
+                for i_spect in range(imin_plot, imax_plot + 1, delta_i_plot):
                     spectrum = dset_spectra[i_spect]
                     spectrum[spectrum < 10e-16] = np.nan
                     alpha = alpha0 + slope * i_spect
@@ -324,20 +324,40 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                         alpha=alpha,
                     )
 
-        if not with_average:
-            return
+        if with_average:
+            self._ax_add_average(
+                ax,
+                path_file,
+                ndim,
+                direction,
+                ks,
+                imin_plot,
+                imax_plot,
+                coef_norm,
+            )
 
+    def _get_averaged_spectrum(
+        self, path_file, ndim, direction, imin_plot, imax_plot, kind=None
+    ):
         with h5py.File(path_file, "r") as h5file:
-            dset_spectra = h5file[self._get_key_spectrum(ndim, direction)]
+            dset_spectra = h5file[self._get_key_spectrum(ndim, direction, kind)]
             spectra = dset_spectra[imin_plot : imax_plot + 1]
             spectrum = spectra.mean(0)
             spectrum[spectrum < 10e-16] = np.nan
+        return spectrum
 
+    def _ax_add_average(
+        self, ax, path_file, ndim, direction, ks, imin_plot, imax_plot, coef_norm
+    ):
+        spectrum = self._get_averaged_spectrum(
+            path_file, ndim, direction, imin_plot, imax_plot
+        )
+        style_line = self._get_styleline(ndim, direction)
         ax.plot(
             ks,
             spectrum * coef_norm,
             style_line,
-            linewidth=linewidth,
+            linewidth=2,
             label=f"$E(k_{direction})$",
         )
 

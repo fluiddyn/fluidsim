@@ -13,8 +13,6 @@ import h5py
 from fluidsim.solvers.ns3d.output.spectra import SpectraNS3D
 
 
-
-
 class SpectraNS3DStrat(SpectraNS3D):
     """Save and plot spectra."""
 
@@ -108,46 +106,68 @@ class SpectraNS3DStrat(SpectraNS3D):
     def plot_kzkh(self, tmin=0, tmax=None, key="Khd", ax=None):
         super().plot_kzkh(tmin, tmax, key, ax)
 
-    def _plot1d_direction(
-        self, direction, imin_plot, imax_plot, coef_compensate, ax
-    ):
-        with h5py.File(self.path_file1d, "r") as h5file:
-            ks = h5file["k" + direction][...]
+    def _get_key_spectrum(self, ndim, direction=None, kind=None):
+        if kind is None or kind == "K":
+            base = "E"
+        elif kind in set(("A", "Khd", "vx", "vy", "vz")):
+            base = kind
+        elif kind.startswith("K") and len(kind) == 2 and kind[1] in "xyz":
+            base = "v" + kind[1]
+        else:
+            raise ValueError(f"{kind = }")
+        if ndim == 1:
+            base += "_k" + direction
+        return "spectra_" + base
 
-            def _get_spectrum(key):
-                return _get_averaged_spectrum(
-                    key + direction, h5file, imin_plot, imax_plot
-                )
-
-            spectrumK = _get_spectrum("spectra_E_k")
-            spectrumA = _get_spectrum("spectra_A_k")
-            spectrumKhd = _get_spectrum("spectra_Khd_k")
-            spectrumKz = _get_spectrum("spectra_vz_k")
-
-        ks_no0 = ks.copy()
-        ks_no0[ks == 0] = np.nan
-        coef_norm = ks_no0 ** (coef_compensate)
-
-        style_line = ""
+    def _get_styleline(self, ndim, direction, kind=None):
+        if kind is None or kind == "K":
+            style_line = "r"
+        elif kind == "A":
+            style_line = "b"
+        elif kind == "polo":
+            style_line = "m"
+        else:
+            raise ValueError(f"{kind = }")
         if direction == "z":
-            style_line = ":"
+            style_line += ":"
+        return style_line
 
-        def _plot(spectrum, color, label, linewidth=2):
+    def _ax_add_average(
+        self,
+        ax,
+        path_file,
+        ndim,
+        direction,
+        ks,
+        imin_plot,
+        imax_plot,
+        coef_norm,
+    ):
+        def get_average_spectrum(kind):
+            return self._get_averaged_spectrum(
+                path_file, ndim, direction, imin_plot, imax_plot, kind
+            )
+
+        def _plot(kind, spectrum, label, linewidth=2):
             ax.plot(
                 ks,
                 spectrum * coef_norm,
-                color + style_line,
+                self._get_styleline(ndim, direction, kind),
                 linewidth=linewidth,
                 label=label,
             )
 
-        _plot(spectrumK, "r", f"$E_K(k_{direction})$")
-        _plot(spectrumA, "b", f"$E_A(k_{direction})$")
+        spectrumK = get_average_spectrum("K")
+        spectrumA = get_average_spectrum("A")
+        _plot("K", spectrumK, f"$E_K(k_{direction})$")
+        _plot("A", spectrumA, f"$E_A(k_{direction})$")
         if (
             hasattr(self.sim.params, "projection")
             and self.sim.params.projection != "toroidal"
         ):
-            _plot(spectrumKhd + spectrumKz, "m", "poloidal", 1)
+            spectrumKhd = get_average_spectrum("Khd")
+            spectrumKz = get_average_spectrum("Kz")
+            _plot("polo", spectrumKhd + spectrumKz, "poloidal", 1)
 
     def plot_kzkh_cumul_diss(self, tmin=0, tmax=None):
         path_file = self.path_file_kzkh
