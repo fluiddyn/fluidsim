@@ -68,7 +68,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
             self.file.write(f"####\ntime = {tsim:11.5e}\n")
             self.file.write(
-                f"E    = {energy:11.5e} ; Z         = {energy:11.5e} \n"
+                f"E    = {energy:11.5e} ; Z         = {enstrophy:11.5e} \n"
                 f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; epsK_tot = {epsK + epsK_hypo:11.5e} \n"
                 f"epsZ = {epsZ:11.5e} ; epsZ_hypo = {epsZ_hypo:11.5e} ; epsZ_tot = {epsZ + epsZ_hypo:11.5e} \n"
             )
