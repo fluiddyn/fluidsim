@@ -85,7 +85,7 @@ You can also configure the installation of fluidsim by creating the file
 ``~/.fluidsim-site.cfg`` (or ``site.cfg`` in the repo directory) and modify it
 to fit your requirements before the installation with pip::
 
-  wget https://foss.heptapod.net/fluiddyn/fluidsim/raw/default/site.cfg.default -O ~/.fluidsim-site.cfg
+  wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/branch/default/site.cfg.default -O ~/.fluidsim-site.cfg
 
 Runtime configuration
 .....................
