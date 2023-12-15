@@ -1,8 +1,190 @@
 [build-system]
-# Further build requirements - like pythran and mpi4py - come from setup.py via
-# the PEP 517 interface.
-requires = ["setuptools>=49.5.0", "setuptools_scm", "wheel", "numpy", "transonic", "psutil"]
-build-backend = "setuptools.build_meta"
+requires = [
+         "meson-python",
+         "numpy",
+         "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
+         "pythran>=0.9.7",
+         ]
+xbuild-backend = 'mesonpy'
+
+[project]
+name = 'fluidsim'
+description = "Framework for studying fluid dynamics with simulations."
+keywords = [
+         "Fluid dynamics",
+         "research",
+]
+authors = [
+    {name = "pierre.augier", email = "pierre.augier@univ-grenoble-alpes.fr"},
+]
+version = '0.7.4'
+requires-python = ">=3.9"
+dependencies = [
+    "importlib_metadata",
+    "fluidsim-core>=0.7.4",
+    "h5py",
+    "h5netcdf",
+    "transonic",
+    "xarray",
+    "rich",
+    "matplotlib>=3.3",
+    "scipy",
+]
+
+classifiers = [
+      # How mature is this project? Common values are
+      # 3 - Alpha
+      # 4 - Beta
+      # 5 - Production/Stable
+      "Development Status :: 5 - Production/Stable",
+      "Intended Audience :: Science/Research",
+      "Intended Audience :: Education",
+      "Topic :: Scientific/Engineering",
+      "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+      # actually CeCILL License (GPL compatible license for French laws)
+      "Programming Language :: Python",
+      "Programming Language :: Python :: 3",
+      "Programming Language :: Python :: 3.9",
+      "Programming Language :: Python :: 3.10",
+      "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+"Source" = "https://foss.heptapod.net/fluiddyn/fluidsim"
+"Documentation" = "https://fluidsim.readthedocs.io"
+"Git Mirror" = "https://github.com/fluiddyn/fluidsim"
+
+[project.optional-dependencies]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "numpydoc",
+    "jupyter",
+    "pandas",
+    "scipy",
+    "ipynbname",
+    "myst-nb",
+    "sphinx-copybutton",
+ ]
+ fft = [
+    "pyfftw >= 0.10.4",
+    "fluidfft >= 0.2.7",
+]
+sphere = [
+    "fluidsht >= 0.0.3a0",
+]
+mpi = [
+    "mpi4py",
+]
+test = [
+     "pytest",
+     "coverage",
+     "pytest-cov",
+     "pytest-allclose",
+     "pytest-mock",
+     "ipython",
+     "pymech",
+]
+dev = [
+    "fluidsim[doc]",
+    "fluidsim[test]",
+    "fluidsim[mpi]",
+    "fluidsim[fft]",
+    "fluidsim[sphere]",
+    "build",
+    "twine",
+]
+full = ["fluidsim[dev]"]
+
+[project.scripts]
+fluidsim = "fluidsim.util.console.__main__:run"
+fluidsim-create-xml-description = "fluidsim.base.output:run"
+fluidsim-profile = "fluidsim.util.console.__main__:run_profile"
+fluidsim-bench = "fluidsim.util.console.__main__:run_bench"
+fluidsim-bench-analysis = "fluidsim.util.console.__main__:run_bench_analysis"
+fluidsim-test = "fluidsim.util.testing:run"
+fluidsim-restart = "fluidsim.util.scripts.restart:main"
+fluidsim-modif-resolution = "fluidsim.util.scripts.modif_resolution:main"
+fluidsim-ipy-load = "fluidsim.util.scripts.ipy_load:start_ipython_load_sim"
+
+[project.entry-points."fluidsim.solvers"]
+basil = "fluidsim.base.basilisk.solver"
+dedalus = "fluidsim.base.dedalus.solver"
+Base = "fluidsim.base.solvers.base"
+BasePS = "fluidsim.base.solvers.pseudo_spect"
+BaseSH = "fluidsim.base.sphericalharmo.solver"
+ad1d = "fluidsim.solvers.ad1d.solver"
+burgers1d = "fluidsim.solvers.burgers1d.solver"
+nl1d = "fluidsim.solvers.nl1d.solver"
+ns2d = "fluidsim.solvers.ns2d.solver"
+ns3d = "fluidsim.solvers.ns3d.solver"
+plate2d = "fluidsim.solvers.plate2d.solver"
+sw1l = "fluidsim.solvers.sw1l.solver"
+waves2d = "fluidsim.solvers.waves2d.solver"
+
+[project.entry-points."fluidsim.solvers.ad1d"]
+pseudo_spect = "fluidsim.solvers.ad1d.pseudo_spect.solver"
+
+[project.entry-points."fluidsim.solvers.burgers1d"]
+skew_sym = "fluidsim.solvers.burgers1d.skew_sym.solver"
+
+[project.entry-points."fluidsim.solvers.models0d"]
+lorenz = "fluidsim.solvers.models0d.lorenz.solver"
+predaprey = "fluidsim.solvers.models0d.predaprey.solver"
+
+[project.entry-points."fluidsim.solvers.ns2d"]
+bouss = "fluidsim.solvers.ns2d.bouss.solver"
+strat = "fluidsim.solvers.ns2d.strat.solver"
+
+[project.entry-points."fluidsim.solvers.ns3d"]
+bouss = "fluidsim.solvers.ns3d.bouss.solver"
+strat = "fluidsim.solvers.ns3d.strat.solver"
+
+[project.entry-points."fluidsim.solvers.sphere"]
+ns2d = "fluidsim.solvers.sphere.ns2d.solver"
+sw1l = "fluidsim.solvers.sphere.sw1l.solver"
+
+[project.entry-points."fluidsim.solvers.sw1l"]
+exactlin = "fluidsim.solvers.sw1l.exactlin.solver"
+#exactlin.modified = "fluidsim.solvers.sw1l.exactlin.modified.solver"
+modified = "fluidsim.solvers.sw1l.modified.solver"
+onlywaves = "fluidsim.solvers.sw1l.onlywaves.solver"
+
+[tool.coverage.run]
+source = [
+  "./fluidsim",
+  "./lib",
+]
+data_file = ".coverage/coverage"
+omit = [
+    "*/try_*.py",
+    "*/_old_*.py",
+]
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "if \"sphinx\" in sys.modules:",
+    "raise ValueError",
+    "raise NotImplementedError",
+    "raise ImportError",
+    "except KeyError:",
+    "except ImportError:",
+    "except AttributeError:",
+    "except NotImplementedError:",
+]
+
+[tool.coverage.html]
+directory = ".coverage"
+
+[tool.coverage.xml]
+output = ".coverage/coverage.xml"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "lib",
+    "fluidsim",
+]
 
 [tool.towncrier]
 package = "fluidsim"
