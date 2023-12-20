@@ -11,3 +11,6 @@ py.install_sources(
 )
 
 subdir('output')
+
+run_command(['transonic', '--meson', '--backend', backend, 'solver.py'], check: true)
+subdir('__' + backend + '__')

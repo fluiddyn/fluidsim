@@ -15,3 +15,6 @@ py.install_sources(
 
 subdir('console')
 subdir('scripts')
+
+run_command(['transonic', '--meson', '--backend', backend, 'mini_oper_modif_resol.py'], check: true)
+subdir('__' + backend + '__')

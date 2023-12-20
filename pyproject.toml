@@ -5,7 +5,7 @@ requires = [
          "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
          "pythran>=0.9.7",
          ]
-xbuild-backend = 'mesonpy'
+build-backend = 'mesonpy'
 
 [project]
 name = 'fluidsim'

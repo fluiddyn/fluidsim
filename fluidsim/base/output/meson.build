@@ -20,3 +20,13 @@ python_sources = [
   'time_signals_fft.py',
 ]
 
+py.install_sources(
+  python_sources,
+  subdir: 'fluidsim/base/output'
+)
+
+run_command(
+  ['transonic', '--meson', '--backend', backend, 'increments.py', 'spatiotemporal_spectra.py'],
+  check: true
+)
+subdir('__' + backend + '__')

@@ -12,3 +12,6 @@ py.install_sources(
   python_sources,
   subdir: 'fluidsim/solvers/ns2d/output',
 )
+
+run_command(['transonic', '--meson', '--backend', backend, 'spatiotemporal_spectra.py'], check: true)
+subdir('__' + backend + '__')
