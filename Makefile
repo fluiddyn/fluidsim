@@ -14,8 +14,9 @@ develop_lib:
 	cd lib && pip install -e .
 
 dist:
-	cd lib && python setup.py sdist bdist_wheel
-	python setup.py sdist
+	pip install build
+	cd lib && python -m build
+	python -m build
 	mv -f lib/dist/* dist/
 
 clean_so:
