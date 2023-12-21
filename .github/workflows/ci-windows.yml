@@ -27,7 +27,7 @@ jobs:
         use-mamba: true
     - name: Install
       run: |
-        pip install -e . -v
+        pip install . -v
     - name: Tests
       run: |
         python -m pip install pytest-allclose pytest-mock
