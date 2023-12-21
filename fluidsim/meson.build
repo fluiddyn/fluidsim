@@ -1,5 +1,6 @@
 python_sources = [
   '__init__.py',
+  '_version.py',
   'magic.py',
 ]
 
