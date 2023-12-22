@@ -150,6 +150,9 @@ exactlin = "fluidsim.solvers.sw1l.exactlin.solver"
 modified = "fluidsim.solvers.sw1l.modified.solver"
 onlywaves = "fluidsim.solvers.sw1l.onlywaves.solver"
 
+[tool.meson-python.args]
+setup = ['-Doptimization=3']
+
 [tool.coverage.run]
 source = [
   "./fluidsim",
