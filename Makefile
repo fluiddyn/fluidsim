@@ -112,7 +112,7 @@ coverage_short:
 
 pytest_cov_html:
 	$(call _init_coverage)
-	TRANSONIC_NO_REPLACE=1 pytest -v --cov --cov-config=setup.cfg $(PYTEST_ARGS) --durations=10 -x
+	TRANSONIC_NO_REPLACE=1 pytest -v --cov --cov-config=pyproject.toml $(PYTEST_ARGS) --durations=10 -x
 	$(call _end_coverage)
 
 pytest_cov_html_mpi:
