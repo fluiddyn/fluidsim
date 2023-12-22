@@ -55,7 +55,16 @@ print(incdir)'''
   pythran_dep = declare_dependency(
     include_directories: incdir_pythran,
   )
-
+  if get_option('use-xsimd') == true
+    # xsimd is unvendored from pythran by conda-forge, and due to a compiler
+    # activation bug the default <prefix>/include/ may not be visible (see
+    # gh-15698). Hence look for xsimd explicitly.
+    xsimd_dep = dependency('xsimd', required: false)
+    pythran_dep = declare_dependency(
+      include_directories: incdir_pythran,
+      dependencies: xsimd_dep,
+    )
+  endif
   cpp_args_pythran = [
     '-DENABLE_PYTHON_MODULE',
     '-D__PYTHRAN__=3',
