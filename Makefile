@@ -3,7 +3,7 @@ SHELL := bash
 RELEASE=$(shell hg tags -T "{node|short}\n" | sed -n 2p)
 MPI_NUM_PROCS ?= 2
 
-.PHONY: black clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
+.PHONY: black black_check clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
 develop: develop_lib
 	pip install meson-python ninja numpy "pythran>=0.9.7"
@@ -42,6 +42,9 @@ shortlog:
 
 black:
 	black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|doc/_build|\.ipynb_checkpoints/*)/"
+
+black_check:
+	black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|doc/_build|\.ipynb_checkpoints/*)/"
 
 tests:
 	pytest -v lib

@@ -12,3 +12,4 @@ lint:
   script:
     - pip install -U pip tox --user
     - tox -e lint
+    - tox -e black
