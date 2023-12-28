@@ -6,3 +6,10 @@ tests:
   script:
     - pip install -U pip tox --user
     - tox -e py39,py39-fft,codecov
+
+lint:
+  image: fluiddyn/python3-stable:lastest
+  script:
+    - pip install -U pip tox --user
+    - tox -e lint
+    - tox -e black

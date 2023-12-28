@@ -1,3 +1,17 @@
 [build-system]
-requires = ["setuptools>=49.5.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = 'fluidsim-core'
+requires-python = ">=3.9"
+authors = [
+    {name = "pierre.augier", email = "pierre.augier@univ-grenoble-alpes.fr"},
+]
+dependencies = [
+     "fluiddyn",
+]
+dynamic = ['version', 'description']
+
+[project.entry-points."fluidsim_core.tests"]
+test = "fluidsim_core.tests.solver"

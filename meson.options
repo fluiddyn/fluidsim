@@ -1,0 +1,2 @@
+option('transonic-backend', type: 'string', value: 'pythran', description: 'pythran(default), cython, numpy, numba')
+option('use-xsimd', type: 'boolean', value: true, description: 'use xsimd')
