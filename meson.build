@@ -16,7 +16,15 @@ py = py_mod.find_installation('python3', pure: false)
 py_dep = py.dependency()
 
 backend = get_option('transonic-backend')
-if backend == 'pythran'
+
+if backend.contains(',')
+    backends = backend.split(',')
+else
+    backends = [backend]
+endif
+
+use_pythran = backend.contains('pythran')
+if use_pythran
   incdir_numpy = run_command(
     py,
     [

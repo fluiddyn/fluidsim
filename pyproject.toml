@@ -90,7 +90,7 @@ dev = [
     "fluidsim[test]",
     "fluidsim[mpi]",
     "fluidsim[fft]",
-    "fluidsim[sphere]",
+    # "fluidsim[sphere]",
     "build",
     "twine",
 ]
