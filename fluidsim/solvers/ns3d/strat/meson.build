@@ -13,4 +13,7 @@ py.install_sources(
 subdir('output')
 
 run_command(['transonic', '--meson', '--backend', backend, 'solver.py'], check: true)
-subdir('__' + backend + '__')
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

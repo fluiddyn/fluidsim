@@ -13,4 +13,7 @@ py.install_sources(
 )
 
 run_command(['transonic', '--meson', '--backend', backend, 'spatiotemporal_spectra.py'], check: true)
-subdir('__' + backend + '__')
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

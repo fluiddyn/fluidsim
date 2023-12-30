@@ -29,4 +29,7 @@ run_command(
   ['transonic', '--meson', '--backend', backend, 'increments.py', 'spatiotemporal_spectra.py'],
   check: true
 )
-subdir('__' + backend + '__')
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach
