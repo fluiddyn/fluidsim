@@ -10,3 +10,8 @@ py.install_sources(
   subdir: 'fluidsim/solvers/sphere/sw1l'
 )
 
+run_command(['transonic', '--meson', '--backend', backend, 'solver.py'], check: true)
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

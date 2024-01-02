@@ -10,7 +10,7 @@
    :private-members:
 
 """
-from transonic import jit
+from transonic import boost
 from fluidsim.base.sphericalharmo.solver import (
     InfoSolverSphericalHarmo,
     SimulSphericalHarmo,
@@ -22,7 +22,7 @@ from fluidsim.base.setofvariables import SetOfVariables
 Af = "float64[:, :]"
 
 
-@jit
+@boost
 def compute_Frot(rot: Af, ux: Af, uy: Af, f_radial: Af):
     """Compute cross-product of absolute potential vorticity with velocity."""
     rot_abs = rot + f_radial

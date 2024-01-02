@@ -12,7 +12,7 @@ Provides
 import numpy as np
 from fluiddyn.util.compat import cached_property
 
-from transonic import boost, jit, Array
+from transonic import boost, Array
 
 from fluidsim.operators.operators2d import (
     OperatorsPseudoSpectral2D,
@@ -25,7 +25,7 @@ AC = Array[np.complex128, "2d"]
 AF = Array[np.float64, "2d"]
 
 
-@jit
+@boost
 def _qapamfft_from_uxuyetafft(
     ux_fft: AC,
     uy_fft: AC,
@@ -309,7 +309,7 @@ class OperatorsPseudoSpectralSW1L(OperatorsPseudoSpectral2D):
         am_fft = 0.5 * (a_fft - Delta_a_fft)
         return ap_fft, am_fft
 
-    @jit
+    @boost
     def divfft_from_apamfft(self, ap_fft: AC, am_fft: AC):
         """Return div from the eigen modes ap and am."""
         n0 = self.nK0_loc
