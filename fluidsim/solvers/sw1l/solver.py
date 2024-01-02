@@ -17,7 +17,7 @@ variables, i.e. the horizontal velocities and surface dispacement.
 
 """
 
-from transonic import jit, Array
+from transonic import boost, Array
 from fluiddyn.util import mpi
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -29,7 +29,7 @@ from fluidsim.base.solvers.pseudo_spect import (
 A = Array[float, "2d"]
 
 
-@jit
+@boost
 def compute_Frot(rot: A, ux: A, uy: A, f: float):
     """Compute cross-product of absolute potential vorticity with velocity."""
     if f != 0:
@@ -43,7 +43,7 @@ def compute_Frot(rot: A, ux: A, uy: A, f: float):
     return F1x, F1y
 
 
-@jit
+@boost
 def compute_pressure(c2: float, eta: A, ux: A, uy: A):
     return c2 * eta + 0.5 * (ux**2 + uy**2)
 

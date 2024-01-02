@@ -8,7 +8,7 @@ MPI_NUM_PROCS ?= 2
 develop: develop_lib
 	pip install meson-python ninja numpy "pythran>=0.9.7"
 	pip install --force-reinstall transonic@hg+https://foss.heptapod.net/fluiddyn/transonic
-	pip install -e .[dev] --no-build-isolation
+	pip install -e ".[dev]" --no-build-isolation
 
 develop_lib:
 	cd lib && pip install -e .
@@ -41,10 +41,10 @@ shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
 black:
-	black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|doc/_build|\.ipynb_checkpoints/*)/"
+	black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"
 
 black_check:
-	black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|doc/_build|\.ipynb_checkpoints/*)/"
+	black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"
 
 tests:
 	pytest -v lib

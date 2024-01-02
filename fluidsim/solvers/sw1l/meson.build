@@ -18,3 +18,12 @@ subdir('exactlin')
 subdir('modified')
 subdir('onlywaves')
 subdir('output')
+
+run_command(
+  ['transonic', '--meson', '--backend', backend, 'operators.py', 'solver.py'],
+  check: true
+)
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

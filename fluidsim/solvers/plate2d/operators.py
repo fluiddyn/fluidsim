@@ -11,7 +11,7 @@ Provides
 
 import numpy as np
 
-from transonic import jit, Array
+from transonic import boost, Array
 
 from ...operators.operators2d import OperatorsPseudoSpectral2D
 
@@ -19,7 +19,7 @@ AC2 = Array[np.complex128, "2d"]
 AF2 = Array[np.float64, "2d"]
 
 
-@jit
+@boost
 def monge_ampere_step0(a_fft: AC2, b_fft: AC2, KX2: AF2, KY2: AF2, KXKZ: AF2):
     pxx_a_fft = -a_fft * KX2
     pyy_a_fft = -a_fft * KY2
@@ -30,7 +30,7 @@ def monge_ampere_step0(a_fft: AC2, b_fft: AC2, KX2: AF2, KY2: AF2, KXKZ: AF2):
     return pxx_a_fft, pyy_a_fft, pxy_a_fft, pxx_b_fft, pyy_b_fft, pxy_b_fft
 
 
-@jit
+@boost
 def monge_ampere_step1(
     pxx_a: AF2, pyy_a: AF2, pxy_a: AF2, pxx_b: AF2, pyy_b: AF2, pxy_b: AF2
 ):

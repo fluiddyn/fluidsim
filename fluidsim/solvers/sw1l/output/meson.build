@@ -1,5 +1,6 @@
 python_sources = [
   '__init__.py',
+  'base.py',
   'increments.py',
   'normal_mode.py',
   '_old_spatial_means.py',
@@ -14,3 +15,9 @@ py.install_sources(
   python_sources,
   subdir: 'fluidsim/solvers/sw1l/output'
 )
+
+run_command(['transonic', '--meson', '--backend', backend, 'base.py'], check: true)
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

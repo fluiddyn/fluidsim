@@ -100,12 +100,6 @@ Fluidsim is also sensitive to the environment variables:
 
 - ``FLUIDDYN_PATH_SCRATCH``: working directory (can be useful on some clusters).
 
-- ``TRANSONIC_COMPILE_JIT``: set this variable to force JIT compilation using
-  ``transonic`` while running tests. This is not necessary, but could be useful
-  for troubleshooting if simulations freeze. For example::
-
-     TRANSONIC_COMPILE_JIT=1 fluidsim-test -m fluidsim.solvers.sw1l
-
 Warning about re-installing fluidsim and fluidfft with new build options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
