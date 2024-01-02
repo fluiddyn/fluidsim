@@ -55,46 +55,27 @@ classifiers = [
 "Git Mirror" = "https://github.com/fluiddyn/fluidsim"
 
 [project.optional-dependencies]
-doc = [
-    "sphinx",
-    "sphinx_rtd_theme",
-    "numpydoc",
-    "jupyter",
-    "pandas",
-    "scipy",
-    "ipynbname",
-    "myst-nb",
-    "sphinx-copybutton",
- ]
- fft = [
+
+fft = [
     "pyfftw >= 0.10.4",
     "fluidfft >= 0.2.7",
 ]
-sphere = [
-    "fluidsht >= 0.0.3a0",
-]
+# sphere = [
+#     "fluidsht >= 0.0.3a0",
+# ]
 mpi = [
     "mpi4py",
 ]
 test = [
-     "pytest",
-     "coverage",
-     "pytest-cov",
-     "pytest-allclose",
-     "pytest-mock",
-     "ipython",
-     "pymech",
+    "pytest",
+    "coverage",
+    "pytest-cov",
+    "pytest-allclose",
+    "pytest-mock",
+    "ipython",
+    "pymech",
 ]
-dev = [
-    "fluidsim[doc]",
-    "fluidsim[test]",
-    "fluidsim[mpi]",
-    "fluidsim[fft]",
-    # "fluidsim[sphere]",
-    "build",
-    "twine",
-]
-full = ["fluidsim[dev]"]
+scipy = ["scipy"]
 
 [project.scripts]
 fluidsim = "fluidsim.util.console.__main__:run"
@@ -152,6 +133,34 @@ onlywaves = "fluidsim.solvers.sw1l.onlywaves.solver"
 
 [tool.meson-python.args]
 setup = ['-Doptimization=3']
+
+[tool.pdm.dev-dependencies]
+
+# because meson-python editable build needs the build dependencies
+build = [
+    "meson-python",
+    "numpy",
+    "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
+    "pythran>=0.9.7",
+    "ninja",
+]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "numpydoc",
+    "jupyter",
+    "pandas",
+    "scipy",
+    "ipynbname",
+    "myst-nb",
+    "sphinx-copybutton",
+]
+dev = [
+    "pip",
+    "black",
+    "pylint",
+    "-e fluidsim-core @ file:///${PROJECT_ROOT}/lib",
+]
 
 [tool.coverage.run]
 source = [

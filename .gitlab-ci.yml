@@ -1,15 +1,24 @@
 variables:
   CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
 
-tests:
-  image: fluiddyn/python3-stable:lastest
-  script:
-    - pip install -U pip tox --user
-    - tox -e py39,py39-fft,codecov
+image: fluiddyn/python3-stable:lastest
 
-lint:
-  image: fluiddyn/python3-stable:lastest
+# before_script:
+#   - pip install -U pdm --user
+
+# tests:
+#   script:
+#     - pip install -U tox tox-pdm --user
+#     - tox -e py39,py39-fft,codecov
+
+validate_code:
   script:
-    - pip install -U pip tox --user
-    - tox -e lint
-    - tox -e black
+    # - pdm info
+    # - pdm info --env
+    - rm -rf ../unearth
+    - git clone https://github.com/paugier/unearth.git ../unearth
+    - pip install -e ../unearth --user
+    - python3.9 -c "from unearth import PackageFinder as F; f = F(index_urls=['https://pypi.org/simple/']); print(list(f.find_all_packages('flit-core')))"
+    # - pdm install -G dev -v
+    # - pdm run make lint
+    # - pdm run make black_check

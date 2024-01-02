@@ -85,3 +85,4 @@ fluidsim/_version.py
 doc/examples/htmlcov/*
 
 fluidsim/build_conf.txt
+.pdm-python

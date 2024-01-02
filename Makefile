@@ -5,13 +5,9 @@ MPI_NUM_PROCS ?= 2
 
 .PHONY: black black_check clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
-develop: develop_lib
-	pip install meson-python ninja numpy "pythran>=0.9.7"
-	pip install --force-reinstall transonic@hg+https://foss.heptapod.net/fluiddyn/transonic
-	pip install -e ".[dev]" --no-build-isolation
-
-develop_lib:
-	cd lib && pip install -e .
+develop:
+	pdm install --no-self
+	pdm run pip install -e . --no-build-isolation
 
 dist:
 	pip install build
