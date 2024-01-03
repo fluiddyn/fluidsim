@@ -54,7 +54,7 @@ validate_code:
     - job: "CI image"
       optional: true
   script:
-    - nox validate_code
+    - nox -s validate_code
 
 tests:
   stage: test
@@ -62,4 +62,12 @@ tests:
     - job: "CI image"
       optional: true
   script:
-    - tox -e py39,py39-fft,codecov
+    - tox -e py39-fft,codecov
+
+test_without_fft_and_pythran:
+  stage: test
+  needs:
+    - job: "CI image"
+      optional: true
+  script:
+    - nox -s test_without_fft_and_pythran
