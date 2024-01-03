@@ -1,29 +1,29 @@
 stages:
   - image
   - lint
-  # - test
-  # - publish
+  - test
 
 variables:
   CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
-  # OMPI_ALLOW_RUN_AS_ROOT: "1"
-  # OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: "1"
 
 image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:stable
-# image: fluiddyn/python3-stable:lastest
 
-# before_script:
-#   - pip install -U pdm --user
+# check_bug:
+#   image: fluiddyn/python3-stable:lastest
+#   script:
+#     - pip index versions flit-core
+#     - pip install requests
+#     - python3.9 tmp_bug_unearth.py
 
-# Build an image for the above tasks; this should be a scheduled job, as
+# Build an image for the other tasks; this should be a scheduled job, as
 # it is quite unnecessary to run on every invocation.
 CI image:
   stage: image
   tags:
     - container-registry-push
-  # rules:
-  #   - if: '$CI_PIPELINE_SOURCE == "schedule"'
-  #   - if: '$CI_BUILD_IMAGES == "1"'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_BUILD_IMAGES == "1"'
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
@@ -48,26 +48,20 @@ CI image:
       --cleanup
       --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:stable
 
-# tests:
-#   script:
-#     - pip install -U tox tox-pdm --user
-#     - tox -e py39,py39-fft,codecov
-
 validate_code:
   stage: lint
   needs:
     - job: "CI image"
       optional: true
   script:
-    - pip index versions flit-core
-    - pip install requests
-    - python3.9 tmp_bug_unearth.py
-
-    # - rm -rf ../unearth
-    # - git clone https://github.com/paugier/unearth.git ../unearth
-    # - pip install -e ../unearth --user
-    # - python3.9 -c "from unearth import PackageFinder as F; f = F(index_urls=['https://pypi.org/simple/']); print(list(f.find_all_packages('flit-core')))"
-
-    - pdm install -G dev -v
+    - pdm install -G dev --no-self
     - pdm run make lint
     - pdm run make black_check
+
+tests:
+  stage: test
+  needs:
+    - job: "CI image"
+      optional: true
+  script:
+    - tox -e py39,py39-fft,codecov
