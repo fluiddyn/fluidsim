@@ -162,6 +162,13 @@ dev = [
     "-e fluidsim-core @ file:///${PROJECT_ROOT}/lib",
 ]
 
+[tool.pdm.scripts]
+black = 'black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
+lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) fluidsim --exit-zero"}
+black_check = 'black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
+validate_code = {composite = ["black_check", "lint"]}
+
+
 [tool.coverage.run]
 source = [
   "./fluidsim",

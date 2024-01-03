@@ -18,6 +18,7 @@ __pycache__
 .pytest_cache/
 .mypy_cache/
 .coverage/
+.nox
 
 bench/launcher_*
 bench/SLURM*
