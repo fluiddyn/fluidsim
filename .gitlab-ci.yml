@@ -13,12 +13,15 @@ image: fluiddyn/python3-stable:lastest
 
 validate_code:
   script:
-    # - pdm info
-    # - pdm info --env
-    - rm -rf ../unearth
-    - git clone https://github.com/paugier/unearth.git ../unearth
-    - pip install -e ../unearth --user
-    - python3.9 -c "from unearth import PackageFinder as F; f = F(index_urls=['https://pypi.org/simple/']); print(list(f.find_all_packages('flit-core')))"
+    - pip index versions flit-core
+    - pip install requests
+    - python3.9 tmp_bug_unearth.py
+
+    # - rm -rf ../unearth
+    # - git clone https://github.com/paugier/unearth.git ../unearth
+    # - pip install -e ../unearth --user
+    # - python3.9 -c "from unearth import PackageFinder as F; f = F(index_urls=['https://pypi.org/simple/']); print(list(f.find_all_packages('flit-core')))"
+
     # - pdm install -G dev -v
     # - pdm run make lint
     # - pdm run make black_check
