@@ -1,0 +1,7 @@
+[pythran]
+complex_hook = True
+
+[compiler]
+CXX=clang++
+CC=clang
+blas=openblas
