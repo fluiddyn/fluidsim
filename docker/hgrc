@@ -2,6 +2,7 @@
 [ui]
 # name and email, e.g.
 # username = Jane Doe <jdoe@example.com>
+username = appuser
 editor = emacs -nw -Q
 
 # We recommend enabling tweakdefaults to get slight improvements to
@@ -20,9 +21,14 @@ rebase =
 absorb =
 evolve =
 topic =
+hggit =
 
 [extdiff]
 cmd.meld =
 
 [trusted]
 users = root
+
+[alias]
+lg = log -G
+up = up -v
