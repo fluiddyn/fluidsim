@@ -5,7 +5,7 @@
 groups = ["default", "build", "dev", "doc", "fft", "mpi", "scipy", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:21b7e15c903a96e83098d86fb02dae5907218aa99e20003038a9e8987556f846"
+content_hash = "sha256:10ba7129a3877eb84c4a69e37216461404e19a09796fe40a67f894f326acfa04"
 
 [[package]]
 name = "alabaster"
@@ -3294,7 +3294,8 @@ name = "transonic"
 version = "0.5.3"
 requires_python = ">= 3.9"
 hg = "https://foss.heptapod.net/fluiddyn/transonic"
-revision = "677"
+ref = "default"
+revision = "679"
 summary = "Make your Python code fly at transonic speeds!"
 groups = ["build", "default", "fft"]
 dependencies = [
