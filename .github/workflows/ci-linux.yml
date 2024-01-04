@@ -1,4 +1,4 @@
-name: CI
+name: CI Linux
 
 on:
   - push
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
     - name: apt install
@@ -25,8 +25,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox tox-gh-actions
-    - name: Test with tox
+        pip install pdm nox
+    - name: Test with nox
       run: |
         cp .github/workflows/.fluidfft-site.cfg $HOME
-        tox
+        nox -s test_without_fft_and_pythran
+        nox -s test_with_fft_and_pythran
+    - uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true # optional (default = false)
+        verbose: true # optional (default = false)
