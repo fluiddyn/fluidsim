@@ -49,6 +49,7 @@ CI image:
       --cleanup
       --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:stable
 
+
 validate_code:
   stage: lint
   needs:
@@ -59,13 +60,6 @@ validate_code:
     - echo "CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"
     - nox -s validate_code
 
-# tests:
-#   stage: test
-#   needs:
-#     - job: "CI image"
-#       optional: true
-#   script:
-#     - tox -e py39-fft,codecov
 
 test_without_fft_and_pythran:
   stage: test
@@ -79,6 +73,19 @@ test_without_fft_and_pythran:
       - .coverage/*
     expire_in: 10 mins
 
+test_with_fft_and_pythran:
+  stage: test
+  needs:
+    - job: "CI image"
+      optional: true
+  script:
+    - nox -s test_with_fft_and_pythran
+  artifacts:
+    paths:
+      - .coverage/*
+    expire_in: 10 mins
+
+
 report_coverage:
   stage: report
   rules:
@@ -86,3 +93,5 @@ report_coverage:
   script:
     - pip install coverage
     - make _report_coverage
+    - rm -rf .coverage/*
+
