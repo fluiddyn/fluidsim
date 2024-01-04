@@ -3295,7 +3295,7 @@ version = "0.5.3"
 requires_python = ">= 3.9"
 hg = "https://foss.heptapod.net/fluiddyn/transonic"
 ref = "default"
-revision = "679"
+revision = "0710a431d77bf3f6e7f680141c145e53a5771684"
 summary = "Make your Python code fly at transonic speeds!"
 groups = ["build", "default", "fft"]
 dependencies = [
