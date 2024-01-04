@@ -178,6 +178,9 @@ data_file = ".coverage/coverage"
 omit = [
     "*/try_*.py",
     "*/_old_*.py",
+    "**/__pythran__/*.py",
+    "**/__python__/*.py",
+    "**/__numba__/*.py",
 ]
 [tool.coverage.report]
 show_missing = true
