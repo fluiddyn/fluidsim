@@ -37,10 +37,16 @@ shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
 black:
-	black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"
+	pdm black
 
 black_check:
-	black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"
+	pdm black_check
+
+lint:
+	pdm lint
+
+validate_code:
+	pdm validate_code
 
 tests:
 	pytest -v lib
@@ -83,9 +89,6 @@ _report_coverage:
 
 coverage: _tests_coverage _report_coverage
 
-
-lint:
-	pylint -rn --rcfile=pylintrc --jobs=$(shell nproc) fluidsim --exit-zero
 
 define _init_coverage
 	rm -rf .coverage

@@ -2,11 +2,21 @@ stages:
   - image
   - lint
   - test
+  - report
+  - doc
 
 variables:
-  CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
+  COVERAGE_DIR: .coverage_$CI_COMMIT_SHA
 
 image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:stable
+
+# ugly workaround https://gitlab.com/gitlab-org/gitlab/-/issues/370052#note_1207556577
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
 
 # check_bug:
 #   image: fluiddyn/python3-stable:lastest
@@ -48,20 +58,83 @@ CI image:
       --cleanup
       --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:stable
 
+
 validate_code:
   stage: lint
   needs:
     - job: "CI image"
       optional: true
   script:
-    - pdm install -G dev --no-self
-    - pdm run make lint
-    - pdm run make black_check
+    - echo "CI_COMMIT_HG_BRANCH $CI_COMMIT_HG_BRANCH"
+    - echo "CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"
+    - nox -s validate_code
 
-tests:
+
+test_without_fft_and_pythran:
   stage: test
   needs:
     - job: "CI image"
       optional: true
   script:
-    - tox -e py39,py39-fft,codecov
+    - nox -s test_without_fft_and_pythran
+    - mkdir $COVERAGE_DIR
+    - cp -r .coverage/* $COVERAGE_DIR
+  artifacts:
+    paths:
+      - $COVERAGE_DIR/*
+    expire_in: 60 mins
+
+test_with_fft_and_pythran:
+  stage: test
+  needs:
+    - job: "CI image"
+      optional: true
+  script:
+    - nox -s test_with_fft_and_pythran
+    - mkdir $COVERAGE_DIR
+    - cp -r .coverage/* $COVERAGE_DIR
+  artifacts:
+    paths:
+      - $COVERAGE_DIR/*
+    expire_in: 60 mins
+
+
+report_coverage:
+  stage: report
+  rules:
+    - when: on_success
+  script:
+    - mv $COVERAGE_DIR .coverage
+    - pip install coverage
+    - coverage combine
+    - coverage report
+
+
+doc:build:
+  stage: doc
+  needs:
+    - job: "CI image"
+      optional: true
+  variables:
+    FLUIDFFT_TRANSONIC_BACKEND: "python"
+  script:
+    - python -m venv .venv
+    - . .venv/bin/activate
+    - pip install fluidfft
+    - pdm install -G doc -G fft -G test --no-self
+    - pip install . --config-settings=setup-args=-Dtransonic-backend=python
+    - pdm run xvfb-run --auto-servernum sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
+    - mkdir -p public/$CI_COMMIT_REF_NAME
+    - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
+    # This directory can become too large leading to error.
+    # It can be purged with the botton "Clear runner caches"
+    # in https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
+    - ls public
+    - echo "CI_COMMIT_REF_NAME="$CI_COMMIT_REF_NAME
+    - echo See https://fluiddyn.pages.heptapod.net/fluidsim/$CI_COMMIT_REF_NAME
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - public
+    expire_in: 5 days
+  when: always
