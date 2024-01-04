@@ -3,6 +3,7 @@ stages:
   - lint
   - test
   - report
+  - doc
 
 variables:
   COVERAGE_DIR: .coverage_$CI_COMMIT_SHA
@@ -107,3 +108,33 @@ report_coverage:
     - pip install coverage
     - coverage combine
     - coverage report
+
+
+doc:build:
+  stage: doc
+  needs:
+    - job: "CI image"
+      optional: true
+  variables:
+    FLUIDFFT_TRANSONIC_BACKEND: "python"
+  script:
+    - python -m venv .venv
+    - . .venv/bin/activate
+    - pip install fluidfft
+    - pdm install -G doc -G fft -G test --no-self
+    - pip install . --config-settings=setup-args=-Dtransonic-backend=python
+    - pdm run xvfb-run --auto-servernum sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
+    - mkdir -p public/$CI_COMMIT_REF_NAME
+    - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
+    # This directory can become too large leading to error.
+    # It can be purged with the botton "Clear runner caches"
+    # in https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
+    - ls public
+    - echo "CI_COMMIT_REF_NAME="$CI_COMMIT_REF_NAME
+    - echo See https://fluiddyn.pages.heptapod.net/fluidsim/$CI_COMMIT_REF_NAME
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - public
+    expire_in: 5 days
+  when: always

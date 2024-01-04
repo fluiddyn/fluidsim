@@ -28,6 +28,9 @@ jobs:
         pip install pdm nox
     - name: Test with nox
       run: |
+        # needed to avoid a pdm/unearth bug
+        $(hg debuginstall -T '{pythonexe}') -m pip install hg-evolve hg-git --no-cache-dir --user
+        cp docker/hgrc $HOME/.hgrc
         cp .github/workflows/.fluidfft-site.cfg $HOME
         nox -s test_without_fft_and_pythran
         nox -s test_with_fft_and_pythran
