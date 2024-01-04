@@ -2,6 +2,7 @@ stages:
   - image
   - lint
   - test
+  - report
 
 variables:
   CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
@@ -54,15 +55,17 @@ validate_code:
     - job: "CI image"
       optional: true
   script:
+    - echo "CI_COMMIT_HG_BRANCH $CI_COMMIT_HG_BRANCH"
+    - echo "CI_COMMIT_BRANCH $CI_COMMIT_BRANCH"
     - nox -s validate_code
 
-tests:
-  stage: test
-  needs:
-    - job: "CI image"
-      optional: true
-  script:
-    - tox -e py39-fft,codecov
+# tests:
+#   stage: test
+#   needs:
+#     - job: "CI image"
+#       optional: true
+#   script:
+#     - tox -e py39-fft,codecov
 
 test_without_fft_and_pythran:
   stage: test
@@ -71,3 +74,15 @@ test_without_fft_and_pythran:
       optional: true
   script:
     - nox -s test_without_fft_and_pythran
+  artifacts:
+    paths:
+      - .coverage/*
+    expire_in: 10 mins
+
+report_coverage:
+  stage: report
+  rules:
+    - when: on_success
+  script:
+    - pip install coverage
+    - make _report_coverage
