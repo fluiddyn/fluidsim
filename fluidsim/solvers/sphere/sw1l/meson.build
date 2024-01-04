@@ -1,4 +1,4 @@
-python_souces = [
+python_sources = [
   '__init__.py',
   'solver.py',
   'state.py',
