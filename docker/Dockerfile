@@ -59,4 +59,4 @@ RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/inst
 RUN chmod +x install_pfft.sh
 RUN ./install_pfft.sh
 
-RUN pip install -U pip pdm nox tox tox-pdm --user
+RUN pip install -U pip pdm nox --user

@@ -5,7 +5,6 @@ stages:
   - report
 
 variables:
-  # CODECOV_TOKEN: 4d2d8534-60ec-48b3-bf55-93b92f25913d
   COVERAGE_DIR: .coverage_$CI_COMMIT_SHA
 
 image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:stable
@@ -31,9 +30,9 @@ CI image:
   stage: image
   tags:
     - container-registry-push
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_BUILD_IMAGES == "1"'
+  # rules:
+  #   - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  #   - if: '$CI_BUILD_IMAGES == "1"'
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
@@ -84,19 +83,19 @@ test_without_fft_and_pythran:
       - $COVERAGE_DIR/*
     expire_in: 60 mins
 
-# test_with_fft_and_pythran:
-#   stage: test
-#   needs:
-#     - job: "CI image"
-#       optional: true
-#   script:
-#     - nox -s test_with_fft_and_pythran
-#     - mkdir $COVERAGE_DIR
-#     - cp -r .coverage/* $COVERAGE_DIR
-#   artifacts:
-#     paths:
-#       - $COVERAGE_DIR/*
-#     expire_in: 60 mins
+test_with_fft_and_pythran:
+  stage: test
+  needs:
+    - job: "CI image"
+      optional: true
+  script:
+    - nox -s test_with_fft_and_pythran
+    - mkdir $COVERAGE_DIR
+    - cp -r .coverage/* $COVERAGE_DIR
+  artifacts:
+    paths:
+      - $COVERAGE_DIR/*
+    expire_in: 60 mins
 
 
 report_coverage:
