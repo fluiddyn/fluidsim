@@ -4,6 +4,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  apt_packages:
+    # workaround: bad fluidfft with false hard dependency to mpi4py
+    - libopenmpi-dev
   jobs:
     post_create_environment:
       - pip install pdm pip -U
