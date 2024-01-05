@@ -335,7 +335,9 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "FluidSim", "FluidSim Documentation", ["Pierre Augier"], 1)]
+man_pages = [
+    ("index", "FluidSim", "FluidSim Documentation", ["Pierre Augier"], 1)
+]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -390,7 +392,7 @@ copybutton_selector = ",".join(
 myst_enable_extensions = [
     "amsmath",
     # "attrs_inline",
-    # "colon_fence",
+    "colon_fence",
     # "deflist",
     "dollarmath",
     # "fieldlist",

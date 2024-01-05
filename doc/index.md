@@ -173,8 +173,8 @@ release_process
 
 - [FluidDyn documentation](http://fluiddyn.readthedocs.io)
 - [Fluidsim forge on Heptapod](https://foss.heptapod.net/fluiddyn/fluidsim)
-- Fluidsim in PyPI {{release}}
-- Unittest coverage {{coverage}}
+- Fluidsim in PyPI {{ release }}
+- Unittest coverage {{ coverage }}
 - FluidDyn user chat room in
   [Riot](https://riot.im/app/#/room/#fluiddyn-users:matrix.org) or
   [Slack](https://fluiddyn.slack.com)

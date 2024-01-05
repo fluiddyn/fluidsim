@@ -41,7 +41,8 @@ Specialized in pseudo-spectral Fourier.
   - [Gross–Pitaevskii equation](https://en.wikipedia.org/wiki/Gross%E2%80%93Pitaevskii_equation)
   - ... (?)
 
-- Linear stability (as in [NS3D](http://yakari.polytechnique.fr/people/deloncle/ns3d.html)
+- Linear stability (as in
+  [NS3D](http://yakari.polytechnique.fr/people/deloncle/ns3d.html)
 
 - FFT accelerated with GPU and MPI+GPU (fluidfft)
 
@@ -49,9 +50,9 @@ Specialized in pseudo-spectral Fourier.
   [#99](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/99))
 
 - Simul class made of 2 (or n) interacting Simul classes. For example, ns2d +
-passive scalar at higher resolution. Or fluid-structure interaction as in
-[FLUSI](https://github.com/pseudospectators/FLUSI) (see
-[!104](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/104))
+  passive scalar at higher resolution. Or fluid-structure interaction as in
+  [FLUSI](https://github.com/pseudospectators/FLUSI) (see
+  [!104](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/104))
 
 - Particles and Lagrangian dynamics
 
@@ -59,18 +60,17 @@ passive scalar at higher resolution. Or fluid-structure interaction as in
 
 - API to dynamically define a solver
 
-"Ability to dynamically and concisely build a solver is what Dedalus is good
-at. And performance and batteries-included approach is where FluidSim shines.
-Our InfoSolver + Parameters approach is flexible but requires a lot of
-boilerplate code. Even today I always need to refer to documentation while
-creating a new solver. It must be possible to create intuitive factory classes
-which dynamically generate InfoSolver, Parameters, Simul classes for us. We
-could refer to some well known design patterns for inspiration." (Ashwin V.
-Mohanan)
+"Ability to dynamically and concisely build a solver is what Dedalus is good at.
+And performance and batteries-included approach is where FluidSim shines. Our
+InfoSolver + Parameters approach is flexible but requires a lot of boilerplate
+code. Even today I always need to refer to documentation while creating a new
+solver. It must be possible to create intuitive factory classes which dynamically
+generate InfoSolver, Parameters, Simul classes for us. We could refer to some well
+known design patterns for inspiration." (Ashwin V. Mohanan)
 
 - Explore use of type hints
 
 Inline or separate *.pyi files? Use MonkeyType or similar to autogenerate type
-hints from tests? Some inspiration: [FOSDEM
-talk](https://fosdem.org/2022/schedule/event/python_type_safety/) and [this
-blog post](https://nskm.xyz/posts/stcmp2/)
+hints from tests? Some inspiration:
+[FOSDEM talk](https://fosdem.org/2022/schedule/event/python_type_safety/) and
+[this blog post](https://nskm.xyz/posts/stcmp2/)
