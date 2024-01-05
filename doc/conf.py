@@ -247,6 +247,14 @@ html_context = {
             '<i class="fa fa-file-text fa-fw"></i> Citation',
             "https://doi.org/10.5334/jors.239",
         ),
+        (
+            '<i class="fa fa-users fa-fw"></i> Mastodon',
+            "https://hachyderm.io/@fluiddyn",
+        ),
+        (
+            '<i class="fa fa-twitter fa-fw"></i> Twitter',
+            "https://twitter.com/pyfluiddyn",
+        ),
     ],
 }
 
@@ -380,3 +388,18 @@ copybutton_selector = ",".join(
         for css_class in ("python", "ipython3", "default")
     ]
 )
+
+myst_enable_extensions = [
+    "amsmath",
+    # "attrs_inline",
+    "colon_fence",
+    # "deflist",
+    "dollarmath",
+    # "fieldlist",
+    # "linkify",
+    # "replacements",
+    # "smartquotes",
+    # "strikethrough",
+    "substitution",
+    # "tasklist",
+]

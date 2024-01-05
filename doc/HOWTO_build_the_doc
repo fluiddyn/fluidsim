@@ -1,8 +1,0 @@
-Run in a terminal from this directory::
-
-  make html
-
-Also useful::
-
-  rm -rf generated
-  make clean
