@@ -1,197 +1,142 @@
-# Installation
+# Install and configure
 
-FluidSim is part of the FluidDyn project and requires Python >= 3.6. Some issues
-regarding the installation of Python and Python packages are discussed in
+First, ensure that you have a recent Python installed, since Fluidsim requires
+Python >= 3.9. Some issues regarding the installation of Python and Python
+packages are discussed in
 [the main documentation of the project](http://fluiddyn.readthedocs.org/en/latest/install.html).
 
-We don't upload wheels on PyPI, so the simplest and fastest procedure is to use
-`conda` (no compilation needed). Alternatively, one can compile fluidsim and
-fluidfft using `pip`.
+## Installation methods without compilation
 
-## Installing the conda-forge packages with conda or mamba
+Currently, we don't upload wheels on PyPI, implying that installing with `pip`
+generally trigger compilation steps. [Building from
+source](./build-from-source.md) requires both hardware and software
+requirements. Thus, the simplest and fastest installation method is via `conda`
+or `mamba`.
 
-The fluidsim packages are in the conda-forge channels, so if it is not already
-done, one needs to add it:
+### Installing the conda-forge packages with conda or mamba
 
-```sh
-conda config --add channels conda-forge
-```
+We recommend installing `conda` and `mamba` (using the [conda-forge] channel) with
+the [miniforge installer](https://github.com/conda-forge/miniforge).
 
 If you just want to run sequential simulations and/or analyze the results of
 simulations, you can just install the fluidsim package:
 
 ```sh
-conda install fluidsim
+mamba install fluidsim
 ```
 
 For parallel simulations using MPI, let's create a dedicated environment:
 
 ```sh
-conda create -n env_fluidsim ipython fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
+mamba create -n env_fluidsim ipython fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
 ```
 
 The environment can then be activated with `conda activate env_fluidsim`.
 
-## Build/install using pip
+### Install using pip without compilation
 
-We recommend installing with a recent version of pip so you might want to run
-`pip install pip -U` before anything (if you use conda, `conda update pip`). Then,
-fluidsim can be installed with:
+```{warning}
 
-```sh
-pip install fluidsim
+We mention here how to install Fluidsim with `pip` without compilation, but
+this of course leads to a slow version of Fluidsim. Most of the time, this is
+not what you want.
+
 ```
 
-However, one have to note that (i) fluidsim builds are sensible to environment
-variables (see below) and (ii) fluidsim can optionally use
-[fluidfft](http://fluidfft.readthedocs.io) for pseudospectral solvers. Fluidsim
-and fluidfft can be both installed with the command:
+```{todo}
 
-```sh
-pip install fluidsim[fft]
+Upload wheels on PyPI (for fluidsim and fluidfft) so that we can simplify this
+section a lot.
+
 ```
 
-Moreover, fluidfft builds can also be tweaked so you could have a look at
+Fluidsim can be installed without compilation with `pip`:
+
+```sh
+pip install pip -U
+pip install fluidsim --config-settings=setup-args=-Dtransonic-backend=python
+```
+
+However, fluidsim can optionally use [fluidfft](http://fluidfft.readthedocs.io)
+for pseudospectral solvers. Fluidsim and fluidfft can be both installed without
+compilation with the command:
+
+```sh
+export FLUIDFFT_TRANSONIC_BACKEND="python"
+pip install fluidsim[fft] --config-settings=setup-args=-Dtransonic-backend=python
+```
+
+Moreover, fluidfft builds can be tweaked so you could have a look at
 [fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
 
-(env-vars)=
+### Optional dependencies
 
-## Environment variables and build configuration
+Fluidsim has 4 sets of optional dependencies, which can be installed with commands
+like `pip install fluidsim[fft]` or `pip install fluidsim[fft, mpi]`:
 
-### Build time configuration
+- `fft`: mainly for pseudo spectral solvers using the Fourier basis.
 
-- `FLUIDDYN_NUM_PROCS_BUILD`
+- `mpi`: for parallel computing using [MPI]. `pip install fluidsim[mpi]` installs
+  [mpi4py], which requires a local compilation.
 
-Fluidsim binaries are builds in parallel. This speedups the build process a lot on
-most computers. However, it can be a very bad idea on computers with not enough
-memory. If you encounter problems, you can force the number of processes used
-during the build using the environment variable `FLUIDDYN_NUM_PROCS_BUILD`:
+- `test`: for testing Fluidsim (can be done without the repository).
 
-```sh
-export FLUIDDYN_NUM_PROCS_BUILD=2
-```
+- `scipy`
 
-- Customize compilers to build extensions, if the defaults do not work for you,
-  either using the environment variables:
+## Environment variables and runtime configuration
 
-  - `MPICXX`: for Cython extensions in `fluidfft` (default: `mpicxx`)
-  - `CC`: command to generate object files in `fluidsim`
-  - `LDSHARED`: command to link and generate shared libraries in `fluidsim`
-  - `CARCH`: to cross compile (default: `native`)
-
-- `DISABLE_PYTHRAN` disables compilation with Pythran at build time.
-
-- `FLUIDSIM_TRANSONIC_BACKEND`
-
-  "pythran" by default, it can be set to "python", "numba" or "cython".
-
-You can also configure the installation of fluidsim by creating the file
-`~/.fluidsim-site.cfg` (or `site.cfg` in the repo directory) and modify it to fit
-your requirements before the installation with pip:
-
-```sh
-wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/branch/default/site.cfg.default -O ~/.fluidsim-site.cfg
-```
-
-### Runtime configuration
-
-Fluidsim is also sensitive to the environment variables:
+Fluidsim is sensitive to environment variables:
 
 - `FLUIDSIM_PATH`: path where the simulation results are saved.
 
   In Unix systems, you can for example put this line in your `~/.bashrc`:
 
   ```sh
-  export FLUIDSIM_PATH=$HOME/Data
+  export FLUIDSIM_PATH=$HOME/data_fluidsim
   ```
 
 - `FLUIDDYN_PATH_SCRATCH`: working directory (can be useful on some clusters).
 
-## Warning about re-installing fluidsim and fluidfft with new build options
+## Dependencies with different flavours
 
-If fluidsim has already been installed and you want to recompile with new
-configuration values, you need to really recompile fluidsim and not just reinstall
-an already produced wheel. To do this, use:
+## Fluidfft
 
-```sh
-pip install fluidsim --no-binary fluidsim -v
+Fluidsim uses Fluidfft to compute Fourier transforms. Fluidfft can be installed in
+different modes. Have a look at the
+[fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
+
+```{todo}
+
+Fluidfft should be fully reorganized so that we can write here something simple
+and nice.
+
 ```
 
-`-v` toggles the verbose mode of pip so that we see the compilation log and can
-check that everything goes well.
+## MPI simulations and mpi4py
 
-(pythranrc)=
+Fluidsim can use [mpi4py] (which depends on a [MPI] implementation) for parallel
+simulations.
 
-## About using Pythran to compile functions
+````{warning}
 
-We choose to use the Python compiler
-[Pythran](https://github.com/serge-sans-paille/pythran) for some functions of the
-operators. Our microbenchmarks show that the performances are as good as what we
-are able to get with Fortran or C++!
-
-But it implies that building Fluidsim requires a C++11 compiler (for example GCC
-4.9 or clang).
-
-:::{note}
-
-If you don't want to use Pythran and C++ to speedup Fluidsim, you can
-use the environment variable `DISABLE_PYTHRAN`.
-
-:::
-
-:::{warning}
-
-To reach good performance, we advice to try to put in the file
-`~/.pythranrc` the lines (it seems to work well on Linux, see the
-[Pythran documentation](https://pythran.readthedocs.io)):
-
-```bash
-[pythran]
-complex_hook = True
-```
-
-:::
-
-:::{warning}
-
-The compilation of C++ files produced by Pythran can be long and can
-consume a lot of memory. If you encounter any problems, you can try to use clang
-(for example with `conda install clangdev`) and to enable its use in the file
-`~/.pythranrc` with:
-
-```bash
-[compiler]
-CXX=clang++
-CC=clang
-```
-
-:::
-
-## MPI simulations and mpi4py!
-
-Fluidsim can use [mpi4py](http://mpi4py.scipy.org) (which depends on a MPI
-implementation) for MPI simulations.
-
-:::{warning}
-
-If the system has multiple MPI libraries, it is adviced to
-explicitly mention the MPI command. For instance to use Intel MPI:
+If the system has multiple MPI libraries, it is adviced to explicitly mention the
+MPI command. For instance to use Intel MPI:
 
 ```sh
 CC=mpiicc pip install mpi4py --no-binary mpi4py
 ```
 
-:::
+````
 
 ## About h5py and HDF5_MPI
 
 FluidSim is able to use h5py built with MPI support.
 
-:::{warning}
+````{warning}
 
-Prebuilt installations (for e.g. via h5py wheels) lacks MPI support.
-Most of the time, this is what you want. However, you can install h5py from source
-and link it to a hdf5 built with MPI support, as follows:
+Prebuilt installations (for e.g. via h5py wheels) lacks MPI support. Most of the
+time, this is what you want. However, you can install h5py from source and link it
+to a hdf5 built with MPI support, as follows:
 
 ```bash
 CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
@@ -209,66 +154,8 @@ CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps -
 See the [h5py documentation](http://docs.h5py.org/en/latest/build.html) for more
 details.
 
-:::
+````
 
-## Installing from the repository
-
-:::{note}
-
-A good base to install Fluidsim from source can be to create and
-activate a conda environment with:
-
-```sh
-conda create -y -n env-fluidsim -c conda-forge "fluidfft=*=*openmpi*" pythran clangdev mako
-conda activate env-fluidsim
-```
-
-:::
-
-For fluidsim, we use the revision control software Mercurial and the main
-repository is hosted [here](https://foss.heptapod.net/fluiddyn/fluidsim) in
-Heptapod. Download the source with something like:
-
-```sh
-hg clone https://foss.heptapod.net/fluiddyn/fluidsim
-```
-
-If you are new with Mercurial and Heptapod, you can also read
-[this short tutorial](http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html).
-
-For particular installation setup, copy the default configuration file to
-`site.cfg`:
-
-```sh
-cp site.cfg.default site.cfg
-```
-
-and modify it to fit your requirements.
-
-Build/install in development mode, by running from the top-level directory:
-
-```sh
-cd lib && pip install -e .; cd ..
-pip install -e .
-```
-
-:::{note}
-
-To install from source in a conda environment, it is actually necessary
-to disable the isolated build by running the command
-`pip install -e . --no-build-isolation`.
-
-:::
-
-To install Fluidsim with all optional dependencies and all capacities:
-
-```sh
-pip install -e .[full]
-```
-
-### Run the tests
-
-You can run some unit tests by running `make tests` (shortcut for
-`fluidsim-test -v`) or `make tests_mpi` (shortcut for
-`mpirun -np 2 fluidsim-test -v`). Alternatively, you can also run `pytest` from
-the root directory or from any of the source directories.
+[conda-forge]: https://conda-forge.org/
+[mpi]: https://fr.wikipedia.org/wiki/Message_Passing_Interface
+[mpi4py]: https://mpi4py.readthedocs.io/

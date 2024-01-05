@@ -114,6 +114,7 @@ maxdepth: 1
 install
 tutorials
 examples
+build-from-source
 faq
 ```
 

@@ -16,11 +16,11 @@ instance {mod}`fluidsim.base.basilisk`, {mod}`fluidsim.base.dedalus` and
 
 Make sure you read the [installation guide](install) carefully.
 
-:::{admonition} Permission denied while running `pip install fluidsim` from PyPI
+:::{admonition} Permission denied while running `pip install fluidsim` from PyPI or `make develop` inside the repository.
 
-or `make develop` inside the repository. This means you are probably using the
-Python bundled with the system and as a user you are restricted from installing
-packages into it. If this is so, create a [virtual environment].
+This means you are probably using the Python bundled with the system and as a
+user you are restricted from installing packages into it. If this is so, create
+a [virtual environment].
 
 :::
 
@@ -31,7 +31,7 @@ following commands should help:
 
 ```sh
 python -m ensurepip
-python -m pip install --upgrade pip setuptools wheel
+python -m pip install --upgrade pip
 ```
 
 :::
@@ -42,8 +42,9 @@ By default `pythran` extensions try to use `gcc` and this is a
 CPU and memory intensive compilation. Instead `pythran` can be configured to use
 `clang`. See {ref}`pythranrc` for more details.
 
-Additionally to reduce the load during installation is to configure certain
-{ref}`build specific environment variables <env-vars>`.
+Additionally to reduce the load during installation one can [limit the number of
+parallel processes used to build extensions](compile-args-j2).
+
 :::
 
 :::{admonition} `ModuleNotFoundError: No module named 'fluidsim_core. ...`
