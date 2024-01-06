@@ -2,6 +2,8 @@ option(
     'transonic-backend',
     type: 'string',
     value: 'pythran,python,numba',
-    description: 'pythran,python,numba (default), cython, numpy, numba, or comma separated value representing multi-backends'
+    description:
+      'pythran,python,numba (default), cython, numpy, numba; ' +
+      'or comma separated value representing multi-backends'
 )
 option('use-xsimd', type: 'boolean', value: true, description: 'use xsimd')

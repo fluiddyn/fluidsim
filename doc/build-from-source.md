@@ -2,23 +2,20 @@
 
 ## Requirements
 
-To build Fluidsim from source, we need:
+To build Fluidsim from source, ones needs:
 
-- A modern Python with Python headers and with `pip`
+- A modern Python (>=3.9) with Python headers and `pip`
 
 - A decent amount of RAM (at least few GB available).
 
-- A C++ compiler fully compliant with the C++-11 standard (clang or GCC, currently
-  not Intel compilers)
-
-Moreover, you might also want to compile Fluidfft, mpi4py and a parallel version
-of h5py.
+- A C++ compiler fully compliant with the C++-11 standard (currently not Intel
+  compilers)
 
 ## Get the source
 
-Note that we use for Fluidsim development the revision control software
-[Mercurial] and modern Mercurial extensions like [Evolve] and \[Topic\]. The main
-repository is hosted [here](https://foss.heptapod.net/fluiddyn/fluidsim) in
+Fluidsim development uses the revision control software [Mercurial] with modern
+Mercurial extensions like [Evolve] and [Topic]. The main repository is hosted
+[here](https://foss.heptapod.net/fluiddyn/fluidsim) in
 [Heptapod](https://heptapod.net/).
 
 There are other ways to get the source but we are going here to assume that you
@@ -34,13 +31,13 @@ hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 
 ```{admonition} Why Mercurial/Heptapod and not simply Git/Github?
 
-We consider that modern Mercurial is really great. Much better in some aspects
-that Git. Moreover, we do not think that it is a good thing that the whole
+We consider that modern Mercurial is really great, even better in some aspects
+than Git. Moreover, we do not think that it is a good thing that the whole
 open-source ecosystem depends on Github, a close-source project owned by
 Microsoft.
 
 Thanks to [Octobus](https://octobus.net/) and [Clever
-Cloud](https://www.clever-cloud.com) for providing https://foss.heptapod.net!
+Cloud](https://www.clever-cloud.com) for providing <https://foss.heptapod.net>!
 
 ```
 
@@ -57,7 +54,7 @@ python3 -m venv .venv
 pip install pip -U
 ```
 
-Then, let us just install the local project (fluidsim) with `pip`:
+Then, let us use `pip` to install the local project:
 
 ```sh
 pip install . -v
@@ -65,12 +62,12 @@ pip install . -v
 
 ```{note}
 
-`-v` toggles the verbose mode of `pip` so that we see the compilation log and
+`-v` toggles `pip` verbose mode so that we see the compilation log and
 can check that everything goes well.
 
 ```
 
-However, the build (which uses [Meson]) can be controlled through environment
+Moreover, the build (which uses [Meson]) can be controlled through environment
 variables (for the C++ compilation) and options. The particular build options for
 Fluidsim are defined in the file `meson.options` which contains:
 
@@ -100,15 +97,29 @@ There are 3 levels:
 
 ```
 
-Of course, one can also change values for
+````{note}
+
+Recent versions of `pip` allow one to specify different options like so:
+
+```sh
+pip install . -v \
+  -C setup-args=-Dtransonic-backend=python \
+  -C setup-args=-Duse-xsimd=false
+```
+
+
+````
+
+Of course, one can also change values of
 [other buildin Meson options](https://meson-python.readthedocs.io/en/latest/reference/config-settings.html).
 
 ````{warning}
 (compile-args-j2)=
 
-Fluidsim binaries are builds in parallel. This speedups the build process a lot on
-most computers. However, it can be a very bad idea on computers with not enough
-memory. One can control the number of processes launched in parallel with:
+[Meson] builds Fluidsim binaries in parallel. This speedups the build process a
+lot on most computers. However, it can be a very bad idea on computers with not
+enough memory. One can control the number of processes launched in parallel
+with:
 
 ```sh
 pip install . -C compile-args=-j2
@@ -123,15 +134,15 @@ pip install . -C compile-args=-j2
 
 - How to know which compiler and compilation flags are used?
 
-- How to produce a wheel for other architectures (cross-compilation)?
-
 - How to check if XSIMD was indeed used?
+
+- How to produce a wheel for other architectures (cross-compilation)?
 
 ```
 
 ### Setup a full developer environment with editable installation
 
-Let us first present the tools that are used for Fluidsim development.
+Let us first present the tools used for Fluidsim development.
 
 - [PDM] is a modern Python package and dependency manager,
 
@@ -156,8 +167,8 @@ some numerical kernels written in Python.
 
 #### Standard Python from Python.org
 
-We present here how one can build Fluidsim from source as the main developers and
-users.
+We present here how one can build Fluidsim from source like the main developers
+and users.
 
 ##### Install PDM
 
@@ -170,10 +181,11 @@ python3 -m pip install pipx
 pipx install pdm -U
 ```
 
-Installing in editable mode is a bit particular with Meson, since all build
-dependencies have to be installed in the main virtual environment, i.e. editable
-installations are incompatible with isolated builds! Fortunatelly, it's not too
-difficult with [PDM]. From the root directory of the repository, just run:
+Installing in editable mode is a bit particular with Meson, since editable
+installations are incompatible with isolated builds, meaning that all build
+dependencies have to be installed in the main virtual environment! Fortunatelly,
+it's not too difficult with [PDM]. From the root directory of the repository, just
+run:
 
 ```sh
 pdm install --no-self
@@ -190,23 +202,27 @@ pip install -e . --no-build-isolation --no-deps
 
 ### Python installed with conda/mamba/conda-forge
 
-???
+```{todo}
 
-## Run the tests
+Experiment, find a good solution and describe it here!
+
+```
+
+## Advice for developers
+
+### Run the tests
 
 You can run some unit tests by running `make tests` (shortcut for
 `fluidsim-test -v`) or `make tests_mpi` (shortcut for
 `mpirun -np 2 fluidsim-test -v`). Alternatively, you can also run `pytest` from
 the root directory or from any of the source directories.
 
-## Advice for developers
-
 (pythranrc)=
 
 ### About using Pythran to compile functions
 
-When developing with Transonic and Pythran, it is good to have a `~/.pythranrc`
-file, with for example something like (see
+When developing with Pythran, it can be useful to have a `~/.pythranrc` file, with
+for example something like (see
 [the dedicated section in Pythran documentation](https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc)):
 
 ```sh
@@ -219,6 +235,10 @@ CXX=clang++
 CC=clang
 
 ```
+
+Note however, that Fluidsim build does not take into account this file! Instead
+there is a build option `pythran-complex-hook` and one can use environment
+variables to change the C++ compilation (performed with [Meson]).
 
 ### Set the MESONPY_EDITABLE_VERBOSE mode
 
@@ -240,4 +260,5 @@ https://meson-python.readthedocs.io/en/latest/how-to-guides/editable-installs.ht
 [pipx]: https://github.com/pypa/pipx
 [pytest]: https://docs.pytest.org
 [pythran]: https://pythran.readthedocs.io
+[topic]: https://www.mercurial-scm.org/doc/evolution/tutorials/topic-tutorial.html
 [transonic]: https://transonic.readthedocs.io
