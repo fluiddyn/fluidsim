@@ -162,7 +162,7 @@ users.
 ##### Install PDM
 
 A first step is to install [PDM] as an external independant application. I (Pierre
-Augier) usually use \[pipx\] for that but
+Augier) usually use [pipx] for that but
 [there are other methods](https://pdm-project.org/latest/#installation).
 
 ```sh
@@ -173,11 +173,19 @@ pipx install pdm -U
 Installing in editable mode is a bit particular with Meson, since all build
 dependencies have to be installed in the main virtual environment, i.e. editable
 installations are incompatible with isolated builds! Fortunatelly, it's not too
-difficult with [PDM]:
+difficult with [PDM]. From the root directory of the repository, just run:
 
 ```sh
 pdm install --no-self
-pdm run pip install -e . --no-build-isolation
+```
+
+This last command creates a virtual environment and install all build and runtime
+dependencies. You can then activate this environment and build/install Fluidsim
+with:
+
+```sh
+. .venv/bin/activate
+pip install -e . --no-build-isolation --no-deps
 ```
 
 ### Python installed with conda/mamba/conda-forge
@@ -229,6 +237,7 @@ https://meson-python.readthedocs.io/en/latest/how-to-guides/editable-installs.ht
 [nox]: https://nox.thea.codes
 [pdm]: https://pdm-project.org
 [pip]: https://pip.pypa.io
+[pipx]: https://github.com/pypa/pipx
 [pytest]: https://docs.pytest.org
 [pythran]: https://pythran.readthedocs.io
 [transonic]: https://transonic.readthedocs.io

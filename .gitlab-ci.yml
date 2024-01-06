@@ -110,7 +110,7 @@ report_coverage:
     - coverage report
 
 
-doc:build:
+pages:
   stage: doc
   needs:
     - job: "CI image"
@@ -122,7 +122,7 @@ doc:build:
     - . .venv/bin/activate
     - pip install fluidfft
     - pdm install -G doc -G fft -G test --no-self
-    - pip install . --config-settings=setup-args=-Dtransonic-backend=python
+    - pip install . --config-settings=setup-args=-Dtransonic-backend=python --no-deps
     - pdm run xvfb-run --auto-servernum sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
     - mkdir -p public/$CI_COMMIT_REF_NAME
     - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
