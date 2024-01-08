@@ -2,6 +2,7 @@ stages:
   - image
   - lint
   - test
+  - test-release
   - report
   - doc
 
@@ -108,6 +109,27 @@ report_coverage:
     - pip install coverage
     - coverage combine
     - coverage report
+
+
+test-release:examples:
+  stage: test-release
+  needs:
+    - job: "CI image"
+      optional: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_TEST_RELEASE == "1"'
+  variables:
+    FLUIDFFT_TRANSONIC_BACKEND: "python"
+  script:
+    - python -m venv .venv
+    - . .venv/bin/activate
+    - pip install fluidfft
+    - pip install lib
+    - pip install ".[mpi,fft,scipy,test]"
+    - cd doc/examples
+    - make tests
+    - make tests_mpi
 
 
 pages:
