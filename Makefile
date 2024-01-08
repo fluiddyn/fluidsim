@@ -7,7 +7,7 @@ MPI_NUM_PROCS ?= 2
 
 develop:
 	pdm install --no-self
-	pdm run pip install -e . --no-build-isolation --no-deps
+	pdm run pip install -e . -v --no-build-isolation --no-deps
 
 dist:
 	pip install build

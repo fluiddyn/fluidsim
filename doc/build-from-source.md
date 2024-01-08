@@ -122,21 +122,35 @@ enough memory. One can control the number of processes launched in parallel
 with:
 
 ```sh
-pip install . -C compile-args=-j2
+pip install . -v -C compile-args=-j2
+```
+
+````
+
+````{Admonition} Another example to set the optimization level
+
+The default optimization level is `-O3`. One can change that with:
+
+```sh
+pip install . -v -C setup-args=-Doptimization=2
 ```
 
 ````
 
 ```{todo}
 
-- How to use `-march=native`? How to differentiate a native build from a
+- How to use `-march=native -Ofast`? How to differentiate a native build from a
   regular build to produce binaries usable on other computers?
 
-- How to know which compiler and compilation flags are used?
+- How to do what was done with the `[compiler]` section of `~/.pythranrc` (described [here](https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc))?
 
-- How to check if XSIMD was indeed used?
+- How to know which compilers and compilation flags are used?
+
+- How to `USE_XSIMD`? How to check if XSIMD was indeed used?
 
 - How to produce a wheel for other architectures (cross-compilation)?
+
+- Default for `pythran-complex-hook`? Depending on OS?
 
 ```
 
@@ -191,13 +205,13 @@ run:
 pdm install --no-self
 ```
 
-This last command creates a virtual environment and install all build and runtime
+This command creates a virtual environment and installs all build and runtime
 dependencies. You can then activate this environment and build/install Fluidsim
 with:
 
 ```sh
 . .venv/bin/activate
-pip install -e . --no-build-isolation --no-deps
+pip install -e . -v --no-build-isolation --no-deps
 ```
 
 ### Python installed with conda/mamba/conda-forge
