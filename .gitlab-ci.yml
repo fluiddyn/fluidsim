@@ -1,9 +1,10 @@
 stages:
+  - conda
   - image
   - lint
   - test
-  - test-release
   - report
+  - test-release
   - doc
 
 variables:
@@ -25,6 +26,25 @@ workflow:
 #     - pip index versions flit-core
 #     - pip install requests
 #     - python3.9 tmp_bug_unearth.py
+
+
+test_conda:
+  stage: conda
+  image: debian:bookworm
+  script:
+    - apt-get update
+    - apt-get install wget -y
+    - wget https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-unknown-linux-musl.tar.gz
+    - tar -xzf pixi-x86_64-unknown-linux-musl.tar.gz .
+    - mkdir -p $HOME/.local/bin
+    - mv pixi $HOME/.local/bin
+    - export PATH=$HOME/.local/bin:$PATH
+    - pixi info
+    - pixi run install-editable
+    - pixi run pytest -v lib
+    - pixi run fluidsim-test -v
+    - pixi run mpirun -np 2 fluidsim-test -v --exitfirst
+
 
 # Build an image for the other tasks; this should be a scheduled job, as
 # it is quite unnecessary to run on every invocation.
