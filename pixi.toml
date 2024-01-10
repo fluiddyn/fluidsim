@@ -20,8 +20,6 @@ install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", 
 [dependencies]
 python = ">=3.9,<3.11"
 numpy = ">=1.26.3"
-meson-python = ">=0.15.0"
-pythran = ">=0.15.0"
 transonic = ">=0.5.3"
 fluiddyn = ">=0.5.2"
 fluidsim-core = ">=0.7.4"
@@ -44,3 +42,8 @@ mpi4py = ">=3.1.5"
 pymech = "*"
 pytest-allclose = "*"
 importlib-metadata = "*"
+
+[build-dependencies]
+meson-python = ">=0.15.0"
+pythran = ">=0.15.0"
+transonic = ">=0.5.3"
