@@ -214,13 +214,19 @@ with:
 pip install -e . -v --no-build-isolation --no-deps
 ```
 
-### Python installed with conda/mamba/conda-forge
+### Conda-based Python with conda-forge and Pixi
 
-```{todo}
+One can use [Pixi] to setup a developer environment based on [conda-forge] and compile from source. From the root directory of Fluidsim repository, just
+run:
 
-Experiment, find a good solution and describe it here!
-
+```sh
+# TODO: remove this clone after Transonic release
+hg clone https://foss.heptapod.net/fluiddyn/transonic/ ../transonic
+pixi run install-editable
+pixi run fluidsim-test -v
 ```
+
+Then, `pip` is available and previous commands should work.
 
 ## Advice for developers
 
@@ -265,6 +271,7 @@ export MESONPY_EDITABLE_VERBOSE=1
 See
 https://meson-python.readthedocs.io/en/latest/how-to-guides/editable-installs.html#verbose-mode
 
+[conda-forge]: https://conda-forge.org/
 [evolve]: https://www.mercurial-scm.org/doc/evolution/
 [mercurial]: https://www.mercurial-scm.org/
 [meson]: https://mesonbuild.com
@@ -272,6 +279,7 @@ https://meson-python.readthedocs.io/en/latest/how-to-guides/editable-installs.ht
 [pdm]: https://pdm-project.org
 [pip]: https://pip.pypa.io
 [pipx]: https://github.com/pypa/pipx
+[pixi]: https://pixi.sh/
 [pytest]: https://docs.pytest.org
 [pythran]: https://pythran.readthedocs.io
 [topic]: https://www.mercurial-scm.org/doc/evolution/tutorials/topic-tutorial.html
