@@ -1,5 +1,6 @@
 stages:
-  - conda
+  - image-pixi
+  - pixi
   - image
   - lint
   - test
@@ -28,22 +29,52 @@ workflow:
 #     - python3.9 tmp_bug_unearth.py
 
 
-test_conda:
-  stage: conda
-  image: debian:bookworm
+CI image pixi:
+  stage: image-pixi
+  tags:
+    - container-registry-push
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_BUILD_IMAGES == "1"'
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [ "" ]
+  before_script:
+    - ""
   script:
-    - apt-get update
-    - apt-get install wget -y
-    - wget https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-unknown-linux-musl.tar.gz
-    - tar -xzf pixi-x86_64-unknown-linux-musl.tar.gz .
-    - mkdir -p $HOME/.local/bin
-    - mv pixi $HOME/.local/bin
-    - export PATH=$HOME/.local/bin:$PATH
+    - |
+      cat > /kaniko/.docker/config.json <<EOF
+      {
+        "auths": {
+          "$CI_REGISTRY": {
+            "username": "$CI_REGISTRY_USER",
+            "password": "$CI_REGISTRY_PASSWORD"
+          }
+        }
+      }
+      EOF
+    - >
+      /kaniko/executor --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/docker/Dockerfile_pixi
+      --single-snapshot
+      --cleanup
+      --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:pixi
+
+test_pixi:
+  stage: pixi
+  image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:pixi
+  needs:
+    - job: "CI image pixi"
+      optional: true
+  script:
     - pixi info
+    - rm -rf ../transonic
+    - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
     - pixi run install-editable
     - pixi run pytest -v lib
     - pixi run fluidsim-test -v
-    - pixi run mpirun -np 2 fluidsim-test -v --exitfirst
+    # currently broken because of fluidfft conda issues
+    # - pixi run mpirun -np 2 fluidsim-test -v --exitfirst
 
 
 # Build an image for the other tasks; this should be a scheduled job, as
