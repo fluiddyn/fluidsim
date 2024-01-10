@@ -177,7 +177,7 @@ test-release:examples:
     - . .venv/bin/activate
     - pip install fluidfft
     - pip install lib
-    - pip install ".[mpi,fft,scipy,test]"
+    - pip install ".[mpi,fft,test]"
     - cd doc/examples
     - make tests
     - make tests_mpi
