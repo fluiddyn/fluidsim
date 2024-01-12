@@ -9,6 +9,7 @@ run_command(
   'sh',
   '-c',
   'echo transonic_backend=' + backend + ' > ' + 'build_conf.txt',
+  check: true,
 )
 
 

@@ -97,6 +97,16 @@ There are 3 levels:
 
 ```
 
+````{important}
+
+One can activate a performance oriented and not portable build using:
+
+```sh
+pip install . -v -C setup-args=-Dnative=true
+```
+
+````
+
 ````{note}
 
 Recent versions of `pip` allow one to specify different options like so:
@@ -106,7 +116,6 @@ pip install . -v \
   -C setup-args=-Dtransonic-backend=python \
   -C setup-args=-Duse-xsimd=false
 ```
-
 
 ````
 
@@ -137,20 +146,31 @@ pip install . -v -C setup-args=-Doptimization=2
 
 ````
 
-```{todo}
+```{admonition} Advanced compilation configuration
 
-- How to use `-march=native -Ofast`? How to differentiate a native build from a
-  regular build to produce binaries usable on other computers?
+The environment variables `CC`, `CXX`, `CFLAGS`, `CXXFLAGS` and `LDFLAGS`
+are honored.
 
-- How to do what was done with the `[compiler]` section of `~/.pythranrc` (described [here](https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc))?
+Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranrc)!
+
+```
+
+```{admonition} FAQ
 
 - How to know which compilers and compilation flags are used?
+  How to check if XSIMD was indeed used?
 
-- How to `USE_XSIMD`? How to check if XSIMD was indeed used?
+  One can study the file `build/cp39/compile_commands.json`.
+
+- How to differentiate a native build from a
+  regular build to produce binaries usable on other computers?
+
+  By default the produced wheels should be portable. There is the `native`
+  build option to target the exact CPU used for compilation.
 
 - How to produce a wheel for other architectures (cross-compilation)?
 
-- Default for `pythran-complex-hook`? Depending on OS?
+  ???
 
 ```
 
@@ -216,8 +236,8 @@ pip install -e . -v --no-build-isolation --no-deps
 
 ### Conda-based Python with conda-forge and Pixi
 
-One can use [Pixi] to setup a developer environment based on [conda-forge] and compile from source. From the root directory of Fluidsim repository, just
-run:
+One can use [Pixi] to setup a developer environment based on [conda-forge] and
+compile from source. From the root directory of Fluidsim repository, just run:
 
 ```sh
 # TODO: remove this clone after Transonic release
