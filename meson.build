@@ -61,6 +61,12 @@ print(incdir)'''
 
   pythran = find_program('pythran', native: true)
 
+  cpp_args_pythran = [
+    '-DENABLE_PYTHON_MODULE',
+    '-D__PYTHRAN__=3',
+    '-DPYTHRAN_BLAS_NONE'
+  ]
+
   if get_option('use-xsimd') == true
     # xsimd is unvendored from pythran by conda-forge, and due to a compiler
     # activation bug the default <prefix>/include/ may not be visible (see
@@ -70,19 +76,18 @@ print(incdir)'''
       include_directories: incdir_pythran,
       dependencies: xsimd_dep,
     )
+    cpp_args_pythran += ['-DUSE_XSIMD']
   else
     pythran_dep = declare_dependency(
       include_directories: incdir_pythran,
     )
   endif
 
-  cpp_args_pythran = [
-    '-DENABLE_PYTHON_MODULE',
-    '-D__PYTHRAN__=3',
-    '-DPYTHRAN_BLAS_NONE'
-  ]
 
   pythran_complex_hook = get_option('pythran-complex-hook')
+  if pythran_complex_hook == 'os-dependent'
+    pythran_complex_hook = host_machine.system() == 'linux'
+  endif
 
 endif
 

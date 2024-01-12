@@ -6,10 +6,11 @@ option(
       'pythran,python,numba (default), cython, numpy, numba; ' +
       'or comma separated value representing multi-backends'
 )
-option('use-xsimd', type: 'boolean', value: true, description: 'use xsimd')
+option('use-xsimd', type: 'boolean', value: true, description: 'Use xsimd')
 option(
     'pythran-complex-hook',
-    type: 'boolean',
-    value: true,
+    type : 'combo',
+    choices : ['os-dependent', 'true', 'false'],
+    value : 'os-dependent',
     description: 'Pythran complex_hook option'
 )

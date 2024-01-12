@@ -137,20 +137,26 @@ pip install . -v -C setup-args=-Doptimization=2
 
 ````
 
+```{admonition} Advanced compilation configuration
+
+The environment variables `CC`, `CXX`, `CFLAGS`, `CXXFLAGS` and `LDFLAGS`
+are honored. So for example, one could compile with
+`CXXFLAGS="-march=native -Ofast"`.
+
+Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranrc)!
+
+```
+
 ```{todo}
 
-- How to use `-march=native -Ofast`? How to differentiate a native build from a
+- How to differentiate a native build from a
   regular build to produce binaries usable on other computers?
-
-- How to do what was done with the `[compiler]` section of `~/.pythranrc` (described [here](https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc))?
 
 - How to know which compilers and compilation flags are used?
 
-- How to `USE_XSIMD`? How to check if XSIMD was indeed used?
+- How to check if XSIMD was indeed used?
 
 - How to produce a wheel for other architectures (cross-compilation)?
-
-- Default for `pythran-complex-hook`? Depending on OS?
 
 ```
 
