@@ -97,6 +97,16 @@ There are 3 levels:
 
 ```
 
+````{important}
+
+One can activate a performance oriented and not portable build using:
+
+```sh
+pip install . -v -C setup-args=-Dnative=true
+```
+
+````
+
 ````{note}
 
 Recent versions of `pip` allow one to specify different options like so:
@@ -106,7 +116,6 @@ pip install . -v \
   -C setup-args=-Dtransonic-backend=python \
   -C setup-args=-Duse-xsimd=false
 ```
-
 
 ````
 
@@ -140,8 +149,7 @@ pip install . -v -C setup-args=-Doptimization=2
 ```{admonition} Advanced compilation configuration
 
 The environment variables `CC`, `CXX`, `CFLAGS`, `CXXFLAGS` and `LDFLAGS`
-are honored. So for example, one could compile with
-`CXXFLAGS="-march=native -Ofast"`.
+are honored.
 
 Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranrc)!
 
@@ -157,7 +165,8 @@ Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranr
 - How to differentiate a native build from a
   regular build to produce binaries usable on other computers?
 
-  ???
+  By default the produced wheels should be portable. There is the `native`
+  build option to target the exact CPU used for compilation.
 
 - How to produce a wheel for other architectures (cross-compilation)?
 

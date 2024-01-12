@@ -83,10 +83,13 @@ print(incdir)'''
     )
   endif
 
-
   pythran_complex_hook = get_option('pythran-complex-hook')
   if pythran_complex_hook == 'os-dependent'
     pythran_complex_hook = host_machine.system() == 'linux'
+  endif
+
+  if get_option('native')
+    cpp_args_pythran += ['-march=native', '-Ofast']
   endif
 
 endif

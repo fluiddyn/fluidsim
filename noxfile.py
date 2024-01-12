@@ -14,7 +14,9 @@ def validate_code(session):
 def test_without_fft_and_pythran(session):
     command = "pdm install -G dev -G test -G mpi --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps")
+    session.install(
+        ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
+    )
     session.run(
         "make",
         "_tests_coverage",
@@ -30,6 +32,6 @@ def test_with_fft_and_pythran(session):
 
     command = "pdm install -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(".", "--no-deps")
+    session.install(".", "--no-deps", "-C", "setup-args=-Dnative=true")
 
     session.run("make", "_tests_coverage", external=True)
