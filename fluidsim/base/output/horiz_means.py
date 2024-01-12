@@ -85,7 +85,7 @@ class HorizontalMeans(SpecificOutput, SimulExtender):
         return modif_info_solver
 
     @classmethod
-    def _complete_params_with_default(cls, params):
+    def complete_params_with_default(cls, params):
         params.output.periods_save._set_attrib(cls._tag, 0)
 
     def _compute_hmean(self, arr3d):
