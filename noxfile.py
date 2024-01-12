@@ -12,7 +12,7 @@ def validate_code(session):
 
 @nox.session
 def test_without_fft_and_pythran(session):
-    command = "pdm install -G dev -G test -G mpi -G scipy --no-self"
+    command = "pdm install -G dev -G test -G mpi --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps")
     session.run(
@@ -28,7 +28,7 @@ def test_with_fft_and_pythran(session):
     # first install fluidfft without Pythran compilation
     session.install("fluidfft", env={"FLUIDFFT_TRANSONIC_BACKEND": "python"})
 
-    command = "pdm install -G dev -G test -G fft -G mpi -G scipy --no-self"
+    command = "pdm install -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps")
 

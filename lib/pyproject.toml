@@ -10,6 +10,7 @@ authors = [
 ]
 dependencies = [
      "fluiddyn",
+     "importlib_metadata; python_version < '3.10'",
 ]
 dynamic = ['version', 'description']
 

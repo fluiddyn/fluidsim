@@ -1,6 +1,6 @@
-import importlib_metadata
+from importlib import metadata
 
-__version__ = importlib_metadata.version(__package__)
+__version__ = metadata.version(__package__)
 
 
 __all__ = ["__version__", "get_local_version", "__about__"]
