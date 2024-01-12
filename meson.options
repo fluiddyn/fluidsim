@@ -9,7 +9,7 @@ option(
 option(
     'native',
     type: 'boolean',
-    value: true,
+    value: false,
     description: 'Performance oriented and not portable build',
 )
 option(
