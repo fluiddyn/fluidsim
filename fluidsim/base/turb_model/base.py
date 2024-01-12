@@ -118,6 +118,11 @@ class SpecificTurbModel(SimulExtender):
 
         return modif_info_solver
 
+    @classmethod
+    def complete_params_with_default(cls, params):
+        # to be able to define model without parameter
+        pass
+
 
 class SpecificTurbModelSpectral(SpecificTurbModel):
     def __init__(self, sim):
