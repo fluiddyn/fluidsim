@@ -147,16 +147,21 @@ Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranr
 
 ```
 
-```{todo}
+```{admonition} FAQ
+
+- How to know which compilers and compilation flags are used?
+  How to check if XSIMD was indeed used?
+
+  One can study the file `build/cp39/compile_commands.json`.
 
 - How to differentiate a native build from a
   regular build to produce binaries usable on other computers?
 
-- How to know which compilers and compilation flags are used?
-
-- How to check if XSIMD was indeed used?
+  ???
 
 - How to produce a wheel for other architectures (cross-compilation)?
+
+  ???
 
 ```
 
@@ -222,8 +227,8 @@ pip install -e . -v --no-build-isolation --no-deps
 
 ### Conda-based Python with conda-forge and Pixi
 
-One can use [Pixi] to setup a developer environment based on [conda-forge] and compile from source. From the root directory of Fluidsim repository, just
-run:
+One can use [Pixi] to setup a developer environment based on [conda-forge] and
+compile from source. From the root directory of Fluidsim repository, just run:
 
 ```sh
 # TODO: remove this clone after Transonic release
