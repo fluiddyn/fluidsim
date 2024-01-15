@@ -30,7 +30,9 @@ RUN mkdir -p $HOME/opt
 WORKDIR $HOME/opt
 RUN echo $USER $HOME $PWD && whoami
 
-RUN $(hg debuginstall -T '{pythonexe}') -m pip install hg-evolve hg-git --no-cache-dir --user --break-system-packages
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+RUN $(hg debuginstall -T '{pythonexe}') -m pip install hg-evolve hg-git --no-cache-dir --user
 
 COPY --chown=appuser:appuser docker/hgrc $HOME/.hgrc
 COPY --chown=appuser:appuser docker/pythranrc $HOME/.pythranrc
@@ -59,4 +61,4 @@ RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/inst
 RUN chmod +x install_pfft.sh
 RUN ./install_pfft.sh
 
-RUN pip install -U pip pdm nox --user
+RUN python -m pip install -U pip pdm nox --user
