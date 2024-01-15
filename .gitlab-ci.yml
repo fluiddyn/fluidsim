@@ -12,6 +12,8 @@ variables:
   COVERAGE_DIR: .coverage_$CI_COMMIT_SHA
 
 image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:stable
+# for MR modifying the Docker file
+# image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:stable
 
 # ugly workaround https://gitlab.com/gitlab-org/gitlab/-/issues/370052#note_1207556577
 workflow:
@@ -29,7 +31,7 @@ workflow:
 #     - python3.9 tmp_bug_unearth.py
 
 
-CI image pixi:
+image-pixi:build:
   stage: image-pixi
   tags:
     - container-registry-push
@@ -60,11 +62,11 @@ CI image pixi:
       --cleanup
       --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:pixi
 
-test_pixi:
+pixi-test:
   stage: pixi
   image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:pixi
   needs:
-    - job: "CI image pixi"
+    - job: "image-pixi:build"
       optional: true
   script:
     - pixi info
@@ -79,7 +81,7 @@ test_pixi:
 
 # Build an image for the other tasks; this should be a scheduled job, as
 # it is quite unnecessary to run on every invocation.
-CI image:
+image:build:
   stage: image
   tags:
     - container-registry-push
@@ -109,12 +111,12 @@ CI image:
       --single-snapshot
       --cleanup
       --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/$CI_COMMIT_HG_BRANCH:stable
-
+      # --destination registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:stable
 
 validate_code:
   stage: lint
   needs:
-    - job: "CI image"
+    - job: "image:build"
       optional: true
   script:
     - echo "CI_COMMIT_HG_BRANCH $CI_COMMIT_HG_BRANCH"
@@ -125,7 +127,7 @@ validate_code:
 test_without_fft_and_pythran:
   stage: test
   needs:
-    - job: "CI image"
+    - job: "image:build"
       optional: true
   script:
     - nox -s test_without_fft_and_pythran
@@ -139,7 +141,7 @@ test_without_fft_and_pythran:
 test_with_fft_and_pythran:
   stage: test
   needs:
-    - job: "CI image"
+    - job: "image:build"
       optional: true
   script:
     - nox -s test_with_fft_and_pythran
@@ -165,7 +167,7 @@ report_coverage:
 test-release:examples:
   stage: test-release
   needs:
-    - job: "CI image"
+    - job: "image:build"
       optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -186,7 +188,7 @@ test-release:examples:
 pages:
   stage: doc
   needs:
-    - job: "CI image"
+    - job: "image:build"
       optional: true
   variables:
     FLUIDFFT_TRANSONIC_BACKEND: "python"
