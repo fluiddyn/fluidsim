@@ -6,7 +6,7 @@ MPI_NUM_PROCS ?= 2
 .PHONY: black black_check clean clean_pyc clean_so cleantransonic coverage_short develop develop_lib develop_user dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
 develop:
-	pdm install --no-self
+	pdm sync --clean --no-self
 	pdm run pip install -e . -v --no-build-isolation --no-deps
 
 dist:
