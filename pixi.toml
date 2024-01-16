@@ -14,7 +14,8 @@ platforms = ["linux-64"]
 
 [tasks]
 # use as `pixi run install-editable`
-install-dependencies = "pixi install && pip install -e ./lib && pip install ../transonic"
+# install-dependencies = "pixi install && pip install -e ./lib && pip install ../transonic"
+install-dependencies = "pixi install && pip install -e ./lib && pip install transonic==0.6.0rc0"
 install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends_on = ["install-dependencies"]}
 
 [dependencies]
