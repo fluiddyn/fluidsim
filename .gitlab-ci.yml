@@ -70,8 +70,8 @@ pixi-test:
       optional: true
   script:
     - pixi info
-    - rm -rf ../transonic
-    - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
+    # - rm -rf ../transonic
+    # - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
     - pixi run install-editable
     - pixi run pytest -v lib
     - pixi run fluidsim-test -v
