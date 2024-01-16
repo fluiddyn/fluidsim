@@ -30,9 +30,12 @@ jobs:
       run: |
         cp .github/workflows/.fluidfft-site.cfg $HOME
         nox -s test_without_fft_and_pythran
+        mv .coverage/coverage.xml coverage_without_fft_and_pythran.xml
         nox -s test_with_fft_and_pythran
+        mv .coverage/coverage.xml coverage_with_fft_and_pythran.xml
     - uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: true # optional (default = false)
+        fail_ci_if_error: false # optional (default = false)
         verbose: true # optional (default = false)
+        files: coverage_without_fft_and_pythran.xml,coverage_with_fft_and_pythran.xml
