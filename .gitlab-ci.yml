@@ -160,7 +160,6 @@ report_coverage:
   script:
     - mv $COVERAGE_DIR .coverage
     - pip install coverage
-    - coverage combine
     - coverage report
 
 
