@@ -10,12 +10,12 @@ name = "fluidsim"
 # version = "0.7.4"
 # description = "Framework for studying fluid dynamics with simulations."
 channels = ["conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "win-64"]
 
 [tasks]
 # use as `pixi run install-editable`
 # install-dependencies = "pixi install && pip install -e ./lib && pip install ../transonic"
-install-dependencies = "pixi install && pip install -e ./lib && pip install transonic==0.6.0rc0"
+install-dependencies = "pixi install && pip install -e ./lib && pip install 'transonic>=0.6.0'"
 install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends_on = ["install-dependencies"]}
 
 [dependencies]

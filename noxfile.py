@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from shutil import rmtree
 
 import nox
 
@@ -14,6 +16,20 @@ def validate_code(session):
     session.run("pdm", "validate_code", external=True)
 
 
+def _test(session, env=None):
+    path_coverage = Path(".coverage")
+    rmtree(path_coverage, ignore_errors=True)
+    path_coverage.mkdir(exist_ok=True)
+
+    if env is not None:
+        print(env)
+
+    session.run("make", "_tests_coverage", external=True, env=env)
+    session.run("coverage", "combine")
+    session.run("coverage", "report")
+    session.run("coverage", "xml")
+
+
 @nox.session
 def test_without_fft_and_pythran(session):
     command = "pdm sync --clean -G dev -G test -G mpi --no-self"
@@ -21,12 +37,8 @@ def test_without_fft_and_pythran(session):
     session.install(
         ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
     )
-    session.run(
-        "make",
-        "_tests_coverage",
-        external=True,
-        env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"},
-    )
+
+    _test(session, env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"})
 
 
 @nox.session
@@ -38,4 +50,4 @@ def test_with_fft_and_pythran(session):
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps", "-C", "setup-args=-Dnative=true")
 
-    session.run("make", "_tests_coverage", external=True)
+    _test(session)

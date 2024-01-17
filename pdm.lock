@@ -5,7 +5,7 @@
 groups = ["default", "build", "dev", "doc", "fft", "mpi", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:71a83c8b08d9853e0f6c1ccf4a5257521a5a0ac351a65acc07b48777fba4fd5d"
+content_hash = "sha256:1318fcc7eeb77bbe00a8f8a21592462770f1f60aaccc7ed985583d97cc4cb236"
 
 [[package]]
 name = "alabaster"
@@ -3289,7 +3289,7 @@ files = [
 
 [[package]]
 name = "transonic"
-version = "0.6.0rc0"
+version = "0.6.0"
 requires_python = ">=3.9"
 summary = "Make your Python code fly at transonic speeds!"
 groups = ["build", "default", "fft"]
@@ -3300,8 +3300,8 @@ dependencies = [
     "numpy",
 ]
 files = [
-    {file = "transonic-0.6.0rc0-py3-none-any.whl", hash = "sha256:3057d3659888831d162627fc56b79ba84675f1635a3075cb1f413796c9cd840f"},
-    {file = "transonic-0.6.0rc0.tar.gz", hash = "sha256:5d471868e1c90547cd944d9d95a928f778267de1d361b3a2a9f6200f4273fbaa"},
+    {file = "transonic-0.6.0-py3-none-any.whl", hash = "sha256:539a0db25b4bb1ebf115a0a44b4bbab1d2d83ecc842682c5f846c9886b442fba"},
+    {file = "transonic-0.6.0.tar.gz", hash = "sha256:11847dd533ee18de46abfa6767f3dd762e47e5075a19d243bdd86c9bee3312a6"},
 ]
 
 [[package]]
