@@ -7,13 +7,14 @@ build:
   apt_packages:
     # workaround: bad fluidfft with false hard dependency to mpi4py
     - libopenmpi-dev
+    - graphviz
   jobs:
     post_create_environment:
       - pip install pdm pip -U
     post_install:
       - pdm use -f $READTHEDOCS_VIRTUALENV_PATH
       - FLUIDFFT_TRANSONIC_BACKEND="python" pip install fluidfft
-      - pdm install -G doc -G fft -G test --no-self
+      - pdm sync -G doc -G fft -G test --no-self
       - pip install . --config-settings=setup-args=-Dtransonic-backend=python
 
 sphinx:
