@@ -18,7 +18,7 @@ RUN apt-get install -y --no-install-recommends \
   rsync \
   libgl1 xvfb xauth libgl1-mesa-dev \
   libxkbcommon-x11-0 \
-  swig sudo
+  swig sudo graphviz
 
 RUN rm -rf /var/lib/apt/lists/*
 

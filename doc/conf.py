@@ -73,7 +73,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "fluiddoc.mathmacro",
-    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.inheritance_diagram",  # requires Graphviz
     "myst_nb",
     "sphinx_copybutton",
 ]
