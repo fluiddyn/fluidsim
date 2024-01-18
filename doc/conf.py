@@ -73,7 +73,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "fluiddoc.mathmacro",
-    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.inheritance_diagram",  # requires Graphviz
     "myst_nb",
     "sphinx_copybutton",
 ]
@@ -389,6 +389,10 @@ copybutton_selector = ",".join(
     ]
 )
 
+nb_execution_raise_on_error = True
+nb_execution_show_tb = True
+nb_merge_streams = True
+
 myst_enable_extensions = [
     "amsmath",
     # "attrs_inline",
@@ -403,3 +407,5 @@ myst_enable_extensions = [
     "substitution",
     # "tasklist",
 ]
+
+suppress_warnings = ["mystnb.unknown_mime_type"]
