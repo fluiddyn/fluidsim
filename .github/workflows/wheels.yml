@@ -20,8 +20,6 @@ jobs:
           - os: macos
             architecture: arm64
           - os: windows
-            architecture: x86
-          - os: windows
             architecture: AMD64
     steps:
       - uses: actions/checkout@v4
