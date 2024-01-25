@@ -7,6 +7,8 @@ stages:
   - report
   - test-release
   - doc
+  - build
+  - release
 
 variables:
   COVERAGE_DIR: .coverage_$CI_COMMIT_SHA
@@ -210,3 +212,36 @@ pages:
       - public
     expire_in: 5 days
   when: always
+
+
+build:package:
+  stage: build
+  before_script:
+    - pip install build
+  script:
+    - cd lib
+    - rm -rf dist
+    - python -m build
+    - ls dist
+  needs: []
+  artifacts:
+    when: always
+    paths:
+      - dist
+    expire_in: 24 hrs
+
+
+# manually set TWINE_PASSWORD in web interface to your PyPI API token
+release:package:
+  stage: release
+  rules:
+    - if: '$CI_MERGE_REQUEST_ID'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: on_success
+  variables:
+    TWINE_USERNAME: __token__
+  script:
+    - pip install twine -U
+    - twine upload dist
+  needs: [ "build:package" ]

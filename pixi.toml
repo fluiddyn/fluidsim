@@ -1,5 +1,4 @@
 # Issues pixi
-# - install script without curl
 # - should be able to read pyproject.toml [project] (name, version, description)
 # - automatically adds too strict version, bad for Python library
 # - optional dependencies and dev groups as PDM
@@ -7,8 +6,6 @@
 
 [project]
 name = "fluidsim"
-# version = "0.7.4"
-# description = "Framework for studying fluid dynamics with simulations."
 channels = ["conda-forge"]
 platforms = ["linux-64", "win-64"]
 
