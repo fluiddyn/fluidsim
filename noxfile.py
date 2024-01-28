@@ -41,13 +41,32 @@ def test_without_fft_and_pythran(session):
     _test(session, env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"})
 
 
+def _install_fluidfft(session):
+    # first install fluidfft without Pythran compilation
+    session.install(
+        "fluidfft", "--no-deps", env={"FLUIDFFT_TRANSONIC_BACKEND": "python"}
+    )
+
+
 @nox.session
 def test_with_fft_and_pythran(session):
-    # first install fluidfft without Pythran compilation
-    session.install("fluidfft", env={"FLUIDFFT_TRANSONIC_BACKEND": "python"})
-
+    _install_fluidfft(session)
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps", "-C", "setup-args=-Dnative=true")
 
     _test(session)
+
+
+@nox.session
+def doc(session):
+    _install_fluidfft(session)
+    command = "pdm install -G doc -G fft -G test --no-self"
+    session.run_always(*command.split(), external=True)
+    session.install(
+        ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
+    )
+
+    session.chdir("doc")
+    session.run("make", "cleanall", external=True)
+    session.run("make", external=True)
