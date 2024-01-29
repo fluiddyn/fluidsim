@@ -392,6 +392,7 @@ copybutton_selector = ",".join(
 nb_execution_raise_on_error = True
 nb_execution_show_tb = True
 nb_merge_streams = True
+nb_execution_timeout = 120
 
 myst_enable_extensions = [
     "amsmath",

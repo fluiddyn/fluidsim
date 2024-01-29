@@ -49,7 +49,7 @@ ENV CPATH=$HOME/.local/include:$CPATH
 RUN mkdir -p $HOME/.config/matplotlib
 RUN echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
 
-RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/site.cfg.files/site.cfg.docker -O ~/.fluidfft-site.cfg
+RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/site.cfg.files/site.cfg.docker_mpi -O ~/.fluidfft-site.cfg
 
 RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/install/install_p3dfft.sh -O ./install_p3dfft.sh
 RUN chmod +x install_p3dfft.sh
