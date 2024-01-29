@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+See also the [unreleased changes].
+
 % Type of changes
 
 % ---------------
@@ -22,11 +24,13 @@ and this project adheres to
 
 % Security   Security in case of vulnerabilities.
 
-% Unreleased_
+## [0.8.0] (2024-01-28)
 
-% -----------
-
-% towncrier release notes start
+- Build and upload wheels on PyPI with Github Actions.
+- Much better CI in foss.heptapod.net and Github Actions.
+- Use the [Meson build system](https://mesonbuild.com) via
+  [meson-python](https://github.com/mesonbuild/meson-python).
+- Development: use PDM, Nox and Pixi.
 
 ## [0.7.4] (2023-10-05)
 
@@ -318,3 +322,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.7.2]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.1...0.7.2
 [0.7.3]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
 [0.7.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...0.7.4
+[0.8.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.4...0.8.0
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.0...branch%2Fdefault
