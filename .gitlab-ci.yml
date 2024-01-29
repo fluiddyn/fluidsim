@@ -73,7 +73,8 @@ pixi-test:
     - pixi info
     # - rm -rf ../transonic
     # - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
-    - pixi run install-editable
+    - pixi run install-dependencies
+    - pixi run pip install -e . -v --no-build-isolation --no-deps -C compile-args=-j2
     - pixi run pytest -v lib
     - pixi run fluidsim-test -v
     # currently broken because of fluidfft conda issues

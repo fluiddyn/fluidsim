@@ -53,7 +53,11 @@ def test_with_fft_and_pythran(session):
     _install_fluidfft(session)
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(".", "-v", "--no-deps", "-C", "setup-args=-Dnative=true")
+
+    command = ". -v --no-deps -C setup-args=-Dnative=true"
+    if "GITLAB_CI" in os.environ:
+        command += " -C compile-args=-j2"
+    session.install(*command.split())
 
     _test(session)
 
@@ -63,9 +67,7 @@ def doc(session):
     _install_fluidfft(session)
     command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(
-        ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
-    )
+    session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
 
     session.chdir("doc")
     session.run("make", "cleanall", external=True)
