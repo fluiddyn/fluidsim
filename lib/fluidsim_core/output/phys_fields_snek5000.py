@@ -7,6 +7,7 @@
    :undoc-members:
 
 """
+
 from functools import lru_cache, partial
 
 from fluidsim_core.output.phys_fields import PhysFieldsABC

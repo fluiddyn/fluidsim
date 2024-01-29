@@ -7,6 +7,7 @@ Makes animation energy spectra (kx, ky) evolution in time.
 
 The two keys plotted are ap_fft and am_fft
 """
+
 from pathlib import Path
 
 import h5py

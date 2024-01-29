@@ -6,6 +6,7 @@
    :private-members:
 
 """
+
 import numpy as np
 
 from transonic import boost, Array

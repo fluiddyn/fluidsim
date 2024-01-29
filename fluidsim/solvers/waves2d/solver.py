@@ -90,6 +90,7 @@ class Simul(SimulBasePseudoSpectral):
 
 
     """
+
     InfoSolver = InfoSolverWaves2d
 
     @staticmethod

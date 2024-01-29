@@ -1,6 +1,7 @@
 """Script for a short simulation with the solver ns2d.strat
 
 """
+
 import numpy as np
 
 from fluiddyn.util import mpi

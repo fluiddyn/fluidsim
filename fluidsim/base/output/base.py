@@ -492,9 +492,9 @@ are called.
         lengths = self.spectra.compute_length_scales(data=data_spectra)
         result.update(lengths)
 
-        result[
-            "I_dissipation"
-        ] = self.spect_energy_budg.compute_isotropy_dissipation(tmin)
+        result["I_dissipation"] = (
+            self.spect_energy_budg.compute_isotropy_dissipation(tmin)
+        )
 
         return result
 

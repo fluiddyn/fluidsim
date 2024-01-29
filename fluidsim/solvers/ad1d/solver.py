@@ -52,6 +52,7 @@ class Simul(SimulBase):
     constant velocity.
 
     """
+
     InfoSolver = InfoSolverAD1D
 
     @staticmethod

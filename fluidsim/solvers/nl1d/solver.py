@@ -8,6 +8,7 @@ Provides:
    :private-members:
 
 """
+
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables

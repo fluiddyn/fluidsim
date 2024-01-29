@@ -5,6 +5,7 @@ plot_froude_anisotropy.py
 Plots the buoyancy reynolds Vs anisotropy.
 
 """
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1164,9 +1164,7 @@ class SpatioTemporalSpectraNS:
             omega_disp = ikh / np.sqrt(ikh**2 + dkz_over_dkh**2 * xaxis**2)
             ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         elif equation.startswith(r"$k_z"):
-            omega_disp = xaxis / np.sqrt(
-                xaxis**2 + dkz_over_dkh**2 * ikz**2
-            )
+            omega_disp = xaxis / np.sqrt(xaxis**2 + dkz_over_dkh**2 * ikz**2)
             ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
@@ -1375,9 +1373,7 @@ class SpatioTemporalSpectraNS:
                     aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
                 def modes(nx, nz):
-                    return np.sqrt(
-                        nx**2 / (nx**2 + aspect_ratio**2 * nz**2)
-                    )
+                    return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
 
                 nxs = np.arange(1, 11)
                 modes_nz1 = modes(nxs, 1)

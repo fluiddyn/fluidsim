@@ -10,6 +10,7 @@
    :special-members: __init__
 
 """
+
 from abc import ABC, abstractmethod, abstractstaticmethod
 from pathlib import Path
 from time import sleep

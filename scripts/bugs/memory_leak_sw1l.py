@@ -11,6 +11,7 @@ Reproduce
     mpirun -np 2 python memory_leak_sw1l.py
 
 """
+
 from fluidsim.solvers.sw1l.onlywaves.solver import Simul
 
 params = Simul.create_default_params()

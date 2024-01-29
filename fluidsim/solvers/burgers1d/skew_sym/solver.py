@@ -9,6 +9,7 @@ Provides:
 
 
 """
+
 from fluidsim.base.setofvariables import SetOfVariables
 from ..solver import Simul as SimulBurgers, InfoSolver as InfoSolverBurgers
 

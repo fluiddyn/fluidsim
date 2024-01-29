@@ -143,7 +143,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
         leg1 = ax1.legend(
             [l_smooth[0], l_K41[0], l_1[0]],
             ["smooth $r^q$", "K41 $r^{q/3}$", "shocks $r^1$"],
-            loc=0
+            loc=0,
             # labelspacing = 0.2
         )
 

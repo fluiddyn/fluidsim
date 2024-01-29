@@ -8,6 +8,7 @@ this module to run FluidSim unittests, without going into the source directory
 for eg. when it is installed through `pip`.
 
 """
+
 import argparse
 import inspect
 import os
@@ -118,9 +119,10 @@ class TestSimulConserve(TestSimul):
     @classmethod
     def setUpClass(cls):
         cls.init_params()
-        with stdout_redirected(cls.has_to_redirect_stdout), cls.Simul(
-            cls.params
-        ) as sim:
+        with (
+            stdout_redirected(cls.has_to_redirect_stdout),
+            cls.Simul(cls.params) as sim,
+        ):
             cls.sim = sim
             sim.time_stepping.start()
 

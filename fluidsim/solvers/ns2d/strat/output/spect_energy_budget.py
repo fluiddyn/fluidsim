@@ -447,9 +447,7 @@ class SpectralEnergyBudgetNS2DStrat(SpectralEnergyBudgetBase):
             ax2.axvspan(k_fymin / k_fy, k_fymax / k_fy, alpha=0.15, color="black")
 
             # Plot ozmidov scale
-            k_o = (self.params.N**3 / self.params.forcing.forcing_rate) ** (
-                1 / 2
-            )
+            k_o = (self.params.N**3 / self.params.forcing.forcing_rate) ** (1 / 2)
             ax1.axvline(x=k_o / k_fx, color="black", linestyle="--")
             ax2.axvline(x=k_o / k_fy, color="black", linestyle="--")
             ax1.text((k_o / k_fx) + 2, 1, r"$k_o$")

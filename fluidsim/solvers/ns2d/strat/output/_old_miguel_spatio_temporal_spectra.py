@@ -264,12 +264,12 @@ class SpatioTempSpectra(SpecificOutput):
                 field_am_decimate = field_am_seq[
                     :: self.spatial_decimate, :: self.spatial_decimate
                 ]
-                self.spatio_temp_new[
-                    0, self.nb_times_in_spatio_temp, :, :
-                ] = field_ap_decimate
-                self.spatio_temp_new[
-                    1, self.nb_times_in_spatio_temp, :, :
-                ] = field_am_decimate
+                self.spatio_temp_new[0, self.nb_times_in_spatio_temp, :, :] = (
+                    field_ap_decimate
+                )
+                self.spatio_temp_new[1, self.nb_times_in_spatio_temp, :, :] = (
+                    field_am_decimate
+                )
 
             # Save the time to self.times_arr
             if not self.sim.time_stepping.it:
@@ -277,9 +277,9 @@ class SpatioTempSpectra(SpecificOutput):
                     itsim * self.sim.params.time_stepping.deltat0
                 )
             else:
-                self.times_arr[
-                    self.nb_times_in_spatio_temp
-                ] = self.sim.time_stepping.t
+                self.times_arr[self.nb_times_in_spatio_temp] = (
+                    self.sim.time_stepping.t
+                )
 
             self.its_arr[self.nb_times_in_spatio_temp] = self.sim.time_stepping.it
 

@@ -17,4 +17,5 @@ generic base classes and utilities to build new solvers.
    paths
 
 """
+
 from ._version import __version__

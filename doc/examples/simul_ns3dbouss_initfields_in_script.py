@@ -7,6 +7,7 @@ Launch with::
   mpirun -np 4 python simul_ns3dbouss_initfields_in_script.py
 
 """
+
 import os
 
 import numpy as np

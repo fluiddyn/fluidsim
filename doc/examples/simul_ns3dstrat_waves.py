@@ -6,6 +6,7 @@ Launch with::
   mpirun -np 4 python simul_ns3dstrat_waves.py
 
 """
+
 import os
 from math import pi
 

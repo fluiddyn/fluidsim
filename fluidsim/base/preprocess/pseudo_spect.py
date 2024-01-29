@@ -348,9 +348,7 @@ def calcul_viscosity(
                 nu = length_scale**order / time_scale
                 v.append(nu)
                 if verbose:
-                    kolmo_len.append(
-                        (nu**3 / epsilon) ** (1.0 / (3 * order - 2))
-                    )
+                    kolmo_len.append((nu**3 / epsilon) ** (1.0 / (3 * order - 2)))
             else:
                 v.append(0.0)
 

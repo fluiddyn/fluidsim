@@ -121,6 +121,7 @@ class Simul(SimulNS3D):
     plane perpendicular to the wave number :math:`\kk`.
 
     """
+
     InfoSolver = InfoSolverNS3DStrat
 
     @staticmethod
@@ -225,8 +226,7 @@ class Simul(SimulNS3D):
         pulsation in rad.
         """
         return self.params.N * np.sqrt(
-            (self.oper.Kx**2 + self.oper.Ky**2)
-            * self.oper.inv_K_square_nozero
+            (self.oper.Kx**2 + self.oper.Ky**2) * self.oper.inv_K_square_nozero
         )
 
 

@@ -18,6 +18,7 @@ Refs:
  "Spectral Transform Solutions to the Shallow Water Test Set"
 
 """
+
 import numpy as np
 from scipy import integrate
 from fluidsim.solvers.sphere.sw1l.solver import Simul

@@ -3,7 +3,6 @@ simul_from_state.py
 ===================
 """
 
-
 import os
 from glob import glob
 import argparse
