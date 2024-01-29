@@ -61,7 +61,7 @@ def test_with_fft_and_pythran(session):
 @nox.session
 def doc(session):
     _install_fluidfft(session)
-    command = "pdm install -G doc -G fft -G test --no-self"
+    command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
     session.install(
         ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
