@@ -14,12 +14,6 @@ sync:
 lock:
 	pdm lock -G :all
 
-dist:
-	pip install build
-	cd lib && python -m build
-	python -m build
-	mv -f lib/dist/* dist/
-
 clean_so:
 	find fluidsim -name "*.so" -delete
 
