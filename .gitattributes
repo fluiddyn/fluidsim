@@ -1,3 +1,11 @@
 # GitHub syntax highlighting
 pixi.lock linguist-language=YAML
 
+.gitattributes export-ignore
+.hgignore export-ignore
+
+old export-ignore
+scripts export-ignore
+bench export-ignore
+
+tmp_bug_unearth.py export-ignore

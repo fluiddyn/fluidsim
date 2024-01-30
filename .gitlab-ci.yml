@@ -228,7 +228,7 @@ build:package:
   artifacts:
     when: always
     paths:
-      - dist
+      - lib/dist
     expire_in: 24 hrs
 
 
@@ -244,5 +244,5 @@ release:package:
     TWINE_USERNAME: __token__
   script:
     - pip install twine -U
-    - twine upload dist
+    - twine upload lib/dist/*
   needs: [ "build:package" ]
