@@ -84,9 +84,7 @@ class TestSolverPlate2DOutput(TestSimulBase):
         params.forcing.nkmin_forcing = 2
         params.forcing.tcrandom.time_correlation = 100 * deltat
 
-        params.nu_8 = (
-            2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
-        )
+        params.nu_8 = 2e1 * params.forcing.forcing_rate ** (1.0 / 3) * delta_x**8
         params.output.HAS_TO_SAVE = True
         params.output.periods_print.print_stdout = 2 * deltat
 

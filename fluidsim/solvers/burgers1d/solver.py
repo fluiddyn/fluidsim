@@ -9,6 +9,7 @@ Provides:
 
 
 """
+
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral,

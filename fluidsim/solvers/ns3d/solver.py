@@ -117,6 +117,7 @@ class Simul(SimulBasePseudoSpectral):
       \hat N(\vv) = P_\perp \widehat{\vv \times \bomega}.
 
     """
+
     InfoSolver = InfoSolverNS3D
 
     @staticmethod

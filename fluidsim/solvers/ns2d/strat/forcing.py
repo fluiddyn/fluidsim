@@ -10,7 +10,6 @@ from fluidsim.solvers.ns2d.forcing import ForcingNS2D
 
 
 class ForcingNS2DStrat(ForcingNS2D):
-
     """Forcing class for the ns2d strat solver.
 
     .. inheritance-diagram:: ForcingNS2DStrat

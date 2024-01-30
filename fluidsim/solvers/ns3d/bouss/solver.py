@@ -93,6 +93,7 @@ class Simul(SimulStrat):
     is taken into account with the operator :math:`P_\perp`.
 
     """
+
     InfoSolver = InfoSolverNS3DBouss
 
     def tendencies_nonlin(self, state_spect=None, old=None):

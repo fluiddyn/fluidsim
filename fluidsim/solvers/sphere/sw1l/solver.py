@@ -10,6 +10,7 @@
    :private-members:
 
 """
+
 from transonic import boost
 from fluidsim.base.sphericalharmo.solver import (
     InfoSolverSphericalHarmo,

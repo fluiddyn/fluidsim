@@ -488,9 +488,9 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
 
         for key_forced in ("vt_fft", "rotz_fft", "divh_fft"):
             params.time_stepping.t_end += 0.2
-            params.forcing.key_forced = (
-                sim.forcing.forcing_maker.key_forced
-            ) = key_forced
+            params.forcing.key_forced = sim.forcing.forcing_maker.key_forced = (
+                key_forced
+            )
             sim.time_stepping.init_from_params()
             sim.time_stepping.main_loop()
 

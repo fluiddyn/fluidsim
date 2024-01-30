@@ -1,14 +1,14 @@
 # Release process
 
-- [ ] Extended tests in doc/examples (`make tests` and `make tests_mpi`)
+- [ ] Extended tests in doc/examples (<https://foss.heptapod.net/fluiddyn/fluidsim/-/pipeline_schedules>)
 
 - [ ] Check builds of the "official" articles in <https://foss.heptapod.net/fluiddyn/fluiddyn_papers>
 
-- [ ] Topic for the release candidate
+- [ ] Topic/MR for the release candidate
 
-  - [ ] Change version in `lib/fluidsim_core/_version.py` (`0.6.1rc0`)
+  - [ ] Change versions in `pyproject.toml` AND `lib/pyproject.toml` (`0.6.1rc0`)
 
-  - [ ] Update changelog in `CHANGES.rst`
+  - [ ] Update changelog in `CHANGES.md`
 
     - Take into account `doc/newsfragments` + remove the fragments
 
@@ -16,25 +16,7 @@
 
     - Study `hg log -G -r "tag(0.6.0):tip"`
 
-- [ ] Tag `0.6.1rc0` in the repo
-
-- [ ] Push `fluidsim-core` release candidates to PyPI
-
-  ```bash
-  cd lib
-  rm -rf dist
-  python -m build
-  twine upload dist/*
-  ```
-
-- [ ] Push `fluidsim` release candidates to PyPI (no wheel!)
-
-  ```bash
-  cd ..
-  rm -rf dist
-  python -m build -s
-  twine upload dist/*
-  ```
+- [ ] Once merged, update, tag and push with `nox -s add-tag-for-release`.
 
 - [ ] PR on <https://github.com/conda-forge/fluidsim-core-feedstock> (rc channel)
 
@@ -66,18 +48,16 @@
   Create new environment with
 
   ```bash
-  conda create -n env_fluidsim_rc \
+  mamba create -n env_fluidsim_rc \
     -c conda-forge/label/fluidsim-core_rc -c conda-forge/label/fluidsim_rc \
     fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
   ```
 
 - [ ] Communicate to the community...
 
-- [ ] Topic for the release of the stable version (delete "rc0" in `lib/fluidsim_core/_version.py`)
+- [ ] Topic/MR for the release of the stable version (delete "rc0" in the `pyproject.toml` files)
 
-- [ ] Tag `0.6.1` in the repo
-
-- [ ] Push to PyPI (no wheel for fluidsim!)
+- [ ] New tag with `nox -s add-tag-for-release`
 
 - [ ] PR on <https://github.com/conda-forge/fluidsim-core-feedstock>
 

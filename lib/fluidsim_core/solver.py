@@ -4,6 +4,7 @@
    :members: _complete_params_with_default, create_default_params, __init__
 
 """
+
 from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
 
 from .info import InfoSolverCore, create_info_simul

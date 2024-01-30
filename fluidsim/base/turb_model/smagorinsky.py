@@ -36,6 +36,7 @@ class SmagorinskyModel(SpecificTurbModelSpectral):
     with :math:`C = 0.18` and :math:`\Delta = L_x / n_x`.
 
     """
+
     _module_name = "fluidsim.base.turb_model.smagorinsky"
     tag = "smagorinsky"
 

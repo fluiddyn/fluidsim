@@ -108,12 +108,12 @@ class TimeSignalsK(SpecificOutput):
         for ishell, kh_s in enumerate(self.kh_shell):
             angle = -np.pi / 2
             for ikps in range(self.nb_k_per_shell):
-                kx_array_ik_approx[
-                    ishell * self.nb_shells + ikps
-                ] = kh_s * np.cos(angle)
-                ky_array_ik_approx[
-                    ishell * self.nb_shells + ikps
-                ] = kh_s * np.sin(angle)
+                kx_array_ik_approx[ishell * self.nb_shells + ikps] = (
+                    kh_s * np.cos(angle)
+                )
+                ky_array_ik_approx[ishell * self.nb_shells + ikps] = (
+                    kh_s * np.sin(angle)
+                )
                 angle += delta_angle
 
         self.ik0_array_ik = np.empty([self.nb_k_tot], dtype=np.int32)
@@ -161,9 +161,7 @@ class TimeSignalsK(SpecificOutput):
                 self.ky_array_ik[ik] = ky_1k
 
         if mpi.rank == 0:
-            self.kh_array_ik = np.sqrt(
-                self.kx_array_ik**2 + self.ky_array_ik**2
-            )
+            self.kh_array_ik = np.sqrt(self.kx_array_ik**2 + self.ky_array_ik**2)
 
             self.omega_array_ik = self.output.omega_from_wavenumber(
                 self.kh_array_ik

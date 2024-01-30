@@ -73,7 +73,8 @@ pixi-test:
     - pixi info
     # - rm -rf ../transonic
     # - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
-    - pixi run install-editable
+    - pixi run install-dependencies
+    - pixi run pip install -e . -v --no-build-isolation --no-deps -C compile-args=-j2
     - pixi run pytest -v lib
     - pixi run fluidsim-test -v
     # currently broken because of fluidfft conda issues
@@ -195,7 +196,7 @@ pages:
     - python -m venv .venv
     - . .venv/bin/activate
     - pip install fluidfft --no-deps
-    - pdm install -G doc -G fft -G test --no-self
+    - pdm sync -G doc -G fft -G test --no-self
     - pip install . --config-settings=setup-args=-Dtransonic-backend=python --no-deps
     - pdm run xvfb-run --auto-servernum sphinx-build -W -b html -d doc/_build/doctrees doc doc/_build/html
     - mkdir -p public/$CI_COMMIT_REF_NAME

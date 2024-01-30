@@ -230,12 +230,12 @@ class FrequencySpectra(SpecificOutput):
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    self.temp_array_new[
-                        0, self.nb_times_in_temp_array, :, :
-                    ] = field_ap_decimate
-                    self.temp_array_new[
-                        1, self.nb_times_in_temp_array, :, :
-                    ] = field_am_decimate
+                    self.temp_array_new[0, self.nb_times_in_temp_array, :, :] = (
+                        field_ap_decimate
+                    )
+                    self.temp_array_new[1, self.nb_times_in_temp_array, :, :] = (
+                        field_am_decimate
+                    )
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_temp_array] = (

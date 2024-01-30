@@ -19,6 +19,7 @@ To be compared with::
   mpirun -np 2 fluidsim-bench 1152 -d 2 -s ns2d -it 10
 
 """
+
 import time
 import numpy as np
 from spectralDNS import config, get_solver, solve
@@ -68,7 +69,7 @@ if __name__ == "__main__":
             "T": 1e-11,  # Should run 10 iterations
             "write_result": 100,
             "L": [L, L],
-            "M": [10, 10]  # Mesh size is pow(2, M[i]) in direction i
+            "M": [10, 10],  # Mesh size is pow(2, M[i]) in direction i
             # 2**9 == 512
         },
         "doublyperiodic",

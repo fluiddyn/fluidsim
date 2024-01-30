@@ -10,6 +10,7 @@ Container to encode the solver class hierarchy.
    :private-members:
 
 """
+
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import ParamContainer
 

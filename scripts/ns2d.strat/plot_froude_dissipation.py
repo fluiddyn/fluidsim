@@ -5,6 +5,7 @@ plot_froude_dissipation.py
 Plots the horizontal froude Vs dissipation.
 
 """
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt

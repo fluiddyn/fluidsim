@@ -53,7 +53,11 @@ def test_with_fft_and_pythran(session):
     _install_fluidfft(session)
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(".", "--no-deps", "-C", "setup-args=-Dnative=true")
+
+    command = ". -v --no-deps -C setup-args=-Dnative=true"
+    if "GITLAB_CI" in os.environ:
+        command += " -C compile-args=-j2"
+    session.install(*command.split())
 
     _test(session)
 
@@ -61,12 +65,67 @@ def test_with_fft_and_pythran(session):
 @nox.session
 def doc(session):
     _install_fluidfft(session)
-    command = "pdm install -G doc -G fft -G test --no-self"
+    command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(
-        ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
-    )
+    session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
 
     session.chdir("doc")
     session.run("make", "cleanall", external=True)
     session.run("make", external=True)
+
+
+def _get_version_from_pyproject(path=Path.cwd()):
+    if isinstance(path, str):
+        path = Path(path)
+
+    if not path.name == "pyproject.toml":
+        path /= "pyproject.toml"
+
+    in_project = False
+    version = None
+    with open(path, encoding="utf-8") as file:
+        for line in file:
+            if line.startswith("[project]"):
+                in_project = True
+            if line.startswith("version =") and in_project:
+                version = line.split("=")[1].strip()
+                version = version[1:-1]
+                break
+
+    assert version is not None
+    return version
+
+
+@nox.session(name="add-tag-for-release", venv_backend="none")
+def add_tag_for_release(session):
+    session.run("hg", "pull", external=True)
+
+    result = session.run(*"hg log -r default -G".split(), external=True, silent=True)
+    if result[0] != "@":
+        session.run("hg", "update", "default", external=True)
+
+    version = _get_version_from_pyproject()
+    version_core = _get_version_from_pyproject("lib")
+
+    print(f"{version = }, {version_core = }")
+    if version != version_core:
+        session.error("version != version_core")
+
+    result = session.run("hg", "tags", "-T", "{tag},", external=True, silent=True)
+    last_tag = result.split(",", 2)[1]
+    print(f"{last_tag = }")
+
+    if last_tag == version:
+        session.error("last_tag == version")
+
+    answer = input(
+        f'Do you really want to add and push the new tag "{version}"? (yes/[no]) '
+    )
+
+    if answer != "yes":
+        print("Maybe next time then. Bye!")
+        return
+
+    print("Let's go!")
+    session.run("hg", "tag", version, external=True)
+    session.run("hg", "push", external=True)

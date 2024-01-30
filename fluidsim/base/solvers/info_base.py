@@ -6,6 +6,7 @@
    :private-members:
 
 """
+
 from copy import deepcopy
 
 from fluidsim_core.info import InfoSolverCore, create_info_simul  # noqa

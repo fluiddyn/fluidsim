@@ -10,6 +10,7 @@ Provides:
 .. autofunction:: parse_args
 
 """
+
 import shlex
 
 from fluiddyn.util import mpi

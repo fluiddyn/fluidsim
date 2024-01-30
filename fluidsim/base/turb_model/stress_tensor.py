@@ -40,6 +40,4 @@ class StressTensorComputer3D:
         return Sxx, Syy, Szz, Syx, Szx, Szy
 
     def compute_norm(self, Sxx, Syy, Szz, Syx, Szx, Szy):
-        return np.sqrt(
-            Sxx**2 + Syy**2 + Szz**2 + 2 * (Syx**2 + Szx**2 + Szy**2)
-        )
+        return np.sqrt(Sxx**2 + Syy**2 + Szz**2 + 2 * (Syx**2 + Szx**2 + Szy**2))
