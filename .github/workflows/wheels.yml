@@ -55,21 +55,26 @@ jobs:
           name: sdist
           path: dist/*.tar.gz
 
-  upload:
+  pypi-publish:
+    name: Upload release to PyPI
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/')
-
     needs:
       - wheels
       - sdist
     runs-on: ubuntu-latest
-    environment: publish
+    environment:
+      name: publish
+      url: https://pypi.org/p/fluidsim
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-      - run: python -m pip install twine
-      - run: ls dist
-      - run: python -m twine upload dist/*
+    # retrieve your distributions here
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+    - run: ls dist
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
