@@ -34,7 +34,7 @@ jobs:
           python-version: 3.x
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
@@ -59,7 +59,7 @@ jobs:
           python-version: 3.x
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
           CIBW_ARCHS: aarch64
