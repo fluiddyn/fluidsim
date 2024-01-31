@@ -24,9 +24,9 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
-## [0.8.0] (2024-01-28)
+## [0.8.0] (2024-01-31)
 
-- Build and upload wheels on PyPI with Github Actions.
+- Build and upload wheels on PyPI with Github Actions!
 - Much better CI in foss.heptapod.net and Github Actions.
 - Use the [Meson build system](https://mesonbuild.com) via
   [meson-python](https://github.com/mesonbuild/meson-python).
