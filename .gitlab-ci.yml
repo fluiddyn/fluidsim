@@ -23,6 +23,7 @@ workflow:
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 # check_bug:
 #   image: fluiddyn/python3-stable:lastest
@@ -141,6 +142,7 @@ test_without_fft_and_pythran:
 
 test_with_fft_and_pythran:
   stage: test
+  timeout: 2 hours
   needs:
     - job: "image:build"
       optional: true
