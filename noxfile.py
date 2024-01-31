@@ -1,6 +1,8 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from shutil import rmtree
+from time import time
 
 import nox
 
@@ -48,18 +50,41 @@ def _install_fluidfft(session):
     )
 
 
+time_last = 0
+
+
 @nox.session
 def test_with_fft_and_pythran(session):
+    global time_last
+    time_start = time_last = time()
+
+    def print_times(task: str):
+        global time_last
+        time_now = time()
+        if time_start != time_last:
+            print(f"Time for {task}: {timedelta(seconds=time_now - time_last)}")
+        print(f"Session started since {timedelta(seconds=time_now - time_start)}")
+        time_last = time_now
+
     _install_fluidfft(session)
+
+    print_times("installing fluidfft")
+
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
+
+    print_times("pdm sync")
 
     command = ". -v --no-deps -C setup-args=-Dnative=true"
     if "GITLAB_CI" in os.environ:
         command += " -C compile-args=-j2"
     session.install(*command.split())
 
+    print_times("installing fluidsim")
+
     _test(session)
+
+    print_times("tests")
 
 
 @nox.session

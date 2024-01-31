@@ -142,6 +142,7 @@ test_without_fft_and_pythran:
 
 test_with_fft_and_pythran:
   stage: test
+  timeout: 2 hours
   needs:
     - job: "image:build"
       optional: true
