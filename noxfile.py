@@ -37,7 +37,7 @@ def test_without_fft_and_pythran(session):
     command = "pdm sync --clean -G dev -G test -G mpi --no-self"
     session.run_always(*command.split(), external=True)
     session.install(
-        ".", "--config-settings=setup-args=-Dtransonic-backend=python", "--no-deps"
+        ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
     )
 
     _test(session, env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"})
