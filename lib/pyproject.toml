@@ -14,6 +14,7 @@ dependencies = [
      "fluiddyn",
      "importlib_metadata; python_version < '3.10'",
 ]
+readme = "README.md"
 
 [project.entry-points."fluidsim_core.tests"]
 test = "fluidsim_core.tests.solver"

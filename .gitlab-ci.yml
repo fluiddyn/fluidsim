@@ -220,12 +220,13 @@ pages:
 build:package:
   stage: build
   before_script:
-    - pip install build
+    - pip install build twine
   script:
     - cd lib
     - rm -rf dist
     - python -m build
     - ls dist
+    - twine check --strict dist/*
   needs: []
   artifacts:
     when: always
