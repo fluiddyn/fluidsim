@@ -7,11 +7,44 @@ packages are discussed in
 
 ## Installation methods without compilation
 
-Currently, we don't upload wheels on PyPI, implying that installing with `pip`
-generally trigger compilation steps. [Building from
-source](./build-from-source.md) requires both hardware and software
-requirements. Thus, the simplest and fastest installation method is via `conda`
-or `mamba`.
+### Install using pip without compilation
+
+```{note}
+
+We strongly advice to install Fluidsim in a virtual environment. See the
+official guide [Install packages in a virtual environment using pip and
+venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/).
+
+```
+
+Fluidsim can be installed without compilation with `pip`:
+
+```sh
+pip install pip -U
+pip install fluidsim
+```
+
+However, fluidsim can optionally use [fluidfft](http://fluidfft.readthedocs.io)
+for pseudospectral solvers. Fluidsim and fluidfft can be both installed without
+compilation with the command:
+
+```sh
+FLUIDFFT_TRANSONIC_BACKEND="python" pip install fluidsim[fft]
+```
+
+Moreover, fluidfft builds can be tweaked so you could have a look at
+[fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
+
+```{warning}
+
+With `FLUIDFFT_TRANSONIC_BACKEND`, fluidfft is installed without compilation so
+one gets a slow version of it. This is fine enough for relatively small
+simulations but not if you care about performance.
+
+Note that we are working hard on a new version of fluidfft (0.4.0) so that we
+will be able to upload compiled wheels on PyPI.
+
+```
 
 ### Installing the conda-forge packages with conda or mamba
 
@@ -32,42 +65,6 @@ mamba create -n env_fluidsim ipython fluidsim "fluidfft[build=mpi*]" "h5py[build
 ```
 
 The environment can then be activated with `conda activate env_fluidsim`.
-
-### Install using pip without compilation
-
-```{warning}
-
-We mention here how to install Fluidsim with `pip` without compilation, but
-this of course leads to a slow version of Fluidsim. Most of the time, this is
-not what you want.
-
-```
-
-```{todo}
-
-Upload wheels on PyPI (for fluidsim and fluidfft) so that we can simplify this
-section a lot.
-
-```
-
-Fluidsim can be installed without compilation with `pip`:
-
-```sh
-pip install pip -U
-pip install fluidsim --config-settings=setup-args=-Dtransonic-backend=python
-```
-
-However, fluidsim can optionally use [fluidfft](http://fluidfft.readthedocs.io)
-for pseudospectral solvers. Fluidsim and fluidfft can be both installed without
-compilation with the command:
-
-```sh
-export FLUIDFFT_TRANSONIC_BACKEND="python"
-pip install fluidsim[fft] --config-settings=setup-args=-Dtransonic-backend=python
-```
-
-Moreover, fluidfft builds can be tweaked so you could have a look at
-[fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
 
 ### Optional dependencies
 
