@@ -36,18 +36,9 @@ def _test(session, env=None):
 def test_without_fft_and_pythran(session):
     command = "pdm sync --clean -G dev -G test -G mpi --no-self"
     session.run_always(*command.split(), external=True)
-    session.install(
-        ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
-    )
+    session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
 
     _test(session, env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"})
-
-
-def _install_fluidfft(session):
-    # first install fluidfft without Pythran compilation
-    session.install(
-        "fluidfft", "--no-deps", env={"FLUIDFFT_TRANSONIC_BACKEND": "python"}
-    )
 
 
 time_last = 0
@@ -66,10 +57,6 @@ def test_with_fft_and_pythran(session):
         print(f"Session started since {timedelta(seconds=time_now - time_start)}")
         time_last = time_now
 
-    _install_fluidfft(session)
-
-    print_times("installing fluidfft")
-
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
 
@@ -82,6 +69,12 @@ def test_with_fft_and_pythran(session):
 
     print_times("installing fluidsim")
 
+    short_names = ["fftw", "mpi_with_fftw", "fftwmpi"]
+    if "GITLAB_CI" in os.environ:
+        short_names.extend(["pfft", "p3dfft"])
+    for short_name in short_names:
+        session.install(f"fluidfft-{short_name}")
+
     _test(session)
 
     print_times("tests")
@@ -89,7 +82,6 @@ def test_with_fft_and_pythran(session):
 
 @nox.session
 def doc(session):
-    _install_fluidfft(session)
     command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")

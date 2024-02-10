@@ -6,13 +6,15 @@ MPI_NUM_PROCS ?= 2
 .PHONY: black black_check clean clean_pyc clean_so cleantransonic coverage_short develop dist lint _report_coverage shortlog tests _tests_coverage tests_mpi
 
 develop: sync
-	pdm run pip install -e . -v --no-build-isolation --no-deps
 
 sync:
-	pdm sync --clean --no-self
+	pdm sync --clean
+
+install_fluidfft_plugins:
+	pdm run pip install fluidfft-fftw fluidfft-fftwmpi fluidfft-mpi_with_fftw
 
 lock:
-	pdm lock -G :all
+	pdm lock
 
 clean_so:
 	find fluidsim -name "*.so" -delete
