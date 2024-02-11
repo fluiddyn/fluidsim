@@ -26,7 +26,7 @@ from .util import (
 
 
 path_results = "/tmp/fluidsim_bench"
-old_print = print
+builtins_print = print
 print = mpi.printby0
 rank = mpi.rank
 nb_proc = mpi.nb_proc
@@ -96,31 +96,24 @@ def get_opfft(n0, n1, n2=None, dim=None, type_fft=None, only_dict=False):
     elif isinstance(n2, int) or dim == "3d":
         from fluidfft.fft3d import get_classes_mpi
 
-    if mpi.rank == 0:
-        d = get_classes_mpi()
-    else:
-        d = {}
-
-    if mpi.nb_proc > 1:
-        d = mpi.comm.bcast(d)
+    d = get_classes_mpi()
 
     if only_dict:
         return d
 
+    if type_fft not in d:
+        raise ConsoleError(f"{type_fft} not in {list(d.keys())}")
+
+    ClassFFT = d[type_fft]
+    if ClassFFT is None:
+        raise RuntimeError(f"Class {type_fft} is not available")
+
+    if n2 is None:
+        opfft = ClassFFT(n0, n1)
     else:
-        if type_fft not in d:
-            raise ConsoleError(f"{type_fft} not in {list(d.keys())}")
+        opfft = ClassFFT(n0, n1, n2)
 
-        ClassFFT = d[type_fft]
-        if ClassFFT is None:
-            raise RuntimeError(f"Class {type_fft} is not available")
-
-        if n2 is None:
-            opfft = ClassFFT(n0, n1)
-        else:
-            opfft = ClassFFT(n0, n1, n2)
-
-        return opfft
+    return opfft
 
 
 def estimate_shapes_weak_scaling(
@@ -206,7 +199,7 @@ def print_shape_loc(n0, n1, n2=None, type_fft=None):
     shapeK_loc = opfft.get_shapeK_loc()
     print("-" * 8)
     print("type fft = ", type_fft)
-    old_print(
+    builtins_print(
         f"rank {rank}: shapeX_loc = {shapeX_loc}, shapeK_loc = {shapeK_loc}"
     )
 
@@ -257,7 +250,8 @@ def run(args):
     if args.list_type_fft:
         print("FFT classes available for", args.dim.upper())
         d = get_opfft(args.n0, args.n1, args.n2, dim=args.dim, only_dict=True)
-        info._print_dict(d)
+        if rank == 0:
+            info._print_dict(d)
     elif args.print_shape_loc:
         if args.type_fft is None:
             raise ValueError(
