@@ -18,10 +18,10 @@ keywords = [
 authors = [
     {name = "pierre.augier", email = "pierre.augier@univ-grenoble-alpes.fr"},
 ]
-version = '0.8.0'
+version = '0.8.1'
 requires-python = ">=3.9"
 dependencies = [
-    "fluidsim-core>=0.8.0",
+    "fluidsim-core>=0.8.1",
     "h5py",
     "h5netcdf",
     "transonic>=0.6.1",

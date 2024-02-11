@@ -24,6 +24,10 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
+## [0.8.1] (2024-02-12)
+
+- Few fixes for Fluidfft 0.4.0
+
 ## [0.8.0] (2024-01-31)
 
 - Build and upload wheels on PyPI with Github Actions!
@@ -323,4 +327,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.7.3]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.2...0.7.3
 [0.7.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...0.7.4
 [0.8.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.4...0.8.0
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.0...branch%2Fdefault
+[0.8.1]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.0...0.8.1
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.1...branch%2Fdefault
