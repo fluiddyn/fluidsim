@@ -86,6 +86,7 @@ pixi-test:
 # it is quite unnecessary to run on every invocation.
 image:build:
   stage: image
+  needs: []
   tags:
     - container-registry-push
   rules:
