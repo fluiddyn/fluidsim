@@ -5,7 +5,7 @@
 groups = ["default", "build", "dev", "doc", "fft", "mpi", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:549c880a99bfc962d5415d41e9e49ede6659690e8612c7d99752e3ef59afac82"
+content_hash = "sha256:8f942979051baeff7e973d0309c20806d52eedb32afde3382461b333fccc8820"
 
 [[package]]
 name = "alabaster"
@@ -755,7 +755,7 @@ files = [
 
 [[package]]
 name = "fluidfft"
-version = "0.4.0rc1"
+version = "0.4.0rc2"
 requires_python = ">=3.9"
 summary = "Efficient and easy Fast Fourier Transform (FFT) for Python."
 groups = ["fft"]
@@ -765,27 +765,27 @@ dependencies = [
     "transonic>=0.4",
 ]
 files = [
-    {file = "fluidfft-0.4.0rc1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:073f6473d240a9594d68928e16041866c60853c4acd8743fad2c7f6bedbe34ae"},
-    {file = "fluidfft-0.4.0rc1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:30ccf04c02887c9243aa770132c6c148fc7b6e77d664778fa06fbfcb8b9172d7"},
-    {file = "fluidfft-0.4.0rc1-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:83b971d967db6e42f7d4c9dcaa7610791750d14fa7089eed724edba61bea5148"},
-    {file = "fluidfft-0.4.0rc1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6d86f73a44d7b602ca170b8882610dacab373ac66228030e4b89a809ce77fb2e"},
-    {file = "fluidfft-0.4.0rc1-cp310-cp310-win_amd64.whl", hash = "sha256:34357b6658f77eb92c8e24daa8bb7b55b56244e5ab68ac4194500fb7a40783a7"},
-    {file = "fluidfft-0.4.0rc1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:0146a7ab2f07beef458282d6c405258ebd28eaf425bd7168ba8b4588c1a5e124"},
-    {file = "fluidfft-0.4.0rc1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:61474f5c8ff5e2e70a2b475f8d631cdb7eda8010b189fee1dc9ef79e7c92c0c9"},
-    {file = "fluidfft-0.4.0rc1-cp311-cp311-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:01f5fb4dfeb3fbd46ff77988bd0bf4b9c1aade4c381c6024c3e518a6d92f3007"},
-    {file = "fluidfft-0.4.0rc1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:60508648a51280a362169f4c46877b46952a3aea3a7ac758fb792fa0f230a536"},
-    {file = "fluidfft-0.4.0rc1-cp311-cp311-win_amd64.whl", hash = "sha256:c5aea07d2265b57922f49687d4d8861b5c8c88596026e26f94a0f2a2de173513"},
-    {file = "fluidfft-0.4.0rc1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:2b840277f40d107b124b02797849039420b1cf7ac159c605be37fb5d1eb646c4"},
-    {file = "fluidfft-0.4.0rc1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ac51167b20dc70cb5541e739820b54216d038c20d82b1fd7ca5df3f271a4602e"},
-    {file = "fluidfft-0.4.0rc1-cp312-cp312-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7626b8a89429a62c83be8339b4934b34319fa05cc15e0e9cd350d1c9b07e3810"},
-    {file = "fluidfft-0.4.0rc1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bc4e27fcbeadeb01d631d78a01b39f5641686dee59b85e5d3ad296c6f5801cd2"},
-    {file = "fluidfft-0.4.0rc1-cp312-cp312-win_amd64.whl", hash = "sha256:50da9f0ae4c34f5ca276f42be4fac54b60977e0b31dbea89033bb76c3154101f"},
-    {file = "fluidfft-0.4.0rc1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:64be1203a43e826188ea38ffd684dfd8b59e77c4c9cb019a4e74394f4494ea90"},
-    {file = "fluidfft-0.4.0rc1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:b373f2ba65b329a5212e4cf9e889981ff74aaf55691d40f133c647432fb42817"},
-    {file = "fluidfft-0.4.0rc1-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:396b7bb3ad637af85a86bd9298622c22d0e7d68c851f3144cad60aeeeb704142"},
-    {file = "fluidfft-0.4.0rc1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6559dae22a76271b37129d56fb13006838cf645eb4f4f7fd6a9d9aac1d472a67"},
-    {file = "fluidfft-0.4.0rc1-cp39-cp39-win_amd64.whl", hash = "sha256:02cea2da9f4ac7d865f9ce4617bd400444e18a1537b93d73112090e69df20a28"},
-    {file = "fluidfft-0.4.0rc1.tar.gz", hash = "sha256:77b1f2e09b66001aff330c1c21f45405101f9d1383a5929593a4ccdeed8e4b82"},
+    {file = "fluidfft-0.4.0rc2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b2b633441c853a7307f68b032a1677a62174dd21b4e4cb9afec254f96570d8cb"},
+    {file = "fluidfft-0.4.0rc2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b491ee383e2a158f9d6a57749c5b5d9c54418f96a892507f0a235197f49fb126"},
+    {file = "fluidfft-0.4.0rc2-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:60df47e03f88f276bacd44066f542966d3855811a20b4e8268c84bcd4f770b5f"},
+    {file = "fluidfft-0.4.0rc2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:21f227b5a5e7b03601fbba2a76a7eb0cbefd2e067517384705b14c7032da1339"},
+    {file = "fluidfft-0.4.0rc2-cp310-cp310-win_amd64.whl", hash = "sha256:f60f08df01a89c81d41ca440dfc72f8b5c203f6c719e2b22182ec46ac493671c"},
+    {file = "fluidfft-0.4.0rc2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:fc19ede9b25d26d7b3f13077d49ebf755cae807694a24a2027188e58e5357ed4"},
+    {file = "fluidfft-0.4.0rc2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:134bb56666b415e2ac41c6d9bfe6372aeca213e52557be7aad6a69c2d686758a"},
+    {file = "fluidfft-0.4.0rc2-cp311-cp311-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:00bdf0408a1c5686518b35ed86451eb56bf9ccbe9aeae34ffd964422cb20854e"},
+    {file = "fluidfft-0.4.0rc2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e86773325958e889b5e06ceff23cd8626b3de5b8815b13ac129d9c266a9417eb"},
+    {file = "fluidfft-0.4.0rc2-cp311-cp311-win_amd64.whl", hash = "sha256:f71078174546f8155b7b5cfe04680f051a92311738ca2c9a63aa87609fa4ca82"},
+    {file = "fluidfft-0.4.0rc2-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:e6e49016791ed33d0b6f326e57fc67d7566b1c5c25ae9ac621ca1d0371e673f6"},
+    {file = "fluidfft-0.4.0rc2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:e23bfa9d2b0b32325d1187a6db35b0a6a10de39350082861ece8305b37b5c30f"},
+    {file = "fluidfft-0.4.0rc2-cp312-cp312-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:88d1dcdf9ea567a80460a269acdde16c5841f57ad7f954b2eadb2665d1de928b"},
+    {file = "fluidfft-0.4.0rc2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c5803b5a3d5e3e488cf391f80f05ecffc6be3c17f2c9ea6001e736ca004553dc"},
+    {file = "fluidfft-0.4.0rc2-cp312-cp312-win_amd64.whl", hash = "sha256:eca313fac875e608ee13b4bce7e39064ef8b0a9bdcd0e0bceb1665afcea97a21"},
+    {file = "fluidfft-0.4.0rc2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:dcbf4a72f535bf6c1eaca398447c9d9aa911396dc78d9067ab791364c6be0403"},
+    {file = "fluidfft-0.4.0rc2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:ad617e14a398df0d4c3202a414b80959f4b9f872c6b994fe3e4ee59de13c8d3a"},
+    {file = "fluidfft-0.4.0rc2-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:646a6a64a452bb578d21ec7ba23437b08303d4a3ee9c9123d5898d0a62496712"},
+    {file = "fluidfft-0.4.0rc2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:106d6c3db138f07dadffc9cf19eabe1df3502807d8250b9dbb960bc5e189c29d"},
+    {file = "fluidfft-0.4.0rc2-cp39-cp39-win_amd64.whl", hash = "sha256:385f864808947bb8528f568a44ac8a738c462959631f7a1eb45feb4afdb47d26"},
+    {file = "fluidfft-0.4.0rc2.tar.gz", hash = "sha256:e94ac10ead1cc2d2f9732ebb2318a78b37adf1cc4ce8169decd79fa2ec72fa92"},
 ]
 
 [[package]]
