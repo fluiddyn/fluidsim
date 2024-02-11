@@ -59,7 +59,7 @@ readme = "README.md"
 
 fft = [
     "pyfftw >= 0.10.4",
-    "fluidfft >= 0.4.0rc2",
+    "fluidfft >= 0.4.0",
 ]
 # sphere = [
 #     "fluidsht >= 0.0.3a0",
