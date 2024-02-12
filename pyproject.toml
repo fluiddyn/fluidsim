@@ -18,10 +18,10 @@ keywords = [
 authors = [
     {name = "pierre.augier", email = "pierre.augier@univ-grenoble-alpes.fr"},
 ]
-version = '0.8.0'
+version = '0.8.1'
 requires-python = ">=3.9"
 dependencies = [
-    "fluidsim-core>=0.8.0",
+    "fluidsim-core>=0.8.1",
     "h5py",
     "h5netcdf",
     "transonic>=0.6.1",
@@ -59,7 +59,7 @@ readme = "README.md"
 
 fft = [
     "pyfftw >= 0.10.4",
-    "fluidfft >= 0.2.7",
+    "fluidfft >= 0.4.0",
 ]
 # sphere = [
 #     "fluidsht >= 0.0.3a0",
@@ -134,6 +134,9 @@ onlywaves = "fluidsim.solvers.sw1l.onlywaves.solver"
 [tool.meson-python.args]
 setup = ['-Doptimization=3']
 
+[tool.pdm]
+ignore_package_warnings = ["ipython"]
+
 [tool.pdm.dev-dependencies]
 
 # because meson-python editable build needs the build dependencies
@@ -168,6 +171,10 @@ lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) fluidsim --exit-zero
 black_check = 'black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
 validate_code = {composite = ["black_check", "lint"]}
 
+[tool.pdm.options]
+lock = ["-G", ":all"]
+sync = ["--no-isolation"]
+install = ["--no-isolation"]
 
 [tool.coverage.run]
 source = [

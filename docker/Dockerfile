@@ -42,14 +42,13 @@ RUN mkdir -p $HOME/.local/lib
 RUN ln -s /usr/include/fftw* $HOME/.local/include
 RUN ln -s /usr/lib/x86_64-linux-gnu/libfftw3* $HOME/.local/lib
 
-ENV LD_LIBRARY_PATH=$HOME/.local/lib
 ENV PATH=$HOME/.local/bin:$PATH
+ENV LIBRARY_PATH=$HOME/.local/lib
 ENV CPATH=$HOME/.local/include:$CPATH
+ENV LD_LIBRARY_PATH=$HOME/.local/lib
 
 RUN mkdir -p $HOME/.config/matplotlib
 RUN echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
-
-RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/site.cfg.files/site.cfg.docker_mpi -O ~/.fluidfft-site.cfg
 
 RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/install/install_p3dfft.sh -O ./install_p3dfft.sh
 RUN chmod +x install_p3dfft.sh

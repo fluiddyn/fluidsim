@@ -41,7 +41,7 @@ fft = "fftwmpi3d"
 # fft = 'p3dfft'
 
 # for sequential runs, just comment these 2 lines
-params.oper.type_fft = "fluidfft.fft3d.mpi_with_" + fft
+params.oper.type_fft = "fft3d.mpi_with_" + fft
 params.short_name_type_run = fft
 
 r"""
