@@ -28,7 +28,6 @@ jobs:
         pip install pdm nox
     - name: Test with nox
       run: |
-        cp .github/workflows/.fluidfft-site.cfg $HOME
         nox -s test_without_fft_and_pythran
         mv .coverage/coverage.xml coverage_without_fft_and_pythran.xml
         nox -s test_with_fft_and_pythran

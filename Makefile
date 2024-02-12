@@ -56,40 +56,6 @@ tests:
 tests_mpi:
 	mpirun -np 2 fluidsim-test -v --exitfirst
 
-define _test_mpi_fft_lib
-	FLUIDSIM_TYPE_FFT=$(1) TRANSONIC_NO_REPLACE=1 mpirun -np $(2) --oversubscribe \
-	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py
-endef
-
-_tests_coverage:
-	mkdir -p .coverage
-	coverage run -p -m pytest -v -s lib
-	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftwmpi3d,2)
-	$(call _test_mpi_fft_lib,fft3d.mpi_with_fftw1d,2)
-	# tests with p3dfft cannot be run together...
-	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe \
-	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py -k "not TestCoarse"
-	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe \
-	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py::TestCoarse
-	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np 4 --oversubscribe \
-	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py::TestCoarse
-	# There is a problem in the CI with a test using mpi_with_pfft
-	# $(call _test_mpi_fft_lib,fft3d.mpi_with_pfft,2)
-	# $(call _test_mpi_fft_lib,fft3d.mpi_with_pfft,4)
-	coverage run -p -m fluidsim.util.testing -v
-	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v
-	TRANSONIC_NO_REPLACE=1 mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst
-
-_report_coverage:
-	coverage combine
-	coverage report
-	coverage html
-	coverage xml
-	@echo "Code coverage analysis complete. View detailed report:"
-	@echo "file://${PWD}/.coverage/index.html"
-
-coverage: _tests_coverage _report_coverage
-
 
 define _init_coverage
 	rm -rf .coverage
