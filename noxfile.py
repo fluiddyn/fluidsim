@@ -18,7 +18,25 @@ def validate_code(session):
     session.run("pdm", "validate_code", external=True)
 
 
-def _test(session, env=None):
+def test_mpi_fft_lib(session, method_fft, nprocs=2, _k_expr=None, env=None):
+    cmd = (
+        f"mpirun -np {nprocs} --oversubscribe "
+        "coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py"
+    ).split()
+    if _k_expr is not None:
+        cmd.extend(["-k", _k_expr])
+
+    if env is None:
+        env = {}
+    else:
+        env = env.copy()
+    env.update({"TRANSONIC_NO_REPLACE": "1", "FLUIDSIM_TYPE_FFT": method_fft})
+
+    print(f"test for method {method_fft}")
+    session.run(*cmd, external=True, env=env)
+
+
+def _test(session, env=None, with_fft=True):
     path_coverage = Path(".coverage")
     rmtree(path_coverage, ignore_errors=True)
     path_coverage.mkdir(exist_ok=True)
@@ -26,7 +44,32 @@ def _test(session, env=None):
     if env is not None:
         print(env)
 
-    session.run("make", "_tests_coverage", external=True, env=env)
+    short_names = []
+    if with_fft:
+        short_names.extend(["fftwmpi3d", "fftw1d"])
+        if "GITLAB_CI" in os.environ:
+            short_names.append("pfft")
+
+    for short_name in short_names:
+        test_mpi_fft_lib(session, f"fft3d.mpi_with_{short_name}")
+
+    if "GITLAB_CI" in os.environ and with_fft:
+        test_mpi_fft_lib(session, "fft3d.mpi_with_pfft", nprocs=4)
+        # tests with p3dfft cannot be run together...
+        method = "fft3d.mpi_with_p3dfft"
+        test_mpi_fft_lib(session, method, nprocs=2, _k_expr="not TestCoarse")
+        test_mpi_fft_lib(session, method, nprocs=2, _k_expr="TestCoarse")
+        test_mpi_fft_lib(session, method, nprocs=4, _k_expr="TestCoarse")
+
+    cmd = "coverage run -p -m fluidsim.util.testing -v"
+    for _env in ({}, {"TRANSONIC_NO_REPLACE": "1"}):
+        if env is not None:
+            _env.update(env)
+        session.run(*cmd.split(), env=_env)
+
+    cmd = "mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst"
+    session.run(*cmd.split(), env=env, external=True)
+
     session.run("coverage", "combine")
     session.run("coverage", "report")
     session.run("coverage", "xml")
@@ -38,24 +81,28 @@ def test_without_fft_and_pythran(session):
     session.run_always(*command.split(), external=True)
     session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
 
-    _test(session, env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"})
+    _test(
+        session,
+        env={"TRANSONIC_BACKEND": "python", "TRANSONIC_NO_REPLACE": "1"},
+        with_fft=False,
+    )
 
 
-time_last = 0
+class TimePrinter:
+    def __init__(self):
+        self.time_start = self.time_last = time()
+
+    def __call__(self, task: str):
+        time_now = time()
+        if self.time_start != self.time_last:
+            print(f"Time for {task}: {timedelta(seconds=time_now - self.time_last)}")
+        print(f"Session started since {timedelta(seconds=time_now - self.time_start)}")
+        self.time_last = time_now
 
 
 @nox.session
 def test_with_fft_and_pythran(session):
-    global time_last
-    time_start = time_last = time()
-
-    def print_times(task: str):
-        global time_last
-        time_now = time()
-        if time_start != time_last:
-            print(f"Time for {task}: {timedelta(seconds=time_now - time_last)}")
-        print(f"Session started since {timedelta(seconds=time_now - time_start)}")
-        time_last = time_now
+    print_times = TimePrinter()
 
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
     session.run_always(*command.split(), external=True)
@@ -82,13 +129,18 @@ def test_with_fft_and_pythran(session):
 
 @nox.session
 def doc(session):
+    print_times = TimePrinter()
     command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
+    print_times("pdm sync")
+
     session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
+    print_times("install self")
 
     session.chdir("doc")
     session.run("make", "cleanall", external=True)
     session.run("make", external=True)
+    print_times("make doc")
 
 
 def _get_version_from_pyproject(path=Path.cwd()):
