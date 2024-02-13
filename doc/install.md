@@ -24,26 +24,22 @@ pip install pip -U
 pip install fluidsim
 ```
 
-However, fluidsim can optionally use [fluidfft](http://fluidfft.readthedocs.io)
-for pseudospectral solvers. Fluidsim and fluidfft can be both installed without
+However, fluidsim requires [fluidfft](http://fluidfft.readthedocs.io) for
+pseudospectral solvers. Fluidsim and fluidfft can be both installed without
 compilation with the command:
 
 ```sh
-FLUIDFFT_TRANSONIC_BACKEND="python" pip install fluidsim[fft]
+pip install fluidsim[fft]
 ```
 
-Moreover, fluidfft builds can be tweaked so you could have a look at
-[fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
+Moreover, fluidfft works with pluggins to compute FFTs with different methods
+(see the [fluidfft
+documentation](http://fluidfft.readthedocs.io/en/latest/install.html)). For
+example, to install Fluidfft plugins using the FFTW library, one can run (but
+it will trigger compilation):
 
-```{warning}
-
-With `FLUIDFFT_TRANSONIC_BACKEND`, fluidfft is installed without compilation so
-one gets a slow version of it. This is fine enough for relatively small
-simulations but not if you care about performance.
-
-Note that we are working hard on a new version of fluidfft (0.4.0) so that we
-will be able to upload compiled wheels on PyPI.
-
+```sh
+pip install fluidfft[fftw,fftwmpi,mpi_with_fftw]
 ```
 
 ### Installing the conda-forge packages with conda or mamba
