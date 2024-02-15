@@ -3,7 +3,7 @@ requires = [
          "meson-python",
          "numpy",
          # "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
-         "transonic>=0.6.1",
+         "transonic>=0.6.2",
          "pythran>=0.9.7",
          ]
 build-backend = 'mesonpy'
@@ -24,7 +24,7 @@ dependencies = [
     "fluidsim-core>=0.8.1",
     "h5py",
     "h5netcdf",
-    "transonic>=0.6.1",
+    "transonic>=0.6.2",
     "xarray",
     "rich",
     "matplotlib>=3.3",
@@ -144,7 +144,7 @@ build = [
     "meson-python",
     "numpy",
     # "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic@default",
-    "transonic>=0.6.1",
+    "transonic>=0.6.2",
     "pythran>=0.9.7",
     "ninja",
 ]
