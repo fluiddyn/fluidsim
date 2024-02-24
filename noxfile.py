@@ -127,8 +127,24 @@ def test_with_fft_and_pythran(session):
     print_times("tests")
 
 
+@nox.session(name="test-examples")
+def test_examples(session):
+    """Execute the examples using pytest"""
+
+    command = "pdm sync --clean -G test -G mpi -G fft -G dev --no-self"
+    session.run_always(*command.split(), external=True)
+
+    session.install(".")
+    session.install("fluidfft-fftwmpi")
+
+    session.chdir("doc/examples")
+    session.run("make", "test", external=True)
+    session.run("make", "test_mpi", external=True)
+
+
 @nox.session
 def doc(session):
+    """Build the documentation"""
     print_times = TimePrinter()
     command = "pdm sync -G doc -G fft -G test --no-self"
     session.run_always(*command.split(), external=True)
@@ -147,7 +163,7 @@ def _get_version_from_pyproject(path=Path.cwd()):
     if isinstance(path, str):
         path = Path(path)
 
-    if not path.name == "pyproject.toml":
+    if path.name != "pyproject.toml":
         path /= "pyproject.toml"
 
     in_project = False

@@ -94,16 +94,8 @@ Fluidsim is sensitive to environment variables:
 
 ## Fluidfft
 
-Fluidsim uses Fluidfft to compute Fourier transforms. Fluidfft can be installed in
-different modes. Have a look at the
+Fluidsim uses Fluidfft to compute Fourier transforms. Have a look at the
 [fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html).
-
-```{todo}
-
-Fluidfft should be fully reorganized so that we can write here something simple
-and nice.
-
-```
 
 ## MPI simulations and mpi4py
 
