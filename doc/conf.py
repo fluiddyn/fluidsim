@@ -381,14 +381,6 @@ autodoc_member_order = "bysource"
 
 todo_include_todos = True
 
-# CSS selector which modifies the sphinx-copybutton feature
-copybutton_selector = ",".join(
-    [
-        f"div.highlight-{css_class} div.highlight pre"
-        for css_class in ("python", "ipython3", "default")
-    ]
-)
-
 nb_execution_raise_on_error = True
 nb_execution_show_tb = True
 nb_merge_streams = True

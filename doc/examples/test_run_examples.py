@@ -1,6 +1,5 @@
 import unittest
 import os
-from pathlib import Path
 import shutil
 
 import pytest
