@@ -4,6 +4,7 @@ python_sources = [
   'cross_corr3d.py',
   'horiz_means.py',
   'increments.py',
+  'kolmo_law3d.py',
   'phys_fields1d.py',
   'phys_fields2d.py',
   'phys_fields3d.py',
