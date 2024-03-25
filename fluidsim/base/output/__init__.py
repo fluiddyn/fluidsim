@@ -24,6 +24,7 @@ Provides:
    spectra3d
    temporal_spectra
    time_signals_fft
+   kolmo_law3d
 
 .. autoclass:: OutputBase
    :members:
