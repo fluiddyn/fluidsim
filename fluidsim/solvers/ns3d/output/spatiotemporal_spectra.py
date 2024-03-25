@@ -96,7 +96,6 @@ def _sum_wavenumber3D(field, KX, kx_max):
 
 
 class SpatioTemporalSpectraNS3D(SpatioTemporalSpectraNS, SpatioTemporalSpectra3D):
-
     compute_spectrum_kzkhomega = staticmethod(compute_spectrum_kzkhomega)
     _sum_wavenumber = staticmethod(_sum_wavenumber3D)
 

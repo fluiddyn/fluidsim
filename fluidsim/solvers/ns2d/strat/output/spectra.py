@@ -80,11 +80,11 @@ class SpectraNS2DStrat(Spectra):
             spectrum2D = spectrum2D_EK + spectrum2D_EA
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D * coef_norm, "k")
-            lin_inf, lin_sup = self.axe.get_ylim()
+            self.ax.loglog(khE, spectrum2D * coef_norm, "k")
+            lin_inf, lin_sup = self.ax.get_ylim()
             if lin_inf < 10e-6:
                 lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.set_ylim([lin_inf, lin_sup])
         else:
             print(
                 "you need to implement the ploting "
@@ -96,7 +96,6 @@ class SpectraNS2DStrat(Spectra):
     ):
         means = {}
         with h5py.File(self.path_file1D, "r") as h5file:
-
             # Open data from file
             dset_times = h5file["times"]
             dset_kxE = h5file["kxE"]
@@ -180,7 +179,7 @@ class SpectraNS2DStrat(Spectra):
     ):
         """Plot spectra one-dimensional."""
         print(
-            "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
+            f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
             + f" coef_compensate={coef_compensate:.3f})"
         )
 
@@ -336,7 +335,6 @@ class SpectraNS2DStrat(Spectra):
         # set_trace()
 
     def load2d_means(self, tmin=0, tmax=1000, delta_t=2):
-
         means = {}
         # Load data from file
         with h5py.File(self.path_file2D, "r") as h5file:
@@ -385,8 +383,8 @@ class SpectraNS2DStrat(Spectra):
         """Plot 2D spectra."""
 
         print(
-            "plot2s(tmin={}, tmax={}, delta_t={:.2f},".format(tmin, tmax, delta_t)
-            + f" coef_compensate={coef_compensate:.3f})"
+            f"plot2s(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
+            f" coef_compensate={coef_compensate:.3f})"
         )
 
         means = self.load2d_means(tmin, tmax, delta_t)

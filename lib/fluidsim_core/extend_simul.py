@@ -9,6 +9,7 @@
 
 """
 
+from abc import ABCMeta, abstractclassmethod
 from logging import warn
 from pathlib import Path
 
@@ -48,7 +49,7 @@ def extend_simul_class(Simul, extenders):
     return NewSimul
 
 
-class SimulExtender:
+class SimulExtender(metaclass=ABCMeta):
     """Abstract class to define a "Simul extender"
 
     Simul extenders are classes that can extend a ``Simul`` class to change its
@@ -62,7 +63,7 @@ class SimulExtender:
 
     """
 
-    @classmethod
+    @abstractclassmethod
     def get_modif_info_solver(cls):
         """Create a function to modify ``info_solver``.
 
@@ -72,15 +73,15 @@ class SimulExtender:
         ``info_solver``.
 
         """
-        raise NotImplementedError
 
-    @classmethod
+    @abstractclassmethod
     def complete_params_with_default(cls, params):
         """Should complete the simul parameters"""
-        raise NotImplementedError
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        # so that writers of SimulExtender classes can write
+        # complete_params_with_default without _
         cls.complete_params_with_default(params)
 
 

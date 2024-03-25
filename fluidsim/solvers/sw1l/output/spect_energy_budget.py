@@ -14,7 +14,6 @@ class SpectralEnergyBudgetSW1LBase(SpectralEnergyBudgetBase):
     """Save and plot spectral energy budgets."""
 
     def __init__(self, output):
-
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -174,7 +173,6 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
         return dict_results
 
     def _online_plot_saving(self, dict_results):
-
         transfer2D_CPE = dict_results["transfer2D_CPE"]
         transfer2D_EK = dict_results["transfer2D_EK"]
         transfer2D_EA = dict_results["transfer2D_EA"]
@@ -190,9 +188,7 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
         self.axe_b.plot(khE + khE[1], PiCPE, "g")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
             khE = dset_khE[...]
@@ -221,17 +217,12 @@ class SpectralEnergyBudgetMSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})\n"
+                f"""plot fluxes 2D
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
-            print(to_print)
-
-            to_print = """plot fluxes 2D
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             x_left_axe = 0.12
             z_bottom_axe = 0.36
@@ -478,7 +469,6 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
         return dict_results
 
     def _online_plot_saving(self, dict_results):
-
         # Tens = dict_results["Tens"]
         Tq_GGG = dict_results["Tq_GGG"]
         Tq_AGG = dict_results["Tq_AGG"]
@@ -549,9 +539,7 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             self.axe_b.set_ylabel(r"$\Sigma C(k_h)$")
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
-
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
             khE = dset_khE[...] + 0.1  # Offset for semilog plots
@@ -569,18 +557,12 @@ class SpectralEnergyBudgetSW1L(SpectralEnergyBudgetSW1LBase):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})\n"
+                "plot fluxes 2D"
+                f", tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}"
+                f", imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"
             )
-            print(to_print)
-
-            to_print = "plot fluxes 2D" + (
-                ", tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-                + ", imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-            ).format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             # -------------------------
             #  Transfer terms

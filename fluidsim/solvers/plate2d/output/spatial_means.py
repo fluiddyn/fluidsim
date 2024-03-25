@@ -91,7 +91,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             Fz_fft = forcing_fft.get_var("z_fft")
             assert np.allclose(
                 abs(Fz_fft).max(), 0.0
-            ), "abs(Fz_fft).max(): {}".format(abs(Fz_fft).max())
+            ), f"abs(Fz_fft).max(): {abs(Fz_fft).max()}"
 
             P1_fft = np.real(w_fft.conj() * Fw_fft)
             P2_fft = (abs(Fw_fft) ** 2) * deltat / 2
@@ -103,41 +103,27 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             epsK_tot = epsK + epsK_hypo
 
             self.file.write(f"####\ntime = {tsim:17.13f}\n")
-            to_print = (
-                "E    = {:31.26e} ; E_k    = {:11.6e} ; "
-                "E_l    = {:11.6e} ; E_e    = {:11.6e}\n"
-                "epsK = {:11.6e} ; epsK_hypo = {:11.6e} ; "
-                "epsK_tot = {:11.6e}\n"
-                "conv_k_to_l = {:11.6e} : conv_l_to_e = {:11.6e}\n"
-            ).format(
-                energy,
-                energy_k,
-                energy_l,
-                energy_e,
-                epsK,
-                epsK_hypo,
-                epsK + epsK_hypo,
-                conversion_k_to_l,
-                conversion_l_to_e,
+            self.file.write(
+                f"E    = {energy:31.26e} ; E_k    = {energy_k:11.6e} ; "
+                f"E_l    = {energy_l:11.6e} ; E_e    = {energy_e:11.6e}\n"
+                f"epsK = {epsK:11.6e} ; epsK_hypo = {epsK_hypo:11.6e} ; "
+                f"epsK_tot = {epsK + epsK_hypo:11.6e}\n"
+                f"conv_k_to_l = {conversion_k_to_l:11.6e} : conv_l_to_e = {conversion_l_to_e:11.6e}\n"
             )
 
-            self.file.write(to_print)
-
             if self.sim.params.forcing.enable:
-                to_print = (
-                    "P1 = {:11.6e} ; P2 = {:11.6e} ; P_tot = {:11.6e} \n"
-                ).format(P1, P2, P1 + P2)
-                self.file.write(to_print)
+                self.file.write(
+                    f"P1 = {P1:11.6e} ; P2 = {P2:11.6e} ; P_tot = {P1 + P2:11.6e} \n"
+                )
 
             self.file.flush()
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
-            self.axe_a.plot(tsim, energy, "k.")
-            self.axe_a.plot(tsim, energy_k, "r.")
-            self.axe_a.plot(tsim, energy_l, "b.")
-            self.axe_a.plot(tsim, energy_e, "y.")
+            self.ax_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy_k, "r.")
+            self.ax_a.plot(tsim, energy_l, "b.")
+            self.ax_a.plot(tsim, energy_e, "y.")
 
             self.axe_b.plot(tsim, epsK_tot, "k.")
             self.axe_b.plot(tsim, conversion_k_to_l, "c.")
@@ -147,7 +133,7 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
@@ -172,8 +158,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
                 lines_epsK.append(line)
 
         nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
 
         t = np.empty(nt)
         E = np.empty(nt)
@@ -203,7 +187,6 @@ class SpatialMeansPlate2D(SpatialMeansBase):
             E_e[il] = float(words[14])
 
             if self.sim.params.forcing.enable:
-
                 line = lines_P[il]
                 words = line.split()
                 P1[il] = float(words[2])

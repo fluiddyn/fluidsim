@@ -17,7 +17,6 @@ class TestSimulBase(Base):
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
-
         params = super().init_params()
         params.forcing.enable = True
         params.forcing.type = "tcrandom"
@@ -41,7 +40,6 @@ class TestForcingOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
     def test_forcing_output(self):
-
         sim = self.sim
 
         sim.time_stepping.start()
@@ -87,7 +85,7 @@ class TestForcingOutput(TestSimulBase):
             sim2.output.phys_fields.animate(
                 "ux",
                 dt_frame_in_sec=1e-6,
-                dt_equations=0.3,
+                dt_equations=0.25,
                 repeat=False,
                 clim=(-1, 1),
                 save_file=False,

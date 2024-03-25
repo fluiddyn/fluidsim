@@ -22,7 +22,7 @@ class SpectraSW1L(Spectra):
     def _init_online_plot(self):
         super()._init_online_plot()
         if mpi.rank == 0:
-            self.axe.set_title("spectra\n" + self.output.summary_simul)
+            self.ax.set_title("spectra\n" + self.output.summary_simul)
 
     def compute(self):
         """compute the values at one time."""
@@ -127,15 +127,15 @@ class SpectraSW1L(Spectra):
             spectrum2D_EKd = spectrum2D_EK - spectrum2D_EKr
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D_E * coef_norm, "k")
-            self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r")
-            self.axe.loglog(khE, spectrum2D_EA * coef_norm, "b")
-            self.axe.loglog(khE, spectrum2D_EKr * coef_norm, "r--")
-            self.axe.loglog(khE, spectrum2D_EKd * coef_norm, "r:")
-            lin_inf, lin_sup = self.axe.get_ylim()
+            self.ax.loglog(khE, spectrum2D_E * coef_norm, "k")
+            self.ax.loglog(khE, spectrum2D_EK * coef_norm, "r")
+            self.ax.loglog(khE, spectrum2D_EA * coef_norm, "b")
+            self.ax.loglog(khE, spectrum2D_EKr * coef_norm, "r--")
+            self.ax.loglog(khE, spectrum2D_EKd * coef_norm, "r:")
+            lin_inf, lin_sup = self.ax.get_ylim()
             if lin_inf < 10e-6:
                 lin_inf = 10e-6
-            self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.set_ylim([lin_inf, lin_sup])
         else:
             print(
                 "you need to implement the ploting "
@@ -152,7 +152,6 @@ class SpectraSW1L(Spectra):
         ax: Optional[mpl.axes.Axes] = None,
         help_lines: bool = True,
     ):
-
         with h5py.File(self.path_file1D, "r") as h5file:
             dset_times = h5file["times"]
             times = dset_times[...]
@@ -185,17 +184,12 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f}, ...)\n"
+                f"""plot 1D spectra
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
-            print(to_print)
-
-            to_print = """plot 1D spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             if ax is None:
                 fig, ax = self.output.figure_axe()
@@ -261,7 +255,6 @@ class SpectraSW1L(Spectra):
         ax: Optional[mpl.axes.Axes] = None,
         help_lines: bool = True,
     ):
-
         with h5py.File(self.path_file2D, "r") as h5file:
             times = h5file["times"][...]
 
@@ -284,17 +277,12 @@ class SpectraSW1L(Spectra):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                tmin, tmax, delta_t
+            print(
+                f"plot2d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f}, ...)\n"
+                f"""plot 2D spectra
+    tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}
+    imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"""
             )
-            print(to_print)
-
-            to_print = """plot 2D spectra
-    tmin = {:8.6g} ; tmax = {:8.6g} ; delta_t = {:8.6g}
-    imin = {:8d} ; imax = {:8d} ; delta_i = {:8d}""".format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
-            )
-            print(to_print)
 
             if ax is None:
                 fig, ax = self.output.figure_axe()

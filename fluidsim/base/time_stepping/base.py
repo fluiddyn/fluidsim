@@ -112,6 +112,9 @@ max_elapsed: number or str (default None)
             signal.signal(signal.SIGUSR2, handler_signals)
         except ValueError:
             warn("Cannot handle signals - is multithreading on?")
+        except AttributeError:
+            # no SIGUSR2 on Windows
+            pass
 
         try:
             param_max_elapsed = self.params.time_stepping.max_elapsed
@@ -243,7 +246,6 @@ max_elapsed: number or str (default None)
 
 class TimeSteppingBase(TimeSteppingBase0):
     def _init_compute_time_step(self):
-
         params_ts = self.params.time_stepping
 
         if params_ts.USE_CFL:
@@ -295,7 +297,6 @@ class TimeSteppingBase(TimeSteppingBase0):
         self.deltat_max = params_ts.deltat_max
 
     def _init_time_scheme(self):
-
         params_ts = self.params.time_stepping
 
         if params_ts.type_time_scheme == "RK2":
@@ -338,7 +339,6 @@ class TimeSteppingBase(TimeSteppingBase0):
         self._compute_time_increment_CLF_from_tmp(tmp)
 
     def _compute_time_increment_CLF_from_tmp(self, tmp):
-
         if mpi.nb_proc > 1:
             tmp = mpi.comm.allreduce(tmp, op=mpi.MPI.MAX)
 

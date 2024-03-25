@@ -6,6 +6,7 @@ Launch with::
   mpirun -np 4 python simul_ns3dstrat_waves.py
 
 """
+
 import os
 from math import pi
 
@@ -134,8 +135,7 @@ fluidsim-create-xml-description {sim.output.path_run}
 
 # To visualize with fluidsim:
 
-cd {sim.output.path_run}
-ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
+cd {sim.output.path_run}; fluidsim-ipy-load
 
 # in ipython:
 

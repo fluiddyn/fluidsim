@@ -174,8 +174,7 @@ fluidsim-create-xml-description {sim.output.path_run}
 
 # To visualize with fluidsim:
 
-cd {sim.output.path_run}
-ipython --matplotlib -i -c "from fluidsim import load; sim = load()"
+cd {sim.output.path_run}; fluidsim-ipy-load
 
 # in ipython:
 

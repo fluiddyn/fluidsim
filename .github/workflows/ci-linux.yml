@@ -1,0 +1,40 @@
+name: CI Linux
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+    - name: apt install
+      run: |
+        sudo apt install -y libfftw3-dev libfftw3-mpi-dev \
+          libhdf5-openmpi-dev openmpi-bin libopenmpi-dev \
+          libopenblas-dev
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pdm nox
+    - name: Test with nox
+      run: |
+        nox -s test_without_fft_and_pythran
+        mv .coverage/coverage.xml coverage_without_fft_and_pythran.xml
+        nox -s test_with_fft_and_pythran
+        mv .coverage/coverage.xml coverage_with_fft_and_pythran.xml
+    - uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false # optional (default = false)
+        verbose: true # optional (default = false)
+        files: coverage_without_fft_and_pythran.xml,coverage_with_fft_and_pythran.xml

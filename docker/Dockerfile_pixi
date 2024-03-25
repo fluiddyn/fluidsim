@@ -1,0 +1,32 @@
+FROM debian:bookworm
+LABEL Pierre Augier <pierre.augier@univ-grenoble-alpes.fr>
+
+RUN apt-get update
+
+RUN apt-get install -y --no-install-recommends \
+  mercurial python3-pip wget sudo \
+  --option=Dpkg::Options::=--force-confdef
+
+RUN rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g 1000 appuser && useradd -m -r -u 1000 -g appuser -s /bin/bash appuser -s /bin/bash && usermod -a -G sudo appuser
+RUN echo appuser:appuser | chpasswd
+USER appuser
+ARG HOME=/home/appuser
+RUN mkdir -p $HOME/opt
+WORKDIR $HOME/opt
+RUN echo $USER $HOME $PWD && whoami
+
+RUN $(hg debuginstall -T '{pythonexe}') -m pip install hg-evolve hg-git --no-cache-dir --user --break-system-packages
+
+COPY --chown=appuser:appuser docker/hgrc $HOME/.hgrc
+
+RUN mkdir -p $HOME/.local/bin
+ENV PATH=$HOME/.local/bin:$PATH
+
+RUN mkdir -p $HOME/.config/matplotlib
+RUN echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+
+RUN wget https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-unknown-linux-musl.tar.gz
+RUN tar -xzf pixi-x86_64-unknown-linux-musl.tar.gz .
+RUN mv pixi $HOME/.local/bin

@@ -165,7 +165,6 @@ class TestCoarse:
         return OperatorsPseudoSpectral2D
 
     def test_coarse(self, allclose):
-
         params = self.Oper._create_default_params()
         params.oper.nx = 16
         params.oper.ny = 12

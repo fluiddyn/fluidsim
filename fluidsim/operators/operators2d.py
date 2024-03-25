@@ -83,7 +83,6 @@ if nb_proc > 1:
 
 @boost
 class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
-
     _has_to_dealiase: bool
     where_dealiased: "uint8[:, :]"
     KX: Af
@@ -114,7 +113,6 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         params._set_child("oper", attribs=attribs)
 
     def __init__(self, params):
-
         self.params = params
         self.axes = ("y", "x")
         nx = int(params.oper.nx)
@@ -122,14 +120,12 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if params.oper.nx != nx:
             raise ValueError(
-                "params.oper.nx != int(params.oper.nx); "
-                "({})".format(params.oper.nx)
+                f"params.oper.nx != int(params.oper.nx); ({params.oper.nx})"
             )
 
         if params.oper.ny != ny:
             raise ValueError(
-                "params.oper.ny != int(params.oper.ny); "
-                "({})".format(params.oper.ny)
+                f"params.oper.ny != int(params.oper.ny); ({params.oper.ny})"
             )
 
         params.oper.nx = nx
@@ -490,7 +486,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if negative:
             sign *= -1
-        Kn = getattr(self, "K{}".format(int(order)))
+        Kn = getattr(self, f"K{int(order)}")
 
         # Avoid unnecessary multiplication by unity
         if sign == 1:
@@ -518,7 +514,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
         if negative:
             sign *= -1
-        Kn_not0 = getattr(self, "K{}_not0".format(int(order)))
+        Kn_not0 = getattr(self, f"K{int(order)}_not0")
 
         # Avoid unnecessary multiplication by unity
         if sign == 1:
@@ -607,17 +603,16 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
                 for ikxc in range(nKxc):
                     arr[iky, ikxc] = arr_coarse[ikyc, ikxc]
 
-    def get_grid1d_seq(self, axe="x"):
-
-        if axe not in ("x", "y"):
+    def get_grid1d_seq(self, axis="x"):
+        if axis not in ("x", "y"):
             raise ValueError
 
         if self.params.ONLY_COARSE_OPER:
-            number_points = getattr(self.params.oper, "n" + axe)
-            length = getattr(self, "L" + axe)
+            number_points = getattr(self.params.oper, "n" + axis)
+            length = getattr(self, "L" + axis)
             return np.linspace(0, length, number_points)
         else:
-            return getattr(self, axe + "_seq")
+            return getattr(self, axis + "_seq")
 
     @boost
     def get_phases_random(self):

@@ -126,7 +126,6 @@ class TestForcingConstantRateEnergyAP(TestForcingConstantRateEnergy):
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
-
         params = super().init_params()
 
         # Time stepping parameters
@@ -172,7 +171,6 @@ class TestForcingOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
     def test_forcing_output(self):
-
         sim = self.sim
 
         sim.time_stepping.start()
@@ -193,7 +191,6 @@ class TestForcingOutput(TestSimulBase):
         sim.output.compute_enstrophy()
 
         if mpi.nb_proc == 1:
-
             plt.close("all")
 
             sim.output.plot_summary()
@@ -235,7 +232,7 @@ class TestForcingOutput(TestSimulBase):
         sim3.output.phys_fields.animate(
             "ux",
             dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,
@@ -374,7 +371,7 @@ class TestForcingOutput(TestSimulBase):
         sim2.output.phys_fields.animate(
             "ux",
             dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,

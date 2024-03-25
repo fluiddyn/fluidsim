@@ -18,7 +18,6 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
     """
 
     def __init__(self, output):
-
         params = output.sim.params
         self.c2 = params.c2
         self.f = params.f
@@ -119,13 +118,13 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-            self.axe_a.plot(tsim, energy, "k.")
-            self.axe_a.plot(tsim, energyK, "r.")
-            self.axe_a.plot(tsim, energyA, "b.")
+            self.ax_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energyK, "r.")
+            self.ax_a.plot(tsim, energyA, "b.")
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def treat_conversion(self):
@@ -179,7 +178,6 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
     def compute_dissipation_rates(
         self, f_d, f_d_hypo, energyK_fft, energyA_fft, CharneyPE_fft
     ):
-
         epsK = self.sum_wavenumbers(f_d * 2 * energyK_fft)
         epsK_hypo = self.sum_wavenumbers(f_d_hypo * 2 * energyK_fft)
         epsA = self.sum_wavenumbers(f_d * 2 * energyA_fft)
@@ -396,7 +394,7 @@ class SpatialMeansMSW1L(SpatialMeansJSON):
         for k in keys:
             E = dict_results[k]
             dE_dt = abs(np.gradient(E, 1.0) / dt)
-            dE_dt_avg = "{:11.6e}".format(dE_dt.mean())
+            dE_dt_avg = f"{dE_dt.mean():11.6e}"
             try:
                 axarr[i].semilogy(t, dE_dt, label=dE_dt_avg)
                 axarr[i].set_ylabel(r"$\partial_t$" + keys[i])
@@ -442,7 +440,6 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         return dict_eps
 
     def compute_epsK(self, f_d, f_d_hypo, energyK_fft, dict_eps):
-
         ux = self.sim.state.state_phys.get_var("ux")
         uy = self.sim.state.state_phys.get_var("uy")
 
@@ -519,7 +516,6 @@ class SpatialMeansSW1L(SpatialMeansMSW1L):
         PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
-
             PK_tot = PK1 + PK2
             PA_tot = PA1 + PA2
             self._result.update(

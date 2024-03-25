@@ -1,21 +1,23 @@
 """
-Spatiotemporal Spectra (:mod:`fluidsim.base.output.spatiotemporal_spectra`)
-===========================================================================
+Spatiotemporal Spectra
+======================
 
 Provides:
 
 .. autoclass:: SpatioTemporalSpectra3D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: SpatioTemporalSpectra2D
    :members:
    :private-members:
+   :undoc-members:
 
 .. autoclass:: SpatioTemporalSpectraNS
    :members:
    :private-members:
-
+   :undoc-members:
 """
 
 from pathlib import Path
@@ -696,26 +698,48 @@ class SpatioTemporalSpectra2D(SpatioTemporalSpectra3D):
         ]
 
 
+def _complete_name(name, dtype, save_urud):
+    if dtype is not None:
+        name += f"_{dtype}"
+    if save_urud:
+        name += "_urud"
+    return name + ".h5"
+
+
 class SpatioTemporalSpectraNS:
     def _get_path_saved_spectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_{float(tmin)}_{float(tmax)}"
-        if dtype is not None:
-            base += f"_{dtype}"
-        if save_urud:
-            base += "_urud"
-        return self.path_dir / (base + ".h5")
+
+        # we first check if a file corresponds to tmin and tmax
+        # but we don't know how tmin/tmax are formatted
+        for_glob = _complete_name("periodogram_*_*", dtype, save_urud)
+        for path in self.path_dir.glob(for_glob):
+            if "_temporal" in path.name:
+                continue
+            if (tmin, tmax) == tuple(float(s) for s in path.stem.split("_")[1:3]):
+                return path
+
+        name = _complete_name(
+            f"periodogram_{float(tmin)}_{float(tmax)}", dtype, save_urud
+        )
+        return self.path_dir / name
 
     def _get_path_saved_tspectra(self, tmin, tmax, dtype, save_urud):
         if tmax is None:
             tmax = self._get_default_tmax()
-        base = f"periodogram_temporal_{float(tmin)}_{float(tmax)}"
-        if dtype is not None:
-            base += f"_{dtype}"
-        if save_urud:
-            base += "_urud"
-        return self.path_dir / (base + ".h5")
+
+        # we first check if a file corresponds to tmin and tmax
+        # but we don't know how tmin/tmax are formatted
+        for_glob = _complete_name("periodogram_temporal_*_*", dtype, save_urud)
+        for path in self.path_dir.glob(for_glob):
+            if (tmin, tmax) == tuple(float(s) for s in path.stem.split("_")[2:4]):
+                return path
+
+        name = _complete_name(
+            f"periodogram_temporal_{float(tmin)}_{float(tmax)}", dtype, save_urud
+        )
+        return self.path_dir / name
 
     def save_spectra_kzkhomega(
         self, tmin=0, tmax=None, dtype=None, save_urud=False
@@ -893,7 +917,7 @@ class SpatioTemporalSpectraNS:
     def compute_omega_emp_vs_kzkh(
         self,
         spectra_kzkhomega,
-        key_spect,
+        key_spect="spectrum_b",
     ):
         r"""Compute empirical frequency and fluctuation from the spatiotemporal spectra:
 
@@ -908,9 +932,9 @@ class SpatioTemporalSpectraNS:
             ~ \mathrm{d}\omega}{\int ~ S(k_h, k_z, \omega) ~ \mathrm{d}\omega}},
 
         where :math:`\omega_{emp}` is the empirical frequency and :math:`\delta
-        \omega_{emp}` is the empirical frequency fluctuation.
+        \omega_{emp}` is the empirical frequency fluctuation. :math:`S(k_h, k_z, \omega)` is the spectra
+        of `key_spect`.
         """
-        # TODO: Differenciate the cases where projection are poloidal or not
 
         spectrum = spectra_kzkhomega[key_spect]
         kh_spectra = spectra_kzkhomega["kh_spectra"]
@@ -938,7 +962,7 @@ class SpatioTemporalSpectraNS:
 
     def plot_kzkhomega(
         self,
-        key_field=None,
+        key_field="b",
         tmin=0,
         tmax=None,
         dtype=None,
@@ -1135,15 +1159,13 @@ class SpatioTemporalSpectraNS:
         if equation.startswith(r"$\omega"):
             if omega > 0 and omega <= N:
                 ikz_disp = np.sqrt(N**2 / omega**2 - 1) / dkz_over_dkh * xaxis
-                ax.plot(xaxis, ikz_disp, "k+", linewidth=2)
+                ax.plot(xaxis, ikz_disp, "k-", linewidth=2)
         elif equation.startswith(r"$k_h"):
             omega_disp = ikh / np.sqrt(ikh**2 + dkz_over_dkh**2 * xaxis**2)
-            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+            ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         elif equation.startswith(r"$k_z"):
-            omega_disp = xaxis / np.sqrt(
-                xaxis**2 + dkz_over_dkh**2 * ikz**2
-            )
-            ax.plot(xaxis, omega_disp, "k+", linewidth=2)
+            omega_disp = xaxis / np.sqrt(xaxis**2 + dkz_over_dkh**2 * ikz**2)
+            ax.plot(xaxis, omega_disp, "k-", linewidth=2)
         else:
             raise ValueError("wrong equation for dispersion relation")
 
@@ -1225,10 +1247,16 @@ class SpatioTemporalSpectraNS:
 
         return tspectra
 
+    def _get_default_tmin_periodogram(self, tmin):
+        paths_periodo = sorted(self.path_dir.glob("periodogram_*.h5"))
+        if not paths_periodo:
+            return tmin
+        return float(paths_periodo[-1].name.split("_")[2])
+
     def plot_temporal_spectra(
         self,
         key_field=None,
-        tmin=0,
+        tmin=None,
         tmax=None,
         xlim=None,
         ylim=None,
@@ -1253,6 +1281,8 @@ class SpatioTemporalSpectraNS:
             save_urud = True
         else:
             save_urud = False
+        if tmin is None:
+            tmin = self._get_default_tmin_periodogram(tmin)
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         if path_file.exists():
             tspectra = self.load_temporal_spectra(
@@ -1273,7 +1303,7 @@ class SpatioTemporalSpectraNS:
             omegas_no_0[0] = 1e-15
             norm = omegas_no_0**-coef_compensate
             norm[0] = np.nan
-            ylabel = f"$E(\omega) \omega^{{{coef_compensate}}}$"
+            ylabel = rf"$E(\omega) \omega^{{{coef_compensate}}}$"
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
@@ -1343,9 +1373,7 @@ class SpatioTemporalSpectraNS:
                     aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
                 def modes(nx, nz):
-                    return np.sqrt(
-                        nx**2 / (nx**2 + aspect_ratio**2 * nz**2)
-                    )
+                    return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
 
                 nxs = np.arange(1, 11)
                 modes_nz1 = modes(nxs, 1)
@@ -1423,11 +1451,12 @@ class SpatioTemporalSpectraNS:
             ax.legend()
 
     def load_temporal_spectra(
-        self, tmin=0, tmax=None, dtype=None, save_urud=False
+        self, tmin=None, tmax=None, dtype=None, save_urud=False
     ):
         """load temporal spectra from file"""
         tspectra = {}
-
+        if tmin is None:
+            tmin = self._get_default_tmin_periodogram(tmin)
         path_file = self._get_path_saved_tspectra(tmin, tmax, dtype, save_urud)
         with h5py.File(path_file, "r") as file:
             for key in file.keys():
@@ -1460,7 +1489,7 @@ class SpatioTemporalSpectraNS:
         if not paths:
             paths_periodo = list(self.path_dir.glob("periodogram_*.h5"))
             if paths_periodo:
-                tmax = 0.
+                tmax = 0.0
                 for path in paths_periodo:
                     with open_patient(path, "r") as file:
                         tmax = max(tmax, file.attrs["tmax"])

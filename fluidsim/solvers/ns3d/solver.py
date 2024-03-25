@@ -29,7 +29,6 @@ from fluidsim.base.solvers.pseudo_spect import (
 
 class InfoSolverNS3D(InfoSolverPseudoSpectral3D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d"
@@ -118,6 +117,7 @@ class Simul(SimulBasePseudoSpectral):
       \hat N(\vv) = P_\perp \widehat{\vv \times \bomega}.
 
     """
+
     InfoSolver = InfoSolverNS3D
 
     @staticmethod
@@ -145,7 +145,6 @@ projection: str (default None)
         )
 
     def _init_projection(self):
-
         try:
             self.no_vz_kz0 = self.params.no_vz_kz0
         except AttributeError:
@@ -244,6 +243,11 @@ projection: str (default None)
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
+        if getattr(self, "is_turb_model_enabled", False):
+            tendencies_fft += self.turb_model.get_forcing(
+                vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
+            )
+
         self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
@@ -273,7 +277,6 @@ if "sphinx" in sys.modules:
 
 
 if __name__ == "__main__":
-
     import fluiddyn as fld
 
     params = Simul.create_default_params()

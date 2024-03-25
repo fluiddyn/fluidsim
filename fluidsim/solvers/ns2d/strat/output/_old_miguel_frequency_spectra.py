@@ -230,12 +230,12 @@ class FrequencySpectra(SpecificOutput):
                         :: self.spatial_decimate, :: self.spatial_decimate
                     ]
 
-                    self.temp_array_new[
-                        0, self.nb_times_in_temp_array, :, :
-                    ] = field_ap_decimate
-                    self.temp_array_new[
-                        1, self.nb_times_in_temp_array, :, :
-                    ] = field_am_decimate
+                    self.temp_array_new[0, self.nb_times_in_temp_array, :, :] = (
+                        field_ap_decimate
+                    )
+                    self.temp_array_new[1, self.nb_times_in_temp_array, :, :] = (
+                        field_am_decimate
+                    )
 
                 # Save the time to self.times_arr
                 self.times_arr[self.nb_times_in_temp_array] = (
@@ -343,12 +343,9 @@ class FrequencySpectra(SpecificOutput):
         )
 
         for index, file_path in enumerate(list_files):
-
             # Generating counter
             print(
-                "Computing frequency spectra = {}/{}".format(
-                    index, len(list_files) - 1
-                ),
+                f"Computing frequency spectra = {index}/{len(list_files) - 1}",
                 end="\r",
             )
 
@@ -382,8 +379,8 @@ class FrequencySpectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k_h$")
-            axe.set_ylabel("$E(k_h)$")
-            axe.set_title("spectra\n" + self.output.summary_simul)
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("$E(k_h)$")
+            ax.set_title("spectra\n" + self.output.summary_simul)

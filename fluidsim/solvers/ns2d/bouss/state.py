@@ -39,7 +39,6 @@ class StateNS2DBouss(StateNS2D):
         )
 
     def __init__(self, sim, oper=None):
-
         super().__init__(sim, oper)
 
         self.field_tmp4 = np.empty_like(self.state_phys[0])
@@ -143,7 +142,6 @@ class StateNS2DBouss(StateNS2D):
         self.init_from_rotbfft(rot_fft, b_fft)
 
     def init_statespect_from(self, **kwargs):
-
         # init_statespect_from looks if kwargs has two arguments.
         if len(kwargs) == 2:
             if "rot_fft" in kwargs and "b_fft" in kwargs:

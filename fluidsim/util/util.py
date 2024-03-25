@@ -3,22 +3,21 @@
 
 """
 
+import json
 import os
 import time
+import warnings
 from copy import deepcopy as _deepcopy
 from datetime import timedelta
 from functools import partial
 from importlib import import_module
 from pathlib import Path
 from time import perf_counter
-from typing import Union
 from math import radians
-import warnings
 
 import h5netcdf
 import h5py
 import numpy as np
-from rich.progress import track
 
 import fluiddyn as fld
 from fluiddyn.io.redirect_stdout import stdout_redirected
@@ -26,8 +25,9 @@ from fluiddyn.util import mpi
 from fluiddyn.util import get_memory_usage
 
 from fluidsim_core import loader
+from fluidsim_core.output.dataframe_from_paths import DataframeMaker
 
-from fluidsim import path_dir_results
+from fluidsim_core.paths import find_path_result_dir
 
 from fluidsim.base.params import (
     Parameters,
@@ -102,33 +102,7 @@ def get_dim_from_solver_key(key):
     )
 
 
-def pathdir_from_namedir(name_dir: Union[str, Path, None] = None):
-    """Return the path of a result directory.
-
-    name_dir: str, optional
-
-      Can be an absolute path, a relative path, or even simply just
-      the name of the directory under $FLUIDSIM_PATH.
-
-    """
-    if name_dir is None:
-        return Path.cwd()
-
-    if not isinstance(name_dir, Path):
-        name_dir = Path(name_dir)
-
-    name_dir = name_dir.expanduser()
-
-    if name_dir.is_dir():
-        return name_dir.absolute()
-
-    if not name_dir.is_absolute():
-        name_dir = path_dir_results / name_dir
-
-    if not name_dir.is_dir():
-        raise ValueError(str(name_dir) + " is not a directory")
-
-    return name_dir
+pathdir_from_namedir = find_path_result_dir
 
 
 class ModulesSolvers(dict):
@@ -221,7 +195,16 @@ def load_sim_for_plot(
 
     """
     path_dir = pathdir_from_namedir(name_dir)
-    solver = _import_solver_from_path(path_dir)
+
+    info_solver = load_info_solver(path_dir)
+
+    if hasattr(info_solver, "loader"):
+        name_module, name_func = info_solver.loader.split(".")
+        mod = import_module(name_module)
+        loader = getattr(mod, name_func)
+        return loader(path_dir)
+
+    solver = import_module(info_solver.module_name)
     params = load_params_simul(path_dir)
 
     if merge_missing_params:
@@ -631,7 +614,6 @@ def times_start_last_from_path(path):
         return 666, 666
 
     with open(path_file, "r") as file_stdout:
-
         line = ""
         while not line.startswith("it ="):
             line = file_stdout.readline()
@@ -750,27 +732,63 @@ def ensure_radians(angle):
     return angle
 
 
-def get_dataframe_from_paths(
-    paths, tmin=None, tmax=None, use_cache=True, customize=None
-):
-    """Produce a dataframe from a set of simulations.
+def get_last_time_spatial_means_from_path(path):
+    path_file = Path(path) / "spatial_means.txt"
 
-    Uses `sim.output.get_mean_values`
+    if path_file.exists():
+        with open(path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
+            line = file_means.readline()
+            while line != b"":
+                if line.startswith(b"time ="):
+                    line_time = line
+                line = file_means.readline()
 
-    """
+        words = line_time.split()
+        return float(words[2])
 
-    from pandas import DataFrame
+    path_file = path_file.with_suffix(".json")
+    if path_file.exists():
+        with open(path_file, "rb") as file_means:
+            nb_char = file_means.seek(0, os.SEEK_END)  # go to the end
+            nb_char_to_read = min(nb_char, 1000)
+            file_means.seek(-nb_char_to_read, 2)
+            line = file_means.readline()
+            while line != b"":
+                line_prev = line
+                line = file_means.readline()
 
-    values = []
-    for path in track(paths, "Getting the mean values"):
-        sim = load_sim_for_plot(path, hide_stdout=True)
-        values.append(
-            sim.output.get_mean_values(tmin, tmax, use_cache, customize)
+        return json.loads(line_prev)["t"]
+
+
+class _DataframeMakerFluidsim(DataframeMaker):
+    def get_time_start_from_path(self, path):
+        """ "Get first time"""
+        t_start, _ = times_start_last_from_path(path)
+        return t_start
+
+    def get_time_last_from_path(self, path):
+        """ "Get last saved time"""
+        return get_last_time_spatial_means_from_path(path)
+
+    def load_sim(self, path):
+        """Load a simulation object"""
+        return load_sim_for_plot(path, hide_stdout=True)
+
+    def get_dataframe_from_paths(
+        self, paths, tmin=None, tmax=None, use_cache=True, customize=None
+    ):
+        df = super().get_dataframe_from_paths(
+            paths, tmin, tmax, use_cache, customize
         )
+        if "R2" in df.columns and "R4" in df.columns:
+            df["min_R"] = np.array([df.R2, df.R4]).min(axis=0)
+        return df
 
-    df = DataFrame(values)
 
-    if "R2" in df.columns and "R4" in df.columns:
-        df["min_R"] = np.array([df.R2, df.R4]).min(axis=0)
+_dataframe_maker = _DataframeMakerFluidsim()
 
-    return df
+get_mean_values_from_path = _dataframe_maker.get_mean_values_from_path
+get_dataframe_from_paths = _dataframe_maker.get_dataframe_from_paths

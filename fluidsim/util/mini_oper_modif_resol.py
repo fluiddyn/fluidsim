@@ -55,7 +55,6 @@ def fill_field_fft_3d(field_fft_in: A, field_fft_out: A):
 
 class MiniOperModifResol:
     def __init__(self, shape):
-
         self.shape = shape
 
         dimension = self.dimension = len(shape)
@@ -79,7 +78,6 @@ class MiniOperModifResol:
         self.create_arrayK = self.oper_fft.create_arrayK
 
     def fill_field_fft(self, field_spect, field2_spect, oper):
-
         if self.dimension == 2:
             return fill_field_fft_2d(field_spect, field2_spect)
 

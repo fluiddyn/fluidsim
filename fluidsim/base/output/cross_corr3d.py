@@ -1,3 +1,16 @@
+"""Cross correlations
+=====================
+
+Provides:
+
+.. autoclass:: CrossCorrelations
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import itertools
 
 import numpy as np
@@ -13,7 +26,6 @@ def _make_small_key(key):
 
 
 class CrossCorrelations(BaseSpectra):
-
     _tag = "cross_corr"
 
     def compute(self):

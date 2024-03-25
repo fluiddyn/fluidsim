@@ -25,7 +25,6 @@ class PrintStdOutLorenz(PrintStdOutBase):
     """
 
     def complete_init_with_state(self):
-
         if self.period_print == 0:
             return
 

@@ -1,0 +1,47 @@
+# Issues pixi
+# - should be able to read pyproject.toml [project] (name, version, description)
+# - automatically adds too strict version, bad for Python library
+# - optional dependencies and dev groups as PDM
+# - import data from pyproject.toml: [project] and [project.optional-dependencies]
+
+[project]
+name = "fluidsim"
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64"]
+
+[tasks]
+# use as `pixi run install-editable`
+# install-dependencies = "pixi install && pip install -e ./lib && pip install ../transonic"
+install-dependencies = "pixi install && pip install -e ./lib && pip install 'transonic>=0.6.0'"
+install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends_on = ["install-dependencies"]}
+
+[dependencies]
+python = ">=3.9,<3.11"
+numpy = ">=1.26.3"
+transonic = ">=0.5.3"
+fluiddyn = ">=0.5.2"
+fluidsim-core = ">=0.7.4"
+h5netcdf = ">=1.3.0"
+h5py = ">=3.10.0"
+xarray = ">=2023.12.0"
+matplotlib = ">=3.3"
+scipy = ">=1.11.4"
+rich = ">=13.7.0"
+pip = ">=23.3.2"
+pytest = ">=7.4.4"
+ipython = ">=8.20.0"
+coverage = ">=7.4.0"
+pytest-cov = ">=4.1.0"
+pytest-mock = ">=3.12.0"
+fluidfft = ">=0.2.9"
+mpi4py = ">=3.1.5"
+
+[pypi-dependencies]
+pymech = "*"
+pytest-allclose = "*"
+importlib-metadata = "*"
+
+[build-dependencies]
+meson-python = ">=0.15.0"
+pythran = ">=0.15.0"
+transonic = ">=0.5.3"

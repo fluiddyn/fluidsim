@@ -6,9 +6,10 @@
    :private-members:
 
 """
+
 import numpy as np
 
-from transonic import jit, Array
+from transonic import boost, Array
 
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
@@ -17,7 +18,7 @@ from fluidsim.solvers.ns2d.solver import InfoSolverNS2D, Simul as SimulNS2D
 AF = Array[np.float64, "2d"]
 
 
-@jit
+@boost
 def tendencies_nonlin_ns2dbouss(
     ux: AF, uy: AF, px_rot: AF, py_rot: AF, px_b: AF, py_b: AF
 ):
@@ -28,7 +29,6 @@ def tendencies_nonlin_ns2dbouss(
 
 class InfoSolverNS2DBouss(InfoSolverNS2D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns2d.bouss"
@@ -214,7 +214,6 @@ class Simul(SimulNS2D):
 
 
 if __name__ == "__main__":
-
     from math import pi
 
     import fluiddyn as fld

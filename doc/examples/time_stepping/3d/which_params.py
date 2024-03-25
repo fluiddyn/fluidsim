@@ -25,7 +25,6 @@ nb_procs = [20, 10, 10, 4, 2]
 
 
 def compute(nx, nb_processes=20, verbose=True):
-
     nb_points = np.empty_like(coefficients, dtype=int)
 
     nb_points[0] = nx
@@ -59,7 +58,6 @@ def compute(nx, nb_processes=20, verbose=True):
 
 
 if __name__ == "__main__":
-
     print("coef dealisasing", coefficients)
 
     for nx, nb_proc in zip(nx_bigs, nb_procs):

@@ -161,7 +161,6 @@ def parser_to_params(parser):
 
 
 def init_cluster(params, Cluster, prefix="snic", subdir="benchmarks"):
-
     cluster = Cluster()
     if cluster.name_cluster == "beskow":
         cluster.default_project = "2017-12-20"

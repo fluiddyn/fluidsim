@@ -19,7 +19,6 @@ steps = np.logspace(-2.5, 0, 100)
 
 
 def make_figures(coef_dealiasing=0.66, nx=32):
-
     resolution = Resolution(nx)
     one_time_step = resolution.one_time_step
 
@@ -32,7 +31,6 @@ def make_figures(coef_dealiasing=0.66, nx=32):
     max_ratio = 0.0
 
     for scheme in schemes:
-
         ratios = np.empty_like(steps)
         errors = np.empty_like(steps)
 

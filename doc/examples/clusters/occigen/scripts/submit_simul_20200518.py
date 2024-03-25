@@ -28,7 +28,6 @@ assert not ny_per_cylinder % nb_mpi_processes
 
 
 def submit_simul(N, diameter, speed):
-
     command = (
         f"run_simul.py -N {N} -D {diameter} -s {speed} "
         f"-nypc {ny_per_cylinder} "

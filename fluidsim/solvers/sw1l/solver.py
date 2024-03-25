@@ -17,7 +17,7 @@ variables, i.e. the horizontal velocities and surface dispacement.
 
 """
 
-from transonic import jit, Array
+from transonic import boost, Array
 from fluiddyn.util import mpi
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -29,7 +29,7 @@ from fluidsim.base.solvers.pseudo_spect import (
 A = Array[float, "2d"]
 
 
-@jit
+@boost
 def compute_Frot(rot: A, ux: A, uy: A, f: float):
     """Compute cross-product of absolute potential vorticity with velocity."""
     if f != 0:
@@ -43,7 +43,7 @@ def compute_Frot(rot: A, ux: A, uy: A, f: float):
     return F1x, F1y
 
 
-@jit
+@boost
 def compute_pressure(c2: float, eta: A, ux: A, uy: A):
     return c2 * eta + 0.5 * (ux**2 + uy**2)
 
@@ -156,9 +156,7 @@ class Simul(SimulBasePseudoSpectral):
 
         if mpi.rank == 0:
             self.output.print_stdout(
-                "c2 = {:6.5g} ; f = {:6.5g} ; kd2 = {:6.5g}".format(
-                    params.c2, params.f, params.kd2
-                )
+                f"c2 = {params.c2:6.5g} ; f = {params.f:6.5g} ; kd2 = {params.kd2:6.5g}"
             )
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -249,7 +247,6 @@ class Simul(SimulBasePseudoSpectral):
 
 
 if __name__ == "__main__":
-
     import numpy as np
 
     import fluiddyn as fld

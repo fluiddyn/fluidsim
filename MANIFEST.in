@@ -1,5 +1,0 @@
-include *.py
-include *.txt
-include *.rst
-recursive-include doc *.rst
-prune lib

@@ -2,6 +2,7 @@
 ===========================================================================
 
 """
+
 import argparse
 from fluidsim import __version__, get_local_version
 from . import bench, bench_analysis, profile

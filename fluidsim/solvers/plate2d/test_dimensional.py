@@ -5,7 +5,6 @@ from fluidsim.util.testing import TestCase
 
 class TestDimensional(TestCase):
     def test_converter(self):
-
         conv = Converter(C=0.648**2, h=4e-4)
 
         time = 10.0

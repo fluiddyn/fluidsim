@@ -11,6 +11,7 @@
    :members:
 
 """
+
 import numpy as np
 
 from fluidsim.base.init_fields import InitFieldsBase, SpecificInitFields

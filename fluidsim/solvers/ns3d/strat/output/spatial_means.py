@@ -96,7 +96,6 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             PA2 *= self.one_over_N2
 
         if mpi.rank == 0:
-
             self.file.write(
                 f"####\ntime = {tsim:11.5e}\n"
                 f"E    = {energy:11.5e}\n"
@@ -130,8 +129,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
-            self.axe_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')
             # if self.sim.params.forcing.enable:
@@ -139,7 +137,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
@@ -175,9 +173,12 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
             elif line.startswith("epsK8 ="):
                 lines_epsK8.append(line)
 
-        nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
+        # fmt: off
+        nt = self._get_nb_points_from_lines(
+            lines_t, lines_E, lines_EA, lines_PK, lines_PA,
+            lines_epsK, lines_epsK4, lines_epsK8
+        )
+        # fmt: on
 
         # support files saved without EAs
         words = lines_EA[0].split()
@@ -383,6 +384,7 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         results = super().get_dimless_numbers_versus_time(data)
 
         results["dimensional"]["epsA"] = epsA = data["epsA"]
+        results["dimensional"]["EA"] = data["EA"]
 
         epsK = results["dimensional"]["epsK"]
         Uh2 = results["dimensional"]["Uh2"]

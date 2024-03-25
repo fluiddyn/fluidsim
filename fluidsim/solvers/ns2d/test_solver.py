@@ -1,4 +1,7 @@
 import unittest
+from dataclasses import dataclass
+import tempfile
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,10 +23,9 @@ class TestSimulBase(TestSimul):
 
     @classmethod
     def init_params(cls):
-
-        params = (
-            cls.params
-        ) = cls.Simul.create_default_params()  # pylint: disable=maybe-no-member
+        params = cls.params = (
+            cls.Simul.create_default_params()
+        )  # pylint: disable=maybe-no-member
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
 
@@ -119,7 +121,6 @@ class TestForcingConstantRateEnergy(TestSimulBase):
 class TestForcingOutput(TestSimulBase):
     @classmethod
     def init_params(self):
-
         params = super().init_params()
 
         params.oper.truncation_shape = "no_multiple_aliases"
@@ -153,7 +154,6 @@ class TestForcingOutput(TestSimulBase):
                 child["HAS_TO_PLOT_SAVED"] = True
 
     def test_forcing_output(self):
-
         sim = self.sim
         assert f"{sim.params.oper.nx}x{sim.params.oper.ny}" in sim.name_run
 
@@ -201,8 +201,12 @@ class TestForcingOutput(TestSimulBase):
         plt.close("all")
         sim.output.spectra.plot1d()
         sim.output.spectra.plot2d()
+        sim.output.spectra.plot1d(delta_t=1e-10, with_average=False)
+        sim.output.spectra.plot2d(delta_t=1e-10, with_average=False)
         sim.output.spectra.load2d_mean()
         sim.output.spectra.load1d_mean()
+        sim.output.spectra.animate()
+        sim.output.spectra.movies.update_animation(2)
 
         sim.output.spatial_means.plot()
         sim.output.spatial_means.plot_dt_energy()
@@ -243,13 +247,54 @@ class TestForcingOutput(TestSimulBase):
 
         sim2.output.phys_fields.animate(
             "ux",
-            dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
+            dt_frame_in_sec=1e-4,
+            dt_equations=0.1,
             repeat=False,
             clim=(-1, 1),
             save_file=False,
             numfig=1,
+            interactive=True,
         )
+        movies = sim2.output.phys_fields.movies
+        assert len(movies.ani_times) > 3
+        print(movies.ani_times)
+
+        @dataclass
+        class Event:
+            inaxes: object
+
+        movies._toggle_pause(Event(movies.fig.axes[1]))
+        event = Event(movies.fig.axes[0])
+        movies._toggle_pause(event)
+        movies._toggle_pause(event)
+
+        iterator = movies._frames_iterative()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._max
+        movies._forward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._max
+        movies._one_forward()
+        assert movies._index == movies._min
+        movies._one_forward()
+        assert movies._index == movies._min + 1
+        movies._one_forward()
+        movies._backward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._min
+        movies._backward()
+        while not movies.paused:
+            next(iterator)
+        assert movies._index == movies._min
+        movies._one_backward()
+        assert movies._index == movies._max
+        movies._one_backward()
+        assert movies._index == movies._max - 1
+        movies._one_backward()
+
         sim2.output.phys_fields.plot()
         sim2.plot_freq_diss("y")
 
@@ -264,15 +309,16 @@ class TestForcingOutput(TestSimulBase):
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
 
-        sim3.output.phys_fields.animate(
-            "ux",
-            dt_frame_in_sec=1e-6,
-            dt_equations=0.3,
-            repeat=False,
-            clim=(-1, 1),
-            save_file=False,
-            numfig=1,
-        )
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            sim3.output.phys_fields.animate(
+                "ux",
+                dt_frame_in_sec=1e-6,
+                dt_equations=0.3,
+                repeat=False,
+                clim=(-1, 1),
+                save_file=str(Path(tmpdirname) / "test_fluidsim_ns2d.gif"),
+                numfig=1,
+            )
         plt.close("all")
 
 

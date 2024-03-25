@@ -18,6 +18,7 @@ Refs:
  "Spectral Transform Solutions to the Shallow Water Test Set"
 
 """
+
 import numpy as np
 from scipy import integrate
 from fluidsim.solvers.sphere.sw1l.solver import Simul
@@ -86,6 +87,7 @@ def ux_from_lats(phi):
 ug = ux_from_lats(lats1r)
 ug.shape = (oper.nlat, 1)
 ux = ug * oper.create_array_spat(value=1.0)  # broadcast to shape (nlats,nlons)
+
 
 # uy = self.state_phys.get_var("uy")
 def integrand_gh(phi, a, omega):

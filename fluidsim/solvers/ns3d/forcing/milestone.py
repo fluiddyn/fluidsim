@@ -50,7 +50,6 @@ class ForcingMilestone3D(ForcingMilestone):
             self.solid_fft = self.sim.oper.create_arrayK(value=0)
 
     def __init__(self, sim):
-
         if mpi.rank == 0:
             from fluidsim.operators.operators2d import OperatorsPseudoSpectral2D
 
@@ -70,7 +69,6 @@ class ForcingMilestone3D(ForcingMilestone):
         super().__init__(sim)
 
     def _full_from_coarse(self, solid):
-
         if self._is_using_coarse_oper:
             if mpi.rank == 0:
                 solid_coarse_fft = self.oper_coarse.fft(solid)
@@ -100,7 +98,6 @@ class ForcingMilestone3D(ForcingMilestone):
         return self.solid
 
     def compute(self, time=None):
-
         sim = self.sim
 
         if time is None:
@@ -124,7 +121,6 @@ class ForcingMilestone3D(ForcingMilestone):
 
 
 if __name__ == "__main__":
-
     from time import perf_counter
 
     import matplotlib.pyplot as plt

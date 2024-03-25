@@ -8,6 +8,7 @@ Provides:
    :private-members:
 
 """
+
 from fluidsim.base.state import StatePseudoSpectral
 from fluidsim.base.setofvariables import SetOfVariables
 

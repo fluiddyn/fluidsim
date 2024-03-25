@@ -73,17 +73,17 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "fluiddoc.mathmacro",
-    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.inheritance_diagram",  # requires Graphviz
     "myst_nb",
     "sphinx_copybutton",
 ]
 
 # Execute ipynb files into with a cache ...
-jupyter_execute_notebooks = "cache"
-jupyter_cache = "./_build/jupyter_cache"
-os.makedirs(jupyter_cache, exist_ok=True)
+nb_execution_mode = "cache"
+nb_execution_cache_path = "./_build/jupyter_cache"
+os.makedirs(nb_execution_cache_path, exist_ok=True)
 # ... except these ipynb files
-execution_excludepatterns = [
+nb_execution_excludepatterns = [
     "ipynb/executed/*",
     "ipynb/executed/parametric_study_ns3dstrat/*",
     "examples/forcing_anisotropic_3d/toro2022/*",
@@ -100,7 +100,7 @@ source_suffix = {
 }
 # nb_render_plugin = "default"
 nb_merge_streams = True
-execution_show_tb = True
+nb_execution_show_tb = True
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -118,7 +118,7 @@ copyright = "2015, Pierre Augier"
 #
 # The short X.Y version.
 version = fluidsim.__version__.split(".")
-version = "{}.{}.{}".format(version[0], version[1], version[2])
+version = f"{version[0]}.{version[1]}.{version[2]}"
 # The full version, including alpha/beta/rc tags.
 release = fluidsim.__version__
 
@@ -247,6 +247,14 @@ html_context = {
             '<i class="fa fa-file-text fa-fw"></i> Citation',
             "https://doi.org/10.5334/jors.239",
         ),
+        (
+            '<i class="fa fa-users fa-fw"></i> Mastodon',
+            "https://hachyderm.io/@fluiddyn",
+        ),
+        (
+            '<i class="fa fa-twitter fa-fw"></i> Twitter',
+            "https://twitter.com/pyfluiddyn",
+        ),
     ],
 }
 
@@ -373,10 +381,24 @@ autodoc_member_order = "bysource"
 
 todo_include_todos = True
 
-# CSS selector which modifies the sphinx-copybutton feature
-copybutton_selector = ",".join(
-    [
-        f"div.highlight-{css_class} div.highlight pre"
-        for css_class in ("python", "ipython3", "default")
-    ]
-)
+nb_execution_raise_on_error = True
+nb_execution_show_tb = True
+nb_merge_streams = True
+nb_execution_timeout = 120
+
+myst_enable_extensions = [
+    "amsmath",
+    # "attrs_inline",
+    "colon_fence",
+    # "deflist",
+    "dollarmath",
+    # "fieldlist",
+    # "linkify",
+    # "replacements",
+    # "smartquotes",
+    # "strikethrough",
+    "substitution",
+    # "tasklist",
+]
+
+suppress_warnings = ["mystnb.unknown_mime_type"]

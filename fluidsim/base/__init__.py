@@ -1,7 +1,6 @@
 """Base classes for writing solvers
 ===================================
 
-
 Provides:
 
 .. autosummary::
@@ -17,5 +16,6 @@ Provides:
    forcing
    preprocess
    sphericalharmo
+   turb_model
 
 """

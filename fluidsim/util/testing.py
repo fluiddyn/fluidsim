@@ -8,6 +8,7 @@ this module to run FluidSim unittests, without going into the source directory
 for eg. when it is installed through `pip`.
 
 """
+
 import argparse
 import inspect
 import os
@@ -68,7 +69,6 @@ class classproperty:
 
 
 class TestCase(unittest.TestCase):
-
     # True except if pytest is used...
     has_to_redirect_stdout = not any(
         any(test_tool in arg for arg in sys.argv)
@@ -119,9 +119,10 @@ class TestSimulConserve(TestSimul):
     @classmethod
     def setUpClass(cls):
         cls.init_params()
-        with stdout_redirected(cls.has_to_redirect_stdout), cls.Simul(
-            cls.params
-        ) as sim:
+        with (
+            stdout_redirected(cls.has_to_redirect_stdout),
+            cls.Simul(cls.params) as sim,
+        ):
             cls.sim = sim
             sim.time_stepping.start()
 
@@ -159,7 +160,10 @@ class TestSimulConserveOutput(TestSimulConserve):
             except AttributeError:
                 pass
             else:
-                results = method()
+                try:
+                    results = method()
+                except NotImplementedError:
+                    pass
         return results
 
     @unittest.skipIf(mpi.nb_proc > 1, "plot function works sequentially only")

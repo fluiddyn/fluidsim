@@ -16,6 +16,7 @@ To be compared with::
 
 
 """
+
 import time
 import numpy as np
 
@@ -71,7 +72,7 @@ if __name__ == "__main__":
             "T": 11 * dt,  # Should run 10 iterations
             "write_result": 100,
             "L": [L, L],
-            "M": [10, 10]  # Mesh size is pow(2, M[i]) in direction i
+            "M": [10, 10],  # Mesh size is pow(2, M[i]) in direction i
             # 2**9 == 512
         },
         "doublyperiodic",

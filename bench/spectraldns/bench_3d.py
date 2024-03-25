@@ -16,6 +16,7 @@ To be compared with::
   mpirun -np 2 fluidsim-bench 128 -d 3 -s ns3d -it 10
 
 """
+
 import time
 import numpy as np
 from numpy import zeros, sum, float64, sin, cos, prod, asscalar

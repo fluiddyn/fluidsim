@@ -32,7 +32,6 @@ user = os.environ["USER"]
 
 
 def get_info_jobs():
-
     process = run(f"squeue -u {user}")
     lines = process.stdout.split("\n")[1:]
     jobs_id = [line.split()[0] for line in lines if line]
@@ -71,7 +70,6 @@ couples2240 = set(
 
 
 def submit_from_file(nh, nh_small, t_end, nb_nodes_from_N, type_fft_from_N):
-
     print("path_base:", path_base, sep="\n")
 
     paths_in = sorted(
@@ -151,7 +149,6 @@ def submit_from_file(nh, nh_small, t_end, nb_nodes_from_N, type_fft_from_N):
 
 
 def submit_restart(nh, t_end, nb_nodes_from_N, max_elapsed_time="23:30:00"):
-
     nb_cores_per_node = 28
     max_elapsed_time = pytimeparse.parse(max_elapsed_time)
 

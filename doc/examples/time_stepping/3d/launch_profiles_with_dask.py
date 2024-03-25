@@ -30,7 +30,6 @@ def submit(nx, coef_dealiasing, scheme):
 
 
 if __name__ == "__main__":
-
     cluster = LocalCluster(n_workers=2, threads_per_worker=1)
     client = Client(cluster)
 

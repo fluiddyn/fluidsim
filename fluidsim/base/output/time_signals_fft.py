@@ -1,3 +1,14 @@
+"""Old spatio-temporal spectra
+==============================
+
+.. autoclass:: TimeSignalsK
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import h5py
 
 import os
@@ -10,8 +21,7 @@ from fluidsim.base.output.base import SpecificOutput
 
 
 class TimeSignalsK(SpecificOutput):
-    """A :class:`TimeSignalK` object handles the saving of time signals
-    in spectral space.
+    """Handles the saving of time signals in spectral space.
 
     This class uses the particular functions defined by some solvers
     :func:`linear_eigenmode_from_values_1k` and
@@ -98,12 +108,12 @@ class TimeSignalsK(SpecificOutput):
         for ishell, kh_s in enumerate(self.kh_shell):
             angle = -np.pi / 2
             for ikps in range(self.nb_k_per_shell):
-                kx_array_ik_approx[
-                    ishell * self.nb_shells + ikps
-                ] = kh_s * np.cos(angle)
-                ky_array_ik_approx[
-                    ishell * self.nb_shells + ikps
-                ] = kh_s * np.sin(angle)
+                kx_array_ik_approx[ishell * self.nb_shells + ikps] = (
+                    kh_s * np.cos(angle)
+                )
+                ky_array_ik_approx[ishell * self.nb_shells + ikps] = (
+                    kh_s * np.sin(angle)
+                )
                 angle += delta_angle
 
         self.ik0_array_ik = np.empty([self.nb_k_tot], dtype=np.int32)
@@ -151,9 +161,7 @@ class TimeSignalsK(SpecificOutput):
                 self.ky_array_ik[ik] = ky_1k
 
         if mpi.rank == 0:
-            self.kh_array_ik = np.sqrt(
-                self.kx_array_ik**2 + self.ky_array_ik**2
-            )
+            self.kh_array_ik = np.sqrt(self.kx_array_ik**2 + self.ky_array_ik**2)
 
             self.omega_array_ik = self.output.omega_from_wavenumber(
                 self.kh_array_ik
@@ -263,14 +271,12 @@ class TimeSignalsK(SpecificOutput):
             return dict_results
 
     def load(self):
-
         if not os.path.exists(self.path_file):
             raise ValueError(
                 "no file time_sigK.h5 in\n" + self.output.dir_save_run
             )
 
         with h5py.File(self.path_file, "r+") as file:
-
             dset_times = file["times"]
             times = dset_times[...]
 
@@ -321,7 +327,6 @@ class TimeSignalsK(SpecificOutput):
         period_shell = 2 * np.pi / omega_shell
 
         for ish in range(nb_shells):
-
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$t/T$")
             ax1.set_ylabel("signals (s$^{-1}$)")
@@ -351,7 +356,6 @@ class TimeSignalsK(SpecificOutput):
         ax1.loglog(kh_shell, omega_shell, "o", linewidth=2)
 
     def time_spectrum(self, sig_long):
-
         Nt = sig_long.size
         stepit0 = int(np.fix(self.nt / 2.0))
 

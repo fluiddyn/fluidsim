@@ -6,7 +6,6 @@ nxs_base = np.array([216, 160, 144]) // 2
 
 
 def submit_profiles_1coef(coef):
-
     nxs = coef * nxs_base
 
     t_end = 0.5 / coef

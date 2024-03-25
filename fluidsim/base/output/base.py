@@ -1,5 +1,5 @@
-"""Base module for the output (:mod:`fluidsim.base.output.base`)
-================================================================
+"""Base module for the output
+=============================
 
 Provides:
 
@@ -28,9 +28,6 @@ import shutil
 import numbers
 from copy import copy
 from warnings import warn
-import json
-import hashlib
-import inspect
 
 import numpy as np
 import h5py
@@ -44,7 +41,7 @@ from fluidsim_core.output import OutputCore, SimReprMakerCore
 from fluidsim_core.params import iter_complete_params
 
 import fluidsim
-from fluidsim.util import open_patient
+from fluidsim.util import open_patient, get_mean_values_from_path
 
 
 class SimReprMaker(SimReprMakerCore):
@@ -195,7 +192,6 @@ are called.
         super().post_init()
 
         if mpi.rank == 0:
-
             objects_to_print = {
                 "sim.oper": sim.oper,
                 "sim.state": sim.state,
@@ -210,9 +206,7 @@ are called.
                 objects_to_print["sim.preprocess"] = sim.preprocess
 
             for key, obj in objects_to_print.items():
-                self.print_stdout(
-                    "{:20s}".format(key + ": ") + str(obj.__class__)
-                )
+                self.print_stdout(f"{key + ': ':20s}" + str(obj.__class__))
 
             # print info on the run
             if hasattr(sim.params.time_stepping, "type_time_scheme"):
@@ -267,7 +261,6 @@ are called.
             )
 
     def init_with_initialized_state(self):
-
         if (
             hasattr(self, "_has_been_initialized_with_state")
             and self._has_been_initialized_with_state
@@ -304,7 +297,7 @@ are called.
         for Class in classes:
             if mpi.rank == 0:
                 self.print_stdout(
-                    "{:30s}".format("sim.output." + Class._tag + ":") + str(Class)
+                    f"{'sim.output.' + Class._tag + ':':30s}" + str(Class)
                 )
             self.__dict__[Class._tag] = Class(self)
 
@@ -316,7 +309,6 @@ are called.
             self.print_size_in_Mo(self.sim.state.state_phys, "state_phys")
 
     def one_time_step(self):
-
         for k in self.params.periods_print._get_key_attribs():
             period = self.params.periods_print.__dict__[k]
             if period != 0:
@@ -457,55 +449,11 @@ are called.
             sim.output.get_mean_values(customize=customize)
 
         """
-
-        if tmin is None or isinstance(tmin, str):
-            t_start, _ = self.print_stdout.get_times_start_last()
-
-        if tmin is None:
-            tmin = t_start
-        elif isinstance(tmin, str):
-            if tmin.startswith("t_start+"):
-                tmin = t_start + float(tmin.split("t_start+")[-1])
-            else:
-                raise ValueError(
-                    'if isinstance(tmin, str): assert tmin.startswith("t_start=")'
-                )
-
-        tmin = float(tmin)
-
-        if tmax is None:
-            t_last = self.spatial_means.time_last_saved()
-            tmax = t_last
-        tmax = float(tmax)
-
-        cache_dir = Path(self.path_run) / ".cache"
-        cache_dir.mkdir(exist_ok=True)
-
-        if customize is not None:
-            hash = hashlib.sha256(
-                inspect.getsource(customize).encode()
-            ).hexdigest()[:16]
-            part_customize = f"_customize{hash}"
-        else:
-            part_customize = ""
-
-        cache_file = cache_dir / (
-            f"mean_values_tmin{tmin}_tmax{tmax}{part_customize}.json"
+        return get_mean_values_from_path(
+            self.path_run, tmin, tmax, use_cache, customize
         )
-        if use_cache and cache_file.exists():
-            with open(cache_file, "r") as file:
-                return json.load(file)
-
-        result = self._compute_mean_values(tmin, tmax)
-        if customize is not None:
-            customize(result, self.sim)
-
-        with open(cache_file, "w") as file:
-            json.dump(result, file, indent=2)
-        return result
 
     def _compute_mean_values(self, tmin, tmax):
-
         result = {}
 
         try:
@@ -517,14 +465,14 @@ are called.
             tmin=tmin, tmax=tmax
         )
 
-        for key in ["Uh2", "epsK"]:
+        for key in ["Uh2", "epsK", "EKh", "EKz", "k_max"]:
             result[key] = averages["dimensional"][key]
 
-        key = "epsA"
-        try:
-            result[key] = averages["dimensional"][key]
-        except KeyError:
-            pass
+        for key in ["epsA", "EA"]:
+            try:
+                result[key] = averages["dimensional"][key]
+            except KeyError:
+                pass
 
         for key in ["Gamma", "Fh", "R2", "k_max*eta", "epsK2/epsK"]:
             try:
@@ -544,9 +492,9 @@ are called.
         lengths = self.spectra.compute_length_scales(data=data_spectra)
         result.update(lengths)
 
-        result[
-            "I_dissipation"
-        ] = self.spect_energy_budg.compute_isotropy_dissipation(tmin)
+        result["I_dissipation"] = (
+            self.spect_energy_budg.compute_isotropy_dissipation(tmin)
+        )
 
         return result
 
@@ -584,7 +532,6 @@ class SpecificOutput:
         has_to_plot_saved=False,
         arrays_1st_time=None,
     ):
-
         sim = output.sim
         params = sim.params
 
@@ -611,6 +558,11 @@ class SpecificOutput:
         self.t_last_show = 0.0
 
         self._init_path_files()
+
+        if hasattr(self, "_cls_movies"):
+            self.movies = self._cls_movies(output, self)
+            self.animate = self.movies.animate
+            self.interact = self.movies.interact
 
         if self.has_to_plot:
             self._init_online_plot()
@@ -730,3 +682,6 @@ class SpecificOutput:
 
     def _online_plot_saving(self, dict_results):
         pass
+
+    def compute(self):
+        raise NotImplementedError

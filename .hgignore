@@ -18,6 +18,8 @@ __pycache__
 .pytest_cache/
 .mypy_cache/
 .coverage/
+.nox
+.pixi
 
 bench/launcher_*
 bench/SLURM*
@@ -83,3 +85,6 @@ scratch
 fluidsim/_version.py
 
 doc/examples/htmlcov/*
+
+fluidsim/build_conf.txt
+.pdm-python

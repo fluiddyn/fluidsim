@@ -10,6 +10,7 @@ Container to encode the solver class hierarchy.
    :private-members:
 
 """
+
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import ParamContainer
 
@@ -46,7 +47,6 @@ class InfoSolverCore(ParamContainer):
     """
 
     def __init__(self, only_root=False, **kargs):
-
         if len(kargs) == 0 or ("path_file" in kargs and "tag" not in kargs):
             kargs["tag"] = "solver"
 
@@ -75,7 +75,6 @@ class InfoSolverCore(ParamContainer):
                     )
 
     def _init_root(self):
-
         self._set_attribs(
             {
                 "module_name": "fluidsim_core.solver",
@@ -103,7 +102,7 @@ class InfoSolverCore(ParamContainer):
 
     def import_classes(self):
         """Import the classes and return a dictionary."""
-        if hasattr(self, "_cached_imported_classes"):
+        if getattr(self, "_cached_imported_classes", None) is not None:
             return self._cached_imported_classes
 
         dict_classes = {}

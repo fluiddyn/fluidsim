@@ -26,7 +26,6 @@ tstatio = 250
 
 
 if LOAD:
-
     tuple_loop = [
         (c2, name_solver) for c2 in values_c2 for name_solver in values_solver
     ]

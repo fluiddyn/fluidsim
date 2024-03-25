@@ -8,6 +8,7 @@ Provides:
    :private-members:
 
 """
+
 import numpy as np
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -52,7 +53,6 @@ class Simul(SimulBasePseudoSpectral):
         params._set_attrib("sigma", 1.0)
 
     def tendencies_nonlin(self, state_spect=None, old=None):
-
         if state_spect is None:
             signal = self.state.state_phys.get_var("s")
         else:
@@ -74,7 +74,6 @@ class Simul(SimulBasePseudoSpectral):
 
 
 if __name__ == "__main__":
-
     from scipy.signal import gausspulse
 
     params = Simul.create_default_params()

@@ -15,7 +15,6 @@ nb_mpi_processes = nb_nodes * nb_cores_per_node
 
 
 for path in paths:
-
     command = f"run_simul_restart.py -p {path}"
 
     print(f"submitting:\npython {command}")

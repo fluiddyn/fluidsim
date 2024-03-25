@@ -59,14 +59,10 @@ class SpectraPlate2D(Spectra):
             spectrum2D_Etot = spectrum2D_EK + spectrum2D_EL + spectrum2D_EE
             khE = self.oper.khE
             coef_norm = khE ** (3.0)
-            self.axe.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
-            self.axe.loglog(khE, spectrum2D_EK * coef_norm, "r--")
-            self.axe.loglog(khE, spectrum2D_EL * coef_norm, "b--")
-            self.axe.loglog(khE, spectrum2D_EE * coef_norm, "y--")
-        # lin_inf, lin_sup = self.axe.get_ylim()
-        # if lin_inf < 10e-6:
-        #     lin_inf = 10e-6
-        # self.axe.set_ylim([lin_inf, lin_sup])
+            self.ax.loglog(khE, spectrum2D_Etot * coef_norm, "k", linewidth=2)
+            self.ax.loglog(khE, spectrum2D_EK * coef_norm, "r--")
+            self.ax.loglog(khE, spectrum2D_EL * coef_norm, "b--")
+            self.ax.loglog(khE, spectrum2D_EE * coef_norm, "y--")
         else:
             print(
                 "you need to implement the ploting "
@@ -74,7 +70,6 @@ class SpectraPlate2D(Spectra):
             )
 
     def plot1d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):
-
         with h5py.File(self.path_file1D, "r") as h5file:
             dset_times = h5file["times"]
 
@@ -107,9 +102,7 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot1d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
+                f"plot1d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
                 + f" coef_compensate={coef_compensate:.3f})"
             )
 
@@ -184,9 +177,7 @@ class SpectraPlate2D(Spectra):
             tmax_plot = times[imax_plot]
 
             print(
-                "plot2d(tmin={}, tmax={}, delta_t={:.2f},".format(
-                    tmin, tmax, delta_t
-                )
+                f"plot2d(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f},"
                 + f" coef_compensate={coef_compensate:.3f})"
             )
 

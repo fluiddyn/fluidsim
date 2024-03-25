@@ -65,7 +65,6 @@ class SpecificForcing:
         params.forcing.available_types.append(cls.tag)
 
     def __init__(self, sim):
-
         self.sim = sim
         self.oper = sim.oper
         self.params = sim.params
@@ -163,7 +162,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             )
 
     def __init__(self, sim):
-
         super().__init__(sim)
 
         params = sim.params
@@ -455,7 +453,6 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
             params.forcing._set_doc("How the forcing is normalized")
 
     def __init__(self, sim):
-
         super().__init__(sim)
 
         params_norm = self.params.forcing.normalized
@@ -747,7 +744,6 @@ class RandomSimplePseudoSpectral(NormalizedForcing):
             params.forcing._set_child("random", {"only_positive": False})
 
     def __init__(self, sim):
-
         super().__init__(sim)
 
         if self.params.forcing.random.only_positive:
@@ -790,11 +786,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             )
 
     def __init__(self, sim):
-
         super().__init__(sim)
 
         if mpi.rank == 0:
-
             self._forcing_state_file_path = (
                 Path(sim.output.path_run) / "_forcing_state.txt"
             )

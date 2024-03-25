@@ -18,7 +18,6 @@ from fluidsim.util.testing import TestSimul
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")
 class TestSolverAD1D(TestSimul):
-
     Simul = Simul
 
     @classmethod
@@ -87,6 +86,8 @@ class TestSolverAD1D(TestSimul):
 
         sim.output.phys_fields.plot()
         sim.output.phys_fields.plot(field="s", time=10)
+        sim.output.phys_fields.animate()
+        sim.output.phys_fields.movies.update_animation(1)
 
 
 @unittest.skipIf(not scipy_installed, "No module named scipy.sparse")

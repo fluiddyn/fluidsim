@@ -16,14 +16,13 @@ class PhysFields2DStrat(PhysFieldsBase2D):
     """Class physical fields of solver ns2d.strat"""
 
     def update_animation(self, frame, **fargs):
-
         super().update_animation(frame, **fargs)
 
         if hasattr(self, "ratio_omegas"):
             title = (
                 self.key_field
-                + f", R = {self.output.ratio_omegas:.2f}"
-                + f", F = {self.output.froude_number:.1f}"
+                + f", $R = {self.output.ratio_omegas:.2f}$"
+                + f", $F = {self.output.froude_number:.1f}$"
                 + f", $t = {self.ani_times[frame]:.3f}$"
             )
         else:

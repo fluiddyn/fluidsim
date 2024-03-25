@@ -264,12 +264,12 @@ class SpatioTempSpectra(SpecificOutput):
                 field_am_decimate = field_am_seq[
                     :: self.spatial_decimate, :: self.spatial_decimate
                 ]
-                self.spatio_temp_new[
-                    0, self.nb_times_in_spatio_temp, :, :
-                ] = field_ap_decimate
-                self.spatio_temp_new[
-                    1, self.nb_times_in_spatio_temp, :, :
-                ] = field_am_decimate
+                self.spatio_temp_new[0, self.nb_times_in_spatio_temp, :, :] = (
+                    field_ap_decimate
+                )
+                self.spatio_temp_new[1, self.nb_times_in_spatio_temp, :, :] = (
+                    field_am_decimate
+                )
 
             # Save the time to self.times_arr
             if not self.sim.time_stepping.it:
@@ -277,9 +277,9 @@ class SpatioTempSpectra(SpecificOutput):
                     itsim * self.sim.params.time_stepping.deltat0
                 )
             else:
-                self.times_arr[
-                    self.nb_times_in_spatio_temp
-                ] = self.sim.time_stepping.t
+                self.times_arr[self.nb_times_in_spatio_temp] = (
+                    self.sim.time_stepping.t
+                )
 
             self.its_arr[self.nb_times_in_spatio_temp] = self.sim.time_stepping.it
 
@@ -392,7 +392,6 @@ class SpatioTempSpectra(SpecificOutput):
 
         # Compute temporal FT
         for index, time_start in enumerate(times_start):
-
             # Compute index to start and to end FT
             it0 = np.argmin(abs(times - time_start))
             it1 = it0 + windows_size
@@ -1100,8 +1099,8 @@ class SpatioTempSpectra(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            fig, axe = self.output.figure_axe(numfig=1_000_000)
-            self.axe = axe
-            axe.set_xlabel("$k_h$")
-            axe.set_ylabel("$E(k_h)$")
-            axe.set_title("spectra\n" + self.output.summary_simul)
+            fig, ax = self.output.figure_axe(numfig=1_000_000)
+            self.ax = ax
+            ax.set_xlabel("$k_h$")
+            ax.set_ylabel("$E(k_h)$")
+            ax.set_title("spectra\n" + self.output.summary_simul)

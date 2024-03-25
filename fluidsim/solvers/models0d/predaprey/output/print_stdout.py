@@ -23,7 +23,6 @@ class PrintStdOutPredaPrey(PrintStdOutBase):
     """
 
     def complete_init_with_state(self):
-
         self.potential0 = self.output.compute_potential()
 
         if self.period_print == 0:

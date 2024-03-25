@@ -80,7 +80,6 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         )
 
     def __init__(self, output):
-
         params = output.sim.params
         self.nx = params.oper.nx
 
@@ -110,7 +109,6 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         }
 
     def compute(self):
-
         results = {}
         state = self.sim.state
 
@@ -245,7 +243,6 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
     _key_plot_default_kzkh = "transfer_Kh"
 
     def plot_kzkh(self, tmin=0, tmax=None, key=None, ax=None):
-
         with h5py.File(self.path_file, "r") as file:
             keys_saved = [
                 key
@@ -276,7 +273,6 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         ax.pcolormesh(kh, kz, spectrum, shading="nearest")
 
     def compute_fluxes_mean(self, tmin=None, tmax=None):
-
         with h5py.File(self.path_file, "r") as file:
             keys_saved = [
                 key
@@ -317,7 +313,6 @@ class SpectralEnergyBudgetNS3D(SpecificOutput):
         return dict_results
 
     def plot_fluxes(self, tmin=None, tmax=None, key_k="kh", ax=None):
-
         data = self.compute_fluxes_mean(tmin, tmax)
 
         k_plot = data[key_k]

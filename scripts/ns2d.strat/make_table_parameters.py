@@ -4,6 +4,7 @@ make_table_parameters.py
 28/09/2018
 
 """
+
 import os
 import h5py
 import numpy as np
@@ -45,7 +46,6 @@ if MAKE_TABLE:
     )
 
 for path in path_simulations:
-
     # Load object simulations
     sim = load_sim_for_plot(path)
 
@@ -99,9 +99,7 @@ for path in path_simulations:
     print("Rb8", Rb8)
 
     if MAKE_TABLE:
-        to_print += "{} & {:.4f} & {:.4e} & {:.4e} \\\\ \n".format(
-            gamma_table, F_h, Re_8, Rb8
-        )
+        to_print += f"{gamma_table} & {F_h:.4f} & {Re_8:.4e} & {Rb8:.4e} \\\\ \n"
 
 if MAKE_TABLE:
     with open(path_table, "w") as f:

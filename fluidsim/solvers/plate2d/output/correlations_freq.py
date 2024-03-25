@@ -17,14 +17,14 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
-from transonic import jit
+from transonic import boost
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import FFTW1DReal2Complex
 
 from fluidsim.base.output.base import SpecificOutput
 
 
-@jit
+@boost
 def compute_correl4_seq(
     q_fftt: "complex128[][]", iomegas1: "int32[]", nb_omegas: int, nb_xs_seq: int
 ):
@@ -94,7 +94,7 @@ def compute_correl4_seq(
     return corr4
 
 
-@jit
+@boost
 def compute_correl2_seq(
     q_fftt: "complex128[][]", iomegas1: "int32[]", nb_omegas: int, nb_xs_seq: int
 ):
@@ -313,7 +313,6 @@ class CorrelationsFreq(SpecificOutput):
                         self.nb_means_times % 128 == 0
                         or np.log(self.nb_means_times) / np.log(2) % 1 == 0
                     ) and self.nb_means_times != 1:
-
                         correlations = {
                             "corr4": self.corr4,
                             "corr2": self.corr2,
@@ -387,7 +386,6 @@ class CorrelationsFreq(SpecificOutput):
         fig1.colorbar(pc1)
 
     def compute_corr4_norm(self, it=-1):
-
         with h5py.File(self.path_file, "r") as file:
             corr4 = file["corr4"][it]
             corr2 = file["corr2"][it]
@@ -576,7 +574,6 @@ class CorrelationsFreq(SpecificOutput):
         ax.set_xlabel("number of averages")
 
     def plot_convergence(self):
-
         nb_means, dnormpickC4 = self._compute_dnormpickC4_over_dnbmean()
 
         fig = plt.figure()
@@ -586,7 +583,6 @@ class CorrelationsFreq(SpecificOutput):
         ax.set_xlabel("number of averages")
 
     def plot_corr2(self, nonorm=False, it=-1):
-
         with h5py.File(self.path_file, "r") as file:
             corr2_in_file = file["corr2"]
             corr2 = corr2_in_file[it]
@@ -625,7 +621,6 @@ class CorrelationsFreq(SpecificOutput):
         plt.axis([fx.min(), fx.max(), fy.min(), fy.max()])
 
     def plot_corr2_1d(self, it=-1):
-
         with h5py.File(self.path_file, "r") as file:
             corr2 = file["corr2"][it]
             nb_means = file["nb_means"][it]
@@ -644,7 +639,6 @@ class CorrelationsFreq(SpecificOutput):
         ax.plot(self.omegas, np.log10(abs(corr2_diag)))
 
     def plot_corr4(self, it=-1):
-
         nb_omegas1 = self.iomegas1.shape[0]
         nb_omegas = self.nb_omegas
 

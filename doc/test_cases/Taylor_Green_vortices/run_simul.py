@@ -38,7 +38,6 @@ params.output.spectra.kzkh_periodicity = 1
 
 
 def init_simul(params):
-
     sim = Simul(params)
 
     X, Y, Z = sim.oper.get_XYZ_loc()
@@ -56,7 +55,6 @@ def init_simul(params):
 
 
 def run_simul(sim):
-
     sim.time_stepping.start()
 
     from fluiddyn.util.mpi import printby0
@@ -69,13 +67,7 @@ fluidsim-create-xml-description {sim.output.path_run}
 
 # To visualize with fluidsim:
 
-cd {sim.output.path_run}
-ipython --matplotlib
-
-# in ipython:
-
-from fluidsim import load_sim_for_plot as load
-sim = load()
+cd {sim.output.path_run}; fluidsim-ipy-load
 
 sim.output.spatial_means.plot()
 sim.output.spectra.plot1d(tmin=12, tmax=16, coef_compensate=5/3)
@@ -90,7 +82,6 @@ sim.output.phys_fields.animate('vx')
 
 
 if __name__ == "__main__":
-
     sim = init_simul(params)
 
     # only useful to plot fields before time_stepping

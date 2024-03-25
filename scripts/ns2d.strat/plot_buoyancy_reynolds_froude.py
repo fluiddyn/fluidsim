@@ -2,6 +2,7 @@
 plot_buoyancy_reynolds_froude.py
 =================================
 """
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,7 +38,6 @@ dissipations = []
 markers = []
 
 for path in paths_simulations:
-
     anisotropy, ratio_diss, F_h, Re_8, R_b = get_features_from_sim(path)
     res = _get_resolution_from_dir(path)
 

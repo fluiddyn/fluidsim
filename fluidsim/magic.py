@@ -6,6 +6,7 @@
    :private-members:
 
 """
+
 from fluiddyn.io.query import query_yes_no
 from fluidsim_core.magic import MagicsCore
 from IPython.core.magic import line_magic, magics_class

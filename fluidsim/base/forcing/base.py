@@ -32,6 +32,8 @@ from .specific import (
 class ForcingBase:
     """Organize the forcing schemes (base class)"""
 
+    _name_task = "forcing"
+
     @staticmethod
     def _complete_info_solver(info_solver, classes=None):
         """Complete the ParamContainer info_solver."""
@@ -87,12 +89,7 @@ key_forced: {None} or str
         )
 
         dict_classes = info_solver.classes.Forcing.import_classes()
-        # iter on the dict in a determined order
-        iter_complete_params(
-            params,
-            info_solver,
-            (dict_classes[key] for key in sorted(dict_classes)),
-        )
+        iter_complete_params(params, info_solver, dict_classes)
 
     @staticmethod
     def _modify_sim_repr_maker(sim_repr_maker):
@@ -114,7 +111,6 @@ key_forced: {None} or str
         dict_classes = sim.info.solver.classes.Forcing.import_classes()
 
         if self.type_forcing not in dict_classes:
-
             # temporary trick to open old simulations
             if self.type_forcing == "random" and "tcrandom" in dict_classes:
                 self.type_forcing = "tcrandom"

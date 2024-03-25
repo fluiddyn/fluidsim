@@ -1,5 +1,0 @@
-# Commands to run on Binder https://mybinder.org after building from
-# environment.yml
-cd lib && pip install -e . && cd ..
-export DISABLE_PYTHRAN=1
-pip install -e .

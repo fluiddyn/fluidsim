@@ -12,7 +12,6 @@ walltime = "00:10:00"
 libraries = ["fftw1d", "fftwmpi3d", "p3dfft", "pfft"]
 
 for lib in libraries:
-
     cluster.submit_script(
         f"check_fluidfft.py fft3d.mpi_with_{lib}",
         name_run=f"check_fluidfft_{lib}",

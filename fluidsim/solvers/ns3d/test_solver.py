@@ -27,6 +27,8 @@ from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 
 @skip_if_no_fluidfft
 class TestSimulBase(TestSimul):
+    nx = 16
+
     @classproperty
     def Simul(cls):
         from fluidsim.solvers.ns3d.solver import Simul
@@ -44,12 +46,11 @@ class TestSimulBase(TestSimul):
 
     @classmethod
     def init_params(cls):
-
         params = cls.params = cls.Simul.create_default_params()
 
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
-        cls._init_grid(params, nx=16)
+        cls._init_grid(params, nx=cls.nx)
 
         Lx = 6.0
         params.oper.Lx = Lx
@@ -77,7 +78,6 @@ class TestTendency(TestSimulBase):
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
-
         sim = self.sim
         tend = sim.tendencies_nonlin(state_spect=sim.state.state_spect)
 
@@ -140,7 +140,6 @@ class TestOutput(TestSimulBase):
 
     @pytest.mark.filterwarnings("ignore:divide by zero encountered in log10")
     def test_output(self):
-
         sim = self.sim
 
         # put energy in vz
@@ -159,7 +158,6 @@ class TestOutput(TestSimulBase):
         assert sim.time_stepping._get_phaseshift() is phaseshift
 
         if mpi.nb_proc == 1:
-
             phys_fields = sim.output.phys_fields
             phys_fields.plot(equation=f"iz=0", numfig=1000)
 
@@ -179,8 +177,8 @@ class TestOutput(TestSimulBase):
         # compute twice for better coverage
         sim.state.compute("rotz")
 
-        sim.output.phys_fields._get_grid1d("iz=0")
-        sim.output.phys_fields._get_grid1d("iy=0")
+        sim.output.phys_fields._get_axis_data("iz=0")
+        sim.output.phys_fields._get_axis_data("iy=0")
 
         path_run = sim.output.path_run
         if mpi.nb_proc > 1:
@@ -205,6 +203,13 @@ class TestOutput(TestSimulBase):
                 ylim=(0.1, 1),
                 plot_dissipative_scales=True,
             )
+            sim2.output.spectra.plot3d(
+                coef_plot_k2=1.0,
+                coef_plot_k3=1.0,
+                coef_plot_k53=1.0,
+            )
+            sim2.output.spectra.plot1d(delta_t=1e-10, with_average=False)
+            sim2.output.spectra.plot3d(delta_t=1e-10, with_average=False)
             sim2.output.spectra.plot1d_times(
                 tmin=0.1,
                 tmax=10,
@@ -227,6 +232,9 @@ class TestOutput(TestSimulBase):
             sim2.output.spectra.plot3d_cumul_diss(tmin=0.1, tmax=10)
 
             sim2.output.spectra.plot_kzkh(key="Khd")
+
+            sim2.output.spectra.animate()
+
             sim2.output.cross_corr.plot_kzkh()
 
             sim2.output.phys_fields.set_equation_crosssection(
@@ -331,9 +339,8 @@ class TestOutput(TestSimulBase):
 
             E_kzkhomega = 0.5 * coef * spectrum_kzkhomega.sum()
 
-            # `:-1` because the last time is saved twice in spatial_means
-            # (see SpatialMeansBase.__init__)
-            E_mean = means["E" + letter][:-1].mean()
+            # `:-2`: a time is saved twice and we don't want the last time
+            E_mean = means["E" + letter][:-2].mean()
 
             assert np.allclose(E_omega, E_kxkykzomega), (
                 letter,
@@ -409,7 +416,6 @@ class TestInitInScript(TestSimulBase):
         params.init_fields.type = "in_script"
 
     def test_init_in_script(self):
-
         sim = self.sim
 
         # here we have to initialize the flow fields
@@ -482,9 +488,9 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
 
         for key_forced in ("vt_fft", "rotz_fft", "divh_fft"):
             params.time_stepping.t_end += 0.2
-            params.forcing.key_forced = (
-                sim.forcing.forcing_maker.key_forced
-            ) = key_forced
+            params.forcing.key_forced = sim.forcing.forcing_maker.key_forced = (
+                key_forced
+            )
             sim.time_stepping.init_from_params()
             sim.time_stepping.main_loop()
 
@@ -559,7 +565,6 @@ class TestForcingWatuCoriolis(TestSimulBase):
         params.output.periods_save.phys_fields = 2.0
 
     def test_forcing(self):
-
         sim = self.sim
         sim.time_stepping.start()
         sim.state.check_energy_equal_phys_spect()

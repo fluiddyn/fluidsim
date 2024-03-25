@@ -42,14 +42,12 @@ def filter_path(paths, Rb, N):
 
 
 for N, Rb in sorted(couples640):
-
     name_1st_run = f"from_modified_resol_nx{nh}_Rb{Rb}_N{N}"
     job_id = get_job_id(name_1st_run)
     try:
         path = filter_path(paths, Rb, N)
     except IndexError:
         if job_id is None:
-
             try:
                 path_init = filter_path(paths_init, Rb, N)
             except IndexError:

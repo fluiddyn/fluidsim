@@ -1,3 +1,16 @@
+"""Probability density functions
+================================
+
+Provides:
+
+.. autoclass:: ProbaDensityFunc
+   :members:
+   :private-members:
+   :noindex:
+   :undoc-members:
+
+"""
+
 import h5py
 import numpy as np
 
@@ -38,17 +51,17 @@ class ProbaDensityFunc(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
-            self.axe = axe
-            axe.set_xlabel(r"$\eta$")
-            axe.set_ylabel("pdf")
-            axe.set_title(r"pdf $\eta$" + "\n" + self.output.summary_simul)
+            self.fig, ax = self.output.figure_axe(numfig=5_000_000)
+            self.ax = ax
+            ax.set_xlabel(r"$\eta$")
+            ax.set_ylabel("pdf")
+            ax.set_title(r"pdf $\eta$" + "\n" + self.output.summary_simul)
 
     def _online_plot_saving(self, dict_pdf):
         """online plot on pdf"""
         pdf_eta = dict_pdf["pdf_eta"]
         bin_edges_eta = dict_pdf["bin_edges_eta"]
-        self.axe.plot(bin_edges_eta[:-1], pdf_eta, "k")
+        self.ax.plot(bin_edges_eta[:-1], pdf_eta, "k")
 
     def compute(self):
         """compute the values at one time."""
@@ -75,7 +88,6 @@ class ProbaDensityFunc(SpecificOutput):
     def load(self):
         """load the saved pdf and return a dictionary."""
         with h5py.File(self.path_file, "r") as h5file:
-
             dset_pdf_eta = h5file["pdf_eta"]
             dset_bin_edges_eta = h5file["bin_edges_eta"]
 
@@ -145,19 +157,12 @@ class ProbaDensityFunc(SpecificOutput):
             tmin_plot = times[imin_plot]
             tmax_plot = times[imax_plot]
 
-            to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-                tmin, tmax, delta_t
-            )
-            print(to_print)
-
-            to_print = (
+            print(
+                f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})\n"
                 "plot pdf eta\n"
-                "tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}"
-                "imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-            ).format(
-                tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+                f"tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}"
+                f"imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"
             )
-            print(to_print)
 
             for it in range(imin_plot, imax_plot + 1, delta_i_plot):
                 pdf_eta = dset_pdf_eta[it]

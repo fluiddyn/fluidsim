@@ -5,6 +5,7 @@
 .. autofunction:: import_cls_simul
 
 """
+
 import sys
 
 if sys.version_info[:2] < (3, 10):

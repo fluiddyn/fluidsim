@@ -9,6 +9,7 @@ Provides:
 
 
 """
+
 from fluidsim.base.setofvariables import SetOfVariables
 from fluidsim.base.solvers.pseudo_spect import (
     SimulBasePseudoSpectral,
@@ -66,7 +67,6 @@ class Simul(SimulBasePseudoSpectral):
     InfoSolver = InfoSolver
 
     def tendencies_nonlin(self, state_spect=None, old=None):
-
         if state_spect is None:
             u_fft = self.state.state_spect.get_var("u_fft")
             signal = self.state.state_phys.get_var("u")

@@ -10,6 +10,7 @@ Provides:
    base
    specific
    anisotropic
+   kolmogorov
 
 """
 

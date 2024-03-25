@@ -22,7 +22,6 @@ from ..strat.solver import InfoSolverNS3DStrat, Simul as SimulStrat
 
 class InfoSolverNS3DBouss(InfoSolverNS3DStrat):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d.bouss"
@@ -94,6 +93,7 @@ class Simul(SimulStrat):
     is taken into account with the operator :math:`P_\perp`.
 
     """
+
     InfoSolver = InfoSolverNS3DBouss
 
     def tendencies_nonlin(self, state_spect=None, old=None):
@@ -176,7 +176,6 @@ class Simul(SimulStrat):
 
 
 if __name__ == "__main__":
-
     import numpy as np
 
     # import fluiddyn as fld

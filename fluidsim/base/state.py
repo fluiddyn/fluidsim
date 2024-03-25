@@ -237,7 +237,6 @@ class StatePseudoSpectral(StateBase):
         )
 
     def __init__(self, sim, oper=None):
-
         super().__init__(sim, oper)
 
         self.keys_state_spect = sim.info.solver.classes.State.keys_state_spect

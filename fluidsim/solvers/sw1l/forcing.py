@@ -106,7 +106,7 @@ class WavesVortices(Waves):
         if not isinstance(self.key_forced, (tuple, list, np.ndarray)):
             raise ValueError(
                 "Expected array-like value for params.forcing.key_forced"
-                + " = {} : {}".format(self.key_forced, type(self.key_forced))
+                + f" = {self.key_forced} : {type(self.key_forced)}"
             )
 
         v_fft = dict()
@@ -179,9 +179,7 @@ class Potential(Waves):
         quadratic energy is equal to self.forcing_rate."""
         if "eta_fft" not in self.key_forced:
             raise ValueError(
-                "Expected 'eta_fft' in params.forcing.key_forced = {}".format(
-                    self.key_forced
-                )
+                f"Expected 'eta_fft' in params.forcing.key_forced = {self.key_forced}"
             )
 
         oper_c = self.oper_coarse

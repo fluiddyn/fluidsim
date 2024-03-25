@@ -10,7 +10,6 @@ from fluidsim.solvers.ns2d.forcing import ForcingNS2D
 
 
 class ForcingNS2DStrat(ForcingNS2D):
-
     """Forcing class for the ns2d strat solver.
 
     .. inheritance-diagram:: ForcingNS2DStrat
@@ -20,7 +19,6 @@ class ForcingNS2DStrat(ForcingNS2D):
     def compute_coef_ab_normalize(
         self, constant_rate_of, key_forced, f_fft, var_fft, deltat
     ):
-
         if constant_rate_of not in ["energy", "energyK"]:
             raise ValueError
 

@@ -35,7 +35,6 @@ def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac):
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
     def _init_root(self):
-
         super()._init_root()
 
         package = "fluidsim.solvers.ns3d.strat"
@@ -122,6 +121,7 @@ class Simul(SimulNS3D):
     plane perpendicular to the wave number :math:`\kk`.
 
     """
+
     InfoSolver = InfoSolverNS3DStrat
 
     @staticmethod
@@ -226,13 +226,11 @@ class Simul(SimulNS3D):
         pulsation in rad.
         """
         return self.params.N * np.sqrt(
-            (self.oper.Kx**2 + self.oper.Ky**2)
-            * self.oper.inv_K_square_nozero
+            (self.oper.Kx**2 + self.oper.Ky**2) * self.oper.inv_K_square_nozero
         )
 
 
 if __name__ == "__main__":
-
     import numpy as np
 
     import fluiddyn as fld

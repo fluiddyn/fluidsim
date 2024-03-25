@@ -97,7 +97,6 @@ class StateSW1LModified(StateSW1L):
         return result
 
     def init_from_uxuyfft(self, ux_fft, uy_fft):
-
         oper = self.oper
         ifft2 = oper.ifft2
 

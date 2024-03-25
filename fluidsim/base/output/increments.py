@@ -1,3 +1,16 @@
+"""Increments
+=============
+
+Provides:
+
+.. autoclass:: Increments
+    :members:
+    :private-members:
+    :noindex:
+    :undoc-members:
+
+"""
+
 import h5py
 import os
 import numpy as np
@@ -15,10 +28,7 @@ Af = Array[float, "2d"]
 def strfunc_from_pdf(
     rxs: Ai, pdf: Af, values: Af, order: float, absolute: bool = False
 ):
-    """Compute structure function of specified order from pdf for increments
-    module.
-
-    """
+    """Compute structure function of specified order from pdf"""
     S_order = np.empty(rxs.shape)
     if absolute:
         values = abs(values)
@@ -30,9 +40,7 @@ def strfunc_from_pdf(
 
 
 class Increments(SpecificOutput):
-    """A :class:`Increments` object handles the saving of pdf of
-    increments.
-    """
+    """Handles the saving of pdf of increments."""
 
     _tag = "increments"
     _name_file = _tag + ".h5"
@@ -88,11 +96,11 @@ class Increments(SpecificOutput):
 
     def _init_online_plot(self):
         if mpi.rank == 0:
-            self.fig, axe = self.output.figure_axe(numfig=5_000_000)
-            self.axe = axe
-            axe.set_xlabel(r"$\delta u_x (x)$")
-            axe.set_ylabel("pdf")
-            axe.set_title(
+            self.fig, ax = self.output.figure_axe(numfig=5_000_000)
+            self.ax = ax
+            ax.set_xlabel(r"$\delta u_x (x)$")
+            ax.set_ylabel("pdf")
+            ax.set_title(
                 r"pdf $\delta u_x (x)$" + "\n" + self.output.summary_simul
             )
 
@@ -105,7 +113,7 @@ class Increments(SpecificOutput):
 
         for irx, rx in enumerate(self.rxs):
             values_inc = self.compute_values_inc(valmin[irx], valmax[irx])
-            self.axe.plot(values_inc + irx, pdf[irx])
+            self.ax.plot(values_inc + irx, pdf[irx])
 
     def compute(self):
         """compute the values at one time."""
@@ -188,19 +196,12 @@ class Increments(SpecificOutput):
         tmin_plot = times[imin_plot]
         tmax_plot = times[imax_plot]
 
-        to_print = "plot(tmin={}, tmax={}, delta_t={:.2f})".format(
-            tmin, tmax, delta_t
-        )
-        print(to_print)
-
-        to_print = (
+        print(
+            f"plot(tmin={tmin}, tmax={tmax}, delta_t={delta_t:.2f})\n"
             "plot structure functions\n"
-            "tmin = {0:8.6g} ; tmax = {1:8.6g} ; delta_t = {2:8.6g}\n"
-            "imin = {3:8d} ; imax = {4:8d} ; delta_i = {5:8d}"
-        ).format(
-            tmin_plot, tmax_plot, delta_t, imin_plot, imax_plot, delta_i_plot
+            f"tmin = {tmin_plot:8.6g} ; tmax = {tmax_plot:8.6g} ; delta_t = {delta_t:8.6g}\n"
+            f"imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot:8d}"
         )
-        print(to_print)
 
         pdf_ux, values_inc_ux, nb_rx_to_plot = self.load_pdf_from_file(
             tmin=tmin, tmax=tmax, key_var="ux"
@@ -331,15 +332,18 @@ class Increments(SpecificOutput):
 
     def strfunc_from_pdf(self, pdf, values, order, absolute=False):
         r"""Following the identity:
+
         .. math::
             E(x^m) = \int_{-\inf}^{\inf} x^m p(x) dx
 
         In this case, replace x with increments,
+
         .. math::
             \delta u(r, x) = u(x+r) - u(x)
 
         Thus, for a every value of r the mean of increments are computed
         as follows:
+
         .. math::
             <(\delta u)^m>
                 = \int_{-\inf}^{\inf} (\delta u)^m p(\delta u) d(\delta u)
@@ -368,31 +372,13 @@ class Increments(SpecificOutput):
 
             rxs = np.array(rxs, dtype=np.float64) * deltax
 
-            # orders = h5file['orders'][...]
-
-            # delta_t_save = np.mean(times[1:]-times[0:-1])
-            # delta_t = delta_t_save
-
             imin_plot = np.argmin(abs(times - tmin))
             imax_plot = np.argmin(abs(times - tmax))
-
-            # tmin_plot = times[imin_plot]
-            # tmax_plot = times[imax_plot]
-
-            #         to_print = '''load pdf of the increments
-            # tmin = {0:8.6g} ; tmax = {1:8.6g}
-            # imin = {2:8d} ; imax = {3:8d}'''.format(
-            # tmin_plot, tmax_plot,
-            # imin_plot, imax_plot)
-            #         print(to_print)
 
             if irx_to_plot is None:
                 irx_to_plot = np.arange(rxs.size)
 
             nb_rx_to_plot = irx_to_plot.size
-
-            # print 'irx_to_plot', irx_to_plot
-            # print 'self.rxs[irx_to_plot]', self.rxs[irx_to_plot]
 
             pdf_timemean = np.zeros([nb_rx_to_plot, self.nbins])
             values_inc_timemean = np.zeros([nb_rx_to_plot, self.nbins])
@@ -439,7 +425,6 @@ class Increments(SpecificOutput):
         return pdf_timemean, values_inc_timemean, nb_rx_to_plot
 
     def plot_pdf(self, tmin=0, tmax=None, key_var="ux", order=0, nb_rx_to_plot=5):
-
         irx_to_plot = np.arange(
             0, self.rxs.size, self.rxs.size / nb_rx_to_plot
         ).astype(int)
@@ -453,8 +438,7 @@ class Increments(SpecificOutput):
             tmin=tmin, tmax=tmax, key_var=key_var, irx_to_plot=irx_to_plot
         )
 
-        to_print = f"plot_pdf(tmin={tmin}, tmax={tmax})"
-        print(to_print)
+        print(f"plot_pdf(tmin={tmin}, tmax={tmax})")
 
         fig, ax1 = self.output.figure_axe()
         ax1.set_title("pdf increments\n" + self.output.summary_simul)
@@ -468,8 +452,7 @@ class Increments(SpecificOutput):
         colors = ["k", "y", "r", "b", "g", "m", "c"]
 
         for irxp, irx in enumerate(irx_to_plot):
-
-            print("color = {}, rx = {}".format(colors[irxp], self.rxs[irx]))
+            print(f"color = {colors[irxp]}, rx = {self.rxs[irx]}")
 
             val_inc = values_inc_timemean[irxp]
 

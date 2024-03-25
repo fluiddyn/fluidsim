@@ -67,36 +67,24 @@ class SpatialMeansNS2D(SpatialMeansBase):
             epsK_tot = epsK + epsK_hypo
 
             self.file.write(f"####\ntime = {tsim:11.5e}\n")
-            to_print = (
-                "E    = {:11.5e} ; Z         = {:11.5e} \n"
-                "epsK = {:11.5e} ; epsK_hypo = {:11.5e} ; epsK_tot = {:11.5e} \n"
-                "epsZ = {:11.5e} ; epsZ_hypo = {:11.5e} ; epsZ_tot = {:11.5e} \n"
-            ).format(
-                energy,
-                enstrophy,
-                epsK,
-                epsK_hypo,
-                epsK + epsK_hypo,
-                epsZ,
-                epsZ_hypo,
-                epsZ + epsZ_hypo,
+            self.file.write(
+                f"E    = {energy:11.5e} ; Z         = {enstrophy:11.5e} \n"
+                f"epsK = {epsK:11.5e} ; epsK_hypo = {epsK_hypo:11.5e} ; epsK_tot = {epsK + epsK_hypo:11.5e} \n"
+                f"epsZ = {epsZ:11.5e} ; epsZ_hypo = {epsZ_hypo:11.5e} ; epsZ_tot = {epsZ + epsZ_hypo:11.5e} \n"
             )
-            self.file.write(to_print)
 
             if self.sim.params.forcing.enable:
                 PK_tot = PK1 + PK2
-                to_print = (
-                    "PK1  = {:11.5e} ; PK2       = {:11.5e} ; PK_tot   = {:11.5e} \n"
-                    "PZ1  = {:11.5e} ; PZ2       = {:11.5e} ; PZ_tot   = {:11.5e} \n"
-                ).format(PK1, PK2, PK1 + PK2, PZ1, PZ2, PZ1 + PZ2)
-                self.file.write(to_print)
+                self.file.write(
+                    f"PK1  = {PK1:11.5e} ; PK2       = {PK2:11.5e} ; PK_tot   = {PK1 + PK2:11.5e} \n"
+                    f"PZ1  = {PZ1:11.5e} ; PZ2       = {PZ2:11.5e} ; PZ_tot   = {PZ1 + PZ2:11.5e} \n"
+                )
 
             self.file.flush()
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
-            self.axe_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy, "k.")
 
             self.axe_b.plot(tsim, epsK_tot, "k.")
             if self.sim.params.forcing.enable:
@@ -104,7 +92,7 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
@@ -135,9 +123,6 @@ class SpatialMeansNS2D(SpatialMeansBase):
                 lines_epsZ.append(line)
 
         nt = len(lines_t)
-        # pa: why ?
-        # if nt > 1:
-        #     nt -= 1
 
         t = np.empty(nt)
         E = np.empty(nt)

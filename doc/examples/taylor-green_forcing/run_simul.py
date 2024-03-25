@@ -26,7 +26,6 @@ parser.add_argument("--t_end", type=float, default=20, help="Nondimension t_end"
 
 
 def main(args):
-
     F0 = 1.0
     L = 1.0
     V0 = sqrt(F0 * L)
@@ -63,8 +62,7 @@ def main(args):
 
     mpi.printby0(
         "# To reload the simul and plot the results:",
-        f"cd {sim.output.path_run}",
-        'ipython --matplotlib -i -c "from fluidsim import load; sim = load()"',
+        f"cd {sim.output.path_run}; fluidsim-ipy-load",
         "# In IPython:",
         "sim.output.spatial_means.plot()",
         "sim.output.spectra.plot1d(tmin=16, coef_compensate=5/3)",

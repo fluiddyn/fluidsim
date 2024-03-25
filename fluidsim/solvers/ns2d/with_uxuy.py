@@ -66,7 +66,6 @@ class Output(OutputBase):
 
 class InfoSolver(InfoBase):
     def _init_root(self):
-
         super()._init_root()
 
         module = "fluidsim.solvers.ns2d.with_uxuy"
@@ -90,7 +89,6 @@ class Simul(SimulBase):
     InfoSolver = InfoSolver
 
     def tendencies_nonlin(self, state_spect=None, old=None):
-
         # the operator and the fast Fourier transform
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg

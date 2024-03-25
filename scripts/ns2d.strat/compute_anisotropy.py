@@ -6,6 +6,7 @@ compute_anisotropy.py
 Function to compute the anisotropy of a simulation.
 
 """
+
 from glob import glob
 
 import h5py

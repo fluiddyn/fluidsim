@@ -96,7 +96,6 @@ for path in paths_largeN:
 paths_ipynb = sorted(path_base.glob("results_papermill/analyze_*.ipynb"))
 
 for path_ipynb in paths_ipynb:
-
     path_pdf = path_ipynb.with_suffix(".pdf")
     date_in = modification_date(path_ipynb)
     try:

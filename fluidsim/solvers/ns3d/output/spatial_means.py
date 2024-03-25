@@ -73,7 +73,6 @@ class SpatialMeansNS3D(SpatialMeansBase):
             PK2 = self.sum_wavenumbers(PK2_fft)
 
         if mpi.rank == 0:
-
             self.file.write(
                 f"####\ntime = {tsim:11.5e}\n"
                 f"E    = {energy:11.5e}\n"
@@ -98,8 +97,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
             os.fsync(self.file.fileno())
 
         if self.has_to_plot and mpi.rank == 0:
-
-            self.axe_a.plot(tsim, energy, "k.")
+            self.ax_a.plot(tsim, energy, "k.")
 
             # self.axe_b.plot(tsim, epsK_tot, 'k.')
             # if self.sim.params.forcing.enable:
@@ -107,7 +105,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
 
             if tsim - self.t_last_show >= self.period_show:
                 self.t_last_show = tsim
-                fig = self.axe_a.get_figure()
+                fig = self.ax_a.get_figure()
                 fig.canvas.draw()
 
     def load(self):
@@ -140,9 +138,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             elif line.startswith("epsK8 ="):
                 lines_epsK8.append(line)
 
-        nt = len(lines_t)
-        if nt > 1:
-            nt -= 1
+        # fmt: off
+        nt = self._get_nb_points_from_lines(
+            lines_t, lines_E, lines_Ex, lines_PK, lines_epsK,
+            lines_epsK4, lines_epsK8
+        )
+        # fmt: on
 
         t = np.empty(nt)
         E = np.empty(nt)
@@ -239,10 +240,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
         ax.set_title("Energy and enstrophy\n" + self.output.summary_simul)
         ax.set_ylabel("$E(t)$")
         ax.set_xlabel("$t$")
-        ax.plot(t, E, "k", linewidth=2)
-        ax.plot(t, Ex, "b")
-        ax.plot(t, Ey, "r")
-        ax.plot(t, Ez, "c")
+        ax.plot(t, E, "k", linewidth=2, label="Energy")
+        ax.plot(t, Ex, "b", label="$E_x$")
+        ax.plot(t, Ey, "r", label="$E_y$")
+        ax.plot(t, Ez, "c", label="$E_z$")
+
+        ax.legend()
 
         fig, ax = self.output.figure_axe()
         ax.set_title(
@@ -333,12 +336,14 @@ class SpatialMeansNS3D(SpatialMeansBase):
         results = {"t": data["t"]}
 
         try:
-            Uh2 = data["Ex"] + data["Ey"] + data["Ez"]
+            EKh = Uh2 = data["Ex"] + data["Ey"]
+            EKz = data["Ez"]
         except KeyError:
             EKhr = data["EKhr"]
             EKhd = data["EKhd"]
             EKhs = data["EKhs"]
-            Uh2 = EKhr + EKhd + EKhs
+            EKh = Uh2 = EKhr + EKhd + EKhs
+            EKz = data["EKz"]
 
         epsK = data["epsK"]
         epsK_hyper = np.zeros_like(epsK)
@@ -365,7 +370,12 @@ class SpatialMeansNS3D(SpatialMeansBase):
             else:
                 results["epsK2/epsK"] = np.ones_like(epsK)
 
-        results["dimensional"] = {"Uh2": Uh2, "epsK": epsK}
+        results["dimensional"] = {
+            "Uh2": Uh2,
+            "epsK": epsK,
+            "EKh": EKh,
+            "EKz": EKz,
+        }
 
         if nu_2:
             results["dimensional"]["eta"] = eta
@@ -388,6 +398,13 @@ class SpatialMeansNS3D(SpatialMeansBase):
             k: q[itmin:stop].mean()
             for k, q in numbers_vs_time["dimensional"].items()
         }
+
+        delta_kz = 2 * np.pi / self.params.oper.Lz
+        coef_dealiasing = self.params.oper.coef_dealiasing
+        result["dimensional"]["k_max"] = (
+            coef_dealiasing * delta_kz * self.params.oper.nz / 2
+        )
+
         return result
 
     def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):

@@ -2,6 +2,7 @@
 ==============================================================
 
 """
+
 import unittest
 from shutil import rmtree
 import sys
@@ -43,7 +44,6 @@ class TestBench(TestCase):
 
         # Can plot only parallel benchmarks
         if mpi.rank == 0 and mpi.nb_proc != 1:
-
             command = f"fluidsim-bench-analysis 24 -d 2 -i {path_tmp}"
             sys.argv = command.split()
             run_bench_analysis()

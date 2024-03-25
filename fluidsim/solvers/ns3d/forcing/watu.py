@@ -72,7 +72,6 @@ class ForcingInternalWavesWatuCoriolis(SpecificForcingPseudoSpectralSimple):
             if path_file.exists():
                 # load time signals
                 with h5netcdf.File(str(path_file), "r") as file:
-
                     times = file["/times"][...]
                     signals = file["/signals"][...]
 

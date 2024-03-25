@@ -105,9 +105,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
             "struct. function, solver "
             + sim.output.name_solver
             + f", nh = {sim.param.nx:5d}"
-            + ", c = {:.4g}, f = {:.4g}".format(
-                np.sqrt(sim.param.c2), sim.param.f
-            )
+            + f", c = {np.sqrt(sim.param.c2):.4g}, f = {sim.param.f:.4g}"
         )
 
         ax1.set_xlabel("$r$")
@@ -145,7 +143,7 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
         leg1 = ax1.legend(
             [l_smooth[0], l_K41[0], l_1[0]],
             ["smooth $r^q$", "K41 $r^{q/3}$", "shocks $r^1$"],
-            loc=0
+            loc=0,
             # labelspacing = 0.2
         )
 
@@ -170,7 +168,6 @@ def expo_from_order(order, PLOT=False, PLOT_PDF=False):
 
         irx_to_plot = [10, 50, 100]
         for irxp, irx in enumerate(irx_to_plot):
-
             val_inc = values_inc_timemean[irx]
 
             ax1.plot(
@@ -205,7 +202,7 @@ title = (
     "intermittency, solver "
     + sim.output.name_solver
     + f", nh = {sim.param.nx:5d}"
-    + ", c = {:.4g}, f = {:.4g}".format(np.sqrt(sim.param.c2), sim.param.f)
+    + f", c = {np.sqrt(sim.param.c2):.4g}, f = {sim.param.f:.4g}"
 )
 
 ax1.set_title(title)

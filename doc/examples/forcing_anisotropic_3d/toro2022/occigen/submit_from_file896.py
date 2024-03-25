@@ -34,7 +34,6 @@ def type_fft_from_N(N):
 
 
 for path_init_dir in paths_in:
-
     name_old_sim = path_init_dir.name
 
     N_str = re.search(r"_N(.*?)_", name_old_sim).group(1)
