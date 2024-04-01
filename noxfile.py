@@ -111,7 +111,7 @@ def test_with_fft_and_pythran(session):
 
     command = ". -v --no-deps -C setup-args=-Dnative=true"
     if "GITLAB_CI" in os.environ:
-        command += " -C compile-args=-j2"
+        command += " -C compile-args=-j1"
     session.install(*command.split())
 
     print_times("installing fluidsim")
