@@ -51,6 +51,9 @@ class TestBench(TestCase):
         sys.argv = "fluidsim-bench -l -d 2".split()
         run_bench()
 
+        if mpi.nb_proc == 1:
+            return
+
         type_fft = "fft2d.mpi_with_fftw1d"
 
         sys.argv = f"fluidsim-bench -p -d 2 -t {type_fft}".split()
@@ -72,6 +75,9 @@ class TestBench(TestCase):
 
         sys.argv = "fluidsim-bench -l -d 3".split()
         run_bench()
+
+        if mpi.nb_proc == 1:
+            return
 
         type_fft = "fft3d.mpi_with_fftw1d"
 

@@ -13,6 +13,10 @@ sync:
 install_fluidfft_plugins:
 	pdm run pip install fluidfft-fftw fluidfft-fftwmpi fluidfft-mpi_with_fftw
 
+install_editable_perf:
+	pdm sync --clean --no-self
+	pip install -e . -v --no-build-isolation --no-deps -C setup-args=-Dnative=true
+
 lock:
 	pdm lock
 
