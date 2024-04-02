@@ -222,4 +222,9 @@ def detect_pythran_extensions(session):
     begin = "- "
     # begin = "import "
     paths_pythran_files = sorted(Path("fluidsim").rglob("*/__pythran__/*.py"))
-    print(begin + f"\n{begin}".join([str(p)[:-3].replace("/", ".") for p in paths_pythran_files]))
+    print(
+        begin
+        + f"\n{begin}".join(
+            [str(p)[:-3].replace("/", ".") for p in paths_pythran_files]
+        )
+    )
