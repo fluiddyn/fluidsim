@@ -13,31 +13,51 @@ jobs:
         include:
           - os: ubuntu
             architecture: x86_64
-          # really long (2 hours), see next job wheel-ubuntu-aarch64
+          # really long (2 hours), see job wheel-ubuntu-aarch64
           # - os: ubuntu
           #   architecture: aarch64
           - os: macos
             architecture: x86_64
           - os: macos
             architecture: arm64
-          - os: windows
-            architecture: AMD64
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
-        if: runner.os == 'Linux' && matrix.architecture == 'aarch64'
-
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.os }}-${{ matrix.architecture }}
+          path: wheelhouse/*.whl
+
+  wheels-windows:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows
+            architecture: AMD64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
+          CIBW_ARCHS: ${{ matrix.architecture }}
+          # increase pip debugging output
+          # CIBW_BUILD_VERBOSITY: 2
+          # define CC, CXX so meson will use clang-cl instead of MSVC
+          CC: clang-cl
+          CXX: clang-cl
       - uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.os }}-${{ matrix.architecture }}
@@ -104,6 +124,7 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     needs:
       - wheels
+      - wheels-windows
       - wheel-ubuntu-aarch64
       - sdist
       - check-sdist
