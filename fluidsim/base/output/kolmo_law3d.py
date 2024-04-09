@@ -127,8 +127,11 @@ class KolmoLaw(SpecificOutput):
 
         # dict containing rh and rz
         # TODO: complete arrays_1st_time
-
-        if params.output.periods_save.kolmo_law != 0.0:
+        try:
+            period_save_kolmo_law = params.output.periods_save.kolmo_law
+        except AttributeError:
+            period_save_kolmo_law = 0.0
+        if period_save_kolmo_law != 0.0:
             X, Y, Z = output.sim.oper.get_XYZ_loc()
             self.oper_kolmo_law = OperKolmoLaw(X, Y, Z, params)
             arrays_1st_time = {
@@ -140,7 +143,7 @@ class KolmoLaw(SpecificOutput):
 
         super().__init__(
             output,
-            period_save=params.output.periods_save.kolmo_law,
+            period_save=period_save_kolmo_law,
             arrays_1st_time=arrays_1st_time,
         )
 
