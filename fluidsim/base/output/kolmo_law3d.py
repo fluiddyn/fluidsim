@@ -59,9 +59,10 @@ class KolmoLaw(SpecificOutput):
     .. |r| mathmacro:: {\mathbf r}
     .. |Sum| mathmacro:: \sum_{\mathbf k}
     .. |bnabla| mathmacro:: \boldsymbol{\nabla}
-
+    .. |Int| mathmacro:: \displaystyle\int
     .. |epsK| mathmacro:: \varepsilon_K
     .. |epsA| mathmacro:: \varepsilon_A
+    .. |dd| mathmacro:: \mathrm{d}
 
     We want to test the prediction :
 
@@ -88,16 +89,29 @@ class KolmoLaw(SpecificOutput):
 
     .. math::
 
-        \left\langle a' b \right\rangle_\x(\r) =
-          TF^{-1} \left\{ \hat{a} \hat{b}^* \right\}(\r),
+        \left\langle a' b \right\rangle_\x(\r)
+        =\left\langle a(\x+\r)b(\x) \right\rangle_x(\r)\\
+        =\Int (a(\x-(-\r))b(x))\dd \x \\
+        =a*b(-r) \\
+        =TF^{-1} \left\{ \hat{a} \hat{b}^* \right\}(\r),
 
     it is easy to show that
 
     .. math::
 
-        \left\langle |\delta b|^2 \delta\v \right\rangle_\x(\r) =
-          TF^{-1} \left\{ \Im \left[ 4 \widehat{(b \v)}^* \hat{b} +
-          2 \widehat{(b^2)}^* \hat{\v} \right] \right\}.
+        \left\langle |\delta b|^2 \delta \v \right\rangle_\x(\r)  = \left\langle (b'^2-bb'+b^2)\v' \right\rangle_\x(\r)-\left\langle (b'^2-bb'+b^2)\v \right\rangle_\x(\r)
+
+        =TF^{-1} \left\{ \widehat{b^2} \hat{\v}^* \right\}(\r) - TF^{-1} \left\{ 2\hat{b} \widehat{b\v}^* \right\}(\r) + \left\langle b^2 \v\right\rangle_\x(\r)
+        -\left\langle b'^2 \v \right\rangle_\x(\r) + TF^{-1} \left\{ 2\widehat{b^*} \widehat{b\v}\right\}(\r) - TF^{-1} \left\{ \widehat{b^2}^* \hat{\v} \right\}(\r)
+        \\ \\
+        \left\langle b^2 \v\right\rangle_\x(\r)= \left\langle b'^2 \v\right\rangle_\x(\r) \text{ with isotropy and } (ab^*)^*=a^*b
+        \\ \\
+        = TF^{-1} \left\{ \left(\widehat{b^2}^* \hat{\v}\right)^* \right\}(\r) - TF^{-1} \left\{ 2\hat{b} \widehat{b\v}^* \right\}(\r) + TF^{-1} \left\{ \left(2\hat{b} \widehat{b\v}^*\right)^* \right\}(\r)
+        -  TF^{-1} \left\{ \widehat{b^2}^* \hat{\v}^* \right\}(\r)
+        \\ \\
+        ( z-z*=2i \Im(z) )
+        \\ \\
+        =TF^{-1} \left\{ i\Im \left[ 4 \widehat{(b \v)}^* \hat{b} + 2 \widehat{(b^2)}^* \hat{\v} \right] \right\}
 
     """
 
