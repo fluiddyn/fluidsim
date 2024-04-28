@@ -134,7 +134,10 @@ def test_examples(session):
     command = "pdm sync --clean -G test -G mpi -G fft -G dev --no-self"
     session.run_always(*command.split(), external=True)
 
-    session.install(".")
+    command = "."
+    if "GITLAB_CI" in os.environ:
+        command += " -C compile-args=-j1"
+    session.install(*command.split())
     session.install("fluidfft-fftwmpi")
 
     session.chdir("doc/examples")
