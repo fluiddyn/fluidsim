@@ -211,11 +211,12 @@ testpaths = [
     "lib",
     "fluidsim",
 ]
+addopts = "--pdbcls=IPython.terminal.debugger:TerminalPdb"
 
 [tool.towncrier]
 package = "fluidsim"
 single_file = true  # if false, filename is formatted like `title_format`.
-filename = "CHANGES.rst"
+filename = "CHANGES.md"
 directory = "doc/newsfragments"
 template = "doc/newsfragments/template.rst.j2"
 title_format = false  # if false, template includes title
