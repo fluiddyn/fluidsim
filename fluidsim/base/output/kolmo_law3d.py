@@ -8,6 +8,7 @@ Provides:
    :private-members:
 
 """
+
 import itertools
 
 import numpy as np
@@ -16,38 +17,51 @@ from fluiddyn.util import mpi
 
 from .base import SpecificOutput
 
+""" Conversion from cartesian coordinates system to spherical coordinate system """
+
 
 class OperKolmoLaw:
     def __init__(self, X, Y, Z, params):
-        self.cos_theta_cos_phi = ...
-        self.cos_theta_sin_phi = ...
-        self.sin_theta = ...
-        self.sin_phi = ...
-        self.cos_phi = ...
+        self.r = np.sqrt(X**2 +Y**2 + Z**2)
+        self.rh = np.sqrt(X**2 + Y**2)
+        self.rz = Z
+#        self.sin_theta_sin_phi = Y / self.r
+#        self.cos_phi_sin_theta  = X / self.r
+#        self.sin_theta = self.rh / self.r
+#        self.cos_theta = Z / self.r
+#        self.sin_phi = Y  / self.rh
+#        self.cos_phi = X  / self.rh
 
-        self.rh = ...
-        self.rz = ...
 
-    def vec_rthetaphi_from_vec_xyz(self, vx, vy, vz):
+    def average_azimutal(self, arr):
 
-        v_r = ...
 
-        v_theta = (
-            self.cos_theta_cos_phi * vx
-            + self.cos_theta_sin_phi * vy
-            - self.sin_theta * vz
-        )
-
-        v_phi = self.sin_phi * vx + self.cos_phi * vy
-
-        return v_r, v_theta, v_phi
-
-    def average_azimutal(arr):
-        self.rh
-        self.rz
         avg_arr = None
-        mpi
+        if mpi.nb_proc == 1:
+            avg_arr = np.mean(arr, axis=(0,1))
         return avg_arr
+
+        local_sum = np.sum(arr, axis=(0,1))
+        if mpi.rank == 0:
+            global_arr = np.zeros(self.nz)  # define array to sum on all proc
+
+        for rank in range(mpi.nb_proc):
+            if mpi.rank == 0:
+                nz_loc = self.nzs_local[rank]  # define size of array on each proc
+            if rank == 0 and mpi.rank == 0:
+                sum = local_sum  # start the sum on rank 0
+            else:
+                if mpi.rank == 0:  # sum made on rank 0: receive local_array of rank
+                    sum = np.empty(nz_loc)
+                    mpi.comm.Recv(sum, source=rank, tag=42 * rank)
+                elif mpi.rank == rank:  # send the local array to 0
+                    mpi.comm.Send(sum_local, dest=0, tag=42 * rank)
+            if mpi.rank == 0:  # construct global sum on 0
+                iz_start = self.izs_start[rank]
+                global_array[iz_start : iz_start + nz_loc] += sum
+        if mpi.rank == 0:
+            avg_arr = global_array / self.nazim
+            return avg_arr
 
 
 class KolmoLaw(SpecificOutput):
@@ -135,8 +149,8 @@ class KolmoLaw(SpecificOutput):
             X, Y, Z = output.sim.oper.get_XYZ_loc()
             self.oper_kolmo_law = OperKolmoLaw(X, Y, Z, params)
             arrays_1st_time = {
-                "rh": self.oper_kolmo_law.rh,
-                "rz": self.oper_kolmo_law.rz,
+               "rh": self.oper_kolmo_law.rh,
+               "rz": self.oper_kolmo_law.rz,
             }
         else:
             arrays_1st_time = None
@@ -147,20 +161,50 @@ class KolmoLaw(SpecificOutput):
             arrays_1st_time=arrays_1st_time,
         )
 
+
+                fig3, ax3 = self.output.figure_axe()
+                self.ax3 = ax3
+                ax3.set_xlabel("$r/eta$")
+                ax3.set_ylabel("$S2(r)$")
+                if scale is None:
+                    ax3.set_yscale("log")
+                    ax3.set_xscale("log")
+                    ax3.set_ylim([0.9, 10.0])
+                else:
+                    ax3.set_yscale(f"{scale}")
+                    ax3.set_xscale("log")
+                if slope is not None:
+                    ax3.plot(posxprime, check_slope, label=f"$r^{2}$")
+                ax3.plot(posx, E_k, label="4*E")
+                ax3.plot(posx, pos2y, label=f"S2(r)")
+                ax3.set_title(f"tmin={tmin:.2g}, tmax={tmax:.2g}")
+
+                ax3.legend()
+
     def compute(self):
         """compute the values at one time."""
         state = self.sim.state
         state_phys = state.state_phys
         state_spect = state.state_spect
-
+        keys_state_phys=state.keys_state_phys
         fft = self.sim.oper.fft
 
         letters = "xyz"
 
         tf_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
+        vel = [state_phys.get_var(f"v{letter}") for letter in letters]
         tf_vjvi = np.empty((3, 3), dtype=object)
         tf_K = None
 
+        if "b" in keys_state_phys:
+            b= check_strat(state_phys.get_var("b"))
+            tf_b = check_strat(state_spect.get_var("b_fft"))
+            b2 = b * b
+            tf_b2 = fft(b2)
+            tf_bv=[None] * 3
+            bv = [item * b for item in vel]
+            for index in range(len(bv)):
+                tf_bv[index] = fft(bv[index])
         for index, letter in enumerate(letters):
             vi = state_phys.get_var("v" + letter)
             vi2 = vi * vi
@@ -177,22 +221,33 @@ class KolmoLaw(SpecificOutput):
             vj = state_phys.get_var("v" + letter_j)
             tf_vjvi[ind_i, ind_j] = tf_vjvi[ind_j, ind_i] = fft(vi * vj)
 
-        J_xyz = [None] * 3
-
+        J_K_xyz = [None] * 3
+        J_A_xyz = [None] * 3
         for ind_i in range(3):
             tmp = tf_vi[ind_i] * tf_K.conj()
+            if "b" in keys_state_phys:
+                mom = 4 * tf_bv[ind_i].conj() * tf_b + 2 * tf_b2.conj() * tf_vi[ind_i]
+                mom.real = 0.0
             for ind_j in range(3):
                 tmp += tf_vi[ind_j] * tf_vjvi[ind_i, ind_j].conj()
             tmp.real = 0.0
-            J_xyz[ind_i] = 4 * self.sim.oper.ifft(tmp)
-
-        J_rthetaphi = self.oper_kolmo_law.vec_rthetaphi_from_vec_xyz(*J_xyz)
+            J_K_xyz[ind_i] = 4 * self.sim.oper.ifft(tmp)
+            if "b" in keys_state_phys:
+                J_A_xyz[ind_i] = self.sim.oper.ifft(mom)
 
         result = {}
         keys = ["r", "theta", "phi"]
         for index, key in enumerate(keys):
             result["J_K_" + key] = self.oper_kolmo_law.average_azimutal(
-                J_rthetaphi[index]
+                J_K_xyz[index]
             )
 
         return result
+
+    def check_diff_methods(self):
+        first_method = compute(self)
+        second_method = compute_alt(self)
+        if not np.allclose(first_method, second_method):
+            raise RuntimeError(
+                "Both methods are inconsistent: " " ({self.sim.time_stepping.it = })"
+            )
