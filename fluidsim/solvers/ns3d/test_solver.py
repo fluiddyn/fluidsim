@@ -47,7 +47,6 @@ class TestSimulBase(TestSimul):
     @classmethod
     def init_params(cls):
         params = cls.params = cls.Simul.create_default_params()
-
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
         cls._init_grid(params, nx=cls.nx)
@@ -63,7 +62,6 @@ class TestSimulBase(TestSimul):
         params.oper.coef_dealiasing = 2.0 / 3
         params.nu_4 = 2.0
         params.nu_8 = 2.0
-
         params.time_stepping.t_end = 1.5 * params.time_stepping.deltat_max
         params.init_fields.type = "noise"
 
@@ -120,7 +118,7 @@ class TestOutput(TestSimulBase):
             periods[key] = 0.1
 
         params.output.spectra.kzkh_periodicity = 2
-
+       
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
         nx, ny, nz = params.oper.nx, params.oper.ny, params.oper.nz
         probes_region = (0.0, Lx, 0.0, Ly, 0.0, Lz)
@@ -630,3 +628,4 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
 
 if __name__ == "__main__":
     unittest.main()
+#mpirun -n 2 python -m pytest fluidsim/solvers/ns3d/test_solver.py::TestOutput::test_output -v -s
