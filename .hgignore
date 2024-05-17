@@ -78,6 +78,7 @@ site.cfg
 *.lock
 *.dirlock
 **/tmp*
+**/venv_*
 
 fluidsim_path
 scratch
