@@ -14,23 +14,22 @@ print(f"{infiniband = }")
 cluster.commands_setting_env = [
     "source /etc/profile",
     "export MPI4PY_RC_THREAD_LEVEL=serialized",
+    "module purge",
 ]
 
 if infiniband:
-    name_venv = "mpi_ib"
+    name_venv = "venv_mpi_ib"
 else:
-    name_venv = "mpi_noib"
+    name_venv = "venv_mpi_noib"
 
 name_run = "bench_py_" + name_venv
 
-cluster.commands_setting_env.append(
-    f"source /home/users/augier3pi/envs/{name_venv}/bin/activate"
-)
+cluster.commands_setting_env.append(f"source {name_venv}/bin/activate")
 
 if infiniband:
-    cluster.commands_setting_env.append("module load openmpi/4.0.5-ib")
-
-resource_conditions = "net='ib' and os='buster'"
+    cluster.commands_setting_env.append(
+        "module load env/ib4openmpi  # export OMPI_MCA_pml=ucx",
+    )
 
 nb_nodes = 2
 
@@ -44,5 +43,5 @@ cluster.submit_script(
     omp_num_threads=1,
     walltime="0:10:00",
     ask=False,
-    resource_conditions=resource_conditions,
+    resource_conditions="net='ib' and os='bullseye'",
 )
