@@ -45,4 +45,4 @@ vim ~/.hgrc
 ```
 
 (see also
-https://fluiddyn.readthedocs.io/en/latest/mercurial_heptapod.html#set-up-mercurial)
+https://fluidhowto.readthedocs.io/en/latest/mercurial.html)

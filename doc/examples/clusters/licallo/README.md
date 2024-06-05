@@ -24,7 +24,7 @@ module purge
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 conda config --add channels conda-forge
-conda activate base 
+conda activate base
 pip install conda-app
 conda-app install mercurial
 conda run -n _env_mercurial pip install hg-fluiddyn
@@ -33,7 +33,7 @@ conda run -n _env_mercurial pip install hg-fluiddyn
 ### Configure mercurial:
 
 Correct and uncomment the line with the username and email address in ~.hgrc (see also
-https://fluiddyn.readthedocs.io/en/latest/mercurial_heptapod.html#set-up-mercurial)
+https://fluidhowto.readthedocs.io/en/latest/mercurial.html)
 
 ```bash
 nano ~/.hgrc
@@ -43,9 +43,9 @@ nano ~/.hgrc
 
 ```bash
 mkdir Dev
-cd Dev	
+cd Dev
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
-cd fluidsim 
+cd fluidsim
 ```
 
 ### Install pfft in your $HOME directory
@@ -66,7 +66,7 @@ Move to the install directory and run the following commands (from this director
 cd $HOME/Dev/fluidsim/doc/examples/clusters/licallo/install
 source 0_setup_env_base.sh
 ./1_copy_config_files.sh
-source ~/setup_ssh.sh 
+source ~/setup_ssh.sh
 ./2_create_conda_env.sh
 source 3_setup_env_conda.sh
 ./4_clone_fluid.sh
