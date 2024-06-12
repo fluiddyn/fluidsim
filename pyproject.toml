@@ -163,9 +163,9 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-black = 'black -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
+black = 'black fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) fluidsim --exit-zero"}
-black_check = 'black --check -l 82 fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
+black_check = 'black --check fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
 validate_code = {composite = ["black_check", "lint"]}
 
 [tool.pdm.options]
@@ -254,3 +254,8 @@ showcontent = true
 directory = "security"
 name = "Security"
 showcontent = true
+
+[tool.black]
+line-length = 82
+target-version = ["py39"]
+extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_checkpoints/*)/"

@@ -112,7 +112,7 @@ class RestarterABC(metaclass=ABCMeta):
         """
         # To visualize with IPython:
 
-        cd {path_run}; fluidsim-ipy-load
+        fluidsim-ipy-load {path_run}
     """
     )
 
