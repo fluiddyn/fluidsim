@@ -497,7 +497,7 @@ fluidsim-create-xml-description {sim.output.path_run}
 
 # To visualize with fluidsim:
 
-cd {sim.output.path_run}; fluidsim-ipy-load
+fluidsim-ipy-load {sim.output.path_run}
 
 # in IPython:
 

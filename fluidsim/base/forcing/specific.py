@@ -489,11 +489,11 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
                 a_fft = self.oper.coarse_seq_from_fft_loc(
                     a_fft, self.shapeK_loc_coarse
                 )
-            except IndexError:
+            except IndexError as error:
                 raise ValueError(
                     f"rank={self.oper.rank}; {self.shapeK_loc_coarse = }; "
                     f"{self.oper.shapeK_loc = }"
-                )
+                ) from error
 
             if mpi.rank == 0:
                 fa_fft = self.forcingc_raw_each_time(a_fft)
