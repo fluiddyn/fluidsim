@@ -1,0 +1,27 @@
+BootStrap: docker
+From: python:3.11
+
+%post
+   apt-get -y update
+   apt-get -y install mercurial git less meld
+
+   apt-get install -y --no-install-recommends \
+     libfftw3-dev libfftw3-mpi-dev openmpi-bin libhdf5-openmpi-dev libopenblas-dev
+
+   export PATH=/root/.local/bin:$PATH
+   python -m pip install pipx
+
+   pipx install mercurial
+   pipx inject mercurial hg-git hg-evolve hg-fluiddyn
+
+   pipx install pdm
+   pipx install nox
+
+%environment
+   export LC_ALL=C
+   export PATH=/root/.local/bin:$PATH
+
+# %runscript
+
+%labels
+   Author Pierre Augier
