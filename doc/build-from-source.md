@@ -291,6 +291,15 @@ export MESONPY_EDITABLE_VERBOSE=1
 See
 https://meson-python.readthedocs.io/en/latest/how-to-guides/editable-installs.html#verbose-mode
 
+## Installation with Apptainer
+
+```{toctree}
+---
+maxdepth: 1
+---
+apptainer/README.md
+```
+
 [conda-forge]: https://conda-forge.org/
 [evolve]: https://www.mercurial-scm.org/doc/evolution/
 [mercurial]: https://www.mercurial-scm.org/

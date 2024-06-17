@@ -3,7 +3,7 @@ From: python:3.11
 
 %post
    apt-get -y update
-   apt-get -y install mercurial git less meld
+   apt-get -y install mercurial git less meld nano
 
    apt-get install -y --no-install-recommends \
      libfftw3-dev libfftw3-mpi-dev openmpi-bin libhdf5-openmpi-dev libopenblas-dev
@@ -17,11 +17,16 @@ From: python:3.11
    pipx install pdm
    pipx install nox
 
+   wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/apptainer/doc/apptainer/hgrc -O ~/hgrc
+
+%startscript
+   mkdir -p home
+
 %environment
    export LC_ALL=C
    export PATH=/root/.local/bin:$PATH
-
-# %runscript
+   export HOME=$HOME/apptainer/home
+   export HGRCPATH=/root/hgrc
 
 %labels
    Author Pierre Augier

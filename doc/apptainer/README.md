@@ -1,8 +1,15 @@
-# Install Fluidsim from source in a Apptainer container
+# Install Fluidsim from source in an Apptainer container
+
+The directory `fluidsim/doc/apptainer` contains what is needed to run Fluidsim with Apptainer.
 
 ## Build the image locally on a node
 
+From the host:
+
 ```sh
+mkdir ~/apptainer
+cd ~/apptainer
+wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/apptainer/doc/apptainer/image-fluidsim.def
 apptainer build image-fluidsim.sif image-fluidsim.def
 ```
 
@@ -11,12 +18,12 @@ apptainer build image-fluidsim.sif image-fluidsim.def
 From the host:
 
 ```sh
-mkdir -p ~/apptainer_dir/home
+cd ~/apptainer
 apptainer shell --no-home image-fluidsim.sif
 ```
 
 From the container:
 
 ```sh
-export HOME=$HOME/apptainer_dir/home
+...
 ```
