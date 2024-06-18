@@ -1,0 +1,32 @@
+[ui]
+# TODO: correct this line.
+username=user_apptainer
+editor=nano
+# another alternative
+# editor=emacs -nw -Q
+tweakdefaults = True
+ignore = ~/.hgignore
+
+[alias]
+lg = log -G
+up = up -v
+
+[extensions]
+hgext.extdiff =
+# only to use Mercurial with GitHub and Gitlab
+hggit =
+# specific extension for FluidDyn dev
+hgfluiddyn =
+# more advanced extensions (really useful for FluidDyn dev)
+churn =
+shelve =
+rebase =
+absorb =
+evolve =
+topic =
+
+[extdiff]
+cmd.meld =
+
+# [subrepos]
+# git:allowed = true

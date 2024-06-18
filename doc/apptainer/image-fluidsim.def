@@ -1,0 +1,54 @@
+BootStrap: docker
+From: python:3.11
+
+%post
+   apt-get -y update
+   apt-get -y install mercurial git less meld nano
+
+   apt-get install -y --no-install-recommends \
+     libfftw3-dev libfftw3-mpi-dev openmpi-bin libhdf5-openmpi-dev libopenblas-dev \
+     gfortran
+
+   mkdir -p /root/.local/include
+   mkdir -p /root/.local/lib
+   export PATH=/root/.local/bin:$PATH
+   export CPATH=/root/.local/include
+   export LIBRARY_PATH=/root/.local/lib
+   export LD_LIBRARY_PATH=/root/.local/lib
+
+   python -m pip install pipx
+
+   pipx install mercurial
+   pipx inject mercurial hg-git hg-evolve hg-fluiddyn
+   wget https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/topic/default/apptainer/doc/apptainer/hgrc -O ~/hgrc
+
+   pipx install pdm
+   pipx install nox
+
+   ln -s /usr/include/fftw* /root/.local/include
+   ln -s /usr/lib/x86_64-linux-gnu/libfftw3* /root/.local/lib
+
+   wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/install/install_p3dfft.sh -O ./install_p3dfft.sh
+   chmod +x install_p3dfft.sh
+   export FCFLAGS="-w -fallow-argument-mismatch -O2"
+   export FFLAGS="-w -fallow-argument-mismatch -O2"
+   ./install_p3dfft.sh
+
+   wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/install/install_pfft.sh -O ./install_pfft.sh
+   chmod +x install_pfft.sh
+   ./install_pfft.sh
+
+%startscript
+   mkdir -p home
+
+%environment
+   export LC_ALL=C
+   export PATH=/root/.local/bin:$PATH
+   export CPATH=/root/.local/include
+   export LIBRARY_PATH=/root/.local/lib
+   export LD_LIBRARY_PATH=/root/.local/lib
+   export HOME=$HOME/apptainer/home
+   export HGRCPATH=/root/hgrc
+
+%labels
+   Author Pierre Augier
