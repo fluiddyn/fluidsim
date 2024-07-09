@@ -60,4 +60,4 @@ RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/inst
 RUN chmod +x install_pfft.sh
 RUN ./install_pfft.sh
 
-RUN python -m pip install -U pip pdm nox --user
+RUN python -m pip install -U pip pdm==2.15.4 nox --user

@@ -8,7 +8,7 @@ build:
     - graphviz
   jobs:
     post_create_environment:
-      - pip install pdm pip -U
+      - pip install pdm==2.15.4 pip -U
     post_install:
       - pdm use -f $READTHEDOCS_VIRTUALENV_PATH
       - pdm sync -G doc -G fft -G test --no-self
