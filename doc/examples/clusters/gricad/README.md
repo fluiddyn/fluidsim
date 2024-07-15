@@ -47,11 +47,22 @@ python3 -m venv ~/venv-fluidsim-guix --system-site-packages
 . ~/venv-fluidsim-guix/bin/activate
 cd ~/dev/fluidsim
 pip install -e lib
-pip install -e ".[test]" -v --config-settings=setup-args=-Dnative=true
+pip install -e ".[test]" -v --config-settings=setup-args=-Dnative=true --no-build-isolation
 ```
 
 ## Test Fluidsim in sequential
 
 ```sh
-python -m pytest --pyargs fluidsim
+source /applis/site/guix-start.sh
+guix shell -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm
+. ~/venv-fluidsim-guix/bin/activate
+cd ~/dev/fluidsim
+python -m pytest fluidsim
+```
+
+## Submit a fluidfft benchmark
+
+```sh
+cd ~/dev/fluidsim/doc/examples/clusters/gricad/
+oarsub -S ./job_fluidfft_bench.oar
 ```

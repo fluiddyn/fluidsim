@@ -1,0 +1,23 @@
+#!/bin/bash
+#OAR -n bench_fluidfft
+#OAR --stdout fluidfft.out
+#OAR --stderr fluidfft.err
+#OAR -t devel
+#OAR -l /nodes=1/core=2,walltime=00:30:00
+#OAR --project pr-strat-turb
+
+# load guix session
+source /applis/site/guix-start.sh
+
+export OMPI_MCA_plm_rsh_agent=/usr/bin/oarsh
+export OMPI_MCA_btl_openib_allow_ib=true
+export OMPI_MCA_pml=cm
+export OMPI_MCA_mtl=psm2
+
+ENV="`guix shell -m manifest.scm -- /bin/sh -c 'echo $GUIX_ENVIRONMENT'`"
+
+cat $OAR_FILE_NODES > ./machinefile
+
+exec ~/.config/guix/current/bin/guix shell -E ^OMPI -E ^OAR -E ^OMP \
+    -m manifest.scm \
+    -- ./instructions_fluidfft_bench.sh $ENV
