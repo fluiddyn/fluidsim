@@ -271,9 +271,11 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
                         path_run.mkdir(parents=True)
                     except OSError:
                         # in case of simultaneously launched simulations
+                        if not path_run.exists():
+                            # in case issues like quota
+                            raise
                         print(
-                            'Warning: NEW_DIR_RESULTS=True, but path"',
-                            path_run,
+                            f"Warning: NEW_DIR_RESULTS=True, but path {path_run}",
                             "already exists. Trying a new path...",
                         )
                         sleep(1)
