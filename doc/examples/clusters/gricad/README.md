@@ -40,24 +40,19 @@ GUIX_PROFILE="$HOME/.config/guix/current"
 
 ```sh
 # This will take a while
-# note: pip does not work with the -C (container) option
-guix shell -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm
-
-python3 -m venv ~/venv-fluidsim-guix --system-site-packages
-. ~/venv-fluidsim-guix/bin/activate
-cd ~/dev/fluidsim
-pip install -e lib
-pip install -e ".[test]" -v --config-settings=setup-args=-Dnative=true --no-build-isolation
+guix shell \
+  -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm \
+  -f ~/dev/fluidsim/doc/examples/clusters/gricad/python-fluidsim.scm
 ```
 
 ## Test Fluidsim in sequential
 
 ```sh
 source /applis/site/guix-start.sh
-guix shell -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm
-. ~/venv-fluidsim-guix/bin/activate
-cd ~/dev/fluidsim
-python -m pytest fluidsim
+guix shell \
+  -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm \
+  -f ~/dev/fluidsim/doc/examples/clusters/gricad/python-fluidsim.scm
+python -m pytest --pyargs fluidsim
 ```
 
 ## Submit a fluidfft benchmark
