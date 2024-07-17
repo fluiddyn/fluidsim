@@ -52,7 +52,7 @@ source /applis/site/guix-start.sh
 guix shell \
   -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm \
   -f ~/dev/fluidsim/doc/examples/clusters/gricad/python-fluidsim.scm
-python -m pytest --pyargs fluidsim
+python3 -m pytest --pyargs fluidsim
 ```
 
 ## Submit a fluidfft benchmark
@@ -60,4 +60,11 @@ python -m pytest --pyargs fluidsim
 ```sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad/
 oarsub -S ./job_fluidfft_bench.oar
+```
+
+## Submit a fluidsim benchmark
+
+```ssh
+cd ~/dev/fluidsim/doc/examples/clusters/gricad/
+oarsub -S ./job_fluidsim_bench.oar
 ```
