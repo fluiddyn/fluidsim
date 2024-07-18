@@ -38,33 +38,56 @@ GUIX_PROFILE="$HOME/.config/guix/current"
 
 ## Install Fluidsim from source
 
+Clone the Fluidsim repository in `$HOME/dev`.
+
 ```sh
+source /applis/site/guix-start.sh
+DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad
 # This will take a while
-guix shell \
-  -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm \
-  -f ~/dev/fluidsim/doc/examples/clusters/gricad/python-fluidsim.scm
+guix shell --pure -m $DIR_MANIFEST/manifest.scm -f $DIR_MANIFEST/python-fluidsim.scm
 ```
+
+### Change the changeset used for the Guix environment
+
+One can choose another changeset reference. One can study them with:
+
+```sh
+cd ~/dev/fluidsim
+hg log -G
+```
+
+Get the hash with
+
+```sh
+source /applis/site/guix-start.sh
+# Actually it does not work (no support for Mercurial)
+# How should we obtain the sha256 base32 hash?
+guix download -r --commit=changeset_ref https://foss.heptapod.net/fluiddyn/fluidsim
+```
+
+Change the Mercurial reference and the hash in `python-fluidsim.scm`.
 
 ## Test Fluidsim in sequential
 
 ```sh
 source /applis/site/guix-start.sh
-guix shell \
-  -m ~/dev/fluidsim/doc/examples/clusters/gricad/manifest.scm \
-  -f ~/dev/fluidsim/doc/examples/clusters/gricad/python-fluidsim.scm
+DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad
+guix shell --pure -m $DIR_MANIFEST/manifest.scm -f $DIR_MANIFEST/python-fluidsim.scm
 python3 -m pytest --pyargs fluidsim
 ```
 
-## Submit a fluidfft benchmark
+## Submit a Fluidfft benchmark
 
 ```sh
-cd ~/dev/fluidsim/doc/examples/clusters/gricad/
+source /applis/site/guix-start.sh
+cd ~/dev/fluidsim/doc/examples/clusters/gricad
 oarsub -S ./job_fluidfft_bench.oar
 ```
 
-## Submit a fluidsim benchmark
+## Submit a Fluidsim benchmark
 
-```ssh
-cd ~/dev/fluidsim/doc/examples/clusters/gricad/
+```sh
+source /applis/site/guix-start.sh
+cd ~/dev/fluidsim/doc/examples/clusters/gricad
 oarsub -S ./job_fluidsim_bench.oar
 ```
