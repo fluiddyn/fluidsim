@@ -1,7 +1,7 @@
 # Using Fluidsim on Gricad clusters
 
 We show how to use Fluidsim on Gricad clusters. The main documentation for this
-HPC platform is [here]( https://gricad-doc.univ-grenoble-alpes.fr/hpc/). We
+HPC platform is [here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/). We
 will use [Guix](https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/guix/),
 which is one of the recommended package managers for this platform.
 
@@ -90,4 +90,13 @@ oarsub -S ./job_fluidfft_bench.oar
 source /applis/site/guix-start.sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
 oarsub -S ./job_fluidsim_bench.oar
+```
+
+or
+
+```sh
+source /applis/site/guix-start.sh
+cd ~/dev/fluidsim/doc/examples/clusters/gricad
+guix shell --pure -m manifest.scm -f python-fluidsim.scm
+python3 submit_bench_fluidsim.py
 ```
