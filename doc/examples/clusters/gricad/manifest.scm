@@ -18,5 +18,6 @@
     "python-pythran"
     ; convenient to be able to check
     "which"
+	"emacs"
   )
 )

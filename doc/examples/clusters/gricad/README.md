@@ -59,10 +59,18 @@ hg log -G
 Get the hash with
 
 ```sh
-source /applis/site/guix-start.sh
 # Actually it does not work (no support for Mercurial)
 # How should we obtain the sha256 base32 hash?
-guix download -r --commit=changeset_ref https://foss.heptapod.net/fluiddyn/fluidsim
+# guix download -r --commit=changeset_ref https://foss.heptapod.net/fluiddyn/fluidsim
+```
+
+```sh
+source /applis/site/guix-start.sh
+hg clone https://foss.heptapod.net/fluiddyn/fluidsim
+cd ~/dev/fluidsim-clean
+hg up <changeset_ref> --clean
+hg purge --all
+guix hash -x -r .
 ```
 
 Change the Mercurial reference and the hash in `python-fluidsim.scm`.

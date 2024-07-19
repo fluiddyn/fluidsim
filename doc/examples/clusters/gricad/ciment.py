@@ -52,6 +52,12 @@ class DahuGuix(ClusterOARGuix):
     ]
 
 
+class DahuGuixDevel(DahuGuix):
+    devel = True
+    frontends = ["dahu-oar3"]
+
+
+
 class DahuGuix16_6130(DahuGuix):
     nb_cores_per_node = 16
     resource_conditions = "cpumodel='Gold 6130' and n_cores=16"

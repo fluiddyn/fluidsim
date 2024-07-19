@@ -84,6 +84,7 @@ class ClusterOAR(Cluster):
     name_cluster = ""
     nb_cores_per_node = 12
     has_to_add_name_cluster = False
+    devel = False
 
     _doc_commands = """
 Useful commands
@@ -166,7 +167,7 @@ oarsub -C $JOB_ID"""
         run_with_exec=True,
         resource_conditions=None,
         use_oar_envsh=None,
-        devel=False,
+        devel=None,
     ):
         self.check_oar()
 
@@ -245,10 +246,13 @@ oarsub -C $JOB_ID"""
         run_with_exec=True,
         resource_conditions=None,
         use_oar_envsh=None,
-        devel=False,
+        devel=None,
         project=None,
     ):
         txt = f"#!/bin/bash\n\n#OAR -n {name_run}\n"
+
+        if devel is None:
+            devel = self.devel
 
         if devel:
             txt += "#OAR -t devel\n"
@@ -316,7 +320,7 @@ oarsub -C $JOB_ID"""
         if nb_mpi_processes is not None:
             txt += f"mpirun -np {nb_mpi_processes} "
 
-            if nb_nodes > 1:
+            if nb_mpi_processes > 1:
                 txt += "-machinefile $OAR_NODEFILE "
 
         txt += command + "\n"
