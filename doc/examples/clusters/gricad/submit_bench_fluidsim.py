@@ -1,6 +1,6 @@
-from ciment import DahuGuixDevel as Cluster
+from fluiddyn.clusters.ciment import DahuGuixDevel as Cluster
 
-cluster = Cluster()
+cluster = Cluster(check_scheduler=False)
 
 cluster.submit_command(
     command="--prefix $MPI_PREFIX \\\n       fluidsim-bench 256 -d 3 -s ns3d -o .",

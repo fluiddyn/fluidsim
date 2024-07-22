@@ -87,25 +87,43 @@ python3 -m pytest --pyargs fluidsim
 ## Submit a Fluidfft benchmark
 
 ```sh
-source /applis/site/guix-start.sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
 oarsub -S ./job_fluidfft_bench.oar
 ```
 
 ## Submit a Fluidsim benchmark
 
+### Hand written OAR script
+
 ```sh
-source /applis/site/guix-start.sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
 oarsub -S ./job_fluidsim_bench.oar
 ```
 
-or
+### With fluiddyn
+
+Prepare a virtual env (1 time).
+
+```sh
+# cd ~/dev/fluidsim/doc/examples/clusters/gricad
+# /usr/bin/python3 -m venv .venv
+# . .venv/bin/activate
+# Actually, we need conda because the package python3.11-venv is not installed.
+source /applis/environments/conda.sh
+conda create -n env-fluiddyn python=3.11
+conda activate env-fluiddyn
+#
+pip install fluiddyn@hg+https://foss.heptapod.net/fluiddyn/fluiddyn
+```
+
+Submit with
 
 ```sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
-/usr/bin/python3 -m venv .venv
-. .venv/bin/activate
-pip install fluiddyn
+# . .venv/bin/activate
+# actually, with conda:
+source /applis/environments/conda.sh
+conda activate env-fluiddyn
+#
 python3 submit_bench_fluidsim.py
 ```

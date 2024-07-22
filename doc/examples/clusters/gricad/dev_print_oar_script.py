@@ -1,4 +1,4 @@
-from ciment import DahuGuixDevel as Cluster
+from fluiddyn.clusters.ciment import DahuGuixDevel as Cluster
 
 cluster = Cluster()
 
