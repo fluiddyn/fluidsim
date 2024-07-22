@@ -84,7 +84,9 @@ class ClusterOAR(Cluster):
     name_cluster = ""
     nb_cores_per_node = 12
     has_to_add_name_cluster = False
-    devel = False
+    devel: bool = False
+    resource_conditions: str = None
+    use_oar_envsh: bool = None
 
     _doc_commands = """
 Useful commands
@@ -269,10 +271,7 @@ oarsub -C $JOB_ID"""
         else:
             conditions = ""
 
-        if (
-            hasattr(self, "resource_conditions")
-            and self.resource_conditions is not None
-        ):
+        if self.resource_conditions is not None:
             if resource_conditions is not None:
                 resource_conditions = (
                     self.resource_conditions + " and " + resource_conditions
@@ -296,10 +295,12 @@ oarsub -C $JOB_ID"""
 
         txt += "\n".join(self.get_commands_setting_env()) + "\n\n"
 
+        txt += self.get_mpi_prefix_setter() + "\n\n"
+
         if omp_num_threads is not None:
             txt += f"export OMP_NUM_THREADS={omp_num_threads}\n\n"
 
-        if use_oar_envsh is None and hasattr(self, "use_oar_envsh"):
+        if use_oar_envsh is None:
             use_oar_envsh = self.use_oar_envsh
 
         if use_oar_envsh is None:
@@ -314,8 +315,7 @@ oarsub -C $JOB_ID"""
         if run_with_exec:
             txt += "exec "
 
-        if hasattr(self, "after_exec"):
-            txt += self.after_exec
+        txt += self.get_after_exec()
 
         if nb_mpi_processes is not None:
             txt += f"mpirun -np {nb_mpi_processes} "
@@ -326,6 +326,12 @@ oarsub -C $JOB_ID"""
         txt += command + "\n"
 
         return txt
+
+    def get_after_exec(self):
+        return ""
+
+    def get_mpi_prefix_setter(self):
+        return ""
 
     def stall(self, name_job, limit_number_jobs=1, time_check=30):
         """Wait until job(s) completion.

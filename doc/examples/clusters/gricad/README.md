@@ -103,8 +103,9 @@ oarsub -S ./job_fluidsim_bench.oar
 or
 
 ```sh
-source /applis/site/guix-start.sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
-guix shell --pure -m manifest.scm -f python-fluidsim.scm
+/usr/bin/python3 -m venv .venv
+. .venv/bin/activate
+pip install fluiddyn
 python3 submit_bench_fluidsim.py
 ```

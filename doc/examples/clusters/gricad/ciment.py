@@ -2,8 +2,7 @@ from oar import ClusterOAR
 
 
 class ClusterOARGuix(ClusterOAR):
-    resource_conditions: str
-    use_oar_envsh: bool
+    options_guix_shell: str = ""
 
     def check_oar(self):
         pass
@@ -29,6 +28,12 @@ class ClusterOARGuix(ClusterOAR):
 
         return nb_cores_per_node, nb_mpi_processes
 
+    def get_after_exec(self):
+        return f"~/.config/guix/current/bin/guix shell {self.options_guix_shell} \\\n  -- "
+
+    def get_mpi_prefix_setter(self):
+        return f'''MPI_PREFIX="`guix shell {self.options_guix_shell} -- /bin/sh -c 'echo $GUIX_ENVIRONMENT'`"'''
+
 
 class DahuGuix(ClusterOARGuix):
 
@@ -37,9 +42,8 @@ class DahuGuix(ClusterOARGuix):
     frontends = ["dahu", "dahu-oar3"]
     use_oar_envsh = False
 
-    after_exec = (
-        "~/.config/guix/current/bin/guix shell -E ^OMPI -E ^OAR -E ^OMP \\\n"
-        "  -m manifest.scm -f python-fluidsim.scm \\\n  -- "
+    options_guix_shell = (
+        "-E ^OMPI -E ^OAR -E ^OMP -m manifest.scm -f python-fluidsim.scm"
     )
 
     commands_setting_env = [
@@ -48,14 +52,12 @@ class DahuGuix(ClusterOARGuix):
         "export OMPI_MCA_btl_openib_allow_ib=true",
         "export OMPI_MCA_pml=cm",
         "export OMPI_MCA_mtl=psm2",
-        '''MPI_PREFIX="`guix shell -m manifest.scm -f python-fluidsim.scm -- /bin/sh -c 'echo $GUIX_ENVIRONMENT'`"''',
     ]
 
 
 class DahuGuixDevel(DahuGuix):
     devel = True
     frontends = ["dahu-oar3"]
-
 
 
 class DahuGuix16_6130(DahuGuix):
