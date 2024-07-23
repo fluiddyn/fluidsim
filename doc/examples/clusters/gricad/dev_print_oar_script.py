@@ -1,7 +1,8 @@
-from fluiddyn.clusters.ciment import DahuGuixDevel as Cluster
+from fluiddyn.clusters.gricad import DahuGuixDevel as Cluster
 
-cluster = Cluster()
-
+cluster = Cluster(
+    options_guix_shell="-E ^OMPI -E ^OAR -E ^OMP -m manifest.scm -f python-fluidsim.scm"
+)
 # 2 full nodes
 nb_nodes = 2
 nb_mpi_processes = "auto"
