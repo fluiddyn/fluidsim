@@ -5,6 +5,16 @@ HPC platform is [here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/). We
 will use [Guix](https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/guix/),
 which is one of the recommended package managers for this platform.
 
+## Get a login and setup ssh
+
+Get an account on https://perseus.univ-grenoble-alpes.fr/
+
+Set an ssh key and the alias
+
+```sh
+alias sshdahu='ssh dahu.ciment'
+```
+
 ## Setup Guix
 
 The first thing to do, is to create the following file
