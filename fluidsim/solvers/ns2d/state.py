@@ -31,7 +31,7 @@ class StateNS2D(StatePseudoSpectral):
             {
                 "keys_state_spect": ["rot_fft"],
                 "keys_state_phys": ["ux", "uy", "rot"],
-                "keys_computable": [],
+                "keys_computable": ["div", "q", "v"],
                 "keys_phys_needed": ["rot"],
                 "keys_linear_eigenmodes": ["rot_fft"],
             }
@@ -71,6 +71,10 @@ class StateNS2D(StatePseudoSpectral):
         elif key == "q":
             rot = self.get_var("rot")
             result = rot
+        elif key == "v":
+            ux = self.state_phys.get_var("ux")
+            uy = self.state_phys.get_var("uy")
+            result = np.sqrt(ux**2 + uy**2)
         else:
             to_print = 'Do not know how to compute "' + key + '".'
             if RAISE_ERROR:
