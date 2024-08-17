@@ -189,7 +189,7 @@ pages:
     - mkdir -p public/$CI_COMMIT_REF_NAME
     - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
     # This directory can become too large leading to error.
-    # It can be purged with the botton "Clear runner caches"
+    # It can be purged with the bottom "Clear runner caches"
     # in https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
     - ls public
     - echo "CI_COMMIT_REF_NAME="$CI_COMMIT_REF_NAME
