@@ -24,6 +24,12 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
+## [0.8.2] (2024-08-17)
+
+- Compatibility with Python 3.12, Numpy 2.0 and mpi4py 4.0.
+- Few bug fixes and small improvements.
+- Installation methods with Apptainer and Guix.
+
 ## [0.8.1] (2024-02-12)
 
 - Few fixes for Fluidfft 0.4.0
@@ -328,4 +334,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.7.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.3...0.7.4
 [0.8.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.7.4...0.8.0
 [0.8.1]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.0...0.8.1
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.1...branch%2Fdefault
+[0.8.2]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.1...0.8.2
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.2...branch%2Fdefault
