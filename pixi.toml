@@ -16,7 +16,7 @@ install-dependencies = "pixi install && pip install -e ./lib && pip install 'tra
 install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends_on = ["install-dependencies"]}
 
 [dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.9,<3.13"
 numpy = ">=1.26.3"
 transonic = ">=0.5.3"
 fluiddyn = ">=0.5.2"
