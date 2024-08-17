@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = 'fluidsim-core'
-version = "0.8.1"
+version = "0.8.2"
 description = "Pure-Python core library for FluidSim framework"
 requires-python = ">=3.9"
 authors = [
