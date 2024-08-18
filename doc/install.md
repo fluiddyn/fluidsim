@@ -5,9 +5,9 @@ Python >= 3.9. Some issues regarding the installation of Python and Python
 packages are discussed in
 [the main documentation of the project](http://fluiddyn.readthedocs.org/en/latest/install.html).
 
-## Installation methods without compilation
+## Installation methods
 
-### Install using pip without compilation
+### Install the PyPI packages using pip
 
 ```{note}
 
@@ -17,6 +17,8 @@ venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-vir
 
 ```
 
+#### Without compilation for sequential simulations
+
 Fluidsim can be installed without compilation with `pip`:
 
 ```sh
@@ -25,24 +27,66 @@ pip install fluidsim
 ```
 
 However, fluidsim requires [fluidfft](http://fluidfft.readthedocs.io) for
-pseudospectral solvers. Fluidsim and fluidfft can be both installed without
+pseudospectral solvers. Fluidsim, fluidfft and pyfftw can be both installed without
 compilation with the command:
 
 ```sh
-pip install fluidsim[fft]
+pip install "fluidsim[fft]"
 ```
 
-Moreover, fluidfft works with pluggins to compute FFTs with different methods
+#### Optional dependencies
+
+Fluidsim has 3 sets of optional dependencies, which can be installed with commands
+like `pip install "fluidsim[fft]"` or `pip install "fluidsim[fft,mpi]"`:
+
+- `fft`: mainly for pseudo spectral solvers using the Fourier basis.
+
+- `mpi`: for parallel computing using [MPI].
+
+  ```{warning}
+
+  Installations with MPI support with pip (`pip install fluidsim[mpi]`) trigger local
+  compilation of at least [mpi4py].
+
+  ```
+- `test`: for testing Fluidsim (can be done without the repository).
+
+
+#### Compile fluidfft plugins
+
+Fluidfft works with pluggins to compute FFTs with different methods
 (see the [fluidfft
 documentation](http://fluidfft.readthedocs.io/en/latest/install.html)). For
 example, to install Fluidfft plugins using the FFTW library, one can run (but
 it will trigger compilation):
 
+- For sequential simulations:
+
+  ```sh
+  pip install "fluidsim[test,fft]" "fluidfft[fftw]"
+  ```
+
+- For parallel simulations using MPI:
+
+  ```sh
+  pip install "fluidsim[test,fft]" "fluidfft[fftw,fftwmpi,mpi-with-fftw]"
+  ```
+
+#### Test your installation
+
+One can run Fluidsim test suite with
+
 ```sh
-pip install fluidfft[fftw,fftwmpi,mpi_with_fftw]
+pytest --pyargs fluidsim
 ```
 
-### Installing the conda-forge packages with conda or mamba
+or for parallel simulations
+
+```sh
+mpirun -np 2 pytest --pyargs fluidsim -vx
+```
+
+### Install the conda-forge packages with conda or mamba
 
 We recommend installing `conda` and `mamba` (using the [conda-forge] channel) with
 the [miniforge installer](https://github.com/conda-forge/miniforge).
@@ -51,30 +95,28 @@ If you just want to run sequential simulations and/or analyze the results of
 simulations, you can just install the fluidsim package:
 
 ```sh
-mamba install fluidsim
+conda install fluidsim
 ```
 
 For parallel simulations using MPI, let's create a dedicated environment:
 
 ```sh
-mamba create -n env_fluidsim ipython fluidsim "fluidfft[build=mpi*]" "h5py[build=mpi*]"
+conda create -n env-fluidsim fluidsim "h5py[build=mpi*]" \
+  fluidfft-mpi_with_fftw fluidfft-fftwmpi
 ```
 
-The environment can then be activated with `conda activate env_fluidsim`.
+The environment can then be activated with `conda activate env-fluidsim`.
 
-### Optional dependencies
+````{note}
 
-Fluidsim has 4 sets of optional dependencies, which can be installed with commands
-like `pip install fluidsim[fft]` or `pip install fluidsim[fft, mpi]`:
+To be able to run Fluidsim test suite in conda environments, one has to install
+manually few pytest extensions with
 
-- `fft`: mainly for pseudo spectral solvers using the Fourier basis.
+```sh
+pip install pytest-allclose pytest-mock
+```
 
-- `mpi`: for parallel computing using [MPI]. `pip install fluidsim[mpi]` installs
-  [mpi4py], which requires a local compilation.
-
-- `test`: for testing Fluidsim (can be done without the repository).
-
-- `scipy`
+````
 
 ## Environment variables and runtime configuration
 
@@ -104,7 +146,7 @@ simulations.
 
 ````{warning}
 
-If the system has multiple MPI libraries, it is adviced to explicitly mention the
+If the system has multiple MPI libraries, it is advised to explicitly mention the
 MPI command. For instance to use Intel MPI:
 
 ```sh
