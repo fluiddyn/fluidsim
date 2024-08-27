@@ -28,7 +28,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
         env:
-          CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
+          CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux* cp313-macosx_x86_64
           CIBW_ARCHS: ${{ matrix.architecture }}
       - uses: actions/upload-artifact@v4
         with:
