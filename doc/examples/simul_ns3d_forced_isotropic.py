@@ -34,7 +34,7 @@ else:
 
 params = Simul.create_default_params()
 
-params.output.sub_directory = "examples"
+params.output.sub_directory = "examples/test_iso3d"
 
 ny = nz = nx
 Lx = 3
@@ -77,8 +77,8 @@ params.output.periods_save.phys_fields = 0.5
 params.output.periods_save.spatial_means = 0.1
 params.output.periods_save.spectra = 0.1
 params.output.periods_save.spect_energy_budg = 0.1
+params.output.periods_save.kolmo_law = 0.1
 
 params.output.spectra.kzkh_periodicity = 1
-
 sim = Simul(params)
 sim.time_stepping.start()

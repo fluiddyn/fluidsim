@@ -267,8 +267,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
             ax.plot(ks[1:], to_plot[1:], "k-.")
 
-        if coef_plot_k2 is not None:
-            to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
+        if coef_plot_k1 is not None:
+            to_plot = coef_plot_k1 * ks_no0 ** (-2) * coef_norm
             ax.plot(ks[1:], to_plot[1:], "k--")
 
         if xlim is not None:

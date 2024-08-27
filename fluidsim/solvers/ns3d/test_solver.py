@@ -118,7 +118,7 @@ class TestOutput(TestSimulBase):
             periods[key] = 0.1
 
         params.output.spectra.kzkh_periodicity = 2
-       
+
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
         nx, ny, nz = params.oper.nx, params.oper.ny, params.oper.nz
         probes_region = (0.0, Lx, 0.0, Ly, 0.0, Lz)
@@ -628,4 +628,3 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
 
 if __name__ == "__main__":
     unittest.main()
-#mpirun -n 2 python -m pytest fluidsim/solvers/ns3d/test_solver.py::TestOutput::test_output -v -s
