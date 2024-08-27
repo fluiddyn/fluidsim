@@ -617,7 +617,6 @@ class SpecificOutput:
         if os.path.exists(path_file):
             print("file NOT created since it already exists!")
         elif mpi.rank == 0:
-            
             with h5py.File(path_file, "w") as file:
                 file.attrs["date saving"] = str(datetime.datetime.now()).encode()
                 file.attrs["name_solver"] = self.output.name_solver

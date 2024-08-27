@@ -165,6 +165,7 @@ class SpectraBase(SpecificOutput):
         coef_compensate=0,
         coef_plot_k3=None,
         coef_plot_k53=None,
+        coef_plot_k43=None,
         coef_plot_k2=None,
         xlim=None,
         ylim=None,
@@ -260,6 +261,10 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         if coef_plot_k2 is not None:
             to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
             ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-2}$")
+
+        if coef_plot_k43 is not None:
+            to_plot = coef_plot_k43 * ks_no0 ** (-4.0 / 3) * coef_norm
+            ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-4/3}$")
 
         if xlim is not None:
             ax.set_xlim(xlim)
