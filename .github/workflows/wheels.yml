@@ -26,9 +26,9 @@ jobs:
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.20.0
         env:
-          CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
+          CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux* cp313-macosx_x86_64
           CIBW_ARCHS: ${{ matrix.architecture }}
       - uses: actions/upload-artifact@v4
         with:
@@ -49,7 +49,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
@@ -79,7 +79,7 @@ jobs:
           python-version: 3.x
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_SKIP: pp* cp36-* cp37-* cp38-* *-musllinux*
           CIBW_ARCHS: aarch64
@@ -111,7 +111,7 @@ jobs:
         name: sdist
     - uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: 3.12
     - run: |
         pip install pip -U
         ls
