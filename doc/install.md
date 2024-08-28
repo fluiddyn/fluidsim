@@ -49,8 +49,8 @@ like `pip install "fluidsim[fft]"` or `pip install "fluidsim[fft,mpi]"`:
   compilation of at least [mpi4py].
 
   ```
-- `test`: for testing Fluidsim (can be done without the repository).
 
+- `test`: for testing Fluidsim (can be done without the repository).
 
 #### Compile fluidfft plugins
 
@@ -117,6 +117,16 @@ pip install pytest-allclose pytest-mock
 ```
 
 ````
+
+### Other installation methods
+
+Other more exotic methods can also be used. In particular, we have examples for:
+
+- [Apptainer](https://apptainer.org/) ([doc/apptainer](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/apptainer))
+
+- [Guix](https://guix.gnu.org/) ([doc/examples/clusters/gricad](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad))
+
+- [Spack](https://github.com/spack/spack) ([misc/spack](https://foss.heptapod.net/fluiddyn/fluiddyn/-/tree/branch/default/misc/spack))
 
 ## Environment variables and runtime configuration
 
