@@ -32,23 +32,21 @@ dependencies = [
 ]
 
 classifiers = [
-      # How mature is this project? Common values are
-      # 3 - Alpha
-      # 4 - Beta
-      # 5 - Production/Stable
       "Development Status :: 5 - Production/Stable",
       "Intended Audience :: Science/Research",
       "Intended Audience :: Education",
       "Topic :: Scientific/Engineering",
-      "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-      # actually CeCILL License (GPL compatible license for French laws)
+      # CeCILL is a GPL compatible license for French laws
+      "License :: OSI Approved :: CEA CNRS Inria Logiciel Libre License, version 2.1 (CeCILL-2.1)",
       "Programming Language :: Python",
       "Programming Language :: Python :: 3",
       "Programming Language :: Python :: 3.9",
       "Programming Language :: Python :: 3.10",
       "Programming Language :: Python :: 3.11",
+      "Programming Language :: Python :: 3.12",
 ]
 readme = "README.md"
+license = {text = "CECILL-2.1"}
 
 [project.urls]
 "Source" = "https://foss.heptapod.net/fluiddyn/fluidsim"
