@@ -160,7 +160,7 @@ If the system has multiple MPI libraries, it is advised to explicitly mention th
 MPI command. For instance to use Intel MPI:
 
 ```sh
-CC=mpiicc pip install mpi4py --no-binary mpi4py
+CC=mpicc pip install mpi4py --no-binary mpi4py --force-reinstall --no-cache-dir --no-deps -v
 ```
 
 ````
@@ -176,7 +176,8 @@ time, this is what you want. However, you can install h5py from source and link 
 to a hdf5 built with MPI support, as follows:
 
 ```bash
-CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 pip install --no-deps --no-binary=h5py h5py
+CC="mpicc" HDF5_MPI="ON" HDF5_DIR=/path/to/parallel-hdf5 \
+  pip install h5py --no-binary=h5py --force-reinstall --no-cache-dir --no-deps -v
 python -c 'import h5py; h5py.run_tests()'
 ```
 

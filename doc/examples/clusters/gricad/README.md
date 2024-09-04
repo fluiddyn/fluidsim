@@ -1,24 +1,25 @@
 # Using Fluidsim on Gricad clusters
 
-We show how to use Fluidsim on Gricad clusters. The main documentation for this
-HPC platform is [here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/). We
-will use [Guix](https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/guix/),
-which is one of the recommended package managers for this platform.
+We show in this directory
+(<https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad>)
+how to use Fluidsim on Gricad clusters. The main documentation for this HPC platform is
+[here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/). We will use
+[Guix](https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/guix/), which is one of the
+recommended package managers for this platform.
 
 ## Get a login and setup ssh
 
-Get an account on https://perseus.univ-grenoble-alpes.fr/
+Get an account on <https://perseus.univ-grenoble-alpes.fr/>.
 
 Set an ssh key and the alias
 
 ```sh
-alias sshdahu='ssh dahu.ciment'
+alias sshdahu='ssh -X dahu.ciment'
 ```
 
 ## Setup Guix
 
-The first thing to do, is to create the following file
-`~/.config/guix/channels.scm`:
+The first thing to do, is to create the following file `~/.config/guix/channels.scm`:
 
 ```lisp
 (cons* (channel
@@ -35,11 +36,11 @@ source /applis/site/guix-start.sh
 guix pull  # This will take a while
 ```
 
-> You only need to update the guix environment (and thus run `guix pull`) when
-a package you want to use has been created or updated.
+You only need to update the guix environment (and thus run `guix pull`) when a package
+you want to use has been created or updated.
 
-After `guix pull`, you should run the following command to be sure you use the
-lastest `guix` command:
+After `guix pull`, you should run the following command to be sure you use the lastest
+`guix` command:
 
 ```sh
 GUIX_PROFILE="$HOME/.config/guix/current"
@@ -48,7 +49,9 @@ GUIX_PROFILE="$HOME/.config/guix/current"
 
 ## Install Fluidsim from source
 
-Clone the Fluidsim repository in `$HOME/dev`.
+Install and setup Mercurial as explained
+[here](https://fluidhowto.readthedocs.io/en/latest/mercurial/install-setup.html). Clone
+the Fluidsim repository in `$HOME/dev`.
 
 ### Change the changeset used for the Guix environment
 
@@ -121,5 +124,5 @@ Submit with
 cd ~/dev/fluidsim/doc/examples/clusters/gricad
 source /applis/environments/conda.sh
 conda activate env-fluiddyn
-python3 submit_bench_fluidsim.py
+python submit_bench_fluidsim.py
 ```

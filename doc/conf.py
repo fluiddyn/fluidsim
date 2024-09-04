@@ -136,7 +136,10 @@ release = fluidsim.__version__
 # directories to ignore when looking for source files.
 exclude_patterns = [
     "_build",
-    "examples/clusters/*",
+    "examples/clusters/jean_zay",
+    "examples/clusters/legi",
+    "examples/clusters/licallo",
+    "examples/clusters/occigen",
     "examples/forcing_anisotropic_3d/toro2022/*",
 ]
 

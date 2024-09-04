@@ -115,6 +115,7 @@ install
 tutorials
 examples
 build-from-source
+install-clusters
 faq
 ```
 
