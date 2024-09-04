@@ -16,21 +16,23 @@ order to run very large simulations is particular since
 - Parallelism is done trough MPI with advanced hardware so it's important to use the
   right MPI implementation compiled with the right options.
 
-- The software environment is usually quite different than on more standard smaller
-  machines, with quite old operative systems and particular systems to use other software
-  (modules, Guix, Spack, ...).
+- The software environment is usually quite different than on more standard machines,
+  with quite old operative systems and particular systems to use other software (modules,
+  Guix, Spack, ...).
 
 - Computations are launched through a schedulers (like Slurm, OAR, ...) with a launching
   script. In the Fluiddyn project, we tend to avoid writting manually the launching
   scripts (which is IMHO error prone and slow) and prefer to use the `fluiddyn.clusters`
   API, which allows users to launch simulations with simple Python scripts.
 
-We present here few examples of installations on different kinds of clusters:
+We present here few examples of installation methods and launching scripts on different
+kinds of clusters:
 
 ```{toctree}
 ---
 caption: Examples
 maxdepth: 1
 ---
+./examples/clusters/adastra/README.md
 ./examples/clusters/gricad/README.md
 ```
