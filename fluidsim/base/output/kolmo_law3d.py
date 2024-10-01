@@ -28,7 +28,9 @@ from math import floor
 class OperKolmoLaw:
     def __init__(self, X, Y, Z, params):
         self.r = np.sqrt(X**2 + Y**2 + Z**2)
+        #        self.r = X
         self.rh = np.sqrt(X**2 + Y**2)
+        #        self.rh = Y
         self.rz = np.abs(Z)
         self.X = X
         self.Y = Y
@@ -181,14 +183,12 @@ class KolmoLaw(SpecificOutput):
         state = self.sim.state
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
-        if "b" in keys_state_phys:
-            dict_J_k_r, dict_J_k_hv, dict_J_p_hv, dict_S2_k_xyz = self.compute()
-            dict_J = {}
-            dict_J.update([dict_J_k_r, dict_J_k_hv, dict_J_p_hv, dict_S2_k_xyz])
-        else:
-            dict_J_k_r, dict_J_k_hv, dict_S2_k_xyz = self.compute()
-            dict_J = {}
-            dict_J.update([dict_J_k_r, dict_J_k_hv, dict_S2_k_xyz])
+
+        dict_J = {}
+        result = self.compute()
+        for name in result:
+            dict_J.update(name)
+
         if mpi.rank == 0:
 
             if not os.path.exists(self.path_kolmo_law):
@@ -214,18 +214,11 @@ class KolmoLaw(SpecificOutput):
         tsim = self.sim.time_stepping.t
         if tsim - self.t_last_save >= self.period_save:
             self.t_last_save = tsim
-            if "b" in keys_state_phys:
-                dict_J_k_r, dict_J_k_hv, dict_J_p_hv, dict_S2_k_xyz = (
-                    self.compute()
-                )
-                dict_J = {}
-                dict_J.update(
-                    [dict_J_k_r, dict_J_k_hv, dict_J_p_hv, dict_S2_k_xyz]
-                )
-            else:
-                dict_J_k_r, dict_J_k_hv, dict_S2_k_xyz = self.compute()
-                dict_J = {}
-                dict_J.update([dict_J_k_r, dict_J_k_hv, dict_S2_k_xyz])
+            result = self.compute()
+            dict_J = {}
+            for name in result:
+                dict_J.update(name)
+
             if mpi.rank == 0:
                 self._add_dict_arrays_to_file(self.path_kolmo_law, dict_J)
                 self.nb_saved_times += 1
@@ -237,10 +230,10 @@ class KolmoLaw(SpecificOutput):
         keys_state_phys = state.keys_state_phys
         if "b" in keys_state_phys:
             J_hv = {
-                "J_k_r": None,
+                "J_k_average": None,
                 "J_k_h": None,
                 "J_k_v": None,
-                "S2_k": None,
+                "S2_k_average": None,
                 "J_p_h": None,
                 "J_p_v": None,
                 "times": None,
@@ -248,10 +241,10 @@ class KolmoLaw(SpecificOutput):
             }
         else:
             J_hv = {
-                "J_k_r": None,
+                "J_k_average": None,
                 "J_k_h": None,
                 "J_k_v": None,
-                "S2_k": None,
+                "S2_k_average": None,
                 "times": None,
                 "count": None,
                 "count2": None,
@@ -340,14 +333,14 @@ class KolmoLaw(SpecificOutput):
                 self.ax3 = ax3
                 ax3.set_xlabel("$rh$")
                 ax3.set_ylabel("$rz$")
-                ax3.set_title("J_k_r")
+                ax3.set_title("J_k_average")
                 ax3.quiver(posx, posy, kx, ky)
 
         else:
 
-            J_k_average = result["J_k_r"][imin_plot:imax_plot]
+            J_k_average = result["J_k_average"][imin_plot:imax_plot]
             J_k_average = -J_k_average
-            S2_k_average = result["S2_k"][imin_plot:imax_plot]
+            S2_k_average = result["S2_k_average"][imin_plot:imax_plot]
             count = result["count"]
             count2 = result["count2"]
             J_k_average = np.mean(J_k_average, axis=0)
@@ -492,7 +485,7 @@ class KolmoLaw(SpecificOutput):
 
         J_k_r = [None] * 3
         if "b" in keys_state_phys:
-            J_p_xyz = [None] * 3
+            J_p_r = [None] * 3
 
         E_k_mean = 0.0
         K_k = np.ones_like(K)
@@ -506,7 +499,7 @@ class KolmoLaw(SpecificOutput):
 
             E_k_mean = mpi.comm.bcast(E_k_mean, root=0)
         else:
-            E_k_mean = Ek_proc
+            E_k_mean = E_k_proc
         E_k = E_k_mean * K_k
 
         val = None
@@ -533,9 +526,9 @@ class KolmoLaw(SpecificOutput):
             J_k_r[ind_i] = self.sim.oper.ifft(tmp)
 
             if "b" in keys_state_phys:
-                J_p_xyz[ind_i] = self.sim.oper.ifft(mom)
+                J_p_r[ind_i] = self.sim.oper.ifft(mom)
 
-        S2_K_xyz = 2 * E_k - 2 * self.sim.oper.ifft(val)
+        S2_k_r = 2 * E_k - 2 * self.sim.oper.ifft(val)
 
         nh_store = n_store
         nv_store = n_store
@@ -559,12 +552,12 @@ class KolmoLaw(SpecificOutput):
         }
 
         J_k_r_average = {
-            "J_k_r": J_k_average,
+            "J_k_average": J_k_average,
             "count": count_final_iso,
         }
 
-        S2_k_xyz_average = {
-            "S2_k": S2_k_average,
+        S2_k_r_average = {
+            "S2_k_average": S2_k_average,
             "count2": count_final_iso,
         }
         if "b" in keys_state_phys:
@@ -579,8 +572,8 @@ class KolmoLaw(SpecificOutput):
 
         rhrz = self.rhrz_store
         J_k_r = np.array(J_k_r)
-        S2_k_xyz = np.array(S2_K_xyz)
-        J_k_r_pro = np.empty_like(J_k_r)
+        S2_k_r = np.array(S2_k_r)
+        J_k_r_pro = np.empty_like(X)
 
         for index, value in np.ndenumerate(
             self.rhrz["r"][:]
@@ -595,7 +588,7 @@ class KolmoLaw(SpecificOutput):
                 ) / value
 
         if "b" in keys_state_phys:
-            J_p_xyz = np.array(J_p_xyz)
+            J_p_r = np.array(J_p_r)
 
         pow_store = self.pow_store
 
@@ -619,24 +612,24 @@ class KolmoLaw(SpecificOutput):
 
             J_k_hv_average["J_k_v"][rh_i, rv_i] += value
             J_k_hv_average["J_k_h"][rh_i, rv_i] += np.sqrt(
-                J_k_r[0] ** 2 + J_k_r[1] ** 2
+                J_k_r[0][index] ** 2 + J_k_r[1][index] ** 2
             )
-            J_k_r_average["J_k_r"][r_i] += J_k_r_pro[index]
-            S2_k_xyz_average["S2_k"][r_i] += S2_k_xyz[index]
+            J_k_r_average["J_k_average"][r_i] += J_k_r_pro[index]
+            S2_k_r_average["S2_k_average"][r_i] += S2_k_r[index]
 
             if "b" in keys_state_phys:
-                J_p_hv_average["J_p_v"][rh_i, rv_i] += J_p_xyz[2][index]
+                J_p_hv_average["J_p_v"][rh_i, rv_i] += J_p_r[2][index]
                 J_p_hv_average["J_p_h"][rh_i, rv_i] += np.sqrt(
-                    J_p_xyz[0] ** 2 + J_p_xyz[1] ** 2
+                    J_p_r[0][index] ** 2 + J_p_r[1][index] ** 2
                 )
 
         if mpi.nb_proc > 1:  # average on one process
 
             collect_J_k_average = mpi.comm.gather(
-                J_k_r_average["J_k_r"], root=0
+                J_k_r_average["J_k_average"], root=0
             )  # gather all results on one process
             collect_S2_k_average = mpi.comm.gather(
-                S2_k_xyz_average["S2_k"], root=0
+                S2_k_r_average["S2_k_average"], root=0
             )
             collect_count_iso = mpi.comm.gather(count_iso, root=0)
 
@@ -650,8 +643,10 @@ class KolmoLaw(SpecificOutput):
 
             if mpi.rank == 0:
 
-                J_k_r_average["J_k_r"] = np.sum(collect_J_k_average, axis=0)
-                S2_k_xyz_average["S2_k"] = np.sum(collect_S2_k_average, axis=0)
+                J_k_r_average["J_k_average"] = np.sum(collect_J_k_average, axis=0)
+                S2_k_r_average["S2_k_average"] = np.sum(
+                    collect_S2_k_average, axis=0
+                )
                 J_k_hv_average["J_k_v"] = np.sum(collect_J_k_v, axis=0)
                 J_k_hv_average["J_k_h"] = np.sum(collect_J_k_h, axis=0)
 
@@ -665,7 +660,7 @@ class KolmoLaw(SpecificOutput):
 
                 count_final_iso = np.sum(collect_count_iso, axis=0)
                 J_k_r_average["count"] = count_final_iso
-                S2_k_xyz_average["count2"] = count_final_iso
+                S2_k_r_average["count2"] = count_final_iso
 
                 for index, value in np.ndenumerate(J_k_hv_average["J_k_v"]):
                     if count_final[index] == 0:
@@ -691,26 +686,22 @@ class KolmoLaw(SpecificOutput):
                                 / count_final[index]
                             )
 
-                for index, value in np.ndenumerate(J_k_r_average["J_k_r"]):
+                for index, value in np.ndenumerate(J_k_r_average["J_k_average"]):
                     if count_final_iso[index] == 0:
-                        J_k_r_average["J_k_r"][index] = 0.0
-                        S2_k_xyz_average["S2_k"][index] = 0.0
+                        J_k_r_average["J_k_average"][index] = 0.0
+                        S2_k_r_average["S2_k_average"][index] = 0.0
                     else:
-                        J_k_r_average["J_k_r"][index] = (
+                        J_k_r_average["J_k_average"][index] = (
                             value / count_final_iso[index]
                         )
-                        S2_k_xyz_average["S2_k"][index] = (
-                            S2_k_xyz_average["S2_k"][index]
+                        S2_k_r_average["S2_k_average"][index] = (
+                            S2_k_r_average["S2_k_average"][index]
                             / count_final_iso[index]
                         )
 
         if "b" in keys_state_phys:
-            result = (
-                J_k_r_average,
-                J_k_hv_average,
-                J_p_hv_average,
-                S2_k_xyz_average,
-            )
+            result = J_k_r_average, J_k_hv_average, J_p_hv_average, S2_k_r_average
+
         else:
-            result = J_k_r_average, J_k_hv_average, S2_k_xyz_average
+            result = J_k_r_average, J_k_hv_average, S2_k_r_average
         return result
