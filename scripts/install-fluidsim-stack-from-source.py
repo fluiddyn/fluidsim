@@ -53,13 +53,84 @@ See `./install-fluidsim-stack-from-source.py -h` for options.
 import argparse
 import subprocess
 import sys
+import warnings
 
+from functools import partial
 
 parser = argparse.ArgumentParser(prog=__file__, description="Fluidsim installer")
 
 args = parser.parse_args()
 
-def run_pip(command="install"):
-    return subprocess.run([sys.executable, "-m", "pip", command])
+names_wheel = {"pyfftw": "pyFFTW"}
 
-run_pip("list")
+
+def run_pip(
+    *args,
+    command="install",
+    env=None,
+    capture_output=True,
+    rebuild=False,
+    native=False,
+):
+
+    command = [sys.executable, "-m", "pip", command, *args]
+
+    if rebuild:
+        name_package = args[0]
+        name_wheel = names_wheel.get(name_package, name_package)
+
+        subprocess.run(
+            [sys.executable, "-m", "pip", "cache", "remove", name_wheel],
+            check=True,
+            capture_output=True,
+        )
+        command.extend(["--no-binary", name_package])
+
+    if native:
+        command.extend(["--config-settings", "setup-args=-Dnative=true"])
+
+    print(" ".join(command[2:]))
+
+    return subprocess.run(
+        command,
+        check=True,
+        text=True,
+        env=env,
+        capture_output=capture_output,
+    )
+
+
+pip_install = partial(run_pip, command="install")
+
+
+proc = run_pip(command="list")
+
+lines = [
+    line
+    for line in proc.stdout.split("\n")[2:]
+    if line and not any(line.startswith(name) for name in ["pip", "setuptools"])
+]
+
+if lines:
+    warnings.warn(f"Virtual env is not clean. Packages installed:\n{proc.stdout}")
+
+
+pip_install("mpi4py", rebuild=True)
+pip_install("pyfftw", rebuild=True)
+pip_install("fluidfft", rebuild=True, native=True)
+
+pip_install("fluidfft-fftw", rebuild=True)
+
+pip_install("fluidfft-fftwmpi", rebuild=True)
+pip_install("fluidfft-mpi_with_fftw", rebuild=True)
+
+pip_install("fluidsim", rebuild=True, native=True)
+
+# with Python 3.13 and h5py<=3.12.1 we need (see https://github.com/h5py/h5py/issues/2523)
+# pip cache remove h5py; HDF5_MPI="ON" CC=mpicc pip install h5py@git+https://github.com/h5py/h5py --no-binary h5py
+
+# python -c "import h5py; print(h5py.version.info + f'\nmpi: {h5py.get_config().mpi}')"
+# pip install pytest pytest-mpi
+# mpirun -np 2 python -c 'import h5py; h5py.run_tests()'
+# pytest --pyargs fluidsim
+# mpirun -np 2 pytest --pyargs fluidsim
