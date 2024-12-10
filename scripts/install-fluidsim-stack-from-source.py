@@ -53,8 +53,8 @@ See `./install-fluidsim-stack-from-source.py -h` for options.
 import argparse
 import subprocess
 import sys
-import tempfile
 import warnings
+import os
 
 
 parser = argparse.ArgumentParser(prog=__file__, description="Fluidsim installer")
@@ -70,9 +70,10 @@ parser.add_argument(
 # TODO: "-r", "--requirements-file"
 
 parser.add_argument("--uninstall", action="store_true")
+parser.add_argument("--no-h5py", action="store_true")
+parser.add_argument("--no-native", action="store_true")
 
 args = parser.parse_args()
-
 print(args)
 
 capture_output_default = not args.verbose
@@ -101,32 +102,44 @@ def pip_install(
     *words,
     rebuild=False,
     native=False,
+    env=None,
+    uninstall=args.uninstall,
 ):
-    name_package = words[0]
+    requirement_specifier = words[0]
 
-    if args.uninstall:
+    if "@" in requirement_specifier:
+        name_package = requirement_specifier.split("@")[0]
+    else:
+        name_package = requirement_specifier
+
+    if uninstall:
         run_pip("uninstall", name_package, "--yes", check=False)
 
     command = ["install", *words]
     if rebuild:
-        name_wheel = names_wheel.get(name_package, name_package.replace("-", "_"))
-        run_pip("cache", "remove", name_wheel)
+        proc_ = run_pip("list", capture_output=True, echo=False)
+        packages = [
+            line.split()[0] for line in proc_.stdout.split("\n")[2:] if line
+        ]
+        if name_package not in packages:
+            name_wheel = names_wheel.get(
+                name_package, name_package.replace("-", "_")
+            )
+            run_pip("cache", "remove", name_wheel)
         command.extend(["--no-binary", name_package])
 
     if native:
         command.extend(["--config-settings", "setup-args=-Dnative=true"])
 
-    return run_pip(*command)
+    return run_pip(*command, env=env)
 
 
 proc = run_pip("list", capture_output=True)
-
 lines = [
     line
     for line in proc.stdout.split("\n")[2:]
     if line and not any(line.startswith(name) for name in ["pip", "setuptools"])
 ]
-
 if lines:
     warnings.warn(f"Virtual env is not clean. Packages installed:\n{proc.stdout}")
 
@@ -136,22 +149,48 @@ pip_install("mpi4py", rebuild=True)
 # TODO: tempdir and requirements.txt
 
 pip_install("pyfftw", rebuild=True)
-pip_install("fluidfft", rebuild=True, native=True)
+pip_install("fluidfft", rebuild=True, native=not args.no_native)
 
 pip_install("fluidfft-fftw", rebuild=True)
 
 pip_install("fluidfft-fftwmpi", rebuild=True)
 pip_install("fluidfft-mpi_with_fftw", rebuild=True)
 
-pip_install("fluidsim", rebuild=True, native=True)
+pip_install("fluidsim", rebuild=True, native=not args.no_native)
 
 pip_install("pytest", "pytest-mpi", "pytest-allclose", "pytest-mock", "ipython")
 
 # with Python 3.13 and h5py<=3.12.1 we need (see https://github.com/h5py/h5py/issues/2523)
 # pip cache remove h5py; HDF5_MPI="ON" CC=mpicc pip install h5py@git+https://github.com/h5py/h5py --no-binary h5py
+if not args.no_h5py:
+    env_hdf5_build = os.environ.copy()
+    env_hdf5_build.update({"HDF5_MPI": "ON", "CC": "mpicc"})
 
-# python -c "import h5py; print(h5py.version.info + f'\nmpi: {h5py.get_config().mpi}')"
-# pip install pytest pytest-mpi
-# mpirun -np 2 python -c 'import h5py; h5py.run_tests()'
-# pytest --pyargs fluidsim
-# mpirun -np 2 pytest --pyargs fluidsim
+    package_name = "h5py"
+    if sys.version_info[:2] >= (3, 13):
+        package_name += "@git+https://github.com/h5py/h5py"
+    pip_install(package_name, rebuild=True, env=env_hdf5_build, uninstall=True)
+
+proc = run_pip("freeze", capture_output=True)
+name = "requirements-fluidsim-installer.txt"
+with open(name, "w", encoding="utf-8") as file:
+    file.write(proc.stdout)
+print(f"requirements written in {name}")
+
+subprocess.run(
+    [
+        sys.executable,
+        "-c",
+        "import h5py; print(h5py.version.info + f'mpi: {h5py.get_config().mpi}')",
+    ],
+    check=True,
+)
+
+print(
+    """
+You might want to run tests with commands like:
+mpirun -np 2 python -c 'import h5py; h5py.run_tests()'
+pytest --pyargs fluidsim
+mpirun -np 2 pytest --pyargs fluidsim
+"""
+)
