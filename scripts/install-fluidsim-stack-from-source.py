@@ -53,57 +53,73 @@ See `./install-fluidsim-stack-from-source.py -h` for options.
 import argparse
 import subprocess
 import sys
+import tempfile
 import warnings
 
-from functools import partial
 
 parser = argparse.ArgumentParser(prog=__file__, description="Fluidsim installer")
 
+parser.add_argument(
+    "-v",
+    "--verbose",
+    action="count",
+    default=0,
+    help="Give more output. Option is additive, and can be used up to 3 times.",
+)
+
+# TODO: "-r", "--requirements-file"
+
+parser.add_argument("--uninstall", action="store_true")
+
 args = parser.parse_args()
+
+print(args)
+
+capture_output_default = not args.verbose
+
 
 names_wheel = {"pyfftw": "pyFFTW"}
 
 
 def run_pip(
-    *args,
-    command="install",
-    env=None,
-    capture_output=True,
-    rebuild=False,
-    native=False,
+    *args, env=None, capture_output=capture_output_default, check=True, echo=True
 ):
 
-    command = [sys.executable, "-m", "pip", command, *args]
-
-    if rebuild:
-        name_package = args[0]
-        name_wheel = names_wheel.get(name_package, name_package)
-
-        subprocess.run(
-            [sys.executable, "-m", "pip", "cache", "remove", name_wheel],
-            check=True,
-            capture_output=True,
-        )
-        command.extend(["--no-binary", name_package])
-
-    if native:
-        command.extend(["--config-settings", "setup-args=-Dnative=true"])
-
-    print(" ".join(command[2:]))
-
+    command = [sys.executable, "-m", "pip", *args]
+    if echo:
+        print(" ".join(command[2:]))
     return subprocess.run(
         command,
-        check=True,
+        check=check,
         text=True,
         env=env,
         capture_output=capture_output,
     )
 
 
-pip_install = partial(run_pip, command="install")
+def pip_install(
+    *words,
+    rebuild=False,
+    native=False,
+):
+    name_package = words[0]
+
+    if args.uninstall:
+        run_pip("uninstall", name_package, "--yes", check=False)
+
+    command = ["install", *words]
+    if rebuild:
+        name_wheel = names_wheel.get(name_package, name_package.replace("-", "_"))
+        run_pip("cache", "remove", name_wheel)
+        command.extend(["--no-binary", name_package])
+
+    if native:
+        command.extend(["--config-settings", "setup-args=-Dnative=true"])
+
+    return run_pip(*command)
 
 
-proc = run_pip(command="list")
+proc = run_pip("list", capture_output=True)
 
 lines = [
     line
@@ -116,6 +132,9 @@ if lines:
 
 
 pip_install("mpi4py", rebuild=True)
+
+# TODO: tempdir and requirements.txt
+
 pip_install("pyfftw", rebuild=True)
 pip_install("fluidfft", rebuild=True, native=True)
 
@@ -125,6 +144,8 @@ pip_install("fluidfft-fftwmpi", rebuild=True)
 pip_install("fluidfft-mpi_with_fftw", rebuild=True)
 
 pip_install("fluidsim", rebuild=True, native=True)
+
+pip_install("pytest", "pytest-mpi", "pytest-allclose", "pytest-mock", "ipython")
 
 # with Python 3.13 and h5py<=3.12.1 we need (see https://github.com/h5py/h5py/issues/2523)
 # pip cache remove h5py; HDF5_MPI="ON" CC=mpicc pip install h5py@git+https://github.com/h5py/h5py --no-binary h5py
