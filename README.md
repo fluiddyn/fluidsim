@@ -59,7 +59,7 @@ used to extend existing solvers with Python interfaces such as
 We have created fluidsim to be **easy and nice to use and to develop**,
 **efficient** and **robust**.
 
-*Keywords and ambitions*: fluid dynamics research with Python (>=3.9);
+*Keywords and ambitions*: fluid dynamics research with Python (>=3.10);
 modular, object-oriented, collaborative, tested and documented, free and
 open-source software.
 
