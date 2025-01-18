@@ -35,4 +35,5 @@ maxdepth: 1
 ---
 ./examples/clusters/adastra/README.md
 ./examples/clusters/gricad/README.md
+./examples/clusters/gricad_miniforge/README.md
 ```
