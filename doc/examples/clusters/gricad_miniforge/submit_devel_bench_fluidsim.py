@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from gricad_simple import DahuDevel as Cluster
+from fluiddyn.clusters.gricad import DahuDevel as Cluster
 
 cluster = Cluster()
 
