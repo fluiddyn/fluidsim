@@ -1,0 +1,10 @@
+name: env-fluidsim-mpi
+dependencies:
+  - fluidsim
+  - openmpi
+  - h5py=*=mpi*
+  - fluidfft-fftw
+  - fluidfft-fftwmpi
+  - fluidfft-mpi_with_fftw
+  - ipython
+  - matplotlib
