@@ -124,7 +124,7 @@ Other more exotic methods can also be used. In particular, we have examples for:
 
 - [Apptainer](https://apptainer.org/) ([doc/apptainer](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/apptainer))
 
-- [Guix](https://guix.gnu.org/) ([doc/examples/clusters/gricad](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad))
+- [Guix](https://guix.gnu.org/) ([doc/examples/clusters/gricad](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad_guix))
 
 - [Spack](https://github.com/spack/spack) ([misc/spack](https://foss.heptapod.net/fluiddyn/fluiddyn/-/tree/branch/default/misc/spack))
 
