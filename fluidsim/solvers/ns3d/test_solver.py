@@ -114,6 +114,8 @@ class TestForcingTCRandom(TestSimulBase):
         params.forcing.nkmax_forcing = 2.9
 
     def test_forcing(self):
+        if mpi.rank > 0:
+            return
         sim = self.sim
         oper = sim.oper
         oper_c = sim.forcing.forcing_maker.oper_coarse
