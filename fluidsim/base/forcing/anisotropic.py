@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
+"""Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
 ==========================================================
 
 .. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic

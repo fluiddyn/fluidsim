@@ -11,7 +11,7 @@ Refs:
  "An initial-value problem for testing numerical models of the global
  shallow-water equations" DOI: 10.1111/j.1600-0870.2004.00071.x
  http://www-vortex.mcs.st-and.ac.uk/~rks/reprints/galewsky_etal_tellus_2004.pdf
- 
+
 - shtns/examples/shallow_water.py
 
 - Jakob-Chien et al. 1995:

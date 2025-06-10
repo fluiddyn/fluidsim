@@ -1,6 +1,4 @@
-"""Utility to produce a dataframe from a set of simulations
-
-"""
+"""Utility to produce a dataframe from a set of simulations"""
 
 import json
 import hashlib

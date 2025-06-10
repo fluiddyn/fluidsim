@@ -98,11 +98,11 @@ class MoviesBase:
             button.on_clicked(method)
             self._buttons.append(button)
 
-        init_button(playerax, "$\u29CF$", self._one_backward)
-        init_button(bax, "$\u25C0$", self._backward)
-        init_button(sax, "$\u25A0$", self.pause)
-        init_button(fax, "$\u25B6$", self._forward)
-        init_button(ofax, "$\u29D0$", self._one_forward)
+        init_button(playerax, "$\u29cf$", self._one_backward)
+        init_button(bax, "$\u25c0$", self._backward)
+        init_button(sax, "$\u25a0$", self.pause)
+        init_button(fax, "$\u25b6$", self._forward)
+        init_button(ofax, "$\u29d0$", self._one_forward)
 
     def resume(self):
         self.paused = False
