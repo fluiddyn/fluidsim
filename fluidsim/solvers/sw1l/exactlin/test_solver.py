@@ -26,14 +26,10 @@ class TestSimulSW1LExactlin(TestSimulConserveOutput):
 
         params.output.periods_save.spect_energy_budg = 0.2
 
-        params.forcing.enable = True
-        params.forcing.type = "waves_vortices"
-        params.forcing.forcing_rate = 0.01
-        params.forcing.nkmin_forcing = 2
-        params.forcing.nkmax_forcing = 4
         params.init_fields.type = "noise"
         params.oper.nx = 16
         params.oper.ny = 8
+        params.oper.Ly /= 2
 
     def get_tendencies(self):
         tendencies_fft = self.tendencies_fft
