@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
+"""Anisotropic (:mod:`fluidsim.base.forcing.anisotropic`)
 ==========================================================
 
 .. autoclass:: TimeCorrelatedRandomPseudoSpectralAnisotropic
@@ -15,9 +15,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from fluiddyn.calcul.easypyfft import fftw_grid_size
-
-from fluidsim.base.forcing.specific import TimeCorrelatedRandomPseudoSpectral
+from fluidsim.base.forcing.specific import (
+    TimeCorrelatedRandomPseudoSpectral,
+    _fftw_grid_size,
+)
 from fluidsim.util import ensure_radians
 
 
@@ -73,8 +74,7 @@ kz_negative_enable: bool
         if self.params.forcing.normalized.type == "particular_k":
             raise NotImplementedError
 
-    def _create_params_coarse(self, fft_size):
-        params_coarse = super()._create_params_coarse(fft_size)
+    def _set_params_coarse(self, params_coarse):
 
         self.angle = angle = ensure_radians(self.params.forcing[self.tag].angle)
 
@@ -111,22 +111,17 @@ kz_negative_enable: bool
             # 2d
             kymax_forcing = self.kvmax_forcing
 
-        # The "+ 1" aims to give some gap between the kxmax and
-        # the boundary of the oper_coarse.
-        try:
-            params_coarse.oper.nx = 2 * fftw_grid_size(
-                int(self.khmax_forcing / self.oper.deltakx) + 1
-            )
-        except AttributeError:
-            pass
+        params_coarse.oper.nx = _fftw_grid_size(
+            self.khmax_forcing / self.oper.deltakx
+        )
 
         try:
             params_coarse.oper.ny
         except AttributeError:
             pass
         else:
-            params_coarse.oper.ny = 2 * fftw_grid_size(
-                int(kymax_forcing / self.oper.deltaky) + 1
+            params_coarse.oper.ny = _fftw_grid_size(
+                kymax_forcing / self.oper.deltaky
             )
 
         try:
@@ -134,8 +129,8 @@ kz_negative_enable: bool
         except AttributeError:
             pass
         else:
-            params_coarse.oper.nz = 2 * fftw_grid_size(
-                int(self.kvmax_forcing / self.oper.deltakz) + 1
+            params_coarse.oper.nz = _fftw_grid_size(
+                self.kvmax_forcing / self.oper.deltakz
             )
 
         return params_coarse

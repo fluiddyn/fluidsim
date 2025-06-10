@@ -28,6 +28,7 @@ from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
 @skip_if_no_fluidfft
 class TestSimulBase(TestSimul):
     nx = 16
+    Lx = 6.0
 
     @classproperty
     def Simul(cls):
@@ -51,7 +52,7 @@ class TestSimulBase(TestSimul):
         params.output.sub_directory = "unittests"
         cls._init_grid(params, nx=cls.nx)
 
-        Lx = 6.0
+        Lx = cls.Lx
         params.oper.Lx = Lx
         params.oper.Ly = Lx * params.oper.ny / params.oper.nx
         try:
@@ -69,10 +70,11 @@ class TestSimulBase(TestSimul):
 
 
 class TestTendency(TestSimulBase):
+    nx = 20
+
     @classmethod
     def init_params(cls):
         params = super().init_params()
-        cls._init_grid(params, nx=20)
         params.output.HAS_TO_SAVE = False
 
     def test_tendency(self):
@@ -92,6 +94,42 @@ class TestTendency(TestSimulBase):
         )
 
         self.assertGreater(1e-15, abs(ratio))
+
+
+class TestForcingTCRandom(TestSimulBase):
+    nx = 32
+    Lx = 4 * pi
+
+    @classmethod
+    def init_params(cls):
+        params = super().init_params()
+        params.output.HAS_TO_SAVE = False
+
+        params.forcing.enable = True
+        params.forcing.type = "tcrandom"
+        params.forcing.normalized.constant_rate_of = None
+        params.forcing.nkmin_forcing = 0.99
+        params.forcing.nkmax_forcing = 2.9
+
+    def test_forcing(self):
+        if mpi.rank > 0:
+            return
+        sim = self.sim
+        oper = sim.oper
+        oper_c = sim.forcing.forcing_maker.oper_coarse
+
+        deltak = 2 * pi / oper.Lz
+        assert deltak == oper.deltak
+
+        kf_max = sim.params.forcing.nkmax_forcing * deltak
+
+        kx_max = oper_c.nx * pi / oper_c.Lx
+        ky_max = oper_c.ny * pi / oper_c.Ly
+        kz_max = oper_c.nz * pi / oper_c.Lz
+
+        assert kz_max >= kf_max
+        assert kx_max >= kf_max
+        assert ky_max >= kf_max
 
 
 class TestOutput(TestSimulBase):

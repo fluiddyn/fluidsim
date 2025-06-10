@@ -1,8 +1,4 @@
-"""
-
-
-
-"""
+""" """
 
 from pathlib import Path
 from runpy import run_path

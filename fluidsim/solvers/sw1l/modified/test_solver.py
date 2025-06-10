@@ -31,11 +31,12 @@ class TestSimulSW1LModified(TestSimulConserveOutput):
 
         params.forcing.enable = True
         params.forcing.type = "waves"
-        params.forcing.nkmin_forcing = 2
-        params.forcing.nkmax_forcing = 4
+        params.forcing.nkmin_forcing = 1
+        params.forcing.nkmax_forcing = 2
         params.init_fields.type = "noise"
         params.oper.nx = 16
         params.oper.ny = 8
+        params.oper.Ly /= 2
 
     def test_spatial_means(self):
         """Test spatial_means."""

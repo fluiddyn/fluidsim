@@ -28,5 +28,5 @@ RUN mkdir -p $HOME/.config/matplotlib
 RUN echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
 
 RUN wget https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-unknown-linux-musl.tar.gz
-RUN tar -xzf pixi-x86_64-unknown-linux-musl.tar.gz .
+RUN tar -xzf pixi-x86_64-unknown-linux-musl.tar.gz
 RUN mv pixi $HOME/.local/bin

@@ -1,6 +1,4 @@
-"""Script for a short simulation with the solver ns2d.strat
-
-"""
+"""Script for a short simulation with the solver ns2d.strat"""
 
 import os
 

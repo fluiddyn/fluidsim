@@ -7,12 +7,12 @@ from time import time
 import nox
 
 os.environ.update({"PDM_IGNORE_SAVED_PYTHON": "1"})
-nox.options.reuse_existing_virtualenvs = 1
+nox.options.reuse_existing_virtualenvs = True
 
 
 @nox.session
 def validate_code(session):
-    session.run_always(
+    session.run_install(
         "pdm", "sync", "--clean", "-G", "dev", "--no-self", external=True
     )
     session.run("pdm", "validate_code", external=True)
@@ -78,8 +78,12 @@ def _test(session, env=None, with_fft=True):
 @nox.session
 def test_without_fft_and_pythran(session):
     command = "pdm sync --clean -G dev -G test -G mpi --no-self"
-    session.run_always(*command.split(), external=True)
-    session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
+    session.run_install(
+        *command.split(), external=True, env=_get_modified_env(session)
+    )
+    session.install(
+        ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
+    )
 
     _test(
         session,
@@ -95,17 +99,40 @@ class TimePrinter:
     def __call__(self, task: str):
         time_now = time()
         if self.time_start != self.time_last:
-            print(f"Time for {task}: {timedelta(seconds=time_now - self.time_last)}")
-        print(f"Session started since {timedelta(seconds=time_now - self.time_start)}")
+            print(
+                f"Time for {task}: {timedelta(seconds=time_now - self.time_last)}"
+            )
+        print(
+            f"Session started since {timedelta(seconds=time_now - self.time_start)}"
+        )
         self.time_last = time_now
+
+
+def _get_modified_env(session):
+    """return a modified environment without -g in CFLAGS
+
+    see https://github.com/mpi4py/mpi4py/issues/652#issuecomment-2936030256
+    """
+    out = session.run_install(
+        "python3",
+        "-c",
+        "from sysconfig import get_config_var as g; print(g('CFLAGS'))",
+        silent=True,
+    )
+    cflags = " ".join(flag for flag in out.split() if flag != "-g")
+    env = os.environ.copy()
+    env["CFLAGS"] = cflags
+    return env
 
 
 @nox.session
 def test_with_fft_and_pythran(session):
     print_times = TimePrinter()
 
+    env_modif = _get_modified_env(session)
+
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
-    session.run_always(*command.split(), external=True)
+    session.run_install(*command.split(), external=True, env=env_modif)
 
     print_times("pdm sync")
 
@@ -120,7 +147,9 @@ def test_with_fft_and_pythran(session):
     if "GITLAB_CI" in os.environ:
         short_names.extend(["pfft", "p3dfft"])
     for short_name in short_names:
-        session.install(f"fluidfft-{short_name}")
+        session.run_install(
+            "pip", "install", f"fluidfft-{short_name}", "-v", env=env_modif
+        )
 
     _test(session)
 
@@ -130,15 +159,16 @@ def test_with_fft_and_pythran(session):
 @nox.session(name="test-examples")
 def test_examples(session):
     """Execute the examples using pytest"""
+    env_modif = _get_modified_env(session)
 
     command = "pdm sync --clean -G test -G mpi -G fft -G dev --no-self"
-    session.run_always(*command.split(), external=True)
+    session.run_install(*command.split(), external=True, env=env_modif)
 
     command = "."
     if "GITLAB_CI" in os.environ:
         command += " -C compile-args=-j1"
     session.install(*command.split())
-    session.install("fluidfft-fftwmpi")
+    session.install("fluidfft-fftwmpi", env=env_modif)
 
     session.chdir("doc/examples")
     session.run("make", "test", external=True)
@@ -150,10 +180,12 @@ def doc(session):
     """Build the documentation"""
     print_times = TimePrinter()
     command = "pdm sync -G doc -G fft -G test -G dev --no-self"
-    session.run_always(*command.split(), external=True)
+    session.run_install(*command.split(), external=True)
     print_times("pdm sync")
 
-    session.install(".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps")
+    session.install(
+        ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
+    )
     print_times("install self")
 
     session.chdir("doc")
@@ -188,7 +220,9 @@ def _get_version_from_pyproject(path=Path.cwd()):
 def add_tag_for_release(session):
     session.run("hg", "pull", external=True)
 
-    result = session.run(*"hg log -r default -G".split(), external=True, silent=True)
+    result = session.run(
+        *"hg log -r default -G".split(), external=True, silent=True
+    )
     if result[0] != "@":
         session.run("hg", "update", "default", external=True)
 
