@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 from math import pi
 
