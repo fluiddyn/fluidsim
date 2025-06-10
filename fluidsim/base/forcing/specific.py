@@ -55,6 +55,20 @@ from fluiddyn.calcul.easypyfft import fftw_grid_size
 from fluidsim.base.setofvariables import SetOfVariables
 
 
+def _fftw_grid_size(size: np.number) -> int:
+    try:
+        # The "+ 1" aims to give some gap between the kxmax and
+        # the boundary of the oper_coarse.
+        result = 2 * fftw_grid_size(int(size) + 1)
+    except ImportError:
+        warn("To use smaller forcing arrays: pip install pulp")
+        i = 0
+        while 2 * size > 2**i:
+            i += 1
+        result = 2**i
+    return result
+
+
 class SpecificForcing:
     """Base class for specific forcing"""
 
@@ -140,27 +154,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
     tag = "pseudo_spectral"
     _key_forced_default = "rot_fft"
 
-    @staticmethod
-    def _check_forcing_shape(shape_forcing, shape):
-        """Check if shape of the forcing array exceeds the shape
-        of the global array.
-
-        Parameters
-        ----------
-        shape_forcing: array-like
-            A single-element array containing index of largest forcing
-            wavenumber or a tuple indicating shape of the forcing array.
-
-        shape: array-like
-            A tuple indicating the shape of an array or Operators instance.
-
-        """
-        if any(np.greater(shape_forcing, shape)):
-            raise NotImplementedError(
-                "The resolution is too small for the required forcing: "
-                f"any(np.greater({shape_forcing}, {shape}))"
-            )
-
     def __init__(self, sim):
         super().__init__(sim)
 
@@ -188,23 +181,19 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         else:
             self.key_forced = self._key_forced_default
 
-        try:
-            fft_size = 2 * fftw_grid_size(
-                int(round(params.forcing.nkmax_forcing))
-            )
-        except ImportError:
-            warn("To use smaller forcing arrays: pip install pulp")
-            i = 0
-            while 2 * params.forcing.nkmax_forcing > 2**i:
-                i += 1
-            fft_size = 2**i
-
-        self._check_forcing_shape([fft_size], sim.oper.shapeX_seq)
-
         if mpi.rank == 0:
-            params_coarse = self._create_params_coarse(fft_size)
+            params_coarse = self._create_params_coarse()
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
+
+            if np.any(
+                np.greater(self.oper_coarse.shapeX_seq, sim.oper.shapeX_seq)
+            ):
+                raise NotImplementedError(
+                    "The resolution is too small for the required forcing: "
+                    f"any(np.greater({self.oper_coarse.shapeX_seq}, {sim.oper.shapeX_seq}))"
+                )
+
             self.shapeK_loc_coarse = self.oper_coarse.shapeK_loc
             self.COND_NO_F = self._compute_cond_no_forcing()
 
@@ -238,22 +227,36 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
                 self.shapeK_loc_coarse, root=0
             )
 
-    def _create_params_coarse(self, fft_size):
+    def _create_params_coarse(self):
         params_coarse = deepcopy(self.sim.params)
         params_coarse.oper.type_fft = "sequential"
         params_coarse.oper.coef_dealiasing = 1.0
+        self._set_params_coarse(params_coarse)
+        return params_coarse
 
-        params_coarse.oper.nx = fft_size
+    def _set_params_coarse(self, params_coarse):
+
+        params_coarse.oper.nx = _fftw_grid_size(
+            self.kmax_forcing / self.sim.oper.deltakx
+        )
 
         try:
-            params_coarse.oper.ny = fft_size
+            params_coarse.oper.ny
         except AttributeError:
             pass
+        else:
+            params_coarse.oper.ny = _fftw_grid_size(
+                self.kmax_forcing / self.sim.oper.deltaky
+            )
 
         try:
-            params_coarse.oper.nz = fft_size
+            params_coarse.oper.nz
         except AttributeError:
             pass
+        else:
+            params_coarse.oper.nz = _fftw_grid_size(
+                self.kmax_forcing / self.sim.oper.deltakz
+            )
 
         return params_coarse
 
