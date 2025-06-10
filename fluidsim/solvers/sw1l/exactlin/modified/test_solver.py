@@ -26,11 +26,12 @@ class TestSimulSW1LExactlinModified(TestSimulConserve):
 
         params.forcing.enable = True
         params.forcing.type = "potential"
-        params.forcing.nkmin_forcing = 2
-        params.forcing.nkmax_forcing = 4
+        params.forcing.nkmin_forcing = 1
+        params.forcing.nkmax_forcing = 2
         params.init_fields.type = "vortex_grid"
         params.oper.nx = 16
         params.oper.ny = 8
+        params.oper.Ly /= 2
 
     def get_tendencies(self):
         tendencies_fft = self.tendencies_fft
