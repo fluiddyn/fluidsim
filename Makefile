@@ -41,6 +41,8 @@ cleanall: clean clean_so cleantransonic
 shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
+format: black
+
 black:
 	pdm black
 
