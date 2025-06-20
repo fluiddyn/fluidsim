@@ -17,14 +17,15 @@ Provides:
 
 from pathlib import Path
 from logging import warn
-
 from math import pi
+
 import numpy as np
 from scipy import signal
 import h5py
 from rich.progress import Progress, track
 
 from fluiddyn.util import mpi
+from fluidsim.util import repr_as_frac
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.base.output.spatiotemporal_spectra import (
     filter_tmins_paths,
@@ -600,7 +601,19 @@ class TemporalSpectra3D(SpecificOutput):
         return (0, p_oper.Lx, 0, p_oper.Ly, 0, p_oper.Lz)
 
     def plot_spectra(
-        self, key=None, region=None, tmin=0, tmax=None, dtype=None, xscale="log"
+        self,
+        key=None,
+        region=None,
+        tmin=0,
+        tmax=None,
+        dtype=None,
+        xscale="log",
+        coef_compensate=0,
+        plot_resonant_modes=True,
+        xlim=None,
+        ylim=None,
+        plot_scaling_coefs=None,
+        plot_scaling_xlim=None,
     ):
         """plot temporal spectra from files"""
         if key is None:
@@ -620,11 +633,23 @@ class TemporalSpectra3D(SpecificOutput):
             spectra = self.save_spectra(
                 region=region, tmin=tmin, tmax=tmax, dtype=dtype
             )
+        omegas = spectra["omegas"]
+
+        # spectrum compensation
+        if coef_compensate == 0:
+            norm = 1.0
+            ylabel = "spectrum"
+        else:
+            omegas_no_0 = omegas.copy()
+            omegas_no_0[0] = 1e-15
+            norm = omegas_no_0 ** (-coef_compensate)
+            norm[0] = np.nan
+            ylabel = rf"spectra $\times omega^({repr_as_frac(coef_compensate)})"
 
         # plot
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(r"$\omega$")
-        ax.set_ylabel("spectrum")
+        ax.set_ylabel(ylabel)
         ax.set_xscale(xscale)
         ax.set_yscale("log")
         ax.set_title(
@@ -636,52 +661,64 @@ class TemporalSpectra3D(SpecificOutput):
         try:
             N = self.sim.params.N
         except AttributeError:
-            omegas = spectra["omegas"]
-            ax.plot(
-                spectra["omegas"],
-                spectra["spectrum_" + key],
-                "k",
-                linewidth=2,
-            )
+            tmp = spectra["spectrum_" + key] / norm
+            ax.plot(omegas, tmp, "k", linewidth=2)
+            typical_level = tmp.max()
         else:
             # kinetic/potential decomposition
             EK = spectra["spectrum_K"]
             EA = spectra["spectrum_A"]
-            omegas = spectra["omegas"] / N
-            EKN = EK[abs(omegas - 1).argmin()]  # value @N
+            omegas = omegas / N
+            # value @N
+            typical_level = (EK / norm)[abs(omegas - 1).argmin()]
 
-            ax.plot(omegas, EK, "r", linewidth=2, label=r"$E_K$")
-            ax.plot(omegas, EA, "b", linewidth=2, label=r"$E_A$")
+            ax.plot(omegas, EK / norm, "r", linewidth=2, label=r"$E_K$")
+            ax.plot(omegas, EA / norm, "b", linewidth=2, label=r"$E_A$")
             ax.set_title(
                 f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
                 + self.output.summary_simul
             )
 
-            # resonant modes
-            if self.nb_dim == 3:
-                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
-            else:
-                aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
+            if plot_resonant_modes:
+                # resonant modes
+                if self.nb_dim == 3:
+                    aspect_ratio = self.sim.oper.Lx / self.sim.oper.Lz
+                else:
+                    aspect_ratio = self.sim.oper.Lx / self.sim.oper.Ly
 
-            def modes(nx, nz):
-                return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
+                def modes(nx, nz):
+                    return np.sqrt(nx**2 / (nx**2 + aspect_ratio**2 * nz**2))
 
-            nxs = np.arange(1, 11)
-            modes_nz1 = modes(nxs, 1)
-            modes_nz2 = modes(nxs, 2)
-            modes_y = np.full_like(modes_nz1, fill_value=100 * EKN)
+                nxs = np.arange(1, 11)
+                modes_nz1 = modes(nxs, 1)
+                modes_nz2 = modes(nxs, 2)
+                modes_y = np.full_like(modes_nz1, fill_value=100 * typical_level)
 
-            ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
-            ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
+                ax.plot(modes_nz1, modes_y, "o", label="modes $n_z=1$")
+                ax.plot(modes_nz2, modes_y * 3, "o", label="modes $n_z=2$")
 
-            # omega^-2 scaling
-            omegas_scaling = np.arange(0.4, 1 + 1e-15, 0.01)
-            scaling_y = EKN * omegas_scaling**-2
+            # scaling
+            if plot_scaling_coefs is not None:
+                slope, height = plot_scaling_coefs
 
-            ax.plot(omegas_scaling, scaling_y, "k--")
+                if plot_scaling_xlim is not None:
+                    x_min, x_max = plot_scaling_xlim
+                else:
+                    x_min, x_max = ax.get_xlim()
+                omegas_scaling = np.arange(x_min, x_max, 0.01)
+                scaling_y = 10**height * omegas_scaling ** (
+                    slope + coef_compensate
+                )
+
+                ax.plot(
+                    omegas_scaling,
+                    scaling_y,
+                    "k-",
+                    label=rf"$\propto \omega^{{{repr_as_frac(slope)}}}$",
+                )
 
             # eye guide @N
-            ymin = EKN / 10
+            ymin = typical_level / 10
             _, ymax = ax.get_ylim()
             ax.vlines(1, ymin, ymax, linestyle="dotted")
 
@@ -691,8 +728,12 @@ class TemporalSpectra3D(SpecificOutput):
                 ax.vlines(omega_f / N, ymin, ymax, linestyle="dotted")
 
             ax.set_xlabel(r"$\omega/N$")
-            ax.set_ylim(ymin, ymax)
-            ax.set_xlim(omegas[1], 1.5)
+
+            if xlim is not None:
+                ax.set_xlim(xlim)
+
+            if ylim is not None:
+                ax.set_ylim(ylim)
 
             ax.legend()
 

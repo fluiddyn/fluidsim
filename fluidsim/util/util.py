@@ -7,13 +7,15 @@ import json
 import os
 import time
 import warnings
+
 from copy import deepcopy as _deepcopy
 from datetime import timedelta
 from functools import partial
+from fractions import Fraction
 from importlib import import_module
+from math import radians
 from pathlib import Path
 from time import perf_counter
-from math import radians
 
 import h5netcdf
 import h5py
@@ -730,6 +732,15 @@ def ensure_radians(angle):
                 + "the degree symbol or a float in radians"
             )
     return angle
+
+
+def repr_as_frac(number):
+    """Create a string representing a number as a fraction"""
+    frac = Fraction(number).limit_denominator(100)
+    if frac.denominator == 1:
+        return f"{frac.numerator}"
+    else:
+        return f"{frac.numerator}/{frac.denominator}"
 
 
 def get_last_time_spatial_means_from_path(path):

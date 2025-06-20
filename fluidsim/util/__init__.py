@@ -56,6 +56,7 @@ from .util import (
     modif_resolution_all_dir,
     modif_resolution_from_dir_memory_efficient,
     open_patient,
+    repr_as_frac,
 )
 
 __all__ = [
@@ -76,6 +77,7 @@ __all__ = [
     "modif_resolution_all_dir",
     "modif_resolution_from_dir_memory_efficient",
     "open_patient",
+    "repr_as_frac",
 ]
 
 # deprecated
