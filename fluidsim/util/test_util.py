@@ -15,6 +15,7 @@ from fluidsim.solvers.ns3d.test_solver import (
 from fluidsim.util import (
     modif_resolution_from_dir,
     modif_resolution_from_dir_memory_efficient,
+    repr_as_frac,
 )
 
 
@@ -62,3 +63,8 @@ class TestModifResol2d(TestModifResol3d):
         from fluidsim.solvers.ns2d.solver import Simul
 
         return Simul
+
+
+def test_repr_as_frac():
+    assert repr_as_frac(5 / 3) == "5/3"
+    assert repr_as_frac(-5 / 3) == "-5/3"
