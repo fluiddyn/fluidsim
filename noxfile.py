@@ -78,9 +78,7 @@ def _test(session, env=None, with_fft=True):
 @nox.session
 def test_without_fft_and_pythran(session):
     command = "pdm sync --clean -G dev -G test -G mpi --no-self"
-    session.run_install(
-        *command.split(), external=True, env=_get_modified_env(session)
-    )
+    session.run_install(*command.split(), external=True)
     session.install(
         ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
     )
@@ -108,31 +106,12 @@ class TimePrinter:
         self.time_last = time_now
 
 
-def _get_modified_env(session):
-    """return a modified environment without -g in CFLAGS
-
-    see https://github.com/mpi4py/mpi4py/issues/652#issuecomment-2936030256
-    """
-    out = session.run_install(
-        "python3",
-        "-c",
-        "from sysconfig import get_config_var as g; print(g('CFLAGS'))",
-        silent=True,
-    )
-    cflags = " ".join(flag for flag in out.split() if flag != "-g")
-    env = os.environ.copy()
-    env["CFLAGS"] = cflags
-    return env
-
-
 @nox.session
 def test_with_fft_and_pythran(session):
     print_times = TimePrinter()
 
-    env_modif = _get_modified_env(session)
-
     command = "pdm sync --clean -G dev -G test -G fft -G mpi --no-self"
-    session.run_install(*command.split(), external=True, env=env_modif)
+    session.run_install(*command.split(), external=True)
 
     print_times("pdm sync")
 
@@ -147,9 +126,7 @@ def test_with_fft_and_pythran(session):
     if "GITLAB_CI" in os.environ:
         short_names.extend(["pfft", "p3dfft"])
     for short_name in short_names:
-        session.run_install(
-            "pip", "install", f"fluidfft-{short_name}", "-v", env=env_modif
-        )
+        session.run_install("pip", "install", f"fluidfft-{short_name}", "-v")
 
     _test(session)
 
@@ -159,16 +136,15 @@ def test_with_fft_and_pythran(session):
 @nox.session(name="test-examples")
 def test_examples(session):
     """Execute the examples using pytest"""
-    env_modif = _get_modified_env(session)
 
     command = "pdm sync --clean -G test -G mpi -G fft -G dev --no-self"
-    session.run_install(*command.split(), external=True, env=env_modif)
+    session.run_install(*command.split(), external=True)
 
     command = "."
     if "GITLAB_CI" in os.environ:
         command += " -C compile-args=-j1"
     session.install(*command.split())
-    session.install("fluidfft-fftwmpi", env=env_modif)
+    session.install("fluidfft-fftwmpi")
 
     session.chdir("doc/examples")
     session.run("make", "test", external=True)
