@@ -2,7 +2,7 @@
   (list "python-fluidfft"
 	"coreutils"
     "python"
-	"openmpi"
+	"openmpi@4.1.6"
 	"python-fluidfft-builder"
 	"python-fluidfft-fftw"
 	"python-fluidfft-fftwmpi"
