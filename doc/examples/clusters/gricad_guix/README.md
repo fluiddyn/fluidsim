@@ -115,13 +115,8 @@ Change the Mercurial reference and the hash in
 `~/dev/fluidsim/doc/examples/clusters/gricad_guix/python-fluidsim.scm`.
 
 ### Build-install from source
-To run simulations using multiple processes, we will use the `mpirun` command provided by the `OpenMPI` library. We need to make sure OpenMPI is installed at the same version in your current Guix session and the `manifest.scm` file:
 ```sh
-guix install openmpi@4.1.6
 source /applis/site/guix-start.sh
-```
-
-```sh
 DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix
 # This will take a while
 guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manifest.scm --profile=$HOME/guix-profile-fluidsim
