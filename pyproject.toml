@@ -147,7 +147,8 @@ doc = [
     "sphinx",
     "sphinx_rtd_theme",
     "numpydoc",
-    "jupyter",
+    "jupyterlab",
+    "ipympl",
     "pandas",
     "ipynbname",
     "myst-nb",
@@ -174,6 +175,11 @@ validate_code = {composite = ["black_check", "lint"]}
 lock = ["-G", ":all"]
 sync = ["--no-isolation"]
 install = ["--no-isolation"]
+
+# not (yet?) supported (see https://github.com/pdm-project/pdm/issues/3563)
+# [tool.pdm.lock]
+# format = "pylock"
+
 
 [tool.coverage.run]
 source = [
