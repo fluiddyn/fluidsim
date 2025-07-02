@@ -15,7 +15,7 @@ from fluidsim.solvers.ns2d.strat.solver import Simul
 
 if "FLUIDSIM_TESTS_EXAMPLES" in os.environ:
     t_end = 2.0
-    nx = 48
+    nx = 52
 else:
     t_end = 10.0
     nx = 64
