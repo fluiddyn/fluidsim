@@ -1,4 +1,4 @@
-from fluiddyn.clusters.gricad import DahuGuix16_6130 as Cluster
+from dahu import Dahu16_6130 as Cluster
 
 cluster = Cluster(
     check_scheduler=False,

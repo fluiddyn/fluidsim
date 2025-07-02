@@ -76,7 +76,7 @@
     (propagated-inputs (list python-fluidfft
                              python-fluidsim-core
                              python-h5netcdf
-                             python-h5py
+                             python-h5py-mpi
                              python-ipython
                              python-matplotlib
                              python-mpi4py
@@ -102,3 +102,4 @@
     (license #f)))
 
 python-fluidsim
+
