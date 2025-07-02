@@ -176,6 +176,11 @@ lock = ["-G", ":all"]
 sync = ["--no-isolation"]
 install = ["--no-isolation"]
 
+# not (yet?) supported (see https://github.com/pdm-project/pdm/issues/3563)
+[tool.pdm.lock]
+format = "pylock"
+
+
 [tool.coverage.run]
 source = [
   "./fluidsim",
