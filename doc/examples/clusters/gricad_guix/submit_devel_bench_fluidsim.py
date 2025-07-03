@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from fluiddyn.clusters.gricad import DahuGuixDevel as Cluster
 
 cluster = Cluster(

@@ -168,5 +168,5 @@ Submit with
 ```sh
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
 . ~/venv_submit/bin/activate
-python submit_bench_fluidsim.py
+./submit_bench_fluidsim.py
 ```

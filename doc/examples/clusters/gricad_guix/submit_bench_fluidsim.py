@@ -1,4 +1,6 @@
-from dahu import Dahu16_6130 as Cluster
+#!/usr/bin/env python
+
+from dahu import Dahu32_6130 as Cluster
 
 cluster = Cluster(
     check_scheduler=False,
