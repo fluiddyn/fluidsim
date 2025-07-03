@@ -4,7 +4,7 @@
 #OAR --stdout bench_fluidfft.out
 #OAR --stderr bench_fluidfft.err
 #OAR -t devel
-#OAR -l /nodes=1/core=2,walltime=00:30:00
+#OAR -l /nodes=1/core=4,walltime=00:30:00
 #OAR --project pr-strat-turb
 
 export GUIX_PROFILE=$HOME/guix-profile-fluidsim
@@ -16,4 +16,4 @@ export OMPI_MCA_btl_openib_allow_ib=true
 export OMPI_MCA_pml=cm
 export OMPI_MCA_mtl=psm2
 
-exec mpirun -np 64 -machinefile $OAR_NODEFILE --prefix $GUIX_PROFILE fluidfft-bench 256 -d 3
+exec mpirun -np 4 -machinefile $OAR_NODEFILE --prefix $GUIX_PROFILE fluidfft-bench 256 -d 3

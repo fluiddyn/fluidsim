@@ -154,26 +154,15 @@ oarsub -S ./job_fluidsim_bench.oar
 Prepare a virtual env (1 time). From a new terminal:
 
 ```sh
-python3 -m venv ~/venv_fluiddyn
-. ~/venv_fluiddyn/bin/activate
-pip install fluiddyn
+uv venv -p 3.13 ~/venv_submit
+. ~/venv_submit/bin/activate
+uv pip install fluiddyn fluidsim ipython
 ```
 
 Submit with
 
 ```sh
-. ~/venv_fluiddyn/bin/activate
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
+. ~/venv_submit/bin/activate
 python submit_bench_fluidsim.py
 ```
-
-````{note}
-Note that the script `submit_bench_fluidsim.py` contains the line:
-
-```python
-from fluiddyn.clusters.gricad import DahuGuix16_6130 as Cluster
-```
-
-The classes `DahuGuix...` are able to write OAR scripts for using Dahu with Guix.
-
-````
