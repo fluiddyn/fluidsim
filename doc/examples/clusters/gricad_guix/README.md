@@ -118,7 +118,7 @@ Change the Mercurial reference and the hash in
 
 ```sh
 source /applis/site/guix-start.sh
-DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix
+DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix/manifest
 # This will take a while
 guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manifest.scm --profile=$HOME/guix-profile-fluidsim
 ```
@@ -127,7 +127,7 @@ guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manif
 
 ```sh
 source $HOME/guix-profile-fluidsim/etc/profile
-python3 -m pytest --pyargs fluidsim
+python -m pytest --pyargs fluidsim
 ```
 
 ## Submit a Fluidfft benchmark

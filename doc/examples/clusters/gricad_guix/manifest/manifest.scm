@@ -1,7 +1,7 @@
 (specifications->manifest
   (list "python-fluidfft"
 	"coreutils"
-    "python"
+    "python-wrapper"
 	"openmpi"
 	"python-fluidfft-builder"
 	"python-fluidfft-fftw"
