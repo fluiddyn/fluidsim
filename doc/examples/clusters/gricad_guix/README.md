@@ -133,7 +133,9 @@ python -m pytest --pyargs fluidsim
 ## Submit a Fluidfft benchmark
 
 ```sh
+ssh dahu-oar3
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
+source $HOME/guix-profile-fluidsim/etc/profile
 oarsub -S ./job_fluidfft_bench.oar
 ```
 
@@ -145,7 +147,9 @@ script or use fluiddyn to write it.
 ### Hand written OAR script
 
 ```sh
+ssh dahu-oar3
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
+source $HOME/guix-profile-fluidsim/etc/profile
 oarsub -S ./job_fluidsim_bench.oar
 ```
 
