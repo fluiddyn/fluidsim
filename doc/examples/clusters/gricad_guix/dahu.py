@@ -11,7 +11,7 @@ from fluiddyn.clusters.gricad import (
 
 class Dahu(_Dahu):
     commands_setting_env = [
-        "export GUIX_PROFILE=$HOME/guix-profile-fluidsim",
+        "GUIX_PROFILE=$HOME/guix-profile-fluidsim",
         "source $GUIX_PROFILE/etc/profile",
         "export OMPI_MCA_plm_rsh_agent=/bettik/legi/oar-envsh",
         "export OMPI_MCA_btl_openib_allow_ib=true",
