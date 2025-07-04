@@ -123,6 +123,12 @@ DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix/manifest
 guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manifest.scm --profile=$HOME/guix-profile-fluidsim
 ```
 
+It can be useful to list the package installed in the profile by:
+
+``sh
+guix package --list-installed --profile=$HOME/guix-profile-fluidsim
+```
+
 ## Test Fluidsim in sequential
 
 ```sh
