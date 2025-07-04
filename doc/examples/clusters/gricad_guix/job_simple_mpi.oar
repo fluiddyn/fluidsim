@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#OAR -n simple_mpi
+#OAR --stdout simple_mpi.out
+#OAR --stderr simple_mpi.err
+#OAR -t devel
+#OAR -l /nodes=1/core=4,walltime=00:30:00
+#OAR --project pr-strat-turb
+
+GUIX_PROFILE=$HOME/guix-profile-fluidsim
+# load local profile create by guix package
+source $GUIX_PROFILE/etc/profile
+
+export OMPI_MCA_plm_rsh_agent=/bettik/legi/oar-envsh
+export OMPI_MCA_btl_openib_allow_ib=true
+export OMPI_MCA_pml=cm
+export OMPI_MCA_mtl=psm2
+
+exec mpirun -np 4 -machinefile $OAR_NODEFILE --prefix $GUIX_PROFILE \
+  python -c "from mpi4py import MPI; comm = MPI.COMM_WORLD; print(f'{comm.Get_rank() = }')"
+
+  # python -c "from fluiddyn.util import mpi; print(f'{mpi.rank = }')"

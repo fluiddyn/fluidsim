@@ -34,7 +34,7 @@ uv --version
 Install and setup Mercurial:
 
 ```sh
-uv tool install mercurial --with hg-evolve --with hg-git
+uv tool install -p 3.13 mercurial --with hg-evolve --with hg-git
 uvx hg-setup init -f
 ```
 
@@ -118,24 +118,24 @@ Change the Mercurial reference and the hash in
 
 ```sh
 source /applis/site/guix-start.sh
-DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix
+DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix/manifest
 # This will take a while
-guix shell --pure -m $DIR_MANIFEST/manifest.scm -f $DIR_MANIFEST/python-fluidsim.scm
+guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manifest.scm --profile=$HOME/guix-profile-fluidsim
 ```
 
 ## Test Fluidsim in sequential
 
 ```sh
-source /applis/site/guix-start.sh
-DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix
-guix shell --pure -m $DIR_MANIFEST/manifest.scm -f $DIR_MANIFEST/python-fluidsim.scm
-python3 -m pytest --pyargs fluidsim
+source $HOME/guix-profile-fluidsim/etc/profile
+python -m pytest --pyargs fluidsim
 ```
 
 ## Submit a Fluidfft benchmark
 
 ```sh
+ssh dahu-oar3
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
+source $HOME/guix-profile-fluidsim/etc/profile
 oarsub -S ./job_fluidfft_bench.oar
 ```
 
@@ -147,7 +147,9 @@ script or use fluiddyn to write it.
 ### Hand written OAR script
 
 ```sh
+ssh dahu-oar3
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
+source $HOME/guix-profile-fluidsim/etc/profile
 oarsub -S ./job_fluidsim_bench.oar
 ```
 
@@ -156,26 +158,15 @@ oarsub -S ./job_fluidsim_bench.oar
 Prepare a virtual env (1 time). From a new terminal:
 
 ```sh
-python3 -m venv ~/venv_fluiddyn
-. ~/venv_fluiddyn/bin/activate
-pip install fluiddyn
+uv venv -p 3.13 ~/venv_submit
+. ~/venv_submit/bin/activate
+uv pip install fluiddyn fluidsim ipython
 ```
 
 Submit with
 
 ```sh
-. ~/venv_fluiddyn/bin/activate
 cd ~/dev/fluidsim/doc/examples/clusters/gricad_guix
-python submit_bench_fluidsim.py
+. ~/venv_submit/bin/activate
+./submit_bench_fluidsim.py
 ```
-
-````{note}
-Note that the script `submit_bench_fluidsim.py` contains the line:
-
-```python
-from fluiddyn.clusters.gricad import DahuGuix16_6130 as Cluster
-```
-
-The classes `DahuGuix...` are able to write OAR scripts for using Dahu with Guix.
-
-````
