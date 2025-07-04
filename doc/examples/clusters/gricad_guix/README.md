@@ -34,7 +34,7 @@ uv --version
 Install and setup Mercurial:
 
 ```sh
-uv tool install mercurial --with hg-evolve --with hg-git
+uv tool install -p 3.13 mercurial --with hg-evolve --with hg-git
 uvx hg-setup init -f
 ```
 
