@@ -77,8 +77,8 @@ sim.state.init_from_rotb(rot, b)
 # sim.output.phys_fields.plot(key_field='b')
 
 # monkey-patching for forcing
+forcing_maker = sim.forcing.forcing_maker
 if rank == 0:
-    forcing_maker = sim.forcing.forcing_maker
     oper = forcing_maker.oper_coarse
     Y = oper.Y
     d = ly / 6
@@ -104,45 +104,48 @@ if rank == 0:
 
         plt.pause(1e-3)
 
-    def compute_forcingc_fft_each_time(self):
-        """This function is called by the forcing_maker to compute the forcing"""
-        rot_fft = self.sim.state.state_spect.get_var("rot_fft")
-        rot_fft = self.oper.coarse_seq_from_fft_loc(
-            rot_fft, self.shapeK_loc_coarse
-        )
-        ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
-        ux = oper.ifft(ux_fft)
-        uy = oper.ifft(uy_fft)
-        fx = alpha * ux
-        fy = alpha * uy
-        fx_fft = oper.fft(fx)
-        fy_fft = oper.fft(fy)
-        frot_fft = oper.rotfft_from_vecfft(fx_fft, fy_fft)
 
-        if has_to_animate and sim.time_stepping.it % 10 == 0:
-            arrays = np.empty_like(subplots)
-            arrays[0, 0] = ux
-            arrays[0, 1] = uy
-            arrays[0, 2] = oper.ifft(rot_fft)
-            arrays[1, 0] = fx
-            arrays[1, 1] = fy
-            arrays[1, 2] = oper.ifft(frot_fft)
+def compute_forcingc_fft_each_time(self):
+    """This function is called by the forcing_maker to compute the forcing"""
+    rot_fft = self.sim.state.state_spect.get_var("rot_fft")
+    rot_fft = self.oper.coarse_seq_from_fft_loc(rot_fft, self.shapeK_loc_coarse)
+    if rank != 0:
+        return
 
-            for (i0, i1), arr in np.ndenumerate(arrays):
-                pmesh = pmeshs[i0, i1]
-                pmesh.set_array(arr.ravel())
-                pmesh.set_clim(arr.min(), arr.max())
+    ux_fft, uy_fft = oper.vecfft_from_rotfft(rot_fft)
+    ux = oper.ifft(ux_fft)
+    uy = oper.ifft(uy_fft)
+    fx = alpha * ux
+    fy = alpha * uy
+    fx_fft = oper.fft(fx)
+    fy_fft = oper.fft(fy)
+    frot_fft = oper.rotfft_from_vecfft(fx_fft, fy_fft)
 
-            title.set_text(f"time {self.sim.time_stepping.t:.2f}")
+    if has_to_animate and sim.time_stepping.it % 10 == 0:
+        arrays = np.empty_like(subplots)
+        arrays[0, 0] = ux
+        arrays[0, 1] = uy
+        arrays[0, 2] = oper.ifft(rot_fft)
+        arrays[1, 0] = fx
+        arrays[1, 1] = fy
+        arrays[1, 2] = oper.ifft(frot_fft)
 
-            fig.canvas.draw()
-            plt.pause(1e-4)
+        for (i0, i1), arr in np.ndenumerate(arrays):
+            pmesh = pmeshs[i0, i1]
+            pmesh.set_array(arr.ravel())
+            pmesh.set_clim(arr.min(), arr.max())
 
-        return frot_fft
+        title.set_text(f"time {self.sim.time_stepping.t:.2f}")
 
-    forcing_maker.monkeypatch_compute_forcingc_fft_each_time(
-        compute_forcingc_fft_each_time
-    )
+        fig.canvas.draw()
+        plt.pause(1e-4)
+
+    return frot_fft
+
+
+forcing_maker.monkeypatch_compute_forcingc_fft_each_time(
+    compute_forcingc_fft_each_time
+)
 
 # and finally time stepping
 sim.time_stepping.start()

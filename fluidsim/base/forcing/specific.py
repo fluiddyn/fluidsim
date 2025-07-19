@@ -334,8 +334,8 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
     def compute(self):
         """compute a forcing normalize with a 2nd degree eq."""
 
+        obj = self.compute_forcingc_fft_each_time()
         if mpi.rank == 0:
-            obj = self.compute_forcingc_fft_each_time()
             if isinstance(obj, dict):
                 kwargs = obj
             else:
@@ -364,7 +364,9 @@ class InScriptForcingPseudoSpectralCoarse(SpecificForcingPseudoSpectralCoarse):
 
     def compute_forcingc_fft_each_time(self):
         """Compute the coarse forcing in Fourier space"""
-        return self.oper_coarse.fft(self.compute_forcingc_each_time())
+        forcingc = self.compute_forcingc_each_time()
+        if mpi.rank == 0:
+            return self.oper_coarse.fft(forcingc)
 
     def compute_forcingc_each_time(self):
         """Compute the coarse forcing in real space"""
