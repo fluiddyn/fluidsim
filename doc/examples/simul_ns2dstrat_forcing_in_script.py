@@ -54,18 +54,20 @@ params.output.periods_save.increments = 1.0
 sim = Simul(params)
 
 # monkey-patching for forcing
+forcing_maker = sim.forcing.forcing_maker
 if rank == 0:
-    forcing_maker = sim.forcing.forcing_maker
     oper = forcing_maker.oper_coarse
     forcing0 = 2 * np.cos(2 * pi * oper.Y / oper.ly)
     omega = 2 * pi
 
-    def compute_forcingc_each_time(self):
-        return forcing0 * np.sin(omega * sim.time_stepping.t)
 
-    forcing_maker.monkeypatch_compute_forcingc_each_time(
-        compute_forcingc_each_time
-    )
+def compute_forcingc_each_time(self):
+    if rank != 0:
+        return
+    return forcing0 * np.sin(omega * sim.time_stepping.t)
+
+
+forcing_maker.monkeypatch_compute_forcingc_each_time(compute_forcingc_each_time)
 
 
 sim.time_stepping.start()
