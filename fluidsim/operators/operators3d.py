@@ -226,7 +226,7 @@ Lx, Ly and Lz: float
             params.oper.Lx,
             params.oper.Ly,
             params.oper.Lz,
-            fft=_get_type_fft_from_params_and_env(params),
+            fft=_get_type_fft_from_params_and_env(params, "3D"),
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 

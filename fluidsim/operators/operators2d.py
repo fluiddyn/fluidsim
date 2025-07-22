@@ -140,7 +140,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             ny,
             params.oper.Lx,
             params.oper.Ly,
-            fft=_get_type_fft_from_params_and_env(params),
+            fft=_get_type_fft_from_params_and_env(params, "2D"),
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 

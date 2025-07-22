@@ -103,7 +103,7 @@ pytest_cov_html_full:
 
 define _pytest_mpi_operators3d
 	$(call _init_coverage)
-	FLUIDSIM_TYPE_FFT=$(1) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py -p no:warnings
+	FLUIDSIM_TYPE_FFT3D=$(1) TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py -p no:warnings
 	$(call _end_coverage_combine)
 endef
 
@@ -118,8 +118,8 @@ pytest_mpi_with_pfft:
 
 pytest_mpi_with_p3dfft:
 	$(call _init_coverage)
-	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) \
+	FLUIDSIM_TYPE_FFT3D=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) \
 	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py::TestCoarse
-	FLUIDSIM_TYPE_FFT=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) \
+	FLUIDSIM_TYPE_FFT3D=fft3d.mpi_with_p3dfft TRANSONIC_NO_REPLACE=1 mpirun -np $(MPI_NUM_PROCS) \
 	  coverage run -p -m pytest -v --exitfirst fluidsim/operators/test/test_operators3d.py -k "not TestCoarse"
 	$(call _end_coverage_combine)

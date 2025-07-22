@@ -14,13 +14,13 @@ from .test_operators2d import TestCoarse as _TestCoarse
 
 
 def xfail_if_fluidfft_class_not_importable(func):
-    if not FLUIDFFT_INSTALLED or "FLUIDSIM_TYPE_FFT" not in os.environ:
+    if not FLUIDFFT_INSTALLED or "FLUIDSIM_TYPE_FFT3D" not in os.environ:
         return func
 
     from fluidfft import import_fft_class
 
     try:
-        import_fft_class(os.environ["FLUIDSIM_TYPE_FFT"])
+        import_fft_class(os.environ["FLUIDSIM_TYPE_FFT3D"])
     except ImportError:
         ImportError_fft_class = True
     else:
