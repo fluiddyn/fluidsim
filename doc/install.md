@@ -142,6 +142,9 @@ Fluidsim is sensitive to environment variables:
 
 - `FLUIDDYN_PATH_SCRATCH`: working directory (can be useful on some clusters).
 
+- `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D`: set the Fluidfft method
+  (see <https://fluidfft.readthedocs.io/en/latest/plugins.html>).
+
 ## Dependencies with different flavours
 
 ## Fluidfft

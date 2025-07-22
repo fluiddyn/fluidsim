@@ -25,7 +25,7 @@ from fluidsim.base.params import Parameters
 
 from .operators2d import OperatorsPseudoSpectral2D as OpPseudoSpectral2D
 from .. import _is_testing
-from .base import OperatorBase
+from .base import OperatorBase, _get_type_fft_from_params_and_env
 
 ts = Transonic()
 
@@ -226,7 +226,7 @@ Lx, Ly and Lz: float
             params.oper.Lx,
             params.oper.Ly,
             params.oper.Lz,
-            fft=params.oper.type_fft,
+            fft=_get_type_fft_from_params_and_env(params, "3D"),
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 

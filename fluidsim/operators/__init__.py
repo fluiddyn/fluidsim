@@ -6,6 +6,7 @@ Provides
 .. autosummary::
    :toctree:
 
+   base
    operators0d
    operators2d
    operators3d

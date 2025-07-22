@@ -5,15 +5,37 @@ Numerical method agnostic base operator classes
 
 Provides:
 
-.. autoclass:: OperatorBase1D
+.. autoclass:: OperatorBase
+   :members:
+   :private-members:
+
+.. autoclass:: OperatorsBase1D
    :members:
    :private-members:
 
 """
 
+import os
+
+from warnings import warn
+
 import numpy as np
 
 from fluiddyn.util import mpi
+
+
+def _get_type_fft_from_params_and_env(params, dim: str):
+    var_name = "FLUIDSIM_TYPE_FFT" + dim
+    if var_name in os.environ:
+        if params.oper.type_fft == "default":
+            type_fft = os.environ[var_name]
+            print(f"Using {var_name}={type_fft}")
+            return type_fft
+        elif params.oper.type_fft != "sequential":
+            warn(f"not using {var_name} since params.oper.type_fft != 'default'")
+        return params.oper.type_fft
+    else:
+        return params.oper.type_fft
 
 
 class OperatorBase:

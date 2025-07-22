@@ -30,7 +30,7 @@ def test_mpi_fft_lib(session, method_fft, nprocs=2, _k_expr=None, env=None):
         env = {}
     else:
         env = env.copy()
-    env.update({"TRANSONIC_NO_REPLACE": "1", "FLUIDSIM_TYPE_FFT": method_fft})
+    env.update({"TRANSONIC_NO_REPLACE": "1", "FLUIDSIM_TYPE_FFT3D": method_fft})
 
     print(f"test for method {method_fft}")
     session.run(*cmd, external=True, env=env)
