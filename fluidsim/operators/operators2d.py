@@ -9,9 +9,10 @@ Provides
 
 """
 
+import sys
+
 from warnings import warn
 from random import uniform
-import sys
 
 import numpy as np
 
@@ -22,7 +23,7 @@ from fluidfft.fft2d.operators import OperatorsPseudoSpectral2D as _Operators
 from fluidsim.base.params import Parameters
 from ..base.setofvariables import SetOfVariables
 from .. import _is_testing
-from .base import OperatorBase
+from .base import OperatorBase, _get_type_fft_from_params_and_env
 
 ts = Transonic()
 
@@ -139,7 +140,7 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
             ny,
             params.oper.Lx,
             params.oper.Ly,
-            fft=params.oper.type_fft,
+            fft=_get_type_fft_from_params_and_env(params),
             coef_dealiasing=params.oper.coef_dealiasing,
         )
 

@@ -32,13 +32,6 @@ def create_oper(type_fft=None, coef_dealiasing=2.0 / 3, **kwargs):
     params.oper.Lx = Lh
     params.oper.Ly = Lh
 
-    if "FLUIDSIM_TYPE_FFT" in os.environ:
-        type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
-        print(f"{type_fft = }")
-
-    if type_fft is not None:
-        params.oper.type_fft = type_fft
-
     params.oper.coef_dealiasing = coef_dealiasing
 
     oper = OperatorsPseudoSpectral2D(params=params)
@@ -172,10 +165,6 @@ class TestCoarse:
             params.oper.nz = 16
 
         params.oper.truncation_shape = "spherical"
-
-        if "FLUIDSIM_TYPE_FFT" in os.environ:
-            params.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
-            print(f"{params.oper.type_fft = }")
 
         oper = self.Oper(params)
 

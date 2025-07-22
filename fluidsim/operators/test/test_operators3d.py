@@ -41,10 +41,6 @@ def oper():
     p.oper.nz = 4
     p.oper.Lx = p.oper.Ly = p.oper.Lz = 2 * np.pi
 
-    if "FLUIDSIM_TYPE_FFT" in os.environ:
-        p.oper.type_fft = os.environ["FLUIDSIM_TYPE_FFT"]
-    print(f"{p.oper.type_fft = }")
-
     return OperatorsPseudoSpectral3D(params=p)
 
 
