@@ -159,10 +159,8 @@ dev = [
     "black",
     "pylint",
     "flit_core >=3.2,<4",
+    "ipdb",
     "-e fluidsim-core @ file:///${PROJECT_ROOT}/lib",
-    # build dependencies mpi4py
-    "cython >=3.0",
-    "setuptools",
 ]
 
 [tool.pdm.scripts]
