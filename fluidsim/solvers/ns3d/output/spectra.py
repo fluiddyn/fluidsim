@@ -112,6 +112,7 @@ class SpectraNS3D(Spectra):
         xlim=None,
         ylim=None,
         only_time_average=False,
+        no_time_average=False,
         cmap=None,
     ):
         self._plot_times(
@@ -128,6 +129,7 @@ class SpectraNS3D(Spectra):
             ylim=ylim,
             ndim=1,
             only_time_average=only_time_average,
+            no_time_average=no_time_average,
             cmap=cmap,
         )
 
@@ -144,6 +146,7 @@ class SpectraNS3D(Spectra):
         xlim=None,
         ylim=None,
         only_time_average=False,
+        no_time_average=False,
         cmap=None,
     ):
         self._plot_times(
@@ -159,6 +162,7 @@ class SpectraNS3D(Spectra):
             ylim=ylim,
             ndim=3,
             only_time_average=only_time_average,
+            no_time_average=no_time_average,
             cmap=cmap,
         )
 
@@ -176,6 +180,7 @@ class SpectraNS3D(Spectra):
         xlim=None,
         ylim=None,
         only_time_average=False,
+        no_time_average=False,
         ndim=1,
         cmap=None,
     ):
@@ -255,9 +260,11 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
                     ax.plot(ks, spectrum * coef_norm, color=colors[ic])
 
             spectra = dset_spectra[imin_plot : imax_plot + 1]
-        spectrum = spectra.mean(0)
-        spectrum[spectrum < 10e-16] = 0.0
-        ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
+
+        if not no_time_average:
+            spectrum = spectra.mean(0)
+            spectrum[spectrum < 10e-16] = 0.0
+            ax.plot(ks, spectrum * coef_norm, "k", linewidth=2)
 
         if coef_plot_k3 is not None:
             to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
