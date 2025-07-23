@@ -476,7 +476,7 @@ class TemporalSpectra3D(SpecificOutput):
 
                 # for a given rank, paths are sorted by time
                 data = {f"probes_{k}_loc": [] for k in keys}
-                for path_file in paths_rank:
+                for ip, path_file in enumerate(paths_rank):
                     # break after the last useful file
                     if tmins_files[ip] > tmax:
                         progress.update(task_files, completed=npaths)
@@ -523,6 +523,11 @@ class TemporalSpectra3D(SpecificOutput):
 
         series["times"] = times
         return series
+
+    def read_fsample(self):
+        paths = sorted(self.path_dir.glob("rank*.h5"))
+        with h5py.File(paths[0], "r") as file:
+            return 1.0 / file.attrs["period_save"]
 
     def _compute_spectrum(self, data):
         if not hasattr(self, "f_sample"):
@@ -644,7 +649,8 @@ class TemporalSpectra3D(SpecificOutput):
             omegas_no_0[0] = 1e-15
             norm = omegas_no_0 ** (-coef_compensate)
             norm[0] = np.nan
-            ylabel = rf"spectra $\times omega^({repr_as_frac(coef_compensate)})"
+            str_coef_compensate = repr_as_frac(coef_compensate)
+            ylabel = rf"spectra $\times \omega^{{{str_coef_compensate}}}$"
 
         # plot
         fig, ax = self.output.figure_axe()
@@ -662,23 +668,27 @@ class TemporalSpectra3D(SpecificOutput):
             N = self.sim.params.N
         except AttributeError:
             tmp = spectra["spectrum_" + key] / norm
-            ax.plot(omegas, tmp, "k", linewidth=2)
+            ax.plot(omegas, tmp, "k", label=f"spectrum_{key}", linewidth=2)
             typical_level = tmp.max()
         else:
-            # kinetic/potential decomposition
-            EK = spectra["spectrum_K"]
-            EA = spectra["spectrum_A"]
-            omegas = omegas / N
-            # value @N
-            typical_level = (EK / norm)[abs(omegas - 1).argmin()]
+            if key is None:
+                # kinetic/potential decomposition
+                EK = spectra["spectrum_K"]
+                EA = spectra["spectrum_A"]
+                omegas = omegas / N
+                # value @N
+                typical_level = (EK / norm)[abs(omegas - 1).argmin()]
 
-            ax.plot(omegas, EK / norm, "r", linewidth=2, label=r"$E_K$")
-            ax.plot(omegas, EA / norm, "b", linewidth=2, label=r"$E_A$")
-            ax.set_title(
-                f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
-                + self.output.summary_simul
-            )
-
+                ax.plot(omegas, EK / norm, "r", linewidth=2, label=r"$E_K$")
+                ax.plot(omegas, EA / norm, "b", linewidth=2, label=r"$E_A$")
+                ax.set_title(
+                    f"kinetic/potential energy spectrum (tmin={tmin:.3f}, tmax={tmax:.3f})\n"
+                    + self.output.summary_simul
+                )
+            else:
+                tmp = spectra["spectrum_" + key] / norm
+                ax.plot(omegas, tmp, "k", label=f"spectrum_{key}", linewidth=2)
+                typical_level = tmp.max()
             if plot_resonant_modes:
                 # resonant modes
                 if self.nb_dim == 3:
@@ -713,7 +723,7 @@ class TemporalSpectra3D(SpecificOutput):
                 ax.plot(
                     omegas_scaling,
                     scaling_y,
-                    "k-",
+                    "k--",
                     label=rf"$\propto \omega^{{{repr_as_frac(slope)}}}$",
                 )
 

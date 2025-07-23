@@ -98,6 +98,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
         cmap=None,
         numfig=None,
         SCALED=True,
+        hide_cbar=False,
     ):
         """Plot a field.
 
@@ -172,10 +173,7 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                 )
 
                 if time is not None:
-                    error_message += (
-                        "\nThe quantity cannot be computed because "
-                        "time is not None."
-                    )
+                    error_message += "\nThe quantity cannot be computed because time is not None."
                 elif key_field in self.sim.state.keys_computable:
                     if self.sim.params.ONLY_COARSE_OPER:
                         error_message += (
@@ -230,7 +228,9 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                     vmax=vmax,
                     cmap=cmap,
                 )
-                fig.colorbar(contours)
+                if not hide_cbar:
+                    fig.colorbar(contours)
+
                 fig.contours = contours
             elif type_plot in ["pcolor", "pcolormesh"]:
                 pc = ax.pcolormesh(
@@ -242,7 +242,8 @@ class PhysFieldsBase3D(PhysFieldsBase2D):
                     vmax=vmax,
                     cmap=cmap,
                 )
-                fig.colorbar(pc)
+                if not hide_cbar:
+                    fig.colorbar(pc)
             elif type_plot is None:
                 pass
             else:
