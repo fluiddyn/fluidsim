@@ -201,6 +201,15 @@ Lx, Ly and Lz: float
 
     Length of the edges of the numerical domain.
 
+truncation_shape: str
+
+    Shape of the truncated region. Can be "cubic" (default), "spherical" or
+    "no_multiple_aliases".
+
+NO_SHEAR_MODES: bool
+
+    Truncate shear modes (default False).
+
 """
         )
 
