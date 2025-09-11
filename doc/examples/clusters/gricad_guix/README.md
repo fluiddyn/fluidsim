@@ -38,6 +38,15 @@ uv tool install -p 3.13 mercurial --with hg-evolve --with hg-git
 uvx hg-setup init -f
 ```
 
+## Current or pinned building versions
+
+From now, there are two ways to build fluidsim on gricad:
+
+- The first on is by following the four next sections (i.e. Sections [Setup Guix](#setup-guix) and [Install Fluidsim from source](#install-fluidsim-from-source), with the latter containing sub-sections [Change the changeset used for the Guix environment](#change-the-changeset-used-for-the-guix-environment) and  [Build-install from source](#build-install-from-source)) in order to pull the current versions of guix with the current channel of gricad-guix-packages. 
+
+- The second one is by following Section [6](#change-the-changeset-used-for-the-guix-environment)
+
+
 ## Setup Guix
 
 The first thing to do, is to create the file `~/.config/guix/channels.scm` with the
@@ -100,7 +109,7 @@ hg log -G
 ```
 
 Get the Guix hash with (note: `guix download` does not support Mercurial). In a new
-terminal (replace `<changeset_ref>` with the chosen Mercurial node):
+terminal (replace `<changeset_ref>` with the chosen fluidsim changeset reference):
 
 ```sh
 source /applis/site/guix-start.sh
@@ -111,8 +120,8 @@ hg purge --all
 guix hash -x -r .
 ```
 
-Change the Mercurial reference and the hash in
-`~/dev/fluidsim/doc/examples/clusters/gricad_guix/python-fluidsim.scm`.
+Change the fluidsim changeset reference and the guix hash in
+`~/dev/fluidsim/doc/examples/clusters/gricad_guix/scm-files/python-fluidsim.scm` respectively at lines `(changeset "<changeset_ref>")))` and `(base32 "<guix_hash_reference>"))))` that both appears twice in the file.
 
 ### Build-install from source
 
@@ -123,16 +132,42 @@ DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix/scm-files
 guix package -f $DIR_MANIFEST/python-fluidsim.scm --manifest=$DIR_MANIFEST/manifest.scm --profile=$HOME/guix-profile-fluidsim
 ```
 
-It can be useful to list the package installed in the profile by:
+## Pull pinned version of guix 
 
-``sh
+In the case of repeated errors while trying to follow the four previous sections (i.e. Sections [Setup Guix](#setup-guix) and [Install Fluidsim from source](#install-fluidsim-from-source), with the latter containing sub-sections [Change the changeset used for the Guix environment](#change-the-changeset-used-for-the-guix-environment) and  [Build-install from source](#build-install-from-source)) or simply in order to use a stable process to build fluidsim environment on dahu, it is possible to build the fluidsim environment from a pinned version of `guix` and `gricad-guix-packages`.
+
+First, if you have not cloned fluidsim on dahu yet, follow the intro of Section [Install Fluidsim from source](#install-fluidsim-from-source) (do not do the sub-sections).
+
+Then, open the file `~/dev/fluidsim/doc/examples/clusters/gricad_guix/scm-files/python-fluidsim.scm`, specify the fluidsim desired changeset reference (use hg lg to choose one and hg up to update fluidsim to that one) at line `(changeset "<changeset_ref>")))` that appears twice in the file. Specify the following pinned guix hash `15sm4mknfagx1l4zgz49c2bfjjng8ykiz7jb45qa83jh03vzqc6a` at line `(base32 "<guix_hash_reference>"))))` that also appears twice in the file. 
+
+Finally, launch the following command:
+
+```sh
+source /applis/site/guix-start.sh
+DIR_MANIFEST=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix/scm-files
+# This will take a while
+guix time-machine -C $DIR_MANIFEST/channels-pinned.scm -- package -m $DIR_MANIFEST/manifest.scm -f $DIR_MANIFEST/python-fluidsim-pinned.scm --profile=$HOME/guix-profile-fluidsim
+```
+
+## List the packages
+
+Once the fluidsim profile is created, it can be useful to list the package installed in the profile by:
+
+```sh
 guix package --list-installed --profile=$HOME/guix-profile-fluidsim
+```
+
+## Source the environment
+
+Now that the profile is created, in order to use the `guix-profile-fluidsim` environment, you need to source it with the following command: 
+
+```sh
+source $HOME/guix-profile-fluidsim/etc/profile
 ```
 
 ## Test Fluidsim in sequential
 
 ```sh
-source $HOME/guix-profile-fluidsim/etc/profile
 python -m pytest --pyargs fluidsim
 ```
 
