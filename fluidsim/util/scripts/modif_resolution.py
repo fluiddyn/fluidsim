@@ -74,6 +74,4 @@ Help message
 
 .. code-block::
 
-""" + indent(
-        parser.format_help(), "    "
-    )
+""" + indent(parser.format_help(), "    ")

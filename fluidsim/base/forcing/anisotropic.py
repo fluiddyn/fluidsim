@@ -75,7 +75,6 @@ kz_negative_enable: bool
             raise NotImplementedError
 
     def _set_params_coarse(self, params_coarse):
-
         self.angle = angle = ensure_radians(self.params.forcing[self.tag].angle)
 
         tmp = self.params.forcing.tcrandom_anisotropic

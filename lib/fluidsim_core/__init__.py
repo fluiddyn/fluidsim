@@ -21,7 +21,6 @@ generic base classes and utilities to build new solvers.
 
 def __getattr__(name):
     if name == "__version__":
-
         from importlib import metadata
 
         return metadata.version(__package__)

@@ -15,9 +15,7 @@ from solveq2d import solveq2d
 
 dir_base = (
     # '/scratch/augier/'
-    "/home/pierre/"
-    "Results_for_article_SW1l/"
-    "Pure_standing_waves_1024x1024"
+    "/home/pierre/Results_for_article_SW1l/Pure_standing_waves_1024x1024"
 )
 
 

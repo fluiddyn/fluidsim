@@ -18,8 +18,7 @@ create_fig = CreateFigArticles(
 )
 
 dir_base = (
-    create_fig.path_base_dir + "/Results_for_article_SW1l"
-    "/Approach_runs_2048x2048"
+    create_fig.path_base_dir + "/Results_for_article_SW1l/Approach_runs_2048x2048"
 )
 set_of_dir_results = solveq2d.SetOfDirResults(dir_base=dir_base)
 dirs = set_of_dir_results.dirs_from_values(solver="SW1lexlin", FORCING=True)

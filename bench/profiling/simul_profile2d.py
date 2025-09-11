@@ -6,6 +6,7 @@ mpirun -np 2 python simul_profile2d.py
 FLUIDSIM_NO_FLUIDFFT=1 python simul_profile2d.py
 
 """
+
 from fluidsim import import_module_solver_from_key
 from util_bench import profile, modif_params_profile2d
 

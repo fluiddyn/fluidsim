@@ -89,9 +89,9 @@ class SpatialMeansPlate2D(SpatialMeansBase):
 
             # assert that z in not forced
             Fz_fft = forcing_fft.get_var("z_fft")
-            assert np.allclose(
-                abs(Fz_fft).max(), 0.0
-            ), f"abs(Fz_fft).max(): {abs(Fz_fft).max()}"
+            assert np.allclose(abs(Fz_fft).max(), 0.0), (
+                f"abs(Fz_fft).max(): {abs(Fz_fft).max()}"
+            )
 
             P1_fft = np.real(w_fft.conj() * Fw_fft)
             P2_fft = (abs(Fw_fft) ** 2) * deltat / 2

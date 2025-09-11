@@ -71,7 +71,7 @@ h5netcdf.File = partial(h5netcdf.File, decode_vlen_strings=True)
 
 def print_memory_usage_seq(message, flush=None):
     mem = get_memory_usage()
-    print(message, f"{mem/1024: 7.3f} Go", flush=flush)
+    print(message, f"{mem / 1024: 7.3f} Go", flush=flush)
 
 
 def available_solver_keys():

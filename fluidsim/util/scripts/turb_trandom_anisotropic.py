@@ -501,7 +501,7 @@ fluidsim-ipy-load {sim.output.path_run}
 
 # in IPython:
 
-sim.output.phys_fields.set_equation_crosssection('x={params.oper.Lx/2}')
+sim.output.phys_fields.set_equation_crosssection('x={params.oper.Lx / 2}')
 sim.output.phys_fields.animate('b')
 """
     )
@@ -522,9 +522,7 @@ Example of help message
 
 .. code-block::
 
-""" + indent(
-        parser.format_help(), "    "
-    )
+""" + indent(parser.format_help(), "    ")
 
 
 if __name__ == "__main__":

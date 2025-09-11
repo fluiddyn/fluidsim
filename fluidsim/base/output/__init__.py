@@ -179,9 +179,7 @@ def create_description_xmf_file(path=None):
           {file_name}:/state_phys/{key}
         </DataItem>
       </Attribute>
-""".format(
-                key=key, dims_data=dims_data, file_name=base_name
-            )
+""".format(key=key, dims_data=dims_data, file_name=base_name)
 
         for vector in vectors:
             txt += """

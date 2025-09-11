@@ -19,6 +19,7 @@ Examples
 .. seealso: https://kth-nek5000.github.io/kthNekBook/_notebooks/burgers.html
 
 """
+
 import click
 import numpy as np
 import matplotlib.pyplot as plt

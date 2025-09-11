@@ -65,8 +65,7 @@ class SpectraPlate2D(Spectra):
             self.ax.loglog(khE, spectrum2D_EE * coef_norm, "y--")
         else:
             print(
-                "you need to implement the ploting "
-                "of the spectra for this case"
+                "you need to implement the ploting of the spectra for this case"
             )
 
     def plot1d(self, tmin=0, tmax=1000, delta_t=2, coef_compensate=3):

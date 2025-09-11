@@ -138,8 +138,7 @@ class SpectraSW1L(Spectra):
             self.ax.set_ylim([lin_inf, lin_sup])
         else:
             print(
-                "you need to implement the ploting "
-                "of the spectra for this case"
+                "you need to implement the ploting of the spectra for this case"
             )
 
     def plot1d(

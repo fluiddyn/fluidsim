@@ -235,7 +235,6 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         return params_coarse
 
     def _set_params_coarse(self, params_coarse):
-
         params_coarse.oper.nx = _fftw_grid_size(
             self.kmax_forcing / self.sim.oper.deltakx
         )

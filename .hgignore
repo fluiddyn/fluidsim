@@ -89,3 +89,5 @@ doc/examples/htmlcov/*
 
 fluidsim/build_conf.txt
 .pdm-python
+
+.ruff_cache

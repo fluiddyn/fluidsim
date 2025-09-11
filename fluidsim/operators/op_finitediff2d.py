@@ -56,7 +56,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
             elif iv == 1:
                 i1_mat = i0 * nx + (i1 - 1) % nx
             else:
-                raise ValueError("Shouldn" "t be here...")
+                raise ValueError("Should not be here...")
 
             return i1_mat
 
@@ -73,7 +73,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
             elif iv == 2:
                 i1_mat = i0 * nx + (i1 - 1) % nx
             else:
-                raise ValueError("Shouldn" "t be here...")
+                raise ValueError("Should not be here...")
 
             return i1_mat
 
@@ -88,7 +88,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
             elif iv == 1:
                 i1_mat = ((i0 - 1) * nx) % size + i1
             else:
-                raise ValueError("Shouldn" "t be here...")
+                raise ValueError("Should not be here...")
 
             return i1_mat
 
@@ -105,7 +105,7 @@ class OperatorFiniteDiff2DPeriodic(OperatorFiniteDiff1DPeriodic):
             elif iv == 2:
                 i1_mat = ((i0 - 1) * nx) % size + i1
             else:
-                raise ValueError("Shouldn" "t be here...")
+                raise ValueError("Should not be here...")
 
             return i1_mat
 

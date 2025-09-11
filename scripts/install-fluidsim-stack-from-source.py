@@ -85,7 +85,6 @@ names_wheel = {"pyfftw": "pyFFTW"}
 def run_pip(
     *args, env=None, capture_output=capture_output_default, check=True, echo=True
 ):
-
     command = [sys.executable, "-m", "pip", *args]
     if echo:
         print(" ".join(command[2:]))

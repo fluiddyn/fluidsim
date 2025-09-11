@@ -103,5 +103,5 @@ for path in path_simulations:
 
 if MAKE_TABLE:
     with open(path_table, "w") as f:
-        to_print += "\\end{tabular} \n" "\\end{table}"
+        to_print += "\\end{tabular} \n\\end{table}"
         f.write(to_print)

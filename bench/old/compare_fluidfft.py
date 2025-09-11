@@ -4,6 +4,7 @@ python compare_fluidfft.py
 mpirun -np 8 python compare_fluidfft.py
 
 """
+
 from time import time
 
 import pstats
