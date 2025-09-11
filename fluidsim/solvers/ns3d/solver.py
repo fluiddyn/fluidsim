@@ -178,7 +178,6 @@ projection: str (default None)
             omegaz_fft[0, 0, 0] += self.params.f
 
     def tendencies_nonlin(self, state_spect=None, old=None, phaseshift=None):
-
         if state_spect is None:
             spect_get_var = self.state.state_spect.get_var
         else:

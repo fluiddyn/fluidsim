@@ -261,6 +261,7 @@ class TestNoShearModes(TestSimulBase):
         params.time_stepping.it_end = 4
         params.time_stepping.USE_CFL = False
         params.time_stepping.deltat0 = deltat = 0.08
+        params.time_stepping.type_time_scheme = "RK2_phaseshift_random_split"
 
         params.output.periods_save.spatial_means = deltat
         params.output.periods_save.spectra = deltat
