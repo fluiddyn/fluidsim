@@ -50,16 +50,29 @@ class Simul(SimulBasePseudoSpectral):
     @staticmethod
     def _complete_params_with_default(params):
         SimulBasePseudoSpectral._complete_params_with_default(params)
-        params._set_attrib("sigma", 1.0)
+        params._set_attribs({"sigma": 1.0, "random": 0.0})
 
-    def tendencies_nonlin(self, state_spect=None, old=None):
+    def tendencies_nonlin(self, state_spect=None, old=None, phaseshift=None):
         if state_spect is None:
             signal = self.state.state_phys.get_var("s")
         else:
             s_fft = state_spect.get_var("s_fft")
             signal = self.oper.ifft(s_fft)
 
-        f_signal = -np.sign(signal) * self.params.sigma * signal**2
+        if phaseshift is None or phaseshift:
+            f_signal_phaseshift = -np.sign(signal) * self.params.sigma * signal**2
+
+        if phaseshift is None or not phaseshift:
+            f_signal_nophaseshift = self.params.random * np.random.random(
+                size=signal.size
+            )
+
+        if phaseshift is None:
+            f_signal = f_signal_phaseshift + f_signal_nophaseshift
+        elif phaseshift:
+            f_signal = f_signal_phaseshift
+        else:
+            f_signal = f_signal_nophaseshift
 
         if old is None:
             tendencies_fft = SetOfVariables(

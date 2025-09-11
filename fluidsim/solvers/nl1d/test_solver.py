@@ -156,6 +156,9 @@ class TestTimeStepping(TestSimul):
     def test_RK2_phaseshift_random(self):
         self._test_type_time_scheme("RK2_phaseshift_random", 1)
 
+    def test_RK2_phaseshift_random_split(self):
+        self._test_type_time_scheme("RK2_phaseshift_random_split", 1)
+
     def test_RK2_phaseshift_exact(self):
         self._test_type_time_scheme("RK2_phaseshift_exact", 1)
 
