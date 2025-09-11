@@ -2,7 +2,7 @@ project(
   'fluidsim',
   'cpp',
   license: 'CeCILL',
-  meson_version: '>= 1.1.0',
+  meson_version: '>= 1.3.0',
   default_options: [
     'buildtype=release',
     'c_std=c99',
@@ -64,5 +64,7 @@ if use_pythran
   endif
 
 endif
+
+py_limited_api = '3.12'
 
 subdir('fluidsim')

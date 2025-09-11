@@ -53,7 +53,7 @@ def modif_params_profile3d(params, nh=256, nz=32):
     params.oper.nz = nz
 
     # params.oper.type_fft = 'fft3d.with_fftw3d'
-    params.oper.type_fft = "fft3d.with_cufft"
+    # params.oper.type_fft = "fft3d.with_cufft"
 
     # params.forcing.enable = False
     # params.forcing.type = 'tcrandom'

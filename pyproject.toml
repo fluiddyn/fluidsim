@@ -2,9 +2,10 @@
 requires = [
          "meson-python",
          "numpy",
-         # "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
-         "transonic>=0.6.2",
-         "pythran>=0.9.7",
+         # "transonic>=0.6.2",
+         "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
+         # "pythran>=0.9.7",
+         "pythran@git+https://github.com/serge-sans-paille/pythran.git"
          ]
 build-backend = 'mesonpy'
 
@@ -261,3 +262,6 @@ showcontent = true
 line-length = 82
 target-version = ["py39"]
 extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_checkpoints/*)/"
+
+[tool.meson-python]
+limited-api = true
