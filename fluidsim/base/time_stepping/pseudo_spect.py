@@ -202,7 +202,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if type_time_scheme.startswith("RK"):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
 
-        if type_time_scheme.endswith("_random"):
+        if "_random" in type_time_scheme:
             self._init_phaseshift_random()
             if not hasattr(self.sim.oper, "get_phases_random"):
                 raise NotImplementedError

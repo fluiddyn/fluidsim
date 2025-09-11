@@ -502,6 +502,7 @@ class TestForcingTimeCorrelatedRandomPseudoSpectralAnisotropic3D(TestSimulBase):
         params = super().init_params()
         params.nu_2 = 0.001
         params.projection = "poloidal"
+        params.time_stepping.type_time_scheme = "RK2_phaseshift_random_split"
         params.init_fields.type = "noise"
         params.init_fields.noise.velo_max = 0.001
         params.forcing.enable = True

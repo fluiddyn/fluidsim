@@ -177,11 +177,7 @@ projection: str (default None)
         if rank == 0:
             omegaz_fft[0, 0, 0] += self.params.f
 
-    def tendencies_nonlin(self, state_spect=None, old=None):
-        oper = self.oper
-        ifft_as_arg = oper.ifft_as_arg
-        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
-        fft_as_arg = oper.fft_as_arg
+    def tendencies_nonlin(self, state_spect=None, old=None, phaseshift=None):
 
         if state_spect is None:
             spect_get_var = self.state.state_spect.get_var
@@ -191,6 +187,37 @@ projection: str (default None)
         vx_fft = spect_get_var("vx_fft")
         vy_fft = spect_get_var("vy_fft")
         vz_fft = spect_get_var("vz_fft")
+
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
+        else:
+            tendencies_fft = old
+
+        if phaseshift is None or phaseshift:
+            self._set_tendencies_nonlin_phaseshift(
+                state_spect, vx_fft, vy_fft, vz_fft, tendencies_fft
+            )
+
+        if phaseshift is None or not phaseshift:
+            if phaseshift is not None:
+                tendencies_fft.fill(0)
+            self._add_tendencies_nonlin_nophaseshift(
+                vx_fft, vy_fft, vz_fft, tendencies_fft
+            )
+
+        self.project_state_spect(tendencies_fft)
+        self.oper.dealiasing(tendencies_fft)
+        return tendencies_fft
+
+    def _set_tendencies_nonlin_phaseshift(
+        self, state_spect, vx_fft, vy_fft, vz_fft, tendencies_fft
+    ):
+        oper = self.oper
+        ifft_as_arg = oper.ifft_as_arg
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
+        fft_as_arg = oper.fft_as_arg
 
         omegax_fft = self.state.fields_spect_tmp[0]
         omegay_fft = self.state.fields_spect_tmp[1]
@@ -225,13 +252,6 @@ projection: str (default None)
 
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
-        if old is None:
-            tendencies_fft = SetOfVariables(
-                like=self.state.state_spect, info="tendencies_nonlin"
-            )
-        else:
-            tendencies_fft = old
-
         fx_fft = tendencies_fft.get_var("vx_fft")
         fy_fft = tendencies_fft.get_var("vy_fft")
         fz_fft = tendencies_fft.get_var("vz_fft")
@@ -240,6 +260,9 @@ projection: str (default None)
         fft_as_arg(fy, fy_fft)
         fft_as_arg(fz, fz_fft)
 
+    def _add_tendencies_nonlin_nophaseshift(
+        self, vx_fft, vy_fft, vz_fft, tendencies_fft
+    ):
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
@@ -247,10 +270,6 @@ projection: str (default None)
             tendencies_fft += self.turb_model.get_forcing(
                 vx_fft=vx_fft, vy_fft=vy_fft, vz_fft=vz_fft
             )
-
-        self.project_state_spect(tendencies_fft)
-        self.oper.dealiasing(tendencies_fft)
-        return tendencies_fft
 
     def project_state_spect(self, state_spect):
         vx_fft = state_spect.get_var("vx_fft")
