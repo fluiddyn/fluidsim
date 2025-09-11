@@ -49,7 +49,7 @@ From now, there are two ways to build fluidsim on gricad:
 
 ## Setup Guix
 
-The first thing to do, is to create the file `~/.config/guix/channels.scm` with the
+The first thing to do, is to copy the file `~/dev/fluidsim/doc/examples/clusters/gricad_guix/scm-files/channels.scm` into `~/.config/guix/` or simply create it in `~/.config/guix/` with the
 following content:
 
 ```lisp
