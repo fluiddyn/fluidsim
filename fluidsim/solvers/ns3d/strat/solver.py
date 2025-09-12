@@ -135,12 +135,7 @@ class Simul(SimulNS3D):
     def _modify_sim_repr_maker(cls, sim_repr_maker):
         sim_repr_maker.add_parameters({"N": sim_repr_maker.sim.params.N})
 
-    def tendencies_nonlin(self, state_spect=None, old=None):
-        oper = self.oper
-        ifft_as_arg = oper.ifft_as_arg
-        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
-        fft_as_arg = oper.fft_as_arg
-
+    def tendencies_nonlin(self, state_spect=None, old=None, phaseshift=None):
         if state_spect is None:
             spect_get_var = self.state.state_spect.get_var
         else:
@@ -150,6 +145,35 @@ class Simul(SimulNS3D):
         vy_fft = spect_get_var("vy_fft")
         vz_fft = spect_get_var("vz_fft")
         b_fft = spect_get_var("b_fft")
+
+        if old is None:
+            tendencies_fft = SetOfVariables(
+                like=self.state.state_spect, info="tendencies_nonlin"
+            )
+        else:
+            tendencies_fft = old
+
+        if phaseshift is None or phaseshift:
+            self._set_tendencies_nonlin_phaseshift(
+                state_spect, vx_fft, vy_fft, vz_fft, b_fft, tendencies_fft
+            )
+
+        if phaseshift is None or not phaseshift:
+            if phaseshift is not None:
+                tendencies_fft.fill(0)
+            self._add_tendencies_nonlin_nophaseshift(tendencies_fft)
+
+        self.project_state_spect(tendencies_fft)
+        self.oper.dealiasing(tendencies_fft)
+        return tendencies_fft
+
+    def _set_tendencies_nonlin_phaseshift(
+        self, state_spect, vx_fft, vy_fft, vz_fft, b_fft, tendencies_fft
+    ):
+        oper = self.oper
+        ifft_as_arg = oper.ifft_as_arg
+        ifft_as_arg_destroy = oper.ifft_as_arg_destroy
+        fft_as_arg = oper.fft_as_arg
 
         omegax_fft, omegay_fft, omegaz_fft = oper.rotfft_from_vecfft(
             vx_fft, vy_fft, vz_fft
@@ -180,13 +204,6 @@ class Simul(SimulNS3D):
 
         fx, fy, fz = vector_product(vx, vy, vz, omegax, omegay, omegaz)
 
-        if old is None:
-            tendencies_fft = SetOfVariables(
-                like=self.state.state_spect, info="tendencies_nonlin"
-            )
-        else:
-            tendencies_fft = old
-
         fx_fft = tendencies_fft.get_var("vx_fft")
         fy_fft = tendencies_fft.get_var("vy_fft")
         fz_fft = tendencies_fft.get_var("vz_fft")
@@ -208,12 +225,9 @@ class Simul(SimulNS3D):
 
         tendencies_fft.set_var("b_fft", fb_fft)
 
+    def _add_tendencies_nonlin_nophaseshift(self, tendencies_fft):
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
-
-        self.project_state_spect(tendencies_fft)
-        self.oper.dealiasing(tendencies_fft)
-        return tendencies_fft
 
     def compute_dispersion_relation(self):
         """

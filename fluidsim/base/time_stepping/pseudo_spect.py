@@ -22,6 +22,8 @@ Provides:
 
 """
 
+import inspect
+
 from random import randint
 
 import numpy as np
@@ -73,6 +75,12 @@ def mean_with_phaseshift(
     tendencies_0: A, tendencies_1_shift: A, phaseshift: Am1, output: A
 ):
     output[:] = 0.5 * (tendencies_0 + tendencies_1_shift / phaseshift)
+    return output
+
+
+@boost
+def mean_elementwise(tendencies_0: A, tendencies_1: A, output: A):
+    output[:] = 0.5 * (tendencies_0 + tendencies_1)
     return output
 
 
@@ -194,7 +202,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         if type_time_scheme.startswith("RK"):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
 
-        if type_time_scheme.endswith("_random"):
+        if "_random" in type_time_scheme:
             self._init_phaseshift_random()
             if not hasattr(self.sim.oper, "get_phases_random"):
                 raise NotImplementedError
@@ -213,6 +221,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             time_step_RK = self._time_step_RK2_phaseshift
         elif type_time_scheme == "RK2_phaseshift_random":
             time_step_RK = self._time_step_RK2_phaseshift_random
+        elif type_time_scheme == "RK2_phaseshift_random_split":
+            time_step_RK = self._time_step_RK2_phaseshift_random_split
+            sig = inspect.signature(self.sim.tendencies_nonlin)
+            if not "phaseshift" in sig.parameters:
+                raise ValueError(
+                    "RK2_phaseshift_random_shift used "
+                    "but tendencies_nonlin has no phaseshift argument."
+                )
         elif type_time_scheme == "RK2_phaseshift_exact":
             time_step_RK = self._time_step_RK2_phaseshift_exact
         elif type_time_scheme == "RK4":
@@ -707,6 +723,97 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             phaseshift_beta,
             output=self._state_spect_tmp,
         )
+        step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
+
+    def _time_step_RK2_phaseshift_random_split(self):
+        r"""Runge-Kutta 2 method with phase-shifting (random).
+
+        Notes
+        -----
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S) + O(S),
+
+        Heun's method computes an approximation of the
+        solution after a time increment :math:`\dt`. We denote the
+        initial time :math:`t = 0`.
+
+        - Approximation 1:
+
+          .. math:: \p_t \log S = \sigma + \frac{\tilde N_{0\alpha} + O_0}{S_0},
+
+          Integrating from :math:`t` to :math:`t+\dt`, it gives:
+
+          .. math:: S_1 = (S_0 + (\tilde N_{0\alpha} + O_0) \dt) e^{\sigma \dt}.
+
+        - Approximation 2:
+
+          .. math::
+             \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
+
+          where the dealiased non-linear term is :math:`N_d =
+          (\tilde N_{0\alpha} + \tilde N_{1\beta} + O_0 + O_1)/2`.
+
+          Integrating from :math:`t` to :math:`t+\dt` and retaining
+          only the terms in :math:`(N\dt/S)^1` gives:
+
+          .. math::
+             S_2 = S_0 e^{\sigma \dt} + \dt N_d e^{\sigma \frac{\dt}{2}}.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        phaseshift_alpha, phaseshift_beta = self._get_phaseshift_random()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        tmp_a = self._state_spect_tmp
+        tmp_b = np.empty_like(state_spect)
+        tmp_c = np.empty_like(state_spect)
+
+        state_spect_shift = mul(phaseshift_alpha, state_spect, output=tmp_a)
+        tendencies_0_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift, phaseshift=True
+        )
+        tendencies_nophaseshift_0 = compute_tendencies(
+            state_spect, old=tmp_b, phaseshift=False
+        )
+
+        tendencies_full_0 = div_inplace(tendencies_0_shift, phaseshift_alpha)
+        tendencies_full_0 += tendencies_nophaseshift_0
+        # tmp_a used for tendencies_full_0
+        # tmp_b available
+
+        state_spect_1 = step_Euler(
+            state_spect, dt, tendencies_full_0, diss, output=tmp_b
+        )
+        # tmp_b used for state_spect_1
+
+        state_spect_1_shift = mul(phaseshift_beta, state_spect_1, output=tmp_c)
+
+        tendencies_1_shift = compute_tendencies(
+            state_spect_1_shift, old=state_spect_1_shift, phaseshift=True
+        )
+        # tmp_c used for tendencies_1_shift
+
+        tendencies_nophaseshift_1 = compute_tendencies(
+            state_spect_1, old=state_spect_1, phaseshift=False
+        )
+        # tmp_b used for tendencies_nophaseshift_1
+
+        tendencies_full_1 = div_inplace(tendencies_1_shift, phaseshift_beta)
+        tendencies_full_1 += tendencies_nophaseshift_1
+        # tmp_c used for tendencies_full_1
+        # tmp_b available
+
+        tendencies_d = mean_elementwise(
+            tendencies_full_0, tendencies_full_1, output=tmp_b
+        )
+        # tmp_b used for tendencies_d
+
         step_like_RK2(state_spect, dt, tendencies_d, diss, diss2)
 
     def _time_step_RK2_phaseshift_exact(self):
