@@ -156,7 +156,7 @@ doc = [
 ]
 dev = [
     "pip",
-    "black",
+    "ruff",
     "pylint",
     "flit_core >=3.2,<4",
     "ipdb",
@@ -164,10 +164,10 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-black = 'black fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
+format-py = 'ruff format *.py fluidsim scripts bench doc lib'
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) fluidsim --exit-zero"}
-black_check = 'black --check fluidsim scripts bench doc lib --exclude "/(__pythran__|__python__|__numba__|doc/_build|\.ipynb_checkpoints/*)/"'
-validate_code = {composite = ["black_check", "lint"]}
+check-format = 'ruff format --check fluidsim scripts bench doc lib'
+validate_code = {composite = ["check-format", "lint"]}
 
 [tool.pdm.options]
 lock = ["-G", ":all"]
@@ -257,7 +257,7 @@ directory = "security"
 name = "Security"
 showcontent = true
 
-[tool.black]
+[tool.ruff]
 line-length = 82
-target-version = ["py39"]
-extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_checkpoints/*)/"
+target-version = "py39"
+exclude = [".venv", "build", ".*", "**/__py*__", "**/__numba__", "doc/_build", "**/.ipynb_checkpoints"]

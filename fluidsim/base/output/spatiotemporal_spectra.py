@@ -1069,7 +1069,7 @@ class SpatioTemporalSpectraNS:
             # use reduced frequency for stratified fluids
             try:
                 N = self.sim.params.N
-                equation = r"$\omega/N=$" + f"{omega/N:.2g}"
+                equation = r"$\omega/N=$" + f"{omega / N:.2g}"
             except AttributeError:
                 pass
         elif equation.startswith("ikh="):

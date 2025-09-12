@@ -148,7 +148,7 @@ class StateBase:
 
     def __call__(self, key):
         raise DeprecationWarning(
-            "Do not call a state object. " "Instead, use get_var method."
+            "Do not call a state object. Instead, use get_var method."
         )
 
     def __setitem__(self, key, value):
@@ -169,8 +169,7 @@ class StateBase:
 
         """
         raise DeprecationWarning(
-            "Do not call can_this_key_be_obtained. "
-            "Instead, use has_vars method."
+            "Do not call can_this_key_be_obtained. Instead, use has_vars method."
         )
 
     def init_statephys_from(self, **kwargs):

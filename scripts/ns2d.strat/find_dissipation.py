@@ -432,11 +432,7 @@ if __name__ == "__main__":
     # Write results into temporal file
     if mpi.rank == 0:
         to_print = (
-            "####\n"
-            "t = {:.4e} \n"
-            "E = {:.4e} \n"
-            "nu2 = {:.4e} \n"
-            "factor = {:.4e} \n"
+            "####\nt = {:.4e} \nE = {:.4e} \nnu2 = {:.4e} \nfactor = {:.4e} \n"
         ).format(time_total, energy, pnu, 1)
 
         write_to_file(path_file_write2, to_print, mode="w")
@@ -562,11 +558,7 @@ if __name__ == "__main__":
 
             # Write results into temporal file
             to_print = (
-                "####\n"
-                "t = {:.4e} \n"
-                "E = {:.4e} \n"
-                "nu = {:.4e} \n"
-                "factor = {:.4e} \n"
+                "####\nt = {:.4e} \nE = {:.4e} \nnu = {:.4e} \nfactor = {:.4e} \n"
             ).format(time_total, energy, sim.params.nu_2, factor)
 
             write_to_file(path_file_write2, to_print, mode="a")

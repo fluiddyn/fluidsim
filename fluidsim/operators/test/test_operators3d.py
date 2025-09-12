@@ -102,9 +102,9 @@ def test_projection(oper, allclose):
     vz_fft_pt = vz_fft_t.copy()
     oper.project_poloidal(vx_fft_pt, vy_fft_pt, vz_fft_pt)
     E_pt = compute_energy_from_3fields(vx_fft_pt, vy_fft_pt, vz_fft_pt)
-    assert (
-        np.max(E_pt / E_v) < 1e-14
-    ), "Too much energy is in the poloidal projection of the toroidal field."
+    assert np.max(E_pt / E_v) < 1e-14, (
+        "Too much energy is in the poloidal projection of the toroidal field."
+    )
 
     # Projection along the k-radial direction and then the poloidal direction
     vx_fft_pk = vx_fft_k.copy()
@@ -112,9 +112,9 @@ def test_projection(oper, allclose):
     vz_fft_pk = vz_fft_k.copy()
     oper.project_poloidal(vx_fft_pk, vy_fft_pk, vz_fft_pk)
     E_pk = compute_energy_from_3fields(vx_fft_pk, vy_fft_pk, vz_fft_pk)
-    assert (
-        np.max(E_pk / E_v) < 1e-14
-    ), "Too much energy is in the poloidal projection of the k-radial field."
+    assert np.max(E_pk / E_v) < 1e-14, (
+        "Too much energy is in the poloidal projection of the k-radial field."
+    )
 
     # Projection along the k-radial direction and then the toroidal direction
     vx_fft_tk = vx_fft_k.copy()
@@ -122,9 +122,9 @@ def test_projection(oper, allclose):
     vz_fft_tk = vz_fft_k.copy()
     oper.project_toroidal(vx_fft_tk, vy_fft_tk, vz_fft_tk)
     E_tk = compute_energy_from_3fields(vx_fft_tk, vy_fft_tk, vz_fft_tk)
-    assert np.max(
-        E_tk / E_v < 1e-14
-    ), "Too much energy is in the toroidal projection of the k-radial field."
+    assert np.max(E_tk / E_v < 1e-14), (
+        "Too much energy is in the toroidal projection of the k-radial field."
+    )
 
     # Test of vpfft_from_vecfft
     # Compute projection along the poloidal direction
@@ -132,9 +132,9 @@ def test_projection(oper, allclose):
     E_p_s = compute_energy_from_1field(vp_fft)
     E_p = compute_energy_from_3fields(vx_fft_p, vy_fft_p, vz_fft_p)
     dE_p = E_p_s - E_p
-    assert np.max(
-        dE_p / E_v < 1e-14
-    ), "Too much energy difference in the poloidal projections done with vpfft_from_vecfft and project_poloidal."
+    assert np.max(dE_p / E_v < 1e-14), (
+        "Too much energy difference in the poloidal projections done with vpfft_from_vecfft and project_poloidal."
+    )
 
     # Test of vtfft_from_vecfft
     # Compute projection along the toroidal direction
@@ -143,9 +143,9 @@ def test_projection(oper, allclose):
     E_t = compute_energy_from_3fields(vx_fft_t, vy_fft_t, vz_fft_t)
     assert np.sum(E_t) > 0.05 * np.sum(E_v)
     dE_t = E_t_s - E_t
-    assert np.max(
-        dE_t / E_v < 1e-14
-    ), "Too much energy difference in the toroidal projections done with vtfft_from_vecfft and project_toroidal."
+    assert np.max(dE_t / E_v < 1e-14), (
+        "Too much energy difference in the toroidal projections done with vtfft_from_vecfft and project_toroidal."
+    )
 
     # Test of vecfft_from_vpfft
     # Recompute the velocity field corresponding to the poloidal projection vp_fft
@@ -154,18 +154,18 @@ def test_projection(oper, allclose):
     assert np.sum(E_p) > 0.05 * np.sum(E_v)
 
     dE_p = E_p_s - E_p
-    assert np.max(
-        dE_p / E_v < 1e-14
-    ), "Too much energy difference in the poloidal velocity fields computed with project_poloidal and vecfft_from_vpfft."
+    assert np.max(dE_p / E_v < 1e-14), (
+        "Too much energy difference in the poloidal velocity fields computed with project_poloidal and vecfft_from_vpfft."
+    )
 
     # Test of vecfft_from_vtfft
     # Recompute the velocity field corresponding to the toroidal projection vt_fft
     vx_fft_t, vy_fft_t, vz_fft_t = oper.vecfft_from_vtfft(vt_fft)
     E_t = compute_energy_from_3fields(vx_fft_t, vy_fft_t, vz_fft_t)
     dE_t = E_t_s - E_t
-    assert np.max(
-        dE_t / E_v < 1e-14
-    ), "Too much energy difference in the toroidal velocity fields computed with project_toroidal and vecfft_from_vtfft."
+    assert np.max(dE_t / E_v < 1e-14), (
+        "Too much energy difference in the toroidal velocity fields computed with project_toroidal and vecfft_from_vtfft."
+    )
 
     def allclose_c(a, b):
         allclose(a.real, b.real)

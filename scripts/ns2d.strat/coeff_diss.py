@@ -362,11 +362,7 @@ viscosities.append(sim.params.nu_8)
 # Write results into temporal file
 if mpi.rank == 0:
     to_print = (
-        "####\n"
-        "t = {:.4e} \n"
-        "E = {:.4e} \n"
-        "nu8 = {:.4e} \n"
-        "factor = {:.4e} \n"
+        "####\nt = {:.4e} \nE = {:.4e} \nnu8 = {:.4e} \nfactor = {:.4e} \n"
     ).format(time_total, energy, sim.params.nu_8, 1)
 
     write_to_file(path_file_write2, to_print, mode="w")
@@ -491,11 +487,7 @@ while True:
 
         # Write results into temporal file
         to_print = (
-            "####\n"
-            "t = {:.4e} \n"
-            "E = {:.4e} \n"
-            "nu8 = {:.4e} \n"
-            "factor = {:.4e} \n"
+            "####\nt = {:.4e} \nE = {:.4e} \nnu8 = {:.4e} \nfactor = {:.4e} \n"
         ).format(time_total, energy, sim.params.nu_8, factor)
 
         write_to_file(path_file_write2, to_print, mode="a")

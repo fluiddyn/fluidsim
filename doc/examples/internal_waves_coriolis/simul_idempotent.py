@@ -189,7 +189,7 @@ cd {sim.output.path_run}; fluidsim-ipy-load
 
 # in ipython:
 
-sim.output.phys_fields.set_equation_crosssection('x={sim.params.oper.Lx/2}')
+sim.output.phys_fields.set_equation_crosssection('x={sim.params.oper.Lx / 2}')
 sim.output.phys_fields.animate('b')
 
 """

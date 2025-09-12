@@ -4,6 +4,7 @@ python simul_bench.py
 mpirun -np 2 python simul_bench.py
 
 """
+
 from fluidsim import import_module_solver_from_key
 from util_bench import modif_params_profile2d, modif_params_profile3d, bench
 

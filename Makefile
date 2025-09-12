@@ -41,13 +41,12 @@ cleanall: clean clean_so cleantransonic
 shortlog:
 	@hg log -M -r$(RELEASE): --template '- {desc|firstline} (:rev:`{node|short}`)\n'
 
-format: black
+format:
+	@# much faster than `pdm run`
+	.venv/bin/ruff format *.py fluidsim scripts bench doc lib
 
-black:
-	pdm black
-
-black_check:
-	pdm black_check
+check-format:
+	pdm check-format
 
 lint:
 	pdm lint
