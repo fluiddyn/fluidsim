@@ -1,6 +1,7 @@
 (specifications->manifest
   (list "python-fluidfft"
     "coreutils"
+    "guix"
     "python-wrapper@3.11.11"
     "openmpi@4.1.6"
     "python-mpi4py@3.1.4"
@@ -14,7 +15,6 @@
     "python-pytest"
     "python-pytest-allclose"
     "python-pytest-mock"
-    "python-fluidsim"
     ; build dependencies for editable build
     "meson-python"
     "python-pythran"

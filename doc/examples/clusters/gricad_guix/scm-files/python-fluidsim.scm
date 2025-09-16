@@ -11,7 +11,6 @@
   #:use-module (gnu packages mpi)
   #:use-module (gnu packages rust)
   #:use-module (gnu packages rust-apps)
-  #:use-module (gnu packages crates-io)
   #:use-module (gnu packages statistics)
   #:use-module (gnu packages bioinformatics)
   #:use-module (gnu packages build-tools)
@@ -36,9 +35,9 @@
         (uri
           (hg-reference
             (url "https://foss.heptapod.net/fluiddyn/fluidsim")
-            (changeset "62c4dbe4f786")))
+            (changeset "6f5e30d44497")))
         (sha256
-          (base32 "15sm4mknfagx1l4zgz49c2bfjjng8ykiz7jb45qa83jh03vzqc6a"))))
+          (base32 "1xgnwamyv9pzchwmrmvxaky813zxzicgwh6bh1r281wc5qlbz0gr"))))
     (build-system pyproject-build-system)
     (propagated-inputs (list python-fluiddyn
                              python-importlib-metadata
@@ -69,9 +68,9 @@
         (uri
           (hg-reference
             (url "https://foss.heptapod.net/fluiddyn/fluidsim")
-            (changeset "62c4dbe4f786")))
+            (changeset "6f5e30d44497")))
         (sha256
-          (base32 "15sm4mknfagx1l4zgz49c2bfjjng8ykiz7jb45qa83jh03vzqc6a"))))
+          (base32 "1xgnwamyv9pzchwmrmvxaky813zxzicgwh6bh1r281wc5qlbz0gr"))))
     (build-system pyproject-build-system)
     (propagated-inputs (list python-fluidfft
                              python-fluidsim-core
