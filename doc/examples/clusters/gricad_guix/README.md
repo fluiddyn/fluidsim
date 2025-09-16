@@ -9,10 +9,9 @@ recommended package managers for this platform.
 
 ## Get a login and setup ssh
 
-Get an account on <https://perseus.univ-grenoble-alpes.fr/>.
-
-Set an ssh key by following <https://gricad-doc.univ-grenoble-alpes.fr/hpc/connexion/>
-and the alias
+Get an account on <https://perseus.univ-grenoble-alpes.fr/> and setup everything to
+connect on Dahu by following <https://gricad-doc.univ-grenoble-alpes.fr/hpc/connexion/>.
+It is also very convenient to create an alias by adding in your `~/.bashrc`:
 
 ```sh
 alias sshdahu='ssh -X dahu.ciment'
@@ -39,60 +38,66 @@ uv tool install -p 3.13 mercurial --with hg-evolve --with hg-git
 uvx hg-setup init -f
 ```
 
-## Clone Fluidsim
+## Clone the Fluidsim repository
 
-Clone the Fluidsim repository in `$HOME/dev`:
+Clone the Fluidsim repository in `~/dev`:
 
 ```sh
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim ~/dev/fluidsim
 ```
 
-Update to
+Later on, one can update with
 
 ```sh
 cd ~/dev/fluidsim
+hg pull
 hg up default
 ```
 
-## Prepare the guix environment
+## Prepare the Guix environment
 
-In order to build fluidsim on dahu, one needs to use `guix` and [gricad-guix-package].
-First, define the main directories used:
+We want to create a Guix environment for Fluidsim simulations. We need to use
+[gricad-guix-packages], an alternative Guix channel maintained by Gricad people.
+Therefore, our environment depends on
+
+- the exact Guix version,
+- the exact [gricad-guix-packages] version,
+- the exact Fluidsim version.
+
+We first define variables containing paths towards directories containing files defining
+our Guix environment:
 
 ```sh
 DIR_GRICAD_GUIX=$HOME/dev/fluidsim/doc/examples/clusters/gricad_guix
 DIR_SCM_FILES=$DIR_GRICAD_GUIX/scm-files
 ```
 
-You can access to the latter `cd $DIR_SCM_FILES` and check all the files needed to
-prepare properly this environment:
+The files needed to prepare the possible environments are:
 
-- `$DIR_SCM_FILES/channels.scm`: gives the definition of the default channel used by
-  `gricad-guix-packages` in the branch master for pulling the current version of `guix`.
+- `$DIR_SCM_FILES/channels.scm`: file to be used as `~/.config/guix/channels.scm` so that
+  Guix uses the master branch of [gricad-guix-packages].
 
-- `$DIR_SCM_FILES/channels-pinned.scm`: gives a pinned (fixed in time) version of
-  `gricad-guix-packages` and `guix`.
+- `$DIR_SCM_FILES/channels-pinned.scm`: specifies alternative channels with pinned (fixed
+  in time) versions of [gricad-guix-packages] and Guix.
 
-- `$DIR_SCM_FILES/manifest.scm`: gives the packages list needed to build Fluidsim with
-  `guix`.
+- `$DIR_SCM_FILES/manifest.scm`: contains the list of packages in the environment.
 
-- `$DIR_SCM_FILES/python-fluidsim.scm`: gives the exact version of Fluidsim to be build
-  by `guix`.
+- `$DIR_SCM_FILES/python-fluidsim.scm`: redefinition of the Fluidsim Guix package with an
+  unreleased version of Fluidsim.
 
-There are then two ways of building Fluidsim: pull a pinned or the current version of
-`guix` and `gricad-guix-packages`.
+One can use these different files as needed in different combinaisons. We present here
+two possibilities.
 
-### Pull pinned version of guix
+### Pull pinned version of Guix and gricad-guix-packages
 
-In order to use a stable process to build fluidsim environment on dahu, it is possible to
-build the fluidsim environment from a pinned version of `guix` and `gricad-guix-packages`
-by launching the following command:
+In order to use a stable process to build Fluidsim environment on Dahu, it is possible to
+build the environment from a pinned version of Guix and [gricad-guix-packages]:
 
 ```sh
 source /applis/site/guix-start.sh
 # This will take a while
-guix time-machine -C $DIR_SCM_FILES/channels-pinned.scm -- \
-  package -m $DIR_SCM_FILES/manifest.scm -f $DIR_SCM_FILES/python-fluidsim.scm \
+guix time-machine -C $DIR_SCM_FILES/channels-pinned.scm -- package \
+  -m $DIR_SCM_FILES/manifest.scm -f $DIR_SCM_FILES/python-fluidsim.scm \
   --profile=$HOME/guix-profile-fluidsim
 ```
 
@@ -111,8 +116,8 @@ source /applis/site/guix-start.sh
 guix pull  # This can take a very long time
 ```
 
-You only need to update the Guix environment (and thus run `guix pull`) when a package
-you want to use has been created or updated.
+You only need to update Guix (and thus run `guix pull`) when a package you want to use
+has been created or updated.
 
 After `guix pull`, you have to run the following command to be sure you use the latest
 `guix` command:
@@ -127,18 +132,24 @@ GUIX_PROFILE="$HOME/.config/guix/current"
 ```sh
 source /applis/site/guix-start.sh
 # This will take a while
-guix package -f $DIR_SCM_FILES/python-fluidsim.scm --manifest=$DIR_SCM_FILES/manifest.scm --profile=$HOME/guix-profile-fluidsim
+guix package -f $DIR_SCM_FILES/python-fluidsim.scm --manifest=$DIR_SCM_FILES/manifest.scm \
+  --profile=$HOME/guix-profile-fluidsim
 ```
 
-### Change scm-files/python-fluidsim.scm (exact Fluidsim version)
+```{note}
+Without `-f $DIR_SCM_FILES/python-fluidsim.scm`, the Fluidsim version
+taken from [gricad-guix-packages] would be used.
+```
+
+### Update scm-files/python-fluidsim.scm to use another Fluidsim version
 
 If you want to choose a given version of Fluidsim that is not from the default one,
 follow this section. One needs to choose a changeset (a commit) and get its changeset
-reference. One can study them with:
+identifier. One can study them with:
 
 ```sh
 cd ~/dev/fluidsim
-# get the node (changeset reference) of the current commit
+# get the node (changeset identifier) of the current commit
 # (you can choose this commit)
 hg log -r . -T "{node}"
 # study all commits
@@ -146,32 +157,33 @@ hg log -r . -T "{node}"
 hg log -G
 ```
 
-Get the "Guix hash" (the guix hash is a reference sequence related to a given version of
-`guix` with Fluidsim) with:
+We now need to get the "Guix hash" corresponding to the specific version of Fluidsim that
+we want to use. This is a hash (an long hexadecimal number) computed by Guix from the
+source of Fluidsim. It is used at build time by Guix for security to check if what we get
+indeed corresponds to the specified version. Getting the Guix hash of something is
+usually done with the command `guix download`, but unfortunately, it does not yet support
+Mercurial, so one needs to run:
 
 ```sh
 source /applis/site/guix-start.sh
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim ~/dev/fluidsim-clean
 cd ~/dev/fluidsim-clean
-hg up <changeset_ref> --clean
+hg up <changeset_id> --clean
 hg purge --all
 guix hash -x -r .
 ```
 
-Replace `<changeset_ref>` with the chosen fluidsim changeset reference.
+Of course, `<changeset_id>` has to be replaced with the chosen Fluidsim changeset
+identifier.
 
-```{note}
-`guix download` does not support Mercurial.
-```
-
-Change the fluidsim changeset reference and the guix hash in
+Change the Fluidsim changeset identifier and the guix hash in
 `$DIR_SCM_FILES/python-fluidsim.scm` respectively at lines
-`(changeset "<changeset_ref>")))` and `(base32 "<guix_hash_reference>"))))` that both
+`(changeset "<changeset_id>")))` and `(base32 "<guix_hash_identifier>"))))` that both
 appears twice in the file.
 
 ## List the packages
 
-Once the fluidsim profile is created, it can be useful to list the package installed in
+Once the Fluidsim profile is created, it can be useful to list the package installed in
 the profile by:
 
 ```sh
@@ -205,7 +217,7 @@ oarsub -S ./job_fluidfft_bench.oar
 ## Submit a Fluidsim benchmark
 
 Here, we are going to show how to do it with two strategies, either manually write a OAR
-script or use fluiddyn to write it.
+script or use Fluiddyn to write it.
 
 ### Hand written OAR script
 
@@ -216,22 +228,23 @@ source $HOME/guix-profile-fluidsim/etc/profile
 oarsub -S ./job_fluidsim_bench.oar
 ```
 
-### With fluiddyn
+### With Fluiddyn
 
 Prepare a virtual env (1 time). From a new terminal:
 
 ```sh
 uv venv -p 3.13 ~/venv_submit
 . ~/venv_submit/bin/activate
+# note: this environment is NOT going to be used during the simulation
 uv pip install fluiddyn fluidsim ipython
 ```
 
 Submit with
 
 ```sh
-cd $DIR_GRICAD_GUIX
 . ~/venv_submit/bin/activate
+cd $DIR_GRICAD_GUIX
 ./submit_bench_fluidsim.py
 ```
 
-[gricad-guix-package]: https://gricad-gitlab.univ-grenoble-alpes.fr/bouttiep/gricad_guix_packages
+[gricad-guix-packages]: https://gricad-gitlab.univ-grenoble-alpes.fr/bouttiep/gricad_guix_packages
