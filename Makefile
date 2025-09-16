@@ -8,7 +8,13 @@ MPI_NUM_PROCS ?= 2
 develop: sync
 
 sync:
+	pdm sync
+
+sync-clean:
 	pdm sync --clean
+
+sync-no-self:
+	pdm sync --no-self
 
 install_fluidfft_plugins:
 	pdm run pip install fluidfft-fftw fluidfft-fftwmpi fluidfft-mpi_with_fftw
