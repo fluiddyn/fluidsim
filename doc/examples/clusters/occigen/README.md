@@ -1,8 +1,8 @@
 ## Let's start on Occigen
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and
-copy the public key in https://foss.heptapod.net and https://heptapod.host.
+(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and copy the public
+key in https://foss.heptapod.net and https://heptapod.host.
 
 Download setup files:
 
@@ -74,6 +74,7 @@ find -maxdepth 1 -type d | while read -r dir; do printf "%s:\t" "$dir"; find "$d
 ## Install h5py parallel (to modify environments created before 24/11/2020)
 
 Activate the conda environment and run:
+
 ```bash
 conda uninstall h5py
 export CC=mpicc
@@ -84,6 +85,7 @@ pip install h5py --no-binary h5py
 ```
 
 You can check that h5py parallel is correctly installed by running
+
 ```bash
 python -c "import h5py; cfg = h5py.get_config(); print(cfg.mpi)"
 ```

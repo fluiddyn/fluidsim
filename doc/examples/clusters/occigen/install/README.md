@@ -1,8 +1,8 @@
 # Install
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and
-copy the public key in https://foss.heptapod.net and https://heptapod.host.
+(https://foss.heptapod.net/help/ssh/README#generating-a-new-ssh-key-pair) and copy the
+public key in https://foss.heptapod.net and https://heptapod.host.
 
 Then, run the following commands (from this directory):
 
@@ -17,14 +17,13 @@ source 4_setup_env_conda.sh
 cd .. && make
 ```
 
-**Note:** you may experience an error like `remote: ssh: Could not resolve
-hostname foss.heptapod.net: Temporary failure in name resolution`. Just retry
-and it's going to work.
+**Note:** you may experience an error like
+`remote: ssh: Could not resolve hostname foss.heptapod.net: Temporary failure in name resolution`.
+Just retry and it's going to work.
 
-During the last step, some tests should be run, for me (Pierre), one
-of the test fails (in
-fluidsim/solvers/ad1d/pseudo_spect/test_solver.py) but it does not
-seem to be a big problem.
+During the last step, some tests should be run, for me (Pierre), one of the test fails
+(in fluidsim/solvers/ad1d/pseudo_spect/test_solver.py) but it does not seem to be a big
+problem.
 
 ## Submit the MPI test suite
 
@@ -37,12 +36,10 @@ python submit_tests.py
 
 ## Setup Mercurial
 
-Correct and uncomment the line with the username and email address in
-`~/.hgrc`:
+Correct and uncomment the line with the username and email address in `~/.hgrc`:
 
 ```bash
 vim ~/.hgrc
 ```
 
-(see also
-https://fluidhowto.readthedocs.io/en/latest/mercurial.html)
+(see also https://fluidhowto.readthedocs.io/en/latest/mercurial.html)

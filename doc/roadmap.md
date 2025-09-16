@@ -12,9 +12,9 @@ See <https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/100>
 
 - snek5000 stable
 
-- fluidsim-core should grow, in particular by moving code from fluidsim and
-  snek5000 to fluidsim-core when needed for the implementation of another package
-  (in particular fluidsim-openfoam).
+- fluidsim-core should grow, in particular by moving code from fluidsim and snek5000 to
+  fluidsim-core when needed for the implementation of another package (in particular
+  fluidsim-openfoam).
 
 - fluidsim-... (OpenFoam, Dedalus, Basilisk, ...)
 
@@ -30,8 +30,8 @@ Specialized in pseudo-spectral Fourier.
 
 - SVV (Spectral Vanishing Viscosity)
 
-- Different diffusivity coefficients for different variables (Prandtl/Schmidt
-  numbers), in particular for ns3d.strat.
+- Different diffusivity coefficients for different variables (Prandtl/Schmidt numbers),
+  in particular for ns3d.strat.
 
 - cos/sin transform (how? options operators?)
 
@@ -49,8 +49,8 @@ Specialized in pseudo-spectral Fourier.
 - Shear as in [Snoopy](https://ipag.osug.fr/~lesurg/snoopy.html) (see
   [#99](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/99))
 
-- Simul class made of 2 (or n) interacting Simul classes. For example, ns2d +
-  passive scalar at higher resolution. Or fluid-structure interaction as in
+- Simul class made of 2 (or n) interacting Simul classes. For example, ns2d + passive
+  scalar at higher resolution. Or fluid-structure interaction as in
   [FLUSI](https://github.com/pseudospectators/FLUSI) (see
   [!104](https://foss.heptapod.net/fluiddyn/fluidsim/-/issues/104))
 
@@ -60,17 +60,17 @@ Specialized in pseudo-spectral Fourier.
 
 - API to dynamically define a solver
 
-"Ability to dynamically and concisely build a solver is what Dedalus is good at.
-And performance and batteries-included approach is where FluidSim shines. Our
-InfoSolver + Parameters approach is flexible but requires a lot of boilerplate
-code. Even today I always need to refer to documentation while creating a new
-solver. It must be possible to create intuitive factory classes which dynamically
-generate InfoSolver, Parameters, Simul classes for us. We could refer to some well
-known design patterns for inspiration." (Ashwin V. Mohanan)
+"Ability to dynamically and concisely build a solver is what Dedalus is good at. And
+performance and batteries-included approach is where FluidSim shines. Our InfoSolver +
+Parameters approach is flexible but requires a lot of boilerplate code. Even today I
+always need to refer to documentation while creating a new solver. It must be possible to
+create intuitive factory classes which dynamically generate InfoSolver, Parameters, Simul
+classes for us. We could refer to some well known design patterns for inspiration."
+(Ashwin V. Mohanan)
 
 - Explore use of type hints
 
-Inline or separate *.pyi files? Use MonkeyType or similar to autogenerate type
-hints from tests? Some inspiration:
+Inline or separate `*.pyi` files? Use MonkeyType or similar to autogenerate type hints
+from tests? Some inspiration:
 [FOSDEM talk](https://fosdem.org/2022/schedule/event/python_type_safety/) and
-[this blog post](https://nskm.xyz/posts/stcmp2/)
+[this blog post](https://nskm.xyz/posts/stcmp2/).

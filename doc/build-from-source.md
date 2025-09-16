@@ -8,18 +8,16 @@ To build Fluidsim from source, ones needs:
 
 - A decent amount of RAM (at least few GB available).
 
-- A C++ compiler fully compliant with the C++-11 standard (currently not Intel
-  compilers)
+- A C++ compiler fully compliant with the C++-11 standard (currently not Intel compilers)
 
 ## Get the source
 
-Fluidsim development uses the revision control software [Mercurial] with modern
-Mercurial extensions like [Evolve] and [Topic]. The main repository is hosted
-[here](https://foss.heptapod.net/fluiddyn/fluidsim) in
-[Heptapod](https://heptapod.net/).
+Fluidsim development uses the revision control software [Mercurial] with modern Mercurial
+extensions like [Evolve] and [Topic]. The main repository is hosted
+[here](https://foss.heptapod.net/fluiddyn/fluidsim) in [Heptapod](https://heptapod.net/).
 
-There are other ways to get the source but we are going here to assume that you
-can install [Mercurial]. It can be useful when working with Fluidsim source to
+There are other ways to get the source but we are going here to assume that you can
+install [Mercurial]. It can be useful when working with Fluidsim source to
 [fully setup Mercurial with these extensions and learn a bit of Mercurial](https://fluidhowto.readthedocs.io/en/latest/mercurial.html).
 Then, the Fluidsim repository can be cloned with
 
@@ -67,9 +65,9 @@ can check that everything goes well.
 
 ```
 
-Moreover, the build (which uses [Meson]) can be controlled through environment
-variables (for the C++ compilation) and options. The particular build options for
-Fluidsim are defined in the file `meson.options` which contains:
+Moreover, the build (which uses [Meson]) can be controlled through environment variables
+(for the C++ compilation) and options. The particular build options for Fluidsim are
+defined in the file `meson.options` which contains:
 
 ```{literalinclude} ../meson.options
 ```
@@ -182,27 +180,26 @@ Let us first present the tools used for Fluidsim development.
 
 - [Meson] is an open source build system (in particular used by Scipy),
 
-- [Nox] is a command-line tool that automates testing in multiple Python
-  environments,
+- [Nox] is a command-line tool that automates testing in multiple Python environments,
 
 - [Pytest] is the most popular testing framework for Python,
 
 - [pip] is the official package installer for Python,
 
-- [Pythran] is an ahead of time compiler for a subset of the Python language, with
-  a focus on scientific computing,
+- [Pythran] is an ahead of time compiler for a subset of the Python language, with a
+  focus on scientific computing,
 
 - [Transonic] is a pure Python package to accelerate modern Python-Numpy code with
   different accelerators (in particular Pythran).
 
-Fluidsim is built with [Meson]. We use [PDM] for Fluidsim development. [Pytest]
-and [Nox] are used for testing. We use [Pythran] through [Transonic] to accelerate
-some numerical kernels written in Python.
+Fluidsim is built with [Meson]. We use [PDM] for Fluidsim development. [Pytest] and [Nox]
+are used for testing. We use [Pythran] through [Transonic] to accelerate some numerical
+kernels written in Python.
 
 #### Standard Python from Python.org
 
-We present here how one can build Fluidsim from source like the main developers
-and users.
+We present here how one can build Fluidsim from source like the main developers and
+users.
 
 ##### Install PDM
 
@@ -215,19 +212,17 @@ python3 -m pip install pipx
 pipx install pdm -U
 ```
 
-Installing in editable mode is a bit particular with Meson, since editable
-installations are incompatible with isolated builds, meaning that all build
-dependencies have to be installed in the main virtual environment! Fortunatelly,
-it's not too difficult with [PDM]. From the root directory of the repository, just
-run:
+Installing in editable mode is a bit particular with Meson, since editable installations
+are incompatible with isolated builds, meaning that all build dependencies have to be
+installed in the main virtual environment! Fortunatelly, it's not too difficult with
+[PDM]. From the root directory of the repository, just run:
 
 ```sh
 pdm install --no-self
 ```
 
 This command creates a virtual environment and installs all build and runtime
-dependencies. You can then activate this environment and build/install Fluidsim
-with:
+dependencies. You can then activate this environment and build/install Fluidsim with:
 
 ```sh
 . .venv/bin/activate
@@ -236,8 +231,8 @@ pip install -e . -v --no-build-isolation --no-deps
 
 ### Conda-based Python with conda-forge and Pixi
 
-One can use [Pixi] to setup a developer environment based on [conda-forge] and
-compile from source. From the root directory of Fluidsim repository, just run:
+One can use [Pixi] to setup a developer environment based on [conda-forge] and compile
+from source. From the root directory of Fluidsim repository, just run:
 
 ```sh
 # TODO: remove this clone after Transonic release
@@ -252,17 +247,16 @@ Then, `pip` is available and previous commands should work.
 
 ### Run the tests
 
-You can run some unit tests by running `make tests` (shortcut for
-`fluidsim-test -v`) or `make tests_mpi` (shortcut for
-`mpirun -np 2 fluidsim-test -v`). Alternatively, you can also run `pytest` from
-the root directory or from any of the source directories.
+You can run some unit tests by running `make tests` (shortcut for `fluidsim-test -v`) or
+`make tests_mpi` (shortcut for `mpirun -np 2 fluidsim-test -v`). Alternatively, you can
+also run `pytest` from the root directory or from any of the source directories.
 
 (pythranrc)=
 
 ### About using Pythran to compile functions
 
-When developing with Pythran, it can be useful to have a `~/.pythranrc` file, with
-for example something like (see
+When developing with Pythran, it can be useful to have a `~/.pythranrc` file, with for
+example something like (see
 [the dedicated section in Pythran documentation](https://pythran.readthedocs.io/en/latest/MANUAL.html#customizing-your-pythranrc)):
 
 ```sh
@@ -276,9 +270,9 @@ CC=clang
 
 ```
 
-Note however, that Fluidsim build does not take into account this file! Instead
-there is a build option `pythran-complex-hook` and one can use environment
-variables to change the C++ compilation (performed with [Meson]).
+Note however, that Fluidsim build does not take into account this file! Instead there is
+a build option `pythran-complex-hook` and one can use environment variables to change the
+C++ compilation (performed with [Meson]).
 
 ### Set the MESONPY_EDITABLE_VERBOSE mode
 

@@ -1,7 +1,7 @@
 # Testing, benchmarks and profiling
 
-Fluidsim comes with command-line tools for testing, benchmarking and profiling.
-Here are useful commands:
+Fluidsim comes with command-line tools for testing, benchmarking and profiling. Here are
+useful commands:
 
 ```bash
 fluidsim -h

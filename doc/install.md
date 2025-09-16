@@ -1,8 +1,8 @@
 # Install and configure
 
-First, ensure that you have a recent Python installed, since Fluidsim requires
-Python >= 3.9. Some issues regarding the installation of Python and Python
-packages are discussed in
+First, ensure that you have a recent Python installed, since Fluidsim requires Python >=
+3.9. Some issues regarding the installation of Python and Python packages are discussed
+in
 [the main documentation of the project](http://fluiddyn.readthedocs.org/en/latest/install.html).
 
 ## Installation methods
@@ -26,9 +26,9 @@ pip install pip -U
 pip install fluidsim
 ```
 
-However, fluidsim requires [fluidfft](http://fluidfft.readthedocs.io) for
-pseudospectral solvers. Fluidsim, fluidfft and pyfftw can be both installed without
-compilation with the command:
+However, fluidsim requires [fluidfft](http://fluidfft.readthedocs.io) for pseudospectral
+solvers. Fluidsim, fluidfft and pyfftw can be both installed without compilation with the
+command:
 
 ```sh
 pip install "fluidsim[fft]"
@@ -36,8 +36,8 @@ pip install "fluidsim[fft]"
 
 #### Optional dependencies
 
-Fluidsim has 3 sets of optional dependencies, which can be installed with commands
-like `pip install "fluidsim[fft]"` or `pip install "fluidsim[fft,mpi]"`:
+Fluidsim has 3 sets of optional dependencies, which can be installed with commands like
+`pip install "fluidsim[fft]"` or `pip install "fluidsim[fft,mpi]"`:
 
 - `fft`: mainly for pseudo spectral solvers using the Fourier basis.
 
@@ -54,11 +54,10 @@ like `pip install "fluidsim[fft]"` or `pip install "fluidsim[fft,mpi]"`:
 
 #### Compile fluidfft plugins
 
-Fluidfft works with pluggins to compute FFTs with different methods
-(see the [fluidfft
-documentation](http://fluidfft.readthedocs.io/en/latest/install.html)). For
-example, to install Fluidfft plugins using the FFTW library, one can run (but
-it will trigger compilation):
+Fluidfft works with pluggins to compute FFTs with different methods (see the
+[fluidfft documentation](http://fluidfft.readthedocs.io/en/latest/install.html)). For
+example, to install Fluidfft plugins using the FFTW library, one can run (but it will
+trigger compilation):
 
 - For sequential simulations:
 
@@ -88,11 +87,11 @@ mpirun -np 2 pytest --pyargs fluidsim -vx
 
 ### Install the conda-forge packages with conda or mamba
 
-We recommend installing `conda` and `mamba` (using the [conda-forge] channel) with
-the [miniforge installer](https://github.com/conda-forge/miniforge).
+We recommend installing `conda` and `mamba` (using the [conda-forge] channel) with the
+[miniforge installer](https://github.com/conda-forge/miniforge).
 
-If you just want to run sequential simulations and/or analyze the results of
-simulations, you can just install the fluidsim package:
+If you just want to run sequential simulations and/or analyze the results of simulations,
+you can just install the fluidsim package:
 
 ```sh
 conda install fluidsim
@@ -122,11 +121,14 @@ pip install pytest-allclose pytest-mock
 
 Other more exotic methods can also be used. In particular, we have examples for:
 
-- [Apptainer](https://apptainer.org/) ([doc/apptainer](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/apptainer))
+- [Apptainer](https://apptainer.org/)
+  ([doc/apptainer](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/apptainer))
 
-- [Guix](https://guix.gnu.org/) ([doc/examples/clusters/gricad](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad_guix))
+- [Guix](https://guix.gnu.org/)
+  ([doc/examples/clusters/gricad](https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad_guix))
 
-- [Spack](https://github.com/spack/spack) ([misc/spack](https://foss.heptapod.net/fluiddyn/fluiddyn/-/tree/branch/default/misc/spack))
+- [Spack](https://github.com/spack/spack)
+  ([misc/spack](https://foss.heptapod.net/fluiddyn/fluiddyn/-/tree/branch/default/misc/spack))
 
 ## Environment variables and runtime configuration
 
@@ -142,8 +144,8 @@ Fluidsim is sensitive to environment variables:
 
 - `FLUIDDYN_PATH_SCRATCH`: working directory (can be useful on some clusters).
 
-- `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D`: set the Fluidfft method
-  (see <https://fluidfft.readthedocs.io/en/latest/plugins.html>).
+- `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D`: set the Fluidfft method (see
+  <https://fluidfft.readthedocs.io/en/latest/plugins.html>).
 
 ## Dependencies with different flavours
 

@@ -2,8 +2,8 @@
 
 We show in this directory
 (<https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/doc/examples/clusters/gricad_miniforge>)
-how to use Fluidsim with Miniforge on Gricad clusters. The main documentation
-for this HPC platform is [here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/).
+how to use Fluidsim with Miniforge on Gricad clusters. The main documentation for this
+HPC platform is [here](https://gricad-doc.univ-grenoble-alpes.fr/hpc/).
 
 ## Install Miniforge
 
@@ -28,8 +28,8 @@ conda env create --file https://foss.heptapod.net/fluiddyn/fluidsim/-/raw/branch
 ./submit_bench_fluidsim.py
 ```
 
-For the devel script `submit_devel_bench_fluidsim.py`, one needs to be connected
-to a devel login node (`ssh dahu-oar3`).
+For the devel script `submit_devel_bench_fluidsim.py`, one needs to be connected to a
+devel login node (`ssh dahu-oar3`).
 
 ```sh
 ./submit_devel_bench_fluidsim.py

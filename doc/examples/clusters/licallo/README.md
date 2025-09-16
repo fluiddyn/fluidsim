@@ -3,8 +3,8 @@
 ### SSH key
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and
-copy the public key in https://foss.heptapod.net.
+(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and copy the public
+key in https://foss.heptapod.net.
 
 ### Download setup files
 
@@ -48,9 +48,10 @@ hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 cd fluidsim
 ```
 
-### Install pfft in your $HOME directory
+### Install pfft in your HOME directory
 
-We configured the installation of pfft and p3dfft in $HOME such that you simply have to run a bash script:
+We configured the installation of pfft and p3dfft in `$HOME` such that you simply have to
+run a bash script:
 
 ```bash
 source $HOME/Dev/fluidsim/doc/examples/clusters/licallo/setup_env_base.sh
@@ -85,7 +86,6 @@ python submit_check_fluidfft.py
 python submit_tests.py
 python submit_simul.py
 ```
-
 
 ## Setup your environment and submit simulations
 
