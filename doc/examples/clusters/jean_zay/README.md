@@ -3,8 +3,8 @@
 ### SSH key
 
 First, create a ssh key
-(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and
-copy the public key in https://foss.heptapod.net.
+(https://foss.heptapod.net/help/ssh/index#generate-an-ssh-key-pair) and copy the public
+key in https://foss.heptapod.net.
 
 ### Download setup files
 
@@ -19,7 +19,8 @@ wget https://foss.heptapod.net/fluiddyn/fluidsim/doc/examples/clusters/jean_zay/
 
 ### Clone the fluidsim repository
 
-Load the mercurial environment, move to the work directory and clone the fluidsim repository:
+Load the mercurial environment, move to the work directory and clone the fluidsim
+repository:
 
 ```bash
 module load mercurial/6.0
@@ -30,7 +31,8 @@ cd fluidsim
 module purge
 ```
 
-**Note:** Mercurial will be installed inside the conda environment for fluidsim, so we will not use the mercurial module later.
+**Note:** Mercurial will be installed inside the conda environment for fluidsim, so we
+will not use the mercurial module later.
 
 ### Configure conda
 
@@ -42,9 +44,10 @@ ln -s $WORK/.conda $HOME
 conda config --add channels conda-forge
 ```
 
-### Install p3dfft-2.7.6 in your $WORK directory
+### Install p3dfft-2.7.6 in your WORK directory
 
-We configured the installation of p3dfft-2.7.6 in $WORK such that you simply have to run a bash script:
+We configured the installation of p3dfft-2.7.6 in `$WORK` such that you simply have to
+run a bash script:
 
 ```bash
 module load automake/1.16.1 libtool/2.4.6
@@ -80,15 +83,13 @@ python submit_simul.py
 
 ## Setup Mercurial
 
-Correct and uncomment the line with the username and email address in
-`~/.hgrc`:
+Correct and uncomment the line with the username and email address in `~/.hgrc`:
 
 ```bash
 vim ~/.hgrc
 ```
 
-(see also
-https://fluidhowto.readthedocs.io/en/latest/mercurial.html)
+(see also https://fluidhowto.readthedocs.io/en/latest/mercurial.html)
 
 ## Setup your environment and submit simulations
 

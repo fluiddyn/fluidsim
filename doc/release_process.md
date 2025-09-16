@@ -1,8 +1,10 @@
 # Release process
 
-- [ ] Extended tests in doc/examples (<https://foss.heptapod.net/fluiddyn/fluidsim/-/pipeline_schedules>)
+- [ ] Extended tests in doc/examples
+  (<https://foss.heptapod.net/fluiddyn/fluidsim/-/pipeline_schedules>)
 
-- [ ] Check builds of the "official" articles in <https://foss.heptapod.net/fluiddyn/fluiddyn_papers>
+- [ ] Check builds of the "official" articles in
+  <https://foss.heptapod.net/fluiddyn/fluiddyn_papers>
 
 - [ ] Topic/MR for the release candidate
 
@@ -12,7 +14,8 @@
 
     - Take into account `doc/newsfragments` + remove the fragments
 
-    - Visit <https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...branch%2Fdefault>
+    - Visit
+      <https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.6.0...branch%2Fdefault>
 
     - Study `hg log -G -r "tag(0.6.0):tip"`
 
@@ -20,7 +23,8 @@
 
 - [ ] PR on <https://github.com/conda-forge/fluidsim-core-feedstock> (rc channel)
 
-  In `recipe/conda_build_config.yaml` (see <https://conda-forge.org/docs/maintainer/knowledge_base.html#creating-a-pre-release-build>):
+  In `recipe/conda_build_config.yaml` (see
+  <https://conda-forge.org/docs/maintainer/knowledge_base.html#creating-a-pre-release-build>):
 
   ```yaml
   channel_targets:
@@ -55,7 +59,8 @@
 
 - [ ] Communicate to the community...
 
-- [ ] Topic/MR for the release of the stable version (delete "rc0" in the `pyproject.toml` files)
+- [ ] Topic/MR for the release of the stable version (delete "rc0" in the
+  `pyproject.toml` files)
 
 - [ ] New tag with `nox -s add-tag-for-release`
 

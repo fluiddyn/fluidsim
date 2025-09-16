@@ -1,10 +1,10 @@
 # Authors
 
 Fluidsim has first been developed by
-[Pierre Augier](http://www.legi.grenoble-inp.fr/people/Pierre.Augier/) (CNRS
-researcher at [LEGI](http://www.legi.grenoble-inp.fr), Grenoble) at KTH
-(Stockholm) as a numerical code to solve fluid equations in a periodic
-two-dimensional space with pseudo-spectral methods.
+[Pierre Augier](http://www.legi.grenoble-inp.fr/people/Pierre.Augier/) (CNRS researcher
+at [LEGI](http://www.legi.grenoble-inp.fr), Grenoble) at KTH (Stockholm) as a numerical
+code to solve fluid equations in a periodic two-dimensional space with pseudo-spectral
+methods.
 
 Fluidsim has been greatly improved during Ashwin Vishnu PhD at KTH (Stockholm).
 

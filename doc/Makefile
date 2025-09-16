@@ -162,3 +162,7 @@ doctest:
 
 zip: html
 	cd _build/html &&  zip -r html.zip * && mv html.zip ../../.
+
+format:
+	@# much faster than with pdm run
+	../.venv/bin/mdformat .

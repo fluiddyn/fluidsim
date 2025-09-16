@@ -1,8 +1,7 @@
 # Install Fluidsim from source in an Apptainer container
 
-The directory `fluidsim/doc/apptainer` contains what is needed to run Fluidsim
-with Apptainer. See also
-https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/container/.
+The directory `fluidsim/doc/apptainer` contains what is needed to run Fluidsim with
+Apptainer. See also https://gricad-doc.univ-grenoble-alpes.fr/hpc/softenv/container/.
 
 ## Build the image locally on a node
 
