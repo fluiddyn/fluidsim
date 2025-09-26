@@ -22,14 +22,30 @@ Ask authorization to be able to clone the Fluidsim repository from
 <https://foss.heptapod.net> as explained
 [here](https://dci.dci-gitlab.cines.fr/webextranet/data_storage_and_transfers/index.html#authorizing-an-outbound-connection).
 
-Install and setup Mercurial as explained
-[here](https://fluidhowto.readthedocs.io/en/latest/mercurial/install-setup.html). Clone
-the Fluidsim repository in `$HOME/dev`.
+Install UV with:
 
-```{warning}
-The file `.bashrc` is not sourced at login so the user should do it
-to use pipx-installed applications.
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
+
+````{warning}
+No file are sourced at login so the user should source `$HOME/.local/bin/env` with
+
+```sh
+. $HOME/.local/bin/env
+```
+
+to use uv-installed applications.
+````
+
+Install and setup Mercurial with:
+
+```sh
+uv tool install mercurial --with hg-git --with hg-evolve
+uvx hg-setup init
+```
+
+Clone the Fluidsim repository in `$HOME/dev`.
 
 ```sh
 mkdir ~/dev
@@ -37,22 +53,9 @@ cd ~/dev
 . ~/.bashrc
 hg clone https://foss.heptapod.net/fluiddyn/fluidsim
 cd ~/dev/fluidsim/doc/examples/clusters/adastra
-
 ```
 
-## Setup a virtual environment
-
-Execute the script `setup_venv.sh`.
-
-```sh
-./setup_venv.sh
-```
-
-```{literalinclude} ./setup_venv.sh
-```
-
-Due to a bug in Meson (the build system used by few fluidfft pluggins, see
-https://github.com/mesonbuild/meson/pull/13619), we need to complete the installation:
+## Create a Python environment and install Fluidsim from source
 
 ```sh
 module purge
@@ -66,37 +69,8 @@ module load cray-python
 export LIBRARY_PATH=/opt/cray/pe/fftw/3.3.10.6/x86_genoa/lib
 export CFLAGS="-I/opt/cray/pe/fftw/3.3.10.6/x86_genoa/include"
 
+python -m venv ~/venv-fluidsim
 . ~/venv-fluidsim/bin/activate
-
-# --no-build-isolation because of the Meson bug
-
-# because of --no-build-isolation
-pip install meson-python ninja fluidfft-builder cython
-cd ~/dev
-hg clone https://github.com/paugier/meson.git
-cd ~/dev/meson
-hg up mpi-detection
-pip install -e .
-cd
-#
-
-pip install fluidfft-fftwmpi --no-binary fluidfft-fftwmpi --no-build-isolation --force-reinstall --no-cache-dir --no-deps -v
-```
-
-## Install Fluidsim from source
-
-```sh
-module purge
-module load cpe/23.12
-module load craype-x86-genoa
-module load PrgEnv-gnu
-module load gcc/13.2.0
-module load cray-hdf5-parallel cray-fftw
-module load cray-python
-
-. ~/venv-fluidsim/bin/activate
-
-cd ~/dev/fluidsim
-# update to the wanted commit
-pip install . -v -C setup-args=-Dnative=true
+pip install pip -U
+python ~/dev/fluidsim/scripts/install-fluidsim-stack-from-source.py --fftw-openmp -v
 ```
