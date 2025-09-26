@@ -63,6 +63,8 @@ module load cray-python
 
 export LIBRARY_PATH=/opt/cray/pe/fftw/3.3.10.6/x86_genoa/lib
 export CFLAGS="-I/opt/cray/pe/fftw/3.3.10.6/x86_genoa/include"
+export PYFFTW_LIB_DIR="/opt/cray/pe/fftw/3.3.10.6/x86_genoa/lib"
+export PYFFTW_INCLUDE="/opt/cray/pe/fftw/3.3.10.6/x86_genoa/include"
 
 python -m venv ~/venv-fluidsim
 . ~/venv-fluidsim/bin/activate
