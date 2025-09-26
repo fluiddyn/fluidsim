@@ -74,6 +74,8 @@ test = [
     "ipython",
     "pymech",
 ]
+test-mpi = ["fluidsim[test]", "pytest-mpi"]
+pulp = ["pulp"]
 
 [project.scripts]
 fluidsim = "fluidsim.util.console.__main__:run"
