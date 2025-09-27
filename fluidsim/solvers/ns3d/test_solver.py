@@ -105,6 +105,7 @@ class TestForcingTCRandom(TestSimulBase):
     @classmethod
     def init_params(cls):
         params = super().init_params()
+        params.f = 2.0
         params.output.HAS_TO_SAVE = False
 
         params.forcing.enable = True
@@ -117,6 +118,7 @@ class TestForcingTCRandom(TestSimulBase):
         if mpi.rank > 0:
             return
         sim = self.sim
+        assert "_f2_" in sim.name_run
         oper = sim.oper
         oper_c = sim.forcing.forcing_maker.oper_coarse
 
