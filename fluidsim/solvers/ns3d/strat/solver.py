@@ -133,6 +133,7 @@ class Simul(SimulNS3D):
 
     @classmethod
     def _modify_sim_repr_maker(cls, sim_repr_maker):
+        super()._modify_sim_repr_maker(sim_repr_maker)
         sim_repr_maker.add_parameters({"N": sim_repr_maker.sim.params.N})
 
     def tendencies_nonlin(self, state_spect=None, old=None, phaseshift=None):

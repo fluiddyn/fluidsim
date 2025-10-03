@@ -231,6 +231,8 @@ class TestNoShearModes(TestSimulBase):
     def init_params(self):
         params = super().init_params()
 
+        params.f = 2.0
+
         params.init_fields.type = "noise"
         params.init_fields.noise.length = 1.0
         params.init_fields.noise.velo_max = 0.01
@@ -269,6 +271,8 @@ class TestNoShearModes(TestSimulBase):
 
     def test_noshearmodes(self):
         sim = self.sim
+
+        assert "_f2_" in sim.name_run, sim.name_run
 
         sim.time_stepping.start()
 

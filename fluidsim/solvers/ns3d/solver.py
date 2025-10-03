@@ -144,6 +144,10 @@ projection: str (default None)
 """
         )
 
+    @classmethod
+    def _modify_sim_repr_maker(cls, sim_repr_maker):
+        sim_repr_maker.add_parameters({"f": sim_repr_maker.sim.params.f})
+
     def _init_projection(self):
         try:
             self.no_vz_kz0 = self.params.no_vz_kz0
