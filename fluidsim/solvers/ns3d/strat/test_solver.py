@@ -272,7 +272,7 @@ class TestNoShearModes(TestSimulBase):
     def test_noshearmodes(self):
         sim = self.sim
 
-        assert "_f2_" in sim.name_run
+        assert "_f2_" in sim.name_run, sim.name_run
 
         sim.time_stepping.start()
 
