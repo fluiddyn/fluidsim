@@ -4,6 +4,7 @@ requires = [
          "numpy",
          # "transonic@hg+https://foss.heptapod.net/fluiddyn/transonic",
          "transonic>=0.6.2",
+         # "pythran@git+https://github.com/serge-sans-paille/pythran",
          "pythran>=0.9.7",
          ]
 build-backend = 'mesonpy'
@@ -18,8 +19,8 @@ keywords = [
 authors = [
     {name = "pierre.augier", email = "pierre.augier@univ-grenoble-alpes.fr"},
 ]
-version = '0.8.4'
-requires-python = ">=3.10"
+version = '0.8.5'
+requires-python = ">=3.11"
 dependencies = [
     "fluidsim-core>=0.8.1",
     "h5py",
@@ -36,17 +37,16 @@ classifiers = [
       "Intended Audience :: Science/Research",
       "Intended Audience :: Education",
       "Topic :: Scientific/Engineering",
-      # CeCILL is a GPL compatible license for French laws
-      "License :: OSI Approved :: CEA CNRS Inria Logiciel Libre License, version 2.1 (CeCILL-2.1)",
       "Programming Language :: Python",
       "Programming Language :: Python :: 3",
-      "Programming Language :: Python :: 3.10",
       "Programming Language :: Python :: 3.11",
       "Programming Language :: Python :: 3.12",
       "Programming Language :: Python :: 3.13",
+      "Programming Language :: Python :: 3.14",
 ]
 readme = "README.md"
-license = {text = "CECILL-2.1"}
+license = "CeCILL-2.1"
+license-files = ["LICENSE.txt"]
 
 [project.urls]
 "Source" = "https://foss.heptapod.net/fluiddyn/fluidsim"
