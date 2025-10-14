@@ -1,5 +1,6 @@
-FROM python:3.10
+FROM python:3.11
 LABEL Pierre Augier <pierre.augier@univ-grenoble-alpes.fr>
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get update
 
@@ -42,10 +43,10 @@ RUN mkdir -p $HOME/.local/lib
 RUN ln -s /usr/include/fftw* $HOME/.local/include
 RUN ln -s /usr/lib/x86_64-linux-gnu/libfftw3* $HOME/.local/lib
 
-ENV PATH=$HOME/.local/bin:$PATH
-ENV LIBRARY_PATH=$HOME/.local/lib
-ENV CPATH=$HOME/.local/include:$CPATH
 ENV LD_LIBRARY_PATH=$HOME/.local/lib
+ENV LIBRARY_PATH=$HOME/.local/lib
+ENV PATH=$HOME/.local/bin:$PATH
+ENV CPATH=$HOME/.local/include:$CPATH
 
 RUN mkdir -p $HOME/.config/matplotlib
 RUN echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
@@ -60,4 +61,5 @@ RUN wget https://foss.heptapod.net/fluiddyn/fluidfft/raw/branch/default/doc/inst
 RUN chmod +x install_pfft.sh
 RUN ./install_pfft.sh
 
-RUN python -m pip install -U pip pdm nox --user
+RUN uv tool install pdm
+RUN uv tool install nox
