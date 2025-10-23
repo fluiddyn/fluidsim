@@ -3,10 +3,12 @@
 [![Latest version](https://badge.fury.io/py/fluidsim.svg)](https://pypi.python.org/pypi/fluidsim/)
 ![Supported Python versions](https://img.shields.io/pypi/pyversions/fluidsim.svg)
 [![Documentation status](https://readthedocs.org/projects/fluidsim/badge/?version=latest)](http://fluidsim.readthedocs.org)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Chat room](https://img.shields.io/matrix/fluiddyn-users:matrix.org.svg)](https://matrix.to/#/#fluiddyn-users:matrix.org)
 [![Code coverage](https://codecov.io/gh/fluiddyn/fluidsim/branch/branch%2Fdefault/graph/badge.svg)](https://codecov.io/gh/fluiddyn/fluidsim)
 [![Heptapod CI](https://foss.heptapod.net/fluiddyn/fluidsim/badges/branch/default/pipeline.svg)](https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines)
 [![Github Actions](https://github.com/fluiddyn/fluidsim/actions/workflows/ci-linux.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidsim/actions)
+[![Github Actions](https://github.com/fluiddyn/fluidsim/actions/workflows/ci-windows.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidsim/actions)
 
 Fluidsim is an extensible framework for studying fluid dynamics with numerical
 simulations using Python. Fluidsim is an object-oriented library to develop
