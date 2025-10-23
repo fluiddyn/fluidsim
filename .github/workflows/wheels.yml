@@ -21,14 +21,14 @@ jobs:
           - os: macos
             architecture: arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.2.1
         env:
-          CIBW_SKIP: pp* cp36-* cp37-* cp38-* cp39-* *-musllinux* cp313-macosx_x86_64
+          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
       - uses: actions/upload-artifact@v4
         with:
@@ -44,14 +44,14 @@ jobs:
           - os: windows
             architecture: AMD64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.2.1
         env:
-          CIBW_SKIP: pp* cp36-* cp37-* cp38-* cp39-* *-musllinux*
+          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
           # increase pip debugging output
           # CIBW_BUILD_VERBOSITY: 2
@@ -69,7 +69,7 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
@@ -79,9 +79,9 @@ jobs:
           python-version: 3.x
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v3.2.1
         env:
-          CIBW_SKIP: pp* cp36-* cp37-* cp38-* cp39-* *-musllinux*
+          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
           CIBW_ARCHS: aarch64
       - uses: actions/upload-artifact@v4
         with:
@@ -91,9 +91,9 @@ jobs:
   sdist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: echo ${{ github.ref }}
-      - run: python -m pip install build twine
+      - run: python -m pip install build twine packaging -U
       - run: python -m build --sdist
       - run: twine check --strict dist/*
       - uses: actions/upload-artifact@v4
