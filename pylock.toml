@@ -28,7 +28,7 @@ sdist = {name = "flit_core-3.12.0.tar.gz", url = "https://files.pythonhosted.org
 wheels = [
     {name = "flit_core-3.12.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/f2/65/b6ba90634c984a4fcc02c7e3afe523fef500c4980fec67cc27536ee50acf/flit_core-3.12.0-py3-none-any.whl",hashes = {sha256 = "e7a0304069ea895172e3c7bb703292e992c5d1555dd1233ab7b5621b5b69e62c"}},
 ]
-marker = "\"dev\" in dependency_groups"
+marker = "\"build\" in dependency_groups or \"dev\" in dependency_groups or \"doc\" in dependency_groups"
 
 [packages.tool.pdm]
 dependencies = []
@@ -2814,11 +2814,11 @@ dependencies = []
 
 [[packages]]
 name = "matplotlib-inline"
-version = "0.1.7"
-requires-python = ">=3.8"
-sdist = {name = "matplotlib_inline-0.1.7.tar.gz", url = "https://files.pythonhosted.org/packages/99/5b/a36a337438a14116b16480db471ad061c36c3694df7c2084a0da7ba538b7/matplotlib_inline-0.1.7.tar.gz", hashes = {sha256 = "8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90"}}
+version = "0.2.1"
+requires-python = ">=3.9"
+sdist = {name = "matplotlib_inline-0.2.1.tar.gz", url = "https://files.pythonhosted.org/packages/c7/74/97e72a36efd4ae2bccb3463284300f8953f199b5ffbc04cbbb0ec78f74b1/matplotlib_inline-0.2.1.tar.gz", hashes = {sha256 = "e1ee949c340d771fc39e241ea75683deb94762c8fa5f2927ec57c83c4dffa9fe"}}
 wheels = [
-    {name = "matplotlib_inline-0.1.7-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/8f/8e/9ad090d3553c280a8060fbf6e24dc1c0c29704ee7d1c372f0c174aa59285/matplotlib_inline-0.1.7-py3-none-any.whl",hashes = {sha256 = "df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca"}},
+    {name = "matplotlib_inline-0.2.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl",hashes = {sha256 = "d56ce5156ba6085e00a9d54fead6ed29a9c47e215cd1bba2e976ef39f5710a76"}},
 ]
 marker = "\"dev\" in dependency_groups or \"doc\" in dependency_groups or \"test\" in extras or \"test-mpi\" in extras"
 
@@ -4142,7 +4142,7 @@ marker = "\"doc\" in dependency_groups"
 dependencies = []
 
 [tool.pdm]
-hashes = {sha256 = "b7724fbea1223020df52752222506a61450f2b7c42d5af121f7aea5cd6874ee8"}
+hashes = {sha256 = "90fe00a399abc0a003a732550f3de2a2c649e613c751092d08667f0113177836"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]

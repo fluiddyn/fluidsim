@@ -144,6 +144,8 @@ build = [
     "transonic>=0.6.2",
     "pythran>=0.9.7",
     "ninja",
+    # needed for fluidsim-core (from lib and --no-isolation)
+    "flit-core >=3.2,<4",
 ]
 doc = [
     "sphinx",
@@ -155,6 +157,8 @@ doc = [
     "ipynbname",
     "myst-nb",
     "sphinx-copybutton",
+    # needed for fluidsim-core (from lib and --no-isolation)
+    "flit-core >=3.2,<4",
 ]
 dev = [
     "pip",
@@ -162,7 +166,8 @@ dev = [
     "pylint",
     "ipdb",
     "mdformat-myst",
-    "flit_core >=3.2,<4",
+    # needed for fluidsim-core (from lib and --no-isolation)
+    "flit-core >=3.2,<4",
     "-e fluidsim-core @ file:///${PROJECT_ROOT}/lib",
 ]
 
