@@ -23,6 +23,16 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
+## [0.8.5] (2025-10-23)
+
+- [!427](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/427) Support for Python 3.14
+- [!421](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/421) New time stepping method `RK2_phaseshift_random_split`
+- [!415](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/415) `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D` (see <https://fluidfft.readthedocs.io/en/latest/plugins.html>)
+- [!408](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/408) `temporal_spectra.py`: improve plot_spectra
+- [!407](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/407) Improve isotropic tcrandom forcing
+- [!400](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/400) New script `scripts/install-fluidsim-stack-from-source.py`
+- and various fixes and small improvements...
+
 ## [0.8.4] (2024-11-08)
 
 - Python 3.13 compatibility
@@ -336,4 +346,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.8.2]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.1...0.8.2
 [0.8.3]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.2...0.8.3
 [0.8.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.3...0.8.4
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.4...branch%2Fdefault
+[0.8.5]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.4...0.8.5
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.5...branch%2Fdefault
