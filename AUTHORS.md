@@ -18,3 +18,5 @@ The main contributors are:
 - Antoine Bardant (LEGI)
 - [Vincent Labarre](https://www.researchgate.net/profile/Vincent-Labarre)
   ([OCA](https://www.oca.eu/fr/fluid))
+- Rodrigo Boiral-Lieuthier (LEGI)
+- Clovis Lambert (LEGI)
