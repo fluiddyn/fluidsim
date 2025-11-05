@@ -13,11 +13,11 @@ from abc import ABCMeta, abstractclassmethod
 from logging import warn
 from pathlib import Path
 
-import h5py
-
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util import import_class
 from fluiddyn.util import mpi
+
+from fluidsim_core.util import open_h5_nc
 
 
 def extend_simul_class(Simul, extenders):
@@ -99,7 +99,7 @@ def _extend_simul_class_from_path(Simul, path_file):
             else:
                 extenders = []
         else:
-            with h5py.File(path_file, "r") as file:
+            with open_h5_nc(path_file, "r") as file:
                 extenders = list(
                     file["/info_simul/solver"].attrs.get("extenders", [])
                 )

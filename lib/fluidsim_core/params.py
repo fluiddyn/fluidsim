@@ -12,11 +12,11 @@ from pathlib import Path
 
 from typing import Iterable
 
-import h5py
 from fluiddyn.util import import_class, mpi
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .info import InfoSolverCore
+from fluidsim_core.info import InfoSolverCore
+from fluidsim_core.util import open_h5_nc
 
 
 def iter_complete_params(params, info_solver, classes: dict or Iterable):
@@ -110,7 +110,7 @@ class Parameters(ParamContainer):
                         str_path = "[...]" + str_path[-100:]
 
                     print("Loading params from file\n" + str_path)
-                    with h5py.File(path, "r") as h5file:
+                    with open_h5_nc(path, "r") as h5file:
                         params = cls(hdf5_object=h5file["/info_simul/params"])
                 else:
                     raise ValueError(f"No state files found in {path = }")
@@ -145,7 +145,7 @@ class Parameters(ParamContainer):
             str_path = "[...]" + path[-100:]
 
         mpi.printby0("load params from file\n" + str_path)
-        with h5py.File(path, "r") as h5file:
+        with open_h5_nc(path, "r") as h5file:
             return cls(hdf5_object=h5file["/info_simul/solver"])
 
     def __ior__(self, other):

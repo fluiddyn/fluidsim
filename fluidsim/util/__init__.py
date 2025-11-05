@@ -40,6 +40,8 @@ Provides:
 
 """
 
+from fluidsim_core.util import open_h5_nc
+
 from .util import (
     load_sim_for_plot,
     load_state_phys_file,
@@ -58,7 +60,6 @@ from .util import (
     modif_resolution_all_dir,
     modif_resolution_from_dir_memory_efficient,
     open_patient,
-    open_h5_nc,
     repr_as_frac,
 )
 

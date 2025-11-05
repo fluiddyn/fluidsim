@@ -28,6 +28,7 @@ from fluiddyn.util import get_memory_usage
 
 from fluidsim_core import loader
 from fluidsim_core.output.dataframe_from_paths import DataframeMaker
+from fluidsim_core.util import open_h5_nc
 
 from fluidsim_core.paths import find_path_result_dir
 
@@ -377,7 +378,7 @@ def load_for_restart(name_dir=None, t_approx="last", merge_missing_params=False)
     if mpi.rank > 0:
         params = None
     else:
-        with h5py.File(path_file, "r") as file:
+        with open_h5_nc(path_file, "r") as file:
             params = Parameters(hdf5_object=file["info_simul"]["params"])
 
         if merge_missing_params:
@@ -545,7 +546,7 @@ def modif_resolution_from_dir_memory_efficient(
     except AttributeError:
         info_solver = Simul.InfoSolver()
 
-    with h5py.File(path_file, "r") as h5file:
+    with open_h5_nc(path_file, "r") as h5file:
         params = Parameters(hdf5_object=h5file["/info_simul/params"])
 
     try:
@@ -719,16 +720,6 @@ def open_patient(
                 raise
             time.sleep(time_wait_once)
     return file
-
-
-def open_h5_nc(path, mode):
-    """Helper to open .h5 or .nc file with the right package"""
-    path = Path(path)
-    if path.name.endswith(".nc"):
-        h5pack = h5netcdf
-    else:
-        h5pack = h5py
-    return h5pack.File(path, mode)
 
 
 def ensure_radians(angle):
