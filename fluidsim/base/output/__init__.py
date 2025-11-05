@@ -41,11 +41,11 @@ import os
 from glob import glob
 import argparse
 
-import h5py
 import matplotlib as mpl
 
 import fluiddyn.output
 
+from fluidsim.util import open_h5_nc
 from .base import OutputBase, OutputBasePseudoSpectral
 
 mpl.rc("axes", titlesize=10)
@@ -83,7 +83,7 @@ def create_description_xmf_file(path=None):
     paths.sort()
     path = paths[0]
 
-    with h5py.File(path, "r") as file:
+    with open_h5_nc(path, "r") as file:
         ndim = 3
 
         nx = file["/info_simul/params/oper"].attrs["nx"]
@@ -147,7 +147,7 @@ def create_description_xmf_file(path=None):
     for path in paths:
         base_name = os.path.basename(path)
 
-        with h5py.File(path, "r") as file:
+        with open_h5_nc(path, "r") as file:
             time = file["state_phys"].attrs["time"]
 
         txt += """

@@ -21,12 +21,12 @@ from pathlib import Path
 import math
 
 import numpy as np
-import h5py
 
 from fluiddyn.util import mpi
 
 from fluidsim_core.output.phys_fields import SetOfPhysFieldFilesBase
 
+from fluidsim.util import open_h5_nc
 from fluidsim.util.output import save_file, h5pack, ext
 
 from .base import SpecificOutput
@@ -346,7 +346,7 @@ class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):
     def _get_field_to_plot_from_file(
         self, path_file, key, equation, skip_vars=()
     ):
-        with h5py.File(path_file, "r") as file:
+        with open_h5_nc(path_file, "r") as file:
             time = file["state_phys"].attrs["time"]
             dset = file["state_phys"][key]
 

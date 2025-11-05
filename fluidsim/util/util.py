@@ -721,6 +721,16 @@ def open_patient(
     return file
 
 
+def open_h5_nc(path, mode):
+    """Helper to open .h5 or .nc file with the right package"""
+    path = Path(path)
+    if path.name.endswith(".nc"):
+        h5pack = h5netcdf
+    else:
+        h5pack = h5py
+    return h5pack.File(path, mode)
+
+
 def ensure_radians(angle):
     """Convert strings like "45°" to radians (as float)"""
     if isinstance(angle, str):
