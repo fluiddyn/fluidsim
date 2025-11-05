@@ -186,9 +186,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
 
-            if np.any(
-                np.greater(self.oper_coarse.shapeX_seq, sim.oper.shapeX_seq)
-            ):
+            if np.any(np.greater(self.oper_coarse.shapeX_seq, sim.oper.shapeX_seq)):
                 raise NotImplementedError(
                     "The resolution is too small for the required forcing: "
                     f"any(np.greater({self.oper_coarse.shapeX_seq}, {sim.oper.shapeX_seq}))"
@@ -198,8 +196,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             self.COND_NO_F = self._compute_cond_no_forcing()
 
             self.nb_forced_modes = (
-                self.COND_NO_F.size
-                - np.array(self.COND_NO_F, dtype=np.int32).sum()
+                self.COND_NO_F.size - np.array(self.COND_NO_F, dtype=np.int32).sum()
             )
             if not self.nb_forced_modes:
                 raise ValueError("0 modes forced.")
@@ -214,18 +211,14 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
                     "sim.forcing.forcing_maker.plot_forcing_region()"
                 )
 
-            self.ind_forcing = (
-                np.logical_not(self.COND_NO_F).flatten().nonzero()[0]
-            )
+            self.ind_forcing = np.logical_not(self.COND_NO_F).flatten().nonzero()[0]
 
             self.fstate_coarse = sim.state.__class__(sim, oper=self.oper_coarse)
         else:
             self.shapeK_loc_coarse = None
 
         if mpi.nb_proc > 1:
-            self.shapeK_loc_coarse = mpi.comm.bcast(
-                self.shapeK_loc_coarse, root=0
-            )
+            self.shapeK_loc_coarse = mpi.comm.bcast(self.shapeK_loc_coarse, root=0)
 
     def _create_params_coarse(self):
         params_coarse = deepcopy(self.sim.params)
@@ -312,9 +305,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
         """Verify injection rate."""
         if var_fft is None:
             var_fft = self.sim.state.state_spect.get_var(self.key_forced)
-            var_fft = self.oper.coarse_seq_from_fft_loc(
-                var_fft, self.shapeK_loc_coarse
-            )
+            var_fft = self.oper.coarse_seq_from_fft_loc(var_fft, self.shapeK_loc_coarse)
 
         if mpi.rank == 0:
             f_fft = self.fstate_coarse.get_var(self.key_forced)
@@ -490,9 +481,7 @@ class NormalizedForcing(SpecificForcingPseudoSpectralCoarse):
                 a_fft = self.sim.state.get_var(key_forced)
 
             try:
-                a_fft = self.oper.coarse_seq_from_fft_loc(
-                    a_fft, self.shapeK_loc_coarse
-                )
+                a_fft = self.oper.coarse_seq_from_fft_loc(a_fft, self.shapeK_loc_coarse)
             except IndexError as error:
                 raise ValueError(
                     f"rank={self.oper.rank}; {self.shapeK_loc_coarse = }; "
@@ -806,9 +795,22 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self._seed0 = int(seed0)
                 self._seed1 = int(seed1)
             else:
-                self.t_last_change = self.sim.time_stepping.t
-                self._seed0 = np.random.randint(0, 2**31)
-                self._seed1 = np.random.randint(0, 2**31)
+                if sim.params.NEW_DIR_RESULTS:
+                    self._forcing_state_restart_file_path = (
+                        Path(sim.params.init_fields.from_file.path).parent
+                        / "_forcing_state.txt"
+                    )
+                    with open(self._forcing_state_restart_file_path) as file:
+                        lines = file.readlines()
+
+                    t_last_change, seed0, seed1 = lines[-1].split()
+                    self.t_last_change = float(t_last_change)
+                    self._seed0 = int(seed0)
+                    self._seed1 = int(seed1)
+                else:
+                    self.t_last_change = self.sim.time_stepping.t
+                    self._seed0 = np.random.randint(0, 2**31)
+                    self._seed1 = np.random.randint(0, 2**31)
                 self._save_state()
 
             np.random.seed(self._seed0)
