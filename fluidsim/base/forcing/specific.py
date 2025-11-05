@@ -798,9 +798,12 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self._seed0 = int(seed0)
                 self._seed1 = int(seed1)
             else:
-                if sim.params.NEW_DIR_RESULTS:
+                if (
+                    sim.params.NEW_DIR_RESULTS
+                    and sim.params.init_fields.from_file.path != ""
+                ):
                     self._forcing_state_restart_file_path = (
-                        Path(sim.params.init_fields.from_file.path).parent
+                        Path(sim.params.init_fields.from_file.path).parent.parent
                         / "_forcing_state.txt"
                     )
                     with open(self._forcing_state_restart_file_path) as file:
@@ -863,8 +866,8 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         with open(self._oper_coarse_parameters_file_path, "w") as file:
             file.write(
-                "# oper_coarse parameters\n# nx ny nz nkmin_forcing nkmax_forcing\n"
-                f"{self.oper_coarse.nx} {self.oper_coarse.ny} {self.oper_coarse.nz} {self.oper_coarse.nkmin_forcing} {self.oper_coarse.nkmax_forcing}\n"
+                "# oper_coarse parameters\n# nx ny nz\n"
+                f"{self.oper_coarse.nx} {self.oper_coarse.ny} {self.oper_coarse.nz}\n"
             )
 
     def forcingc_from_f0f1(self):
