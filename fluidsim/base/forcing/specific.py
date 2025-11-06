@@ -186,6 +186,14 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
 
             self.oper_coarse = sim.oper.__class__(params=params_coarse)
 
+            path_coarse_oper_info = (
+                Path(sim.output.path_run) / "coarse-oper-info.txt"
+            )
+            if not path_coarse_oper_info.exists():
+                path_coarse_oper_info.write_text(
+                    self.oper_coarse.produce_long_str_describing_oper()
+                )
+
             if np.any(
                 np.greater(self.oper_coarse.shapeX_seq, sim.oper.shapeX_seq)
             ):
