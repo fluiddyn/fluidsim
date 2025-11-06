@@ -72,6 +72,14 @@ pip install pip -U
 python ~/dev/fluidsim/scripts/install-fluidsim-stack-from-source.py --fftw-openmp -v
 ```
 
+One can also use the Pixi environment env/pixi-h5py-par
+
+```sh
+cd ~/dev/fluidsim/env/pixi-h5py-par
+pixi shell
+python ~/dev/fluidsim/scripts/install-fluidsim-stack-from-source.py -v
+```
+
 """
 
 import argparse
@@ -171,14 +179,17 @@ if lines:
 
 pip_install("mpi4py", rebuild=True, env_update={"CFLAGS": "-O3"})
 
-# TODO: tempdir and requirements.txt
+fftw_env = None
+if args.fftw_openmp:
+    fftw_env = {"CFLAGS": "-fopenmp"}
+pip_install("pyfftw", rebuild=True, env_update=fftw_env)
 
 # with Python 3.13 and h5py<=3.12.1 we need (see https://github.com/h5py/h5py/issues/2523)
 # pip cache remove h5py; HDF5_MPI="ON" CC=mpicc pip install h5py@git+https://github.com/h5py/h5py --no-binary h5py
 if not args.no_h5py:
     package_name = "h5py"
-    if sys.version_info[:2] >= (3, 13):
-        package_name += "@git+https://github.com/h5py/h5py"
+    # if sys.version_info[:2] >= (3, 13):
+    #     package_name += "@git+https://github.com/h5py/h5py"
     pip_install(
         package_name,
         rebuild=True,
@@ -186,10 +197,6 @@ if not args.no_h5py:
         uninstall=True,
     )
 
-fftw_env = None
-if args.fftw_openmp:
-    fftw_env = {"CFLAGS": "-fopenmp"}
-pip_install("pyfftw", rebuild=True, env_update=fftw_env)
 pip_install("fluidfft", rebuild=True, native=not args.no_native)
 
 pip_install("fluidfft-fftw", rebuild=True)
