@@ -189,7 +189,10 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             path_coarse_oper_info = (
                 Path(sim.output.path_run) / "coarse-oper-info.txt"
             )
-            if not path_coarse_oper_info.exists():
+            if (
+                path_coarse_oper_info.parent.exists()
+                and not path_coarse_oper_info.exists()
+            ):
                 path_coarse_oper_info.write_text(
                     self.oper_coarse.produce_long_str_describing_oper()
                 )
@@ -819,7 +822,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
             if self._forcing_state_file_path.exists():
                 lines = self._forcing_state_file_path.read_text().split("\n")
-                t_last_change, seed0, seed1 = lines[-1].split()
+                t_last_change, seed0, seed1 = lines[-2].split()
                 self.t_last_change = float(t_last_change)
                 self._seed0 = int(seed0)
                 self._seed1 = int(seed1)
