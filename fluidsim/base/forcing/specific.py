@@ -805,6 +805,18 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 Path(sim.output.path_run) / "_forcing_state.txt"
             )
 
+            if (
+                not self._forcing_state_file_path.exists()
+                and sim.params.NEW_DIR_RESULTS
+                and sim.params.init_fields.from_file.path != ""
+            ):
+                self._forcing_state_restart_file_path = (
+                    Path(sim.params.init_fields.from_file.path).parent.parent
+                    / "_forcing_state.txt"
+                )
+                if not self._forcing_state_file_path.exists():
+                    warn(f"{self._forcing_state_file_path} does not exist.")
+
             if self._forcing_state_file_path.exists():
                 lines = self._forcing_state_file_path.read_text().split("\n")
                 t_last_change, seed0, seed1 = lines[-1].split()
