@@ -1,0 +1,17 @@
+[workspace]
+channels = ["conda-forge"]
+name = "pixi-h5py-par"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.13.*"
+openmpi = ">=5.0.8,<6"
+hdf5 = { version = "*", build = "mpi*" }
+pkgconfig = ">=1.5.5,<2"
+pip = ">=25.2,<26"
+c-compiler = ">=1.11.0,<2"
+cxx-compiler = ">=1.11.0,<2"
+fftw = { version = "*", build = "mpi*" }

@@ -60,12 +60,12 @@ def save_file(
     it,
     particular_attr=None,
 ):
-    if mpi.nb_proc >= 1 and cfg_h5py.mpi:
+    if mpi.nb_proc > 1 and cfg_h5py.mpi:
         h5py_kwargs = {"driver": "mpio", "comm": mpi.comm}
     else:
         h5py_kwargs = {}
 
-    if mpi.nb_proc >= 1 and not cfg_h5py.mpi and mpi.rank > 0:
+    if mpi.nb_proc > 1 and not cfg_h5py.mpi and mpi.rank > 0:
         File = null_context
     else:
         File = h5pack.File
