@@ -23,6 +23,18 @@ from fluidsim_core.params import iter_complete_params
 from fluidsim.base.setofvariables import SetOfVariables
 
 
+def _as_float(thing):
+    if hasattr(thing, "item"):
+        thing = thing.item()
+    return float(thing)
+
+
+def _as_int(thing):
+    if hasattr(thing, "item"):
+        thing = thing.item()
+    return int(thing)
+
+
 class InitFieldsBase:
     """Initialization of the fields (base class)."""
 
@@ -151,9 +163,6 @@ path: str
         )
 
     def __call__(self):
-        # Warning: this function is for 2d pseudo-spectral solver!
-        # We have to write something more general.
-
         params = self.sim.params
 
         path_file = params.init_fields.from_file.path
@@ -166,45 +175,43 @@ path: str
                     h5file = h5netcdf.File(path_file, "r")
                 else:
                     h5file = h5py.File(path_file, "r")
-            except Exception:
+            except Exception as exc:
                 raise ValueError(
-                    "Is file " + path_file + " really a netCDF4/HDF5 file?"
-                )
+                    f"Is file {path_file} really a netCDF4/HDF5 file?"
+                ) from exc
 
             print("Load state from file:\n[...]" + path_file[-75:])
 
             try:
                 group_oper = h5file["/info_simul/params/oper"]
-            except Exception:
+            except Exception as exc:
                 raise ValueError(
-                    "The file " + path_file + " does not contain a params object"
-                )
+                    f"The file {path_file} does not contain a params object"
+                ) from exc
 
             try:
                 group_state_phys = h5file["/state_phys"]
-            except Exception:
+            except Exception as exc:
                 raise ValueError(
-                    "The file "
-                    + path_file
-                    + " does not contain a state_phys object"
-                )
+                    f"The file {path_file} does not contain a state_phys object"
+                ) from exc
 
-            try:
+            if "axes" in h5file.attrs:
                 axes = h5file.attrs["axes"]
-                for r in axes:
+                for letter in axes:
                     # for example r can be: 'z', 'y', 'x'
-                    if hasattr(r, "decode"):
-                        r = r.decode("utf-8")
-                    nr = f"n{r}"
-                    nr_file = group_oper.attrs[nr]
+                    if hasattr(letter, "decode"):
+                        letter = letter.decode("utf-8")
+                    nr = f"n{letter}"
+                    nr_file = _as_int(group_oper.attrs[nr])
                     if params.oper[nr] != nr_file:
                         raise ValueError(
                             "this is not a correct state for this simulation\n"
                             "self.{0} != params_file.{0}".format(nr)
                         )
-                    Lr = f"L{r}"
+                    Lr = f"L{letter}"
                     try:
-                        Lr_file = group_oper.attrs[Lr]
+                        Lr_file = _as_float(group_oper.attrs[Lr])
                     except KeyError:
                         # Length may not be a parameter for eg: sphericalharmo
                         continue
@@ -216,18 +223,12 @@ path: str
                                     Lr
                                 )
                             )
-            except KeyError:
+            else:
                 # Legacy purposes: 2D specific
-                nx_file = group_oper.attrs["nx"]
-                ny_file = group_oper.attrs["ny"]
-                Lx_file = group_oper.attrs["Lx"]
-                Ly_file = group_oper.attrs["Ly"]
-
-                if isinstance(nx_file, list):
-                    nx_file = nx_file.item()
-                    ny_file = ny_file.item()
-                    Lx_file = Lx_file.item()
-                    Ly_file = Ly_file.item()
+                nx_file = _as_int(group_oper.attrs["nx"])
+                ny_file = _as_int(group_oper.attrs["ny"])
+                Lx_file = _as_float(group_oper.attrs["Lx"])
+                Ly_file = _as_float(group_oper.attrs["Ly"])
 
                 if params.oper.nx != nx_file:
                     raise ValueError(
@@ -275,9 +276,9 @@ path: str
             else:
                 state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.0))
         if mpi.rank == 0:
-            time = group_state_phys.attrs["time"]
+            time = _as_float(group_state_phys.attrs["time"])
             try:
-                it = group_state_phys.attrs["it"]
+                it = _as_int(group_state_phys.attrs["it"])
             except KeyError:
                 # compatibility with older versions
                 it = 0
