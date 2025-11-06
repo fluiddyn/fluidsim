@@ -806,9 +806,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             )
 
             if self._forcing_state_file_path.exists():
-                with open(self._forcing_state_file_path) as file:
-                    lines = file.readlines()
-
+                lines = self._forcing_state_file_path.read_text().split("\n")
                 t_last_change, seed0, seed1 = lines[-1].split()
                 self.t_last_change = float(t_last_change)
                 self._seed0 = int(seed0)
@@ -858,11 +856,10 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         if not self.params.output.HAS_TO_SAVE:
             return
 
-        with open(self._forcing_state_file_path, "w") as file:
-            file.write(
-                "# do not modify by hand\n# t_last_change seed0 seed1\n"
-                f"{self.t_last_change} {self._seed0} {self._seed1}\n"
-            )
+        self._forcing_state_file_path.write_text(
+            "# do not modify by hand\n# t_last_change seed0 seed1\n"
+            f"{self.t_last_change} {self._seed0} {self._seed1}\n"
+        )
 
     def forcingc_from_f0f1(self):
         """Return a coarse forcing as a linear combination of 2 random arrays"""
