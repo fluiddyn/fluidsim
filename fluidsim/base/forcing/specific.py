@@ -804,32 +804,27 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         super().__init__(sim)
 
         if mpi.rank == 0:
-            self._forcing_state_file_path = (
+            path_input_forcing_state = self._forcing_state_file_path = (
                 Path(sim.output.path_run) / "_forcing_state.txt"
             )
-            forcing_state_restart_file_path = Path("not existing path yet")
+
             if (
-                not self._forcing_state_file_path.exists()
+                not path_input_forcing_state.exists()
                 and sim.params.NEW_DIR_RESULTS
                 and sim.params.init_fields.from_file.path != ""
             ):
-                forcing_state_restart_file_path = (
+                path_input_forcing_state = (
                     Path(sim.params.init_fields.from_file.path).parent.parent
                     / "_forcing_state.txt"
                 )
-                if not forcing_state_restart_file_path.exists():
-                    warn(f"{forcing_state_restart_file_path} does not exist.")
-
-            if (
-                self._forcing_state_file_path.exists()
-                or forcing_state_restart_file_path.exists()
-            ):
-                if not self._forcing_state_file_path.exists():
-                    lines = forcing_state_restart_file_path.read_text().split(
-                        "\n"
+                if not path_input_forcing_state.exists():
+                    warn(
+                        "Restarting a forced simulation but file "
+                        f"{path_input_forcing_state} does not exist."
                     )
-                else:
-                    lines = self._forcing_state_file_path.read_text().split("\n")
+
+            if path_input_forcing_state.exists():
+                lines = path_input_forcing_state.read_text().split("\n")
                 t_last_change, seed0, seed1 = lines[-2].split()
                 self.t_last_change = float(t_last_change)
                 self._seed0 = int(seed0)
@@ -838,7 +833,10 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self.t_last_change = self.sim.time_stepping.t
                 self._seed0 = np.random.randint(0, 2**31)
                 self._seed1 = np.random.randint(0, 2**31)
-            self._save_state()
+                self._save_state()
+
+            if not self._forcing_state_file_path.exists():
+                self._save_state()
 
             np.random.seed(self._seed0)
             self.forcing0 = self.compute_forcingc_raw()
