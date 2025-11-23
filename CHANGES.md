@@ -23,6 +23,11 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
+## [0.8.6] (2025-11-23)
+
+- Compatibility h5netcdf 1.7
+- Fix incorrect restart for forcing time correlated
+
 ## [0.8.5] (2025-10-23)
 
 - [!427](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/427) Support for Python 3.14
@@ -347,4 +352,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.8.3]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.2...0.8.3
 [0.8.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.3...0.8.4
 [0.8.5]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.4...0.8.5
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.5...branch%2Fdefault
+[0.8.6]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.5...0.8.6
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.6...branch%2Fdefault
