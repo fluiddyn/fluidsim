@@ -14,7 +14,6 @@ from fluidsim.util.scripts.restart import main, restart
 
 
 @pytest.fixture(scope="package")
-@skip_if_no_fluidfft
 def path_simul():
     params = Simul.create_default_params()
     params.nu_2 = 1e-3
