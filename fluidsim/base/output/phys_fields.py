@@ -47,6 +47,10 @@ class PhysFieldsBase(SpecificOutput):
         params.output.periods_save._set_attrib(tag, 0)
         params.output.periods_plot._set_attrib(tag, 0)
 
+    def _compute_file_name(self, time, str_width, ext, it=None):
+        str_it = "" if it is None else f"_{it=}"
+        return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
+
     def __init__(self, output):
         params = output.sim.params
         self.output = output
@@ -159,12 +163,10 @@ class PhysFieldsBase(SpecificOutput):
             path_run.mkdir(exist_ok=True)
 
         if 0 < self.period_save < 0.001 or params.output.phys_fields.file_with_it:
-            str_it = f"_it={self.sim.time_stepping.it}"
+            it = self.sim.time_stepping.it
         else:
-            str_it = ""
-
-        name_save = f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
-
+            it = None
+        name_save = self._compute_file_name(time, str_width, ext, it)
         path_file = path_run / name_save
 
         does_path_exist = None
@@ -183,8 +185,8 @@ class PhysFieldsBase(SpecificOutput):
                 it_file = mpi.comm.bcast(it_file, root=0)
             if it_file == self.sim.time_stepping.it:
                 return
-            name_save = (
-                f"state_phys_t{time:07.3f}_it={self.sim.time_stepping.it}.{ext}"
+            name_save = self._compute_file_name(
+                time, str_width, ext, self.sim.time_stepping.it
             )
             path_file = path_run / name_save
         self.output.print_stdout("save state_phys in file " + name_save)
