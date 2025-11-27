@@ -178,13 +178,21 @@ class PhysFieldsBase(SpecificOutput):
         if does_path_exist:
             # do not save if the file corresponds to the same it
             it_file = None
+            time_file = None
             if mpi.rank == 0:
                 with h5pack.File(str(path_file), "r") as file:
                     it_file = file["state_phys"].attrs["it"]
+                    time_file = file["state_phys"].attrs["time"]
             if mpi.nb_proc > 1:
                 it_file = mpi.comm.bcast(it_file, root=0)
+                time_file = mpi.comm.bcast(time_file, root=0)
             if it_file == self.sim.time_stepping.it:
                 return
+            self.output.print_stdout(
+                f"warning: {path_file} exists but different it.\n"
+                f"  {it_file = }\n  sim.time_stepping.it = {self.sim.time_stepping.it}\n"
+                f"  {time_file = }\n  sim.time_stepping.time = {self.sim.time_stepping.it}"
+            )
             name_save = self._compute_file_name(
                 time, str_width, ext, self.sim.time_stepping.it
             )
