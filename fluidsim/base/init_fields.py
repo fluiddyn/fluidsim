@@ -180,7 +180,9 @@ path: str
                     f"Is file {path_file} really a netCDF4/HDF5 file?"
                 ) from exc
 
-            print("Load state from file:\n[...]" + path_file[-75:])
+            self.sim.output.print_stdout(
+                "Load state from file:\n[...]" + path_file[-75:]
+            )
 
             try:
                 group_oper = h5file["/info_simul/params/oper"]
