@@ -9,13 +9,11 @@ Provides:
 
 """
 
-import os
 from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 import h5py
-import h5netcdf
 
 from fluiddyn.util import mpi
 from fluiddyn.util.paramcontainer import ParamContainer
@@ -172,10 +170,7 @@ path: str
 
         if mpi.rank == 0:
             try:
-                if os.path.splitext(path_file)[1] == ".nc":
-                    h5file = h5netcdf.File(path_file, "r")
-                else:
-                    h5file = h5py.File(path_file, "r")
+                h5file = h5py.File(path_file, "r")
             except Exception as exc:
                 raise ValueError(
                     f"Is file {path_file} really a netCDF4/HDF5 file?"
