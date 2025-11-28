@@ -75,8 +75,6 @@ endef
 
 define _end_coverage
 	coverage html
-	@echo "Code coverage analysis complete. View detailed report:"
-	@echo "file://${PWD}/.coverage/index.html"
 endef
 
 define _end_coverage_combine
@@ -88,7 +86,7 @@ coverage_short:
 	$(call _init_coverage)
 	coverage run -p -m pytest -v -s lib
 	TRANSONIC_NO_REPLACE=1 coverage run -p -m fluidsim.util.testing -v -x
-	make _report_coverage
+	$(call _end_coverage_combine)
 
 pytest_cov_html:
 	$(call _init_coverage)
