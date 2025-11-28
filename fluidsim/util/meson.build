@@ -2,9 +2,10 @@ python_sources = [
   '__init__.py',
   'frequency_modulation.py',
   'mini_oper_modif_resol.py',
-  'output.py',
+  'phys_fields.py',
   'testing.py',
   'test_util.py',
+  'test_phys_fields.py',
   'util.py',
 ]
 

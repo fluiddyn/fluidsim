@@ -27,7 +27,13 @@ from fluiddyn.util import mpi
 
 from fluidsim_core.output.phys_fields import SetOfPhysFieldFilesBase
 
-from fluidsim.util.output import save_file, h5pack, ext
+from fluidsim.util.phys_fields import (
+    save_file,
+    h5pack,
+    ext,
+    compute_file_name,
+    time_from_path,
+)
 
 from .base import SpecificOutput
 
@@ -46,10 +52,6 @@ class PhysFieldsBase(SpecificOutput):
 
         params.output.periods_save._set_attrib(tag, 0)
         params.output.periods_plot._set_attrib(tag, 0)
-
-    def _compute_file_name(self, time, str_width, ext, it=None):
-        str_it = "" if it is None else f"_{it=}"
-        return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
     def __init__(self, output):
         params = output.sim.params
@@ -166,7 +168,7 @@ class PhysFieldsBase(SpecificOutput):
             it = self.sim.time_stepping.it
         else:
             it = None
-        name_save = self._compute_file_name(time, str_width, ext, it)
+        name_save = compute_file_name(time, str_width, ext, it)
         path_file = path_run / name_save
 
         does_path_exist = None
@@ -193,7 +195,7 @@ class PhysFieldsBase(SpecificOutput):
                 f"  {it_file = }\n  sim.time_stepping.it = {self.sim.time_stepping.it}\n"
                 f"  {time_file = }\n  sim.time_stepping.time = {self.sim.time_stepping.it}"
             )
-            name_save = self._compute_file_name(
+            name_save = compute_file_name(
                 time, str_width, ext, self.sim.time_stepping.it
             )
             path_file = path_run / name_save
@@ -332,20 +334,6 @@ class PhysFieldsBase(SpecificOutput):
 
     def _get_grid1d_seq(self, axis):
         return self.oper.get_grid1d_seq(axis)
-
-
-def time_from_path(path):
-    """Regular expression search to extract time from filename."""
-    filename = os.path.basename(path)
-    pattern = r"""
-        (?!t)     # text after t but exclude it
-        [0-9]+    # a couple of digits
-        \.        # the decimal point
-        [0-9]+    # a couple of digits
-    """
-    match = re.search(pattern, filename, re.VERBOSE)
-    time = float(match.group(0))
-    return time
 
 
 class SetOfPhysFieldFiles(SetOfPhysFieldFilesBase):

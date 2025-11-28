@@ -7,6 +7,7 @@ Provides:
    :toctree:
 
    util
+   phys_fields
    testing
    console
    scripts

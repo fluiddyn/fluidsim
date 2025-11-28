@@ -1,5 +1,10 @@
+"""Utilities for physical fields files"""
+
 import datetime
+import os
+import re
 from contextlib import contextmanager
+from pathlib import Path
 
 import numpy as np
 import h5py
@@ -134,3 +139,75 @@ def save_file(
         gf_params = gp_info["params"]
         gf_params.attrs["SAVE"] = 1
         gf_params.attrs["NEW_DIR_RESULTS"] = 1
+
+
+def compute_file_name(time, str_width, ext, it=None):
+    """Compute the file name from time and co"""
+    str_it = "" if it is None else f"_{it=}"
+    return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
+
+
+def time_from_path(path):
+    """Regular expression search to extract time from filename."""
+    filename = os.path.basename(path)
+    pattern = r"""
+        (?!t)     # text after t but exclude it
+        [0-9]+    # a couple of digits
+        \.        # the decimal point
+        [0-9]+    # a couple of digits
+    """
+    match = re.search(pattern, filename, re.VERBOSE)
+    time = float(match.group(0))
+    return time
+
+
+def name_file_from_time_approx(path_dir, t_approx=None):
+    """Return the file name whose time is the closest to the given time.
+
+    Parameters
+    ----------
+
+    path_dir: Path or str
+
+      Path of the directory of the simulation.
+
+    t_approx : number or "last" (optional)
+
+      Approximate time of the file to be loaded.
+
+    .. todo::
+
+        Can be elegantly implemented using regex as done in
+        ``fluidsim.base.output.phys_fields.time_from_path``
+
+    """
+    if not isinstance(path_dir, Path):
+        path_dir = Path(path_dir)
+
+    path_files = sorted(path_dir.glob("state_phys_t*"))
+
+    nb_files = len(path_files)
+    if nb_files == 0 and mpi.rank == 0:
+        raise ValueError("No state file in the dir\n" + str(path_dir))
+
+    if t_approx is None:
+        # should be the last one but not 100% sure
+        return path_files[-1].name
+
+    name_files = [path.name for path in path_files]
+    if "state_phys_t=" in name_files[0]:
+        ind_start_time = len("state_phys_t=")
+    else:
+        ind_start_time = len("state_phys_t")
+
+    times = np.empty([nb_files])
+    for ii, name in enumerate(name_files):
+        tmp = ".".join(name[ind_start_time:].split(".")[:2])
+        if "_" in tmp:
+            tmp = tmp[: tmp.index("_")]
+        times[ii] = float(tmp)
+    if t_approx == "last":
+        t_approx = times.max()
+    i_file = abs(times - t_approx).argmin()
+    name_file = path_files[i_file].name
+    return name_file
