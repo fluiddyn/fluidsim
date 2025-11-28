@@ -15,6 +15,8 @@ Provides:
 
 import numpy as np
 
+from fluiddyn.util.paramcontainer import ParamContainer
+
 from fluidsim.base.setofvariables import SetOfVariables
 
 
@@ -70,6 +72,7 @@ class StateBase:
         self.it_computed = {}
 
         self.is_initialized = False
+        self.state_params = None
 
     def compute(self, key):
         """Compute a not stored variable from the stored variables"""
@@ -203,6 +206,12 @@ class StateBase:
                 )
 
             self.state_phys.set_var(key, value)
+
+    def get_state_params(self):
+        """Get a ParamContainer to store state parameters"""
+        if self.state_params is None:
+            self.state_params = ParamContainer(tag="state_params")
+        return self.state_params
 
 
 class StatePseudoSpectral(StateBase):

@@ -18,6 +18,7 @@ import h5py
 import h5netcdf
 
 from fluiddyn.util import mpi
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidsim_core.params import iter_complete_params
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -197,6 +198,11 @@ path: str
                 raise ValueError(
                     f"The file {path_file} does not contain a state_phys object"
                 ) from exc
+
+            if "state_params" in h5file:
+                self.sim.state.state_params = ParamContainer(
+                    hdf5_object=h5file["/state_params"]
+                )
 
             if "axes" in h5file.attrs:
                 axes = h5file.attrs["axes"]

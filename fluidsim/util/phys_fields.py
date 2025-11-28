@@ -64,6 +64,7 @@ def save_file(
     time,
     it,
     particular_attr=None,
+    state_params=None,
 ):
     if mpi.nb_proc > 1 and cfg_h5py.mpi:
         h5py_kwargs = {"driver": "mpio", "comm": mpi.comm}
@@ -139,6 +140,9 @@ def save_file(
         gf_params = gp_info["params"]
         gf_params.attrs["SAVE"] = 1
         gf_params.attrs["NEW_DIR_RESULTS"] = 1
+
+        if state_params is not None:
+            state_params._save_as_hdf5(hdf5_parent=h5file)
 
 
 def compute_file_name(time, str_width, ext, it=None):

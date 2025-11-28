@@ -25,6 +25,7 @@ import fluiddyn as fld
 from fluiddyn.io.redirect_stdout import stdout_redirected
 from fluiddyn.util import mpi
 from fluiddyn.util import get_memory_usage
+from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidsim_core import loader
 from fluidsim_core.output.dataframe_from_paths import DataframeMaker
@@ -496,6 +497,11 @@ def modif_resolution_from_dir_memory_efficient(
     with h5py.File(path_file, "r") as h5file:
         params = Parameters(hdf5_object=h5file["/info_simul/params"])
 
+        if "state_params" in h5file:
+            state_params = ParamContainer(hdf5_object=h5file["/state_params"])
+        else:
+            state_params = None
+
     try:
         params.oper.type_fft = "default"
         params.oper.type_fft2d = "sequential"
@@ -548,6 +554,7 @@ def modif_resolution_from_dir_memory_efficient(
         state_phys.time,
         state_phys.it,
         particular_attr="modif_resolution",
+        state_params=state_params,
     )
     print(
         f"File {path_file_out.name} saved in:\n{path_file_out.parent}\n"
