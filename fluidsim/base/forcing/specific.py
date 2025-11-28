@@ -220,7 +220,7 @@ class SpecificForcingPseudoSpectralCoarse(SpecificForcing):
             except NotImplementedError:
                 pass
             else:
-                mpi.printby0(
+                self.sim.output.print_stdout_delayed_after_init(
                     "To plot the forcing modes, you can use:\n"
                     "sim.forcing.forcing_maker.plot_forcing_region()"
                 )

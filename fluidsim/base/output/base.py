@@ -206,8 +206,6 @@ are called.
 
     def post_init(self):
         sim = self.sim
-        super().post_init()
-
         if mpi.rank == 0:
             # print info on the run
             if hasattr(sim.params.time_stepping, "type_time_scheme"):
@@ -220,25 +218,20 @@ are called.
                 specifications += "sequential,\n"
             else:
                 specifications += f"parallel ({mpi.nb_proc} proc.)\n"
-            self.print_stdout(
-                "\nsolver "
-                + self.name_solver
-                + ", "
-                + specifications
+            text = (
+                f"\nsolver {self.name_solver}, {specifications}"
                 + self.oper.produce_long_str_describing_oper()
-                + "path_run =\n"
-                + self.path_run
-                + "\n"
-                + "init_fields.type: "
-                + sim.params.init_fields.type
-                + "\n"
+                + f"path_run =\n{self.path_run}\n"
+                f"init_fields.type: {sim.params.init_fields.type}"
             )
-
             if hasattr(self.sim, "produce_str_describing_params"):
-                self.print_stdout(
-                    "Important parameters: \n"
+                text += (
+                    "\nImportant parameters: \n"
                     + self.sim.produce_str_describing_params()
                 )
+            self.print_stdout_delayed_after_init(text, insert=0)
+
+        super().post_init()
 
         if sim.state.is_initialized:
             if hasattr(sim, "forcing") and not sim.forcing.is_initialized():
@@ -279,7 +272,7 @@ are called.
         if hasattr(self.sim, "forcing") and params.output.HAS_TO_SAVE:
             self.sim.forcing.compute()
 
-        self.print_stdout("Initialization outputs:")
+        self.print_stdout("\nInitialization outputs:")
 
         self.print_stdout.complete_init_with_state()
 
@@ -295,7 +288,7 @@ are called.
         for Class in classes:
             if mpi.rank == 0:
                 self.print_stdout(
-                    f"{'sim.output.' + Class._tag + ':':30s}" + str(Class)
+                    f"{'sim.output.' + Class._tag + ':':35s}" + str(Class)
                 )
             self.__dict__[Class._tag] = Class(self)
 
