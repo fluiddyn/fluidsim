@@ -804,39 +804,51 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         super().__init__(sim)
 
         if mpi.rank == 0:
-            path_input_forcing_state = self._forcing_state_file_path = (
-                Path(sim.output.path_run) / "_forcing_state.txt"
-            )
-
+            state_params = sim.state.state_params
             if (
-                not path_input_forcing_state.exists()
-                and sim.params.NEW_DIR_RESULTS
-                and sim.params.init_fields.from_file.path != ""
+                state_params is None
+                or "forcing" not in state_params._tag_children
             ):
-                path_input_forcing_state = (
-                    Path(sim.params.init_fields.from_file.path).parent.parent
-                    / "_forcing_state.txt"
+                state_params = sim.state.get_state_params()
+                state_params._set_child(
+                    "forcing",
+                    attribs={"t_last_change": None, "seed0": None, "seed1": None},
                 )
-                if not path_input_forcing_state.exists():
-                    warn(
-                        "Restarting a forced simulation but file "
-                        f"{path_input_forcing_state} does not exist."
-                    )
 
-            if path_input_forcing_state.exists():
-                lines = path_input_forcing_state.read_text().split("\n")
-                t_last_change, seed0, seed1 = lines[-2].split()
-                self.t_last_change = float(t_last_change)
-                self._seed0 = int(seed0)
-                self._seed1 = int(seed1)
+                # _forcing_state.txt is an old format (<=0.8.6)
+                # this code is a bit complicated because we try to continue to
+                # load correctly simulations using it.
+                self.t_last_change = None
+                path_input_forcing_state = (
+                    Path(sim.output.path_run) / "_forcing_state.txt"
+                )
+                if (
+                    not path_input_forcing_state.exists()
+                    and sim.params.NEW_DIR_RESULTS
+                    and sim.params.init_fields.from_file.path != ""
+                ):
+                    path_input_forcing_state = (
+                        Path(sim.params.init_fields.from_file.path).parent.parent
+                        / "_forcing_state.txt"
+                    )
+                if path_input_forcing_state.exists():
+                    lines = path_input_forcing_state.read_text().split("\n")
+                    t_last_change, seed0, seed1 = lines[-2].split()
+                    self.t_last_change = float(t_last_change)
+                    self._seed0 = int(seed0)
+                    self._seed1 = int(seed1)
+                    self._update_sim_state()
             else:
+                p_forcing = state_params.forcing
+                self.t_last_change = p_forcing.t_last_change
+                self._seed0 = p_forcing.seed0
+                self._seed1 = p_forcing.seed1
+
+            if self.t_last_change is None:
                 self.t_last_change = self.sim.time_stepping.t
                 self._seed0 = np.random.randint(0, 2**31)
                 self._seed1 = np.random.randint(0, 2**31)
-                self._save_state()
-
-            if not self._forcing_state_file_path.exists():
-                self._save_state()
+                self._update_sim_state()
 
             np.random.seed(self._seed0)
             self.forcing0 = self.compute_forcingc_raw()
@@ -868,19 +880,16 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
             self._seed1 = np.random.randint(0, 2**31)
             np.random.seed(self._seed1)
             self.forcing1 = self.compute_forcingc_raw()
-            self._save_state()
+            self._update_sim_state()
 
         f_fft = self.forcingc_from_f0f1()
         return f_fft
 
-    def _save_state(self):
-        if not self.params.output.HAS_TO_SAVE:
-            return
-
-        self._forcing_state_file_path.write_text(
-            "# do not modify by hand\n# t_last_change seed0 seed1\n"
-            f"{self.t_last_change} {self._seed0} {self._seed1}\n"
-        )
+    def _update_sim_state(self):
+        p_forcing = self.sim.state.state_params.forcing
+        p_forcing.t_last_change = self.t_last_change
+        p_forcing.seed0 = self._seed0
+        p_forcing.seed1 = self._seed1
 
     def forcingc_from_f0f1(self):
         """Return a coarse forcing as a linear combination of 2 random arrays"""
