@@ -17,7 +17,7 @@ from time import sleep
 
 import fluiddyn
 from fluiddyn.io import FLUIDDYN_PATH_SCRATCH, FLUIDSIM_PATH
-from fluiddyn.util import time_as_str, mpi
+from fluiddyn.util import time_as_str, mpi, is_run_from_ipython
 
 from fluidsim_core import __version__
 
@@ -171,6 +171,9 @@ class OutputCore(ABC):
         self._has_to_save = self.params.HAS_TO_SAVE
         #: Alias for solver short-name
         self.name_solver = sim.info.solver.short_name
+
+        self._messages_to_be_printed_after_init = []
+        self._delayed_print_done = False
 
         # initialisation name_run and path_run
         if mpi.rank == 0:
@@ -327,22 +330,44 @@ Warning: params.NEW_DIR_RESULTS is False but the resolutions of the simulation
             self.summary_simul,
         ) = self._sim_repr_maker.make_representations()
 
-    @abstractmethod
+    def print_stdout_delayed_after_init(self, line, insert=None):
+        """record a line that is going to be printed after init"""
+
+        if self._delayed_print_done:
+            raise RuntimeError(
+                "Cannot add after post_init lines to be printed after init."
+            )
+        if insert is None:
+            self._messages_to_be_printed_after_init.append(line)
+        else:
+            self._messages_to_be_printed_after_init.insert(insert, line)
+
+    def _post_init_make_dict_objects_to_print(self):
+        sim = self.sim
+        return {
+            "sim": sim,
+            "sim.output": sim.output,
+        }
+
     def post_init(self):
         """Execute once the sim object is injected with all child classes.
         Typically used to print descriptive initialization messages.
 
         """
-        sim = self.sim
-
         if mpi.rank == 0:
-            objects_to_print = {
-                "sim": sim,
-                "sim.output": sim.output,
-            }
-
-            for key, obj in objects_to_print.items():
+            for key, obj in self._post_init_make_dict_objects_to_print().items():
                 self.print_stdout(f"{key + ': ':20s}" + str(obj.__class__))
+
+            if self._messages_to_be_printed_after_init:
+                self.print_stdout(
+                    "\n\n".join(self._messages_to_be_printed_after_init)
+                )
+
+            if is_run_from_ipython():
+                import matplotlib.pyplot as plt
+
+                plt.ion()
+
         self._save_info_solver_params_xml()
 
     def _save_info_solver_params_xml(self, replace=False, comment=""):

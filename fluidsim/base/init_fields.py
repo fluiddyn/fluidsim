@@ -180,8 +180,8 @@ path: str
                     f"Is file {path_file} really a netCDF4/HDF5 file?"
                 ) from exc
 
-            self.sim.output.print_stdout(
-                "Load state from file:\n[...]" + path_file[-75:]
+            self.sim.output.print_stdout_delayed_after_init(
+                "Load state from file:\n[...]" + path_file[-90:]
             )
 
             try:

@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 import fluiddyn
 from fluiddyn.util import mpi
-from fluiddyn.util import is_run_from_ipython, print_memory_usage
+from fluiddyn.util import print_memory_usage
 from fluiddyn.io import FLUIDSIM_PATH, Path
 from fluidsim_core.output import OutputCore, SimReprMakerCore
 from fluidsim_core.params import iter_complete_params
@@ -187,27 +187,26 @@ are called.
         )
         self.post_init()
 
-    def post_init(self):
+    def _post_init_make_dict_objects_to_print(self):
         sim = self.sim
-        super().post_init()
-
-        if mpi.rank == 0:
-            objects_to_print = {
+        objects_to_print = super()._post_init_make_dict_objects_to_print()
+        objects_to_print.update(
+            {
                 "sim.oper": sim.oper,
                 "sim.state": sim.state,
                 "sim.time_stepping": sim.time_stepping,
                 "sim.init_fields": sim.init_fields,
             }
+        )
+        if hasattr(sim, "forcing"):
+            objects_to_print["sim.forcing"] = sim.forcing
+        if hasattr(sim, "preprocess"):
+            objects_to_print["sim.preprocess"] = sim.preprocess
+        return objects_to_print
 
-            if hasattr(sim, "forcing"):
-                objects_to_print["sim.forcing"] = sim.forcing
-
-            if hasattr(sim, "preprocess"):
-                objects_to_print["sim.preprocess"] = sim.preprocess
-
-            for key, obj in objects_to_print.items():
-                self.print_stdout(f"{key + ': ':20s}" + str(obj.__class__))
-
+    def post_init(self):
+        sim = self.sim
+        if mpi.rank == 0:
             # print info on the run
             if hasattr(sim.params.time_stepping, "type_time_scheme"):
                 specifications = (
@@ -219,28 +218,20 @@ are called.
                 specifications += "sequential,\n"
             else:
                 specifications += f"parallel ({mpi.nb_proc} proc.)\n"
-            self.print_stdout(
-                "\nsolver "
-                + self.name_solver
-                + ", "
-                + specifications
+            text = (
+                f"\nsolver {self.name_solver}, {specifications}"
                 + self.oper.produce_long_str_describing_oper()
-                + "path_run =\n"
-                + self.path_run
-                + "\n"
-                + "init_fields.type: "
-                + sim.params.init_fields.type
-                + "\n"
+                + f"path_run =\n{self.path_run}\n"
+                f"init_fields.type: {sim.params.init_fields.type}"
             )
-
             if hasattr(self.sim, "produce_str_describing_params"):
-                self.print_stdout(
-                    "Important parameters: \n"
+                text += (
+                    "\nImportant parameters: \n"
                     + self.sim.produce_str_describing_params()
                 )
+            self.print_stdout_delayed_after_init(text, insert=0)
 
-        if mpi.rank == 0 and is_run_from_ipython():
-            plt.ion()
+        super().post_init()
 
         if sim.state.is_initialized:
             if hasattr(sim, "forcing") and not sim.forcing.is_initialized():
@@ -281,7 +272,7 @@ are called.
         if hasattr(self.sim, "forcing") and params.output.HAS_TO_SAVE:
             self.sim.forcing.compute()
 
-        self.print_stdout("Initialization outputs:")
+        self.print_stdout("\nInitialization outputs:")
 
         self.print_stdout.complete_init_with_state()
 
@@ -297,7 +288,7 @@ are called.
         for Class in classes:
             if mpi.rank == 0:
                 self.print_stdout(
-                    f"{'sim.output.' + Class._tag + ':':30s}" + str(Class)
+                    f"{'sim.output.' + Class._tag + ':':35s}" + str(Class)
                 )
             self.__dict__[Class._tag] = Class(self)
 
