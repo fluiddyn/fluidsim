@@ -2,7 +2,10 @@ import unittest
 
 from pathlib import Path
 
+import h5py
+
 from fluiddyn.util import mpi
+from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidsim.util.testing import skip_if_no_fluidfft
 from fluidsim.util.scripts.test_restart import path_simul
@@ -24,4 +27,10 @@ def test_with_path_file(path_simul):
     path_last_time = str(sorted(path_simul.glob("state_phys*"))[-1])
     args = [path_last_time, "3/2"]
     main(args)
-    assert list(path_simul.glob("State_phys_18x18/state_phys_t*"))
+
+    paths = list(path_simul.glob("State_phys_18x18/state_phys_t*"))
+    assert paths
+
+    with h5py.File(paths[0], "r") as file:
+        state_params = ParamContainer(hdf5_object=file["/state_params"])
+    assert state_params.a_tag.coef0 == 1.0
