@@ -9,15 +9,14 @@ Provides:
 
 """
 
-import os
 from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 import h5py
-import h5netcdf
 
 from fluiddyn.util import mpi
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidsim_core.params import iter_complete_params
 
 from fluidsim.base.setofvariables import SetOfVariables
@@ -171,10 +170,7 @@ path: str
 
         if mpi.rank == 0:
             try:
-                if os.path.splitext(path_file)[1] == ".nc":
-                    h5file = h5netcdf.File(path_file, "r")
-                else:
-                    h5file = h5py.File(path_file, "r")
+                h5file = h5py.File(path_file, "r")
             except Exception as exc:
                 raise ValueError(
                     f"Is file {path_file} really a netCDF4/HDF5 file?"
@@ -197,6 +193,11 @@ path: str
                 raise ValueError(
                     f"The file {path_file} does not contain a state_phys object"
                 ) from exc
+
+            if "state_params" in h5file:
+                self.sim.state.state_params = ParamContainer(
+                    hdf5_object=h5file["/state_params"]
+                )
 
             if "axes" in h5file.attrs:
                 axes = h5file.attrs["axes"]

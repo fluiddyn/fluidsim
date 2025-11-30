@@ -103,6 +103,13 @@ class TestForcingOutput(TestSimulBase):
                 path_run = mpi.comm.bcast(path_run)
 
             sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
+            assert (
+                sim3.state.state_params.forcing == sim.state.state_params.forcing
+            )
+            assert (
+                sim3.forcing.forcing_maker._seed0
+                == sim.forcing.forcing_maker._seed0
+            )
             sim3.params.time_stepping.t_end += 0.2
             sim3.time_stepping.start()
 

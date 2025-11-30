@@ -210,6 +210,7 @@ class PhysFieldsBase(SpecificOutput):
             time,
             self.sim.time_stepping.it,
             particular_attr,
+            state_params=self.sim.state.state_params,
         )
 
     def get_field_to_plot(

@@ -30,6 +30,9 @@ def path_simul():
 
     sim = Simul(params)
 
+    state_params = sim.state.get_state_params()
+    state_params._set_child("a_tag", attribs={"coef0": 1.0, "coef1": 2.0})
+
     sim.time_stepping.start()
 
     yield sim.output.path_run
