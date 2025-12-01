@@ -56,3 +56,6 @@ def test_name_file_from_time_approx(path_dir_with_files):
 
     name_file = name_file_from_time_approx(path_dir, t_approx=0.0034)
     assert name_file == "state_phys_t000.003_it8.h5", name_file
+
+    name_file_last = name_file_from_time_approx(path_dir, t_approx="last")
+    assert name_file_last == "state_phys_t000.004_it10.h5"

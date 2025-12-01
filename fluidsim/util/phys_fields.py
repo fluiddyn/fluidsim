@@ -197,9 +197,7 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     t_approx : number or "last" (optional)
 
       Approximate time of the file to be loaded.
-
       If "last", use the last time.
-
       If None, just return the last file name (sorted in alphabetic order).
 
     """
@@ -218,11 +216,11 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
     # the time are read from the files if at least one of the name contains "_it"
     exact = any("_it" in path.name for path in path_files)
-    times = np.array([time_from_path(path, exact=exact) for path in path_files])
+    times = [time_from_path(path, exact=exact) for path in path_files]
 
     if t_approx == "last":
-        t_approx = times.max()
-
-    i_file = abs(times - t_approx).argmin()
-    name_file = path_files[i_file].name
-    return name_file
+        path_file = max(zip(times, path_files))[1]
+    else:
+        i_file = abs(np.array(times) - t_approx).argmin()
+        path_file = path_files[i_file]
+    return path_file.name
