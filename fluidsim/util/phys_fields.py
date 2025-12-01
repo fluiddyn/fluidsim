@@ -147,7 +147,7 @@ def save_file(
 
 def compute_file_name(time, str_width, ext, it=None):
     """Compute the file name from time and co"""
-    str_it = "" if it is None else f"_{it=}"
+    str_it = "" if it is None else f"_it{it}"
     return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
 

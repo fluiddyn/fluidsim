@@ -593,7 +593,7 @@ def times_start_last_from_path(path):
         if last_line.startswith("save state_phys"):
             name_file = last_line.split()[-1]
             name_file, ext = os.path.splitext(name_file)
-            word = name_file.split("_it=")[0].split("state_phys_t")[-1]
+            word = name_file.split("_it")[0].split("state_phys_t")[-1]
             t_last = float(word.replace(ext, ""))
         else:
             words = line_it.split()

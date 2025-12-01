@@ -47,6 +47,6 @@ def test_name_file_from_time_approx(path_dir_with_files):
     path_dir = path_dir_with_files
 
     name_file_last = name_file_from_time_approx(path_dir)
-    assert name_file_last == "state_phys_t000.004_it=10.h5"
+    assert name_file_last == "state_phys_t000.004_it10.h5"
 
     # TODO: add assert statements to get bugs!
