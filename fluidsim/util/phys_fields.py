@@ -184,6 +184,9 @@ def time_from_path(path, exact=False):
 def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
 
+    Warning: for parallel runs and if ``t_approx is not None``, it is safer
+    to only call this function by one process.
+
     Parameters
     ----------
 
@@ -195,10 +198,9 @@ def name_file_from_time_approx(path_dir, t_approx=None):
 
       Approximate time of the file to be loaded.
 
-    .. todo::
+      If "last", use the last time.
 
-        Can be elegantly implemented using regex as done in
-        ``fluidsim.base.output.phys_fields.time_from_path``
+      If None, just return the last file name (sorted in alphabetic order).
 
     """
     if not isinstance(path_dir, Path):
@@ -214,20 +216,13 @@ def name_file_from_time_approx(path_dir, t_approx=None):
         # should be the last one but not 100% sure
         return path_files[-1].name
 
-    name_files = [path.name for path in path_files]
-    if "state_phys_t=" in name_files[0]:
-        ind_start_time = len("state_phys_t=")
-    else:
-        ind_start_time = len("state_phys_t")
+    # the time are read from the files if at least one of the name contains "_it"
+    exact = any("_it" in path.name for path in path_files)
+    times = np.array([time_from_path(path, exact=exact) for path in path_files])
 
-    times = np.empty([nb_files])
-    for ii, name in enumerate(name_files):
-        tmp = ".".join(name[ind_start_time:].split(".")[:2])
-        if "_" in tmp:
-            tmp = tmp[: tmp.index("_")]
-        times[ii] = float(tmp)
     if t_approx == "last":
         t_approx = times.max()
+
     i_file = abs(times - t_approx).argmin()
     name_file = path_files[i_file].name
     return name_file
