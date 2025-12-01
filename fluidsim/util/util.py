@@ -279,10 +279,16 @@ def _path_file_from_time_approx(thing, t_approx):
     if thing is not None and Path(thing).is_file():
         path_file = Path(thing)
     else:
-        path_dir = pathdir_from_namedir(thing)
+        path_dir = Path(pathdir_from_namedir(thing))
         # choose the file with the time closer to t_approx
-        name_file = name_file_from_time_approx(path_dir, t_approx)
-        path_file = Path(path_dir) / name_file
+        if mpi.rank == 0:
+            name_file = name_file_from_time_approx(path_dir, t_approx)
+        else:
+            name_file = None
+        if mpi.nb_proc > 1:
+            name_file = mpi.comm.bcast(name_file, root=0)
+
+        path_file = path_dir / name_file
     return path_file
 
 
