@@ -151,6 +151,10 @@ def compute_file_name(time, str_width, ext, it=None):
     return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
 
+# Module-level variable, compiled on first use
+_TIME_PATTERN = None
+
+
 def time_from_path(path, exact=False):
     """Regular expression search to extract time from filename."""
 
@@ -159,14 +163,20 @@ def time_from_path(path, exact=False):
             time = file.attrs["time"]
         return time
 
+    global _TIME_PATTERN
+    if _TIME_PATTERN is None:
+        _TIME_PATTERN = re.compile(
+            r"""
+            (?!t)     # text after t but exclude it
+            [0-9]+    # a couple of digits
+            \.        # the decimal point
+            [0-9]+    # a couple of digits
+            """,
+            re.VERBOSE,
+        )
+
     filename = os.path.basename(path)
-    pattern = r"""
-        (?!t)     # text after t but exclude it
-        [0-9]+    # a couple of digits
-        \.        # the decimal point
-        [0-9]+    # a couple of digits
-    """
-    match = re.search(pattern, filename, re.VERBOSE)
+    match = _TIME_PATTERN.search(filename)
     time = float(match.group(0))
     return time
 
