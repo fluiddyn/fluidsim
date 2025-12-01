@@ -147,26 +147,45 @@ def save_file(
 
 def compute_file_name(time, str_width, ext, it=None):
     """Compute the file name from time and co"""
-    str_it = "" if it is None else f"_{it=}"
+    str_it = "" if it is None else f"_it{it}"
     return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
 
-def time_from_path(path):
+# Module-level variable, compiled on first use
+_TIME_PATTERN = None
+
+
+def time_from_path(path, exact=False):
     """Regular expression search to extract time from filename."""
+
+    if exact:
+        with h5py.File(path, "r") as file:
+            time = file.attrs["time"]
+        return time
+
+    global _TIME_PATTERN
+    if _TIME_PATTERN is None:
+        _TIME_PATTERN = re.compile(
+            r"""
+            (?!t)     # text after t but exclude it
+            [0-9]+    # a couple of digits
+            \.        # the decimal point
+            [0-9]+    # a couple of digits
+            """,
+            re.VERBOSE,
+        )
+
     filename = os.path.basename(path)
-    pattern = r"""
-        (?!t)     # text after t but exclude it
-        [0-9]+    # a couple of digits
-        \.        # the decimal point
-        [0-9]+    # a couple of digits
-    """
-    match = re.search(pattern, filename, re.VERBOSE)
+    match = _TIME_PATTERN.search(filename)
     time = float(match.group(0))
     return time
 
 
 def name_file_from_time_approx(path_dir, t_approx=None):
     """Return the file name whose time is the closest to the given time.
+
+    Warning: for parallel runs and if ``t_approx is not None``, it is safer
+    to only call this function by one process.
 
     Parameters
     ----------
@@ -178,11 +197,8 @@ def name_file_from_time_approx(path_dir, t_approx=None):
     t_approx : number or "last" (optional)
 
       Approximate time of the file to be loaded.
-
-    .. todo::
-
-        Can be elegantly implemented using regex as done in
-        ``fluidsim.base.output.phys_fields.time_from_path``
+      If "last", use the last time.
+      If None, just return the last file name (sorted in alphabetic order).
 
     """
     if not isinstance(path_dir, Path):
@@ -198,20 +214,13 @@ def name_file_from_time_approx(path_dir, t_approx=None):
         # should be the last one but not 100% sure
         return path_files[-1].name
 
-    name_files = [path.name for path in path_files]
-    if "state_phys_t=" in name_files[0]:
-        ind_start_time = len("state_phys_t=")
-    else:
-        ind_start_time = len("state_phys_t")
+    # the time are read from the files if at least one of the name contains "_it"
+    exact = any("_it" in path.name for path in path_files)
+    times = [time_from_path(path, exact=exact) for path in path_files]
 
-    times = np.empty([nb_files])
-    for ii, name in enumerate(name_files):
-        tmp = ".".join(name[ind_start_time:].split(".")[:2])
-        if "_" in tmp:
-            tmp = tmp[: tmp.index("_")]
-        times[ii] = float(tmp)
     if t_approx == "last":
-        t_approx = times.max()
-    i_file = abs(times - t_approx).argmin()
-    name_file = path_files[i_file].name
-    return name_file
+        path_file = max(zip(times, path_files))[1]
+    else:
+        i_file = abs(np.array(times) - t_approx).argmin()
+        path_file = path_files[i_file]
+    return path_file.name
