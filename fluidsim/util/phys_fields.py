@@ -151,8 +151,14 @@ def compute_file_name(time, str_width, ext, it=None):
     return f"state_phys_t{time:0{str_width}.3f}{str_it}.{ext}"
 
 
-def time_from_path(path):
+def time_from_path(path, exact=False):
     """Regular expression search to extract time from filename."""
+
+    if exact:
+        with h5py.File(path, "r") as file:
+            time = file.attrs["time"]
+        return time
+
     filename = os.path.basename(path)
     pattern = r"""
         (?!t)     # text after t but exclude it

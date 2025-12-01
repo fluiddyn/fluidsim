@@ -38,7 +38,9 @@ def test_time_from_path(path_dir_with_files):
     paths = sorted(path_dir_with_files.glob("*.h5"))
     for it, path in enumerate(paths):
         t_from_path = time_from_path(path)
-        assert t_from_path == round(it * dt, 3), (path.name, t_from_path, it * dt)
+        assert t_from_path == round(it * dt, 3)
+        t_exact_from_path = time_from_path(path, exact=True)
+        assert t_exact_from_path == it * dt
 
 
 def test_name_file_from_time_approx(path_dir_with_files):
