@@ -35,9 +35,9 @@
         (uri
           (hg-reference
             (url "https://foss.heptapod.net/fluiddyn/fluidsim")
-            (changeset "6f5e30d44497")))
+            (changeset "dc37c60a95eb")))
         (sha256
-          (base32 "1xgnwamyv9pzchwmrmvxaky813zxzicgwh6bh1r281wc5qlbz0gr"))))
+          (base32 "1jpbqk0vvazmwzfwy4f3rcmjiz16f34aflb1v6nnw4pxhh29r1kq"))))
     (build-system pyproject-build-system)
     (propagated-inputs (list python-fluiddyn
                              python-importlib-metadata
@@ -46,9 +46,12 @@
                    ; On patche le HOME
                    (add-before 'build 'patch-HOME-path
                       (lambda _
-			(chdir "lib")
+                        (chdir "lib")
                         (setenv "HOME" (getenv "out"))
                         ))
+                   (add-before 'build 'patch-pyproject.toml
+                      (lambda _
+                        (invoke "sed" "-i" "s@license =.*@license = {text = 'CECILL-2.1'}@g" "pyproject.toml")))
                    ;; On remove la phase de check et de sanity-check
                    (delete 'check)
                    (delete 'sanity-check))))
@@ -68,9 +71,9 @@
         (uri
           (hg-reference
             (url "https://foss.heptapod.net/fluiddyn/fluidsim")
-            (changeset "6f5e30d44497")))
+            (changeset "dc37c60a95eb")))
         (sha256
-          (base32 "1xgnwamyv9pzchwmrmvxaky813zxzicgwh6bh1r281wc5qlbz0gr"))))
+          (base32 "1jpbqk0vvazmwzfwy4f3rcmjiz16f34aflb1v6nnw4pxhh29r1kq"))))
     (build-system pyproject-build-system)
     (propagated-inputs (list python-fluidfft
                              python-fluidsim-core
@@ -92,6 +95,9 @@
                       (lambda _
                         (setenv "HOME" (getenv "out"))
                         ))
+                   (add-before 'build 'patch-pyproject.toml
+                      (lambda _
+                        (invoke "sed" "-i" "s@license =.*@license = {text = 'CECILL-2.1'}@g" "pyproject.toml")))
                    ;; On remove la phase de check et de sanity-check
                    (delete 'check)
                    (delete 'sanity-check))))
