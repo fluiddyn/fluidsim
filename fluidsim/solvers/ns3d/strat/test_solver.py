@@ -305,7 +305,3 @@ class TestNoShearModes(TestSimulBase):
         assert np.allclose(PK_tot, 1.0)
 
         sim.state.check_energy_equal_phys_spect()
-
-
-if __name__ == "__main__":
-    unittest.main()

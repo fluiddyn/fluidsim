@@ -340,7 +340,3 @@ class TestSolverNS2DInitDipole(TestSimulBase):
 
     def test_init_dipole(self):
         pass
-
-
-if __name__ == "__main__":
-    unittest.main()

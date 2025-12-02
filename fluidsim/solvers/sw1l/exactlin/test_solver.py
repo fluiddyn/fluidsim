@@ -82,7 +82,3 @@ class TestSimulSW1LExactlin(TestSimulConserveOutput):
         A_fft = oper.fft2(A)
         if mpi.rank == 0:
             self.assertAlmostZero(A_fft[0, 0], tolerance_warning=False)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -667,7 +667,3 @@ class TestForcingMilestonePeriodicUniform(TestForcingMilestone):
     def test_milestone(self):
         super().test_milestone()
         self.sim.forcing.get_info()
-
-
-if __name__ == "__main__":
-    unittest.main()

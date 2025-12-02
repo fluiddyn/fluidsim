@@ -20,7 +20,3 @@ class TestBaseSolver(TestSimul):
         self.sim.time_stepping.start()
 
         fld.show()
-
-
-if __name__ == "__main__":
-    unittest.main()

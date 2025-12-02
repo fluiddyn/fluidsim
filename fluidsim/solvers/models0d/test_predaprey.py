@@ -32,7 +32,3 @@ class TestLorenz(TestSimul):
         sim.output.print_stdout.plot_XY_vs_time()
         sim.output.print_stdout.plot_deltat()
         sim.output.print_stdout.plot_potential()
-
-
-if __name__ == "__main__":
-    unittest.main()

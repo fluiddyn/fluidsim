@@ -114,7 +114,3 @@ class TestForcingOutput(TestSimulBase):
             sim3.time_stepping.start()
 
         plt.close("all")
-
-
-if __name__ == "__main__":
-    unittest.main()

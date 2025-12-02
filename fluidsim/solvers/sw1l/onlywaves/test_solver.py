@@ -80,7 +80,3 @@ class TestSimulSW1LWaves(TestSimulConserve):
     def test_state_compute(self):
         for key in ("uy_fft", "rot", "q"):
             var_computed = self.sim.state.compute(key)
-
-
-if __name__ == "__main__":
-    unittest.main()
