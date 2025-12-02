@@ -105,7 +105,3 @@ class TestInitAD1D(TestSimul):
     )
     def test_init(self):
         """Only test the initialization"""
-
-
-if __name__ == "__main__":
-    unittest.main()

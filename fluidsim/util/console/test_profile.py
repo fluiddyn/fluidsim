@@ -65,7 +65,3 @@ class TestsProfile(TestCase):
         #  with self.assertRaises(ConsoleError):
         #      # No profiling implemented for 1D solvers
         #      run_profile()
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -37,7 +37,3 @@ class TestLorenz(TestSimul):
         sim.output.print_stdout.plot_XZ()
         sim.output.print_stdout.plot_XY()
         sim.output.print_stdout.plot_XY_vs_time()
-
-
-if __name__ == "__main__":
-    unittest.main()

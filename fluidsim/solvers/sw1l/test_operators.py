@@ -70,7 +70,3 @@ class TestOperators(TestCase):
         np.testing.assert_allclose(q2_fft, q_fft, self.rtol, self.atol)
         np.testing.assert_allclose(ap2_fft, ap_fft, self.rtol, self.atol)
         np.testing.assert_allclose(am2_fft, am_fft, self.rtol, self.atol)
-
-
-if __name__ == "__main__":
-    unittest.main()

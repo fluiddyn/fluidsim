@@ -7,6 +7,7 @@ import gc
 import os
 from time import time
 from pathlib import Path
+from warnings import warn
 
 import pstats
 import cProfile
@@ -154,18 +155,15 @@ def profile(
 
         try:
             run_profile(sim, nb_dim, path_dir, verbose=verbose)
-        except Exception as e:
+        except Exception:
             if _is_testing:
                 raise
 
             else:
-                print(
-                    "WARNING: Some error occurred while running benchmark"
-                    " / saving results!"
+                warn(
+                    "Some error occurred while running benchmark / saving results!"
                 )
                 raise
-
-                print(e)
         finally:
             tear_down(sim)
             gc.collect()
@@ -359,50 +357,53 @@ def analyze_stats(
     times = {k: 0.0 for k in kinds}
 
     for key, value in stats.stats.items():
+        path_src = key[0]
         name = key[2]
         time = value[2]
+        category_chosen = None
 
-        for k in kinds:
-            if k in name or k in key[0]:
-                if k == ".pyx":
-                    if "fft/Sources" in key[0]:
+        for category in kinds:
+            if category in name or category in path_src:
+                if category == ".py" and (
+                    not path_src.endswith(category)
+                    or os.path.sep + "numpy" in path_src
+                    or "fft_as_arg" in name
+                ):
+                    continue
+
+                if category == ".pyx":
+                    if "fft/Sources" in path_src or "fft_as_arg" in name:
                         continue
 
-                    if "fft_as_arg" in name:
-                        continue
-
-                if k == key_fft:
+                if category == key_fft:
                     if (
                         "__pythran__" in name
-                        or "operators.py" in key[0]
+                        or "operators.py" in path_src
                         or "fft_as_arg" in name
+                        or "fft" not in name
                     ):
                         continue
 
-                    callers = value[4]
-
-                    time = 0
-                    for kcaller, vcaller in callers.items():
-                        if (
-                            "fft_as_arg" not in kcaller[2]
-                            and "fft_as_arg" not in kcaller[0]
-                        ):
-                            time += vcaller[2]
-
-                if k == "fft_as" and ".pyx" in key[0]:
+                if category == "built-in" and (
+                    "pythran" in name or "numpy" in name
+                ):
                     continue
-
-                if k == ".py" and "fft_as_arg" in name:
-                    continue
-
-                if k == "built-in" and "pythran" in name:
-                    continue
-
-                times[k] += time
 
                 if time / total_time > threshold_long_function:
                     long_functions[name] = dict(
-                        time=time, percentage=100 * time / total_time, kind=k
+                        time=time,
+                        percentage=100 * time / total_time,
+                        kind=category,
+                    )
+                times[category] += time
+
+                if category_chosen is None:
+                    category_chosen = category
+                else:
+                    warn(
+                        f"problem in analysis: function {name} has "
+                        f"previously been chosen as '{category_chosen}'"
+                        f"and is now chosen as '{category}'.\n{key = }\n{value = }"
                     )
 
     if plot:
@@ -428,10 +429,12 @@ def analyze_stats(
     keys = list(times.keys())
     keys.sort(key=lambda key: times[key], reverse=True)
 
-    for k in keys:
-        t = times[k]
+    for category in keys:
+        t = times[category]
         if t > 0:
-            print(f"time {k:10s}: {t / total_time * 100:7.03f} % ({t:4.02f} s)")
+            print(
+                f"time {category:10s}: {t / total_time * 100:7.03f} % ({t:4.02f} s)"
+            )
 
     print(
         "-" * 26

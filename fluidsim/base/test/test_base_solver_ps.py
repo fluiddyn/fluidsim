@@ -93,7 +93,3 @@ class TestBaseSolverPS(TestSimul):
             var = self.sim.state.get_var(key)
             var_big = sim_big.state.get_var(key)
             assert np.mean(var**2) == np.mean(var_big**2)
-
-
-if __name__ == "__main__":
-    unittest.main()

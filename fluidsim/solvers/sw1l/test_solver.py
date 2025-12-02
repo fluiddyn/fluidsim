@@ -200,7 +200,3 @@ class TestSimulSW1L(TestSimulConserveOutput):
     def test_state_compute(self):
         for key in ("q", "h", "Floc"):
             var_computed = self.sim.state.compute(key)
-
-
-if __name__ == "__main__":
-    unittest.main()

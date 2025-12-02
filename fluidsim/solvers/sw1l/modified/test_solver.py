@@ -128,7 +128,3 @@ class TestSimulSW1LModified(TestSimulConserveOutput):
             "a_fft",
         ):
             var_computed = self.sim.state.compute(key)
-
-
-if __name__ == "__main__":
-    unittest.main()

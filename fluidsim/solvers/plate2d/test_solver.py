@@ -136,7 +136,3 @@ class TestSolverPlate2DOutput(TestSimulBase):
 
         sim.output.spectra.plot1d()
         sim.output.spectra.plot2d()
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -96,7 +96,3 @@ class TestInitInScript(TestSimulBase):
 
         sim.state.init_from_vxvyfft(vx_fft, vy_fft)
         sim.state.init_from_vxvyvzfft(vx_fft, vy_fft, vz_fft)
-
-
-if __name__ == "__main__":
-    unittest.main()

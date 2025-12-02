@@ -19,7 +19,3 @@ class TestParameters(TestCase):
         params1 = SimulBase.create_default_params()
         params2 = Simul.create_default_params()
         merge_params(params1, params2)
-
-
-if __name__ == "__main__":
-    unittest.main()

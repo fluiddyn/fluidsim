@@ -33,7 +33,3 @@ class TestPreprocessPS(TestSimul):
         self.assertEqual(sim.params.nu_4 + sim.params.nu_8, 0)
         assert np.any(sim.time_stepping.freq_lin > 0)
         sim.output.close_files()
-
-
-if __name__ == "__main__":
-    unittest.main()

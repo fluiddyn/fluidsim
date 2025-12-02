@@ -85,7 +85,3 @@ class TestSimulSW1LExactlinModified(TestSimulConserve):
         T_tot = T_ux + T_uy + T_eta
         sum_T = oper.sum_wavenumbers(T_tot)
         self.assertAlmostZero(sum_T)
-
-
-if __name__ == "__main__":
-    unittest.main()
