@@ -23,6 +23,28 @@ See also the [unreleased changes].
 
 % Security   Security in case of vulnerabilities.
 
+## [0.9.0] (2025-12-03)
+
+### Added/changed
+
+- [!440](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/440) Better
+  mechanism to print information after simulation initiation
+
+- [!442](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/442) Store "state
+  parameters" in restarting files
+
+- [!441](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/441) and
+  [!443](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/443) basic
+  utilities related to physical fields files {mod}`fluidsim.util.phys_fields`
+
+### Fixed
+
+- [!439](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/439) Fix bug
+  restarting file names
+
+- [!445](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/445) Update/fix
+  profile analysis
+
 ## [0.8.6] (2025-11-23)
 
 - Compatibility h5netcdf 1.7
@@ -30,12 +52,19 @@ See also the [unreleased changes].
 
 ## [0.8.5] (2025-10-23)
 
-- [!427](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/427) Support for Python 3.14
-- [!421](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/421) New time stepping method `RK2_phaseshift_random_split`
-- [!415](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/415) `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D` (see <https://fluidfft.readthedocs.io/en/latest/plugins.html>)
-- [!408](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/408) `temporal_spectra.py`: improve plot_spectra
-- [!407](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/407) Improve isotropic tcrandom forcing
-- [!400](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/400) New script `scripts/install-fluidsim-stack-from-source.py`
+- [!427](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/427) Support for
+  Python 3.14
+- [!421](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/421) New time
+  stepping method `RK2_phaseshift_random_split`
+- [!415](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/415)
+  `FLUIDSIM_TYPE_FFT2D` and `FLUIDSIM_TYPE_FFT3D` (see
+  <https://fluidfft.readthedocs.io/en/latest/plugins.html>)
+- [!408](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/408)
+  `temporal_spectra.py`: improve plot_spectra
+- [!407](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/407) Improve
+  isotropic tcrandom forcing
+- [!400](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/400) New script
+  `scripts/install-fluidsim-stack-from-source.py`
 - and various fixes and small improvements...
 
 ## [0.8.4] (2024-11-08)
@@ -353,4 +382,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.8.4]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.3...0.8.4
 [0.8.5]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.4...0.8.5
 [0.8.6]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.5...0.8.6
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.6...branch%2Fdefault
+[0.9.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.6...0.9.0
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.9.0...branch%2Fdefault

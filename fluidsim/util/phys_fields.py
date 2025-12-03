@@ -1,4 +1,14 @@
-"""Utilities for physical fields files"""
+"""Utilities for physical fields files
+
+.. autofunction:: save_file
+
+.. autofunction:: compute_file_name
+
+.. autofunction:: time_from_path
+
+.. autofunction:: name_file_from_time_approx
+
+"""
 
 import datetime
 import os
@@ -23,7 +33,7 @@ else:
 
 
 @contextmanager
-def null_context(path, mode, **kwargs):
+def _null_context(path, mode, **kwargs):
     yield
 
 
@@ -66,13 +76,14 @@ def save_file(
     particular_attr=None,
     state_params=None,
 ):
+    """Save a state_phys file"""
     if mpi.nb_proc > 1 and cfg_h5py.mpi:
         h5py_kwargs = {"driver": "mpio", "comm": mpi.comm}
     else:
         h5py_kwargs = {}
 
     if mpi.nb_proc > 1 and not cfg_h5py.mpi and mpi.rank > 0:
-        File = null_context
+        File = _null_context
     else:
         File = h5pack.File
 
