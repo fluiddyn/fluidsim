@@ -12,7 +12,7 @@ created-by = "pdm"
 
 [[packages]]
 name = "fluidsim-core"
-version = "0.8.6"
+version = "0.9.0"
 requires-python = ">=3.11"
 marker = "\"default\" in dependency_groups or \"dev\" in dependency_groups"
 
@@ -490,11 +490,11 @@ dependencies = [
 
 [[packages]]
 name = "ipython"
-version = "9.7.0"
+version = "9.8.0"
 requires-python = ">=3.11"
-sdist = {name = "ipython-9.7.0.tar.gz", url = "https://files.pythonhosted.org/packages/29/e6/48c74d54039241a456add616464ea28c6ebf782e4110d419411b83dae06f/ipython-9.7.0.tar.gz", hashes = {sha256 = "5f6de88c905a566c6a9d6c400a8fed54a638e1f7543d17aae2551133216b1e4e"}}
+sdist = {name = "ipython-9.8.0.tar.gz", url = "https://files.pythonhosted.org/packages/12/51/a703c030f4928646d390b4971af4938a1b10c9dfce694f0d99a0bb073cb2/ipython-9.8.0.tar.gz", hashes = {sha256 = "8e4ce129a627eb9dd221c41b1d2cdaed4ef7c9da8c17c63f6f578fe231141f83"}}
 wheels = [
-    {name = "ipython-9.7.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/05/aa/62893d6a591d337aa59dcc4c6f6c842f1fe20cd72c8c5c1f980255243252/ipython-9.7.0-py3-none-any.whl",hashes = {sha256 = "bce8ac85eb9521adc94e1845b4c03d88365fd6ac2f4908ec4ed1eb1b0a065f9f"}},
+    {name = "ipython-9.8.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/f1/df/8ee1c5dd1e3308b5d5b2f2dfea323bb2f3827da8d654abb6642051199049/ipython-9.8.0-py3-none-any.whl",hashes = {sha256 = "ebe6d1d58d7d988fbf23ff8ff6d8e1622cfdb194daf4b7b73b792c4ec3b85385"}},
 ]
 marker = "\"dev\" in dependency_groups or \"doc\" in dependency_groups or \"test\" in extras or \"test-mpi\" in extras"
 
@@ -724,11 +724,11 @@ dependencies = []
 
 [[packages]]
 name = "numpydoc"
-version = "1.9.0"
-requires-python = ">=3.9"
-sdist = {name = "numpydoc-1.9.0.tar.gz", url = "https://files.pythonhosted.org/packages/2f/19/7721093e25804cc82c7c1cdab0cce6b9343451828fc2ce249cee10646db5/numpydoc-1.9.0.tar.gz", hashes = {sha256 = "5fec64908fe041acc4b3afc2a32c49aab1540cf581876f5563d68bb129e27c5b"}}
+version = "1.10.0"
+requires-python = ">=3.10"
+sdist = {name = "numpydoc-1.10.0.tar.gz", url = "https://files.pythonhosted.org/packages/e9/3c/dfccc9e7dee357fb2aa13c3890d952a370dd0ed071e0f7ed62ed0df567c1/numpydoc-1.10.0.tar.gz", hashes = {sha256 = "3f7970f6eee30912260a6b31ac72bba2432830cd6722569ec17ee8d3ef5ffa01"}}
 wheels = [
-    {name = "numpydoc-1.9.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/26/62/5783d8924fca72529defb2c7dbe2070d49224d2dba03a85b20b37adb24d8/numpydoc-1.9.0-py3-none-any.whl",hashes = {sha256 = "8a2983b2d62bfd0a8c470c7caa25e7e0c3d163875cdec12a8a1034020a9d1135"}},
+    {name = "numpydoc-1.10.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl",hashes = {sha256 = "3149da9874af890bcc2a82ef7aae5484e5aa81cb2778f08e3c307ba6d963721b"}},
 ]
 marker = "\"doc\" in dependency_groups"
 
@@ -4167,7 +4167,7 @@ marker = "\"doc\" in dependency_groups"
 dependencies = []
 
 [tool.pdm]
-hashes = {sha256 = "5cea7ed2c5ac5f917b4858308e2bef45bb3ba26f0d1c15fa57a7badaafc75bbb"}
+hashes = {sha256 = "3a7a7cf5a90f1019dffb0e2252f3a2c241722adf8b67c73867a193e330287d58"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]
