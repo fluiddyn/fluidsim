@@ -72,10 +72,10 @@ pip install pip -U
 python ~/dev/fluidsim/scripts/install-fluidsim-stack-from-source.py --fftw-openmp -v
 ```
 
-One can also use the Pixi environment env/pixi-h5py-par
+One can also use the Pixi environment pixi-envs/env-h5py-par
 
 ```sh
-cd ~/dev/fluidsim/env/pixi-h5py-par
+cd ~/dev/fluidsim/pixi-envs/env-h5py-par
 pixi shell
 python ~/dev/fluidsim/scripts/install-fluidsim-stack-from-source.py -v
 ```
