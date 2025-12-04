@@ -1,6 +1,6 @@
 [workspace]
 channels = ["conda-forge"]
-name = "pixi-h5py-par"
+name = "env-h5py-par"
 platforms = ["linux-64"]
 version = "0.1.0"
 

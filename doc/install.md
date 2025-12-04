@@ -85,7 +85,44 @@ or for parallel simulations
 mpirun -np 2 pytest --pyargs fluidsim -vx
 ```
 
-### Install the conda-forge packages with conda or mamba
+### Install the conda-forge packages
+
+There are fluidsim and fluidfft conda packages in the [conda-forge] channel.
+
+#### Install with Pixi
+
+We recommend not using `conda` and instead prefer [Pixi]. We maintain two locked Pixi
+environments in the Fluidsim repository
+(<https://foss.heptapod.net/fluiddyn/fluidsim/-/tree/branch/default/pixi-envs>)
+
+- `env-fluidsim` is for running sequential simulations and post-process results.
+
+- `env-fluidsim-mpi` is for running sequential and parallel (MPI) simulations and
+  post-process results. It is only available on Linux.
+
+First, get one of these directories locally on your computer (the easiest is to clone the
+Mercurial repo <https://foss.heptapod.net/fluiddyn/fluidsim> or the Git mirror
+<https://github.com/fluiddyn/fluidsim/>). To install and to use one of these
+environments, enter into the directory and run `pixi shell`.
+
+````{admonition} How to activate such environment in shell scripts?
+
+```sh
+eval "$(pixi shell-hook --manifest-path ~/dev/fluidsim/pixi-envs/env-fluidsim-mpi)"
+```
+
+````
+
+````{admonition} How to register a Jupyter kernel using this environment
+
+```sh
+pixi shell --manifest-path ~/dev/fluidsim/pixi-envs/env-fluidsim-mpi
+python -m ipykernel install --user --name=env-fluidsim-mpi
+```
+
+````
+
+#### Install with Conda
 
 We recommend installing `conda` and `mamba` (using the [conda-forge] channel) with the
 [miniforge installer](https://github.com/conda-forge/miniforge).
@@ -202,3 +239,4 @@ details.
 [conda-forge]: https://conda-forge.org/
 [mpi]: https://fr.wikipedia.org/wiki/Message_Passing_Interface
 [mpi4py]: https://mpi4py.readthedocs.io/
+[pixi]: https://pixi.sh

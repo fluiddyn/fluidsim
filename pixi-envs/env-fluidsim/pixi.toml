@@ -1,0 +1,23 @@
+[workspace]
+channels = ["conda-forge"]
+description = "An environment for the Fluidsim code"
+name = "env-fluidsim"
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+fluidsim = ">=0.9.0,<0.10"
+ipython = ">=9.8.0,<10"
+matplotlib = ">=3.10.8,<4"
+ipympl = ">=0.9.8,<0.10"
+ipykernel = ">=7.1.0,<8"
+fluidfft-fftw = ">=0.0.1,<0.0.2"
+pyfftw = ">=0.15.1,<0.16"
+pytest = ">=9.0.1,<10"
+pytest-cov = ">=7.0.0,<8"
+pytest-mock = ">=3.15.1,<4"
+
+[pypi-dependencies]
+pytest-allclose = ">=1.0.0, <2"
