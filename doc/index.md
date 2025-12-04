@@ -165,6 +165,7 @@ Advice for FluidDyn developers <http://fluiddyn.readthedocs.io/en/latest/advice_
 to_do
 roadmap
 release_process
+related-projects
 ```
 
 ## Links
