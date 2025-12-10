@@ -1,6 +1,7 @@
 # Related projects
 
-There are many CFD framework and Fourier pseudo-spectral solvers. We just list here few examples:
+There are many CFD framework and Fourier pseudo-spectral solvers. We just list here few
+examples:
 
 ## Open-source
 
@@ -20,4 +21,5 @@ There are many CFD framework and Fourier pseudo-spectral solvers. We just list h
 
 ## Not open-source
 
-- [GESTS](https://impact.ornl.gov/en/publications/gpu-enabled-extreme-scale-turbulence-simulations-fourier-pseudo-s/) (P.K. Yeung)
+- [GESTS](https://impact.ornl.gov/en/publications/gpu-enabled-extreme-scale-turbulence-simulations-fourier-pseudo-s/)
+  (P.K. Yeung)

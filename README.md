@@ -32,6 +32,12 @@ pip install fluidsim
 There are also conda packages in the conda-forge channel usable with
 [Pixi](https://pixi.sh) or [conda/mamba](https://github.com/conda-forge/miniforge).
 
+The simplest way to get a production environment using the conda-forge packages is with
+
+```sh
+uvx install-locked-env https://github.com/fluiddyn/fluidsim/tree/branch/default/pixi-envs/env-fluidsim-mpi
+```
+
 Much more detailed instructions are given in
 [the documentation](https://fluidsim.readthedocs.io/en/latest/install.html).
 

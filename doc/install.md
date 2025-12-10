@@ -100,10 +100,22 @@ environments in the Fluidsim repository
 - `env-fluidsim-mpi` is for running sequential and parallel (MPI) simulations and
   post-process results. It is only available on Linux.
 
-First, get one of these directories locally on your computer (the easiest is to clone the
-Mercurial repo <https://foss.heptapod.net/fluiddyn/fluidsim> or the Git mirror
-<https://github.com/fluiddyn/fluidsim/>). To install and to use one of these
-environments, enter into the directory and run `pixi shell`.
+The simplest solution to install one of these environment locally is to use `uv` and the
+tool `install-locked-env` like this:
+
+```sh
+cd where/you/want/to/have/the/pixi/env/directory
+uvx install-locked-env https://github.com/fluiddyn/fluidsim/tree/branch/default/pixi-envs/env-fluidsim
+```
+
+To use one of these environments, enter into the directory and run `pixi shell`.
+
+```{admonition} Alternative method without install-locked-env
+Alternatively, one needs to get these directories locally on your computer
+(for example by cloning the Mercurial repo
+<https://foss.heptapod.net/fluiddyn/fluidsim> or the Git mirror
+<https://github.com/fluiddyn/fluidsim/>) and run `pixi shell`.
+```
 
 ````{admonition} How to activate such environment in shell scripts?
 
@@ -114,6 +126,8 @@ eval "$(pixi shell-hook --manifest-path ~/dev/fluidsim/pixi-envs/env-fluidsim-mp
 ````
 
 ````{admonition} How to register a Jupyter kernel using this environment
+
+(This step should already have been done if you used `install-locked-env`.)
 
 ```sh
 pixi shell --manifest-path ~/dev/fluidsim/pixi-envs/env-fluidsim-mpi

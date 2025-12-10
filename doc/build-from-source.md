@@ -41,9 +41,12 @@ Cloud](https://www.clever-cloud.com) for providing <https://foss.heptapod.net>!
 
 ## Installing from the repository
 
-### Simple installation from source
+We describe few methods to install Fluidsim from source. Most developers should adopt
+[the method using PDM](#setup-dev-env).
 
-We recommend to create a clean virtual environment, for example with:
+### Simple installation from source with Pip
+
+When using Pip, we recommend to create a clean virtual environment, for example with:
 
 ```sh
 cd fluidsim
@@ -172,19 +175,21 @@ Note that Fluidsim builds are not sensible to the [`~/.pythranrc` file](pythranr
 
 ```
 
+(setup-dev-env)=
+
 ### Setup a full developer environment with editable installation
 
 Let us first present the tools used for Fluidsim development.
 
-- [PDM] is a modern Python package and dependency manager,
+- [Pip] is the official package installer for Python,
 
-- [Meson] is an open source build system (in particular used by Scipy),
+- [PDM] is a modern Python package and dependency manager,
 
 - [Nox] is a command-line tool that automates testing in multiple Python environments,
 
-- [Pytest] is the most popular testing framework for Python,
+- [Meson] is an open source build system (in particular used by Scipy),
 
-- [pip] is the official package installer for Python,
+- [Pytest] is the most popular testing framework for Python,
 
 - [Pythran] is an ahead of time compiler for a subset of the Python language, with a
   focus on scientific computing,
@@ -195,6 +200,11 @@ Let us first present the tools used for Fluidsim development.
 Fluidsim is built with [Meson]. We use [PDM] for Fluidsim development. [Pytest] and [Nox]
 are used for testing. We use [Pythran] through [Transonic] to accelerate some numerical
 kernels written in Python.
+
+```{note}
+Most dependencies (Meson, Pytest, Pythran, Transonic, ...) will be installed by PDM.
+The developers just have to install manually PDM (and potentially Nox).
+```
 
 #### Standard Python from Python.org
 
@@ -214,15 +224,33 @@ pipx install pdm -U
 
 Installing in editable mode is a bit particular with Meson, since editable installations
 are incompatible with isolated builds, meaning that all build dependencies have to be
-installed in the main virtual environment! Fortunatelly, it's not too difficult with
-[PDM]. From the root directory of the repository, just run:
+installed in the main virtual environment! Fortunatelly, it's simple with [PDM].
 
-```sh
-pdm install --no-self
+##### Build-install Fluidimage with PDM
+
+```{warning}
+You should not run the following commands from a virtual environment not related to Fluidimage.
+
+No need to manually create a dedicated environment since PDM is going to do it for you.
+Just deactivate all Python environments.
 ```
 
-This command creates a virtual environment and installs all build and runtime
-dependencies. You can then activate this environment and build/install Fluidsim with:
+From the root directory of the repository, just run:
+
+```sh
+pdm sync --clean -v
+```
+
+This command creates a virtual environment, installs all build and runtime dependencies,
+and finally build/install Fluidsim from source.
+
+Alternativelly, one can split this process in two steps. First, install all dependencies:
+
+```sh
+pdm sync --no-self --clean
+```
+
+You can then activate the environment and build/install Fluidsim with:
 
 ```sh
 . .venv/bin/activate
