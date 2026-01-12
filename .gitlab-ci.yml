@@ -125,13 +125,15 @@ validate_code:
     - nox -s validate_code
 
 
-test_without_fft_and_pythran:
+.test_with_nox:
   stage: test
   needs:
     - job: "image:build"
       optional: true
   script:
-    - nox -s test_without_fft_and_pythran
+    - nox --version
+    - pdm --version
+    - nox -s $NOX_SESSION
     - mkdir $COVERAGE_DIR
     - cp -r .coverage/* $COVERAGE_DIR
   artifacts:
@@ -139,20 +141,16 @@ test_without_fft_and_pythran:
       - $COVERAGE_DIR/*
     expire_in: 60 mins
 
+test_without_fft_and_pythran:
+  extends: .test_with_nox
+  variables:
+    NOX_SESSION: "test_without_fft_and_pythran"
+
 test_with_fft_and_pythran:
-  stage: test
+  extends: .test_with_nox
+  variables:
+    NOX_SESSION: "test_with_fft_and_pythran"
   timeout: 2 hours
-  needs:
-    - job: "image:build"
-      optional: true
-  script:
-    - nox -s test_with_fft_and_pythran
-    - mkdir $COVERAGE_DIR
-    - cp -r .coverage/* $COVERAGE_DIR
-  artifacts:
-    paths:
-      - $COVERAGE_DIR/*
-    expire_in: 60 mins
 
 
 report_coverage:
