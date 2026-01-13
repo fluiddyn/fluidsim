@@ -116,7 +116,19 @@ image:build:
       --cleanup
       --destination $DOCKER_IMAGE_PATH:stable
 
+
+.check_nox_pdm: &check_nox_pdm
+  before_script:
+    - nox --version
+    - pdm --version
+    # to avoid hishel>=1 (using hishel 0.1.5)
+    # leading to IO problems on osuosl runners
+    - uv tool install pdm==2.26.2
+    - pdm --version
+
+
 validate_code:
+  <<: *check_nox_pdm
   stage: lint
   needs:
     - job: "image:build"
@@ -126,6 +138,7 @@ validate_code:
 
 
 .test_with_nox:
+  <<: *check_nox_pdm
   stage: test
   needs:
     - job: "image:build"
@@ -164,6 +177,7 @@ report_coverage:
 
 
 test-release:examples:
+  <<: *check_nox_pdm
   stage: test-release
   needs:
     - job: "image:build"
@@ -176,6 +190,7 @@ test-release:examples:
 
 
 pages:
+  <<: *check_nox_pdm
   stage: doc
   needs:
     - job: "image:build"
