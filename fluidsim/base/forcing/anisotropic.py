@@ -74,9 +74,7 @@ kz_negative_enable: bool
         if self.params.forcing.normalized.type == "particular_k":
             raise NotImplementedError
 
-    def _set_params_coarse(self, params_coarse):
-        self.angle = angle = ensure_radians(self.params.forcing[self.tag].angle)
-
+    def _get_delta_angle_from_params(self):
         tmp = self.params.forcing.tcrandom_anisotropic
         try:
             delta_angle = tmp.delta_angle
@@ -85,6 +83,11 @@ kz_negative_enable: bool
             delta_angle = None
         else:
             delta_angle = ensure_radians(delta_angle)
+        return delta_angle
+
+    def _set_params_coarse(self, params_coarse):
+        self.angle = angle = ensure_radians(self.params.forcing[self.tag].angle)
+        delta_angle = self._get_delta_angle_from_params()
 
         if delta_angle is None:
             self.khmax_forcing = np.sin(angle) * self.kmax_forcing
@@ -137,15 +140,7 @@ kz_negative_enable: bool
     def _compute_cond_no_forcing(self):
         """Computes condition no forcing of the anisotropic case."""
         angle = self.angle
-
-        tmp = self.params.forcing.tcrandom_anisotropic
-        try:
-            delta_angle = tmp.delta_angle
-        except AttributeError:
-            # loading old simul with delta_angle
-            delta_angle = None
-        else:
-            delta_angle = ensure_radians(delta_angle)
+        delta_angle = self._get_delta_angle_from_params()
 
         kf_min = self.kmin_forcing
         kf_max = self.kmax_forcing
@@ -239,14 +234,7 @@ kz_negative_enable: bool
         kf_min = self.kmin_forcing
         kf_max = self.kmax_forcing
 
-        tmp = self.params.forcing.tcrandom_anisotropic
-        try:
-            delta_angle = tmp.delta_angle
-        except AttributeError:
-            # loading old simul with delta_angle
-            delta_angle = None
-        else:
-            delta_angle = ensure_radians(delta_angle)
+        delta_angle = self._get_delta_angle_from_params()
 
         try:
             self.params.oper.nz
@@ -264,12 +252,12 @@ kz_negative_enable: bool
         if ndim == 2:
             Kh = self.oper_coarse.KX
             Kv = self.oper_coarse.KY
-            deltakh = self.oper.deltakx
+            # deltakh = self.oper.deltakx
             deltakv = self.oper.deltaky
         else:
             Kh = np.sqrt(self.oper_coarse.Kx**2 + self.oper_coarse.Ky**2)
             Kv = self.oper_coarse.Kz
-            deltakh = self.oper.deltakx
+            # deltakh = self.oper.deltakx
             deltakv = self.oper.deltakz
 
         fig, ax = plt.subplots()
