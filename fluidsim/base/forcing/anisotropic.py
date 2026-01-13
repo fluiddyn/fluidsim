@@ -245,6 +245,8 @@ kz_negative_enable: bool
         except AttributeError:
             # loading old simul with delta_angle
             delta_angle = None
+        else:
+            delta_angle = ensure_radians(delta_angle)
 
         try:
             self.params.oper.nz
