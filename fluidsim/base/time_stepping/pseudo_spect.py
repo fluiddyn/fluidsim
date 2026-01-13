@@ -1,7 +1,20 @@
 """Time stepping (:mod:`fluidsim.base.time_stepping.pseudo_spect`)
 ========================================================================
 
-Provides:
+Time schemes can be selected in scripts using `params.time_stepping.type_time_scheme` variable with names:
+
+- "Euler"
+- "Euler_phaseshift"
+- "Euler_phaseshift_random"
+- "RK2"
+- "RK2_trapezoid"
+- "RK2_phaseshift"
+- "RK2_phaseshift_random"
+- "RK2_phaseshift_random_split"
+- "RK2_phaseshift_exact"
+- "RK4"
+
+The code provides:
 
 .. autoclass:: TimeSteppingPseudoSpectral
    :members:
@@ -414,7 +427,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
           :math:`\tilde N_0` is given by
 
           .. math::
-            \tilde N_0 = e^{-\frac{1}{2}k\dx}N\left(e^{\frac{1}{2}k\dx}S_0\right).
+            \tilde N_0 = e^{-ik\Delta}N\left(e^{ik\Delta}S_0\right).
+
+          Here, :math:`\Delta = \frac{1}{2}\dx`.
 
         """
         dt = self.deltat
@@ -459,9 +474,10 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
           where the dealiased non-linear term :math:`N_\mathrm{dealias} =
           (\tilde N_{0\alpha} + \tilde N_{0\beta})/2` is computed as the
           average of two terms shifted with dependant phases
-          :math:`\phi_\alpha = \alpha \dx k` and :math:`\phi_\beta = \beta \dx
-          k` with :math:`\alpha` taken randomly between -1 and 1 and
-          :math:`|\alpha - \beta| = 0.5`.
+          :math:`\Delta = \delta_\alpha = \alpha \dx` and for the other phase
+          :math:`\Delta = \delta_\beta = \beta \dx`
+          with :math:`\alpha` taken randomly between -1 and 1 and
+          :math:`|\delta_\alpha - \delta_\beta| = 0.5 \dx`.
 
         """
         dt = self.deltat
@@ -587,6 +603,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
     def _time_step_RK2_phaseshift(self):
         r"""Runge-Kutta 2 method with phase-shifting.
 
+        This method is also called 'RK2 phaseshift approx'
+
         Notes
         -----
 
@@ -682,7 +700,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
 
           where the dealiased non-linear term is :math:`N_d =
-          (\tilde N_{0\alpha} + \tilde N_{1\beta})/2`.
+          (\tilde N_{0\alpha} + \tilde N_{1\beta})/2`. Note that
+          the random shift phases :math:`\delta_\alpha` and :math:`\delta_\beta`
+          are selected as detailed in `_time_step_Euler_phaseshift_random()`.
 
           Integrating from :math:`t` to :math:`t+\dt` and retaining
           only the terms in :math:`(N\dt/S)^1` gives:
@@ -753,7 +773,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
 
           where the dealiased non-linear term is :math:`N_d =
-          (\tilde N_{0\alpha} + \tilde N_{1\beta} + O_0 + O_1)/2`.
+          (\tilde N_{0\alpha} + \tilde N_{1\beta} + O_0 + O_1)/2`. Note that
+          the random shift phases :math:`\delta_\alpha` and :math:`\delta_\beta`
+          are selected as detailed in `_time_step_Euler_phaseshift_random()`.
 
           Integrating from :math:`t` to :math:`t+\dt` and retaining
           only the terms in :math:`(N\dt/S)^1` gives:
@@ -846,7 +868,9 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
              \p_t \log S = \sigma + \frac{N_d}{S_0 e^{\sigma \frac{\dt}{2}}},
 
           where the dealiased non-linear term is :math:`N_d =
-          (N_{d0} +  N_{d1})/2`.
+          (N_{d0} +  N_{d1})/2`, with each dealiased non-linear terms expressed as
+          :math:`N_{d0} = (N_0 + \tilde N_0)/2` and
+          :math:`N_{d1} = (N_1 + \tilde N_1)/2`
 
           Integrating from :math:`t` to :math:`t+\dt` and retaining
           only the terms in :math:`(N\dt/S)^1` gives:
