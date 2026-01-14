@@ -7,5 +7,3 @@ pixi.lock linguist-language=YAML
 old export-ignore
 ./scripts export-ignore
 ./bench export-ignore
-
-tmp_bug_unearth.py export-ignore
