@@ -90,6 +90,14 @@ class Output(OutputBasePseudoSpectral):
             },
         )
 
+        classes._set_child(
+            "KolmoLaw",
+            attribs={
+                "module_name": "fluidsim.base.output.kolmo_law3d",
+                "class_name": "KolmoLaw",
+            },
+        )
+
     @staticmethod
     def _complete_params_with_default(params, info_solver):
         """This static method is used to complete the *params* container."""
