@@ -114,11 +114,6 @@ image:build:
   before_script:
     - nox --version
     - pdm --version
-    # to ensure last hishel version (>=1.1.8)
-    - uv tool uninstall pdm
-    - uv tool install pdm
-    - pdm --version
-    - uv pip list -p $HOME/.local/share/uv/tools/pdm/bin/python
 
 
 validate_code:
