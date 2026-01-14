@@ -189,7 +189,6 @@ class KolmoLaw(SpecificOutput):
         )
 
     def _init_path_files(self):
-
         path_run = self.output.path_run
         self.path_kolmo_law = path_run + "/kolmo_law.h5"
         self.path_file = self.path_kolmo_law
@@ -202,9 +201,7 @@ class KolmoLaw(SpecificOutput):
         result = self.compute()
 
         if mpi.rank == 0:
-
             if not os.path.exists(self.path_kolmo_law):
-
                 self._create_file_from_dict_arrays(
                     self.path_kolmo_law, result, arrays_1st_time
                 )
@@ -267,7 +264,6 @@ class KolmoLaw(SpecificOutput):
         scale=None,
         save="no",
     ):
-
         state = self.sim.state
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
@@ -292,7 +288,6 @@ class KolmoLaw(SpecificOutput):
         title = "$ R_\lambda=180, $" + f"$n_x={params.oper.nx}$"
 
         if mpi.rank == 0:
-
             fig1, ax1 = self.output.figure_axe()
             if scale == None or scale == "log":
                 ax1.set_ylim([0.01, 2])
@@ -366,7 +361,6 @@ class KolmoLaw(SpecificOutput):
         tmax=None,
         save="no",
     ):
-
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
@@ -408,7 +402,6 @@ class KolmoLaw(SpecificOutput):
         )
 
         if mpi.rank == 0:
-
             fig1, ax1 = self.output.figure_axe()
 
             im = ax1.pcolormesh(
@@ -516,7 +509,6 @@ class KolmoLaw(SpecificOutput):
         tmax=None,
         save="no",
     ):
-
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
@@ -668,7 +660,6 @@ class KolmoLaw(SpecificOutput):
                     Jk_r_from_hv[index] = Jk_r_from_hv[index] / value
 
     def counter_proc(self):
-
         n_store = self.n_store
         nh_store = self.nh_store
         nv_store = self.nv_store
@@ -710,7 +701,6 @@ class KolmoLaw(SpecificOutput):
         return dict_useful
 
     def counter_tot(self):
-
         count_ind = self.count_ind_rhv
         proc_count_r = count_ind["proc_count_r"]
         proc_count_hv = count_ind["proc_count_hv"]
@@ -734,7 +724,6 @@ class KolmoLaw(SpecificOutput):
         return tot_count
 
     def azimut_average(self, name):
-
         dict_proc = self.dict_proc
         count_ind = self.count_ind_rhv
         tot_count_r = self.counter["tot_count_r"][:]
