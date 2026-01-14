@@ -48,6 +48,7 @@ class TestSimulBase(TestSimul):
     @classmethod
     def init_params(cls):
         params = cls.params = cls.Simul.create_default_params()
+
         params.short_name_type_run = "test"
         params.output.sub_directory = "unittests"
         cls._init_grid(params, nx=cls.nx)
@@ -63,6 +64,7 @@ class TestSimulBase(TestSimul):
         params.oper.coef_dealiasing = 2.0 / 3
         params.nu_4 = 2.0
         params.nu_8 = 2.0
+
         params.time_stepping.t_end = 1.5 * params.time_stepping.deltat_max
         params.init_fields.type = "noise"
 
