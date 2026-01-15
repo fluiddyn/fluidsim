@@ -10,28 +10,26 @@ Provides:
 """
 
 import itertools
-
-import numpy as np
 import os
-from fluiddyn.util import mpi
-
-import h5py
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from .base import SpecificOutput
 
 from math import floor
 
-""" Conversion from cartesian coordinates system to spherical coordinate system """
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+from fluiddyn.util import mpi
+
+from .base import SpecificOutput
 
 
 class OperKolmoLaw:
-    def __init__(self, X, Y, Z, params):
+    """Conversion from cartesian coordinates system to spherical coordinate system"""
+
+    def __init__(self, X, Y, Z):
         self.r = np.sqrt(X**2 + Y**2 + Z**2)
-
         self.rh = np.sqrt(X**2 + Y**2)
-
         self.rv = np.abs(Z)
         self.X = X
         self.Y = Y
@@ -122,7 +120,7 @@ class KolmoLaw(SpecificOutput):
         period_save_kolmo_law = 0.1
         if period_save_kolmo_law != 0.0:
             X, Y, Z = output.sim.oper.get_XYZ_loc()
-            self.oper_kolmo_law = OperKolmoLaw(X, Y, Z, params)
+            self.oper_kolmo_law = OperKolmoLaw(X, Y, Z)
 
             self.rhrv = {
                 "rh": self.oper_kolmo_law.rh,
