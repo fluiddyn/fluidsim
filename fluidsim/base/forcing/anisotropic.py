@@ -50,18 +50,18 @@ class TimeCorrelatedRandomPseudoSpectralAnisotropic(
 
 See :mod:`fluidsim.base.forcing.anisotropic`.
 
-angle: float or str
+angle: float or str (default "45°")
 
     Angle between the wavevector and the horizontal characterising the forcing
     region.
 
-delta_angle: float or None
+delta_angle: float or None (default None)
 
     Control the shape of the forcing region in k-space. If None, ``(khmin,
     khmax, kvmin, kvmax)`` are computed from the angle,
     ``params.forcing.nkmin_forcing`` and ``params.forcing.nkmax_forcing``.
 
-kz_negative_enable: bool
+kz_negative_enable: bool (default False)
 
     If True, modes with negative kz are also forced.
 
