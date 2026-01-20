@@ -48,6 +48,8 @@ from warnings import warn
 from pathlib import Path
 
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 from fluiddyn.calcul.easypyfft import fftw_grid_size
@@ -865,6 +867,79 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
                 self.period_change_f0f1 = self.forcing_rate ** (-1.0 / 3)
             else:
                 self.period_change_f0f1 = time_correlation
+
+    def plot_forcing_region(self):
+        """Plots the forcing region"""
+        pforcing = self.params.forcing
+
+        kf_max = self.kmax_forcing
+
+        try:
+            self.params.oper.nz
+        except AttributeError:
+            ndim = 2
+        else:
+            ndim = 3
+
+        if ndim == 2:
+            Kh = self.oper_coarse.KX
+            Kv = self.oper_coarse.KY
+            # deltakh = self.oper.deltakx
+            deltakv = self.oper.deltaky
+        else:
+            Kh = np.sqrt(self.oper_coarse.Kx**2 + self.oper_coarse.Ky**2)
+            Kv = self.oper_coarse.Kz
+            # deltakh = self.oper.deltakx
+            deltakv = self.oper.deltakz
+
+        fig, ax = plt.subplots()
+        ax.set_aspect("equal")
+
+        title = (
+            pforcing.type
+            + "; "
+            + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
+            + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
+            + "\n"
+            + rf"Forced modes = {self.nb_forced_modes}"
+        )
+
+        ax.set_title(title)
+        ax.set_xlabel(r"$k_h$")
+        ax.set_ylabel(r"$k_z$")
+
+        # Parameters figure
+
+        # Set limits to 125% of the kf_max
+        factor = 1.2
+        ax.set_xlim([0.0, factor * kf_max])
+        ax.set_ylim([0.0, factor * kf_max])
+
+        xticks = np.arange(0.0, factor * kf_max, deltakv)
+        yticks = np.arange(0.0, factor * kf_max, deltakv)
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
+
+        # Plot forced modes in red
+        indices_forcing = np.argwhere(self.COND_NO_F == False)
+        for i, index in enumerate(indices_forcing):
+            if ndim == 2:
+                ax.plot(
+                    Kh[0, index[1]],
+                    Kv[index[0], 0],
+                    "ro",
+                    label="Forced mode" if i == 0 else "",
+                )
+            else:
+                ax.plot(
+                    Kh[0, index[1], index[2]],
+                    Kv[index[0], 0, 0],
+                    "ro",
+                    label="Forced mode" if i == 0 else "",
+                )
+
+        ax.grid(linestyle="--", alpha=0.4)
+        ax.legend()
 
     def forcingc_raw_each_time(self, a_fft):
         """Return a coarse forcing as a linear combination of 2 random arrays
