@@ -921,23 +921,16 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         ax.set_yticks(yticks)
 
         # Plot forced modes in red
-        indices_forcing = np.argwhere(self.COND_NO_F == False)
+        indices_forcing = np.argwhere(~self.COND_NO_F)
+        k_h_f_min = np.max(Kh)
+        k_v_f_min = np.max(Kv)
         for i, index in enumerate(indices_forcing):
-            if ndim == 2:
-                ax.plot(
-                    Kh[0, index[1]],
-                    Kv[index[0], 0],
-                    "ro",
-                    label="Forced mode" if i == 0 else "",
-                )
-            else:
-                ax.plot(
-                    Kh[0, index[1], index[2]],
-                    Kv[index[0], 0, 0],
-                    "ro",
-                    label="Forced mode" if i == 0 else "",
-                )
-
+            ax.plot(
+                Kh[*index],
+                Kv[*index],
+                "ro",
+                label="Forced mode" if i == 0 else "",
+            )
         ax.grid(linestyle="--", alpha=0.4)
         ax.legend()
 
