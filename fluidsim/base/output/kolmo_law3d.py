@@ -21,25 +21,41 @@ import matplotlib.patches as patches
 
 from fluiddyn.util import mpi
 
-from .base import SpecificOutput
+from base import SpecificOutput
 
 
 class OperKolmoLaw:
-    """Conversion from cartesian coordinates system to spherical coordinate system"""
+    """Conversion from cartesian coordinates system to cylindrical, radial and spherical coordinate system"""
 
     def __init__(self, X, Y, Z):
-        self.r = np.sqrt(X**2 + Y**2 + Z**2)
-        self.rh = np.sqrt(X**2 + Y**2)
-        self.rv = np.abs(Z)
         self.X = X
         self.Y = Y
         self.Z = Z
+
+    def compute_cylindrical_components(self):
+        self.rh = np.sqrt(self.X**2 + self.Y**2)
+        self.rt = np.atan2(self.Y, self.X)  # rtheta, defined between [-pi; pi] and is 0 for x = y = 0
+        self.rv = self.Z
+        return self.rh, self.rt, self.rv
+
+    def compute_radial_component(self):
+        self.r = np.sqrt(self.X**2 + self.Y**2 + self.Z**2)
+        return self.r
+
+    def compute_spherical_component(self):
+        self.r = self.compute_radial_component()
+        self.rts = np.atan2(self.Y, self.X)  # rtheta spherical, defined between [-pi; pi] and is 0 for x = y = 0
+        self.rp = np.acos(self.Z/self.r)  # rphi, defined between [0; pi]
+        return self.r, self.rts, self.rp
+
 
 
 class KolmoLaw(SpecificOutput):
     r"""Kolmogorov law 3d.
 
     .. |J| mathmacro:: {\mathbf J}
+    .. |Jk| mathmacro:: {\mathbf J_K}
+    .. |Jp| mathmacro:: {\mathbf J_P}
     .. |v| mathmacro:: {\mathbf v}
     .. |x| mathmacro:: {\mathbf x}
     .. |r| mathmacro:: {\mathbf r}
