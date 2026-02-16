@@ -65,14 +65,11 @@ pixi-test:
       optional: true
   script:
     - pixi info
-    # - rm -rf ../transonic
-    # - hg clone https://foss.heptapod.net/fluiddyn/transonic ../transonic
-    - pixi run install-dependencies
+    - pixi install
     - pixi run pip install -e . -v --no-build-isolation --no-deps -C compile-args=-j2
     - pixi run pytest -v lib
     - pixi run fluidsim-test -v
-    # currently broken because of fluidfft conda issues
-    # - pixi run mpirun -np 2 fluidsim-test -v --exitfirst
+    - pixi run mpirun -np 2 fluidsim-test -v --exitfirst
 
 
 # Build an image for the other tasks; this should be a scheduled job, as
