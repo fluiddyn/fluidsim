@@ -871,7 +871,6 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
     def plot_forcing_region(self):
         """Plots the forcing region"""
         pforcing = self.params.forcing
-
         kf_max = self.kmax_forcing
 
         try:
@@ -884,24 +883,20 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
         if ndim == 2:
             Kh = self.oper_coarse.KX
             Kv = self.oper_coarse.KY
-            # deltakh = self.oper.deltakx
             deltakv = self.oper.deltaky
         else:
             Kh = np.sqrt(self.oper_coarse.Kx**2 + self.oper_coarse.Ky**2)
             Kv = self.oper_coarse.Kz
-            # deltakh = self.oper.deltakx
             deltakv = self.oper.deltakz
 
         fig, ax = plt.subplots()
         ax.set_aspect("equal")
 
         title = (
-            pforcing.type
-            + "; "
-            + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
-            + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
-            + "\n"
-            + rf"Forced modes = {self.nb_forced_modes}"
+            f"{pforcing.type}; "
+            rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
+            rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$;"
+            f"\nForced modes = {self.nb_forced_modes}"
         )
 
         ax.set_title(title)
@@ -910,7 +905,7 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         # Parameters figure
 
-        # Set limits to 125% of the kf_max
+        # Set limits to 120% of the kf_max
         factor = 1.2
         ax.set_xlim([0.0, factor * kf_max])
         ax.set_ylim([0.0, factor * kf_max])
@@ -922,15 +917,9 @@ class TimeCorrelatedRandomPseudoSpectral(RandomSimplePseudoSpectral):
 
         # Plot forced modes in red
         indices_forcing = np.argwhere(~self.COND_NO_F)
-        k_h_f_min = np.max(Kh)
-        k_v_f_min = np.max(Kv)
         for i, index in enumerate(indices_forcing):
-            ax.plot(
-                Kh[*index],
-                Kv[*index],
-                "ro",
-                label="Forced mode" if i == 0 else "",
-            )
+            label = "Forced mode" if i == 0 else ""
+            ax.plot(Kh[*index], Kv[*index], "ro", label=label)
         ax.grid(linestyle="--", alpha=0.4)
         ax.legend()
 
