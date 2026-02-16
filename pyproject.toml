@@ -269,5 +269,5 @@ showcontent = true
 
 [tool.ruff]
 line-length = 82
-target-version = "py39"
+target-version = "py311"
 exclude = [".venv", "build", ".*", "**/__py*__", "**/__numba__", "doc/_build", "**/.ipynb_checkpoints"]

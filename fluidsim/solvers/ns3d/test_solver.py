@@ -135,6 +135,9 @@ class TestForcingTCRandom(TestSimulBase):
         assert kx_max >= kf_max
         assert ky_max >= kf_max
 
+        if mpi.nb_proc == 1:
+            sim.forcing.forcing_maker.plot_forcing_region()
+
 
 class TestOutput(TestSimulBase):
     @classmethod

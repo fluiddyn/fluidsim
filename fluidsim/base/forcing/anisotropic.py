@@ -264,11 +264,10 @@ kz_negative_enable: bool (default False)
         ax.set_aspect("equal")
 
         title = (
-            pforcing.type
-            + "; "
-            + rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
-            + rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$; "
-            + "\n"
+            f"{pforcing.type}; "
+            rf"$nk_{{min}} = {pforcing.nkmin_forcing} \delta k_v$; "
+            rf"$nk_{{max}} = {pforcing.nkmax_forcing} \delta k_v$;"
+            "\n"
             + r"$\theta_f = {:.0f}^\circ$; ".format(degrees(self.angle))
             + rf"Forced modes = {self.nb_forced_modes}"
         )
@@ -458,23 +457,10 @@ kz_negative_enable: bool (default False)
             ax.text(loc_label_x, loc_label_y, r"$\delta \theta_f$")
 
         # Plot forced modes in red
-        indices_forcing = np.argwhere(self.COND_NO_F == False)
+        indices_forcing = np.argwhere(~self.COND_NO_F)
         for i, index in enumerate(indices_forcing):
-            if ndim == 2:
-                ax.plot(
-                    Kh[0, index[1]],
-                    Kv[index[0], 0],
-                    "ro",
-                    label="Forced mode" if i == 0 else "",
-                )
-            else:
-                ax.plot(
-                    Kh[0, index[1], index[2]],
-                    Kv[index[0], 0, 0],
-                    "ro",
-                    label="Forced mode" if i == 0 else "",
-                )
-
+            label = "Forced mode" if i == 0 else None
+            ax.plot(Kh[*index], Kv[*index], "ro", label=label)
         ax.grid(linestyle="--", alpha=0.4)
         ax.legend()
 

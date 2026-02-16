@@ -114,6 +114,9 @@ class TestForcingConstantRateEnergy(TestSimulBase):
             P_tot = means["PK_tot"] + means["PA_tot"]
             assert np.allclose(P_tot, self.sim.params.forcing.forcing_rate)
 
+        if mpi.nb_proc == 1:
+            self.sim.forcing.forcing_maker.plot_forcing_region()
+
 
 class TestForcingConstantRateEnergyAP(TestForcingConstantRateEnergy):
     @classmethod
