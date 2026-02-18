@@ -50,8 +50,7 @@ class CoordSystem3DConverter:
         """Convert (vx, vy, vz) in spherical coordinates (vr, vt, vp)"""
         vr = self.compute_radial_component(vx, vy, vz)
         vt = (-self.y * vx + self.x * vy) / self.rh_not0
-        vp = (
-            (self.z * (self.x * vx + self.y * vy) - self.rh**2 * vz)
-            / (self.r_not0 * self.rh_not0),
+        vp = (self.z * (self.x * vx + self.y * vy) - self.rh**2 * vz) / (
+            self.r_not0 * self.rh_not0
         )
         return vr, vt, vp
