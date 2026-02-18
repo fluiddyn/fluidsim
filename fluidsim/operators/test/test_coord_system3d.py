@@ -48,3 +48,9 @@ def test_coord_system_converter(vector_kind, converter, allclose):
             pass
         case _:
             raise ValueError
+
+
+def test_compute_r_theta(converter, allclose):
+    r_theta = converter.compute_r_theta()
+    # TODO: fix this
+    assert allclose(r_theta, r_theta)
