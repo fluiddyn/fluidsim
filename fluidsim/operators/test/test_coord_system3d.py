@@ -4,13 +4,14 @@ import numpy as np
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
 # Use a 3D grid of points in Cartesian coordinates.
-# Avoid x=y=0 (the z-axis) to keep cylindrical/spherical angles well-defined.
+# warning: x=y=0 (the z-axis) is particular, cylindrical/spherical not well-defined.
 _n = 4
-_x1d = np.linspace(1.0, 2.0, _n)
-_y1d = np.linspace(0.5, 1.5, _n)
+_x1d = np.linspace(0.0, 1.0, _n)
+_y1d = np.linspace(0.0, 1.0, _n)
 _z1d = np.linspace(-1.0, 1.0, _n)
 _z, _y, _x = np.meshgrid(_z1d, _y1d, _x1d, indexing="ij")
 shape = _x.shape
+EPSILON = 1e-12
 
 
 @pytest.fixture(scope="module")
@@ -25,9 +26,10 @@ def r_h():
 
 
 @pytest.fixture(scope="module")
-def r_sph():
+def r_sph_not0():
     """Spherical radius sqrt(x^2 + y^2 + z^2)."""
-    return np.sqrt(_x**2 + _y**2 + _z**2)
+    r_sph = np.sqrt(_x**2 + _y**2 + _z**2)
+    return np.where(r_sph != 0, r_sph, EPSILON)
 
 
 # ---------------------------------------------------------------------------
@@ -72,25 +74,29 @@ def test_compute_r_theta_origin():
     ["pure-radial-h", "pure-azimuthal", "pure-vertical", "pure-spherical-radial"],
 )
 def test_compute_cylindrical_components(
-    vector_kind, converter, r_h, r_sph, allclose
+    vector_kind, converter, r_h, r_sph_not0, allclose
 ):
+    r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
+
     match vector_kind:
         case "pure-radial-h":
             # Unit vector in the horizontal radial direction
-            vx = _x / r_h
-            vy = _y / r_h
+            vx = _x / r_h_not0
+            vy = _y / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.ones(shape)
+            vh_exp[r_h == 0] = 0
             vt_exp = np.zeros(shape)
             vz_exp = np.zeros(shape)
 
         case "pure-azimuthal":
             # Unit vector in the azimuthal direction: (-y, x, 0) / r_h
-            vx = -_y / r_h
-            vy = _x / r_h
+            vx = -_y / r_h_not0
+            vy = _x / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
+            vt_exp[r_h == 0] = 0
             vz_exp = np.zeros(shape)
 
         case "pure-vertical":
@@ -103,14 +109,14 @@ def test_compute_cylindrical_components(
             vz_exp = np.ones(shape)
 
         case "pure-spherical-radial":
-            # Unit vector in the spherical radial direction: (x, y, z) / r_sph
-            # Cylindrical decomposition: vh = r_h/r_sph, vt = 0, vz = z/r_sph
-            vx = _x / r_sph
-            vy = _y / r_sph
-            vz = _z / r_sph
-            vh_exp = r_h / r_sph
+            # Unit vector in the spherical radial direction: (x, y, z) / r_sph_not0
+            # Cylindrical decomposition: vh = r_h/r_sph_not0, vt = 0, vz = z/r_sph_not0
+            vx = _x / r_sph_not0
+            vy = _y / r_sph_not0
+            vz = _z / r_sph_not0
+            vh_exp = r_h / r_sph_not0
             vt_exp = np.zeros(shape)
-            vz_exp = _z / r_sph
+            vz_exp = _z / r_sph_not0
 
         case _:
             raise ValueError(f"Unknown vector_kind: {vector_kind}")
@@ -126,12 +132,14 @@ def test_compute_cylindrical_components(
 # ---------------------------------------------------------------------------
 
 
-def test_cylindrical_preserves_norm(converter, allclose):
+def test_cylindrical_preserves_norm(converter, r_h, allclose):
     """Cylindrical conversion is a rotation: it must preserve the vector norm."""
     rng = np.random.default_rng(0)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)
     vz = rng.standard_normal(shape)
+    vx[r_h == 0] = 0
+    vy[r_h == 0] = 0
 
     norm2_cart = vx**2 + vy**2 + vz**2
     vh, vt, vz_out = converter.compute_cylindrical_components(vx, vy, vz)
@@ -145,19 +153,22 @@ def test_cylindrical_preserves_norm(converter, allclose):
 # ---------------------------------------------------------------------------
 
 
-def test_compute_radial_component_pure_radial(converter, r_sph, allclose):
+def test_compute_radial_component_pure_radial(converter, r_sph_not0, allclose):
     """A pure horizontal-radial unit vector should have radial component 1."""
-    vx = _x / r_sph
-    vy = _y / r_sph
-    vz = _z / r_sph
+    vx = _x / r_sph_not0
+    vy = _y / r_sph_not0
+    vz = _z / r_sph_not0
     vr = converter.compute_radial_component(vx, vy, vz)
     assert allclose(vr, np.ones(shape))
 
 
 def test_compute_radial_component_pure_azimuthal(converter, r_h, allclose):
     """A pure azimuthal unit vector is perpendicular to r_h → radial component 0."""
-    vx = -_y / r_h
-    vy = _x / r_h
+
+    r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
+
+    vx = -_y / r_h_not0
+    vy = _x / r_h_not0
     vz = np.zeros(shape)
     vr = converter.compute_radial_component(vx, vy, vz)
     assert allclose(vr, np.zeros(shape))
@@ -173,35 +184,39 @@ def test_compute_radial_component_pure_azimuthal(converter, r_h, allclose):
     ["pure-spherical-radial", "pure-azimuthal", "pure-polar"],
 )
 def test_compute_spherical_components(
-    vector_kind, converter, r_h, r_sph, allclose
+    vector_kind, converter, r_h, r_sph_not0, allclose
 ):
+    r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
+
     match vector_kind:
         case "pure-spherical-radial":
-            # Unit vector along spherical r: (x, y, z)/r_sph
-            vx = _x / r_sph
-            vy = _y / r_sph
-            vz = _z / r_sph
+            # Unit vector along spherical r: (x, y, z)/r_sph_not0
+            vx = _x / r_sph_not0
+            vy = _y / r_sph_not0
+            vz = _z / r_sph_not0
             vr_exp = np.ones(shape)
             vt_exp = np.zeros(shape)  # azimuthal
             vp_exp = np.zeros(shape)  # polar
 
         case "pure-azimuthal":
             # Unit vector along azimuthal phi: (-y, x, 0)/r_h
-            vx = -_y / r_h
-            vy = _x / r_h
+            vx = -_y / r_h_not0
+            vy = _x / r_h_not0
             vz = np.zeros(shape)
             vr_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
+            vt_exp[r_h == 0] = 0
             vp_exp = np.zeros(shape)
 
         case "pure-polar":
-            # Unit vector along polar theta (e_theta): (x*z, y*z, -r_h^2) / (r_sph * r_h)
-            vx = _x * _z / (r_sph * r_h)
-            vy = _y * _z / (r_sph * r_h)
-            vz = -(r_h**2) / (r_sph * r_h)
+            # Unit vector along polar theta (e_theta): (x*z, y*z, -r_h^2) / (r_sph_not0 * r_h)
+            vx = _x * _z / (r_sph_not0 * r_h_not0)
+            vy = _y * _z / (r_sph_not0 * r_h_not0)
+            vz = -(r_h**2) / (r_sph_not0 * r_h_not0)
             vr_exp = np.zeros(shape)
             vt_exp = np.zeros(shape)
             vp_exp = np.ones(shape)
+            vp_exp[r_h == 0] = 0
 
         case _:
             raise ValueError(f"Unknown vector_kind: {vector_kind}")
@@ -212,12 +227,15 @@ def test_compute_spherical_components(
     assert allclose(vp, vp_exp), f"vp mismatch for {vector_kind}"
 
 
-def test_spherical_preserves_norm(converter, allclose):
+def test_spherical_preserves_norm(converter, r_h, allclose):
     """Spherical conversion is a rotation: it must preserve the vector norm."""
     rng = np.random.default_rng(1)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)
     vz = rng.standard_normal(shape)
+
+    vx[r_h == 0] = 0
+    vy[r_h == 0] = 0
 
     norm2_cart = vx**2 + vy**2 + vz**2
     vr, vt, vp = converter.compute_spherical_components(vx, vy, vz)
@@ -226,7 +244,7 @@ def test_spherical_preserves_norm(converter, allclose):
     assert allclose(norm2_sph, norm2_cart)
 
 
-def test_spherical_radial_equals_radial_component(converter, allclose):
+def test_spherical_radial_equals_radial_component(converter, r_h, allclose):
     """The spherical vr component must equal compute_radial_component."""
     rng = np.random.default_rng(2)
     vx = rng.standard_normal(shape)
