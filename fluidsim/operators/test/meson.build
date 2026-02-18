@@ -1,5 +1,6 @@
 python_sources = [
   '__init__.py',
+  'test_coord_system3d.py',
   'test_operators2d.py',
   'test_operators3d.py',
 ]
