@@ -37,13 +37,12 @@ class CoordSystem3DConverter:
 
     def compute_cylindrical_components(self, vx, vy, vz):
         """Convert (vx, vy, vz) in cylindrical coordinates (vh, vt, vz)"""
-
         vh = (self.x * vx + self.y * vy) / self.rh_not0
         vt = (-self.y * vx + self.x * vy) / self.rh_not0
         return vh, vt, vz
 
     def compute_radial_component(self, vx, vy, vz):
-        """Compute radial component"""
+        """Compute (spherical) radial component"""
         return (self.x * vx + self.y * vy + self.z * vz) / self.r_not0
 
     def compute_spherical_components(self, vx, vy, vz):

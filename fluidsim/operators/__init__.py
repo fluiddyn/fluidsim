@@ -13,5 +13,6 @@ Provides
    sphericalharmo
    op_finitediff1d
    op_finitediff2d
+   coord_system3d
 
 """
