@@ -4,21 +4,19 @@
 # - optional dependencies and dev groups as PDM
 # - import data from pyproject.toml: [project] and [project.optional-dependencies]
 
-[project]
+[workspace]
 name = "fluidsim"
 channels = ["conda-forge"]
 platforms = ["linux-64", "win-64"]
 
 [tasks]
 # use as `pixi run install-editable`
-# install-dependencies = "pixi install && pip install -e ./lib && pip install ../transonic"
-install-dependencies = "pixi install && pip install -e ./lib && pip install 'transonic>=0.6.0'"
-install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends-on = ["install-dependencies"]}
+install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps"}
 
 [dependencies]
-python = ">=3.9"
+python = ">=3.11"
 numpy = ">=1.26.3"
-transonic = ">=0.5.3"
+transonic = ">=0.6.0"
 fluiddyn = ">=0.5.2"
 h5netcdf = ">=1.3.0"
 h5py = ">=3.10.0"
@@ -33,14 +31,19 @@ coverage = ">=7.4.0"
 pytest-cov = ">=4.1.0"
 pytest-mock = ">=3.12.0"
 fluidfft = ">=0.2.9"
-mpi4py = ">=3.1.5"
-
-[pypi-dependencies]
-pymech = "*"
-pytest-allclose = "*"
 importlib-metadata = "*"
 
-[build-dependencies]
+# [build-dependencies]
 meson-python = ">=0.15.0"
 pythran = ">=0.15.0"
-transonic = ">=0.5.3"
+# transonic = ">=0.6.0"
+
+[target.linux-64.dependencies]
+mpi4py = ">=3.1.5"
+fluidfft-fftwmpi = ">=0.0.1"
+fluidfft-mpi_with_fftw = ">=0.0.1"
+
+[pypi-dependencies]
+fluidsim-core = { path = "./lib", editable = true }
+pymech = "*"
+pytest-allclose = "*"
