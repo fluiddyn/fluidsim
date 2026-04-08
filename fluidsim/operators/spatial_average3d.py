@@ -161,17 +161,13 @@ class SpatialAverage:
         This is done once at initialization to avoid repeated digitize calls.
         """
         # Radial bin indices — shape (Nx_loc, Ny_loc, Nz_loc)
-        self.r_indices = np.clip(
-            np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1
-        )
+        self.r_indices = np.clip(np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1)
 
         # Azimuthal bin indices
         self.rho_indices = np.clip(
             np.digitize(self.rho, self.rho_bins) - 1, 0, self.nrh - 1
         )
-        self.z_indices = np.clip(
-            np.digitize(self.Z, self.z_bins) - 1, 0, self.nz - 1
-        )
+        self.z_indices = np.clip(np.digitize(self.Z, self.z_bins) - 1, 0, self.nz - 1)
 
     # ------------------------------------------------------------------ #
     #  Radial average  <f>_Omega(r)                                        #
@@ -208,7 +204,7 @@ class SpatialAverage:
         # sin(phi) is the geometrical weight for the solid-angle average
         weights = np.sin(self.phi)
 
-        is_vector = (np.ndim(field) == 4 and np.shape(field)[0] == 3)
+        is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
 
         if is_vector:
             field_avg = np.zeros((3, self.nr))
@@ -346,7 +342,7 @@ class SpatialAverage:
             Azimuthal average in each (rho, z) bin (same on all processes).
         field_std : ndarray, same shape as field_avg (only if return_std=True)
         """
-        is_vector = (np.ndim(field) == 4 and np.shape(field)[0] == 3)
+        is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
 
         if is_vector:
             field_avg = np.zeros((3, self.nrh, self.nz))
@@ -461,6 +457,5 @@ class SpatialAverage:
         weights : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
             Volume weights on this process.
         """
-        d = self.oper.delta if hasattr(self.oper, 'delta') else 1.0
+        d = self.oper.delta if hasattr(self.oper, "delta") else 1.0
         return np.full_like(self.X, d**3)
-
