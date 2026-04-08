@@ -5,10 +5,11 @@ import numpy as np
 
 from fluidsim.operators.spatial_average3d import SpatialAverage
 
+
 # Mock operator for testing (without full fluidsim dependency)
 class MockOperator:
     """Minimal operator for testing spatial averaging."""
-    
+   
     def __init__(self, nx, ny, nz, Lx, Ly, Lz):
         self.nx = nx
         self.ny = ny
@@ -355,3 +356,48 @@ def test_linearity_azimuthal_average(spatial_avg, allclose):
     
     expected = a * avg1 + b * avg2
     assert allclose(avg_combined, expected, rtol=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# Additional physical tests
+# ---------------------------------------------------------------------------
+
+
+def test_radial_average_preserves_integral(spatial_avg):
+    """Test that radial averaging preserves the volume integral.
+    
+    ∫∫∫ f dV = ∫ <f>_Omega(r) × 4πr² dr
+    """
+    # Random field
+    field = np.random.randn(*spatial_avg.X.shape) + 5.0  # offset to be positive
+    
+    # Direct volume integral
+    weights = spatial_avg.compute_volume_weights()
+    integral_direct = np.sum(field * weights)
+    
+    # Radial average integral
+    r_centers, field_avg = spatial_avg.compute_radial_average(field)
+    dr = np.diff(spatial_avg.r_bins)  # width of each bin
+    shell_volumes = 4 * np.pi * r_centers**2 * dr
+    integral_radial = np.sum(field_avg * shell_volumes)
+    
+    # They should be approximately equal
+    # (discretization causes some error)
+    assert np.allclose(integral_radial, integral_direct, rtol=0.15)
+
+
+def test_azimuthal_theta_independence(spatial_avg):
+    """Test that azimuthal average eliminates theta dependence.
+    
+    A field that depends only on theta should average to zero
+    (or constant if it has a mean).
+    """
+    # Field = cos(theta) where theta = atan2(y, x)
+    theta = np.arctan2(spatial_avg.Y, spatial_avg.X)
+    field = np.cos(theta)
+    
+    # Azimuthal average should be close to zero
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    
+    # Mean over the circle should be very small
+    assert np.allclose(field_avg, 0.0, atol=0.2)
