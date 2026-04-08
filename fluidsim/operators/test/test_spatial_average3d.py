@@ -3,9 +3,7 @@
 import pytest
 import numpy as np
 
-# from fluidsim.operators.spatial_average3d import SpatialAverage
-from ../spatial_average3d import SpatialAverage
-
+from fluidsim.operators.spatial_average3d import SpatialAverage
 
 # Mock operator for testing (without full fluidsim dependency)
 class MockOperator:

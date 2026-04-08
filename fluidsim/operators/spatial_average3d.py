@@ -11,7 +11,7 @@ Provides:
 import numpy as np
 from fluiddyn.util import mpi
 
-from coord_system_3d import CoordSystem3DConverter
+from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
 
 class SpatialAverage:
