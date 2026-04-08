@@ -2,6 +2,7 @@ python_sources = [
   '__init__.py',
   'base.py',
   'coord_system3d.py',
+  'spatial_average3d.py',
   'operators0d.py',
   'operators1d.py',
   'operators2d.py',

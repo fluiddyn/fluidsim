@@ -3,6 +3,7 @@ python_sources = [
   'test_coord_system3d.py',
   'test_operators2d.py',
   'test_operators3d.py',
+  'test_spatial_average3d.py',
 ]
 
 py.install_sources(
