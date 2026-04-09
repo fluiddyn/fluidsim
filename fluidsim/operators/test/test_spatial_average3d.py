@@ -166,7 +166,9 @@ def test_radial_average_zero_field(spatial_avg, allclose):
 def test_azimuthal_average_constant_field(spatial_avg, allclose):
     """Azimuthal average of a constant field should be constant."""
     field = np.ones_like(spatial_avg.X) * 7.0
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     assert allclose(field_avg, 7.0, rtol=1e-10)
 
@@ -178,7 +180,9 @@ def test_azimuthal_average_z_dependent(spatial_avg):
     in each bin, accounting for the discrete grid.
     """
     field = spatial_avg.Z.copy()
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     expected_avg = np.zeros((spatial_avg.nrh, spatial_avg.nz))
     counts = np.zeros((spatial_avg.nrh, spatial_avg.nz))
@@ -207,7 +211,9 @@ def test_azimuthal_average_z_dependent(spatial_avg):
 def test_azimuthal_average_rho_dependent(spatial_avg, allclose):
     """Test azimuthal average of f(rho) = rho."""
     field = spatial_avg.rho.copy()
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     avg_over_z = np.mean(field_avg, axis=1)
 
@@ -225,7 +231,9 @@ def test_azimuthal_average_vector_field(spatial_avg):
     vz = np.ones(shape) * 3.5
     vector_field = np.array([vx, vy, vz])
 
-    rho_centers, z_centers, v_avg = spatial_avg.compute_azimuthal_average(vector_field)
+    rho_centers, z_centers, v_avg = spatial_avg.compute_azimuthal_average(
+        vector_field
+    )
 
     assert v_avg.shape == (3, spatial_avg.nrh, spatial_avg.nz)
     assert np.allclose(v_avg[0], 1.5, rtol=1e-10)
@@ -248,7 +256,9 @@ def test_azimuthal_average_with_std(spatial_avg):
 def test_azimuthal_average_zero_field(spatial_avg, allclose):
     """Azimuthal average of zero field should be zero."""
     field = np.zeros_like(spatial_avg.X)
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     assert allclose(field_avg, 0.0, atol=1e-15)
 
@@ -269,9 +279,7 @@ def test_radial_average_sin_phi_weighting(spatial_avg):
     field_phi = spatial_avg.phi.copy()
     r_centers, phi_avg = spatial_avg.compute_radial_average(field_phi)
 
-    overall_avg_phi = np.average(
-        phi_avg, weights=r_centers**2
-    ) 
+    overall_avg_phi = np.average(phi_avg, weights=r_centers**2)
     assert np.allclose(overall_avg_phi, np.pi / 2, rtol=0.1)
 
 
@@ -320,7 +328,9 @@ def test_azimuthal_average_single_bin(mock_oper):
     """Test with only one azimuthal bin."""
     spatial_avg = SpatialAverage(mock_oper, nr=10, nrh=1, nz=1)
     field = np.ones_like(spatial_avg.X) * 2.71
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     assert field_avg.shape == (1, 1)
     assert np.allclose(field_avg[0, 0], 2.71, rtol=1e-10)
@@ -353,8 +363,8 @@ def test_radial_azimuthal_consistency(spatial_avg):
     r_centers, field_avg_radial = spatial_avg.compute_radial_average(field)
 
     # Azimuthal average
-    rho_centers, z_centers, field_avg_azim = spatial_avg.compute_azimuthal_average(
-        field
+    rho_centers, z_centers, field_avg_azim = (
+        spatial_avg.compute_azimuthal_average(field)
     )
 
     RHO, Z = np.meshgrid(rho_centers, z_centers, indexing="ij")
@@ -367,7 +377,9 @@ def test_radial_azimuthal_consistency(spatial_avg):
     relative_error = np.abs(field_avg_azim - r_azim) / (r_azim + 1e-10)
     # At least 70% of bins should have < 30% error
     fraction_good = np.sum(relative_error < 0.3) / relative_error.size
-    assert fraction_good > 0.7, f"Only {fraction_good*100:.1f}% of bins are close"
+    assert fraction_good > 0.7, (
+        f"Only {fraction_good * 100:.1f}% of bins are close"
+    )
 
 
 def test_linearity_radial_average(spatial_avg, allclose):
@@ -392,7 +404,9 @@ def test_linearity_azimuthal_average(spatial_avg, allclose):
 
     rho_centers, z_centers, avg1 = spatial_avg.compute_azimuthal_average(field1)
     _, _, avg2 = spatial_avg.compute_azimuthal_average(field2)
-    _, _, avg_combined = spatial_avg.compute_azimuthal_average(a * field1 + b * field2)
+    _, _, avg_combined = spatial_avg.compute_azimuthal_average(
+        a * field1 + b * field2
+    )
 
     expected = a * avg1 + b * avg2
     assert allclose(avg_combined, expected, rtol=1e-10)
@@ -423,7 +437,9 @@ def test_radial_average_manual_reconstruction(spatial_avg):
     for i_bin in range(spatial_avg.nr):
         mask = spatial_avg.r_indices == i_bin
 
-        expected_weighted_sum += np.sum(field[mask] * np.sin(spatial_avg.phi[mask]))
+        expected_weighted_sum += np.sum(
+            field[mask] * np.sin(spatial_avg.phi[mask])
+        )
 
         sum_sin_phi = np.sum(np.sin(spatial_avg.phi[mask]))
         reconstructed_weighted_sum += field_avg[i_bin] * sum_sin_phi
@@ -504,7 +520,9 @@ def test_azimuthal_average_preserves_sum(spatial_avg):
     np.random.seed(42)
     field = np.random.randn(*spatial_avg.X.shape)
 
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     sum_direct = np.sum(field)
 
@@ -512,7 +530,9 @@ def test_azimuthal_average_preserves_sum(spatial_avg):
 
     for irho in range(spatial_avg.nrh):
         for iz in range(spatial_avg.nz):
-            mask = (spatial_avg.rho_indices == irho) & (spatial_avg.z_indices == iz)
+            mask = (spatial_avg.rho_indices == irho) & (
+                spatial_avg.z_indices == iz
+            )
 
             n_points = np.sum(mask)
             if n_points > 0:
@@ -538,7 +558,9 @@ def test_azimuthal_theta_independence(spatial_avg):
     theta = np.arctan2(spatial_avg.Y, spatial_avg.X)
     field = np.cos(theta)
 
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
     expected_avg = np.zeros((spatial_avg.nrh, spatial_avg.nz))
     counts = np.zeros((spatial_avg.nrh, spatial_avg.nz))
@@ -562,4 +584,3 @@ def test_azimuthal_theta_independence(spatial_avg):
         rtol=1e-12,
         err_msg="Azimuthal average should match manual binning",
     )
-

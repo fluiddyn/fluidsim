@@ -151,12 +151,16 @@ class SpatialAverage:
 
         This is done once at initialization to avoid repeated digitize calls.
         """
-        self.r_indices = np.clip(np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1)
+        self.r_indices = np.clip(
+            np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1
+        )
 
         self.rho_indices = np.clip(
             np.digitize(self.rho, self.rho_bins) - 1, 0, self.nrh - 1
         )
-        self.z_indices = np.clip(np.digitize(self.Z, self.z_bins) - 1, 0, self.nz - 1)
+        self.z_indices = np.clip(
+            np.digitize(self.Z, self.z_bins) - 1, 0, self.nz - 1
+        )
 
     # ------------------------------------------------------------------ #
     #  Radial average  <f>_Omega(r)                                        #
