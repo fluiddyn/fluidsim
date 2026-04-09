@@ -6,6 +6,7 @@ Provides:
 .. autoclass:: SpatialAverage
    :members:
    :private-members:
+
 """
 
 import numpy as np
@@ -71,15 +72,8 @@ class SpatialAverage:
         Uses CoordSystem3DConverter to compute rho and r, as well as phi
         for the sin(phi) weighting in radial averages.
         """
-        # rho = sqrt(x^2 + y^2) — already computed in CoordSystem3DConverter
         self.rho = self.coord_conv.rh
-
-        # r = sqrt(x^2 + y^2 + z^2)
-        self.r = self.coord_conv.r_not0  # Use r_not0 to avoid division by zero issues
-
-        # phi = arccos(z/r) in [0, pi], needed for sin(phi) weight
-        # Use r_not0 to safely handle r=0
-
+        self.r = self.coord_conv.r_not0
         self.phi = np.arccos(np.clip(self.Z / self.coord_conv.r_not0, -1.0, 1.0))
 
     def _prepare_radial_bins(self):
@@ -120,12 +114,10 @@ class SpatialAverage:
         Two independent bin arrays are built: one for rho in [0, rho_max]
         and one for z in [z_min, z_max], determined globally across all processes.
         """
-        # Find local min/max
         rho_max_loc = np.max(self.rho)
         z_min_loc = np.min(self.Z)
         z_max_loc = np.max(self.Z)
 
-        # Gather global min/max
         if mpi.nb_proc > 1:
             rho_max_all = mpi.comm.gather(rho_max_loc, root=0)
             z_min_all = mpi.comm.gather(z_min_loc, root=0)
@@ -148,7 +140,6 @@ class SpatialAverage:
             z_min = z_min_loc
             z_max = z_max_loc
 
-        # Create uniform bins
         self.rho_bins = np.linspace(0.0, rho_max, self.nrh + 1)
         self.rho_centers = 0.5 * (self.rho_bins[:-1] + self.rho_bins[1:])
 
@@ -160,10 +151,8 @@ class SpatialAverage:
 
         This is done once at initialization to avoid repeated digitize calls.
         """
-        # Radial bin indices — shape (Nx_loc, Ny_loc, Nz_loc)
         self.r_indices = np.clip(np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1)
 
-        # Azimuthal bin indices
         self.rho_indices = np.clip(
             np.digitize(self.rho, self.rho_bins) - 1, 0, self.nrh - 1
         )
@@ -201,7 +190,6 @@ class SpatialAverage:
         field_std : ndarray, same shape as field_avg (only if return_std=True)
             Standard deviation in each bin (same on all processes).
         """
-        # sin(phi) is the geometrical weight for the solid-angle average
         weights = np.sin(self.phi)
 
         is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
@@ -247,16 +235,13 @@ class SpatialAverage:
             Global average across all processes.
         field_std : ndarray, shape (nr,) — only if return_std is True
         """
-        # Flatten local arrays
         f = field.ravel()
         w = weights.ravel()
         idx = self.r_indices.ravel()
 
-        # Local sums
         sum_fw_loc = np.bincount(idx, weights=f * w, minlength=self.nr)
         sum_w_loc = np.bincount(idx, weights=w, minlength=self.nr)
 
-        # Gather across processes
         if mpi.nb_proc > 1:
             sum_fw_all = mpi.comm.gather(sum_fw_loc, root=0)
             sum_w_all = mpi.comm.gather(sum_w_loc, root=0)
@@ -268,24 +253,20 @@ class SpatialAverage:
                 sum_fw = None
                 sum_w = None
 
-            # Broadcast result to all processes
             sum_fw = mpi.comm.bcast(sum_fw, root=0)
             sum_w = mpi.comm.bcast(sum_w, root=0)
         else:
             sum_fw = sum_fw_loc
             sum_w = sum_w_loc
 
-        # Compute non-zero sum of weights mask
         mask_nonzero = sum_w > 0
 
-        # Compute average
         field_avg = np.zeros(self.nr)
         field_avg[mask_nonzero] = sum_fw[mask_nonzero] / sum_w[mask_nonzero]
 
         if not return_std:
             return field_avg
 
-        # For standard deviation, compute E[X^2]
         sum_f2w_loc = np.bincount(idx, weights=f**2 * w, minlength=self.nr)
 
         if mpi.nb_proc > 1:
@@ -300,7 +281,6 @@ class SpatialAverage:
         else:
             sum_f2w = sum_f2w_loc
 
-        # Compute variance and standard deviation
         f2_avg = np.zeros(self.nr)
         f2_avg[mask_nonzero] = sum_f2w[mask_nonzero] / sum_w[mask_nonzero]
         field_var = np.maximum(f2_avg - field_avg**2, 0.0)
@@ -383,15 +363,12 @@ class SpatialAverage:
             Global average across all processes.
         field_std : ndarray, shape (nrh, nz) — only if return_std is True
         """
-        # Flatten local arrays
         f = field.ravel()
         idx = self.rho_indices.ravel() * self.nz + self.z_indices.ravel()
 
-        # Local sums
         sum_f_loc = np.bincount(idx, weights=f, minlength=self.nrh * self.nz)
         sum_n_loc = np.bincount(idx, minlength=self.nrh * self.nz)
 
-        # Gather across processes
         if mpi.nb_proc > 1:
             sum_f_all = mpi.comm.gather(sum_f_loc, root=0)
             sum_n_all = mpi.comm.gather(sum_n_loc, root=0)
@@ -409,10 +386,8 @@ class SpatialAverage:
             sum_f = sum_f_loc
             sum_n = sum_n_loc
 
-        # Compute non-zero sum of weights mask
         mask_nonzero = sum_n > 0
 
-        # Compute average
         avg_flat = np.zeros(self.nrh * self.nz)
         avg_flat[mask_nonzero] = sum_f[mask_nonzero] / sum_n[mask_nonzero]
 
@@ -421,7 +396,6 @@ class SpatialAverage:
         if not return_std:
             return field_avg
 
-        # For standard deviation
         sum_f2_loc = np.bincount(idx, weights=f**2, minlength=self.nrh * self.nz)
 
         if mpi.nb_proc > 1:
@@ -436,11 +410,9 @@ class SpatialAverage:
         else:
             sum_f2 = sum_f2_loc
 
-        # Compute variance and standard deviation
         f2_flat = np.zeros(self.nrh * self.nz)
         f2_flat[mask_nonzero] = sum_f2[mask_nonzero] / sum_n[mask_nonzero]
         var_flat = np.maximum(f2_flat - avg_flat**2, 0.0)
-        # field_var = var_flat.reshape(self.nrh, self.nz)
         std_flat = np.sqrt(var_flat)
         field_std = std_flat.reshape(self.nrh, self.nz)
 

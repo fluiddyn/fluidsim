@@ -86,7 +86,6 @@ def test_radial_average_constant_field(spatial_avg, allclose):
     field = np.ones_like(spatial_avg.X) * 5.0
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # All bins should have approximately the same value
     assert allclose(field_avg, 5.0, rtol=1e-10)
 
 
@@ -99,15 +98,11 @@ def test_radial_average_radial_field(spatial_avg):
     field = spatial_avg.r.copy()
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # Test that field_avg increases monotonically with r_centers
     assert np.all(np.diff(field_avg) > 0), "Average should increase with radius"
 
-    # Test correlation: field_avg should be highly correlated with r_centers
     correlation = np.corrcoef(field_avg, r_centers)[0, 1]
     assert correlation > 0.99, f"Correlation {correlation} too low"
 
-    # Test that the ratio is close to 1 (within discretization error)
-    # Skip first bin where r is very small
     ratio = field_avg[1:] / r_centers[1:]
     assert np.allclose(ratio, 1.0, rtol=0.2), "Ratio should be close to 1"
 
@@ -122,11 +117,9 @@ def test_radial_average_quadratic_field(spatial_avg):
 
     expected = r_centers**2
 
-    # Test correlation
     correlation = np.corrcoef(field_avg, expected)[0, 1]
     assert correlation > 0.99, f"Correlation {correlation} too low"
 
-    # Test approximate scaling (skip first bin)
     ratio = field_avg[1:] / expected[1:]
     assert np.allclose(ratio, 1.0, rtol=0.25), "Ratio should be close to 1"
 
@@ -156,7 +149,7 @@ def test_radial_average_with_std(spatial_avg):
 
     assert field_avg.shape == (spatial_avg.nr,)
     assert field_std.shape == (spatial_avg.nr,)
-    assert np.all(field_std >= 0)  # Std must be non-negative
+    assert np.all(field_std >= 0)
 
 
 def test_radial_average_zero_field(spatial_avg, allclose):
@@ -189,27 +182,22 @@ def test_azimuthal_average_z_dependent(spatial_avg):
     field = spatial_avg.Z.copy()
     rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
 
-    # Compute the expected average by manually binning
     expected_avg = np.zeros((spatial_avg.nrh, spatial_avg.nz))
     counts = np.zeros((spatial_avg.nrh, spatial_avg.nz))
 
-    # Flatten arrays
     z_flat = spatial_avg.Z.ravel()
     rho_idx_flat = spatial_avg.rho_indices.ravel()
     z_idx_flat = spatial_avg.z_indices.ravel()
 
-    # Accumulate sums in each bin
     for i, z_val in enumerate(z_flat):
         irho = rho_idx_flat[i]
         iz = z_idx_flat[i]
         expected_avg[irho, iz] += z_val
         counts[irho, iz] += 1
 
-    # Compute averages
     mask = counts > 0
     expected_avg[mask] /= counts[mask]
 
-    # Now compare
     np.testing.assert_allclose(
         field_avg,
         expected_avg,
@@ -223,15 +211,11 @@ def test_azimuthal_average_rho_dependent(spatial_avg, allclose):
     field = spatial_avg.rho.copy()
     rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
 
-    # For each rho bin, average should equal rho_center
-    # Average over z (each row should be same)
     avg_over_z = np.mean(field_avg, axis=1)
 
-    # Test correlation
     correlation = np.corrcoef(avg_over_z, rho_centers)[0, 1]
     assert correlation > 0.99, f"Correlation {correlation} too low"
 
-    # Skip first bin (near axis) where discretization is worst
     assert np.allclose(avg_over_z[1:], rho_centers[1:], rtol=0.2)
 
 
@@ -278,24 +262,18 @@ def test_azimuthal_average_zero_field(spatial_avg, allclose):
 
 def test_radial_average_sin_phi_weighting(spatial_avg):
     """Test that sin(phi) weighting is correctly applied."""
-    # Field = 1 everywhere
     field = np.ones_like(spatial_avg.X)
 
-    # Compute radial average (uses sin(phi) weights)
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # For a constant field, average should be 1 regardless of weighting
     assert np.allclose(field_avg, 1.0, rtol=1e-10)
 
-    # Now test with field = phi (should give average phi in each shell)
     field_phi = spatial_avg.phi.copy()
     r_centers, phi_avg = spatial_avg.compute_radial_average(field_phi)
 
-    # Weighted average of phi over sphere should be close to pi/2
-    # (integral of phi*sin(phi) from 0 to pi gives pi/2)
     overall_avg_phi = np.average(
         phi_avg, weights=r_centers**2
-    )  # weight by shell volume
+    ) 
     assert np.allclose(overall_avg_phi, np.pi / 2, rtol=0.1)
 
 
@@ -356,8 +334,6 @@ def test_radial_average_large_nr(mock_oper):
     field = np.ones_like(spatial_avg.X)
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # Non-empty bins should have value close to 1
-    # Empty bins should be 0 (as set by the code)
     assert np.all((field_avg == 0) | (np.abs(field_avg - 1.0) < 0.1))
 
 
@@ -383,18 +359,13 @@ def test_radial_azimuthal_consistency(spatial_avg):
         field
     )
 
-    # For spherically symmetric field, azimuthal average should depend only on r = sqrt(rho^2 + z^2)
-    # Compute r for each (rho, z) bin
     RHO, Z = np.meshgrid(rho_centers, z_centers, indexing="ij")
     r_azim = np.sqrt(RHO**2 + Z**2)
 
     # Test correlation instead of exact match
-    # Flatten both arrays for correlation
     correlation = np.corrcoef(field_avg_azim.ravel(), r_azim.ravel())[0, 1]
     assert correlation > 0.95, f"Correlation {correlation} too low"
 
-    # Test that most values are reasonably close
-    # (discretization causes larger errors near boundaries)
     relative_error = np.abs(field_avg_azim - r_azim) / (r_azim + 1e-10)
     # At least 70% of bins should have < 30% error
     fraction_good = np.sum(relative_error < 0.3) / relative_error.size
@@ -446,24 +417,19 @@ def test_radial_average_manual_reconstruction(spatial_avg):
     np.random.seed(42)
     field = np.random.randn(*spatial_avg.X.shape)
 
-    # Compute radial average
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # Reconstruct: sum of f_i * sin(phi_i) from radial averages
     reconstructed_weighted_sum = 0.0
     expected_weighted_sum = 0.0
 
     for i_bin in range(spatial_avg.nr):
         mask = spatial_avg.r_indices == i_bin
 
-        # Expected: direct sum of f * sin(phi) in this bin
         expected_weighted_sum += np.sum(field[mask] * np.sin(spatial_avg.phi[mask]))
 
-        # Reconstructed: <f> * sum(sin(phi))
         sum_sin_phi = np.sum(np.sin(spatial_avg.phi[mask]))
         reconstructed_weighted_sum += field_avg[i_bin] * sum_sin_phi
 
-    # These should match exactly
     np.testing.assert_allclose(
         reconstructed_weighted_sum,
         expected_weighted_sum,
@@ -482,13 +448,8 @@ def test_radial_average_volume_weighted_correctly(spatial_avg):
     np.random.seed(42)
     field = np.random.randn(*spatial_avg.X.shape)
 
-    # Direct volume integral
     weights = spatial_avg.compute_volume_weights()
     integral_direct = np.sum(field * weights)
-
-    # Reconstruct from radial average
-    # For each bin, the average is weighted by sin(phi), but volume is dV
-    # We need to relate them properly
 
     integral_reconstructed = 0.0
 
@@ -498,19 +459,8 @@ def test_radial_average_volume_weighted_correctly(spatial_avg):
         if not np.any(mask):
             continue
 
-        # field_avg[i_bin] = sum(f * sin(phi)) / sum(sin(phi))
-        # We want: sum(f * dV)
-
-        # The relationship is:
-        # sum(f * dV) = sum(f * sin(phi)) * sum(dV) / sum(sin(phi))
-        # if f is constant over the shell, which it's not...
-
-        # Actually, there's no simple relationship. Let's verify
-        # that the bins correctly partition the field
-
         integral_reconstructed += np.sum(field[mask] * weights[mask])
 
-    # This is just checking that binning doesn't lose data
     np.testing.assert_allclose(
         integral_reconstructed,
         integral_direct,
@@ -527,24 +477,19 @@ def test_radial_average_preserves_weighted_sum(spatial_avg):
     np.random.seed(42)
     field = np.random.randn(*spatial_avg.X.shape)
 
-    # Compute radial average
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    # For each bin, verify: <f> = sum(f * sin(phi)) / sum(sin(phi))
     for i_bin in range(spatial_avg.nr):
         mask = spatial_avg.r_indices == i_bin
 
         if not np.any(mask):
-            # Empty bin, should be zero
             assert field_avg[i_bin] == 0.0
             continue
 
-        # Direct calculation
         sum_f_weighted = np.sum(field[mask] * np.sin(spatial_avg.phi[mask]))
         sum_weights = np.sum(np.sin(spatial_avg.phi[mask]))
         expected_avg = sum_f_weighted / sum_weights if sum_weights > 0 else 0.0
 
-        # Should match
         np.testing.assert_allclose(
             field_avg[i_bin],
             expected_avg,
@@ -561,13 +506,10 @@ def test_azimuthal_average_preserves_sum(spatial_avg):
     np.random.seed(42)
     field = np.random.randn(*spatial_avg.X.shape)
 
-    # Compute azimuthal average
     rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
 
-    # Direct sum
     sum_direct = np.sum(field)
 
-    # Reconstructed sum from bins
     sum_reconstructed = 0.0
 
     for irho in range(spatial_avg.nrh):
@@ -576,11 +518,8 @@ def test_azimuthal_average_preserves_sum(spatial_avg):
 
             n_points = np.sum(mask)
             if n_points > 0:
-                # field_avg[irho, iz] = sum(f) / n_points
-                # So: sum(f) = field_avg[irho, iz] * n_points
                 sum_reconstructed += field_avg[irho, iz] * n_points
 
-    # Should match exactly
     np.testing.assert_allclose(
         sum_reconstructed,
         sum_direct,
@@ -601,30 +540,24 @@ def test_azimuthal_theta_independence(spatial_avg):
     theta = np.arctan2(spatial_avg.Y, spatial_avg.X)
     field = np.cos(theta)
 
-    # Compute azimuthal average
     rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
 
-    # Compute expected average by manual binning
     expected_avg = np.zeros((spatial_avg.nrh, spatial_avg.nz))
     counts = np.zeros((spatial_avg.nrh, spatial_avg.nz))
 
-    # Flatten arrays
     field_flat = field.ravel()
     rho_idx_flat = spatial_avg.rho_indices.ravel()
     z_idx_flat = spatial_avg.z_indices.ravel()
 
-    # Accumulate sums in each bin
     for i, f_val in enumerate(field_flat):
         irho = rho_idx_flat[i]
         iz = z_idx_flat[i]
         expected_avg[irho, iz] += f_val
         counts[irho, iz] += 1
 
-    # Compute averages
     mask = counts > 0
     expected_avg[mask] /= counts[mask]
 
-    # The computed average should match our manual calculation exactly
     np.testing.assert_allclose(
         field_avg,
         expected_avg,
@@ -632,12 +565,3 @@ def test_azimuthal_theta_independence(spatial_avg):
         err_msg="Azimuthal average should match manual binning",
     )
 
-    # Additional check: for a Cartesian grid with good theta sampling,
-    # the average should be small (but not exactly zero)
-    # We can verify that it's smaller than the original field's variation
-
-    # For each (rho, z) bin, compute the standard deviation of theta values
-    # If theta is well-sampled, cos(theta) should average to ~0
-
-    # Just verify the computation is self-consistent
-    # (the value depends on grid geometry, not on physics)
