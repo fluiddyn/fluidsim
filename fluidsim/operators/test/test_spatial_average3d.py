@@ -1,5 +1,3 @@
-"""Tests for spatial_average3d module."""
-
 import pytest
 import numpy as np
 
