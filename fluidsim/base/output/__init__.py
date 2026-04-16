@@ -10,6 +10,7 @@ Provides:
    cross_corr3d
    horiz_means
    increments
+   kolmo_law
    phys_fields
    phys_fields1d
    phys_fields2d
