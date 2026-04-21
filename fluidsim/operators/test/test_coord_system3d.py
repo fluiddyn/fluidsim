@@ -78,6 +78,31 @@ def test_origin_shift_coordinates(converter, converter_shifted):
     assert np.allclose(converter_shifted.z, _z_shifted)
 
 
+def test_origin_position(converter, converter_shifted):
+    """Test that the origin of the shifted grid is at the center of a non-shifted grid that has origin at (0, 0, 0)."""
+    n = 5
+    x1d = np.linspace(0.0, 1.0, n)
+    y1d = np.linspace(0.0, 1.0, n)
+    z1d = np.linspace(0.0, 1.0, n)
+    z, y, x = np.meshgrid(z1d, y1d, x1d, indexing="ij")
+    lx = 1.0
+    ly = 1.0
+    lz = 1.0
+
+    conv = CoordSystem3DConverter(x, y, z, lx, ly, lz, shift_origin=False)
+    conv_shifted = CoordSystem3DConverter(x, y, z, lx, ly, lz, shift_origin=True)
+
+    assert np.allclose(
+        np.where(conv_shifted.x == 0.0), np.where(conv.x == lx / 2)
+    )
+    assert np.allclose(
+        np.where(conv_shifted.y == 0.0), np.where(conv.y == ly / 2)
+    )
+    assert np.allclose(
+        np.where(conv_shifted.z == 0.0), np.where(conv.z == lz / 2)
+    )
+
+
 # ---------------------------------------------------------------------------
 # compute_r_theta
 # ---------------------------------------------------------------------------
