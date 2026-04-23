@@ -25,6 +25,12 @@ _y_shifted = _y - (_ly / 2 + np.min(_y))
 _x_shifted = _x - (_lx / 2 + np.min(_x))
 
 
+def get_coords(shift_origin):
+    if shift_origin:
+        return _x_shifted, _y_shifted, _z_shifted
+    return _x, _y, _z
+
+
 @functools.cache
 def make_converter(shift_origin=True):
     """Make the converter with or without shifting the origin."""
@@ -38,8 +44,7 @@ def make_r_h(shift_origin=True):
     """Horizontal (cylindrical) radius centered: sqrt((x - lx/2 - min(x))^2 + (y - ly/2 - min(y))^2), or not centered sqrt(x^2 + y^2)."""
     if shift_origin:
         return np.sqrt(_x_shifted**2 + _y_shifted**2)
-    else:
-        return np.sqrt(_x**2 + _y**2)
+    return np.sqrt(_x**2 + _y**2)
 
 
 @functools.cache
@@ -121,10 +126,8 @@ def test_compute_r_theta_values(shift_origin, allclose):
     converter = make_converter(shift_origin)
     r_theta = converter.compute_r_theta()
 
-    if shift_origin:
-        expected = np.arctan2(_y_shifted, _x_shifted)
-    else:
-        expected = np.arctan2(_y, _x)
+    x, y, _ = get_coords(shift_origin)
+    expected = np.arctan2(y, x)
     assert allclose(r_theta, expected)
 
 
@@ -158,18 +161,15 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
     match vector_kind:
         case "pure-radial-h":
             # Unit vector in the horizontal radial direction
-            if shift_origin:
-                vx = _x_shifted / r_h_not0
-                vy = _y_shifted / r_h_not0
-            else:
-                vx = _x / r_h_not0
-                vy = _y / r_h_not0
+            vx = x / r_h_not0
+            vy = y / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.ones(shape)
             vh_exp[r_h == 0] = 0
@@ -178,12 +178,8 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
 
         case "pure-azimuthal":
             # Unit vector in the azimuthal direction: (-y, x, 0) / r_h
-            if shift_origin:
-                vx = -_y_shifted / r_h_not0
-                vy = _x_shifted / r_h_not0
-            else:
-                vx = -_y / r_h_not0
-                vy = _x / r_h_not0
+            vx = -y / r_h_not0
+            vy = x / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
@@ -202,16 +198,10 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
         case "pure-spherical-radial":
             # Unit vector in the spherical radial direction: (x, y, z) / r_sph_not0
             # Cylindrical decomposition: vh = r_h/r_sph_not0, vt = 0, vz = z/r_sph_not0
-            if shift_origin:
-                vx = _x_shifted / r_sph_not0
-                vy = _y_shifted / r_sph_not0
-                vz = _z_shifted / r_sph_not0
-                vz_exp = _z_shifted / r_sph_not0
-            else:
-                vx = _x / r_sph_not0
-                vy = _y / r_sph_not0
-                vz = _z / r_sph_not0
-                vz_exp = _z / r_sph_not0
+            vx = x / r_sph_not0
+            vy = y / r_sph_not0
+            vz = z / r_sph_not0
+            vz_exp = _z / r_sph_not0
             vh_exp = r_h / r_sph_not0
             vt_exp = np.zeros(shape)
 
@@ -259,15 +249,11 @@ def test_compute_radial_component_pure_radial(shift_origin, allclose):
     """A pure horizontal-radial unit vector should have radial component 1."""
     converter = make_converter(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
 
-    if shift_origin:
-        vx = _x_shifted / r_sph_not0
-        vy = _y_shifted / r_sph_not0
-        vz = _z_shifted / r_sph_not0
-    else:
-        vx = _x / r_sph_not0
-        vy = _y / r_sph_not0
-        vz = _z / r_sph_not0
+    vx = x / r_sph_not0
+    vy = y / r_sph_not0
+    vz = z / r_sph_not0
     vr = converter.compute_radial_component(vx, vy, vz)
     assert allclose(vr, np.ones(shape))
 
@@ -278,15 +264,12 @@ def test_compute_radial_component_pure_azimuthal(shift_origin, allclose):
 
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
+    x, y, _ = get_coords(shift_origin)
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
-    if shift_origin:
-        vx = -_y_shifted / r_h_not0
-        vy = _x_shifted / r_h_not0
-    else:
-        vx = -_y / r_h_not0
-        vy = _x / r_h_not0
+    vx = -y / r_h_not0
+    vy = x / r_h_not0
     vz = np.zeros(shape)
     vr = converter.compute_radial_component(vx, vy, vz)
 
@@ -307,34 +290,24 @@ def test_compute_spherical_components(shift_origin, vector_kind, allclose):
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
     match vector_kind:
         case "pure-spherical-radial":
-            if shift_origin:
-                # Unit vector along spherical r with shifted origin
-                vx = _x_shifted / r_sph_not0
-                vy = _y_shifted / r_sph_not0
-                vz = _z_shifted / r_sph_not0
-            else:
-                # Unit vector along spherical r: (x, y, z)/r_sph_not0
-                vx = _x / r_sph_not0
-                vy = _y / r_sph_not0
-                vz = _z / r_sph_not0
+            # Unit vector along spherical r: (x, y, z)/r_sph_not0
+            vx = x / r_sph_not0
+            vy = y / r_sph_not0
+            vz = z / r_sph_not0
             vr_exp = np.ones(shape)
             vt_exp = np.zeros(shape)  # azimuthal
             vp_exp = np.zeros(shape)  # polar
 
         case "pure-azimuthal":
-            if shift_origin:
-                # Unit vector along azimuthal phi with shifted origin
-                vx = -_y_shifted / r_h_not0
-                vy = _x_shifted / r_h_not0
-            else:
-                # Unit vector along azimuthal phi: (-y, x, 0)/r_h
-                vx = -_y / r_h_not0
-                vy = _x / r_h_not0
+            # Unit vector along azimuthal phi: (-y, x, 0)/r_h
+            vx = -y / r_h_not0
+            vy = x / r_h_not0
             vz = np.zeros(shape)
             vr_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
@@ -342,14 +315,9 @@ def test_compute_spherical_components(shift_origin, vector_kind, allclose):
             vp_exp = np.zeros(shape)
 
         case "pure-polar":
-            if shift_origin:
-                # Unit vector along polar theta (e_theta) with shifted origin
-                vx = _x_shifted * _z_shifted / (r_sph_not0 * r_h_not0)
-                vy = _y_shifted * _z_shifted / (r_sph_not0 * r_h_not0)
-            else:
-                # Unit vector along polar theta (e_theta): (x*z, y*z, -r_h^2) / (r_sph_not0 * r_h)
-                vx = _x * _z / (r_sph_not0 * r_h_not0)
-                vy = _y * _z / (r_sph_not0 * r_h_not0)
+            # Unit vector along polar theta (e_theta): (x*z, y*z, -r_h^2) / (r_sph_not0 * r_h)
+            vx = x * z / (r_sph_not0 * r_h_not0)
+            vy = y * z / (r_sph_not0 * r_h_not0)
             vz = -(r_h**2) / (r_sph_not0 * r_h_not0)
             vr_exp = np.zeros(shape)
             vt_exp = np.zeros(shape)
