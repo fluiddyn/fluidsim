@@ -101,10 +101,7 @@ def test_origin_position():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_compute_r_theta_range(shift_origin):
     """r_theta_shifted must lie in [-pi, pi] and r_theta in [0, pi/2]."""
     converter = make_converter(shift_origin)
@@ -118,10 +115,7 @@ def test_compute_r_theta_range(shift_origin):
         assert np.all(r_theta <= np.pi / 2)
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_compute_r_theta_values(shift_origin, allclose):
     """r_theta should equal arctan2(y, x)."""
     converter = make_converter(shift_origin)
@@ -134,10 +128,7 @@ def test_compute_r_theta_values(shift_origin, allclose):
     assert allclose(r_theta, expected)
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_compute_r_theta_origin(shift_origin):
     """r_theta must be 0 when x = y = 0 (on the z-axis)."""
     x = np.zeros((3,))
@@ -158,19 +149,12 @@ def test_compute_r_theta_origin(shift_origin):
 # In cylindrical coordinates this should give vh = 1, vt = 0, vz = 0.
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 @pytest.mark.parametrize(
     "vector_kind",
     ["pure-radial-h", "pure-azimuthal", "pure-vertical", "pure-spherical-radial"],
 )
-def test_compute_cylindrical_components(
-    shift_origin,
-    vector_kind,
-    allclose,
-):
+def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
@@ -245,10 +229,7 @@ def test_compute_cylindrical_components(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_cylindrical_preserves_norm(shift_origin, allclose):
     """Cylindrical conversion is a rotation: it must preserve the vector norm."""
     converter = make_converter(shift_origin)
@@ -273,10 +254,7 @@ def test_cylindrical_preserves_norm(shift_origin, allclose):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_compute_radial_component_pure_radial(shift_origin, allclose):
     """A pure horizontal-radial unit vector should have radial component 1."""
     converter = make_converter(shift_origin)
@@ -294,10 +272,7 @@ def test_compute_radial_component_pure_radial(shift_origin, allclose):
     assert allclose(vr, np.ones(shape))
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_compute_radial_component_pure_azimuthal(shift_origin, allclose):
     """A pure azimuthal unit vector is perpendicular to r_h → radial component 0."""
 
@@ -323,19 +298,12 @@ def test_compute_radial_component_pure_azimuthal(shift_origin, allclose):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 @pytest.mark.parametrize(
     "vector_kind",
     ["pure-spherical-radial", "pure-azimuthal", "pure-polar"],
 )
-def test_compute_spherical_components(
-    shift_origin,
-    vector_kind,
-    allclose,
-):
+def test_compute_spherical_components(shift_origin, vector_kind, allclose):
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
@@ -397,10 +365,7 @@ def test_compute_spherical_components(
     assert allclose(vp, vp_exp), f"vp mismatch for {vector_kind}"
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_spherical_preserves_norm(shift_origin, allclose):
     """Spherical conversion is a rotation: it must preserve the vector norm."""
     converter = make_converter(shift_origin)
@@ -421,10 +386,7 @@ def test_spherical_preserves_norm(shift_origin, allclose):
     assert allclose(norm2_sph, norm2_cart)
 
 
-@pytest.mark.parametrize(
-    "shift_origin",
-    [False, True],
-)
+@pytest.mark.parametrize("shift_origin", [False, True])
 def test_spherical_radial_equals_radial_component(shift_origin, allclose):
     """The spherical vr component must equal compute_radial_component."""
     converter = make_converter(shift_origin)
