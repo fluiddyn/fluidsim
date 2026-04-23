@@ -1,4 +1,5 @@
 import pytest
+import functools
 import numpy as np
 
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
@@ -13,23 +14,91 @@ _z, _y, _x = np.meshgrid(_z1d, _y1d, _x1d, indexing="ij")
 shape = _x.shape
 EPSILON = 1e-12
 
+# Domain sizes
+_lx = 1.0
+_ly = 1.0
+_lz = 2.0
 
-@pytest.fixture(scope="module")
-def converter():
-    return CoordSystem3DConverter(_x, _y, _z)
+# shifted grid (origin shifted at the middle of the domain)
+_z_shifted = _z - (_lz / 2 + np.min(_z))
+_y_shifted = _y - (_ly / 2 + np.min(_y))
+_x_shifted = _x - (_lx / 2 + np.min(_x))
 
 
-@pytest.fixture(scope="module")
-def r_h():
-    """Horizontal (cylindrical) radius sqrt(x^2 + y^2)."""
+def get_coords(shift_origin):
+    if shift_origin:
+        return _x_shifted, _y_shifted, _z_shifted
+    return _x, _y, _z
+
+
+@functools.cache
+def make_converter(shift_origin=True):
+    """Make the converter with or without shifting the origin."""
+    return CoordSystem3DConverter(
+        _x, _y, _z, _lx, _ly, _lz, shift_origin=shift_origin
+    )
+
+
+@functools.cache
+def make_r_h(shift_origin=True):
+    """Horizontal (cylindrical) radius centered: sqrt((x - lx/2 - min(x))^2 + (y - ly/2 - min(y))^2), or not centered sqrt(x^2 + y^2)."""
+    if shift_origin:
+        return np.sqrt(_x_shifted**2 + _y_shifted**2)
     return np.sqrt(_x**2 + _y**2)
 
 
-@pytest.fixture(scope="module")
-def r_sph_not0():
-    """Spherical radius sqrt(x^2 + y^2 + z^2)."""
-    r_sph = np.sqrt(_x**2 + _y**2 + _z**2)
+@functools.cache
+def make_r_sph_not0(shift_origin=True):
+    """Spherical radius centered: sqrt((x - lx/2 - min(x))^2 + (y - ly/2 - min(y))^2 + (z - lz/2 - min(z))^2), or not centered: sqrt(x^2 + y^2 + z^2)."""
+    if shift_origin:
+        r_sph = np.sqrt(_x_shifted**2 + _y_shifted**2 + _z_shifted**2)
+    else:
+        r_sph = np.sqrt(_x**2 + _y**2 + _z**2)
     return np.where(r_sph != 0, r_sph, EPSILON)
+
+
+# ---------------------------------------------------------------------------
+# Origin shift test
+# ---------------------------------------------------------------------------
+
+
+def test_origin_shift_coordinates():
+    """Test that coordinates are correctly shifted when shift_origin=True."""
+    converter = make_converter(shift_origin=False)
+    converter_shifted = make_converter()
+
+    assert np.allclose(converter.x, _x)
+    assert np.allclose(converter.y, _y)
+    assert np.allclose(converter.z, _z)
+
+    assert np.allclose(converter_shifted.x, _x_shifted)
+    assert np.allclose(converter_shifted.y, _y_shifted)
+    assert np.allclose(converter_shifted.z, _z_shifted)
+
+
+def test_origin_position():
+    """Test that the origin of the shifted grid is at the center of a non-shifted grid that has origin at (0, 0, 0)."""
+    n = 5
+    x1d = np.linspace(0.0, 1.0, n)
+    y1d = np.linspace(0.0, 1.0, n)
+    z1d = np.linspace(0.0, 1.0, n)
+    z, y, x = np.meshgrid(z1d, y1d, x1d, indexing="ij")
+    lx = 1.0
+    ly = 1.0
+    lz = 1.0
+
+    conv = CoordSystem3DConverter(x, y, z, lx, ly, lz, shift_origin=False)
+    conv_shifted = CoordSystem3DConverter(x, y, z, lx, ly, lz, shift_origin=True)
+
+    assert np.allclose(
+        np.where(conv_shifted.x == 0.0), np.where(conv.x == lx / 2)
+    )
+    assert np.allclose(
+        np.where(conv_shifted.y == 0.0), np.where(conv.y == ly / 2)
+    )
+    assert np.allclose(
+        np.where(conv_shifted.z == 0.0), np.where(conv.z == lz / 2)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -37,26 +106,40 @@ def r_sph_not0():
 # ---------------------------------------------------------------------------
 
 
-def test_compute_r_theta_range(converter):
-    """r_theta must lie in [-pi, pi]."""
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_compute_r_theta_range(shift_origin):
+    """r_theta_shifted must lie in [-pi, pi] and r_theta in [0, pi/2]."""
+    converter = make_converter(shift_origin)
     r_theta = converter.compute_r_theta()
-    assert np.all(r_theta >= -np.pi)
-    assert np.all(r_theta <= np.pi)
+
+    if shift_origin:
+        assert np.all(r_theta >= -np.pi)
+        assert np.all(r_theta <= np.pi)
+    else:
+        assert np.all(r_theta >= 0)
+        assert np.all(r_theta <= np.pi / 2)
 
 
-def test_compute_r_theta_values(converter, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_compute_r_theta_values(shift_origin, allclose):
     """r_theta should equal arctan2(y, x)."""
+    converter = make_converter(shift_origin)
     r_theta = converter.compute_r_theta()
-    expected = np.arctan2(_y, _x)
+
+    x, y, _ = get_coords(shift_origin)
+    expected = np.arctan2(y, x)
     assert allclose(r_theta, expected)
 
 
-def test_compute_r_theta_origin():
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_compute_r_theta_origin(shift_origin):
     """r_theta must be 0 when x = y = 0 (on the z-axis)."""
     x = np.zeros((3,))
     y = np.zeros((3,))
     z = np.array([1.0, 0.0, -1.0])
-    conv = CoordSystem3DConverter(x, y, z)
+    conv = CoordSystem3DConverter(
+        x, y, z, lx=0, ly=0, lz=2, shift_origin=shift_origin
+    )
     r_theta = conv.compute_r_theta()
     assert np.all(r_theta == 0.0)
 
@@ -69,20 +152,24 @@ def test_compute_r_theta_origin():
 # In cylindrical coordinates this should give vh = 1, vt = 0, vz = 0.
 
 
+@pytest.mark.parametrize("shift_origin", [False, True])
 @pytest.mark.parametrize(
     "vector_kind",
     ["pure-radial-h", "pure-azimuthal", "pure-vertical", "pure-spherical-radial"],
 )
-def test_compute_cylindrical_components(
-    vector_kind, converter, r_h, r_sph_not0, allclose
-):
+def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
+    converter = make_converter(shift_origin)
+    r_h = make_r_h(shift_origin)
+    r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
+
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
     match vector_kind:
         case "pure-radial-h":
             # Unit vector in the horizontal radial direction
-            vx = _x / r_h_not0
-            vy = _y / r_h_not0
+            vx = x / r_h_not0
+            vy = y / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.ones(shape)
             vh_exp[r_h == 0] = 0
@@ -91,8 +178,8 @@ def test_compute_cylindrical_components(
 
         case "pure-azimuthal":
             # Unit vector in the azimuthal direction: (-y, x, 0) / r_h
-            vx = -_y / r_h_not0
-            vy = _x / r_h_not0
+            vx = -y / r_h_not0
+            vy = x / r_h_not0
             vz = np.zeros(shape)
             vh_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
@@ -111,12 +198,12 @@ def test_compute_cylindrical_components(
         case "pure-spherical-radial":
             # Unit vector in the spherical radial direction: (x, y, z) / r_sph_not0
             # Cylindrical decomposition: vh = r_h/r_sph_not0, vt = 0, vz = z/r_sph_not0
-            vx = _x / r_sph_not0
-            vy = _y / r_sph_not0
-            vz = _z / r_sph_not0
+            vx = x / r_sph_not0
+            vy = y / r_sph_not0
+            vz = z / r_sph_not0
+            vz_exp = _z / r_sph_not0
             vh_exp = r_h / r_sph_not0
             vt_exp = np.zeros(shape)
-            vz_exp = _z / r_sph_not0
 
         case _:
             raise ValueError(f"Unknown vector_kind: {vector_kind}")
@@ -132,8 +219,12 @@ def test_compute_cylindrical_components(
 # ---------------------------------------------------------------------------
 
 
-def test_cylindrical_preserves_norm(converter, r_h, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_cylindrical_preserves_norm(shift_origin, allclose):
     """Cylindrical conversion is a rotation: it must preserve the vector norm."""
+    converter = make_converter(shift_origin)
+    r_h = make_r_h(shift_origin)
+
     rng = np.random.default_rng(0)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)
@@ -153,24 +244,35 @@ def test_cylindrical_preserves_norm(converter, r_h, allclose):
 # ---------------------------------------------------------------------------
 
 
-def test_compute_radial_component_pure_radial(converter, r_sph_not0, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_compute_radial_component_pure_radial(shift_origin, allclose):
     """A pure horizontal-radial unit vector should have radial component 1."""
-    vx = _x / r_sph_not0
-    vy = _y / r_sph_not0
-    vz = _z / r_sph_not0
+    converter = make_converter(shift_origin)
+    r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
+
+    vx = x / r_sph_not0
+    vy = y / r_sph_not0
+    vz = z / r_sph_not0
     vr = converter.compute_radial_component(vx, vy, vz)
     assert allclose(vr, np.ones(shape))
 
 
-def test_compute_radial_component_pure_azimuthal(converter, r_h, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_compute_radial_component_pure_azimuthal(shift_origin, allclose):
     """A pure azimuthal unit vector is perpendicular to r_h → radial component 0."""
+
+    converter = make_converter(shift_origin)
+    r_h = make_r_h(shift_origin)
+    x, y, _ = get_coords(shift_origin)
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
-    vx = -_y / r_h_not0
-    vy = _x / r_h_not0
+    vx = -y / r_h_not0
+    vy = x / r_h_not0
     vz = np.zeros(shape)
     vr = converter.compute_radial_component(vx, vy, vz)
+
     assert allclose(vr, np.zeros(shape))
 
 
@@ -179,29 +281,33 @@ def test_compute_radial_component_pure_azimuthal(converter, r_h, allclose):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("shift_origin", [False, True])
 @pytest.mark.parametrize(
     "vector_kind",
     ["pure-spherical-radial", "pure-azimuthal", "pure-polar"],
 )
-def test_compute_spherical_components(
-    vector_kind, converter, r_h, r_sph_not0, allclose
-):
+def test_compute_spherical_components(shift_origin, vector_kind, allclose):
+    converter = make_converter(shift_origin)
+    r_h = make_r_h(shift_origin)
+    r_sph_not0 = make_r_sph_not0(shift_origin)
+    x, y, z = get_coords(shift_origin)
+
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
     match vector_kind:
         case "pure-spherical-radial":
             # Unit vector along spherical r: (x, y, z)/r_sph_not0
-            vx = _x / r_sph_not0
-            vy = _y / r_sph_not0
-            vz = _z / r_sph_not0
+            vx = x / r_sph_not0
+            vy = y / r_sph_not0
+            vz = z / r_sph_not0
             vr_exp = np.ones(shape)
             vt_exp = np.zeros(shape)  # azimuthal
             vp_exp = np.zeros(shape)  # polar
 
         case "pure-azimuthal":
             # Unit vector along azimuthal phi: (-y, x, 0)/r_h
-            vx = -_y / r_h_not0
-            vy = _x / r_h_not0
+            vx = -y / r_h_not0
+            vy = x / r_h_not0
             vz = np.zeros(shape)
             vr_exp = np.zeros(shape)
             vt_exp = np.ones(shape)
@@ -210,8 +316,8 @@ def test_compute_spherical_components(
 
         case "pure-polar":
             # Unit vector along polar theta (e_theta): (x*z, y*z, -r_h^2) / (r_sph_not0 * r_h)
-            vx = _x * _z / (r_sph_not0 * r_h_not0)
-            vy = _y * _z / (r_sph_not0 * r_h_not0)
+            vx = x * z / (r_sph_not0 * r_h_not0)
+            vy = y * z / (r_sph_not0 * r_h_not0)
             vz = -(r_h**2) / (r_sph_not0 * r_h_not0)
             vr_exp = np.zeros(shape)
             vt_exp = np.zeros(shape)
@@ -227,8 +333,12 @@ def test_compute_spherical_components(
     assert allclose(vp, vp_exp), f"vp mismatch for {vector_kind}"
 
 
-def test_spherical_preserves_norm(converter, r_h, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_spherical_preserves_norm(shift_origin, allclose):
     """Spherical conversion is a rotation: it must preserve the vector norm."""
+    converter = make_converter(shift_origin)
+    r_h = make_r_h(shift_origin)
+
     rng = np.random.default_rng(1)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)
@@ -244,8 +354,11 @@ def test_spherical_preserves_norm(converter, r_h, allclose):
     assert allclose(norm2_sph, norm2_cart)
 
 
-def test_spherical_radial_equals_radial_component(converter, r_h, allclose):
+@pytest.mark.parametrize("shift_origin", [False, True])
+def test_spherical_radial_equals_radial_component(shift_origin, allclose):
     """The spherical vr component must equal compute_radial_component."""
+    converter = make_converter(shift_origin)
+
     rng = np.random.default_rng(2)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)

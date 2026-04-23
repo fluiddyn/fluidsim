@@ -15,10 +15,15 @@ import numpy as np
 class CoordSystem3DConverter:
     """Conversion from Cartesian coordinate system to cylindrical and spherical coordinate systems"""
 
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, x, y, z, lx, ly, lz, shift_origin=True):
+        if shift_origin:
+            self.x = x - (lx / 2 + np.min(x))
+            self.y = y - (ly / 2 + np.min(y))
+            self.z = z - (lz / 2 + np.min(z))
+        else:
+            self.x = x
+            self.y = y
+            self.z = z
 
         # tiny constant
         EPSILON = 1e-12
