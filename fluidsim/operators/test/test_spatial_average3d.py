@@ -377,6 +377,7 @@ def test_linearity_azimuthal_average(spatial_avg, allclose):
 
 # HERE !!!!!!!!!!!!
 
+
 def test_radial_average_manual_reconstruction(spatial_avg):
     """Test that we can reconstruct the field sum from radial averages.
 

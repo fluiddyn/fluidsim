@@ -57,12 +57,12 @@ class SpatialAverage:
         Lx = oper.Lx
         Ly = oper.Ly
         Lz = oper.Lz
-        
+
         # Initialize coordinate converter with shift option
         self.coord_conv = CoordSystem3DConverter(
             X, Y, Z, Lx, Ly, Lz, shift_origin=shift_origin
         )
-        
+
         # Store coordinates (already shifted if shift_origin=True)
         self.X = self.coord_conv.x
         self.Y = self.coord_conv.y
