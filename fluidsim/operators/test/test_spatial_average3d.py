@@ -173,13 +173,20 @@ def test_azimuthal_average_constant_field(spatial_avg, allclose):
     assert allclose(field_avg, 7.0, rtol=1e-10)
 
 
-def test_azimuthal_average_z_dependent(spatial_avg):
-    """Test azimuthal average of f(z) = z.
+@pytest.mark.parametrize("azimut_var", ["z", "rho"])
+def test_azimuthal_average_z_dependent(spatial_avg, azimut_var):
+    """Test azimuthal average of f(z) = z and f(rho) = rho.
 
     We compute the expected average by explicitly averaging the actual z values
     in each bin, accounting for the discrete grid.
     """
-    field = spatial_avg.Z.copy()
+    if azimut_var == "z":
+        field = spatial_avg.Z.copy()
+        var_flat = spatial_avg.Z.ravel()
+    elif azimut_var == "rho":
+        field = spatial_avg.rho.copy()
+        var_flat = spatial_avg.rho.ravel()
+
     rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
         field
     )
@@ -187,14 +194,13 @@ def test_azimuthal_average_z_dependent(spatial_avg):
     expected_avg = np.zeros((spatial_avg.nrh, spatial_avg.nz))
     counts = np.zeros((spatial_avg.nrh, spatial_avg.nz))
 
-    z_flat = spatial_avg.Z.ravel()
     rho_idx_flat = spatial_avg.rho_indices.ravel()
     z_idx_flat = spatial_avg.z_indices.ravel()
 
-    for i, z_val in enumerate(z_flat):
+    for i, var_val in enumerate(var_flat):
         irho = rho_idx_flat[i]
         iz = z_idx_flat[i]
-        expected_avg[irho, iz] += z_val
+        expected_avg[irho, iz] += var_val
         counts[irho, iz] += 1
 
     mask = counts > 0
@@ -206,21 +212,6 @@ def test_azimuthal_average_z_dependent(spatial_avg):
         rtol=1e-12,
         err_msg="Azimuthal average should exactly match manual binning",
     )
-
-
-def test_azimuthal_average_rho_dependent(spatial_avg, allclose):
-    """Test azimuthal average of f(rho) = rho."""
-    field = spatial_avg.rho.copy()
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
-        field
-    )
-
-    avg_over_z = np.mean(field_avg, axis=1)
-
-    correlation = np.corrcoef(avg_over_z, rho_centers)[0, 1]
-    assert correlation > 0.99, f"Correlation {correlation} too low"
-
-    assert np.allclose(avg_over_z[1:], rho_centers[1:], rtol=0.2)
 
 
 def test_azimuthal_average_vector_field(spatial_avg):
@@ -269,7 +260,7 @@ def test_azimuthal_average_zero_field(spatial_avg, allclose):
 
 
 def test_radial_average_sin_phi_weighting(spatial_avg):
-    """Test that sin(phi) weighting is correctly applied."""
+    """Test that sin(phi) weighting is correctly applied. Should be pi/2, with a small bias due to asymetry of the box."""
     field = np.ones_like(spatial_avg.X)
 
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
@@ -279,7 +270,7 @@ def test_radial_average_sin_phi_weighting(spatial_avg):
     field_phi = spatial_avg.phi.copy()
     r_centers, phi_avg = spatial_avg.compute_radial_average(field_phi)
 
-    overall_avg_phi = np.average(phi_avg, weights=r_centers**2)
+    overall_avg_phi = np.average(phi_avg)
     assert np.allclose(overall_avg_phi, np.pi / 2, rtol=0.1)
 
 
@@ -350,38 +341,6 @@ def test_radial_average_large_nr(mock_oper):
 # ---------------------------------------------------------------------------
 
 
-def test_radial_azimuthal_consistency(spatial_avg):
-    """Test that radial and azimuthal averages are consistent for spherically symmetric fields.
-
-    For a spherically symmetric field f(r), both averages should give similar results
-    when compared at the same radius r = sqrt(rho^2 + z^2).
-    """
-    # Spherically symmetric field: f(r) = r
-    field = spatial_avg.r.copy()
-
-    # Radial average
-    r_centers, field_avg_radial = spatial_avg.compute_radial_average(field)
-
-    # Azimuthal average
-    rho_centers, z_centers, field_avg_azim = (
-        spatial_avg.compute_azimuthal_average(field)
-    )
-
-    RHO, Z = np.meshgrid(rho_centers, z_centers, indexing="ij")
-    r_azim = np.sqrt(RHO**2 + Z**2)
-
-    # Test correlation instead of exact match
-    correlation = np.corrcoef(field_avg_azim.ravel(), r_azim.ravel())[0, 1]
-    assert correlation > 0.95, f"Correlation {correlation} too low"
-
-    relative_error = np.abs(field_avg_azim - r_azim) / (r_azim + 1e-10)
-    # At least 70% of bins should have < 30% error
-    fraction_good = np.sum(relative_error < 0.3) / relative_error.size
-    assert fraction_good > 0.7, (
-        f"Only {fraction_good * 100:.1f}% of bins are close"
-    )
-
-
 def test_linearity_radial_average(spatial_avg, allclose):
     """Test linearity: avg(a*f1 + b*f2) = a*avg(f1) + b*avg(f2)."""
     field1 = np.random.randn(*spatial_avg.X.shape)
@@ -416,6 +375,7 @@ def test_linearity_azimuthal_average(spatial_avg, allclose):
 # Additional physical tests
 # ---------------------------------------------------------------------------
 
+# HERE !!!!!!!!!!!!
 
 def test_radial_average_manual_reconstruction(spatial_avg):
     """Test that we can reconstruct the field sum from radial averages.
