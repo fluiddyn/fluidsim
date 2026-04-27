@@ -41,7 +41,7 @@ class SpatialAverage:
         Number of z bins for azimuthal averaging (default: 50)
     """
 
-    def __init__(self, oper, nr=50, nrh=50, nz=50):
+    def __init__(self, oper, nr=50, nrh=50, nz=50, shift_origin=True):
         self.oper = oper
         self.nr = nr
         self.nrh = nrh
@@ -53,8 +53,20 @@ class SpatialAverage:
         self.Y = Y
         self.Z = Z
 
-        # Initialize coordinate converter
-        self.coord_conv = CoordSystem3DConverter(X, Y, Z)
+        # Get domain sizes
+        Lx = oper.Lx
+        Ly = oper.Ly
+        Lz = oper.Lz
+        
+        # Initialize coordinate converter with shift option
+        self.coord_conv = CoordSystem3DConverter(
+            X, Y, Z, Lx, Ly, Lz, shift_origin=shift_origin
+        )
+        
+        # Store coordinates (already shifted if shift_origin=True)
+        self.X = self.coord_conv.x
+        self.Y = self.coord_conv.y
+        self.Z = self.coord_conv.z
 
         # Compute cylindrical and spherical coordinates
         self._compute_coordinates()
