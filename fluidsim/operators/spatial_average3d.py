@@ -125,7 +125,6 @@ class SpatialAverage:
             r_min, r_min + self.nr * self.deltar, self.nr, endpoint=False
         )
 
-
     def _prepare_azimuthal_bins(self):
         """Prepare bins for azimuthal averaging
 
@@ -173,7 +172,9 @@ class SpatialAverage:
         self.rho_centers = np.linspace(
             rho_min, rho_min + self.nrh * self.deltarh, self.nrh, endpoint=False
         )
-        self.z_centers = np.linspace(z_min, z_min + self._nz * self.deltaz, self._nz, endpoint=False)
+        self.z_centers = np.linspace(
+            z_min, z_min + self._nz * self.deltaz, self._nz, endpoint=False
+        )
 
     def _compute_weights(self):
         """Compute the total weight (count) in each bin across all processes.
@@ -204,7 +205,9 @@ class SpatialAverage:
                 self.azimuthal_weights = np.sum(azimuthal_all, axis=0)
             else:
                 self.azimuthal_weights = None
-            self.azimuthal_weights = mpi.comm.bcast(self.azimuthal_weights, root=0)
+            self.azimuthal_weights = mpi.comm.bcast(
+                self.azimuthal_weights, root=0
+            )
         else:
             self.radial_weights = radial_weights_loc
             self.azimuthal_weights = azimuthal_weights_loc
@@ -317,7 +320,9 @@ class SpatialAverage:
             sum_f2 = sum_f2_loc
 
         f2_avg = np.zeros(self.nr)
-        f2_avg[mask_nonzero] = sum_f2[mask_nonzero] / self.radial_weights[mask_nonzero]
+        f2_avg[mask_nonzero] = (
+            sum_f2[mask_nonzero] / self.radial_weights[mask_nonzero]
+        )
         field_var = np.maximum(f2_avg - field_avg**2, 0.0)
         field_std = np.sqrt(field_var)
 

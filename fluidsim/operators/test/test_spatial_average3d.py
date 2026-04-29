@@ -63,9 +63,21 @@ def test_bins_positive(spatial_avg):
 
 def test_steps(spatial_avg):
     """Test that computed coordinates have correct shapes."""
-    assert np.allclose(spatial_avg.r_centers[1] - spatial_avg.r_centers[0], spatial_avg.deltar, rtol=1e-12)
-    assert np.allclose(spatial_avg.rho_centers[1] - spatial_avg.rho_centers[0], spatial_avg.deltarh, rtol=1e-12)
-    assert np.allclose(spatial_avg.z_centers[1] - spatial_avg.z_centers[0], spatial_avg.deltaz, rtol=1e-12)
+    assert np.allclose(
+        spatial_avg.r_centers[1] - spatial_avg.r_centers[0],
+        spatial_avg.deltar,
+        rtol=1e-12,
+    )
+    assert np.allclose(
+        spatial_avg.rho_centers[1] - spatial_avg.rho_centers[0],
+        spatial_avg.deltarh,
+        rtol=1e-12,
+    )
+    assert np.allclose(
+        spatial_avg.z_centers[1] - spatial_avg.z_centers[0],
+        spatial_avg.deltaz,
+        rtol=1e-12,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +111,7 @@ def test_radial_average_quadratic_field(spatial_avg):
     """Test radial average of f(r) = r^2.
 
     Similar to linear case, we test correlation and approximate scaling.
-    """    
+    """
     field = spatial_avg.r**2
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
