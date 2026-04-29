@@ -12,6 +12,8 @@ Provides:
 import numpy as np
 from fluiddyn.util import mpi
 
+from fluidfft.fft3d.operators import loop_spectra3d, loop_spectra_kzkh
+
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
 
@@ -33,25 +35,32 @@ class SpatialAverage:
         The mesh is assumed uniform with the same grid spacing dx=dy=dz in all
         directions, but the domain lengths Lx, Ly, Lz (and therefore the number
         of grid points Nx, Ny, Nz) can differ.
-    nr : int, optional
-        Number of radial bins for radial averaging (default: 50)
-    nrh : int, optional
-        Number of rho bins for azimuthal averaging (default: 50)
-    nz : int, optional
-        Number of z bins for azimuthal averaging (default: 50)
+    dr : float, optional
+        Radial bin size factor (default: 2.0)
+    drh : float, optional
+        Azimuthal rho bin size factor (default: 2.0)
+    dz : float, optional
+        Azimuthal z bin size factor (default: 1.0)
+    shift_origin : bool, optional
+        If True, shift origin to domain center (default: True)
     """
 
-    def __init__(self, oper, nr=50, nrh=50, nz=50, shift_origin=True):
+    def __init__(self, oper, dr=2.0, drh=2.0, dz=1.0, shift_origin=True):
         self.oper = oper
-        self.nr = nr
-        self.nrh = nrh
-        self.nz = nz
+
+        # Compute bin spacings
+        delta_min = min(oper.Lx / oper.nx, oper.Ly / oper.ny, oper.Lz / oper.nz)
+        self.deltar = delta_min * dr
+        self.deltarh = delta_min * drh
+        self.deltaz = delta_min * dz
+
+        # Compute number of bins (will be refined in _prepare_*_bins)
+        self.nr = int(min(oper.nx, oper.ny, oper.nz) / dr)
+        self.nrh = int(min(oper.nx, oper.ny) / drh)
+        self.nz = int(oper.nz / dz)
 
         # Get local Cartesian coordinates from the operator
         X, Y, Z = oper.get_XYZ_loc()
-        self.X = X
-        self.Y = Y
-        self.Z = Z
 
         # Get domain sizes
         Lx = oper.Lx
@@ -75,23 +84,21 @@ class SpatialAverage:
         self._prepare_radial_bins()
         self._prepare_azimuthal_bins()
 
-        # Precompute indices for binning on this process
-        self._compute_bin_indices()
+        # Compute weights (total counts in each bin)
+        self._compute_weights()
 
     def _compute_coordinates(self):
         """Compute cylindrical and spherical coordinate arrays
 
-        Uses CoordSystem3DConverter to compute rho and r, as well as phi
-        for the sin(phi) weighting in radial averages.
+        Uses CoordSystem3DConverter to compute rho and r.
         """
         self.rho = self.coord_conv.rh
         self.r = self.coord_conv.r_not0
-        self.phi = np.arccos(np.clip(self.Z / self.coord_conv.r_not0, -1.0, 1.0))
 
     def _prepare_radial_bins(self):
         """Prepare bins for radial averaging
 
-        Bins span [r_min, r_max] globally across all MPI processes.
+        Creates uniformly spaced bin at deltar = dr * deltax centers spanning [r_min, r_max] globally.
         """
         # Find local min/max
         r_min_loc = np.min(self.r[self.r > 0]) if np.any(self.r > 0) else np.inf
@@ -116,15 +123,26 @@ class SpatialAverage:
             r_min = r_min_loc
             r_max = r_max_loc
 
-        # Create uniform bins
-        self.r_bins = np.linspace(r_min, r_max, self.nr + 1)
-        self.r_centers = 0.5 * (self.r_bins[:-1] + self.r_bins[1:])
+        # Adjust number of bins based on actual range
+        self.nr = int(np.ceil((r_max - r_min) / self.deltar))
+
+        # Create uniform bin centers
+        # First center at r_min + deltar/2, last at r_max - deltar/2
+        self.r_centers = np.linspace(
+            r_min + self.deltar / 2,
+            r_max - self.deltar / 2,
+            self.nr
+        )
+
+        # Update deltar to match actual spacing
+        if self.nr > 1:
+            self.deltar = self.r_centers[1] - self.r_centers[0]
+
 
     def _prepare_azimuthal_bins(self):
         """Prepare bins for azimuthal averaging
 
-        Two independent bin arrays are built: one for rho in [0, rho_max]
-        and one for z in [z_min, z_max], determined globally across all processes.
+        Creates uniformly spaced bin centers for rho and z.
         """
         rho_max_loc = np.max(self.rho)
         z_min_loc = np.min(self.Z)
@@ -152,27 +170,62 @@ class SpatialAverage:
             z_min = z_min_loc
             z_max = z_max_loc
 
-        self.rho_bins = np.linspace(0.0, rho_max, self.nrh + 1)
-        self.rho_centers = 0.5 * (self.rho_bins[:-1] + self.rho_bins[1:])
+        # Adjust number of bins
+        self.nrh = int(np.ceil(rho_max / self.deltarh))
+        self.nz = int(np.ceil((z_max - z_min) / self.deltaz))
 
-        self.z_bins = np.linspace(z_min, z_max, self.nz + 1)
-        self.z_centers = 0.5 * (self.z_bins[:-1] + self.z_bins[1:])
+        # Create uniform bin centers
+        self.rho_centers = np.linspace(
+            self.deltarh / 2,
+            rho_max - self.deltarh / 2,
+            self.nrh
+        )
 
-    def _compute_bin_indices(self):
-        """Precompute bin indices for each mesh point on this process
+        self.z_centers = np.linspace(
+            z_min + self.deltaz / 2,
+            z_max - self.deltaz / 2,
+            self.nz
+        )
 
-        This is done once at initialization to avoid repeated digitize calls.
+        # Update deltas to match actual spacing
+        if self.nrh > 1:
+            self.deltarh = self.rho_centers[1] - self.rho_centers[0]
+        if self.nz > 1:
+            self.deltaz = self.z_centers[1] - self.z_centers[0]
+
+    def _compute_weights(self):
+        """Compute the total weight (count) in each bin across all processes.
+
+        This computes the normalization factor for averaging.
+        For radial average: counts points in each spherical shell.
+        For azimuthal average: counts points in each (rho, z) bin.
         """
-        self.r_indices = np.clip(
-            np.digitize(self.r, self.r_bins) - 1, 0, self.nr - 1
+        ones_field = np.ones_like(self.X)
+
+        radial_weights_loc = loop_spectra3d(ones_field, self.r_centers, self.r**2)
+
+        azimuthal_weights_loc = loop_spectra_kzkh(
+            ones_field, self.rho_centers, self.rho, self.z_centers, self.Z
         )
 
-        self.rho_indices = np.clip(
-            np.digitize(self.rho, self.rho_bins) - 1, 0, self.nrh - 1
-        )
-        self.z_indices = np.clip(
-            np.digitize(self.Z, self.z_bins) - 1, 0, self.nz - 1
-        )
+        # Sum across MPI processes
+        if mpi.nb_proc > 1:
+            radial_all = mpi.comm.gather(radial_weights_loc, root=0)
+            if mpi.rank == 0:
+                self.radial_weights = np.sum(radial_all, axis=0)
+            else:
+                self.radial_weights = None
+            self.radial_weights = mpi.comm.bcast(self.radial_weights, root=0)
+
+            azimuthal_all = mpi.comm.gather(azimuthal_weights_loc, root=0)
+            if mpi.rank == 0:
+                self.azimuthal_weights = np.sum(azimuthal_all, axis=0)
+            else:
+                self.azimuthal_weights = None
+            self.azimuthal_weights = mpi.comm.bcast(self.azimuthal_weights, root=0)
+        else:
+            self.radial_weights = radial_weights_loc
+            self.azimuthal_weights = azimuthal_weights_loc
 
     # ------------------------------------------------------------------ #
     #  Radial average  <f>_Omega(r)                                        #
@@ -184,9 +237,6 @@ class SpatialAverage:
         Implements the spherical average:
 
             <f>_Omega(r) = 1/(4*pi) * integral f(r,theta,phi) sin(phi) dtheta dphi
-
-        The sin(phi) factor is the geometrical weight of each mesh point on the
-        unit sphere (area element on the sphere = sin(phi) dtheta dphi).
 
         Parameters
         ----------
@@ -206,21 +256,19 @@ class SpatialAverage:
         field_std : ndarray, same shape as field_avg (only if return_std=True)
             Standard deviation in each bin (same on all processes).
         """
-        weights = np.sin(self.phi)
-
         is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
 
         if is_vector:
             field_avg = np.zeros((3, self.nr))
             field_std = np.zeros((3, self.nr)) if return_std else None
             for i in range(3):
-                out = self._radial_average_scalar(field[i], weights, return_std)
+                out = self._radial_average_scalar(field[i], return_std)
                 if return_std:
                     field_avg[i], field_std[i] = out
                 else:
                     field_avg[i] = out
         else:
-            out = self._radial_average_scalar(field, weights, return_std)
+            out = self._radial_average_scalar(field, return_std)
             if return_std:
                 field_avg, field_std = out
             else:
@@ -230,19 +278,13 @@ class SpatialAverage:
             return self.r_centers, field_avg, field_std
         return self.r_centers, field_avg
 
-    def _radial_average_scalar(self, field, weights, return_std=False):
-        """Weighted bincount average over radial bins for a scalar field
-
-        Computes the sin(phi)-weighted mean in each radial bin, which
-        discretises the continuous integral. Uses MPI reduction to combine
-        contributions from all processes.
+    def _radial_average_scalar(self, field, return_std=False):
+        """Average over radial bins for a scalar field using loop_spectra3d.
 
         Parameters
         ----------
         field : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
             Local field slice on this process.
-        weights : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
-            sin(phi) values on this process.
         return_std : bool
 
         Returns
@@ -251,54 +293,47 @@ class SpatialAverage:
             Global average across all processes.
         field_std : ndarray, shape (nr,) — only if return_std is True
         """
-        f = field.ravel()
-        w = weights.ravel()
-        idx = self.r_indices.ravel()
+        # Local sum of field in each bin
+        sum_f_loc = loop_spectra3d(field, self.r_centers, self.r**2)
 
-        sum_fw_loc = np.bincount(idx, weights=f * w, minlength=self.nr)
-        sum_w_loc = np.bincount(idx, weights=w, minlength=self.nr)
-
+        # MPI reduction
         if mpi.nb_proc > 1:
-            sum_fw_all = mpi.comm.gather(sum_fw_loc, root=0)
-            sum_w_all = mpi.comm.gather(sum_w_loc, root=0)
+            sum_f_all = mpi.comm.gather(sum_f_loc, root=0)
 
             if mpi.rank == 0:
-                sum_fw = np.sum(sum_fw_all, axis=0)
-                sum_w = np.sum(sum_w_all, axis=0)
+                sum_f = np.sum(sum_f_all, axis=0)
             else:
-                sum_fw = None
-                sum_w = None
+                sum_f = None
 
-            sum_fw = mpi.comm.bcast(sum_fw, root=0)
-            sum_w = mpi.comm.bcast(sum_w, root=0)
+            sum_f = mpi.comm.bcast(sum_f, root=0)
         else:
-            sum_fw = sum_fw_loc
-            sum_w = sum_w_loc
+            sum_f = sum_f_loc
 
-        mask_nonzero = sum_w > 0
-
+        # Compute average
+        mask_nonzero = self.radial_weights > 0
         field_avg = np.zeros(self.nr)
-        field_avg[mask_nonzero] = sum_fw[mask_nonzero] / sum_w[mask_nonzero]
+        field_avg[mask_nonzero] = sum_f[mask_nonzero] / self.radial_weights[mask_nonzero]
 
         if not return_std:
             return field_avg
 
-        sum_f2w_loc = np.bincount(idx, weights=f**2 * w, minlength=self.nr)
+        # Compute variance and std
+        sum_f2_loc = loop_spectra3d(field**2, self.r_centers, self.r**2)
 
         if mpi.nb_proc > 1:
-            sum_f2w_all = mpi.comm.gather(sum_f2w_loc, root=0)
+            sum_f2_all = mpi.comm.gather(sum_f2_loc, root=0)
 
             if mpi.rank == 0:
-                sum_f2w = np.sum(sum_f2w_all, axis=0)
+                sum_f2 = np.sum(sum_f2_all, axis=0)
             else:
-                sum_f2w = None
+                sum_f2 = None
 
-            sum_f2w = mpi.comm.bcast(sum_f2w, root=0)
+            sum_f2 = mpi.comm.bcast(sum_f2, root=0)
         else:
-            sum_f2w = sum_f2w_loc
+            sum_f2 = sum_f2_loc
 
         f2_avg = np.zeros(self.nr)
-        f2_avg[mask_nonzero] = sum_f2w[mask_nonzero] / sum_w[mask_nonzero]
+        f2_avg[mask_nonzero] = sum_f2[mask_nonzero] / self.radial_weights[mask_nonzero]
         field_var = np.maximum(f2_avg - field_avg**2, 0.0)
         field_std = np.sqrt(field_var)
 
@@ -314,10 +349,6 @@ class SpatialAverage:
         Implements the azimuthal average over the angle theta:
 
             <f>_theta(rho, z) = 1/(2*pi) * integral f(rho, theta, z) dtheta
-
-        All mesh points sharing the same (rho, z) bin but different theta
-        contribute equally (uniform weight), which is the correct discretisation
-        of the 1/(2*pi) integral over theta.
 
         Parameters
         ----------
@@ -361,11 +392,7 @@ class SpatialAverage:
         return self.rho_centers, self.z_centers, field_avg
 
     def _azimuthal_average_scalar(self, field, return_std=False):
-        """Uniform bincount average over (rho, z) bins for a scalar field
-
-        Each mesh point in a (rho, z) bin contributes with weight 1,
-        discretising the uniform 1/(2*pi) integral over theta.
-        Uses MPI reduction to combine contributions from all processes.
+        """Average over (rho, z) bins for a scalar field using loop_spectra_kzkh.
 
         Parameters
         ----------
@@ -379,40 +406,36 @@ class SpatialAverage:
             Global average across all processes.
         field_std : ndarray, shape (nrh, nz) — only if return_std is True
         """
-        f = field.ravel()
-        idx = self.rho_indices.ravel() * self.nz + self.z_indices.ravel()
+        # Local sum of field in each (rho, z) bin
+        sum_f_loc = loop_spectra_kzkh(
+            field, self.rho_centers, self.rho, self.z_centers, self.Z
+        )
 
-        sum_f_loc = np.bincount(idx, weights=f, minlength=self.nrh * self.nz)
-        sum_n_loc = np.bincount(idx, minlength=self.nrh * self.nz)
-
+        # MPI reduction
         if mpi.nb_proc > 1:
             sum_f_all = mpi.comm.gather(sum_f_loc, root=0)
-            sum_n_all = mpi.comm.gather(sum_n_loc, root=0)
 
             if mpi.rank == 0:
                 sum_f = np.sum(sum_f_all, axis=0)
-                sum_n = np.sum(sum_n_all, axis=0)
             else:
                 sum_f = None
-                sum_n = None
 
             sum_f = mpi.comm.bcast(sum_f, root=0)
-            sum_n = mpi.comm.bcast(sum_n, root=0)
         else:
             sum_f = sum_f_loc
-            sum_n = sum_n_loc
 
-        mask_nonzero = sum_n > 0
-
-        avg_flat = np.zeros(self.nrh * self.nz)
-        avg_flat[mask_nonzero] = sum_f[mask_nonzero] / sum_n[mask_nonzero]
-
-        field_avg = avg_flat.reshape(self.nrh, self.nz)
+        # Compute average
+        mask_nonzero = self.azimuthal_weights > 0
+        field_avg = np.zeros((self.nrh, self.nz))
+        field_avg[mask_nonzero] = sum_f[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
 
         if not return_std:
             return field_avg
 
-        sum_f2_loc = np.bincount(idx, weights=f**2, minlength=self.nrh * self.nz)
+        # Compute variance and std
+        sum_f2_loc = loop_spectra_kzkh(
+            field**2, self.rho_centers, self.rho, self.z_centers, self.Z
+        )
 
         if mpi.nb_proc > 1:
             sum_f2_all = mpi.comm.gather(sum_f2_loc, root=0)
@@ -426,11 +449,10 @@ class SpatialAverage:
         else:
             sum_f2 = sum_f2_loc
 
-        f2_flat = np.zeros(self.nrh * self.nz)
-        f2_flat[mask_nonzero] = sum_f2[mask_nonzero] / sum_n[mask_nonzero]
-        var_flat = np.maximum(f2_flat - avg_flat**2, 0.0)
-        std_flat = np.sqrt(var_flat)
-        field_std = std_flat.reshape(self.nrh, self.nz)
+        f2_avg = np.zeros((self.nrh, self.nz))
+        f2_avg[mask_nonzero] = sum_f2[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
+        field_var = np.maximum(f2_avg - field_avg**2, 0.0)
+        field_std = np.sqrt(field_var)
 
         return field_avg, field_std
 
@@ -442,7 +464,9 @@ class SpatialAverage:
 
         Returns
         -------
-        weights : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
+        Volumes : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
+            Volume weights on this process.
+        Volumes : ndarray, shape (Nx_loc, Ny_loc, Nz_loc)
             Volume weights on this process.
         """
         d = self.oper.delta if hasattr(self.oper, "delta") else 1.0
