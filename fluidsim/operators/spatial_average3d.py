@@ -162,7 +162,7 @@ class SpatialAverage:
 
         # Create uniform bin centers
         self.rho_centers = np.arange(rho_min, rho_max, self.deltarh)
-        self.z_centers = np.linspace(z_min, z_max, self.deltaz)
+        self.z_centers = np.arange(z_min, z_max, self.deltaz)
 
         self.nrh = len(self.rho_centers)
         self._nz = len(self.z_centers)
