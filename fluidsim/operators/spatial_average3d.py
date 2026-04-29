@@ -118,10 +118,13 @@ class SpatialAverage:
             r_min = r_min_loc
             r_max = r_max_loc
 
-        # Create uniform bin centers
-        self.r_centers = np.arange(r_min, r_max, self.deltar)
+        self.nr = int((r_max - r_min) / self.deltar) + 1
 
-        self.nr = len(self.r_centers)
+        # Create uniformly spaced centers
+        self.r_centers = np.linspace(
+            r_min, r_min + self.nr * self.deltar, self.nr, endpoint=False
+        )
+
 
     def _prepare_azimuthal_bins(self):
         """Prepare bins for azimuthal averaging
@@ -160,13 +163,17 @@ class SpatialAverage:
             z_min = z_min_loc
             z_max = z_max_loc
 
+        print(f"{z_min=}")
+        print(f"{z_max=}")
+
         # Create uniform bin centers
-        self.rho_centers = np.arange(rho_min, rho_max, self.deltarh)
-        self.z_centers = np.arange(z_min, z_max, self.deltaz)
+        self.nrh = int((rho_max - rho_min) / self.deltarh) + 1
+        self._nz = int((z_max - z_min) / self.deltaz) + 1
 
-        self.nrh = len(self.rho_centers)
-        self._nz = len(self.z_centers)
-
+        self.rho_centers = np.linspace(
+            rho_min, rho_min + self.nrh * self.deltarh, self.nrh, endpoint=False
+        )
+        self.z_centers = np.linspace(z_min, z_min + self._nz * self.deltaz, self._nz, endpoint=False)
 
     def _compute_weights(self):
         """Compute the total weight (count) in each bin across all processes.
