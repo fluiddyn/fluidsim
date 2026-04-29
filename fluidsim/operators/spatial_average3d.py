@@ -54,11 +54,6 @@ class SpatialAverage:
         self.deltarh = delta_min * drh
         self.deltaz = delta_min * dz
 
-        # Compute number of bins (will be refined in _prepare_*_bins)
-        self.nr = int(min(oper.nx, oper.ny, oper.nz) / dr)
-        self.nrh = int(min(oper.nx, oper.ny) / drh)
-        self.nz = int(oper.nz / dz)
-
         # Get local Cartesian coordinates from the operator
         X, Y, Z = oper.get_XYZ_loc()
 
@@ -101,7 +96,7 @@ class SpatialAverage:
         Creates uniformly spaced bin at deltar = dr * deltax centers spanning [r_min, r_max] globally.
         """
         # Find local min/max
-        r_min_loc = np.min(self.r[self.r > 0]) if np.any(self.r > 0) else np.inf
+        r_min_loc = np.min(self.r)
         r_max_loc = np.max(self.r)
 
         # Gather global min/max across all processes
@@ -123,21 +118,10 @@ class SpatialAverage:
             r_min = r_min_loc
             r_max = r_max_loc
 
-        # Adjust number of bins based on actual range
-        self.nr = int(np.ceil((r_max - r_min) / self.deltar))
-
         # Create uniform bin centers
-        # First center at r_min + deltar/2, last at r_max - deltar/2
-        self.r_centers = np.linspace(
-            r_min + self.deltar / 2,
-            r_max - self.deltar / 2,
-            self.nr
-        )
+        self.r_centers = np.arange(r_min, r_max, self.deltar)
 
-        # Update deltar to match actual spacing
-        if self.nr > 1:
-            self.deltar = self.r_centers[1] - self.r_centers[0]
-
+        self.nr = len(self.r_centers)
 
     def _prepare_azimuthal_bins(self):
         """Prepare bins for azimuthal averaging
@@ -145,53 +129,44 @@ class SpatialAverage:
         Creates uniformly spaced bin centers for rho and z.
         """
         rho_max_loc = np.max(self.rho)
+        rho_min_loc = np.min(self.rho)
         z_min_loc = np.min(self.Z)
         z_max_loc = np.max(self.Z)
 
         if mpi.nb_proc > 1:
             rho_max_all = mpi.comm.gather(rho_max_loc, root=0)
+            rho_min_all = mpi.comm.gather(rho_min_loc, root=0)
             z_min_all = mpi.comm.gather(z_min_loc, root=0)
             z_max_all = mpi.comm.gather(z_max_loc, root=0)
 
             if mpi.rank == 0:
                 rho_max = np.max(rho_max_all)
+                rho_min = np.max(rho_min_all)
                 z_min = np.min(z_min_all)
                 z_max = np.max(z_max_all)
             else:
                 rho_max = None
+                rho_min = None
                 z_min = None
                 z_max = None
 
             rho_max = mpi.comm.bcast(rho_max, root=0)
+            rho_min = mpi.comm.bcast(rho_min, root=0)
             z_min = mpi.comm.bcast(z_min, root=0)
             z_max = mpi.comm.bcast(z_max, root=0)
         else:
             rho_max = rho_max_loc
+            rho_min = rho_min_loc
             z_min = z_min_loc
             z_max = z_max_loc
 
-        # Adjust number of bins
-        self.nrh = int(np.ceil(rho_max / self.deltarh))
-        self.nz = int(np.ceil((z_max - z_min) / self.deltaz))
-
         # Create uniform bin centers
-        self.rho_centers = np.linspace(
-            self.deltarh / 2,
-            rho_max - self.deltarh / 2,
-            self.nrh
-        )
+        self.rho_centers = np.arange(rho_min, rho_max, self.deltarh)
+        self.z_centers = np.linspace(z_min, z_max, self.deltaz)
 
-        self.z_centers = np.linspace(
-            z_min + self.deltaz / 2,
-            z_max - self.deltaz / 2,
-            self.nz
-        )
+        self.nrh = len(self.rho_centers)
+        self._nz = len(self.z_centers)
 
-        # Update deltas to match actual spacing
-        if self.nrh > 1:
-            self.deltarh = self.rho_centers[1] - self.rho_centers[0]
-        if self.nz > 1:
-            self.deltaz = self.z_centers[1] - self.z_centers[0]
 
     def _compute_weights(self):
         """Compute the total weight (count) in each bin across all processes.
@@ -312,7 +287,9 @@ class SpatialAverage:
         # Compute average
         mask_nonzero = self.radial_weights > 0
         field_avg = np.zeros(self.nr)
-        field_avg[mask_nonzero] = sum_f[mask_nonzero] / self.radial_weights[mask_nonzero]
+        field_avg[mask_nonzero] = (
+            sum_f[mask_nonzero] / self.radial_weights[mask_nonzero]
+        )
 
         if not return_std:
             return field_avg
@@ -372,8 +349,8 @@ class SpatialAverage:
         is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
 
         if is_vector:
-            field_avg = np.zeros((3, self.nrh, self.nz))
-            field_std = np.zeros((3, self.nrh, self.nz)) if return_std else None
+            field_avg = np.zeros((3, self.nrh, self._nz))
+            field_std = np.zeros((3, self.nrh, self._nz)) if return_std else None
             for i in range(3):
                 out = self._azimuthal_average_scalar(field[i], return_std)
                 if return_std:
@@ -426,8 +403,10 @@ class SpatialAverage:
 
         # Compute average
         mask_nonzero = self.azimuthal_weights > 0
-        field_avg = np.zeros((self.nrh, self.nz))
-        field_avg[mask_nonzero] = sum_f[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
+        field_avg = np.zeros((self.nrh, self._nz))
+        field_avg[mask_nonzero] = (
+            sum_f[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
+        )
 
         if not return_std:
             return field_avg
@@ -449,8 +428,10 @@ class SpatialAverage:
         else:
             sum_f2 = sum_f2_loc
 
-        f2_avg = np.zeros((self.nrh, self.nz))
-        f2_avg[mask_nonzero] = sum_f2[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
+        f2_avg = np.zeros((self.nrh, self._nz))
+        f2_avg[mask_nonzero] = (
+            sum_f2[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
+        )
         field_var = np.maximum(f2_avg - field_avg**2, 0.0)
         field_std = np.sqrt(field_var)
 
