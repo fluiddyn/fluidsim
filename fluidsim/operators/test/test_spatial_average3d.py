@@ -117,8 +117,49 @@ def test_radial_average_radial_field(spatial_avg):
 def test_azimuthal_average_constant_field(spatial_avg, allclose):
     """Azimuthal average of a constant field should be constant."""
     field = np.ones_like(spatial_avg.X) * 7.0
-    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
-        field
-    )
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
 
     assert allclose(field_avg, 7.0, rtol=1e-10)
+
+
+@pytest.mark.parametrize("azimut_var", ["z", "rho"])
+def test_azimuthal_average_var_dependent(spatial_avg, azimut_var):
+    """Test azimuthal average of f(z) = z and f(rho) = rho.
+
+    We compute the expected average by explicitly averaging the actual z values
+    in each bin, accounting for the discrete grid.
+    """
+    if azimut_var == "z":
+        field = spatial_avg.Z.copy()
+
+        rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+
+        expected_avg = np.zeros((spatial_avg._nz, spatial_avg.nrh))
+        for i, z_val in enumerate(z_centers):
+            expected_avg[i, :] += z_val
+
+        assert np.allclose(
+            field_avg,
+            expected_avg,
+            rtol=1e-12,
+        )
+
+    elif azimut_var == "rho":
+        field = spatial_avg.rho.copy()
+
+        rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(field)
+
+        expected_avg = np.zeros((spatial_avg._nz, spatial_avg.nrh))
+        for i, rho_val in enumerate(rho_centers):
+            expected_avg[:, i] += rho_val
+
+        assert np.allclose(
+            field_avg[:, 0],
+            expected_avg[:, 0],
+            rtol=1e-12,
+        )
+        assert np.allclose(
+            field_avg[:, 4:],
+            expected_avg[:, 4:],
+            rtol=0.03,
+        )
