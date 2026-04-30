@@ -21,6 +21,7 @@ def loop_spectra_kzkh(spectrum_k0k1k2, khs, KH, kzs, KZ):
     """Compute the kz-kh spectrum."""
     deltakh = khs[1]
     deltakz = kzs[1] - kzs[0]
+    kz_min = kzs[0]
     nkh = len(khs)
     nkz = len(kzs)
     spectrum_kzkh = np.zeros((nkz, nkh))
@@ -32,7 +33,7 @@ def loop_spectra_kzkh(spectrum_k0k1k2, khs, KH, kzs, KZ):
                 kappa = KH[ik0, ik1, ik2]
                 ikh = int(kappa / deltakh)
                 kz = KZ[ik0, ik1, ik2]
-                ikz = int(round(kz / deltakz))
+                ikz = int(round((kz - kz_min) / deltakz))
                 if ikz >= nkz - 1:
                     ikz = nkz - 1
                 if ikh >= nkh - 1:
