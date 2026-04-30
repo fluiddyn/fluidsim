@@ -17,33 +17,33 @@ from fluidfft.fft3d.operators import loop_spectra3d
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
 
-def loop_spectra_kzkh(spectrum_k0k1k2, khs, KH, kzs, KZ):
-    """Compute the kz-kh spectrum."""
-    deltakh = khs[1]
-    deltakz = kzs[1] - kzs[0]
-    kz_min = kzs[0]
-    nkh = len(khs)
-    nkz = len(kzs)
-    spectrum_kzkh = np.zeros((nkz, nkh))
-    nk0, nk1, nk2 = spectrum_k0k1k2.shape
-    for ik0 in range(nk0):
-        for ik1 in range(nk1):
-            for ik2 in range(nk2):
-                value = spectrum_k0k1k2[ik0, ik1, ik2]
-                kappa = KH[ik0, ik1, ik2]
-                ikh = int(kappa / deltakh)
-                kz = KZ[ik0, ik1, ik2]
-                ikz = int(round((kz - kz_min) / deltakz))
-                if ikz >= nkz - 1:
-                    ikz = nkz - 1
-                if ikh >= nkh - 1:
-                    ikh = nkh - 1
-                    spectrum_kzkh[ikz, ikh] += value
+def loop_azimuthal_rhrz(field_to_avg, rho_list, rho_field, z_list, z_field):
+    """Compute the _z-kh spectrum."""
+    _deltarho = rho_list[1]
+    _deltaz = z_list[1] - z_list[0]
+    _z_min = z_list[0]
+    _nrho = len(rho_list)
+    _nz = len(z_list)
+    _field_avg = np.zeros((_nz, _nrho))
+    n0, n1, n2 = field_to_avg.shape
+    for i0 in range(n0):
+        for i1 in range(n1):
+            for i2 in range(n2):
+                value = field_to_avg[i0, i1, i2]
+                kappa = rho_field[i0, i1, i2]
+                irho = int(kappa / _deltarho)
+                _z = z_field[i0, i1, i2]
+                iz = int(round((_z - _z_min) / _deltaz))
+                if iz >= _nz - 1:
+                    iz = _nz - 1
+                if irho >= _nrho - 1:
+                    irho = _nrho - 1
+                    _field_avg[iz, irho] += value
                 else:
-                    coef_share = (kappa - khs[ikh]) / deltakh
-                    spectrum_kzkh[ikz, ikh] += (1 - coef_share) * value
-                    spectrum_kzkh[ikz, ikh + 1] += coef_share * value
-    return spectrum_kzkh
+                    coef_share = (kappa - rho_list[irho]) / _deltarho
+                    _field_avg[iz, irho] += (1 - coef_share) * value
+                    _field_avg[iz, irho + 1] += coef_share * value
+    return _field_avg
 
 
 class SpatialAverage:
@@ -213,7 +213,7 @@ class SpatialAverage:
 
         radial_weights_loc = loop_spectra3d(ones_field, self.r_centers, self.r**2)
 
-        azimuthal_weights_loc = loop_spectra_kzkh(
+        azimuthal_weights_loc = loop_azimuthal_rhrz(
             ones_field, self.rho_centers, self.rho, self.z_centers, self.Z
         )
 
@@ -407,7 +407,7 @@ class SpatialAverage:
         return self.rho_centers, self.z_centers, field_avg
 
     def _azimuthal_average_scalar(self, field, return_std=False):
-        """Average over (rho, z) bins for a scalar field using loop_spectra_kzkh.
+        """Average over (rho, z) bins for a scalar field using loop_azimuthal_rhrz.
 
         Parameters
         ----------
@@ -422,7 +422,7 @@ class SpatialAverage:
         field_std : ndarray, shape (nz, nrh) — only if return_std is True
         """
         # Local sum of field in each (rho, z) bin
-        sum_f_loc = loop_spectra_kzkh(
+        sum_f_loc = loop_azimuthal_rhrz(
             field, self.rho_centers, self.rho, self.z_centers, self.Z
         )
 
@@ -450,7 +450,7 @@ class SpatialAverage:
             return field_avg
 
         # Compute variance and std
-        sum_f2_loc = loop_spectra_kzkh(
+        sum_f2_loc = loop_azimuthal_rhrz(
             field**2, self.rho_centers, self.rho, self.z_centers, self.Z
         )
 
