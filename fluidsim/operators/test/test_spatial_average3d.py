@@ -109,6 +109,22 @@ def test_radial_average_radial_field(spatial_avg):
     assert np.allclose(field_avg[6:-3], r_centers[6:-3], rtol=0.009)
 
 
+def test_radial_average_vector_field(spatial_avg):
+    """Test radial average of a 3D vector field."""
+    shape = spatial_avg.X.shape
+    vx = np.ones(shape)
+    vy = np.ones(shape) * 2
+    vz = np.ones(shape) * 3
+    vector_field = np.array([vx, vy, vz])
+
+    r_centers, v_avg = spatial_avg.compute_radial_average(vector_field)
+
+    assert v_avg.shape == (3, spatial_avg.nr)
+    assert np.allclose(v_avg[0], 1.0, rtol=1e-10)
+    assert np.allclose(v_avg[1], 2.0, rtol=1e-10)
+    assert np.allclose(v_avg[2], 3.0, rtol=1e-10)
+
+
 # ---------------------------------------------------------------------------
 # Azimuthal average tests
 # ---------------------------------------------------------------------------
@@ -169,3 +185,21 @@ def test_azimuthal_average_var_dependent(spatial_avg, azimut_var):
             expected_avg[:, 4:],
             rtol=0.03,
         )
+
+
+def test_azimuthal_average_vector_field(spatial_avg):
+    """Test azimuthal average of a 3D vector field."""
+    shape = spatial_avg.X.shape
+    vx = np.ones(shape) * 1.5
+    vy = np.ones(shape) * 2.5
+    vz = np.ones(shape) * 3.5
+    vector_field = np.array([vx, vy, vz])
+
+    rho_centers, z_centers, v_avg = spatial_avg.compute_azimuthal_average(
+        vector_field
+    )
+
+    assert v_avg.shape == (3, spatial_avg._nz, spatial_avg.nrh)
+    assert np.allclose(v_avg[0], 1.5, rtol=1e-10)
+    assert np.allclose(v_avg[1], 2.5, rtol=1e-10)
+    assert np.allclose(v_avg[2], 3.5, rtol=1e-10)
