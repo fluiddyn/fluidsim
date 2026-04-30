@@ -253,7 +253,7 @@ class SpatialAverage:
         ----------
         field : array_like
             Scalar field of shape (Nx_loc, Ny_loc, Nz_loc) or
-            vector field of shape (3, Nx_loc, Ny_loc, Nz_loc).
+            vector field of shape (3, Nx_loc, Ny_loc, Nz_loc) in the spherical basis.
             Each MPI process provides its local slice.
         return_std : bool, optional
             If True, also return the standard deviation (default: False).
@@ -369,7 +369,7 @@ class SpatialAverage:
         ----------
         field : array_like
             Scalar field of shape (Nx_loc, Ny_loc, Nz_loc) or
-            vector field of shape (3, Nx_loc, Ny_loc, Nz_loc).
+            vector field of shape (3, Nx_loc, Ny_loc, Nz_loc) in the cylindrical basis.
             Each MPI process provides its local slice.
         return_std : bool, optional
             If True, also return the standard deviation (default: False).
@@ -380,15 +380,15 @@ class SpatialAverage:
             Bin centres in rho (same on all processes).
         z_centers : ndarray, shape (nz,)
             Bin centres in z (same on all processes).
-        field_avg : ndarray, shape (nrh, nz) or (3, nrh, nz)
+        field_avg : ndarray, shape (nz, nrh) or (3, nz, nrh)
             Azimuthal average in each (rho, z) bin (same on all processes).
         field_std : ndarray, same shape as field_avg (only if return_std=True)
         """
         is_vector = np.ndim(field) == 4 and np.shape(field)[0] == 3
 
         if is_vector:
-            field_avg = np.zeros((3, self.nrh, self._nz))
-            field_std = np.zeros((3, self.nrh, self._nz)) if return_std else None
+            field_avg = np.zeros((3, self._nz, self.nrh))
+            field_std = np.zeros((3, self._nz, self.nrh)) if return_std else None
             for i in range(3):
                 out = self._azimuthal_average_scalar(field[i], return_std)
                 if return_std:
@@ -417,9 +417,9 @@ class SpatialAverage:
 
         Returns
         -------
-        field_avg : ndarray, shape (nrh, nz)
+        field_avg : ndarray, shape (nz, nrh)
             Global average across all processes.
-        field_std : ndarray, shape (nrh, nz) — only if return_std is True
+        field_std : ndarray, shape (nz, nrh) — only if return_std is True
         """
         # Local sum of field in each (rho, z) bin
         sum_f_loc = loop_spectra_kzkh(
