@@ -125,6 +125,18 @@ def test_radial_average_vector_field(spatial_avg):
     assert np.allclose(v_avg[2], 3.0, rtol=1e-10)
 
 
+def test_radial_average_with_std(spatial_avg):
+    """Test that standard deviation is returned when requested."""
+    field = np.random.randn(*spatial_avg.X.shape)
+    r_centers, field_avg, field_std = spatial_avg.compute_radial_average(
+        field, return_std=True
+    )
+
+    assert field_avg.shape == (spatial_avg.nr,)
+    assert field_std.shape == (spatial_avg.nr,)
+    assert np.all(field_std >= 0)
+
+
 # ---------------------------------------------------------------------------
 # Azimuthal average tests
 # ---------------------------------------------------------------------------
@@ -203,3 +215,48 @@ def test_azimuthal_average_vector_field(spatial_avg):
     assert np.allclose(v_avg[0], 1.5, rtol=1e-10)
     assert np.allclose(v_avg[1], 2.5, rtol=1e-10)
     assert np.allclose(v_avg[2], 3.5, rtol=1e-10)
+
+
+def test_azimuthal_average_with_std(spatial_avg):
+    """Test that standard deviation is returned when requested."""
+    field = np.random.randn(*spatial_avg.X.shape)
+    rho_centers, z_centers, field_avg, field_std = (
+        spatial_avg.compute_azimuthal_average(field, return_std=True)
+    )
+
+    assert field_avg.shape == (spatial_avg._nz, spatial_avg.nrh)
+    assert field_std.shape == (spatial_avg._nz, spatial_avg.nrh)
+    assert np.all(field_std >= 0)
+
+
+# ---------------------------------------------------------------------------
+# Volume weights tests
+# ---------------------------------------------------------------------------
+
+
+def test_compute_volume_weights_sum(spatial_avg, mock_oper):
+    """Test that sum of volume weights equals total domain volume."""
+    weights = spatial_avg.compute_volume_weights()
+    total_volume = np.sum(weights)
+    expected_volume = mock_oper.Lx * mock_oper.Ly * mock_oper.Lz
+    assert np.allclose(total_volume, expected_volume, rtol=1e-10)
+
+
+def test_compute_volume_weights_field_radial_average_sum(spatial_avg, mock_oper):
+    """Test that sum of volume weights field radial average equals total domain volume."""
+    weights = spatial_avg.compute_volume_weights()
+    _, weights_avg = spatial_avg.compute_radial_average(weights)
+    volumes_averages = np.mean(weights_avg)
+    expected_volumes_average = mock_oper.delta**3
+    assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
+
+
+def test_compute_volume_weights_field_azimuthal_average_sum(
+    spatial_avg, mock_oper
+):
+    """Test that sum of volume weights field radial average equals total domain volume."""
+    weights = spatial_avg.compute_volume_weights()
+    _, _, weights_avg = spatial_avg.compute_azimuthal_average(weights)
+    volumes_averages = np.mean(weights_avg)
+    expected_volumes_average = mock_oper.delta**3
+    assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
