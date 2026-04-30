@@ -202,10 +202,10 @@ def test_azimuthal_average_var_dependent(spatial_avg, azimut_var):
 def test_azimuthal_average_vector_field(spatial_avg):
     """Test azimuthal average of a 3D vector field."""
     shape = spatial_avg.X.shape
-    v_r = np.ones(shape) * 1.5
+    v_rho = np.ones(shape) * 1.5
     v_theta = np.ones(shape) * 2.5
     v_z = np.ones(shape) * 3.5
-    vector_field = np.array([v_r, v_theta, v_z])
+    vector_field = np.array([v_rho, v_theta, v_z])
 
     rho_centers, z_centers, v_avg = spatial_avg.compute_azimuthal_average(
         vector_field
