@@ -17,9 +17,7 @@ from fluidfft.fft3d.operators import loop_spectra3d
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
 
-def loop_spectra_kzkh(
-    spectrum_k0k1k2, khs, KH, kzs, KZ
-):
+def loop_spectra_kzkh(spectrum_k0k1k2, khs, KH, kzs, KZ):
     """Compute the kz-kh spectrum."""
     deltakh = khs[1]
     deltakz = kzs[1] - kzs[0]
