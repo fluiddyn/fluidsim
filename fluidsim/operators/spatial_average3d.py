@@ -12,9 +12,39 @@ Provides:
 import numpy as np
 from fluiddyn.util import mpi
 
-from fluidfft.fft3d.operators import loop_spectra3d, loop_spectra_kzkh
+from fluidfft.fft3d.operators import loop_spectra3d
 
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
+
+
+def loop_spectra_kzkh(
+    spectrum_k0k1k2, khs, KH, kzs, KZ
+):
+    """Compute the kz-kh spectrum."""
+    deltakh = khs[1]
+    deltakz = kzs[1] - kzs[0]
+    nkh = len(khs)
+    nkz = len(kzs)
+    spectrum_kzkh = np.zeros((nkz, nkh))
+    nk0, nk1, nk2 = spectrum_k0k1k2.shape
+    for ik0 in range(nk0):
+        for ik1 in range(nk1):
+            for ik2 in range(nk2):
+                value = spectrum_k0k1k2[ik0, ik1, ik2]
+                kappa = KH[ik0, ik1, ik2]
+                ikh = int(kappa / deltakh)
+                kz = KZ[ik0, ik1, ik2]
+                ikz = int(round(kz / deltakz))
+                if ikz >= nkz - 1:
+                    ikz = nkz - 1
+                if ikh >= nkh - 1:
+                    ikh = nkh - 1
+                    spectrum_kzkh[ikz, ikh] += value
+                else:
+                    coef_share = (kappa - khs[ikh]) / deltakh
+                    spectrum_kzkh[ikz, ikh] += (1 - coef_share) * value
+                    spectrum_kzkh[ikz, ikh + 1] += coef_share * value
+    return spectrum_kzkh
 
 
 class SpatialAverage:
@@ -45,7 +75,7 @@ class SpatialAverage:
         If True, shift origin to domain center (default: True)
     """
 
-    def __init__(self, oper, dr=2.0, drh=2.0, dz=1.0, shift_origin=True):
+    def __init__(self, oper, dr=1.0, drh=1.0, dz=1.0, shift_origin=True):
         self.oper = oper
 
         # Compute bin spacings
@@ -161,9 +191,6 @@ class SpatialAverage:
             rho_min = rho_min_loc
             z_min = z_min_loc
             z_max = z_max_loc
-
-        print(f"{z_min=}")
-        print(f"{z_max=}")
 
         # Create uniform bin centers
         self.nrh = int((rho_max - rho_min) / self.deltarh) + 1
@@ -415,7 +442,7 @@ class SpatialAverage:
 
         # Compute average
         mask_nonzero = self.azimuthal_weights > 0
-        field_avg = np.zeros((self.nrh, self._nz))
+        field_avg = np.zeros((self._nz, self.nrh))
         field_avg[mask_nonzero] = (
             sum_f[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
         )
@@ -440,7 +467,7 @@ class SpatialAverage:
         else:
             sum_f2 = sum_f2_loc
 
-        f2_avg = np.zeros((self.nrh, self._nz))
+        f2_avg = np.zeros((self._nz, self.nrh))
         f2_avg[mask_nonzero] = (
             sum_f2[mask_nonzero] / self.azimuthal_weights[mask_nonzero]
         )
