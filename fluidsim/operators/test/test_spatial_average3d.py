@@ -112,10 +112,10 @@ def test_radial_average_radial_field(spatial_avg):
 def test_radial_average_vector_field(spatial_avg):
     """Test radial average of a 3D vector field."""
     shape = spatial_avg.X.shape
-    vx = np.ones(shape)
-    vy = np.ones(shape) * 2
-    vz = np.ones(shape) * 3
-    vector_field = np.array([vx, vy, vz])
+    v_r = np.ones(shape)
+    v_theta = np.ones(shape) * 2
+    v_phi = np.ones(shape) * 3
+    vector_field = np.array([v_r, v_theta, v_phi])
 
     r_centers, v_avg = spatial_avg.compute_radial_average(vector_field)
 
@@ -202,10 +202,10 @@ def test_azimuthal_average_var_dependent(spatial_avg, azimut_var):
 def test_azimuthal_average_vector_field(spatial_avg):
     """Test azimuthal average of a 3D vector field."""
     shape = spatial_avg.X.shape
-    vx = np.ones(shape) * 1.5
-    vy = np.ones(shape) * 2.5
-    vz = np.ones(shape) * 3.5
-    vector_field = np.array([vx, vy, vz])
+    v_r = np.ones(shape) * 1.5
+    v_theta = np.ones(shape) * 2.5
+    v_z = np.ones(shape) * 3.5
+    vector_field = np.array([v_r, v_theta, v_z])
 
     rho_centers, z_centers, v_avg = spatial_avg.compute_azimuthal_average(
         vector_field
