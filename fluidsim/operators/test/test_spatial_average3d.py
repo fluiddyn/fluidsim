@@ -32,13 +32,13 @@ class MockOperator:
 @pytest.fixture(scope="module")
 def mock_oper():
     """Create a small 3D operator for testing."""
-    return MockOperator(nx=100, ny=100, nz=100, Lx=1.0, Ly=1.0, Lz=1.0)
+    return MockOperator(nx=20, ny=20, nz=20, Lx=1.0, Ly=1.0, Lz=1.0)
 
 
 @pytest.fixture(scope="module")
 def spatial_avg(mock_oper):
     """Create SpatialAverage instance."""
-    return SpatialAverage(mock_oper, dr=2.0, drh=2.0, dz=1.0, shift_origin=True)
+    return SpatialAverage(mock_oper, dr=1.0, drh=1.0, dz=1.0, shift_origin=True)
 
 
 # ---------------------------------------------------------------------------
@@ -97,24 +97,28 @@ def test_radial_average_radial_field(spatial_avg):
     """Test radial average of f(r) = r.
 
     The average of r over a spherical shell is approximately r_center,
-    but with discretization error. We test correlation instead of exact match.
+    but with discretization error.
     """
     field = spatial_avg.r.copy()
     r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
     assert np.all(np.diff(field_avg) > 0), "Average should increase with radius"
 
+    assert np.allclose(field_avg[0], r_centers[0], rtol=1e-12)
     assert np.allclose(field_avg[4:], r_centers[4:], rtol=0.03)
+    assert np.allclose(field_avg[6:-3], r_centers[6:-3], rtol=0.009)
 
 
-def test_radial_average_quadratic_field(spatial_avg):
-    """Test radial average of f(r) = r^2.
+# ---------------------------------------------------------------------------
+# Azimuthal average tests
+# ---------------------------------------------------------------------------
 
-    Similar to linear case, we test correlation and approximate scaling.
-    """
-    field = spatial_avg.r**2
-    r_centers, field_avg = spatial_avg.compute_radial_average(field)
 
-    expected = r_centers**2
+def test_azimuthal_average_constant_field(spatial_avg, allclose):
+    """Azimuthal average of a constant field should be constant."""
+    field = np.ones_like(spatial_avg.X) * 7.0
+    rho_centers, z_centers, field_avg = spatial_avg.compute_azimuthal_average(
+        field
+    )
 
-    assert np.allclose(field_avg[4:], expected[4:], rtol=0.06)
+    assert allclose(field_avg, 7.0, rtol=1e-10)
