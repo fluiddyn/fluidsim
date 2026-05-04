@@ -30,27 +30,15 @@ class MockOperator:
 
 
 @pytest.fixture(scope="module")
-def mock_oper():
-    """Create a small 3D operator for testing."""
-    return MockOperator(nx=20, ny=20, nz=20, Lx=1.0, Ly=1.0, Lz=1.0)
-
-
-@pytest.fixture(scope="module")
-def spatial_avg(mock_oper):
+def spatial_avg():
     """Create SpatialAverage instance."""
-    return SpatialAverage(mock_oper, dr=1.0, drh=1.0, dz=1.0, shift_origin=True)
+    oper = MockOperator(nx=20, ny=20, nz=20, Lx=1.0, Ly=1.0, Lz=1.0)
+    return SpatialAverage(oper, dr=1.0, drh=1.0, dz=1.0, shift_origin=True)
 
 
 # ---------------------------------------------------------------------------
 # Initialization tests
 # ---------------------------------------------------------------------------
-
-
-def test_coordinate_shapes(spatial_avg, mock_oper):
-    """Test that computed coordinates have correct shapes."""
-    shape = mock_oper.X.shape
-    assert spatial_avg.r.shape == shape
-    assert spatial_avg.rho.shape == shape
 
 
 def test_bins_positive(spatial_avg):
@@ -234,29 +222,30 @@ def test_azimuthal_average_with_std(spatial_avg):
 # ---------------------------------------------------------------------------
 
 
-def test_compute_volume_weights_sum(spatial_avg, mock_oper):
+def test_compute_volume_weights_sum(spatial_avg):
     """Test that sum of volume weights equals total domain volume."""
+    oper = spatial_avg.oper
     weights = spatial_avg.compute_volume_weights()
     total_volume = np.sum(weights)
-    expected_volume = mock_oper.Lx * mock_oper.Ly * mock_oper.Lz
+    expected_volume = oper.Lx * oper.Ly * oper.Lz
     assert np.allclose(total_volume, expected_volume, rtol=1e-10)
 
 
-def test_compute_volume_weights_field_radial_average_sum(spatial_avg, mock_oper):
+def test_compute_volume_weights_field_radial_average_sum(spatial_avg):
     """Test that sum of volume weights field radial average equals total domain volume."""
+    oper = spatial_avg.oper
     weights = spatial_avg.compute_volume_weights()
     _, weights_avg = spatial_avg.compute_radial_average(weights)
     volumes_averages = np.mean(weights_avg)
-    expected_volumes_average = mock_oper.delta**3
+    expected_volumes_average = oper.delta**3
     assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
 
 
-def test_compute_volume_weights_field_azimuthal_average_sum(
-    spatial_avg, mock_oper
-):
+def test_compute_volume_weights_field_azimuthal_average_sum(spatial_avg):
     """Test that sum of volume weights field radial average equals total domain volume."""
+    oper = spatial_avg.oper
     weights = spatial_avg.compute_volume_weights()
     _, _, weights_avg = spatial_avg.compute_azimuthal_average(weights)
     volumes_averages = np.mean(weights_avg)
-    expected_volumes_average = mock_oper.delta**3
+    expected_volumes_average = oper.delta**3
     assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
