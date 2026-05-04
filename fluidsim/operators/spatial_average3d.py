@@ -10,14 +10,49 @@ Provides:
 """
 
 import numpy as np
-from fluiddyn.util import mpi
 
-from fluidfft.fft3d.operators import loop_spectra3d
+from transonic import boost
+
+from fluiddyn.util import mpi
 
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
+Af3d = "float64[:,:,:]"
+Af1d = "float64[]"
 
-def loop_azimuthal_rhrz(field_to_avg, rho_list, rho_field, z_list, z_field):
+
+@boost
+def loop_spherical(arr_r0r1r2: Af3d, rs: Af1d, R2: Af3d):
+    """Compute the 3d spectrum."""
+    deltak = rs[1]
+    nk = len(rs)
+    spectrum3d = np.zeros(nk)
+    nk0, nk1, nk2 = arr_r0r1r2.shape
+    for ir0 in range(nk0):
+        for ir1 in range(nk1):
+            for ir2 in range(nk2):
+                value = arr_r0r1r2[ir0, ir1, ir2]
+                kappa = np.sqrt(R2[ir0, ir1, ir2])
+                ir = int(kappa / deltak)
+                if ir >= nk - 1:
+                    ir = nk - 1
+                    spectrum3d[ir] += value
+                else:
+                    coef_share = (kappa - rs[ir]) / deltak
+                    spectrum3d[ir] += (1 - coef_share) * value
+                    spectrum3d[ir + 1] += coef_share * value
+
+    return spectrum3d
+
+
+@boost
+def loop_azimuthal_rhrz(
+    field_to_avg: Af3d,
+    rho_list: Af1d,
+    rho_field: Af3d,
+    z_list: Af1d,
+    z_field: Af3d,
+):
     """Compute the _z-kh spectrum."""
     _deltarho = rho_list[1]
     _deltaz = z_list[1] - z_list[0]
@@ -211,7 +246,7 @@ class SpatialAverage:
         """
         ones_field = np.ones_like(self.X)
 
-        radial_weights_loc = loop_spectra3d(ones_field, self.r_centers, self.r**2)
+        radial_weights_loc = loop_spherical(ones_field, self.r_centers, self.r**2)
 
         azimuthal_weights_loc = loop_azimuthal_rhrz(
             ones_field, self.rho_centers, self.rho, self.z_centers, self.Z
@@ -290,7 +325,7 @@ class SpatialAverage:
         return self.r_centers, field_avg
 
     def _radial_average_scalar(self, field, return_std=False):
-        """Average over radial bins for a scalar field using loop_spectra3d.
+        """Average over radial bins for a scalar field using loop_spherical.
 
         Parameters
         ----------
@@ -305,7 +340,7 @@ class SpatialAverage:
         field_std : ndarray, shape (nr,) — only if return_std is True
         """
         # Local sum of field in each bin
-        sum_f_loc = loop_spectra3d(field, self.r_centers, self.r**2)
+        sum_f_loc = loop_spherical(field, self.r_centers, self.r**2)
 
         # MPI reduction
         if mpi.nb_proc > 1:
@@ -331,7 +366,7 @@ class SpatialAverage:
             return field_avg
 
         # Compute variance and std
-        sum_f2_loc = loop_spectra3d(field**2, self.r_centers, self.r**2)
+        sum_f2_loc = loop_spherical(field**2, self.r_centers, self.r**2)
 
         if mpi.nb_proc > 1:
             sum_f2_all = mpi.comm.gather(sum_f2_loc, root=0)

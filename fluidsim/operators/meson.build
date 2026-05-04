@@ -19,7 +19,7 @@ py.install_sources(
 
 subdir('test')
 
-run_command(['transonic', '--meson', '--backend', backend, 'operators2d.py', 'operators3d.py'], check: true)
+run_command(['transonic', '--meson', '--backend', backend, 'operators2d.py', 'operators3d.py', 'spatial_average3d.py'], check: true)
 
 foreach be : backends
   subdir('__' + be + '__')
