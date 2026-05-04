@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 
+from fluiddyn.util import mpi
 from fluidsim.operators.spatial_average3d import SpatialAverage
 
 
@@ -249,3 +250,7 @@ def test_compute_volume_weights_field_azimuthal_average_sum(spatial_avg):
     volumes_averages = np.mean(weights_avg)
     expected_volumes_average = oper.delta**3
     assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
+
+    # workaround for a MPI bug somewhere else leading to tests stalled in CI
+    if mpi.nb_proc > 1:
+        mpi.comm.barrier()
