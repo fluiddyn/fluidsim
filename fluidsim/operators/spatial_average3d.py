@@ -92,13 +92,41 @@ class SpatialAverage:
     .. |dx| mathmacro:: \mathop{dx}
 
 
-    The radial average of field :math:`f` over a sphere of radius :math:`r` with uniform cells:
+    The continuous form of the radial average of field :math:`f` over a sphere :math:`\Omega` of radius :math:`r` with is:
 
-    .. math:: \langle f \rangle_{\Omega}(r) = 1/(4\pi) \int f(r,\theta,\phi) \dtheta \dphi
+    .. math:: \langle f \rangle_{\Omega}^{continuous}(r) = 1/(4\pi) \int f(r,\theta,\phi) sin(\phi) \dtheta \dphi.
 
-    The azimuthal average averages over circles of radius rho at each height z:
+    Its discrete form in a 3D domain of uniform cubic cells of sizes :math:`\mathop{dx} \times \mathop{dy} \times \mathop{dz}` is approximated at radius :math:`r` as:
 
-    .. math:: \langle f \rangle_{\theta}(\rho,z) = 1/(2\pi) \int f(\rho,\theta,z) \mathop{d\theta}
+    .. math:: \langle f \rangle_{\Omega}^{discrete}(r) = \frac{\text{Sum}_f(r)}{\text{Weight}_f(r)},
+
+    with
+
+    .. math:: \text{Sum}_f(r) = \sum_{\substack{i,j,k \\ r \leq r_i < r + \Delta r \\ r - \Delta r \leq r_{i-1} < r}} f_{i,j,k}(r_i,\theta_j,\phi_k)\left(1 - \frac{r_i - r}{\Delta r}\right) + f_{i-1,j,k}(r_{i-1},\theta_j,\phi_k)\frac{r_{i-1} - r}{\Delta r},
+
+    and
+
+    .. math:: \text{Weight}_f(r) = \sum_{\substack{i,j,k \\ r \leq r_i < r + \Delta r \\ r - \Delta r \leq r_{i-1} < r}} \mathbf{1}_{i,j,k}(r_i,\theta_j,\phi_k) \left(1 - \frac{r_i - r}{\Delta r}\right) + \mathbf{1}_{i-1,j,k}(r_{i-1},\theta_j,\phi_k)\frac{r_{i-1} - r}{\Delta r}.
+
+    Where :math:`\mathbf{1}` is a 3D field of values :math:`1` and :math:`\Delta r = \mathop{dr}\text{min}(\mathop{dx}, \mathop{dy}, \mathop{dz})` is the radius step (worth :math:`\mathop{dx} = \mathop{dy} = \mathop{dz}` by default).
+
+    The continuous form of the azimuthal average of field :math:`f` over circles of radius :math:`\rho` at each height :math:`z` is:
+
+    .. math:: \langle f \rangle_{\theta}(\rho, z) = 1/(2\pi) \int f(\rho,\theta,z) \mathop{d\theta}.
+
+    Its discrete form in a 3D domain of uniform cubic cells is approximated as:
+
+    .. math:: \langle f \rangle_{\theta}^{discrete}(\rho, z) = \frac{\text{Sum}_f(\rho, z)}{\text{Weight}_f(\rho, z)},
+
+    with
+
+    .. math:: \text{Sum}_f(\rho, z) = \sum_{\substack{i,j,k \\ z \leq z_k < z + \Delta z \\ \rho \leq \rho_i < \rho + \Delta \rho \\ \rho - \Delta \rho \leq \rho_{i-1} < \rho}} f_{i,j,k}(\rho_i,\theta_j,z_k)\left(1 - \frac{\rho_i - \rho}{\Delta \rho}\right) + f_{i-1,j,k}(\rho_{i-1},\theta_j,z_k)\frac{\rho_{i-1} - \rho}{\Delta \rho},
+
+    and
+
+    .. math:: \text{Weight}_f(\rho, z) = \sum_{\substack{i,j,k \\ z \leq z_k < z + \Delta z \\ \rho \leq r_i < \rho + \Delta \rho \\ \rho - \Delta \rho \leq \rho_{i-1} < \rho}} \mathbf{1}_{i,j,k}(\rho_i,\theta_j,z_k) \left(1 - \frac{\rho_i - \rho}{\Delta \rho}\right) + \mathbf{1}_{i-1,j,k}(\rho_{i-1},\theta_j,z_k)\frac{\rho_{i-1} - \rho}{\Delta \rho}.
+
+    Where :math:`\Delta \rho = \mathop{drh}\text{min}(\mathop{dx}, \mathop{dy}, \mathop{dz})` and :math:`\Delta z = \widetilde{\mathop{dz}}\text{min}(\mathop{dx}, \mathop{dy}, \mathop{dz})` (:math:`\widetilde{\mathop{dz}}` is an input parameter, ratio of the required step by the step from the grid) the horizontal radius and vertical steps (both worth :math:`\mathop{dx} = \mathop{dy} = \mathop{dz}` by default).
 
     Parameters
     ----------
@@ -160,7 +188,7 @@ class SpatialAverage:
         Notes
         -----
 
-        Uses CoordSystem3DConverter to compute :math: `\rho` and :math: `r`.
+        Uses CoordSystem3DConverter to compute :math:`\rho` and :math:`r`.
         """
         self.rho = self.coord_conv.rh
         self.r = self.coord_conv.r_not0
@@ -171,7 +199,7 @@ class SpatialAverage:
         Notes
         -----
 
-        Creates uniformly spaced bin at :math: `\Delta r = \mathop{dr} \Delta x` centers spanning [r_min, r_max] globally.
+        Creates uniformly spaced bin at :math:`\Delta r = \mathop{dr}\text{min}(\mathop{dx}, \mathop{dy}, \mathop{dz})` centers spanning [r_min, r_max] globally.
         """
         # Find local min/max
         r_min_loc = np.min(self.r)
@@ -209,7 +237,7 @@ class SpatialAverage:
         Notes
         -----
 
-        Creates uniformly spaced bin centers for :math: `\rho` and :math: `z`.
+        Creates uniformly spaced bin centers for :math:`\rho` and :math:`z`.
         """
         rho_max_loc = np.max(self.rho)
         rho_min_loc = np.min(self.rho)
@@ -262,7 +290,7 @@ class SpatialAverage:
 
         This computes the normalization factor for averaging.
         For radial average: counts points in each spherical shell.
-        For azimuthal average: counts points in each :math: `(\rho, z)` bin.
+        For azimuthal average: counts points in each :math:`(\rho, z)` bin.
         """
         ones_field = np.ones_like(self.X)
 
@@ -454,7 +482,7 @@ class SpatialAverage:
         return self.rho_centers, self.z_centers, field_avg
 
     def _azimuthal_average_scalar(self, field, return_std=False):
-        r"""Average over :math: `(\rho, z)` bins for a scalar field using loop_azimuthal_rhrz.
+        r"""Average over :math:`(\rho, z)` bins for a scalar field using loop_azimuthal_rhrz.
 
         Parameters
         ----------
@@ -528,8 +556,8 @@ class SpatialAverage:
         Notes
         -----
 
-        For a uniform isotropic mesh :math: `(\mathop{dx} = \mathop{dy} = \mathop{dz} = \mathop{d})`, all cells have the same
-        volume :math: `\mathop{d}^3`. The grid spacing is read from the operator if available.
+        For a uniform isotropic mesh :math:`(\mathop{dx} = \mathop{dy} = \mathop{dz} = \mathop{d})`, all cells have the same
+        volume :math:`\mathop{d}^3`. The grid spacing is read from the operator if available.
 
         Returns
         -------
