@@ -23,26 +23,26 @@ Af1d = "float64[]"
 
 @boost
 def loop_spherical(arr_r0r1r2: Af3d, rs: Af1d, R2: Af3d):
-    """Compute the 3d spectrum."""
-    deltak = rs[1]
-    nk = len(rs)
-    spectrum3d = np.zeros(nk)
-    nk0, nk1, nk2 = arr_r0r1r2.shape
-    for ir0 in range(nk0):
-        for ir1 in range(nk1):
-            for ir2 in range(nk2):
+    """Compute the radial field summed over theta and phi."""
+    deltars = rs[1]
+    nrs = len(rs)
+    _field_spherical_sum = np.zeros(nrs)
+    nr0, nr1, nr2 = arr_r0r1r2.shape
+    for ir0 in range(nr0):
+        for ir1 in range(nr1):
+            for ir2 in range(nr2):
                 value = arr_r0r1r2[ir0, ir1, ir2]
                 kappa = np.sqrt(R2[ir0, ir1, ir2])
-                ir = int(kappa / deltak)
-                if ir >= nk - 1:
-                    ir = nk - 1
-                    spectrum3d[ir] += value
+                ir = int(kappa / deltars)
+                if ir >= nrs - 1:
+                    ir = nrs - 1
+                    _field_spherical_sum[ir] += value
                 else:
-                    coef_share = (kappa - rs[ir]) / deltak
-                    spectrum3d[ir] += (1 - coef_share) * value
-                    spectrum3d[ir + 1] += coef_share * value
+                    coef_share = (kappa - rs[ir]) / deltars
+                    _field_spherical_sum[ir] += (1 - coef_share) * value
+                    _field_spherical_sum[ir + 1] += coef_share * value
 
-    return spectrum3d
+    return _field_spherical_sum
 
 
 @boost
@@ -53,13 +53,13 @@ def loop_azimuthal_rhrz(
     z_list: Af1d,
     z_field: Af3d,
 ):
-    """Compute the _z-kh spectrum."""
+    """Compute the _z-rh field summed over theta."""
     _deltarho = rho_list[1]
     _deltaz = z_list[1] - z_list[0]
     _z_min = z_list[0]
     _nrho = len(rho_list)
     _nz = len(z_list)
-    _field_avg = np.zeros((_nz, _nrho))
+    _field_circular_sum = np.zeros((_nz, _nrho))
     n0, n1, n2 = field_to_avg.shape
     for i0 in range(n0):
         for i1 in range(n1):
@@ -73,24 +73,32 @@ def loop_azimuthal_rhrz(
                     iz = _nz - 1
                 if irho >= _nrho - 1:
                     irho = _nrho - 1
-                    _field_avg[iz, irho] += value
+                    _field_circular_sum[iz, irho] += value
                 else:
                     coef_share = (kappa - rho_list[irho]) / _deltarho
-                    _field_avg[iz, irho] += (1 - coef_share) * value
-                    _field_avg[iz, irho + 1] += coef_share * value
-    return _field_avg
+                    _field_circular_sum[iz, irho] += (1 - coef_share) * value
+                    _field_circular_sum[iz, irho + 1] += coef_share * value
+    return _field_circular_sum
 
 
 class SpatialAverage:
-    """Compute spatial average on a field
+    r"""Compute spatial average on a field.
 
-    The radial average averages over a sphere of radius r (solid angle average):
+    Notes
+    -----
 
-        <f>_Omega(r) = 1/(4*pi) * integral f(r,theta,phi) sin(phi) dtheta dphi
+    .. |dtheta| mathmacro:: \mathop{d\theta}
+    .. |dphi| mathmacro:: \mathop{d\phi}
+    .. |dx| mathmacro:: \mathop{dx}
+
+
+    The radial average of field :math:`f` over a sphere of radius :math:`r` with uniform cells:
+
+    .. math:: \langle f \rangle_{\Omega}(r) = 1/(4\pi) \int f(r,\theta,\phi) \dtheta \dphi
 
     The azimuthal average averages over circles of radius rho at each height z:
 
-        <f>_theta(rho,z) = 1/(2*pi) * integral f(rho,theta,z) dtheta
+    .. math:: \langle f \rangle_{\theta}(\rho,z) = 1/(2\pi) \int f(\rho,\theta,z) \mathop{d\theta}
 
     Parameters
     ----------
@@ -147,17 +155,23 @@ class SpatialAverage:
         self._compute_weights()
 
     def _compute_coordinates(self):
-        """Compute cylindrical and spherical coordinate arrays
+        r"""Compute cylindrical and spherical coordinate arrays
 
-        Uses CoordSystem3DConverter to compute rho and r.
+        Notes
+        -----
+
+        Uses CoordSystem3DConverter to compute :math: `\rho` and :math: `r`.
         """
         self.rho = self.coord_conv.rh
         self.r = self.coord_conv.r_not0
 
     def _prepare_radial_bins(self):
-        """Prepare bins for radial averaging
+        r"""Prepare bins for radial averaging.
 
-        Creates uniformly spaced bin at deltar = dr * deltax centers spanning [r_min, r_max] globally.
+        Notes
+        -----
+
+        Creates uniformly spaced bin at :math: `\Delta r = \mathop{dr} \Delta x` centers spanning [r_min, r_max] globally.
         """
         # Find local min/max
         r_min_loc = np.min(self.r)
@@ -190,9 +204,12 @@ class SpatialAverage:
         )
 
     def _prepare_azimuthal_bins(self):
-        """Prepare bins for azimuthal averaging
+        r"""Prepare bins for azimuthal averaging
 
-        Creates uniformly spaced bin centers for rho and z.
+        Notes
+        -----
+
+        Creates uniformly spaced bin centers for :math: `\rho` and :math: `z`.
         """
         rho_max_loc = np.max(self.rho)
         rho_min_loc = np.min(self.rho)
@@ -238,11 +255,14 @@ class SpatialAverage:
         )
 
     def _compute_weights(self):
-        """Compute the total weight (count) in each bin across all processes.
+        r"""Compute the total weight (count) in each bin across all processes.
+
+        Notes
+        -----
 
         This computes the normalization factor for averaging.
         For radial average: counts points in each spherical shell.
-        For azimuthal average: counts points in each (rho, z) bin.
+        For azimuthal average: counts points in each :math: `(\rho, z)` bin.
         """
         ones_field = np.ones_like(self.X)
 
@@ -279,10 +299,6 @@ class SpatialAverage:
 
     def compute_radial_average(self, field, return_std=False):
         """Compute the solid-angle average of a scalar or vector field
-
-        Implements the spherical average:
-
-            <f>_Omega(r) = 1/(4*pi) * integral f(r,theta,phi) sin(phi) dtheta dphi
 
         Parameters
         ----------
@@ -396,10 +412,6 @@ class SpatialAverage:
     def compute_azimuthal_average(self, field, return_std=False):
         """Compute the azimuthal average of a scalar or vector field
 
-        Implements the azimuthal average over the angle theta:
-
-            <f>_theta(rho, z) = 1/(2*pi) * integral f(rho, theta, z) dtheta
-
         Parameters
         ----------
         field : array_like
@@ -442,7 +454,7 @@ class SpatialAverage:
         return self.rho_centers, self.z_centers, field_avg
 
     def _azimuthal_average_scalar(self, field, return_std=False):
-        """Average over (rho, z) bins for a scalar field using loop_azimuthal_rhrz.
+        r"""Average over :math: `(\rho, z)` bins for a scalar field using loop_azimuthal_rhrz.
 
         Parameters
         ----------
@@ -511,10 +523,13 @@ class SpatialAverage:
         return field_avg, field_std
 
     def compute_volume_weights(self):
-        """Compute the volume weight of each mesh cell
+        r"""Compute the volume weight of each mesh cell
 
-        For a uniform isotropic mesh (dx=dy=dz=d), all cells have the same
-        volume d^3. The grid spacing is read from the operator if available.
+        Notes
+        -----
+
+        For a uniform isotropic mesh :math: `(\mathop{dx} = \mathop{dy} = \mathop{dz} = \mathop{d})`, all cells have the same
+        volume :math: `\mathop{d}^3`. The grid spacing is read from the operator if available.
 
         Returns
         -------
