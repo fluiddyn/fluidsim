@@ -340,20 +340,15 @@ class SpatialAverage:
         # Sum across MPI processes
         if mpi.nb_proc > 1:
             radial_all = mpi.comm.gather(radial_weights_loc, root=0)
-            if mpi.rank == 0:
-                self.radial_weights = np.sum(radial_all, axis=0)
-            else:
-                self.radial_weights = None
-            self.radial_weights = mpi.comm.bcast(self.radial_weights, root=0)
-
             azimuthal_all = mpi.comm.gather(azimuthal_weights_loc, root=0)
             if mpi.rank == 0:
-                self.azimuthal_weights = np.sum(azimuthal_all, axis=0)
+                radial_weights = np.sum(radial_all, axis=0)
+                azimuthal_weights = np.sum(azimuthal_all, axis=0)
             else:
-                self.azimuthal_weights = None
-            self.azimuthal_weights = mpi.comm.bcast(
-                self.azimuthal_weights, root=0
-            )
+                radial_weights = None
+                azimuthal_weights = None
+            self.radial_weights = mpi.comm.bcast(radial_weights, root=0)
+            self.azimuthal_weights = mpi.comm.bcast(azimuthal_weights, root=0)
         else:
             self.radial_weights = radial_weights_loc
             self.azimuthal_weights = azimuthal_weights_loc
