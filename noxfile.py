@@ -67,8 +67,10 @@ def _test(session, env=None, with_fft=True):
             _env.update(env)
         session.run(*cmd.split(), env=_env)
 
-    cmd = "mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing -v --exitfirst"
-    session.run(*cmd.split(), env=env, external=True)
+    # avoid a strange bug in foss.heptapod CI
+    for name_dir in ["base", "operators", "solvers", "util"]:
+        cmd = f"mpirun -np 2 --oversubscribe coverage run -p -m fluidsim.util.testing fluidsim/{name_dir} -v --exitfirst"
+        session.run(*cmd.split(), env=env, external=True)
 
     session.run("coverage", "combine")
     session.run("coverage", "report")
