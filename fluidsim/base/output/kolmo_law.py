@@ -85,30 +85,23 @@ class KolmoLaw(SpecificOutput):
 
         # Get local coordinates
         X, Y, Z = output.sim.oper.get_XYZ_loc()
-
-        # Initialize coordinate converter
-        self.coord_conv = CoordSystem3DConverter(X, Y, Z)
-
-        # Determine number of bins based on grid resolution
-        # Use smaller number of bins than grid points for better statistics
-        aspect_ratio = params.oper.nz / params.oper.nx
-
-        # Radial bins: cover domain diagonal
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
-        r_max = np.sqrt(Lx**2 + Ly**2 + Lz**2)
-        r_store_max = r_max / np.sqrt(3 / 2)
-        n_store = int(
-            np.sqrt(2 + aspect_ratio**2) * params.oper.nx * r_store_max / r_max
+
+        # Initialize coordinate converter and spatial average operators
+        self.coord_conv = CoordSystem3DConverter(
+            X, Y, Z, Lx, Ly, Lz, shift_origin=True
         )
-        n_store = min(n_store, 100)  # Cap at reasonable value
 
-        # Azimuthal bins
-        nv_store = min(params.oper.nz, 50)
-        nh_store = min(int(np.sqrt(2) * params.oper.nx), 50)
+        ratio_dr_to_dx = 1.0
+        ratio_drh_to_dx = 1.0
+        ratio_drv_to_dx = 1.0
 
-        # Initialize spatial averaging operator
         self.spatial_avg = SpatialAverage(
-            output.sim.oper, nr=n_store, nrh=nh_store, nz=nv_store
+            output.sim.oper,
+            dr=ratio_dr_to_dx,
+            drh=ratio_drh_to_dx,
+            dz=ratio_drv_to_dx,
+            shift_origin=True,
         )
 
         # Store bin centers for saving
