@@ -119,8 +119,7 @@ class KolmoLaw(SpecificOutput):
 
     def _init_path_files(self):
         path_run = self.output.path_run
-        self.path_kolmo_law = os.path.join(path_run, "kolmo_law.h5")
-        self.path_file = self.path_kolmo_law
+        self.path_file = os.path.join(path_run, "kolmo_law.h5")
 
     def _init_files(self, arrays_1st_time=None):
         if not hasattr(self, "spatial_avg"):
@@ -129,16 +128,16 @@ class KolmoLaw(SpecificOutput):
         result = self.compute()
 
         if mpi.rank == 0:
-            if not os.path.exists(self.path_kolmo_law):
+            if not os.path.exists(self.path_file):
                 self._create_file_from_dict_arrays(
-                    self.path_kolmo_law, result, arrays_1st_time
+                    self.path_file, result, arrays_1st_time
                 )
                 self.nb_saved_times = 1
             else:
-                with h5py.File(self.path_kolmo_law, "r") as file:
+                with h5py.File(self.path_file, "r") as file:
                     dset_times = file["times"]
                     self.nb_saved_times = dset_times.shape[0] + 1
-                self._add_dict_arrays_to_file(self.path_kolmo_law, result)
+                self._add_dict_arrays_to_file(self.path_file, result)
 
         self.t_last_save = self.sim.time_stepping.t
 
@@ -153,7 +152,7 @@ class KolmoLaw(SpecificOutput):
             result = self.compute()
 
             if mpi.rank == 0:
-                self._add_dict_arrays_to_file(self.path_kolmo_law, result)
+                self._add_dict_arrays_to_file(self.path_file, result)
                 self.nb_saved_times += 1
 
     def compute(self):
