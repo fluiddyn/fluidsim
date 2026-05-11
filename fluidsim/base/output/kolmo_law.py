@@ -75,7 +75,6 @@ class KolmoLaw(SpecificOutput):
         except AttributeError:
             period_save = 0.0
 
-        # For testing, use a non-zero period
         if period_save == 0.0:
             period_save = params.output.periods_save.spectra
             if period_save == 0.0:
@@ -249,12 +248,10 @@ class KolmoLaw(SpecificOutput):
         # Project onto coordinate system bases using CoordSystem3DConverter
         Jk_r_array = np.array(Jk_r)
 
-        # Longitudinal (radial) component
         Jl_k = self.coord_conv.compute_radial_component(
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
         )
 
-        # Cylindrical components
         Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
         )
@@ -293,11 +290,9 @@ class KolmoLaw(SpecificOutput):
         averaged_results = {}
 
         for key, field in results.items():
-            # Radial average
             _, avg_r = self.spatial_avg.compute_radial_average(field)
             averaged_results[f"{key}_r"] = avg_r
 
-            # Azimuthal average
             _, _, avg_hv = self.spatial_avg.compute_azimuthal_average(field)
             averaged_results[f"{key}_hv"] = avg_hv
 
@@ -582,7 +577,6 @@ class KolmoLaw(SpecificOutput):
             ax2.set_title(
                 f"Normalized $-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large"
             )
-            # Avoid division by zero
             RH_safe = np.where(RH != 0, RH, 1e-10)
             RV_safe = np.where(RV != 0, RV, 1e-10)
             ax2.quiver(RH, RV, -Jk_v / RV_safe, -Jk_h / RH_safe)
