@@ -86,6 +86,11 @@ class KolmoLaw(SpecificOutput):
         X, Y, Z = output.sim.oper.get_XYZ_loc()
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
 
+        if params.ONLY_COARSE_OPER:
+            self.coord_conv = None
+            self.spatial_avg = None
+            return
+
         # Initialize coordinate converter and spatial average operators
         self.coord_conv = CoordSystem3DConverter(
             X, Y, Z, Lx, Ly, Lz, shift_origin=True
@@ -117,7 +122,7 @@ class KolmoLaw(SpecificOutput):
         )
 
     def _init_files(self, arrays_1st_time=None):
-        if not hasattr(self, "spatial_avg"):
+        if self.spatial_avg is None and self.coord_conv is None:
             return
 
         result = self.compute()
@@ -138,7 +143,7 @@ class KolmoLaw(SpecificOutput):
 
     def _online_save(self):
         """Save the values at one time."""
-        if not hasattr(self, "spatial_avg"):
+        if self.spatial_avg is None and self.coord_conv is None:
             return
 
         tsim = self.sim.time_stepping.t
