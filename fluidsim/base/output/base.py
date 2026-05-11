@@ -674,5 +674,10 @@ class SpecificOutput:
     def _online_plot_saving(self, dict_results):
         pass
 
+    def _check_sequential(self):
+        if mpi.nb_proc > 1:
+            return False
+        return True
+
     def compute(self):
         raise NotImplementedError

@@ -356,6 +356,9 @@ class KolmoLaw(SpecificOutput):
         save=False,
     ):
         """Plot radial dependencies of Kolmogorov law quantities."""
+        if not self._check_sequential():
+            return
+
         state = self.sim.state
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
@@ -384,69 +387,65 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
-        if mpi.rank == 0:
-            # Plot J_KL
-            fig1, ax1 = self.output.figure_axe()
-            ax1.set_ylabel(r"$-J_{KL}(r)/r\epsilon$", fontsize="x-large")
-            ax1.plot(r_store, Jl_k_comp, "b", label="Numerical result")
-            if "b" in keys_state_phys:
-                ax1.plot(r_store, Jl_p_comp, "g", label="$J_P$")
-            ax1.plot(r_store, Jl_k_th, "r--", label="4/3 theoretical")
-            ax1.set_title(
-                f"$-J_{{KL}}(r)/r\\epsilon$, {title}", fontsize="x-large"
-            )
-            ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
-            ax1.legend()
-            if save:
-                plt.savefig("Jk_r_compensate.pdf")
-            plt.show()
+        # Plot J_KL
+        fig1, ax1 = self.output.figure_axe()
+        ax1.set_ylabel(r"$-J_{KL}(r)/r\epsilon$", fontsize="x-large")
+        ax1.plot(r_store, Jl_k_comp, "b", label="Numerical result")
+        if "b" in keys_state_phys:
+            ax1.plot(r_store, Jl_p_comp, "g", label="$J_P$")
+        ax1.plot(r_store, Jl_k_th, "r--", label="4/3 theoretical")
+        ax1.set_title(f"$-J_{{KL}}(r)/r\\epsilon$, {title}", fontsize="x-large")
+        ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
+        ax1.set_xscale("log")
+        ax1.set_yscale("log")
+        ax1.legend()
+        if save:
+            plt.savefig("Jk_r_compensate.pdf")
+        plt.show()
 
-            # Plot div(J_KL)
-            fig2, ax2 = self.output.figure_axe()
-            ax2.set_ylabel(
-                r"$-\nabla \cdot J_{KL}(r)/4\epsilon$", fontsize="x-large"
-            )
-            ax2.plot(r_store, -divJ_k / 4, "b", label="Numerical result")
-            if "b" in keys_state_phys:
-                ax2.plot(r_store, -divJ_p / 4, "g", label="$\\nabla \\cdot J_P$")
-            ax2.plot(r_store, np.ones_like(r_store), "r--", label="1 theoretical")
-            ax2.set_title(
-                f"$-\\nabla \\cdot J_{{KL}}(r)/4\\epsilon$, {title}",
-                fontsize="x-large",
-            )
-            ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
-            ax2.set_xscale("log")
-            ax2.set_yscale("log")
-            ax2.legend()
-            if save:
-                plt.savefig("divJk_r_comp.pdf")
-            plt.show()
+        # Plot div(J_KL)
+        fig2, ax2 = self.output.figure_axe()
+        ax2.set_ylabel(r"$-\nabla \cdot J_{KL}(r)/4\epsilon$", fontsize="x-large")
+        ax2.plot(r_store, -divJ_k / 4, "b", label="Numerical result")
+        if "b" in keys_state_phys:
+            ax2.plot(r_store, -divJ_p / 4, "g", label="$\\nabla \\cdot J_P$")
+        ax2.plot(r_store, np.ones_like(r_store), "r--", label="1 theoretical")
+        ax2.set_title(
+            f"$-\\nabla \\cdot J_{{KL}}(r)/4\\epsilon$, {title}",
+            fontsize="x-large",
+        )
+        ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
+        ax2.set_xscale("log")
+        ax2.set_yscale("log")
+        ax2.legend()
+        if save:
+            plt.savefig("divJk_r_comp.pdf")
+        plt.show()
 
-            # Plot S2_K
-            fig3, ax3 = self.output.figure_axe()
-            ax3.set_ylabel(
-                r"$S_2^K(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large"
-            )
-            ax3.plot(r_store, S2_k_comp, "b", label="Numerical result")
-            if "b" in keys_state_phys:
-                ax3.plot(r_store, S2_p_comp, "g", label="$S_2^P$")
-            ax3.plot(r_store, S2_k_th, "r--", label="22/3 theoretical")
-            ax3.set_title(
-                f"$S_2^K(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
-                fontsize="x-large",
-            )
-            ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
-            ax3.set_xscale("log")
-            ax3.set_yscale("log")
-            ax3.legend()
-            if save:
-                plt.savefig("S2k_r_comp.pdf")
-            plt.show()
+        # Plot S2_K
+        fig3, ax3 = self.output.figure_axe()
+        ax3.set_ylabel(r"$S_2^K(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large")
+        ax3.plot(r_store, S2_k_comp, "b", label="Numerical result")
+        if "b" in keys_state_phys:
+            ax3.plot(r_store, S2_p_comp, "g", label="$S_2^P$")
+        ax3.plot(r_store, S2_k_th, "r--", label="22/3 theoretical")
+        ax3.set_title(
+            f"$S_2^K(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
+            fontsize="x-large",
+        )
+        ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
+        ax3.set_xscale("log")
+        ax3.set_yscale("log")
+        ax3.legend()
+        if save:
+            plt.savefig("S2k_r_comp.pdf")
+        plt.show()
 
     def plot_hv_dependencies(self, tmin=None, tmax=None, save=False):
         """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
+        if not self._check_sequential():
+            return
+
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
@@ -473,81 +472,81 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
-        if mpi.rank == 0:
-            # Plot J_KL(rho, z)
-            fig1, ax1 = self.output.figure_axe()
-            im = ax1.pcolormesh(
-                RH, RV, -Jk_l_comp, cmap="Blues", vmin=0.0, vmax=1.33
-            )
-            fig1.colorbar(im, ax=ax1)
-            ax1.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax1.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax1.set_title(
-                f"$-J_{{KL}}(r_h,r_v)/r\\epsilon$, {title}", fontsize="x-large"
-            )
-            ax1.set_xscale("log")
-            ax1.set_yscale("log")
-            if save:
-                plt.savefig("Jk_l_hv.pdf")
-            plt.show()
+        # Plot J_KL(rho, z)
+        fig1, ax1 = self.output.figure_axe()
+        im = ax1.pcolormesh(RH, RV, -Jk_l_comp, cmap="Blues", vmin=0.0, vmax=1.33)
+        fig1.colorbar(im, ax=ax1)
+        ax1.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+        ax1.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+        ax1.set_title(
+            f"$-J_{{KL}}(r_h,r_v)/r\\epsilon$, {title}", fontsize="x-large"
+        )
+        ax1.set_xscale("log")
+        ax1.set_yscale("log")
+        if save:
+            plt.savefig("Jk_l_hv.pdf")
+        plt.show()
 
-            # Plot div(J_KL)(rho, z)
-            fig2, ax2 = self.output.figure_axe()
-            im = ax2.pcolormesh(
-                RH, RV, -divJk_hv / 4, cmap="Blues", vmin=0.0, vmax=1.0
+        # Plot div(J_KL)(rho, z)
+        fig2, ax2 = self.output.figure_axe()
+        im = ax2.pcolormesh(
+            RH, RV, -divJk_hv / 4, cmap="Blues", vmin=0.0, vmax=1.0
+        )
+        fig2.colorbar(im, ax=ax2)
+        ax2.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+        ax2.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+        ax2.set_title(
+            f"$-\\nabla \\cdot J_{{KL}}(r_h,r_v)/4\\epsilon$, {title}",
+            fontsize="x-large",
+        )
+        ax2.set_xscale("log")
+        ax2.set_yscale("log")
+        if save:
+            plt.savefig("divJk_hv.pdf")
+        plt.show()
+
+        if "b" in keys_state_phys:
+            # Plot J_PL(rho, z)
+            fig3, ax3 = self.output.figure_axe()
+            im = ax3.pcolormesh(
+                RH, RV, -Jp_l_comp, cmap="Greens", vmin=0.0, vmax=1.33
             )
-            fig2.colorbar(im, ax=ax2)
-            ax2.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax2.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax2.set_title(
-                f"$-\\nabla \\cdot J_{{KL}}(r_h,r_v)/4\\epsilon$, {title}",
+            fig3.colorbar(im, ax=ax3)
+            ax3.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+            ax3.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+            ax3.set_title(
+                f"$-J_{{PL}}(r_h,r_v)/r\\epsilon$, {title}",
                 fontsize="x-large",
             )
-            ax2.set_xscale("log")
-            ax2.set_yscale("log")
+            ax3.set_xscale("log")
+            ax3.set_yscale("log")
             if save:
-                plt.savefig("divJk_hv.pdf")
+                plt.savefig("Jp_l_hv.pdf")
             plt.show()
 
-            if "b" in keys_state_phys:
-                # Plot J_PL(rho, z)
-                fig3, ax3 = self.output.figure_axe()
-                im = ax3.pcolormesh(
-                    RH, RV, -Jp_l_comp, cmap="Greens", vmin=0.0, vmax=1.33
-                )
-                fig3.colorbar(im, ax=ax3)
-                ax3.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-                ax3.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-                ax3.set_title(
-                    f"$-J_{{PL}}(r_h,r_v)/r\\epsilon$, {title}",
-                    fontsize="x-large",
-                )
-                ax3.set_xscale("log")
-                ax3.set_yscale("log")
-                if save:
-                    plt.savefig("Jp_l_hv.pdf")
-                plt.show()
-
-                # Plot div(J_PL)(rho, z)
-                fig4, ax4 = self.output.figure_axe()
-                im = ax4.pcolormesh(
-                    RH, RV, -divJp_hv / 4, cmap="Greens", vmin=0.0, vmax=1.0
-                )
-                fig4.colorbar(im, ax=ax4)
-                ax4.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-                ax4.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-                ax4.set_title(
-                    f"$-\\nabla \\cdot J_{{PL}}(r_h,r_v)/4\\epsilon$, {title}",
-                    fontsize="x-large",
-                )
-                ax4.set_xscale("log")
-                ax4.set_yscale("log")
-                if save:
-                    plt.savefig("divJp_hv.pdf")
-                plt.show()
+            # Plot div(J_PL)(rho, z)
+            fig4, ax4 = self.output.figure_axe()
+            im = ax4.pcolormesh(
+                RH, RV, -divJp_hv / 4, cmap="Greens", vmin=0.0, vmax=1.0
+            )
+            fig4.colorbar(im, ax=ax4)
+            ax4.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+            ax4.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+            ax4.set_title(
+                f"$-\\nabla \\cdot J_{{PL}}(r_h,r_v)/4\\epsilon$, {title}",
+                fontsize="x-large",
+            )
+            ax4.set_xscale("log")
+            ax4.set_yscale("log")
+            if save:
+                plt.savefig("divJp_hv.pdf")
+            plt.show()
 
     def plot_Jhv_vector(self, tmin=None, tmax=None, save=False):
         """Plot vector field of J in (rho, z) plane."""
+        if not self._check_sequential():
+            return
+
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
@@ -567,26 +566,25 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
-        if mpi.rank == 0:
-            fig1, ax1 = self.output.figure_axe()
-            ax1.set_title(f"$-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large")
-            ax1.quiver(RH, RV, -Jk_v, -Jk_h, width=0.005)
-            ax1.set_xlabel(r"$r_h$", fontsize="x-large")
-            ax1.set_ylabel(r"$r_v$", fontsize="x-large")
-            if save:
-                plt.savefig("Jk_vector_hv.pdf")
-            plt.show()
+        fig1, ax1 = self.output.figure_axe()
+        ax1.set_title(f"$-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large")
+        ax1.quiver(RH, RV, -Jk_v, -Jk_h, width=0.005)
+        ax1.set_xlabel(r"$r_h$", fontsize="x-large")
+        ax1.set_ylabel(r"$r_v$", fontsize="x-large")
+        if save:
+            plt.savefig("Jk_vector_hv.pdf")
+        plt.show()
 
-            # Normalized version
-            fig2, ax2 = self.output.figure_axe()
-            ax2.set_title(
-                f"Normalized $-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large"
-            )
-            RH_safe = np.where(RH != 0, RH, 1e-10)
-            RV_safe = np.where(RV != 0, RV, 1e-10)
-            ax2.quiver(RH, RV, -Jk_v / RV_safe, -Jk_h / RH_safe)
-            ax2.set_xlabel(r"$r_h$", fontsize="x-large")
-            ax2.set_ylabel(r"$r_v$", fontsize="x-large")
-            if save:
-                plt.savefig("Jk_vector_hv_normalized.pdf")
-            plt.show()
+        # Normalized version
+        fig2, ax2 = self.output.figure_axe()
+        ax2.set_title(
+            f"Normalized $-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large"
+        )
+        RH_safe = np.where(RH != 0, RH, 1e-10)
+        RV_safe = np.where(RV != 0, RV, 1e-10)
+        ax2.quiver(RH, RV, -Jk_v / RV_safe, -Jk_h / RH_safe)
+        ax2.set_xlabel(r"$r_h$", fontsize="x-large")
+        ax2.set_ylabel(r"$r_v$", fontsize="x-large")
+        if save:
+            plt.savefig("Jk_vector_hv_normalized.pdf")
+        plt.show()
