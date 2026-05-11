@@ -19,6 +19,10 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
+from fluidsim.operators.operators3d import (
+    compute_energy_from_1field_with_coef,
+    compute_energy_from_3fields,
+)
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 from fluidsim.operators.spatial_average3d import SpatialAverage
 
@@ -82,14 +86,17 @@ class KolmoLaw(SpecificOutput):
                 super().__init__(output, period_save=0, arrays_1st_time=None)
                 return
 
-        # Get local coordinates
-        X, Y, Z = output.sim.oper.get_XYZ_loc()
-        Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
-
         if params.ONLY_COARSE_OPER:
             self.coord_conv = None
             self.spatial_avg = None
+            super().__init__(output, period_save=0, arrays_1st_time=None)
             return
+
+        self.sum_wavenumbers = output.sim.oper.sum_wavenumbers
+
+        # Get local coordinates
+        X, Y, Z = output.sim.oper.get_XYZ_loc()
+        Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
 
         # Initialize coordinate converter and spatial average operators
         self.coord_conv = CoordSystem3DConverter(
@@ -185,7 +192,9 @@ class KolmoLaw(SpecificOutput):
             fft_vjvi[ind_i, ind_j] = fft(vi * vj)
 
         # Compute mean kinetic energy (global)
-        E_k_mean = self._compute_global_mean(K)
+        E_k_mean = self.sum_wavenumbers(
+            compute_energy_from_3fields(fft_vi[0], fft_vi[1], fft_vi[2])
+        )
 
         # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
@@ -220,7 +229,11 @@ class KolmoLaw(SpecificOutput):
             fft_b2 = fft(b2)
 
             # Compute mean buoyancy variance
-            E_b_mean = self._compute_global_mean(b2)
+            E_b_mean = self.sum_wavenumbers(
+                compute_energy_from_1field_with_coef(
+                    fft_b, 1.0 / self.sim.params.N**2
+                )
+            )
 
             # Compute J_p
             Jp_r_fft = [None] * 3
@@ -302,22 +315,6 @@ class KolmoLaw(SpecificOutput):
             averaged_results[f"{key}_hv"] = avg_hv
 
         return averaged_results
-
-    def _compute_global_mean(self, field):
-        """Compute global mean of a field across all MPI processes."""
-        local_mean = np.mean(field)
-
-        if mpi.nb_proc > 1:
-            all_means = mpi.comm.gather(local_mean, root=0)
-            if mpi.rank == 0:
-                global_mean = np.mean(all_means)
-            else:
-                global_mean = None
-            global_mean = mpi.comm.bcast(global_mean, root=0)
-        else:
-            global_mean = local_mean
-
-        return global_mean
 
     def load_temp_average(self, key_list=[], tmin=None, tmax=None):
         """Load selected data and time average."""
