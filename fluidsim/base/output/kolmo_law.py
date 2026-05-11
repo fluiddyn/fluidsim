@@ -19,10 +19,6 @@ import matplotlib.pyplot as plt
 from fluiddyn.util import mpi
 
 from fluidsim.base.output.base import SpecificOutput
-from fluidsim.operators.operators3d import (
-    compute_energy_from_1field_with_coef,
-    compute_energy_from_3fields,
-)
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 from fluidsim.operators.spatial_average3d import SpatialAverage
 
@@ -91,8 +87,6 @@ class KolmoLaw(SpecificOutput):
             self.spatial_avg = None
             super().__init__(output, period_save=0, arrays_1st_time=None)
             return
-
-        self.sum_wavenumbers = output.sim.oper.sum_wavenumbers
 
         # Get local coordinates
         X, Y, Z = output.sim.oper.get_XYZ_loc()
@@ -191,10 +185,14 @@ class KolmoLaw(SpecificOutput):
             vj = vel[ind_j]
             fft_vjvi[ind_i, ind_j] = fft(vi * vj)
 
-        # Compute mean kinetic energy (global)
-        E_k_mean = self.sum_wavenumbers(
-            compute_energy_from_3fields(fft_vi[0], fft_vi[1], fft_vi[2])
-        )
+        # Compute mean kinetic energy
+        if "b" in keys_state_phys:
+            nrj_tot_A, nrj_tot_Kz, nrj_tot_Khr, nrj_tot_Khd = (
+                self.output.compute_energies()
+            )
+            E_k_mean = nrj_tot_Kz + nrj_tot_Khr + nrj_tot_Khd
+        else:
+            E_k_mean = self.output.compute_energy()
 
         # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
@@ -229,11 +227,7 @@ class KolmoLaw(SpecificOutput):
             fft_b2 = fft(b2)
 
             # Compute mean buoyancy variance
-            E_b_mean = self.sum_wavenumbers(
-                compute_energy_from_1field_with_coef(
-                    fft_b, 1.0 / self.sim.params.N**2
-                )
-            )
+            E_b_mean = nrj_tot_A * params.N**2
 
             # Compute J_p
             Jp_r_fft = [None] * 3
