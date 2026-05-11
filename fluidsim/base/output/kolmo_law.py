@@ -356,8 +356,7 @@ class KolmoLaw(SpecificOutput):
         save=False,
     ):
         """Plot radial dependencies of Kolmogorov law quantities."""
-        if not self._check_sequential():
-            return
+        self._raise_parallel_error("plot_radial_dependencies")
 
         state = self.sim.state
         params = self.sim.params
@@ -443,8 +442,7 @@ class KolmoLaw(SpecificOutput):
 
     def plot_hv_dependencies(self, tmin=None, tmax=None, save=False):
         """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
-        if not self._check_sequential():
-            return
+        self._raise_parallel_error("plot_hv_dependencies")
 
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
@@ -544,8 +542,7 @@ class KolmoLaw(SpecificOutput):
 
     def plot_Jhv_vector(self, tmin=None, tmax=None, save=False):
         """Plot vector field of J in (rho, z) plane."""
-        if not self._check_sequential():
-            return
+        self._raise_parallel_error("plot_Jhv_vector")
 
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
