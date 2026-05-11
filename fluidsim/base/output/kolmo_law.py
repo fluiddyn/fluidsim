@@ -117,10 +117,6 @@ class KolmoLaw(SpecificOutput):
             arrays_1st_time=arrays_1st_time,
         )
 
-    def _init_path_files(self):
-        path_run = self.output.path_run
-        self.path_file = os.path.join(path_run, "kolmo_law.h5")
-
     def _init_files(self, arrays_1st_time=None):
         if not hasattr(self, "spatial_avg"):
             return
