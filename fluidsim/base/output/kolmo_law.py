@@ -170,19 +170,19 @@ class KolmoLaw(SpecificOutput):
 
         # Get velocity fields
         letters = "xyz"
-        tf_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
+        fft_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
         vel = [state_phys.get_var(f"v{letter}") for letter in letters]
 
         # Compute kinetic energy
         K = sum(v**2 for v in vel)
-        tf_K = fft(K)
+        fft_K = fft(K)
 
         # Compute cross products v_i * v_j
-        tf_vjvi = np.empty((3, 3), dtype=object)
+        fft_vjvi = np.empty((3, 3), dtype=object)
         for ind_i, ind_j in itertools.product(range(3), repeat=2):
             vi = vel[ind_i]
             vj = vel[ind_j]
-            tf_vjvi[ind_i, ind_j] = fft(vi * vj)
+            fft_vjvi[ind_i, ind_j] = fft(vi * vj)
 
         # Compute mean kinetic energy (global)
         E_k_mean = self._compute_global_mean(K)
@@ -190,9 +190,9 @@ class KolmoLaw(SpecificOutput):
         # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
         for ind_i in range(3):
-            tmp = 2 * tf_vi[ind_i] * tf_K.conj()
+            tmp = 2 * fft_vi[ind_i] * fft_K.conj()
             for ind_j in range(3):
-                tmp += 4 * tf_vi[ind_j] * tf_vjvi[ind_i, ind_j].conj()
+                tmp += 4 * fft_vi[ind_j] * fft_vjvi[ind_i, ind_j].conj()
             tmp = 1j * tmp.imag
             Jk_r_fft[ind_i] = tmp
 
@@ -209,27 +209,27 @@ class KolmoLaw(SpecificOutput):
         Jk_r = [self.sim.oper.ifft(Jk_r_fft[i]) for i in range(3)]
 
         # Compute second-order structure function
-        val = sum(tf_vi[i] * tf_vi[i].conj() for i in range(3))
+        val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 2 * E_k_mean - 2 * self.sim.oper.ifft(val)
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
             b = state_phys.get_var("b")
-            tf_b = state_spect.get_var("b_fft")
+            fft_b = state_spect.get_var("b_fft")
             b2 = b * b
-            tf_b2 = fft(b2)
+            fft_b2 = fft(b2)
 
             # Compute mean buoyancy variance
             E_b_mean = self._compute_global_mean(b2)
 
             # Compute J_p
             Jp_r_fft = [None] * 3
-            tf_bv = [fft(b * vel[i]) for i in range(3)]
+            fft_bv = [fft(b * vel[i]) for i in range(3)]
 
             for ind_i in range(3):
                 mom = (
-                    4 * tf_bv[ind_i].conj() * tf_b
-                    + 2 * tf_b2.conj() * tf_vi[ind_i]
+                    4 * fft_bv[ind_i].conj() * fft_b
+                    + 2 * fft_b2.conj() * fft_vi[ind_i]
                 )
                 mom = 1j * mom.imag
                 Jp_r_fft[ind_i] = mom / (params.N**2)
@@ -247,7 +247,7 @@ class KolmoLaw(SpecificOutput):
             Jp_r = [self.sim.oper.ifft(Jp_r_fft[i]) for i in range(3)]
 
             # S2_p
-            src = tf_b * tf_b.conj()
+            src = fft_b * fft_b.conj()
             S2_p_r = (2 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
 
         # Project onto coordinate system bases using CoordSystem3DConverter
