@@ -189,6 +189,12 @@ class TestOutput(TestSimulBase):
         )
         sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
+        sim2.output.kolmo_law.plot_radial_dependencies()
+
+        sim2.output.kolmo_law.plot_hv_dependencies()
+
+        sim2.output.kolmo_law.plot_Jhv_vector()
+
         plt.close("all")
 
         df = get_dataframe_from_paths([sim.output.path_run])

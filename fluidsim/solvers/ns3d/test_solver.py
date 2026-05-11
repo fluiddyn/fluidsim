@@ -290,6 +290,12 @@ class TestOutput(TestSimulBase):
             )
             sim2.plot_freq_diss("z")
 
+            sim2.output.kolmo_law.plot_radial_dependencies()
+
+            sim2.output.kolmo_law.plot_hv_dependencies()
+
+            sim2.output.kolmo_law.plot_Jhv_vector()
+
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
