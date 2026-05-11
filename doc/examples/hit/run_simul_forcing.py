@@ -1,13 +1,16 @@
 """Isotropic forcing at Re = ?
 ===================================
 
-Written by Clovis Lambert, adapted from the script 'run_simul.py' by Jason Reneuve and 'simul_n0.py' by Rodrigo Boiral Lieuthier
-The idea is to run simuls in 3D with the isotropic forcing and with various dealiasing methods and with no dealiasing
+Written by Clovis Lambert, adapted from the script 'run_simul.py' by
+Jason Reneuve and 'simul_n0.py' by Rodrigo Boiral Lieuthier.
+
+The idea is to run simuls in 3D with the isotropic forcing and with various
+dealiasing methods and with no dealiasing.
 
 Example:
 
 ```
-python run_simul_forcing.py -nx 64 -cd 0.9 --type_time_scheme "RK2" -cfl 0.2 --max-elapsed "00:03:00"
+python run_simul_forcing.py -nx 64 -cd 0.9 --type_time_scheme "RK2" -cfl 0.2
 ```
 
 """
@@ -22,7 +25,6 @@ from fluiddyn.util import mpi
 
 from fluidsim.solvers.ns3d.solver import Simul
 from fluidsim import FLUIDSIM_PATH, load_for_restart
-from fluidsim.solvers.ns3d.init_fields import compute_solenoidal_noise_fft
 
 sub_directory = "/data/data_fluidsim/isotropic_forcing_alias/new_test"
 
@@ -189,27 +191,6 @@ def init_params(args):
     return params
 
 
-def init_state(sim, args):
-    X, Y, Z = sim.oper.get_XYZ_loc()
-
-    vx = V0 * np.sin(X / L) * np.cos(Y / L) * np.cos(Z / L)
-    vy = -V0 * np.cos(X / L) * np.sin(Y / L) * np.cos(Z / L)
-    vz = sim.oper.create_arrayX(value=0)
-
-    sim.state.init_statephys_from(vx=vx, vy=vy, vz=vz)
-    sim.state.statespect_from_statephys()
-
-    if args.velo_max_noise:
-        noise_fft = compute_solenoidal_noise_fft(
-            sim.oper, length=args.length_noise, velo_max=args.velo_max_noise
-        )
-        for i_direction, letter_direction in enumerate("xyz"):
-            vi_fft = sim.state.state_spect.get_var(f"v{letter_direction}_fft")
-            vi_fft += noise_fft[i_direction]
-
-    sim.state.statephys_from_statespect()
-
-
 def init_new_simul(args):
     params = init_params(args)
 
@@ -220,7 +201,6 @@ def init_new_simul(args):
         sys.exit()
 
     sim = Simul(params)
-    #    init_state(sim, args)
     return params, sim
 
 
