@@ -353,13 +353,18 @@ class KolmoLaw(SpecificOutput):
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
 
-        key_list = ["S2_k_r", "divJ_k_r", "Jl_k_r"]
+        key_list = [
+            "S2_k_r",
+            "divJ_k_r",
+            "Jl_k_r",
+        ]
         if "b" in keys_state_phys:
             key_list.extend(["S2_p_r", "divJ_p_r", "Jl_p_r"])
 
         to_plot = self.load_temp_average(key_list, tmin, tmax)
 
-        r_store = self.spatial_avg.r_centers
+        with h5py.File(self.path_file, "r") as file:
+            r_store = np.array(file["r_store"])
 
         # Compensated plots
         Jl_k_comp = -to_plot["Jl_k_r"] / (r_store**coef_comp3)
@@ -445,9 +450,11 @@ class KolmoLaw(SpecificOutput):
 
         to_plot = self.load_temp_average(key_list, tmin, tmax)
 
-        rh_store = self.spatial_avg.rho_centers
-        rv_store = self.spatial_avg.z_centers
-        RH, RV = np.meshgrid(rv_store, rh_store)
+        with h5py.File(self.path_file, "r") as file:
+            rh_store = np.array(file["rh_store"])
+            rv_store = np.array(file["rv_store"])
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
 
         # Compute radius for normalization
         radius = np.sqrt(RH**2 + RV**2)
@@ -548,9 +555,11 @@ class KolmoLaw(SpecificOutput):
         Jk_v = to_plot["Jv_k_hv"]
         Jk_h = to_plot["Jh_k_hv"]
 
-        rh_store = self.spatial_avg.rho_centers
-        rv_store = self.spatial_avg.z_centers
-        RH, RV = np.meshgrid(rv_store, rh_store)
+        with h5py.File(self.path_file, "r") as file:
+            rh_store = np.array(file["rh_store"])
+            rv_store = np.array(file["rv_store"])
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
 
         title = f"$n_x={params.oper.nx}$"
 
