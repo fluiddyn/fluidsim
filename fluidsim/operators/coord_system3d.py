@@ -36,8 +36,8 @@ class CoordSystem3DConverter:
         self.rh_not0 = np.where(self.rh != 0, self.rh, EPSILON)
 
         # spherical coordinates
-        r = np.sqrt(self.x**2 + self.y**2 + self.z**2)
-        self.r_not0 = np.where(r != 0, r, EPSILON)
+        self.r = np.sqrt(self.x**2 + self.y**2 + self.z**2)
+        self.r_not0 = np.where(self.r != 0, self.r, EPSILON)
 
     def compute_r_theta(self):
         """r_theta is defined between [-pi; pi] and is 0 for x = y = 0"""
