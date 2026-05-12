@@ -310,12 +310,21 @@ class KolmoLaw(SpecificOutput):
 
         return averaged_results
 
-    def load_temp_average(self, key_list=[], tmin=None, tmax=None):
+    def load_temp_average(self, keys=None, tmin=None, tmax=None):
         """Load selected data and time average."""
         results = {}
 
         with h5py.File(self.path_file, "r") as file:
             times = file["times"][...]
+
+            if keys is None:
+                keys = [
+                    k
+                    for k in file.keys()
+                    if not any(
+                        k.startswith(begin) for begin in ["r", "info_", "times"]
+                    )
+                ]
 
             # Determine time range
             if tmax is None:
@@ -333,7 +342,7 @@ class KolmoLaw(SpecificOutput):
                 tmin = times[imin_plot]
 
             # Load and average data
-            for key in key_list:
+            for key in keys:
                 results[key] = np.mean(file[key][imin_plot:imax_plot], axis=0)
 
         return results
@@ -353,15 +362,15 @@ class KolmoLaw(SpecificOutput):
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
 
-        key_list = [
+        keys = [
             "S2_k_r",
             "divJ_k_r",
             "Jl_k_r",
         ]
         if "b" in keys_state_phys:
-            key_list.extend(["S2_p_r", "divJ_p_r", "Jl_p_r"])
+            keys.extend(["S2_p_r", "divJ_p_r", "Jl_p_r"])
 
-        to_plot = self.load_temp_average(key_list, tmin, tmax)
+        to_plot = self.load_temp_average(keys, tmin, tmax)
 
         with h5py.File(self.path_file, "r") as file:
             r_store = np.array(file["r_store"])
@@ -444,11 +453,11 @@ class KolmoLaw(SpecificOutput):
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
 
-        key_list = ["Jl_k_hv", "divJ_k_hv"]
+        keys = ["Jl_k_hv", "divJ_k_hv"]
         if "b" in keys_state_phys:
-            key_list.extend(["Jl_p_hv", "divJ_p_hv"])
+            keys.extend(["Jl_p_hv", "divJ_p_hv"])
 
-        to_plot = self.load_temp_average(key_list, tmin, tmax)
+        to_plot = self.load_temp_average(keys, tmin, tmax)
 
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
@@ -546,11 +555,11 @@ class KolmoLaw(SpecificOutput):
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
 
-        key_list = ["Jh_k_hv", "Jv_k_hv"]
+        keys = ["Jh_k_hv", "Jv_k_hv"]
         if "b" in keys_state_phys:
-            key_list.extend(["Jh_p_hv", "Jv_p_hv"])
+            keys.extend(["Jh_p_hv", "Jv_p_hv"])
 
-        to_plot = self.load_temp_average(key_list, tmin, tmax)
+        to_plot = self.load_temp_average(keys, tmin, tmax)
 
         Jk_v = to_plot["Jv_k_hv"]
         Jk_h = to_plot["Jh_k_hv"]
