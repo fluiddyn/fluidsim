@@ -301,10 +301,13 @@ class TestOutput(TestSimulBase):
             sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
             sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
 
-            result = sim2.output.kolmo_law.load_temp_average(tmin=tmin, tmax=tmax)
+            result = sim2.output.kolmo_law.load_temp_average()
 
             S2_k_r = result["S2_k_r"]
+            Jl_k_r = result["Jl_k_r"]
             assert S2_k_r[0] == 0, S2_k_r[0]
+            assert Jl_k_r[0] == 0, Jl_k_r[0]
+            assert Jl_k_r[-1] == 0, Jl_k_r[-1]
 
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2
