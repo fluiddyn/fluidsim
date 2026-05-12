@@ -339,6 +339,12 @@ class KolmoLaw(SpecificOutput):
                 imin_plot = np.argmin(times)
             else:
                 imin_plot = np.argmin(abs(times - tmin))
+                if imin_plot == imax_plot:
+                    if imin_plot == 0:
+                        imax_plot += 1
+                        tmax = times[imax_plot]
+                    else:
+                        imin_plot -= 1
                 tmin = times[imin_plot]
 
             # Load and average data
