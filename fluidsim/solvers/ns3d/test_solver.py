@@ -296,6 +296,15 @@ class TestOutput(TestSimulBase):
 
             sim2.output.kolmo_law.plot_Jhv_vector()
 
+            tmax = sim2.params.time_stepping.t_end
+            tmin = 0.5 * sim2.params.time_stepping.t_end
+
+            sim2.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax)
+
+            sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
+
+            sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
+
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()
