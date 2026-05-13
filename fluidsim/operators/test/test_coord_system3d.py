@@ -4,20 +4,25 @@ import numpy as np
 
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
-# Use a 3D grid of points in Cartesian coordinates.
-# warning: x=y=0 (the z-axis) is particular, cylindrical/spherical not well-defined.
-_n = 4
-_x1d = np.linspace(0.0, 1.0, _n)
-_y1d = np.linspace(0.0, 1.0, _n)
-_z1d = np.linspace(0.0, 2.0, _n)
-_z, _y, _x = np.meshgrid(_z1d, _y1d, _x1d, indexing="ij")
-shape = _x.shape
-EPSILON = 1e-12
-
 # Domain sizes
 _lx = 1.0
 _ly = 1.0
 _lz = 2.0
+
+# Use a 3D grid of points in Cartesian coordinates.
+# warning: x=y=0 (the z-axis) is particular, cylindrical/spherical not well-defined.
+_n = 4
+
+dx = _lx / _n
+dy = _ly / _n
+dz = _lz / _n
+
+_x1d = dx * np.arange(_n)
+_y1d = dy * np.arange(_n)
+_z1d = dz * np.arange(_n)
+_z, _y, _x = np.meshgrid(_z1d, _y1d, _x1d, indexing="ij")
+shape = _x.shape
+EPSILON = 1e-12
 
 # shifted grid (origin shifted at the middle of the domain)
 _x_shifted = _x.copy()
@@ -185,7 +190,6 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
     x, y, z = get_coords(shift_origin)
-    _z = z
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
@@ -225,7 +229,7 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
             vx = x / r_sph_not0
             vy = y / r_sph_not0
             vz = z / r_sph_not0
-            vz_exp = _z / r_sph_not0
+            vz_exp = z / r_sph_not0
             vh_exp = r_h / r_sph_not0
             vt_exp = np.zeros(shape)
 
@@ -369,12 +373,15 @@ def test_spherical_preserves_norm(shift_origin, allclose):
     """Spherical conversion is a rotation: it must preserve the vector norm."""
     converter = make_converter(shift_origin)
     r_h = make_r_h(shift_origin)
+    x, y, z = get_coords(shift_origin)
+    r2_sph = x**2 + y**2 + z**3
 
     rng = np.random.default_rng(1)
     vx = rng.standard_normal(shape)
     vy = rng.standard_normal(shape)
     vz = rng.standard_normal(shape)
 
+    vz[r2_sph == 0] = 0
     vx[r_h == 0] = 0
     vy[r_h == 0] = 0
 
