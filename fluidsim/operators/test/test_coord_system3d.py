@@ -85,7 +85,7 @@ def test_origin_shift_coordinates():
 
 
 def test_origin_position():
-    """Test that the origin of the shifted grid is at the center of a non-shifted grid that has origin at (0, 0, 0)."""
+    """Test that the zeros on shifted grids are where x, y or z = 0 and where x, y or z = L."""
     n = 5
     x1d = np.linspace(0.0, 1.0, n)
     y1d = np.linspace(0.0, 1.0, n)
