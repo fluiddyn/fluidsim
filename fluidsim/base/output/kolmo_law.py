@@ -217,7 +217,7 @@ class KolmoLaw(SpecificOutput):
 
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
-        S2_k_r = 2 * E_k_mean - 2 * self.sim.oper.ifft(val)
+        S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
@@ -263,6 +263,8 @@ class KolmoLaw(SpecificOutput):
         Jl_k = self.coord_conv.compute_radial_component(
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
         )
+
+        raise
 
         Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
