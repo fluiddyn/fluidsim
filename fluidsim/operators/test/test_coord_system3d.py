@@ -185,6 +185,7 @@ def test_compute_cylindrical_components(shift_origin, vector_kind, allclose):
     r_h = make_r_h(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
     x, y, z = get_coords(shift_origin)
+    _z = z
 
     r_h_not0 = np.where(r_h != 0, r_h, EPSILON)
 
@@ -273,12 +274,16 @@ def test_compute_radial_component_pure_radial(shift_origin, allclose):
     converter = make_converter(shift_origin)
     r_sph_not0 = make_r_sph_not0(shift_origin)
     x, y, z = get_coords(shift_origin)
+    vr_exp = np.ones(shape)
+    mask = np.argwhere((x == 0.0) & (y == 0.0) & (z == 0.0))
+    for index in mask:
+        vr_exp[tuple(index)] = 0.0
 
     vx = x / r_sph_not0
     vy = y / r_sph_not0
     vz = z / r_sph_not0
     vr = converter.compute_radial_component(vx, vy, vz)
-    assert allclose(vr, np.ones(shape))
+    assert allclose(vr, vr_exp)
 
 
 @pytest.mark.parametrize("shift_origin", [False, True])
@@ -324,6 +329,9 @@ def test_compute_spherical_components(shift_origin, vector_kind, allclose):
             vy = y / r_sph_not0
             vz = z / r_sph_not0
             vr_exp = np.ones(shape)
+            mask = np.argwhere((x == 0.0) & (y == 0.0) & (z == 0.0))
+            for index in mask:
+                vr_exp[tuple(index)] = 0.0
             vt_exp = np.zeros(shape)  # azimuthal
             vp_exp = np.zeros(shape)  # polar
 
