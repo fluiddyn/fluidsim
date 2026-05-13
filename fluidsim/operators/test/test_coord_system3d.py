@@ -9,7 +9,7 @@ from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 _n = 4
 _x1d = np.linspace(0.0, 1.0, _n)
 _y1d = np.linspace(0.0, 1.0, _n)
-_z1d = np.linspace(-1.0, 1.0, _n)
+_z1d = np.linspace(0.0, 2.0, _n)
 _z, _y, _x = np.meshgrid(_z1d, _y1d, _x1d, indexing="ij")
 shape = _x.shape
 EPSILON = 1e-12
@@ -20,9 +20,12 @@ _ly = 1.0
 _lz = 2.0
 
 # shifted grid (origin shifted at the middle of the domain)
-_z_shifted = _z - (_lz / 2 + np.min(_z))
-_y_shifted = _y - (_ly / 2 + np.min(_y))
-_x_shifted = _x - (_lx / 2 + np.min(_x))
+_x_shifted = _x.copy()
+_x_shifted[_x > _lx / 2] = _x[_x > _lx / 2] - _lx
+_y_shifted = _y.copy()
+_y_shifted[_y > _ly / 2] = _y[_y > _ly / 2] - _ly
+_z_shifted = _z.copy()
+_z_shifted[_z > _lz / 2] = _z[_z > _lz / 2] - _lz
 
 
 def get_coords(shift_origin):
@@ -91,13 +94,33 @@ def test_origin_position():
     conv_shifted = CoordSystem3DConverter(x, y, z, lx, ly, lz, shift_origin=True)
 
     assert np.allclose(
-        np.where(conv_shifted.x == 0.0), np.where(conv.x == lx / 2)
+        np.argwhere(conv_shifted.x == 0.0)[::2], np.argwhere(conv.x == 0.0)
     )
     assert np.allclose(
-        np.where(conv_shifted.y == 0.0), np.where(conv.y == ly / 2)
+        np.argwhere(conv_shifted.x == 0.0)[1::2], np.argwhere(conv.x == lx)
+    )
+    mask = [
+        i
+        for i in range(np.shape(np.argwhere(conv_shifted.y == 0.0))[0])
+        if (i // n) % 2 == 0
+    ]
+    assert np.allclose(
+        np.argwhere(conv_shifted.y == 0.0)[mask], np.argwhere(conv.y == 0.0)
+    )
+    mask = [
+        i
+        for i in range(np.shape(np.argwhere(conv_shifted.y == 0.0))[0])
+        if (i // n) % 2 == 1
+    ]
+    assert np.allclose(
+        np.argwhere(conv_shifted.y == 0.0)[mask], np.argwhere(conv.y == ly)
+    )
+    mid_ind = int(np.shape(np.argwhere(conv_shifted.z == 0.0))[0] / 2)
+    assert np.allclose(
+        np.argwhere(conv_shifted.z == 0.0)[:mid_ind], np.argwhere(conv.z == 0.0)
     )
     assert np.allclose(
-        np.where(conv_shifted.z == 0.0), np.where(conv.z == lz / 2)
+        np.argwhere(conv_shifted.z == 0.0)[mid_ind:], np.argwhere(conv.z == lz)
     )
 
 
