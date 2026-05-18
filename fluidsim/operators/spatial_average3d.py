@@ -310,13 +310,13 @@ class SpatialAverage:
 
         # Create uniform bin centers
         self.nrh = int((rho_max - rho_min) / self.deltarh) + 1
-        self._nz = int((z_max - z_min) / self.deltaz) + 1
+        self._nz = int((z_max - z_min) / self.deltaz) + 2
 
         self.rho_centers = np.linspace(
             rho_min, rho_min + self.nrh * self.deltarh, self.nrh, endpoint=False
         )
         self.z_centers = np.linspace(
-            z_min, z_min + self._nz * self.deltaz, self._nz, endpoint=False
+            z_min, z_min + (self._nz - 1) * self.deltaz, self._nz, endpoint=True
         )
 
     def _compute_weights(self):

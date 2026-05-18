@@ -17,9 +17,12 @@ class CoordSystem3DConverter:
 
     def __init__(self, x, y, z, lx, ly, lz, shift_origin=True):
         if shift_origin:
-            self.x = x - (lx / 2 + np.min(x))
-            self.y = y - (ly / 2 + np.min(y))
-            self.z = z - (lz / 2 + np.min(z))
+            self.x = x.copy()
+            self.x[x > lx / 2] = x[x > lx / 2] - lx
+            self.y = y.copy()
+            self.y[y > ly / 2] = y[y > ly / 2] - ly
+            self.z = z.copy()
+            self.z[z > lz / 2] = z[z > lz / 2] - lz
         else:
             self.x = x
             self.y = y
