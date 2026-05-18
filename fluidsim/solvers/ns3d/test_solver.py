@@ -305,9 +305,11 @@ class TestOutput(TestSimulBase):
 
             S2_k_r = result["S2_k_r"]
             Jl_k_r = result["Jl_k_r"]
-            assert S2_k_r[0] == 0, S2_k_r[0]
-            assert Jl_k_r[0] == 0, Jl_k_r[0]
-            assert Jl_k_r[-1] == 0, Jl_k_r[-1]
+            divJ_k_r = result["divJ_k_r"]
+            assert np.allclose(S2_k_r[0], 0.0, rtol=1e-12)
+            assert np.allclose(Jl_k_r[0], 0.0, rtol=1e-12)
+            assert np.allclose(Jl_k_r[-1], 0.0, rtol=1e-12)
+            assert np.allclose(divJ_k_r[-1], 0.0, rtol=1e-12)
 
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2
