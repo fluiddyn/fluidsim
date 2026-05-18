@@ -264,8 +264,6 @@ class KolmoLaw(SpecificOutput):
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
         )
 
-        raise
-
         Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(
             Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
         )
