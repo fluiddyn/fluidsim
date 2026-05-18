@@ -190,19 +190,18 @@ class TestOutput(TestSimulBase):
         sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
         sim2.output.kolmo_law.plot_radial_dependencies()
-
         sim2.output.kolmo_law.plot_hv_dependencies()
-
         sim2.output.kolmo_law.plot_Jhv_vector()
 
         tmax = sim2.params.time_stepping.t_end
         tmin = 0.5 * sim2.params.time_stepping.t_end
 
         sim2.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax)
-
         sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
-
         sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
+
+        result = sim2.output.kolmo_law.load_temp_average()
+        # TODO kolmo_law: test result
 
         plt.close("all")
 

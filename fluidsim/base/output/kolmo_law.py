@@ -75,16 +75,12 @@ class KolmoLaw(SpecificOutput):
         except AttributeError:
             period_save = 0.0
 
-        if period_save == 0.0:
-            period_save = params.output.periods_save.spectra
-            if period_save == 0.0:
-                arrays_1st_time = None
-                super().__init__(output, period_save=0, arrays_1st_time=None)
-                return
-
         if params.ONLY_COARSE_OPER:
             self.coord_conv = None
             self.spatial_avg = None
+            period_save = 0.0
+
+        if period_save == 0.0:
             super().__init__(output, period_save=0, arrays_1st_time=None)
             return
 
