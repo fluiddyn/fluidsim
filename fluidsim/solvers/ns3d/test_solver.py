@@ -301,7 +301,7 @@ class TestOutput(TestSimulBase):
             sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
             sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
 
-            result = sim2.output.kolmo_law.load_temp_average()
+            result, _, _ = sim2.output.kolmo_law.load_temp_average()
 
             S2_k_r = result["S2_k_r"]
             Jl_k_r = result["Jl_k_r"]
