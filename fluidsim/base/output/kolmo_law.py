@@ -15,6 +15,8 @@ import itertools
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+from warnings import warn
+
 
 from fluiddyn.util import mpi
 
@@ -251,7 +253,7 @@ class KolmoLaw(SpecificOutput):
 
             # S2_p
             src = fft_b * fft_b.conj()
-            S2_p_r = (2 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
+            S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
 
         # Project onto coordinate system bases using CoordSystem3DConverter
         Jk_r_array = np.array(Jk_r)
@@ -347,7 +349,7 @@ class KolmoLaw(SpecificOutput):
             for key in keys:
                 results[key] = np.mean(file[key][imin_plot:imax_plot], axis=0)
 
-        return results
+        return results, tmin, tmax
 
     def plot_radial_dependencies(
         self,
@@ -364,12 +366,6 @@ class KolmoLaw(SpecificOutput):
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
 
-        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
-            tmin=tmin, tmax=tmax
-        )["dimensional"]
-        eta = dimless_num["eta"]
-        EK = dimless_num["EKh"] + dimless_num["EKz"]
-
         keys = [
             "S2_k_r",
             "divJ_k_r",
@@ -378,7 +374,17 @@ class KolmoLaw(SpecificOutput):
         if "b" in keys_state_phys:
             keys.extend(["S2_p_r", "divJ_p_r", "Jl_p_r"])
 
-        to_plot = self.load_temp_average(keys, tmin, tmax)
+        to_plot, tmin, tmax = self.load_temp_average(keys, tmin, tmax)
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        try:
+            eta = dimless_num["eta"]
+        except KeyError:
+            warn("KeyError: 'eta' not available; eta is set to unity")
+            eta = 1
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
 
         with h5py.File(self.path_file, "r") as file:
             r_store = np.array(file["r_store"])
@@ -478,16 +484,20 @@ class KolmoLaw(SpecificOutput):
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
 
-        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
-            tmin=tmin, tmax=tmax
-        )["dimensional"]
-        eta = dimless_num["eta"]
-
         keys = ["Jl_k_hv", "divJ_k_hv"]
         if "b" in keys_state_phys:
             keys.extend(["Jl_p_hv", "divJ_p_hv"])
 
-        to_plot = self.load_temp_average(keys, tmin, tmax)
+        to_plot, tmin, tmax = self.load_temp_average(keys, tmin, tmax)
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        try:
+            eta = dimless_num["eta"]
+        except KeyError:
+            warn("KeyError: 'eta' not available; eta is set to unity")
+            eta = 1
 
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
@@ -623,7 +633,7 @@ class KolmoLaw(SpecificOutput):
         if "b" in keys_state_phys:
             keys.extend(["Jh_p_hv", "Jv_p_hv"])
 
-        to_plot = self.load_temp_average(keys, tmin, tmax)
+        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
 
         Jk_v = to_plot["Jv_k_hv"]
         Jk_h = to_plot["Jh_k_hv"]
