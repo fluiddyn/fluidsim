@@ -200,8 +200,17 @@ class TestOutput(TestSimulBase):
         sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
         sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
 
-        result = sim2.output.kolmo_law.load_temp_average()
-        # TODO kolmo_law: test result
+        result, _, _ = sim2.output.kolmo_law.load_temp_average()
+
+        S2_k_r = result["S2_k_r"]
+        Jl_k_r = result["Jl_k_r"]
+        S2_p_r = result["S2_p_r"]
+        Jl_p_r = result["Jl_p_r"]
+
+        assert np.allclose(S2_k_r[0], 0.0, rtol=1e-12)
+        assert np.allclose(Jl_k_r[0], 0.0, rtol=1e-12)
+        assert np.allclose(S2_p_r[0], 0.0, rtol=1e-12)
+        assert np.allclose(Jl_p_r[0], 0.0, rtol=1e-12)
 
         plt.close("all")
 
