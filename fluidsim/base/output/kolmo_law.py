@@ -364,6 +364,12 @@ class KolmoLaw(SpecificOutput):
         params = self.sim.params
         keys_state_phys = state.keys_state_phys
 
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        eta = dimless_num["eta"]
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+
         keys = [
             "S2_k_r",
             "divJ_k_r",
@@ -385,6 +391,7 @@ class KolmoLaw(SpecificOutput):
         # Theoretical values
         Jl_k_th = 4 / 3 * np.ones_like(r_store)
         S2_k_th = 22 / 3 * np.ones_like(r_store)
+        EK_array = EK * np.ones_like(r_store)
 
         if "b" in keys_state_phys:
             Jl_p_comp = -to_plot["Jl_p_r"] / (r_store**coef_comp3)
@@ -396,26 +403,39 @@ class KolmoLaw(SpecificOutput):
         # Plot J_KL
         fig1, ax1 = self.output.figure_axe()
         ax1.set_ylabel(r"$-J_{KL}(r)/r\epsilon$", fontsize="x-large")
-        ax1.plot(r_store, Jl_k_comp, "b", label="Numerical result")
+        ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="Numerical result")
         if "b" in keys_state_phys:
-            ax1.plot(r_store, Jl_p_comp, "g", label="$J_P$")
-        ax1.plot(r_store, Jl_k_th, "r--", label="4/3 theoretical")
+            ax1.plot(r_store[1:] / eta, Jl_p_comp[1:], "g", label="$J_P$")
+        ax1.plot(r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical")
         ax1.set_title(f"$-J_{{KL}}(r)/r\\epsilon$, {title}", fontsize="x-large")
         ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
         ax1.set_xscale("log")
         ax1.set_yscale("log")
         ax1.legend()
+        plt.tight_layout()
         if save:
-            plt.savefig("Jk_r_compensate.pdf")
+            plt.savefig("Jk_r_compensate.png", dpi=300)
         plt.show()
 
         # Plot div(J_KL)
         fig2, ax2 = self.output.figure_axe()
         ax2.set_ylabel(r"$-\nabla \cdot J_{KL}(r)/4\epsilon$", fontsize="x-large")
-        ax2.plot(r_store, -divJ_k / 4, "b", label="Numerical result")
+        ax2.plot(
+            r_store[1:] / eta, -divJ_k[1:] / 4, "b", label="Numerical result"
+        )
         if "b" in keys_state_phys:
-            ax2.plot(r_store, -divJ_p / 4, "g", label="$\\nabla \\cdot J_P$")
-        ax2.plot(r_store, np.ones_like(r_store), "r--", label="1 theoretical")
+            ax2.plot(
+                r_store[1:] / eta,
+                -divJ_p[1:] / 4,
+                "g",
+                label="$\\nabla \\cdot J_P$",
+            )
+        ax2.plot(
+            r_store[1:] / eta,
+            np.ones_like(r_store[1:]),
+            "r--",
+            label="1 theoretical",
+        )
         ax2.set_title(
             f"$-\\nabla \\cdot J_{{KL}}(r)/4\\epsilon$, {title}",
             fontsize="x-large",
@@ -424,17 +444,19 @@ class KolmoLaw(SpecificOutput):
         ax2.set_xscale("log")
         ax2.set_yscale("log")
         ax2.legend()
+        plt.tight_layout()
         if save:
-            plt.savefig("divJk_r_comp.pdf")
+            plt.savefig("divJk_r_comp.png", dpi=300)
         plt.show()
 
         # Plot S2_K
         fig3, ax3 = self.output.figure_axe()
         ax3.set_ylabel(r"$S_2^K(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large")
-        ax3.plot(r_store, S2_k_comp, "b", label="Numerical result")
+        ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "b", label="Numerical result")
         if "b" in keys_state_phys:
-            ax3.plot(r_store, S2_p_comp, "g", label="$S_2^P$")
-        ax3.plot(r_store, S2_k_th, "r--", label="22/3 theoretical")
+            ax3.plot(r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P$")
+        ax3.plot(r_store[1:] / eta, S2_k_th[1:], "r--", label="22/3 theoretical")
+        ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
         ax3.set_title(
             f"$S_2^K(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
             fontsize="x-large",
@@ -443,8 +465,9 @@ class KolmoLaw(SpecificOutput):
         ax3.set_xscale("log")
         ax3.set_yscale("log")
         ax3.legend()
+        plt.tight_layout()
         if save:
-            plt.savefig("S2k_r_comp.pdf")
+            plt.savefig("S2k_r_comp.png", dpi=300)
         plt.show()
 
     def plot_hv_dependencies(self, tmin=None, tmax=None, save=False):
@@ -454,6 +477,11 @@ class KolmoLaw(SpecificOutput):
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        eta = dimless_num["eta"]
 
         keys = ["Jl_k_hv", "divJ_k_hv"]
         if "b" in keys_state_phys:
@@ -481,7 +509,14 @@ class KolmoLaw(SpecificOutput):
 
         # Plot J_KL(rho, z)
         fig1, ax1 = self.output.figure_axe()
-        im = ax1.pcolormesh(RH, RV, -Jk_l_comp, cmap="Blues", vmin=0.0, vmax=1.33)
+        im = ax1.pcolormesh(
+            RH[1:] / eta,
+            RV[1:] / eta,
+            -Jk_l_comp[1:],
+            cmap="Blues",
+            vmin=0.0,
+            vmax=1.33,
+        )
         fig1.colorbar(im, ax=ax1)
         ax1.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
         ax1.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
@@ -490,14 +525,22 @@ class KolmoLaw(SpecificOutput):
         )
         ax1.set_xscale("log")
         ax1.set_yscale("log")
+        ax1.set_xlim(xmin=1)
+        ax1.set_ylim(ymin=1)
+        plt.tight_layout()
         if save:
-            plt.savefig("Jk_l_hv.pdf")
+            plt.savefig("Jk_l_hv.png", dpi=300)
         plt.show()
 
         # Plot div(J_KL)(rho, z)
         fig2, ax2 = self.output.figure_axe()
         im = ax2.pcolormesh(
-            RH, RV, -divJk_hv / 4, cmap="Blues", vmin=0.0, vmax=1.0
+            RH[1:] / eta,
+            RV[1:] / eta,
+            -divJk_hv[1:] / 4,
+            cmap="Blues",
+            vmin=0.0,
+            vmax=1.0,
         )
         fig2.colorbar(im, ax=ax2)
         ax2.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
@@ -508,15 +551,23 @@ class KolmoLaw(SpecificOutput):
         )
         ax2.set_xscale("log")
         ax2.set_yscale("log")
+        ax2.set_xlim(xmin=1)
+        ax2.set_ylim(ymin=1)
+        plt.tight_layout()
         if save:
-            plt.savefig("divJk_hv.pdf")
+            plt.savefig("divJk_hv.png", dpi=300)
         plt.show()
 
         if "b" in keys_state_phys:
             # Plot J_PL(rho, z)
             fig3, ax3 = self.output.figure_axe()
             im = ax3.pcolormesh(
-                RH, RV, -Jp_l_comp, cmap="Greens", vmin=0.0, vmax=1.33
+                RH[1:] / eta,
+                RV[1:] / eta,
+                -Jp_l_comp[1:],
+                cmap="Greens",
+                vmin=0.0,
+                vmax=1.33,
             )
             fig3.colorbar(im, ax=ax3)
             ax3.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
@@ -527,14 +578,22 @@ class KolmoLaw(SpecificOutput):
             )
             ax3.set_xscale("log")
             ax3.set_yscale("log")
+            ax3.set_xlim(xmin=1)
+            ax3.set_ylim(ymin=1)
+            plt.tight_layout()
             if save:
-                plt.savefig("Jp_l_hv.pdf")
+                plt.savefig("Jp_l_hv.png", dpi=300)
             plt.show()
 
             # Plot div(J_PL)(rho, z)
             fig4, ax4 = self.output.figure_axe()
             im = ax4.pcolormesh(
-                RH, RV, -divJp_hv / 4, cmap="Greens", vmin=0.0, vmax=1.0
+                RH[1:] / eta,
+                RV[1:] / eta,
+                -divJp_hv[1:] / 4,
+                cmap="Greens",
+                vmin=0.0,
+                vmax=1.0,
             )
             fig4.colorbar(im, ax=ax4)
             ax4.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
@@ -545,8 +604,11 @@ class KolmoLaw(SpecificOutput):
             )
             ax4.set_xscale("log")
             ax4.set_yscale("log")
+            ax4.set_xlim(xmin=1)
+            ax4.set_ylim(ymin=1)
+            plt.tight_layout()
             if save:
-                plt.savefig("divJp_hv.pdf")
+                plt.savefig("divJp_hv.png", dpi=300)
             plt.show()
 
     def plot_Jhv_vector(self, tmin=None, tmax=None, save=False):
@@ -579,8 +641,9 @@ class KolmoLaw(SpecificOutput):
         ax1.quiver(RH, RV, -Jk_v, -Jk_h, width=0.005)
         ax1.set_xlabel(r"$r_h$", fontsize="x-large")
         ax1.set_ylabel(r"$r_v$", fontsize="x-large")
+        plt.tight_layout()
         if save:
-            plt.savefig("Jk_vector_hv.pdf")
+            plt.savefig("Jk_vector_hv.png", dpi=300)
         plt.show()
 
         # Normalized version
@@ -593,6 +656,7 @@ class KolmoLaw(SpecificOutput):
         ax2.quiver(RH, RV, -Jk_v / RV_safe, -Jk_h / RH_safe)
         ax2.set_xlabel(r"$r_h$", fontsize="x-large")
         ax2.set_ylabel(r"$r_v$", fontsize="x-large")
+        plt.tight_layout()
         if save:
-            plt.savefig("Jk_vector_hv_normalized.pdf")
+            plt.savefig("Jk_vector_hv_normalized.png", dpi=300)
         plt.show()
