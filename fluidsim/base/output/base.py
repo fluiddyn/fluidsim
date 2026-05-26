@@ -674,5 +674,9 @@ class SpecificOutput:
     def _online_plot_saving(self, dict_results):
         pass
 
+    def _raise_parallel_error(self, name_function):
+        if mpi.nb_proc > 1:
+            raise RuntimeError(f"{name_function} should not be called with MPI.")
+
     def compute(self):
         raise NotImplementedError

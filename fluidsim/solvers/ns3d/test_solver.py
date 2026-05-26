@@ -290,6 +290,27 @@ class TestOutput(TestSimulBase):
             )
             sim2.plot_freq_diss("z")
 
+            sim2.output.kolmo_law.plot_radial_dependencies()
+            sim2.output.kolmo_law.plot_hv_dependencies()
+            sim2.output.kolmo_law.plot_Jhv_vector()
+
+            tmax = sim2.params.time_stepping.t_end
+            tmin = 0.5 * sim2.params.time_stepping.t_end
+
+            sim2.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax)
+            sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
+            sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
+
+            result, _, _ = sim2.output.kolmo_law.load_temp_average()
+
+            S2_k_r = result["S2_k_r"]
+            Jl_k_r = result["Jl_k_r"]
+            divJ_k_r = result["divJ_k_r"]
+            assert np.allclose(S2_k_r[0], 0.0, rtol=1e-12)
+            assert np.allclose(Jl_k_r[0], 0.0, rtol=1e-12)
+            assert np.allclose(Jl_k_r[-1], 0.0, rtol=1e-12)
+            assert np.allclose(divJ_k_r[-1], 0.0, rtol=1e-12)
+
         sim3 = fls.load_state_phys_file(path_run, modif_save_params=False)
         sim3.params.time_stepping.t_end += 0.2
         sim3.time_stepping.start()

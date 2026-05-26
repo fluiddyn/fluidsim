@@ -89,6 +89,13 @@ class Output(OutputBasePseudoSpectral):
                 "class_name": "CrossCorrelations",
             },
         )
+        classes._set_child(
+            "KolmoLaw",
+            attribs={
+                "module_name": "fluidsim.base.output.kolmo_law",
+                "class_name": "KolmoLaw",
+            },
+        )
 
     @staticmethod
     def _complete_params_with_default(params, info_solver):
