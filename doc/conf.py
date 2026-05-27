@@ -141,6 +141,7 @@ exclude_patterns = [
     "examples/clusters/licallo",
     "examples/clusters/occigen",
     "examples/forcing_anisotropic_3d/toro2022/*",
+    "examples/hit",
 ]
 
 # The reST default role (used for this markup: `text`) to use for all
