@@ -1,0 +1,6 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: b13640bc-b7d3-4422-bad2-c08a81904ca0
+site:
+  template: book-theme

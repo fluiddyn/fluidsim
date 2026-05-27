@@ -25,7 +25,7 @@ bench/launcher_*
 bench/SLURM*
 bench/LOCAL*
 
-doc/_build/*
+**/_build/*
 doc/**generated/*
 doc/**.zip
 doc/ipynb/*_files/*.png
