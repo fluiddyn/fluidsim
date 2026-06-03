@@ -248,7 +248,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                 coef_compensate,
             )
 
-        ks = np.linspace(10 * ks[1], 0.6 * ks[-1], 4)
+        ks = np.linspace(ks[1], ks[-1], 4)
 
         ks_no0 = ks.copy()
         ks_no0[ks == 0] = np.nan
