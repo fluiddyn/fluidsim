@@ -272,8 +272,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-        if ndim == 1:
-            ax.legend(loc="lower left")
+        ax.legend()
 
         return ax
 
