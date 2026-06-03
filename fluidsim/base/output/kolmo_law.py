@@ -412,7 +412,12 @@ class KolmoLaw(SpecificOutput):
         ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="$J_{K,L}(r)$")
         if "b" in keys_state_phys:
             ax1.plot(r_store[1:] / eta, Jl_p_comp[1:], "g", label="$J_{P,L}(r)$")
-            ax1.plot(r_store[1:] / eta, Jl_k_comp[1:] + Jl_p_comp[1:], "k", label="$J_L(r)$")
+            ax1.plot(
+                r_store[1:] / eta,
+                Jl_k_comp[1:] + Jl_p_comp[1:],
+                "k",
+                label="$J_L(r)$",
+            )
         ax1.plot(r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical")
         ax1.set_title(f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large")
         ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
@@ -428,7 +433,10 @@ class KolmoLaw(SpecificOutput):
         fig2, ax2 = self.output.figure_axe()
         ax2.set_ylabel(r"$-\nabla \cdot J_L(r)/4\epsilon$", fontsize="x-large")
         ax2.plot(
-            r_store[1:] / eta, -divJ_k[1:] / 4, "b", label="$\nabla \cdot J_{K,L}(r)$"
+            r_store[1:] / eta,
+            -divJ_k[1:] / 4,
+            "b",
+            label="$\nabla \cdot J_{K,L}(r)$",
         )
         if "b" in keys_state_phys:
             ax2.plot(
@@ -524,162 +532,66 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
+        def _plot(j_l, cmap, vmax, type_plot="K", divergence=False):
+            full_title = f"$-J_{{{type_plot},L}}(r_h,r_v)/r\\epsilon$, {title}"
+            save_name_file = f"J{type_plot}_L_hv.png"
+            if divergence:
+                full_title = f"$-\\nabla \\cdot J_{{{type_plot}L}}(r_h,r_v)/4\\epsilon$, {title}"
+                save_name_file = f"divJ{type_plot}_L_hv.png"
+            fig, ax = self.output.figure_axe()
+            im = ax.pcolormesh(
+                RH[1:] / eta,
+                RV[1:] / eta,
+                j_l,
+                cmap=cmap,
+                vmin=0.0,
+                vmax=vmax,
+            )
+            fig.colorbar(im, ax=ax)
+            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+            ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+            ax.set_title(full_title, fontsize="x-large")
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+            ax.set_xlim(xmin=1)
+            ax.set_ylim(ymin=1)
+            plt.tight_layout()
+            if save:
+                plt.savefig(save_name_file, dpi=300)
+            plt.show()
+
         # Plot J_KL(rho, z)
-        fig1, ax1 = self.output.figure_axe()
-        im = ax1.pcolormesh(
-            RH[1:] / eta,
-            RV[1:] / eta,
-            -Jk_l_comp[1:],
-            cmap="Blues",
-            vmin=0.0,
-            vmax=1.33,
-        )
-        fig1.colorbar(im, ax=ax1)
-        ax1.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-        ax1.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-        ax1.set_title(
-            f"$-J_{{KL}}(r_h,r_v)/r\\epsilon$, {title}", fontsize="x-large"
-        )
-        ax1.set_xscale("log")
-        ax1.set_yscale("log")
-        ax1.set_xlim(xmin=1)
-        ax1.set_ylim(ymin=1)
-        plt.tight_layout()
-        if save:
-            plt.savefig("Jk_L_hv.png", dpi=300)
-        plt.show()
+        _plot(-Jk_l_comp[1:], "Blues", 1.33, type_plot="K", divergence=False)
 
         # Plot div(J_KL)(rho, z)
-        fig2, ax2 = self.output.figure_axe()
-        im = ax2.pcolormesh(
-            RH[1:] / eta,
-            RV[1:] / eta,
-            -divJk_hv[1:] / 4,
-            cmap="Blues",
-            vmin=0.0,
-            vmax=1.0,
-        )
-        fig2.colorbar(im, ax=ax2)
-        ax2.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-        ax2.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-        ax2.set_title(
-            f"$-\\nabla \\cdot J_{{KL}}(r_h,r_v)/4\\epsilon$, {title}",
-            fontsize="x-large",
-        )
-        ax2.set_xscale("log")
-        ax2.set_yscale("log")
-        ax2.set_xlim(xmin=1)
-        ax2.set_ylim(ymin=1)
-        plt.tight_layout()
-        if save:
-            plt.savefig("divJk_L_hv.png", dpi=300)
-        plt.show()
+        _plot(-divJk_hv[1:] / 4, "Blues", 1.0, type_plot="K", divergence=True)
 
         if "b" in keys_state_phys:
             # Plot J_PL(rho, z)
-            fig3, ax3 = self.output.figure_axe()
-            im = ax3.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
-                -Jp_l_comp[1:],
-                cmap="Greens",
-                vmin=0.0,
-                vmax=1.33,
-            )
-            fig3.colorbar(im, ax=ax3)
-            ax3.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax3.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax3.set_title(
-                f"$-J_{{PL}}(r_h,r_v)/r\\epsilon$, {title}",
-                fontsize="x-large",
-            )
-            ax3.set_xscale("log")
-            ax3.set_yscale("log")
-            ax3.set_xlim(xmin=1)
-            ax3.set_ylim(ymin=1)
-            plt.tight_layout()
-            if save:
-                plt.savefig("Jp_L_hv.png", dpi=300)
-            plt.show()
+            _plot(-Jp_l_comp[1:], "Greens", 1.33, type_plot="P", divergence=False)
 
             # Plot div(J_PL)(rho, z)
-            fig4, ax4 = self.output.figure_axe()
-            im = ax4.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
-                -divJp_hv[1:] / 4,
-                cmap="Greens",
-                vmin=0.0,
-                vmax=1.0,
+            _plot(
+                -divJp_hv[1:] / 4, "Greens", 1.0, type_plot="P", divergence=True
             )
-            fig4.colorbar(im, ax=ax4)
-            ax4.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax4.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax4.set_title(
-                f"$-\\nabla \\cdot J_{{PL}}(r_h,r_v)/4\\epsilon$, {title}",
-                fontsize="x-large",
-            )
-            ax4.set_xscale("log")
-            ax4.set_yscale("log")
-            ax4.set_xlim(xmin=1)
-            ax4.set_ylim(ymin=1)
-            plt.tight_layout()
-            if save:
-                plt.savefig("divJp_L_hv.png", dpi=300)
-            plt.show()
 
             # Plot J_L(rho, z)
-            fig5, ax5 = plt.subplots(figsize=(8, 6))
-            im = ax5.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
+            _plot(
                 -(Jp_l_comp[1:] + Jk_l_comp[1:]),
-                cmap="Greys",
-                vmin=0.0,
-                vmax=1.33,
+                "Greys",
+                1.33,
+                type_plot="",
+                divergence=False,
             )
-            fig5.colorbar(im, ax=ax5)
-            ax5.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax5.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax5.set_title(
-                f"$-J_L(r_h,r_v)/r\\epsilon$, {title}",
-                fontsize="x-large",
-            )
-            ax5.set_xscale("log")
-            ax5.set_yscale("log")
-            ax5.set_xlim(xmin=1)
-            ax5.set_ylim(ymin=1)
-            plt.tight_layout()
-            if save:
-                plt.savefig("J_L_hv.png", dpi=300)
-            plt.show()
 
             # Plot div(J_PL)(rho, z)
-            fig6, ax6 = self.output.figure_axe()
-            im = ax6.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
+            _plot(
                 -(divJp_hv[1:] + divJk_hv[1:]) / 4,
-                cmap="Greys",
-                vmin=0.0,
-                vmax=1.0,
+                "Greys",
+                1.0,
+                type_plot="",
+                divergence=True,
             )
-            fig6.colorbar(im, ax=ax6)
-            ax6.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax6.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax6.set_title(
-                f"$-\\nabla \\cdot J_L(r_h,r_v)/4\\epsilon$, {title}",
-                fontsize="x-large",
-            )
-            ax6.set_xscale("log")
-            ax6.set_yscale("log")
-            ax6.set_xlim(xmin=1)
-            ax6.set_ylim(ymin=1)
-            plt.tight_layout()
-            if save:
-                plt.savefig("divJ_L_hv.png", dpi=300)
-            plt.show()
-
 
     def plot_Jhv_vector(self, tmin=None, tmax=None, save=False):
         """Plot vector field of J in (rho, z) plane."""
@@ -709,48 +621,35 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
-        fig1, ax1 = self.output.figure_axe()
-        ax1.set_title(f"$-J_{{K}}(r_h,r_v)$, {title}", fontsize="x-large")
-        ax1.quiver(RH, RV, -Jk_v, -Jk_h, width=0.005)
-        ax1.set_xlabel(r"$r_h$", fontsize="x-large")
-        ax1.set_ylabel(r"$r_v$", fontsize="x-large")
-        plt.tight_layout()
-        if save:
-            plt.savefig("Jk_vector_hv.png", dpi=300)
-        plt.show()
+        def _plot(j_v, j_h, type_plot="_K", normalized=False):
+            full_title = f"$-J{type_plot}(r_h,r_v)$, {title}"
+            save_name_file = f"J{type_plot}_vector_hv.png"
+            if normalized:
+                full_title = f"$Normalized -J{type_plot}(r_h,r_v)$, {title}"
+                save_name_file = f"J{type_plot}_vector_hv_normalized.png"
+                RH_safe = np.where(RH != 0, RH, 1e-10)
+                RV_safe = np.where(RV != 0, RV, 1e-10)
+                j_v /= RV_safe
+                j_h /= RH_safe
+            fig, ax = self.output.figure_axe()
+            ax.set_title(full_title, fontsize="x-large")
+            ax.quiver(RH, RV, j_v, j_h, width=0.005)
+            ax.set_xlabel(r"$r_h$", fontsize="x-large")
+            ax.set_ylabel(r"$r_v$", fontsize="x-large")
+            plt.tight_layout()
+            if save:
+                plt.savefig(save_name_file, dpi=300)
+            plt.show()
+
+        _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
 
         if "b" in keys_state_phys:
-            fig3, ax3 = self.output.figure_axe()
-            ax3.set_title(f"$-J_{{P}}(r_h,r_v)$, {title}", fontsize="x-large")
-            ax3.quiver(RH, RV, -Jp_v, -Jp_h, width=0.005)
-            ax3.set_xlabel(r"$r_h$", fontsize="x-large")
-            ax3.set_ylabel(r"$r_v$", fontsize="x-large")
-            plt.tight_layout()
-            if save:
-                plt.savefig("Jp_vector_hv.png", dpi=300)
-            plt.show()
-
-            fig4, ax4 = self.output.figure_axe()
-            ax4.set_title(f"$-J_{{P}}(r_h,r_v)$, {title}", fontsize="x-large")
-            ax4.quiver(RH, RV, -Jp_v, -Jp_h, width=0.005)
-            ax4.set_xlabel(r"$r_h$", fontsize="x-large")
-            ax4.set_ylabel(r"$r_v$", fontsize="x-large")
-            plt.tight_layout()
-            if save:
-                plt.savefig("Jp_vector_hv.png", dpi=300)
-            plt.show()
+            _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=False)
+            _plot(-(Jp_v + Jk_v), -(Jp_h + Jk_h), type_plot="", normalized=False)
 
         # Normalized version
-        fig2, ax2 = self.output.figure_axe()
-        ax2.set_title(
-            f"Normalized $-J_{{KL}}(r_h,r_v)$, {title}", fontsize="x-large"
-        )
-        RH_safe = np.where(RH != 0, RH, 1e-10)
-        RV_safe = np.where(RV != 0, RV, 1e-10)
-        ax2.quiver(RH, RV, -Jk_v / RV_safe, -Jk_h / RH_safe)
-        ax2.set_xlabel(r"$r_h$", fontsize="x-large")
-        ax2.set_ylabel(r"$r_v$", fontsize="x-large")
-        plt.tight_layout()
-        if save:
-            plt.savefig("Jk_vector_hv_normalized.png", dpi=300)
-        plt.show()
+        _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
+
+        if "b" in keys_state_phys:
+            _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=True)
+            _plot(-(Jp_v + Jk_v), -(Jp_h + Jk_h), type_plot="", normalized=True)
