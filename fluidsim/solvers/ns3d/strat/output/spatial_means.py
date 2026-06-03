@@ -408,3 +408,35 @@ class SpatialMeansNS3DStrat(SpatialMeansNS3D):
         results["Gamma"] = epsA / epsK
 
         return results
+
+    def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
+        """Plot dimensionless numbers"""
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = self.compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+        times = times[itmin:stop]
+
+        fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True)
+
+        keys_ax1 = ["k_max*eta", "epsK2/epsK", "Gamma"]
+
+        for key, quantity in numbers_vs_time.items():
+            if key in ["t", "dimensional"]:
+                continue
+            quantity = quantity[itmin:stop]
+
+            if key in keys_ax1:
+                ax = ax1
+            else:
+                ax = ax0
+
+            ax.plot(times, quantity, label=key)
+            print(f"<{key}> = {np.mean(quantity):.3g}")
+
+        for ax in (ax0, ax1):
+            ax.set_yscale("log")
+            ax.legend()
+
+        ax1.set_xlabel("$t$")
+        fig.suptitle(f"dimensionless numbers\n{self.output.summary_simul}")
