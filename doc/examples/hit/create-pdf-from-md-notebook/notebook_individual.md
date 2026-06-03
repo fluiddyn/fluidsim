@@ -346,7 +346,7 @@ ax1.set_ylabel(r"$-J_{KL}(r)/r\epsilon$", fontsize="x-large")
 ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="Numerical result")
 if "b" in keys_state_phys:
     ax1.plot(r_store[1:] / eta, Jl_p_comp[1:], "g", label="$J_P$")
-    ax1.plot(r_store[1:] / eta, Jl_k_comp[1:] + Jl_p_comp[1:], "g", label="$J_P$")
+    ax1.plot(r_store[1:] / eta, Jl_k_comp[1:] + Jl_p_comp[1:], "k", label="$J$")
 ax1.plot(r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical")
 ax1.set_title(f"$-J_{{KL}}(r)/r\\epsilon$, {title}", fontsize="x-large")
 ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
@@ -447,6 +447,27 @@ if "b" in keys_state_phys:
     plt.tight_layout()
     # if save:
     #    plt.savefig("Jp_l_hv.png", dpi=300)
+    fig5, ax5 = plt.subplots(figsize=(8, 6))
+    im = ax5.pcolormesh(
+        RH[1:] / eta,
+        RV[1:] / eta,
+        -(Jp_l_comp[1:] + Jk_l_comp[1:]),
+        cmap="Greys",
+        vmin=0.0,
+        vmax=1.33,
+    )
+    fig5.colorbar(im, ax=ax5)
+    ax5.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+    ax5.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+    ax5.set_title(
+        f"$-J_L(r_h,r_v)/r\\epsilon$, {title}",
+        fontsize="x-large",
+    )
+    ax5.set_xscale("log")
+    ax5.set_yscale("log")
+    ax5.set_xlim(xmin=1)
+    ax5.set_ylim(ymin=1)
+    plt.tight_layout()
     
 ```
 
