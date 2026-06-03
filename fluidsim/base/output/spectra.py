@@ -21,6 +21,7 @@ import os
 
 import numpy as np
 import h5py
+from fractions import Fraction
 
 from fluiddyn.util import mpi
 
@@ -223,7 +224,11 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"${key_k_label}$")
-        ax.set_ylabel("spectra")
+        if coef_compensate == 0:
+            ax.set_ylabel("$E(k)$")
+        else:
+            frac = Fraction(coef_compensate).limit_denominator()
+            ax.set_ylabel(f"$E(k)k^{{{frac}}}$")
         ax.set_title(
             f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
             + self.output.summary_simul
