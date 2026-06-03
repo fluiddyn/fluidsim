@@ -344,7 +344,18 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         self, path_file, ndim, direction, imin_plot, imax_plot, kind=None
     ):
         with h5py.File(path_file, "r") as h5file:
-            dset_spectra = h5file[self._get_key_spectrum(ndim, direction, kind)]
+            if direction == "h":
+                dset_spectra = 0
+                directions = "xy"
+                for direction in directions:
+                    dset_spectra += h5file[
+                        self._get_key_spectrum(ndim, direction, kind)
+                    ][:]
+                dset_spectra /= 2
+            else:
+                dset_spectra = h5file[
+                    self._get_key_spectrum(ndim, direction, kind)
+                ]
             spectra = dset_spectra[imin_plot : imax_plot + 1]
             spectrum = spectra.mean(0)
             spectrum[spectrum < 10e-16] = np.nan
