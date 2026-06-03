@@ -139,7 +139,10 @@ sim.output.phys_fields.plot(equation="y=0", QUIVER=False, numfig=fig.number, typ
 ### Energy
 
 ```{code-cell} ipython3
-fig_energy, fig_dissipation = sim.output.spatial_means.plot()
+sim.output.spatial_means.plot()
+fig_nums = plt.get_fignums()
+fig_energy = plt.figure(fig_nums[-2])
+fig_dissipation = plt.figure(fig_nums[-1])
 
 # fig_energy.savefig(graph_path / f"energy_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
 # fig_dissipation.savefig(graph_path / f"diss_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
@@ -160,7 +163,7 @@ if N is not None:
     directions="hz"
 else:
     directions=None
-fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, , directions=directions, coef_compensate=5/3, coef_plot_k53=10, coef_plot_k3=10**3)
+fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k53=10, coef_plot_k3=10**3)
 
 # filename = graph_path / f"spectra_1d_{N}_{nx}.pdf"
 # fig_spectra.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
