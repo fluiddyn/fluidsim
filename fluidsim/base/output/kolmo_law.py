@@ -436,7 +436,7 @@ class KolmoLaw(SpecificOutput):
             r_store[1:] / eta,
             -divJ_k[1:] / 4,
             "b",
-            label="$\nabla \cdot J_{K,L}(r)$",
+            label="$\\nabla \cdot J_{K,L}(r)$",
         )
         if "b" in keys_state_phys:
             ax2.plot(
