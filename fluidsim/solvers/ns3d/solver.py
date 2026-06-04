@@ -146,7 +146,8 @@ projection: str (default None)
 
     @classmethod
     def _modify_sim_repr_maker(cls, sim_repr_maker):
-        sim_repr_maker.add_parameters({"f": sim_repr_maker.sim.params.f})
+        if sim_repr_maker.sim.params.f is not None:
+            sim_repr_maker.add_parameters({"f": sim_repr_maker.sim.params.f})
 
     def _init_projection(self):
         try:
