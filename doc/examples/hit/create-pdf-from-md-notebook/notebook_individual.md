@@ -98,6 +98,9 @@ if N is None:
   elif kmaxeta < 0.5:
       tmin = 10.0
       tmax = 20.0
+  else:
+      tmin = 7.0
+      tmax = 12.0
 else:
   tmin = 6.5
   tmax = 8.0
