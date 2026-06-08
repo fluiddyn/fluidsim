@@ -98,12 +98,18 @@ if N is None:
   elif kmaxeta < 0.5:
       tmin = 10.0
       tmax = 20.0
+  elif kmaxeta > 1.1:
+      tmin = 6.0
+      tmax = 8.0 
   else:
       tmin = 7.0
       tmax = 12.0
 else:
   tmin = 6.5
   tmax = 8.0
+
+print(f"{tmin=}")
+print(f"{tmax=}")
 ```
 
 ### Quantities calculated from output values
@@ -179,17 +185,17 @@ fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directi
 ### Radial dependency
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax, save=False)
+sim.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax, save=True)
 ```
 ### Cylindrical depency
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, save=False)
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, save=True)
 ```
 
 ### Vectorial plots
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, save=False)
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, save=True)
 ```
 
