@@ -544,7 +544,7 @@ class KolmoLaw(SpecificOutput):
                 RV[1:] / eta,
                 j_l,
                 cmap=cmap,
-                vmin=0.0,
+                vmin=0.5,
                 vmax=vmax,
             )
             fig.colorbar(im, ax=ax)
@@ -561,25 +561,25 @@ class KolmoLaw(SpecificOutput):
             plt.show()
 
         # Plot J_KL(rho, z)
-        _plot(-Jk_l_comp[1:], "Blues", 1.33, type_plot="K", divergence=False)
+        _plot(-Jk_l_comp[1:], "Blues", 1.5, type_plot="K", divergence=False)
 
         # Plot div(J_KL)(rho, z)
-        _plot(-divJk_hv[1:] / 4, "Blues", 1.0, type_plot="K", divergence=True)
+        _plot(-divJk_hv[1:] / 4, "Blues", 1.5, type_plot="K", divergence=True)
 
         if "b" in keys_state_phys:
             # Plot J_PL(rho, z)
-            _plot(-Jp_l_comp[1:], "Greens", 1.33, type_plot="P", divergence=False)
+            _plot(-Jp_l_comp[1:], "Greens", 1.5, type_plot="P", divergence=False)
 
             # Plot div(J_PL)(rho, z)
             _plot(
-                -divJp_hv[1:] / 4, "Greens", 1.0, type_plot="P", divergence=True
+                -divJp_hv[1:] / 4, "Greens", 1.5, type_plot="P", divergence=True
             )
 
             # Plot J_L(rho, z)
             _plot(
                 -(Jp_l_comp[1:] + Jk_l_comp[1:]),
                 "Greys",
-                1.33,
+                1.5,
                 type_plot="",
                 divergence=False,
             )
@@ -588,12 +588,20 @@ class KolmoLaw(SpecificOutput):
             _plot(
                 -(divJp_hv[1:] + divJk_hv[1:]) / 4,
                 "Greys",
-                1.0,
+                1.5,
                 type_plot="",
                 divergence=True,
             )
 
-    def plot_Jhv_vector(self, tmin=None, tmax=None, save=False):
+    def plot_Jhv_vector(
+        self,
+        tmin=None,
+        tmax=None,
+        save=False,
+        ratio_vectors=2,
+        shifted=True,
+        logscale=True,
+    ):
         """Plot vector field of J in (rho, z) plane."""
         self._raise_parallel_error("plot_Jhv_vector")
 
@@ -607,35 +615,96 @@ class KolmoLaw(SpecificOutput):
 
         to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
 
-        Jk_v = to_plot["Jv_k_hv"]
-        Jk_h = to_plot["Jh_k_hv"]
+        Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
+        Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
         if "b" in keys_state_phys:
-            Jp_v = to_plot["Jv_p_hv"]
-            Jp_h = to_plot["Jh_p_hv"]
+            Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
+            Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
 
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
             rv_store = np.array(file["rv_store"])
 
         RH, RV = np.meshgrid(rh_store, rv_store)
+        RH = RH[::ratio_vectors, ::ratio_vectors]
+        RV = RV[::ratio_vectors, ::ratio_vectors]
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        try:
+            eta = dimless_num["eta"]
+        except KeyError:
+            warn("KeyError: 'eta' not available; eta is set to unity")
+            eta = 1
+
+        RH /= eta
+
+        rv_min = np.min(rv_store)
+        rv_zero_line = None
+
+        if shifted:
+            rv_zero_line = np.abs(rv_min) / eta
+            RV = RV - rv_min
+            RV_label = r"$(r_v - r_{v,min})/\eta$"
+        else:
+            RV_label = r"$r_v/\eta$"
+
+        RV /= eta
 
         title = f"$n_x={params.oper.nx}$"
 
         def _plot(j_v, j_h, type_plot="_K", normalized=False):
             full_title = f"$-J{type_plot}(r_h,r_v)$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
+
+            j_v_plot = j_v.copy()
+            j_h_plot = j_h.copy()
+
+            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
+
             if normalized:
                 full_title = f"$Normalized -J{type_plot}(r_h,r_v)$, {title}"
                 save_name_file = f"J{type_plot}_vector_hv_normalized.png"
                 RH_safe = np.where(RH != 0, RH, 1e-10)
-                RV_safe = np.where(RV != 0, RV, 1e-10)
-                j_v /= RV_safe
-                j_h /= RH_safe
+                RV_safe = np.abs(np.where(RV != 0, RV, 1e-10))
+                j_v_plot /= RV_safe
+                j_h_plot /= RH_safe
+
             fig, ax = self.output.figure_axe()
             ax.set_title(full_title, fontsize="x-large")
-            ax.quiver(RH, RV, j_v, j_h, width=0.005)
-            ax.set_xlabel(r"$r_h$", fontsize="x-large")
-            ax.set_ylabel(r"$r_v$", fontsize="x-large")
+            quiv = ax.quiver(
+                RH,
+                RV,
+                j_v_plot,
+                j_h_plot,
+                C,
+                cmap="viridis",
+                width=0.004,
+                headwidth=3,
+            )
+            cbar = fig.colorbar(quiv, ax=ax)
+            cbar.set_label("Amplitude", fontsize="x-large")
+
+            if shifted and rv_zero_line is not None:
+                ax.axhline(
+                    y=rv_zero_line,
+                    color="r",
+                    linestyle="--",
+                    linewidth=1.5,
+                    label="$r_v = 0$",
+                )
+
+            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+            ax.set_ylabel(RV_label, fontsize="x-large")
+
+            if logscale:
+                ax.set_xscale("log")
+                ax.set_yscale("log")
+                ax.set_xlim(xmin=1)
+                ax.set_ylim(ymin=1)
+
+            ax.legend(fontsize="x-large", loc="lower left")
             plt.tight_layout()
             if save:
                 plt.savefig(save_name_file, dpi=300)
@@ -647,7 +716,6 @@ class KolmoLaw(SpecificOutput):
             _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=False)
             _plot(-(Jp_v + Jk_v), -(Jp_h + Jk_h), type_plot="", normalized=False)
 
-        # Normalized version
         _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
 
         if "b" in keys_state_phys:
