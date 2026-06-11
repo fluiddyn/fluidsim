@@ -357,6 +357,7 @@ class KolmoLaw(SpecificOutput):
         tmax=None,
         coef_comp3=1,
         coef_comp2=2 / 3,
+        which_plot="div_J",
         save=False,
     ):
         """Plot radial dependencies of Kolmogorov law quantities."""
@@ -406,92 +407,129 @@ class KolmoLaw(SpecificOutput):
 
         title = f"$n_x={params.oper.nx}$"
 
-        # Plot J_L
-        fig1, ax1 = self.output.figure_axe()
-        ax1.set_ylabel(r"$-J_L(r)/r\epsilon$", fontsize="x-large")
-        ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="$J_{K,L}(r)$")
-        if "b" in keys_state_phys:
-            ax1.plot(r_store[1:] / eta, Jl_p_comp[1:], "g", label="$J_{P,L}(r)$")
-            ax1.plot(
-                r_store[1:] / eta,
-                Jl_k_comp[1:] + Jl_p_comp[1:],
-                "k",
-                label="$J_L(r)$",
-            )
-        ax1.plot(r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical")
-        ax1.set_title(f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large")
-        ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
-        ax1.set_xscale("log")
-        ax1.set_yscale("log")
-        ax1.legend()
-        plt.tight_layout()
-        if save:
-            plt.savefig("J_L_r_compensate.png", dpi=300)
+        match which_plot:
+            case "J":
+                fig1, ax1 = self.output.figure_axe()
+                ax1.set_ylabel(r"$-J_L(r)/r\epsilon$", fontsize="x-large")
+                ax1.plot(
+                    r_store[1:] / eta, Jl_k_comp[1:], "b", label="$J_{K,L}(r)$"
+                )
+                if "b" in keys_state_phys:
+                    ax1.plot(
+                        r_store[1:] / eta,
+                        Jl_p_comp[1:],
+                        "g",
+                        label="$J_{P,L}(r)$",
+                    )
+                    ax1.plot(
+                        r_store[1:] / eta,
+                        Jl_k_comp[1:] + Jl_p_comp[1:],
+                        "k",
+                        label="$J_L(r)$",
+                    )
+                ax1.plot(
+                    r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical"
+                )
+                ax1.set_title(
+                    f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
+                )
+                ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax1.set_xscale("log")
+                ax1.set_yscale("log")
+                ax1.legend()
+                plt.tight_layout()
+                if save:
+                    plt.savefig("J_L_r_compensate.png", dpi=300)
+
+            case "div_J":
+                fig2, ax2 = self.output.figure_axe()
+                ax2.set_ylabel(
+                    r"$-\nabla \cdot J_L(r)/4\epsilon$", fontsize="x-large"
+                )
+                ax2.plot(
+                    r_store[1:] / eta,
+                    -divJ_k[1:] / 4,
+                    "b",
+                    label="$\\nabla \cdot J_{K,L}(r)$",
+                )
+                if "b" in keys_state_phys:
+                    ax2.plot(
+                        r_store[1:] / eta,
+                        -divJ_p[1:] / 4,
+                        "g",
+                        label="$\\nabla \\cdot J_{P,L}(r)$",
+                    )
+                    ax2.plot(
+                        r_store[1:] / eta,
+                        -(divJ_p[1:] + divJ_k[1:]) / 4,
+                        "k",
+                        label="$\\nabla \\cdot J_L(r)$",
+                    )
+                ax2.plot(
+                    r_store[1:] / eta,
+                    np.ones_like(r_store[1:]),
+                    "r--",
+                    label="1 theoretical",
+                )
+                ax2.set_title(
+                    f"$-\\nabla \\cdot J_L(r)/4\\epsilon$, {title}",
+                    fontsize="x-large",
+                )
+                ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax2.set_xscale("log")
+                ax2.set_yscale("log")
+                ax2.legend()
+                plt.tight_layout()
+                if save:
+                    plt.savefig("divJ_L_r_comp.png", dpi=300)
+
+            case "S2":
+                fig3, ax3 = self.output.figure_axe()
+                ax3.set_ylabel(
+                    r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large"
+                )
+                ax3.plot(
+                    r_store[1:] / eta, S2_k_comp[1:], "b", label="$S_2^K(r)$"
+                )
+                if "b" in keys_state_phys:
+                    ax3.plot(
+                        r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P(r)$"
+                    )
+                ax3.plot(
+                    r_store[1:] / eta,
+                    S2_k_th[1:],
+                    "r--",
+                    label="22/3 theoretical",
+                )
+                ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
+                ax3.set_title(
+                    f"$S_2(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
+                    fontsize="x-large",
+                )
+                ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax3.set_xscale("log")
+                ax3.set_yscale("log")
+                ax3.legend()
+                plt.tight_layout()
+                if save:
+                    plt.savefig("S2_r_comp.png", dpi=300)
+
+            case _:
+                raise ValueError(
+                    f"Field {which_plot} not available. "
+                    f"Available fields: {', '.join(keys)}"
+                )
         plt.show()
 
-        # Plot div(J_L)
-        fig2, ax2 = self.output.figure_axe()
-        ax2.set_ylabel(r"$-\nabla \cdot J_L(r)/4\epsilon$", fontsize="x-large")
-        ax2.plot(
-            r_store[1:] / eta,
-            -divJ_k[1:] / 4,
-            "b",
-            label="$\\nabla \cdot J_{K,L}(r)$",
-        )
-        if "b" in keys_state_phys:
-            ax2.plot(
-                r_store[1:] / eta,
-                -divJ_p[1:] / 4,
-                "g",
-                label="$\\nabla \\cdot J_{P,L}(r)$",
-            )
-            ax2.plot(
-                r_store[1:] / eta,
-                -(divJ_p[1:] + divJ_k[1:]) / 4,
-                "k",
-                label="$\\nabla \\cdot J_L(r)$",
-            )
-        ax2.plot(
-            r_store[1:] / eta,
-            np.ones_like(r_store[1:]),
-            "r--",
-            label="1 theoretical",
-        )
-        ax2.set_title(
-            f"$-\\nabla \\cdot J_L(r)/4\\epsilon$, {title}",
-            fontsize="x-large",
-        )
-        ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
-        ax2.set_xscale("log")
-        ax2.set_yscale("log")
-        ax2.legend()
-        plt.tight_layout()
-        if save:
-            plt.savefig("divJ_L_r_comp.png", dpi=300)
-        plt.show()
-
-        # Plot S2
-        fig3, ax3 = self.output.figure_axe()
-        ax3.set_ylabel(r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large")
-        ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "b", label="$S_2^K(r)$")
-        if "b" in keys_state_phys:
-            ax3.plot(r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P(r)$")
-        ax3.plot(r_store[1:] / eta, S2_k_th[1:], "r--", label="22/3 theoretical")
-        ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
-        ax3.set_title(
-            f"$S_2(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
-            fontsize="x-large",
-        )
-        ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
-        ax3.set_xscale("log")
-        ax3.set_yscale("log")
-        ax3.legend()
-        plt.tight_layout()
-        if save:
-            plt.savefig("S2_r_comp.png", dpi=300)
-        plt.show()
-
-    def plot_hv_dependencies(self, tmin=None, tmax=None, save=False):
+    def plot_hv_dependencies(
+        self,
+        tmin=None,
+        tmax=None,
+        vmin=None,
+        vmax=None,
+        which_plot="div_JK",
+        save=False,
+    ):
         """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
         self._raise_parallel_error("plot_hv_dependencies")
 
@@ -523,17 +561,22 @@ class KolmoLaw(SpecificOutput):
         # Compute radius for normalization
         radius = np.sqrt(RH**2 + RV**2)
 
-        Jk_l_comp = -to_plot["Jl_k_hv"] / (radius + 1e-14)
+        Jk_l_comp = to_plot["Jl_k_hv"] / (radius + 1e-14)
         divJk_hv = to_plot["divJ_k_hv"]
 
         if "b" in keys_state_phys:
-            Jp_l_comp = -to_plot["Jl_p_hv"] / (radius + 1e-14)
+            Jp_l_comp = to_plot["Jl_p_hv"] / (radius + 1e-14)
             divJp_hv = to_plot["divJ_p_hv"]
 
         title = f"$n_x={params.oper.nx}$"
 
-        def _plot(j_l, cmap, vmax, type_plot="K", divergence=False):
-            full_title = f"$-J_{{{type_plot},L}}(r_h,r_v)/r\\epsilon$, {title}"
+        def _plot(j_l, cmap, vmin, vmax, type_plot="K", divergence=False):
+            coma = ""
+            if type_plot != "":
+                coma = ","
+            full_title = (
+                f"$-J_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
+            )
             save_name_file = f"J{type_plot}_L_hv.png"
             if divergence:
                 full_title = f"$-\\nabla \\cdot J_{{{type_plot}L}}(r_h,r_v)/4\\epsilon$, {title}"
@@ -544,7 +587,7 @@ class KolmoLaw(SpecificOutput):
                 RV[1:] / eta,
                 j_l,
                 cmap=cmap,
-                vmin=0.5,
+                vmin=vmin,
                 vmax=vmax,
             )
             fig.colorbar(im, ax=ax)
@@ -560,47 +603,91 @@ class KolmoLaw(SpecificOutput):
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
 
-        # Plot J_KL(rho, z)
-        _plot(-Jk_l_comp[1:], "Blues", 1.5, type_plot="K", divergence=False)
+        # Reference vmin = -0.5, vmax = 1.2
 
-        # Plot div(J_KL)(rho, z)
-        _plot(-divJk_hv[1:] / 4, "Blues", 1.5, type_plot="K", divergence=True)
+        match which_plot:
+            case "JK":
+                _plot(
+                    -Jk_l_comp[1:],
+                    "viridis",
+                    vmin,
+                    vmax,
+                    type_plot="K",
+                    divergence=False,
+                )
 
-        if "b" in keys_state_phys:
-            # Plot J_PL(rho, z)
-            _plot(-Jp_l_comp[1:], "Greens", 1.5, type_plot="P", divergence=False)
+            case "div_JK":
+                _plot(
+                    -divJk_hv[1:] / 4,
+                    "viridis",
+                    vmin,
+                    vmax,
+                    type_plot="K",
+                    divergence=True,
+                )
 
-            # Plot div(J_PL)(rho, z)
-            _plot(
-                -divJp_hv[1:] / 4, "Greens", 1.5, type_plot="P", divergence=True
-            )
+            case "JP" | "div_JP" | "J" | "div_J" as what_plot:
+                if "b" not in keys_state_phys:
+                    raise ValueError(
+                        f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                        f"Available fields: {', '.join(keys)}"
+                    )
 
-            # Plot J_L(rho, z)
-            _plot(
-                -(Jp_l_comp[1:] + Jk_l_comp[1:]),
-                "Greys",
-                1.5,
-                type_plot="",
-                divergence=False,
-            )
+                match what_plot:
+                    case "JP":
+                        _plot(
+                            -Jp_l_comp[1:],
+                            "viridis",
+                            vmin,
+                            vmax,
+                            type_plot="P",
+                            divergence=False,
+                        )
 
-            # Plot div(J_PL)(rho, z)
-            _plot(
-                -(divJp_hv[1:] + divJk_hv[1:]) / 4,
-                "Greys",
-                1.5,
-                type_plot="",
-                divergence=True,
-            )
+                    case "div_JP":
+                        _plot(
+                            -divJp_hv[1:] / 4,
+                            "viridis",
+                            vmin,
+                            vmax,
+                            type_plot="P",
+                            divergence=True,
+                        )
+
+                    case "J":
+                        _plot(
+                            -(Jp_l_comp[1:] + Jk_l_comp[1:]),
+                            "viridis",
+                            vmin,
+                            vmax,
+                            type_plot="",
+                            divergence=False,
+                        )
+
+                    case "div_J":
+                        _plot(
+                            -(divJp_hv[1:] + divJk_hv[1:]) / 4,
+                            "viridis",
+                            vmin,
+                            vmax,
+                            type_plot="",
+                            divergence=True,
+                        )
+            case _:
+                raise ValueError(
+                    f"Field {which_plot} not available. "
+                    f"Available fields: {', '.join(keys)}"
+                )
 
     def plot_Jhv_vector(
         self,
         tmin=None,
         tmax=None,
-        save=False,
+        which_plot="JK",
         ratio_vectors=2,
         shifted=True,
         logscale=True,
+        save=False,
     ):
         """Plot vector field of J in (rho, z) plane."""
         self._raise_parallel_error("plot_Jhv_vector")
@@ -710,14 +797,45 @@ class KolmoLaw(SpecificOutput):
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
 
-        _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
+        match which_plot:
+            case "JK":
+                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
 
-        if "b" in keys_state_phys:
-            _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=False)
-            _plot(-(Jp_v + Jk_v), -(Jp_h + Jk_h), type_plot="", normalized=False)
+            case "JK_norm":
+                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
 
-        _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
+            case "JP" | "JP_norm" | "J" | "J_norm" as what_plot:
+                if "b" not in keys_state_phys:
+                    raise ValueError(
+                        f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                        f"Available fields: {', '.join(keys)}"
+                    )
 
-        if "b" in keys_state_phys:
-            _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=True)
-            _plot(-(Jp_v + Jk_v), -(Jp_h + Jk_h), type_plot="", normalized=True)
+                match what_plot:
+                    case "JP":
+                        _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=False)
+
+                    case "JP_norm":
+                        _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=True)
+
+                    case "J":
+                        _plot(
+                            -(Jp_v + Jk_v),
+                            -(Jp_h + Jk_h),
+                            type_plot="",
+                            normalized=False,
+                        )
+
+                    case "J_norm":
+                        _plot(
+                            -(Jp_v + Jk_v),
+                            -(Jp_h + Jk_h),
+                            type_plot="",
+                            normalized=True,
+                        )
+
+            case _:
+                raise ValueError(
+                    f"Field {which_plot} not available. "
+                    f"Available fields: {', '.join(keys)}"
+                )
