@@ -799,10 +799,10 @@ class KolmoLaw(SpecificOutput):
 
         match which_plot:
             case "JK":
-                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
+                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
 
             case "JK_norm":
-                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
+                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
 
             case "JP" | "JP_norm" | "J" | "J_norm" as what_plot:
                 if "b" not in keys_state_phys:
