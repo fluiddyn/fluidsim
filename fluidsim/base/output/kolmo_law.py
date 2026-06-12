@@ -358,6 +358,7 @@ class KolmoLaw(SpecificOutput):
         coef_comp3=1,
         coef_comp2=2 / 3,
         which_plot="div_J",
+        epsilon=None,
         save=False,
     ):
         """Plot radial dependencies of Kolmogorov law quantities."""
@@ -385,24 +386,32 @@ class KolmoLaw(SpecificOutput):
         except KeyError:
             warn("KeyError: 'eta' not available; eta is set to unity")
             eta = 1
+        if epsilon is None:
+            epsilon = dimless_num["epsK"]
+            if "b" in keys_state_phys:
+                epsilon += dimless_num["epsA"]
         EK = dimless_num["EKh"] + dimless_num["EKz"]
+        if "b" in keys_state_phys:
+            EA = dimless_num["EA"]
 
         with h5py.File(self.path_file, "r") as file:
             r_store = np.array(file["r_store"])
 
         # Compensated plots
-        Jl_k_comp = -to_plot["Jl_k_r"] / (r_store**coef_comp3)
-        divJ_k = to_plot["divJ_k_r"]
-        S2_k_comp = to_plot["S2_k_r"] / (r_store**coef_comp2)
+        Jl_k_comp = -to_plot["Jl_k_r"] / ((r_store * epsilon)**coef_comp3)
+        divJ_k = -to_plot["divJ_k_r"] / (4 * epsilon)
+        S2_k_comp = to_plot["S2_k_r"] / ((r_store * epsilon)**coef_comp2)
 
         # Theoretical values
         Jl_k_th = 4 / 3 * np.ones_like(r_store)
         S2_k_th = 22 / 3 * np.ones_like(r_store)
         EK_array = EK * np.ones_like(r_store)
+        if "b" in keys_state_phys:
+            EA_array = EA * np.ones_like(r_store)
 
         if "b" in keys_state_phys:
             Jl_p_comp = -to_plot["Jl_p_r"] / (r_store**coef_comp3)
-            divJ_p = to_plot["divJ_p_r"]
+            divJ_p = -to_plot["divJ_p_r"] / (4 * epsilon)
             S2_p_comp = to_plot["S2_p_r"] / (r_store**coef_comp2)
 
         title = f"$n_x={params.oper.nx}$"
@@ -448,20 +457,20 @@ class KolmoLaw(SpecificOutput):
                 )
                 ax2.plot(
                     r_store[1:] / eta,
-                    -divJ_k[1:] / 4,
+                    divJ_k[1:],
                     "b",
                     label="$\\nabla \cdot J_{K,L}(r)$",
                 )
                 if "b" in keys_state_phys:
                     ax2.plot(
                         r_store[1:] / eta,
-                        -divJ_p[1:] / 4,
+                        divJ_p[1:],
                         "g",
                         label="$\\nabla \\cdot J_{P,L}(r)$",
                     )
                     ax2.plot(
                         r_store[1:] / eta,
-                        -(divJ_p[1:] + divJ_k[1:]) / 4,
+                        divJ_p[1:] + divJ_k[1:],
                         "k",
                         label="$\\nabla \\cdot J_L(r)$",
                     )
@@ -495,6 +504,7 @@ class KolmoLaw(SpecificOutput):
                     ax3.plot(
                         r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P(r)$"
                     )
+                    ax3.plot(r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$")
                 ax3.plot(
                     r_store[1:] / eta,
                     S2_k_th[1:],
@@ -528,6 +538,8 @@ class KolmoLaw(SpecificOutput):
         vmin=None,
         vmax=None,
         which_plot="div_JK",
+        logscale=True,
+        epsilon=None,
         save=False,
     ):
         """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
@@ -551,6 +563,10 @@ class KolmoLaw(SpecificOutput):
         except KeyError:
             warn("KeyError: 'eta' not available; eta is set to unity")
             eta = 1
+        if epsilon is None:
+            epsilon = dimless_num["epsK"]
+            if "b" in keys_state_phys:
+                epsilon += dimless_num["epsA"]
 
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
@@ -561,12 +577,12 @@ class KolmoLaw(SpecificOutput):
         # Compute radius for normalization
         radius = np.sqrt(RH**2 + RV**2)
 
-        Jk_l_comp = to_plot["Jl_k_hv"] / (radius + 1e-14)
-        divJk_hv = to_plot["divJ_k_hv"]
+        Jk_l_comp = -to_plot["Jl_k_hv"] / ((radius + 1e-14) * epsilon)
+        divJk_hv = -to_plot["divJ_k_hv"] / (4 * epsilon)
 
         if "b" in keys_state_phys:
-            Jp_l_comp = to_plot["Jl_p_hv"] / (radius + 1e-14)
-            divJp_hv = to_plot["divJ_p_hv"]
+            Jp_l_comp = -to_plot["Jl_p_hv"] / ((radius + 1e-14) * epsilon)
+            divJp_hv = -to_plot["divJ_p_hv"] / (4 * epsilon)
 
         title = f"$n_x={params.oper.nx}$"
 
@@ -579,8 +595,8 @@ class KolmoLaw(SpecificOutput):
             )
             save_name_file = f"J{type_plot}_L_hv.png"
             if divergence:
-                full_title = f"$-\\nabla \\cdot J_{{{type_plot}L}}(r_h,r_v)/4\\epsilon$, {title}"
-                save_name_file = f"divJ{type_plot}_L_hv.png"
+                full_title = f"$-\\nabla \\cdot J_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
+                save_name_file = f"divJ{type_plot}_hv.png"
             fig, ax = self.output.figure_axe()
             im = ax.pcolormesh(
                 RH[1:] / eta,
@@ -594,10 +610,15 @@ class KolmoLaw(SpecificOutput):
             ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
             ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
             ax.set_title(full_title, fontsize="x-large")
-            ax.set_xscale("log")
-            ax.set_yscale("log")
-            ax.set_xlim(xmin=1)
-            ax.set_ylim(ymin=1)
+            ax.set_aspect('equal', 'box')
+            if logscale:
+                ax.set_xscale("log")
+                ax.set_yscale("log")
+                ax.set_xlim(xmin=1, xmax=500)
+                ax.set_ylim(ymin=1, ymax=500)
+            else:
+                ax.set_xlim(xmin=0, xmax=500)
+                ax.set_ylim(ymin=0, ymax=500)
             plt.tight_layout()
             if save:
                 plt.savefig(save_name_file, dpi=300)
@@ -608,7 +629,7 @@ class KolmoLaw(SpecificOutput):
         match which_plot:
             case "JK":
                 _plot(
-                    -Jk_l_comp[1:],
+                    Jk_l_comp[1:],
                     "viridis",
                     vmin,
                     vmax,
@@ -618,7 +639,7 @@ class KolmoLaw(SpecificOutput):
 
             case "div_JK":
                 _plot(
-                    -divJk_hv[1:] / 4,
+                    divJk_hv[1:],
                     "viridis",
                     vmin,
                     vmax,
@@ -636,7 +657,7 @@ class KolmoLaw(SpecificOutput):
                 match what_plot:
                     case "JP":
                         _plot(
-                            -Jp_l_comp[1:],
+                            Jp_l_comp[1:],
                             "viridis",
                             vmin,
                             vmax,
@@ -646,7 +667,7 @@ class KolmoLaw(SpecificOutput):
 
                     case "div_JP":
                         _plot(
-                            -divJp_hv[1:] / 4,
+                            divJp_hv[1:],
                             "viridis",
                             vmin,
                             vmax,
@@ -656,7 +677,7 @@ class KolmoLaw(SpecificOutput):
 
                     case "J":
                         _plot(
-                            -(Jp_l_comp[1:] + Jk_l_comp[1:]),
+                            Jp_l_comp[1:] + Jk_l_comp[1:],
                             "viridis",
                             vmin,
                             vmax,
@@ -666,7 +687,7 @@ class KolmoLaw(SpecificOutput):
 
                     case "div_J":
                         _plot(
-                            -(divJp_hv[1:] + divJk_hv[1:]) / 4,
+                            divJp_hv[1:] + divJk_hv[1:],
                             "viridis",
                             vmin,
                             vmax,
@@ -687,6 +708,9 @@ class KolmoLaw(SpecificOutput):
         ratio_vectors=2,
         shifted=True,
         logscale=True,
+        epsilon=None,
+        theory=False,
+        ani_param=1,
         save=False,
     ):
         """Plot vector field of J in (rho, z) plane."""
@@ -713,8 +737,6 @@ class KolmoLaw(SpecificOutput):
             rv_store = np.array(file["rv_store"])
 
         RH, RV = np.meshgrid(rh_store, rv_store)
-        RH = RH[::ratio_vectors, ::ratio_vectors]
-        RV = RV[::ratio_vectors, ::ratio_vectors]
 
         dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
             tmin=tmin, tmax=tmax
@@ -724,6 +746,12 @@ class KolmoLaw(SpecificOutput):
         except KeyError:
             warn("KeyError: 'eta' not available; eta is set to unity")
             eta = 1
+        if epsilon is None:
+            epsilon = dimless_num["epsK"]
+            if "b" in keys_state_phys:
+                epsilon += dimless_num["epsA"]
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
 
         RH /= eta
 
@@ -739,39 +767,104 @@ class KolmoLaw(SpecificOutput):
 
         RV /= eta
 
+        RH_sub = RH[::ratio_vectors, ::ratio_vectors]
+        RV_sub = RV[::ratio_vectors, ::ratio_vectors]
+
         title = f"$n_x={params.oper.nx}$"
 
-        def _plot(j_v, j_h, type_plot="_K", normalized=False):
-            full_title = f"$-J{type_plot}(r_h,r_v)$, {title}"
+        def _plot(j_v, j_h, type_plot="_K", normalized=False, theory=False):
+            full_title = f"$-J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
-
+            if theory:
+                save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
             j_v_plot = j_v.copy()
             j_h_plot = j_h.copy()
-
             C = np.sqrt(j_v_plot**2 + j_h_plot**2)
 
             if normalized:
                 full_title = f"$Normalized -J{type_plot}(r_h,r_v)$, {title}"
                 save_name_file = f"J{type_plot}_vector_hv_normalized.png"
-                RH_safe = np.where(RH != 0, RH, 1e-10)
-                RV_safe = np.abs(np.where(RV != 0, RV, 1e-10))
+                RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
+                RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
                 j_v_plot /= RV_safe
                 j_h_plot /= RH_safe
 
             fig, ax = self.output.figure_axe()
             ax.set_title(full_title, fontsize="x-large")
+            ax.set_aspect('equal', 'box')
+
+            if logscale:
+                ax.set_xscale("log")
+                ax.set_yscale("log")
+                ax.set_xlim(xmin=1, xmax=500)
+                ax.set_ylim(ymin=1, ymax=500)
+                width = 0.002
+                headwidth = 2
+                headlength = 1.5
+                headaxislength = 1.5
+            else:
+                ax.set_xlim(xmin=0, xmax=500)
+                ax.set_ylim(ymin=0, ymax=500)
+                width = 0.002
+                headwidth = 3
+                headlength = 2.5
+                headaxislength = 2.5
+
+            if theory:
+                r_max = min(RH.max(), RV.max())
+                r_min = max(RH.min(), RV.min())
+
+                rh_line = np.linspace(r_min, r_max, 100)
+
+                rv_at_rmax = np.linspace(r_min, r_max, 25)
+                C_consts_right = rv_at_rmax / r_max ** ani_param
+
+                rh_at_rvmax = np.linspace(r_min, r_max, 25)
+                C_consts_top = r_max / rh_at_rvmax ** ani_param
+
+                C_consts = np.unique(np.concatenate([C_consts_right, C_consts_top]))
+
+                for i, C_const in enumerate(C_consts):
+                    rv_line = C_const * rh_line ** ani_param
+
+                    mask = (rv_line >= r_min) & (rv_line <= r_max)
+
+                    if mask.sum() < 2:
+                        continue
+
+                    label_plot = (
+                        rf"$r_v = \alpha\, r_h^{{{ani_param}}}$"
+                        if i == 0
+                        else None
+                    )
+                    ax.plot(
+                        rh_line[mask],
+                        rv_line[mask],
+                        "r-",
+                        linewidth=0.8,
+                        alpha=0.3,
+                        label=label_plot,
+                    )
+
+                if not shifted:
+                    ax.legend(fontsize="x-large", loc="upper right")
+
             quiv = ax.quiver(
-                RH,
-                RV,
-                j_v_plot,
+                RH_sub,
+                RV_sub,
                 j_h_plot,
+                j_v_plot,
                 C,
                 cmap="viridis",
-                width=0.004,
-                headwidth=3,
+                width=width,
+                headwidth=headwidth,
+                headlength=headlength,
+                headaxislength=headaxislength,
             )
+
             cbar = fig.colorbar(quiv, ax=ax)
             cbar.set_label("Amplitude", fontsize="x-large")
+
 
             if shifted and rv_zero_line is not None:
                 ax.axhline(
@@ -781,28 +874,23 @@ class KolmoLaw(SpecificOutput):
                     linewidth=1.5,
                     label="$r_v = 0$",
                 )
+                ax.legend(fontsize="x-large", loc="lower left")
 
             ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
             ax.set_ylabel(RV_label, fontsize="x-large")
-
-            if logscale:
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                ax.set_xlim(xmin=1)
-                ax.set_ylim(ymin=1)
-
-            ax.legend(fontsize="x-large", loc="lower left")
             plt.tight_layout()
+
             if save:
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
 
+
         match which_plot:
             case "JK":
-                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=False)
+                _plot(-Jk_v / (4 * epsilon), -Jk_h / (4 * epsilon), type_plot="_K", normalized=False, theory=theory)
 
             case "JK_norm":
-                _plot(-Jk_v, -Jk_h, type_plot="_K", normalized=True)
+                _plot(-Jk_v / (4 * epsilon), -Jk_h / (4 * epsilon), type_plot="_K", normalized=True)
 
             case "JP" | "JP_norm" | "J" | "J_norm" as what_plot:
                 if "b" not in keys_state_phys:
@@ -813,23 +901,24 @@ class KolmoLaw(SpecificOutput):
 
                 match what_plot:
                     case "JP":
-                        _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=False)
+                        _plot(-Jp_v / (4 * epsilon), -Jp_h / (4 * epsilon), type_plot="_P", normalized=False)
 
                     case "JP_norm":
-                        _plot(-Jp_v, -Jp_h, type_plot="_P", normalized=True)
+                        _plot(-Jp_v / (4 * epsilon), -Jp_h / (4 * epsilon), type_plot="_P", normalized=True)
 
                     case "J":
                         _plot(
-                            -(Jp_v + Jk_v),
-                            -(Jp_h + Jk_h),
+                            -(Jp_v + Jk_v) / (4 * epsilon),
+                            -(Jp_h + Jk_h) / (4 * epsilon),
                             type_plot="",
                             normalized=False,
+                            theory=theory
                         )
 
                     case "J_norm":
                         _plot(
-                            -(Jp_v + Jk_v),
-                            -(Jp_h + Jk_h),
+                            -(Jp_v + Jk_v) / (4 * epsilon),
+                            -(Jp_h + Jk_h) / (4 * epsilon),
                             type_plot="",
                             normalized=True,
                         )
