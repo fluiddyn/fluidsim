@@ -445,6 +445,8 @@ class KolmoLaw(SpecificOutput):
                 ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax1.set_xscale("log")
                 ax1.set_yscale("log")
+                ax1.set_xlim(xmax=1e3)
+                ax1.set_ylim(ymin=1e-2)
                 ax1.legend()
                 plt.tight_layout()
                 if save:
@@ -487,6 +489,8 @@ class KolmoLaw(SpecificOutput):
                 ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax2.set_xscale("log")
                 ax2.set_yscale("log")
+                ax2.set_xlim(xmax=1e3)
+                ax2.set_ylim(ymin=1e-2)
                 ax2.legend()
                 plt.tight_layout()
                 if save:
@@ -519,6 +523,8 @@ class KolmoLaw(SpecificOutput):
                 ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax3.set_xscale("log")
                 ax3.set_yscale("log")
+                ax3.set_xlim(xmax=1e3)
+                ax3.set_ylim(ymin=1e-2)
                 ax3.legend()
                 plt.tight_layout()
                 if save:
