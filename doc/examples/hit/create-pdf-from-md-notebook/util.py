@@ -11,7 +11,11 @@ def get_spectra_values_kh(data, strat=False):
         Ekh_A[np.abs(Ekh_A) < 1e-15] = np.nan
         valid_indices = np.where(~np.isnan(Ekh_K) & ~np.isnan(Ekh_A))[0]
         if len(valid_indices) == 0:
-            return {"kh": np.array([]), "Ekh_K": np.array([]), "Ekh_A": np.array([])}
+            return {
+                "kh": np.array([]),
+                "Ekh_K": np.array([]),
+                "Ekh_A": np.array([]),
+            }
         last_idx = valid_indices[-1] + 1
         return {
             "kh": kh[1:last_idx],
@@ -41,7 +45,11 @@ def get_spectra_values_kz(data, strat=False):
         Ekz_A[np.abs(Ekz_A) < 1e-15] = np.nan
         valid_indices = np.where(~np.isnan(Ekz_K) & ~np.isnan(Ekz_A))[0]
         if len(valid_indices) == 0:
-            return {"kz": np.array([]), "Ekz_K": np.array([]), "Ekz_A": np.array([])}
+            return {
+                "kz": np.array([]),
+                "Ekz_K": np.array([]),
+                "Ekz_A": np.array([]),
+            }
         last_idx = valid_indices[-1] + 1
         return {
             "kz": kz[1:last_idx],
