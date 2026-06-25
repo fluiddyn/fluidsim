@@ -18,7 +18,15 @@ execute:
 
 ---
 
+Here is a notebook containing the main output necessary to analyse a simulation.
+
 # Description of a simulation
+
+First, lets describe which simulation we analyse.
+
+## Import module and loading paths
+
+Here are the important modules for the following:
 
 ```{code-cell}
 import os
@@ -29,28 +37,20 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 from fluidsim import load
-
-from util import get_spectra_values_kh, get_spectra_values_kz, load_temp_average
 ```
 
-```{code-cell} python
-path_simul_dir = os.environ.get("PATH_SIMUL_DIR", None)
-print(f"{path_simul_dir = }")
-```
-
-
-## Import module and loading paths
+Here we load the simulation with the corresponding simulation path:
 
 ```{code-cell} ipython3
-simu_path = Path(os.environ.get("PATH_SIMUL_DIR", ""))
-path_file_kolmo = simu_path / "kolmo_law.h5"
+simu_path = Path(os.environ.get("PATH_SIMUL_DIR", None))
+print(f"{path_simul_dir = }")
 sim = load(simu_path, hide_stdout=True)
-tmin = 5
-%matplotlib ipympl
 ```
 
 
 ## Dimensionless number
+
+In this section we list the important dimensionless numbers in two ways: from input and output values.
 
 ### Quantities calculated from input values
 
@@ -90,6 +90,8 @@ print(f"{Rb=}")
 print(f"{nu=}")
 ```
 
+Select the min and max values depending on the simulation.
+
 ```{code-cell} ipython3
 if N is None:
   tmin = 66.6
@@ -119,7 +121,11 @@ sim.output.get_mean_values(tmin=tmin, tmax=tmax)
 
 ## Physical quantities
 
+Here, we compute usefull quantities in the physical space.
+
 ### Velocity fields
+
+Longitudinal velocity component $v_x$ on a horizontal cut at $z = 0$: 
 
 ```{code-cell} ipython3
 fig, ax = sim.output.figure_axe()
@@ -127,6 +133,8 @@ sim.output.phys_fields.plot(QUIVER=False, numfig=fig.number, type_plot="pcolor",
 # filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
 # fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
+
+Longitudinal velocity component $v_x$ on a vertical cut at $y = 0$: 
 
 ```{code-cell} ipython3
 fig, ax = sim.output.figure_axe()
@@ -136,6 +144,8 @@ sim.output.phys_fields.plot(equation="y=0", QUIVER=False, numfig=fig.number, typ
 ```
 
 ### Energy
+
+Total energy in the domain and energy dissipation as functions of time: 
 
 ```{code-cell} ipython3
 sim.output.spatial_means.plot()
@@ -149,13 +159,19 @@ fig_dissipation = plt.figure(fig_nums[-1])
 
 ## Spectral quantities
 
+Here, we compute usefull quantities in the spectral space.
+
 ### Transfert and cumulated dissipation
+
+Nonlinear turbulent energy transfer and cumulated energy spectra:  
 
 ```{code-cell} ipython3
 fig_pi = sim.output.spect_energy_budg.plot_fluxes(tmin=tmin, tmax=tmax)
 # fig_pi.savefig(graph_path / f"Pi_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
 ```
 ### Energy spectra
+
+One dimensional energy spectra. If the simulation is stratified, one of the spectra is horizontal and the other is vertical.
 
 ```{code-cell} ipython3
 if N is not None:
@@ -172,20 +188,52 @@ fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directi
 
 ## Structure functions
 
+Here, we compute usefull high order statistical quantities.
+
 ### Radial dependency
+
+First, we longitudinal radial scalar function $\langle \mathbf{J}\cdot\mathbf{r}/r \rangle _{\theta,\phi}(r)$ normalized by $-\espilon r$ to compare with the $4/3$-rd law. Note that in the case of a stratified fluid, this quantity has a kinetic and a potential components:
 
 ```{code-cell} ipython3
 sim.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax, which_plot='J')
 ```
 ### Cylindrical depency
 
+Now, we take a look at $\nabla \cdot \mathbf{J} (r_h, r_v)$ normalized by $-4\psilon$ which is what it is supposed to bet in the inertial range.
+
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, which_plot='div_J')
+if N is not None:
+    which_plot='div_JK'
+else:
+    which_plot='div_J'
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, which_plot=which_plot)
 ```
 
 ### Vectorial plots
 
+Here, we directly take a look at the vectorial field $\mathbf{J} (r_h, r_v)$ normalized by $-4\psilon$.
+We first plot it almost on the full radial range: 
+
+
 ```{code-cell} ipython3
+if N is not None:
+    which_plot='JK'
+    ani_param=1
+else:
+    which_plot='J'
+    ani_param=-0.1
 sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", logscale=False, ratio_vectors=10, shifted=False)
 ```
 
+Then we zoom into the inertial range and plot in grey the vectorial field obtained with the following function:
+$$
+\mathbf{F}(\mathbf{r_h}, \mathbf{r_v}, \mathbf{\alpha}) = \frac{1}{\alpha + 2}(r_h\mathbf{e_h} + \alpha r_v\mathbf{e_v}),
+$$
+
+with $\alpha$ an anisotropic parameter. Note that in the plot the amplitudes of the "theretical vectors" are normalized by the amplitudes of the real vectors
+so that only direction is compared. 
+
+
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", theory=True, vect_theory=True, logscale=False, ratio_vectors=10, shifted=False)
+```
