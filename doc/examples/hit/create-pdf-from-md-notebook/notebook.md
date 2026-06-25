@@ -178,7 +178,7 @@ if N is not None:
     directions="hz"
 else:
     directions=None
-fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k53=10, coef_plot_k3=10**3)
+fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k53=3, coef_plot_k3=300, ylim=(1e-2, 4))
 
 # filename = graph_path / f"spectra_1d_{N}_{nx}.pdf"
 # fig_spectra.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
