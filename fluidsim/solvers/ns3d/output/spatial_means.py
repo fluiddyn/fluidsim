@@ -335,7 +335,11 @@ class SpatialMeansNS3D(SpatialMeansBase):
         else:
             itmax = abs(times - tmax).argmin()
 
-        itmin = abs(times - tmin).argmin()
+        if tmin is None:
+            itmin = 0
+        else:
+            itmin = abs(times - tmin).argmin()
+
         return itmin, itmax
 
     def get_dimless_numbers_versus_time(self, data=None):
