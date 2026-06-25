@@ -239,7 +239,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             sig = inspect.signature(self.sim.tendencies_nonlin)
             if not "phaseshift" in sig.parameters:
                 raise ValueError(
-                    "RK2_phaseshift_random_shift used "
+                    "RK2_phaseshift_random_split used "
                     "but tendencies_nonlin has no phaseshift argument."
                 )
         elif type_time_scheme == "RK2_phaseshift_exact":
