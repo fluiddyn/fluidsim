@@ -23,16 +23,6 @@ from fluidsim.operators.operators3d import dealiasing_variable
 from ..solver import InfoSolverNS3D, Simul as SimulNS3D
 
 
-Ac = "complex128[:,:,:]"
-
-
-@boost
-def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac):
-    fb_fft = div_vb_fft
-    fb_fft[:] = -div_vb_fft - N**2 * vz_fft
-    return fb_fft
-
-
 class InfoSolverNS3DStrat(InfoSolverNS3D):
     def _init_root(self):
         super()._init_root()
@@ -162,7 +152,9 @@ class Simul(SimulNS3D):
         if phaseshift is None or not phaseshift:
             if phaseshift is not None:
                 tendencies_fft.fill(0)
-            self._add_tendencies_nonlin_nophaseshift(b_fft, tendencies_fft)
+            self._add_tendencies_nonlin_nophaseshift(
+                b_fft, vz_fft, tendencies_fft
+            )
 
         self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
@@ -220,13 +212,14 @@ class Simul(SimulNS3D):
             ifft_as_arg(b_fft, b)
 
         div_vb_fft = oper.div_vb_fft_from_vb(vx, vy, vz, b)
-        fb_fft = compute_fb_fft(div_vb_fft, self.params.N, vz_fft)
+        fb_fft = tendencies_fft.get_var("b_fft")
+        fb_fft[:] = -div_vb_fft
 
-        tendencies_fft.set_var("b_fft", fb_fft)
-
-    def _add_tendencies_nonlin_nophaseshift(self, b_fft, tendencies_fft):
+    def _add_tendencies_nonlin_nophaseshift(self, b_fft, vz_fft, tendencies_fft):
         fz_fft = tendencies_fft.get_var("vz_fft")
         fz_fft += b_fft
+        fb_fft = tendencies_fft.get_var("b_fft")
+        fb_fft -= self.params.N**2 * vz_fft
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
