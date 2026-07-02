@@ -143,6 +143,45 @@ sim.output.phys_fields.plot(equation="y=0", QUIVER=False, numfig=fig.number, typ
 # fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
 
+vertical velocity component $v_z$ on a horizontal cut at $z = 0$: 
+
+```{code-cell} ipython3
+fig, ax = sim.output.figure_axe()
+sim.output.phys_fields.plot(field="vz", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
+# filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
+# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+```
+
+Longitudinal velocity component $v_z$ on a vertical cut at $y = 0$: 
+
+```{code-cell} ipython3
+fig, ax = sim.output.figure_axe()
+sim.output.phys_fields.plot(field="vz", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
+# filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
+# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+```
+
+### Buoyancy field
+
+Buoyancy $b$ on a horizontal cut at $z = 0$: 
+
+```{code-cell} ipython3
+fig, ax = sim.output.figure_axe()
+sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
+# filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
+# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+```
+
+Buoyancy $b$ on a vertical cut at $y = 0$: 
+
+```{code-cell} ipython3
+fig, ax = sim.output.figure_axe()
+sim.output.phys_fields.plot(field="b", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
+# filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
+# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+```
+
+
 ### Energy
 
 Total energy in the domain and energy dissipation as functions of time: 
