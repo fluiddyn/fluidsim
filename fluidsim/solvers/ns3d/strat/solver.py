@@ -242,7 +242,7 @@ class Simul(SimulNS3D):
         div_vb_fft = oper.div_vb_fft_from_vb(vx, vy, vz, b)
         fb_fft = tendencies_fft.get_var("b_fft")
 
-        if phaseshift is not None:
+        if phaseshift is None:
             compute_fb_fft(div_vb_fft, self.params.N, vz_fft, fb_fft)
         else:
             fb_fft[:] = -div_vb_fft
