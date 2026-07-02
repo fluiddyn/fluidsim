@@ -27,10 +27,13 @@ Ac = "complex128[:,:,:]"
 
 
 @boost
-def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac):
-    fb_fft = div_vb_fft
+def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac, fb_fft: Ac):
     fb_fft[:] = -div_vb_fft - N**2 * vz_fft
-    return fb_fft
+
+
+@boost
+def add_linear_strat(fb_fft: Ac, N: "float or int", vz_fft: Ac):
+    fb_fft[:] = fb_fft - N**2 * vz_fft
 
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
@@ -156,20 +159,35 @@ class Simul(SimulNS3D):
 
         if phaseshift is None or phaseshift:
             self._set_tendencies_nonlin_phaseshift(
-                state_spect, vx_fft, vy_fft, vz_fft, b_fft, tendencies_fft
+                state_spect,
+                vx_fft,
+                vy_fft,
+                vz_fft,
+                b_fft,
+                tendencies_fft,
+                phaseshift,
             )
 
         if phaseshift is None or not phaseshift:
             if phaseshift is not None:
                 tendencies_fft.fill(0)
-            self._add_tendencies_nonlin_nophaseshift(tendencies_fft)
+            self._add_tendencies_nonlin_nophaseshift(
+                b_fft, vz_fft, tendencies_fft, phaseshift
+            )
 
         self.project_state_spect(tendencies_fft)
         self.oper.dealiasing(tendencies_fft)
         return tendencies_fft
 
     def _set_tendencies_nonlin_phaseshift(
-        self, state_spect, vx_fft, vy_fft, vz_fft, b_fft, tendencies_fft
+        self,
+        state_spect,
+        vx_fft,
+        vy_fft,
+        vz_fft,
+        b_fft,
+        tendencies_fft,
+        phaseshift,
     ):
         oper = self.oper
         ifft_as_arg = oper.ifft_as_arg
@@ -213,8 +231,6 @@ class Simul(SimulNS3D):
         fft_as_arg(fy, fy_fft)
         fft_as_arg(fz, fz_fft)
 
-        fz_fft += b_fft
-
         if state_spect is None:
             b = self.state.state_phys.get_var("b")
         else:
@@ -222,11 +238,23 @@ class Simul(SimulNS3D):
             ifft_as_arg(b_fft, b)
 
         div_vb_fft = oper.div_vb_fft_from_vb(vx, vy, vz, b)
-        fb_fft = compute_fb_fft(div_vb_fft, self.params.N, vz_fft)
+        fb_fft = tendencies_fft.get_var("b_fft")
 
-        tendencies_fft.set_var("b_fft", fb_fft)
+        if phaseshift is None:
+            compute_fb_fft(div_vb_fft, self.params.N, vz_fft, fb_fft)
+        else:
+            fb_fft[:] = -div_vb_fft
 
-    def _add_tendencies_nonlin_nophaseshift(self, tendencies_fft):
+    def _add_tendencies_nonlin_nophaseshift(
+        self, b_fft, vz_fft, tendencies_fft, phaseshift
+    ):
+        fz_fft = tendencies_fft.get_var("vz_fft")
+        fz_fft += b_fft
+
+        if phaseshift is not None:
+            fb_fft = tendencies_fft.get_var("b_fft")
+            add_linear_strat(fb_fft, self.params.N, vz_fft)
+
         if self.is_forcing_enabled:
             tendencies_fft += self.forcing.get_forcing()
 
