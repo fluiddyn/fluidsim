@@ -29,13 +29,11 @@ Ac = "complex128[:,:,:]"
 @boost
 def compute_fb_fft(div_vb_fft: Ac, N: "float or int", vz_fft: Ac, fb_fft: Ac):
     fb_fft[:] = -div_vb_fft - N**2 * vz_fft
-    return fb_fft
 
 
 @boost
 def add_linear_strat(fb_fft: Ac, N: "float or int", vz_fft: Ac):
     fb_fft[:] = fb_fft - N**2 * vz_fft
-    return fb_fft
 
 
 class InfoSolverNS3DStrat(InfoSolverNS3D):
