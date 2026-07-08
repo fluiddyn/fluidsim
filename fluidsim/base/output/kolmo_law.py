@@ -631,6 +631,15 @@ class KolmoLaw(SpecificOutput):
 
         # Reference vmin = -0.5, vmax = 1.2
 
+        if which_plot in ("J", "div_J") and "b" not in keys_state_phys:
+            which_plot = which_plot.replace("J", "JK")
+
+        if which_plot in ("JP", "div_JP") and "b" not in keys_state_phys:
+            raise ValueError(
+                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                f"Available fields: {', '.join(keys)}"
+            )
+
         match which_plot:
             case "JK":
                 _plot(
@@ -652,53 +661,45 @@ class KolmoLaw(SpecificOutput):
                     divergence=True,
                 )
 
-            case "JP" | "div_JP" | "J" | "div_J" as what_plot:
-                if "b" not in keys_state_phys:
-                    raise ValueError(
-                        f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
-                        f"Available fields: {', '.join(keys)}"
-                    )
+            case "JP":
+                _plot(
+                    Jp_l_comp[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="P",
+                    divergence=False,
+                )
 
-                match what_plot:
-                    case "JP":
-                        _plot(
-                            Jp_l_comp[1:],
-                            cmap,
-                            vmin,
-                            vmax,
-                            type_plot="P",
-                            divergence=False,
-                        )
+            case "div_JP":
+                _plot(
+                    divJp_hv[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="P",
+                    divergence=True,
+                )
 
-                    case "div_JP":
-                        _plot(
-                            divJp_hv[1:],
-                            cmap,
-                            vmin,
-                            vmax,
-                            type_plot="P",
-                            divergence=True,
-                        )
+            case "J":
+                _plot(
+                    Jp_l_comp[1:] + Jk_l_comp[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="",
+                    divergence=False,
+                )
 
-                    case "J":
-                        _plot(
-                            Jp_l_comp[1:] + Jk_l_comp[1:],
-                            cmap,
-                            vmin,
-                            vmax,
-                            type_plot="",
-                            divergence=False,
-                        )
-
-                    case "div_J":
-                        _plot(
-                            divJp_hv[1:] + divJk_hv[1:],
-                            cmap,
-                            vmin,
-                            vmax,
-                            type_plot="",
-                            divergence=True,
-                        )
+            case "div_J":
+                _plot(
+                    divJp_hv[1:] + divJk_hv[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="",
+                    divergence=True,
+                )
             case _:
                 raise ValueError(
                     f"Field {which_plot} not available. "
@@ -711,7 +712,6 @@ class KolmoLaw(SpecificOutput):
         tmax=None,
         which_plot="JK",
         ratio_vectors=2,
-        shifted=True,
         logscale=True,
         epsilon=None,
         theory=False,
@@ -765,12 +765,7 @@ class KolmoLaw(SpecificOutput):
         rv_min = np.min(rv_store)
         rv_zero_line = None
 
-        if shifted:
-            rv_zero_line = np.abs(rv_min) / eta
-            RV = RV - rv_min
-            RV_label = r"$(r_v - r_{v,min})/\eta$"
-        else:
-            RV_label = r"$r_v/\eta$"
+        RV_label = r"$r_v/\eta$"
 
         RV /= eta
 
@@ -887,12 +882,11 @@ class KolmoLaw(SpecificOutput):
                         label=rf"$\alpha = {ani_param}$",
                     )
 
-                if not shifted:
-                    ax.legend(
-                        fontsize="x-large",
-                        loc="upper right",
-                        handlelength=0.5,
-                    )
+                ax.legend(
+                    fontsize="x-large",
+                    loc="upper right",
+                    handlelength=0.5,
+                )
 
             quiv = ax.quiver(
                 RH_sub,
@@ -910,16 +904,6 @@ class KolmoLaw(SpecificOutput):
             cbar = fig.colorbar(quiv, ax=ax)
             cbar.set_label("Amplitude", fontsize="x-large")
 
-            if shifted and rv_zero_line is not None:
-                ax.axhline(
-                    y=rv_zero_line,
-                    color="r",
-                    linestyle="--",
-                    linewidth=1.5,
-                    label="$r_v = 0$",
-                )
-                ax.legend(fontsize="x-large", loc="lower left")
-
             ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
             ax.set_ylabel(RV_label, fontsize="x-large")
             plt.tight_layout()
@@ -927,6 +911,15 @@ class KolmoLaw(SpecificOutput):
             if save:
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
+
+        if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
+            which_plot = which_plot.replace("J", "JK")
+
+        if which_plot in ("JP", "JP_norm") and "b" not in keys_state_phys:
+            raise ValueError(
+                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                f"Available fields: {', '.join(keys)}"
+            )
 
         match which_plot:
             case "JK":
@@ -946,46 +939,38 @@ class KolmoLaw(SpecificOutput):
                     normalized=True,
                 )
 
-            case "JP" | "JP_norm" | "J" | "J_norm" as what_plot:
-                if "b" not in keys_state_phys:
-                    raise ValueError(
-                        f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
-                        f"Available fields: {', '.join(keys)}"
-                    )
+            case "JP":
+                _plot(
+                    -Jp_v / (4 * epsilon),
+                    -Jp_h / (4 * epsilon),
+                    type_plot="_P",
+                    normalized=False,
+                )
 
-                match what_plot:
-                    case "JP":
-                        _plot(
-                            -Jp_v / (4 * epsilon),
-                            -Jp_h / (4 * epsilon),
-                            type_plot="_P",
-                            normalized=False,
-                        )
+            case "JP_norm":
+                _plot(
+                    -Jp_v / (4 * epsilon),
+                    -Jp_h / (4 * epsilon),
+                    type_plot="_P",
+                    normalized=True,
+                )
 
-                    case "JP_norm":
-                        _plot(
-                            -Jp_v / (4 * epsilon),
-                            -Jp_h / (4 * epsilon),
-                            type_plot="_P",
-                            normalized=True,
-                        )
+            case "J":
+                _plot(
+                    -(Jp_v + Jk_v) / (4 * epsilon),
+                    -(Jp_h + Jk_h) / (4 * epsilon),
+                    type_plot="",
+                    normalized=False,
+                    theory=theory,
+                )
 
-                    case "J":
-                        _plot(
-                            -(Jp_v + Jk_v) / (4 * epsilon),
-                            -(Jp_h + Jk_h) / (4 * epsilon),
-                            type_plot="",
-                            normalized=False,
-                            theory=theory,
-                        )
-
-                    case "J_norm":
-                        _plot(
-                            -(Jp_v + Jk_v) / (4 * epsilon),
-                            -(Jp_h + Jk_h) / (4 * epsilon),
-                            type_plot="",
-                            normalized=True,
-                        )
+            case "J_norm":
+                _plot(
+                    -(Jp_v + Jk_v) / (4 * epsilon),
+                    -(Jp_h + Jk_h) / (4 * epsilon),
+                    type_plot="",
+                    normalized=True,
+                )
 
             case _:
                 raise ValueError(
