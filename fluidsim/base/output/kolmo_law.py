@@ -715,7 +715,6 @@ class KolmoLaw(SpecificOutput):
         logscale=True,
         epsilon=None,
         theory=False,
-        vect_theory=False,
         ani_param=1,
         cmap="plasma",
         save=False,
@@ -762,9 +761,6 @@ class KolmoLaw(SpecificOutput):
 
         RH /= eta
 
-        rv_min = np.min(rv_store)
-        rv_zero_line = None
-
         RV_label = r"$r_v/\eta$"
 
         RV /= eta
@@ -777,8 +773,6 @@ class KolmoLaw(SpecificOutput):
         def _plot(j_v, j_h, type_plot="_K", normalized=False, theory=False):
             full_title = f"$-J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
-            if theory:
-                save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
             j_v_plot = j_v.copy()
             j_h_plot = j_h.copy()
             C = np.sqrt(j_v_plot**2 + j_h_plot**2)
@@ -809,84 +803,84 @@ class KolmoLaw(SpecificOutput):
                 headlength = 1.5
                 headaxislength = 1.5
 
-            if theory:
-                axis_max = 200
-                axis_min = 30
+            match theory:
+                case False:
+                    pass
 
-            ax.set_xlim(xmin=axis_min, xmax=axis_max)
-            ax.set_ylim(ymin=axis_min, ymax=axis_max)
+                case True | "vec" as which_theory:
+                    axis_max = 200
+                    axis_min = 30
+                    save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
+                    r_max = min(RH.max(), RV.max())
+                    r_min = max(RH.min(), RV.min())
+                    rh_line = np.linspace(r_min, r_max, 100)
 
-            if theory:
-                r_max = min(RH.max(), RV.max())
-                r_min = max(RH.min(), RV.min())
-                rh_line = np.linspace(r_min, r_max, 100)
+                    if ani_param < 0:
+                        num_r = 50
+                    else:
+                        num_r = 25
 
-                if ani_param < 0:
-                    num_r = 50
-                else:
-                    num_r = 25
-
-                rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                C_consts_right = rv_at_rmax / r_max**ani_param
-                rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                C_consts_top = r_max / rh_at_rvmax**ani_param
-                C_consts = np.unique(
-                    np.concatenate([C_consts_right, C_consts_top])
-                )
-
-                if not vect_theory:
-                    for i, C_const in enumerate(C_consts):
-                        rv_line = C_const * rh_line**ani_param
-                        mask = (rv_line >= r_min) & (rv_line <= r_max)
-                        if mask.sum() < 2:
-                            continue
-                        label_plot = (
-                            rf"$r_v = \alpha\, r_h^{{{ani_param}}}$"
-                            if i == 0
-                            else None
-                        )
-                        ax.plot(
-                            rh_line[mask],
-                            rv_line[mask],
-                            "r-",
-                            linewidth=0.8,
-                            alpha=0.3,
-                            label=label_plot,
-                        )
-
-                offset = (r_max - r_min) * 0.003  # Léger décalage vertical
-                J_h_theory = RH_sub / (ani_param + 2)
-                J_v_theory = ani_param * RV_sub / (ani_param + 2)
-
-                norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
-                norm_th = np.where(norm_th != 0, norm_th, 1e-10)
-                J_h_theory /= norm_th
-                J_v_theory /= norm_th
-                norm = np.sqrt(j_h_plot**2 + j_v_plot**2)
-                norm = np.where(norm != 0, norm, 1e-10)
-                J_h_theory *= norm
-                J_v_theory *= norm
-
-                if vect_theory:
-                    ax.quiver(
-                        RH_sub,
-                        RV_sub + offset,
-                        J_h_theory,
-                        J_v_theory,
-                        color="k",
-                        width=width,
-                        headwidth=headwidth,
-                        headlength=headlength,
-                        headaxislength=headaxislength,
-                        alpha=0.5,
-                        label=rf"$\alpha = {ani_param}$",
+                    rv_at_rmax = np.linspace(r_min, r_max, num_r)
+                    C_consts_right = rv_at_rmax / r_max**ani_param
+                    rh_at_rvmax = np.linspace(r_min, r_max, num_r)
+                    C_consts_top = r_max / rh_at_rvmax**ani_param
+                    C_consts = np.unique(
+                        np.concatenate([C_consts_right, C_consts_top])
                     )
+                    offset = (r_max - r_min) * 0.003  # Léger décalage vertical
+                    J_h_theory = RH_sub / (ani_param + 2)
+                    J_v_theory = ani_param * RV_sub / (ani_param + 2)
 
-                ax.legend(
-                    fontsize="x-large",
-                    loc="upper right",
-                    handlelength=0.5,
-                )
+                    norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
+                    norm_th = np.where(norm_th != 0, norm_th, 1e-10)
+                    J_h_theory /= norm_th
+                    J_v_theory /= norm_th
+                    norm = np.sqrt(j_h_plot**2 + j_v_plot**2)
+                    norm = np.where(norm != 0, norm, 1e-10)
+                    J_h_theory *= norm
+                    J_v_theory *= norm
+
+                    match which_theory:
+                        case True:
+                            for i, C_const in enumerate(C_consts):
+                                rv_line = C_const * rh_line**ani_param
+                                mask = (rv_line >= r_min) & (rv_line <= r_max)
+                                if mask.sum() < 2:
+                                    continue
+                                label_plot = (
+                                    rf"$r_v = \alpha\, r_h^{{{ani_param}}}$"
+                                    if i == 0
+                                    else None
+                                )
+                                ax.plot(
+                                    rh_line[mask],
+                                    rv_line[mask],
+                                    "r-",
+                                    linewidth=0.8,
+                                    alpha=0.3,
+                                    label=label_plot,
+                                )
+
+                        case "vec":
+                            ax.quiver(
+                                RH_sub,
+                                RV_sub + offset,
+                                J_h_theory,
+                                J_v_theory,
+                                color="k",
+                                width=width,
+                                headwidth=headwidth,
+                                headlength=headlength,
+                                headaxislength=headaxislength,
+                                alpha=0.5,
+                                label=rf"$\alpha = {ani_param}$",
+                            )
+
+                    ax.legend(
+                        fontsize="x-large",
+                        loc="upper right",
+                        handlelength=0.5,
+                    )
 
             quiv = ax.quiver(
                 RH_sub,
@@ -906,6 +900,8 @@ class KolmoLaw(SpecificOutput):
 
             ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
             ax.set_ylabel(RV_label, fontsize="x-large")
+            ax.set_xlim(xmin=axis_min, xmax=axis_max)
+            ax.set_ylim(ymin=axis_min, ymax=axis_max)
             plt.tight_layout()
 
             if save:
