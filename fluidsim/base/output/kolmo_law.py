@@ -711,7 +711,7 @@ class KolmoLaw(SpecificOutput):
         tmin=None,
         tmax=None,
         which_plot="JK",
-        ratio_vectors=2,
+        num_vectors=60,
         logscale=True,
         epsilon=None,
         theory=False,
@@ -731,6 +731,8 @@ class KolmoLaw(SpecificOutput):
             keys.extend(["Jh_p_hv", "Jv_p_hv"])
 
         to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
+
+        ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
 
         Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
         Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
