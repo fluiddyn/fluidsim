@@ -770,13 +770,32 @@ class KolmoLaw(SpecificOutput):
         RH_sub = RH[::ratio_vectors, ::ratio_vectors]
         RV_sub = RV[::ratio_vectors, ::ratio_vectors]
 
+        axis_max = 400
+        axis_min = 0
+        if theory is not False:
+            axis_max = 200
+            axis_min = 30
+
+        rows = (RV_sub[:, 0] >= axis_min) & (RV_sub[:, 0] <= axis_max)
+        cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
+        RH_sub = RH_sub[np.ix_(rows, cols)]
+        RV_sub = RV_sub[np.ix_(rows, cols)]
+
         title = f"$N_x={params.oper.nx}$"
 
-        def _plot(j_v, j_h, type_plot="_K", normalized=False, theory=False):
+        def _plot(
+            j_v,
+            j_h,
+            type_plot="_K",
+            normalized=False,
+            theory=False,
+            axis_min=axis_min,
+            axis_max=axis_max,
+        ):
             full_title = f"$-J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
-            j_v_plot = j_v.copy()
-            j_h_plot = j_h.copy()
+            j_v_plot = j_v[np.ix_(rows, cols)].copy()
+            j_h_plot = j_h[np.ix_(rows, cols)].copy()
             C = np.sqrt(j_v_plot**2 + j_h_plot**2)
 
             if normalized:
@@ -790,8 +809,6 @@ class KolmoLaw(SpecificOutput):
             fig, ax = self.output.figure_axe()
             ax.set_title(full_title, fontsize="x-large")
             ax.set_aspect("equal", "box")
-            axis_max = 400
-            axis_min = 0
             width = 0.002
             headwidth = 3
             headlength = 2.5
@@ -810,8 +827,6 @@ class KolmoLaw(SpecificOutput):
                     pass
 
                 case True | "vec" as which_theory:
-                    axis_max = 200
-                    axis_min = 30
                     save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
                     r_max = min(RH.max(), RV.max())
                     r_min = max(RH.min(), RV.min())
@@ -833,14 +848,16 @@ class KolmoLaw(SpecificOutput):
                     J_h_theory = RH_sub / (ani_param + 2)
                     J_v_theory = ani_param * RV_sub / (ani_param + 2)
 
+                    J_h_theory *= eta
+                    J_v_theory *= eta
+
                     norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
                     norm_th = np.where(norm_th != 0, norm_th, 1e-10)
-                    J_h_theory /= norm_th
-                    J_v_theory /= norm_th
-                    norm = np.sqrt(j_h_plot**2 + j_v_plot**2)
-                    norm = np.where(norm != 0, norm, 1e-10)
-                    J_h_theory *= norm
-                    J_v_theory *= norm
+
+                    norm_ratio = C / norm_th
+
+                    print(f"{norm_ratio=}")
+                    print(f"{np.mean(norm_ratio)=}")
 
                     match which_theory:
                         case True:
