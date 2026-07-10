@@ -242,17 +242,12 @@ Now, we take a look at $\nabla \cdot \mathbf{J} (r_h, r_v)$ normalized by $-4\ep
 
 In log-log scale:
 ```{code-cell} ipython3
-if N is not None:
-    plotted='div_J'
-else:
-    plotted='div_JK'
-print(f"{plotted=}")
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, which_plot=plotted)
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, which_plot="div_J")
 ```
 
 In linear scale:
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, logscale=False, which_plot=plotted)
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, logscale=False, which_plot="div_J")
 ```
 
 ### Vectorial plots
@@ -263,13 +258,11 @@ We first plot it almost on the full radial range:
 
 ```{code-cell} ipython3
 if N is not None:
-    plotted='J'
     aniso_param=-0.1
 else:
-    plotted='JK'
     aniso_param=1
-print(f"{plotted=}")
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot=plotted, ani_param=aniso_param, logscale=False, ratio_vectors=10, shifted=False)
+print(f"{aniso_param=}")
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot='J', ani_param=aniso_param, logscale=False)
 ```
 
 Then we zoom into the inertial range and plot in grey the vectorial field obtained with the following function:
@@ -282,5 +275,5 @@ so that only direction is compared.
 
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", theory=True, vect_theory=True, ani_param=aniso_param, logscale=False, ratio_vectors=10, shifted=False)
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", theory="vec", ani_param=aniso_param, logscale=False)
 ```
