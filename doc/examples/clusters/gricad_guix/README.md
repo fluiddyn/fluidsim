@@ -85,6 +85,9 @@ The files needed to prepare the possible environments are:
 - `$DIR_SCM_FILES/python-fluidsim.scm`: redefinition of the Fluidsim Guix package with an
   unreleased version of Fluidsim.
 
+- `$DIR_SCM_FILES/python-fluidsim-github.scm`: redefinition of the Fluidsim Guix package with an
+  unreleased version of Fluidsim from github and integration of `$DIR_SCM_FILES/manifest.scm`.
+
 One can use these different files as needed in different combinaisons. We present here
 two possibilities.
 
@@ -98,6 +101,16 @@ source /applis/site/guix-start.sh
 # This will take a while
 guix time-machine -C $DIR_SCM_FILES/channels-pinned.scm -- package \
   -m $DIR_SCM_FILES/manifest.scm -f $DIR_SCM_FILES/python-fluidsim.scm \
+  --profile=$HOME/guix-profile-fluidsim
+```
+
+If this gives an error like `guix package: error: corrupt input while restoring archive from socket` then you need to build with the github version using:
+
+```sh
+source /applis/site/guix-start.sh
+# This will take a while
+guix time-machine -C $DIR_SCM_FILES/channels-pinned.scm -- package \
+  -m $DIR_SCM_FILES/python-fluidsim-github.scm \
   --profile=$HOME/guix-profile-fluidsim
 ```
 
