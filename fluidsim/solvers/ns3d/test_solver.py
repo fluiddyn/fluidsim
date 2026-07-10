@@ -290,16 +290,23 @@ class TestOutput(TestSimulBase):
             )
             sim2.plot_freq_diss("z")
 
+            nx = sim2.params.oper.nx
+            ny = sim2.params.oper.ny
+            nz = sim2.params.oper.nz
+            size = min(nx, ny, nz)
+
             sim2.output.kolmo_law.plot_radial_dependencies()
             sim2.output.kolmo_law.plot_hv_dependencies()
-            sim2.output.kolmo_law.plot_Jhv_vector()
+            sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size)
 
             tmax = sim2.params.time_stepping.t_end
             tmin = 0.5 * sim2.params.time_stepping.t_end
 
             sim2.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax)
             sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
-            sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
+            sim2.output.kolmo_law.plot_Jhv_vector(
+                tmin=tmin, tmax=tmax, num_vectors=size
+            )
 
             result, _, _ = sim2.output.kolmo_law.load_temp_average()
 
