@@ -64,6 +64,8 @@ class BaseSpectra(SpectraBase):
 
     def _get_key_wavenumber(self, ndim, direction=None):
         if ndim == 1:
+            if direction == "h":
+                direction = "x"
             return f"k{direction}"
         else:
             return "k_spectra3d"

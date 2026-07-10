@@ -21,6 +21,7 @@ import os
 
 import numpy as np
 import h5py
+from fractions import Fraction
 
 from fluiddyn.util import mpi
 
@@ -223,7 +224,11 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         fig, ax = self.output.figure_axe()
         ax.set_xlabel(f"${key_k_label}$")
-        ax.set_ylabel("spectra")
+        if coef_compensate == 0:
+            ax.set_ylabel("$E(k)$")
+        else:
+            frac = Fraction(coef_compensate).limit_denominator()
+            ax.set_ylabel(f"$E(k)k^{{{frac}}}$")
         ax.set_title(
             f"{ndim}D spectra (tmin={tmin:.2g}, tmax={tmax:.2g})\n"
             + self.output.summary_simul
@@ -243,7 +248,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                 coef_compensate,
             )
 
-        ks = np.linspace(10 * ks[1], 0.6 * ks[-1], 4)
+        ks = np.linspace(5 * ks[1], 0.6 * ks[-1], 4)
 
         ks_no0 = ks.copy()
         ks_no0[ks == 0] = np.nan
@@ -267,8 +272,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         if ylim is not None:
             ax.set_ylim(ylim)
 
-        if ndim == 1:
-            ax.legend(loc="lower left")
+        ax.legend()
 
         return ax
 
@@ -339,7 +343,18 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         self, path_file, ndim, direction, imin_plot, imax_plot, kind=None
     ):
         with h5py.File(path_file, "r") as h5file:
-            dset_spectra = h5file[self._get_key_spectrum(ndim, direction, kind)]
+            if direction == "h":
+                dset_spectra = 0
+                directions = "xy"
+                for direction in directions:
+                    dset_spectra += h5file[
+                        self._get_key_spectrum(ndim, direction, kind)
+                    ][:]
+                dset_spectra /= 2
+            else:
+                dset_spectra = h5file[
+                    self._get_key_spectrum(ndim, direction, kind)
+                ]
             spectra = dset_spectra[imin_plot : imax_plot + 1]
             spectrum = spectra.mean(0)
             spectrum[spectrum < 10e-16] = np.nan

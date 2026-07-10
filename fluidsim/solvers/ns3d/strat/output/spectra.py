@@ -129,6 +129,8 @@ class SpectraNS3DStrat(SpectraNS3D):
         else:
             raise ValueError(f"{kind = }")
         if direction == "z":
+            style_line += "--"
+        if direction == "y":
             style_line += ":"
         return style_line
 

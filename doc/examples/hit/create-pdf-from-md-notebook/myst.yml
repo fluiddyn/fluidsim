@@ -2,5 +2,8 @@
 version: 1
 project:
   id: b13640bc-b7d3-4422-bad2-c08a81904ca0
+  settings:
+    output_matplotlib_figures: true
+    figure_dpi: 300
 site:
   template: book-theme

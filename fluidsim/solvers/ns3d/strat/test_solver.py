@@ -189,16 +189,46 @@ class TestOutput(TestSimulBase):
         )
         sim2.output.spatiotemporal_spectra.plot_temporal_spectra()
 
+        nx = sim2.params.oper.nx
+        ny = sim2.params.oper.ny
+        nz = sim2.params.oper.nz
+        size = min(nx, ny, nz)
+
         sim2.output.kolmo_law.plot_radial_dependencies()
         sim2.output.kolmo_law.plot_hv_dependencies()
-        sim2.output.kolmo_law.plot_Jhv_vector()
+        sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size)
+
+        sim2.output.kolmo_law.plot_hv_dependencies(which_plot="JK")
+        sim2.output.kolmo_law.plot_Jhv_vector(
+            num_vectors=size, which_plot="JK_norm"
+        )
+        sim2.output.kolmo_law.plot_hv_dependencies(which_plot="JP")
+        sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size, which_plot="JP")
+        sim2.output.kolmo_law.plot_hv_dependencies(which_plot="div_JP")
+        sim2.output.kolmo_law.plot_Jhv_vector(
+            num_vectors=size, which_plot="JP_norm"
+        )
+        sim2.output.kolmo_law.plot_hv_dependencies(which_plot="div_J")
+        sim2.output.kolmo_law.plot_Jhv_vector(
+            num_vectors=size, which_plot="J", theory=True, logscale=True
+        )
+
+        sim2.output.kolmo_law.plot_radial_dependencies(which_plot="J")
+        sim2.output.kolmo_law.plot_hv_dependencies(
+            vmin=0, vmax=1, which_plot="J", logscale=False
+        )
+        sim2.output.kolmo_law.plot_Jhv_vector(
+            num_vectors=size, which_plot="J_norm", theory=True, logscale=True
+        )
 
         tmax = sim2.params.time_stepping.t_end
         tmin = 0.5 * sim2.params.time_stepping.t_end
 
         sim2.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax)
         sim2.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax)
-        sim2.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax)
+        sim2.output.kolmo_law.plot_Jhv_vector(
+            tmin=tmin, tmax=tmax, num_vectors=size
+        )
 
         result, _, _ = sim2.output.kolmo_law.load_temp_average()
 

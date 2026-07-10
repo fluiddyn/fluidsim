@@ -329,6 +329,19 @@ class SpatialMeansNS3D(SpatialMeansBase):
         fig.legend()
         fig.tight_layout()
 
+    def compute_indices_tmin_tmax(self, times, tmin, tmax):
+        if tmax is None:
+            itmax = len(times) - 1
+        else:
+            itmax = abs(times - tmax).argmin()
+
+        if tmin is None:
+            itmin = 0
+        else:
+            itmin = abs(times - tmin).argmin()
+
+        return itmin, itmax
+
     def get_dimless_numbers_versus_time(self, data=None):
         """Compute dimensionless numbers"""
         if data is None:
@@ -386,7 +399,7 @@ class SpatialMeansNS3D(SpatialMeansBase):
         """Compute averaged dimensionless numbers"""
         numbers_vs_time = self.get_dimless_numbers_versus_time()
         times = numbers_vs_time["t"]
-        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        itmin, itmax = self.compute_indices_tmin_tmax(times, tmin, tmax)
         stop = itmax + 1
 
         result = {
@@ -411,40 +424,22 @@ class SpatialMeansNS3D(SpatialMeansBase):
         """Plot dimensionless numbers"""
         numbers_vs_time = self.get_dimless_numbers_versus_time()
         times = numbers_vs_time["t"]
-        itmin, itmax = _compute_indices_tmin_tmax(times, tmin, tmax)
+        itmin, itmax = self.compute_indices_tmin_tmax(times, tmin, tmax)
         stop = itmax + 1
         times = times[itmin:stop]
 
-        fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True)
-
-        keys_ax1 = ["k_max*eta", "epsK2/epsK", "Gamma"]
+        fig, ax = plt.subplots()
 
         for key, quantity in numbers_vs_time.items():
             if key in ["t", "dimensional"]:
                 continue
             quantity = quantity[itmin:stop]
 
-            if key in keys_ax1:
-                ax = ax1
-            else:
-                ax = ax0
-
             ax.plot(times, quantity, label=key)
             print(f"<{key}> = {np.mean(quantity):.3g}")
 
-        for ax in (ax0, ax1):
-            ax.set_yscale("log")
-            ax.legend()
+        ax.set_yscale("log")
+        ax.legend()
 
-        ax0.set_xlabel("$t$")
+        ax.set_xlabel("$t$")
         fig.suptitle(f"dimensionless numbers\n{self.output.summary_simul}")
-
-
-def _compute_indices_tmin_tmax(times, tmin, tmax):
-    if tmax is None:
-        itmax = len(times) - 1
-    else:
-        itmax = abs(times - tmax).argmin()
-
-    itmin = abs(times - tmin).argmin()
-    return itmin, itmax
