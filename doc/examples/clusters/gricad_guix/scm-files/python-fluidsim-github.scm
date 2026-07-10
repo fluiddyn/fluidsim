@@ -115,7 +115,7 @@
         "coreutils"
         ;"guix" ; don't think it's useful.
         "python-wrapper"
-        "openmpi"
+        "openmpi@4.1.6"
         "python-mpi4py"
         "python-h5py-mpi"
         "python-fluidfft-builder"
