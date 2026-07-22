@@ -95,10 +95,17 @@ Select the min and max values depending on the simulation.
 ```{code-cell} ipython3
 if N is None:
   tmin = 66.6
-  tmax = None 
 else:
-  tmin = 11.5
-  tmax = None
+  if N == 10:
+    tmin = 11.5
+  elif N == 2:
+    tmin = 8
+  elif N == 25:
+    tmin = 11.5
+  elif N == 0.1:
+    tmin = 12.5
+tmax = None
+
 
 print(f"{tmin=}")
 print(f"{tmax=}")
@@ -166,8 +173,9 @@ sim.output.phys_fields.plot(field="vz", equation="y=0", QUIVER=False, numfig=fig
 Buoyancy $b$ on a horizontal cut at $z = 0$: 
 
 ```{code-cell} ipython3
-fig, ax = sim.output.figure_axe()
-sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
+if N is not None:
+  fig, ax = sim.output.figure_axe()
+  sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
 # filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
 # fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
@@ -175,8 +183,9 @@ sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plo
 Buoyancy $b$ on a vertical cut at $y = 0$: 
 
 ```{code-cell} ipython3
-fig, ax = sim.output.figure_axe()
-sim.output.phys_fields.plot(field="b", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
+if N is not None:
+  fig, ax = sim.output.figure_axe()
+  sim.output.phys_fields.plot(field="b", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
 # filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
 # fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
@@ -217,7 +226,7 @@ if N is not None:
     directions="hz"
 else:
     directions=None
-fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k53=3, coef_plot_k3=300, ylim=(1e-2, 4))
+fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k2=5, coef_plot_k3=300, ylim=(1e-2, 4))
 
 # filename = graph_path / f"spectra_1d_{N}_{nx}.pdf"
 # fig_spectra.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
@@ -258,9 +267,16 @@ We first plot it almost on the full radial range:
 
 ```{code-cell} ipython3
 if N is not None:
+  if N == 10: 
     aniso_param=-0.1
+  elif N == 2:
+    aniso_param=0.8
+  elif N == 25:
+    aniso_param=0
+  elif N == 0.1:
+    aniso_param=0.7
 else:
-    aniso_param=1
+  aniso_param=1
 print(f"{aniso_param=}")
 sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot='J', ani_param=aniso_param, logscale=False)
 ```
@@ -275,5 +291,5 @@ so that only direction is compared.
 
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", theory="vec", ani_param=aniso_param, logscale=False)
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=100, which_plot="J", theory="vec", ani_param=aniso_param, logscale=False)
 ```
