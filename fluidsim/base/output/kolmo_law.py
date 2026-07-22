@@ -351,6 +351,72 @@ class KolmoLaw(SpecificOutput):
 
         return results, tmin, tmax
 
+    def _plot_scales(
+        self, ax, eta, l_O, L_int, L_b, lambda_T, dim=2, ani=True, logscale=False
+    ):
+        eta /= eta
+        to_plot = [
+            (eta, "darkorange", r"$\eta$"),
+            (L_int, "r", r"$L$"),
+        ]
+        if ani:
+            to_plot += [(l_O, "b", r"$l_O$")]
+        else:
+            to_plot += [(lambda_T, "k", r"$\lambda$")]
+
+        if logscale:
+            theta = np.linspace(1e-3, np.pi / 2 - 1e-3, 1000)
+
+        else:
+            theta = np.linspace(0, np.pi / 2, 100)
+
+        for length, color, label in to_plot:
+            rh = length * np.cos(theta)
+            rv = length * np.sin(theta)
+
+            mask = (rh > 0) & (rv > 0)
+            if dim == 2:
+                ax.plot(
+                    rh[mask],
+                    rv[mask],
+                    color=color,
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=label,
+                )
+            else:
+                ax.axvline(
+                    x=length,
+                    color=color,
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=label,
+                )
+        if ani:
+            if dim == 2:
+                ax.axhline(
+                    y=L_b,
+                    color="g",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=r"$L_b$",
+                )
+            else:
+                ax.axvline(
+                    x=L_b,
+                    color="g",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=r"$L_b$",
+                )
+            ax.axvline(
+                x=lambda_T,
+                color="k",
+                linestyle="--",
+                linewidth=1.0,
+                label=r"$\lambda$",
+            )
+
     def plot_radial_dependencies(
         self,
         tmin=None,
@@ -393,6 +459,23 @@ class KolmoLaw(SpecificOutput):
         EK = dimless_num["EKh"] + dimless_num["EKz"]
         if "b" in keys_state_phys:
             EA = dimless_num["EA"]
+
+        if "b" in keys_state_phys:
+            N = params.N
+            l_O = np.sqrt(epsilon / N**3) / eta
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
 
         with h5py.File(self.path_file, "r") as file:
             r_store = np.array(file["r_store"])
@@ -443,6 +526,9 @@ class KolmoLaw(SpecificOutput):
                 ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax1.set_xscale("log")
                 ax1.set_yscale("log")
+                self._plot_scales(
+                    ax1, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
+                )
                 ax1.set_xlim(xmax=1e3)
                 ax1.set_ylim(ymin=1e-2)
                 ax1.legend()
@@ -487,6 +573,9 @@ class KolmoLaw(SpecificOutput):
                 ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax2.set_xscale("log")
                 ax2.set_yscale("log")
+                self._plot_scales(
+                    ax2, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
+                )
                 ax2.set_xlim(xmax=1e3)
                 ax2.set_ylim(ymin=1e-2)
                 ax2.legend()
@@ -521,6 +610,9 @@ class KolmoLaw(SpecificOutput):
                 ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
                 ax3.set_xscale("log")
                 ax3.set_yscale("log")
+                self._plot_scales(
+                    ax3, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
+                )
                 ax3.set_xlim(xmax=1e3)
                 ax3.set_ylim(ymin=1e-2)
                 ax3.legend()
@@ -573,6 +665,23 @@ class KolmoLaw(SpecificOutput):
             if "b" in keys_state_phys:
                 epsilon += dimless_num["epsA"]
 
+        if "b" in keys_state_phys:
+            N = params.N
+            l_O = np.sqrt(epsilon / N**3) / eta
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
             rv_store = np.array(file["rv_store"])
@@ -616,6 +725,18 @@ class KolmoLaw(SpecificOutput):
             ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
             ax.set_title(full_title, fontsize="x-large")
             ax.set_aspect("equal", "box")
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                dim=2,
+                ani=ani,
+                logscale=logscale,
+            )
+            ax.legend()
             if logscale:
                 ax.set_xscale("log")
                 ax.set_yscale("log")
@@ -759,6 +880,23 @@ class KolmoLaw(SpecificOutput):
             if "b" in keys_state_phys:
                 epsilon += dimless_num["epsA"]
 
+        if "b" in keys_state_phys:
+            N = params.N
+            l_O = np.sqrt(epsilon / N**3) / eta
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
         RH, RV = np.meshgrid(rh_store, rv_store)
 
         RH /= eta
@@ -780,8 +918,6 @@ class KolmoLaw(SpecificOutput):
         cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
         RH_sub = RH_sub[np.ix_(rows, cols)]
         RV_sub = RV_sub[np.ix_(rows, cols)]
-
-        title = f"$N_x={params.oper.nx}$"
 
         def _plot(
             j_v,
@@ -895,12 +1031,6 @@ class KolmoLaw(SpecificOutput):
                                 label=rf"$\alpha = {ani_param}$",
                             )
 
-                    ax.legend(
-                        fontsize="x-large",
-                        loc="upper right",
-                        handlelength=0.5,
-                    )
-
             quiv = ax.quiver(
                 RH_sub,
                 RV_sub,
@@ -917,6 +1047,23 @@ class KolmoLaw(SpecificOutput):
             cbar = fig.colorbar(quiv, ax=ax)
             cbar.set_label("Amplitude", fontsize="x-large")
 
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                dim=2,
+                ani=ani,
+                logscale=logscale,
+            )
+
+            ax.legend(
+                fontsize="x-large",
+                loc="upper right",
+                handlelength=0.5,
+            )
             ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
             ax.set_ylabel(RV_label, fontsize="x-large")
             ax.set_xlim(xmin=axis_min, xmax=axis_max)
