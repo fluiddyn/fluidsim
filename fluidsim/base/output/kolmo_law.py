@@ -792,7 +792,7 @@ class KolmoLaw(SpecificOutput):
             axis_min=axis_min,
             axis_max=axis_max,
         ):
-            full_title = f"$-J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
+            full_title = f"$J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
             j_v_plot = j_v[np.ix_(rows, cols)].copy()
             j_h_plot = j_h[np.ix_(rows, cols)].copy()
@@ -845,8 +845,8 @@ class KolmoLaw(SpecificOutput):
                         np.concatenate([C_consts_right, C_consts_top])
                     )
                     offset = (r_max - r_min) * 0.003  # Léger décalage vertical
-                    J_h_theory = RH_sub / (ani_param + 2)
-                    J_v_theory = ani_param * RV_sub / (ani_param + 2)
+                    J_h_theory = -RH_sub / (ani_param + 2)
+                    J_v_theory = -(ani_param * RV_sub) / (ani_param + 2)
 
                     J_h_theory *= eta
                     J_v_theory *= eta
@@ -939,8 +939,8 @@ class KolmoLaw(SpecificOutput):
         match which_plot:
             case "JK":
                 _plot(
-                    -Jk_v / (4 * epsilon),
-                    -Jk_h / (4 * epsilon),
+                    Jk_v / (4 * epsilon),
+                    Jk_h / (4 * epsilon),
                     type_plot="_K",
                     normalized=False,
                     theory=theory,
@@ -948,32 +948,32 @@ class KolmoLaw(SpecificOutput):
 
             case "JK_norm":
                 _plot(
-                    -Jk_v / (4 * epsilon),
-                    -Jk_h / (4 * epsilon),
+                    Jk_v / (4 * epsilon),
+                    Jk_h / (4 * epsilon),
                     type_plot="_K",
                     normalized=True,
                 )
 
             case "JP":
                 _plot(
-                    -Jp_v / (4 * epsilon),
-                    -Jp_h / (4 * epsilon),
+                    Jp_v / (4 * epsilon),
+                    Jp_h / (4 * epsilon),
                     type_plot="_P",
                     normalized=False,
                 )
 
             case "JP_norm":
                 _plot(
-                    -Jp_v / (4 * epsilon),
-                    -Jp_h / (4 * epsilon),
+                    Jp_v / (4 * epsilon),
+                    Jp_h / (4 * epsilon),
                     type_plot="_P",
                     normalized=True,
                 )
 
             case "J":
                 _plot(
-                    -(Jp_v + Jk_v) / (4 * epsilon),
-                    -(Jp_h + Jk_h) / (4 * epsilon),
+                    (Jp_v + Jk_v) / (4 * epsilon),
+                    (Jp_h + Jk_h) / (4 * epsilon),
                     type_plot="",
                     normalized=False,
                     theory=theory,
@@ -981,8 +981,8 @@ class KolmoLaw(SpecificOutput):
 
             case "J_norm":
                 _plot(
-                    -(Jp_v + Jk_v) / (4 * epsilon),
-                    -(Jp_h + Jk_h) / (4 * epsilon),
+                    (Jp_v + Jk_v) / (4 * epsilon),
+                    (Jp_h + Jk_h) / (4 * epsilon),
                     type_plot="",
                     normalized=True,
                 )
