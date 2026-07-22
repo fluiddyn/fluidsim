@@ -540,7 +540,7 @@ class KolmoLaw(SpecificOutput):
         tmin=None,
         tmax=None,
         vmin=None,
-        vmax=None,
+        vmax=1.2,
         which_plot="div_JK",
         logscale=True,
         epsilon=None,

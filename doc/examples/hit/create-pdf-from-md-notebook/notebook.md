@@ -251,12 +251,12 @@ Now, we take a look at $\nabla \cdot \mathbf{J} (r_h, r_v)$ normalized by $-4\ep
 
 In log-log scale:
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, which_plot="div_J")
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, which_plot="div_J")
 ```
 
 In linear scale:
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, logscale=False, which_plot="div_J")
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, logscale=False, which_plot="div_J")
 ```
 
 ### Vectorial plots
