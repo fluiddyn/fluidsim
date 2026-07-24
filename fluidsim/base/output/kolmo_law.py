@@ -857,7 +857,10 @@ class KolmoLaw(SpecificOutput):
 
         to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
 
-        ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
+        if num_vectors is None:
+            ratio_vectors = 1
+        else:
+            ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
 
         Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
         Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
@@ -974,10 +977,7 @@ class KolmoLaw(SpecificOutput):
                     r_min = max(RH.min(), RV.min())
                     rh_line = np.linspace(r_min, r_max, 100)
 
-                    if ani_param < 0:
-                        num_r = 50
-                    else:
-                        num_r = 25
+                    num_r = 200
 
                     rv_at_rmax = np.linspace(r_min, r_max, num_r)
                     C_consts_right = rv_at_rmax / r_max**ani_param
@@ -1016,9 +1016,9 @@ class KolmoLaw(SpecificOutput):
                                 ax.plot(
                                     rh_line[mask],
                                     rv_line[mask],
-                                    "r-",
+                                    "k-",
                                     linewidth=0.8,
-                                    alpha=0.3,
+                                    alpha=0.5,
                                     label=label_plot,
                                 )
 
@@ -1036,22 +1036,34 @@ class KolmoLaw(SpecificOutput):
                                 alpha=0.5,
                                 label=rf"$\alpha = {ani_param}$",
                             )
+            if theory:
+                quiv = ax.streamplot(
+                    RH[0, :],
+                    RV[:, 0],
+                    j_h,
+                    j_v,
+                    density=5.0,
+                    color="r",
+                    linewidth=0.8,
+                    broken_streamlines=False,
+                )
+                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
+            else:
+                quiv = ax.quiver(
+                    RH_sub,
+                    RV_sub,
+                    j_h_plot,
+                    j_v_plot,
+                    C,
+                    cmap=cmap,
+                    width=width,
+                    headwidth=headwidth,
+                    headlength=headlength,
+                    headaxislength=headaxislength,
+                )
 
-            quiv = ax.quiver(
-                RH_sub,
-                RV_sub,
-                j_h_plot,
-                j_v_plot,
-                C,
-                cmap=cmap,
-                width=width,
-                headwidth=headwidth,
-                headlength=headlength,
-                headaxislength=headaxislength,
-            )
-
-            cbar = fig.colorbar(quiv, ax=ax)
-            cbar.set_label("Amplitude", fontsize="x-large")
+                cbar = fig.colorbar(quiv, ax=ax)
+                cbar.set_label("Amplitude", fontsize="x-large")
 
             self._plot_scales(
                 ax,
