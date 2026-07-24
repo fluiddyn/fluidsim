@@ -104,10 +104,9 @@ else:
   elif N == 2:
     tmin = 8
   elif N == 25:
-    if nz == 640:
-      tmin = 11.5
-    elif nz == 1024:
-      tmin = 17.4
+    tmin = 11.5
+  elif N == 20:
+    tmin = 17.4
   elif N == 0.1:
     tmin = 12.5
 tmax = None
@@ -286,6 +285,8 @@ if N is not None:
   elif N == 2:
     aniso_param=0.67
   elif N == 25:
+    aniso_param=0
+  elif N == 20:
     aniso_param=0.05
   elif N == 0.1:
     aniso_param=0.7
