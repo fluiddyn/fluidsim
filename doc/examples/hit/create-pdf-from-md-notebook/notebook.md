@@ -97,11 +97,17 @@ if N is None:
   tmin = 66.6
 else:
   if N == 10:
-    tmin = 11.5
+    if nz == 640:
+      tmin = 11.5
+    elif nz == 1024:
+      tmin = 12
   elif N == 2:
     tmin = 8
   elif N == 25:
-    tmin = 11.5
+    if nz == 640:
+      tmin = 11.5
+    elif nz == 1024:
+      tmin = 17.4
   elif N == 0.1:
     tmin = 12.5
 tmax = None
@@ -259,6 +265,11 @@ In linear scale:
 sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, logscale=False, which_plot="div_J")
 ```
 
+In log-polar:
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, which_plot="div_J", polar=True)
+```
+
 ### Vectorial plots
 
 Here, we directly take a look at the vectorial field $\mathbf{J} (r_h, r_v)$ normalized by $-4\epsilon$.
@@ -267,12 +278,15 @@ We first plot it almost on the full radial range:
 
 ```{code-cell} ipython3
 if N is not None:
-  if N == 10: 
-    aniso_param=-0.1
+  if N == 10:
+    if nz == 640:
+      aniso_param=-0.1
+    elif nz == 1024:
+      aniso_param=0.35
   elif N == 2:
-    aniso_param=0.8
+    aniso_param=0.67
   elif N == 25:
-    aniso_param=0
+    aniso_param=0.05
   elif N == 0.1:
     aniso_param=0.7
 else:
@@ -289,7 +303,12 @@ $$
 with $\alpha$ an anisotropic parameter. Note that in the plot the amplitudes of the "theretical vectors" are normalized by the amplitudes of the real vectors
 so that only direction is compared. 
 
-
 ```{code-cell} ipython3
 sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=100, which_plot="J", theory="vec", ani_param=aniso_param, logscale=False)
+```
+
+Comparison of streamlines
+
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=None, which_plot="J", theory=True, ani_param=aniso_param, logscale=False)
 ```
