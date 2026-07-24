@@ -7,3 +7,5 @@ figures.pdf:
 
 cleanall:
 	rm -f *.pdf
+	rm -rf _build/execute/
+	rm -rf _build/cache/
