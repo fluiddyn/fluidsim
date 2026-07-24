@@ -352,11 +352,21 @@ class KolmoLaw(SpecificOutput):
         return results, tmin, tmax
 
     def _plot_scales(
-        self, ax, eta, l_O, L_int, L_b, lambda_T, dim=2, ani=True, logscale=False
+        self,
+        ax,
+        eta,
+        l_O,
+        L_int,
+        L_b,
+        lambda_T,
+        dim=2,
+        ani=True,
+        logscale=False,
+        polar=False,
     ):
-        eta /= eta
+        eta_norm = eta / eta
         to_plot = [
-            (eta, "darkorange", r"$\eta$"),
+            (eta_norm, "darkorange", r"$\eta$"),
             (L_int, "r", r"$L$"),
         ]
         if ani:
@@ -364,58 +374,133 @@ class KolmoLaw(SpecificOutput):
         else:
             to_plot += [(lambda_T, "k", r"$\lambda$")]
 
-        if logscale:
+        if polar:
+            for length, color, label in to_plot:
+                if length > 0:
+                    theta_circle = np.linspace(0, np.pi / 2, 200)
+                    log_r_circle = np.full_like(theta_circle, np.log10(length))
+                    ax.plot(
+                        theta_circle,
+                        log_r_circle,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+
+            if ani:
+                ax.plot(
+                    np.pi / 2,
+                    np.log10(L_b),
+                    "o",
+                    color="g",
+                    markersize=8,
+                    label=r"$L_b$",
+                )
+
+                ax.plot(
+                    0,
+                    np.log10(lambda_T),
+                    "o",
+                    color="k",
+                    markersize=8,
+                    label=r"$\lambda$",
+                )
+
+        elif logscale:
             theta = np.linspace(1e-3, np.pi / 2 - 1e-3, 1000)
+            for length, color, label in to_plot:
+                rh = length * np.cos(theta)
+                rv = length * np.sin(theta)
+                mask = (rh > 0) & (rv > 0)
+                if dim == 2:
+                    ax.plot(
+                        rh[mask],
+                        rv[mask],
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+                else:
+                    ax.axvline(
+                        x=length,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+            if ani:
+                if dim == 2:
+                    ax.axhline(
+                        y=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                else:
+                    ax.axvline(
+                        x=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                ax.axvline(
+                    x=lambda_T,
+                    color="k",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=r"$\lambda$",
+                )
 
         else:
             theta = np.linspace(0, np.pi / 2, 100)
-
-        for length, color, label in to_plot:
-            rh = length * np.cos(theta)
-            rv = length * np.sin(theta)
-
-            mask = (rh > 0) & (rv > 0)
-            if dim == 2:
-                ax.plot(
-                    rh[mask],
-                    rv[mask],
-                    color=color,
-                    linestyle="--",
-                    linewidth=1.0,
-                    label=label,
-                )
-            else:
+            for length, color, label in to_plot:
+                rh = length * np.cos(theta)
+                rv = length * np.sin(theta)
+                if dim == 2:
+                    ax.plot(
+                        rh,
+                        rv,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+                else:
+                    ax.axvline(
+                        x=length,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+            if ani:
+                if dim == 2:
+                    ax.axhline(
+                        y=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                else:
+                    ax.axvline(
+                        x=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
                 ax.axvline(
-                    x=length,
-                    color=color,
+                    x=lambda_T,
+                    color="k",
                     linestyle="--",
                     linewidth=1.0,
-                    label=label,
+                    label=r"$\lambda$",
                 )
-        if ani:
-            if dim == 2:
-                ax.axhline(
-                    y=L_b,
-                    color="g",
-                    linestyle="--",
-                    linewidth=1.0,
-                    label=r"$L_b$",
-                )
-            else:
-                ax.axvline(
-                    x=L_b,
-                    color="g",
-                    linestyle="--",
-                    linewidth=1.0,
-                    label=r"$L_b$",
-                )
-            ax.axvline(
-                x=lambda_T,
-                color="k",
-                linestyle="--",
-                linewidth=1.0,
-                label=r"$\lambda$",
-            )
 
     def plot_radial_dependencies(
         self,
@@ -498,8 +583,6 @@ class KolmoLaw(SpecificOutput):
             Jl_p_comp = -to_plot["Jl_p_r"] / (r_store**coef_comp3)
             divJ_p = -to_plot["divJ_p_r"] / (4 * epsilon)
             S2_p_comp = to_plot["S2_p_r"] / (r_store**coef_comp2)
-
-        title = f"$N_x={params.oper.nx}$"
 
         match which_plot:
             case "J":
@@ -637,6 +720,7 @@ class KolmoLaw(SpecificOutput):
         vmax=1.2,
         which_plot="div_JK",
         logscale=True,
+        polar=False,
         epsilon=None,
         cmap="plasma",
         save=False,
@@ -702,9 +786,9 @@ class KolmoLaw(SpecificOutput):
             Jp_l_comp = -to_plot["Jl_p_hv"] / ((radius + 1e-14) * epsilon)
             divJp_hv = -to_plot["divJ_p_hv"] / (4 * epsilon)
 
-        title = f"$N_x={params.oper.nx}$"
-
-        def _plot(j_l, cmap, vmin, vmax, type_plot="K", divergence=False):
+        def _plot(
+            j_l, cmap, vmin, vmax, type_plot="K", divergence=False, polar=False
+        ):
             coma = ""
             if type_plot != "":
                 coma = ","
@@ -715,40 +799,73 @@ class KolmoLaw(SpecificOutput):
             if divergence:
                 full_title = f"$-\\nabla \\cdot J_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
                 save_name_file = f"divJ{type_plot}_hv.png"
-            fig, ax = self.output.figure_axe()
-            im = ax.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
-                j_l,
-                cmap=cmap,
-                vmin=vmin,
-                vmax=vmax,
-            )
-            fig.colorbar(im, ax=ax)
-            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax.set_title(full_title, fontsize="x-large")
-            ax.set_aspect("equal", "box")
-            self._plot_scales(
-                ax,
-                eta,
-                l_O,
-                L_int,
-                L_b,
-                lambda_T,
-                dim=2,
-                ani=ani,
-                logscale=logscale,
-            )
-            ax.legend()
-            if logscale:
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                ax.set_xlim(xmin=1, xmax=400)
-                ax.set_ylim(ymin=1, ymax=400)
+            if polar:
+                R = np.sqrt(RH[1:] ** 2 + RV[1:] ** 2) / eta
+                Theta = np.arctan2(RV[1:], RH[1:])
+
+                log_R = np.log10(R + 1e-14)
+
+                fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+                im = ax.pcolormesh(
+                    Theta, log_R, j_l, cmap=cmap, vmin=vmin, vmax=vmax
+                )
+                fig.colorbar(im, ax=ax)
+
+                r_ticks = [1, 10, 100]
+                ax.set_rticks([np.log10(r) for r in r_ticks])
+                ax.set_yticklabels([str(r) for r in r_ticks])
+                self._plot_scales(
+                    ax,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    dim=2,
+                    ani=ani,
+                    logscale=logscale,
+                    polar=polar,
+                )
+                ax.legend()
+                ax.set_thetamin(-90)
+                ax.set_thetamax(90)
+                ax.set_rmin(np.log10(1))
+                ax.set_rmax(np.log10(400))
             else:
-                ax.set_xlim(xmin=0, xmax=400)
-                ax.set_ylim(ymin=0, ymax=400)
+                fig, ax = self.output.figure_axe()
+                im = ax.pcolormesh(
+                    RH[1:] / eta,
+                    RV[1:] / eta,
+                    j_l,
+                    cmap=cmap,
+                    vmin=vmin,
+                    vmax=vmax,
+                )
+                fig.colorbar(im, ax=ax)
+                ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+                ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+                ax.set_aspect("equal", "box")
+                self._plot_scales(
+                    ax,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    dim=2,
+                    ani=ani,
+                    logscale=logscale,
+                )
+                ax.legend()
+                if logscale:
+                    ax.set_xscale("log")
+                    ax.set_yscale("log")
+                    ax.set_xlim(xmin=1, xmax=400)
+                    ax.set_ylim(ymin=1, ymax=400)
+                else:
+                    ax.set_xlim(xmin=0, xmax=400)
+                    ax.set_ylim(ymin=0, ymax=400)
+            ax.set_title(full_title, fontsize="x-large")
             plt.tight_layout()
             if save:
                 plt.savefig(save_name_file, dpi=300)
@@ -774,6 +891,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="K",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_JK":
@@ -784,6 +902,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="K",
                     divergence=True,
+                    polar=polar,
                 )
 
             case "JP":
@@ -794,6 +913,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="P",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_JP":
@@ -804,6 +924,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="P",
                     divergence=True,
+                    polar=polar,
                 )
 
             case "J":
@@ -814,6 +935,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_J":
@@ -824,6 +946,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="",
                     divergence=True,
+                    polar=polar,
                 )
             case _:
                 raise ValueError(
