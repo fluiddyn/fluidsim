@@ -461,8 +461,8 @@ class KolmoLaw(SpecificOutput):
             EA = dimless_num["EA"]
 
         if "b" in keys_state_phys:
-            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
             l_O = np.sqrt(epsilon / N**3) / eta
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
@@ -668,8 +668,8 @@ class KolmoLaw(SpecificOutput):
                 epsilon += dimless_num["epsA"]
 
         if "b" in keys_state_phys:
-            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
             l_O = np.sqrt(epsilon / N**3) / eta
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
@@ -885,8 +885,8 @@ class KolmoLaw(SpecificOutput):
                 epsilon += dimless_num["epsA"]
 
         if "b" in keys_state_phys:
-            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
             l_O = np.sqrt(epsilon / N**3) / eta
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
