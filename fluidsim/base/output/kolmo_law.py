@@ -614,9 +614,9 @@ class KolmoLaw(SpecificOutput):
                 self._plot_scales(
                     ax1, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
                 )
+                ax1.legend()
                 ax1.set_xlim(xmax=1e3)
                 ax1.set_ylim(ymin=1e-2)
-                ax1.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("J_L_r_compensate.png", dpi=300)
@@ -661,9 +661,9 @@ class KolmoLaw(SpecificOutput):
                 self._plot_scales(
                     ax2, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
                 )
+                ax2.legend()
                 ax2.set_xlim(xmax=1e3)
                 ax2.set_ylim(ymin=1e-2)
-                ax2.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("divJ_L_r_comp.png", dpi=300)
@@ -698,9 +698,9 @@ class KolmoLaw(SpecificOutput):
                 self._plot_scales(
                     ax3, eta, l_O, L_int, L_b, lambda_T, dim=1, ani=ani
                 )
+                ax3.legend()
                 ax3.set_xlim(xmax=1e3)
                 ax3.set_ylim(ymin=1e-2)
-                ax3.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("S2_r_comp.png", dpi=300)
