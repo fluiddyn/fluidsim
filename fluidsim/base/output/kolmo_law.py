@@ -394,7 +394,7 @@ class KolmoLaw(SpecificOutput):
                     np.log10(L_b),
                     "o",
                     color="g",
-                    markersize=8,
+                    markersize=4,
                     label=r"$L_b$",
                 )
 
@@ -403,7 +403,7 @@ class KolmoLaw(SpecificOutput):
                     np.log10(lambda_T),
                     "o",
                     color="k",
-                    markersize=8,
+                    markersize=4,
                     label=r"$\lambda$",
                 )
 
@@ -1100,7 +1100,7 @@ class KolmoLaw(SpecificOutput):
                     r_min = max(RH.min(), RV.min())
                     rh_line = np.linspace(r_min, r_max, 100)
 
-                    num_r = 200
+                    num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
 
                     rv_at_rmax = np.linspace(r_min, r_max, num_r)
                     C_consts_right = rv_at_rmax / r_max**ani_param
@@ -1132,7 +1132,7 @@ class KolmoLaw(SpecificOutput):
                                 if mask.sum() < 2:
                                     continue
                                 label_plot = (
-                                    rf"$r_v = \alpha\, r_h^{{{ani_param}}}$"
+                                    rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
                                     if i == 0
                                     else None
                                 )
@@ -1159,13 +1159,13 @@ class KolmoLaw(SpecificOutput):
                                 alpha=0.5,
                                 label=rf"$\alpha = {ani_param}$",
                             )
-            if theory:
+            if theory is True:
                 quiv = ax.streamplot(
                     RH[0, :],
                     RV[:, 0],
                     j_h,
                     j_v,
-                    density=5.0,
+                    density=2.5,
                     color="r",
                     linewidth=0.8,
                     broken_streamlines=False,
