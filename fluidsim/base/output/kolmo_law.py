@@ -461,15 +461,17 @@ class KolmoLaw(SpecificOutput):
             EA = dimless_num["EA"]
 
         if "b" in keys_state_phys:
+            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
             l_O = np.sqrt(epsilon / N**3) / eta
-            title = f"$N_x={params.oper.nx}, N={N}$"
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
             L_b = u_h / N / eta
             ani = True
         else:
             title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
             ani = False
 
         EK = dimless_num["EKh"] + dimless_num["EKz"]
@@ -666,15 +668,17 @@ class KolmoLaw(SpecificOutput):
                 epsilon += dimless_num["epsA"]
 
         if "b" in keys_state_phys:
+            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
             l_O = np.sqrt(epsilon / N**3) / eta
-            title = f"$N_x={params.oper.nx}, N={N}$"
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
             L_b = u_h / N / eta
             ani = True
         else:
             title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
             ani = False
 
         EK = dimless_num["EKh"] + dimless_num["EKz"]
@@ -881,15 +885,17 @@ class KolmoLaw(SpecificOutput):
                 epsilon += dimless_num["epsA"]
 
         if "b" in keys_state_phys:
+            title = f"$N_x={params.oper.nx}, N={N}$"
             N = params.N
             l_O = np.sqrt(epsilon / N**3) / eta
-            title = f"$N_x={params.oper.nx}, N={N}$"
             EKh = dimless_num["EKh"]
             u_h = np.sqrt(EKh)
             L_b = u_h / N / eta
             ani = True
         else:
             title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
             ani = False
 
         EK = dimless_num["EKh"] + dimless_num["EKz"]
