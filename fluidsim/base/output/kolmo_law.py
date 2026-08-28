@@ -1015,8 +1015,8 @@ class KolmoLaw(SpecificOutput):
                             )
             if theory is True:
                 quiv = ax.streamplot(
-                    pos_x[0, :],
-                    pos_y[:, 0],
+                    RH[0, :],
+                    RV[:, 0],
                     j_h,
                     j_v,
                     density=2.5,
