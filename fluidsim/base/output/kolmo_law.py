@@ -719,6 +719,7 @@ class KolmoLaw(SpecificOutput):
         vmin=None,
         vmax=1.2,
         which_plot="div_JK",
+        overlay_vectors=False,
         logscale=True,
         polar=False,
         epsilon=None,
@@ -792,12 +793,10 @@ class KolmoLaw(SpecificOutput):
             coma = ""
             if type_plot != "":
                 coma = ","
-            full_title = (
-                f"$-J_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
-            )
+            full_title = f"$-\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
             save_name_file = f"J{type_plot}_L_hv.png"
             if divergence:
-                full_title = f"$-\\nabla \\cdot J_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
+                full_title = f"$-\\nabla \\cdot \mathbf{{J}}_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
                 save_name_file = f"divJ{type_plot}_hv.png"
             if polar:
                 R = np.sqrt(RH[1:] ** 2 + RV[1:] ** 2) / eta
@@ -961,6 +960,7 @@ class KolmoLaw(SpecificOutput):
         which_plot="JK",
         num_vectors=60,
         logscale=True,
+        vect_scale=500,
         epsilon=None,
         theory=False,
         ani_param=1,
@@ -973,29 +973,6 @@ class KolmoLaw(SpecificOutput):
         state = self.sim.state
         keys_state_phys = state.keys_state_phys
         params = self.sim.params
-
-        keys = ["Jh_k_hv", "Jv_k_hv"]
-        if "b" in keys_state_phys:
-            keys.extend(["Jh_p_hv", "Jv_p_hv"])
-
-        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
-
-        if num_vectors is None:
-            ratio_vectors = 1
-        else:
-            ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
-
-        Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
-        Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
-        if "b" in keys_state_phys:
-            Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
-            Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
-
-        with h5py.File(self.path_file, "r") as file:
-            rh_store = np.array(file["rh_store"])
-            rv_store = np.array(file["rv_store"])
-
-        RH, RV = np.meshgrid(rh_store, rv_store)
 
         dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
             tmin=tmin, tmax=tmax
@@ -1029,16 +1006,59 @@ class KolmoLaw(SpecificOutput):
         L_int = u_rms**3 / epsilon / eta
         lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
 
-        RH, RV = np.meshgrid(rh_store, rv_store)
+        keys = ["Jh_k_hv", "Jv_k_hv"]
+        if "b" in keys_state_phys:
+            keys.extend(["Jh_p_hv", "Jv_p_hv"])
 
+        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
+        with h5py.File(self.path_file, "r") as file:
+            rh_store = np.array(file["rh_store"])
+            rv_store = np.array(file["rv_store"])
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
         RH /= eta
 
         RV_label = r"$r_v/\eta$"
 
         RV /= eta
 
-        RH_sub = RH[::ratio_vectors, ::ratio_vectors]
-        RV_sub = RV[::ratio_vectors, ::ratio_vectors]
+        if not logscale:
+            if num_vectors is None:
+                ratio_vectors = 1
+            else:
+                ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
+
+            Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
+            Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
+            if "b" in keys_state_phys:
+                Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
+                Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
+            RH_sub = RH[::ratio_vectors, ::ratio_vectors]
+            RV_sub = RV[::ratio_vectors, ::ratio_vectors]
+        else:
+            if num_vectors == 60:
+                num_vectors /= 3
+            n_dec = np.log10(rh_store.max() + 1e-14) - np.log10(
+                rh_store[rh_store > 0].min()
+            )
+            min_log_step = n_dec / num_vectors
+
+            cell_h = np.round(np.log10(RH + 1e-14) / min_log_step).astype(int)
+            cell_v = np.round(np.log10(RV + 1e-14) / min_log_step).astype(int)
+            pairs = np.stack([cell_h.ravel(), cell_v.ravel()], axis=1)
+            _, idx = np.unique(pairs, axis=0, return_index=True)
+            keep = np.zeros(RH.size, dtype=bool)
+            keep[idx] = True
+            keep = keep.reshape(RH.shape)
+
+            Jk_h = np.where(keep, to_plot["Jh_k_hv"], np.nan)
+            Jk_v = np.where(keep, to_plot["Jv_k_hv"], np.nan)
+
+            if "b" in keys_state_phys:
+                Jp_h = np.where(keep, to_plot["Jh_p_hv"], np.nan)
+                Jp_v = np.where(keep, to_plot["Jv_p_hv"], np.nan)
+            RH_sub = RH
+            RV_sub = RV
 
         axis_max = 400
         axis_min = 0
@@ -1050,6 +1070,7 @@ class KolmoLaw(SpecificOutput):
         cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
         RH_sub = RH_sub[np.ix_(rows, cols)]
         RV_sub = RV_sub[np.ix_(rows, cols)]
+        vect_scale = vect_scale
 
         def _plot(
             j_v,
@@ -1059,28 +1080,33 @@ class KolmoLaw(SpecificOutput):
             theory=False,
             axis_min=axis_min,
             axis_max=axis_max,
+            vect_scale=vect_scale,
         ):
-            full_title = f"$J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
+            full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
             j_v_plot = j_v[np.ix_(rows, cols)].copy()
             j_h_plot = j_h[np.ix_(rows, cols)].copy()
-            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
 
             if normalized:
-                full_title = f"$Normalized -J{type_plot}(r_h,r_v)$, {title}"
+                full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon \| \mathbf{{r}} \|$, {title}"
                 save_name_file = f"J{type_plot}_vector_hv_normalized.png"
                 RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
                 RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
-                j_v_plot /= RV_safe
-                j_h_plot /= RH_safe
+                norm_r = np.sqrt(RH_safe**2 + RV_safe**2)
+                j_v_plot /= norm_r
+                j_h_plot /= norm_r
+                vect_scale *= 1.5
 
+            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
             fig, ax = self.output.figure_axe()
             ax.set_title(full_title, fontsize="x-large")
             ax.set_aspect("equal", "box")
+            cmap_obj = plt.get_cmap(cmap).copy()
             width = 0.002
             headwidth = 3
             headlength = 2.5
             headaxislength = 2.5
+            scale = None
             if logscale:
                 axis_min = 1
                 ax.set_xscale("log")
@@ -1089,6 +1115,12 @@ class KolmoLaw(SpecificOutput):
                 headwidth = 2
                 headlength = 1.5
                 headaxislength = 1.5
+                keep_win = keep[np.ix_(rows, cols)]
+                C = np.where(keep_win, C, np.nan)
+                cmap_obj.set_bad("white")
+                amean = np.nanmean(C[C > 0])
+                span = axis_max - axis_min
+                scale = vect_scale * amean * num_vectors / span
 
             match theory:
                 case False:
@@ -1170,7 +1202,7 @@ class KolmoLaw(SpecificOutput):
                     linewidth=0.8,
                     broken_streamlines=False,
                 )
-                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
+                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{{J}}$")
             else:
                 quiv = ax.quiver(
                     RH_sub,
@@ -1178,7 +1210,9 @@ class KolmoLaw(SpecificOutput):
                     j_h_plot,
                     j_v_plot,
                     C,
-                    cmap=cmap,
+                    cmap=cmap_obj,
+                    scale=scale,
+                    # scale_units="xy",
                     width=width,
                     headwidth=headwidth,
                     headlength=headlength,
