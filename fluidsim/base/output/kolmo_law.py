@@ -603,7 +603,7 @@ class KolmoLaw(SpecificOutput):
                         label="$J_L = J_{K,L} + J_{P,L}$",
                     )
                 ax1.plot(
-                    r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical"
+                    r_store[1:] / eta, Jl_k_th[1:], "r:", label="4/3 theoretical"
                 )
                 ax1.set_title(
                     f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
@@ -684,7 +684,7 @@ class KolmoLaw(SpecificOutput):
                 ax3.plot(
                     r_store[1:] / eta,
                     S2_k_th[1:],
-                    "r--",
+                    "r:",
                     label="22/3 theoretical",
                 )
                 ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
@@ -996,7 +996,25 @@ class KolmoLaw(SpecificOutput):
         cmap="plasma",
         save=False,
     ):
-        """Plot vector field of J in (rho, z) plane."""
+        """Plot vector field of J in (rho, z) plane.
+
+        Parameters
+        ----------
+        which_plot : str, default "JK"
+            Field to plot: "JK", "JP", "J", or their normalized by r, "_norm", variants.
+        num_vectors : int, default 60
+            Target number of arrows per axis (per decade in logscale).
+            If logscale is True and theory is "vec" then 30 is a good value.
+        logscale : bool, default True
+            Use logarithmic axes.
+        vect_scale : float, default 500
+            Arrow length calibration factor.
+            If logscale is True and theory is "vec" then 100 is a good value.
+        theory : bool or str, default False
+            False, True (streamlines), or "vec" (theoretical arrows).
+        ani_param : float, default 1
+            Anisotropy exponent for the theoretical field.
+        """
         self._raise_parallel_error("plot_Jhv_vector")
 
         state = self.sim.state
@@ -1137,7 +1155,8 @@ class KolmoLaw(SpecificOutput):
             headaxislength = 2.5
             scale = None
             if logscale:
-                axis_min = 1
+                if theory is False:
+                    axis_min = 1
                 ax.set_xscale("log")
                 ax.set_yscale("log")
                 width = 0.002
@@ -1170,12 +1189,20 @@ class KolmoLaw(SpecificOutput):
                     C_consts = np.unique(
                         np.concatenate([C_consts_right, C_consts_top])
                     )
-                    offset = (r_max - r_min) * 0.003  # Léger décalage vertical
+                    offset = (r_max - r_min) * 0.003
                     J_h_theory = -RH_sub / (ani_param + 2)
                     J_v_theory = -(ani_param * RV_sub) / (ani_param + 2)
 
                     J_h_theory *= eta
                     J_v_theory *= eta
+
+                    if normalized:
+                        J_h_theory /= norm_r
+                        J_v_theory /= norm_r
+
+                    if logscale:
+                        J_h_theory = np.where(keep_win, J_h_theory, np.nan)
+                        J_v_theory = np.where(keep_win, J_v_theory, np.nan)
 
                     norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
                     norm_th = np.where(norm_th != 0, norm_th, 1e-10)
@@ -1213,6 +1240,7 @@ class KolmoLaw(SpecificOutput):
                                 J_h_theory,
                                 J_v_theory,
                                 color="k",
+                                scale=scale,
                                 width=width,
                                 headwidth=headwidth,
                                 headlength=headlength,
@@ -1241,7 +1269,6 @@ class KolmoLaw(SpecificOutput):
                     C,
                     cmap=cmap_obj,
                     scale=scale,
-                    # scale_units="xy",
                     width=width,
                     headwidth=headwidth,
                     headlength=headlength,
@@ -1303,6 +1330,7 @@ class KolmoLaw(SpecificOutput):
                     Jk_h / (4 * epsilon),
                     type_plot="_K",
                     normalized=True,
+                    theory=theory,
                 )
 
             case "JP":
@@ -1311,6 +1339,7 @@ class KolmoLaw(SpecificOutput):
                     Jp_h / (4 * epsilon),
                     type_plot="_P",
                     normalized=False,
+                    theory=theory,
                 )
 
             case "JP_norm":
@@ -1319,6 +1348,7 @@ class KolmoLaw(SpecificOutput):
                     Jp_h / (4 * epsilon),
                     type_plot="_P",
                     normalized=True,
+                    theory=theory,
                 )
 
             case "J":
@@ -1336,6 +1366,7 @@ class KolmoLaw(SpecificOutput):
                     (Jp_h + Jk_h) / (4 * epsilon),
                     type_plot="",
                     normalized=True,
+                    theory=theory,
                 )
 
             case _:
