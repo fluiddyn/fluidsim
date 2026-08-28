@@ -712,34 +712,459 @@ class KolmoLaw(SpecificOutput):
                 )
         plt.show()
 
-    def _plot_vectors(
+    def plot_Jhv_vector(
         self,
-        ax,
-        RH,
-        RV,
-        j_h,
-        j_v,
-        color_by_amplitude=True,
-        color="w",
+        tmin=None,
+        tmax=None,
+        which_plot="JK",
+        axes=None,
+        num_vectors=None,
+        logscale=True,
+        polar=False,
+        vect_scale=None,
+        epsilon=None,
+        theory=False,
+        ani_param=1,
         cmap="plasma",
-        logscale=False,
-        quiver_kwargs=None,
+        save=False,
     ):
-        """PLot vector J on `ax`."""
-        defaults = dict(
-            width=0.002, headwidth=3, headlength=2.5, headaxislength=2.5
-        )
-        if logscale:
-            defaults.update(headwidth=2, headlength=1.5, headaxislength=1.5)
-        if quiver_kwargs:
-            defaults.update(quiver_kwargs)
+        """Plot vector field of J in (rho, z) plane.
 
-        if color_by_amplitude:
-            C = np.sqrt(j_h**2 + j_v**2)
-            quiv = ax.quiver(RH, RV, j_h, j_v, C, cmap=cmap, **defaults)
-            return quiv
+        Parameters
+        ----------
+        which_plot : str, default "JK"
+            Field to plot: "JK", "JP", "J", or their normalized by r, "_norm", variants.
+        num_vectors : int, default 60
+            Target number of arrows per axis (per decade in logscale).
+            If logscale is True and theory is "vec" then 30 is a good value.
+        logscale : bool, default True
+            Use logarithmic axes.
+        vect_scale : float, default 500
+            Arrow length calibration factor.
+            If logscale is True and theory is "vec" then 100 is a good value.
+        theory : bool or str, default False
+            False, True (streamlines), or "vec" (theoretical arrows).
+        ani_param : float, default 1
+            Anisotropy exponent for the theoretical field.
+        """
+        self._raise_parallel_error("plot_Jhv_vector")
+
+        state = self.sim.state
+        keys_state_phys = state.keys_state_phys
+        params = self.sim.params
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        try:
+            eta = dimless_num["eta"]
+        except KeyError:
+            warn("KeyError: 'eta' not available; eta is set to unity")
+            eta = 1
+        if epsilon is None:
+            epsilon = dimless_num["epsK"]
+            if "b" in keys_state_phys:
+                epsilon += dimless_num["epsA"]
+
+        if "b" in keys_state_phys:
+            N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            l_O = np.sqrt(epsilon / N**3) / eta
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
         else:
-            return ax.quiver(RH, RV, j_h, j_v, color=color, **defaults)
+            title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
+        keys = ["Jh_k_hv", "Jv_k_hv"]
+        if "b" in keys_state_phys:
+            keys.extend(["Jh_p_hv", "Jv_p_hv"])
+
+        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
+        with h5py.File(self.path_file, "r") as file:
+            rh_store = np.array(file["rh_store"])
+            rv_store = np.array(file["rv_store"])
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
+        RH /= eta
+
+        RV_label = r"$r_v/\eta$"
+
+        RV /= eta
+
+        if not logscale:
+            if not num_vectors:
+                ratio_vectors = 1
+            else:
+                if num_vectors is None:
+                    num_vectors = 60
+                ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
+
+            Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
+            Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
+            if "b" in keys_state_phys:
+                Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
+                Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
+            RH_sub = RH[::ratio_vectors, ::ratio_vectors]
+            RV_sub = RV[::ratio_vectors, ::ratio_vectors]
+
+        else:
+            if num_vectors is None:
+                num_vectors = 20
+            n_dec = np.log10(rh_store.max() + 1e-14) - np.log10(
+                rh_store[rh_store > 0].min()
+            )
+            min_log_step = n_dec / num_vectors
+
+            cell_h = np.round(np.log10(RH + 1e-14) / min_log_step).astype(int)
+            cell_v = np.round(np.log10(RV + 1e-14) / min_log_step).astype(int)
+            pairs = np.stack([cell_h.ravel(), cell_v.ravel()], axis=1)
+            _, idx = np.unique(pairs, axis=0, return_index=True)
+            keep = np.zeros(RH.size, dtype=bool)
+            keep[idx] = True
+            keep = keep.reshape(RH.shape)
+
+            Jk_h = np.where(keep, to_plot["Jh_k_hv"], np.nan)
+            Jk_v = np.where(keep, to_plot["Jv_k_hv"], np.nan)
+
+            if "b" in keys_state_phys:
+                Jp_h = np.where(keep, to_plot["Jh_p_hv"], np.nan)
+                Jp_v = np.where(keep, to_plot["Jv_p_hv"], np.nan)
+            RH_sub = RH
+            RV_sub = RV
+
+        axis_max = 400
+        axis_min = 0
+        if theory is not False:
+            axis_max = 200
+            axis_min = 30
+
+        rows = (RV_sub[:, 0] >= axis_min) & (RV_sub[:, 0] <= axis_max)
+        cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
+        RH_sub = RH_sub[np.ix_(rows, cols)]
+        RV_sub = RV_sub[np.ix_(rows, cols)]
+
+        if vect_scale is None:
+            if "norm" in which_plot:
+                vect_scale = 750
+            else:
+                vect_scale = 500
+
+        def _plot(
+            j_v,
+            j_h,
+            type_plot="_K",
+            normalized=False,
+            theory=False,
+            polar=polar,
+            axis_min=axis_min,
+            axis_max=axis_max,
+            vect_scale=vect_scale,
+            axes=axes,
+        ):
+            full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
+            save_name_file = f"J{type_plot}_vector_hv.png"
+            j_v_plot = j_v[np.ix_(rows, cols)].copy()
+            j_h_plot = j_h[np.ix_(rows, cols)].copy()
+
+            if polar:
+                R = np.sqrt(RH_sub**2 + RV_sub**2)
+                Theta = np.arctan2(RV_sub, RH_sub)
+                log_R = np.log10(R + 1e-14)
+                pos_x, pos_y = Theta, log_R
+            else:
+                pos_x, pos_y = RH_sub, RV_sub
+
+            if normalized:
+                full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon \| \mathbf{{r}} \|$, {title}"
+                save_name_file = f"J{type_plot}_vector_hv_normalized.png"
+                RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
+                RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
+                norm_r = np.sqrt(RH_safe**2 + RV_safe**2)
+                j_v_plot /= norm_r
+                j_h_plot /= norm_r
+
+            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
+            if axes is None:
+                if polar:
+                    fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+                else:
+                    fig, ax = self.output.figure_axe()
+                    ax.set_aspect("equal", "box")
+                ax.set_title(full_title, fontsize="x-large")
+                cmap_obj = plt.get_cmap(cmap).copy()
+            else:
+                ax = axes
+            width = 0.002
+            headwidth = 3
+            headlength = 2.5
+            headaxislength = 2.5
+            scale = None
+            if logscale:
+                if not polar:
+                    if theory is False:
+                        axis_min = 1
+                    if axes is None:
+                        ax.set_xscale("log")
+                        ax.set_yscale("log")
+                if axes is None:
+                    cmap_obj.set_bad("white")
+                width = 0.002
+                headwidth = 2
+                headlength = 1.5
+                headaxislength = 1.5
+                keep_win = keep[np.ix_(rows, cols)]
+                C = np.where(keep_win, C, np.nan)
+                amean = np.nanmean(C[C > 0])
+                span = axis_max - axis_min
+                scale = vect_scale * amean * num_vectors / span
+
+            match theory:
+                case False:
+                    pass
+
+                case True | "vec" as which_theory:
+                    save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
+                    r_max = min(RH.max(), RV.max())
+                    r_min = max(RH.min(), RV.min())
+                    rh_line = np.linspace(r_min, r_max, 100)
+
+                    num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
+
+                    rv_at_rmax = np.linspace(r_min, r_max, num_r)
+                    C_consts_right = rv_at_rmax / r_max**ani_param
+                    rh_at_rvmax = np.linspace(r_min, r_max, num_r)
+                    C_consts_top = r_max / rh_at_rvmax**ani_param
+                    C_consts = np.unique(
+                        np.concatenate([C_consts_right, C_consts_top])
+                    )
+                    offset = (r_max - r_min) * 0.003
+                    J_h_theory = -RH_sub / (ani_param + 2)
+                    J_v_theory = -(ani_param * RV_sub) / (ani_param + 2)
+
+                    J_h_theory *= eta
+                    J_v_theory *= eta
+
+                    if normalized:
+                        J_h_theory /= norm_r
+                        J_v_theory /= norm_r
+
+                    if logscale:
+                        J_h_theory = np.where(keep_win, J_h_theory, np.nan)
+                        J_v_theory = np.where(keep_win, J_v_theory, np.nan)
+
+                    norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
+                    norm_th = np.where(norm_th != 0, norm_th, 1e-10)
+
+                    norm_ratio = C / norm_th
+
+                    print(f"{norm_ratio=}")
+                    print(f"{np.mean(norm_ratio)=}")
+
+                    match which_theory:
+                        case True:
+                            for i, C_const in enumerate(C_consts):
+                                rv_line = C_const * rh_line**ani_param
+                                mask = (rv_line >= r_min) & (rv_line <= r_max)
+                                if mask.sum() < 2:
+                                    continue
+                                label_plot = (
+                                    rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
+                                    if i == 0
+                                    else None
+                                )
+                                ax.plot(
+                                    rh_line[mask],
+                                    rv_line[mask],
+                                    "k-",
+                                    linewidth=0.8,
+                                    alpha=0.5,
+                                    label=label_plot,
+                                )
+
+                        case "vec":
+                            if polar:
+                                offset = np.radians(5)
+                                x_axis = pos_x + offset
+                                y_axis = pos_y
+                            else:
+                                x_axis = pos_x
+                                y_axis = pos_y + offset
+                            ax.quiver(
+                                x_axis,
+                                y_axis,
+                                J_h_theory,
+                                J_v_theory,
+                                color="k",
+                                scale=scale,
+                                width=width,
+                                headwidth=headwidth,
+                                headlength=headlength,
+                                headaxislength=headaxislength,
+                                alpha=0.5,
+                                label=rf"$\alpha = {ani_param}$",
+                            )
+            if theory is True:
+                quiv = ax.streamplot(
+                    pos_x[0, :],
+                    pos_y[:, 0],
+                    j_h,
+                    j_v,
+                    density=2.5,
+                    color="r",
+                    linewidth=0.8,
+                    broken_streamlines=False,
+                )
+                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
+                if axes is not None:
+                    return ax
+            else:
+                if axes is None:
+                    quiv = ax.quiver(
+                        pos_x,
+                        pos_y,
+                        j_h_plot,
+                        j_v_plot,
+                        C,
+                        cmap=cmap_obj,
+                        scale=scale,
+                        width=width,
+                        headwidth=headwidth,
+                        headlength=headlength,
+                        headaxislength=headaxislength,
+                    )
+
+                    cbar = fig.colorbar(quiv, ax=ax)
+                    cbar.set_label("Amplitude", fontsize="x-large")
+                else:
+                    ax.quiver(
+                        pos_x,
+                        pos_y,
+                        j_h_plot,
+                        j_v_plot,
+                        color="k",
+                        scale=scale,
+                        width=width,
+                        headwidth=headwidth,
+                        headlength=headlength,
+                        headaxislength=headaxislength,
+                        label=r"$\mathbf{J}$",
+                    )
+                    return ax
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                dim=2,
+                ani=ani,
+                logscale=logscale,
+            )
+
+            ax.legend(
+                fontsize="x-large",
+                loc="upper right",
+                handlelength=0.5,
+            )
+            if polar:
+                r_ticks = [1, 10, 100]
+                ax.set_rticks([np.log10(r) for r in r_ticks])
+                ax.set_yticklabels([str(r) for r in r_ticks])
+                ax.set_thetamin(0)
+                ax.set_thetamax(90)
+                ax.set_rmin(np.log10(axis_min if axis_min > 0 else 1))
+                ax.set_rmax(np.log10(axis_max))
+            else:
+                ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+                ax.set_ylabel(RV_label, fontsize="x-large")
+                ax.set_xlim(xmin=axis_min, xmax=axis_max)
+                ax.set_ylim(ymin=axis_min, ymax=axis_max)
+            plt.tight_layout()
+
+            if save:
+                plt.savefig(save_name_file, dpi=300)
+            plt.show()
+
+        if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
+            which_plot = which_plot.replace("J", "JK")
+
+        if which_plot in ("JP", "JP_norm") and "b" not in keys_state_phys:
+            raise ValueError(
+                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                f"Available fields: {', '.join(keys)}"
+            )
+
+        match which_plot:
+            case "JK":
+                _plot(
+                    Jk_v / (4 * epsilon),
+                    Jk_h / (4 * epsilon),
+                    type_plot="_K",
+                    normalized=False,
+                    theory=theory,
+                )
+
+            case "JK_norm":
+                _plot(
+                    Jk_v / (4 * epsilon),
+                    Jk_h / (4 * epsilon),
+                    type_plot="_K",
+                    normalized=True,
+                    theory=theory,
+                )
+
+            case "JP":
+                _plot(
+                    Jp_v / (4 * epsilon),
+                    Jp_h / (4 * epsilon),
+                    type_plot="_P",
+                    normalized=False,
+                    theory=theory,
+                )
+
+            case "JP_norm":
+                _plot(
+                    Jp_v / (4 * epsilon),
+                    Jp_h / (4 * epsilon),
+                    type_plot="_P",
+                    normalized=True,
+                    theory=theory,
+                )
+
+            case "J":
+                _plot(
+                    (Jp_v + Jk_v) / (4 * epsilon),
+                    (Jp_h + Jk_h) / (4 * epsilon),
+                    type_plot="",
+                    normalized=False,
+                    theory=theory,
+                )
+
+            case "J_norm":
+                _plot(
+                    (Jp_v + Jk_v) / (4 * epsilon),
+                    (Jp_h + Jk_h) / (4 * epsilon),
+                    type_plot="",
+                    normalized=True,
+                    theory=theory,
+                )
+
+            case _:
+                raise ValueError(
+                    f"Field {which_plot} not available. "
+                    f"Available fields: {', '.join(keys)}"
+                )
 
     def plot_hv_dependencies(
         self,
@@ -749,6 +1174,10 @@ class KolmoLaw(SpecificOutput):
         vmax=1.2,
         which_plot="div_JK",
         overlay_vectors=False,
+        ani_param=1,
+        num_vectors=None,
+        vect_scale=None,
+        theory=False,
         logscale=True,
         polar=False,
         epsilon=None,
@@ -842,6 +1271,21 @@ class KolmoLaw(SpecificOutput):
                 r_ticks = [1, 10, 100]
                 ax.set_rticks([np.log10(r) for r in r_ticks])
                 ax.set_yticklabels([str(r) for r in r_ticks])
+                if overlay_vectors:
+                    if len(which_plot) > 3:
+                        _which_plot = which_plot.removeprefix("div_") + "_norm"
+                    else:
+                        _which_plot = which_plot + "_norm"
+                    self.plot_Jhv_vector(
+                        which_plot=_which_plot,
+                        axes=ax,
+                        num_vectors=num_vectors,
+                        logscale=logscale,
+                        polar=polar,
+                        vect_scale=vect_scale,
+                        theory=theory,
+                        ani_param=ani_param,
+                    )
                 self._plot_scales(
                     ax,
                     eta,
@@ -873,6 +1317,20 @@ class KolmoLaw(SpecificOutput):
                 ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
                 ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
                 ax.set_aspect("equal", "box")
+                if overlay_vectors:
+                    if len(which_plot) > 3:
+                        _which_plot = which_plot.removeprefix("div_") + "_norm"
+                    else:
+                        _which_plot = which_plot + "_norm"
+                    self.plot_Jhv_vector(
+                        which_plot=_which_plot,
+                        axes=ax,
+                        num_vectors=num_vectors,
+                        logscale=logscale,
+                        vect_scale=vect_scale,
+                        theory=theory,
+                        ani_param=ani_param,
+                    )
                 self._plot_scales(
                     ax,
                     eta,
@@ -976,399 +1434,6 @@ class KolmoLaw(SpecificOutput):
                     divergence=True,
                     polar=polar,
                 )
-            case _:
-                raise ValueError(
-                    f"Field {which_plot} not available. "
-                    f"Available fields: {', '.join(keys)}"
-                )
-
-    def plot_Jhv_vector(
-        self,
-        tmin=None,
-        tmax=None,
-        which_plot="JK",
-        num_vectors=60,
-        logscale=True,
-        vect_scale=500,
-        epsilon=None,
-        theory=False,
-        ani_param=1,
-        cmap="plasma",
-        save=False,
-    ):
-        """Plot vector field of J in (rho, z) plane.
-
-        Parameters
-        ----------
-        which_plot : str, default "JK"
-            Field to plot: "JK", "JP", "J", or their normalized by r, "_norm", variants.
-        num_vectors : int, default 60
-            Target number of arrows per axis (per decade in logscale).
-            If logscale is True and theory is "vec" then 30 is a good value.
-        logscale : bool, default True
-            Use logarithmic axes.
-        vect_scale : float, default 500
-            Arrow length calibration factor.
-            If logscale is True and theory is "vec" then 100 is a good value.
-        theory : bool or str, default False
-            False, True (streamlines), or "vec" (theoretical arrows).
-        ani_param : float, default 1
-            Anisotropy exponent for the theoretical field.
-        """
-        self._raise_parallel_error("plot_Jhv_vector")
-
-        state = self.sim.state
-        keys_state_phys = state.keys_state_phys
-        params = self.sim.params
-
-        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
-            tmin=tmin, tmax=tmax
-        )["dimensional"]
-        try:
-            eta = dimless_num["eta"]
-        except KeyError:
-            warn("KeyError: 'eta' not available; eta is set to unity")
-            eta = 1
-        if epsilon is None:
-            epsilon = dimless_num["epsK"]
-            if "b" in keys_state_phys:
-                epsilon += dimless_num["epsA"]
-
-        if "b" in keys_state_phys:
-            N = params.N
-            title = f"$N_x={params.oper.nx}, N={N}$"
-            l_O = np.sqrt(epsilon / N**3) / eta
-            EKh = dimless_num["EKh"]
-            u_h = np.sqrt(EKh)
-            L_b = u_h / N / eta
-            ani = True
-        else:
-            title = f"$N_x={params.oper.nx}$"
-            l_O = None
-            L_b = None
-            ani = False
-
-        EK = dimless_num["EKh"] + dimless_num["EKz"]
-        u_rms = np.sqrt(2 * EK / 3)
-        L_int = u_rms**3 / epsilon / eta
-        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
-
-        keys = ["Jh_k_hv", "Jv_k_hv"]
-        if "b" in keys_state_phys:
-            keys.extend(["Jh_p_hv", "Jv_p_hv"])
-
-        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
-        with h5py.File(self.path_file, "r") as file:
-            rh_store = np.array(file["rh_store"])
-            rv_store = np.array(file["rv_store"])
-
-        RH, RV = np.meshgrid(rh_store, rv_store)
-        RH /= eta
-
-        RV_label = r"$r_v/\eta$"
-
-        RV /= eta
-
-        if not logscale:
-            if num_vectors is None:
-                ratio_vectors = 1
-            else:
-                ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
-
-            Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
-            Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
-            if "b" in keys_state_phys:
-                Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
-                Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
-            RH_sub = RH[::ratio_vectors, ::ratio_vectors]
-            RV_sub = RV[::ratio_vectors, ::ratio_vectors]
-        else:
-            if num_vectors == 60:
-                num_vectors /= 3
-            n_dec = np.log10(rh_store.max() + 1e-14) - np.log10(
-                rh_store[rh_store > 0].min()
-            )
-            min_log_step = n_dec / num_vectors
-
-            cell_h = np.round(np.log10(RH + 1e-14) / min_log_step).astype(int)
-            cell_v = np.round(np.log10(RV + 1e-14) / min_log_step).astype(int)
-            pairs = np.stack([cell_h.ravel(), cell_v.ravel()], axis=1)
-            _, idx = np.unique(pairs, axis=0, return_index=True)
-            keep = np.zeros(RH.size, dtype=bool)
-            keep[idx] = True
-            keep = keep.reshape(RH.shape)
-
-            Jk_h = np.where(keep, to_plot["Jh_k_hv"], np.nan)
-            Jk_v = np.where(keep, to_plot["Jv_k_hv"], np.nan)
-
-            if "b" in keys_state_phys:
-                Jp_h = np.where(keep, to_plot["Jh_p_hv"], np.nan)
-                Jp_v = np.where(keep, to_plot["Jv_p_hv"], np.nan)
-            RH_sub = RH
-            RV_sub = RV
-
-        axis_max = 400
-        axis_min = 0
-        if theory is not False:
-            axis_max = 200
-            axis_min = 30
-
-        rows = (RV_sub[:, 0] >= axis_min) & (RV_sub[:, 0] <= axis_max)
-        cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
-        RH_sub = RH_sub[np.ix_(rows, cols)]
-        RV_sub = RV_sub[np.ix_(rows, cols)]
-        vect_scale = vect_scale
-
-        def _plot(
-            j_v,
-            j_h,
-            type_plot="_K",
-            normalized=False,
-            theory=False,
-            axis_min=axis_min,
-            axis_max=axis_max,
-            vect_scale=vect_scale,
-        ):
-            full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
-            save_name_file = f"J{type_plot}_vector_hv.png"
-            j_v_plot = j_v[np.ix_(rows, cols)].copy()
-            j_h_plot = j_h[np.ix_(rows, cols)].copy()
-
-            if normalized:
-                full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon \| \mathbf{{r}} \|$, {title}"
-                save_name_file = f"J{type_plot}_vector_hv_normalized.png"
-                RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
-                RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
-                norm_r = np.sqrt(RH_safe**2 + RV_safe**2)
-                j_v_plot /= norm_r
-                j_h_plot /= norm_r
-                vect_scale *= 1.5
-
-            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
-            fig, ax = self.output.figure_axe()
-            ax.set_title(full_title, fontsize="x-large")
-            ax.set_aspect("equal", "box")
-            cmap_obj = plt.get_cmap(cmap).copy()
-            width = 0.002
-            headwidth = 3
-            headlength = 2.5
-            headaxislength = 2.5
-            scale = None
-            if logscale:
-                if theory is False:
-                    axis_min = 1
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                width = 0.002
-                headwidth = 2
-                headlength = 1.5
-                headaxislength = 1.5
-                keep_win = keep[np.ix_(rows, cols)]
-                C = np.where(keep_win, C, np.nan)
-                cmap_obj.set_bad("white")
-                amean = np.nanmean(C[C > 0])
-                span = axis_max - axis_min
-                scale = vect_scale * amean * num_vectors / span
-
-            match theory:
-                case False:
-                    pass
-
-                case True | "vec" as which_theory:
-                    save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
-                    r_max = min(RH.max(), RV.max())
-                    r_min = max(RH.min(), RV.min())
-                    rh_line = np.linspace(r_min, r_max, 100)
-
-                    num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
-
-                    rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_right = rv_at_rmax / r_max**ani_param
-                    rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_top = r_max / rh_at_rvmax**ani_param
-                    C_consts = np.unique(
-                        np.concatenate([C_consts_right, C_consts_top])
-                    )
-                    offset = (r_max - r_min) * 0.003
-                    J_h_theory = -RH_sub / (ani_param + 2)
-                    J_v_theory = -(ani_param * RV_sub) / (ani_param + 2)
-
-                    J_h_theory *= eta
-                    J_v_theory *= eta
-
-                    if normalized:
-                        J_h_theory /= norm_r
-                        J_v_theory /= norm_r
-
-                    if logscale:
-                        J_h_theory = np.where(keep_win, J_h_theory, np.nan)
-                        J_v_theory = np.where(keep_win, J_v_theory, np.nan)
-
-                    norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
-                    norm_th = np.where(norm_th != 0, norm_th, 1e-10)
-
-                    norm_ratio = C / norm_th
-
-                    print(f"{norm_ratio=}")
-                    print(f"{np.mean(norm_ratio)=}")
-
-                    match which_theory:
-                        case True:
-                            for i, C_const in enumerate(C_consts):
-                                rv_line = C_const * rh_line**ani_param
-                                mask = (rv_line >= r_min) & (rv_line <= r_max)
-                                if mask.sum() < 2:
-                                    continue
-                                label_plot = (
-                                    rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
-                                    if i == 0
-                                    else None
-                                )
-                                ax.plot(
-                                    rh_line[mask],
-                                    rv_line[mask],
-                                    "k-",
-                                    linewidth=0.8,
-                                    alpha=0.5,
-                                    label=label_plot,
-                                )
-
-                        case "vec":
-                            ax.quiver(
-                                RH_sub,
-                                RV_sub + offset,
-                                J_h_theory,
-                                J_v_theory,
-                                color="k",
-                                scale=scale,
-                                width=width,
-                                headwidth=headwidth,
-                                headlength=headlength,
-                                headaxislength=headaxislength,
-                                alpha=0.5,
-                                label=rf"$\alpha = {ani_param}$",
-                            )
-            if theory is True:
-                quiv = ax.streamplot(
-                    RH[0, :],
-                    RV[:, 0],
-                    j_h,
-                    j_v,
-                    density=2.5,
-                    color="r",
-                    linewidth=0.8,
-                    broken_streamlines=False,
-                )
-                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{{J}}$")
-            else:
-                quiv = ax.quiver(
-                    RH_sub,
-                    RV_sub,
-                    j_h_plot,
-                    j_v_plot,
-                    C,
-                    cmap=cmap_obj,
-                    scale=scale,
-                    width=width,
-                    headwidth=headwidth,
-                    headlength=headlength,
-                    headaxislength=headaxislength,
-                )
-
-                cbar = fig.colorbar(quiv, ax=ax)
-                cbar.set_label("Amplitude", fontsize="x-large")
-
-            self._plot_scales(
-                ax,
-                eta,
-                l_O,
-                L_int,
-                L_b,
-                lambda_T,
-                dim=2,
-                ani=ani,
-                logscale=logscale,
-            )
-
-            ax.legend(
-                fontsize="x-large",
-                loc="upper right",
-                handlelength=0.5,
-            )
-            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax.set_ylabel(RV_label, fontsize="x-large")
-            ax.set_xlim(xmin=axis_min, xmax=axis_max)
-            ax.set_ylim(ymin=axis_min, ymax=axis_max)
-            plt.tight_layout()
-
-            if save:
-                plt.savefig(save_name_file, dpi=300)
-            plt.show()
-
-        if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
-            which_plot = which_plot.replace("J", "JK")
-
-        if which_plot in ("JP", "JP_norm") and "b" not in keys_state_phys:
-            raise ValueError(
-                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
-                f"Available fields: {', '.join(keys)}"
-            )
-
-        match which_plot:
-            case "JK":
-                _plot(
-                    Jk_v / (4 * epsilon),
-                    Jk_h / (4 * epsilon),
-                    type_plot="_K",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "JK_norm":
-                _plot(
-                    Jk_v / (4 * epsilon),
-                    Jk_h / (4 * epsilon),
-                    type_plot="_K",
-                    normalized=True,
-                    theory=theory,
-                )
-
-            case "JP":
-                _plot(
-                    Jp_v / (4 * epsilon),
-                    Jp_h / (4 * epsilon),
-                    type_plot="_P",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "JP_norm":
-                _plot(
-                    Jp_v / (4 * epsilon),
-                    Jp_h / (4 * epsilon),
-                    type_plot="_P",
-                    normalized=True,
-                    theory=theory,
-                )
-
-            case "J":
-                _plot(
-                    (Jp_v + Jk_v) / (4 * epsilon),
-                    (Jp_h + Jk_h) / (4 * epsilon),
-                    type_plot="",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "J_norm":
-                _plot(
-                    (Jp_v + Jk_v) / (4 * epsilon),
-                    (Jp_h + Jk_h) / (4 * epsilon),
-                    type_plot="",
-                    normalized=True,
-                    theory=theory,
-                )
-
             case _:
                 raise ValueError(
                     f"Field {which_plot} not available. "
