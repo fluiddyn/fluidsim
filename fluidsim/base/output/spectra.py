@@ -157,6 +157,157 @@ class SpectraBase(SpecificOutput):
         else:
             return ("x", "y")
 
+    def _plot_scales(
+        self,
+        ax,
+        eta,
+        l_O,
+        L_int,
+        L_b,
+        lambda_T,
+        dim=2,
+        ani=True,
+        logscale=False,
+        polar=False,
+    ):
+        eta_norm = eta / eta
+        to_plot = [
+            (eta_norm, "darkorange", r"$\eta$"),
+            (L_int, "r", r"$L$"),
+        ]
+        if ani:
+            to_plot += [(l_O, "b", r"$l_O$")]
+        else:
+            to_plot += [(lambda_T, "k", r"$\lambda$")]
+
+        if polar:
+            for length, color, label in to_plot:
+                if length > 0:
+                    theta_circle = np.linspace(0, np.pi / 2, 200)
+                    log_r_circle = np.full_like(theta_circle, np.log10(length))
+                    ax.plot(
+                        theta_circle,
+                        log_r_circle,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+
+            if ani:
+                ax.plot(
+                    np.pi / 2,
+                    np.log10(L_b),
+                    "o",
+                    color="g",
+                    markersize=4,
+                    label=r"$L_b$",
+                )
+
+                ax.plot(
+                    0,
+                    np.log10(lambda_T),
+                    "o",
+                    color="k",
+                    markersize=4,
+                    label=r"$\lambda$",
+                )
+
+        elif logscale:
+            theta = np.linspace(1e-3, np.pi / 2 - 1e-3, 1000)
+            for length, color, label in to_plot:
+                rh = length * np.cos(theta)
+                rv = length * np.sin(theta)
+                mask = (rh > 0) & (rv > 0)
+                if dim == 2:
+                    ax.plot(
+                        rh[mask],
+                        rv[mask],
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+                else:
+                    ax.axvline(
+                        x=length,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+            if ani:
+                if dim == 2:
+                    ax.axhline(
+                        y=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                else:
+                    ax.axvline(
+                        x=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                ax.axvline(
+                    x=lambda_T,
+                    color="k",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=r"$\lambda$",
+                )
+
+        else:
+            theta = np.linspace(0, np.pi / 2, 100)
+            for length, color, label in to_plot:
+                rh = length * np.cos(theta)
+                rv = length * np.sin(theta)
+                if dim == 2:
+                    ax.plot(
+                        rh,
+                        rv,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+                else:
+                    ax.axvline(
+                        x=length,
+                        color=color,
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=label,
+                    )
+            if ani:
+                if dim == 2:
+                    ax.axhline(
+                        y=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                else:
+                    ax.axvline(
+                        x=L_b,
+                        color="g",
+                        linestyle="--",
+                        linewidth=1.0,
+                        label=r"$L_b$",
+                    )
+                ax.axvline(
+                    x=lambda_T,
+                    color="k",
+                    linestyle="--",
+                    linewidth=1.0,
+                    label=r"$\lambda$",
+                )
+
     def _plot_ndim(
         self,
         tmin=0,
@@ -167,6 +318,7 @@ class SpectraBase(SpecificOutput):
         coef_plot_k3=None,
         coef_plot_k53=None,
         coef_plot_k2=None,
+        plot_length_scales=False,
         xlim=None,
         ylim=None,
         ndim=1,
@@ -265,6 +417,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
         if coef_plot_k2 is not None:
             to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
             ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-2}$")
+
+        if plot_length_scales:
+            toto = 0
 
         if xlim is not None:
             ax.set_xlim(xlim)
