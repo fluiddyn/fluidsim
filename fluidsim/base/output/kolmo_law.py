@@ -712,6 +712,35 @@ class KolmoLaw(SpecificOutput):
                 )
         plt.show()
 
+    def _plot_vectors(
+        self,
+        ax,
+        RH,
+        RV,
+        j_h,
+        j_v,
+        color_by_amplitude=True,
+        color="w",
+        cmap="plasma",
+        logscale=False,
+        quiver_kwargs=None,
+    ):
+        """PLot vector J on `ax`."""
+        defaults = dict(
+            width=0.002, headwidth=3, headlength=2.5, headaxislength=2.5
+        )
+        if logscale:
+            defaults.update(headwidth=2, headlength=1.5, headaxislength=1.5)
+        if quiver_kwargs:
+            defaults.update(quiver_kwargs)
+
+        if color_by_amplitude:
+            C = np.sqrt(j_h**2 + j_v**2)
+            quiv = ax.quiver(RH, RV, j_h, j_v, C, cmap=cmap, **defaults)
+            return quiv
+        else:
+            return ax.quiver(RH, RV, j_h, j_v, color=color, **defaults)
+
     def plot_hv_dependencies(
         self,
         tmin=None,
