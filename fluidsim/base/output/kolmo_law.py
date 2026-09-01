@@ -608,7 +608,7 @@ class KolmoLaw(SpecificOutput):
                 ax1.set_title(
                     f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
                 )
-                ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax1.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax1.set_xscale("log")
                 ax1.set_yscale("log")
                 self._plot_scales(
@@ -655,7 +655,7 @@ class KolmoLaw(SpecificOutput):
                     f"$-\\nabla \\cdot J_L(r)/4\\epsilon$, {title}",
                     fontsize="x-large",
                 )
-                ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax2.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax2.set_xscale("log")
                 ax2.set_yscale("log")
                 self._plot_scales(
@@ -692,7 +692,7 @@ class KolmoLaw(SpecificOutput):
                     f"$S_2(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
                     fontsize="x-large",
                 )
-                ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax3.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax3.set_xscale("log")
                 ax3.set_yscale("log")
                 self._plot_scales(
@@ -721,6 +721,8 @@ class KolmoLaw(SpecificOutput):
         num_vectors=None,
         logscale=True,
         polar=False,
+        grid=False,
+        disk=0.25,
         vect_scale=None,
         epsilon=None,
         theory=False,
@@ -739,6 +741,12 @@ class KolmoLaw(SpecificOutput):
             If logscale is True and theory is "vec" then 30 is a good value.
         logscale : bool, default True
             Use logarithmic axes.
+        polar : bool, default False
+            Use log-polar axes
+        grid : bool, default False
+            Use grid for log-polar plots
+        disk : float, default 0.25
+            Desired proportion of the log-polar disk (0.25 is quarter, 0.5 half and 1 is full)
         vect_scale : float, default 500
             Arrow length calibration factor.
             If logscale is True and theory is "vec" then 100 is a good value.
@@ -801,6 +809,9 @@ class KolmoLaw(SpecificOutput):
 
         RV /= eta
 
+        if polar:
+            logscale = True
+
         if not logscale:
             if not num_vectors:
                 ratio_vectors = 1
@@ -826,8 +837,13 @@ class KolmoLaw(SpecificOutput):
             min_log_step = n_dec / num_vectors
 
             cell_h = np.round(np.log10(RH + 1e-14) / min_log_step).astype(int)
-            cell_v = np.round(np.log10(RV + 1e-14) / min_log_step).astype(int)
-            pairs = np.stack([cell_h.ravel(), cell_v.ravel()], axis=1)
+            cell_v = np.round(np.log10(np.abs(RV) + 1e-14) / min_log_step).astype(
+                int
+            )
+            sign_v = np.sign(RV).astype(int)
+            pairs = np.stack(
+                [cell_h.ravel(), cell_v.ravel(), sign_v.ravel()], axis=1
+            )
             _, idx = np.unique(pairs, axis=0, return_index=True)
             keep = np.zeros(RH.size, dtype=bool)
             keep[idx] = True
@@ -847,6 +863,9 @@ class KolmoLaw(SpecificOutput):
         if theory is not False:
             axis_max = 200
             axis_min = 30
+        if polar:
+            axis_max = 400
+            axis_min = -400
 
         rows = (RV_sub[:, 0] >= axis_min) & (RV_sub[:, 0] <= axis_max)
         cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
@@ -1070,6 +1089,7 @@ class KolmoLaw(SpecificOutput):
                 dim=2,
                 ani=ani,
                 logscale=logscale,
+                polar=polar,
             )
 
             ax.legend(
@@ -1081,10 +1101,24 @@ class KolmoLaw(SpecificOutput):
                 r_ticks = [1, 10, 100]
                 ax.set_rticks([np.log10(r) for r in r_ticks])
                 ax.set_yticklabels([str(r) for r in r_ticks])
-                ax.set_thetamin(0)
+                theta_mid = np.radians(90 - (360 + 40) * disk)
+                r_mid = (
+                    np.log10(axis_min if axis_min > 0 else 1) + np.log10(axis_max)
+                ) / 2
+                ax.text(
+                    theta_mid,
+                    r_mid,
+                    r"$r/\eta$",
+                    fontsize="x-large",
+                    ha="center",
+                    va="center",
+                    rotation=0,
+                )
+                ax.set_thetamin(90 - 360 * disk)
                 ax.set_thetamax(90)
                 ax.set_rmin(np.log10(axis_min if axis_min > 0 else 1))
                 ax.set_rmax(np.log10(axis_max))
+                ax.grid(grid)
             else:
                 ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
                 ax.set_ylabel(RV_label, fontsize="x-large")
@@ -1180,6 +1214,8 @@ class KolmoLaw(SpecificOutput):
         theory=False,
         logscale=True,
         polar=False,
+        grid=False,
+        disk=0.25,
         epsilon=None,
         cmap="plasma",
         save=False,
@@ -1271,6 +1307,19 @@ class KolmoLaw(SpecificOutput):
                 r_ticks = [1, 10, 100]
                 ax.set_rticks([np.log10(r) for r in r_ticks])
                 ax.set_yticklabels([str(r) for r in r_ticks])
+                theta_mid = (ax.get_thetamin() + ax.get_thetamax()) / 2
+                theta_mid = np.radians(theta_mid)
+                r_mid = np.log10(r_ticks[1])
+                ax.text(
+                    theta_mid,
+                    r_mid,
+                    r"$r/\eta$",
+                    fontsize="x-large",
+                    ha="center",
+                    va="center",
+                    rotation=0,
+                )
+                ax.grid(grid)
                 if overlay_vectors:
                     if len(which_plot) > 3:
                         _which_plot = which_plot.removeprefix("div_") + "_norm"
@@ -1282,6 +1331,7 @@ class KolmoLaw(SpecificOutput):
                         num_vectors=num_vectors,
                         logscale=logscale,
                         polar=polar,
+                        disk=disk,
                         vect_scale=vect_scale,
                         theory=theory,
                         ani_param=ani_param,
@@ -1299,7 +1349,7 @@ class KolmoLaw(SpecificOutput):
                     polar=polar,
                 )
                 ax.legend()
-                ax.set_thetamin(-90)
+                ax.set_thetamin(90 - 360 * disk)
                 ax.set_thetamax(90)
                 ax.set_rmin(np.log10(1))
                 ax.set_rmax(np.log10(400))
@@ -1327,6 +1377,7 @@ class KolmoLaw(SpecificOutput):
                         axes=ax,
                         num_vectors=num_vectors,
                         logscale=logscale,
+                        disk=disk,
                         vect_scale=vect_scale,
                         theory=theory,
                         ani_param=ani_param,
