@@ -181,7 +181,7 @@ class SpectraBase(SpecificOutput):
             ax.axvline(
                 x=2 * np.pi / length,
                 color=color,
-                linestyle="--",
+                linestyle=":",
                 linewidth=1.0,
                 label=label,
             )
@@ -189,14 +189,14 @@ class SpectraBase(SpecificOutput):
             ax.axvline(
                 x=2 * np.pi / L_b,
                 color="g",
-                linestyle="--",
+                linestyle=":",
                 linewidth=1.0,
                 label=r"$k_{L_b}$",
             )
             ax.axvline(
                 x=2 * np.pi / lambda_T,
                 color="k",
-                linestyle="--",
+                linestyle=":",
                 linewidth=1.0,
                 label=r"$k_{\lambda}$",
             )

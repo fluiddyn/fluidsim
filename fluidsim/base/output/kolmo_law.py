@@ -383,7 +383,7 @@ class KolmoLaw(SpecificOutput):
                         theta_circle,
                         log_r_circle,
                         color=color,
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=label,
                     )
@@ -418,7 +418,7 @@ class KolmoLaw(SpecificOutput):
                         rh[mask],
                         rv[mask],
                         color=color,
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=label,
                     )
@@ -426,7 +426,7 @@ class KolmoLaw(SpecificOutput):
                     ax.axvline(
                         x=length,
                         color=color,
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=label,
                     )
@@ -435,7 +435,7 @@ class KolmoLaw(SpecificOutput):
                     ax.axhline(
                         y=L_b,
                         color="g",
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=r"$L_b$",
                     )
@@ -443,14 +443,14 @@ class KolmoLaw(SpecificOutput):
                     ax.axvline(
                         x=L_b,
                         color="g",
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=r"$L_b$",
                     )
                 ax.axvline(
                     x=lambda_T,
                     color="k",
-                    linestyle="--",
+                    linestyle=":",
                     linewidth=1.0,
                     label=r"$\lambda$",
                 )
@@ -465,7 +465,7 @@ class KolmoLaw(SpecificOutput):
                         rh,
                         rv,
                         color=color,
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=label,
                     )
@@ -473,7 +473,7 @@ class KolmoLaw(SpecificOutput):
                     ax.axvline(
                         x=length,
                         color=color,
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=label,
                     )
@@ -482,7 +482,7 @@ class KolmoLaw(SpecificOutput):
                     ax.axhline(
                         y=L_b,
                         color="g",
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=r"$L_b$",
                     )
@@ -490,14 +490,14 @@ class KolmoLaw(SpecificOutput):
                     ax.axvline(
                         x=L_b,
                         color="g",
-                        linestyle="--",
+                        linestyle=":",
                         linewidth=1.0,
                         label=r"$L_b$",
                     )
                 ax.axvline(
                     x=lambda_T,
                     color="k",
-                    linestyle="--",
+                    linestyle=":",
                     linewidth=1.0,
                     label=r"$\lambda$",
                 )
@@ -603,7 +603,7 @@ class KolmoLaw(SpecificOutput):
                         label="$J_L = J_{K,L} + J_{P,L}$",
                     )
                 ax1.plot(
-                    r_store[1:] / eta, Jl_k_th[1:], "g:", label="4/3 theoretical"
+                    r_store[1:] / eta, Jl_k_th[1:], "g--", label="4/3 theoretical"
                 )
                 ax1.set_title(
                     f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
