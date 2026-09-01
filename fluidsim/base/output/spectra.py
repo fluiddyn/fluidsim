@@ -165,148 +165,41 @@ class SpectraBase(SpecificOutput):
         L_int,
         L_b,
         lambda_T,
-        dim=2,
         ani=True,
-        logscale=False,
-        polar=False,
     ):
-        eta_norm = eta / eta
+        eta_norm = eta
         to_plot = [
-            (eta_norm, "darkorange", r"$\eta$"),
-            (L_int, "r", r"$L$"),
+            (eta_norm, "darkorange", r"$k_{\eta}$"),
+            (L_int, "r", r"$k_{L}$"),
         ]
         if ani:
-            to_plot += [(l_O, "b", r"$l_O$")]
+            to_plot += [(l_O, "b", r"$k_{l_O}$")]
         else:
-            to_plot += [(lambda_T, "k", r"$\lambda$")]
+            to_plot += [(lambda_T, "k", r"$k_{\lambda}$")]
 
-        if polar:
-            for length, color, label in to_plot:
-                if length > 0:
-                    theta_circle = np.linspace(0, np.pi / 2, 200)
-                    log_r_circle = np.full_like(theta_circle, np.log10(length))
-                    ax.plot(
-                        theta_circle,
-                        log_r_circle,
-                        color=color,
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=label,
-                    )
-
-            if ani:
-                ax.plot(
-                    np.pi / 2,
-                    np.log10(L_b),
-                    "o",
-                    color="g",
-                    markersize=4,
-                    label=r"$L_b$",
-                )
-
-                ax.plot(
-                    0,
-                    np.log10(lambda_T),
-                    "o",
-                    color="k",
-                    markersize=4,
-                    label=r"$\lambda$",
-                )
-
-        elif logscale:
-            theta = np.linspace(1e-3, np.pi / 2 - 1e-3, 1000)
-            for length, color, label in to_plot:
-                rh = length * np.cos(theta)
-                rv = length * np.sin(theta)
-                mask = (rh > 0) & (rv > 0)
-                if dim == 2:
-                    ax.plot(
-                        rh[mask],
-                        rv[mask],
-                        color=color,
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=label,
-                    )
-                else:
-                    ax.axvline(
-                        x=length,
-                        color=color,
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=label,
-                    )
-            if ani:
-                if dim == 2:
-                    ax.axhline(
-                        y=L_b,
-                        color="g",
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=r"$L_b$",
-                    )
-                else:
-                    ax.axvline(
-                        x=L_b,
-                        color="g",
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=r"$L_b$",
-                    )
-                ax.axvline(
-                    x=lambda_T,
-                    color="k",
-                    linestyle="--",
-                    linewidth=1.0,
-                    label=r"$\lambda$",
-                )
-
-        else:
-            theta = np.linspace(0, np.pi / 2, 100)
-            for length, color, label in to_plot:
-                rh = length * np.cos(theta)
-                rv = length * np.sin(theta)
-                if dim == 2:
-                    ax.plot(
-                        rh,
-                        rv,
-                        color=color,
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=label,
-                    )
-                else:
-                    ax.axvline(
-                        x=length,
-                        color=color,
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=label,
-                    )
-            if ani:
-                if dim == 2:
-                    ax.axhline(
-                        y=L_b,
-                        color="g",
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=r"$L_b$",
-                    )
-                else:
-                    ax.axvline(
-                        x=L_b,
-                        color="g",
-                        linestyle="--",
-                        linewidth=1.0,
-                        label=r"$L_b$",
-                    )
-                ax.axvline(
-                    x=lambda_T,
-                    color="k",
-                    linestyle="--",
-                    linewidth=1.0,
-                    label=r"$\lambda$",
-                )
+        for length, color, label in to_plot:
+            ax.axvline(
+                x=2 * np.pi / length,
+                color=color,
+                linestyle="--",
+                linewidth=1.0,
+                label=label,
+            )
+        if ani:
+            ax.axvline(
+                x=2 * np.pi / L_b,
+                color="g",
+                linestyle="--",
+                linewidth=1.0,
+                label=r"$k_{L_b}$",
+            )
+            ax.axvline(
+                x=2 * np.pi / lambda_T,
+                color="k",
+                linestyle="--",
+                linewidth=1.0,
+                label=r"$k_{\lambda}$",
+            )
 
     def _plot_ndim(
         self,
@@ -419,7 +312,38 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-2}$")
 
         if plot_length_scales:
-            toto = 0
+            dimless_num = (
+                self.sim.output.spatial_means.get_dimless_numbers_averaged(
+                    tmin=tmin, tmax=tmax
+                )["dimensional"]
+            )
+            eta = dimless_num["eta"]
+            epsilon = dimless_num["epsK"]
+            if "h" in directions:
+                epsilon += dimless_num["epsA"]
+                N = self.sim.params.N
+                l_O = np.sqrt(epsilon / N**3)
+                EKh = dimless_num["EKh"]
+                u_h = np.sqrt(EKh)
+                L_b = u_h / N
+                ani = True
+            else:
+                l_O = None
+                L_b = None
+                ani = False
+            EK = dimless_num["EKh"] + dimless_num["EKz"]
+            u_rms = np.sqrt(2 * EK / 3)
+            L_int = u_rms**3 / epsilon
+            lambda_T = u_rms * np.sqrt(15 * self.sim.params.nu_2 / epsilon)
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                ani=ani,
+            )
 
         if xlim is not None:
             ax.set_xlim(xlim)
