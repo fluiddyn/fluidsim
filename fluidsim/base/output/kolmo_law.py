@@ -588,12 +588,12 @@ class KolmoLaw(SpecificOutput):
             case "J":
                 fig1, ax1 = self.output.figure_axe()
                 ax1.set_ylabel(r"$-J_L(r)/r\epsilon$", fontsize="x-large")
-                ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="$J_{K,L}$")
+                ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "r", label="$J_{K,L}$")
                 if "b" in keys_state_phys:
                     ax1.plot(
                         r_store[1:] / eta,
                         Jl_p_comp[1:],
-                        "g",
+                        "b",
                         label="$J_{P,L}$",
                     )
                     ax1.plot(
@@ -603,7 +603,7 @@ class KolmoLaw(SpecificOutput):
                         label="$J_L = J_{K,L} + J_{P,L}$",
                     )
                 ax1.plot(
-                    r_store[1:] / eta, Jl_k_th[1:], "r:", label="4/3 theoretical"
+                    r_store[1:] / eta, Jl_k_th[1:], "g:", label="4/3 theoretical"
                 )
                 ax1.set_title(
                     f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
@@ -629,14 +629,14 @@ class KolmoLaw(SpecificOutput):
                 ax2.plot(
                     r_store[1:] / eta,
                     divJ_k[1:],
-                    "b",
+                    "r",
                     label="$\\nabla \cdot J_{K,L}$",
                 )
                 if "b" in keys_state_phys:
                     ax2.plot(
                         r_store[1:] / eta,
                         divJ_p[1:],
-                        "g",
+                        "b",
                         label="$\\nabla \\cdot J_{P,L}$",
                     )
                     ax2.plot(
@@ -648,7 +648,7 @@ class KolmoLaw(SpecificOutput):
                 ax2.plot(
                     r_store[1:] / eta,
                     np.ones_like(r_store[1:]),
-                    "r--",
+                    "g--",
                     label="1 theoretical",
                 )
                 ax2.set_title(
@@ -673,10 +673,10 @@ class KolmoLaw(SpecificOutput):
                 ax3.set_ylabel(
                     r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large"
                 )
-                ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "b", label="$S_2^K$")
+                ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "r", label="$S_2^K$")
                 if "b" in keys_state_phys:
                     ax3.plot(
-                        r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P$"
+                        r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$"
                     )
                     ax3.plot(
                         r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$"
@@ -684,7 +684,7 @@ class KolmoLaw(SpecificOutput):
                 ax3.plot(
                     r_store[1:] / eta,
                     S2_k_th[1:],
-                    "r:",
+                    "g:",
                     label="22/3 theoretical",
                 )
                 ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
