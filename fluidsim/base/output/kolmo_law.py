@@ -1204,7 +1204,7 @@ class KolmoLaw(SpecificOutput):
         self,
         tmin=None,
         tmax=None,
-        vmin=None,
+        vmin=0.0,
         vmax=1.2,
         which_plot="div_JK",
         overlay_vectors=False,
