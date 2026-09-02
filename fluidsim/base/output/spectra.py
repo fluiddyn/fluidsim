@@ -165,6 +165,7 @@ class SpectraBase(SpecificOutput):
         L_int,
         L_b,
         lambda_T,
+        kmax,
         ani=True,
     ):
         eta_norm = eta
@@ -179,7 +180,7 @@ class SpectraBase(SpecificOutput):
 
         for length, color, label in to_plot:
             ax.axvline(
-                x=2 * np.pi / length,
+                x=1 / length,
                 color=color,
                 linestyle=":",
                 linewidth=1.0,
@@ -187,19 +188,26 @@ class SpectraBase(SpecificOutput):
             )
         if ani:
             ax.axvline(
-                x=2 * np.pi / L_b,
+                x=1 / L_b,
                 color="g",
                 linestyle=":",
                 linewidth=1.0,
                 label=r"$k_{L_b}$",
             )
             ax.axvline(
-                x=2 * np.pi / lambda_T,
+                x=1 / lambda_T,
                 color="k",
                 linestyle=":",
                 linewidth=1.0,
                 label=r"$k_{\lambda}$",
             )
+        ax.axvline(
+            x=kmax,
+            color="k",
+            linestyle="-",
+            linewidth=1.0,
+            label=r"$k_{max}$",
+        )
 
     def _plot_ndim(
         self,
@@ -337,6 +345,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             )
             eta = dimless_num["eta"]
             epsilon = dimless_num["epsK"]
+            kmax = dimless_num["k_max"]
             if "h" in directions:
                 epsilon += dimless_num["epsA"]
                 N = self.sim.params.N
@@ -360,6 +369,7 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                 L_int,
                 L_b,
                 lambda_T,
+                kmax=kmax,
                 ani=ani,
             )
 
