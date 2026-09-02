@@ -813,7 +813,7 @@ class KolmoLaw(SpecificOutput):
             logscale = True
 
         if not logscale:
-            if not num_vectors:
+            if num_vectors is False:
                 ratio_vectors = 1
             else:
                 if num_vectors is None:
