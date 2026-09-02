@@ -727,6 +727,7 @@ class KolmoLaw(SpecificOutput):
         epsilon=None,
         theory=False,
         ani_param=1,
+        inertial_range=None,
         cmap="plasma",
         save=False,
     ):
@@ -820,6 +821,13 @@ class KolmoLaw(SpecificOutput):
                     num_vectors = 60
                 ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
 
+            if inertial_range is not None:
+                Jk_v_full = to_plot["Jv_k_hv"]
+                Jk_h_full = to_plot["Jh_k_hv"]
+                if "b" in keys_state_phys:
+                    Jp_v_full = to_plot["Jv_p_hv"]
+                    Jp_h_full = to_plot["Jh_p_hv"]
+
             Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
             Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
             if "b" in keys_state_phys:
@@ -848,6 +856,13 @@ class KolmoLaw(SpecificOutput):
             keep = np.zeros(RH.size, dtype=bool)
             keep[idx] = True
             keep = keep.reshape(RH.shape)
+
+            if inertial_range is not None:
+                Jk_v_full = to_plot["Jv_k_hv"]
+                Jk_h_full = to_plot["Jh_k_hv"]
+                if "b" in keys_state_phys:
+                    Jp_v_full = to_plot["Jv_p_hv"]
+                    Jp_h_full = to_plot["Jh_p_hv"]
 
             Jk_h = np.where(keep, to_plot["Jh_k_hv"], np.nan)
             Jk_v = np.where(keep, to_plot["Jv_k_hv"], np.nan)
@@ -889,6 +904,7 @@ class KolmoLaw(SpecificOutput):
             axis_max=axis_max,
             vect_scale=vect_scale,
             axes=axes,
+            ani_param=ani_param,
         ):
             full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             save_name_file = f"J{type_plot}_vector_hv.png"
@@ -956,6 +972,50 @@ class KolmoLaw(SpecificOutput):
                     r_max = min(RH.max(), RV.max())
                     r_min = max(RH.min(), RV.min())
                     rh_line = np.linspace(r_min, r_max, 100)
+
+                    if inertial_range is not None:
+                        if "K" in type_plot:
+                            j_v, j_h = (
+                                Jk_v_full / (4 * epsilon),
+                                Jk_h_full / (4 * epsilon),
+                            )
+                        elif "P" in type_plot:
+                            j_v, j_h = (
+                                Jp_v_full / (4 * epsilon),
+                                Jp_h_full / (4 * epsilon),
+                            )
+                        else:
+                            j_v, j_h = (
+                                (Jk_v_full + Jp_v_full) / (4 * epsilon),
+                                (Jk_h_full + Jp_h_full) / (4 * epsilon),
+                            )
+                        rh = RH[1:][inertial_range].ravel()
+                        rv = RV[1:][inertial_range].ravel()
+                        jh = j_h[1:][inertial_range].ravel()
+                        jv = j_v[1:][inertial_range].ravel()
+
+                        m = (
+                            np.isfinite(rh)
+                            & np.isfinite(rv)
+                            & np.isfinite(jh)
+                            & np.isfinite(jv)
+                        )
+                        rh, rv, jh, jv = rh[m], rv[m], jh[m], jv[m]
+
+                        r2 = rh**2 + rv**2
+
+                        def mean_dot(alpha):
+                            return np.mean((-rh * jh - alpha * rv * jv) / r2)
+
+                        alphas = np.linspace(0.0001, 1, 500)
+                        scores = np.array([mean_dot(a) for a in alphas])
+                        ani_param = alphas[np.argmax(scores)]
+                        print(f"{ani_param=}")
+
+                        # x = (RH[1:] / RV[1:])[inertial_range].ravel()
+                        # y = (j_v[1:] / j_h[1:])[inertial_range].ravel()
+                        # m = np.isfinite(x) & np.isfinite(y)
+                        # ani_param = np.sum(x[m] * y[m]) / np.sum(x[m] ** 2)
 
                     num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
 
@@ -1216,6 +1276,7 @@ class KolmoLaw(SpecificOutput):
         polar=False,
         grid=False,
         disk=0.25,
+        isolines=False,
         epsilon=None,
         cmap="plasma",
         save=False,
@@ -1348,6 +1409,27 @@ class KolmoLaw(SpecificOutput):
                     logscale=logscale,
                     polar=polar,
                 )
+                if isolines:
+                    levels = np.arange(0.4, 1.21, 0.1)
+                    cs = ax.contour(
+                        Theta,
+                        log_R,
+                        j_l,
+                        levels=levels,
+                        colors="k",
+                        linewidths=0.5,
+                    )
+                    ax.clabel(cs, inline=True, fontsize="small", fmt="%.1f")
+                    ax.contourf(
+                        Theta,
+                        log_R,
+                        j_l,
+                        levels=[0.9, 1.1],
+                        colors="none",
+                        hatches=["///"],
+                    )
+                    inertial_range = (j_l >= 0.9) & (j_l <= 1.1)
+                    print(f"{inertial_range=}")
                 ax.legend()
                 ax.set_thetamin(90 - 360 * disk)
                 ax.set_thetamax(90)
@@ -1393,6 +1475,27 @@ class KolmoLaw(SpecificOutput):
                     ani=ani,
                     logscale=logscale,
                 )
+                if isolines:
+                    levels = np.arange(0.4, 1.21, 0.1)
+                    cs = ax.contour(
+                        RH[1:] / eta,
+                        RV[1:] / eta,
+                        j_l,
+                        levels=levels,
+                        colors="k",
+                        linewidths=0.5,
+                    )
+                    ax.clabel(cs, inline=True, fontsize="small", fmt="%.1f")
+                    ax.contourf(
+                        RH[1:] / eta,
+                        RV[1:] / eta,
+                        j_l,
+                        levels=[0.9, 1.1],
+                        colors="none",
+                        hatches=["///"],
+                    )
+                    inertial_range = (j_l >= 0.9) & (j_l <= 1.1)
+                    print(f"{inertial_range=}")
                 ax.legend()
                 if logscale:
                     ax.set_xscale("log")
@@ -1407,6 +1510,8 @@ class KolmoLaw(SpecificOutput):
             if save:
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
+            if isolines:
+                return inertial_range
 
         # Reference vmin = -0.5, vmax = 1.2
 
@@ -1476,17 +1581,30 @@ class KolmoLaw(SpecificOutput):
                 )
 
             case "div_J":
-                _plot(
-                    divJp_hv[1:] + divJk_hv[1:],
-                    cmap,
-                    vmin,
-                    vmax,
-                    type_plot="",
-                    divergence=True,
-                    polar=polar,
-                )
+                if isolines:
+                    inertial_range = _plot(
+                        divJp_hv[1:] + divJk_hv[1:],
+                        cmap,
+                        vmin,
+                        vmax,
+                        type_plot="",
+                        divergence=True,
+                        polar=polar,
+                    )
+                else:
+                    _plot(
+                        divJp_hv[1:] + divJk_hv[1:],
+                        cmap,
+                        vmin,
+                        vmax,
+                        type_plot="",
+                        divergence=True,
+                        polar=polar,
+                    )
             case _:
                 raise ValueError(
                     f"Field {which_plot} not available. "
                     f"Available fields: {', '.join(keys)}"
                 )
+        if isolines:
+            return inertial_range
