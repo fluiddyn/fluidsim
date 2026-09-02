@@ -301,15 +301,33 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         if coef_plot_k3 is not None:
             to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
-            ax.plot(ks, to_plot, "gray--", label=r"$\propto k^{-3}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle="--",
+                color="gray",
+                label=r"$\propto k^{-3}$",
+            )
 
         if coef_plot_k53 is not None:
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
-            ax.plot(ks, to_plot, "gray-.", label=r"$\propto k^{-5/3}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle="-.",
+                color="gray",
+                label=r"$\propto k^{-5/3}$",
+            )
 
         if coef_plot_k2 is not None:
             to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
-            ax.plot(ks, to_plot, "gray:", label=r"$\propto k^{-2}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle=":",
+                color="gray",
+                label=r"$\propto k^{-2}$",
+            )
 
         if plot_length_scales:
             dimless_num = (
