@@ -789,6 +789,13 @@ class KolmoLaw(SpecificOutput):
             False, True (streamlines).
         ani_param : float, default 1
             Anisotropy exponent for the theoretical field, if None then it will be computed.
+        divJ : ndarray or None, default None
+            Compensated -div(J)/(4*epsilon) field. Required if ani_param is
+            None (defines the inertial range); also drawn as contours.
+        rescale_vaxis : bool, default False
+            Non-polar only: rescale r_v -> alpha*r_v and normalize vectors by the theoretical norm.
+        normalization : {None, "vec", "r"}, default None
+            Weighting of the alpha fit (only if ani_param is None). None: raw squared differences; "vec": unit-normalized (direction only); "r": weighted by 1/r^2.
         """
         self._raise_parallel_error("plot_Jhv_vector")
 
@@ -995,8 +1002,6 @@ class KolmoLaw(SpecificOutput):
                     broken_streamlines=False,
                 )
                 ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
-                if axes is not None:
-                    return ax
             else:
                 Maps = np.sqrt(j_h**2 + j_v**2)
                 if rescale_vaxis and not polar:
@@ -1086,7 +1091,6 @@ class KolmoLaw(SpecificOutput):
                         headaxislength=headaxislength,
                         label=r"$\mathbf{J}$",
                     )
-                    return ax
             if divJ is not None:
                 RH_c = RH[1:]
                 RV_c = RV[1:]
@@ -1100,7 +1104,6 @@ class KolmoLaw(SpecificOutput):
                     colors="r",
                     linestyles="--",
                     linewidths=1.0,
-                    label="I-R",
                 )
             self._plot_scales(
                 ax,
