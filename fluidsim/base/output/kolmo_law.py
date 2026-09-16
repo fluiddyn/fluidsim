@@ -91,7 +91,9 @@ class KolmoLaw(SpecificOutput):
         Lx, Ly, Lz = params.oper.Lx, params.oper.Ly, params.oper.Lz
 
         # Initialize coordinate converter and spatial average operators
-        self.coord_conv = CoordSystem3DConverter(X, Y, Z, Lx, Ly, Lz, shift_origin=True)
+        self.coord_conv = CoordSystem3DConverter(
+            X, Y, Z, Lx, Ly, Lz, shift_origin=True
+        )
 
         ratio_dr_to_dx = 1.0
         ratio_drh_to_dx = 1.0
@@ -202,7 +204,9 @@ class KolmoLaw(SpecificOutput):
         # Compute divergence of J_k
         Jk_r_fft_array = np.array(Jk_r_fft)
         divJk_fft = 1j * (
-            kx * Jk_r_fft_array[0] + ky * Jk_r_fft_array[1] + kz * Jk_r_fft_array[2]
+            kx * Jk_r_fft_array[0]
+            + ky * Jk_r_fft_array[1]
+            + kz * Jk_r_fft_array[2]
         )
         divJk = self.sim.oper.ifft(divJk_fft)
 
@@ -229,7 +233,8 @@ class KolmoLaw(SpecificOutput):
 
             for ind_i in range(3):
                 mom = (
-                    4 * fft_bv[ind_i].conj() * fft_b + 2 * fft_b2.conj() * fft_vi[ind_i]
+                    4 * fft_bv[ind_i].conj() * fft_b
+                    + 2 * fft_b2.conj() * fft_vi[ind_i]
                 )
                 mom = 1j * mom.imag
                 Jp_r_fft[ind_i] = mom / (params.N**2)
@@ -237,7 +242,9 @@ class KolmoLaw(SpecificOutput):
             # Divergence of J_p
             Jp_r_fft_array = np.array(Jp_r_fft)
             divJp_fft = 1j * (
-                kx * Jp_r_fft_array[0] + ky * Jp_r_fft_array[1] + kz * Jp_r_fft_array[2]
+                kx * Jp_r_fft_array[0]
+                + ky * Jp_r_fft_array[1]
+                + kz * Jp_r_fft_array[2]
             )
             divJp = self.sim.oper.ifft(divJp_fft)
 
@@ -312,7 +319,9 @@ class KolmoLaw(SpecificOutput):
                 keys = [
                     k
                     for k in file.keys()
-                    if not any(k.startswith(begin) for begin in ["r", "info_", "times"])
+                    if not any(
+                        k.startswith(begin) for begin in ["r", "info_", "times"]
+                    )
                 ]
 
             # Determine time range
@@ -392,7 +401,10 @@ class KolmoLaw(SpecificOutput):
                         markersize=4,
                         label=r"$L_b$",
                     )
-                if np.log10(lambda_T) < axis_max and np.log10(lambda_T) > axis_min:
+                if (
+                    np.log10(lambda_T) < axis_max
+                    and np.log10(lambda_T) > axis_min
+                ):
                     ax.plot(
                         0,
                         np.log10(lambda_T),
@@ -603,8 +615,12 @@ class KolmoLaw(SpecificOutput):
                         "k",
                         label="$J_L = J_{K,L} + J_{P,L}$",
                     )
-                ax1.plot(r_store[1:] / eta, Jl_k_th[1:], "g--", label="4/3 theoretical")
-                ax1.set_title(f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large")
+                ax1.plot(
+                    r_store[1:] / eta, Jl_k_th[1:], "g--", label="4/3 theoretical"
+                )
+                ax1.set_title(
+                    f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
+                )
                 ax1.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax1.set_xscale("log")
                 ax1.set_yscale("log")
@@ -629,7 +645,9 @@ class KolmoLaw(SpecificOutput):
 
             case "div_J":
                 fig2, ax2 = self.output.figure_axe()
-                ax2.set_ylabel(r"$-\nabla \cdot J_L(r)/4\epsilon$", fontsize="x-large")
+                ax2.set_ylabel(
+                    r"$-\nabla \cdot J_L(r)/4\epsilon$", fontsize="x-large"
+                )
                 ax2.plot(
                     r_store[1:] / eta,
                     divJ_k[1:],
@@ -683,11 +701,17 @@ class KolmoLaw(SpecificOutput):
 
             case "S2":
                 fig3, ax3 = self.output.figure_axe()
-                ax3.set_ylabel(r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large")
+                ax3.set_ylabel(
+                    r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large"
+                )
                 ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "r", label="$S_2^K$")
                 if "b" in keys_state_phys:
-                    ax3.plot(r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$")
-                    ax3.plot(r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$")
+                    ax3.plot(
+                        r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$"
+                    )
+                    ax3.plot(
+                        r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$"
+                    )
                 ax3.plot(
                     r_store[1:] / eta,
                     S2_k_th[1:],
@@ -861,6 +885,7 @@ class KolmoLaw(SpecificOutput):
             axis_max=axis_max,
             axes=axes,
             ani_param=ani_param,
+            num_vectors=num_vectors,
         ):
             full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             if rescale_vaxis:
@@ -919,7 +944,7 @@ class KolmoLaw(SpecificOutput):
                 aniso_param = ani_param
 
             if rescale_vaxis and not polar:
-                full_title += rf", $\alpha = {round(aniso_param,2)}$"
+                full_title += rf", $\alpha = {round(aniso_param, 2)}$"
                 save_name_file += "_rv_rescaled"
                 r_max = min(RH.max(), RV.max())
                 r_min = max(RH.min(), RV.min())
@@ -931,7 +956,9 @@ class KolmoLaw(SpecificOutput):
                 C_consts_right = rv_at_rmax / r_max**aniso_param
                 rh_at_rvmax = np.linspace(r_min, r_max, num_r)
                 C_consts_top = r_max / rh_at_rvmax**aniso_param
-                C_consts = np.unique(np.concatenate([C_consts_right, C_consts_top]))
+                C_consts = np.unique(
+                    np.concatenate([C_consts_right, C_consts_top])
+                )
                 J_h_theory = -RH / (aniso_param + 2)
                 J_v_theory = -(aniso_param * RV) / (aniso_param + 2)
 
@@ -978,27 +1005,67 @@ class KolmoLaw(SpecificOutput):
                 if axes is not None:
                     return ax
             else:
-                if axes is None:
+                Maps = np.sqrt(j_h**2 + j_v**2)
+                if rescale_vaxis and not polar:
+                    j_h /= norm_th
+                    j_v /= norm_th
+                    Maps /= norm_th
+                j_h_plot, j_v_plot = (
+                    j_h[np.ix_(rows, cols)],
+                    j_v[np.ix_(rows, cols)],
+                )
+                Maps = Maps[np.ix_(rows, cols)]
+                if polar:
+                    if num_vectors is None:
+                        num_vectors = 20
+                    n_dec = np.log10(RH_sub[0, :].max() + 1e-14) - np.log10(
+                        RH_sub[0, :][RH_sub[0, :] > 0].min()
+                    )
+                    min_log_step = n_dec / num_vectors
+
+                    cell_h = np.round(
+                        np.log10(RH_sub + 1e-14) / min_log_step
+                    ).astype(int)
+                    cell_v = np.round(
+                        np.log10(np.abs(RV_sub) + 1e-14) / min_log_step
+                    ).astype(int)
+                    sign_v = np.sign(RV_sub).astype(int)
+                    pairs = np.stack(
+                        [cell_h.ravel(), cell_v.ravel(), sign_v.ravel()],
+                        axis=1,
+                    )
+                    _, idx = np.unique(pairs, axis=0, return_index=True)
+                    keep = np.zeros(RH_sub.size, dtype=bool)
+                    keep[idx] = True
+                    keep = keep.reshape(RH_sub.shape)
+
+                    j_h_plot = np.where(keep, j_h_plot, np.nan)
+                    j_v_plot = np.where(keep, j_v_plot, np.nan)
+                    RH_m = np.where(keep, RH_sub, np.nan)
+                    RV_m = np.where(keep, RV_sub, np.nan)
+
+                    R_full = np.sqrt(RH_m**2 + RV_m**2)
+                    Theta = np.arctan2(RV_m, RH_m)
+                    log_R = np.log10(R_full + 1e-14)
+                    pos_x, pos_y = Theta, log_R
+                    save_name_file += "_polar"
+                else:
+                    if logscale:
+                        raise ValueError(
+                            "Do not plot logscale except in log-polar"
+                        )
                     pos_x, pos_y = (
                         RH_sub[::ratio_vectors, ::ratio_vectors],
                         RV_sub[::ratio_vectors, ::ratio_vectors],
-                    )
-                    if rescale_vaxis and not polar:
-                        pos_y *= aniso_param
-                        Maps = np.sqrt(j_h**2 + j_v**2)
-                        j_h /= norm_th
-                        j_v /= norm_th
-                        Maps /= norm_th
-                    j_h_plot, j_v_plot = (
-                        j_h[np.ix_(rows, cols)],
-                        j_v[np.ix_(rows, cols)],
                     )
                     j_h_plot, j_v_plot = (
                         j_h_plot[::ratio_vectors, ::ratio_vectors],
                         j_v_plot[::ratio_vectors, ::ratio_vectors],
                     )
-                    Maps = Maps[np.ix_(rows, cols)]
                     Maps = Maps[::ratio_vectors, ::ratio_vectors]
+                    if rescale_vaxis:
+                        pos_y *= aniso_param
+                if axes is None:
                     quiv = ax.quiver(
                         pos_x,
                         pos_y,
@@ -1104,7 +1171,9 @@ class KolmoLaw(SpecificOutput):
                 ax.set_ylabel(RV_label, fontsize="x-large")
                 ax.set_xlim(xmin=axis_min, xmax=axis_max)
                 if rescale_vaxis:
-                    ax.set_ylim(ymin=axis_min*aniso_param, ymax=axis_max*aniso_param)
+                    ax.set_ylim(
+                        ymin=axis_min * aniso_param, ymax=axis_max * aniso_param
+                    )
                 else:
                     ax.set_ylim(ymin=axis_min, ymax=axis_max)
             plt.tight_layout()
@@ -1238,13 +1307,13 @@ class KolmoLaw(SpecificOutput):
             Jp_l_comp = -to_plot["Jl_p_hv"] / ((radius + 1e-14) * epsilon)
             divJp_hv = -to_plot["divJ_p_hv"] / (4 * epsilon)
 
-        def _plot(j_l, cmap, vmin, vmax, type_plot="K", divergence=False, polar=False):
+        def _plot(
+            j_l, cmap, vmin, vmax, type_plot="K", divergence=False, polar=False
+        ):
             coma = ""
             if type_plot != "":
                 coma = ","
-            full_title = (
-                f"$-\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
-            )
+            full_title = f"$-\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
             save_name_file = f"J{type_plot}_L_hv"
             if divergence:
                 full_title = f"$-\\nabla \\cdot \mathbf{{J}}_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
@@ -1261,7 +1330,9 @@ class KolmoLaw(SpecificOutput):
                 log_R = np.log10(R + 1e-14)
 
                 fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
-                im = ax.pcolormesh(Theta, log_R, j_l, cmap=cmap, vmin=vmin, vmax=vmax)
+                im = ax.pcolormesh(
+                    Theta, log_R, j_l, cmap=cmap, vmin=vmin, vmax=vmax
+                )
                 fig.colorbar(im, ax=ax)
 
                 r_ticks = [1, 10, 100]
@@ -1284,9 +1355,9 @@ class KolmoLaw(SpecificOutput):
                 if overlay_vectors:
                     save_name_file += "_overlay"
                     if len(which_plot) > 3:
-                        _which_plot = which_plot.removeprefix("div_") + "_norm"
+                        _which_plot = which_plot.removeprefix("div_")
                     else:
-                        _which_plot = which_plot + "_norm"
+                        _which_plot = which_plot
                     self.plot_Jhv_vector(
                         which_plot=_which_plot,
                         axes=ax,
@@ -1347,9 +1418,9 @@ class KolmoLaw(SpecificOutput):
                 ax.set_aspect("equal", "box")
                 if overlay_vectors:
                     if len(which_plot) > 3:
-                        _which_plot = which_plot.removeprefix("div_") + "_norm"
+                        _which_plot = which_plot.removeprefix("div_")
                     else:
-                        _which_plot = which_plot + "_norm"
+                        _which_plot = which_plot
                     self.plot_Jhv_vector(
                         which_plot=_which_plot,
                         axes=ax,
