@@ -739,7 +739,6 @@ class KolmoLaw(SpecificOutput):
         polar=False,
         grid=False,
         disk=0.25,
-        vect_scale=None,
         epsilon=None,
         theory=False,
         ani_param=1,
@@ -755,7 +754,7 @@ class KolmoLaw(SpecificOutput):
         Parameters
         ----------
         which_plot : str, default "JK"
-            Field to plot: "JK", "JP", "J", or their normalized by r, "_norm", variants.
+            Field to plot: "JK", "JP", "J".
         num_vectors : int, default 60
             Target number of arrows per axis (per decade in logscale).
             If logscale is True and theory is "vec" then 30 is a good value.
@@ -767,13 +766,10 @@ class KolmoLaw(SpecificOutput):
             Use grid for log-polar plots
         disk : float, default 0.25
             Desired proportion of the log-polar disk (0.25 is quarter, 0.5 half and 1 is full)
-        vect_scale : float, default 500
-            Arrow length calibration factor.
-            If logscale is True and theory is "vec" then 100 is a good value.
         theory : bool or str, default False
-            False, True (streamlines), or "vec" (theoretical arrows).
+            False, True (streamlines).
         ani_param : float, default 1
-            Anisotropy exponent for the theoretical field.
+            Anisotropy exponent for the theoretical field, if None then it will be computed.
         """
         self._raise_parallel_error("plot_Jhv_vector")
 
@@ -830,52 +826,6 @@ class KolmoLaw(SpecificOutput):
         if polar:
             logscale = True
 
-        # if not logscale:
-        #     if num_vectors is False:
-        #         ratio_vectors = 1
-        #     else:
-        #         if num_vectors is None:
-        #             num_vectors = 60
-        #         ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
-
-        #     Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
-        #     Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
-        #     if "b" in keys_state_phys:
-        #         Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
-        #         Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
-        #     RH_sub = RH[::ratio_vectors, ::ratio_vectors]
-        #     RV_sub = RV[::ratio_vectors, ::ratio_vectors]
-
-        # else:
-        #     if num_vectors is None:
-        #         num_vectors = 20
-        #     n_dec = np.log10(rh_store.max() + 1e-14) - np.log10(
-        #         rh_store[rh_store > 0].min()
-        #     )
-        #     min_log_step = n_dec / num_vectors
-
-        #     cell_h = np.round(np.log10(RH + 1e-14) / min_log_step).astype(int)
-        #     cell_v = np.round(np.log10(np.abs(RV) + 1e-14) / min_log_step).astype(
-        #         int
-        #     )
-        #     sign_v = np.sign(RV).astype(int)
-        #     pairs = np.stack(
-        #         [cell_h.ravel(), cell_v.ravel(), sign_v.ravel()], axis=1
-        #     )
-        #     _, idx = np.unique(pairs, axis=0, return_index=True)
-        #     keep = np.zeros(RH.size, dtype=bool)
-        #     keep[idx] = True
-        #     keep = keep.reshape(RH.shape)
-
-        #     Jk_h = np.where(keep, to_plot["Jh_k_hv"], np.nan)
-        #     Jk_v = np.where(keep, to_plot["Jv_k_hv"], np.nan)
-
-        #     if "b" in keys_state_phys:
-        #         Jp_h = np.where(keep, to_plot["Jh_p_hv"], np.nan)
-        #         Jp_v = np.where(keep, to_plot["Jv_p_hv"], np.nan)
-        #     RH_sub = RH
-        #     RV_sub = RV
-
         Jk_v = to_plot["Jv_k_hv"]
         Jk_h = to_plot["Jh_k_hv"]
         if "b" in keys_state_phys:
@@ -884,21 +834,11 @@ class KolmoLaw(SpecificOutput):
 
         axis_max = 100
         axis_min = 1
-        # if inertial_range is not None:
-        #     rh_in = RH[1:][inertial_range]
-        #     rv_in = RV[1:][inertial_range]
-        #     rh_in = rh_in[np.isfinite(rh_in) & (rh_in > 0)]
-        #     rv_in = rv_in[np.isfinite(rv_in) & (rv_in > 0)]
-        #     axis_min = np.min([np.floor(rh_in.min()), np.floor(rv_in.min())])
-        #     axis_max = np.max([np.ceil(rh_in.max()), np.ceil(rv_in.max())])
 
         rows = (RV[:, 0] > axis_min) & (RV[:, 0] < axis_max)
         cols = (RH[0, :] > axis_min) & (RH[0, :] < axis_max)
         RH_sub = RH[np.ix_(rows, cols)]
         RV_sub = RV[np.ix_(rows, cols)]
-
-        # if inertial_range is not None:
-        #     inertial_range_sub = inertial_range[np.ix_(rows, cols)]
 
         if num_vectors is False:
             ratio_vectors = 1
@@ -907,22 +847,14 @@ class KolmoLaw(SpecificOutput):
                 num_vectors = 60
         ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
 
-        if vect_scale is None:
-            if "norm" in which_plot:
-                vect_scale = 750
-            else:
-                vect_scale = 500
-
         def _plot(
             j_v,
             j_h,
             type_plot="_K",
-            normalized=False,
             theory=False,
             polar=polar,
             axis_min=axis_min,
             axis_max=axis_max,
-            vect_scale=vect_scale,
             axes=axes,
             ani_param=ani_param,
         ):
@@ -930,28 +862,7 @@ class KolmoLaw(SpecificOutput):
             if rescale_vaxis:
                 full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/(4\epsilon \| \mathbf{{J}}_{{th}} \|)$, {title}"
             save_name_file = f"J{type_plot}_vector_hv"
-            # j_v_plot = j_v[np.ix_(rows, cols)].copy()
-            # j_h_plot = j_h[np.ix_(rows, cols)].copy()
 
-            # if polar:
-            #     R = np.sqrt(RH_sub**2 + RV_sub**2)
-            #     Theta = np.arctan2(RV_sub, RH_sub)
-            #     log_R = np.log10(R + 1e-14)
-            #     pos_x, pos_y = Theta, log_R
-            #     save_name_file += "_polar"
-            # else:
-            #     pos_x, pos_y = RH_sub, RV_sub
-
-            # if normalized:
-            #     full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon \| \mathbf{{r}} \|$, {title}"
-            #     save_name_file += "_normalized"
-            #     RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
-            #     RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
-            #     norm_r = np.sqrt(RH_safe**2 + RV_safe**2)
-            #     j_v_plot /= norm_r
-            #     j_h_plot /= norm_r
-
-            # C = np.sqrt(j_v_plot**2 + j_h_plot**2)
             if axes is None:
                 if polar:
                     fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
@@ -966,25 +877,6 @@ class KolmoLaw(SpecificOutput):
             headlength = 3.5
             headaxislength = 2.5
             scale = None
-            # if logscale:
-            #     if not polar:
-            #         if theory is False:
-            #             axis_min = 1
-            #         if axes is None:
-            #             ax.set_xscale("log")
-            #             ax.set_yscale("log")
-            #         save_name_file += "_logscale"
-            #     if axes is None:
-            #         cmap_obj.set_bad("white")
-            #     width = 0.002
-            #     headwidth = 2
-            #     headlength = 1.5
-            #     headaxislength = 1.5
-            #     keep_win = keep[np.ix_(rows, cols)]
-            #     C = np.where(keep_win, C, np.nan)
-            #     amean = np.nanmean(C[C > 0])
-            #     span = axis_max - axis_min
-            #     scale = vect_scale * amean * num_vectors / span
 
             if inertial_range is not None and ani_param is None:
 
@@ -1024,100 +916,49 @@ class KolmoLaw(SpecificOutput):
             if rescale_vaxis and not polar:
                 full_title += rf", $\alpha = {round(ani_param,2)}$"
                 save_name_file += "_rv_rescaled"
+                r_max = min(RH.max(), RV.max())
+                r_min = max(RH.min(), RV.min())
+                rh_line = np.linspace(r_min, r_max, 100)
+
+                num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
+
+                rv_at_rmax = np.linspace(r_min, r_max, num_r)
+                C_consts_right = rv_at_rmax / r_max**ani_param
+                rh_at_rvmax = np.linspace(r_min, r_max, num_r)
+                C_consts_top = r_max / rh_at_rvmax**ani_param
+                C_consts = np.unique(np.concatenate([C_consts_right, C_consts_top]))
+                J_h_theory = -RH / (ani_param + 2)
+                J_v_theory = -(ani_param * RV) / (ani_param + 2)
+
+                J_h_theory *= eta
+                J_v_theory *= eta
+
+                norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
+                norm_th = np.where(norm_th != 0, norm_th, 1e-10)
+
             ax.set_title(full_title, fontsize="x-large")
-            match theory:
-                case False:
-                    pass
 
-                case True | "vec" as which_theory:
-                    save_name_file += "_with_theory"
-                    r_max = min(RH.max(), RV.max())
-                    r_min = max(RH.min(), RV.min())
-                    rh_line = np.linspace(r_min, r_max, 100)
+            if theory:
+                save_name_file += "_with_theory"
 
-                    num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
-
-                    rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_right = rv_at_rmax / r_max**ani_param
-                    rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_top = r_max / rh_at_rvmax**ani_param
-                    C_consts = np.unique(np.concatenate([C_consts_right, C_consts_top]))
-                    if polar:
-                        offset = np.radians(5)
-                    else:
-                        offset = (r_max - r_min) * 0.003
-                    J_h_theory = -RH / (ani_param + 2)
-                    J_v_theory = -(ani_param * RV) / (ani_param + 2)
-
-                    J_h_theory *= eta
-                    J_v_theory *= eta
-
-                    # if normalized:
-                    #     J_h_theory /= norm_r
-                    #     J_v_theory /= norm_r
-
-                    # if logscale:
-                    #     J_h_theory = np.where(keep_win, J_h_theory, np.nan)
-                    #     J_v_theory = np.where(keep_win, J_v_theory, np.nan)
-
-                    norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
-                    norm_th = np.where(norm_th != 0, norm_th, 1e-10)
-
-                    # norm_ratio = C / norm_th
-
-                    # print(f"{norm_ratio=}")
-                    # print(f"{np.mean(norm_ratio)=}")
-
-                    match which_theory:
-                        case True:
-                            for i, C_const in enumerate(C_consts):
-                                rv_line = C_const * rh_line**ani_param
-                                mask = (rv_line >= r_min) & (rv_line <= r_max)
-                                if mask.sum() < 2:
-                                    continue
-                                label_plot = (
-                                    rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
-                                    if i == 0
-                                    else None
-                                )
-                                ax.plot(
-                                    rh_line[mask],
-                                    rv_line[mask],
-                                    "k-",
-                                    linewidth=0.8,
-                                    alpha=0.5,
-                                    label=label_plot,
-                                )
-
-                        # case "vec":
-                        #     if logscale and not polar:
-                        #         delta = 0.03
-                        #         x_axis = 10 ** (np.log10(pos_x) + delta)
-                        #         y_axis = 10 ** (np.log10(pos_y) + delta)
-                        #     else:
-                        #         x_axis = pos_x + offset
-                        #         y_axis = pos_y
-                        #     # if inertial_range is not None:
-                        #     #     x_axis, y_axis = x_axis[inertial_range_sub], y_axis[inertial_range_sub],
-                        #     #     J_h_theory, J_v_theory = J_h_theory[inertial_range_sub], J_v_theory[inertial_range_sub],
-                        #     if rescale_vaxis and not polar:
-                        #         y_axis *= ani_param
-                        #     if inertial_range is None:
-                        #         ax.quiver(
-                        #             x_axis,
-                        #             y_axis,
-                        #             J_h_theory,
-                        #             J_v_theory,
-                        #             color="k",
-                        #             scale=scale,
-                        #             width=width,
-                        #             headwidth=headwidth,
-                        #             headlength=headlength,
-                        #             headaxislength=headaxislength,
-                        #             alpha=0.5,
-                        #             label=rf"$\alpha = {round(ani_param,2)}$",
-                        #         )
-            if theory is True:
+                for i, C_const in enumerate(C_consts):
+                    rv_line = C_const * rh_line**ani_param
+                    mask = (rv_line >= r_min) & (rv_line <= r_max)
+                    if mask.sum() < 2:
+                        continue
+                    label_plot = (
+                        rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
+                        if i == 0
+                        else None
+                    )
+                    ax.plot(
+                        rh_line[mask],
+                        rv_line[mask],
+                        "k-",
+                        linewidth=0.8,
+                        alpha=0.5,
+                        label=label_plot,
+                    )
                 quiv = ax.streamplot(
                     RH[0, :],
                     RV[:, 0],
@@ -1133,10 +974,6 @@ class KolmoLaw(SpecificOutput):
                     return ax
             else:
                 if axes is None:
-                    # if inertial_range is not None:
-                    #     pos_x, pos_y = pos_x[inertial_range_sub], pos_y[inertial_range_sub]
-                    #     j_h_plot, j_v_plot = j_h_plot[inertial_range_sub], j_v_plot[inertial_range_sub]
-                    #     C = C[inertial_range_sub]
                     pos_x, pos_y = (
                         RH_sub[::ratio_vectors, ::ratio_vectors],
                         RV_sub[::ratio_vectors, ::ratio_vectors],
@@ -1287,16 +1124,6 @@ class KolmoLaw(SpecificOutput):
                     Jk_v / (4 * epsilon),
                     Jk_h / (4 * epsilon),
                     type_plot="_K",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "JK_norm":
-                _plot(
-                    Jk_v / (4 * epsilon),
-                    Jk_h / (4 * epsilon),
-                    type_plot="_K",
-                    normalized=True,
                     theory=theory,
                 )
 
@@ -1305,16 +1132,6 @@ class KolmoLaw(SpecificOutput):
                     Jp_v / (4 * epsilon),
                     Jp_h / (4 * epsilon),
                     type_plot="_P",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "JP_norm":
-                _plot(
-                    Jp_v / (4 * epsilon),
-                    Jp_h / (4 * epsilon),
-                    type_plot="_P",
-                    normalized=True,
                     theory=theory,
                 )
 
@@ -1323,16 +1140,6 @@ class KolmoLaw(SpecificOutput):
                     (Jp_v + Jk_v) / (4 * epsilon),
                     (Jp_h + Jk_h) / (4 * epsilon),
                     type_plot="",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "J_norm":
-                _plot(
-                    (Jp_v + Jk_v) / (4 * epsilon),
-                    (Jp_h + Jk_h) / (4 * epsilon),
-                    type_plot="",
-                    normalized=True,
                     theory=theory,
                 )
 
@@ -1354,7 +1161,6 @@ class KolmoLaw(SpecificOutput):
         overlay_vectors=False,
         ani_param=1,
         num_vectors=None,
-        vect_scale=None,
         theory=False,
         logscale=True,
         polar=False,
@@ -1482,7 +1288,6 @@ class KolmoLaw(SpecificOutput):
                         logscale=logscale,
                         polar=polar,
                         disk=disk,
-                        vect_scale=vect_scale,
                         theory=theory,
                         ani_param=ani_param,
                     )
@@ -1545,7 +1350,6 @@ class KolmoLaw(SpecificOutput):
                         num_vectors=num_vectors,
                         logscale=logscale,
                         disk=disk,
-                        vect_scale=vect_scale,
                         theory=theory,
                         ani_param=ani_param,
                     )
