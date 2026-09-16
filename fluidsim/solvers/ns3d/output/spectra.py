@@ -442,7 +442,6 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             directions=directions,
             plot_kmax=plot_kmax,
             plot_L_int=plot_L_int,
-
         )
 
     def plot3d_cumul_diss(self, tmin=0, tmax=None):
