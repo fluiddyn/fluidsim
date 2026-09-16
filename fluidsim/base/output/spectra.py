@@ -170,13 +170,14 @@ class SpectraBase(SpecificOutput):
     ):
         eta_norm = eta
         to_plot = [
-            (eta_norm, "darkorange", r"$k_{\eta}$"),
-            (L_int, "r", r"$k_{L}$"),
+            (eta_norm, "darkorange", r"$1/\eta$"),
         ]
+        if L_int is not None:
+            to_plot += [(L_int, "r", r"$k_{L}$")]
         if ani:
-            to_plot += [(l_O, "b", r"$k_{l_O}$")]
+            to_plot += [(l_O, "b", r"$1/l_O$")]
         else:
-            to_plot += [(lambda_T, "k", r"$k_{\lambda}$")]
+            to_plot += [(lambda_T, "k", r"$1/\lambda$")]
 
         for length, color, label in to_plot:
             ax.axvline(
@@ -192,22 +193,23 @@ class SpectraBase(SpecificOutput):
                 color="g",
                 linestyle=":",
                 linewidth=1.0,
-                label=r"$k_{L_b}$",
+                label=r"$1/L_b$",
             )
             ax.axvline(
                 x=1 / lambda_T,
                 color="k",
                 linestyle=":",
                 linewidth=1.0,
-                label=r"$k_{\lambda}$",
+                label=r"$1/\lambda$",
             )
-        ax.axvline(
-            x=kmax,
-            color="k",
-            linestyle="-",
-            linewidth=1.0,
-            label=r"$k_{max}$",
-        )
+        if kmax is not None:
+            ax.axvline(
+                x=kmax,
+                color="k",
+                linestyle="-",
+                linewidth=1.0,
+                label=r"$k_{max}$",
+            )
 
     def _plot_ndim(
         self,
@@ -224,6 +226,8 @@ class SpectraBase(SpecificOutput):
         ylim=None,
         ndim=1,
         directions=None,
+        plot_kmax=False,
+        plot_L_int=False,
     ):
         if ndim not in self._possible_ndims:
             raise ValueError
@@ -345,7 +349,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
             )
             eta = dimless_num["eta"]
             epsilon = dimless_num["epsK"]
-            kmax = dimless_num["k_max"]
+            kmax = None
+            if plot_kmax:
+                kmax = dimless_num["k_max"]
             if "h" in directions:
                 epsilon += dimless_num["epsA"]
                 N = self.sim.params.N
@@ -360,7 +366,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
                 ani = False
             EK = dimless_num["EKh"] + dimless_num["EKz"]
             u_rms = np.sqrt(2 * EK / 3)
-            L_int = u_rms**3 / epsilon
+            L_int = None
+            if plot_L_int:
+                L_int = u_rms**3 / epsilon
             lambda_T = u_rms * np.sqrt(15 * self.sim.params.nu_2 / epsilon)
             self._plot_scales(
                 ax,

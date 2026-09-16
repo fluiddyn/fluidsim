@@ -300,6 +300,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         directions=None,
         plot_forcing_region=False,
         plot_dissipative_scales=False,
+        plot_kmax=False,
+        plot_L_int=False,
     ):
         ax = self._plot_ndim(
             tmin=tmin,
@@ -315,6 +317,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             ylim=ylim,
             ndim=1,
             directions=directions,
+            plot_kmax=plot_kmax,
+            plot_L_int=plot_L_int,
         )
 
         factor = 2
@@ -419,6 +423,8 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
         xlim=None,
         ylim=None,
         directions=None,
+        plot_kmax=False,
+        plot_L_int=False,
     ):
         self._plot_ndim(
             tmin=tmin,
@@ -434,6 +440,9 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d} ; delta_i = {delta_i_plot}"""
             ylim=ylim,
             ndim=3,
             directions=directions,
+            plot_kmax=plot_kmax,
+            plot_L_int=plot_L_int,
+
         )
 
     def plot3d_cumul_diss(self, tmin=0, tmax=None):
