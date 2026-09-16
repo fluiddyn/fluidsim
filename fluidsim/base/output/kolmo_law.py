@@ -742,7 +742,6 @@ class KolmoLaw(SpecificOutput):
         epsilon=None,
         theory=False,
         ani_param=1,
-        inertial_range=None,
         divJ=None,
         rescale_vaxis=False,
         normalization=None,
@@ -847,6 +846,11 @@ class KolmoLaw(SpecificOutput):
                 num_vectors = 60
         ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
 
+        if ani_param is None:
+            if divJ is None:
+                raise ValueError("divJ or ani_param should be not None")
+            inertial_range = (divJ >= 0.9) & (divJ <= 1.1)
+
         def _plot(
             j_v,
             j_h,
@@ -878,8 +882,7 @@ class KolmoLaw(SpecificOutput):
             headaxislength = 2.5
             scale = None
 
-            if inertial_range is not None and ani_param is None:
-
+            if ani_param is None:
                 rh = RH[1:][inertial_range].ravel()
                 rv = RV[1:][inertial_range].ravel()
                 jh = j_h[1:][inertial_range].ravel()
@@ -910,25 +913,27 @@ class KolmoLaw(SpecificOutput):
 
                 alphas = np.linspace(-1.0, 1.0, 10000)
                 scores = np.array([chi2(a) for a in alphas])
-                ani_param = alphas[np.argmin(scores)]
-                print(f"{ani_param=}")
+                aniso_param = alphas[np.argmin(scores)]
+                print(f"{aniso_param=}")
+            else:
+                aniso_param = ani_param
 
             if rescale_vaxis and not polar:
-                full_title += rf", $\alpha = {round(ani_param,2)}$"
+                full_title += rf", $\alpha = {round(aniso_param,2)}$"
                 save_name_file += "_rv_rescaled"
                 r_max = min(RH.max(), RV.max())
                 r_min = max(RH.min(), RV.min())
                 rh_line = np.linspace(r_min, r_max, 100)
 
-                num_r = max(5, int((50 / (abs(ani_param) + 0.1) / 2)))
+                num_r = max(5, int((50 / (abs(aniso_param) + 0.1) / 2)))
 
                 rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                C_consts_right = rv_at_rmax / r_max**ani_param
+                C_consts_right = rv_at_rmax / r_max**aniso_param
                 rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                C_consts_top = r_max / rh_at_rvmax**ani_param
+                C_consts_top = r_max / rh_at_rvmax**aniso_param
                 C_consts = np.unique(np.concatenate([C_consts_right, C_consts_top]))
-                J_h_theory = -RH / (ani_param + 2)
-                J_v_theory = -(ani_param * RV) / (ani_param + 2)
+                J_h_theory = -RH / (aniso_param + 2)
+                J_v_theory = -(aniso_param * RV) / (aniso_param + 2)
 
                 J_h_theory *= eta
                 J_v_theory *= eta
@@ -942,12 +947,12 @@ class KolmoLaw(SpecificOutput):
                 save_name_file += "_with_theory"
 
                 for i, C_const in enumerate(C_consts):
-                    rv_line = C_const * rh_line**ani_param
+                    rv_line = C_const * rh_line**aniso_param
                     mask = (rv_line >= r_min) & (rv_line <= r_max)
                     if mask.sum() < 2:
                         continue
                     label_plot = (
-                        rf"$r_v = \beta\, r_h^{{{ani_param}}}$"
+                        rf"$r_v = \beta\, r_h^{{{aniso_param}}}$"
                         if i == 0
                         else None
                     )
@@ -979,7 +984,7 @@ class KolmoLaw(SpecificOutput):
                         RV_sub[::ratio_vectors, ::ratio_vectors],
                     )
                     if rescale_vaxis and not polar:
-                        pos_y *= ani_param
+                        pos_y *= aniso_param
                         Maps = np.sqrt(j_h**2 + j_v**2)
                         j_h /= norm_th
                         j_v /= norm_th
@@ -1030,7 +1035,7 @@ class KolmoLaw(SpecificOutput):
                 RH_c = RH[1:]
                 RV_c = RV[1:]
                 if rescale_vaxis and not polar:
-                    RV_c = RV_c * ani_param
+                    RV_c = RV_c * aniso_param
                 ax.contour(
                     RH_c,
                     RV_c,
@@ -1084,7 +1089,7 @@ class KolmoLaw(SpecificOutput):
                 )
                 ax.set_thetamin(90 - 360 * disk)
                 ax.set_thetamax(90)
-                if inertial_range is not None:
+                if divJ is not None:
                     ax.set_rmin(np.log10(axis_min if axis_min > 0 else 5))
                     ax.set_rmax(np.log10(100))
                 else:
@@ -1099,7 +1104,7 @@ class KolmoLaw(SpecificOutput):
                 ax.set_ylabel(RV_label, fontsize="x-large")
                 ax.set_xlim(xmin=axis_min, xmax=axis_max)
                 if rescale_vaxis:
-                    ax.set_ylim(ymin=axis_min*ani_param, ymax=axis_max*ani_param)
+                    ax.set_ylim(ymin=axis_min*aniso_param, ymax=axis_max*aniso_param)
                 else:
                     ax.set_ylim(ymin=axis_min, ymax=axis_max)
             plt.tight_layout()
@@ -1108,6 +1113,7 @@ class KolmoLaw(SpecificOutput):
                 save_name_file += ".png"
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
+            return aniso_param
 
         if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
             which_plot = which_plot.replace("J", "JK")
@@ -1120,7 +1126,7 @@ class KolmoLaw(SpecificOutput):
 
         match which_plot:
             case "JK":
-                _plot(
+                aniso_param = _plot(
                     Jk_v / (4 * epsilon),
                     Jk_h / (4 * epsilon),
                     type_plot="_K",
@@ -1128,7 +1134,7 @@ class KolmoLaw(SpecificOutput):
                 )
 
             case "JP":
-                _plot(
+                aniso_param = _plot(
                     Jp_v / (4 * epsilon),
                     Jp_h / (4 * epsilon),
                     type_plot="_P",
@@ -1136,7 +1142,7 @@ class KolmoLaw(SpecificOutput):
                 )
 
             case "J":
-                _plot(
+                aniso_param = _plot(
                     (Jp_v + Jk_v) / (4 * epsilon),
                     (Jp_h + Jk_h) / (4 * epsilon),
                     type_plot="",
@@ -1148,8 +1154,8 @@ class KolmoLaw(SpecificOutput):
                     f"Field {which_plot} not available. "
                     f"Available fields: {', '.join(keys)}"
                 )
-        if inertial_range is not None and ani_param is None:
-            return ani_param
+        if ani_param is None:
+            return aniso_param
 
     def plot_hv_dependencies(
         self,
@@ -1385,8 +1391,6 @@ class KolmoLaw(SpecificOutput):
                         colors="none",
                         hatches=["///"],
                     )
-                    inertial_range = (j_l >= 0.9) & (j_l <= 1.1)
-                    print(f"{inertial_range=}")
                 ax.legend()
                 if logscale:
                     save_name_file += "_logscale"
@@ -1400,8 +1404,6 @@ class KolmoLaw(SpecificOutput):
                 save_name_file += ".png"
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
-            if isolines:
-                return inertial_range
 
         if which_plot in ("J", "div_J") and "b" not in keys_state_phys:
             which_plot = which_plot.replace("J", "JK")
@@ -1426,26 +1428,16 @@ class KolmoLaw(SpecificOutput):
 
             case "div_JK":
                 if isolines:
-                    inertial_range = _plot(
-                        divJk_hv[1:],
-                        cmap,
-                        vmin,
-                        vmax,
-                        type_plot="K",
-                        divergence=True,
-                        polar=polar,
-                    )
                     divJ = divJk_hv[1:]
-                else:
-                    _plot(
-                        divJk_hv[1:],
-                        cmap,
-                        vmin,
-                        vmax,
-                        type_plot="K",
-                        divergence=True,
-                        polar=polar,
-                    )
+                _plot(
+                    divJk_hv[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="K",
+                    divergence=True,
+                    polar=polar,
+                )
             case "JP":
                 _plot(
                     Jp_l_comp[1:],
@@ -1481,30 +1473,20 @@ class KolmoLaw(SpecificOutput):
 
             case "div_J":
                 if isolines:
-                    inertial_range = _plot(
-                        divJp_hv[1:] + divJk_hv[1:],
-                        cmap,
-                        vmin,
-                        vmax,
-                        type_plot="",
-                        divergence=True,
-                        polar=polar,
-                    )
                     divJ = divJp_hv[1:] + divJk_hv[1:]
-                else:
-                    _plot(
-                        divJp_hv[1:] + divJk_hv[1:],
-                        cmap,
-                        vmin,
-                        vmax,
-                        type_plot="",
-                        divergence=True,
-                        polar=polar,
-                    )
+                _plot(
+                    divJp_hv[1:] + divJk_hv[1:],
+                    cmap,
+                    vmin,
+                    vmax,
+                    type_plot="",
+                    divergence=True,
+                    polar=polar,
+                )
             case _:
                 raise ValueError(
                     f"Field {which_plot} not available. "
                     f"Available fields: {', '.join(keys)}"
                 )
         if isolines:
-            return inertial_range, divJ
+            return divJ
