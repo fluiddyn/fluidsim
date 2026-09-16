@@ -199,26 +199,29 @@ class TestOutput(TestSimulBase):
         sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size)
 
         sim2.output.kolmo_law.plot_hv_dependencies(which_plot="JK")
-        sim2.output.kolmo_law.plot_Jhv_vector(
-            num_vectors=size, which_plot="JK_norm"
-        )
+        sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size, which_plot="JK")
         sim2.output.kolmo_law.plot_hv_dependencies(which_plot="JP")
         sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size, which_plot="JP")
         sim2.output.kolmo_law.plot_hv_dependencies(which_plot="div_JP")
-        sim2.output.kolmo_law.plot_Jhv_vector(
-            num_vectors=size, which_plot="JP_norm"
+        sim2.output.kolmo_law.plot_Jhv_vector(num_vectors=size, which_plot="JP")
+        divJ = sim2.output.kolmo_law.plot_hv_dependencies(
+            which_plot="div_J", isolines=True
         )
-        sim2.output.kolmo_law.plot_hv_dependencies(which_plot="div_J")
         sim2.output.kolmo_law.plot_Jhv_vector(
-            num_vectors=size, which_plot="J", theory=True, logscale=True
+            num_vectors=size,
+            which_plot="J",
+            theory=True,
+            divJ=divJ,
+            rescale_vaxis=True,
+            normalization="r",
         )
 
         sim2.output.kolmo_law.plot_radial_dependencies(which_plot="J")
         sim2.output.kolmo_law.plot_hv_dependencies(
-            vmin=0, vmax=1, which_plot="J", logscale=False
+            vmin=0, vmax=1, which_plot="J", theory=True
         )
         sim2.output.kolmo_law.plot_Jhv_vector(
-            num_vectors=size, which_plot="J_norm", theory=True, logscale=True
+            num_vectors=size, which_plot="J", polar=True
         )
 
         tmax = sim2.params.time_stepping.t_end
