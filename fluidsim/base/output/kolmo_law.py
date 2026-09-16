@@ -759,7 +759,6 @@ class KolmoLaw(SpecificOutput):
         which_plot="JK",
         axes=None,
         num_vectors=None,
-        logscale=True,
         polar=False,
         grid=False,
         disk=0.25,
@@ -779,10 +778,7 @@ class KolmoLaw(SpecificOutput):
         which_plot : str, default "JK"
             Field to plot: "JK", "JP", "J".
         num_vectors : int, default 60
-            Target number of arrows per axis (per decade in logscale).
-            If logscale is True and theory is "vec" then 30 is a good value.
-        logscale : bool, default True
-            Use logarithmic axes.
+            Target number of arrows per axis (per decade in log-polar).
         polar : bool, default False
             Use log-polar axes
         grid : bool, default False
@@ -845,9 +841,6 @@ class KolmoLaw(SpecificOutput):
         RH /= eta
 
         RV /= eta
-
-        if polar:
-            logscale = True
 
         Jk_v = to_plot["Jv_k_hv"]
         Jk_h = to_plot["Jh_k_hv"]
@@ -946,19 +939,6 @@ class KolmoLaw(SpecificOutput):
             if rescale_vaxis and not polar:
                 full_title += rf", $\alpha = {round(aniso_param, 2)}$"
                 save_name_file += "_rv_rescaled"
-                r_max = min(RH.max(), RV.max())
-                r_min = max(RH.min(), RV.min())
-                rh_line = np.linspace(r_min, r_max, 100)
-
-                num_r = max(5, int((50 / (abs(aniso_param) + 0.1) / 2)))
-
-                rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                C_consts_right = rv_at_rmax / r_max**aniso_param
-                rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                C_consts_top = r_max / rh_at_rvmax**aniso_param
-                C_consts = np.unique(
-                    np.concatenate([C_consts_right, C_consts_top])
-                )
                 J_h_theory = -RH / (aniso_param + 2)
                 J_v_theory = -(aniso_param * RV) / (aniso_param + 2)
 
@@ -973,6 +953,19 @@ class KolmoLaw(SpecificOutput):
             if theory:
                 save_name_file += "_with_theory"
 
+                r_max = min(RH.max(), RV.max())
+                r_min = max(RH.min(), RV.min())
+                rh_line = np.linspace(r_min, r_max, 100)
+
+                num_r = max(5, int((50 / (abs(aniso_param) + 0.1) / 2)))
+
+                rv_at_rmax = np.linspace(r_min, r_max, num_r)
+                C_consts_right = rv_at_rmax / r_max**aniso_param
+                rh_at_rvmax = np.linspace(r_min, r_max, num_r)
+                C_consts_top = r_max / rh_at_rvmax**aniso_param
+                C_consts = np.unique(
+                    np.concatenate([C_consts_right, C_consts_top])
+                )
                 for i, C_const in enumerate(C_consts):
                     rv_line = C_const * rh_line**aniso_param
                     mask = (rv_line >= r_min) & (rv_line <= r_max)
@@ -1050,10 +1043,6 @@ class KolmoLaw(SpecificOutput):
                     pos_x, pos_y = Theta, log_R
                     save_name_file += "_polar"
                 else:
-                    if logscale:
-                        raise ValueError(
-                            "Do not plot logscale except in log-polar"
-                        )
                     pos_x, pos_y = (
                         RH_sub[::ratio_vectors, ::ratio_vectors],
                         RV_sub[::ratio_vectors, ::ratio_vectors],
@@ -1124,7 +1113,6 @@ class KolmoLaw(SpecificOutput):
                 axis_max,
                 dim=2,
                 ani=ani,
-                logscale=logscale,
                 polar=polar,
             )
             x = np.linspace(axis_min, axis_max, 10)
