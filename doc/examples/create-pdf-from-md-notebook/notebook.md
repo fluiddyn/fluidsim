@@ -332,7 +332,12 @@ sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=300, whic
 Then we do not fix $\alpha$ and compute it inside the inertial range by the least square method:
 
 ```{code-cell} ipython3
-aniso_param = sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=300, which_plot="J", theory=False, ani_param=None, rescale_vaxis=True, divJ=divJ, normalization="vec", polar=False, save=False)
+aniso_param = sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=12, which_plot="J", theory=False, ani_param=None, rescale_vaxis=True, divJ=divJ, normalization="vec", polar=False, save=False)
+```
+In log-polar
+
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=14, which_plot="J", theory=False, ani_param=aniso_param, rescale_vaxis=True, divJ=divJ, polar=True, save=False)
 ```
 
 Comparison of streamlines
