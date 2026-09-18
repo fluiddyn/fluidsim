@@ -525,7 +525,24 @@ class KolmoLaw(SpecificOutput):
         epsilon=None,
         save=False,
     ):
-        """Plot radial dependencies of Kolmogorov law quantities."""
+        """Plot radial dependencies of Kolmogorov law quantities.
+
+        Parameters
+        ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
+        coef_comp3 : float, default 1
+            Exponent compensating J_L by (r*epsilon)**coef_comp3.
+        coef_comp2 : float, default 2/3
+            Exponent compensating S_2 by (r*epsilon)**coef_comp2.
+        which_plot : str, default "div_J"
+            Quantity to plot: "J" (compensated J_L), "div_J" (compensated
+            divergence) or "S2" (compensated second-order structure function).
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        save : bool, default False
+            Save the figure as a png.
+        """
         self._raise_parallel_error("plot_radial_dependencies")
 
         state = self.sim.state
@@ -775,28 +792,51 @@ class KolmoLaw(SpecificOutput):
 
         Parameters
         ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
         which_plot : str, default "JK"
             Field to plot: "JK", "JP", "J".
-        num_vectors : int, default 60
+        axes : matplotlib.axes.Axes or None, default None
+            Existing axes to draw the vectors on.
+        num_vectors : int, bool or NonType, default None
             Target number of arrows per axis (per decade in log-polar).
+            12 if None and all vectors if False.
         polar : bool, default False
-            Use log-polar axes
+            Use log-polar axes.
         grid : bool, default False
-            Use grid for log-polar plots
+            Use grid for log-polar plots.
         disk : float, default 0.25
-            Desired proportion of the log-polar disk (0.25 is quarter, 0.5 half and 1 is full)
-        theory : bool or str, default False
-            False, True (streamlines).
-        ani_param : float, default 1
-            Anisotropy exponent for the theoretical field, if None then it will be computed.
+            Desired proportion of the log-polar disk (0.25 is quarter, 0.5
+            half and 1 is full).
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        theory : bool, default False
+            If True, draw streamlines of J and the iso-lines
+            r_v = beta * r_h**alpha instead of arrows.
+        ani_param : float or None, default 1
+            Anisotropy exponent of the theoretical field. If None, it is
+            fitted on the inertial range (divJ is then required).
         divJ : ndarray or None, default None
             Compensated -div(J)/(4*epsilon) field. Required if ani_param is
             None (defines the inertial range); also drawn as contours.
         rescale_vaxis : bool, default False
-            Non-polar only: rescale r_v -> alpha*r_v and normalize vectors by the theoretical norm.
+            rescale r_v -> alpha*r_v and normalize vectors by
+            the theoretical norm.
         normalization : {None, "vec", "r"}, default None
-            Weighting of the alpha fit (only if ani_param is None). None: raw squared differences; "vec": unit-normalized (direction only); "r": weighted by 1/r^2.
+            Weighting of the alpha fit (only if ani_param is None). None: raw
+            squared differences; "vec": unit-normalized (direction only);
+            "r": weighted by 1/r^2.
+        cmap : str, default "plasma"
+            Colormap used to color the arrows by amplitude.
+        save : bool, default False
+            Save the figure as a png.
+
+        Returns
+        -------
+        float
+            The fitted anisotropy exponent, only if ani_param is None.
         """
+
         self._raise_parallel_error("plot_Jhv_vector")
 
         state = self.sim.state
@@ -867,7 +907,7 @@ class KolmoLaw(SpecificOutput):
             ratio_vectors = 1
         else:
             if num_vectors is None:
-                num_vectors = 60
+                num_vectors = 12
         ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
 
         if ani_param is None:
@@ -1253,7 +1293,6 @@ class KolmoLaw(SpecificOutput):
         overlay_vectors=False,
         ani_param=1,
         num_vectors=None,
-        theory=False,
         logscale=True,
         polar=False,
         grid=False,
@@ -1263,7 +1302,46 @@ class KolmoLaw(SpecificOutput):
         cmap="plasma",
         save=False,
     ):
-        """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
+        """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities.
+
+        Parameters
+        ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
+        vmin, vmax : float, default 0.0 and 1.2
+            Color limits of the pcolormesh.
+        which_plot : str, default "div_JK"
+            Field to plot: "JK", "JP", "J" or "div_JK",
+            "div_JP", "div_J"
+        overlay_vectors : bool, default False
+            Overlay the J vector field.
+        ani_param : float, default 1
+            Anisotropy exponent passed to plot_Jhv_vector when overlaying.
+        num_vectors : int or None, default None
+            Number of arrows, passed to plot_Jhv_vector when overlaying.
+        logscale : bool, default True
+            Use logarithmic axes.
+        polar : bool, default False
+            Use log-polar axes.
+        grid : bool, default False
+            Show the grid on log-polar plots.
+        disk : float, default 0.25
+            Proportion of the log-polar disk (0.25 quarter, 0.5 half, 1 full).
+        isolines : bool, default False
+            Draw contour lines of the field; the 0.9-1.1 band is hatched and the compensated divergence field is returned.
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        cmap : str, default "plasma"
+            Colormap of the pcolormesh.
+        save : bool, default False
+            Save the figure as a png.
+
+        Returns
+        -------
+        ndarray
+            The compensated -div(J)/(4*epsilon) field, only if isolines is
+            True and which_plot is "div_JK" or "div_J".
+        """
         self._raise_parallel_error("plot_hv_dependencies")
 
         state = self.sim.state
@@ -1382,7 +1460,6 @@ class KolmoLaw(SpecificOutput):
                         logscale=logscale,
                         polar=polar,
                         disk=disk,
-                        theory=theory,
                         ani_param=ani_param,
                     )
                 self._plot_scales(
@@ -1444,7 +1521,6 @@ class KolmoLaw(SpecificOutput):
                         num_vectors=num_vectors,
                         logscale=logscale,
                         disk=disk,
-                        theory=theory,
                         ani_param=ani_param,
                     )
                 self._plot_scales(
