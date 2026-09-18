@@ -943,7 +943,7 @@ class KolmoLaw(SpecificOutput):
             else:
                 aniso_param = ani_param
 
-            if rescale_vaxis and not polar:
+            if rescale_vaxis:
                 full_title += rf", $\alpha = {round(aniso_param, 2)}$"
                 save_name_file += "_rv_rescaled"
                 J_h_theory = -RH / (aniso_param + 2)
@@ -1004,7 +1004,7 @@ class KolmoLaw(SpecificOutput):
                 ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
             else:
                 Maps = np.sqrt(j_h**2 + j_v**2)
-                if rescale_vaxis and not polar:
+                if rescale_vaxis:
                     j_h /= norm_th
                     j_v /= norm_th
                     Maps /= norm_th
@@ -1042,8 +1042,11 @@ class KolmoLaw(SpecificOutput):
                     RH_m = np.where(keep, RH_sub, np.nan)
                     RV_m = np.where(keep, RV_sub, np.nan)
 
-                    R_full = np.sqrt(RH_m**2 + RV_m**2)
-                    Theta = np.arctan2(RV_m, RH_m)
+                    alpha = 1
+                    if rescale_vaxis:
+                        alpha = aniso_param
+                    R_full = np.sqrt(RH_m**2 + (alpha * RV_m) ** 2)
+                    Theta = np.arctan2(alpha * RV_m, RH_m)
                     log_R = np.log10(R_full + 1e-14)
                     pos_x, pos_y = Theta, log_R
                     save_name_file += "_polar"
@@ -1092,13 +1095,19 @@ class KolmoLaw(SpecificOutput):
                         label=r"$\mathbf{J}$",
                     )
             if divJ is not None:
-                RH_c = RH[1:]
-                RV_c = RV[1:]
+                if polar:
+                    x_axis = np.arctan2(RV[1:], RH[1:])
+                    y_axis = np.log10(
+                        np.sqrt(RH[1:] ** 2 + (alpha * RV[1:]) ** 2) + 1e-14
+                    )
+                else:
+                    x_axis = RH[1:]
+                    y_axis = RV[1:]
                 if rescale_vaxis and not polar:
-                    RV_c = RV_c * aniso_param
+                    y_axis *= aniso_param
                 ax.contour(
-                    RH_c,
-                    RV_c,
+                    x_axis,
+                    y_axis,
                     divJ,
                     levels=[0.9, 1.1],
                     colors="r",
@@ -1118,11 +1127,26 @@ class KolmoLaw(SpecificOutput):
                 ani=ani,
                 polar=polar,
             )
-            x = np.linspace(axis_min, axis_max, 10)
+            x_lines = np.linspace(axis_min, axis_max, 10)
             angles = np.arange(0, 90, 5)
             for angle in angles:
                 coef = np.tan(np.radians(angle))
-                ax.plot(x, coef * x, color="gray", linestyle="-", alpha=0.4)
+                if polar:
+                    ax.plot(
+                        np.full_like(x_lines, np.radians(angle)),
+                        np.log10(x_lines + 1e-14),
+                        color="gray",
+                        linestyle="-",
+                        alpha=0.4,
+                    )
+                else:
+                    ax.plot(
+                        x_lines,
+                        coef * x_lines,
+                        color="gray",
+                        linestyle="-",
+                        alpha=0.4,
+                    )
             ax.legend(
                 fontsize="x-large",
                 loc="upper right",
@@ -1157,16 +1181,14 @@ class KolmoLaw(SpecificOutput):
             else:
                 ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
                 RV_label = r"$r_v/\eta$"
-                if rescale_vaxis and not polar:
-                    RV_label = r"$\alpha r_v/\eta$"
-                ax.set_ylabel(RV_label, fontsize="x-large")
-                ax.set_xlim(xmin=axis_min, xmax=axis_max)
+                ax.set_ylim(ymin=axis_min, ymax=axis_max)
                 if rescale_vaxis:
+                    RV_label = r"$\alpha r_v/\eta$"
                     ax.set_ylim(
                         ymin=axis_min * aniso_param, ymax=axis_max * aniso_param
                     )
-                else:
-                    ax.set_ylim(ymin=axis_min, ymax=axis_max)
+                ax.set_ylabel(RV_label, fontsize="x-large")
+                ax.set_xlim(xmin=axis_min, xmax=axis_max)
             plt.tight_layout()
 
             if save:
