@@ -217,9 +217,7 @@ class TestOutput(TestSimulBase):
         )
 
         sim2.output.kolmo_law.plot_radial_dependencies(which_plot="J")
-        sim2.output.kolmo_law.plot_hv_dependencies(
-            vmin=0, vmax=1, which_plot="J", theory=True
-        )
+        sim2.output.kolmo_law.plot_hv_dependencies(vmin=0, vmax=1, which_plot="J")
         sim2.output.kolmo_law.plot_Jhv_vector(
             num_vectors=size, which_plot="J", polar=True
         )
