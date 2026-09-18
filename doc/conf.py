@@ -87,6 +87,7 @@ nb_execution_excludepatterns = [
     "ipynb/executed/*",
     "ipynb/executed/parametric_study_ns3dstrat/*",
     "examples/forcing_anisotropic_3d/toro2022/*",
+    "examples/create-pdf-from-md-notebook/*",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
