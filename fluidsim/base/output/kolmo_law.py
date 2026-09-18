@@ -868,7 +868,7 @@ class KolmoLaw(SpecificOutput):
         else:
             if num_vectors is None:
                 num_vectors = 60
-        ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
+        ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
 
         if ani_param is None:
             if divJ is None:
@@ -1037,10 +1037,11 @@ class KolmoLaw(SpecificOutput):
                     keep[idx] = True
                     keep = keep.reshape(RH_sub.shape)
 
-                    j_h_plot = np.where(keep, j_h_plot, np.nan)
-                    j_v_plot = np.where(keep, j_v_plot, np.nan)
-                    RH_m = np.where(keep, RH_sub, np.nan)
-                    RV_m = np.where(keep, RV_sub, np.nan)
+                    j_h_plot = j_h_plot[keep]
+                    j_v_plot = j_v_plot[keep]
+                    RH_m = RH_sub[keep]
+                    RV_m = RV_sub[keep]
+                    Maps = Maps[keep]
 
                     alpha_ani = 1
                     if rescale_vaxis:
