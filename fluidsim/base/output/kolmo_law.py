@@ -1042,11 +1042,11 @@ class KolmoLaw(SpecificOutput):
                     RH_m = np.where(keep, RH_sub, np.nan)
                     RV_m = np.where(keep, RV_sub, np.nan)
 
-                    alpha = 1
+                    alpha_ani = 1
                     if rescale_vaxis:
-                        alpha = aniso_param
-                    R_full = np.sqrt(RH_m**2 + (alpha * RV_m) ** 2)
-                    Theta = np.arctan2(alpha * RV_m, RH_m)
+                        alpha_ani = aniso_param
+                    R_full = np.sqrt(RH_m**2 + (alpha_ani * RV_m) ** 2)
+                    Theta = np.arctan2(alpha_ani * RV_m, RH_m)
                     log_R = np.log10(R_full + 1e-14)
                     pos_x, pos_y = Theta, log_R
                     save_name_file += "_polar"
@@ -1096,9 +1096,9 @@ class KolmoLaw(SpecificOutput):
                     )
             if divJ is not None:
                 if polar:
-                    x_axis = np.arctan2(RV[1:], RH[1:])
+                    x_axis = np.arctan2(alpha_ani * RV[1:], RH[1:])
                     y_axis = np.log10(
-                        np.sqrt(RH[1:] ** 2 + (alpha * RV[1:]) ** 2) + 1e-14
+                        np.sqrt(RH[1:] ** 2 + (alpha_ani * RV[1:]) ** 2) + 1e-14
                     )
                 else:
                     x_axis = RH[1:]
@@ -1160,10 +1160,13 @@ class KolmoLaw(SpecificOutput):
                 r_mid = (
                     np.log10(axis_min if axis_min > 0 else 1) + np.log10(axis_max)
                 ) / 2
+                text_axial_axis = r"$r/\eta$"
+                if rescale_vaxis:
+                    text_axial_axis = r"$\hat{r}/\eta$"
                 ax.text(
                     theta_mid,
                     r_mid,
-                    r"$r/\eta$",
+                    text_axial_axis,
                     fontsize="x-large",
                     ha="center",
                     va="center",
