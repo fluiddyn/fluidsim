@@ -19,7 +19,7 @@ from warnings import warn
 
 
 from fluiddyn.util import mpi
-from fluiddyn.util import print_memory_usage
+from fluiddyn.util import print_memory_usage, print_size_in_Mo
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
@@ -180,12 +180,16 @@ class KolmoLaw(SpecificOutput):
         K = sum(v**2 for v in vel)
         fft_K = fft(K)
 
+        print_size_in_Mo(K, "K")
+        print_size_in_Mo(fft_K, "fft_K")
+
         # Compute cross products v_i * v_j
         fft_vjvi = np.empty((3, 3), dtype=object)
         for ind_i, ind_j in itertools.product(range(3), repeat=2):
             vi = vel[ind_i]
             vj = vel[ind_j]
             fft_vjvi[ind_i, ind_j] = fft(vi * vj)
+        print_size_in_Mo(fft_vjvi, "fft_vjvi")
 
         # Compute mean kinetic energy
         if "b" in keys_state_phys:
