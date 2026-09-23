@@ -19,7 +19,8 @@ from warnings import warn
 
 
 from fluiddyn.util import mpi
-from fluiddyn.util import print_memory_usage, print_size_in_Mo
+from fluiddyn.util import print_memory_usage
+from fluiddyn.util.util import print_size_in_Mo
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
@@ -171,27 +172,19 @@ class KolmoLaw(SpecificOutput):
         ky = self.sim.oper.Ky
         kz = self.sim.oper.Kz
 
-        # Get velocity fields
         letters = "xyz"
         fft_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
         vel = [state_phys.get_var(f"v{letter}") for letter in letters]
 
-        # Compute kinetic energy
-        K = sum(v**2 for v in vel)
-        fft_K = fft(K)
-
+        K = np.square(vel[0])
+        for v in vel[1:]:
+            K += np.square(v)
+        fft_K_conj = fft(K)
         print_size_in_Mo(K, "K")
-        print_size_in_Mo(fft_K, "fft_K")
+        print_size_in_Mo(fft_K_conj, "fft_K")
+        del K
+        np.conjugate(fft_K_conj, out=fft_K_conj)
 
-        # Compute cross products v_i * v_j
-        fft_vjvi = np.empty((3, 3), dtype=object)
-        for ind_i, ind_j in itertools.product(range(3), repeat=2):
-            vi = vel[ind_i]
-            vj = vel[ind_j]
-            fft_vjvi[ind_i, ind_j] = fft(vi * vj)
-        print_size_in_Mo(fft_vjvi, "fft_vjvi")
-
-        # Compute mean kinetic energy
         if "b" in keys_state_phys:
             nrj_tot_A, nrj_tot_Kz, nrj_tot_Khr, nrj_tot_Khd = (
                 self.output.compute_energies()
@@ -202,14 +195,19 @@ class KolmoLaw(SpecificOutput):
 
         print_memory_usage("\nMemory usage before computing structure functions.")
 
-        # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
         for ind_i in range(3):
-            tmp = 2 * fft_vi[ind_i] * fft_K.conj()
+            tmp = fft_vi[ind_i] * fft_K_conj
+            tmp *= 2
             for ind_j in range(3):
-                tmp += 4 * fft_vi[ind_j] * fft_vjvi[ind_i, ind_j].conj()
-            tmp = 1j * tmp.imag
+                fft_vjvi = fft(vel[ind_i] * vel[ind_j])
+                np.conjugate(fft_vjvi, out=fft_vjvi)
+                fft_vjvi *= 4 * fft_vi[ind_j]
+                tmp += fft_vjvi
+                del fft_vjvi
+            tmp.real = 0
             Jk_r_fft[ind_i] = tmp
+        del fft_K_conj, tmp
 
         # Compute divergence of J_k
         Jk_r_fft_array = np.array(Jk_r_fft)
