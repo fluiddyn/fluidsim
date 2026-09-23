@@ -19,6 +19,7 @@ from warnings import warn
 
 
 from fluiddyn.util import mpi
+from fluiddyn.util import print_memory_usage
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
@@ -156,6 +157,9 @@ class KolmoLaw(SpecificOutput):
 
     def compute(self):
         """Compute the Kolmogorov law quantities at one time."""
+        # To print the size of a field: self.print_size_in_Mo(self.sim.state.state_phys, "state_phys")
+        # To print the memory usage at a given stage: print_memory_usage("\nMemory usage at this stage.")
+        print_memory_usage("\nMemory usage before computation.")
         state = self.sim.state
         params = self.sim.params
         state_phys = state.state_phys
@@ -192,6 +196,8 @@ class KolmoLaw(SpecificOutput):
         else:
             E_k_mean = self.output.compute_energy()
 
+        print_memory_usage("\nMemory usage before computing structure functions.")
+
         # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
         for ind_i in range(3):
@@ -213,6 +219,9 @@ class KolmoLaw(SpecificOutput):
         # Convert to real space
         Jk_r = [self.sim.oper.ifft(Jk_r_fft[i]) for i in range(3)]
 
+        print_memory_usage(
+            "\nMemory usage while computing structure functions 1."
+        )
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
@@ -255,6 +264,9 @@ class KolmoLaw(SpecificOutput):
             src = fft_b * fft_b.conj()
             S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
 
+        print_memory_usage(
+            "\nMemory usage while computing structure functions 2."
+        )
         # Project onto coordinate system bases using CoordSystem3DConverter
         Jk_r_array = np.array(Jk_r)
 
@@ -296,6 +308,9 @@ class KolmoLaw(SpecificOutput):
                 }
             )
 
+        print_memory_usage(
+            "\nMemory usage while computing structure functions 3."
+        )
         # Compute radial and azimuthal averages using SpatialAverage
         averaged_results = {}
 
@@ -306,6 +321,7 @@ class KolmoLaw(SpecificOutput):
             _, _, avg_hv = self.spatial_avg.compute_azimuthal_average(field)
             averaged_results[f"{key}_hv"] = avg_hv
 
+        print_memory_usage("\nMemory usage after computation.")
         return averaged_results
 
     def load_temp_average(self, keys=None, tmin=None, tmax=None):
