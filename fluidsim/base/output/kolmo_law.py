@@ -926,7 +926,7 @@ class KolmoLaw(SpecificOutput):
         else:
             if num_vectors is None:
                 num_vectors = 12
-        ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
+            ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
 
         if ani_param is None:
             if divJ is None:
