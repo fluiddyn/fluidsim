@@ -210,16 +210,20 @@ class KolmoLaw(SpecificOutput):
         del fft_K_conj, tmp
 
         # Compute divergence of J_k
-        Jk_r_fft_array = np.array(Jk_r_fft)
         divJk_fft = 1j * (
-            kx * Jk_r_fft_array[0]
-            + ky * Jk_r_fft_array[1]
-            + kz * Jk_r_fft_array[2]
+            kx * Jk_r_fft[0]
+            + ky * Jk_r_fft[1]
+            + kz * Jk_r_fft[2]
         )
+
         divJk = self.sim.oper.ifft(divJk_fft)
+
+        del divJk_fft
 
         # Convert to real space
         Jk_r = [self.sim.oper.ifft(Jk_r_fft[i]) for i in range(3)]
+
+        del Jk_r_fft
 
         print_memory_usage(
             "\nMemory usage while computing structure functions 1."
@@ -227,6 +231,8 @@ class KolmoLaw(SpecificOutput):
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
+
+        del val
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
@@ -251,11 +257,10 @@ class KolmoLaw(SpecificOutput):
                 Jp_r_fft[ind_i] = mom / (params.N**2)
 
             # Divergence of J_p
-            Jp_r_fft_array = np.array(Jp_r_fft)
             divJp_fft = 1j * (
-                kx * Jp_r_fft_array[0]
-                + ky * Jp_r_fft_array[1]
-                + kz * Jp_r_fft_array[2]
+                kx * Jp_r_fft[0]
+                + ky * Jp_r_fft[1]
+                + kz * Jp_r_fft[2]
             )
             divJp = self.sim.oper.ifft(divJp_fft)
 
@@ -270,15 +275,11 @@ class KolmoLaw(SpecificOutput):
             "\nMemory usage while computing structure functions 2."
         )
         # Project onto coordinate system bases using CoordSystem3DConverter
-        Jk_r_array = np.array(Jk_r)
+        Jl_k = self.coord_conv.compute_radial_component(*Jk_r)
 
-        Jl_k = self.coord_conv.compute_radial_component(
-            Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
-        )
+        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(*Jk_r)
 
-        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(
-            Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
-        )
+        del Jk_r, Jt_k
 
         # Azimuthal and radial averages
         results = {
@@ -289,16 +290,12 @@ class KolmoLaw(SpecificOutput):
             "divJ_k": divJk,
         }
 
+        del Jl_k, Jh_k, Jv_k, S2_k_r, divJk
+
         if "b" in keys_state_phys:
-            Jp_r_array = np.array(Jp_r)
+            Jl_p = self.coord_conv.compute_radial_component(*Jp_r)
 
-            Jl_p = self.coord_conv.compute_radial_component(
-                Jp_r_array[0], Jp_r_array[1], Jp_r_array[2]
-            )
-
-            Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(
-                Jp_r_array[0], Jp_r_array[1], Jp_r_array[2]
-            )
+            Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(*Jp_r)
 
             results.update(
                 {
