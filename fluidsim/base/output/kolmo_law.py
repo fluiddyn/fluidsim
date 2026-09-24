@@ -202,19 +202,17 @@ class KolmoLaw(SpecificOutput):
             for ind_j in range(3):
                 fft_vjvi = fft(vel[ind_i] * vel[ind_j])
                 np.conjugate(fft_vjvi, out=fft_vjvi)
-                fft_vjvi *= 4 * fft_vi[ind_j]
+                fft_vjvi *= fft_vi[ind_j]
+                fft_vjvi *= 4
                 tmp += fft_vjvi
                 del fft_vjvi
             tmp.real = 0
             Jk_r_fft[ind_i] = tmp
+
         del fft_K_conj, tmp
 
         # Compute divergence of J_k
-        divJk_fft = 1j * (
-            kx * Jk_r_fft[0]
-            + ky * Jk_r_fft[1]
-            + kz * Jk_r_fft[2]
-        )
+        divJk_fft = 1j * (kx * Jk_r_fft[0] + ky * Jk_r_fft[1] + kz * Jk_r_fft[2])
 
         divJk = self.sim.oper.ifft(divJk_fft)
 
@@ -239,37 +237,45 @@ class KolmoLaw(SpecificOutput):
             b = state_phys.get_var("b")
             fft_b = state_spect.get_var("b_fft")
             b2 = b * b
-            fft_b2 = fft(b2)
+            fft_b2_conj = fft(b2)
+            np.conjugate(fft_b2_conj, out=fft_b2_conj)
+
+            del b2
 
             # Compute mean buoyancy variance
             E_b_mean = nrj_tot_A * params.N**2
 
             # Compute J_p
             Jp_r_fft = [None] * 3
-            fft_bv = [fft(b * vel[i]) for i in range(3)]
 
             for ind_i in range(3):
                 mom = (
-                    4 * fft_bv[ind_i].conj() * fft_b
-                    + 2 * fft_b2.conj() * fft_vi[ind_i]
+                    4 * fft(b * vel[ind_i]).conj() * fft_b
+                    + 2 * fft_b2_conj * fft_vi[ind_i]
                 )
-                mom = 1j * mom.imag
+                mom.real = 0
                 Jp_r_fft[ind_i] = mom / (params.N**2)
+
+            del fft_b2_conj, mom
 
             # Divergence of J_p
             divJp_fft = 1j * (
-                kx * Jp_r_fft[0]
-                + ky * Jp_r_fft[1]
-                + kz * Jp_r_fft[2]
+                kx * Jp_r_fft[0] + ky * Jp_r_fft[1] + kz * Jp_r_fft[2]
             )
             divJp = self.sim.oper.ifft(divJp_fft)
+
+            del divJp_fft
 
             # Convert to real space
             Jp_r = [self.sim.oper.ifft(Jp_r_fft[i]) for i in range(3)]
 
+            del Jp_r_fft
+
             # S2_p
             src = fft_b * fft_b.conj()
             S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
+
+            del src
 
         print_memory_usage(
             "\nMemory usage while computing structure functions 2."
@@ -295,7 +301,11 @@ class KolmoLaw(SpecificOutput):
         if "b" in keys_state_phys:
             Jl_p = self.coord_conv.compute_radial_component(*Jp_r)
 
-            Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(*Jp_r)
+            Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(
+                *Jp_r
+            )
+
+            del Jt_p
 
             results.update(
                 {
@@ -306,6 +316,8 @@ class KolmoLaw(SpecificOutput):
                     "divJ_p": divJp,
                 }
             )
+
+            del Jl_p, Jh_p, Jv_p, S2_p_r, divJp
 
         print_memory_usage(
             "\nMemory usage while computing structure functions 3."
