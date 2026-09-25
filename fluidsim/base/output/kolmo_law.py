@@ -156,10 +156,18 @@ class KolmoLaw(SpecificOutput):
                 self._add_dict_arrays_to_file(self.path_file, result)
                 self.nb_saved_times += 1
 
+    def _add_averages(self, out, key, field):
+        """Compute radial and azimuthal averages of `field` and store them."""
+        _, out[f"{key}_r"] = self.spatial_avg.compute_radial_average(field)
+        _, _, out[f"{key}_hv"] = self.spatial_avg.compute_azimuthal_average(field)
+
     def compute(self):
         """Compute the Kolmogorov law quantities at one time."""
         # To print the size of a field: self.print_size_in_Mo(self.sim.state.state_phys, "state_phys")
         # To print the memory usage at a given stage: print_memory_usage("\nMemory usage at this stage.")
+
+        averaged_results = {}
+
         print_memory_usage("\nMemory usage before computation.")
         state = self.sim.state
         params = self.sim.params
@@ -208,29 +216,52 @@ class KolmoLaw(SpecificOutput):
                 del fft_vjvi
             tmp.real = 0
             Jk_r_fft[ind_i] = tmp
-
         del fft_K_conj, tmp
 
         # Compute divergence of J_k
-        divJk_fft = 1j * (kx * Jk_r_fft[0] + ky * Jk_r_fft[1] + kz * Jk_r_fft[2])
+        divJk_fft = kx * Jk_r_fft[0]
+        divJk_fft += ky * Jk_r_fft[1]
+        divJk_fft += kz * Jk_r_fft[2]
+        divJk_fft *= 1j
 
         divJk = self.sim.oper.ifft(divJk_fft)
-
         del divJk_fft
+        self._add_averages(averaged_results, "divJ_k", divJk)
+        del divJk
 
         # Convert to real space
         Jk_r = [self.sim.oper.ifft(Jk_r_fft[i]) for i in range(3)]
 
         del Jk_r_fft
 
+        # Project onto coordinate system bases using CoordSystem3DConverter
+        Jl_k = self.coord_conv.compute_radial_component(*Jk_r)
+        self._add_averages(averaged_results, "Jl_k", Jl_k)
+        del Jl_k
+
+        # Azimuthal and radial averages
+
+        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(*Jk_r)
+        del Jt_k, Jk_r
+        self._add_averages(averaged_results, "Jh_k", Jh_k)
+        del Jh_k
+        self._add_averages(averaged_results, "Jv_k", Jv_k)
+        del Jv_k
+
         print_memory_usage(
             "\nMemory usage while computing structure functions 1."
         )
+
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
-
         del val
+        self._add_averages(averaged_results, "S2_k", S2_k_r)
+        del S2_k_r
+
+        print_memory_usage(
+            "\nMemory usage while computing structure functions 2."
+        )
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
@@ -239,7 +270,6 @@ class KolmoLaw(SpecificOutput):
             b2 = b * b
             fft_b2_conj = fft(b2)
             np.conjugate(fft_b2_conj, out=fft_b2_conj)
-
             del b2
 
             # Compute mean buoyancy variance
@@ -249,89 +279,58 @@ class KolmoLaw(SpecificOutput):
             Jp_r_fft = [None] * 3
 
             for ind_i in range(3):
-                mom = (
-                    4 * fft(b * vel[ind_i]).conj() * fft_b
-                    + 2 * fft_b2_conj * fft_vi[ind_i]
-                )
+                mom = fft(b * vel[ind_i])
+                np.conjugate(mom, out=mom)
+                mom *= fft_b
+                mom *= 4
+                tmp2 = fft_b2_conj * fft_vi[ind_i]
+                tmp2 *= 2
+                mom += tmp2
+                del tmp2
                 mom.real = 0
-                Jp_r_fft[ind_i] = mom / (params.N**2)
-
+                mom /= params.N**2
+                Jp_r_fft[ind_i] = mom
             del fft_b2_conj, mom
 
             # Divergence of J_p
-            divJp_fft = 1j * (
-                kx * Jp_r_fft[0] + ky * Jp_r_fft[1] + kz * Jp_r_fft[2]
-            )
-            divJp = self.sim.oper.ifft(divJp_fft)
+            divJp_fft = kx * Jp_r_fft[0]
+            divJp_fft += ky * Jp_r_fft[1]
+            divJp_fft += kz * Jp_r_fft[2]
+            divJp_fft *= 1j
 
+            divJp = self.sim.oper.ifft(divJp_fft)
             del divJp_fft
+            self._add_averages(averaged_results, "divJ_p", divJp)
+            del divJp
+
+            # S2_p
+            src = fft_b * fft_b.conj()
+            S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
+            del src
+            self._add_averages(averaged_results, "S2_p", S2_p_r)
+            del S2_p_r
 
             # Convert to real space
             Jp_r = [self.sim.oper.ifft(Jp_r_fft[i]) for i in range(3)]
 
             del Jp_r_fft
 
-            # S2_p
-            src = fft_b * fft_b.conj()
-            S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
-
-            del src
-
-        print_memory_usage(
-            "\nMemory usage while computing structure functions 2."
-        )
-        # Project onto coordinate system bases using CoordSystem3DConverter
-        Jl_k = self.coord_conv.compute_radial_component(*Jk_r)
-
-        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(*Jk_r)
-
-        del Jk_r, Jt_k
-
-        # Azimuthal and radial averages
-        results = {
-            "Jl_k": Jl_k,
-            "Jh_k": Jh_k,
-            "Jv_k": Jv_k,
-            "S2_k": S2_k_r,
-            "divJ_k": divJk,
-        }
-
-        del Jl_k, Jh_k, Jv_k, S2_k_r, divJk
-
-        if "b" in keys_state_phys:
             Jl_p = self.coord_conv.compute_radial_component(*Jp_r)
+            self._add_averages(averaged_results, "Jl_p", Jl_p)
+            del Jl_p
 
             Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(
                 *Jp_r
             )
-
-            del Jt_p
-
-            results.update(
-                {
-                    "Jl_p": Jl_p,
-                    "Jh_p": Jh_p,
-                    "Jv_p": Jv_p,
-                    "S2_p": S2_p_r,
-                    "divJ_p": divJp,
-                }
-            )
-
-            del Jl_p, Jh_p, Jv_p, S2_p_r, divJp
+            del Jt_p, Jp_r
+            self._add_averages(averaged_results, "Jh_p", Jh_p)
+            del Jh_p
+            self._add_averages(averaged_results, "Jv_p", Jv_p)
+            del Jv_p
 
         print_memory_usage(
             "\nMemory usage while computing structure functions 3."
         )
-        # Compute radial and azimuthal averages using SpatialAverage
-        averaged_results = {}
-
-        for key, field in results.items():
-            _, avg_r = self.spatial_avg.compute_radial_average(field)
-            averaged_results[f"{key}_r"] = avg_r
-
-            _, _, avg_hv = self.spatial_avg.compute_azimuthal_average(field)
-            averaged_results[f"{key}_hv"] = avg_hv
-
         print_memory_usage("\nMemory usage after computation.")
         return averaged_results
 
