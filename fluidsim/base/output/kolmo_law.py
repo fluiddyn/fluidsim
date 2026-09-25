@@ -10,7 +10,6 @@ Provides:
 """
 
 import os
-import itertools
 
 import numpy as np
 import h5py
@@ -19,8 +18,6 @@ from warnings import warn
 
 
 from fluiddyn.util import mpi
-from fluiddyn.util import print_memory_usage
-from fluiddyn.util.util import print_size_in_Mo
 
 from fluidsim.base.output.base import SpecificOutput
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
@@ -163,12 +160,9 @@ class KolmoLaw(SpecificOutput):
 
     def compute(self):
         """Compute the Kolmogorov law quantities at one time."""
-        # To print the size of a field: self.print_size_in_Mo(self.sim.state.state_phys, "state_phys")
-        # To print the memory usage at a given stage: print_memory_usage("\nMemory usage at this stage.")
 
         averaged_results = {}
 
-        print_memory_usage("\nMemory usage before computation.")
         state = self.sim.state
         params = self.sim.params
         state_phys = state.state_phys
@@ -188,8 +182,6 @@ class KolmoLaw(SpecificOutput):
         for v in vel[1:]:
             K += np.square(v)
         fft_K_conj = fft(K)
-        print_size_in_Mo(K, "K")
-        print_size_in_Mo(fft_K_conj, "fft_K")
         del K
         np.conjugate(fft_K_conj, out=fft_K_conj)
 
@@ -200,8 +192,6 @@ class KolmoLaw(SpecificOutput):
             E_k_mean = nrj_tot_Kz + nrj_tot_Khr + nrj_tot_Khd
         else:
             E_k_mean = self.output.compute_energy()
-
-        print_memory_usage("\nMemory usage before computing structure functions.")
 
         Jk_r_fft = [None] * 3
         for ind_i in range(3):
@@ -248,20 +238,12 @@ class KolmoLaw(SpecificOutput):
         self._add_averages(averaged_results, "Jv_k", Jv_k)
         del Jv_k
 
-        print_memory_usage(
-            "\nMemory usage while computing structure functions 1."
-        )
-
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
         del val
         self._add_averages(averaged_results, "S2_k", S2_k_r)
         del S2_k_r
-
-        print_memory_usage(
-            "\nMemory usage while computing structure functions 2."
-        )
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
@@ -328,10 +310,6 @@ class KolmoLaw(SpecificOutput):
             self._add_averages(averaged_results, "Jv_p", Jv_p)
             del Jv_p
 
-        print_memory_usage(
-            "\nMemory usage while computing structure functions 3."
-        )
-        print_memory_usage("\nMemory usage after computation.")
         return averaged_results
 
     def load_temp_average(self, keys=None, tmin=None, tmax=None):
@@ -753,7 +731,11 @@ class KolmoLaw(SpecificOutput):
                         r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$"
                     )
                     ax3.plot(
-                        r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$"
+                        r_store[1:] / eta,
+                        EA_array[1:],
+                        color="gray",
+                        linestyle="--",
+                        label=r"$E_A$",
                     )
                 ax3.plot(
                     r_store[1:] / eta,
