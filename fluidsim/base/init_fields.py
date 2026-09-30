@@ -21,6 +21,8 @@ from fluidsim_core.params import iter_complete_params
 
 from fluidsim.base.setofvariables import SetOfVariables
 
+cfg_h5py = h5py.h5.get_config()
+
 
 def _as_float(thing):
     if hasattr(thing, "item"):
@@ -32,6 +34,13 @@ def _as_int(thing):
     if hasattr(thing, "item"):
         thing = thing.item()
     return int(thing)
+
+
+def _get_slices_loc(oper):
+    return tuple(
+        slice(start, start + n)
+        for start, n in zip(oper.seq_indices_first_X, oper.shapeX_loc)
+    )
 
 
 class InitFieldsBase:
@@ -162,20 +171,85 @@ path: str
         )
 
     def __call__(self):
-        params = self.sim.params
-
-        path_file = params.init_fields.from_file.path
-        if isinstance(path_file, Path):
-            path_file = str(path_file)
+        sim = self.sim
+        oper = sim.oper
+        path_file = str(sim.params.init_fields.from_file.path)
 
         if mpi.rank == 0:
             try:
-                h5file = h5py.File(path_file, "r")
+                meta = self._read_metadata(path_file)
             except Exception as exc:
-                raise ValueError(
-                    f"Is file {path_file} really a netCDF4/HDF5 file?"
-                ) from exc
+                meta = exc
+        else:
+            meta = None
+        if mpi.nb_proc > 1:
+            meta = mpi.comm.bcast(meta)
+        if isinstance(meta, Exception):
+            raise meta
 
+        keys_in_file = meta["keys"]
+        state_phys = sim.state.state_phys
+        keys_phys_needed = sim.info.solver.classes.State.keys_phys_needed
+
+        if mpi.nb_proc > 1 and cfg_h5py.mpi:
+            slices_loc = _get_slices_loc(oper)
+            shape_seq = tuple(oper.shapeX_seq)
+            with h5py.File(
+                path_file, "r", driver="mpio", comm=mpi.comm
+            ) as h5file:
+                group = h5file["state_phys"]
+                for k in keys_phys_needed:
+                    if k not in keys_in_file:
+                        state_phys.set_var(k, oper.create_arrayX(value=0.0))
+                        continue
+                    dset = group[k]
+                    if dset.shape != shape_seq:
+                        # same test on all ranks -> no deadlock
+                        raise ValueError(
+                            f"Shape of {k} in file {dset.shape} != {shape_seq}"
+                        )
+                    with dset.collective:
+                        state_phys.set_var(k, dset[slices_loc])
+        else:
+            if mpi.nb_proc > 1 and mpi.rank == 0:
+                sim.output.print_stdout_delayed_after_init(
+                    "Warning: h5py without MPI support: the full state is "
+                    "read by rank 0 and scattered (memory hungry)."
+                )
+            h5file = h5py.File(path_file, "r") if mpi.rank == 0 else None
+            try:
+                for k in keys_phys_needed:
+                    if k not in keys_in_file:
+                        state_phys.set_var(k, oper.create_arrayX(value=0.0))
+                        continue
+                    if mpi.rank == 0:
+                        field = h5file["state_phys"][k][...]
+                    else:
+                        field = None
+                    if mpi.nb_proc > 1:
+                        field = oper.scatter_Xspace(field)
+                    state_phys.set_var(k, field)
+            finally:
+                if h5file is not None:
+                    h5file.close()
+
+        if hasattr(sim.state, "statespect_from_statephys"):
+            sim.state.statespect_from_statephys()
+            sim.state.statephys_from_statespect()
+        sim.time_stepping.t = meta["time"]
+        sim.time_stepping.it = meta["it"]
+
+    def _read_metadata(self, path_file):
+        """Checks and reads the metadata (only called by rank 0)"""
+        params = self.sim.params
+        try:
+            h5file = h5py.File(path_file, "r")
+        except Exception as exc:
+            raise ValueError(
+                f"Is file {path_file} really a netCDF4/HDF5 file?"
+            ) from exc
+
+        with h5file:
             self.sim.output.print_stdout_delayed_after_init(
                 "Load state from file:\n[...]" + path_file[-90:]
             )
@@ -200,17 +274,15 @@ path: str
                 )
 
             if "axes" in h5file.attrs:
-                axes = h5file.attrs["axes"]
-                for letter in axes:
+                for letter in h5file.attrs["axes"]:
                     # for example r can be: 'z', 'y', 'x'
                     if hasattr(letter, "decode"):
                         letter = letter.decode("utf-8")
                     nr = f"n{letter}"
-                    nr_file = _as_int(group_oper.attrs[nr])
-                    if params.oper[nr] != nr_file:
+                    if params.oper[nr] != _as_int(group_oper.attrs[nr]):
                         raise ValueError(
                             "this is not a correct state for this simulation\n"
-                            "self.{0} != params_file.{0}".format(nr)
+                            f"self.{nr} != params_file.{nr}"
                         )
                     Lr = f"L{letter}"
                     try:
@@ -218,87 +290,37 @@ path: str
                     except KeyError:
                         # Length may not be a parameter for eg: sphericalharmo
                         continue
-                    else:
-                        if params.oper[Lr] != Lr_file:
-                            raise ValueError(
-                                "this is not a correct state for this simulation\n"
-                                "self.params.oper.{0} != params_file.{0}".format(
-                                    Lr
-                                )
-                            )
+                    if params.oper[Lr] != Lr_file:
+                        raise ValueError(
+                            "this is not a correct state for this simulation\n"
+                            f"self.params.oper.{Lr} != params_file.{Lr}"
+                        )
             else:
                 # Legacy purposes: 2D specific
-                nx_file = _as_int(group_oper.attrs["nx"])
-                ny_file = _as_int(group_oper.attrs["ny"])
-                Lx_file = _as_float(group_oper.attrs["Lx"])
-                Ly_file = _as_float(group_oper.attrs["Ly"])
+                for key, as_type in (
+                    ("nx", _as_int),
+                    ("ny", _as_int),
+                    ("Lx", _as_float),
+                    ("Ly", _as_float),
+                ):
+                    if params.oper[key] != as_type(group_oper.attrs[key]):
+                        raise ValueError(
+                            "this is not a correct state for this simulation\n"
+                            f"self.params.oper.{key} != params_file.{key}"
+                        )
 
-                if params.oper.nx != nx_file:
-                    raise ValueError(
-                        "this is not a correct state for this simulation\n"
-                        "self.nx != params_file.nx"
-                    )
-
-                if params.oper.ny != ny_file:
-                    raise ValueError(
-                        "this is not a correct state for this simulation\n"
-                        "self.ny != params_file.ny"
-                    )
-
-                if params.oper.Lx != Lx_file:
-                    raise ValueError(
-                        "this is not a correct state for this simulation\n"
-                        "self.params.oper.Lx != params_file.Lx"
-                    )
-
-                if params.oper.Ly != Ly_file:
-                    raise ValueError(
-                        "this is not a correct state for this simulation\n"
-                        "self.params.oper.Ly != params_file.Ly"
-                    )
-
-            keys_state_phys_file = list(group_state_phys.keys())
-        else:
-            keys_state_phys_file = {}
-        if mpi.nb_proc > 1:
-            keys_state_phys_file = mpi.comm.bcast(keys_state_phys_file)
-        state_phys = self.sim.state.state_phys
-        keys_phys_needed = self.sim.info.solver.classes.State.keys_phys_needed
-        for k in keys_phys_needed:
-            if k in keys_state_phys_file:
-                if mpi.rank == 0:
-                    field_seq = group_state_phys[k][...]
-                else:
-                    field_seq = None
-
-                if mpi.nb_proc > 1:
-                    field_loc = self.sim.oper.scatter_Xspace(field_seq)
-                else:
-                    field_loc = field_seq
-                state_phys.set_var(k, field_loc)
-            else:
-                state_phys.set_var(k, self.sim.oper.create_arrayX(value=0.0))
-        if mpi.rank == 0:
             time = _as_float(group_state_phys.attrs["time"])
             try:
                 it = _as_int(group_state_phys.attrs["it"])
             except KeyError:
                 # compatibility with older versions
                 it = 0
-            h5file.close()
-        else:
-            time = 0.0
-            it = 0
 
-        if mpi.nb_proc > 1:
-            time = mpi.comm.bcast(time)
-            it = mpi.comm.bcast(it)
-
-        if hasattr(self.sim.state, "statespect_from_statephys"):
-            self.sim.state.statespect_from_statephys()
-            self.sim.state.statephys_from_statespect()
-        self.sim.time_stepping.t = time
-        self.sim.time_stepping.it = it
+            return {
+                "keys": list(group_state_phys.keys()),
+                "time": time,
+                "it": it,
+            }
 
 
 def fill_field_fft_2d(field_fft_in, field_fft_out):
