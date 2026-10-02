@@ -351,6 +351,170 @@ class KolmoLaw(SpecificOutput):
 
         return results, tmin, tmax
 
+    def _plot_scales(
+        self,
+        ax,
+        eta,
+        l_O,
+        L_int,
+        L_b,
+        lambda_T,
+        axis_min,
+        axis_max,
+        dim=2,
+        ani=True,
+        logscale=False,
+        polar=False,
+    ):
+        eta_norm = eta / eta
+        to_plot = [
+            (eta_norm, "darkorange", r"$\eta$"),
+            (L_int, "r", r"$L$"),
+        ]
+        if ani:
+            to_plot += [(l_O, "b", r"$l_O$")]
+        else:
+            to_plot += [(lambda_T, "k", r"$\lambda$")]
+
+        if polar:
+            for length, color, label in to_plot:
+                if length > 0:
+                    theta_circle = np.linspace(0, np.pi / 2, 200)
+                    log_r_circle = np.full_like(theta_circle, np.log10(length))
+                    if length < axis_max and length > axis_min:
+                        ax.plot(
+                            theta_circle,
+                            log_r_circle,
+                            color=color,
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=label,
+                        )
+
+            if ani:
+                if np.log10(L_b) < axis_max and np.log10(L_b) > axis_min:
+                    ax.plot(
+                        np.pi / 2,
+                        np.log10(L_b),
+                        "o",
+                        color="g",
+                        markersize=4,
+                        label=r"$L_b$",
+                    )
+                if (
+                    np.log10(lambda_T) < axis_max
+                    and np.log10(lambda_T) > axis_min
+                ):
+                    ax.plot(
+                        0,
+                        np.log10(lambda_T),
+                        "o",
+                        color="k",
+                        markersize=4,
+                        label=r"$\lambda$",
+                    )
+
+        elif logscale:
+            theta = np.linspace(1e-3, np.pi / 2 - 1e-3, 1000)
+            for length, color, label in to_plot:
+                if length < axis_max and length > axis_min:
+                    rh = length * np.cos(theta)
+                    rv = length * np.sin(theta)
+                    mask = (rh > 0) & (rv > 0)
+                    if dim == 2:
+                        ax.plot(
+                            rh[mask],
+                            rv[mask],
+                            color=color,
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=label,
+                        )
+                    else:
+                        ax.axvline(
+                            x=length,
+                            color=color,
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=label,
+                        )
+            if ani:
+                if L_b < axis_max and L_b > axis_min:
+                    if dim == 2:
+                        ax.axhline(
+                            y=L_b,
+                            color="g",
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=r"$L_b$",
+                        )
+                    else:
+                        ax.axvline(
+                            x=L_b,
+                            color="g",
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=r"$L_b$",
+                        )
+                if lambda_T < axis_max and lambda_T > axis_min:
+                    ax.axvline(
+                        x=lambda_T,
+                        color="k",
+                        linestyle=":",
+                        linewidth=1.0,
+                        label=r"$\lambda$",
+                    )
+
+        else:
+            theta = np.linspace(0, np.pi / 2, 100)
+            for length, color, label in to_plot:
+                if length < axis_max and length > axis_min:
+                    rh = length * np.cos(theta)
+                    rv = length * np.sin(theta)
+                    if dim == 2:
+                        ax.plot(
+                            rh,
+                            rv,
+                            color=color,
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=label,
+                        )
+                    else:
+                        ax.axvline(
+                            x=length,
+                            color=color,
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=label,
+                        )
+            if ani:
+                if L_b < axis_max and L_b > axis_min:
+                    if dim == 2:
+                        ax.axhline(
+                            y=L_b,
+                            color="g",
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=r"$L_b$",
+                        )
+                    else:
+                        ax.axvline(
+                            x=L_b,
+                            color="g",
+                            linestyle=":",
+                            linewidth=1.0,
+                            label=r"$L_b$",
+                        )
+                if lambda_T < axis_max and lambda_T > axis_min:
+                    ax.axvline(
+                        x=lambda_T,
+                        color="k",
+                        linestyle=":",
+                        linewidth=1.0,
+                        label=r"$\lambda$",
+                    )
+
     def plot_radial_dependencies(
         self,
         tmin=None,
@@ -361,7 +525,24 @@ class KolmoLaw(SpecificOutput):
         epsilon=None,
         save=False,
     ):
-        """Plot radial dependencies of Kolmogorov law quantities."""
+        """Plot radial dependencies of Kolmogorov law quantities.
+
+        Parameters
+        ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
+        coef_comp3 : float, default 1
+            Exponent compensating J_L by (r*epsilon)**coef_comp3.
+        coef_comp2 : float, default 2/3
+            Exponent compensating S_2 by (r*epsilon)**coef_comp2.
+        which_plot : str, default "div_J"
+            Quantity to plot: "J" (compensated J_L), "div_J" (compensated
+            divergence) or "S2" (compensated second-order structure function).
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        save : bool, default False
+            Save the figure as a png.
+        """
         self._raise_parallel_error("plot_radial_dependencies")
 
         state = self.sim.state
@@ -394,6 +575,25 @@ class KolmoLaw(SpecificOutput):
         if "b" in keys_state_phys:
             EA = dimless_num["EA"]
 
+        if "b" in keys_state_phys:
+            N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            l_O = np.sqrt(epsilon / N**3) / eta
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
         with h5py.File(self.path_file, "r") as file:
             r_store = np.array(file["r_store"])
 
@@ -414,18 +614,16 @@ class KolmoLaw(SpecificOutput):
             divJ_p = -to_plot["divJ_p_r"] / (4 * epsilon)
             S2_p_comp = to_plot["S2_p_r"] / (r_store**coef_comp2)
 
-        title = f"$N_x={params.oper.nx}$"
-
         match which_plot:
             case "J":
                 fig1, ax1 = self.output.figure_axe()
                 ax1.set_ylabel(r"$-J_L(r)/r\epsilon$", fontsize="x-large")
-                ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "b", label="$J_{K,L}$")
+                ax1.plot(r_store[1:] / eta, Jl_k_comp[1:], "r", label="$J_{K,L}$")
                 if "b" in keys_state_phys:
                     ax1.plot(
                         r_store[1:] / eta,
                         Jl_p_comp[1:],
-                        "g",
+                        "b",
                         label="$J_{P,L}$",
                     )
                     ax1.plot(
@@ -435,17 +633,29 @@ class KolmoLaw(SpecificOutput):
                         label="$J_L = J_{K,L} + J_{P,L}$",
                     )
                 ax1.plot(
-                    r_store[1:] / eta, Jl_k_th[1:], "r--", label="4/3 theoretical"
+                    r_store[1:] / eta, Jl_k_th[1:], "g--", label="4/3 theoretical"
                 )
                 ax1.set_title(
                     f"$-J_L(r)/r\\epsilon$, {title}", fontsize="x-large"
                 )
-                ax1.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax1.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax1.set_xscale("log")
                 ax1.set_yscale("log")
+                self._plot_scales(
+                    ax1,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    axis_min=0,
+                    axis_max=1e3,
+                    dim=1,
+                    ani=ani,
+                )
+                ax1.legend()
                 ax1.set_xlim(xmax=1e3)
                 ax1.set_ylim(ymin=1e-2)
-                ax1.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("J_L_r_compensate.png", dpi=300)
@@ -458,14 +668,14 @@ class KolmoLaw(SpecificOutput):
                 ax2.plot(
                     r_store[1:] / eta,
                     divJ_k[1:],
-                    "b",
+                    "r",
                     label="$\\nabla \cdot J_{K,L}$",
                 )
                 if "b" in keys_state_phys:
                     ax2.plot(
                         r_store[1:] / eta,
                         divJ_p[1:],
-                        "g",
+                        "b",
                         label="$\\nabla \\cdot J_{P,L}$",
                     )
                     ax2.plot(
@@ -477,19 +687,31 @@ class KolmoLaw(SpecificOutput):
                 ax2.plot(
                     r_store[1:] / eta,
                     np.ones_like(r_store[1:]),
-                    "r--",
+                    "g--",
                     label="1 theoretical",
                 )
                 ax2.set_title(
                     f"$-\\nabla \\cdot J_L(r)/4\\epsilon$, {title}",
                     fontsize="x-large",
                 )
-                ax2.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax2.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax2.set_xscale("log")
                 ax2.set_yscale("log")
+                self._plot_scales(
+                    ax2,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    axis_min=0,
+                    axis_max=1e3,
+                    dim=1,
+                    ani=ani,
+                )
+                ax2.legend()
                 ax2.set_xlim(xmax=1e3)
                 ax2.set_ylim(ymin=1e-2)
-                ax2.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("divJ_L_r_comp.png", dpi=300)
@@ -499,10 +721,10 @@ class KolmoLaw(SpecificOutput):
                 ax3.set_ylabel(
                     r"$S_2(r)/(r^{2/3}\epsilon^{2/3})$", fontsize="x-large"
                 )
-                ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "b", label="$S_2^K$")
+                ax3.plot(r_store[1:] / eta, S2_k_comp[1:], "r", label="$S_2^K$")
                 if "b" in keys_state_phys:
                     ax3.plot(
-                        r_store[1:] / eta, S2_p_comp[1:], "g", label="$S_2^P$"
+                        r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$"
                     )
                     ax3.plot(
                         r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$"
@@ -510,7 +732,7 @@ class KolmoLaw(SpecificOutput):
                 ax3.plot(
                     r_store[1:] / eta,
                     S2_k_th[1:],
-                    "r--",
+                    "g:",
                     label="22/3 theoretical",
                 )
                 ax3.plot(r_store[1:] / eta, EK_array[1:], "k--", label=r"$E_K$")
@@ -518,12 +740,24 @@ class KolmoLaw(SpecificOutput):
                     f"$S_2(r)/(r^{{2/3}}\\epsilon^{{2/3}})$, {title}",
                     fontsize="x-large",
                 )
-                ax3.set_xlabel("$r/\\eta$", fontsize="x-large")
+                ax3.set_xlabel(r"$r/\eta$", fontsize="x-large")
                 ax3.set_xscale("log")
                 ax3.set_yscale("log")
+                self._plot_scales(
+                    ax3,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    axis_min=0,
+                    axis_max=1e3,
+                    dim=1,
+                    ani=ani,
+                )
+                ax3.legend()
                 ax3.set_xlim(xmax=1e3)
                 ax3.set_ylim(ymin=1e-2)
-                ax3.legend()
                 plt.tight_layout()
                 if save:
                     plt.savefig("S2_r_comp.png", dpi=300)
@@ -535,19 +769,579 @@ class KolmoLaw(SpecificOutput):
                 )
         plt.show()
 
+    def plot_Jhv_vector(
+        self,
+        tmin=None,
+        tmax=None,
+        which_plot="JK",
+        axes=None,
+        num_vectors=None,
+        polar=False,
+        grid=False,
+        disk=0.25,
+        epsilon=None,
+        theory=False,
+        ani_param=1,
+        divJ=None,
+        rescale_vaxis=False,
+        normalization=None,
+        cmap="plasma",
+        save=False,
+    ):
+        """Plot vector field of J in (rho, z) plane.
+
+        Parameters
+        ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
+        which_plot : str, default "JK"
+            Field to plot: "JK", "JP", "J".
+        axes : matplotlib.axes.Axes or None, default None
+            Existing axes to draw the vectors on.
+        num_vectors : int, bool or NonType, default None
+            Target number of arrows per axis (per decade in log-polar).
+            12 if None and all vectors if False.
+        polar : bool, default False
+            Use log-polar axes.
+        grid : bool, default False
+            Use grid for log-polar plots.
+        disk : float, default 0.25
+            Desired proportion of the log-polar disk (0.25 is quarter, 0.5
+            half and 1 is full).
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        theory : bool, default False
+            If True, draw streamlines of J and the iso-lines
+            r_v = beta * r_h**alpha instead of arrows.
+        ani_param : float or None, default 1
+            Anisotropy exponent of the theoretical field. If None, it is
+            fitted on the inertial range (divJ is then required).
+        divJ : ndarray or None, default None
+            Compensated -div(J)/(4*epsilon) field. Required if ani_param is
+            None (defines the inertial range); also drawn as contours.
+        rescale_vaxis : bool, default False
+            rescale r_v -> alpha*r_v and normalize vectors by
+            the theoretical norm.
+        normalization : {None, "vec", "r"}, default None
+            Weighting of the alpha fit (only if ani_param is None). None: raw
+            squared differences; "vec": unit-normalized (direction only);
+            "r": weighted by 1/r^2.
+        cmap : str, default "plasma"
+            Colormap used to color the arrows by amplitude.
+        save : bool, default False
+            Save the figure as a png.
+
+        Returns
+        -------
+        float
+            The fitted anisotropy exponent, only if ani_param is None.
+        """
+
+        self._raise_parallel_error("plot_Jhv_vector")
+
+        state = self.sim.state
+        keys_state_phys = state.keys_state_phys
+        params = self.sim.params
+
+        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
+            tmin=tmin, tmax=tmax
+        )["dimensional"]
+        try:
+            eta = dimless_num["eta"]
+        except KeyError:
+            warn("KeyError: 'eta' not available; eta is set to unity")
+            eta = 1
+        if epsilon is None:
+            epsilon = dimless_num["epsK"]
+            if "b" in keys_state_phys:
+                epsilon += dimless_num["epsA"]
+
+        if "b" in keys_state_phys:
+            N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            l_O = np.sqrt(epsilon / N**3) / eta
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
+        keys = ["Jh_k_hv", "Jv_k_hv"]
+        if "b" in keys_state_phys:
+            keys.extend(["Jh_p_hv", "Jv_p_hv"])
+
+        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
+        with h5py.File(self.path_file, "r") as file:
+            rh_store = np.array(file["rh_store"])
+            rv_store = np.array(file["rv_store"])
+
+        RH, RV = np.meshgrid(rh_store, rv_store)
+        RH /= eta
+
+        RV /= eta
+
+        Jk_v = to_plot["Jv_k_hv"]
+        Jk_h = to_plot["Jh_k_hv"]
+        if "b" in keys_state_phys:
+            Jp_v = to_plot["Jv_p_hv"]
+            Jp_h = to_plot["Jh_p_hv"]
+
+        axis_max = 100
+        axis_min = 1
+
+        rows = (RV[:, 0] > axis_min) & (RV[:, 0] < axis_max)
+        cols = (RH[0, :] > axis_min) & (RH[0, :] < axis_max)
+        RH_sub = RH[np.ix_(rows, cols)]
+        RV_sub = RV[np.ix_(rows, cols)]
+
+        if num_vectors is False:
+            ratio_vectors = 1
+        else:
+            if num_vectors is None:
+                num_vectors = 12
+        ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
+
+        if ani_param is None:
+            if divJ is None:
+                raise ValueError("divJ or ani_param should be not None")
+            inertial_range = (divJ >= 0.9) & (divJ <= 1.1)
+
+        def _plot(
+            j_v,
+            j_h,
+            type_plot="_K",
+            theory=False,
+            polar=polar,
+            axis_min=axis_min,
+            axis_max=axis_max,
+            axes=axes,
+            ani_param=ani_param,
+            num_vectors=num_vectors,
+        ):
+            full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
+            if rescale_vaxis:
+                full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/(4\epsilon \| \mathbf{{J}}_{{th}} \|)$, {title}"
+            save_name_file = f"J{type_plot}_vector_hv"
+
+            if axes is None:
+                if polar:
+                    fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+                else:
+                    fig, ax = self.output.figure_axe()
+                    ax.set_aspect("equal", "box")
+                cmap_obj = plt.get_cmap(cmap).copy()
+            else:
+                ax = axes
+            width = 0.002
+            headwidth = 4.5
+            headlength = 3.5
+            headaxislength = 2.5
+            scale = None
+
+            if ani_param is None:
+                rh = RH[1:][inertial_range].ravel()
+                rv = RV[1:][inertial_range].ravel()
+                jh = j_h[1:][inertial_range].ravel()
+                jv = j_v[1:][inertial_range].ravel()
+
+                r2 = rh**2 + rv**2
+
+                def chi2(alpha):
+                    Jth_h = -rh / (alpha + 2)
+                    Jth_v = -alpha * rv / (alpha + 2)
+                    match normalization:
+                        case None:
+                            result = np.sum((jh - Jth_h) ** 2 + (jv - Jth_v) ** 2)
+                        case "vec":
+                            norm_j = np.sqrt(jh**2 + jv**2)
+                            norm_j_th = np.sqrt(Jth_h**2 + Jth_v**2)
+                            result = np.sum(
+                                (
+                                    (jh / norm_j - Jth_h / norm_j_th) ** 2
+                                    + (jv / norm_j - Jth_v / norm_j_th) ** 2
+                                )
+                            )
+                        case "r":
+                            result = np.sum(
+                                ((jh - Jth_h) ** 2 + (jv - Jth_v) ** 2) / r2
+                            )
+                    return result
+
+                alphas = np.linspace(-1.0, 1.0, 10000)
+                scores = np.array([chi2(a) for a in alphas])
+                aniso_param = alphas[np.argmin(scores)]
+                print(f"{aniso_param=}")
+            else:
+                aniso_param = ani_param
+
+            if rescale_vaxis:
+                full_title += rf", $\alpha = {round(aniso_param, 2)}$"
+                save_name_file += "_rv_rescaled"
+                J_h_theory = -RH / (aniso_param + 2)
+                J_v_theory = -(aniso_param * RV) / (aniso_param + 2)
+
+                J_h_theory *= eta
+                J_v_theory *= eta
+
+                norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
+                norm_th = np.where(norm_th != 0, norm_th, 1e-10)
+
+            ax.set_title(full_title, fontsize="x-large")
+
+            if theory:
+                save_name_file += "_with_theory"
+
+                r_max = min(RH.max(), RV.max())
+                r_min = max(RH.min(), RV.min())
+                rh_line = np.linspace(r_min, r_max, 100)
+
+                num_r = max(5, int((50 / (abs(aniso_param) + 0.1) / 2)))
+
+                rv_at_rmax = np.linspace(r_min, r_max, num_r)
+                C_consts_right = rv_at_rmax / r_max**aniso_param
+                rh_at_rvmax = np.linspace(r_min, r_max, num_r)
+                C_consts_top = r_max / rh_at_rvmax**aniso_param
+                C_consts = np.unique(
+                    np.concatenate([C_consts_right, C_consts_top])
+                )
+                for i, C_const in enumerate(C_consts):
+                    rv_line = C_const * rh_line**aniso_param
+                    mask = (rv_line >= r_min) & (rv_line <= r_max)
+                    if mask.sum() < 2:
+                        continue
+                    label_plot = (
+                        rf"$r_v = \beta\, r_h^{{{aniso_param}}}$"
+                        if i == 0
+                        else None
+                    )
+                    ax.plot(
+                        rh_line[mask],
+                        rv_line[mask],
+                        "k-",
+                        linewidth=0.8,
+                        alpha=0.5,
+                        label=label_plot,
+                    )
+                quiv = ax.streamplot(
+                    RH[0, :],
+                    RV[:, 0],
+                    j_h,
+                    j_v,
+                    density=2.5,
+                    color="r",
+                    linewidth=0.8,
+                    broken_streamlines=False,
+                )
+                ax.plot([], [], color="r", linewidth=0.8, label=r"$\mathbf{J}$")
+            else:
+                Maps = np.sqrt(j_h**2 + j_v**2)
+                if rescale_vaxis:
+                    j_h /= norm_th
+                    j_v /= norm_th
+                    Maps /= norm_th
+                j_h_plot, j_v_plot = (
+                    j_h[np.ix_(rows, cols)],
+                    j_v[np.ix_(rows, cols)],
+                )
+                Maps = Maps[np.ix_(rows, cols)]
+                if polar:
+                    if num_vectors is None:
+                        num_vectors = 20
+                    n_dec = np.log10(RH_sub[0, :].max() + 1e-14) - np.log10(
+                        RH_sub[0, :][RH_sub[0, :] > 0].min()
+                    )
+                    min_log_step = n_dec / num_vectors
+
+                    cell_h = np.round(
+                        np.log10(RH_sub + 1e-14) / min_log_step
+                    ).astype(int)
+                    cell_v = np.round(
+                        np.log10(np.abs(RV_sub) + 1e-14) / min_log_step
+                    ).astype(int)
+                    sign_v = np.sign(RV_sub).astype(int)
+                    pairs = np.stack(
+                        [cell_h.ravel(), cell_v.ravel(), sign_v.ravel()],
+                        axis=1,
+                    )
+                    _, idx = np.unique(pairs, axis=0, return_index=True)
+                    keep = np.zeros(RH_sub.size, dtype=bool)
+                    keep[idx] = True
+                    keep = keep.reshape(RH_sub.shape)
+
+                    j_h_plot = j_h_plot[keep]
+                    j_v_plot = j_v_plot[keep]
+                    RH_m = RH_sub[keep]
+                    RV_m = RV_sub[keep]
+                    Maps = Maps[keep]
+
+                    alpha_ani = 1
+                    if rescale_vaxis:
+                        alpha_ani = aniso_param
+                    R_full = np.sqrt(RH_m**2 + (alpha_ani * RV_m) ** 2)
+                    Theta = np.arctan2(alpha_ani * RV_m, RH_m)
+                    log_R = np.log10(R_full + 1e-14)
+                    pos_x, pos_y = Theta, log_R
+                    save_name_file += "_polar"
+                else:
+                    pos_x, pos_y = (
+                        RH_sub[::ratio_vectors, ::ratio_vectors],
+                        RV_sub[::ratio_vectors, ::ratio_vectors],
+                    )
+                    j_h_plot, j_v_plot = (
+                        j_h_plot[::ratio_vectors, ::ratio_vectors],
+                        j_v_plot[::ratio_vectors, ::ratio_vectors],
+                    )
+                    Maps = Maps[::ratio_vectors, ::ratio_vectors]
+                    if rescale_vaxis:
+                        pos_y *= aniso_param
+                if axes is None:
+                    quiv = ax.quiver(
+                        pos_x,
+                        pos_y,
+                        j_h_plot,
+                        j_v_plot,
+                        Maps,
+                        cmap=cmap_obj,
+                        clim=(0.5, 1.2),
+                        scale=scale,
+                        width=width,
+                        headwidth=headwidth,
+                        headlength=headlength,
+                        headaxislength=headaxislength,
+                    )
+
+                    cbar = fig.colorbar(quiv, ax=ax)
+                    cbar.set_label("Amplitude", fontsize="x-large")
+                else:
+                    ax.quiver(
+                        pos_x,
+                        pos_y,
+                        j_h_plot,
+                        j_v_plot,
+                        color="k",
+                        scale=scale,
+                        width=width,
+                        headwidth=headwidth,
+                        headlength=headlength,
+                        headaxislength=headaxislength,
+                        label=r"$\mathbf{J}$",
+                    )
+            if divJ is not None:
+                if polar:
+                    x_axis = np.arctan2(alpha_ani * RV[1:], RH[1:])
+                    y_axis = np.log10(
+                        np.sqrt(RH[1:] ** 2 + (alpha_ani * RV[1:]) ** 2) + 1e-14
+                    )
+                else:
+                    x_axis = RH[1:]
+                    y_axis = RV[1:]
+                if rescale_vaxis and not polar:
+                    y_axis *= aniso_param
+                ax.contour(
+                    x_axis,
+                    y_axis,
+                    divJ,
+                    levels=[0.9, 1.1],
+                    colors="r",
+                    linestyles="--",
+                    linewidths=1.0,
+                )
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                axis_min,
+                axis_max,
+                dim=2,
+                ani=ani,
+                polar=polar,
+            )
+            x_lines = np.linspace(axis_min, axis_max, 10)
+            angles = np.arange(0, 90, 5)
+            for angle in angles:
+                coef = np.tan(np.radians(angle))
+                if polar:
+                    ax.plot(
+                        np.full_like(x_lines, np.radians(angle)),
+                        np.log10(x_lines + 1e-14),
+                        color="gray",
+                        linestyle="-",
+                        alpha=0.4,
+                    )
+                else:
+                    ax.plot(
+                        x_lines,
+                        coef * x_lines,
+                        color="gray",
+                        linestyle="-",
+                        alpha=0.4,
+                    )
+            ax.legend(
+                fontsize="x-large",
+                loc="upper right",
+                handlelength=0.5,
+            )
+            if polar:
+                r_ticks = [1, 10, 100]
+                ax.set_rticks([np.log10(r) for r in r_ticks])
+                ax.set_yticklabels([str(r) for r in r_ticks])
+                theta_mid = np.radians(90 - (360 + 40) * disk)
+                r_mid = (
+                    np.log10(axis_min if axis_min > 0 else 1) + np.log10(axis_max)
+                ) / 2
+                text_axial_axis = r"$r/\eta$"
+                if rescale_vaxis:
+                    text_axial_axis = r"$\hat{r}/\eta$"
+                ax.text(
+                    theta_mid,
+                    r_mid,
+                    text_axial_axis,
+                    fontsize="x-large",
+                    ha="center",
+                    va="center",
+                    rotation=0,
+                )
+                ax.set_thetamin(90 - 360 * disk)
+                ax.set_thetamax(90)
+                if divJ is not None:
+                    ax.set_rmin(np.log10(axis_min if axis_min > 0 else 5))
+                    ax.set_rmax(np.log10(100))
+                else:
+                    ax.set_rmin(np.log10(axis_min if axis_min > 0 else 1))
+                    ax.set_rmax(np.log10(axis_max))
+                ax.grid(grid)
+            else:
+                ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+                RV_label = r"$r_v/\eta$"
+                ax.set_ylim(ymin=axis_min, ymax=axis_max)
+                if rescale_vaxis:
+                    RV_label = r"$\alpha r_v/\eta$"
+                    ax.set_ylim(
+                        ymin=axis_min * aniso_param, ymax=axis_max * aniso_param
+                    )
+                ax.set_ylabel(RV_label, fontsize="x-large")
+                ax.set_xlim(xmin=axis_min, xmax=axis_max)
+            plt.tight_layout()
+
+            if save:
+                save_name_file += ".png"
+                plt.savefig(save_name_file, dpi=300)
+            plt.show()
+            return aniso_param
+
+        if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
+            which_plot = which_plot.replace("J", "JK")
+
+        if which_plot in ("JP", "JP_norm") and "b" not in keys_state_phys:
+            raise ValueError(
+                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
+                f"Available fields: {', '.join(keys)}"
+            )
+
+        match which_plot:
+            case "JK":
+                aniso_param = _plot(
+                    Jk_v / (4 * epsilon),
+                    Jk_h / (4 * epsilon),
+                    type_plot="_K",
+                    theory=theory,
+                )
+
+            case "JP":
+                aniso_param = _plot(
+                    Jp_v / (4 * epsilon),
+                    Jp_h / (4 * epsilon),
+                    type_plot="_P",
+                    theory=theory,
+                )
+
+            case "J":
+                aniso_param = _plot(
+                    (Jp_v + Jk_v) / (4 * epsilon),
+                    (Jp_h + Jk_h) / (4 * epsilon),
+                    type_plot="",
+                    theory=theory,
+                )
+
+            case _:
+                raise ValueError(
+                    f"Field {which_plot} not available. "
+                    f"Available fields: {', '.join(keys)}"
+                )
+        if ani_param is None:
+            return aniso_param
+
     def plot_hv_dependencies(
         self,
         tmin=None,
         tmax=None,
-        vmin=None,
-        vmax=None,
+        vmin=0.0,
+        vmax=1.2,
         which_plot="div_JK",
+        overlay_vectors=False,
+        ani_param=1,
+        num_vectors=None,
         logscale=True,
+        polar=False,
+        grid=False,
+        disk=0.25,
+        isolines=False,
         epsilon=None,
         cmap="plasma",
         save=False,
     ):
-        """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities."""
+        """Plot azimuthal (rho, z) dependencies of Kolmogorov law quantities.
+
+        Parameters
+        ----------
+        tmin, tmax : float or None, default None
+            Time window over which the fields are averaged.
+        vmin, vmax : float, default 0.0 and 1.2
+            Color limits of the pcolormesh.
+        which_plot : str, default "div_JK"
+            Field to plot: "JK", "JP", "J" or "div_JK",
+            "div_JP", "div_J"
+        overlay_vectors : bool, default False
+            Overlay the J vector field.
+        ani_param : float, default 1
+            Anisotropy exponent passed to plot_Jhv_vector when overlaying.
+        num_vectors : int or None, default None
+            Number of arrows, passed to plot_Jhv_vector when overlaying.
+        logscale : bool, default True
+            Use logarithmic axes.
+        polar : bool, default False
+            Use log-polar axes.
+        grid : bool, default False
+            Show the grid on log-polar plots.
+        disk : float, default 0.25
+            Proportion of the log-polar disk (0.25 quarter, 0.5 half, 1 full).
+        isolines : bool, default False
+            Draw contour lines of the field; the 0.9-1.1 band is hatched and the compensated divergence field is returned.
+        epsilon : float or None, default None
+            Dissipation rate; computed from spatial means if None.
+        cmap : str, default "plasma"
+            Colormap of the pcolormesh.
+        save : bool, default False
+            Save the figure as a png.
+
+        Returns
+        -------
+        ndarray
+            The compensated -div(J)/(4*epsilon) field, only if isolines is
+            True and which_plot is "div_JK" or "div_J".
+        """
         self._raise_parallel_error("plot_hv_dependencies")
 
         state = self.sim.state
@@ -573,6 +1367,25 @@ class KolmoLaw(SpecificOutput):
             if "b" in keys_state_phys:
                 epsilon += dimless_num["epsA"]
 
+        if "b" in keys_state_phys:
+            N = params.N
+            title = f"$N_x={params.oper.nx}, N={N}$"
+            l_O = np.sqrt(epsilon / N**3) / eta
+            EKh = dimless_num["EKh"]
+            u_h = np.sqrt(EKh)
+            L_b = u_h / N / eta
+            ani = True
+        else:
+            title = f"$N_x={params.oper.nx}$"
+            l_O = None
+            L_b = None
+            ani = False
+
+        EK = dimless_num["EKh"] + dimless_num["EKz"]
+        u_rms = np.sqrt(2 * EK / 3)
+        L_int = u_rms**3 / epsilon / eta
+        lambda_T = u_rms * np.sqrt(15 * params.nu_2 / epsilon) / eta
+
         with h5py.File(self.path_file, "r") as file:
             rh_store = np.array(file["rh_store"])
             rv_store = np.array(file["rv_store"])
@@ -589,47 +1402,172 @@ class KolmoLaw(SpecificOutput):
             Jp_l_comp = -to_plot["Jl_p_hv"] / ((radius + 1e-14) * epsilon)
             divJp_hv = -to_plot["divJ_p_hv"] / (4 * epsilon)
 
-        title = f"$N_x={params.oper.nx}$"
-
-        def _plot(j_l, cmap, vmin, vmax, type_plot="K", divergence=False):
+        def _plot(
+            j_l, cmap, vmin, vmax, type_plot="K", divergence=False, polar=False
+        ):
             coma = ""
             if type_plot != "":
                 coma = ","
-            full_title = (
-                f"$-J_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
-            )
-            save_name_file = f"J{type_plot}_L_hv.png"
+            full_title = f"$-\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
+            save_name_file = f"J{type_plot}_L_hv"
             if divergence:
-                full_title = f"$-\\nabla \\cdot J_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
-                save_name_file = f"divJ{type_plot}_hv.png"
-            fig, ax = self.output.figure_axe()
-            im = ax.pcolormesh(
-                RH[1:] / eta,
-                RV[1:] / eta,
-                j_l,
-                cmap=cmap,
-                vmin=vmin,
-                vmax=vmax,
-            )
-            fig.colorbar(im, ax=ax)
-            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
-            ax.set_title(full_title, fontsize="x-large")
-            ax.set_aspect("equal", "box")
+                full_title = f"$-\\nabla \\cdot \mathbf{{J}}_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
+                save_name_file = f"divJ{type_plot}_hv"
+            axis_min = 0
             if logscale:
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                ax.set_xlim(xmin=1, xmax=400)
-                ax.set_ylim(ymin=1, ymax=400)
+                axis_min = 1
+            axis_max = 400
+            if polar:
+                save_name_file += "_polar"
+                R = np.sqrt(RH[1:] ** 2 + RV[1:] ** 2) / eta
+                Theta = np.arctan2(RV[1:], RH[1:])
+
+                log_R = np.log10(R + 1e-14)
+
+                fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+                im = ax.pcolormesh(
+                    Theta, log_R, j_l, cmap=cmap, vmin=vmin, vmax=vmax
+                )
+                fig.colorbar(im, ax=ax)
+
+                r_ticks = [1, 10, 100]
+                ax.set_rticks([np.log10(r) for r in r_ticks])
+                ax.set_yticklabels([str(r) for r in r_ticks])
+                theta_mid = np.radians(90 - (360 + 40) * disk)
+                r_mid = (
+                    np.log10(axis_min if axis_min > 0 else 1) + np.log10(axis_max)
+                ) / 2
+                ax.text(
+                    theta_mid,
+                    r_mid,
+                    r"$r/\eta$",
+                    fontsize="x-large",
+                    ha="center",
+                    va="center",
+                    rotation=0,
+                )
+                ax.grid(grid)
+                if overlay_vectors:
+                    save_name_file += "_overlay"
+                    if len(which_plot) > 3:
+                        _which_plot = which_plot.removeprefix("div_")
+                    else:
+                        _which_plot = which_plot
+                    self.plot_Jhv_vector(
+                        which_plot=_which_plot,
+                        axes=ax,
+                        num_vectors=num_vectors,
+                        logscale=logscale,
+                        polar=polar,
+                        disk=disk,
+                        ani_param=ani_param,
+                    )
+                self._plot_scales(
+                    ax,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    axis_min,
+                    axis_max,
+                    dim=2,
+                    ani=ani,
+                    logscale=logscale,
+                    polar=polar,
+                )
+                if isolines:
+                    save_name_file += "_isolines"
+                    levels = np.arange(0.9, 1.1, 0.1)
+                    cs = ax.contour(
+                        Theta,
+                        log_R,
+                        j_l,
+                        levels=levels,
+                        colors="k",
+                        linewidths=0.5,
+                        label="isoline",
+                    )
+                    ax.clabel(cs, inline=True, fontsize="small", fmt="%.1f")
+                    inertial_range = (j_l >= 0.9) & (j_l <= 1.1)
+                    print(f"{inertial_range=}")
+                ax.legend()
+                ax.set_thetamin(90 - 360 * disk)
+                ax.set_thetamax(90)
+                ax.set_rmin(np.log10(1))
+                ax.set_rmax(np.log10(400))
             else:
-                ax.set_xlim(xmin=0, xmax=400)
-                ax.set_ylim(ymin=0, ymax=400)
+                fig, ax = self.output.figure_axe()
+                im = ax.pcolormesh(
+                    RH[1:] / eta,
+                    RV[1:] / eta,
+                    j_l,
+                    cmap=cmap,
+                    vmin=vmin,
+                    vmax=vmax,
+                )
+                fig.colorbar(im, ax=ax)
+                ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
+                ax.set_ylabel(r"$r_v/\eta$", fontsize="x-large")
+                ax.set_aspect("equal", "box")
+                if overlay_vectors:
+                    if len(which_plot) > 3:
+                        _which_plot = which_plot.removeprefix("div_")
+                    else:
+                        _which_plot = which_plot
+                    self.plot_Jhv_vector(
+                        which_plot=_which_plot,
+                        axes=ax,
+                        num_vectors=num_vectors,
+                        logscale=logscale,
+                        disk=disk,
+                        ani_param=ani_param,
+                    )
+                self._plot_scales(
+                    ax,
+                    eta,
+                    l_O,
+                    L_int,
+                    L_b,
+                    lambda_T,
+                    axis_min,
+                    axis_max,
+                    dim=2,
+                    ani=ani,
+                    logscale=logscale,
+                )
+                if isolines:
+                    levels = np.arange(0.4, 1.21, 0.1)
+                    cs = ax.contour(
+                        RH[1:] / eta,
+                        RV[1:] / eta,
+                        j_l,
+                        levels=levels,
+                        colors="k",
+                        linewidths=0.5,
+                    )
+                    ax.clabel(cs, inline=True, fontsize="small", fmt="%.1f")
+                    ax.contourf(
+                        RH[1:] / eta,
+                        RV[1:] / eta,
+                        j_l,
+                        levels=[0.9, 1.1],
+                        colors="none",
+                        hatches=["///"],
+                    )
+                ax.legend()
+                if logscale:
+                    save_name_file += "_logscale"
+                    ax.set_xscale("log")
+                    ax.set_yscale("log")
+                ax.set_xlim(xmin=axis_min, xmax=axis_max)
+                ax.set_ylim(ymin=axis_min, ymax=axis_max)
+            ax.set_title(full_title, fontsize="x-large")
             plt.tight_layout()
             if save:
+                save_name_file += ".png"
                 plt.savefig(save_name_file, dpi=300)
             plt.show()
-
-        # Reference vmin = -0.5, vmax = 1.2
 
         if which_plot in ("J", "div_J") and "b" not in keys_state_phys:
             which_plot = which_plot.replace("J", "JK")
@@ -649,9 +1587,12 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="K",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_JK":
+                if isolines:
+                    divJ = divJk_hv[1:]
                 _plot(
                     divJk_hv[1:],
                     cmap,
@@ -659,8 +1600,8 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="K",
                     divergence=True,
+                    polar=polar,
                 )
-
             case "JP":
                 _plot(
                     Jp_l_comp[1:],
@@ -669,6 +1610,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="P",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_JP":
@@ -679,6 +1621,7 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="P",
                     divergence=True,
+                    polar=polar,
                 )
 
             case "J":
@@ -689,9 +1632,12 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="",
                     divergence=False,
+                    polar=polar,
                 )
 
             case "div_J":
+                if isolines:
+                    divJ = divJp_hv[1:] + divJk_hv[1:]
                 _plot(
                     divJp_hv[1:] + divJk_hv[1:],
                     cmap,
@@ -699,296 +1645,12 @@ class KolmoLaw(SpecificOutput):
                     vmax,
                     type_plot="",
                     divergence=True,
+                    polar=polar,
                 )
             case _:
                 raise ValueError(
                     f"Field {which_plot} not available. "
                     f"Available fields: {', '.join(keys)}"
                 )
-
-    def plot_Jhv_vector(
-        self,
-        tmin=None,
-        tmax=None,
-        which_plot="JK",
-        num_vectors=60,
-        logscale=True,
-        epsilon=None,
-        theory=False,
-        ani_param=1,
-        cmap="plasma",
-        save=False,
-    ):
-        """Plot vector field of J in (rho, z) plane."""
-        self._raise_parallel_error("plot_Jhv_vector")
-
-        state = self.sim.state
-        keys_state_phys = state.keys_state_phys
-        params = self.sim.params
-
-        keys = ["Jh_k_hv", "Jv_k_hv"]
-        if "b" in keys_state_phys:
-            keys.extend(["Jh_p_hv", "Jv_p_hv"])
-
-        to_plot, _, _ = self.load_temp_average(keys, tmin, tmax)
-
-        ratio_vectors = int(np.shape(to_plot["Jh_k_hv"])[0] / num_vectors)
-
-        Jk_v = to_plot["Jv_k_hv"][::ratio_vectors, ::ratio_vectors]
-        Jk_h = to_plot["Jh_k_hv"][::ratio_vectors, ::ratio_vectors]
-        if "b" in keys_state_phys:
-            Jp_v = to_plot["Jv_p_hv"][::ratio_vectors, ::ratio_vectors]
-            Jp_h = to_plot["Jh_p_hv"][::ratio_vectors, ::ratio_vectors]
-
-        with h5py.File(self.path_file, "r") as file:
-            rh_store = np.array(file["rh_store"])
-            rv_store = np.array(file["rv_store"])
-
-        RH, RV = np.meshgrid(rh_store, rv_store)
-
-        dimless_num = self.sim.output.spatial_means.get_dimless_numbers_averaged(
-            tmin=tmin, tmax=tmax
-        )["dimensional"]
-        try:
-            eta = dimless_num["eta"]
-        except KeyError:
-            warn("KeyError: 'eta' not available; eta is set to unity")
-            eta = 1
-        if epsilon is None:
-            epsilon = dimless_num["epsK"]
-            if "b" in keys_state_phys:
-                epsilon += dimless_num["epsA"]
-
-        RH, RV = np.meshgrid(rh_store, rv_store)
-
-        RH /= eta
-
-        RV_label = r"$r_v/\eta$"
-
-        RV /= eta
-
-        RH_sub = RH[::ratio_vectors, ::ratio_vectors]
-        RV_sub = RV[::ratio_vectors, ::ratio_vectors]
-
-        axis_max = 400
-        axis_min = 0
-        if theory is not False:
-            axis_max = 200
-            axis_min = 30
-
-        rows = (RV_sub[:, 0] >= axis_min) & (RV_sub[:, 0] <= axis_max)
-        cols = (RH_sub[0, :] >= axis_min) & (RH_sub[0, :] <= axis_max)
-        RH_sub = RH_sub[np.ix_(rows, cols)]
-        RV_sub = RV_sub[np.ix_(rows, cols)]
-
-        title = f"$N_x={params.oper.nx}$"
-
-        def _plot(
-            j_v,
-            j_h,
-            type_plot="_K",
-            normalized=False,
-            theory=False,
-            axis_min=axis_min,
-            axis_max=axis_max,
-        ):
-            full_title = f"$-J{type_plot}(r_h,r_v)/4\epsilon$, {title}"
-            save_name_file = f"J{type_plot}_vector_hv.png"
-            j_v_plot = j_v[np.ix_(rows, cols)].copy()
-            j_h_plot = j_h[np.ix_(rows, cols)].copy()
-            C = np.sqrt(j_v_plot**2 + j_h_plot**2)
-
-            if normalized:
-                full_title = f"$Normalized -J{type_plot}(r_h,r_v)$, {title}"
-                save_name_file = f"J{type_plot}_vector_hv_normalized.png"
-                RH_safe = np.where(RH_sub != 0, RH_sub, 1e-10)
-                RV_safe = np.abs(np.where(RV_sub != 0, RV_sub, 1e-10))
-                j_v_plot /= RV_safe
-                j_h_plot /= RH_safe
-
-            fig, ax = self.output.figure_axe()
-            ax.set_title(full_title, fontsize="x-large")
-            ax.set_aspect("equal", "box")
-            width = 0.002
-            headwidth = 3
-            headlength = 2.5
-            headaxislength = 2.5
-            if logscale:
-                axis_min = 1
-                ax.set_xscale("log")
-                ax.set_yscale("log")
-                width = 0.002
-                headwidth = 2
-                headlength = 1.5
-                headaxislength = 1.5
-
-            match theory:
-                case False:
-                    pass
-
-                case True | "vec" as which_theory:
-                    save_name_file = f"J{type_plot}_vector_hv_with_theory.png"
-                    r_max = min(RH.max(), RV.max())
-                    r_min = max(RH.min(), RV.min())
-                    rh_line = np.linspace(r_min, r_max, 100)
-
-                    if ani_param < 0:
-                        num_r = 50
-                    else:
-                        num_r = 25
-
-                    rv_at_rmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_right = rv_at_rmax / r_max**ani_param
-                    rh_at_rvmax = np.linspace(r_min, r_max, num_r)
-                    C_consts_top = r_max / rh_at_rvmax**ani_param
-                    C_consts = np.unique(
-                        np.concatenate([C_consts_right, C_consts_top])
-                    )
-                    offset = (r_max - r_min) * 0.003  # Léger décalage vertical
-                    J_h_theory = RH_sub / (ani_param + 2)
-                    J_v_theory = ani_param * RV_sub / (ani_param + 2)
-
-                    J_h_theory *= eta
-                    J_v_theory *= eta
-
-                    norm_th = np.sqrt(J_h_theory**2 + J_v_theory**2)
-                    norm_th = np.where(norm_th != 0, norm_th, 1e-10)
-
-                    norm_ratio = C / norm_th
-
-                    print(f"{norm_ratio=}")
-                    print(f"{np.mean(norm_ratio)=}")
-
-                    match which_theory:
-                        case True:
-                            for i, C_const in enumerate(C_consts):
-                                rv_line = C_const * rh_line**ani_param
-                                mask = (rv_line >= r_min) & (rv_line <= r_max)
-                                if mask.sum() < 2:
-                                    continue
-                                label_plot = (
-                                    rf"$r_v = \alpha\, r_h^{{{ani_param}}}$"
-                                    if i == 0
-                                    else None
-                                )
-                                ax.plot(
-                                    rh_line[mask],
-                                    rv_line[mask],
-                                    "r-",
-                                    linewidth=0.8,
-                                    alpha=0.3,
-                                    label=label_plot,
-                                )
-
-                        case "vec":
-                            ax.quiver(
-                                RH_sub,
-                                RV_sub + offset,
-                                J_h_theory,
-                                J_v_theory,
-                                color="k",
-                                width=width,
-                                headwidth=headwidth,
-                                headlength=headlength,
-                                headaxislength=headaxislength,
-                                alpha=0.5,
-                                label=rf"$\alpha = {ani_param}$",
-                            )
-
-                    ax.legend(
-                        fontsize="x-large",
-                        loc="upper right",
-                        handlelength=0.5,
-                    )
-
-            quiv = ax.quiver(
-                RH_sub,
-                RV_sub,
-                j_h_plot,
-                j_v_plot,
-                C,
-                cmap=cmap,
-                width=width,
-                headwidth=headwidth,
-                headlength=headlength,
-                headaxislength=headaxislength,
-            )
-
-            cbar = fig.colorbar(quiv, ax=ax)
-            cbar.set_label("Amplitude", fontsize="x-large")
-
-            ax.set_xlabel(r"$r_h/\eta$", fontsize="x-large")
-            ax.set_ylabel(RV_label, fontsize="x-large")
-            ax.set_xlim(xmin=axis_min, xmax=axis_max)
-            ax.set_ylim(ymin=axis_min, ymax=axis_max)
-            plt.tight_layout()
-
-            if save:
-                plt.savefig(save_name_file, dpi=300)
-            plt.show()
-
-        if which_plot in ("J", "J_norm") and "b" not in keys_state_phys:
-            which_plot = which_plot.replace("J", "JK")
-
-        if which_plot in ("JP", "JP_norm") and "b" not in keys_state_phys:
-            raise ValueError(
-                f"Cannot plot '{which_plot}': buoyancy field 'b' is not present. "
-                f"Available fields: {', '.join(keys)}"
-            )
-
-        match which_plot:
-            case "JK":
-                _plot(
-                    -Jk_v / (4 * epsilon),
-                    -Jk_h / (4 * epsilon),
-                    type_plot="_K",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "JK_norm":
-                _plot(
-                    -Jk_v / (4 * epsilon),
-                    -Jk_h / (4 * epsilon),
-                    type_plot="_K",
-                    normalized=True,
-                )
-
-            case "JP":
-                _plot(
-                    -Jp_v / (4 * epsilon),
-                    -Jp_h / (4 * epsilon),
-                    type_plot="_P",
-                    normalized=False,
-                )
-
-            case "JP_norm":
-                _plot(
-                    -Jp_v / (4 * epsilon),
-                    -Jp_h / (4 * epsilon),
-                    type_plot="_P",
-                    normalized=True,
-                )
-
-            case "J":
-                _plot(
-                    -(Jp_v + Jk_v) / (4 * epsilon),
-                    -(Jp_h + Jk_h) / (4 * epsilon),
-                    type_plot="",
-                    normalized=False,
-                    theory=theory,
-                )
-
-            case "J_norm":
-                _plot(
-                    -(Jp_v + Jk_v) / (4 * epsilon),
-                    -(Jp_h + Jk_h) / (4 * epsilon),
-                    type_plot="",
-                    normalized=True,
-                )
-
-            case _:
-                raise ValueError(
-                    f"Field {which_plot} not available. "
-                    f"Available fields: {', '.join(keys)}"
-                )
+        if isolines:
+            return divJ

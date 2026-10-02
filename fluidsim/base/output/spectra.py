@@ -157,6 +157,60 @@ class SpectraBase(SpecificOutput):
         else:
             return ("x", "y")
 
+    def _plot_scales(
+        self,
+        ax,
+        eta,
+        l_O,
+        L_int,
+        L_b,
+        lambda_T,
+        kmax,
+        ani=True,
+    ):
+        eta_norm = eta
+        to_plot = [
+            (eta_norm, "darkorange", r"$1/\eta$"),
+        ]
+        if L_int is not None:
+            to_plot += [(L_int, "r", r"$k_{L}$")]
+        if ani:
+            to_plot += [(l_O, "b", r"$1/l_O$")]
+        else:
+            to_plot += [(lambda_T, "k", r"$1/\lambda$")]
+
+        for length, color, label in to_plot:
+            ax.axvline(
+                x=1 / length,
+                color=color,
+                linestyle=":",
+                linewidth=1.0,
+                label=label,
+            )
+        if ani:
+            ax.axvline(
+                x=1 / L_b,
+                color="g",
+                linestyle=":",
+                linewidth=1.0,
+                label=r"$1/L_b$",
+            )
+            ax.axvline(
+                x=1 / lambda_T,
+                color="k",
+                linestyle=":",
+                linewidth=1.0,
+                label=r"$1/\lambda$",
+            )
+        if kmax is not None:
+            ax.axvline(
+                x=kmax,
+                color="k",
+                linestyle="-",
+                linewidth=1.0,
+                label=r"$k_{max}$",
+            )
+
     def _plot_ndim(
         self,
         tmin=0,
@@ -167,10 +221,13 @@ class SpectraBase(SpecificOutput):
         coef_plot_k3=None,
         coef_plot_k53=None,
         coef_plot_k2=None,
+        plot_length_scales=False,
         xlim=None,
         ylim=None,
         ndim=1,
         directions=None,
+        plot_kmax=False,
+        plot_L_int=False,
     ):
         if ndim not in self._possible_ndims:
             raise ValueError
@@ -256,15 +313,73 @@ imin = {imin_plot:8d} ; imax = {imax_plot:8d}"""
 
         if coef_plot_k3 is not None:
             to_plot = coef_plot_k3 * ks_no0 ** (-3) * coef_norm
-            ax.plot(ks, to_plot, "k--", label=r"$\propto k^{-3}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle="--",
+                color="gray",
+                label=r"$\propto k^{-3}$",
+            )
 
         if coef_plot_k53 is not None:
             to_plot = coef_plot_k53 * ks_no0 ** (-5.0 / 3) * coef_norm
-            ax.plot(ks, to_plot, "k-.", label=r"$\propto k^{-5/3}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle="-.",
+                color="gray",
+                label=r"$\propto k^{-5/3}$",
+            )
 
         if coef_plot_k2 is not None:
             to_plot = coef_plot_k2 * ks_no0 ** (-2) * coef_norm
-            ax.plot(ks, to_plot, "k:", label=r"$\propto k^{-2}$")
+            ax.plot(
+                ks,
+                to_plot,
+                linestyle=":",
+                color="gray",
+                label=r"$\propto k^{-2}$",
+            )
+
+        if plot_length_scales:
+            dimless_num = (
+                self.sim.output.spatial_means.get_dimless_numbers_averaged(
+                    tmin=tmin, tmax=tmax
+                )["dimensional"]
+            )
+            eta = dimless_num["eta"]
+            epsilon = dimless_num["epsK"]
+            kmax = None
+            if plot_kmax:
+                kmax = dimless_num["k_max"]
+            if "h" in directions:
+                epsilon += dimless_num["epsA"]
+                N = self.sim.params.N
+                l_O = np.sqrt(epsilon / N**3)
+                EKh = dimless_num["EKh"]
+                u_h = np.sqrt(EKh)
+                L_b = u_h / N
+                ani = True
+            else:
+                l_O = None
+                L_b = None
+                ani = False
+            EK = dimless_num["EKh"] + dimless_num["EKz"]
+            u_rms = np.sqrt(2 * EK / 3)
+            L_int = None
+            if plot_L_int:
+                L_int = u_rms**3 / epsilon
+            lambda_T = u_rms * np.sqrt(15 * self.sim.params.nu_2 / epsilon)
+            self._plot_scales(
+                ax,
+                eta,
+                l_O,
+                L_int,
+                L_b,
+                lambda_T,
+                kmax=kmax,
+                ani=ani,
+            )
 
         if xlim is not None:
             ax.set_xlim(xlim)

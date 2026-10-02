@@ -29,7 +29,7 @@ First, lets describe which simulation we analyse.
 Here are the important modules for the following:
 
 ```{code-cell}
-import os
+import os, shutil
 import numpy as np
 import sys
 import h5py
@@ -45,6 +45,9 @@ Here we load the simulation with the corresponding simulation path:
 simu_path = Path(os.environ.get("PATH_SIMUL_DIR", None))
 print(f"{simu_path = }")
 sim = load(simu_path, hide_stdout=True)
+
+graph_path = Path("/home/users/lambert7cl/25lambert/book/presentations/seminaire_LEGI/images_kolmo_law")
+SAVE = False
 ```
 
 
@@ -63,6 +66,7 @@ except AttributeError:
   N = None
 
 nz = sim.params.oper.nz
+nx = nz
 Lx = sim.params.oper.Lx
 Lz = sim.params.oper.Lz
 delta_kz = 2 * np.pi / Lz
@@ -94,11 +98,27 @@ Select the min and max values depending on the simulation.
 
 ```{code-cell} ipython3
 if N is None:
-  tmin = 66.6
-  tmax = None 
+  if nz == 640:
+    tmin = 66.6
+  else:
+    tmin = 60.1
 else:
-  tmin = 11.5
-  tmax = None
+  if N == 10:
+    if nz == 640:
+      tmin = 11.5
+    elif nz == 1024:
+      tmin = 12.1
+  elif N == 2:
+    tmin = 8
+  elif N == 25:
+    tmin = 11.5
+  elif N == 20:
+    # tmin = 17.4
+    tmin = 18.2
+  elif N == 0.1:
+    tmin = 12.5
+tmax = None
+
 
 print(f"{tmin=}")
 print(f"{tmax=}")
@@ -115,8 +135,30 @@ dimless_numbers = sim.output.spatial_means.get_dimless_numbers_averaged(tmin=tmi
 dimless_numbers
 ```
 
+Title for figures:
+
 ```{code-cell} ipython3
-sim.output.get_mean_values(tmin=tmin, tmax=tmax)
+kmax_eta_measured = np.round(dimless_numbers['k_max*eta'],1)
+title_simul = fr"$N_x = {nx}$, $k_{{max}} \eta = {kmax_eta_measured}$"
+if N is not None:
+  title_simul += fr", $N = {N}$"
+```
+
+```{code-cell} ipython3
+all_numbers = sim.output.get_mean_values(tmin=tmin, tmax=tmax)
+all_numbers
+
+EKh = all_numbers["EKh"]
+EKz = all_numbers["EKz"]
+EK = EKh + EKz
+U = np.sqrt(2 * EK / 3)
+nu_2 = sim.params.nu_2
+epsK = all_numbers["epsK"]
+L_lambda = U * np.sqrt(15 * nu_2 / epsK)
+Re_lambda = U * L_lambda / nu_2
+
+L_lambda
+Re_lambda
 ```
 
 ## Physical quantities
@@ -130,17 +172,23 @@ Longitudinal velocity component $v_x$ on a horizontal cut at $z = 0$:
 ```{code-cell} ipython3
 fig, ax = sim.output.figure_axe()
 sim.output.phys_fields.plot(QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
-# filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
-# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+# if SAVE:
+#   filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
+#   fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
 
 Longitudinal velocity component $v_x$ on a vertical cut at $y = 0$: 
 
 ```{code-cell} ipython3
 fig, ax = sim.output.figure_axe()
-sim.output.phys_fields.plot(equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
-# filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
-# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+sim.output.phys_fields.plot(equation="y=0", vmin=-5, vmax=5, QUIVER=False, numfig=fig.number, type_plot="pcolor")
+ax = fig.axes[0]
+actual_title = ax.get_title()
+first_row = actual_title.split('\n')[0]
+ax.set_title(f"{first_row}\n" + title_simul)
+if SAVE:
+  filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
+  fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
 
 vertical velocity component $v_z$ on a horizontal cut at $z = 0$: 
@@ -166,8 +214,9 @@ sim.output.phys_fields.plot(field="vz", equation="y=0", QUIVER=False, numfig=fig
 Buoyancy $b$ on a horizontal cut at $z = 0$: 
 
 ```{code-cell} ipython3
-fig, ax = sim.output.figure_axe()
-sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
+if N is not None:
+  fig, ax = sim.output.figure_axe()
+  sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plot="pcolor",equation="z=0")
 # filename = graph_path / f"phys_field_z=0_{N}_{nx}.png"
 # fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
@@ -175,10 +224,12 @@ sim.output.phys_fields.plot(field="b", QUIVER=False, numfig=fig.number, type_plo
 Buoyancy $b$ on a vertical cut at $y = 0$: 
 
 ```{code-cell} ipython3
-fig, ax = sim.output.figure_axe()
-sim.output.phys_fields.plot(field="b", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
-# filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
-# fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+if N is not None:
+  fig, ax = sim.output.figure_axe()
+  sim.output.phys_fields.plot(field="b", equation="y=0", QUIVER=False, numfig=fig.number, type_plot="pcolor")
+# if SAVE:
+#   filename = graph_path / f"phys_field_y=0_{N}_{nx}.png"
+#   fig.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 ```
 
 
@@ -192,8 +243,11 @@ fig_nums = plt.get_fignums()
 fig_energy = plt.figure(fig_nums[-2])
 fig_dissipation = plt.figure(fig_nums[-1])
 
-# fig_energy.savefig(graph_path / f"energy_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
-# fig_dissipation.savefig(graph_path / f"diss_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
+if SAVE:
+  fig_energy.axes[0].set_title(title_simul)
+  fig_energy.savefig(graph_path / f"energy_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
+  fig_dissipation.axes[0].set_title(title_simul)
+  fig_dissipation.savefig(graph_path / f"diss_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
 ```
 
 ## Spectral quantities
@@ -205,8 +259,12 @@ Here, we compute usefull quantities in the spectral space.
 Nonlinear turbulent energy transfer and cumulated energy spectra:  
 
 ```{code-cell} ipython3
-fig_pi = sim.output.spect_energy_budg.plot_fluxes(tmin=tmin, tmax=tmax)
-# fig_pi.savefig(graph_path / f"Pi_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
+sim.output.spect_energy_budg.plot_fluxes(tmin=tmin, tmax=tmax)
+if SAVE:
+  fig_nums = plt.get_fignums()
+  fig_pi = plt.figure(fig_nums[-1])
+  fig_pi.axes[0].set_title(title_simul)
+  fig_pi.savefig(graph_path / f"Pi_{N}_{nx}.pdf", dpi=300, bbox_inches='tight')
 ```
 ### Energy spectra
 
@@ -217,10 +275,17 @@ if N is not None:
     directions="hz"
 else:
     directions=None
-fig_spectra = sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k53=3, coef_plot_k3=300, ylim=(1e-2, 4))
-
-# filename = graph_path / f"spectra_1d_{N}_{nx}.pdf"
-# fig_spectra.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
+if nx==640:
+  limits = (1e-2, 4)
+else:
+  limits = (5e-3, 4)
+sim.output.spectra.plot1d(tmin=tmin, tmax=tmax, directions=directions, coef_compensate=5/3, coef_plot_k2=5, plot_length_scales=True, coef_plot_k3=300, ylim=limits)
+if SAVE:
+  fig_nums = plt.get_fignums()
+  fig_spectra = plt.figure(fig_nums[-1])
+  fig_spectra.axes[0].set_title(title_simul)
+  filename = graph_path / f"spectra_1d_{N}_{nx}.pdf"
+  fig_spectra.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300)
 
 
 ```
@@ -234,7 +299,7 @@ Here, we compute usefull high order statistical quantities.
 First, we longitudinal radial scalar function $\langle \mathbf{J}\cdot\mathbf{r}/r \rangle_{\theta,\phi}(r)$ normalized by $-\epsilon r$ to compare with the $4/3$-rd law. Note that in the case of a stratified fluid, this quantity has a kinetic and a potential components:
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax, which_plot='J')
+sim.output.kolmo_law.plot_radial_dependencies(tmin=tmin, tmax=tmax, which_plot='J', save=SAVE)
 ```
 ### Cylindrical depency
 
@@ -242,38 +307,52 @@ Now, we take a look at $\nabla \cdot \mathbf{J} (r_h, r_v)$ normalized by $-4\ep
 
 In log-log scale:
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, which_plot="div_J")
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, which_plot="div_J", save=SAVE)
 ```
 
 In linear scale:
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1, logscale=False, which_plot="div_J")
+sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, vmax=1.2, logscale=False, which_plot="div_J")
+```
+
+In log-polar with isolines:
+```{code-cell} ipython3
+divJ = sim.output.kolmo_law.plot_hv_dependencies(tmin=tmin, tmax=tmax, disk=0.25, which_plot="div_J", polar=True, isolines=True, save=SAVE)
 ```
 
 ### Vectorial plots
 
-Here, we directly take a look at the vectorial field $\mathbf{J} (r_h, r_v)$ normalized by $-4\epsilon$.
-We first plot it almost on the full radial range: 
+Here, we directly take a look at the vectorial field $\mathbf{J} (r_h, r_v)$ normalized by $-4\epsilon \| \mathbf{J_{th}} \-$, with $\mathbf{J_{th}} = \frac{1}{\alpha + 2}(r_h\mathbf{e_h} + \alpha r_v\mathbf{e_v})$ and $\alpha = 1$ and rescale $r_v$ with $\alpha r_v$:
 
 
 ```{code-cell} ipython3
-if N is not None:
-    aniso_param=-0.1
-else:
-    aniso_param=1
-print(f"{aniso_param=}")
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot='J', ani_param=aniso_param, logscale=False)
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=300, which_plot='J', divJ=divJ, ani_param=1, rescale_vaxis=True, save=SAVE)
 ```
 
-Then we zoom into the inertial range and plot in grey the vectorial field obtained with the following function:
-$$
-\mathbf{F}(\mathbf{r_h}, \mathbf{r_v}, \mathbf{\alpha}) = \frac{1}{\alpha + 2}(r_h\mathbf{e_h} + \alpha r_v\mathbf{e_v}),
-$$
-
-with $\alpha$ an anisotropic parameter. Note that in the plot the amplitudes of the "theretical vectors" are normalized by the amplitudes of the real vectors
-so that only direction is compared. 
-
+Then we do not fix $\alpha$ and compute it inside the inertial range by the least square method:
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, which_plot="J", theory="vec", ani_param=aniso_param, logscale=False)
+aniso_param = sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=12, which_plot="J", theory=False, ani_param=None, rescale_vaxis=True, divJ=divJ, normalization="vec", polar=False, save=False)
+```
+In log-polar
+
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=14, which_plot="J", theory=False, ani_param=aniso_param, rescale_vaxis=True, divJ=divJ, polar=True, save=False)
+```
+
+Comparison of streamlines
+
+```{code-cell} ipython3
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=False, which_plot="J", theory=True, ani_param=aniso_param)
+```
+
+Save files:
+
+```{code-cell} ipython3
+if SAVE:
+  src_dir = Path.cwd()
+  for png in src_dir.glob("*.png"):
+      dest = graph_path / f"{png.stem}_{N}_{nx}.png"
+      shutil.copy(png, dest)
+      print(f"{png.name} -> {dest.name}")
 ```

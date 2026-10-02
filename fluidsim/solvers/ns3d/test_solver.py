@@ -304,7 +304,10 @@ class TestOutput(TestSimulBase):
                 vmin=0, vmax=1, which_plot="J", logscale=False
             )
             sim2.output.kolmo_law.plot_Jhv_vector(
-                num_vectors=size, which_plot="J_norm", theory=True, logscale=True
+                num_vectors=size, which_plot="J", theory=True
+            )
+            sim2.output.kolmo_law.plot_Jhv_vector(
+                num_vectors=size, which_plot="J", polar=True
             )
 
             tmax = sim2.params.time_stepping.t_end
@@ -313,15 +316,17 @@ class TestOutput(TestSimulBase):
             sim2.output.kolmo_law.plot_radial_dependencies(
                 tmin=tmin, tmax=tmax, which_plot="S2"
             )
-            sim2.output.kolmo_law.plot_hv_dependencies(
-                tmin=tmin, tmax=tmax, which_plot="div_J"
+            divJ = sim2.output.kolmo_law.plot_hv_dependencies(
+                tmin=tmin, tmax=tmax, which_plot="div_J", isolines=True
             )
             sim2.output.kolmo_law.plot_Jhv_vector(
                 tmin=tmin,
                 tmax=tmax,
                 num_vectors=size,
                 which_plot="J",
-                theory="vec",
+                rescale_vaxis=True,
+                normalization="vec",
+                divJ=divJ,
             )
 
             result, _, _ = sim2.output.kolmo_law.load_temp_average()
