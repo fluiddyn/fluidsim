@@ -1145,6 +1145,25 @@ Lx, Ly and Lz: float
         )
         return phase_alpha, phase_beta
 
+    def get_phases_random_rk4(self, offsets):
+        """Return phases for the substeps of the RK4 phase-shifting scheme.
+
+        A single random shift is drawn per call. The phases are built as
+        ``phase_random + offset * phase_unit``, where ``phase_unit``
+        corresponds to a shift of one grid spacing in each direction, so
+        that ``offsets`` are expressed in units of the grid spacing.
+        """
+        alpha_x, alpha_y, alpha_z = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        phase_random = (
+            alpha_x * self.deltax * self.Kx
+            + alpha_y * self.deltay * self.Ky
+            + alpha_z * self.deltaz * self.Kz
+        )
+        phase_unit = (
+            self.deltax * self.Kx + self.deltay * self.Ky + self.deltaz * self.Kz
+        )
+        return [phase_random + offset * phase_unit for offset in offsets]
+
     def i012_from_ixyz(self, ix, iy, iz):
         if self.is_sequential:
             return iz, iy, ix
