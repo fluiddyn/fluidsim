@@ -631,6 +631,15 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         )
         return phase_alpha, phase_beta
 
+    def get_phases_random_rk4(self, offsets):
+        """Return phases for the substeps of the RK4 phase-shifting scheme."""
+        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        phase_random = (
+            alpha_x * self.deltax * self.KX + alpha_y * self.deltay * self.KY
+        )
+        phase_unit = self.deltax * self.KX + self.deltay * self.KY
+        return [phase_random + offset * phase_unit for offset in offsets]
+
 
 # energy_arr = self.sum_wavenumbers(abs(arr)**2)
 # energy_array_coarse_after = oper_coarse.sum_wavenumbers(
