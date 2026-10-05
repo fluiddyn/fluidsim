@@ -13,6 +13,7 @@ Time schemes can be selected in scripts using `params.time_stepping.type_time_sc
 - "RK2_phaseshift_random_split"
 - "RK2_phaseshift_exact"
 - "RK4"
+- "RK4_phaseshift_random"
 
 The code provides:
 
