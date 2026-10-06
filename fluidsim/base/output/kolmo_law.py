@@ -10,7 +10,6 @@ Provides:
 """
 
 import os
-import itertools
 
 import numpy as np
 import h5py
@@ -154,8 +153,16 @@ class KolmoLaw(SpecificOutput):
                 self._add_dict_arrays_to_file(self.path_file, result)
                 self.nb_saved_times += 1
 
+    def _add_averages(self, out, key, field):
+        """Compute radial and azimuthal averages of `field` and store them."""
+        _, out[f"{key}_r"] = self.spatial_avg.compute_radial_average(field)
+        _, _, out[f"{key}_hv"] = self.spatial_avg.compute_azimuthal_average(field)
+
     def compute(self):
         """Compute the Kolmogorov law quantities at one time."""
+
+        averaged_results = {}
+
         state = self.sim.state
         params = self.sim.params
         state_phys = state.state_phys
@@ -167,23 +174,17 @@ class KolmoLaw(SpecificOutput):
         ky = self.sim.oper.Ky
         kz = self.sim.oper.Kz
 
-        # Get velocity fields
         letters = "xyz"
         fft_vi = [state_spect.get_var(f"v{letter}_fft") for letter in letters]
         vel = [state_phys.get_var(f"v{letter}") for letter in letters]
 
-        # Compute kinetic energy
-        K = sum(v**2 for v in vel)
-        fft_K = fft(K)
+        K = np.square(vel[0])
+        for v in vel[1:]:
+            K += np.square(v)
+        fft_K_conj = fft(K)
+        del K
+        np.conjugate(fft_K_conj, out=fft_K_conj)
 
-        # Compute cross products v_i * v_j
-        fft_vjvi = np.empty((3, 3), dtype=object)
-        for ind_i, ind_j in itertools.product(range(3), repeat=2):
-            vi = vel[ind_i]
-            vj = vel[ind_j]
-            fft_vjvi[ind_i, ind_j] = fft(vi * vj)
-
-        # Compute mean kinetic energy
         if "b" in keys_state_phys:
             nrj_tot_A, nrj_tot_Kz, nrj_tot_Khr, nrj_tot_Khd = (
                 self.output.compute_energies()
@@ -192,119 +193,122 @@ class KolmoLaw(SpecificOutput):
         else:
             E_k_mean = self.output.compute_energy()
 
-        # Compute J_k in Fourier space
         Jk_r_fft = [None] * 3
         for ind_i in range(3):
-            tmp = 2 * fft_vi[ind_i] * fft_K.conj()
+            tmp = fft_vi[ind_i] * fft_K_conj
+            tmp *= 2
             for ind_j in range(3):
-                tmp += 4 * fft_vi[ind_j] * fft_vjvi[ind_i, ind_j].conj()
-            tmp = 1j * tmp.imag
+                fft_vjvi = fft(vel[ind_i] * vel[ind_j])
+                np.conjugate(fft_vjvi, out=fft_vjvi)
+                fft_vjvi *= fft_vi[ind_j]
+                fft_vjvi *= 4
+                tmp += fft_vjvi
+                del fft_vjvi
+            tmp.real = 0
             Jk_r_fft[ind_i] = tmp
+        del fft_K_conj, tmp
 
         # Compute divergence of J_k
-        Jk_r_fft_array = np.array(Jk_r_fft)
-        divJk_fft = 1j * (
-            kx * Jk_r_fft_array[0]
-            + ky * Jk_r_fft_array[1]
-            + kz * Jk_r_fft_array[2]
-        )
+        divJk_fft = kx * Jk_r_fft[0]
+        divJk_fft += ky * Jk_r_fft[1]
+        divJk_fft += kz * Jk_r_fft[2]
+        divJk_fft *= 1j
+
         divJk = self.sim.oper.ifft(divJk_fft)
+        del divJk_fft
+        self._add_averages(averaged_results, "divJ_k", divJk)
+        del divJk
 
         # Convert to real space
         Jk_r = [self.sim.oper.ifft(Jk_r_fft[i]) for i in range(3)]
 
+        del Jk_r_fft
+
+        # Project onto coordinate system bases using CoordSystem3DConverter
+        Jl_k = self.coord_conv.compute_radial_component(*Jk_r)
+        self._add_averages(averaged_results, "Jl_k", Jl_k)
+        del Jl_k
+
+        # Azimuthal and radial averages
+
+        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(*Jk_r)
+        del Jt_k, Jk_r
+        self._add_averages(averaged_results, "Jh_k", Jh_k)
+        del Jh_k
+        self._add_averages(averaged_results, "Jv_k", Jv_k)
+        del Jv_k
+
         # Compute second-order structure function
         val = sum(fft_vi[i] * fft_vi[i].conj() for i in range(3))
         S2_k_r = 4 * E_k_mean - 2 * self.sim.oper.ifft(val)
+        del val
+        self._add_averages(averaged_results, "S2_k", S2_k_r)
+        del S2_k_r
 
         # If buoyancy field exists, compute J_p
         if "b" in keys_state_phys:
             b = state_phys.get_var("b")
             fft_b = state_spect.get_var("b_fft")
             b2 = b * b
-            fft_b2 = fft(b2)
+            fft_b2_conj = fft(b2)
+            np.conjugate(fft_b2_conj, out=fft_b2_conj)
+            del b2
 
             # Compute mean buoyancy variance
             E_b_mean = nrj_tot_A * params.N**2
 
             # Compute J_p
             Jp_r_fft = [None] * 3
-            fft_bv = [fft(b * vel[i]) for i in range(3)]
 
             for ind_i in range(3):
-                mom = (
-                    4 * fft_bv[ind_i].conj() * fft_b
-                    + 2 * fft_b2.conj() * fft_vi[ind_i]
-                )
-                mom = 1j * mom.imag
-                Jp_r_fft[ind_i] = mom / (params.N**2)
+                mom = fft(b * vel[ind_i])
+                np.conjugate(mom, out=mom)
+                mom *= fft_b
+                mom *= 4
+                tmp2 = fft_b2_conj * fft_vi[ind_i]
+                tmp2 *= 2
+                mom += tmp2
+                del tmp2
+                mom.real = 0
+                mom /= params.N**2
+                Jp_r_fft[ind_i] = mom
+            del fft_b2_conj, mom
 
             # Divergence of J_p
-            Jp_r_fft_array = np.array(Jp_r_fft)
-            divJp_fft = 1j * (
-                kx * Jp_r_fft_array[0]
-                + ky * Jp_r_fft_array[1]
-                + kz * Jp_r_fft_array[2]
-            )
-            divJp = self.sim.oper.ifft(divJp_fft)
+            divJp_fft = kx * Jp_r_fft[0]
+            divJp_fft += ky * Jp_r_fft[1]
+            divJp_fft += kz * Jp_r_fft[2]
+            divJp_fft *= 1j
 
-            # Convert to real space
-            Jp_r = [self.sim.oper.ifft(Jp_r_fft[i]) for i in range(3)]
+            divJp = self.sim.oper.ifft(divJp_fft)
+            del divJp_fft
+            self._add_averages(averaged_results, "divJ_p", divJp)
+            del divJp
 
             # S2_p
             src = fft_b * fft_b.conj()
             S2_p_r = (4 * E_b_mean - 2 * self.sim.oper.ifft(src)) / (params.N**2)
+            del src
+            self._add_averages(averaged_results, "S2_p", S2_p_r)
+            del S2_p_r
 
-        # Project onto coordinate system bases using CoordSystem3DConverter
-        Jk_r_array = np.array(Jk_r)
+            # Convert to real space
+            Jp_r = [self.sim.oper.ifft(Jp_r_fft[i]) for i in range(3)]
 
-        Jl_k = self.coord_conv.compute_radial_component(
-            Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
-        )
+            del Jp_r_fft
 
-        Jh_k, Jt_k, Jv_k = self.coord_conv.compute_cylindrical_components(
-            Jk_r_array[0], Jk_r_array[1], Jk_r_array[2]
-        )
-
-        # Azimuthal and radial averages
-        results = {
-            "Jl_k": Jl_k,
-            "Jh_k": Jh_k,
-            "Jv_k": Jv_k,
-            "S2_k": S2_k_r,
-            "divJ_k": divJk,
-        }
-
-        if "b" in keys_state_phys:
-            Jp_r_array = np.array(Jp_r)
-
-            Jl_p = self.coord_conv.compute_radial_component(
-                Jp_r_array[0], Jp_r_array[1], Jp_r_array[2]
-            )
+            Jl_p = self.coord_conv.compute_radial_component(*Jp_r)
+            self._add_averages(averaged_results, "Jl_p", Jl_p)
+            del Jl_p
 
             Jh_p, Jt_p, Jv_p = self.coord_conv.compute_cylindrical_components(
-                Jp_r_array[0], Jp_r_array[1], Jp_r_array[2]
+                *Jp_r
             )
-
-            results.update(
-                {
-                    "Jl_p": Jl_p,
-                    "Jh_p": Jh_p,
-                    "Jv_p": Jv_p,
-                    "S2_p": S2_p_r,
-                    "divJ_p": divJp,
-                }
-            )
-
-        # Compute radial and azimuthal averages using SpatialAverage
-        averaged_results = {}
-
-        for key, field in results.items():
-            _, avg_r = self.spatial_avg.compute_radial_average(field)
-            averaged_results[f"{key}_r"] = avg_r
-
-            _, _, avg_hv = self.spatial_avg.compute_azimuthal_average(field)
-            averaged_results[f"{key}_hv"] = avg_hv
+            del Jt_p, Jp_r
+            self._add_averages(averaged_results, "Jh_p", Jh_p)
+            del Jh_p
+            self._add_averages(averaged_results, "Jv_p", Jv_p)
+            del Jv_p
 
         return averaged_results
 
@@ -727,7 +731,11 @@ class KolmoLaw(SpecificOutput):
                         r_store[1:] / eta, S2_p_comp[1:], "b", label="$S_2^P$"
                     )
                     ax3.plot(
-                        r_store[1:] / eta, EA_array[1:], "gray--", label=r"$E_A$"
+                        r_store[1:] / eta,
+                        EA_array[1:],
+                        color="gray",
+                        linestyle="--",
+                        label=r"$E_A$",
                     )
                 ax3.plot(
                     r_store[1:] / eta,
@@ -908,7 +916,7 @@ class KolmoLaw(SpecificOutput):
         else:
             if num_vectors is None:
                 num_vectors = 12
-        ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
+            ratio_vectors = int(np.shape(RV_sub)[1] / num_vectors)
 
         if ani_param is None:
             if divJ is None:
