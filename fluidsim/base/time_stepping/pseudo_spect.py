@@ -129,6 +129,23 @@ def compute_phaseshift_terms(
     return phaseshift_alpha, phaseshift_beta
 
 
+def compute_phaseshift_terms_rk4(
+    phase_0: A123f,
+    phase_1: A123f,
+    phase_2: A123f,
+    phase_3: A123f,
+    phaseshift_0: A123c,
+    phaseshift_1: A123c,
+    phaseshift_2: A123c,
+    phaseshift_3: A123c,
+):
+    phaseshift_0[:] = np.exp(1j * phase_0)
+    phaseshift_1[:] = np.exp(1j * phase_1)
+    phaseshift_2[:] = np.exp(1j * phase_2)
+    phaseshift_3[:] = np.exp(1j * phase_3)
+    return phaseshift_0, phaseshift_1, phaseshift_2, phaseshift_3
+
+
 class ExactLinearCoefs:
     """Handle the computation of the exact coefficient for the RK4."""
 
@@ -426,9 +443,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
     def _get_phaseshift_random_rk4(self):
         """Compute the 4 phase-shift terms for one RK4 time step."""
         phases = self.sim.oper.get_phases_random_rk4(OFFSETS_RK4_PHASESHIFT)
-        for phaseshift, phase in zip(self._phaseshifts_rk4, phases):
-            phaseshift[:] = np.exp(1j * phase)
-        return self._phaseshifts_rk4
+        return compute_phaseshift_terms_rk4(*phases, *self._phaseshifts_rk4)
 
     def _time_step_Euler_phaseshift(self):
         r"""Forward Euler method, dealiasing with phase-shifting.
@@ -1166,7 +1181,8 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         by the exact linear coefficients, which differ between the substeps
         :math:`q = 0` and :math:`q = 3`. The cancellation of the primary term
         is therefore only approximate, with a residual proportional to
-        :math:`(e^{\sigma \dt} - 1)`, which vanishes in the inviscid limit.
+        :math:`(e^{\sigma \dt} - 1)`, which vanishes in the inviscid limit and
+        was checked to stay negligible otherwise.
 
         """
         dt = self.deltat
@@ -1206,9 +1222,30 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             phaseshifts[1],
         )
 
-        state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
         state_spect_12_approx2 = state_spect_tmp1
-        state_spect_12_approx2[:] = state_spect * diss2 + dt / 2 * tendencies_1
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step1")
+        else:
+            # based on approximation 1
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A1 diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A2 diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
+            state_spect_12_approx2[:] = (
+                state_spect * diss2 + dt / 2 * tendencies_1
+            )
 
         # substep 2
         state_spect_shift = mul(
@@ -1220,9 +1257,30 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             phaseshifts[2],
         )
 
-        state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
         state_spect_1_approx = state_spect_tmp1
-        state_spect_1_approx[:] = state_spect * diss + dt * diss2 * tendencies_2
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step2")
+        else:
+            # based on approximation 2
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A1 diss, diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A2 diss, diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
+            state_spect_1_approx[:] = (
+                state_spect * diss + dt * diss2 * tendencies_2
+            )
 
         # substep 3
         state_spect_shift = mul(phaseshifts[3], state_spect_1_approx, output=tmp)
@@ -1232,4 +1290,12 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             phaseshifts[3],
         )
 
-        state_spect[:] = state_spect_tmp + dt / 6 * tendencies_3
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step3")
+        else:
+            # result using the 4 approximations
+            # transonic block (
+            #     A state_spect, state_spect_tmp, tendencies_3;
+            #     float dt
+            # )
+            state_spect[:] = state_spect_tmp + dt / 6 * tendencies_3
