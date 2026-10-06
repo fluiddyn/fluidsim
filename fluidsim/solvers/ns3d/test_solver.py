@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import sys
 from pathlib import Path
 from math import pi
@@ -20,6 +21,7 @@ from fluidsim import (
     load_for_restart,
 )
 from fluidsim.base.output import run
+from fluidsim.base import init_fields as init_fields_module
 
 
 from fluidsim.util.testing import TestSimul, skip_if_no_fluidfft, classproperty
@@ -69,6 +71,55 @@ class TestSimulBase(TestSimul):
         params.init_fields.type = "noise"
 
         return params
+
+
+class TestInitFromFile(TestSimulBase):
+    @classmethod
+    def init_params(cls):
+        params = super().init_params()
+        params.init_fields.type = "in_script"
+        return params
+
+    @staticmethod
+    def _analytic_fields(oper):
+        X, Y, Z = oper.get_XYZ_loc()
+        kx, ky, kz = (2 * pi / L for L in (oper.Lx, oper.Ly, oper.Lz))
+        return {
+            "vx": np.cos(kx * X + 2 * ky * Y + kz * Z),
+            "vy": np.sin(2 * kx * X - ky * Y + kz * Z),
+            "vz": np.cos(3 * kx * X) * np.sin(kz * Z) + 0.1 * np.sin(ky * Y),
+        }
+
+    def test_init_from_file(self):
+        sim = self.sim
+        sim.state.init_statephys_from(**self._analytic_fields(sim.oper))
+        sim.state.statespect_from_statephys()
+        sim.time_stepping.t = 1.5
+        sim.time_stepping.it = 3
+        sim.output.init_with_initialized_state()
+        sim.output.phys_fields.save()
+
+        path_run = sim.output.path_run
+        if mpi.nb_proc > 1:
+            path_run = mpi.comm.bcast(path_run)
+
+        with mock.patch.object(
+            init_fields_module,
+            "_get_slices_loc",
+            wraps=init_fields_module._get_slices_loc,
+        ) as spy:
+            sim2 = fls.load_state_phys_file(path_run, modif_save_params=False)
+
+        # the parallel branch is used if and only if it should be
+        if mpi.nb_proc > 1 and init_fields_module.cfg_h5py.mpi:
+            spy.assert_called_once()
+        else:
+            spy.assert_not_called()
+
+        assert sim2.time_stepping.t == 1.5
+        assert sim2.time_stepping.it == 3
+        for key, field in self._analytic_fields(sim2.oper).items():
+            assert np.allclose(sim2.state.get_var(key), field, atol=1e-13), key
 
 
 class TestTendency(TestSimulBase):
