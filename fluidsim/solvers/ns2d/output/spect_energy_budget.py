@@ -132,6 +132,18 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
         return means
 
+    def compute_fluxes_mean(self, tmin=0, tmax=None, verbose=False):
+        data = self.load_mean(tmin, tmax, verbose=verbose)
+
+        khE = data["khE"]
+        deltak = khE[1] - khE[0]
+
+        return {
+            "khE": khE,
+            "PiE": deltak * cumsum_inv(data["transfer2D_E"]),
+            "PiZ": deltak * cumsum_inv(data["transfer2D_Z"]),
+        }
+
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
