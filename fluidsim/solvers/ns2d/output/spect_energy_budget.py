@@ -132,19 +132,54 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
         return means
 
+    def _freq_diss_kh(self, kh):
+        params = self.params
+        f_d = np.zeros_like(kh)
+        for order in (2, 4, 8):
+            nu = getattr(params, f"nu_{order}", 0.0)
+            if nu:
+                f_d = f_d + nu * kh**order
+        nu_m4 = getattr(params, "nu_m4", 0.0)
+        if nu_m4:
+            kh_not0 = np.where(kh == 0, np.inf, kh)
+            f_d = f_d + nu_m4 * kh_not0**-4
+        return f_d
+
+    def _load_spectra2d_mean(self, tmin=0, tmax=None):
+        with h5py.File(self.output.spectra.path_file2D, "r") as file:
+            times = file["times"][...]
+            imin = 0 if tmin is None else np.argmin(abs(times - tmin))
+            imax = (
+                len(times) - 1 if tmax is None else np.argmin(abs(times - tmax))
+            )
+            kh = file["khE"][...]
+            E = file["spectrum2D_E"][imin : imax + 1].mean(0)
+        return kh, E
+
     def compute_fluxes_mean(self, tmin=0, tmax=None, verbose=False):
         data = self.load_mean(tmin, tmax, verbose=verbose)
 
         khE = data["khE"]
         deltak = khE[1] - khE[0]
 
-        return {
+        results = {
             "khE": khE,
             "PiE": deltak * cumsum_inv(data["transfer2D_E"]),
             "PiZ": deltak * cumsum_inv(data["transfer2D_Z"]),
         }
 
-    def plot_fluxes(self, tmin=0, tmax=None, key="both", ax=None):
+        try:
+            kh, E = self._load_spectra2d_mean(tmin, tmax)
+        except (OSError, KeyError):
+            pass
+        else:
+            f_d = self._freq_diss_kh(kh)
+            results["DE"] = deltak * np.cumsum(2 * f_d * E)
+            results["DZ"] = deltak * np.cumsum(2 * f_d * kh**2 * E)
+
+        return results
+
+    def plot_fluxes(self, tmin=0, tmax=None, key="both", normalize=True, ax=None):
         data = self.compute_fluxes_mean(tmin, tmax)
 
         khE = data["khE"]
@@ -157,17 +192,32 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         colors = {"E": "k", "Z": "g"}
 
         for key_ in keys:
-            ax.semilogx(
-                k_plot,
-                data["Pi" + key_],
-                colors[key_],
-                linewidth=2,
-                label=r"$\Pi_" + key_ + "$",
-            )
+            Pi = data["Pi" + key_]
+            D = data.get("D" + key_)
+            eps = D[-1] if (normalize and D is not None) else 1.0
 
+            color = colors[key_]
+            ax.semilogx(
+                k_plot, Pi / eps, color, linewidth=2, label=r"$\Pi_" + key_ + "$"
+            )
+            if D is not None:
+                ax.semilogx(
+                    k_plot,
+                    D / eps,
+                    color + "--",
+                    linewidth=2,
+                    label="$D_" + key_ + "$",
+                )
+                ax.semilogx(
+                    k_plot,
+                    (Pi + D) / eps,
+                    color + ":",
+                    label=r"$\Pi_" + key_ + " + D_" + key_ + "$",
+                )
+
+        ax.set_ylabel(r"$\Pi(k_h) / \epsilon$" if normalize else r"$\Pi(k_h)$")
         ax.axhline(0, color="0.7", linewidth=0.5)
         ax.set_xlabel("$k_h$")
-        ax.set_ylabel(r"$\Pi(k_h)$")
         ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
         ax.legend()
 
