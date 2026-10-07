@@ -18,10 +18,53 @@ from fluidsim.base.output.spect_energy_budget import (
 
 
 class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
-    """Save and plot energy budget in spectral space."""
+    r"""Save and plot the spectral energy and enstrophy budgets.
+
+    Notes
+    -----
+
+    .. math::
+
+      d_t E(k_h) = T_E(k_h) - D_E(k_h),
+
+      d_t Z(k_h) = T_Z(k_h) - D_Z(k_h),
+
+    where :math:`E(k_h)` and :math:`Z(k_h)` are the energy and enstrophy
+    spectra. The transfer terms are
+
+    .. math::
+
+      T_E(\mathbf{k}) = \Re (\hat{u}_i^* \widehat{N_i}),
+      \quad
+      T_Z(\mathbf{k}) = \Re (\hat{\zeta}^* \widehat{N_\zeta}),
+
+    with :math:`N_i = -u_j \partial_j u_i` and
+    :math:`N_\zeta = -u_j \partial_j \zeta - \beta u_y`. Both the
+    non-linear terms and the :math:`\beta` term conserve :math:`E` and
+    :math:`Z`, so :math:`\sum T_E = \sum T_Z = 0`.
+
+    Only the transfers are saved. The fluxes are obtained by integrating
+    them from the large wavenumbers,
+
+    .. math:: \Pi(k_h) = \sum_{k_h' \geq k_h} T(k_h') \delta k,
+
+    whereas the cumulated dissipation is integrated from the small ones,
+
+    .. math:: D(k_h) = \sum_{k_h' < k_h} 2 f_d(k_h') E(k_h') \delta k,
+
+    where :math:`f_d` is the dissipation frequency, recomputed from the
+    `params.nu_...` parameters. In 2d it only depends on :math:`|k|`, so
+    it is constant over a shell and :math:`D` does not need to be saved.
+    See :func:`compute_fluxes_mean` for the accuracy of this
+    reconstruction.
+
+    For a statistically steady forced simulation, :math:`\Pi + D` should
+    be equal to the cumulated injection.
+
+    """
 
     def compute(self):
-        """compute the spectral energy budget at one time."""
+        """Compute the spectral energy and enstrophy transfers at one time."""
         oper = self.sim.oper
 
         ux = self.sim.state.state_phys.get_var("ux")
@@ -93,6 +136,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
     def load_mean(self, tmin=0, tmax=None, keys_to_load=None, verbose=True):
+        """Load the spectra averaged between tmin and tmax."""
         means = {}
         with h5py.File(self.path_file, "r") as file:
             times = file["times"][...]
@@ -157,6 +201,16 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         return kh, E
 
     def compute_fluxes_mean(self, tmin=0, tmax=None, verbose=False):
+        """Compute the mean fluxes and cumulated dissipations.
+
+        The dissipations are reconstructed from the 2d spectra and the
+        dissipation frequency evaluated at the center of each shell. The
+        resulting D[-1] overestimates the dissipation rate given by
+        spatial_means by a few percents, more for high order
+        viscosities. The keys "DE" and "DZ" are absent if the 2d spectra
+        were not saved.
+
+        """
         data = self.load_mean(tmin, tmax, verbose=verbose)
 
         khE = data["khE"]
@@ -180,6 +234,21 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         return results
 
     def plot_fluxes(self, tmin=0, tmax=None, key="both", normalize=True, ax=None):
+        """Plot the mean spectral fluxes.
+
+        Parameters
+        ----------
+
+        key : {"both", "E", "Z"}
+
+          Plot the energy budget, the enstrophy budget, or both, each
+          normalized by its own dissipation rate.
+
+        normalize : bool
+
+          Normalize by D[-1].
+
+        """
         data = self.compute_fluxes_mean(tmin, tmax)
 
         khE = data["khE"]
