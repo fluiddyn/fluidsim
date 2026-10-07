@@ -10,6 +10,8 @@
 import numpy as np
 import h5py
 
+from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.legend_handler import HandlerTuple
 
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase,
@@ -302,9 +304,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             dset_transferE = h5file["transfer2D_E"]
             dset_transferZ = h5file["transfer2D_Z"]
 
-            # nb_spectra = dset_times.shape[0]
             times = dset_times[...]
-            # nt = len(times)
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
@@ -332,28 +332,65 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
             ax1.axhline(0, color="0.7", linewidth=0.5)
-            ax1.set_title(
-                f"spectral fluxes, {imax_plot - imin_plot + 1} times\n"
-                f"{self.output.summary_simul}"
-            )
+            ax1.set_title(f"spectral fluxes\n{self.output.summary_simul}")
+
+            handles = []
+            labels = []
 
             if delta_t != 0.0:
-                for it in range(imin_plot, imax_plot, delta_i_plot):
-                    transferE = dset_transferE[it]
-                    transferZ = dset_transferZ[it]
+                cmaps = {
+                    "E": LinearSegmentedColormap.from_list(
+                        "PiE", ["0.8", "black"]
+                    ),
+                    "Z": LinearSegmentedColormap.from_list(
+                        "PiZ", ["#bfe0bf", "green"]
+                    ),
+                }
 
-                    PiE = cumsum_inv(transferE) * self.oper.deltak
-                    PiZ = cumsum_inv(transferZ) * self.oper.deltak
+                its = list(range(imin_plot, imax_plot + 1, delta_i_plot))
+                norm = Normalize(
+                    vmin=times[its[0]],
+                    vmax=max(times[its[-1]], times[its[0]] + 1e-12),
+                )
 
-                    ax1.plot(khE, PiE, color="0.8", linewidth=0.5)
-                    ax1.plot(khE, PiZ, color="0.8", linewidth=0.5)
+                for it in its:
+                    PiE = cumsum_inv(dset_transferE[it]) * self.oper.deltak
+                    PiZ = cumsum_inv(dset_transferZ[it]) * self.oper.deltak
 
-            transferE = dset_transferE[imin_plot:imax_plot].mean(0)
-            transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
+                    color_t = norm(times[it])
+                    (lineE,) = ax1.plot(
+                        khE, PiE, color=cmaps["E"](color_t), linewidth=1
+                    )
+                    (lineZ,) = ax1.plot(
+                        khE, PiZ, color=cmaps["Z"](color_t), linewidth=1
+                    )
 
-        PiE = cumsum_inv(transferE) * self.oper.deltak
-        PiZ = cumsum_inv(transferZ) * self.oper.deltak
+                    handles.append((lineE, lineZ))
+                    labels.append(f"$t = {times[it]:.3g}$")
 
-        ax1.plot(khE, PiE, "k", linewidth=2, label=r"$\Pi_E$")
-        ax1.plot(khE, PiZ, "g", linewidth=2, label=r"$\Pi_Z$")
-        ax1.legend()
+                # the darkest curves also carry the name of the quantity
+                handles += [lineE, lineZ]
+                labels += [r"$\Pi_E$", r"$\Pi_Z$"]
+
+                transferE = transferZ = None
+            else:
+                transferE = dset_transferE[imin_plot : imax_plot + 1].mean(0)
+                transferZ = dset_transferZ[imin_plot : imax_plot + 1].mean(0)
+
+        if transferE is not None:
+            PiE = cumsum_inv(transferE) * self.oper.deltak
+            PiZ = cumsum_inv(transferZ) * self.oper.deltak
+
+            (meanE,) = ax1.plot(khE, PiE, "k", linewidth=2)
+            (meanZ,) = ax1.plot(khE, PiZ, "g", linewidth=2)
+
+            handles += [meanE, meanZ]
+            labels += [r"$\langle \Pi_E \rangle$", r"$\langle \Pi_Z \rangle$"]
+
+        ax1.legend(
+            handles,
+            labels,
+            handler_map={tuple: HandlerTuple(ndivide=None)},
+            handlelength=3,
+            fontsize="small",
+        )
