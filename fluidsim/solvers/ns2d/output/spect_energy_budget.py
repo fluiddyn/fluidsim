@@ -328,9 +328,14 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$k_h$")
-            ax1.set_ylabel("spectra")
+            ax1.set_ylabel(r"$\Pi(k_h)$")
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
+            ax1.axhline(0, color="0.7", linewidth=0.5)
+            ax1.set_title(
+                f"spectral fluxes, {imax_plot - imin_plot + 1} times\n"
+                f"{self.output.summary_simul}"
+            )
 
             if delta_t != 0.0:
                 for it in range(imin_plot, imax_plot, delta_i_plot):
@@ -340,8 +345,8 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
                     PiE = cumsum_inv(transferE) * self.oper.deltak
                     PiZ = cumsum_inv(transferZ) * self.oper.deltak
 
-                    ax1.plot(khE, PiE, "k", linewidth=1)
-                    ax1.plot(khE, PiZ, "g", linewidth=1)
+                    ax1.plot(khE, PiE, color="0.8", linewidth=0.5)
+                    ax1.plot(khE, PiZ, color="0.8", linewidth=0.5)
 
             transferE = dset_transferE[imin_plot:imax_plot].mean(0)
             transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
@@ -349,5 +354,6 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         PiE = cumsum_inv(transferE) * self.oper.deltak
         PiZ = cumsum_inv(transferZ) * self.oper.deltak
 
-        ax1.plot(khE, PiE, "r", linewidth=2)
-        ax1.plot(khE, PiZ, "m", linewidth=2)
+        ax1.plot(khE, PiE, "k", linewidth=2, label=r"$\Pi_E$")
+        ax1.plot(khE, PiZ, "g", linewidth=2, label=r"$\Pi_Z$")
+        ax1.legend()
