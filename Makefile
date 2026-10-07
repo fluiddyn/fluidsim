@@ -16,8 +16,16 @@ sync-clean:
 sync-no-self:
 	pdm sync --no-self
 
+sync-clean-no-self:
+	pdm sync --clean --no-self
+
 install_fluidfft_plugins:
 	pdm run pip install fluidfft-fftw fluidfft-fftwmpi fluidfft-mpi_with_fftw
+
+cache_remove_fluidfft_plugins:
+	pdm run pip cache remove fluidfft_fftw
+	pdm run pip cache remove fluidfft_fftwmpi
+	pdm run pip cache remove fluidfft_mpi_with_fftw
 
 install_editable_perf:
 	pdm sync --clean --no-self
