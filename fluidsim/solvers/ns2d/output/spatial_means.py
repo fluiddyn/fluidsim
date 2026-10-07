@@ -323,3 +323,100 @@ class SpatialMeansNS2D(SpatialMeansBase):
 
         ax0.legend()
         ax1.legend()
+
+    def compute_indices_tmin_tmax(self, times, tmin, tmax):
+        if tmax is None:
+            itmax = len(times) - 1
+        else:
+            itmax = abs(times - tmax).argmin()
+
+        if tmin is None:
+            itmin = 0
+        else:
+            itmin = abs(times - tmin).argmin()
+
+        return itmin, itmax
+
+    def get_dimless_numbers_versus_time(self, data=None):
+        """Compute dimensionless numbers"""
+        if data is None:
+            data = self.load()
+        results = {"t": data["t"]}
+
+        params = self.params
+
+        E = data["E"]
+        Z = data["Z"]
+        epsZ = data["epsZ"]
+
+        # rms velocity and vorticity based length scale
+        U = np.sqrt(2 * E)
+        L = np.sqrt(E / Z)
+
+        deltakx = 2 * np.pi / params.oper.Lx
+        k_max = params.oper.coef_dealiasing * deltakx * params.oper.nx / 2
+
+        dimensional = {"U": U, "L": L, "E": E, "Z": Z, "k_max": k_max}
+
+        # dissipative scale of the enstrophy cascade
+        for order in (2, 4, 8):
+            nu = getattr(params, f"nu_{order}", 0.0)
+            if nu > 0:
+                l_d = (nu**3 / epsZ) ** (1 / (3 * order))
+                results[f"k_max*l_d_{order}"] = k_max * l_d
+                dimensional[f"l_d_{order}"] = l_d
+
+        if params.nu_2 > 0:
+            results["Re"] = U * L / params.nu_2
+
+        if params.nu_m4 != 0:
+            results["epsK_hypo/epsK_tot"] = data["epsK_hypo"] / data["epsK_tot"]
+            results["epsZ_hypo/epsZ_tot"] = data["epsZ_hypo"] / data["epsZ_tot"]
+
+        if params.forcing.enable:
+            results["epsK_tot/PK_tot"] = data["epsK_tot"] / data["PK_tot"]
+
+        results["dimensional"] = dimensional
+        return results
+
+    def get_dimless_numbers_averaged(self, tmin=0, tmax=None):
+        """Compute averaged dimensionless numbers"""
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = self.compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+
+        result = {
+            key: quantity[itmin:stop].mean()
+            for key, quantity in numbers_vs_time.items()
+            if key not in ["t", "dimensional"]
+        }
+        result["dimensional"] = {
+            key: quantity
+            if np.isscalar(quantity)
+            else quantity[itmin:stop].mean()
+            for key, quantity in numbers_vs_time["dimensional"].items()
+        }
+        return result
+
+    def plot_dimless_numbers_versus_time(self, tmin=0, tmax=None):
+        """Plot dimensionless numbers"""
+        numbers_vs_time = self.get_dimless_numbers_versus_time()
+        times = numbers_vs_time["t"]
+        itmin, itmax = self.compute_indices_tmin_tmax(times, tmin, tmax)
+        stop = itmax + 1
+        times = times[itmin:stop]
+
+        fig, ax = plt.subplots()
+
+        for key, quantity in numbers_vs_time.items():
+            if key in ["t", "dimensional"]:
+                continue
+            quantity = quantity[itmin:stop]
+            ax.plot(times, quantity, label=key)
+            print(f"<{key}> = {np.mean(quantity):.3g}")
+
+        ax.set_yscale("log")
+        ax.legend()
+        ax.set_xlabel("$t$")
+        fig.suptitle(f"dimensionless numbers\n{self.output.summary_simul}")
