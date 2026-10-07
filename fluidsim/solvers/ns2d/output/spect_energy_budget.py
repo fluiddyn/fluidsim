@@ -295,6 +295,26 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         return ax
 
     def plot(self, tmin=0, tmax=1000, delta_t=2):
+        r"""Plot the energy and enstrophy fluxes, not normalized.
+
+        Use :func:`plot_fluxes` to get the cumulated dissipation and
+        the normalization by the dissipation rate.
+
+        Parameters
+        ----------
+
+        tmin, tmax : float
+
+          Bounds of the time window. The nearest saved times are used.
+
+        delta_t : float
+
+          Approximate time between two plotted curves, rounded to a
+          multiple of the saving period. If ``delta_t != 0``, the
+          instantaneous fluxes are plotted with a color gradient from
+          light (``tmin``) to dark (``tmax``). If ``delta_t == 0``, only the fluxes averaged over the window are
+          plotted.
+        """
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
