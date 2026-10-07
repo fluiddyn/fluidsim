@@ -144,6 +144,35 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             "PiZ": deltak * cumsum_inv(data["transfer2D_Z"]),
         }
 
+    def plot_fluxes(self, tmin=0, tmax=None, key="both", ax=None):
+        data = self.compute_fluxes_mean(tmin, tmax)
+
+        khE = data["khE"]
+        k_plot = khE + (khE[1] - khE[0]) / 2
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        keys = ["E", "Z"] if key == "both" else [key]
+        colors = {"E": "k", "Z": "g"}
+
+        for key_ in keys:
+            ax.semilogx(
+                k_plot,
+                data["Pi" + key_],
+                colors[key_],
+                linewidth=2,
+                label=r"$\Pi_" + key_ + "$",
+            )
+
+        ax.axhline(0, color="0.7", linewidth=0.5)
+        ax.set_xlabel("$k_h$")
+        ax.set_ylabel(r"$\Pi(k_h)$")
+        ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
+        ax.legend()
+
+        return ax
+
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
