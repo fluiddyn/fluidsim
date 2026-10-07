@@ -1389,7 +1389,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_12_approx2 = state_spect_tmp1
 
         if ts.is_transpiled:
-            ts.use_block("rk4_ps_step1")
+            ts.use_block("rk4_ps_split_step1")
         else:
             # based on approximation 1
             # transonic block (
@@ -1428,7 +1428,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         state_spect_1_approx = state_spect_tmp1
 
         if ts.is_transpiled:
-            ts.use_block("rk4_ps_step2")
+            ts.use_block("rk4_ps_split_step2")
         else:
             # based on approximation 2
             # transonic block (
@@ -1465,7 +1465,7 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         tendencies_3 += tendencies_nophaseshift_3
 
         if ts.is_transpiled:
-            ts.use_block("rk4_ps_step3")
+            ts.use_block("rk4_ps_split_step3")
         else:
             # result using the 4 approximations
             # transonic block (
