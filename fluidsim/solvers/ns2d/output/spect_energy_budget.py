@@ -92,6 +92,46 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
+    def load_mean(self, tmin=0, tmax=None, keys_to_load=None, verbose=True):
+        means = {}
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            nt = len(times)
+
+            imin = 0 if tmin is None else np.argmin(abs(times - tmin))
+            imax = nt - 1 if tmax is None else np.argmin(abs(times - tmax))
+
+            if verbose:
+                print(
+                    "compute mean spectral energy budget\n"
+                    f"tmin = {times[imin]:8.6g} ; tmax = {times[imax]:8.6g}\n"
+                    f"imin = {imin:8d} ; imax = {imax:8d}"
+                )
+
+            for key in file.keys():
+                if key.startswith("kh"):
+                    means[key] = file[key][...]
+
+            keys_saved = [
+                key
+                for key in file.keys()
+                if key != "times" and not key.startswith(("k", "info"))
+            ]
+
+            if keys_to_load is None:
+                keys_to_load = keys_saved
+            else:
+                if isinstance(keys_to_load, str):
+                    keys_to_load = [keys_to_load]
+                for key in keys_to_load:
+                    if key not in keys_saved:
+                        raise ValueError(f"key '{key}' not in {keys_saved}")
+
+            for key in keys_to_load:
+                means[key] = file[key][imin : imax + 1].mean(0)
+
+        return means
+
     def plot(self, tmin=0, tmax=1000, delta_t=2):
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
