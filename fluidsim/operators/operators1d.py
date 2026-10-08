@@ -98,3 +98,10 @@ class OperatorsPseudoSpectral1D(OperatorsBase1D):
         phase_alpha = alpha * self.deltax * self.kx
         phase_beta = beta * self.deltax * self.kx
         return phase_alpha, phase_beta
+
+    def get_phases_random_rk4(self, offsets):
+        """Return phases for the substeps of the RK4 phase-shifting scheme."""
+        alpha = np.random.uniform(-0.5, 0.5)
+        phase_random = alpha * self.deltax * self.kx
+        phase_unit = self.deltax * self.kx
+        return [phase_random + offset * phase_unit for offset in offsets]

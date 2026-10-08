@@ -13,6 +13,8 @@ Time schemes can be selected in scripts using `params.time_stepping.type_time_sc
 - "RK2_phaseshift_random_split"
 - "RK2_phaseshift_exact"
 - "RK4"
+- "RK4_phaseshift_random"
+- "RK4_phaseshift_random_split"
 
 The code provides:
 
@@ -61,6 +63,13 @@ A2 = Array[T, N - 1, "C"]
 ArrayDiss = Union[A1, A2]
 
 uniform = np.random.default_rng().uniform
+
+# Phase-shift offsets for the 4 substeps of RK4, in units of the grid
+# spacing. From Sinhababu & Ayyalasomayajula (2021,
+# https://doi.org/10.1002/fld.4898), eq. 49, divided by dx = 2 pi / N.
+# The offsets form 2 Rogallo pairs: (0, -1/2) and (-1/3, 1/6), each with a
+# half-grid-spacing difference, matching the equal RK4 weights (1, 2, 2, 1).
+OFFSETS_RK4_PHASESHIFT = (0.0, -1 / 3, 1 / 6, -1 / 2)
 
 
 @boost
@@ -119,6 +128,23 @@ def compute_phaseshift_terms(
     phaseshift_alpha[:] = np.exp(1j * phase_alpha)
     phaseshift_beta[:] = np.exp(1j * phase_beta)
     return phaseshift_alpha, phaseshift_beta
+
+
+def compute_phaseshift_terms_rk4(
+    phase_0: A123f,
+    phase_1: A123f,
+    phase_2: A123f,
+    phase_3: A123f,
+    phaseshift_0: A123c,
+    phaseshift_1: A123c,
+    phaseshift_2: A123c,
+    phaseshift_3: A123c,
+):
+    phaseshift_0[:] = np.exp(1j * phase_0)
+    phaseshift_1[:] = np.exp(1j * phase_1)
+    phaseshift_2[:] = np.exp(1j * phase_2)
+    phaseshift_3[:] = np.exp(1j * phase_3)
+    return phaseshift_0, phaseshift_1, phaseshift_2, phaseshift_3
 
 
 class ExactLinearCoefs:
@@ -216,9 +242,14 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             self._state_spect_tmp = np.empty_like(self.sim.state.state_spect)
 
         if "_random" in type_time_scheme:
-            self._init_phaseshift_random()
-            if not hasattr(self.sim.oper, "get_phases_random"):
-                raise NotImplementedError
+            if type_time_scheme.startswith("RK4_phaseshift_random"):
+                if not hasattr(self.sim.oper, "get_phases_random_rk4"):
+                    raise NotImplementedError
+                self._init_phaseshift_random_rk4()
+            else:
+                self._init_phaseshift_random()
+                if not hasattr(self.sim.oper, "get_phases_random"):
+                    raise NotImplementedError
 
         if type_time_scheme == "Euler":
             time_step_RK = self._time_step_Euler
@@ -247,6 +278,20 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
         elif type_time_scheme == "RK4":
             self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
             time_step_RK = self._time_step_RK4
+        elif type_time_scheme == "RK4_phaseshift_random":
+            self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
+            time_step_RK = self._time_step_RK4_phaseshift_random
+        elif type_time_scheme == "RK4_phaseshift_random_split":
+            self._state_spect_tmp1 = np.empty_like(self.sim.state.state_spect)
+            self._state_spect_tmp2 = np.empty_like(self.sim.state.state_spect)
+            self._state_spect_tmp3 = np.empty_like(self.sim.state.state_spect)
+            sig = inspect.signature(self.sim.tendencies_nonlin)
+            if not "phaseshift" in sig.parameters:
+                raise ValueError(
+                    "RK4_phaseshift_random_split used "
+                    "but tendencies_nonlin has no phaseshift argument."
+                )
+            time_step_RK = self._time_step_RK4_phaseshift_random_split
         else:
             raise ValueError(f'Problem name time_scheme ("{type_time_scheme}")')
 
@@ -399,6 +444,18 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
             self._index_phaseshift += 1
 
         return phaseshift_alpha, phaseshift_beta
+
+    def _init_phaseshift_random_rk4(self):
+        """Allocate the 4 phase-shift arrays used by RK4_phaseshift_random."""
+        self._phaseshifts_rk4 = [
+            np.empty(self.sim.oper.shapeK_loc, dtype=np.complex128)
+            for _ in range(len(OFFSETS_RK4_PHASESHIFT))
+        ]
+
+    def _get_phaseshift_random_rk4(self):
+        """Compute the 4 phase-shift terms for one RK4 time step."""
+        phases = self.sim.oper.get_phases_random_rk4(OFFSETS_RK4_PHASESHIFT)
+        return compute_phaseshift_terms_rk4(*phases, *self._phaseshifts_rk4)
 
     def _time_step_Euler_phaseshift(self):
         r"""Forward Euler method, dealiasing with phase-shifting.
@@ -1106,6 +1163,309 @@ class TimeSteppingPseudoSpectral(TimeSteppingBase):
 
         if ts.is_transpiled:
             ts.use_block("rk4_step3")
+        else:
+            # result using the 4 approximations
+            # transonic block (
+            #     A state_spect, state_spect_tmp, tendencies_3;
+            #     float dt
+            # )
+            state_spect[:] = state_spect_tmp + dt / 6 * tendencies_3
+
+    def _time_step_RK4_phaseshift_random(self):
+        r"""Runge-Kutta 4 method with phase-shifting (random).
+
+        Notes
+        -----
+
+        Same approximations as :func:`_time_step_RK4`, but each evaluation of
+        the non-linear term is replaced by a phase-shifted evaluation
+
+        .. math::
+            \tilde N_q = e^{-ik\Delta_q} N\left(e^{ik\Delta_q} S\right),
+
+        with the 4 shifts :math:`\Delta_q = (a + o_q) \dx` derived from a
+        single random number :math:`a` drawn uniformly in :math:`(-1/2, 1/2)`
+        and the offsets :math:`o_q` of ``OFFSETS_RK4_PHASESHIFT``
+        (Sinhababu & Ayyalasomayajula 2021).
+
+        The offsets cancel the primary aliasing error term of the classical
+        RK4 scheme exactly. Note that here the non-linear terms are weighted
+        by the exact linear coefficients, which differ between the substeps
+        :math:`q = 0` and :math:`q = 3`. The cancellation of the primary term
+        is therefore only approximate, with a residual proportional to
+        :math:`(e^{\sigma \dt} - 1)`, which vanishes in the inviscid limit and
+        was checked to stay negligible otherwise.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        phaseshifts = self._get_phaseshift_random_rk4()
+
+        # holds successively the shifted state and the unshifted tendencies
+        tmp = np.empty_like(state_spect)
+
+        state_spect_tmp1 = self._state_spect_tmp1
+
+        # substep 0
+        state_spect_shift = mul(phaseshifts[0], state_spect, output=tmp)
+        tendencies_0 = div_inplace(
+            compute_tendencies(state_spect_shift, old=state_spect_shift),
+            phaseshifts[0],
+        )
+
+        state_spect_tmp = step_Euler(
+            state_spect, dt / 6, tendencies_0, diss, output=self._state_spect_tmp
+        )
+        state_spect_12_approx1 = step_Euler(
+            state_spect, dt / 2, tendencies_0, diss2, output=state_spect_tmp1
+        )
+
+        # substep 1
+        state_spect_shift = mul(
+            phaseshifts[1], state_spect_12_approx1, output=tmp
+        )
+        del state_spect_12_approx1
+        tendencies_1 = div_inplace(
+            compute_tendencies(state_spect_shift, old=state_spect_shift),
+            phaseshifts[1],
+        )
+
+        state_spect_12_approx2 = state_spect_tmp1
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step1")
+        else:
+            # based on approximation 1
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A1 diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A2 diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
+            state_spect_12_approx2[:] = (
+                state_spect * diss2 + dt / 2 * tendencies_1
+            )
+
+        # substep 2
+        state_spect_shift = mul(
+            phaseshifts[2], state_spect_12_approx2, output=tmp
+        )
+        del state_spect_12_approx2
+        tendencies_2 = div_inplace(
+            compute_tendencies(state_spect_shift, old=state_spect_shift),
+            phaseshifts[2],
+        )
+
+        state_spect_1_approx = state_spect_tmp1
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step2")
+        else:
+            # based on approximation 2
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A1 diss, diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A2 diss, diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
+            state_spect_1_approx[:] = (
+                state_spect * diss + dt * diss2 * tendencies_2
+            )
+
+        # substep 3
+        state_spect_shift = mul(phaseshifts[3], state_spect_1_approx, output=tmp)
+        del state_spect_1_approx
+        tendencies_3 = div_inplace(
+            compute_tendencies(state_spect_shift, old=state_spect_shift),
+            phaseshifts[3],
+        )
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_step3")
+        else:
+            # result using the 4 approximations
+            # transonic block (
+            #     A state_spect, state_spect_tmp, tendencies_3;
+            #     float dt
+            # )
+            state_spect[:] = state_spect_tmp + dt / 6 * tendencies_3
+
+    def _time_step_RK4_phaseshift_random_split(self):
+        r"""Runge-Kutta 4 method with phase-shifting (random), with forcing.
+
+        Notes
+        -----
+
+        We consider an equation of the form
+
+        .. math:: \p_t S = \sigma S + N(S) + O(S),
+
+        where :math:`N` is the quadratic non-linear term, which produces
+        aliasing errors, and :math:`O` gathers the other terms, typically the
+        forcing. Since the forcing acts on modes below 2/3 of the Nyquist
+        wavenumber, it is not a source of aliasing and is evaluated on the
+        unshifted state, as in
+        :func:`_time_step_RK2_phaseshift_random_split`.
+
+        At each of the 4 substeps the tendencies are therefore
+
+        .. math::
+            e^{-ik\Delta_q} N\left(e^{ik\Delta_q} S\right) + O(S),
+
+        with the shifts :math:`\Delta_q` of
+        :func:`_time_step_RK4_phaseshift_random`. The substeps and the weights
+        are those of :func:`_time_step_RK4`.
+
+        """
+        dt = self.deltat
+        diss, diss2 = self.exact_linear_coefs.get_updated_coefs()
+
+        compute_tendencies = self.sim.tendencies_nonlin
+        state_spect = self.sim.state.state_spect
+
+        phaseshifts = self._get_phaseshift_random_rk4()
+
+        state_spect_tmp = self._state_spect_tmp
+        state_spect_tmp1 = self._state_spect_tmp1
+        # holds successively the shifted state and the full tendencies
+        tmp_shift = self._state_spect_tmp2
+        # holds the tendencies evaluated without phase shift
+        tmp_nophase = self._state_spect_tmp3
+
+        # substep 0
+        state_spect_shift = mul(phaseshifts[0], state_spect, output=tmp_shift)
+        tendencies_0_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift, phaseshift=True
+        )
+        tendencies_nophaseshift_0 = compute_tendencies(
+            state_spect, old=tmp_nophase, phaseshift=False
+        )
+        tendencies_0 = div_inplace(tendencies_0_shift, phaseshifts[0])
+        tendencies_0 += tendencies_nophaseshift_0
+
+        state_spect_tmp = step_Euler(
+            state_spect, dt / 6, tendencies_0, diss, output=state_spect_tmp
+        )
+        state_spect_12_approx1 = step_Euler(
+            state_spect, dt / 2, tendencies_0, diss2, output=state_spect_tmp1
+        )
+
+        # substep 1
+        state_spect_shift = mul(
+            phaseshifts[1], state_spect_12_approx1, output=tmp_shift
+        )
+        tendencies_1_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift, phaseshift=True
+        )
+        tendencies_nophaseshift_1 = compute_tendencies(
+            state_spect_12_approx1, old=tmp_nophase, phaseshift=False
+        )
+        del state_spect_12_approx1
+        tendencies_1 = div_inplace(tendencies_1_shift, phaseshifts[1])
+        tendencies_1 += tendencies_nophaseshift_1
+
+        state_spect_12_approx2 = state_spect_tmp1
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_split_step1")
+        else:
+            # based on approximation 1
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A1 diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_12_approx2, tendencies_1;
+            #     A2 diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_1
+            state_spect_12_approx2[:] = (
+                state_spect * diss2 + dt / 2 * tendencies_1
+            )
+
+        # substep 2
+        state_spect_shift = mul(
+            phaseshifts[2], state_spect_12_approx2, output=tmp_shift
+        )
+        tendencies_2_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift, phaseshift=True
+        )
+        tendencies_nophaseshift_2 = compute_tendencies(
+            state_spect_12_approx2, old=tmp_nophase, phaseshift=False
+        )
+        del state_spect_12_approx2
+        tendencies_2 = div_inplace(tendencies_2_shift, phaseshifts[2])
+        tendencies_2 += tendencies_nophaseshift_2
+
+        state_spect_1_approx = state_spect_tmp1
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_split_step2")
+        else:
+            # based on approximation 2
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A1 diss, diss2;
+            #     float dt
+            # )
+
+            # transonic block (
+            #     A state_spect, state_spect_tmp,
+            #       state_spect_1_approx, tendencies_2;
+            #     A2 diss, diss2;
+            #     float dt
+            # )
+
+            state_spect_tmp[:] += dt / 3 * diss2 * tendencies_2
+            state_spect_1_approx[:] = (
+                state_spect * diss + dt * diss2 * tendencies_2
+            )
+
+        # substep 3
+        state_spect_shift = mul(
+            phaseshifts[3], state_spect_1_approx, output=tmp_shift
+        )
+        tendencies_3_shift = compute_tendencies(
+            state_spect_shift, old=state_spect_shift, phaseshift=True
+        )
+        tendencies_nophaseshift_3 = compute_tendencies(
+            state_spect_1_approx, old=tmp_nophase, phaseshift=False
+        )
+        del state_spect_1_approx
+        tendencies_3 = div_inplace(tendencies_3_shift, phaseshifts[3])
+        tendencies_3 += tendencies_nophaseshift_3
+
+        if ts.is_transpiled:
+            ts.use_block("rk4_ps_split_step3")
         else:
             # result using the 4 approximations
             # transonic block (
