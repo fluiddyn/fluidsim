@@ -75,8 +75,9 @@ class MoviesBase:
         """Initializes animated fig. and list of times of save files to load."""
         self._set_key_field(key_field)
         self._init_ani_times(tmin, tmax, dt_equations)
+
         self.fig, self.ax = plt.subplots(
-            num=numfig, layout="constrained", **fig_kw
+            num=numfig, layout="constrained", clear=numfig is not None, **fig_kw
         )
         self._init_labels()
 
