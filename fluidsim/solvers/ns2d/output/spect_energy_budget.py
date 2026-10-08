@@ -10,6 +10,8 @@
 import numpy as np
 import h5py
 
+from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.legend_handler import HandlerTuple
 
 from fluidsim.base.output.spect_energy_budget import (
     SpectralEnergyBudgetBase,
@@ -18,10 +20,53 @@ from fluidsim.base.output.spect_energy_budget import (
 
 
 class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
-    """Save and plot energy budget in spectral space."""
+    r"""Save and plot the spectral energy and enstrophy budgets.
+
+    Notes
+    -----
+
+    .. math::
+
+      d_t E(k_h) = T_E(k_h) - D_E(k_h),
+
+      d_t Z(k_h) = T_Z(k_h) - D_Z(k_h),
+
+    where :math:`E(k_h)` and :math:`Z(k_h)` are the energy and enstrophy
+    spectra. The transfer terms are
+
+    .. math::
+
+      T_E(\mathbf{k}) = \Re (\hat{u}_i^* \widehat{N_i}),
+      \quad
+      T_Z(\mathbf{k}) = \Re (\hat{\zeta}^* \widehat{N_\zeta}),
+
+    with :math:`N_i = -u_j \partial_j u_i` and
+    :math:`N_\zeta = -u_j \partial_j \zeta - \beta u_y`. Both the
+    non-linear terms and the :math:`\beta` term conserve :math:`E` and
+    :math:`Z`, so :math:`\sum T_E = \sum T_Z = 0`.
+
+    Only the transfers are saved. The fluxes are obtained by integrating
+    them from the large wavenumbers,
+
+    .. math:: \Pi(k_h) = \sum_{k_h' \geq k_h} T(k_h') \delta k,
+
+    whereas the cumulated dissipation is integrated from the small ones,
+
+    .. math:: D(k_h) = \sum_{k_h' < k_h} 2 f_d(k_h') E(k_h') \delta k,
+
+    where :math:`f_d` is the dissipation frequency, recomputed from the
+    `params.nu_...` parameters. In 2d it only depends on :math:`|k|`, so
+    it is constant over a shell and :math:`D` does not need to be saved.
+    See :func:`compute_fluxes_mean` for the accuracy of this
+    reconstruction.
+
+    For a statistically steady forced simulation, :math:`\Pi + D` should
+    be equal to the cumulated injection.
+
+    """
 
     def compute(self):
-        """compute the spectral energy budget at one time."""
+        """Compute the spectral energy and enstrophy transfers at one time."""
         oper = self.sim.oper
 
         ux = self.sim.state.state_phys.get_var("ux")
@@ -92,7 +137,184 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
         self.axe_a.plot(khE + khE[1], PiE, "k")
         self.axe_b.plot(khE + khE[1], PiZ, "g")
 
+    def load_mean(self, tmin=0, tmax=None, keys_to_load=None, verbose=True):
+        """Load the spectra averaged between tmin and tmax."""
+        means = {}
+        with h5py.File(self.path_file, "r") as file:
+            times = file["times"][...]
+            nt = len(times)
+
+            imin = 0 if tmin is None else np.argmin(abs(times - tmin))
+            imax = nt - 1 if tmax is None else np.argmin(abs(times - tmax))
+
+            if verbose:
+                print(
+                    "compute mean spectral energy budget\n"
+                    f"tmin = {times[imin]:8.6g} ; tmax = {times[imax]:8.6g}\n"
+                    f"imin = {imin:8d} ; imax = {imax:8d}"
+                )
+
+            for key in file.keys():
+                if key.startswith("kh"):
+                    means[key] = file[key][...]
+
+            keys_saved = [
+                key
+                for key in file.keys()
+                if key != "times" and not key.startswith(("k", "info"))
+            ]
+
+            if keys_to_load is None:
+                keys_to_load = keys_saved
+            else:
+                if isinstance(keys_to_load, str):
+                    keys_to_load = [keys_to_load]
+                for key in keys_to_load:
+                    if key not in keys_saved:
+                        raise ValueError(f"key '{key}' not in {keys_saved}")
+
+            for key in keys_to_load:
+                means[key] = file[key][imin : imax + 1].mean(0)
+
+        return means
+
+    def _freq_diss_kh(self, kh):
+        params = self.params
+        f_d = np.zeros_like(kh)
+        for order in (2, 4, 8):
+            nu = getattr(params, f"nu_{order}", 0.0)
+            if nu:
+                f_d = f_d + nu * kh**order
+        nu_m4 = getattr(params, "nu_m4", 0.0)
+        if nu_m4:
+            kh_not0 = np.where(kh == 0, np.inf, kh)
+            f_d = f_d + nu_m4 * kh_not0**-4
+        return f_d
+
+    def _load_spectra2d_mean(self, tmin=0, tmax=None):
+        with h5py.File(self.output.spectra.path_file2D, "r") as file:
+            times = file["times"][...]
+            imin = 0 if tmin is None else np.argmin(abs(times - tmin))
+            imax = (
+                len(times) - 1 if tmax is None else np.argmin(abs(times - tmax))
+            )
+            kh = file["khE"][...]
+            E = file["spectrum2D_E"][imin : imax + 1].mean(0)
+        return kh, E
+
+    def compute_fluxes_mean(self, tmin=0, tmax=None, verbose=False):
+        """Compute the mean fluxes and cumulated dissipations.
+
+        The dissipations are reconstructed from the 2d spectra and the
+        dissipation frequency evaluated at the center of each shell. The
+        resulting D[-1] overestimates the dissipation rate given by
+        spatial_means by a few percents, more for high order
+        viscosities. The keys "DE" and "DZ" are absent if the 2d spectra
+        were not saved.
+
+        """
+        data = self.load_mean(tmin, tmax, verbose=verbose)
+
+        khE = data["khE"]
+        deltak = khE[1] - khE[0]
+
+        results = {
+            "khE": khE,
+            "PiE": deltak * cumsum_inv(data["transfer2D_E"]),
+            "PiZ": deltak * cumsum_inv(data["transfer2D_Z"]),
+        }
+
+        try:
+            kh, E = self._load_spectra2d_mean(tmin, tmax)
+        except (OSError, KeyError):
+            pass
+        else:
+            f_d = self._freq_diss_kh(kh)
+            results["DE"] = deltak * np.cumsum(2 * f_d * E)
+            results["DZ"] = deltak * np.cumsum(2 * f_d * kh**2 * E)
+
+        return results
+
+    def plot_fluxes(self, tmin=0, tmax=None, key="both", normalize=True, ax=None):
+        """Plot the mean spectral fluxes.
+
+        Parameters
+        ----------
+
+        key : {"both", "E", "Z"}
+
+          Plot the energy budget, the enstrophy budget, or both, each
+          normalized by its own dissipation rate.
+
+        normalize : bool
+
+          Normalize by D[-1].
+
+        """
+        data = self.compute_fluxes_mean(tmin, tmax)
+
+        khE = data["khE"]
+        k_plot = khE + (khE[1] - khE[0]) / 2
+
+        if ax is None:
+            fig, ax = self.output.figure_axe()
+
+        keys = ["E", "Z"] if key == "both" else [key]
+        colors = {"E": "k", "Z": "g"}
+
+        for key_ in keys:
+            Pi = data["Pi" + key_]
+            D = data.get("D" + key_)
+            eps = D[-1] if (normalize and D is not None) else 1.0
+
+            color = colors[key_]
+            ax.semilogx(
+                k_plot, Pi / eps, color, linewidth=2, label=r"$\Pi_" + key_ + "$"
+            )
+            if D is not None:
+                ax.semilogx(
+                    k_plot,
+                    D / eps,
+                    color + "--",
+                    linewidth=2,
+                    label="$D_" + key_ + "$",
+                )
+                ax.semilogx(
+                    k_plot,
+                    (Pi + D) / eps,
+                    color + ":",
+                    label=r"$\Pi_" + key_ + " + D_" + key_ + "$",
+                )
+
+        ax.set_ylabel(r"$\Pi(k_h) / \epsilon$" if normalize else r"$\Pi(k_h)$")
+        ax.axhline(0, color="0.7", linewidth=0.5)
+        ax.set_xlabel("$k_h$")
+        ax.set_title(f"spectral fluxes\n{self.output.summary_simul}")
+        ax.legend()
+
+        return ax
+
     def plot(self, tmin=0, tmax=1000, delta_t=2):
+        r"""Plot the energy and enstrophy fluxes, not normalized.
+
+        Use :func:`plot_fluxes` to get the cumulated dissipation and
+        the normalization by the dissipation rate.
+
+        Parameters
+        ----------
+
+        tmin, tmax : float
+
+          Bounds of the time window. The nearest saved times are used.
+
+        delta_t : float
+
+          Approximate time between two plotted curves, rounded to a
+          multiple of the saving period. If ``delta_t != 0``, the
+          instantaneous fluxes are plotted with a color gradient from
+          light (``tmin``) to dark (``tmax``). If ``delta_t == 0``, only the fluxes averaged over the window are
+          plotted.
+        """
         with h5py.File(self.path_file, "r") as h5file:
             dset_times = h5file["times"]
             dset_khE = h5file["khE"]
@@ -102,9 +324,7 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
             dset_transferE = h5file["transfer2D_E"]
             dset_transferZ = h5file["transfer2D_Z"]
 
-            # nb_spectra = dset_times.shape[0]
             times = dset_times[...]
-            # nt = len(times)
 
             delta_t_save = np.mean(times[1:] - times[0:-1])
             delta_i_plot = int(np.round(delta_t / delta_t_save))
@@ -128,26 +348,69 @@ class SpectralEnergyBudgetNS2D(SpectralEnergyBudgetBase):
 
             fig, ax1 = self.output.figure_axe()
             ax1.set_xlabel("$k_h$")
-            ax1.set_ylabel("spectra")
+            ax1.set_ylabel(r"$\Pi(k_h)$")
             ax1.set_xscale("log")
             ax1.set_yscale("linear")
+            ax1.axhline(0, color="0.7", linewidth=0.5)
+            ax1.set_title(f"spectral fluxes\n{self.output.summary_simul}")
+
+            handles = []
+            labels = []
 
             if delta_t != 0.0:
-                for it in range(imin_plot, imax_plot, delta_i_plot):
-                    transferE = dset_transferE[it]
-                    transferZ = dset_transferZ[it]
+                cmaps = {
+                    "E": LinearSegmentedColormap.from_list(
+                        "PiE", ["0.8", "black"]
+                    ),
+                    "Z": LinearSegmentedColormap.from_list(
+                        "PiZ", ["#bfe0bf", "green"]
+                    ),
+                }
 
-                    PiE = cumsum_inv(transferE) * self.oper.deltak
-                    PiZ = cumsum_inv(transferZ) * self.oper.deltak
+                its = list(range(imin_plot, imax_plot + 1, delta_i_plot))
+                norm = Normalize(
+                    vmin=times[its[0]],
+                    vmax=max(times[its[-1]], times[its[0]] + 1e-12),
+                )
 
-                    ax1.plot(khE, PiE, "k", linewidth=1)
-                    ax1.plot(khE, PiZ, "g", linewidth=1)
+                for it in its:
+                    PiE = cumsum_inv(dset_transferE[it]) * self.oper.deltak
+                    PiZ = cumsum_inv(dset_transferZ[it]) * self.oper.deltak
 
-            transferE = dset_transferE[imin_plot:imax_plot].mean(0)
-            transferZ = dset_transferZ[imin_plot:imax_plot].mean(0)
+                    color_t = norm(times[it])
+                    (lineE,) = ax1.plot(
+                        khE, PiE, color=cmaps["E"](color_t), linewidth=1
+                    )
+                    (lineZ,) = ax1.plot(
+                        khE, PiZ, color=cmaps["Z"](color_t), linewidth=1
+                    )
 
-        PiE = cumsum_inv(transferE) * self.oper.deltak
-        PiZ = cumsum_inv(transferZ) * self.oper.deltak
+                    handles.append((lineE, lineZ))
+                    labels.append(f"$t = {times[it]:.3g}$")
 
-        ax1.plot(khE, PiE, "r", linewidth=2)
-        ax1.plot(khE, PiZ, "m", linewidth=2)
+                # the darkest curves also carry the name of the quantity
+                handles += [lineE, lineZ]
+                labels += [r"$\Pi_E$", r"$\Pi_Z$"]
+
+                transferE = transferZ = None
+            else:
+                transferE = dset_transferE[imin_plot : imax_plot + 1].mean(0)
+                transferZ = dset_transferZ[imin_plot : imax_plot + 1].mean(0)
+
+        if transferE is not None:
+            PiE = cumsum_inv(transferE) * self.oper.deltak
+            PiZ = cumsum_inv(transferZ) * self.oper.deltak
+
+            (meanE,) = ax1.plot(khE, PiE, "k", linewidth=2)
+            (meanZ,) = ax1.plot(khE, PiZ, "g", linewidth=2)
+
+            handles += [meanE, meanZ]
+            labels += [r"$\langle \Pi_E \rangle$", r"$\langle \Pi_Z \rangle$"]
+
+        ax1.legend(
+            handles,
+            labels,
+            handler_map={tuple: HandlerTuple(ndivide=None)},
+            handlelength=3,
+            fontsize="small",
+        )
