@@ -12,7 +12,7 @@ created-by = "pdm"
 
 [[packages]]
 name = "fluidsim-core"
-version = "0.9.0"
+version = "26.10.0"
 requires-python = ">=3.11"
 marker = "\"default\" in dependency_groups or \"dev\" in dependency_groups"
 
@@ -1312,11 +1312,11 @@ dependencies = []
 
 [[packages]]
 name = "astroid"
-version = "4.3.3"
+version = "4.3.4"
 requires-python = ">=3.10.0"
-sdist = {name = "astroid-4.3.3.tar.gz", url = "https://files.pythonhosted.org/packages/8d/7e/7c85d2b8549730e089bd984678a7efb64c510a5f09b4f0d9987a8354a80c/astroid-4.3.3.tar.gz", hashes = {sha256 = "d03854b09d92c08e18d8e7d9185d393961186ed0747136d8fcb2d1c008a504ec"}}
+sdist = {name = "astroid-4.3.4.tar.gz", url = "https://files.pythonhosted.org/packages/2d/87/5732fa68bf100a095cfcbd108f919220d995db99e1a7502b8119a869fd62/astroid-4.3.4.tar.gz", hashes = {sha256 = "d515a105722b72098bbe82d430d65e635f742b6cbac3bdfaf8b7c188b87c5e39"}}
 wheels = [
-    {name = "astroid-4.3.3-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/23/be/54ffbdd679e2ea9f36f1923edd867c39fc1190b3810f111c8282a3f0b608/astroid-4.3.3-py3-none-any.whl",hashes = {sha256 = "366c99c2907b6407869b1bbfd8abb10f3aea5818309e9c93c9b9c93ecf14bc4f"}},
+    {name = "astroid-4.3.4-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/16/d4/f23c0ac6e6de33ba5686cb21c672c95e0c2d3d4c9351f16d3b5fed818652/astroid-4.3.4-py3-none-any.whl",hashes = {sha256 = "2bcd0d02648a443a4b818c952c3550091989daefac3c12d3b83b2289482e0818"}},
 ]
 marker = "\"dev\" in dependency_groups"
 
@@ -4414,11 +4414,11 @@ dependencies = []
 
 [[packages]]
 name = "pycparser"
-version = "3.0"
+version = "3.1"
 requires-python = ">=3.10"
-sdist = {name = "pycparser-3.0.tar.gz", url = "https://files.pythonhosted.org/packages/1b/7d/92392ff7815c21062bea51aa7b87d45576f649f16458d78b7cf94b9ab2e6/pycparser-3.0.tar.gz", hashes = {sha256 = "600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29"}}
+sdist = {name = "pycparser-3.1.tar.gz", url = "https://files.pythonhosted.org/packages/ac/d3/eb1d3bc30dda12f7e69640ae2ac8cb10240b71fb73024ad528b7d2ae73da/pycparser-3.1.tar.gz", hashes = {sha256 = "b3fc6dec06a8b2fefa0ed4ff92285306a5e3be9987bc5603c9edbdc4e492418f"}}
 wheels = [
-    {name = "pycparser-3.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/0c/c3/44f3fbbfa403ea2a7c779186dc20772604442dde72947e7d01069cbe98e3/pycparser-3.0-py3-none-any.whl",hashes = {sha256 = "b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"}},
+    {name = "pycparser-3.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/99/ce/b3ae9ee0324d991c860187be2a6ee436d27a3d02397eaddbb101ec901f3d/pycparser-3.1-py3-none-any.whl",hashes = {sha256 = "f09d358c840bd147b79e55f2bc494f18ea869dc897f5852a8f5766b74f787882"}},
 ]
 marker = "implementation_name != \"PyPy\" and \"doc\" in dependency_groups"
 
@@ -4493,7 +4493,7 @@ marker = "\"doc\" in dependency_groups"
 dependencies = []
 
 [tool.pdm]
-hashes = {sha256 = "614523069348d7fd03a0bbe7f62d151c6d48748f0bbeabb4a2fa5d21c3d29fe1"}
+hashes = {sha256 = "196f362228b2ea626fd1356283102745932de0a9d364329aa990336e2019f41b"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]

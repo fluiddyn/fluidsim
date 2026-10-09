@@ -2,8 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this
-project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+**Versioning scheme.** Starting with version 26.10, Fluidsim uses calendar versioning in
+the form `YY.MM.MICRO`, where `YY` is the two-digit year, `MM` the month of the release
+(without a leading zero) and `MICRO` a counter incremented for each additional release in
+the same month, starting from 0, which is omitted. For example, 27.1 is the first release
+of January 2027 and 27.1.1 is the second one. We moved away from semantic versioning
+because we did not rely on its properties and because a date-based version tells users,
+and anyone reading a publication that cites Fluidsim, when the code was released. It also
+avoids choosing between 0.10, which suggests an unfinished project, and 1.0, which
+suggests a level of API stability that is too strong a promise for a scientific code.
+Since the version number no longer signals compatibility, we commit to the following:
+micro releases (YY.MM.`MICRO` with `MICRO` > 0) never contain breaking changes, and any
+backward-incompatible change is announced in this changelog.
 
 See also the [unreleased changes].
 
@@ -22,6 +34,88 @@ See also the [unreleased changes].
 % Fixed      Fixed for any bug fixes.
 
 % Security   Security in case of vulnerabilities.
+
+## [26.10.0] (2026-10-??)
+
+This release is largely the result of the work of Clovis Lambert (LEGI). Thank you,
+Clovis!
+
+The most important news are:
+
+- More efficient dealiasing schemes using phase-shifting
+
+- New output {mod}`fluidsim.base.output.kolmo_law` for checking exact anisotropic
+  Kolmogorov laws
+
+- I/O and parallel: init from file using h5py in parallel
+  ([!469](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/469)).
+
+### Added/changed
+
+- Phase-shifting (more efficient dealiasing schemes):
+
+  - [!471](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/471) New time
+    stepping method based on RK4 with phase-shifting
+  - [!465](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/465)
+    Compatibility with forcing for `ns3d.strat`
+
+- [!460](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/460) New output
+  {mod}`fluidsim.base.output.kolmo_law` for checking exact anisotropic Kolmogorov laws
+  (stratified and non-stratified cases), with online save. Followed by
+  [!463](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/463) and
+  [!467](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/467) (better plots)
+  and by [!468](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/468) (lower
+  memory usage in `compute`).
+
+- [!457](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/457),
+  [!459](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/459) and
+  [!461](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/461) New module
+  {mod}`fluidsim.operators.coord_system3d` for coordinate conversion, with the
+  possibility to shift the origin to the center of the grid.
+
+- [!458](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/458) New spatial
+  average operator
+
+- [!469](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/469) Initialization
+  from file: {class}`fluidsim.base.init_fields.InitFieldsFromFile` now reads the physical
+  fields in parallel with h5py
+
+- [!472](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/472) Better plots
+  for `ns2d`: new `plot_fluxes` in `spect_energy_budg.py` (nonlinear energy and enstrophy
+  fluxes, normalized or not by the dissipation) and dimensionless numbers in
+  `spatial_means.py`
+
+- [!454](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/454) and
+  [!455](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/455) Anisotropic
+  forcing: default values of the forcing parameters and new function
+  `plot_forcing_region` for the `tc_random` forcing
+
+- [!466](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/466) New Guix
+  manifest `python-fluidsim-github.scm` to build Fluidsim from the GitHub repository on
+  the Gricad clusters
+
+### Fixed
+
+- [!464](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/464) Remove `fNone`
+  in the solvers
+
+- [!451](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/451)
+  `anisotropic.py`: the `delta_angle` parameter is now converted with `ensure_radians` in
+  the plot
+
+### Documentation and development
+
+- [!449](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/449) Improved
+  documentation of the pseudo-spectral time schemes
+
+- [!447](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/447) and
+  [!448](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/448) Documentation
+  of the Pixi environments, of the locked environments (`install-locked-env`) and new
+  page `related-projects.md`
+
+- [!456](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/456) and
+  [!462](https://foss.heptapod.net/fluiddyn/fluidsim/-/merge_requests/462) Modernized
+  Pixi configuration and creation of a PDF from a MyST notebook (mystmd and Typst)
 
 ## [0.9.0] (2025-12-03)
 
@@ -383,4 +477,5 @@ Merge with geofluidsim (Ashwin Vishnu Mohanan repository)
 [0.8.5]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.4...0.8.5
 [0.8.6]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.5...0.8.6
 [0.9.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.8.6...0.9.0
-[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.9.0...branch%2Fdefault
+[26.10.0]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/0.9.0...26.10.0
+[unreleased changes]: https://foss.heptapod.net/fluiddyn/fluidsim/-/compare/26.10.0...branch%2Fdefault
