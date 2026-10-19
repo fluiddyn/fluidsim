@@ -1,13 +1,38 @@
+"""Tests for fluidsim.operators.spatial_average3d
+
+Run sequentially and in parallel (the decomposition tests are only meaningful
+with several processes; 3 processes gives an uneven split)::
+
+    pytest fluidsim/operators/test/test_spatial_average3d.py
+    mpirun -np 2 pytest fluidsim/operators/test/test_spatial_average3d.py
+    mpirun -np 3 pytest fluidsim/operators/test/test_spatial_average3d.py
+"""
+
 import pytest
 import numpy as np
+
+from fluiddyn.util import mpi
 
 from fluidsim.operators.spatial_average3d import SpatialAverage
 
 
-class MockOperator:
-    """Minimal operator for testing spatial averaging."""
+def _sum_over_procs(value):
+    if mpi.nb_proc == 1:
+        return value
+    return mpi.comm.allreduce(value)
 
-    def __init__(self, nx, ny, nz, Lx, Ly, Lz):
+
+class MockOperator:
+    """Minimal operator for testing spatial averaging.
+
+    Arrays are ordered (z, y, x). With MPI, the grid is split along
+    ``axis_split`` like a real parallel operator (each process only gets its
+    local slice). fluidfft's fftwmpi3d always splits along axis 0;
+    ``axis_split=2`` mimics other (e.g. pencil) decompositions, for which
+    the local minimum of rho differs between processes.
+    """
+
+    def __init__(self, nx, ny, nz, Lx, Ly, Lz, axis_split=0):
         self.nx = nx
         self.ny = ny
         self.nz = nz
@@ -21,19 +46,41 @@ class MockOperator:
         y1d = np.linspace(0, Ly, ny, endpoint=False)
         z1d = np.linspace(0, Lz, nz, endpoint=False)
 
-        self.Z, self.Y, self.X = np.meshgrid(z1d, y1d, x1d, indexing="ij")
+        Z, Y, X = np.meshgrid(z1d, y1d, x1d, indexing="ij")
+        self.shapeX_seq = X.shape
+
+        indices = np.array_split(
+            np.arange(self.shapeX_seq[axis_split]), mpi.nb_proc
+        )[mpi.rank]
+        if len(indices) == 0:
+            raise ValueError("Too many processes for this grid")
+        slices = [slice(None)] * 3
+        slices[axis_split] = slice(indices[0], indices[-1] + 1)
+        self._slices_loc = tuple(slices)
+
+        self.X, self.Y, self.Z = (self.scatter(arr) for arr in (X, Y, Z))
         self.shapeX_loc = self.X.shape
 
+    def scatter(self, field_seq):
+        """Local slice of a global (sequential) field."""
+        return np.ascontiguousarray(field_seq[self._slices_loc])
+
     def get_XYZ_loc(self):
-        """Return local coordinates (no MPI in tests)."""
+        """Return local coordinates."""
         return self.X, self.Y, self.Z
 
 
-@pytest.fixture(scope="module")
-def spatial_avg():
-    """Create SpatialAverage instance."""
-    oper = MockOperator(nx=20, ny=20, nz=20, Lx=1.0, Ly=1.0, Lz=1.0)
+def _create_spatial_avg(axis_split=0):
+    oper = MockOperator(
+        nx=20, ny=20, nz=20, Lx=1.0, Ly=1.0, Lz=1.0, axis_split=axis_split
+    )
     return SpatialAverage(oper, dr=1.0, drh=1.0, dz=1.0, shift_origin=True)
+
+
+@pytest.fixture(scope="module", params=[0, 2], ids=["split_z", "split_x"])
+def spatial_avg(request):
+    """Create SpatialAverage instance (domain split along z or x with MPI)."""
+    return _create_spatial_avg(axis_split=request.param)
 
 
 # ---------------------------------------------------------------------------
@@ -226,7 +273,7 @@ def test_compute_volume_weights_sum(spatial_avg):
     """Test that sum of volume weights equals total domain volume."""
     oper = spatial_avg.oper
     weights = spatial_avg.compute_volume_weights()
-    total_volume = np.sum(weights)
+    total_volume = _sum_over_procs(np.sum(weights))
     expected_volume = oper.Lx * oper.Ly * oper.Lz
     assert np.allclose(total_volume, expected_volume, rtol=1e-10)
 
@@ -249,3 +296,52 @@ def test_compute_volume_weights_field_azimuthal_average_sum(spatial_avg):
     volumes_averages = np.mean(weights_avg)
     expected_volumes_average = oper.delta**3
     assert np.allclose(volumes_averages, expected_volumes_average, rtol=0.1)
+
+
+# ---------------------------------------------------------------------------
+# MPI tests (also run sequentially)
+# ---------------------------------------------------------------------------
+
+
+def test_bins_start_at_origin(spatial_avg):
+    """The binning loops assume that the first bins are at 0."""
+    assert spatial_avg.rho_centers[0] == 0.0
+    assert abs(spatial_avg.r_centers[0]) < 1e-10
+
+
+def test_weights_sum_to_number_of_points(spatial_avg):
+    n_points = spatial_avg.oper.nx * spatial_avg.oper.ny * spatial_avg.oper.nz
+    assert np.isclose(spatial_avg.radial_weights.sum(), n_points, rtol=1e-12)
+    assert np.isclose(spatial_avg.azimuthal_weights.sum(), n_points, rtol=1e-12)
+
+
+def test_weights_identical_on_all_procs(spatial_avg):
+    if mpi.nb_proc == 1:
+        pytest.skip("Only meaningful with MPI")
+    for weights in (spatial_avg.radial_weights, spatial_avg.azimuthal_weights):
+        ref = mpi.comm.bcast(weights, root=0)
+        ok = ref.shape == weights.shape and np.array_equal(ref, weights)
+        assert all(mpi.comm.allgather(ok))
+
+
+def test_independent_of_decomposition():
+    """Same global field, two decompositions -> same averages."""
+    avg_z = _create_spatial_avg(axis_split=0)
+    avg_x = _create_spatial_avg(axis_split=2)
+
+    for name in ("r_centers", "rho_centers", "z_centers"):
+        assert np.array_equal(getattr(avg_z, name), getattr(avg_x, name)), name
+
+    field_seq = np.random.default_rng(0).standard_normal(avg_z.oper.shapeX_seq)
+    field_z = avg_z.oper.scatter(field_seq)
+    field_x = avg_x.oper.scatter(field_seq)
+
+    res_z = avg_z.compute_radial_average(field_z, return_std=True)
+    res_x = avg_x.compute_radial_average(field_x, return_std=True)
+    for arr_z, arr_x in zip(res_z[1:], res_x[1:]):
+        assert np.allclose(arr_z, arr_x, rtol=1e-12, atol=1e-12)
+
+    res_z = avg_z.compute_azimuthal_average(field_z, return_std=True)
+    res_x = avg_x.compute_azimuthal_average(field_x, return_std=True)
+    for arr_z, arr_x in zip(res_z[2:], res_x[2:]):
+        assert np.allclose(arr_z, arr_x, rtol=1e-12, atol=1e-12)
