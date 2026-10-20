@@ -633,7 +633,10 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
 
     def get_phases_random_rk4(self, offsets):
         """Return phases for the substeps of the RK4 phase-shifting scheme."""
-        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        if nb_proc > 1:
+            alphas = mpi.comm.bcast(alphas, root=0)
+        alpha_x, alpha_y = alphas
         phase_random = (
             alpha_x * self.deltax * self.KX + alpha_y * self.deltay * self.KY
         )
