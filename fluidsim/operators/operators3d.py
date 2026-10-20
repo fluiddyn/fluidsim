@@ -1153,7 +1153,10 @@ Lx, Ly and Lz: float
         corresponds to a shift of one grid spacing in each direction, so
         that ``offsets`` are expressed in units of the grid spacing.
         """
-        alpha_x, alpha_y, alpha_z = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        if nb_proc > 1:
+            alphas = mpi.comm.bcast(alphas, root=0)
+        alpha_x, alpha_y, alpha_z = alphas
         phase_random = (
             alpha_x * self.deltax * self.Kx
             + alpha_y * self.deltay * self.Ky
