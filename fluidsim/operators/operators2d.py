@@ -615,11 +615,20 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         else:
             return getattr(self, axis + "_seq")
 
-    @boost
     def get_phases_random(self):
-        # Not supported by Pythran 0.9.5!
-        # alpha_x, alpha_y = np.random.uniform(-0.5, 0.5, 2)
-        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        """Return two random phases separated by half a grid spacing.
+
+        See :func:`OperatorsPseudoSpectral3D.get_phases_random`.
+
+        """
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        if nb_proc > 1:
+            alphas = comm.bcast(alphas, root=0)
+        return self.compute_phases_random(*alphas)
+
+    @boost
+    def compute_phases_random(self, alpha_x: float, alpha_y: float):
+        """Compute the two phases from the random shift."""
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
 
