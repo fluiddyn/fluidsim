@@ -673,7 +673,7 @@ class KolmoLaw(SpecificOutput):
                     r_store[1:] / eta,
                     divJ_k[1:],
                     "r",
-                    label="$\\nabla \cdot J_{K,L}$",
+                    label="$\\nabla \\cdot J_{K,L}$",
                 )
                 if "b" in keys_state_phys:
                     ax2.plot(
@@ -686,7 +686,7 @@ class KolmoLaw(SpecificOutput):
                         r_store[1:] / eta,
                         divJ_p[1:] + divJ_k[1:],
                         "k",
-                        label="$\\nabla \\cdot J_L = \\nabla \cdot (J_{K,L} + J_{P,L})$",
+                        label="$\\nabla \\cdot J_L = \\nabla \\cdot (J_{K,L} + J_{P,L})$",
                     )
                 ax2.plot(
                     r_store[1:] / eta,
@@ -935,9 +935,9 @@ class KolmoLaw(SpecificOutput):
             ani_param=ani_param,
             num_vectors=num_vectors,
         ):
-            full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
+            full_title = rf"$\mathbf{{J}}{type_plot}(r_h,r_v)/4\epsilon$, {title}"
             if rescale_vaxis:
-                full_title = f"$\mathbf{{J}}{type_plot}(r_h,r_v)/(4\epsilon \| \mathbf{{J}}_{{th}} \|)$, {title}"
+                full_title = rf"$\mathbf{{J}}{type_plot}(r_h,r_v)/(4\epsilon \| \mathbf{{J}}_{{th}} \|)$, {title}"
             save_name_file = f"J{type_plot}_vector_hv"
 
             if axes is None:
@@ -1416,10 +1416,10 @@ class KolmoLaw(SpecificOutput):
             coma = ""
             if type_plot != "":
                 coma = ","
-            full_title = f"$-\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
+            full_title = f"$-\\mathbf{{J}}_{{{type_plot}{coma}L}}(r_h,r_v)/r\\epsilon$, {title}"
             save_name_file = f"J{type_plot}_L_hv"
             if divergence:
-                full_title = f"$-\\nabla \\cdot \mathbf{{J}}_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
+                full_title = f"$-\\nabla \\cdot \\mathbf{{J}}_{{{type_plot}}}(r_h,r_v)/4\\epsilon$, {title}"
                 save_name_file = f"divJ{type_plot}_hv"
             axis_min = 0
             if logscale:
