@@ -1124,11 +1124,23 @@ Lx, Ly and Lz: float
             raise NotImplementedError
         return arr_fft[ik0, ik1, ik2]
 
-    @boost
     def get_phases_random(self):
-        # Not supported by Pythran 0.9.5!
-        # alpha_x, alpha_y, alpha_z = np.random.uniform(-0.5, 0.5, 3)
-        alpha_x, alpha_y, alpha_z = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        """Return two random phases separated by half a grid spacing.
+
+        The random shift is drawn once and broadcast, so that all MPI
+        processes use the same shift.
+
+        """
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        if nb_proc > 1:
+            alphas = mpi.comm.bcast(alphas, root=0)
+        return self.compute_phases_random(*alphas)
+
+    @boost
+    def compute_phases_random(
+        self, alpha_x: float, alpha_y: float, alpha_z: float
+    ):
+        """Compute the two phases from the random shift."""
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
         beta_z = alpha_z + 0.5 if alpha_z < 0 else alpha_z - 0.5
@@ -1148,12 +1160,33 @@ Lx, Ly and Lz: float
     def get_phases_random_rk4(self, offsets):
         """Return phases for the substeps of the RK4 phase-shifting scheme.
 
-        A single random shift is drawn per call. The phases are built as
+        A single random shift is drawn per call and broadcast, so that all MPI
+        processes use the same shift. The phases are built as
         ``phase_random + offset * phase_unit``, where ``phase_unit``
-        corresponds to a shift of one grid spacing in each direction, so
-        that ``offsets`` are expressed in units of the grid spacing.
+        corresponds to a shift of one grid spacing in each direction, so that
+        ``offsets`` are expressed in units of the grid spacing.
+
+        See
+        :func:`fluidsim.base.time_stepping.pseudo_spect.TimeSteppingPseudoSpectral._time_step_RK4_phaseshift_random`.
+
         """
-        alpha_x, alpha_y, alpha_z = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(3))
+        if nb_proc > 1:
+            alphas = mpi.comm.bcast(alphas, root=0)
+        return self.compute_phases_random_rk4(*alphas, *offsets)
+
+    @boost
+    def compute_phases_random_rk4(
+        self,
+        alpha_x: float,
+        alpha_y: float,
+        alpha_z: float,
+        offset_0: float,
+        offset_1: float,
+        offset_2: float,
+        offset_3: float,
+    ):
+        """Compute the 4 phases from the random shift and the offsets."""
         phase_random = (
             alpha_x * self.deltax * self.Kx
             + alpha_y * self.deltay * self.Ky
@@ -1162,7 +1195,12 @@ Lx, Ly and Lz: float
         phase_unit = (
             self.deltax * self.Kx + self.deltay * self.Ky + self.deltaz * self.Kz
         )
-        return [phase_random + offset * phase_unit for offset in offsets]
+        return (
+            phase_random + offset_0 * phase_unit,
+            phase_random + offset_1 * phase_unit,
+            phase_random + offset_2 * phase_unit,
+            phase_random + offset_3 * phase_unit,
+        )
 
     def i012_from_ixyz(self, ix, iy, iz):
         if self.is_sequential:

@@ -615,11 +615,20 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         else:
             return getattr(self, axis + "_seq")
 
-    @boost
     def get_phases_random(self):
-        # Not supported by Pythran 0.9.5!
-        # alpha_x, alpha_y = np.random.uniform(-0.5, 0.5, 2)
-        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        """Return two random phases separated by half a grid spacing.
+
+        See :func:`OperatorsPseudoSpectral3D.get_phases_random`.
+
+        """
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        if nb_proc > 1:
+            alphas = comm.bcast(alphas, root=0)
+        return self.compute_phases_random(*alphas)
+
+    @boost
+    def compute_phases_random(self, alpha_x: float, alpha_y: float):
+        """Compute the two phases from the random shift."""
         beta_x = alpha_x + 0.5 if alpha_x < 0 else alpha_x - 0.5
         beta_y = alpha_y + 0.5 if alpha_y < 0 else alpha_y - 0.5
 
@@ -632,13 +641,37 @@ class OperatorsPseudoSpectral2D(_Operators, OperatorBase):
         return phase_alpha, phase_beta
 
     def get_phases_random_rk4(self, offsets):
-        """Return phases for the substeps of the RK4 phase-shifting scheme."""
-        alpha_x, alpha_y = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        """Return phases for the substeps of the RK4 phase-shifting scheme.
+
+        See :func:`OperatorsPseudoSpectral3D.get_phases_random_rk4`.
+
+        """
+        alphas = tuple(uniform(-0.5, 0.5) for _ in range(2))
+        if nb_proc > 1:
+            alphas = comm.bcast(alphas, root=0)
+        return self.compute_phases_random_rk4(*alphas, *offsets)
+
+    @boost
+    def compute_phases_random_rk4(
+        self,
+        alpha_x: float,
+        alpha_y: float,
+        offset_0: float,
+        offset_1: float,
+        offset_2: float,
+        offset_3: float,
+    ):
+        """Compute the 4 phases from the random shift and the offsets."""
         phase_random = (
             alpha_x * self.deltax * self.KX + alpha_y * self.deltay * self.KY
         )
         phase_unit = self.deltax * self.KX + self.deltay * self.KY
-        return [phase_random + offset * phase_unit for offset in offsets]
+        return (
+            phase_random + offset_0 * phase_unit,
+            phase_random + offset_1 * phase_unit,
+            phase_random + offset_2 * phase_unit,
+            phase_random + offset_3 * phase_unit,
+        )
 
 
 # energy_arr = self.sum_wavenumbers(abs(arr)**2)
