@@ -63,8 +63,7 @@ for path in paths:
         time = float(path_file.name.rsplit("_t", 1)[1][:-3])
         if (
             # time % deltat_file > deltat
-            time != t_last
-            and abs(time - t_end) > deltat
+            time != t_last and abs(time - t_end) > deltat
         ):
             print(f"deleting {path_file.name}")
             path_file.unlink()

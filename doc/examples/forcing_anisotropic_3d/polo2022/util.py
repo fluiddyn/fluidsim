@@ -97,9 +97,7 @@ def compute_nhmin_nhmax(N, R):
 
     nhmin = Lh * (100 * coef_nu4) ** (3 / 10) * N ** (6 / 5) * Pf ** (1 / 10) / pi
     nhmax = (
-        Lh
-        * (R**3 * N**6) ** (1 / 4)
-        / (coef_dealiasing * pi * (Pf ** (1 / 2)))
+        Lh * (R**3 * N**6) ** (1 / 4) / (coef_dealiasing * pi * (Pf ** (1 / 2)))
     )
 
     return nhmin, nhmax
@@ -217,7 +215,7 @@ def get_t_statio(N, nh):
     if nh < 2560:
         return t_end - 3.0
     else:
-        return t_end - 2.0 
+        return t_end - 2.0
 
 
 def compute_nhstart_nhend(N, R):

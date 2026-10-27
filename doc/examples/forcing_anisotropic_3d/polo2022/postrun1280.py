@@ -30,8 +30,8 @@ from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 from util import (
-#    path_base_jeanzay,
-#    path_output_papermill_jeanzay,
+    #    path_base_jeanzay,
+    #    path_output_papermill_jeanzay,
     get_t_end,
     get_t_statio,
     couples1280,
@@ -183,4 +183,3 @@ for path in paths:
 
     if has_to_run:
         os.system(f"jupyter-nbconvert --to pdf {path_ipynb}")
-

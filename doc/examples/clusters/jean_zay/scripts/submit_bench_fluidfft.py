@@ -17,6 +17,7 @@ from fluidjean_zay import cluster
 
 n = 640
 
+
 def submit(nb_nodes):
     nb_cores_per_node = cluster.nb_cores_per_node
     nb_mpi = nb_procs = nb_nodes * nb_cores_per_node

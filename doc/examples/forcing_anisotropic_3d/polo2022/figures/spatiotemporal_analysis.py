@@ -1,10 +1,11 @@
 """
-    Plot four figures for each simulations and one key:
-    1. spectra_vs_kzomega_slice_normalized
-    2. spectra_vs_khomega_slice_normalized
-    3. omega_emp
-    4. nonlinear_broadening
+Plot four figures for each simulations and one key:
+1. spectra_vs_kzomega_slice_normalized
+2. spectra_vs_khomega_slice_normalized
+3. omega_emp
+4. nonlinear_broadening
 """
+
 import matplotlib.pyplot as plt
 import matplotlib.cm
 import numpy as np

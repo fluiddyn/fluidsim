@@ -30,8 +30,8 @@ from fluidsim.util import times_start_last_from_path, load_params_simul
 from fluidsim import load
 
 from util import (
-#    path_base_jeanzay,
-#    path_output_papermill_jeanzay,
+    #    path_base_jeanzay,
+    #    path_output_papermill_jeanzay,
     get_t_end,
     get_t_statio,
     couples2560,
@@ -87,8 +87,7 @@ for path in paths:
         time = float(path_file.name.rsplit("_t", 1)[1][:-3])
         if (
             # time % deltat_file > deltat
-            time != t_last
-            and abs(time - t_end) > deltat
+            time != t_last and abs(time - t_end) > deltat
         ):
             print(f"deleting {path_file.name}")
             path_file.unlink()

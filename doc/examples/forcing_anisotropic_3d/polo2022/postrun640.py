@@ -16,7 +16,7 @@ This directory can be synchronized on Jean-Zay with:
 
 ```
 du -h /scratch/vlabarre/aniso/init_jeanzay
-rsync -rvz -L --update /scratch/vlabarre/aniso/init_jeanzay/ns3d* uey73qw@jean-zay.idris.fr:/gpfsscratch/rech/uzc/uey73qw/aniso 
+rsync -rvz -L --update /scratch/vlabarre/aniso/init_jeanzay/ns3d* uey73qw@jean-zay.idris.fr:/gpfsscratch/rech/uzc/uey73qw/aniso
 ```
 
 3. compute the spatiotemporal spectra
@@ -92,8 +92,7 @@ for path in paths:
         time = float(path_file.name.rsplit("_t", 1)[1][:-3])
         if (
             # time % deltat_file > deltat
-            time != t_last
-            and abs(time - t_end) > deltat
+            time != t_last and abs(time - t_end) > deltat
         ):
             print(f"deleting {path_file.name}")
             path_file.unlink()
