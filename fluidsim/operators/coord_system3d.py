@@ -41,7 +41,7 @@ class CoordSystem3DConverter:
 
     def compute_r_theta(self):
         """r_theta is defined between [-pi; pi] and is 0 for x = y = 0"""
-        return np.atan2(self.y, self.x)
+        return np.arctan2(self.y, self.x)
 
     def compute_cylindrical_components(self, vx, vy, vz):
         """Convert (vx, vy, vz) in cylindrical coordinates (vh, vt, vz)"""

@@ -17,6 +17,33 @@ from fluiddyn.util import mpi
 
 from fluidsim.operators.coord_system3d import CoordSystem3DConverter
 
+
+def _allreduce_sum(arr_loc):
+    """Sum a numpy array over all MPI processes; result on every process.
+
+    Buffer-based ``Allreduce``: no pickling, no 2 GiB limit of the
+    pickle-based ``gather`` (mpi4py < 4 / MPI < 4), and memory independent of
+    the number of processes.
+    """
+    if mpi.nb_proc == 1:
+        return arr_loc
+    from mpi4py import MPI
+
+    arr_loc = np.ascontiguousarray(arr_loc, dtype=np.float64)
+    result = np.empty_like(arr_loc)
+    mpi.comm.Allreduce(arr_loc, result, op=MPI.SUM)
+    return result
+
+
+def _allreduce_scalar(value, op_name):
+    """Global min or max of a scalar over all MPI processes."""
+    if mpi.nb_proc == 1:
+        return value
+    from mpi4py import MPI
+
+    return mpi.comm.allreduce(value, op={"min": MPI.MIN, "max": MPI.MAX}[op_name])
+
+
 Af3d = "float64[:,:,:]"
 Af1d = "float64[]"
 
@@ -242,24 +269,9 @@ class SpatialAverage:
         r_min_loc = np.min(self.r)
         r_max_loc = np.max(self.r)
 
-        # Gather global min/max across all processes
-        if mpi.nb_proc > 1:
-            r_min_all = mpi.comm.gather(r_min_loc, root=0)
-            r_max_all = mpi.comm.gather(r_max_loc, root=0)
-
-            if mpi.rank == 0:
-                r_min = np.min(r_min_all)
-                r_max = np.max(r_max_all)
-            else:
-                r_min = None
-                r_max = None
-
-            # Broadcast to all processes
-            r_min = mpi.comm.bcast(r_min, root=0)
-            r_max = mpi.comm.bcast(r_max, root=0)
-        else:
-            r_min = r_min_loc
-            r_max = r_max_loc
+        # Global min/max across all processes
+        r_min = _allreduce_scalar(r_min_loc, "min")
+        r_max = _allreduce_scalar(r_max_loc, "max")
 
         self.nr = int((r_max - r_min) / self.deltar) + 1
 
@@ -281,32 +293,10 @@ class SpatialAverage:
         z_min_loc = np.min(self.Z)
         z_max_loc = np.max(self.Z)
 
-        if mpi.nb_proc > 1:
-            rho_max_all = mpi.comm.gather(rho_max_loc, root=0)
-            rho_min_all = mpi.comm.gather(rho_min_loc, root=0)
-            z_min_all = mpi.comm.gather(z_min_loc, root=0)
-            z_max_all = mpi.comm.gather(z_max_loc, root=0)
-
-            if mpi.rank == 0:
-                rho_max = np.max(rho_max_all)
-                rho_min = np.max(rho_min_all)
-                z_min = np.min(z_min_all)
-                z_max = np.max(z_max_all)
-            else:
-                rho_max = None
-                rho_min = None
-                z_min = None
-                z_max = None
-
-            rho_max = mpi.comm.bcast(rho_max, root=0)
-            rho_min = mpi.comm.bcast(rho_min, root=0)
-            z_min = mpi.comm.bcast(z_min, root=0)
-            z_max = mpi.comm.bcast(z_max, root=0)
-        else:
-            rho_max = rho_max_loc
-            rho_min = rho_min_loc
-            z_min = z_min_loc
-            z_max = z_max_loc
+        rho_max = _allreduce_scalar(rho_max_loc, "max")
+        rho_min = _allreduce_scalar(rho_min_loc, "min")
+        z_min = _allreduce_scalar(z_min_loc, "min")
+        z_max = _allreduce_scalar(z_max_loc, "max")
 
         # Create uniform bin centers
         self.nrh = int((rho_max - rho_min) / self.deltarh) + 1
@@ -338,20 +328,8 @@ class SpatialAverage:
         )
 
         # Sum across MPI processes
-        if mpi.nb_proc > 1:
-            radial_all = mpi.comm.gather(radial_weights_loc, root=0)
-            azimuthal_all = mpi.comm.gather(azimuthal_weights_loc, root=0)
-            if mpi.rank == 0:
-                radial_weights = np.sum(radial_all, axis=0)
-                azimuthal_weights = np.sum(azimuthal_all, axis=0)
-            else:
-                radial_weights = None
-                azimuthal_weights = None
-            self.radial_weights = mpi.comm.bcast(radial_weights, root=0)
-            self.azimuthal_weights = mpi.comm.bcast(azimuthal_weights, root=0)
-        else:
-            self.radial_weights = radial_weights_loc
-            self.azimuthal_weights = azimuthal_weights_loc
+        self.radial_weights = _allreduce_sum(radial_weights_loc)
+        self.azimuthal_weights = _allreduce_sum(azimuthal_weights_loc)
 
     # ------------------------------------------------------------------ #
     #  Radial average  <f>_Omega(r)                                        #
@@ -419,17 +397,7 @@ class SpatialAverage:
         sum_f_loc = loop_spherical(field, self.r_centers, self.r**2)
 
         # MPI reduction
-        if mpi.nb_proc > 1:
-            sum_f_all = mpi.comm.gather(sum_f_loc, root=0)
-
-            if mpi.rank == 0:
-                sum_f = np.sum(sum_f_all, axis=0)
-            else:
-                sum_f = None
-
-            sum_f = mpi.comm.bcast(sum_f, root=0)
-        else:
-            sum_f = sum_f_loc
+        sum_f = _allreduce_sum(sum_f_loc)
 
         # Compute average
         mask_nonzero = self.radial_weights > 0
@@ -444,17 +412,7 @@ class SpatialAverage:
         # Compute variance and std
         sum_f2_loc = loop_spherical(field**2, self.r_centers, self.r**2)
 
-        if mpi.nb_proc > 1:
-            sum_f2_all = mpi.comm.gather(sum_f2_loc, root=0)
-
-            if mpi.rank == 0:
-                sum_f2 = np.sum(sum_f2_all, axis=0)
-            else:
-                sum_f2 = None
-
-            sum_f2 = mpi.comm.bcast(sum_f2, root=0)
-        else:
-            sum_f2 = sum_f2_loc
+        sum_f2 = _allreduce_sum(sum_f2_loc)
 
         f2_avg = np.zeros(self.nr)
         f2_avg[mask_nonzero] = (
@@ -534,17 +492,7 @@ class SpatialAverage:
         )
 
         # MPI reduction
-        if mpi.nb_proc > 1:
-            sum_f_all = mpi.comm.gather(sum_f_loc, root=0)
-
-            if mpi.rank == 0:
-                sum_f = np.sum(sum_f_all, axis=0)
-            else:
-                sum_f = None
-
-            sum_f = mpi.comm.bcast(sum_f, root=0)
-        else:
-            sum_f = sum_f_loc
+        sum_f = _allreduce_sum(sum_f_loc)
 
         # Compute average
         mask_nonzero = self.azimuthal_weights > 0
@@ -561,17 +509,7 @@ class SpatialAverage:
             field**2, self.rho_centers, self.rho, self.z_centers, self.Z
         )
 
-        if mpi.nb_proc > 1:
-            sum_f2_all = mpi.comm.gather(sum_f2_loc, root=0)
-
-            if mpi.rank == 0:
-                sum_f2 = np.sum(sum_f2_all, axis=0)
-            else:
-                sum_f2 = None
-
-            sum_f2 = mpi.comm.bcast(sum_f2, root=0)
-        else:
-            sum_f2 = sum_f2_loc
+        sum_f2 = _allreduce_sum(sum_f2_loc)
 
         f2_avg = np.zeros((self._nz, self.nrh))
         f2_avg[mask_nonzero] = (
