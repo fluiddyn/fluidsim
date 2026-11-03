@@ -41,6 +41,7 @@ class TimeSteppingBase0:
             "deltat0": 0.2,
             "deltat_max": 0.2,
             "cfl_coef": None,
+            "cfl_scale_with_dealiasing": False,
             "max_elapsed": None,
         }
         params._set_child("time_stepping", attribs=attribs)
@@ -83,6 +84,13 @@ cfl_coef: float (default None)
 
     If not None, clf_coef used in the CFL condition. If None, the value is choosen
     taking into account the time scheme.
+
+cfl_scale_with_dealiasing: bool (default False)
+
+    If True, the CFL coefficient (default value or `cfl_coef`) is divided by
+    params.oper.coef_dealiasing. The CFL coefficient is then defined with
+    respect to the largest wavenumber kept after dealiasing
+    (k_max = coef_dealiasing * pi / deltax).
 
 max_elapsed: number or str (default None)
 
@@ -260,6 +268,19 @@ class TimeSteppingBase(TimeSteppingBase0):
                 self.CFL = 1.0
             else:
                 raise ValueError("Problem name time_scheme")
+            try:
+                scale_with_dealiasing = params_ts.cfl_scale_with_dealiasing
+            except AttributeError:
+                scale_with_dealiasing = False
+            if scale_with_dealiasing:
+                try:
+                    coef_dealiasing = self.params.oper.coef_dealiasing
+                except AttributeError:
+                    raise ValueError(
+                        "params.time_stepping.cfl_scale_with_dealiasing is True "
+                        "but params.oper has no coef_dealiasing."
+                    )
+                self.CFL /= coef_dealiasing
 
         else:
             self.deltat = params_ts.deltat0
