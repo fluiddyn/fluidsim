@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12
 LABEL Pierre Augier <pierre.augier@univ-grenoble-alpes.fr>
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
