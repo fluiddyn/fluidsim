@@ -21,16 +21,16 @@ jobs:
           - os: macos
             architecture: arm64
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v4.3.5
         env:
-          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
+          CIBW_SKIP: pp* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheel-${{ matrix.os }}-${{ matrix.architecture }}
           path: wheelhouse/*.whl
@@ -44,21 +44,21 @@ jobs:
           - os: windows
             architecture: AMD64
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v4.3.5
         env:
-          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
+          CIBW_SKIP: pp* *-musllinux*
           CIBW_ARCHS: ${{ matrix.architecture }}
           # increase pip debugging output
           # CIBW_BUILD_VERBOSITY: 2
           # define CC, CXX so meson will use clang-cl instead of MSVC
           CC: clang-cl
           CXX: clang-cl
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheel-${{ matrix.os }}-${{ matrix.architecture }}
           path: wheelhouse/*.whl
@@ -69,21 +69,21 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: docker/setup-qemu-action@v2
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v4.3.5
         env:
-          CIBW_SKIP: pp* cp38-* cp39-* cp310-* *-musllinux*
+          CIBW_SKIP: pp* *-musllinux*
           CIBW_ARCHS: aarch64
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheel-ubuntu-aarch64
           path: wheelhouse/*.whl
@@ -91,12 +91,12 @@ jobs:
   sdist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: echo ${{ github.ref }}
       - run: python -m pip install build twine packaging -U
       - run: python -m build --sdist
       - run: twine check --strict dist/*
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -106,10 +106,10 @@ jobs:
     needs:
       - sdist
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: sdist
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v7
       with:
         python-version: 3.13
     - run: |
@@ -135,7 +135,7 @@ jobs:
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         path: dist
         merge-multiple: true
