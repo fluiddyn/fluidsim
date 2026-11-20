@@ -41,7 +41,6 @@ class TimeSteppingBase0:
             "deltat0": 0.2,
             "deltat_max": 0.2,
             "cfl_coef": None,
-            "cfl_scale_with_dealiasing": False,
             "max_elapsed": None,
         }
         params._set_child("time_stepping", attribs=attribs)
@@ -83,14 +82,10 @@ deltat_max: float (default 0.2)
 cfl_coef: float (default None)
 
     If not None, clf_coef used in the CFL condition. If None, the value is choosen
-    taking into account the time scheme.
-
-cfl_scale_with_dealiasing: bool (default False)
-
-    If True, the CFL coefficient (default value or `cfl_coef`) is divided by
-    params.oper.coef_dealiasing. The CFL coefficient is then defined with
-    respect to the largest wavenumber kept after dealiasing
-    (k_max = coef_dealiasing * pi / deltax).
+    taking into account the time scheme. For pseudo-spectral solvers, the CFL
+    condition is computed with the largest wavenumber kept after dealiasing,
+    i.e. deltax is replaced by pi / k_max with
+    k_max = coef_dealiasing * deltakx * nx / 2.
 
 max_elapsed: number or str (default None)
 
@@ -268,24 +263,10 @@ class TimeSteppingBase(TimeSteppingBase0):
                 self.CFL = 1.0
             else:
                 raise ValueError("Problem name time_scheme")
-            try:
-                scale_with_dealiasing = params_ts.cfl_scale_with_dealiasing
-            except AttributeError:
-                scale_with_dealiasing = False
-            if scale_with_dealiasing:
-                try:
-                    coef_dealiasing = self.params.oper.coef_dealiasing
-                except AttributeError:
-                    raise ValueError(
-                        "params.time_stepping.cfl_scale_with_dealiasing is True "
-                        "but params.oper has no coef_dealiasing."
-                    )
-                self.CFL /= coef_dealiasing
-
-        else:
-            self.deltat = params_ts.deltat0
 
         self.deltat = params_ts.deltat0
+
+        self._lengths_cfl = self._compute_lengths_cfl()
 
         has_vars = self.sim.state.has_vars
 
@@ -316,6 +297,36 @@ class TimeSteppingBase(TimeSteppingBase0):
             raise ValueError("params_ts.USE_CFL but no velocity.")
 
         self.deltat_max = params_ts.deltat_max
+
+    def _compute_lengths_cfl(self):
+        """Lengths used in the CFL condition.
+
+        For pseudo-spectral solvers (``params.oper.coef_dealiasing`` exists),
+        pi / k_max with k_max the largest wavenumber kept after dealiasing.
+        Otherwise, the grid spacings.
+        """
+        oper = self.sim.oper
+        try:
+            coef_dealiasing = self.params.oper.coef_dealiasing
+        except AttributeError:
+            coef_dealiasing = None
+
+        lengths = {}
+        for letter in "xyz":
+            key = "delta" + letter
+            if not hasattr(oper, key):
+                continue
+            if coef_dealiasing is None:
+                lengths[key] = getattr(oper, key)
+            else:
+                kmax = (
+                    coef_dealiasing
+                    * getattr(oper, "deltak" + letter)
+                    * getattr(oper, "n" + letter)
+                    / 2
+                )
+                lengths[key] = pi / kmax
+        return lengths
 
     def _init_time_scheme(self):
         params_ts = self.params.time_stepping
@@ -350,9 +361,9 @@ class TimeSteppingBase(TimeSteppingBase0):
             max_uy = max_abs(uy)
             max_uz = max_abs(uz)
             tmp = (
-                max_ux / self.sim.oper.deltax
-                + max_uy / self.sim.oper.deltay
-                + max_uz / self.sim.oper.deltaz
+                max_ux / self._lengths_cfl["deltax"]
+                + max_uy / self._lengths_cfl["deltay"]
+                + max_uz / self._lengths_cfl["deltaz"]
             )
         else:
             tmp = 0.0
@@ -382,7 +393,10 @@ class TimeSteppingBase(TimeSteppingBase0):
 
         max_ux = max_abs(ux)
         max_uy = max_abs(uy)
-        tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
+        tmp = (
+            max_ux / self._lengths_cfl["deltax"]
+            + max_uy / self._lengths_cfl["deltay"]
+        )
 
         self._compute_time_increment_CLF_from_tmp(tmp)
 
@@ -413,7 +427,10 @@ class TimeSteppingBase(TimeSteppingBase0):
 
         max_ux = max_abs(ux)
         max_uy = max_abs(uy)
-        tmp = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
+        tmp = (
+            max_ux / self._lengths_cfl["deltax"]
+            + max_uy / self._lengths_cfl["deltay"]
+        )
 
         if mpi.nb_proc > 1:
             tmp = mpi.comm.allreduce(tmp, op=mpi.MPI.MAX)
@@ -424,7 +441,9 @@ class TimeSteppingBase(TimeSteppingBase0):
             deltat_CFL = self.deltat_max
 
         deltat_wave = (
-            self.CFL * min(self.sim.oper.deltax, self.sim.oper.deltay) / cph
+            self.CFL
+            * min(self._lengths_cfl["deltax"], self._lengths_cfl["deltay"])
+            / cph
         )
         maybe_new_dt = min(deltat_CFL, deltat_wave, self.deltat_max)
         normalize_diff = abs(self.deltat - maybe_new_dt) / maybe_new_dt
@@ -436,13 +455,13 @@ class TimeSteppingBase(TimeSteppingBase0):
         """Compute the time increment deltat with a CLF condition."""
         ux = self.sim.state.get_var("ux")
         max_ux = max_abs(ux)
-        tmp = max_ux / self.sim.oper.deltax
+        tmp = max_ux / self._lengths_cfl["deltax"]
         self._compute_time_increment_CLF_from_tmp(tmp)
 
     def _compute_time_increment_CLF_U(self):
         """Compute the time increment deltat with a CLF condition."""
         max_ux = self.params.U
-        tmp = max_ux / self.sim.oper.deltax
+        tmp = max_ux / self._lengths_cfl["deltax"]
         self._compute_time_increment_CLF_from_tmp(tmp)
 
     def _compute_dispersion_relation(self):

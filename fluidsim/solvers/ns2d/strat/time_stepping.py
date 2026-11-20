@@ -145,7 +145,10 @@ class TimeSteppingPseudoSpectralStrat(TimeSteppingPseudoSpectral):
 
         max_ux = abs(ux).max()
         max_uy = abs(uy).max()
-        freq_CFL = max_ux / self.sim.oper.deltax + max_uy / self.sim.oper.deltay
+        freq_CFL = (
+            max_ux / self._lengths_cfl["deltax"]
+            + max_uy / self._lengths_cfl["deltay"]
+        )
 
         if mpi.nb_proc > 1:
             freq_CFL = mpi.comm.allreduce(freq_CFL, op=mpi.MPI.MAX)
