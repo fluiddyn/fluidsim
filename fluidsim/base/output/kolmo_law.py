@@ -992,7 +992,8 @@ class KolmoLaw(SpecificOutput):
                 aniso_param = ani_param
 
             if rescale_vaxis:
-                full_title += rf", $\alpha = {round(aniso_param, 2)}$"
+                if aniso_param != 1:
+                    full_title += rf", $\alpha = {round(aniso_param, 2)}$"
                 save_name_file += "_rv_rescaled"
                 J_h_theory = -RH / (aniso_param + 2)
                 J_v_theory = -(aniso_param * RV) / (aniso_param + 2)
@@ -1306,6 +1307,8 @@ class KolmoLaw(SpecificOutput):
         grid=False,
         disk=0.25,
         isolines=False,
+        min_iso=0.9,
+        max_iso=1.1,
         epsilon=None,
         cmap="plasma",
         save=False,
@@ -1486,7 +1489,7 @@ class KolmoLaw(SpecificOutput):
                 )
                 if isolines:
                     save_name_file += "_isolines"
-                    levels = np.arange(0.9, 1.1, 0.1)
+                    levels = np.arange(min_iso, max_iso, 0.1)
                     cs = ax.contour(
                         Theta,
                         log_R,
@@ -1497,7 +1500,7 @@ class KolmoLaw(SpecificOutput):
                         label="isoline",
                     )
                     ax.clabel(cs, inline=True, fontsize="small", fmt="%.1f")
-                    inertial_range = (j_l >= 0.9) & (j_l <= 1.1)
+                    inertial_range = (j_l >= min_iso) & (j_l <= max_iso)
                     print(f"{inertial_range=}")
                 ax.legend()
                 ax.set_thetamin(90 - 360 * disk)
@@ -1559,7 +1562,7 @@ class KolmoLaw(SpecificOutput):
                         RH[1:] / eta,
                         RV[1:] / eta,
                         j_l,
-                        levels=[0.9, 1.1],
+                        levels=[min_iso, max_iso],
                         colors="none",
                         hatches=["///"],
                     )
