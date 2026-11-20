@@ -101,22 +101,29 @@ if N is None:
   if nz == 640:
     tmin = 66.6
   else:
-    tmin = 60.1
+    tmin = 60.2
 else:
   if N == 10:
     if nz == 640:
-      tmin = 11.5
+      if "18-09-46" in simu_path.name:
+        tmin = 11
+      else:
+        tmin = 11.5
     elif nz == 1024:
-      tmin = 12.1
+      tmin = 14
   elif N == 2:
-    tmin = 8
+    tmin = 9
   elif N == 25:
     tmin = 11.5
   elif N == 20:
     # tmin = 17.4
-    tmin = 18.2
+    tmin = 20
   elif N == 0.1:
-    tmin = 12.5
+    tmin = 26
+  elif N == 1:
+    tmin = 21
+  elif N == 4:
+    tmin = 22
 tmax = None
 
 
@@ -326,7 +333,7 @@ Here, we directly take a look at the vectorial field $\mathbf{J} (r_h, r_v)$ nor
 
 
 ```{code-cell} ipython3
-sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=300, which_plot='J', divJ=divJ, ani_param=1, rescale_vaxis=True, save=SAVE)
+sim.output.kolmo_law.plot_Jhv_vector(tmin=tmin, tmax=tmax, num_vectors=12, which_plot='J', divJ=divJ, ani_param=1, rescale_vaxis=True, save=SAVE)
 ```
 
 Then we do not fix $\alpha$ and compute it inside the inertial range by the least square method:
